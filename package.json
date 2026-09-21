@@ -11,6 +11,8 @@
     "validate:creature-art": "node tools/validate-creature-art.mjs",
     "tokens": "node tools/generate-token-art.mjs",
     "tokens:check": "node tools/check-token-art.mjs",
+    "tokens:import": "node tools/import-token.mjs",
+    "prompts": "node tools/token-prompts.mjs",
     "agent-loop": "node tools/agent-loop/poll.mjs",
     "agent-bridge-mcp": "node tools/agent-loop/mcp-server.mjs",
     "format": "prettier --write ."

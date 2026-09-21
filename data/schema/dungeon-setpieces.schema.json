@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Deck of Many More Things — dungeon-setpieces.json",
+  "type": "array",
+  "minItems": 1,
+  "items": { "$ref": "#/definitions/setpiece" },
+  "definitions": {
+    "setpiece": {
+      "type": "object",
+      "required": ["id", "kind", "name", "summary", "complete"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "kind": { "type": "string", "enum": ["puzzle", "trap", "skill_challenge", "narrative"] },
+        "archetype": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "difficulty": { "type": "string", "enum": ["easy", "medium", "hard"] },
+        "summary": { "type": "string", "minLength": 1 },
+        "complete": {
+          "type": "boolean",
+          "description": "False for a set-piece named in the source but not fully written out there — see summary for what's missing."
+        },
+        "hintChecks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["skill", "dc", "hint"],
+            "additionalProperties": false,
+            "properties": {
+              "skill": { "type": "string", "minLength": 1 },
+              "dc": { "type": "integer", "minimum": 1 },
+              "hint": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "solution": { "type": "string", "minLength": 1 },
+        "specialtySkills": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "skillFlavor": {
+          "type": "object",
+          "additionalProperties": { "type": "string", "minLength": 1 }
+        },
+        "revealText": { "type": "string", "minLength": 1 },
+        "npcName": { "type": "string", "minLength": 1 },
+        "npcHook": { "type": "string", "minLength": 1 },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "required": ["label", "consequence"],
+            "additionalProperties": false,
+            "properties": {
+              "label": { "type": "string", "minLength": 1 },
+              "consequence": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "suggestedObjective": { "type": "string", "minLength": 1 },
+        "source": {
+          "type": "object",
+          "required": ["chapter"],
+          "additionalProperties": false,
+          "properties": {
+            "chapter": { "type": ["integer", "null"], "minimum": 1 },
+            "note": { "type": "string" }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "puzzle" } } },
+          "then": { "required": ["difficulty", "source"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "trap" } } },
+          "then": { "required": ["difficulty", "source"] }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "puzzle" }, "complete": { "const": true } }
+          },
+          "then": { "required": ["hintChecks", "solution"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "skill_challenge" } } },
+          "then": { "required": ["archetype", "specialtySkills", "skillFlavor"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "narrative" } } },
+          "then": { "required": ["archetype"] }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "narrative" }, "archetype": { "const": "lore" } }
+          },
+          "then": { "required": ["revealText"] }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "narrative" }, "archetype": { "const": "ally" } }
+          },
+          "then": { "required": ["npcName", "npcHook"] }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "narrative" }, "archetype": { "const": "choice" } }
+          },
+          "then": { "required": ["options"] }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "narrative" }, "archetype": { "const": "goal" } }
+          },
+          "then": { "required": ["suggestedObjective"] }
+        }
+      ]
+    }
+  }
+}
