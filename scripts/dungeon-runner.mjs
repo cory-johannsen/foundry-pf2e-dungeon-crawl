@@ -15,12 +15,7 @@
  * see dungeon-layout.mjs for why that needs no reindexing even when a Ruin
  * or Reward inserts or removes a room from the sequence.
  */
-import {
-  buildRoomSequence,
-  findOutcomeTemplate,
-  resolveRoomOutcome,
-  applySequenceMutation,
-} from "./dungeon-deck.mjs";
+import { getGenerator } from "./generator-registry.mjs";
 import {
   initSkillChallengeState,
   applySkillChallengeAttempt,
@@ -65,7 +60,7 @@ export async function createRun(
 ) {
   const runSeed =
     seed ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  const rooms = buildRoomSequence({ seed: runSeed, roomCount, setpieceIds, narrativeSetpieceIds });
+  const rooms = getGenerator().buildRoomSequence({ seed: runSeed, roomCount, setpieceIds, narrativeSetpieceIds });
   // Room 0 is where the party starts — built and occupied at Start, before
   // any resolution happens, so it's the only slot normally assigned up
   // front. The one exception: room 0 is always the safe entry, which has
@@ -211,10 +206,10 @@ export async function markRoomOutcome(
   const { effectKey, mutation } =
     room.kind === "safe_rest"
       ? { effectKey: "rest_room_passed", mutation: null }
-      : resolveRoomOutcome(findOutcomeTemplate(room.outcomeSlotId), succeeded);
+      : getGenerator().resolveRoomOutcome(getGenerator().findOutcomeTemplate(room.outcomeSlotId), succeeded);
   const rooms =
     mutation === "remove_next" || mutation === "insert_after"
-      ? applySequenceMutation(state.rooms, state.currentIndex, mutation, {
+      ? getGenerator().applySequenceMutation(state.rooms, state.currentIndex, mutation, {
           seed: state.seed,
           setpieceIds,
           narrativeSetpieceIds,

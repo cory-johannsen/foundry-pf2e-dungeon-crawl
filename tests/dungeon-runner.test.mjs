@@ -22,6 +22,10 @@ import {
   getPendingNarrativeCustomization,
   applyNarrativeCustomization,
 } from "../scripts/dungeon-runner.mjs";
+import { registerGenerator } from '../scripts/generator-registry.mjs';
+import { DefaultGenerator } from '../scripts/default-generator.mjs';
+
+registerGenerator(DefaultGenerator);
 
 function makeSettingsStub(initial = {}) {
   let store = { dungeonRuns: initial };

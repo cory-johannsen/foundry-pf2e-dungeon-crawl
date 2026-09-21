@@ -8,7 +8,7 @@
  */
 import { makeFoundryApi } from "../../deck-of-many-more-things/scripts/foundry-api.mjs";
 import { buildEncounterDeck, dealEncounter } from "./encounter-deck.mjs";
-import { resolveEncounterRoster } from "./encounter-roster.mjs";
+import { getGenerator } from "./generator-registry.mjs";
 import { loadCreatureArt } from "../../deck-of-many-more-things/scripts/data-loader.mjs";
 import { findCreatureArt, creatureArtPath } from "./creature-art.mjs";
 import {
@@ -227,7 +227,7 @@ export async function generateEncounter({
   for (;;) {
     const deckSlots = buildEncounterDeck({ seed });
     const dealt = dealEncounter(deckSlots, { seed, partySize });
-    roster = await resolveEncounterRoster({
+    roster = await getGenerator().generateEncounterRoster({
       resolved: dealt.resolved,
       api,
       partyLevel,
