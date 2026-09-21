@@ -20,13 +20,6 @@
         "type": "system",
         "compatibility": { "minimum": "6.0.0" }
       }
-    ],
-    "requires": [
-      {
-        "id": "deck-of-many-more-things",
-        "type": "module",
-        "compatibility": { "minimum": "0.71.0" }
-      }
     ]
   },
   "url": "https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl",
