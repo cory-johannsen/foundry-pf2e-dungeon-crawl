@@ -1329,3 +1329,33 @@ describe("ensureNarrativeState / getPendingNarrativeCustomization / applyNarrati
     expect(result).toBeNull();
   });
 });
+
+describe("dungeonRuns settings namespace", () => {
+  /** Regression test for a bug where this file's settings access stayed
+   * pinned to the pre-split module id ("deck-of-many-more-things"), which
+   * module.mjs no longer registers "dungeonRuns" under — a real
+   * game.settings.get/set throws in that case. The makeSettingsStub() used
+   * by every other test in this file ignores its moduleId argument
+   * entirely, so it can't catch this; this test records the exact
+   * moduleId strings passed through instead. */
+  it("always reads/writes dungeonRuns under the pf2e-dungeon-crawl module id", async () => {
+    const seenModuleIds = new Set();
+    const store = { dungeonRuns: {} };
+    const settingsRef = {
+      get: (moduleId, key) => {
+        seenModuleIds.add(moduleId);
+        return store[key];
+      },
+      set: (moduleId, key, value) => {
+        seenModuleIds.add(moduleId);
+        store[key] = value;
+      },
+    };
+
+    await createRun({ sceneId: "scene-1", roomCount: 5 }, { settingsRef });
+    getRunState("scene-1", { settingsRef });
+    await abandonRun("scene-1", { settingsRef });
+
+    expect(seenModuleIds).toEqual(new Set(["pf2e-dungeon-crawl"]));
+  });
+});

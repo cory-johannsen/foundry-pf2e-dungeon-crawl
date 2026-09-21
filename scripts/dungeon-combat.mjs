@@ -46,7 +46,8 @@ import {
   playCreatureDeathSound,
 } from "./dungeon-sound.mjs";
 
-const MODULE_ID = "deck-of-many-more-things";
+const MODULE_ID = "deck-of-many-more-things"; // unchanged — flags stay pinned here, see split design doc
+const SETTINGS_MODULE_ID = "pf2e-dungeon-crawl"; // dungeonRuns/agentLoopHeartbeat are registered here now
 
 /** Ids of the actual party characters — this module's own definition of
  * "a real party member," used instead of Foundry's `hasPlayerOwner` wherever
@@ -458,7 +459,7 @@ const HEARTBEAT_STALE_FALLBACK_MS = 15000;
  * ages past the stale threshold.
  */
 export function agentLoopStatus() {
-  const heartbeat = game.settings.get(MODULE_ID, "agentLoopHeartbeat");
+  const heartbeat = game.settings.get(SETTINGS_MODULE_ID, "agentLoopHeartbeat");
   if (!heartbeat?.timestamp)
     return {
       connected: false,

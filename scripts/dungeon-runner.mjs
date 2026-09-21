@@ -22,7 +22,7 @@ import {
 } from "./skill-challenge-mechanics.mjs";
 import { initPuzzleState, applyPuzzleStageAttempt } from "./puzzle-mechanics.mjs";
 
-const MODULE_ID = "deck-of-many-more-things";
+const MODULE_ID = "pf2e-dungeon-crawl";
 
 function defaultSettingsRef() {
   return {
