@@ -512,11 +512,11 @@ export async function armAgentTimeout(combat, combatant) {
   if (currentCounter !== armedCounter) return;
   const { connected } = agentLoopStatus();
   const warningKey = connected
-    ? "DOMMT.Dungeon.Combat.AgentTimeoutWarning"
-    : "DOMMT.Dungeon.Combat.AgentTimeoutWarningDisconnected";
+    ? "PF2EDC.Dungeon.Combat.AgentTimeoutWarning"
+    : "PF2EDC.Dungeon.Combat.AgentTimeoutWarningDisconnected";
   const chatKey = connected
-    ? "DOMMT.Dungeon.Combat.AgentTimeoutChat"
-    : "DOMMT.Dungeon.Combat.AgentTimeoutChatDisconnected";
+    ? "PF2EDC.Dungeon.Combat.AgentTimeoutChat"
+    : "PF2EDC.Dungeon.Combat.AgentTimeoutChatDisconnected";
   ui.notifications.warn(game.i18n.format(warningKey, { name: combatant.name }));
   const gmIds = ChatMessage.getWhisperRecipients("GM").map((u) => u.id);
   await ChatMessage.create({
@@ -1242,7 +1242,7 @@ async function markReactionUsed(combat, combatantId, round) {
  * `postAgentDecisionChat`'s GM-only decision rationale). */
 async function postReactiveStrikeChat(reactor, attacker) {
   const esc = (s) => foundry.utils.escapeHTML?.(String(s)) ?? String(s);
-  const content = game.i18n.format("DOMMT.Dungeon.Combat.ReactiveStrikeChat", {
+  const content = game.i18n.format("PF2EDC.Dungeon.Combat.ReactiveStrikeChat", {
     name: esc(reactor.name),
     target: esc(attacker.name),
   });
@@ -3689,7 +3689,7 @@ async function castBreathWeaponAndApplyDamage(
  */
 async function postAgentDecisionChat(combatant, candidate, rationale) {
   const esc = (s) => foundry.utils.escapeHTML?.(String(s)) ?? String(s);
-  let content = game.i18n.format("DOMMT.Dungeon.Combat.AgentDecisionChat", {
+  let content = game.i18n.format("PF2EDC.Dungeon.Combat.AgentDecisionChat", {
     name: esc(combatant.name),
     summary: esc(candidate.summary ?? candidate.type),
   });

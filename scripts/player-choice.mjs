@@ -36,7 +36,7 @@ export function askPlayer({ user, card, kind, prompt, options = [], delta = 1, c
       resolve(value);
     };
     const timer = setTimeout(() => {
-      ui.notifications.warn(game.i18n.format('DOMMT.Choice.NoAnswer', { user: user.name }));
+      ui.notifications.warn(game.i18n.format('PF2EDC.Choice.NoAnswer', { user: user.name }));
       done(null);
     }, timeoutMs);
     pending.set(id, { done, timer });
@@ -49,7 +49,7 @@ export function askPlayer({ user, card, kind, prompt, options = [], delta = 1, c
       rulesText: card.rules?.summary ?? '',
       kind, prompt, options, delta, count
     });
-    ui.notifications.info(game.i18n.format('DOMMT.Choice.Waiting',
+    ui.notifications.info(game.i18n.format('PF2EDC.Choice.Waiting',
       { user: user.name, card: card.name }));
   });
 }

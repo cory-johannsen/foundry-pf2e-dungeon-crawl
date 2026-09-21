@@ -45,28 +45,28 @@ const MODULE_ID = "pf2e-dungeon-crawl";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 const ROOM_KIND_KEYS = {
-  combat: "DOMMT.Dungeon.Kind.combat",
-  skill_challenge: "DOMMT.Dungeon.Kind.skill_challenge",
-  puzzle_or_trap: "DOMMT.Dungeon.Kind.puzzle_or_trap",
-  narrative: "DOMMT.Dungeon.Kind.narrative",
-  treasure: "DOMMT.Dungeon.Kind.treasure",
-  safe_entry: "DOMMT.Dungeon.Kind.safe_entry",
-  safe_rest: "DOMMT.Dungeon.Kind.safe_rest",
+  combat: "PF2EDC.Dungeon.Kind.combat",
+  skill_challenge: "PF2EDC.Dungeon.Kind.skill_challenge",
+  puzzle_or_trap: "PF2EDC.Dungeon.Kind.puzzle_or_trap",
+  narrative: "PF2EDC.Dungeon.Kind.narrative",
+  treasure: "PF2EDC.Dungeon.Kind.treasure",
+  safe_entry: "PF2EDC.Dungeon.Kind.safe_entry",
+  safe_rest: "PF2EDC.Dungeon.Kind.safe_rest",
 };
 
 const EFFECT_KEYS = {
-  friendly_aid: "DOMMT.Dungeon.Effect.friendly_aid",
-  encounter: "DOMMT.Dungeon.Effect.encounter",
-  ready_foraging: "DOMMT.Dungeon.Effect.ready_foraging",
-  restless_night: "DOMMT.Dungeon.Effect.restless_night",
-  reduced_travel_time: "DOMMT.Dungeon.Effect.reduced_travel_time",
-  extra_travel_time: "DOMMT.Dungeon.Effect.extra_travel_time",
-  treasure: "DOMMT.Dungeon.Effect.treasure",
-  lost_gear: "DOMMT.Dungeon.Effect.lost_gear",
-  exhaustion: "DOMMT.Dungeon.Effect.exhaustion",
-  goal_cleared: "DOMMT.Dungeon.Effect.goal_cleared",
-  goal_failed: "DOMMT.Dungeon.Effect.goal_failed",
-  rest_room_passed: "DOMMT.Dungeon.Effect.rest_room_passed",
+  friendly_aid: "PF2EDC.Dungeon.Effect.friendly_aid",
+  encounter: "PF2EDC.Dungeon.Effect.encounter",
+  ready_foraging: "PF2EDC.Dungeon.Effect.ready_foraging",
+  restless_night: "PF2EDC.Dungeon.Effect.restless_night",
+  reduced_travel_time: "PF2EDC.Dungeon.Effect.reduced_travel_time",
+  extra_travel_time: "PF2EDC.Dungeon.Effect.extra_travel_time",
+  treasure: "PF2EDC.Dungeon.Effect.treasure",
+  lost_gear: "PF2EDC.Dungeon.Effect.lost_gear",
+  exhaustion: "PF2EDC.Dungeon.Effect.exhaustion",
+  goal_cleared: "PF2EDC.Dungeon.Effect.goal_cleared",
+  goal_failed: "PF2EDC.Dungeon.Effect.goal_failed",
+  rest_room_passed: "PF2EDC.Dungeon.Effect.rest_room_passed",
 };
 
 /** Rooms with nothing to resolve (no outcomeSlotId ever assigned) — never
@@ -125,7 +125,7 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
     );
   if (mutation === "rerun_encounter")
     ui.notifications.warn(
-      game.i18n.localize("DOMMT.Dungeon.RerunEncounterHint"),
+      game.i18n.localize("PF2EDC.Dungeon.RerunEncounterHint"),
     );
   if (!nextRoomId) {
     // #204: the goal room was just resolved — nothing more to build, but
@@ -257,7 +257,7 @@ export async function claimTreasureFor(sceneId) {
     });
     await api.addCoins(game.actors.party.id, { gp });
     ui.notifications.info(
-      game.i18n.format("DOMMT.Dungeon.Treasure.Found", { gp }),
+      game.i18n.format("PF2EDC.Dungeon.Treasure.Found", { gp }),
     );
   }
   await resolveCurrentRoom(true, { scene });
@@ -365,7 +365,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     id: "dommt-dungeon-app",
     tag: "section",
-    window: { title: "DOMMT.Dungeon.Title", icon: "fa-solid fa-dungeon" },
+    window: { title: "PF2EDC.Dungeon.Title", icon: "fa-solid fa-dungeon" },
     position: { width: 480, height: "auto" },
     actions: {
       start: DungeonApp.#onStart,
@@ -409,7 +409,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (state && !state.physicalSlotByRoomId && game.user.isGM) {
       await abandonRun({ sceneId });
       ui.notifications.info(
-        game.i18n.localize("DOMMT.Dungeon.StaleRunCleared"),
+        game.i18n.localize("PF2EDC.Dungeon.StaleRunCleared"),
       );
       state = null;
     }
@@ -422,13 +422,13 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
         availableTraits,
         traitsFieldHtml: traitFieldHtml({
           name: "traits",
-          label: game.i18n.localize("DOMMT.Encounter.ThemeLabel"),
-          buttonLabel: game.i18n.localize("DOMMT.Encounter.ChooseTraitsButton"),
+          label: game.i18n.localize("PF2EDC.Encounter.ThemeLabel"),
+          buttonLabel: game.i18n.localize("PF2EDC.Encounter.ChooseTraitsButton"),
         }),
         excludeTraitsFieldHtml: traitFieldHtml({
           name: "excludeTraits",
-          label: game.i18n.localize("DOMMT.Encounter.ExcludeTraitsLabel"),
-          buttonLabel: game.i18n.localize("DOMMT.Encounter.ChooseTraitsButton"),
+          label: game.i18n.localize("PF2EDC.Encounter.ExcludeTraitsLabel"),
+          buttonLabel: game.i18n.localize("PF2EDC.Encounter.ChooseTraitsButton"),
         }),
       };
     }
@@ -678,7 +678,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
             EFFECT_KEYS[h.effectKey] ?? h.effectKey,
           ),
           outcomeLabel: game.i18n.localize(
-            `DOMMT.Dungeon.Outcome.${h.outcome}`,
+            `PF2EDC.Dungeon.Outcome.${h.outcome}`,
           ),
         })),
     };
@@ -1030,8 +1030,8 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!sceneId) return;
 
     const confirmed = await foundry.applications.api.DialogV2.confirm({
-      window: { title: game.i18n.localize("DOMMT.Dungeon.AbandonButton") },
-      content: `<p>${game.i18n.localize("DOMMT.Dungeon.AbandonConfirm")}</p>`,
+      window: { title: game.i18n.localize("PF2EDC.Dungeon.AbandonButton") },
+      content: `<p>${game.i18n.localize("PF2EDC.Dungeon.AbandonConfirm")}</p>`,
       rejectClose: false,
     });
     if (!confirmed) return;

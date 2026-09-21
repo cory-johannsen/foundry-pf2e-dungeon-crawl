@@ -498,7 +498,7 @@ export async function populateSlotTrap(
   const trap = await selectTrap({ api, partyLevel, levelOffsetBias, rng });
   if (!trap) {
     ui.notifications.warn(
-      game.i18n.localize("DOMMT.Dungeon.Trap.NoneFoundWarning"),
+      game.i18n.localize("PF2EDC.Dungeon.Trap.NoneFoundWarning"),
     );
     return;
   }
@@ -924,7 +924,7 @@ export async function undoRoomEntry(sceneId) {
   const state = getRunState(sceneId);
   if (!scene || !canUndoRoomEntry(state)) {
     ui.notifications.warn(
-      game.i18n.localize("DOMMT.Dungeon.AlreadyResolvedUndoWarning"),
+      game.i18n.localize("PF2EDC.Dungeon.AlreadyResolvedUndoWarning"),
     );
     return;
   }

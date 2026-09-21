@@ -5,16 +5,16 @@
 --}}
 <div class="dommt-chat dommt-encounter">
   <header class="dommt-chat__header">
-    <h3>{{localize "DOMMT.Encounter.Title"}}</h3>
+    <h3>{{localize "PF2EDC.Encounter.Title"}}</h3>
   </header>
 
   {{#if roster.foes.length}}
     <div class="dommt-encounter__section">
-      <strong>{{localize "DOMMT.Encounter.FoeHeader"}}</strong>
+      <strong>{{localize "PF2EDC.Encounter.FoeHeader"}}</strong>
       <ul>
         {{#each roster.foes}}
           <li>
-            {{this.name}} ({{localize "DOMMT.Encounter.LevelAbbrev"}} {{this.level}})
+            {{this.name}} ({{localize "PF2EDC.Encounter.LevelAbbrev"}} {{this.level}})
             {{#if (gt this.count 1)}}&times; {{this.count}}{{/if}}
             {{#if this.group}}<em>({{this.group}})</em>{{/if}}
           </li>
@@ -25,25 +25,25 @@
 
   {{#if roster.friend}}
     <div class="dommt-encounter__section dommt-encounter__friend">
-      <strong>{{localize "DOMMT.Encounter.FriendLabel"}}</strong>
-      {{roster.friend.name}} ({{localize "DOMMT.Encounter.LevelAbbrev"}} {{roster.friend.level}})
+      <strong>{{localize "PF2EDC.Encounter.FriendLabel"}}</strong>
+      {{roster.friend.name}} ({{localize "PF2EDC.Encounter.LevelAbbrev"}} {{roster.friend.level}})
     </div>
   {{/if}}
 
   {{#if roster.lurker}}
     <div class="dommt-encounter__section dommt-encounter__lurker">
-      <strong>{{localize "DOMMT.Encounter.LurkerLabel"}}</strong>
-      {{roster.lurker.name}} ({{localize "DOMMT.Encounter.LevelAbbrev"}} {{roster.lurker.level}})
-      <p class="dommt-encounter__hint">{{localize "DOMMT.Encounter.LurkerHint"}}</p>
+      <strong>{{localize "PF2EDC.Encounter.LurkerLabel"}}</strong>
+      {{roster.lurker.name}} ({{localize "PF2EDC.Encounter.LevelAbbrev"}} {{roster.lurker.level}})
+      <p class="dommt-encounter__hint">{{localize "PF2EDC.Encounter.LurkerHint"}}</p>
     </div>
   {{/if}}
 
   {{#if roster.twins}}
     <div class="dommt-encounter__section dommt-encounter__twin">
-      <strong>{{localize "DOMMT.Encounter.TwinLabel"}}</strong>
+      <strong>{{localize "PF2EDC.Encounter.TwinLabel"}}</strong>
       <ul>
         {{#each roster.twins}}
-          <li>{{this.name}} ({{localize "DOMMT.Encounter.LevelAbbrev"}} {{this.level}})</li>
+          <li>{{this.name}} ({{localize "PF2EDC.Encounter.LevelAbbrev"}} {{this.level}})</li>
         {{/each}}
       </ul>
     </div>
@@ -51,13 +51,13 @@
 
   {{#if roster.noncombat}}
     <div class="dommt-encounter__section">
-      <strong>{{localize "DOMMT.Encounter.NoncombatLabel"}}</strong>
+      <strong>{{localize "PF2EDC.Encounter.NoncombatLabel"}}</strong>
     </div>
   {{/if}}
 
   {{#if roster.goal}}
     <div class="dommt-encounter__section">
-      <strong>{{localize "DOMMT.Encounter.GoalLabel"}}</strong>
+      <strong>{{localize "PF2EDC.Encounter.GoalLabel"}}</strong>
     </div>
   {{/if}}
 
@@ -68,6 +68,6 @@
   {{/if}}
 
   <div class="dommt-encounter__severity">
-    {{localize "DOMMT.Encounter.ApproxSeverity"}}: {{roster.approxXp}} XP
+    {{localize "PF2EDC.Encounter.ApproxSeverity"}}: {{roster.approxXp}} XP
   </div>
 </div>

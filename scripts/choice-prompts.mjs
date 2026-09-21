@@ -19,20 +19,20 @@ export async function promptChooseAbility(card, delta) {
     window: { title: card.name },
     content: `
       <form>
-        <p>${game.i18n.format('DOMMT.GM.ChooseAbility.Prompt', { delta })}</p>
+        <p>${game.i18n.format('PF2EDC.GM.ChooseAbility.Prompt', { delta })}</p>
         <div class="form-group">
-          <label>${game.i18n.localize('DOMMT.GM.ChooseAbility.Label')}</label>
+          <label>${game.i18n.localize('PF2EDC.GM.ChooseAbility.Label')}</label>
           <select name="ability" style="width:100%;">${options}</select>
         </div>
       </form>`,
     buttons: [
       {
         action: 'apply',
-        label: game.i18n.localize('DOMMT.GM.Apply'),
+        label: game.i18n.localize('PF2EDC.GM.Apply'),
         default: true,
         callback: (_e, _b, dialog) => dialog.element.querySelector('[name="ability"]').value
       },
-      { action: 'cancel', label: game.i18n.localize('DOMMT.GM.Cancel') }
+      { action: 'cancel', label: game.i18n.localize('PF2EDC.GM.Cancel') }
     ],
     rejectClose: false
   });
@@ -59,11 +59,11 @@ export async function promptChooseOption(card, prompt, options) {
     buttons: [
       {
         action: 'pick',
-        label: game.i18n.localize('DOMMT.GM.Apply'),
+        label: game.i18n.localize('PF2EDC.GM.Apply'),
         default: true,
         callback: (_e, _b, dialog) => dialog.element.querySelector('[name="choice"]').value
       },
-      { action: 'cancel', label: game.i18n.localize('DOMMT.GM.Cancel') }
+      { action: 'cancel', label: game.i18n.localize('PF2EDC.GM.Cancel') }
     ],
     rejectClose: false
   });
@@ -102,12 +102,12 @@ export async function promptChooseMany(card, prompt, options, count) {
     buttons: [
       {
         action: 'pick',
-        label: game.i18n.localize('DOMMT.GM.Apply'),
+        label: game.i18n.localize('PF2EDC.GM.Apply'),
         default: true,
         callback: (_e, _b, dialog) => Array.from(
           dialog.element.querySelectorAll('[name="pick"]:checked')).map((i) => i.value)
       },
-      { action: 'cancel', label: game.i18n.localize('DOMMT.GM.Cancel') }
+      { action: 'cancel', label: game.i18n.localize('PF2EDC.GM.Cancel') }
     ],
     rejectClose: false,
     render: (_event, dialog) => {
@@ -162,12 +162,12 @@ export async function promptKeepOne(card, prompt, options) {
     buttons: [
       {
         action: 'pick',
-        label: game.i18n.localize('DOMMT.GM.Apply'),
+        label: game.i18n.localize('PF2EDC.GM.Apply'),
         default: true,
         callback: (_e, _b, dialog) =>
           dialog.element.querySelector('[name="keep"]:checked')?.value ?? null
       },
-      { action: 'cancel', label: game.i18n.localize('DOMMT.GM.Cancel') }
+      { action: 'cancel', label: game.i18n.localize('PF2EDC.GM.Cancel') }
     ],
     rejectClose: false,
     render: (_event, dialog) => {

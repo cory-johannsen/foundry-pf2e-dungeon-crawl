@@ -65,7 +65,7 @@ Hooks.once("ready", async () => {
       if (decision.action === "warnAlreadyHosted") {
         const hostUser = game.users.get(decision.hostUserId);
         return ui.notifications.warn(
-          game.i18n.format("DOMMT.Dungeon.AlreadyHostedWarning", {
+          game.i18n.format("PF2EDC.Dungeon.AlreadyHostedWarning", {
             host: hostUser?.name ?? "?",
           }),
         );
@@ -75,7 +75,7 @@ Hooks.once("ready", async () => {
     resetDungeon: async (sceneId) => {
       if (!game.user.isGM)
         return ui.notifications.warn(
-          game.i18n.localize("DOMMT.Dungeon.GmOnlyWarning"),
+          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
         );
       const targetSceneId = sceneId ?? canvas?.scene?.id;
       if (!targetSceneId) return;
@@ -90,7 +90,7 @@ Hooks.once("ready", async () => {
     getPendingAgentTurn: async (combatId) => {
       if (!game.user.isGM)
         return ui.notifications.warn(
-          game.i18n.localize("DOMMT.Dungeon.GmOnlyWarning"),
+          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
         );
       const combat = game.combats.get(combatId ?? game.combat?.id);
       return combat ? await getPendingAgentTurn(combat) : null;
@@ -103,7 +103,7 @@ Hooks.once("ready", async () => {
     ) => {
       if (!game.user.isGM)
         return ui.notifications.warn(
-          game.i18n.localize("DOMMT.Dungeon.GmOnlyWarning"),
+          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
         );
       const combat = game.combats.get(combatId);
       return combat
@@ -116,7 +116,7 @@ Hooks.once("ready", async () => {
     } = {}) => {
       if (!game.user.isGM)
         return ui.notifications.warn(
-          game.i18n.localize("DOMMT.Dungeon.GmOnlyWarning"),
+          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
         );
       return game.settings.set(MODULE_ID, "agentLoopHeartbeat", {
         timestamp: Date.now(),
@@ -127,21 +127,21 @@ Hooks.once("ready", async () => {
     getAgentLoopStatus: () => {
       if (!game.user.isGM)
         return ui.notifications.warn(
-          game.i18n.localize("DOMMT.Dungeon.GmOnlyWarning"),
+          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
         );
       return agentLoopStatus();
     },
     postAgentLoopStatus: async () => {
       if (!game.user.isGM)
         return ui.notifications.warn(
-          game.i18n.localize("DOMMT.Dungeon.GmOnlyWarning"),
+          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
         );
       const status = agentLoopStatus();
       const key = status.connected
-        ? "DOMMT.Dungeon.Combat.AgentLoopStatusConnected"
+        ? "PF2EDC.Dungeon.Combat.AgentLoopStatusConnected"
         : status.lastSeenMs
-          ? "DOMMT.Dungeon.Combat.AgentLoopStatusStale"
-          : "DOMMT.Dungeon.Combat.AgentLoopStatusNeverSeen";
+          ? "PF2EDC.Dungeon.Combat.AgentLoopStatusStale"
+          : "PF2EDC.Dungeon.Combat.AgentLoopStatusNeverSeen";
       const content = game.i18n.format(key, {
         provider: status.provider ?? "?",
         seconds: status.secondsAgo ?? 0,
@@ -152,21 +152,21 @@ Hooks.once("ready", async () => {
     getPendingTrapCustomization: (sceneId) => {
       if (!game.user.isGM)
         return ui.notifications.warn(
-          game.i18n.localize("DOMMT.Dungeon.GmOnlyWarning"),
+          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
         );
       return getPendingTrapCustomization(sceneId ?? canvas?.scene?.id);
     },
     applyTrapCustomization: (actorId, customization) => {
       if (!game.user.isGM)
         return ui.notifications.warn(
-          game.i18n.localize("DOMMT.Dungeon.GmOnlyWarning"),
+          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
         );
       return applyTrapCustomization(actorId, customization);
     },
     getPendingSkillChallengeCustomization: (sceneId) => {
       if (!game.user.isGM)
         return ui.notifications.warn(
-          game.i18n.localize("DOMMT.Dungeon.GmOnlyWarning"),
+          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
         );
       return getPendingSkillChallengeCustomization(
         sceneId ?? canvas?.scene?.id,
@@ -175,7 +175,7 @@ Hooks.once("ready", async () => {
     applySkillChallengeCustomization: (sceneId, roomId, customization) => {
       if (!game.user.isGM)
         return ui.notifications.warn(
-          game.i18n.localize("DOMMT.Dungeon.GmOnlyWarning"),
+          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
         );
       return applySkillChallengeCustomization(
         sceneId ?? canvas?.scene?.id,
@@ -186,14 +186,14 @@ Hooks.once("ready", async () => {
     getPendingPuzzleCustomization: (sceneId) => {
       if (!game.user.isGM)
         return ui.notifications.warn(
-          game.i18n.localize("DOMMT.Dungeon.GmOnlyWarning"),
+          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
         );
       return getPendingPuzzleCustomization(sceneId ?? canvas?.scene?.id);
     },
     applyPuzzleCustomization: (sceneId, roomId, customization) => {
       if (!game.user.isGM)
         return ui.notifications.warn(
-          game.i18n.localize("DOMMT.Dungeon.GmOnlyWarning"),
+          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
         );
       return applyPuzzleCustomization(
         sceneId ?? canvas?.scene?.id,
@@ -204,14 +204,14 @@ Hooks.once("ready", async () => {
     getPendingNarrativeCustomization: (sceneId) => {
       if (!game.user.isGM)
         return ui.notifications.warn(
-          game.i18n.localize("DOMMT.Dungeon.GmOnlyWarning"),
+          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
         );
       return getPendingNarrativeCustomization(sceneId ?? canvas?.scene?.id);
     },
     applyNarrativeCustomization: (sceneId, roomId, customization) => {
       if (!game.user.isGM)
         return ui.notifications.warn(
-          game.i18n.localize("DOMMT.Dungeon.GmOnlyWarning"),
+          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
         );
       return applyNarrativeCustomization(
         sceneId ?? canvas?.scene?.id,
@@ -349,7 +349,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
   if (!tokenControl) return;
   const agentLoopButton = {
     name: "dommt-agent-loop-status",
-    title: game.i18n.localize("DOMMT.SceneControl.AgentLoopStatusLabel"),
+    title: game.i18n.localize("PF2EDC.SceneControl.AgentLoopStatusLabel"),
     icon: "fa-solid fa-robot",
     visible: game.user.isGM,
     button: true,
@@ -365,7 +365,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
 /** GM per-combatant override for the agentControlled default (Task 2). */
 Hooks.on("getCombatTrackerEntryContext", (html, menuItems) => {
   menuItems.push({
-    name: "DOMMT.Dungeon.Combat.ToggleAgentControlLabel",
+    name: "PF2EDC.Dungeon.Combat.ToggleAgentControlLabel",
     icon: '<i class="fa-solid fa-robot"></i>',
     condition: (li) => {
       const combatant = game.combat?.combatants.get(li.dataset.combatantId);

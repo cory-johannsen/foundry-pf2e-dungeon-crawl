@@ -86,7 +86,7 @@ export function requestDungeonAction(
       pending.delete(id);
       if (!ok)
         ui.notifications.warn(
-          game.i18n.localize("DOMMT.Dungeon.RequestFailedWarning"),
+          game.i18n.localize("PF2EDC.Dungeon.RequestFailedWarning"),
         );
       resolve(ok);
     };

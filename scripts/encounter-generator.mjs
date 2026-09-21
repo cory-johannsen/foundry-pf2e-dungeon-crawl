@@ -34,19 +34,19 @@ async function chooseThemeAndSize({
   const { DialogV2 } = foundry.applications.api;
   const traits = await api.listCreatureTraits();
   return DialogV2.wait({
-    window: { title: game.i18n.localize("DOMMT.Encounter.Title") },
+    window: { title: game.i18n.localize("PF2EDC.Encounter.Title") },
     content: `
       <form>
         ${traitFieldHtml({
           name: "traits",
-          label: game.i18n.localize("DOMMT.Encounter.ThemeLabel"),
-          buttonLabel: game.i18n.localize("DOMMT.Encounter.ChooseTraitsButton"),
+          label: game.i18n.localize("PF2EDC.Encounter.ThemeLabel"),
+          buttonLabel: game.i18n.localize("PF2EDC.Encounter.ChooseTraitsButton"),
           selected: prefillTraits,
         })}
         ${traitFieldHtml({
           name: "excludeTraits",
-          label: game.i18n.localize("DOMMT.Encounter.ExcludeTraitsLabel"),
-          buttonLabel: game.i18n.localize("DOMMT.Encounter.ChooseTraitsButton"),
+          label: game.i18n.localize("PF2EDC.Encounter.ExcludeTraitsLabel"),
+          buttonLabel: game.i18n.localize("PF2EDC.Encounter.ChooseTraitsButton"),
           selected: prefillExcludeTraits,
         })}
       </form>`,
@@ -54,7 +54,7 @@ async function chooseThemeAndSize({
     buttons: [
       {
         action: "generate",
-        label: game.i18n.localize("DOMMT.Encounter.GenerateButton"),
+        label: game.i18n.localize("PF2EDC.Encounter.GenerateButton"),
         default: true,
         callback: (_event, _button, dialog) => ({
           traits: readTraitField(dialog.element, "traits"),
@@ -74,18 +74,18 @@ async function showEncounterPreview(roster) {
     { roster },
   );
   return DialogV2.wait({
-    window: { title: game.i18n.localize("DOMMT.Encounter.PreviewTitle") },
+    window: { title: game.i18n.localize("PF2EDC.Encounter.PreviewTitle") },
     position: { width: 480 },
     content,
     buttons: [
       {
         action: "accept",
-        label: game.i18n.localize("DOMMT.Encounter.AcceptButton"),
+        label: game.i18n.localize("PF2EDC.Encounter.AcceptButton"),
         default: true,
       },
       {
         action: "reroll",
-        label: game.i18n.localize("DOMMT.Encounter.RerollButton"),
+        label: game.i18n.localize("PF2EDC.Encounter.RerollButton"),
       },
       { action: "cancel", label: "Cancel" },
     ],
@@ -182,11 +182,11 @@ export async function generateEncounter({
 } = {}) {
   const scene = sceneOverride ?? canvas?.scene;
   if (!scene) {
-    ui.notifications.warn(game.i18n.localize("DOMMT.Encounter.NoSceneWarning"));
+    ui.notifications.warn(game.i18n.localize("PF2EDC.Encounter.NoSceneWarning"));
     return;
   }
   if (!game.user.isGM) {
-    ui.notifications.warn(game.i18n.localize("DOMMT.Encounter.GmOnlyWarning"));
+    ui.notifications.warn(game.i18n.localize("PF2EDC.Encounter.GmOnlyWarning"));
     return;
   }
   // #109: `scene` is already the dungeon scene by the time a room
@@ -208,7 +208,7 @@ export async function generateEncounter({
   );
   const partySize = Math.max(1, partyMembers.length);
   if (!partyMembers.length) {
-    ui.notifications.warn(game.i18n.localize("DOMMT.Encounter.PartyTooSmall"));
+    ui.notifications.warn(game.i18n.localize("PF2EDC.Encounter.PartyTooSmall"));
   }
 
   // A dungeon room population already has final traits — captured once at

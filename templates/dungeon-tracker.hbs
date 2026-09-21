@@ -2,17 +2,17 @@
   {{#if hasRun}}
     <div class="dommt-dungeon">
       {{#unless interactive}}
-        <p class="hint">{{localize "DOMMT.Dungeon.ReadOnlyHint" host=hostName}}</p>
+        <p class="hint">{{localize "PF2EDC.Dungeon.ReadOnlyHint" host=hostName}}</p>
       {{/unless}}
       <div class="dommt-dungeon__progress">
         {{#if completed}}
-          {{localize "DOMMT.Dungeon.Completed"}}
+          {{localize "PF2EDC.Dungeon.Completed"}}
         {{else}}
           {{#if isSafeRoom}}
             {{currentRoom.kindLabel}}
           {{else}}
             {{localize
-              "DOMMT.Dungeon.ProgressLabel"
+              "PF2EDC.Dungeon.ProgressLabel"
               n=roomNumber
               total=roomTotal
             }}
@@ -22,7 +22,7 @@
 
       {{#if objective}}
         <p class="dommt-dungeon__objective">{{localize
-            "DOMMT.Dungeon.CurrentObjective"
+            "PF2EDC.Dungeon.CurrentObjective"
             objective=objective
           }}</p>
       {{/if}}
@@ -30,7 +30,7 @@
       {{#if currentRoom}}
         <div class="dommt-dungeon__room">
           {{#if currentRoom.isGoal}}
-            <strong>{{localize "DOMMT.Dungeon.Kind.goal"}}</strong>
+            <strong>{{localize "PF2EDC.Dungeon.Kind.goal"}}</strong>
           {{else}}
             <strong>{{currentRoom.kindLabel}}</strong>
           {{/if}}
@@ -46,33 +46,33 @@
 
       {{#unless completed}}
         <p class="hint">{{localize
-            "DOMMT.Dungeon.ThemeReminder"
+            "PF2EDC.Dungeon.ThemeReminder"
             traits=traits
             excludeTraits=excludeTraits
           }}</p>
         {{#if isSafeRoom}}
           {{#unless nextRoomPending}}
             {{#if isSafeEntry}}
-              <p class="hint">{{localize "DOMMT.Dungeon.SafeEntryHint"}}</p>
+              <p class="hint">{{localize "PF2EDC.Dungeon.SafeEntryHint"}}</p>
             {{else}}
-              <p class="hint">{{localize "DOMMT.Dungeon.SafeRestHint"}}</p>
+              <p class="hint">{{localize "PF2EDC.Dungeon.SafeRestHint"}}</p>
             {{/if}}
           {{/unless}}
         {{else}}
           {{#if isCombatRoom}}
             {{#if combatActive}}
               <p class="hint">{{localize
-                  "DOMMT.Dungeon.Combat.InProgressHint"
+                  "PF2EDC.Dungeon.Combat.InProgressHint"
                 }}</p>
               <footer>
                 <button type="button" data-action="openCombatTracker">{{localize
-                    "DOMMT.Dungeon.Combat.OpenTrackerButton"
+                    "PF2EDC.Dungeon.Combat.OpenTrackerButton"
                   }}</button>
                 <button type="button" data-action="declareVictory">{{localize
-                    "DOMMT.Dungeon.Combat.DeclareVictoryButton"
+                    "PF2EDC.Dungeon.Combat.DeclareVictoryButton"
                   }}</button>
                 <button type="button" data-action="declareDefeat">{{localize
-                    "DOMMT.Dungeon.Combat.DeclareDefeatButton"
+                    "PF2EDC.Dungeon.Combat.DeclareDefeatButton"
                   }}</button>
               </footer>
             {{/if}}
@@ -81,7 +81,7 @@
                 <button
                   type="button"
                   data-action="startCombatRecovery"
-                >{{localize "DOMMT.Dungeon.Combat.StartCombatButton"}}</button>
+                >{{localize "PF2EDC.Dungeon.Combat.StartCombatButton"}}</button>
               </footer>
             {{/if}}
           {{else if isSkillChallenge}}
@@ -93,12 +93,12 @@
                 <p>{{challenge.templateSummary}}</p>
               {{/if}}
               <p>{{localize
-                  "DOMMT.Dungeon.SkillChallenge.Progress"
+                  "PF2EDC.Dungeon.SkillChallenge.Progress"
                   vp=challenge.vp
                   target=challenge.vpTarget
                 }}</p>
               <p class="hint">{{localize
-                  "DOMMT.Dungeon.SkillChallenge.AttemptsRemaining"
+                  "PF2EDC.Dungeon.SkillChallenge.AttemptsRemaining"
                   n=challenge.attemptsRemaining
                 }}</p>
               {{#if challenge.templateName}}
@@ -112,7 +112,7 @@
                 </ul>
               {{else}}
                 <p class="hint">
-                  {{localize "DOMMT.Dungeon.SkillChallenge.SpecialtyHint"}}
+                  {{localize "PF2EDC.Dungeon.SkillChallenge.SpecialtyHint"}}
                   {{#each challenge.specialtySkills}}{{this.label}}{{#unless
                       @last
                     }}, {{/unless}}{{/each}}
@@ -120,7 +120,7 @@
               {{/if}}
               <form class="dommt-dungeon__skill-challenge-form">
                 <label>
-                  {{localize "DOMMT.Dungeon.SkillChallenge.WhoLabel"}}
+                  {{localize "PF2EDC.Dungeon.SkillChallenge.WhoLabel"}}
                   <select name="actorId">
                     {{#each partyMembers}}
                       <option value="{{this.id}}">{{this.name}}</option>
@@ -128,7 +128,7 @@
                   </select>
                 </label>
                 <label>
-                  {{localize "DOMMT.Dungeon.SkillChallenge.SkillLabel"}}
+                  {{localize "PF2EDC.Dungeon.SkillChallenge.SkillLabel"}}
                   <select name="skill">
                     {{#each challenge.allSkills}}
                       <option value="{{this.slug}}">{{this.label}}{{#if
@@ -141,7 +141,7 @@
                   type="button"
                   data-action="attemptSkillChallenge"
                 >{{localize
-                    "DOMMT.Dungeon.SkillChallenge.AttemptButton"
+                    "PF2EDC.Dungeon.SkillChallenge.AttemptButton"
                   }}</button>
               </form>
             </div>
@@ -149,7 +149,7 @@
             <div class="dommt-dungeon__narrative">
               {{#unless currentRoom.setpiece}}
                 <p class="hint">{{localize
-                    "DOMMT.Dungeon.Narrative.Placeholder"
+                    "PF2EDC.Dungeon.Narrative.Placeholder"
                   }}</p>
               {{/unless}}
               {{! #165: archetype-specific extras — none, one, or another of
@@ -182,16 +182,16 @@
               {{else}}
                 <form class="dommt-dungeon__narrative-form">
                   <label>
-                    {{localize "DOMMT.Dungeon.Narrative.ObjectiveLabel"}}
+                    {{localize "PF2EDC.Dungeon.Narrative.ObjectiveLabel"}}
                     <textarea
                       name="dommt-narrative-objective"
                       placeholder="{{localize
-                        'DOMMT.Dungeon.Narrative.ObjectivePlaceholder'
+                        'PF2EDC.Dungeon.Narrative.ObjectivePlaceholder'
                       }}"
                     >{{narrative.suggestedObjective}}</textarea>
                   </label>
                   <button type="button" data-action="continueNarrative">{{localize
-                      "DOMMT.Dungeon.Narrative.ContinueButton"
+                      "PF2EDC.Dungeon.Narrative.ContinueButton"
                     }}</button>
                 </form>
               {{/if}}
@@ -200,12 +200,12 @@
             <div class="dommt-dungeon__treasure">
               {{#unless currentRoom.setpiece}}
                 <p class="hint">{{localize
-                    "DOMMT.Dungeon.Treasure.Placeholder"
+                    "PF2EDC.Dungeon.Treasure.Placeholder"
                   }}</p>
               {{/unless}}
               <footer>
                 <button type="button" data-action="claimTreasure">{{localize
-                    "DOMMT.Dungeon.Treasure.ClaimButton"
+                    "PF2EDC.Dungeon.Treasure.ClaimButton"
                   }}</button>
               </footer>
             </div>
@@ -216,7 +216,7 @@
                   (possibly agent-customized) persisted summary - not
                   repeated here. }}
               <p>{{localize
-                  "DOMMT.Dungeon.Puzzle.Progress"
+                  "PF2EDC.Dungeon.Puzzle.Progress"
                   successes=puzzle.successes
                   target=puzzle.requiredSuccesses
                 }}</p>
@@ -229,7 +229,7 @@
                         — {{this.hint}}
                       {{else}}
                         <span class="hint">{{localize
-                            "DOMMT.Dungeon.Puzzle.StageFailed"
+                            "PF2EDC.Dungeon.Puzzle.StageFailed"
                             skill=this.skillLabel
                           }}</span>
                       {{/if}}
@@ -240,7 +240,7 @@
                       >
                         <label>
                           {{localize
-                            "DOMMT.Dungeon.Puzzle.StageLabel"
+                            "PF2EDC.Dungeon.Puzzle.StageLabel"
                             skill=this.skillLabel
                           }}
                           <select name="actorId">
@@ -253,7 +253,7 @@
                           type="button"
                           data-action="attemptPuzzleStage"
                           data-stage-index="{{this.index}}"
-                        >{{localize "DOMMT.Dungeon.Puzzle.AttemptButton"}}</button>
+                        >{{localize "PF2EDC.Dungeon.Puzzle.AttemptButton"}}</button>
                       </form>
                     {{/if}}
                   </li>
@@ -267,27 +267,27 @@
             {{#unless currentRoomResolved}}
               <footer>
                 <button type="button" data-action="succeed">{{localize
-                    "DOMMT.Dungeon.SucceedButton"
+                    "PF2EDC.Dungeon.SucceedButton"
                   }}</button>
                 <button type="button" data-action="fail">{{localize
-                    "DOMMT.Dungeon.FailButton"
+                    "PF2EDC.Dungeon.FailButton"
                   }}</button>
               </footer>
             {{/unless}}
           {{/if}}
         {{/if}}
         {{#if nextRoomPending}}
-          <p class="hint">{{localize "DOMMT.Dungeon.DoorLockedHint"}}</p>
+          <p class="hint">{{localize "PF2EDC.Dungeon.DoorLockedHint"}}</p>
           <footer>
             <button type="button" data-action="populateNext">{{localize
-                "DOMMT.Dungeon.PopulateNextButton"
+                "PF2EDC.Dungeon.PopulateNextButton"
               }}</button>
           </footer>
         {{/if}}
         {{#if canUndo}}
           <footer>
             <button type="button" data-action="undo">{{localize
-                "DOMMT.Dungeon.UndoButton"
+                "PF2EDC.Dungeon.UndoButton"
               }}</button>
           </footer>
         {{/if}}
@@ -308,17 +308,17 @@
 
       <footer>
         <button type="button" data-action="hide">{{localize
-            "DOMMT.Dungeon.HideButton"
+            "PF2EDC.Dungeon.HideButton"
           }}</button>
         <button type="button" data-action="abandon">{{localize
-            "DOMMT.Dungeon.AbandonButton"
+            "PF2EDC.Dungeon.AbandonButton"
           }}</button>
       </footer>
     </div>
   {{else}}
     <form class="dommt-dungeon">
       <label>
-        {{localize "DOMMT.Dungeon.RoomCountLabel"}}
+        {{localize "PF2EDC.Dungeon.RoomCountLabel"}}
         <input
           type="number"
           name="roomCount"
@@ -331,11 +331,11 @@
       {{{excludeTraitsFieldHtml}}}
       <footer>
         <button type="button" data-action="start">{{localize
-            "DOMMT.Dungeon.StartButton"
+            "PF2EDC.Dungeon.StartButton"
           }}</button>
       </footer>
     </form>
   {{/if}}
 {{else}}
-  <p class="hint">{{localize "DOMMT.Dungeon.NoSceneWarning"}}</p>
+  <p class="hint">{{localize "PF2EDC.Dungeon.NoSceneWarning"}}</p>
 {{/if}}
