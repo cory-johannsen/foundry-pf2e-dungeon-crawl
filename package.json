@@ -1,0 +1,26 @@
+{
+  "name": "foundry-pf2e-dungeon-crawl",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Foundry VTT v13 module: GM-less-capable dungeon crawl for Pathfinder 2E.",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "validate:dungeon": "node tools/validate-dungeon-setpieces.mjs",
+    "validate:creature-art": "node tools/validate-creature-art.mjs",
+    "tokens": "node tools/generate-token-art.mjs",
+    "tokens:check": "node tools/check-token-art.mjs",
+    "agent-loop": "node tools/agent-loop/poll.mjs",
+    "agent-bridge-mcp": "node tools/agent-loop/mcp-server.mjs",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "prettier": "^3.3.3",
+    "vitest": "^2.1.4",
+    "zod": "^4.6.5"
+  }
+}

@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.local
+.DS_Store
+*.log
+.idea/
+coverage/
+.vitest-cache/
+.venv/
+/*.jpg
+/*.jpeg
+/*.png
+/*.ogg
+.preview-*.png
