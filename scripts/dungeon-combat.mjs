@@ -207,15 +207,22 @@ function coverItemTokensForCombat(combat) {
  * non-party combatant. What "cleans up" means now depends on what the
  * combatant is (#172):
  *
- * - A defeated hostile becomes a lootable corpse: its own gear (granted at
- *   spawn time by `spawnCreatures`) is copied onto a freshly created
- *   PF2e `loot`-type actor, the encounter's token is repointed and linked to
- *   it, and the original npc-type actor is deleted — so the corpse persists
- *   on the scene for players to loot via PF2e's native loot sheet instead of
- *   vanishing. A defeated hostile with nothing actually worth looting (no
- *   coins, no item matching `LOOTABLE_ITEM_TYPES`) skips the loot actor
- *   entirely and falls back to the plain delete below, to avoid littering
- *   the world with empty loot piles nobody needs to open.
+ * - A defeated hostile in a real dungeon run (`dungeonSlot`-flagged combat)
+ *   becomes a lootable corpse: its own gear (granted at spawn time by
+ *   `spawnCreatures`) is copied onto a freshly created PF2e `loot`-type
+ *   actor, the encounter's token is repointed and linked to it, and the
+ *   original npc-type actor is deleted — so the corpse persists on the scene
+ *   for players to loot via PF2e's native loot sheet instead of vanishing. A
+ *   defeated hostile with nothing actually worth looting (no coins, no item
+ *   matching `LOOTABLE_ITEM_TYPES`) skips the loot actor entirely and falls
+ *   back to the plain delete below, to avoid littering the world with empty
+ *   loot piles nobody needs to open. A defeated hostile in a standalone
+ *   encounter (`encounterId`-only, no dungeon run) always falls back to the
+ *   plain delete too (#15) — cleanup for a converted corpse only ever runs
+ *   from the dungeon-run UI flow (`teardownDungeonRun`'s Abandon-time sweep,
+ *   `sweepCompletedDungeonScene`'s goal-room sweep), so a standalone
+ *   encounter's corpse would otherwise sit on its scene with no cleanup
+ *   mechanism reachable, ever.
  * - Everything else non-party (a surviving player-summoned ally, an
  *   undefeated hostile the party fled from) keeps the original, pre-#172
  *   behavior: its token and underlying Actor are deleted outright.
@@ -240,6 +247,12 @@ function coverItemTokensForCombat(combat) {
 async function resolveCombat(combat, outcome, api) {
   const scene = combat.scene;
   const partyIds = partyActorIds();
+  // #15: only a real dungeon run has a reachable cleanup trigger for a
+  // converted corpse (teardownDungeonRun's Abandon-time sweep,
+  // sweepCompletedDungeonScene's goal-room sweep — both fire only for a
+  // dungeonSlot-flagged scene). A standalone encounter (encounterId-only)
+  // has no such trigger, so its defeated hostiles never convert to loot.
+  const isDungeonRunCombat = combat.getFlag(MODULE_ID, "dungeonSlot") != null;
   const npcCombatants = combat.combatants.filter(
     (c) => c.actor?.id && !partyIds.has(c.actor.id),
   );
@@ -321,7 +334,7 @@ async function resolveCombat(combat, outcome, api) {
     const hasLoot =
       lootItems.length > 0 ||
       Object.values(coinsObj).some((v) => Number(v) > 0);
-    if (!hasLoot) {
+    if (!isDungeonRunCombat || !hasLoot) {
       if (combatant.tokenId) emptyDefeatedTokenIds.push(combatant.tokenId);
       if (originalActorId) emptyDefeatedActorIds.push(originalActorId);
       continue;
