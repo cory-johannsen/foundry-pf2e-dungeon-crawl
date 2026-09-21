@@ -12,3 +12,13 @@
 /* ----- Trait picker (encounter theme + dungeon-start forms) ----- */
 .dommt-trait-field { display: flex; align-items: center; gap: 0.5rem; }
 .dommt-trait-field__summary { flex: 1; font-style: italic; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ----- Encounter generator ----- */
+.dommt-encounter__section { padding: 0.2rem 0; }
+.dommt-encounter__section ul { margin: 0.2rem 0; padding-left: 1.2rem; }
+.dommt-encounter__friend { border-left: 3px solid #4c8c4a; padding-left: 0.5rem; }
+.dommt-encounter__lurker { border-left: 3px solid #8c4a4a; padding-left: 0.5rem; }
+.dommt-encounter__twin { border-left: 3px solid #4a6c8c; padding-left: 0.5rem; }
+.dommt-encounter__hint { font-size: 0.85em; font-style: italic; opacity: 0.8; margin: 0.2rem 0 0; }
+.dommt-encounter__warnings { color: #b5651d; font-size: 0.85em; }
+.dommt-encounter__severity { font-weight: 600; margin-top: 0.3rem; }

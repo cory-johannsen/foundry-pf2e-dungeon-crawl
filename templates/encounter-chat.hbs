@@ -1,0 +1,73 @@
+{{!--
+  Shared by the GM's preview dialog (before tokens spawn) and the GM-only
+  whisper chat card (after Accept) — same template, two callers, like
+  card-chat.hbs and celtic-cross.hbs.
+--}}
+<div class="dommt-chat dommt-encounter">
+  <header class="dommt-chat__header">
+    <h3>{{localize "DOMMT.Encounter.Title"}}</h3>
+  </header>
+
+  {{#if roster.foes.length}}
+    <div class="dommt-encounter__section">
+      <strong>{{localize "DOMMT.Encounter.FoeHeader"}}</strong>
+      <ul>
+        {{#each roster.foes}}
+          <li>
+            {{this.name}} ({{localize "DOMMT.Encounter.LevelAbbrev"}} {{this.level}})
+            {{#if (gt this.count 1)}}&times; {{this.count}}{{/if}}
+            {{#if this.group}}<em>({{this.group}})</em>{{/if}}
+          </li>
+        {{/each}}
+      </ul>
+    </div>
+  {{/if}}
+
+  {{#if roster.friend}}
+    <div class="dommt-encounter__section dommt-encounter__friend">
+      <strong>{{localize "DOMMT.Encounter.FriendLabel"}}</strong>
+      {{roster.friend.name}} ({{localize "DOMMT.Encounter.LevelAbbrev"}} {{roster.friend.level}})
+    </div>
+  {{/if}}
+
+  {{#if roster.lurker}}
+    <div class="dommt-encounter__section dommt-encounter__lurker">
+      <strong>{{localize "DOMMT.Encounter.LurkerLabel"}}</strong>
+      {{roster.lurker.name}} ({{localize "DOMMT.Encounter.LevelAbbrev"}} {{roster.lurker.level}})
+      <p class="dommt-encounter__hint">{{localize "DOMMT.Encounter.LurkerHint"}}</p>
+    </div>
+  {{/if}}
+
+  {{#if roster.twins}}
+    <div class="dommt-encounter__section dommt-encounter__twin">
+      <strong>{{localize "DOMMT.Encounter.TwinLabel"}}</strong>
+      <ul>
+        {{#each roster.twins}}
+          <li>{{this.name}} ({{localize "DOMMT.Encounter.LevelAbbrev"}} {{this.level}})</li>
+        {{/each}}
+      </ul>
+    </div>
+  {{/if}}
+
+  {{#if roster.noncombat}}
+    <div class="dommt-encounter__section">
+      <strong>{{localize "DOMMT.Encounter.NoncombatLabel"}}</strong>
+    </div>
+  {{/if}}
+
+  {{#if roster.goal}}
+    <div class="dommt-encounter__section">
+      <strong>{{localize "DOMMT.Encounter.GoalLabel"}}</strong>
+    </div>
+  {{/if}}
+
+  {{#if roster.warnings.length}}
+    <ul class="dommt-encounter__warnings">
+      {{#each roster.warnings}}<li>{{this}}</li>{{/each}}
+    </ul>
+  {{/if}}
+
+  <div class="dommt-encounter__severity">
+    {{localize "DOMMT.Encounter.ApproxSeverity"}}: {{roster.approxXp}} XP
+  </div>
+</div>

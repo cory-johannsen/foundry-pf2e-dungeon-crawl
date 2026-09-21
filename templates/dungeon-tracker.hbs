@@ -1,0 +1,341 @@
+{{#if hasScene}}
+  {{#if hasRun}}
+    <div class="dommt-dungeon">
+      {{#unless interactive}}
+        <p class="hint">{{localize "DOMMT.Dungeon.ReadOnlyHint" host=hostName}}</p>
+      {{/unless}}
+      <div class="dommt-dungeon__progress">
+        {{#if completed}}
+          {{localize "DOMMT.Dungeon.Completed"}}
+        {{else}}
+          {{#if isSafeRoom}}
+            {{currentRoom.kindLabel}}
+          {{else}}
+            {{localize
+              "DOMMT.Dungeon.ProgressLabel"
+              n=roomNumber
+              total=roomTotal
+            }}
+          {{/if}}
+        {{/if}}
+      </div>
+
+      {{#if objective}}
+        <p class="dommt-dungeon__objective">{{localize
+            "DOMMT.Dungeon.CurrentObjective"
+            objective=objective
+          }}</p>
+      {{/if}}
+
+      {{#if currentRoom}}
+        <div class="dommt-dungeon__room">
+          {{#if currentRoom.isGoal}}
+            <strong>{{localize "DOMMT.Dungeon.Kind.goal"}}</strong>
+          {{else}}
+            <strong>{{currentRoom.kindLabel}}</strong>
+          {{/if}}
+
+          {{#if currentRoom.setpiece}}
+            <p
+              class="dommt-dungeon__setpiece-name"
+            >{{currentRoom.setpiece.name}}</p>
+            <p>{{currentRoom.setpiece.summary}}</p>
+          {{/if}}
+        </div>
+      {{/if}}
+
+      {{#unless completed}}
+        <p class="hint">{{localize
+            "DOMMT.Dungeon.ThemeReminder"
+            traits=traits
+            excludeTraits=excludeTraits
+          }}</p>
+        {{#if isSafeRoom}}
+          {{#unless nextRoomPending}}
+            {{#if isSafeEntry}}
+              <p class="hint">{{localize "DOMMT.Dungeon.SafeEntryHint"}}</p>
+            {{else}}
+              <p class="hint">{{localize "DOMMT.Dungeon.SafeRestHint"}}</p>
+            {{/if}}
+          {{/unless}}
+        {{else}}
+          {{#if isCombatRoom}}
+            {{#if combatActive}}
+              <p class="hint">{{localize
+                  "DOMMT.Dungeon.Combat.InProgressHint"
+                }}</p>
+              <footer>
+                <button type="button" data-action="openCombatTracker">{{localize
+                    "DOMMT.Dungeon.Combat.OpenTrackerButton"
+                  }}</button>
+                <button type="button" data-action="declareVictory">{{localize
+                    "DOMMT.Dungeon.Combat.DeclareVictoryButton"
+                  }}</button>
+                <button type="button" data-action="declareDefeat">{{localize
+                    "DOMMT.Dungeon.Combat.DeclareDefeatButton"
+                  }}</button>
+              </footer>
+            {{/if}}
+            {{#if combatMissing}}
+              <footer>
+                <button
+                  type="button"
+                  data-action="startCombatRecovery"
+                >{{localize "DOMMT.Dungeon.Combat.StartCombatButton"}}</button>
+              </footer>
+            {{/if}}
+          {{else if isSkillChallenge}}
+            <div class="dommt-dungeon__skill-challenge">
+              {{#if challenge.templateName}}
+                <p
+                  class="dommt-dungeon__setpiece-name"
+                >{{challenge.templateName}}</p>
+                <p>{{challenge.templateSummary}}</p>
+              {{/if}}
+              <p>{{localize
+                  "DOMMT.Dungeon.SkillChallenge.Progress"
+                  vp=challenge.vp
+                  target=challenge.vpTarget
+                }}</p>
+              <p class="hint">{{localize
+                  "DOMMT.Dungeon.SkillChallenge.AttemptsRemaining"
+                  n=challenge.attemptsRemaining
+                }}</p>
+              {{#if challenge.templateName}}
+                <ul class="dommt-dungeon__skill-flavor">
+                  {{#each challenge.specialtySkills}}
+                    <li>
+                      <strong>{{this.label}}</strong>
+                      {{#if this.flavor}}— {{this.flavor}}{{/if}}
+                    </li>
+                  {{/each}}
+                </ul>
+              {{else}}
+                <p class="hint">
+                  {{localize "DOMMT.Dungeon.SkillChallenge.SpecialtyHint"}}
+                  {{#each challenge.specialtySkills}}{{this.label}}{{#unless
+                      @last
+                    }}, {{/unless}}{{/each}}
+                </p>
+              {{/if}}
+              <form class="dommt-dungeon__skill-challenge-form">
+                <label>
+                  {{localize "DOMMT.Dungeon.SkillChallenge.WhoLabel"}}
+                  <select name="actorId">
+                    {{#each partyMembers}}
+                      <option value="{{this.id}}">{{this.name}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+                <label>
+                  {{localize "DOMMT.Dungeon.SkillChallenge.SkillLabel"}}
+                  <select name="skill">
+                    {{#each challenge.allSkills}}
+                      <option value="{{this.slug}}">{{this.label}}{{#if
+                          this.isSpecialty
+                        }} *{{/if}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  data-action="attemptSkillChallenge"
+                >{{localize
+                    "DOMMT.Dungeon.SkillChallenge.AttemptButton"
+                  }}</button>
+              </form>
+            </div>
+          {{else if isNarrativeRoom}}
+            <div class="dommt-dungeon__narrative">
+              {{#unless currentRoom.setpiece}}
+                <p class="hint">{{localize
+                    "DOMMT.Dungeon.Narrative.Placeholder"
+                  }}</p>
+              {{/unless}}
+              {{! #165: archetype-specific extras — none, one, or another of
+                these renders depending on which archetype was drawn; the
+                shared name/summary already rendered above via the generic
+                currentRoom.setpiece block. }}
+              {{#if narrative.revealText}}
+                <p class="dommt-dungeon__narrative-reveal">{{narrative.revealText}}</p>
+              {{/if}}
+              {{#if narrative.npcHook}}
+                <p class="dommt-dungeon__narrative-npc">
+                  <strong>{{narrative.npcName}}</strong> — {{narrative.npcHook}}
+                </p>
+              {{/if}}
+              {{#if narrative.options}}
+                {{! #208: a choice-archetype room resolves through its own
+                  two option buttons instead of the plain Continue form —
+                  the picked option's own consequence text becomes the
+                  run's objective directly, so there's nothing left to
+                  free-type. }}
+                <div class="dommt-dungeon__narrative-options">
+                  {{#each narrative.options}}
+                    <button
+                      type="button"
+                      data-action="chooseNarrativeOption"
+                      data-option-index="{{@index}}"
+                    ><strong>{{this.label}}</strong> — {{this.consequence}}</button>
+                  {{/each}}
+                </div>
+              {{else}}
+                <form class="dommt-dungeon__narrative-form">
+                  <label>
+                    {{localize "DOMMT.Dungeon.Narrative.ObjectiveLabel"}}
+                    <textarea
+                      name="dommt-narrative-objective"
+                      placeholder="{{localize
+                        'DOMMT.Dungeon.Narrative.ObjectivePlaceholder'
+                      }}"
+                    >{{narrative.suggestedObjective}}</textarea>
+                  </label>
+                  <button type="button" data-action="continueNarrative">{{localize
+                      "DOMMT.Dungeon.Narrative.ContinueButton"
+                    }}</button>
+                </form>
+              {{/if}}
+            </div>
+          {{else if isTreasureRoom}}
+            <div class="dommt-dungeon__treasure">
+              {{#unless currentRoom.setpiece}}
+                <p class="hint">{{localize
+                    "DOMMT.Dungeon.Treasure.Placeholder"
+                  }}</p>
+              {{/unless}}
+              <footer>
+                <button type="button" data-action="claimTreasure">{{localize
+                    "DOMMT.Dungeon.Treasure.ClaimButton"
+                  }}</button>
+              </footer>
+            </div>
+          {{else if isPuzzleRoom}}
+            <div class="dommt-dungeon__puzzle">
+              {{! puzzle.summary is already shown above via the generic
+                  currentRoom.setpiece block, which reads the same
+                  (possibly agent-customized) persisted summary - not
+                  repeated here. }}
+              <p>{{localize
+                  "DOMMT.Dungeon.Puzzle.Progress"
+                  successes=puzzle.successes
+                  target=puzzle.requiredSuccesses
+                }}</p>
+              <ul class="dommt-dungeon__puzzle-stages">
+                {{#each puzzle.stages}}
+                  <li>
+                    {{#if this.attempted}}
+                      {{#if this.succeeded}}
+                        <strong>{{this.skillLabel}}</strong>
+                        — {{this.hint}}
+                      {{else}}
+                        <span class="hint">{{localize
+                            "DOMMT.Dungeon.Puzzle.StageFailed"
+                            skill=this.skillLabel
+                          }}</span>
+                      {{/if}}
+                    {{else}}
+                      <form
+                        class="dommt-dungeon__puzzle-stage-form"
+                        data-stage-index="{{this.index}}"
+                      >
+                        <label>
+                          {{localize
+                            "DOMMT.Dungeon.Puzzle.StageLabel"
+                            skill=this.skillLabel
+                          }}
+                          <select name="actorId">
+                            {{#each ../partyMembers}}
+                              <option value="{{this.id}}">{{this.name}}</option>
+                            {{/each}}
+                          </select>
+                        </label>
+                        <button
+                          type="button"
+                          data-action="attemptPuzzleStage"
+                          data-stage-index="{{this.index}}"
+                        >{{localize "DOMMT.Dungeon.Puzzle.AttemptButton"}}</button>
+                      </form>
+                    {{/if}}
+                  </li>
+                {{/each}}
+              </ul>
+              {{#if puzzle.solution}}
+                <p class="dommt-dungeon__puzzle-solution">{{puzzle.solution}}</p>
+              {{/if}}
+            </div>
+          {{else}}
+            {{#unless currentRoomResolved}}
+              <footer>
+                <button type="button" data-action="succeed">{{localize
+                    "DOMMT.Dungeon.SucceedButton"
+                  }}</button>
+                <button type="button" data-action="fail">{{localize
+                    "DOMMT.Dungeon.FailButton"
+                  }}</button>
+              </footer>
+            {{/unless}}
+          {{/if}}
+        {{/if}}
+        {{#if nextRoomPending}}
+          <p class="hint">{{localize "DOMMT.Dungeon.DoorLockedHint"}}</p>
+          <footer>
+            <button type="button" data-action="populateNext">{{localize
+                "DOMMT.Dungeon.PopulateNextButton"
+              }}</button>
+          </footer>
+        {{/if}}
+        {{#if canUndo}}
+          <footer>
+            <button type="button" data-action="undo">{{localize
+                "DOMMT.Dungeon.UndoButton"
+              }}</button>
+          </footer>
+        {{/if}}
+      {{/unless}}
+
+      {{#if history.length}}
+        <div class="dommt-dungeon__history">
+          {{#each history}}
+            <div class="dommt-dungeon__history-entry">
+              <span
+                class="dommt-dungeon__history-outcome"
+              >{{this.outcomeLabel}}</span>
+              <span>{{this.effectLabel}}</span>
+            </div>
+          {{/each}}
+        </div>
+      {{/if}}
+
+      <footer>
+        <button type="button" data-action="hide">{{localize
+            "DOMMT.Dungeon.HideButton"
+          }}</button>
+        <button type="button" data-action="abandon">{{localize
+            "DOMMT.Dungeon.AbandonButton"
+          }}</button>
+      </footer>
+    </div>
+  {{else}}
+    <form class="dommt-dungeon">
+      <label>
+        {{localize "DOMMT.Dungeon.RoomCountLabel"}}
+        <input
+          type="number"
+          name="roomCount"
+          min="2"
+          max="20"
+          value="{{defaultRoomCount}}"
+        />
+      </label>
+      {{{traitsFieldHtml}}}
+      {{{excludeTraitsFieldHtml}}}
+      <footer>
+        <button type="button" data-action="start">{{localize
+            "DOMMT.Dungeon.StartButton"
+          }}</button>
+      </footer>
+    </form>
+  {{/if}}
+{{else}}
+  <p class="hint">{{localize "DOMMT.Dungeon.NoSceneWarning"}}</p>
+{{/if}}
