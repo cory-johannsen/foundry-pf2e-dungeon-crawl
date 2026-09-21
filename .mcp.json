@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "foundry-agent-bridge": {
+      "command": "node",
+      "args": ["tools/agent-loop/mcp-server.mjs"]
+    }
+  }
+}
