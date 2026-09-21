@@ -29,7 +29,7 @@
  * "shared column, never a jog" guarantee intact once rooms stop being a
  * uniform size.
  */
-import { splitmix32, seedFromString } from '../../deck-of-many-more-things/scripts/prng.mjs';
+import { splitmix32, seedFromString } from './prng.mjs';
 
 export const ROOM_SIZE_SMALL = 6;
 export const ROOM_SIZE_LARGE = 12;

@@ -9,7 +9,7 @@
  * ad-hoc channel name isn't guaranteed to be delivered the same way),
  * discriminated by `type`.
  */
-import { SOCKET } from "../../deck-of-many-more-things/scripts/player-choice.mjs";
+import { SOCKET } from "./player-choice.mjs";
 import { getRunState, findActiveHostedRun } from "./dungeon-runner.mjs";
 import { isAuthorizedRequest } from "./dungeon-permissions.mjs";
 import {
@@ -27,7 +27,7 @@ import {
 } from "./ui/dungeon-app.mjs";
 import { undoRoomEntry } from "./dungeon-scene.mjs";
 
-const MODULE_ID = "deck-of-many-more-things";
+const MODULE_ID = "pf2e-dungeon-crawl";
 const DEFAULT_TIMEOUT_MS = 15_000;
 const pending = new Map();
 

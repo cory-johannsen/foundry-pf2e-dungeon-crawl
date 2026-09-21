@@ -6,10 +6,10 @@
  * generator never touches that deck, and its own Accept/Reroll preview
  * dialog already serves the "look before you commit" purpose.
  */
-import { makeFoundryApi } from "../../deck-of-many-more-things/scripts/foundry-api.mjs";
+import { makeFoundryApi } from "./foundry-api.mjs";
 import { buildEncounterDeck, dealEncounter } from "./encounter-deck.mjs";
 import { getGenerator } from "./generator-registry.mjs";
-import { loadCreatureArt } from "../../deck-of-many-more-things/scripts/data-loader.mjs";
+import { loadCreatureArt } from "./data-loader.mjs";
 import { findCreatureArt, creatureArtPath } from "./creature-art.mjs";
 import {
   traitFieldHtml,
@@ -17,11 +17,10 @@ import {
   readTraitField,
 } from "./trait-picker.mjs";
 import { startCombatForEncounterId } from "./dungeon-combat.mjs";
-import { chooseCoverItemTypes } from "../../deck-of-many-more-things/scripts/cover-items.mjs";
+import { chooseCoverItemTypes } from "./cover-items.mjs";
 import { getRunState } from "./dungeon-runner.mjs";
 
-const MODULE_ID = "deck-of-many-more-things"; // unchanged — .hbs template path and encounterId flag stay pinned here
-const ART_MODULE_ID = "pf2e-dungeon-crawl"; // creature-art assets moved here
+const MODULE_ID = "pf2e-dungeon-crawl";
 
 function freshSeed() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -118,7 +117,7 @@ function findFocusActorId(partyMembers) {
 function resolveArt(creatureArt, ref) {
   const filename = findCreatureArt(creatureArt, ref);
   return filename
-    ? `modules/${ART_MODULE_ID}/assets/${creatureArtPath(filename)}`
+    ? `modules/${MODULE_ID}/assets/${creatureArtPath(filename)}`
     : null;
 }
 

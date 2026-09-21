@@ -34,7 +34,7 @@
  *     split, simplified to a flat DC bump rather than a second full DC
  *     table.
  */
-import { splitmix32, seedFromString } from "../../deck-of-many-more-things/scripts/prng.mjs";
+import { splitmix32, seedFromString } from "./prng.mjs";
 
 // PF2e's own "Simple DC" table (GM Core) by character/party level. Same
 // confidence level as encounter-roster.mjs's RELATIVE_XP table — a stable,

@@ -13,7 +13,7 @@
  * — matching the GM Core's "Building Creature Encounters" XP-by-relative-level
  * table (see encounter-roster.mjs).
  */
-import { splitmix32, seedFromString, shuffle } from '../../deck-of-many-more-things/scripts/prng.mjs';
+import { splitmix32, seedFromString, shuffle } from './prng.mjs';
 
 // Friend's level offset ("1-2 below party level" per the book) is fixed
 // rather than randomised, for predictability. Twins drawn together are

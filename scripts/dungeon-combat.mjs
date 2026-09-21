@@ -14,7 +14,7 @@
  * module.mjs — the composition root that already imports from every one of
  * these files — is what stitches "combat resolved" to "advance the room."
  */
-import { makeFoundryApi } from "../../deck-of-many-more-things/scripts/foundry-api.mjs";
+import { makeFoundryApi } from "./foundry-api.mjs";
 import {
   totalCombatXp,
   xpPerSurvivor,
@@ -37,8 +37,8 @@ import {
   parseReactiveStrikeWeaponRestriction,
 } from "./agent-candidates.mjs";
 import { findPath, blockedEdgesFromWalls } from "./pathfinding.mjs";
-import { LOOTABLE_ITEM_TYPES } from "../../deck-of-many-more-things/scripts/treasure.mjs";
-import { coverBlocksLineOfFire, COVER_EFFECT_DATA } from "../../deck-of-many-more-things/scripts/cover-items.mjs";
+import { LOOTABLE_ITEM_TYPES } from "./treasure.mjs";
+import { coverBlocksLineOfFire, COVER_EFFECT_DATA } from "./cover-items.mjs";
 import {
   playStrikeSound,
   playSpellSaveSound,
@@ -46,8 +46,7 @@ import {
   playCreatureDeathSound,
 } from "./dungeon-sound.mjs";
 
-const MODULE_ID = "deck-of-many-more-things"; // unchanged — flags stay pinned here, see split design doc
-const SETTINGS_MODULE_ID = "pf2e-dungeon-crawl"; // dungeonRuns/agentLoopHeartbeat are registered here now
+const MODULE_ID = "pf2e-dungeon-crawl";
 
 /** Ids of the actual party characters — this module's own definition of
  * "a real party member," used instead of Foundry's `hasPlayerOwner` wherever
@@ -459,7 +458,7 @@ const HEARTBEAT_STALE_FALLBACK_MS = 15000;
  * ages past the stale threshold.
  */
 export function agentLoopStatus() {
-  const heartbeat = game.settings.get(SETTINGS_MODULE_ID, "agentLoopHeartbeat");
+  const heartbeat = game.settings.get(MODULE_ID, "agentLoopHeartbeat");
   if (!heartbeat?.timestamp)
     return {
       connected: false,

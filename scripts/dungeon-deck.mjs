@@ -11,7 +11,7 @@
  * later (Extra Travel Time inserting a room) never disturbs rooms already
  * handed to the table.
  */
-import { splitmix32, seedFromString, shuffle } from '../../deck-of-many-more-things/scripts/prng.mjs';
+import { splitmix32, seedFromString, shuffle } from './prng.mjs';
 
 // Tunable, with no anchor in the source material — unlike the encounter
 // deck's XP table, the Journey Spread never specifies a room-kind mix.

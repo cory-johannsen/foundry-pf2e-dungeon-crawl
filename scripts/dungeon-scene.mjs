@@ -31,7 +31,7 @@ import {
   corridorTileVariant,
   outgoingFaceWall,
 } from "./dungeon-layout.mjs";
-import { freeSpotInRect } from "../../deck-of-many-more-things/scripts/placement.mjs";
+import { freeSpotInRect } from "./placement.mjs";
 import { generateEncounter } from "./encounter-generator.mjs";
 import {
   getRunState,
@@ -49,11 +49,11 @@ import { playDoorSound } from "./dungeon-sound.mjs";
 import { loadDungeonSetpieces } from "../../deck-of-many-more-things/scripts/data-loader.mjs";
 import { selectSkillChallengeTemplate } from "./skill-challenge-mechanics.mjs";
 import { isValidNarrativeTemplate } from "./narrative-mechanics.mjs";
-import { makeFoundryApi } from "../../deck-of-many-more-things/scripts/foundry-api.mjs";
+import { makeFoundryApi } from "./foundry-api.mjs";
 import { selectTrap } from "./trap-library.mjs";
-import { splitmix32, seedFromString } from "../../deck-of-many-more-things/scripts/prng.mjs";
+import { splitmix32, seedFromString } from "./prng.mjs";
 
-const MODULE_ID = "deck-of-many-more-things";
+const MODULE_ID = "pf2e-dungeon-crawl";
 const GRID_SIZE = 100;
 const MARGIN_ROOMS = 1;
 

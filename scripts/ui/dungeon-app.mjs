@@ -1,4 +1,4 @@
-import { loadDungeonSetpieces } from "../../../deck-of-many-more-things/scripts/data-loader.mjs";
+import { loadDungeonSetpieces } from "../data-loader.mjs";
 import {
   getRunState,
   createRun,
@@ -12,7 +12,7 @@ import {
 import { canActOnDungeon } from "../dungeon-permissions.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
 import { depthBiasFor, lootGpForTreasureRoom } from "../dungeon-deck.mjs";
-import { makeFoundryApi } from "../../../deck-of-many-more-things/scripts/foundry-api.mjs";
+import { makeFoundryApi } from "../foundry-api.mjs";
 import { rollSkillChallengeAttempt } from "../skill-challenge.mjs";
 import { rollPuzzleStageAttempt } from "../puzzle.mjs";
 import { ALL_SKILLS, dcForAttempt } from "../skill-challenge-mechanics.mjs";
@@ -41,7 +41,7 @@ import {
   resolveSlotCombat,
 } from "../dungeon-combat.mjs";
 
-const MODULE_ID = "deck-of-many-more-things";
+const MODULE_ID = "pf2e-dungeon-crawl";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 const ROOM_KIND_KEYS = {

@@ -34,7 +34,7 @@ import {
 import {
   getPendingTrapCustomization,
   applyTrapCustomization,
-} from "../../deck-of-many-more-things/scripts/trap-combat.mjs";
+} from "./trap-combat.mjs";
 import { registerGenerator } from "./generator-registry.mjs";
 import { DefaultGenerator } from "./default-generator.mjs";
 

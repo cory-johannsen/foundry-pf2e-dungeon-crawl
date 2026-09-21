@@ -530,7 +530,7 @@ export function makeFoundryApi(sceneRef = null) {
             id: i.id,
             name: i.name,
             type: i.type,
-            dommt: i.flags?.["deck-of-many-more-things"] ?? null,
+            dommt: i.flags?.[MODULE_ID] ?? null,
           }))
       );
     },

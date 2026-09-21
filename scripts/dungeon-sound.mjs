@@ -22,9 +22,9 @@
  *     "triggered" event with a clean hook -- same reasoning as the two
  *     items above.
  */
-import { playSound } from "../../deck-of-many-more-things/scripts/audio.mjs";
+import { playSound } from "./audio.mjs";
 
-const MODULE_ID = "deck-of-many-more-things";
+const MODULE_ID = "pf2e-dungeon-crawl";
 const SOUND_DIR = `modules/${MODULE_ID}/assets/sounds`;
 
 export const DUNGEON_SOUND_FILES = {

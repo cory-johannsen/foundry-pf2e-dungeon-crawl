@@ -1,6 +1,6 @@
 /**
  * The swappable generator contract this module is driven by. A generator
- * supplies room sequencing and encounter rosters; deck-of-many-more-things
+ * supplies room sequencing and encounter rosters; a dependent module
  * (or any other caller) may register its own, but nothing needs to — see
  * default-generator.mjs, self-registered at ready if no one else has.
  */
