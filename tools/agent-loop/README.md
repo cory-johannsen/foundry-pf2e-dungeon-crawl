@@ -59,7 +59,7 @@ below.
 The poller pings a heartbeat into the world once per loop iteration, so a
 GM can check its status without watching this terminal: click the robot
 icon in the token scene controls, or run
-`game.modules.get('deck-of-many-more-things').api.postAgentLoopStatus()`
+`game.modules.get('pf2e-dungeon-crawl').api.postAgentLoopStatus()`
 from the console. Both post a GM-whispered chat card saying whether it's
 connected, stale (was running, hasn't checked in recently), or never seen
 this session.

@@ -25,7 +25,7 @@ const POLL_INTERVAL_MS = Number(
   readEnvOrDotenv("DOMMT_POLL_INTERVAL_MS") ?? 3000,
 );
 const AGENT_PROVIDER_NAME = readEnvOrDotenv("DOMMT_AGENT_PROVIDER") ?? "claude";
-const MODULE_ID = "deck-of-many-more-things";
+const MODULE_ID = "pf2e-dungeon-crawl";
 
 async function getPendingTurn() {
   return runFoundryScript(

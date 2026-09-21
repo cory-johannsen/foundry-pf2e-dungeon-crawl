@@ -24,7 +24,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { runFoundryScript } from "./foundry-client.mjs";
 
-const MODULE_ID = "deck-of-many-more-things";
+const MODULE_ID = "pf2e-dungeon-crawl";
 
 export async function getPendingTrapCustomization(sceneId, opts = {}) {
   return runFoundryScript(
