@@ -12,7 +12,7 @@ import {
   isSimpleAutomatableTrap,
 } from "./trap-mechanics.mjs";
 
-const MODULE_ID = "deck-of-many-more-things";
+const MODULE_ID = "pf2e-dungeon-crawl";
 
 /**
  * Classifies a live hazard Actor the same way trap-mechanics.mjs's pure

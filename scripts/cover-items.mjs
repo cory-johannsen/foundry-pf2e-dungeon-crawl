@@ -24,7 +24,7 @@
  */
 import { splitmix32, seedFromString } from "./prng.mjs";
 
-export const MODULE_ID = "deck-of-many-more-things";
+export const MODULE_ID = "pf2e-dungeon-crawl";
 
 export const COVER_ITEM_TYPES = {
   crate: {

@@ -1,7 +1,7 @@
 import { promptChooseAbility, promptChooseOption, promptChooseMany,
          promptKeepOne } from './choice-prompts.mjs';
 
-const MODULE_ID = 'deck-of-many-more-things';
+const MODULE_ID = 'pf2e-dungeon-crawl';
 export const SOCKET = `module.${MODULE_ID}`;
 
 /**

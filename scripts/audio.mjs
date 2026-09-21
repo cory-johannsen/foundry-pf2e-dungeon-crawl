@@ -1,4 +1,4 @@
-const MODULE_ID = 'deck-of-many-more-things';
+const MODULE_ID = 'pf2e-dungeon-crawl';
 
 export const SOUND_VOLUME = 0.7;
 
