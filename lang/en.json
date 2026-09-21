@@ -1,4 +1,6 @@
 {
+  "DOMMT.Choice.NoAnswer": "{user} did not answer in time — the choice falls to you.",
+  "DOMMT.Choice.Waiting": "Waiting for {user} to choose for {card}…",
   "DOMMT.Dungeon.AbandonButton": "Abandon Dungeon",
   "DOMMT.Dungeon.AbandonConfirm": "This ends the run for good: the party is moved back out, every monster this run spawned is deleted, and the dungeon scene itself is deleted. This can't be undone.",
   "DOMMT.Dungeon.AlreadyHostedWarning": "A dungeon crawl is already in progress, hosted by {host}.",
@@ -99,5 +101,9 @@
   "DOMMT.Encounter.ThemeLabel": "Traits to favor",
   "DOMMT.Encounter.Title": "Generate Encounter",
   "DOMMT.Encounter.TwinLabel": "Twins:",
+  "DOMMT.GM.Apply": "Apply",
+  "DOMMT.GM.Cancel": "Cancel",
+  "DOMMT.GM.ChooseAbility.Label": "Ability",
+  "DOMMT.GM.ChooseAbility.Prompt": "Choose the ability score to boost by +{delta}.",
   "DOMMT.SceneControl.AgentLoopStatusLabel": "Agent Loop Status"
 }

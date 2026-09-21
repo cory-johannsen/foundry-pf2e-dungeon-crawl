@@ -2,6 +2,8 @@ import { promptChooseAbility, promptChooseOption, promptChooseMany,
          promptKeepOne } from './choice-prompts.mjs';
 
 const MODULE_ID = 'pf2e-dungeon-crawl';
+// Shared with deck-of-many-more-things's own player-choice prompts (gm-resolution.mjs/keep-one.mjs
+// import this constant directly) — one channel, discriminated by message type.
 export const SOCKET = `module.${MODULE_ID}`;
 
 /**
