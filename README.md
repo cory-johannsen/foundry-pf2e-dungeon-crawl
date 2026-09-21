@@ -3,17 +3,10 @@
 Foundry VTT v13 module for Pathfinder 2E: procedurally sequenced dungeon
 rooms, encounter generation, traps, puzzles, skill challenges and
 GM-less-capable combat AI, driven by a swappable generator interface.
-Split out of [deck-of-many-more-things](https://github.com/cory-johannsen/foundry-deck-of-many-things)
-(see that repo's `docs/superpowers/specs/2026-09-21-dungeon-crawl-module-split-design.md`
-for the full design).
-
-**Requires `deck-of-many-more-things` to be installed and enabled
-alongside this module.** This module depends on it for shared
-infrastructure (Foundry API glue, RNG, data loading, choice prompts, cover
-items, placement, treasure, and trap-combat mechanics) declared as a
-Foundry module dependency in `module.json`. It also depends on it for
-room-art and dungeon-sound assets, which are served from the deck
-module's install directory rather than duplicated here.
+Fully self-contained — no other module is required. (Originally split out
+of [deck-of-many-more-things](https://github.com/cory-johannsen/foundry-deck-of-many-things);
+that repo now depends on this one instead, rather than the other way
+around.)
 
 ## Install
 
@@ -23,8 +16,8 @@ Install by manifest URL in Foundry:
 https://raw.githubusercontent.com/cory-johannsen/foundry-pf2e-dungeon-crawl/main/module.json
 ```
 
-Requires the `pf2e` system (minimum v6.0.0), Foundry v13, and
-`deck-of-many-more-things` (minimum v0.71.0) installed and enabled.
+Requires the `pf2e` system (minimum v6.0.0) and Foundry v13. No other
+module is required.
 
 ## Usage
 
@@ -48,8 +41,8 @@ Room sequencing and encounter rosters are produced by whatever generator
 is currently registered, not hardcoded. A `DefaultGenerator` (this
 module's own `dungeon-deck.mjs`/`encounter-roster.mjs` logic) self-registers
 automatically at startup, so the module works standalone with no extra
-setup. Another module (or a future card effect in `deck-of-many-more-things`
-itself) can supply its own room/encounter logic instead:
+setup. Another module (such as a card effect in a dependent module) can
+supply its own room/encounter logic instead:
 
 ```js
 game.modules.get('pf2e-dungeon-crawl').api.registerGenerator({
