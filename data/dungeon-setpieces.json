@@ -1,0 +1,376 @@
+[
+  {
+    "id": "the_perfect_hand",
+    "kind": "puzzle",
+    "name": "The Perfect Hand",
+    "difficulty": "easy",
+    "complete": true,
+    "summary": "A statue of a halfling holds one card (the Rogue) and speaks a riddle naming four missing cards — Sage, Jester, Knight, Fates — and how each relates to the others (who dislikes being next to whom, who gazes at whom, who stands beside whom, orientation included). The party must find the four missing cards elsewhere nearby, then arrange all five in the statue's hand — in the correct order, each upright or reversed per the riddle — to slide the statue aside and reveal a secret door.",
+    "hintChecks": [
+      {
+        "skill": "Perception",
+        "dc": 10,
+        "hint": "Grooves in the statue's palms are sized for a fanned hand of five cards."
+      },
+      {
+        "skill": "Society",
+        "dc": 10,
+        "hint": "The statue's riddle explains the order the cards must be sorted into."
+      },
+      {
+        "skill": "Occultism",
+        "dc": 10,
+        "hint": "For the cards to face the directions the riddle describes, some must be placed reversed."
+      }
+    ],
+    "solution": "Work outward from the fixed Rogue card using each relationship in the riddle in turn — the book's diagram 4.1 shows the exact five-card final arrangement and orientations. DCs are the book's flat 5e values; scale them to your party's level per PF2e's normal DC-by-level guidance.",
+    "source": { "chapter": 4 }
+  },
+  {
+    "id": "unseen_order",
+    "kind": "puzzle",
+    "name": "Unseen Order",
+    "difficulty": "medium",
+    "complete": true,
+    "summary": "A ghostly jester challenges the party to a Mastermind-style guessing game. She secretly holds four cards (drawn from six possibilities — Comet, Gem, Moon, Skull, Star, Sun — repeats allowed) face down. The party places a guess of four cards into a row; for each guess, a correct card in the correct position scores a red marker and a correct card in the wrong position scores a blue marker. Ten guesses total. Solving it in six or fewer wins a bonus treasure on top of the normal prize for winning at all.",
+    "hintChecks": [
+      {
+        "skill": "Diplomacy",
+        "dc": 10,
+        "hint": "Asked politely, the ghost demonstrates one example round so the players can see how the red/blue markers work."
+      }
+    ],
+    "solution": "Solvable only through deduction from the accumulating red/blue feedback, not a fixed answer — the GM secretly picks the four-card hand at the start. The book's diagram 4.4 walks through one full example game (hand: Moon, Sun, Skull, Gem).",
+    "source": { "chapter": 4 }
+  },
+  {
+    "id": "the_sealed_ward",
+    "kind": "puzzle",
+    "archetype": "gauntlet",
+    "name": "The Sealed Ward",
+    "difficulty": "hard",
+    "complete": true,
+    "summary": "A luminous warding glyph bars the way forward, inscribed with three distinct trial-marks — a spoken passphrase in a dead liturgical tongue, a minor ward-glyph that must be carefully unwound rather than broken, and a sigil that only answers to a specific gesture of respect. The ward was built to test three different kinds of worthiness, not just brute force.",
+    "hintChecks": [
+      { "skill": "Religion", "dc": 10, "hint": "The liturgical passphrase isn't gibberish — it's a common invocation from a faith this dungeon's builders clearly practiced, just archaically phrased." },
+      { "skill": "Arcana", "dc": 10, "hint": "The ward-glyph has a single thread that, pulled in the right order, unravels the whole working harmlessly — force instead triggers its ward." },
+      { "skill": "Diplomacy", "dc": 10, "hint": "The sigil isn't a lock at all — it's a courtesy check, testing whether whoever approaches shows deference rather than demand." }
+    ],
+    "solution": "Each trial-mark tests a different kind of worthiness and must be satisfied on its own terms: speak the archaic invocation correctly (Religion), unwind the ward-glyph's single thread in sequence rather than forcing it (Arcana), and approach the sigil with the correct gesture of deference (Diplomacy). The ward drops once enough of the three are satisfied — a party that succeeds at all three finds it drops with no resistance at all, a nice-to-have rather than a requirement.",
+    "source": { "chapter": null, "note": "Hand-authored — no PF2e compendium ships puzzle content; see #138." }
+  },
+  {
+    "id": "bones_of_the_mechanism",
+    "kind": "puzzle",
+    "archetype": "mechanism",
+    "name": "Bones of the Mechanism",
+    "difficulty": "medium",
+    "complete": true,
+    "summary": "A stone door is sealed by an ancient gear-and-lever mechanism set into the wall beside it — three visible components: a stuck iron lever, a bank of interlocking dials etched with unfamiliar glyphs, and a tension crank that needs steady, careful pressure to avoid snapping its own cable. All three need to be understood and worked together before the door will budge.",
+    "hintChecks": [
+      { "skill": "Athletics", "dc": 10, "hint": "The lever isn't broken, just corroded solid — it needs brute, sustained force, not a sharp yank." },
+      { "skill": "Crafting", "dc": 10, "hint": "The dials aren't decorative — turning them in the right sequence is what actually unlocks the mechanism, not the lever alone." },
+      { "skill": "Thievery", "dc": 10, "hint": "The tension crank's cable is frayed; a light, practiced touch keeps it from snapping mid-turn." }
+    ],
+    "solution": "All three components must be worked in concert: force the lever (Athletics) to build initial tension, set the dials to the sequence the room's own decor hints at (Crafting), then ease the crank through its final turn (Thievery) without snapping the cable. Any one skipped stalls the door.",
+    "source": { "chapter": null, "note": "Hand-authored — no PF2e compendium ships puzzle content; see #138." }
+  },
+  {
+    "id": "the_alchemists_cabinet",
+    "kind": "puzzle",
+    "archetype": "item-combination",
+    "name": "The Alchemist's Cabinet",
+    "difficulty": "medium",
+    "complete": true,
+    "summary": "A locked cabinet holds a dozen labeled reagent vials, most inert, a few genuinely useful, one outright dangerous if mishandled. A brass plate beside it reads: \"Combine what answers true need, and the false lock falls away.\" The party must pick the right two or three vials and mix them correctly to dissolve the seal on a hidden compartment.",
+    "hintChecks": [
+      { "skill": "Crafting", "dc": 10, "hint": "Half these labels are deliberately misleading — the vial's actual color and weight tell the true story, not the handwriting on it." },
+      { "skill": "Nature", "dc": 10, "hint": "Two of the vials hold genuine plant extracts; everything else is mineral dust with no reaction at all." },
+      { "skill": "Medicine", "dc": 10, "hint": "One vial is caustic enough to hurt whoever mixes it carelessly — it needs diluting first, not combining directly." }
+    ],
+    "solution": "The two plant-extract vials (Nature) combine directly to dissolve the seal; the caustic vial (Medicine) is a red herring unless diluted first, in which case it speeds the reaction — either path works, but mixing it undiluted damages whoever's handling it. Crafting narrows the field before either path is attempted.",
+    "source": { "chapter": null, "note": "Hand-authored — no PF2e compendium ships puzzle content; see #138." }
+  },
+  {
+    "id": "what_the_bones_remember",
+    "kind": "puzzle",
+    "archetype": "lore",
+    "name": "What the Bones Remember",
+    "difficulty": "hard",
+    "complete": true,
+    "summary": "An ossuary chamber displays a wall of skeletal remains arranged into a deliberate tableau — a funerary procession frozen mid-stride, one skull turned to face the room rather than the wall. Pressing the wrong skull triggers nothing obvious, but pressing the right one — the one the tableau's own composition marks as significant — opens a passage beneath the floor.",
+    "hintChecks": [
+      { "skill": "Religion", "dc": 10, "hint": "The procession's arrangement matches a funerary rite for the dishonored, not the honored — the outward-facing skull was the one being mourned, not the one leading it." },
+      { "skill": "Society", "dc": 10, "hint": "The remains' dress and posture place this burial several centuries before the rest of the dungeon's construction — this chamber predates everything around it." },
+      { "skill": "Occultism", "dc": 10, "hint": "A faint ward-glyph is scratched into the floor beneath the outward-facing skull specifically, not any other." }
+    ],
+    "solution": "The outward-facing skull is the mourned figure the whole tableau centers on, marked further by the ward-glyph beneath it — pressing it (not the procession's apparent leader, the natural first guess) opens the floor passage.",
+    "source": { "chapter": null, "note": "Hand-authored — no PF2e compendium ships puzzle content; see #138." }
+  },
+  {
+    "id": "the_court_of_echoes",
+    "kind": "puzzle",
+    "archetype": "social",
+    "name": "The Court of Echoes",
+    "difficulty": "medium",
+    "complete": true,
+    "summary": "A ballroom of translucent, spectral courtiers replays the same masquerade on an endless loop, utterly indifferent to the living — until addressed correctly. The party must be accepted as guests rather than intruders to be allowed to cross to the far doors without the whole ghostly court turning hostile at once.",
+    "hintChecks": [
+      { "skill": "Diplomacy", "dc": 10, "hint": "The courtiers only ever address each other by invented masquerade names, never real ones — using a real name marks you as an outsider instantly." },
+      { "skill": "Performance", "dc": 10, "hint": "The loop has a rhythm — a recurring dance figure everyone in the room steps through at the same interval. Matching it, even roughly, reads as belonging." },
+      { "skill": "Deception", "dc": 10, "hint": "Claiming a place in the masquerade (an invented name, an invented reason for arriving late) works better than trying to explain the truth." }
+    ],
+    "solution": "Adopt a masquerade name, join the recurring dance figure at the right beat, and claim a plausible (invented) reason for being there — any one alone gets a suspicious glance, but doing enough of it together gets the party waved through as fellow guests rather than challenged as intruders.",
+    "source": { "chapter": null, "note": "Hand-authored — no PF2e compendium ships puzzle content; see #138." }
+  },
+  {
+    "id": "balance_and_ruin",
+    "kind": "trap",
+    "name": "Balance and Ruin",
+    "difficulty": "medium",
+    "complete": false,
+    "summary": "(mechanics not transcribed — the book's Chapter 4 \"Trap Rooms\" section names this trap but gives no base write-up anywhere in the printed text; it only reappears, modified, as a room in the Gardmore Abbey adventure later in the book: a narrow beam spanning a pit of grinding gears, with a pressure plate that raises spiked metal walls when weight shifts to the wrong side of the beam.)",
+    "source": {
+      "chapter": 4,
+      "note": "Only a reused, modified version survives in this copy, in the Gardmore Abbey chapter."
+    }
+  },
+  {
+    "id": "surface_of_the_sun",
+    "kind": "trap",
+    "name": "Surface of the Sun",
+    "difficulty": "medium",
+    "complete": false,
+    "summary": "(mechanics not transcribed — named only in Chapter 4's \"Trap Rooms\" list, with no base write-up in the printed text; it reappears, modified, in the Gardmore Abbey chapter as three parallel halls under a scorching ceiling that deals fire damage to anyone inside each round.)",
+    "source": {
+      "chapter": 4,
+      "note": "Only a reused, modified version survives in this copy, in the Gardmore Abbey chapter."
+    }
+  },
+  {
+    "id": "test_of_the_empty_moon",
+    "kind": "trap",
+    "name": "Test of the Empty Moon",
+    "difficulty": "medium",
+    "complete": false,
+    "summary": "(mechanics not transcribed — named only in Chapter 4's \"Trap Rooms\" list, with no base write-up in the printed text; it reappears, modified, in the Gardmore Abbey chapter as a chamber with a portcullis, a moon-phase glyph, and a lever puzzle gating passage north.)",
+    "source": {
+      "chapter": 4,
+      "note": "Only a reused, modified version survives in this copy, in the Gardmore Abbey chapter."
+    }
+  },
+  {
+    "id": "the_collapsing_span",
+    "kind": "skill_challenge",
+    "archetype": "chase",
+    "name": "The Collapsing Span",
+    "complete": true,
+    "summary": "A rope-and-plank bridge over a chasm has been sabotaged — it's failing section by section as the party crosses, forcing them to keep moving.",
+    "specialtySkills": ["acrobatics", "athletics", "stealth"],
+    "skillFlavor": {
+      "acrobatics": "Dodging snapped planks and swinging across gaps on the fraying ropes.",
+      "athletics": "Muscling across a buckling section by main strength before it gives way.",
+      "stealth": "Picking a path light enough not to put extra strain on a failing plank."
+    },
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships skill-challenge content; see #164."
+    }
+  },
+  {
+    "id": "a_council_divided",
+    "kind": "skill_challenge",
+    "archetype": "negotiation",
+    "name": "A Council Divided",
+    "complete": true,
+    "summary": "A room of quarreling local factions has to be talked, cajoled, or leaned on into agreeing to help (or at least stand aside) before the party can move on.",
+    "specialtySkills": ["diplomacy", "deception", "intimidation"],
+    "skillFlavor": {
+      "diplomacy": "Appealing to a faction's own stated interests and honor.",
+      "deception": "Telling each faction exactly what it wants to hear.",
+      "intimidation": "Making the cost of staying difficult plain."
+    },
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships skill-challenge content; see #164."
+    }
+  },
+  {
+    "id": "the_sealed_archive",
+    "kind": "skill_challenge",
+    "archetype": "investigation",
+    "name": "The Sealed Archive",
+    "complete": true,
+    "summary": "A room of locked records, half-legible marginalia, and warded stacks holds the specific piece of lore the party actually needs — buried somewhere in all of it.",
+    "specialtySkills": ["society", "occultism", "arcana"],
+    "skillFlavor": {
+      "society": "Cross-referencing the archive's own indexing and filing conventions.",
+      "occultism": "Recognizing which symbols on the sealed cases are decorative and which are warnings.",
+      "arcana": "Reading the residual magic still clinging to the older volumes."
+    },
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships skill-challenge content; see #164."
+    }
+  },
+  {
+    "id": "past_the_watch",
+    "kind": "skill_challenge",
+    "archetype": "infiltration",
+    "name": "Past the Watch",
+    "complete": true,
+    "summary": "A patrolled space — guards, wards, or simply too many watchful eyes — has to be crossed without raising an alarm the party isn't ready to deal with yet.",
+    "specialtySkills": ["stealth", "thievery", "deception"],
+    "skillFlavor": {
+      "stealth": "Timing movement to the patrol's own blind spots.",
+      "thievery": "Slipping past or quietly disabling whatever's actually watching the door.",
+      "deception": "Passing as someone who's supposed to be there."
+    },
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships skill-challenge content; see #164."
+    }
+  },
+  {
+    "id": "the_shifting_floor",
+    "kind": "skill_challenge",
+    "archetype": "hazard_avoidance",
+    "name": "The Shifting Floor",
+    "complete": true,
+    "summary": "The ground itself is the obstacle — unstable footing, a slow flood, a room that's quietly rearranging itself — and simply enduring it takes real, sustained effort.",
+    "specialtySkills": ["athletics", "survival", "nature"],
+    "skillFlavor": {
+      "athletics": "Forcing a way through by strength when the terrain won't cooperate.",
+      "survival": "Reading the room's own pattern well enough to move with it instead of against it.",
+      "nature": "Recognizing what's actually driving the room's behavior."
+    },
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships skill-challenge content; see #164."
+    }
+  },
+  {
+    "id": "the_last_wardens_oath",
+    "kind": "narrative",
+    "archetype": "lore",
+    "name": "The Last Warden's Oath",
+    "complete": true,
+    "summary": "A collapsed guardpost holds the personal effects of whoever stood watch here last — a journal, a broken badge of office, and the plain evidence of how badly that watch ended.",
+    "revealText": "The journal's final entries aren't panicked — they're methodical, a soldier logging a losing position long after hope was reasonable. Whoever held this post knew exactly what was coming and stayed anyway. The dungeon's builders didn't just lose this ground; someone paid for every foot of it.",
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships narrative content; see #165."
+    }
+  },
+  {
+    "id": "echoes_of_the_first_seal",
+    "kind": "narrative",
+    "archetype": "lore",
+    "name": "Echoes of the First Seal",
+    "complete": true,
+    "summary": "A weathered mural, mostly intact, depicts the dungeon's original purpose — not a vault or a tomb, but a containment, built around something the mural's own artists were clearly afraid to render clearly.",
+    "revealText": "The mural's central figure is never fully shown — every version of it is obscured by ritual scarring, deliberate damage, or a painted-over patch layered on generations after the original work. Whatever this place was built to hold, the people who built it kept quietly trying to make sure no one could ever see all of it at once.",
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships narrative content; see #165."
+    }
+  },
+  {
+    "id": "the_bound_familiar",
+    "kind": "narrative",
+    "archetype": "ally",
+    "name": "The Bound Familiar",
+    "complete": true,
+    "summary": "A small, half-starved spirit creature is caught in a decaying binding circle — old work, long since abandoned by whoever cast it, and clearly desperate to be freed.",
+    "npcName": "Wick",
+    "npcHook": "A minor bound spirit, grateful and genuinely useful rather than a liability — once freed, it offers to scout quietly ahead of the party for the rest of the run, flagging danger it can slip past unnoticed.",
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships narrative content; see #165."
+    }
+  },
+  {
+    "id": "the_wandering_cartographer",
+    "kind": "narrative",
+    "archetype": "ally",
+    "name": "The Wandering Cartographer",
+    "complete": true,
+    "summary": "A survivor of an earlier expedition, half-lost and living off what the dungeon itself provides, has been quietly mapping the place for longer than anyone else has managed to survive it.",
+    "npcName": "Ashgrove",
+    "npcHook": "A grizzled, half-feral survivor who trusts maps more than people at this point — willing to trade what they know of the dungeon's layout ahead for real supplies or a promise of escort back out when the party's done.",
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships narrative content; see #165."
+    }
+  },
+  {
+    "id": "the_starving_prisoner",
+    "kind": "narrative",
+    "archetype": "choice",
+    "name": "The Starving Prisoner",
+    "complete": true,
+    "summary": "A cell holds someone who's clearly been here far too long — captured by whatever holds this dungeon, and just as clearly not the party's enemy, but freeing them costs time and might cost quiet.",
+    "options": [
+      {
+        "label": "Free them",
+        "consequence": "A grateful, weakened ally who owes the party — but also a witness who might draw attention, and someone to protect for the rest of the run."
+      },
+      {
+        "label": "Leave them",
+        "consequence": "No new burden and no new noise — but no ally either, and whatever they know about what's ahead stays with them."
+      }
+    ],
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships narrative content; see #165."
+    }
+  },
+  {
+    "id": "the_desecrated_shrine",
+    "kind": "narrative",
+    "archetype": "choice",
+    "name": "The Desecrated Shrine",
+    "complete": true,
+    "summary": "A small shrine has been deliberately defaced — not looted, defaced — and still holds whatever value it had. Restoring it costs time and gives nothing tangible; stripping it for value gives something real but leaves it broken.",
+    "options": [
+      {
+        "label": "Restore it",
+        "consequence": "No material gain, but whatever presence the shrine once served takes notice — a quiet, thematic favor rather than a mechanical reward, the GM's to decide how it shows up later."
+      },
+      {
+        "label": "Strip it for value",
+        "consequence": "Real, tangible value recovered now — and the shrine stays broken, for whatever that's worth to whoever notices."
+      }
+    ],
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships narrative content; see #165."
+    }
+  },
+  {
+    "id": "the_missing_relic",
+    "kind": "narrative",
+    "archetype": "goal",
+    "name": "The Missing Relic",
+    "complete": true,
+    "summary": "A hurried, half-burned set of notes makes clear that the party isn't the only one after something specific here — and whoever else is looking has a head start.",
+    "suggestedObjective": "Recover the relic before whoever else is after it does.",
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships narrative content; see #165."
+    }
+  },
+  {
+    "id": "the_sealed_door_beyond",
+    "kind": "narrative",
+    "archetype": "goal",
+    "name": "The Sealed Door Beyond",
+    "complete": true,
+    "summary": "Deeper markings make it clear what's actually waiting at the end of this run — not just a fight, but something specific the party now has to be ready for.",
+    "suggestedObjective": "Find a way to be ready for what's sealed beyond the final door.",
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships narrative content; see #165."
+    }
+  }
+]

@@ -1,0 +1,14 @@
+/* ----- Dungeon crawl tracker ----- */
+.dommt-dungeon { display: flex; flex-direction: column; gap: 0.6rem; padding: 0.5rem; }
+.dommt-dungeon label { display: flex; flex-direction: column; gap: 0.2rem; font-weight: 600; }
+.dommt-dungeon footer { display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap; }
+.dommt-dungeon__progress { font-weight: 700; font-size: 1.1em; }
+.dommt-dungeon__room { border-left: 3px solid #7a5c2e; padding-left: 0.5rem; }
+.dommt-dungeon__setpiece-name { font-weight: 600; margin: 0.3rem 0 0.1rem; }
+.dommt-dungeon__history { max-height: 220px; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.3rem; }
+.dommt-dungeon__history-entry { display: flex; gap: 0.5rem; font-size: 0.85em; padding: 0.15rem 0; }
+.dommt-dungeon__history-outcome { font-weight: 600; min-width: 5em; }
+
+/* ----- Trait picker (encounter theme + dungeon-start forms) ----- */
+.dommt-trait-field { display: flex; align-items: center; gap: 0.5rem; }
+.dommt-trait-field__summary { flex: 1; font-style: italic; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
