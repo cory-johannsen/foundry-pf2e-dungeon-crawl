@@ -15,6 +15,7 @@
  * these files — is what stitches "combat resolved" to "advance the room."
  */
 import { makeFoundryApi } from "./foundry-api.mjs";
+import { getRunState } from "./dungeon-runner.mjs";
 import {
   totalCombatXp,
   xpPerSurvivor,
@@ -116,6 +117,7 @@ async function startCombat(scene, flagKey, flagValue) {
     { skipDialog: true },
   );
   await combat.startCombat();
+  unpauseIfGmLessCombat(scene.id);
   return combat;
 }
 
@@ -149,6 +151,21 @@ function isModuleCombat(c) {
     c.getFlag(MODULE_ID, "dungeonSlot") != null ||
     c.getFlag(MODULE_ID, "encounterId") != null
   );
+}
+
+/**
+ * A human GM's deliberate pause (e.g. a table break) is only ever unpaused
+ * by that human — this module never touches it. A GM-less run has no human
+ * GM present to do that, so the Agent-GM client driving combat unpauses it
+ * itself; otherwise the pause overlay blocks every party member's own turn
+ * with nobody able to lift it. Scoped to runs `dungeon-runner.mjs` reports
+ * as non-GM-hosted (`hostUserId` set) so a normal GM-run table is never
+ * affected.
+ */
+function unpauseIfGmLessCombat(sceneId) {
+  if (game.paused && sceneId && getRunState(sceneId)?.hostUserId) {
+    game.togglePause(false, { broadcast: true });
+  }
 }
 
 /** `{ hostilesDefeated, partyDefeated }` — both false while the fight's still going. */
@@ -1919,6 +1936,7 @@ async function rollAndApplyStrike(combat, combatant, target) {
  */
 export async function autoPlayCombatantTurnIfDue(combat) {
   if (!game.user.isGM || !isModuleCombat(combat)) return;
+  unpauseIfGmLessCombat(combat.scene?.id);
   const combatant = combat.combatant;
   if (
     !combatant ||
