@@ -79,7 +79,7 @@ describe("buildCoverItemActorData", () => {
 
   it("flags the actor as a cover item with its type id", () => {
     const data = buildCoverItemActorData("barrel");
-    expect(data.flags["deck-of-many-more-things"].coverItem).toBe("barrel");
+    expect(data.flags["pf2e-dungeon-crawl"].coverItem).toBe("barrel");
   });
 
   it("defaults to neutral disposition, overridable", () => {

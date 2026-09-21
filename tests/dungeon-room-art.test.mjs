@@ -14,15 +14,7 @@ import { LOCATION_TAGS, ROOM_ART_VARIANTS } from '../scripts/dungeon-deck.mjs';
  * directly against the filesystem instead.
  */
 const __dirname = dirname(fileURLToPath(import.meta.url));
-// roomArtPath/CORRIDOR_ART_PATH (dungeon-scene.mjs) hardcode
-// MODULE_ID = "deck-of-many-more-things", so these assets are served from --
-// and still physically live in -- that sibling repo, same as the
-// shared-infra scripts vitest.config.mjs's alias points at. Adjust if your
-// local clone differs.
-const ROOM_ART_DIR = resolve(
-  __dirname,
-  '../../foundry-deck-of-many-things/assets/dungeon-rooms',
-);
+const ROOM_ART_DIR = resolve(__dirname, '../assets/dungeon-rooms');
 
 describe('dungeon room art assets exist on disk', () => {
   const cases = [];

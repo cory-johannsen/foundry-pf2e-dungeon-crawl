@@ -9,12 +9,8 @@ import {
   spellAttackSoundPath,
 } from "../scripts/dungeon-sound.mjs";
 
-// dungeon-sound.mjs hardcodes MODULE_ID = "deck-of-many-more-things", so
-// these sound assets are served from -- and still physically live in --
-// that sibling repo, same as the shared-infra scripts vitest.config.mjs's
-// alias points at. Adjust if your local clone differs.
 const assetsDir = fileURLToPath(
-  new URL("../../foundry-deck-of-many-things/assets/sounds/", import.meta.url),
+  new URL("../assets/sounds/", import.meta.url),
 );
 
 describe("every declared dungeon sound file exists", () => {
@@ -67,7 +63,7 @@ describe("strikeHitSoundKey", () => {
 });
 
 describe("strikeSoundPath", () => {
-  const SOUND_DIR = "modules/deck-of-many-more-things/assets/sounds";
+  const SOUND_DIR = "modules/pf2e-dungeon-crawl/assets/sounds";
 
   it("gives a critical hit its own sting regardless of weapon", () => {
     expect(
@@ -121,7 +117,7 @@ describe("strikeSoundPath", () => {
 });
 
 describe("spellSaveSoundPath", () => {
-  const SOUND_DIR = "modules/deck-of-many-more-things/assets/sounds";
+  const SOUND_DIR = "modules/pf2e-dungeon-crawl/assets/sounds";
 
   it("a failed save (the spell lands) plays the hit sound", () => {
     expect(spellSaveSoundPath("failure")).toBe(`${SOUND_DIR}/card-arcane.ogg`);
@@ -143,7 +139,7 @@ describe("spellSaveSoundPath", () => {
 });
 
 describe("spellAttackSoundPath", () => {
-  const SOUND_DIR = "modules/deck-of-many-more-things/assets/sounds";
+  const SOUND_DIR = "modules/pf2e-dungeon-crawl/assets/sounds";
 
   it("is NOT inverted like spellSaveSoundPath -- success/criticalSuccess is a hit", () => {
     expect(spellAttackSoundPath("success")).toBe(

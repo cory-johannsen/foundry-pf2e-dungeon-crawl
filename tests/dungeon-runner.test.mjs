@@ -155,8 +155,8 @@ describe("findActiveHostedRun", () => {
     // Resolve straight to the goal room to mark it completed.
     const state = getRunState("scene-1", { settingsRef });
     const completed = { ...state, completed: true };
-    await settingsRef.set("deck-of-many-more-things", "dungeonRuns", {
-      ...settingsRef.get("deck-of-many-more-things", "dungeonRuns"),
+    await settingsRef.set("pf2e-dungeon-crawl", "dungeonRuns", {
+      ...settingsRef.get("pf2e-dungeon-crawl", "dungeonRuns"),
       "scene-1": completed,
     });
     expect(findActiveHostedRun({ settingsRef })).toBeNull();
@@ -186,8 +186,8 @@ describe("findHostedRunForBroadcast", () => {
     // Resolve straight to the goal room to mark it completed.
     const state = getRunState("scene-1", { settingsRef });
     const completed = { ...state, completed: true };
-    await settingsRef.set("deck-of-many-more-things", "dungeonRuns", {
-      ...settingsRef.get("deck-of-many-more-things", "dungeonRuns"),
+    await settingsRef.set("pf2e-dungeon-crawl", "dungeonRuns", {
+      ...settingsRef.get("pf2e-dungeon-crawl", "dungeonRuns"),
       "scene-1": completed,
     });
     expect(findActiveHostedRun({ settingsRef })).toBeNull();
@@ -1332,8 +1332,8 @@ describe("ensureNarrativeState / getPendingNarrativeCustomization / applyNarrati
 
 describe("dungeonRuns settings namespace", () => {
   /** Regression test for a bug where this file's settings access stayed
-   * pinned to the pre-split module id ("deck-of-many-more-things"), which
-   * module.mjs no longer registers "dungeonRuns" under — a real
+   * pinned to a stale module id, which module.mjs no longer registers
+   * "dungeonRuns" under — a real
    * game.settings.get/set throws in that case. The makeSettingsStub() used
    * by every other test in this file ignores its moduleId argument
    * entirely, so it can't catch this; this test records the exact
