@@ -625,20 +625,24 @@ async function placePartyNearSceneCenter(destScene, partyMembers) {
 }
 
 /**
- * Deletes every non-party actor (and its token) still on `scene` — any
- * NPC or converted loot corpse (#172) left over from this run's own
- * encounters, since `spawnCreatures`/`spawnBuiltCreature` (foundry-api.mjs)
- * always create a real, permanent world Actor that otherwise outlives its
- * token forever (confirmed live: 72 such orphaned actors had accumulated in
- * this world before `teardownDungeonRun` existed to catch them at Abandon
- * time). Keyed purely on "not a party member," never on actor type, so an
- * un-looted #172 corpse is swept exactly the same as an un-deleted NPC
- * always was. Shared by `teardownDungeonRun` (scene is about to be deleted,
- * so the token deletion below is redundant but harmless) and #204's
- * completion-time sweep (the scene survives, so this is the only thing that
- * actually removes them).
+ * Deletes every non-party actor (and, unless `deleteTokens` is false, its
+ * token) still on `scene` — any NPC or converted loot corpse (#172) left
+ * over from this run's own encounters, since `spawnCreatures`/
+ * `spawnBuiltCreature` (foundry-api.mjs) always create a real, permanent
+ * world Actor that otherwise outlives its token forever (confirmed live: 72
+ * such orphaned actors had accumulated in this world before
+ * `teardownDungeonRun` existed to catch them at Abandon time). Keyed purely
+ * on "not a party member," never on actor type, so an un-looted #172 corpse
+ * is swept exactly the same as an un-deleted NPC always was. Shared by
+ * `teardownDungeonRun` (scene is about to be deleted, so the token deletion
+ * below is redundant but harmless), #204's completion-time sweep (the scene
+ * survives, so this is the only thing that actually removes them), and #14's
+ * `deleteScene` hook (the scene is already gone by the time that hook fires
+ * — Foundry's own delete cascade already removed its Tokens, so calling
+ * `deleteEmbeddedDocuments` on it would throw; `deleteTokens: false` skips
+ * straight to the Actor cleanup that cascade can't do for us).
  */
-async function sweepLooseNpcActors(scene) {
+export async function sweepLooseNpcActors(scene, { deleteTokens = true } = {}) {
   const partyIds = partyActorIds();
   const looseTokens = scene.tokens.filter(
     (t) => t.actor?.id && !partyIds.has(t.actor.id),
@@ -646,7 +650,7 @@ async function sweepLooseNpcActors(scene) {
   const npcTokenIds = looseTokens.map((t) => t.id);
   const npcActorIds = [...new Set(looseTokens.map((t) => t.actor.id))];
 
-  if (npcTokenIds.length)
+  if (deleteTokens && npcTokenIds.length)
     await scene.deleteEmbeddedDocuments("Token", npcTokenIds);
   if (npcActorIds.length) await Actor.deleteDocuments(npcActorIds);
 

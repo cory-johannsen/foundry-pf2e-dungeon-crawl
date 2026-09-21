@@ -20,6 +20,7 @@ import { registerDungeonActionSocket } from "./dungeon-remote.mjs";
 import {
   handleDungeonDoorOpened,
   teardownDungeonRun,
+  sweepLooseNpcActors,
 } from "./dungeon-scene.mjs";
 import {
   maybeResolveCombatForActor,
@@ -315,6 +316,26 @@ function onDungeonRunsSettingChanged(setting) {
 Hooks.on("updateSetting", onDungeonRunsSettingChanged);
 Hooks.on("createSetting", onDungeonRunsSettingChanged);
 Hooks.on("canvasReady", syncGmLessDungeonBroadcast);
+
+/**
+ * #14: a dungeon scene deleted outside the tracker's own Abandon flow (most
+ * likely a GM deleting it directly via Foundry's Scene Directory) skips
+ * teardownDungeonRun entirely, orphaning both its dungeonRuns settings entry
+ * and any NPC/corpse actors its encounters spawned — Actors aren't embedded
+ * in the Scene document, so Foundry's own delete cascade can't clean those
+ * up for us. The normal Abandon flow (abandonDungeonRun) already prunes the
+ * settings entry via abandonRun *before* calling teardownDungeonRun's own
+ * scene.delete(), so by the time this hook fires for that path,
+ * getRunState is already null and this is a no-op — it only ever does real
+ * work for a scene deleted through some other path. Gated on isGM since
+ * Actor.deleteDocuments is a GM-only operation; every connected client sees
+ * this hook, but only the GM(s) among them can act on it.
+ */
+Hooks.on("deleteScene", async (scene) => {
+  if (!game.user.isGM || !getRunState(scene.id)) return;
+  await sweepLooseNpcActors(scene, { deleteTokens: false });
+  await abandonRun({ sceneId: scene.id });
+});
 
 /** Advances a dungeon room the instant its Combat auto-resolves. */
 async function onCombatAutoResolved(result) {
