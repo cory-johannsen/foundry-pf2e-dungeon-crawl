@@ -69,6 +69,17 @@ export function isAgentEligible(actorId, partyIds, aiControlledIds) {
   return !partyIds.has(actorId) || aiControlledIds.has(actorId);
 }
 
+/** Whether autoPlayCombatantTurnIfDue's turn-due combatant is excluded from
+ * auto-play entirely: true for a human party member or a manually-added,
+ * player-summoned ally (neither ever gets the agentControlled flag); false
+ * for a run's AI-controlled party actor or a real NPC (both do). */
+export function isExcludedFromAutoPlay(combatant, partyIds) {
+  return (
+    !combatant.getFlag(MODULE_ID, "agentControlled") &&
+    (partyIds.has(combatant.actor?.id) || combatant.actor?.hasPlayerOwner)
+  );
+}
+
 /** Every token on `scene` carrying `flagKey === flagValue`, plus every
  * current party token — excluding cover items (#96/#146) and trap hazards
  * (#135), neither of which ever takes a turn. Cover-item tokens carry the
@@ -1679,6 +1690,9 @@ function sceneBounds(combat, gridSize) {
   };
 }
 
+// Mirrors dungeon-follow.mjs's own wallBlocksMovement/movementBlockedEdges
+// (Foundry glue for follow-the-leader movement) — keep the wall/door logic
+// in sync if either changes.
 /** A wall blocks movement if its own `move` sense says so, unless it's a
  * door currently standing open — Foundry's own collision rules ignore an
  * open door's sense properties, and this generator's doors do transition
@@ -2009,12 +2023,7 @@ export async function autoPlayCombatantTurnIfDue(combat) {
   // fire even for a run's AI-controlled party actor. Leaves the
   // pre-existing exclusion of a manually-added, player-summoned ally
   // (which never receives this flag) completely unchanged.
-  if (
-    !combatant.getFlag(MODULE_ID, "agentControlled") &&
-    (partyActorIds().has(combatant.actor?.id) ||
-      combatant.actor?.hasPlayerOwner)
-  )
-    return;
+  if (isExcludedFromAutoPlay(combatant, partyActorIds())) return;
 
   if (combatant.isDefeated) {
     await combat.nextTurn();

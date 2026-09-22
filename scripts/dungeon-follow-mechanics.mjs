@@ -9,8 +9,33 @@
  */
 import { findPath } from "./pathfinding.mjs";
 
-function cellKey(cell) {
+/** The `"gx,gy"` string key used to store/compare grid cells in a Set —
+ * the one place this format is spelled out, so dungeon-follow.mjs's own
+ * occupied-cell bookkeeping can't silently disagree with this module's. */
+export function cellKey(cell) {
   return `${cell.gx},${cell.gy}`;
+}
+
+/** A token's (or any `{x, y}` pixel position's) grid cell, given the
+ * scene's grid size. Pure arithmetic — no Foundry globals. */
+export function tokenCell(token, gridSize) {
+  return {
+    gx: Math.round(token.x / gridSize),
+    gy: Math.round(token.y / gridSize),
+  };
+}
+
+/** The inclusive grid-cell bounds of a `{width, height}` scene, given the
+ * grid size — `null` if the scene has no usable dimensions. Pure
+ * arithmetic — no Foundry globals. */
+export function sceneBounds(scene, gridSize) {
+  if (!scene?.width || !scene?.height) return null;
+  return {
+    gx0: 0,
+    gy0: 0,
+    gx1: Math.ceil(scene.width / gridSize) - 1,
+    gy1: Math.ceil(scene.height / gridSize) - 1,
+  };
 }
 
 function chebyshev(a, b) {

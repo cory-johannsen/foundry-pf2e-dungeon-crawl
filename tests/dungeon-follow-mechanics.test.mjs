@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { findFollowMove } from "../scripts/dungeon-follow-mechanics.mjs";
+import {
+  findFollowMove,
+  tokenCell,
+  sceneBounds,
+} from "../scripts/dungeon-follow-mechanics.mjs";
 
 function noWalls() {
   return () => false;
@@ -84,5 +88,26 @@ describe("findFollowMove", () => {
       null,
     );
     expect(result).toEqual({ status: "no-route" });
+  });
+});
+
+describe("tokenCell / sceneBounds (#20)", () => {
+  it("rounds a pixel position to its grid cell", () => {
+    expect(tokenCell({ x: 250, y: 400 }, 100)).toEqual({ gx: 3, gy: 4 });
+  });
+
+  it("computes the inclusive grid-cell bounds of a scene", () => {
+    expect(sceneBounds({ width: 1000, height: 800 }, 100)).toEqual({
+      gx0: 0,
+      gy0: 0,
+      gx1: 9,
+      gy1: 7,
+    });
+  });
+
+  it("returns null when the scene has no usable dimensions", () => {
+    expect(sceneBounds({ width: undefined, height: undefined }, 100)).toBe(
+      null,
+    );
   });
 });

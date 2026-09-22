@@ -32,7 +32,7 @@ function defaultSettingsRef() {
 }
 
 function defaultPartyOwnershipRef() {
-  if (typeof game === 'undefined') {
+  if (typeof game === "undefined") {
     // Test environment without game global
     return {
       partyActors: () => [],
@@ -58,7 +58,10 @@ function computeAiControlledActorIds(partyOwnershipRef) {
   const result = [];
   for (const actor of partyOwnershipRef.partyActors()) {
     const ownerId = Object.entries(actor.ownership ?? {}).find(
-      ([userId, level]) => level === 3 && !partyOwnershipRef.isUserGm(userId),
+      ([userId, level]) =>
+        userId !== "default" &&
+        level === 3 &&
+        !partyOwnershipRef.isUserGm(userId),
     )?.[0];
     if (ownerId && !partyOwnershipRef.isUserActive(ownerId)) {
       result.push(actor.id);

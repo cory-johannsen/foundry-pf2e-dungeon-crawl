@@ -197,6 +197,25 @@ describe("createRun / aiControlledActorIds (#20)", () => {
     );
     expect(state.aiControlledActorIds).toEqual(["actor-1"]);
   });
+
+  it("skips the 'default' ownership entry and finds the real online owner", async () => {
+    const settingsRef = makeSettingsStub();
+    const partyOwnershipRef = makePartyOwnershipStub({
+      actors: [
+        {
+          id: "actor-1",
+          ownership: { default: 3, "gm-1": 3, "user-1": 3 },
+        },
+      ],
+      activeUserIds: new Set(["user-1"]),
+      gmUserIds: new Set(["gm-1"]),
+    });
+    const state = await createRun(
+      { sceneId: "scene-1", roomCount: 3 },
+      { settingsRef, partyOwnershipRef },
+    );
+    expect(state.aiControlledActorIds).not.toContain("actor-1");
+  });
 });
 
 describe("findActiveHostedRun", () => {
