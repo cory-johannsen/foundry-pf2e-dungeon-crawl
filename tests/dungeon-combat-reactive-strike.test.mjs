@@ -5,6 +5,7 @@ import {
   handleRangedAttackForReactiveStrike,
   strideByPosture,
   stepToward,
+  pushTokenAway,
 } from "../scripts/dungeon-combat.mjs";
 
 function makeStrike({
@@ -308,6 +309,147 @@ describe("offerReactiveStrikesAgainst", () => {
     await expect(offerReactiveStrikesAgainst(combat, mover)).resolves.toBeUndefined();
   });
 
+  it("applies a critical-deck card's damage multiplier to the actual damage roll (#61)", async () => {
+    installFoundryStubs();
+    globalThis.game.packs = {
+      get: (id) =>
+        id === "pf2e.criticaldeck"
+          ? {
+              getDocuments: async () => [
+                {
+                  name: "Critical Hit Deck #10",
+                  pages: [
+                    {
+                      text: {
+                        content:
+                          '<section class="critical-deck"><h1>Disembowel</h1><blockquote><p>Triple damage.</p></blockquote><p><code>Slashing</code></p></section>',
+                      },
+                    },
+                  ],
+                },
+              ],
+            }
+          : undefined,
+    };
+    const alterCalls = [];
+    const strike = makeStrikeAction({ outcome: "criticalSuccess" });
+    strike.item.system.damage = { damageType: "slashing" };
+    strike.damage = async () => ({
+      total: 4,
+      alter: async (multiplier, addend) => {
+        alterCalls.push({ multiplier, addend });
+      },
+    });
+    const mover = makeMoverTarget();
+    const reactor = makeFullReactor({ id: "r1", x: 100, y: 0, strike });
+    const combat = makeFullCombat({ combatants: [mover, reactor] });
+
+    await offerReactiveStrikesAgainst(combat, mover);
+
+    // "Disembowel" (Slashing) carries plain "Triple damage." -- the
+    // strike's own damageType ("slashing") routes the draw to that
+    // category. strike.damage() (this test's stub) already stands in for
+    // a roll PF2e's own crit doubling already scaled 2x, so reaching the
+    // card's intended 3x total needs only an ADDITIONAL 1.5x, applied via
+    // .alter() before applyDamage sees it -- not a further 3x, which
+    // would stack to 6x.
+    expect(alterCalls).toEqual([{ multiplier: 1.5, addend: 0 }]);
+    expect(mover.applyDamageCalls).toHaveLength(1);
+  });
+
+  it("does not call .alter() at all when the drawn card carries no multiplier", async () => {
+    installFoundryStubs();
+    globalThis.game.packs = {
+      get: (id) =>
+        id === "pf2e.criticaldeck"
+          ? {
+              getDocuments: async () => [
+                {
+                  name: "Critical Hit Deck #10",
+                  pages: [
+                    {
+                      text: {
+                        content:
+                          '<section class="critical-deck"><h1>Concussion</h1><blockquote><p>Normal damage.</p></blockquote><p><code>Slashing</code></p></section>',
+                      },
+                    },
+                  ],
+                },
+              ],
+            }
+          : undefined,
+    };
+    const alterCalls = [];
+    const strike = makeStrikeAction({ outcome: "criticalSuccess" });
+    strike.item.system.damage = { damageType: "slashing" };
+    strike.damage = async () => ({
+      total: 4,
+      alter: async (multiplier, addend) => {
+        alterCalls.push({ multiplier, addend });
+      },
+    });
+    const mover = makeMoverTarget();
+    const reactor = makeFullReactor({ id: "r1", x: 100, y: 0, strike });
+    const combat = makeFullCombat({ combatants: [mover, reactor] });
+
+    await offerReactiveStrikesAgainst(combat, mover);
+
+    expect(alterCalls).toEqual([]);
+    expect(mover.applyDamageCalls).toHaveLength(1);
+  });
+
+  it("does not call .alter() at all for a conditional card's non-matching 'double damage' branch (already equals crit doubling)", async () => {
+    installFoundryStubs();
+    globalThis.game.packs = {
+      get: (id) =>
+        id === "pf2e.criticaldeck"
+          ? {
+              getDocuments: async () => [
+                {
+                  name: "Critical Hit Deck #37",
+                  pages: [
+                    {
+                      text: {
+                        // No embedded @Damage[...] clause (unlike the
+                        // real Corrosive/Combustion cards) -- this test
+                        // only exercises the multiplier-skip logic, not
+                        // directive application, so it avoids needing a
+                        // DamageRoll/CONFIG.Dice.rolls stub too.
+                        content:
+                          '<section class="critical-deck"><h1>Corrosive</h1><blockquote><p>If this is an acid bomb or spell, the target takes triple damage. Any other bomb or spell deals double damage.</p></blockquote><p><code>Bomb or Spell</code></p></section>',
+                      },
+                    },
+                  ],
+                },
+              ],
+            }
+          : undefined,
+    };
+    const alterCalls = [];
+    // A fire bomb/spell strike -- doesn't match Corrosive's own "acid",
+    // so it falls to the "any other bomb or spell deals double damage"
+    // branch (damageMultiplier 2), not the triple branch.
+    const strike = makeStrikeAction({ outcome: "criticalSuccess" });
+    strike.item.system.damage = { damageType: "fire" };
+    strike.damage = async () => ({
+      total: 4,
+      alter: async (multiplier, addend) => {
+        alterCalls.push({ multiplier, addend });
+      },
+    });
+    const mover = makeMoverTarget();
+    const reactor = makeFullReactor({ id: "r1", x: 100, y: 0, strike });
+    const combat = makeFullCombat({ combatants: [mover, reactor] });
+
+    await offerReactiveStrikesAgainst(combat, mover);
+
+    // "Double damage" (damageMultiplier 2) is exactly what strike.damage()'s
+    // own crit doubling already gave -- no .alter() call at all, not the
+    // pre-fix bug of calling .alter(2, 0) and quadrupling to 4x.
+    expect(alterCalls).toEqual([]);
+    expect(mover.applyDamageCalls).toHaveLength(1);
+  });
+
   it("does nothing when the combat isn't owned by this module", async () => {
     installFoundryStubs();
     const mover = makeMoverTarget();
@@ -535,5 +677,91 @@ describe("stepToward (Reactive Strike wiring)", () => {
     // exactly on it.
     expect(mover.token.x).toBe(300);
     expect(mover.token.y).toBe(-100);
+  });
+});
+
+describe("pushTokenAway (#51 push/improved-push rider)", () => {
+  it("moves the target 1 square directly away from the attacker", async () => {
+    installFoundryStubs();
+    const attacker = { id: "attacker1", token: { x: 0, y: 0, disposition: 1 } };
+    const target = makeMoverTarget({ x: 200, y: 0 });
+    target.token.update = async function (changes) {
+      Object.assign(this, changes);
+    };
+    const combat = makeFullCombat({ combatants: [target] });
+
+    await pushTokenAway(combat, attacker, target, 1);
+
+    // posturePath's own retreat projection defaults a zero-difference axis
+    // to a +1 sign (`Math.sign(0) || 1`) rather than leaving it unchanged —
+    // a pre-existing quirk shared with every other retreat/reposition
+    // caller, not something push-specific. Attacker and target share the
+    // same y here, so the push nudges diagonally instead of purely along x.
+    expect(target.token.x).toBe(300);
+    expect(target.token.y).toBe(100);
+  });
+
+  it("moves the target further away at a longer distanceSquares (critical success)", async () => {
+    installFoundryStubs();
+    const attacker = { id: "attacker1", token: { x: 0, y: 0, disposition: 1 } };
+    const target = makeMoverTarget({ x: 200, y: 0 });
+    target.token.update = async function (changes) {
+      Object.assign(this, changes);
+    };
+    const combat = makeFullCombat({ combatants: [target] });
+
+    await pushTokenAway(combat, attacker, target, 2);
+
+    const distanceMoved = (target.token.x - 200) / 100;
+    expect(distanceMoved).toBeGreaterThanOrEqual(2);
+  });
+
+  it("does not move the target at all when boxed in by the scene edge", async () => {
+    installFoundryStubs();
+    const attacker = { id: "attacker1", token: { x: 0, y: 0, disposition: 1 } };
+    const target = makeMoverTarget({ x: 100, y: 0 });
+    target.token.update = async () => {
+      throw new Error("should not move: fully boxed in by scene bounds");
+    };
+    // A 200x100 scene at grid size 100 gives bounds gx:[0,1], gy:[0,0] —
+    // the target (gx1) is already pinned against both edges in the
+    // direction it would be pushed, so every candidate distance clamps
+    // back to its own starting cell and posturePath returns null.
+    const combat = makeFullCombat({ combatants: [target] });
+    combat.scene.width = 200;
+    combat.scene.height = 100;
+
+    await pushTokenAway(combat, attacker, target, 1);
+  });
+
+  it("routes around a hostile-to-target creature instead of moving through its square", async () => {
+    installFoundryStubs();
+    const attacker = { id: "attacker1", token: { x: 0, y: 0, disposition: 1 } };
+    const target = makeMoverTarget({ x: 200, y: 0, disposition: -1 });
+    target.token.update = async function (changes) {
+      Object.assign(this, changes);
+    };
+    // Hostile to target (opposite disposition) sitting exactly on the
+    // unobstructed straight-line landing cell for a 2-square push away
+    // from (0,0) starting at (200,0) — forces posturePath to fall back to
+    // a shorter/alternate distance rather than the naive full-distance
+    // destination.
+    const blocker = {
+      id: "blocker1",
+      isDefeated: false,
+      token: { x: 400, y: 200, disposition: 1 },
+    };
+    const combat = makeFullCombat({ combatants: [target, blocker] });
+
+    await pushTokenAway(combat, attacker, target, 2);
+
+    // Must not have landed on the blocker's own square.
+    expect(target.token.x === 400 && target.token.y === 200).toBe(false);
+    // Must still have moved further away from the attacker than the start.
+    const distanceMoved = Math.max(
+      Math.abs(target.token.x - 0),
+      Math.abs(target.token.y - 0),
+    ) / 100 - 2; // starting Chebyshev distance from attacker was 2 squares
+    expect(distanceMoved).toBeGreaterThan(0);
   });
 });

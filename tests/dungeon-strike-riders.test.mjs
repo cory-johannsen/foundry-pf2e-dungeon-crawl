@@ -6,6 +6,7 @@ import {
   postCriticalSpecializationReminder,
   resolveGrabRider,
   resolveKnockdownRider,
+  resolveAthleticsRider,
 } from "../scripts/dungeon-strike-riders.mjs";
 
 // Fixtures pulled from the local bestiary mirror
@@ -318,20 +319,38 @@ describe("postStrikeRiderReminder", () => {
   it("posts a GM-whispered reminder for a matched rider effect on a hit", async () => {
     installFoundryStubs();
     const combatant = {
-      name: "Pusher",
+      name: "Drainer",
       actor: {
         items: [
-          { name: "Push", type: "action", system: { slug: "push" } },
+          { name: "Drain Life", type: "action", system: { slug: "drain-life" } },
         ],
+      },
+    };
+    const strike = {
+      item: {
+        type: "melee",
+        system: { attackEffects: { value: ["drain-life"] } },
+      },
+    };
+    await postStrikeRiderReminder(combatant, strike, "success");
+    expect(ChatMessage.calls).toHaveLength(1);
+    expect(ChatMessage.calls[0].whisper).toEqual(["gm1"]);
+    expect(ChatMessage.calls[0].content).toContain("Drain Life");
+  });
+
+  it("excludes push/improved-push riders (#51's push resolution whispers its own real result instead)", async () => {
+    installFoundryStubs();
+    const combatant = {
+      name: "Pusher",
+      actor: {
+        items: [{ name: "Push", type: "action", system: { slug: "push" } }],
       },
     };
     const strike = {
       item: { type: "melee", system: { attackEffects: { value: ["push"] } } },
     };
     await postStrikeRiderReminder(combatant, strike, "success");
-    expect(ChatMessage.calls).toHaveLength(1);
-    expect(ChatMessage.calls[0].whisper).toEqual(["gm1"]);
-    expect(ChatMessage.calls[0].content).toContain("Push");
+    expect(ChatMessage.calls).toHaveLength(0);
   });
 
   it("excludes grab/improved-grab/tongue-grab riders (#51's resolveGrabRider whispers its own real result instead)", async () => {
@@ -690,6 +709,97 @@ describe("resolveKnockdownRider", () => {
     expect(result).toBeNull();
     expect(target.increaseConditionCalls).toHaveLength(0);
     expect(ChatMessage.calls).toHaveLength(0);
+  });
+});
+
+// resolveAthleticsRider is exported directly (not just used internally by
+// resolveGrabRider/resolveKnockdownRider) so dungeon-combat.mjs's push
+// resolution can call it with a movement onSuccess -- these tests exercise
+// that generalized onSuccess-callback shape directly, the same shape push
+// uses in dungeon-combat.mjs (movement itself is tested there, alongside
+// stepToward, not here -- this file has no scene/token/pathfinding stubs).
+describe("resolveAthleticsRider", () => {
+  function pushLikeSlugs() {
+    return new Set(["push", "improved-push"]);
+  }
+
+  it("calls onSuccess with the roll's own outcome and uses its return value in the whisper", async () => {
+    installFoundryStubs();
+    game.__nextGrappleOutcome = "success";
+    const attacker = makeAttacker();
+    const target = makeTarget();
+    const onSuccessCalls = [];
+    const onSuccess = async (rollOutcome) => {
+      onSuccessCalls.push(rollOutcome);
+      return "target is pushed 5 feet away";
+    };
+    const strike = {
+      item: { type: "melee", system: { attackEffects: { value: ["push"] } } },
+    };
+
+    const result = await resolveAthleticsRider(attacker, target, strike, "success", {
+      slugs: pushLikeSlugs(),
+      saveKey: "fortitude",
+      onSuccess,
+      label: "Push",
+    });
+
+    expect(result).toBe("success");
+    expect(onSuccessCalls).toEqual(["success"]);
+    expect(ChatMessage.calls).toHaveLength(1);
+    expect(ChatMessage.calls[0].content).toContain("target is pushed 5 feet away");
+  });
+
+  it("passes criticalSuccess through to onSuccess distinctly from success", async () => {
+    installFoundryStubs();
+    game.__nextGrappleOutcome = "criticalSuccess";
+    const attacker = makeAttacker();
+    const target = makeTarget();
+    const onSuccessCalls = [];
+    const onSuccess = async (rollOutcome) => {
+      onSuccessCalls.push(rollOutcome);
+      return "target is pushed 10 feet away";
+    };
+    const strike = {
+      item: { type: "melee", system: { attackEffects: { value: ["push"] } } },
+    };
+
+    await resolveAthleticsRider(attacker, target, strike, "success", {
+      slugs: pushLikeSlugs(),
+      saveKey: "fortitude",
+      onSuccess,
+      label: "Push",
+    });
+
+    expect(onSuccessCalls).toEqual(["criticalSuccess"]);
+    expect(ChatMessage.calls[0].content).toContain("target is pushed 10 feet away");
+  });
+
+  it("does not call onSuccess when the Athletics check fails", async () => {
+    installFoundryStubs();
+    game.__nextGrappleOutcome = "failure";
+    const attacker = makeAttacker();
+    const target = makeTarget();
+    let onSuccessCalled = false;
+    const onSuccess = async () => {
+      onSuccessCalled = true;
+      return "should not be used";
+    };
+    const strike = {
+      item: { type: "melee", system: { attackEffects: { value: ["push"] } } },
+    };
+
+    const result = await resolveAthleticsRider(attacker, target, strike, "success", {
+      slugs: pushLikeSlugs(),
+      saveKey: "fortitude",
+      onSuccess,
+      label: "Push",
+    });
+
+    expect(result).toBe("failure");
+    expect(onSuccessCalled).toBe(false);
+    expect(ChatMessage.calls).toHaveLength(1);
+    expect(ChatMessage.calls[0].content).toContain("check failed");
   });
 });
 
