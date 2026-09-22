@@ -48,6 +48,11 @@ import {
   postStrikeRiderReminder,
   postCriticalSpecializationReminder,
 } from "./dungeon-strike-riders.mjs";
+import {
+  drawAndApplyCriticalCard,
+  hitDeckCategory,
+  fumbleDeckCategory,
+} from "./dungeon-critical-deck.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 
@@ -2007,6 +2012,37 @@ function strikeSoundContext(strike, target) {
 }
 
 /**
+ * Draws a #28 critical-deck card for a Strike's outcome, right alongside the
+ * existing playStrikeSound call -- a no-op for any outcome other than a
+ * clean crit/fumble. `soundContext` is `strikeSoundContext`'s own result,
+ * reused here rather than recomputed: its `damageType`/`isRanged` are
+ * exactly the signals the Hit/Fumble deck category derivation is defined
+ * against. `strike.item?.system?.category === "unarmed"` is PF2e's own
+ * weapon-item field for this (confirmed against the system's Weapon data
+ * model: `category` is one of "unarmed"/"simple"/"martial"/"advanced" --
+ * the same field already gates access-to-training feats elsewhere in the
+ * system).
+ */
+async function drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target) {
+  if (outcome === "criticalSuccess") {
+    await drawAndApplyCriticalCard(
+      "hit",
+      hitDeckCategory(soundContext.damageType),
+      { combatant, target },
+    );
+  } else if (outcome === "criticalFailure") {
+    await drawAndApplyCriticalCard(
+      "fumble",
+      fumbleDeckCategory({
+        isRanged: soundContext.isRanged,
+        isUnarmed: strike.item?.system?.category === "unarmed",
+      }),
+      { combatant, target },
+    );
+  }
+}
+
+/**
  * Rolls `combatant`'s first ready strike against `target` and, on a hit,
  * rolls and applies damage — confirmed live (see ITEM-8 in docs/backlog.md):
  * a strike's own roll()/damage() never forwards a skipDialog option, so the
@@ -2034,8 +2070,10 @@ async function rollAndApplyStrike(combat, combatant, target) {
       await strike.variants[0].roll({ target: targetRef, createMessage: true });
       const outcome =
         game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
-      playStrikeSound(outcome, strikeSoundContext(strike, target));
+      const soundContext = strikeSoundContext(strike, target);
+      playStrikeSound(outcome, soundContext);
       await postStrikeRiderReminder(combatant, strike, outcome);
+      await drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target);
       if (outcome === "success" || outcome === "criticalSuccess") {
         const damageRoll = await strike.damage({
           target: targetRef,
@@ -2883,8 +2921,10 @@ async function rollAndApplyStrikeAtVariant(
       await variant.roll({ target: targetRef, createMessage: true });
       const outcome =
         game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
-      playStrikeSound(outcome, strikeSoundContext(strike, target));
+      const soundContext = strikeSoundContext(strike, target);
+      playStrikeSound(outcome, soundContext);
       await postStrikeRiderReminder(combatant, strike, outcome);
+      await drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target);
       if (outcome === "success" || outcome === "criticalSuccess") {
         const damageRoll = await strike.damage({
           target: targetRef,
@@ -3211,6 +3251,11 @@ async function castAttackSpellAndApplyRoll(
     const outcome =
       game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
     playAttackSpellSound(outcome);
+    if (outcome === "criticalSuccess") {
+      await drawAndApplyCriticalCard("hit", "Bomb or Spell", { combatant, target });
+    } else if (outcome === "criticalFailure") {
+      await drawAndApplyCriticalCard("fumble", "Spell", { combatant, target });
+    }
     if (outcome === "success" || outcome === "criticalSuccess") {
       const damageRoll = await spell.rollDamage?.({
         target: targetRef,
