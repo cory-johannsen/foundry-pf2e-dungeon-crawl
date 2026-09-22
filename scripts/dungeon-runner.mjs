@@ -98,13 +98,20 @@ export async function createRun(
   {
     settingsRef = defaultSettingsRef(),
     partyOwnershipRef = defaultPartyOwnershipRef(),
-    setpieceIds = [],
+    puzzleSetpieceIds = [],
+    trapSetpieceIds = [],
     narrativeSetpieceIds = [],
   } = {},
 ) {
   const runSeed =
     seed ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  const rooms = getGenerator().buildRoomSequence({ seed: runSeed, roomCount, setpieceIds, narrativeSetpieceIds });
+  const rooms = getGenerator().buildRoomSequence({
+    seed: runSeed,
+    roomCount,
+    puzzleSetpieceIds,
+    trapSetpieceIds,
+    narrativeSetpieceIds,
+  });
   // Room 0 is where the party starts — built and occupied at Start, before
   // any resolution happens, so it's the only slot normally assigned up
   // front. The one exception: room 0 is always the safe entry, which has
@@ -169,7 +176,12 @@ export async function createRun(
  */
 export async function markRoomOutcome(
   { sceneId, succeeded },
-  { settingsRef = defaultSettingsRef(), setpieceIds = [], narrativeSetpieceIds = [] } = {},
+  {
+    settingsRef = defaultSettingsRef(),
+    puzzleSetpieceIds = [],
+    trapSetpieceIds = [],
+    narrativeSetpieceIds = [],
+  } = {},
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state || state.completed) {
@@ -259,7 +271,8 @@ export async function markRoomOutcome(
     mutation === "remove_next" || mutation === "insert_after"
       ? getGenerator().applySequenceMutation(state.rooms, state.currentIndex, mutation, {
           seed: state.seed,
-          setpieceIds,
+          puzzleSetpieceIds,
+          trapSetpieceIds,
           narrativeSetpieceIds,
         })
       : state.rooms;

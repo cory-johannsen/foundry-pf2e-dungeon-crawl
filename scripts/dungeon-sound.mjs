@@ -18,7 +18,7 @@
  *     offensive/save-based only -- there's no automated healing-cast code
  *     path yet for a sound to hook into.
  *   - Trap triggers have no sound. Traps resolve through a GM-narrated
- *     puzzle_or_trap setpiece dialog (dungeon-deck.mjs), not a deterministic
+ *     trap setpiece dialog (dungeon-deck.mjs), not a deterministic
  *     "triggered" event with a clean hook -- same reasoning as the two
  *     items above.
  */

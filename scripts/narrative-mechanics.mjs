@@ -8,7 +8,7 @@
  * Selection itself needs no dedicated function the way skill-challenge's
  * own `selectSkillChallengeTemplate` does: #163's own design already
  * anticipated giving a narrative room a `setpieceId` the same way a
- * `puzzle_or_trap` room gets one, so `dungeon-deck.mjs`'s existing,
+ * `puzzle` or `trap` room gets one (#32), so `dungeon-deck.mjs`'s existing,
  * generic `setpieceAt` seeded shuffle handles the pick — the same
  * selection path puzzle content has always used, never its own dedicated
  * selector.
