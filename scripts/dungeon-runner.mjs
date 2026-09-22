@@ -434,7 +434,7 @@ export function findHostedRunForBroadcast({ settingsRef = defaultSettingsRef() }
 export async function ensureSkillChallenge(
   sceneId,
   roomId,
-  { seed, locationTag, partySize, template = null },
+  { seed, locationTag, partySize, depthBias, template = null },
   { settingsRef = defaultSettingsRef() } = {},
 ) {
   const state = getRunState(sceneId, { settingsRef });
@@ -447,6 +447,7 @@ export async function ensureSkillChallenge(
       roomId,
       locationTag,
       partySize,
+      depthBias,
       template,
     }),
     customization: { status: "pending" },

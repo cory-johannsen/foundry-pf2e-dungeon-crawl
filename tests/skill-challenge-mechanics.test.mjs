@@ -3,6 +3,8 @@ import {
   simpleDcForLevel,
   vpDeltaForOutcome,
   attemptBudgetForPartySize,
+  vpTargetForDepth,
+  attemptBudgetForDepth,
   chooseSpecialtySkills,
   dcForAttempt,
   initSkillChallengeState,
@@ -13,6 +15,7 @@ import {
   VP_TARGET,
   NON_SPECIALTY_DC_BUMP,
 } from "../scripts/skill-challenge-mechanics.mjs";
+import { MAX_DEPTH_BIAS } from "../scripts/dungeon-deck.mjs";
 
 describe("simpleDcForLevel", () => {
   it("matches GM Core's Simple DC table at a few known points", () => {
@@ -59,6 +62,34 @@ describe("attemptBudgetForPartySize", () => {
 
   it("defaults a missing partySize to 4", () => {
     expect(attemptBudgetForPartySize(undefined)).toBe(6);
+  });
+});
+
+describe("vpTargetForDepth / attemptBudgetForDepth (#35)", () => {
+  it("matches the original flat numbers exactly at MAX_DEPTH_BIAS (today's hardest case, unchanged)", () => {
+    expect(vpTargetForDepth(MAX_DEPTH_BIAS)).toBe(VP_TARGET);
+    expect(attemptBudgetForDepth(5, MAX_DEPTH_BIAS)).toBe(
+      attemptBudgetForPartySize(5),
+    );
+  });
+
+  it("eases the ratio at depthBias 0 — the exact reported scenario (5-player party, first room)", () => {
+    expect(vpTargetForDepth(0)).toBe(VP_TARGET - MAX_DEPTH_BIAS);
+    expect(attemptBudgetForDepth(5, 0)).toBe(
+      attemptBudgetForPartySize(5) + MAX_DEPTH_BIAS,
+    );
+  });
+
+  it("defaults to MAX_DEPTH_BIAS (today's flat behavior) when depthBias is omitted", () => {
+    expect(vpTargetForDepth()).toBe(VP_TARGET);
+    expect(attemptBudgetForDepth(5)).toBe(attemptBudgetForPartySize(5));
+  });
+
+  it("clamps a depthBias outside 0..MAX_DEPTH_BIAS into range", () => {
+    expect(vpTargetForDepth(-1)).toBe(vpTargetForDepth(0));
+    expect(vpTargetForDepth(MAX_DEPTH_BIAS + 5)).toBe(
+      vpTargetForDepth(MAX_DEPTH_BIAS),
+    );
   });
 });
 
@@ -128,6 +159,20 @@ describe("initSkillChallengeState", () => {
     expect(state.vpTarget).toBe(VP_TARGET);
     expect(state.attemptBudget).toBe(6);
     expect(state.specialtySkills).toHaveLength(3);
+  });
+
+  it("scales vpTarget/attemptBudget down for a shallow room via depthBias (#35)", () => {
+    const state = initSkillChallengeState({
+      seed: "s",
+      roomId: "r1",
+      locationTag: "undead",
+      partySize: 5,
+      depthBias: 0,
+    });
+    expect(state.vpTarget).toBe(vpTargetForDepth(0));
+    expect(state.attemptBudget).toBe(attemptBudgetForDepth(5, 0));
+    expect(state.vpTarget).toBeLessThan(VP_TARGET);
+    expect(state.attemptBudget).toBeGreaterThan(attemptBudgetForPartySize(5));
   });
 
   it("uses a valid template's own specialtySkills instead of the generic location-tag pick", () => {
