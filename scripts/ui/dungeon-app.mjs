@@ -285,6 +285,11 @@ async function applyRoomEffect(
       const picked = seededPick(seed, `friendly-aid-${roomId}`, candidates);
       await api.spawnCreatures([{ pack: picked.pack, id: picked.id }], {
         disposition: 1,
+        // Without a focus, spawnCreatures falls back to the scene's center
+        // or an unbounded ring search — the ally could land outside the
+        // room the party is actually in. A party member's token is always
+        // in that room by the time an outcome resolves, so anchor there.
+        nearActorId: partyMembers[0]?.id ?? null,
       });
       ui.notifications.info(
         game.i18n.format("PF2EDC.Dungeon.Effect.friendly_aid_detail", {
