@@ -149,10 +149,20 @@ async function whisperGm(content) {
  * was found so the GM isn't left with nothing. Posts nothing when the
  * strike carries no `attackEffects` at all, matching #36's "don't spam
  * empty reminders."
+ *
+ * Excludes `grab`/`improved-grab`/`tongue-grab` (#51's `GRAB_RIDER_SLUGS`,
+ * defined below): `resolveGrabRider` now auto-resolves those and whispers
+ * its own real Grapple-attempt result immediately after this call at both
+ * call sites -- leaving them in here would whisper a stale "resolve this
+ * manually" reminder right next to the actual automated outcome, telling
+ * the GM to do work that already happened.
  */
 export async function postStrikeRiderReminder(combatant, strike, outcome) {
   if (outcome !== "success" && outcome !== "criticalSuccess") return;
-  const riders = extractRiderEffects(strike, combatant?.actor?.items ?? []);
+  const riders = extractRiderEffects(
+    strike,
+    combatant?.actor?.items ?? [],
+  ).filter((rider) => !GRAB_RIDER_SLUGS.has(rider.slug));
   if (riders.length === 0) return;
 
   const attacker = escapeHtml(combatant?.name ?? "Attacker");

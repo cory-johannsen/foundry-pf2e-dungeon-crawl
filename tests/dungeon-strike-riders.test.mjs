@@ -317,13 +317,27 @@ describe("postStrikeRiderReminder", () => {
   it("posts a GM-whispered reminder for a matched rider effect on a hit", async () => {
     installFoundryStubs();
     const combatant = {
+      name: "Caustic Wolf",
+      actor: { items: causticWolfActorItems() },
+    };
+    await postStrikeRiderReminder(
+      combatant,
+      causticWolfJawsStrike(),
+      "success",
+    );
+    expect(ChatMessage.calls).toHaveLength(1);
+    expect(ChatMessage.calls[0].whisper).toEqual(["gm1"]);
+    expect(ChatMessage.calls[0].content).toContain("Knockdown");
+  });
+
+  it("excludes grab/improved-grab/tongue-grab riders (#51's resolveGrabRider whispers its own real result instead)", async () => {
+    installFoundryStubs();
+    const combatant = {
       name: "Fumecrux",
       actor: { items: fumecruxActorItems() },
     };
     await postStrikeRiderReminder(combatant, fumecruxJawsStrike(), "success");
-    expect(ChatMessage.calls).toHaveLength(1);
-    expect(ChatMessage.calls[0].whisper).toEqual(["gm1"]);
-    expect(ChatMessage.calls[0].content).toContain("Grab");
+    expect(ChatMessage.calls).toHaveLength(0);
   });
 
   it("posts a GM-whispered reminder for an unmatched rider slug on a critical hit, naming the slug", async () => {
