@@ -5998,5 +5998,93 @@
     "name": "Veteran War Horse",
     "level": 5,
     "art": "veteran-war-horse.webp"
+  },
+  {
+    "id": "vloriak",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "YTG7w3V77ZfrjRIC",
+    "name": "Vloriak",
+    "level": 5,
+    "art": "vloriak.webp"
+  },
+  {
+    "id": "vordine",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "qvagIV8gqF0g3m3l",
+    "name": "Vordine",
+    "level": 5,
+    "art": "vordine.webp"
+  },
+  {
+    "id": "watchmage",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "SK7BA4K7ALWtfNBe",
+    "name": "Watchmage",
+    "level": 5,
+    "art": "watchmage.webp"
+  },
+  {
+    "id": "witchwarg",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "diU0V2M3LiMDMsS0",
+    "name": "Witchwarg",
+    "level": 5,
+    "art": "witchwarg.webp"
+  },
+  {
+    "id": "yamah",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "vLYSsN8R4rRE78CU",
+    "name": "Yamah",
+    "level": 5,
+    "art": "yamah.webp"
+  },
+  {
+    "id": "caligni_vanguard",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "bgeCbx3Gr54YaKEJ",
+    "name": "Caligni Vanguard",
+    "level": 5,
+    "art": "caligni-vanguard.webp"
+  },
+  {
+    "id": "cyclops",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "oZVeE7D70bHOrs1d",
+    "name": "Cyclops",
+    "level": 5,
+    "art": "cyclops.webp"
+  },
+  {
+    "id": "dero_magister",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "qyCcr32PVcnNm4Wr",
+    "name": "Dero Magister",
+    "level": 5,
+    "art": "dero-magister.webp"
+  },
+  {
+    "id": "divine_warden_of_nethys",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "61atKNQVF73vWpqc",
+    "name": "Divine Warden Of Nethys",
+    "level": 5,
+    "art": "divine-warden-of-nethys.webp"
+  },
+  {
+    "id": "djinni",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "GyigGu36XLPV72nW",
+    "name": "Djinni",
+    "level": 5,
+    "art": "djinni.webp"
+  },
+  {
+    "id": "eunemvro",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "xHMiDdTkZA3HzVSJ",
+    "name": "Eunemvro",
+    "level": 5,
+    "art": "eunemvro.webp"
   }
 ]
