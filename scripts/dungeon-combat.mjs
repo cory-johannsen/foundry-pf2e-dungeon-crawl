@@ -44,6 +44,15 @@ import {
   playAttackSpellSound,
   playCreatureDeathSound,
 } from "./dungeon-sound.mjs";
+import {
+  postStrikeRiderReminder,
+  postCriticalSpecializationReminder,
+} from "./dungeon-strike-riders.mjs";
+import {
+  drawAndApplyCriticalCard,
+  hitDeckCategory,
+  fumbleDeckCategory,
+} from "./dungeon-critical-deck.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 
@@ -352,9 +361,9 @@ async function resolveCombat(combat, outcome, api) {
     const lootItems = source.items.filter((i) =>
       LOOTABLE_ITEM_TYPES.includes(i.type),
     );
-    const coinsObj =
-      combatant.actor.inventory?.coins?.toObject?.() ??
-      { ...(combatant.actor.inventory?.coins ?? {}) };
+    const coinsObj = combatant.actor.inventory?.coins?.toObject?.() ?? {
+      ...(combatant.actor.inventory?.coins ?? {}),
+    };
     const hasLoot =
       lootItems.length > 0 ||
       Object.values(coinsObj).some((v) => Number(v) > 0);
@@ -1328,7 +1337,9 @@ export function findReactiveStrikeOpportunities(
     if (!item) continue;
 
     const readyActions = (reactor.actor?.system?.actions ?? [])
-      .filter((a) => a.type === "strike" && a.ready !== false && !a.item?.isRanged)
+      .filter(
+        (a) => a.type === "strike" && a.ready !== false && !a.item?.isRanged,
+      )
       .map((a) => ({
         slug: a.item?.slug ?? a.slug ?? a.label,
         label: a.label,
@@ -1404,9 +1415,7 @@ export async function handleRangedAttackForReactiveStrike(message) {
     (c) => c.scene?.id === sceneId && isModuleCombat(c),
   );
   if (!combat) return;
-  const attacker = combat.combatants.find(
-    (c) => c.tokenId === attackerTokenId,
-  );
+  const attacker = combat.combatants.find((c) => c.tokenId === attackerTokenId);
   if (!attacker || attacker.isDefeated) return;
 
   await offerReactiveStrikesAgainst(combat, attacker);
@@ -1726,7 +1735,8 @@ function hostileFootprints(combat, combatant, gridSize, excludeCell = null) {
   return combatantOpponents(combat, combatant)
     .map((c) => footprint(c.token, gridSize))
     .filter(
-      (f) => !(excludeCell && f.gx === excludeCell.gx && f.gy === excludeCell.gy),
+      (f) =>
+        !(excludeCell && f.gx === excludeCell.gx && f.gy === excludeCell.gy),
     );
 }
 
@@ -1749,7 +1759,9 @@ function otherCombatantFootprints(combat, combatant, gridSize) {
  * `footprints` — the shared occupancy check `movementBlockedEdges` and
  * `walkPath` both need. */
 function cellOccupied(cell, footprints) {
-  return footprints.some((f) => overlaps({ gx: cell.gx, gy: cell.gy, gw: 1, gh: 1 }, f));
+  return footprints.some((f) =>
+    overlaps({ gx: cell.gx, gy: cell.gy, gw: 1, gh: 1 }, f),
+  );
 }
 
 /**
@@ -1810,7 +1822,13 @@ function posturePath(
  * (no path, or every waypoint is within the stop distance already or
  * occupied).
  */
-function walkPath(path, targetCell, speedSquares, stopWithinSquares, occupantFootprints = []) {
+function walkPath(
+  path,
+  targetCell,
+  speedSquares,
+  stopWithinSquares,
+  occupantFootprints = [],
+) {
   let stepIndex = 0;
   for (let i = 1; i < path.length && i <= speedSquares; i += 1) {
     if (stopWithinSquares > 0) {
@@ -1859,7 +1877,13 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
   if (!path) return;
 
   const occupants = otherCombatantFootprints(combat, combatant, gridSize);
-  const waypoint = walkPath(path, goal, speedSquares, MELEE_REACH_SQUARES, occupants);
+  const waypoint = walkPath(
+    path,
+    goal,
+    speedSquares,
+    MELEE_REACH_SQUARES,
+    occupants,
+  );
   if (!waypoint) return;
   await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize });
   await offerReactiveStrikesAgainst(combat, combatant);
@@ -1988,6 +2012,37 @@ function strikeSoundContext(strike, target) {
 }
 
 /**
+ * Draws a #28 critical-deck card for a Strike's outcome, right alongside the
+ * existing playStrikeSound call -- a no-op for any outcome other than a
+ * clean crit/fumble. `soundContext` is `strikeSoundContext`'s own result,
+ * reused here rather than recomputed: its `damageType`/`isRanged` are
+ * exactly the signals the Hit/Fumble deck category derivation is defined
+ * against. `strike.item?.system?.category === "unarmed"` is PF2e's own
+ * weapon-item field for this (confirmed against the system's Weapon data
+ * model: `category` is one of "unarmed"/"simple"/"martial"/"advanced" --
+ * the same field already gates access-to-training feats elsewhere in the
+ * system).
+ */
+async function drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target) {
+  if (outcome === "criticalSuccess") {
+    await drawAndApplyCriticalCard(
+      "hit",
+      hitDeckCategory(soundContext.damageType),
+      { combatant, target },
+    );
+  } else if (outcome === "criticalFailure") {
+    await drawAndApplyCriticalCard(
+      "fumble",
+      fumbleDeckCategory({
+        isRanged: soundContext.isRanged,
+        isUnarmed: strike.item?.system?.category === "unarmed",
+      }),
+      { combatant, target },
+    );
+  }
+}
+
+/**
  * Rolls `combatant`'s first ready strike against `target` and, on a hit,
  * rolls and applies damage — confirmed live (see ITEM-8 in docs/backlog.md):
  * a strike's own roll()/damage() never forwards a skipDialog option, so the
@@ -2015,7 +2070,10 @@ async function rollAndApplyStrike(combat, combatant, target) {
       await strike.variants[0].roll({ target: targetRef, createMessage: true });
       const outcome =
         game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
-      playStrikeSound(outcome, strikeSoundContext(strike, target));
+      const soundContext = strikeSoundContext(strike, target);
+      playStrikeSound(outcome, soundContext);
+      await postStrikeRiderReminder(combatant, strike, outcome);
+      await drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target);
       if (outcome === "success" || outcome === "criticalSuccess") {
         const damageRoll = await strike.damage({
           target: targetRef,
@@ -2029,6 +2087,11 @@ async function rollAndApplyStrike(combat, combatant, target) {
             outcome,
           });
           await applyDefeatIfReducedToZero(target);
+          // Critical specialization's own Note (#36) only ever lands on the
+          // DAMAGE message strike.damage() just created above, not the
+          // attack-roll message `outcome` was read from -- see
+          // dungeon-strike-riders.mjs's file header for why.
+          await postCriticalSpecializationReminder(combatant, outcome);
         }
       }
       return outcome;
@@ -2813,7 +2876,13 @@ export async function strideByPosture(combat, combatant, posture, target) {
 
   const occupants = otherCombatantFootprints(combat, combatant, gridSize);
   const stopWithin = posture === "approach" ? MELEE_REACH_SQUARES : 0;
-  const waypoint = walkPath(path, targetCell, speedSquares, stopWithin, occupants);
+  const waypoint = walkPath(
+    path,
+    targetCell,
+    speedSquares,
+    stopWithin,
+    occupants,
+  );
   if (!waypoint) return;
   await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize });
   await offerReactiveStrikesAgainst(combat, combatant);
@@ -2852,7 +2921,10 @@ async function rollAndApplyStrikeAtVariant(
       await variant.roll({ target: targetRef, createMessage: true });
       const outcome =
         game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
-      playStrikeSound(outcome, strikeSoundContext(strike, target));
+      const soundContext = strikeSoundContext(strike, target);
+      playStrikeSound(outcome, soundContext);
+      await postStrikeRiderReminder(combatant, strike, outcome);
+      await drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target);
       if (outcome === "success" || outcome === "criticalSuccess") {
         const damageRoll = await strike.damage({
           target: targetRef,
@@ -2866,6 +2938,10 @@ async function rollAndApplyStrikeAtVariant(
             outcome,
           });
           await applyDefeatIfReducedToZero(target);
+          // See rollAndApplyStrike's identical comment -- the crit-spec
+          // Note (#36) only ever lands on this damage message, not the
+          // attack-roll one `outcome` came from.
+          await postCriticalSpecializationReminder(combatant, outcome);
         }
       }
       return outcome;
@@ -3175,6 +3251,11 @@ async function castAttackSpellAndApplyRoll(
     const outcome =
       game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
     playAttackSpellSound(outcome);
+    if (outcome === "criticalSuccess") {
+      await drawAndApplyCriticalCard("hit", "Bomb or Spell", { combatant, target });
+    } else if (outcome === "criticalFailure") {
+      await drawAndApplyCriticalCard("fumble", "Spell", { combatant, target });
+    }
     if (outcome === "success" || outcome === "criticalSuccess") {
       const damageRoll = await spell.rollDamage?.({
         target: targetRef,
@@ -3393,7 +3474,9 @@ async function castBuffSpellAndApply(combatant, target, spellId, entryId) {
   const spell = entry?.spells?.contents?.find((s) => s.id === spellId);
   if (!entry || !spell) return null;
 
-  const effectUuid = parseSpellEffectUuid(spell.system.description?.value ?? "");
+  const effectUuid = parseSpellEffectUuid(
+    spell.system.description?.value ?? "",
+  );
   if (!effectUuid) return null;
 
   const prevShowCheck = game.user.flags?.pf2e?.settings?.showCheckDialogs;

@@ -45,15 +45,38 @@ import {
 import { splitmix32, seedFromString } from "./prng.mjs";
 import { buildCoverItemActorData, MODULE_ID } from "./cover-items.mjs";
 import { classifyTrap } from "./trap-combat.mjs";
-import {
-  isTreasureEligible,
-  rollNpcTreasure,
-  LOOTABLE_ITEM_TYPES,
-} from "./treasure.mjs";
+import { isTreasureEligible, rollNpcTreasure } from "./treasure.mjs";
 import { xpPerSurvivor } from "./combat-rewards.mjs";
 
 export const CREATURE_PACK_PATTERN =
   /bestiary|monster-core|npc-core|npc-gallery/i;
+
+/**
+ * Draw one item from a named `pf2e.rollable-tables` table (#29) — the
+ * Foundry-dependent half of treasure.mjs's rollNpcTreasure/
+ * dungeon-deck.mjs's treasureRoomItemTableName, which only decide the exact
+ * table name to draw from. Every result on these tables is a `type:
+ * "document"` draw carrying a real documentCollection/documentId into
+ * pf2e.equipment-srd (confirmed live) — but a handful of entries in the
+ * pf2e system's own tables are data bugs with a blank document reference,
+ * so this returns null rather than throwing when a draw doesn't resolve.
+ * `displayChat: false` because this is a silent programmatic draw, not a
+ * GM rolling at the table; replacement/drawn-state is left at its default.
+ */
+export async function drawTreasureItem(tableName) {
+  const pack = game.packs.get("pf2e.rollable-tables");
+  const index = await pack?.getIndex({ fields: ["name"] });
+  const entry = index?.find((e) => e.name === tableName);
+  if (!entry) return null;
+  const table = await pack.getDocument(entry._id);
+  const { results } = await table.draw({ displayChat: false });
+  const result = results?.[0];
+  if (!result?.documentCollection || !result?.documentId) return null;
+  const doc = await game.packs
+    .get(result.documentCollection)
+    ?.getDocument(result.documentId);
+  return doc ?? null;
+}
 
 // Trap-tagged hazards (#135) live only here, never in a pack
 // CREATURE_PACK_PATTERN would match.
@@ -784,39 +807,6 @@ export function makeFoundryApi(sceneRef = null) {
       const alliance =
         disposition > 0 ? "party" : disposition < 0 ? "opposition" : null;
 
-      // Only a hostile spawn (a monster, never a player's own summon) can
-      // ever end up on the lootable-corpse path resolveCombat drives — see
-      // #172. Fetched once per call, not once per creature, same "index
-      // first, cheap" discipline encounter-roster.mjs already follows for
-      // the bestiary.
-      const equipmentIndex =
-        disposition < 0
-          ? (
-              await game.packs
-                .get("pf2e.equipment-srd")
-                ?.getIndex({ fields: ["type", "system.level.value", "system.price.value"] })
-            )
-              // pf2e.equipment-srd also carries a couple of `kit`-typed
-              // entries not in LOOTABLE_ITEM_TYPES — filtered here so
-              // nothing gets granted at spawn that dungeon-combat.mjs's
-              // corpse conversion would later silently strip off the corpse
-              // at death for not matching that same allow-list (#172 review).
-              ?.filter((e) => LOOTABLE_ITEM_TYPES.includes(e.type))
-              .map((e) => ({
-                id: e._id,
-                pack: "pf2e.equipment-srd",
-                level: e.system?.level?.value ?? 0,
-                // system.price.value is keyed by denomination ({gp}, {sp}, ...)
-                // rather than always gp — normalized to a single gp-equivalent
-                // number so rollNpcTreasure's price ceiling comparison is
-                // meaningful regardless of which denomination a cheap item uses.
-                priceGp:
-                  (e.system?.price?.value?.gp ?? 0) +
-                  (e.system?.price?.value?.sp ?? 0) / 10 +
-                  (e.system?.price?.value?.cp ?? 0) / 100,
-              })) ?? []
-          : [];
-
       const created = [];
       for (const [i, entry] of entries.entries()) {
         // An entry is either a compendium reference or a world actor to copy.
@@ -850,15 +840,17 @@ export function makeFoundryApi(sceneRef = null) {
         const [actor] = await Actor.createDocuments([
           foundry.utils.mergeObject(doc.toObject(), overrides),
         ]);
+        // Only a hostile spawn (a monster, never a player's own summon) can
+        // ever end up on the lootable-corpse path resolveCombat drives — see
+        // #172.
         if (disposition < 0 && isTreasureEligible(actor.system?.traits?.value)) {
-          const { gp, itemRef } = rollNpcTreasure({
+          const { gp, tableName } = rollNpcTreasure({
             level: actor.system?.details?.level?.value ?? 0,
-            index: equipmentIndex,
             rng: Math.random,
           });
           if (gp > 0) await actor.inventory.addCoins({ gp });
-          if (itemRef) {
-            const itemDoc = await game.packs.get(itemRef.pack)?.getDocument(itemRef.id);
+          if (tableName) {
+            const itemDoc = await drawTreasureItem(tableName);
             if (itemDoc) await actor.createEmbeddedDocuments("Item", [itemDoc.toObject()]);
           }
         }
