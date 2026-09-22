@@ -34,6 +34,21 @@ const HIT_DECK_10 =
 const HIT_DECK_40 =
   '<section class="critical-deck"><h1>Breathless</h1><blockquote><p>The target is @UUID[Compendium.pf2e.conditionitems.Item.Fatigued].</p></blockquote><p><code>Bludgeoning</code></p><h1>Spun Around</h1><blockquote><p>The target is @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] until the end of its next turn.</p></blockquote><p><code>Piercing</code></p><h1>Sliced Hand</h1><blockquote><p>Normal damage. Until healed, the target is @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled]{Enfeebled 1}, @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Clumsy 1}, and can\'t used one of its hands (determined randomly by the GM).</p></blockquote><p><code>Slashing</code></p><h1>Combustion</h1><blockquote><p>If this is a fire bomb or spell, the target takes triple damage and @Damage[1d6[persistent,fire]]. Any other bomb or spell deals double damage.</p></blockquote><p><code>Bomb or Spell</code></p></section>';
 
+// Real fixture content pulled directly from
+// /home/cjohannsen/pf2e-data/packs/pf2e/criticaldeck/critical-hit-deck-37.json
+// -- confirmed live alongside HIT_DECK_40's Combustion as the only two
+// occurrences of a bracket-tagged persistent @Damage formula in the deck.
+const HIT_DECK_37 =
+  '<section class="critical-deck"><h1>Concussion</h1><blockquote><p>Normal damage. The target is @UUID[Compendium.pf2e.conditionitems.Item.Confused] for 1 minute and @UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Stupefied 2} until healed.</p></blockquote><p><code>Bludgeoning</code></p><h1>Infection</h1><blockquote><p>The target must succeed at a @Check[fortitude] or contract filth fever (Pathfinder Bestiary 258).</p></blockquote><p><code>Piercing</code></p><h1>Flay</h1><blockquote><p>Normal damage. The target is @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled]{Enfeebled 3} until healed.</p></blockquote><p><code>Slashing</code></p><h1>Corrosive</h1><blockquote><p>If this is an acid bomb or spell, the target takes triple damage and @Damage[1d6[persistent,acid]]. Any other bomb or spell deals double damage.</p></blockquote><p><code>Bomb or Spell</code></p></section>';
+
+// Real fixture content pulled directly from
+// /home/cjohannsen/pf2e-data/packs/pf2e/criticaldeck/critical-fumble-deck-11.json
+// -- a self-directed @Localize persistent-damage shorthand (all 6 real
+// occurrences share the exact same key, "Bleed1.success", but are parsed
+// generically -- not hardcoded to this one case).
+const FUMBLE_DECK_11 =
+  '<section class="fumble-deck"><h1>Slipped</h1><blockquote><p>You fall @UUID[Compendium.pf2e.conditionitems.Item.Prone].</p></blockquote><p><code>Melee</code></p><h1>Backfire</h1><blockquote><p>You hit yourself instead of the target.</p></blockquote><p><code>Ranged</code></p><h1>Bruised Ego</h1><blockquote><p>You can\'t attack another creature until the target is knocked out or the end of your next turn.</p></blockquote><p><code>Unarmed</code></p><h1>Nosebleed</h1><blockquote><p>You take @Localize[PF2E.PersistentDamage.Bleed1.success].</p></blockquote><p><code>Spell</code></p></section>';
+
 // Pretty-printed with newlines between tags -- confirmed live several real
 // deck documents are stored this way rather than compact, so the parser
 // must tolerate both.
@@ -219,23 +234,49 @@ describe("parseDeckEntry", () => {
     ]);
   });
 
-  it("@Localize is never auto-applied (I See Stars still resolves its condition; Pinhole is skipped)", () => {
+  it("a condition directive alongside a @Localize directive on another sub-entry still resolves normally (I See Stars)", () => {
     const iSeeStars = parseDeckEntry(HIT_DECK_10).find(
       (e) => e.name === "I See Stars",
     );
     expect(iSeeStars.directives).toEqual([
       { type: "condition", slug: "dazzled", value: null, target: "target" },
     ]);
+  });
 
+  it("a @Localize[PF2E.PersistentDamage.<Type><N>.<outcome>] shorthand parses to a target-directed persistentDamage directive (Pinhole)", () => {
     const pinhole = parseDeckEntry(HIT_DECK_10).find(
       (e) => e.name === "Pinhole",
     );
     expect(pinhole.directives).toEqual([
       {
-        type: "skip",
-        raw: expect.stringContaining("@Localize"),
-        reason: "localize",
+        type: "persistentDamage",
+        damageType: "bleed",
+        value: 1,
+        target: "target",
       },
+    ]);
+  });
+
+  it("the same @Localize persistent-damage shorthand parses to a self-directed directive on a fumble card (Nosebleed)", () => {
+    const nosebleed = parseDeckEntry(FUMBLE_DECK_11).find(
+      (e) => e.name === "Nosebleed",
+    );
+    expect(nosebleed.directives).toEqual([
+      {
+        type: "persistentDamage",
+        damageType: "bleed",
+        value: 1,
+        target: "self",
+      },
+    ]);
+  });
+
+  it("a damage formula with nested brackets (a damage-type trait) parses whole (Corrosive)", () => {
+    const corrosive = parseDeckEntry(HIT_DECK_37).find(
+      (e) => e.name === "Corrosive",
+    );
+    expect(corrosive.directives).toEqual([
+      { type: "damage", formula: "1d6[persistent,acid]", target: "target" },
     ]);
   });
 
@@ -304,6 +345,34 @@ describe("extractDirectives", () => {
       {
         type: "skip",
         raw: expect.stringContaining("@Damage"),
+        reason: "subject",
+      },
+    ]);
+  });
+
+  it("a @Localize key that isn't the PF2E.PersistentDamage.<Type><N>.<outcome> shape is skipped, not crashed on", () => {
+    expect(
+      extractDirectives(
+        "<p>The target takes @Localize[PF2E.SomeOtherKey.success] damage.</p>",
+      ),
+    ).toEqual([
+      {
+        type: "skip",
+        raw: expect.stringContaining("@Localize"),
+        reason: "localize",
+      },
+    ]);
+  });
+
+  it("a @Localize persistent-damage key with an ambiguous subject is skipped", () => {
+    expect(
+      extractDirectives(
+        "<p>An ally takes @Localize[PF2E.PersistentDamage.Bleed1.success].</p>",
+      ),
+    ).toEqual([
+      {
+        type: "skip",
+        raw: expect.stringContaining("@Localize"),
         reason: "subject",
       },
     ]);
@@ -400,6 +469,22 @@ describe("drawAndApplyCriticalCard", () => {
         return this;
       }
     };
+    // A distinct total (7, vs. plain Roll's 4) and a `calls` log let tests
+    // prove which class actually got constructed -- the real bug (#50) was
+    // that a persistent-tagged formula silently went through plain Roll
+    // instead of this one.
+    globalThis.DamageRoll = class DamageRoll {
+      constructor(formula) {
+        this.formula = formula;
+        DamageRoll.calls.push(formula);
+      }
+      async evaluate() {
+        this.total = 7;
+        return this;
+      }
+    };
+    globalThis.DamageRoll.calls = [];
+    globalThis.CONFIG = { Dice: { rolls: [globalThis.DamageRoll] } };
     globalThis.fromUuid = async (uuid) => {
       globalThis.fromUuid.calls.push(uuid);
       if (uuid.includes("nonexistent")) return null;
@@ -504,6 +589,81 @@ describe("drawAndApplyCriticalCard", () => {
     expect(combatant.actor.applyDamageCalls).toEqual([
       { damage: 4, token: { id: "atk" } },
     ]);
+    expect(target.actor.applyDamageCalls).toEqual([]);
+  });
+
+  it("applies bracket-tagged persistent @Damage via a real DamageRoll object, not a bare number (Corrosive)", async () => {
+    const docs = [makeDoc("Critical Hit Deck #37", HIT_DECK_37)];
+    installFoundryStubs({ docs });
+    const combatant = { name: "Attacker", actor: makeActorDouble(), token: {} };
+    const target = {
+      name: "Victim",
+      actor: makeActorDouble(),
+      token: { id: "tgt" },
+    };
+
+    const result = await drawAndApplyCriticalCard("hit", "Bomb or Spell", {
+      combatant,
+      target,
+    });
+
+    expect(result.subentry.name).toBe("Corrosive");
+    expect(DamageRoll.calls).toEqual(["1d6[persistent,acid]"]);
+    expect(target.actor.applyDamageCalls).toHaveLength(1);
+    const [call] = target.actor.applyDamageCalls;
+    expect(call.damage).toBeInstanceOf(DamageRoll);
+    expect(call.damage.formula).toBe("1d6[persistent,acid]");
+    expect(call.damage.total).toBe(7);
+    expect(call.token).toEqual({ id: "tgt" });
+    expect(combatant.actor.applyDamageCalls).toEqual([]);
+  });
+
+  it("applies a @Localize persistent-damage shorthand as a flat-N DamageRoll targeted at the target (Pinhole)", async () => {
+    const docs = [makeDoc("Critical Hit Deck #10", HIT_DECK_10)];
+    installFoundryStubs({ docs });
+    const combatant = { name: "Attacker", actor: makeActorDouble(), token: {} };
+    const target = {
+      name: "Victim",
+      actor: makeActorDouble(),
+      token: { id: "tgt" },
+    };
+
+    const result = await drawAndApplyCriticalCard("hit", "Piercing", {
+      combatant,
+      target,
+    });
+
+    expect(result.subentry.name).toBe("Pinhole");
+    expect(DamageRoll.calls).toEqual(["(1)[persistent,bleed]"]);
+    expect(target.actor.applyDamageCalls).toHaveLength(1);
+    const [call] = target.actor.applyDamageCalls;
+    expect(call.damage).toBeInstanceOf(DamageRoll);
+    expect(call.damage.total).toBe(7);
+    expect(call.token).toEqual({ id: "tgt" });
+    expect(combatant.actor.applyDamageCalls).toEqual([]);
+  });
+
+  it("applies a @Localize persistent-damage shorthand as a flat-N DamageRoll targeted at self on a fumble card (Nosebleed)", async () => {
+    const docs = [makeDoc("Critical Fumble Deck #11", FUMBLE_DECK_11)];
+    installFoundryStubs({ docs });
+    const combatant = {
+      name: "Attacker",
+      actor: makeActorDouble(),
+      token: { id: "atk" },
+    };
+    const target = { name: "Victim", actor: makeActorDouble(), token: {} };
+
+    const result = await drawAndApplyCriticalCard("fumble", "Spell", {
+      combatant,
+      target,
+    });
+
+    expect(result.subentry.name).toBe("Nosebleed");
+    expect(DamageRoll.calls).toEqual(["(1)[persistent,bleed]"]);
+    expect(combatant.actor.applyDamageCalls).toHaveLength(1);
+    const [call] = combatant.actor.applyDamageCalls;
+    expect(call.damage).toBeInstanceOf(DamageRoll);
+    expect(call.token).toEqual({ id: "atk" });
     expect(target.actor.applyDamageCalls).toEqual([]);
   });
 

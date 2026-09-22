@@ -17,9 +17,21 @@
  * mutators, and `ChatMessage.create`.
  *
  * Directive scope (see #50 for what's deliberately NOT covered here):
- *   - `@Damage[<formula>]` -- rolled via `Roll` (same pattern
- *     `setAbilityRecharge` already uses) and applied via
- *     `actor.applyDamage({damage: total, token})`.
+ *   - `@Damage[<formula>]` -- rolled and applied one of two ways depending
+ *     on whether the formula carries a `[persistent,...]` bracket tag
+ *     (confirmed live on Combustion/Corrosive, `1d6[persistent,fire]` /
+ *     `1d6[persistent,acid]`): a *non*-persistent formula is rolled via
+ *     plain `Roll` (same pattern `setAbilityRecharge` already uses) and
+ *     applied via `actor.applyDamage({damage: total, token})`; a
+ *     *persistent*-tagged formula is instead rolled via a real `DamageRoll`
+ *     (`CONFIG.Dice.rolls.find((c) => c.name === "DamageRoll")`, same
+ *     lookup `dungeon-combat.mjs`'s area-spell helpers already use) and
+ *     applied with the full roll object (`applyDamage({damage: roll,
+ *     token})`, not `roll.total`) -- per #36's research, PF2e's own
+ *     `applyDamage` only auto-creates the `persistent-damage` condition when
+ *     handed the real IWR-processed roll, not a bare number, so a plain
+ *     `Roll`+total here silently collapsed persistent damage into ordinary
+ *     instant damage (#50).
  *   - `@UUID[Compendium.pf2e.conditionitems.Item.<Name>]` (braced label with
  *     a trailing number, or bare) -- a condition, applied via
  *     `actor.increaseCondition(slug, ...)`. Slug convention matches
@@ -29,14 +41,27 @@
  *     arbitrary Effect item, applied via the exact `fromUuid` ->
  *     `.toObject()` -> `createEmbeddedDocuments("Item", [...])` pattern
  *     `castBuffSpellAndApply` already uses.
- *   - Any other `@UUID[...]` (spells-srd, actionspf2e, ...), `@Localize[...]`
- *     (persistent damage, #50), `@Check[...]`, and bare prose with no
- *     directive at all are never auto-applied -- flavor text only.
+ *   - `@Localize[PF2E.PersistentDamage.<Type><N>.<outcome>]` (#50) -- a flat,
+ *     no-roll persistent-damage shorthand (all 6 real occurrences use
+ *     `Bleed1.success`, i.e. "1 persistent bleed damage", but parsed
+ *     generically rather than hardcoded to that one key). The `.<outcome>`
+ *     suffix is inert -- PF2e's own localization-key naming convention for
+ *     save-outcome text variants of the same static effect, not something
+ *     to branch on here. Applied via the same `DamageRoll` path as a
+ *     persistent-tagged `@Damage`, built from a flat non-dice formula
+ *     (`"(<N>)[persistent,<type>]"`, the analogous shape to the flat
+ *     `"(20)[force]"` formula `castAutoHitAreaSpellAndApplyDamage` already
+ *     uses for a fixed non-dice amount). A `@Localize` key that doesn't
+ *     match this shape is never auto-applied -- flavor text only, same as
+ *     any other unrecognized directive.
+ *   - Any other `@UUID[...]` (spells-srd, actionspf2e, ...), `@Check[...]`,
+ *     and bare prose with no directive at all are never auto-applied --
+ *     flavor text only.
  *   - Weapon/item HP damage ("Your weapon takes...", "the weapon is
  *     Broken...") is deliberately skipped even when it wraps an otherwise
  *     eligible `@Damage`/`@UUID` directive: there's no creature-damage
  *     precedent in this file for item damage to reuse, and applying it to a
- *     creature would just be wrong.
+ *     creature would just be wrong. (Split out to #60.)
  *
  * Subject detection walks back from each directive to the start of its
  * *sentence* (the text since the last `.`), then takes the right-most
@@ -119,6 +144,23 @@ function findSentenceStart(text, endIndex) {
   return lastPeriod === -1 ? 0 : lastPeriod + 1;
 }
 
+// `PF2E.PersistentDamage.<Type><N>.<outcome>` -- e.g. "Bleed1.success" is
+// type "bleed", flat value 1. The `.<outcome>` suffix is PF2e's own
+// localization-key convention for which save-outcome text variant this is;
+// it's always describing the same numeric effect on this static,
+// pre-resolved deck text, so it's matched but never branched on.
+const LOCALIZE_PERSISTENT_DAMAGE_RE =
+  /^PF2E\.PersistentDamage\.([A-Za-z]+)(\d+)\.\w+$/;
+
+/** True when a `@Damage[...]` formula carries a `[persistent,...]` bracket
+ * tag anywhere in it (e.g. `"1d6[persistent,fire]"`) -- the formulas PF2e's
+ * own `applyDamage` needs a real `DamageRoll` object (not a bare number) to
+ * correctly recognize and auto-create the `persistent-damage` condition
+ * for (#50). */
+function isPersistentFormula(formula) {
+  return /\[[^[\]]*\bpersistent\b[^[\]]*\]/.test(formula);
+}
+
 function buildDirective(keyword, bracketContent, brace, window, raw) {
   if (keyword === "Damage") {
     const subject = detectSubject(window);
@@ -158,7 +200,20 @@ function buildDirective(keyword, bracketContent, brace, window, raw) {
     return { type: "skip", raw, reason: "other-uuid" };
   }
 
-  if (keyword === "Localize") return { type: "skip", raw, reason: "localize" };
+  if (keyword === "Localize") {
+    const key = bracketContent.trim();
+    const match = LOCALIZE_PERSISTENT_DAMAGE_RE.exec(key);
+    if (!match) return { type: "skip", raw, reason: "localize" };
+
+    const subject = detectSubject(window);
+    if (subject === "skip") return { type: "skip", raw, reason: "subject" };
+    return {
+      type: "persistentDamage",
+      damageType: match[1].toLowerCase(),
+      value: Number(match[2]),
+      target: subject,
+    };
+  }
 
   // @Check, @Template, or anything else this format grows later.
   return { type: "skip", raw, reason: "unsupported" };
@@ -290,11 +345,42 @@ async function applyDirective(directive, { combatant, target }) {
   const token = who?.token;
 
   if (directive.type === "damage") {
+    if (isPersistentFormula(directive.formula)) {
+      const DamageRollClass = CONFIG.Dice.rolls.find(
+        (c) => c.name === "DamageRoll",
+      );
+      const roll = new DamageRollClass(directive.formula);
+      await roll.evaluate();
+      await actor.applyDamage({ damage: roll, token });
+      return {
+        type: "damage",
+        formula: directive.formula,
+        total: roll.total,
+        target: directive.target,
+      };
+    }
     const roll = await new Roll(directive.formula).evaluate();
     await actor.applyDamage({ damage: roll.total, token });
     return {
       type: "damage",
       formula: directive.formula,
+      total: roll.total,
+      target: directive.target,
+    };
+  }
+
+  if (directive.type === "persistentDamage") {
+    const DamageRollClass = CONFIG.Dice.rolls.find(
+      (c) => c.name === "DamageRoll",
+    );
+    const formula = `(${directive.value})[persistent,${directive.damageType}]`;
+    const roll = new DamageRollClass(formula);
+    await roll.evaluate();
+    await actor.applyDamage({ damage: roll, token });
+    return {
+      type: "persistentDamage",
+      damageType: directive.damageType,
+      value: directive.value,
       total: roll.total,
       target: directive.target,
     };
