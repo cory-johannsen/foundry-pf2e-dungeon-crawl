@@ -6086,5 +6086,61 @@
     "name": "Eunemvro",
     "level": 5,
     "art": "eunemvro.webp"
+  },
+  {
+    "id": "ice_golem",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "tieZOKf2qX7GsL9H",
+    "name": "Ice Golem",
+    "level": 5,
+    "art": "ice-golem.webp"
+  },
+  {
+    "id": "lawbringer_warpriest",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "xTnBWwbZKbhCfHgJ",
+    "name": "Lawbringer Warpriest",
+    "level": 5,
+    "art": "lawbringer-warpriest.webp"
+  },
+  {
+    "id": "skinstitch",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "6AvQH0XXccorLE6d",
+    "name": "Skinstitch",
+    "level": 5,
+    "art": "skinstitch.webp"
+  },
+  {
+    "id": "subaquatic_marauder",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "iJSCvkA3XQgO8GjG",
+    "name": "Subaquatic Marauder",
+    "level": 5,
+    "art": "subaquatic-marauder.webp"
+  },
+  {
+    "id": "yeti",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "alPZcKVrHTcMdtIU",
+    "name": "Yeti",
+    "level": 5,
+    "art": "yeti.webp"
+  },
+  {
+    "id": "stalker_automaton",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "DPPATAIrZ7rJJtJG",
+    "name": "Stalker Automaton",
+    "level": 5,
+    "art": "stalker-automaton.webp"
+  },
+  {
+    "id": "nyctessa",
+    "pack": "pf2e.npc-gallery",
+    "docId": "h62rHXYDTW84VGUo",
+    "name": "Nyctessa",
+    "level": 5,
+    "art": "nyctessa.webp"
   }
 ]
