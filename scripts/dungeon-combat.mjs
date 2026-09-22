@@ -61,6 +61,14 @@ function partyActorIds() {
   return new Set((game.actors?.party?.members ?? []).map((m) => m.id));
 }
 
+/** Whether a combatant with this actor id should default to
+ * agent-controlled: every non-party actor always does (unchanged NPC
+ * behavior); a party actor only does when this run flagged it AI-controlled
+ * at start (#20 — its owning player isn't logged in). */
+export function isAgentEligible(actorId, partyIds, aiControlledIds) {
+  return !partyIds.has(actorId) || aiControlledIds.has(actorId);
+}
+
 /** Every token on `scene` carrying `flagKey === flagValue`, plus every
  * current party token — excluding cover items (#96/#146) and trap hazards
  * (#135), neither of which ever takes a turn. Cover-item tokens carry the
@@ -102,14 +110,17 @@ async function startCombat(scene, flagKey, flagValue) {
   const combat = await Combat.create({ scene: scene.id });
   await combat.setFlag(MODULE_ID, flagKey, flagValue);
   const partyIds = partyActorIds();
+  const aiControlledIds = new Set(
+    getRunState(scene.id)?.aiControlledActorIds ?? [],
+  );
   const combatants = await combat.createEmbeddedDocuments(
     "Combatant",
     tokens.map((t) => ({
       tokenId: t.id,
       sceneId: scene.id,
-      ...(partyIds.has(t.actor?.id)
-        ? {}
-        : { flags: { [MODULE_ID]: { agentControlled: true } } }),
+      ...(isAgentEligible(t.actor?.id, partyIds, aiControlledIds)
+        ? { flags: { [MODULE_ID]: { agentControlled: true } } }
+        : {}),
     })),
   );
   await combat.rollInitiative(
@@ -126,7 +137,11 @@ async function startCombat(scene, flagKey, flagValue) {
  * against toggling a real party member on by mistake, since one should
  * never have the flag in the first place. */
 export async function toggleAgentControlled(combatant) {
-  if (partyActorIds().has(combatant.actor?.id)) return;
+  const aiControlledIds = new Set(
+    getRunState(combatant.parent?.scene?.id)?.aiControlledActorIds ?? [],
+  );
+  if (!isAgentEligible(combatant.actor?.id, partyActorIds(), aiControlledIds))
+    return;
   const current = combatant.getFlag(MODULE_ID, "agentControlled") ?? false;
   await combatant.setFlag(MODULE_ID, "agentControlled", !current);
 }
@@ -1985,10 +2000,19 @@ export async function autoPlayCombatantTurnIfDue(combat) {
   if (!game.user.isGM || !isModuleCombat(combat)) return;
   unpauseIfGmLessRun(combat.scene?.id);
   const combatant = combat.combatant;
+  if (!combatant) return;
+  // #20: check the already-authoritative flag before re-deriving party
+  // membership — a real party actor's own hasPlayerOwner is true under
+  // this deployment's actual ownership model (each Trusted-User player
+  // OWNERs their own actor), so re-deriving eligibility here instead of
+  // trusting the flag startCombat already set would let this exclusion
+  // fire even for a run's AI-controlled party actor. Leaves the
+  // pre-existing exclusion of a manually-added, player-summoned ally
+  // (which never receives this flag) completely unchanged.
   if (
-    !combatant ||
-    partyActorIds().has(combatant.actor?.id) ||
-    combatant.actor?.hasPlayerOwner
+    !combatant.getFlag(MODULE_ID, "agentControlled") &&
+    (partyActorIds().has(combatant.actor?.id) ||
+      combatant.actor?.hasPlayerOwner)
   )
     return;
 
