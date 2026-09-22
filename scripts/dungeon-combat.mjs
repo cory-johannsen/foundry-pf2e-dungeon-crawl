@@ -2136,6 +2136,29 @@ function strikeSoundContext(strike, target) {
 }
 
 /**
+ * Draws a hit-deck critical card and returns its damage multiplier (#61 --
+ * 1/2/3, default 1) -- the one "draw + extract damageMultiplier" step
+ * shared by both #61 (Strikes, via `drawCriticalCardForStrike` below) and
+ * #75 (spell-attack crits, `castAttackSpellAndApplyRoll`). Deliberately
+ * does NOT decide how a caller applies the multiplier: `strike.damage()`
+ * already pre-doubles on a critical hit, so a Strike only needs an
+ * ADDITIONAL scaling on top of that (`.alter(1.5, 0)` for a card's
+ * "Triple damage."); `spell.rollDamage()` never pre-doubles, so a spell
+ * needs the FULL multiplier applied instead (`.alter(3, 0)`). That math
+ * genuinely differs per caller and stays at each call site -- unifying it
+ * here would be the wrong kind of "sharing" (deduping code that isn't
+ * actually the same operation).
+ */
+async function drawHitCardMultiplier(category, { combatant, target, damageType }) {
+  const draw = await drawAndApplyCriticalCard("hit", category, {
+    combatant,
+    target,
+    damageType,
+  });
+  return draw?.damageMultiplier ?? 1;
+}
+
+/**
  * Draws a #28 critical-deck card for a Strike's outcome, right alongside the
  * existing playStrikeSound call -- a no-op for any outcome other than a
  * clean crit/fumble. `soundContext` is `strikeSoundContext`'s own result,
@@ -2154,12 +2177,11 @@ function strikeSoundContext(strike, target) {
  */
 async function drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target) {
   if (outcome === "criticalSuccess") {
-    const draw = await drawAndApplyCriticalCard(
-      "hit",
-      hitDeckCategory(soundContext.damageType),
-      { combatant, target, damageType: soundContext.damageType },
-    );
-    return draw?.damageMultiplier ?? 1;
+    return drawHitCardMultiplier(hitDeckCategory(soundContext.damageType), {
+      combatant,
+      target,
+      damageType: soundContext.damageType,
+    });
   } else if (outcome === "criticalFailure") {
     await drawAndApplyCriticalCard(
       "fumble",
@@ -3416,7 +3438,7 @@ async function castTierScalingAreaSpellAndApplySaves(
  * miss. `attackNumber` is always 1 — no spell-attack MAP tracking in v1,
  * matching #118/#119's spells (only a Strike bumps `mapIncrement`).
  */
-async function castAttackSpellAndApplyRoll(
+export async function castAttackSpellAndApplyRoll(
   combatant,
   target,
   spellId,
@@ -3444,8 +3466,23 @@ async function castAttackSpellAndApplyRoll(
     const outcome =
       game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
     playAttackSpellSound(outcome);
+    let damageMultiplier = 1;
     if (outcome === "criticalSuccess") {
-      await drawAndApplyCriticalCard("hit", "Bomb or Spell", { combatant, target });
+      // Takes the first system.damage entry's own type as "the" spell's
+      // damage type for a conditional card's (Corrosive/Combustion) own
+      // acid/fire check -- correct for the common single-damage-instance
+      // attack spell this module casts. A spell with multiple differently
+      // -typed damage instances would have this pick by object key order
+      // rather than by whichever instance the card actually means; no
+      // spell this module casts does that today, so not worth a real
+      // "which instance is primary" resolution rule until one does (#75
+      // review).
+      const damageType = Object.values(spell.system.damage ?? {})[0]?.type;
+      damageMultiplier = await drawHitCardMultiplier("Bomb or Spell", {
+        combatant,
+        target,
+        damageType,
+      });
     } else if (outcome === "criticalFailure") {
       await drawAndApplyCriticalCard("fumble", "Spell", { combatant, target });
     }
@@ -3456,6 +3493,20 @@ async function castAttackSpellAndApplyRoll(
         createMessage: true,
       });
       if (damageRoll) {
+        // #75: unlike strike.damage() (#61), spell.rollDamage() does NOT
+        // pre-double on a crit -- confirmed against the real PF2e system
+        // source -- so a drawn card's multiplier is applied here as the
+        // FULL multiplier (2 or 3), not an additional 1.5x on top of an
+        // assumed existing 2x the way rollAndApplyStrike/
+        // rollAndApplyStrikeAtVariant scale theirs. damageMultiplier === 1
+        // (no card drawn, or a card with no multiplier text) never calls
+        // .alter() at all, leaving today's behavior unchanged for that
+        // case -- this deliberately does NOT introduce PF2e's own missing
+        // automatic crit-doubling for spells, a separate, already-tracked
+        // out-of-scope bug.
+        if (damageMultiplier > 1) {
+          await damageRoll.alter(damageMultiplier, 0);
+        }
         await target.actor.applyDamage({
           damage: damageRoll,
           token: target.token,
