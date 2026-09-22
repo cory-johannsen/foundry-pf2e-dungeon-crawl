@@ -26,6 +26,7 @@ import {
   claimTreasureFor,
 } from "./ui/dungeon-app.mjs";
 import { undoRoomEntry } from "./dungeon-scene.mjs";
+import { runFollowMoveNow } from "./dungeon-follow.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 const DEFAULT_TIMEOUT_MS = 15_000;
@@ -64,6 +65,10 @@ const DUNGEON_ACTIONS = {
   chooseNarrativeOption: (args) =>
     chooseNarrativeOption(args.sceneId, args.optionIndex),
   claimTreasure: (args) => claimTreasureFor(args.sceneId),
+  // #65: a non-GM host's own dungeon-follow.mjs hooks can't move followers
+  // directly, so they request it — this is the one entry point that
+  // actually runs on whichever client receives and executes the request.
+  followMove: (args) => runFollowMoveNow(args.sceneId),
 };
 
 /**
