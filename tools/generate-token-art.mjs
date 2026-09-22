@@ -2240,8 +2240,14 @@ export const MONSTER_ART = [
     prompt: "A single lupine fiend, one solitary creature alone, with a wolf's body, a twisted goblinoid face bristling with jagged teeth, and disturbingly humanoid clawed hands, crouched low with a hungry predatory grin, floating alone in empty black space with absolutely nothing else in the frame, full color illustration.",
     avoid: "normal wolf face, animal paws, forest, trees, grass, ground, night sky scene, mountain range, black and white, monochrome, grayscale, sketch, line art, second creature, background animal" },
   { id: 'phantom-knight', file: 'phantom-knight', dir: 'assets/creature-art', shapeless: true,
-    prompt: "A translucent ethereal phantom in the tattered ghostly form of an armored knight, faint spectral armor plates and a broken banner trailing, wispy incorporeal edges fading into mist",
-    avoid: "solid armor, living face, opaque" },
+    // Rewritten after "fading into mist" repeatedly produced a full stormy
+    // cloud scene (and, unprompted, a horse) instead of a contained figure
+    // (ITEM-18 level 4 chunk 2c) — the mist is now explicitly bounded to
+    // the knight's own silhouette, and the horse/mount and banner dropped
+    // since neither was essential to the concept and both kept pulling in
+    // more scene.
+    prompt: "A translucent ethereal phantom knight standing alone, a tightly contained humanoid silhouette in tattered ghostly spectral armor plates with a sharp defined outline, faint wisps trailing only from the edges of the figure itself and never spreading past it, an eerie faceless helm",
+    avoid: "solid armor, living face, opaque, horse, mount, storm clouds, cloud scene, banner" },
   { id: 'caligni-hunter', file: 'caligni-hunter', dir: 'assets/creature-art',
     prompt: "A gaunt caligni humanoid with pale white flesh and solid white eyes, wrapped in dark ragged wrappings suited for skulking, moving with predatory subterranean stealth" },
   { id: 'ratfolk-grenadier', file: 'ratfolk-grenadier', dir: 'assets/creature-art',
@@ -2422,7 +2428,13 @@ export const MONSTER_ART = [
   { id: 'shabti-redeemer', file: 'shabti-redeemer', dir: 'assets/creature-art',
     prompt: "A humanoid resembling an animate funerary statuette, smooth stone-like skin patterned with faded gilded funerary markings, calm resolute eyes, bearing simple ceremonial garb" },
   { id: 'huldra', file: 'huldra', dir: 'assets/creature-art',
-    prompt: "A fey resembling a human woman in plain peasant robes with long unbound hair, a bovine tail peeking from beneath her skirt, her back turned slightly to reveal a hollow wooden gap where flesh should be" },
+    // "hollow wooden gap" reliably pulled in a full ivy-wrapped tree-arch
+    // framing the whole figure (ITEM-18 level 4 chunk 2c) — reworded to a
+    // bark-textured patch of her own back rather than a "gap", removing
+    // the wood/hollow language that was reading as an invitation to add
+    // trees around her.
+    prompt: "A fey resembling a human woman in plain peasant robes with long unbound hair, a bovine tail peeking from beneath her skirt, her back turned slightly to reveal rough bark-like skin across her upper back where normal flesh should be",
+    avoid: "tree, trees, arch of branches, ivy frame, forest archway, wooden gap, hollow cavity" },
   { id: 'aasimar-redeemer', file: 'aasimar-redeemer', dir: 'assets/creature-art',
     prompt: "An aasimar redeemer, a human-shaped paladin with faintly luminous golden eyes and a subtle warm glow beneath sun-bronzed skin, dressed in gleaming silver plate etched with sunburst engravings, longsword held ready, expression calm and resolute" },
   { id: 'advisor', file: 'advisor', dir: 'assets/creature-art',
