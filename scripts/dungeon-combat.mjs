@@ -48,6 +48,7 @@ import {
   postStrikeRiderReminder,
   postCriticalSpecializationReminder,
   resolveGrabRider,
+  resolveKnockdownRider,
 } from "./dungeon-strike-riders.mjs";
 import {
   drawAndApplyCriticalCard,
@@ -2154,6 +2155,7 @@ async function rollAndApplyStrike(combat, combatant, target) {
       playStrikeSound(outcome, soundContext);
       await postStrikeRiderReminder(combatant, strike, outcome);
       await resolveGrabRider(combatant, target, strike, outcome);
+      await resolveKnockdownRider(combatant, target, strike, outcome);
       await drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target);
       if (outcome === "success" || outcome === "criticalSuccess") {
         const damageRoll = await strike.damage({
@@ -3006,6 +3008,7 @@ async function rollAndApplyStrikeAtVariant(
       playStrikeSound(outcome, soundContext);
       await postStrikeRiderReminder(combatant, strike, outcome);
       await resolveGrabRider(combatant, target, strike, outcome);
+      await resolveKnockdownRider(combatant, target, strike, outcome);
       await drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target);
       if (outcome === "success" || outcome === "criticalSuccess") {
         const damageRoll = await strike.damage({

@@ -151,18 +151,23 @@ async function whisperGm(content) {
  * empty reminders."
  *
  * Excludes `grab`/`improved-grab`/`tongue-grab` (#51's `GRAB_RIDER_SLUGS`,
- * defined below): `resolveGrabRider` now auto-resolves those and whispers
- * its own real Grapple-attempt result immediately after this call at both
- * call sites -- leaving them in here would whisper a stale "resolve this
- * manually" reminder right next to the actual automated outcome, telling
- * the GM to do work that already happened.
+ * defined below) and `knockdown`/`improved-knockdown` (`KNOCKDOWN_RIDER_SLUGS`,
+ * also below): `resolveGrabRider`/`resolveKnockdownRider` now auto-resolve
+ * those and whisper their own real result immediately after this call at
+ * both call sites -- leaving them in here would whisper a stale "resolve
+ * this manually" reminder right next to the actual automated outcome,
+ * telling the GM to do work that already happened.
  */
 export async function postStrikeRiderReminder(combatant, strike, outcome) {
   if (outcome !== "success" && outcome !== "criticalSuccess") return;
   const riders = extractRiderEffects(
     strike,
     combatant?.actor?.items ?? [],
-  ).filter((rider) => !GRAB_RIDER_SLUGS.has(rider.slug));
+  ).filter(
+    (rider) =>
+      !GRAB_RIDER_SLUGS.has(rider.slug) &&
+      !KNOCKDOWN_RIDER_SLUGS.has(rider.slug),
+  );
   if (riders.length === 0) return;
 
   const attacker = escapeHtml(combatant?.name ?? "Attacker");
@@ -176,61 +181,102 @@ export async function postStrikeRiderReminder(combatant, strike, outcome) {
 }
 
 const GRAB_RIDER_SLUGS = new Set(["grab", "improved-grab", "tongue-grab"]);
+const KNOCKDOWN_RIDER_SLUGS = new Set(["knockdown", "improved-knockdown"]);
 
 /**
- * #51's first mechanized rider (of #36's chat-reminder-only set): on a hit
- * whose strike carries `grab`/`improved-grab`/`tongue-grab`, rolls the
- * attacker's own Athletics check against the target's Fortitude DC and, on
- * success, applies the Grabbed condition -- PF2e's real Grapple-attempt
- * resolution these abilities trigger. Deliberately a baseline resolution
- * only: `improved-grab`'s "grab a second target simultaneously" / "no hand
- * needs to be free" wording, and `tongue-grab`'s reach/release rules, are
- * NOT modeled -- all three get the same Athletics-vs-Fortitude-DC ->
- * Grabbed treatment. `knockdown`, `push`, `drain-life` and the rest of
- * #51's slug list are untouched here; each is its own follow-up mechanic
- * per that issue's own scope.
+ * Shared shape behind every #51 mechanized rider so far: on a hit whose
+ * strike carries one of `slugs`, rolls the attacker's own Athletics check
+ * against the target's `saveKey` DC and, on success, applies `conditionSlug`
+ * -- PF2e's real action (Grapple, Trip, ...) these rider abilities each
+ * trigger. `label` names that action in the GM-whispered result.
  *
  * Only fires on an actual hit (`success`/`criticalSuccess`), matching
  * `postStrikeRiderReminder`'s own gate, and only when both an Athletics
- * statistic (attacker) and a Fortitude DC (target) actually exist -- a
+ * statistic (attacker) and the named save DC (target) actually exist -- a
  * creature with no `skills.athletics` (some incorporeal/mindless
- * creatures) or a target with no `saves.fortitude` safely no-ops rather
- * than throwing. No dialog-suppression wrapping here: both call sites
+ * creatures) or a target with no matching save safely no-ops rather than
+ * throwing. No dialog-suppression wrapping here: both call sites
  * (`rollAndApplyStrike`/`rollAndApplyStrikeAtVariant` in
  * dungeon-combat.mjs) already suppress check/damage dialogs for their
  * whole strike sequence before this ever runs -- the same reason
  * `postStrikeRiderReminder`/`drawCriticalCardForStrike` alongside it don't
  * re-wrap either.
  *
- * Returns the Grapple attempt's own outcome (distinct from `outcome`, the
+ * Returns the triggered action's own outcome (distinct from `outcome`, the
  * Strike's own attack-roll outcome this was gated on), or `null` when
  * nothing was rolled at all.
  */
-export async function resolveGrabRider(combatant, target, strike, outcome) {
+async function resolveAthleticsRider(
+  combatant,
+  target,
+  strike,
+  outcome,
+  { slugs, saveKey, conditionSlug, conditionLabel, label },
+) {
   if (outcome !== "success" && outcome !== "criticalSuccess") return null;
   const riders = extractRiderEffects(strike, combatant?.actor?.items ?? []);
-  if (!riders.some((rider) => GRAB_RIDER_SLUGS.has(rider.slug))) return null;
+  if (!riders.some((rider) => slugs.has(rider.slug))) return null;
 
   const athletics = combatant?.actor?.skills?.athletics;
-  const fortitudeDc = target?.actor?.saves?.fortitude?.dc?.value;
-  if (!athletics || fortitudeDc == null) return null;
+  const dc = target?.actor?.saves?.[saveKey]?.dc?.value;
+  if (!athletics || dc == null) return null;
 
-  await athletics.roll({ dc: { value: fortitudeDc }, createMessage: true });
-  const grappleOutcome =
+  await athletics.roll({ dc: { value: dc }, createMessage: true });
+  const rollOutcome =
     game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
 
   const attacker = escapeHtml(combatant?.name ?? "Attacker");
-  if (grappleOutcome === "success" || grappleOutcome === "criticalSuccess") {
-    await target.actor.increaseCondition("grabbed");
+  if (rollOutcome === "success" || rollOutcome === "criticalSuccess") {
+    await target.actor.increaseCondition(conditionSlug);
     await whisperGm(
-      `<p><strong>Grapple (${attacker}):</strong> Athletics check succeeded — target is now Grabbed.</p>`,
+      `<p><strong>${label} (${attacker}):</strong> Athletics check succeeded — target is now ${conditionLabel}.</p>`,
     );
   } else {
     await whisperGm(
-      `<p><strong>Grapple (${attacker}):</strong> Athletics check failed — target is not Grabbed.</p>`,
+      `<p><strong>${label} (${attacker}):</strong> Athletics check failed — target is not ${conditionLabel}.</p>`,
     );
   }
-  return grappleOutcome;
+  return rollOutcome;
+}
+
+/**
+ * #51's first mechanized rider (of #36's chat-reminder-only set):
+ * `grab`/`improved-grab`/`tongue-grab` -> Athletics vs. Fortitude DC ->
+ * Grabbed, via `resolveAthleticsRider`. Deliberately a baseline resolution
+ * only: `improved-grab`'s "grab a second target simultaneously" / "no hand
+ * needs to be free" wording, and `tongue-grab`'s reach/release rules, are
+ * NOT modeled -- all three get the same treatment. `knockdown`, `push`,
+ * `drain-life` and the rest of #51's slug list are handled elsewhere (or
+ * not yet); each is its own follow-up mechanic per that issue's own scope.
+ */
+export async function resolveGrabRider(combatant, target, strike, outcome) {
+  return resolveAthleticsRider(combatant, target, strike, outcome, {
+    slugs: GRAB_RIDER_SLUGS,
+    saveKey: "fortitude",
+    conditionSlug: "grabbed",
+    conditionLabel: "Grabbed",
+    label: "Grapple",
+  });
+}
+
+/**
+ * #51's second mechanized rider: `knockdown`/`improved-knockdown` ->
+ * Athletics vs. Reflex DC -> Prone (PF2e's real Trip-equivalent
+ * resolution), via `resolveAthleticsRider`. Deliberately a baseline
+ * resolution only: any wording specific to `improved-knockdown` beyond the
+ * base Knockdown glossary text is NOT modeled -- both slugs get the same
+ * treatment. `push`, `drain-life` and the rest of #51's slug list remain
+ * untouched here; each is its own follow-up mechanic per that issue's own
+ * scope.
+ */
+export async function resolveKnockdownRider(combatant, target, strike, outcome) {
+  return resolveAthleticsRider(combatant, target, strike, outcome, {
+    slugs: KNOCKDOWN_RIDER_SLUGS,
+    saveKey: "reflex",
+    conditionSlug: "prone",
+    conditionLabel: "Prone",
+    label: "Knockdown",
+  });
 }
 
 /**

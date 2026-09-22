@@ -5,6 +5,7 @@ import {
   postStrikeRiderReminder,
   postCriticalSpecializationReminder,
   resolveGrabRider,
+  resolveKnockdownRider,
 } from "../scripts/dungeon-strike-riders.mjs";
 
 // Fixtures pulled from the local bestiary mirror
@@ -317,17 +318,20 @@ describe("postStrikeRiderReminder", () => {
   it("posts a GM-whispered reminder for a matched rider effect on a hit", async () => {
     installFoundryStubs();
     const combatant = {
-      name: "Caustic Wolf",
-      actor: { items: causticWolfActorItems() },
+      name: "Pusher",
+      actor: {
+        items: [
+          { name: "Push", type: "action", system: { slug: "push" } },
+        ],
+      },
     };
-    await postStrikeRiderReminder(
-      combatant,
-      causticWolfJawsStrike(),
-      "success",
-    );
+    const strike = {
+      item: { type: "melee", system: { attackEffects: { value: ["push"] } } },
+    };
+    await postStrikeRiderReminder(combatant, strike, "success");
     expect(ChatMessage.calls).toHaveLength(1);
     expect(ChatMessage.calls[0].whisper).toEqual(["gm1"]);
-    expect(ChatMessage.calls[0].content).toContain("Knockdown");
+    expect(ChatMessage.calls[0].content).toContain("Push");
   });
 
   it("excludes grab/improved-grab/tongue-grab riders (#51's resolveGrabRider whispers its own real result instead)", async () => {
@@ -340,19 +344,32 @@ describe("postStrikeRiderReminder", () => {
     expect(ChatMessage.calls).toHaveLength(0);
   });
 
-  it("posts a GM-whispered reminder for an unmatched rider slug on a critical hit, naming the slug", async () => {
+  it("excludes knockdown/improved-knockdown riders (#51's resolveKnockdownRider whispers its own real result instead)", async () => {
     installFoundryStubs();
     const combatant = {
-      name: "Blooming Guardian",
-      actor: { items: bloomingGuardianActorItems() },
+      name: "Caustic Wolf",
+      actor: { items: causticWolfActorItems() },
     };
     await postStrikeRiderReminder(
       combatant,
-      bloomingGuardianHoovesStrike(),
-      "criticalSuccess",
+      causticWolfJawsStrike(),
+      "success",
     );
+    expect(ChatMessage.calls).toHaveLength(0);
+  });
+
+  it("posts a GM-whispered reminder for an unmatched rider slug on a critical hit, naming the slug", async () => {
+    installFoundryStubs();
+    const combatant = { name: "Something Awful", actor: { items: [] } };
+    const strike = {
+      item: {
+        type: "melee",
+        system: { attackEffects: { value: ["drain-life"] } },
+      },
+    };
+    await postStrikeRiderReminder(combatant, strike, "criticalSuccess");
     expect(ChatMessage.calls).toHaveLength(1);
-    expect(ChatMessage.calls[0].content).toContain("improved-knockdown");
+    expect(ChatMessage.calls[0].content).toContain("drain-life");
   });
 });
 
@@ -400,11 +417,19 @@ function makeAttacker({ hasAthletics = true } = {}) {
   };
 }
 
-function makeTarget({ hasFortitude = true, fortitudeDc = 18 } = {}) {
+function makeTarget({
+  hasFortitude = true,
+  fortitudeDc = 18,
+  hasReflex = true,
+  reflexDc = 18,
+} = {}) {
   const increaseConditionCalls = [];
+  const saves = {};
+  if (hasFortitude) saves.fortitude = { dc: { value: fortitudeDc } };
+  if (hasReflex) saves.reflex = { dc: { value: reflexDc } };
   return {
     actor: {
-      saves: hasFortitude ? { fortitude: { dc: { value: fortitudeDc } } } : {},
+      saves,
       increaseCondition: async (slug, opts) => {
         increaseConditionCalls.push({ slug, opts });
       },
@@ -511,6 +536,154 @@ describe("resolveGrabRider", () => {
       attacker,
       target,
       fumecruxJawsStrike(),
+      "success",
+    );
+
+    expect(result).toBeNull();
+    expect(target.increaseConditionCalls).toHaveLength(0);
+    expect(ChatMessage.calls).toHaveLength(0);
+  });
+});
+
+// Synthetic improved-knockdown variant, same shape as improvedGrabStrike/
+// tongueGrabStrike above -- caustic-wolf's own Jaws strike (imported via
+// causticWolfJawsStrike/causticWolfActorItems) already covers the base
+// "knockdown" slug with a real matched ability item.
+function improvedKnockdownStrike() {
+  return {
+    item: {
+      type: "melee",
+      system: { attackEffects: { value: ["improved-knockdown"] } },
+    },
+  };
+}
+
+function makeKnockdownAttacker({ hasAthletics = true } = {}) {
+  return {
+    name: "Caustic Wolf",
+    actor: {
+      items: causticWolfActorItems(),
+      skills: hasAthletics
+        ? {
+            athletics: {
+              roll: async ({ dc }) => {
+                game.messages.contents.push({
+                  flags: {
+                    pf2e: { context: { outcome: game.__nextGrappleOutcome, dc } },
+                  },
+                });
+              },
+            },
+          }
+        : {},
+    },
+  };
+}
+
+describe("resolveKnockdownRider", () => {
+  it("does nothing when the attack outcome itself is a miss", async () => {
+    installFoundryStubs();
+    const attacker = makeKnockdownAttacker();
+    const target = makeTarget();
+    const result = await resolveKnockdownRider(
+      attacker,
+      target,
+      causticWolfJawsStrike(),
+      "failure",
+    );
+    expect(result).toBeNull();
+    expect(target.increaseConditionCalls).toHaveLength(0);
+    expect(ChatMessage.calls).toHaveLength(0);
+  });
+
+  it("does nothing when the strike carries no knockdown-family rider", async () => {
+    installFoundryStubs();
+    const attacker = makeKnockdownAttacker();
+    const target = makeTarget();
+    const result = await resolveKnockdownRider(
+      attacker,
+      target,
+      fumecruxJawsStrike(),
+      "success",
+    );
+    expect(result).toBeNull();
+    expect(target.increaseConditionCalls).toHaveLength(0);
+  });
+
+  it.each([
+    ["knockdown", causticWolfJawsStrike()],
+    ["improved-knockdown", improvedKnockdownStrike()],
+  ])(
+    "rolls Athletics vs. the target's Reflex DC and applies Prone on a successful %s",
+    async (_slug, strike) => {
+      installFoundryStubs();
+      game.__nextGrappleOutcome = "success";
+      const attacker = makeKnockdownAttacker();
+      const target = makeTarget({ reflexDc: 19 });
+
+      const result = await resolveKnockdownRider(
+        attacker,
+        target,
+        strike,
+        "success",
+      );
+
+      expect(result).toBe("success");
+      expect(target.increaseConditionCalls).toEqual([
+        { slug: "prone", opts: undefined },
+      ]);
+      const dcRoll = game.messages.contents.at(-1);
+      expect(dcRoll.flags.pf2e.context.dc).toEqual({ value: 19 });
+      expect(ChatMessage.calls).toHaveLength(1);
+      expect(ChatMessage.calls[0].content).toContain("Prone");
+    },
+  );
+
+  it("does not apply Prone when the Athletics check fails", async () => {
+    installFoundryStubs();
+    game.__nextGrappleOutcome = "failure";
+    const attacker = makeKnockdownAttacker();
+    const target = makeTarget();
+
+    const result = await resolveKnockdownRider(
+      attacker,
+      target,
+      causticWolfJawsStrike(),
+      "success",
+    );
+
+    expect(result).toBe("failure");
+    expect(target.increaseConditionCalls).toHaveLength(0);
+    expect(ChatMessage.calls).toHaveLength(1);
+    expect(ChatMessage.calls[0].content).toContain("check failed");
+  });
+
+  it("no-ops when the attacker has no Athletics statistic", async () => {
+    installFoundryStubs();
+    const attacker = makeKnockdownAttacker({ hasAthletics: false });
+    const target = makeTarget();
+
+    const result = await resolveKnockdownRider(
+      attacker,
+      target,
+      causticWolfJawsStrike(),
+      "success",
+    );
+
+    expect(result).toBeNull();
+    expect(target.increaseConditionCalls).toHaveLength(0);
+    expect(ChatMessage.calls).toHaveLength(0);
+  });
+
+  it("no-ops when the target has no Reflex save", async () => {
+    installFoundryStubs();
+    const attacker = makeKnockdownAttacker();
+    const target = makeTarget({ hasReflex: false });
+
+    const result = await resolveKnockdownRider(
+      attacker,
+      target,
+      causticWolfJawsStrike(),
       "success",
     );
 
