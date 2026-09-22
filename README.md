@@ -3,10 +3,6 @@
 Foundry VTT v13 module for Pathfinder 2E: procedurally sequenced dungeon
 rooms, encounter generation, traps, puzzles, skill challenges and
 GM-less-capable combat AI, driven by a swappable generator interface.
-Fully self-contained — no other module is required. (Originally split out
-of [deck-of-many-more-things](https://github.com/cory-johannsen/foundry-deck-of-many-things);
-that repo now depends on this one instead, rather than the other way
-around.)
 
 ## Install
 
