@@ -199,19 +199,21 @@ export function buildServer() {
     "submit_puzzle_customization",
     {
       description:
-        'Apply a new name, summary, and per-stage hint flavor to a pending puzzle (an entry from list_pending_customizations with kind "puzzle", using its sceneId/roomId). stageFlavor keys are stage indices (0-based, as strings) from that entry\'s own stages array. Never changes the puzzle\'s mechanics — each stage\'s own skill/dc, and how many stages must succeed, are fixed; only name/summary/hint flavor text can be rewritten.',
+        'Apply a new name, GM-facing summary, player-facing description, and per-stage hint flavor to a pending puzzle (an entry from list_pending_customizations with kind "puzzle", using its sceneId/roomId). playerDescription is what players actually see in play — always submit it alongside summary, not just the GM-facing text, or players will keep seeing the original, uncustomized flavor. stageFlavor keys are stage indices (0-based, as strings) from that entry\'s own stages array. Never changes the puzzle\'s mechanics — each stage\'s own skill/dc, and how many stages must succeed, are fixed; only name/summary/playerDescription/hint flavor text can be rewritten.',
       inputSchema: {
         sceneId: z.string(),
         roomId: z.string(),
         name: z.string(),
         summary: z.string(),
+        playerDescription: z.string(),
         stageFlavor: z.record(z.string(), z.string()),
       },
     },
-    async ({ sceneId, roomId, name, summary, stageFlavor }) => {
+    async ({ sceneId, roomId, name, summary, playerDescription, stageFlavor }) => {
       const result = await applyPuzzleCustomization(sceneId, roomId, {
         name,
         summary,
+        playerDescription,
         stageFlavor,
       });
       return { content: [{ type: "text", text: JSON.stringify(result) }] };
