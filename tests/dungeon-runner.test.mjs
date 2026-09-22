@@ -7,6 +7,7 @@ import {
   canUndoRoomEntry,
   roomsToEagerlyBuild,
   commitEagerPhysicalSlots,
+  roomsNeedingResync,
   abandonRun,
   getRunState,
   ensureSkillChallenge,
@@ -1893,5 +1894,80 @@ describe("commitEagerPhysicalSlots", () => {
     );
     expect(result.rooms).toEqual(created.rooms);
     expect(result.currentIndex).toBe(created.currentIndex);
+  });
+});
+
+describe("roomsNeedingResync", () => {
+  it("remove_next: rooms after the mutation point that shifted to a new slot are flagged for rebuild, and the vacated trailing slot is orphaned", () => {
+    // Pre-mutation: eager-built rooms 0-4 at slots 0-4 (physicalSlot === index).
+    // remove_next spliced out the old index-2 room — state.rooms now has 4
+    // entries where the old index-3 room is now at index 2, old index-4 is
+    // now at index 3.
+    const oldR2 = { id: "r2-old" };
+    const oldR3 = { id: "r3-old" };
+    const oldR4 = { id: "r4-old" };
+    const state = {
+      currentIndex: 1,
+      rooms: [
+        { id: "r0" },
+        { id: "r1" },
+        oldR3, // now at index 2, was at slot 3
+        oldR4, // now at index 3, was at slot 4
+      ],
+    };
+    const previousPhysicalSlotByRoomId = {
+      r0: 0,
+      r1: 1,
+      "r2-old": 2,
+      "r3-old": 3,
+      "r4-old": 4,
+    };
+    const result = roomsNeedingResync(state, previousPhysicalSlotByRoomId, 1);
+    expect(result.toRebuild).toEqual([
+      { room: oldR3, physicalSlot: 2, previousRoomId: "r2-old" },
+      { room: oldR4, physicalSlot: 3, previousRoomId: "r3-old" },
+    ]);
+    expect(result.toOrphan).toEqual([4]);
+    expect(result.toExtend).toEqual([]);
+  });
+
+  it("insert_after: rooms after the mutation point shift the other way, and one new slot is needed at the tail", () => {
+    const newRoom = { id: "r-new" };
+    const oldR2 = { id: "r2-old" };
+    const oldR3 = { id: "r3-old" };
+    const state = {
+      currentIndex: 1,
+      rooms: [
+        { id: "r0" },
+        { id: "r1" },
+        newRoom, // inserted, now at index 2
+        oldR2, // now at index 3, was at slot 2
+        oldR3, // now at index 4, was at slot 3
+      ],
+    };
+    const previousPhysicalSlotByRoomId = {
+      r0: 0,
+      r1: 1,
+      "r2-old": 2,
+      "r3-old": 3,
+    };
+    const result = roomsNeedingResync(state, previousPhysicalSlotByRoomId, 1);
+    expect(result.toRebuild).toEqual([
+      { room: newRoom, physicalSlot: 2, previousRoomId: "r2-old" },
+      { room: oldR2, physicalSlot: 3, previousRoomId: "r3-old" },
+      { room: oldR3, physicalSlot: 4, previousRoomId: null },
+    ]);
+    expect(result.toOrphan).toEqual([]);
+    expect(result.toExtend).toEqual([{ room: oldR3, physicalSlot: 4 }]);
+  });
+
+  it("returns all-empty when nothing after the mutation point actually changed identity", () => {
+    const state = {
+      currentIndex: 1,
+      rooms: [{ id: "r0" }, { id: "r1" }, { id: "r2" }],
+    };
+    const previousPhysicalSlotByRoomId = { r0: 0, r1: 1, r2: 2 };
+    const result = roomsNeedingResync(state, previousPhysicalSlotByRoomId, 1);
+    expect(result).toEqual({ toRebuild: [], toOrphan: [], toExtend: [] });
   });
 });

@@ -384,6 +384,60 @@ export function roomsToEagerlyBuild(state) {
  * roomsToEagerlyBuild(state) returned — {room, physicalSlot} pairs, any
  * order.
  */
+/**
+ * What a GM-less-hosted run's already-eagerly-built physical slots need
+ * after a Reward/Ruin sequence mutation (#62) — computed by comparing the
+ * "natural" slot for each still-unplayed room (physicalSlot === its index
+ * into the now-mutated state.rooms, the same invariant roomsToEagerlyBuild
+ * used when it originally built everything) against what was actually
+ * built there before the mutation. Geometry never needs to change (a pure
+ * function of slot number, confirmed in the design doc) — only which
+ * logical room's CONTENT occupies a slot does.
+ */
+export function roomsNeedingResync(
+  state,
+  previousPhysicalSlotByRoomId,
+  mutationBoundaryIndex,
+) {
+  const previousRoomIdBySlot = {};
+  for (const [roomId, slot] of Object.entries(previousPhysicalSlotByRoomId)) {
+    previousRoomIdBySlot[slot] = roomId;
+  }
+
+  const toRebuild = [];
+  const usedSlots = new Set();
+  for (let i = mutationBoundaryIndex + 1; i < state.rooms.length; i += 1) {
+    const room = state.rooms[i];
+    const physicalSlot = i;
+    usedSlots.add(physicalSlot);
+    const previousRoomId = previousRoomIdBySlot[physicalSlot] ?? null;
+    if (previousRoomId !== room.id) {
+      toRebuild.push({ room, physicalSlot, previousRoomId });
+    }
+  }
+
+  const maxPreviousSlot = Object.values(previousPhysicalSlotByRoomId).reduce(
+    (max, slot) => Math.max(max, slot),
+    -1,
+  );
+  const toOrphan = [];
+  for (
+    let slot = mutationBoundaryIndex + 1;
+    slot <= maxPreviousSlot;
+    slot += 1
+  ) {
+    if (previousRoomIdBySlot[slot] != null && !usedSlots.has(slot)) {
+      toOrphan.push(slot);
+    }
+  }
+
+  const toExtend = toRebuild
+    .filter(({ physicalSlot }) => physicalSlot > maxPreviousSlot)
+    .map(({ room, physicalSlot }) => ({ room, physicalSlot }));
+
+  return { toRebuild, toOrphan, toExtend };
+}
+
 export async function commitEagerPhysicalSlots(
   sceneId,
   eagerlyBuilt,
