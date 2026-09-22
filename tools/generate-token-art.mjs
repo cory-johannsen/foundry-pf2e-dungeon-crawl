@@ -178,6 +178,12 @@ export const STYLE = 'dark fantasy illustration, full color illustration, intric
 //     "moon"/"circular halo"/"aura ring" terms already listed (those read as
 //     thin rings or lunar imagery), but the same underlying pull toward a
 //     circular backdrop shape, reached via a plain filled disc instead.
+//
+// ITEM-18 level 5 chunk 2 (2026-09-22): `orca` and `polar-bear` both came
+// back as fully uncolored outline art — pure white with black linework and
+// zero color fill, like an unfinished coloring-book page. Distinct from
+// the existing "monochrome/grayscale" terms, which cover flat grey/black
+// shading; this has no shading or fill of any kind, just line.
 export const NEGATIVE = 'text, letters, words, watermark, signature, logo, frame, border, ornate border, '
   + 'parchment, paper texture, scroll, background scenery, landscape, architecture, interior, '
   + 'multiple figures, crowd, full body, tiny figure, blurry, deformed hands, extra limbs, '
@@ -2548,7 +2554,8 @@ export const MONSTER_ART = [
   { id: 'jaathoom', file: 'jaathoom', dir: 'assets/creature-art',
     prompt: "A jaathoom genie, an elegant slender humanoid formed of swirling translucent wind and mist, faintly glowing eyes, tattered robes of vapor trailing into curling air currents, an inscrutable serene expression" },
   { id: 'kodama', file: 'kodama', dir: 'assets/creature-art', shapeless: true,
-    prompt: "A kodama, a small tree spirit with a bark-textured face emerging from a gnarled tree trunk, mossy hair of leaves and twigs, glowing soft amber eyes, roots trailing like extended limbs beneath it" },
+    prompt: "A kodama, a small tree spirit with a bark-textured face emerging from a gnarled tree trunk, mossy hair of leaves and twigs, glowing soft amber eyes, roots trailing like extended limbs beneath it, isolated alone with no forest around it",
+    avoid: "forest, trees, woods, forest floor, leaf litter" },
   { id: 'lampad', file: 'lampad', dir: 'assets/creature-art',
     prompt: "A lampad nymph, an ethereal fey woman with earthen stone-toned skin and hair like trailing moss and roots, cupping a small glowing orb of soft magical light in one hand, standing amid dark cavern shadows with a watchful otherworldly gaze" },
   { id: 'leucrotta', file: 'leucrotta', dir: 'assets/creature-art', shapeless: true,
@@ -2556,9 +2563,11 @@ export const MONSTER_ART = [
   { id: 'living-landslide', file: 'living-landslide', dir: 'assets/creature-art',
     prompt: "A living landslide, a humanoid-shaped mass of tumbling rock, gravel, and packed earth, jagged stone fragments perpetually shifting and grinding across its rough form, dust sifting from its edges" },
   { id: 'living-waterfall', file: 'living-waterfall', dir: 'assets/creature-art',
-    prompt: "A living waterfall, a tall humanoid-shaped column of churning translucent blue-white water endlessly cascading and roaring downward, mist rising off its surface, faint currents suggesting powerful limbs" },
+    prompt: "A living waterfall, a tall humanoid-shaped column of churning translucent blue-white water endlessly cascading and roaring downward, mist rising off its surface, faint currents suggesting powerful limbs, the figure floating alone with no cliff or rocks around it",
+    avoid: "cliff, rock face, canyon, landscape, forest, waterfall scenery" },
   { id: 'living-whirlwind', file: 'living-whirlwind', dir: 'assets/creature-art', shapeless: true,
-    prompt: "A living whirlwind, a swirling funnel of dust, debris, and wind, vague glowing eyes and a faint mouth-like shape forming within the churning cloud, sand and leaves caught spinning around its form" },
+    prompt: "A living whirlwind, a swirling funnel of dust, debris, and wind, vague glowing eyes and a faint mouth-like shape forming within the churning cloud, sand and leaves caught spinning around its form, floating alone with nothing else in the frame",
+    avoid: "desert, dunes, landscape, tiny figure, ground" },
   { id: 'living-wildfire', file: 'living-wildfire', dir: 'assets/creature-art',
     prompt: "A living wildfire, a humanoid-shaped figure of roaring living flame, crackling embers drifting off its form, molten orange-white light radiating from within, wisps of black smoke curling upward" },
   { id: 'lurker-in-light', file: 'lurker-in-light', dir: 'assets/creature-art',
@@ -2566,7 +2575,8 @@ export const MONSTER_ART = [
   { id: 'megatherium', file: 'megatherium', dir: 'assets/creature-art', shapeless: true,
     prompt: "A megatherium, a massive shaggy ground sloth with thick brown-grey fur, enormous long hooked foreclaws, a heavy tail, rearing up on its hind legs to reach into a treeline" },
   { id: 'mountaineer', file: 'mountaineer', dir: 'assets/creature-art',
-    prompt: "A mountaineer, a weathered human traveler in thick fur-lined leathers and spiked boots, an ice axe gripped in one hand, a coiled climbing rope slung across the chest, squinting against biting wind" },
+    prompt: "A mountaineer, a weathered human traveler in thick fur-lined leathers and spiked boots, an ice axe gripped in one hand, a coiled climbing rope slung across the chest, squinting against biting wind, an isolated studio portrait with nothing behind them",
+    avoid: "mountains, snow scenery, pine trees, landscape backdrop" },
   { id: 'namorrodor', file: 'namorrodor', dir: 'assets/creature-art', shapeless: true,
     prompt: "A namorrodor, a gaunt shadow-touched undead beast with torn loose skin sagging over jutting bones, hollow gaps where wind whistles eerily through its body, crouched in a low stance, faint shooting-star sparks trailing from its passage, glowing hungry eyes" },
   { id: 'necromancer', file: 'necromancer', dir: 'assets/creature-art',
@@ -2580,7 +2590,13 @@ export const MONSTER_ART = [
   { id: 'ogre-spider', file: 'ogre-spider', dir: 'assets/creature-art', shapeless: true,
     prompt: "An ogre spider, a huge hairy arachnid the size of an elephant, thick bristled legs, large eyes positioned above wide mandibles giving it a grinning leering expression, venom dripping from curved fangs" },
   { id: 'orca', file: 'orca', dir: 'assets/creature-art', shapeless: true,
-    prompt: "An orca, a massive sleek black-and-white marine animal with a tall dorsal fin, powerful tail flukes, rows of sharp conical teeth in an open jaw, breaching through dark water" },
+    // "black-and-white marine animal" (describing the orca's own real
+    // coloring) was read as a rendering-style instruction, not a fur
+    // pattern, and produced an uncolored woodcut/linocut illustration on
+    // every attempt (ITEM-18 level 5 chunk 2) — reworded to describe the
+    // coloring without the literal phrase "black and white".
+    prompt: "An orca, a massive sleek marine animal with glossy jet-black skin and bright white patches, a tall dorsal fin, powerful tail flukes, rows of sharp conical teeth in an open jaw, breaching through dark water, a full color illustration",
+    avoid: "black and white, woodcut, engraving, uncolored, grayscale" },
   { id: 'ostiarius', file: 'ostiarius', dir: 'assets/creature-art',
     prompt: "An ostiarius velstrac, a tall gaunt fiend with sickly grey skin stretched over a lean frame, self-inflicted ritual scarring across its limbs, an unsettling calm smile, dressed in austere dark robes, one hand extended in a beckoning gesture" },
   { id: 'penanggalan', file: 'penanggalan', dir: 'assets/creature-art', shapeless: true,
@@ -2601,7 +2617,8 @@ export const MONSTER_ART = [
   { id: 'shrine-skelm', file: 'shrine-skelm', dir: 'assets/creature-art',
     prompt: "A shrine skelm, an antlered humanoid monster disguised in old-fashioned ornate priest's vestments, gripping a precious metal religious symbol, sharp knowing eyes, a thin cruel smile hidden beneath a veneer of pious authority" },
   { id: 'skaveling', file: 'skaveling', dir: 'assets/creature-art', shapeless: true,
-    prompt: "A skaveling, an undead giant bat with tattered leathery wings and sagging rotten grey skin stretched over visible bones, glowing dim red eyes, elongated fangs bared, hovering with unnatural strength despite its decayed body" },
+    prompt: "A skaveling, an undead giant bat with tattered leathery wings and sagging rotten grey skin stretched over visible bones, glowing dim red eyes, elongated fangs bared, hovering with unnatural strength despite its decayed body, isolated on one uniform plain black background",
+    avoid: "split background, divided background, two-tone background, half black half white, checkered background" },
   { id: 'sniper', file: 'sniper', dir: 'assets/creature-art',
     prompt: "A sniper, a still and focused human marksman in mottled drab camouflage cloth, kneeling low, one eye sighting down a long rifle-like crossbow, an emotionless calculating expression" },
   { id: 'spiny-eurypterid', file: 'spiny-eurypterid', dir: 'assets/creature-art', shapeless: true,
@@ -2617,7 +2634,8 @@ export const MONSTER_ART = [
     prompt: "A large amorphous mass of translucent protoplasm in sickly yellow, gray, and black hues, glistening and rippling, faint acidic wisps rising from its surface, oozing over ancient stone",
     avoid: "humanoid, face, cube shape, clean dry texture" },
   { id: 'tomb-raider', file: 'tomb-raider', dir: 'assets/creature-art',
-    prompt: "A tomb raider, a rugged human explorer in dusty leather gear and fingerless gloves, a coil of rope over one shoulder, holding a lit torch aloft, an eager reckless grin, cobwebs clinging to their clothing" },
+    prompt: "A tomb raider, a rugged human explorer in dusty leather gear and fingerless gloves, a coil of rope over one shoulder, holding a lit torch aloft, an eager reckless grin, cobwebs clinging to their clothing, an isolated studio portrait with nothing behind them",
+    avoid: "desert, cave interior, tomb interior, sand dunes, landscape" },
   { id: 'tournament-combatant', file: 'tournament-combatant', dir: 'assets/creature-art',
     prompt: "A tournament combatant, an athletic human fighter in simple padded competition garb, knuckles wrapped in cloth, fists raised in a fighting stance, focused determined eyes, faint bruises and sweat on the skin" },
   { id: 'troll', file: 'troll', dir: 'assets/creature-art',
