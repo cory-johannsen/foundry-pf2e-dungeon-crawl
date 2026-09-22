@@ -2118,7 +2118,11 @@ async function drawCriticalCardForStrike(outcome, strike, soundContext, combatan
         isRanged: soundContext.isRanged,
         isUnarmed: strike.item?.system?.category === "unarmed",
       }),
-      { combatant, target },
+      // #60: `strike` lets a weapon-HP-damage fumble card resolve the
+      // attacker's actual weapon item -- never threaded into the
+      // criticalSuccess/hit-deck branch above, since a weapon breaking
+      // from fumbling doesn't apply on a crit success.
+      { combatant, target, strike },
     );
   }
 }
