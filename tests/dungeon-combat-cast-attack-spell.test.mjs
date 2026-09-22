@@ -138,7 +138,7 @@ describe("castAttackSpellAndApplyRoll critical-deck damage multiplier (#75)", ()
     expect(alterCalls).toEqual([{ multiplier: 2, addend: 0 }]);
   });
 
-  it("does not call .alter() at all when the drawn card carries no multiplier text", async () => {
+  it("applies PF2e's own baseline crit-doubling (#79) when the drawn card carries no multiplier text", async () => {
     installFoundryStubs();
     installCriticalDeckPack([makeDoc("Critical Hit Deck #10", HIT_DECK_NO_MULTIPLIER)]);
     const alterCalls = [];
@@ -148,11 +148,11 @@ describe("castAttackSpellAndApplyRoll critical-deck damage multiplier (#75)", ()
 
     await castAttackSpellAndApplyRoll(combatant, target, "spell1", "entry1");
 
-    expect(alterCalls).toEqual([]);
+    expect(alterCalls).toEqual([{ multiplier: 2, addend: 0 }]);
     expect(target.applyDamageCalls).toHaveLength(1);
   });
 
-  it("does not call .alter() at all when no critical-deck pack is available", async () => {
+  it("applies PF2e's own baseline crit-doubling (#79) when no critical-deck pack is available", async () => {
     installFoundryStubs();
     const alterCalls = [];
     const spell = makeSpell({ damageType: "acid", damageRoll: makeDamageRoll(alterCalls) });
@@ -161,7 +161,7 @@ describe("castAttackSpellAndApplyRoll critical-deck damage multiplier (#75)", ()
 
     await castAttackSpellAndApplyRoll(combatant, target, "spell1", "entry1");
 
-    expect(alterCalls).toEqual([]);
+    expect(alterCalls).toEqual([{ multiplier: 2, addend: 0 }]);
     expect(target.applyDamageCalls).toHaveLength(1);
   });
 
