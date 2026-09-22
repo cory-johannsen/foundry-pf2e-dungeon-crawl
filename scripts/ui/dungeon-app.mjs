@@ -745,6 +745,22 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       };
     }
 
+    // #56: read from the room's own *persisted* trap state (attached at
+    // room-build time by dungeon-scene.mjs's ensureTrapState, kept in sync by
+    // trap-combat.mjs's applyTrapCustomization/applyTrapRoomState), never
+    // straight off the raw setpiece stub — the same "persisted state wins
+    // over the raw template" rule puzzle/narrative already follow above.
+    // Previously nothing read currentRoom.trap at all, so a trap room always
+    // showed one of the 3 generic, disconnected static stub blurbs from
+    // dungeon-setpieces.json regardless of which real hazard was spawned or
+    // customized — the actual bug #56 fixes.
+    const isTrapRoom = currentRoom?.kind === "trap" && !currentRoomResolved;
+    let trap = null;
+    if (isTrapRoom && currentRoom.trap) {
+      const raw = currentRoom.trap;
+      trap = { name: raw.name, description: raw.description };
+    }
+
     // #163: a narrative room is never succeeded/failed the way every other
     // resolvable room kind is — it's not a check or a fight, so it always
     // resolves as succeeded (still running the room's own Reward-side
@@ -845,22 +861,26 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
         kindLabel: game.i18n.localize(
           ROOM_KIND_KEYS[currentRoom.kind] ?? currentRoom.kind,
         ),
-        // #139/#167: prefers the puzzle's or narrative room's own
-        // *persisted* name/summary/playerDescription (which an agent's
-        // applyPuzzleCustomization/applyNarrativeCustomization may have
-        // overwritten) over the raw setpiece template's — this is the one
-        // generic display block every room kind's name/summary renders
-        // through, so either kind's customization needs to flow through
-        // here to be visible at all, not just in its own kind-specific
-        // block below. playerDescription (#49) follows the same rule: a
-        // customized puzzle's player-facing flavor text must win over the
-        // raw setpiece's, the same way its GM-facing summary already does
-        // — otherwise players keep seeing stale, uncustomized flavor.
+        // #139/#167/#56: prefers the puzzle's, narrative's, or trap room's
+        // own *persisted* name/summary/playerDescription (which an agent's
+        // applyPuzzleCustomization/applyNarrativeCustomization/
+        // applyTrapCustomization may have overwritten) over the raw setpiece
+        // template's — this is the one generic display block every room
+        // kind's name/summary renders through, so any kind's customization
+        // needs to flow through here to be visible at all, not just in its
+        // own kind-specific block below. playerDescription (#49) follows the
+        // same rule: a customized puzzle's player-facing flavor text must
+        // win over the raw setpiece's, the same way its GM-facing summary
+        // already does — otherwise players keep seeing stale, uncustomized
+        // flavor. A trap room (#56) has no separate GM-only summary concept
+        // (a hazard's description carries no mechanical secret the way a
+        // puzzle's summary does — verified live), so trap only ever feeds
+        // playerDescription, never summary.
         setpiece: setpiece && {
-          name: puzzle?.name ?? narrative?.name ?? setpiece.name,
+          name: puzzle?.name ?? narrative?.name ?? trap?.name ?? setpiece.name,
           summary: puzzle?.summary ?? narrative?.summary ?? setpiece.summary,
           playerDescription:
-            puzzle?.playerDescription ?? setpiece.playerDescription ?? null,
+            puzzle?.playerDescription ?? trap?.description ?? setpiece.playerDescription ?? null,
           complete: setpiece.complete,
         },
       },
