@@ -4,6 +4,7 @@ import {
   extractCriticalSpecializationNote,
   postStrikeRiderReminder,
   postCriticalSpecializationReminder,
+  resolveGrabRider,
 } from "../scripts/dungeon-strike-riders.mjs";
 
 // Fixtures pulled from the local bestiary mirror
@@ -316,13 +317,27 @@ describe("postStrikeRiderReminder", () => {
   it("posts a GM-whispered reminder for a matched rider effect on a hit", async () => {
     installFoundryStubs();
     const combatant = {
+      name: "Caustic Wolf",
+      actor: { items: causticWolfActorItems() },
+    };
+    await postStrikeRiderReminder(
+      combatant,
+      causticWolfJawsStrike(),
+      "success",
+    );
+    expect(ChatMessage.calls).toHaveLength(1);
+    expect(ChatMessage.calls[0].whisper).toEqual(["gm1"]);
+    expect(ChatMessage.calls[0].content).toContain("Knockdown");
+  });
+
+  it("excludes grab/improved-grab/tongue-grab riders (#51's resolveGrabRider whispers its own real result instead)", async () => {
+    installFoundryStubs();
+    const combatant = {
       name: "Fumecrux",
       actor: { items: fumecruxActorItems() },
     };
     await postStrikeRiderReminder(combatant, fumecruxJawsStrike(), "success");
-    expect(ChatMessage.calls).toHaveLength(1);
-    expect(ChatMessage.calls[0].whisper).toEqual(["gm1"]);
-    expect(ChatMessage.calls[0].content).toContain("Grab");
+    expect(ChatMessage.calls).toHaveLength(0);
   });
 
   it("posts a GM-whispered reminder for an unmatched rider slug on a critical hit, naming the slug", async () => {
@@ -338,6 +353,170 @@ describe("postStrikeRiderReminder", () => {
     );
     expect(ChatMessage.calls).toHaveLength(1);
     expect(ChatMessage.calls[0].content).toContain("improved-knockdown");
+  });
+});
+
+// Draconic fumecrux's own "Grab" -- see fumecruxJawsStrike/fumecruxActorItems
+// above. improvedGrabStrike/tongueGrabStrike are synthetic variants of the
+// same shape, just with the other two grab-family slugs, to prove all three
+// trigger resolution.
+function improvedGrabStrike() {
+  return {
+    item: {
+      type: "melee",
+      system: { attackEffects: { value: ["improved-grab"] } },
+    },
+  };
+}
+
+function tongueGrabStrike() {
+  return {
+    item: {
+      type: "melee",
+      system: { attackEffects: { value: ["tongue-grab"] } },
+    },
+  };
+}
+
+function makeAttacker({ hasAthletics = true } = {}) {
+  return {
+    name: "Fumecrux",
+    actor: {
+      items: fumecruxActorItems(),
+      skills: hasAthletics
+        ? {
+            athletics: {
+              roll: async ({ dc }) => {
+                game.messages.contents.push({
+                  flags: {
+                    pf2e: { context: { outcome: game.__nextGrappleOutcome, dc } },
+                  },
+                });
+              },
+            },
+          }
+        : {},
+    },
+  };
+}
+
+function makeTarget({ hasFortitude = true, fortitudeDc = 18 } = {}) {
+  const increaseConditionCalls = [];
+  return {
+    actor: {
+      saves: hasFortitude ? { fortitude: { dc: { value: fortitudeDc } } } : {},
+      increaseCondition: async (slug, opts) => {
+        increaseConditionCalls.push({ slug, opts });
+      },
+    },
+    increaseConditionCalls,
+  };
+}
+
+describe("resolveGrabRider", () => {
+  it("does nothing when the attack outcome itself is a miss", async () => {
+    installFoundryStubs();
+    const attacker = makeAttacker();
+    const target = makeTarget();
+    const result = await resolveGrabRider(
+      attacker,
+      target,
+      fumecruxJawsStrike(),
+      "failure",
+    );
+    expect(result).toBeNull();
+    expect(target.increaseConditionCalls).toHaveLength(0);
+    expect(ChatMessage.calls).toHaveLength(0);
+  });
+
+  it("does nothing when the strike carries no grab-family rider", async () => {
+    installFoundryStubs();
+    const attacker = makeAttacker();
+    const target = makeTarget();
+    const strike = {
+      item: { type: "melee", system: { attackEffects: { value: ["knockdown"] } } },
+    };
+    const result = await resolveGrabRider(attacker, target, strike, "success");
+    expect(result).toBeNull();
+    expect(target.increaseConditionCalls).toHaveLength(0);
+  });
+
+  it.each([
+    ["grab", fumecruxJawsStrike()],
+    ["improved-grab", improvedGrabStrike()],
+    ["tongue-grab", tongueGrabStrike()],
+  ])(
+    "rolls Athletics vs. the target's Fortitude DC and applies Grabbed on a successful %s",
+    async (_slug, strike) => {
+      installFoundryStubs();
+      game.__nextGrappleOutcome = "success";
+      const attacker = makeAttacker();
+      const target = makeTarget({ fortitudeDc: 21 });
+
+      const result = await resolveGrabRider(attacker, target, strike, "success");
+
+      expect(result).toBe("success");
+      expect(target.increaseConditionCalls).toEqual([
+        { slug: "grabbed", opts: undefined },
+      ]);
+      const dcRoll = game.messages.contents.at(-1);
+      expect(dcRoll.flags.pf2e.context.dc).toEqual({ value: 21 });
+      expect(ChatMessage.calls).toHaveLength(1);
+      expect(ChatMessage.calls[0].content).toContain("Grabbed");
+    },
+  );
+
+  it("does not apply Grabbed when the Athletics check fails", async () => {
+    installFoundryStubs();
+    game.__nextGrappleOutcome = "failure";
+    const attacker = makeAttacker();
+    const target = makeTarget();
+
+    const result = await resolveGrabRider(
+      attacker,
+      target,
+      fumecruxJawsStrike(),
+      "success",
+    );
+
+    expect(result).toBe("failure");
+    expect(target.increaseConditionCalls).toHaveLength(0);
+    expect(ChatMessage.calls).toHaveLength(1);
+    expect(ChatMessage.calls[0].content).toContain("check failed");
+  });
+
+  it("no-ops when the attacker has no Athletics statistic", async () => {
+    installFoundryStubs();
+    const attacker = makeAttacker({ hasAthletics: false });
+    const target = makeTarget();
+
+    const result = await resolveGrabRider(
+      attacker,
+      target,
+      fumecruxJawsStrike(),
+      "success",
+    );
+
+    expect(result).toBeNull();
+    expect(target.increaseConditionCalls).toHaveLength(0);
+    expect(ChatMessage.calls).toHaveLength(0);
+  });
+
+  it("no-ops when the target has no Fortitude save", async () => {
+    installFoundryStubs();
+    const attacker = makeAttacker();
+    const target = makeTarget({ hasFortitude: false });
+
+    const result = await resolveGrabRider(
+      attacker,
+      target,
+      fumecruxJawsStrike(),
+      "success",
+    );
+
+    expect(result).toBeNull();
+    expect(target.increaseConditionCalls).toHaveLength(0);
+    expect(ChatMessage.calls).toHaveLength(0);
   });
 });
 

@@ -149,10 +149,20 @@ async function whisperGm(content) {
  * was found so the GM isn't left with nothing. Posts nothing when the
  * strike carries no `attackEffects` at all, matching #36's "don't spam
  * empty reminders."
+ *
+ * Excludes `grab`/`improved-grab`/`tongue-grab` (#51's `GRAB_RIDER_SLUGS`,
+ * defined below): `resolveGrabRider` now auto-resolves those and whispers
+ * its own real Grapple-attempt result immediately after this call at both
+ * call sites -- leaving them in here would whisper a stale "resolve this
+ * manually" reminder right next to the actual automated outcome, telling
+ * the GM to do work that already happened.
  */
 export async function postStrikeRiderReminder(combatant, strike, outcome) {
   if (outcome !== "success" && outcome !== "criticalSuccess") return;
-  const riders = extractRiderEffects(strike, combatant?.actor?.items ?? []);
+  const riders = extractRiderEffects(
+    strike,
+    combatant?.actor?.items ?? [],
+  ).filter((rider) => !GRAB_RIDER_SLUGS.has(rider.slug));
   if (riders.length === 0) return;
 
   const attacker = escapeHtml(combatant?.name ?? "Attacker");
@@ -163,6 +173,64 @@ export async function postStrikeRiderReminder(combatant, strike, outcome) {
     return `<p><strong>Rider effect (${attacker}):</strong> ${escapeHtml(rider.slug)} (no matching ability item found on this actor — check its stat block manually)</p>`;
   });
   await whisperGm(lines.join(""));
+}
+
+const GRAB_RIDER_SLUGS = new Set(["grab", "improved-grab", "tongue-grab"]);
+
+/**
+ * #51's first mechanized rider (of #36's chat-reminder-only set): on a hit
+ * whose strike carries `grab`/`improved-grab`/`tongue-grab`, rolls the
+ * attacker's own Athletics check against the target's Fortitude DC and, on
+ * success, applies the Grabbed condition -- PF2e's real Grapple-attempt
+ * resolution these abilities trigger. Deliberately a baseline resolution
+ * only: `improved-grab`'s "grab a second target simultaneously" / "no hand
+ * needs to be free" wording, and `tongue-grab`'s reach/release rules, are
+ * NOT modeled -- all three get the same Athletics-vs-Fortitude-DC ->
+ * Grabbed treatment. `knockdown`, `push`, `drain-life` and the rest of
+ * #51's slug list are untouched here; each is its own follow-up mechanic
+ * per that issue's own scope.
+ *
+ * Only fires on an actual hit (`success`/`criticalSuccess`), matching
+ * `postStrikeRiderReminder`'s own gate, and only when both an Athletics
+ * statistic (attacker) and a Fortitude DC (target) actually exist -- a
+ * creature with no `skills.athletics` (some incorporeal/mindless
+ * creatures) or a target with no `saves.fortitude` safely no-ops rather
+ * than throwing. No dialog-suppression wrapping here: both call sites
+ * (`rollAndApplyStrike`/`rollAndApplyStrikeAtVariant` in
+ * dungeon-combat.mjs) already suppress check/damage dialogs for their
+ * whole strike sequence before this ever runs -- the same reason
+ * `postStrikeRiderReminder`/`drawCriticalCardForStrike` alongside it don't
+ * re-wrap either.
+ *
+ * Returns the Grapple attempt's own outcome (distinct from `outcome`, the
+ * Strike's own attack-roll outcome this was gated on), or `null` when
+ * nothing was rolled at all.
+ */
+export async function resolveGrabRider(combatant, target, strike, outcome) {
+  if (outcome !== "success" && outcome !== "criticalSuccess") return null;
+  const riders = extractRiderEffects(strike, combatant?.actor?.items ?? []);
+  if (!riders.some((rider) => GRAB_RIDER_SLUGS.has(rider.slug))) return null;
+
+  const athletics = combatant?.actor?.skills?.athletics;
+  const fortitudeDc = target?.actor?.saves?.fortitude?.dc?.value;
+  if (!athletics || fortitudeDc == null) return null;
+
+  await athletics.roll({ dc: { value: fortitudeDc }, createMessage: true });
+  const grappleOutcome =
+    game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
+
+  const attacker = escapeHtml(combatant?.name ?? "Attacker");
+  if (grappleOutcome === "success" || grappleOutcome === "criticalSuccess") {
+    await target.actor.increaseCondition("grabbed");
+    await whisperGm(
+      `<p><strong>Grapple (${attacker}):</strong> Athletics check succeeded — target is now Grabbed.</p>`,
+    );
+  } else {
+    await whisperGm(
+      `<p><strong>Grapple (${attacker}):</strong> Athletics check failed — target is not Grabbed.</p>`,
+    );
+  }
+  return grappleOutcome;
 }
 
 /**
