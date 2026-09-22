@@ -2136,6 +2136,29 @@ function strikeSoundContext(strike, target) {
 }
 
 /**
+ * Draws a hit-deck critical card and returns its damage multiplier (#61 --
+ * 1/2/3, default 1) -- the one "draw + extract damageMultiplier" step
+ * shared by both #61 (Strikes, via `drawCriticalCardForStrike` below) and
+ * #75 (spell-attack crits, `castAttackSpellAndApplyRoll`). Deliberately
+ * does NOT decide how a caller applies the multiplier: `strike.damage()`
+ * already pre-doubles on a critical hit, so a Strike only needs an
+ * ADDITIONAL scaling on top of that (`.alter(1.5, 0)` for a card's
+ * "Triple damage."); `spell.rollDamage()` never pre-doubles, so a spell
+ * needs the FULL multiplier applied instead (`.alter(3, 0)`). That math
+ * genuinely differs per caller and stays at each call site -- unifying it
+ * here would be the wrong kind of "sharing" (deduping code that isn't
+ * actually the same operation).
+ */
+async function drawHitCardMultiplier(category, { combatant, target, damageType }) {
+  const draw = await drawAndApplyCriticalCard("hit", category, {
+    combatant,
+    target,
+    damageType,
+  });
+  return draw?.damageMultiplier ?? 1;
+}
+
+/**
  * Draws a #28 critical-deck card for a Strike's outcome, right alongside the
  * existing playStrikeSound call -- a no-op for any outcome other than a
  * clean crit/fumble. `soundContext` is `strikeSoundContext`'s own result,
@@ -2154,12 +2177,11 @@ function strikeSoundContext(strike, target) {
  */
 async function drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target) {
   if (outcome === "criticalSuccess") {
-    const draw = await drawAndApplyCriticalCard(
-      "hit",
-      hitDeckCategory(soundContext.damageType),
-      { combatant, target, damageType: soundContext.damageType },
-    );
-    return draw?.damageMultiplier ?? 1;
+    return drawHitCardMultiplier(hitDeckCategory(soundContext.damageType), {
+      combatant,
+      target,
+      damageType: soundContext.damageType,
+    });
   } else if (outcome === "criticalFailure") {
     await drawAndApplyCriticalCard(
       "fumble",
@@ -2238,9 +2260,8 @@ async function rollAndApplyStrike(combat, combatant, target) {
           // (e.g. "Disembowel", "Corrosive") is a card-drawn Hit-deck
           // effect, only ever drawn here on outcome === "criticalSuccess"
           // -- strike.damage() above already applied PF2e's own crit
-          // doubling for that outcome (confirmed at
-          // castSpellAndApplySave's own docblock: "the same way
-          // strike.damage() handles crit doubling for a Strike"), so a
+          // doubling for that outcome (confirmed live strike.damage(), unlike
+          // spell.rollDamage() -- see #81 -- DOES pre-double on a crit), so a
           // card's "double damage" (damageMultiplier 2) is already
           // exactly what that doubling gives -- no extra scaling needed.
           // Only "triple damage" (damageMultiplier 3) needs an
@@ -3185,19 +3206,56 @@ async function castMultiStrikeBundleAndApply(
 }
 
 /**
+ * Applies a basic-save spell's damage roll, scaled by the target's own
+ * save outcome -- #81/#83: `spell.rollDamage()` never scales by outcome
+ * internally (confirmed against the real PF2e system source), so every
+ * basic-save call site needs to do this explicitly. Originally inlined
+ * separately in `castSpellAndApplySave`/`castAreaSpellAndApplySaves`
+ * (#81/#82) and then duplicated -- buggily, without the scaling -- into
+ * three more call sites; #83 centralizes the correct version here so
+ * there's exactly one place this branching lives. Zero damage on a
+ * criticalSuccess (skipped entirely, no `applyDamage` call at all); half
+ * (`.alter(0.5, 0)`) on success; unscaled on failure; double
+ * (`.alter(2, 0)`) on criticalFailure.
+ */
+export async function applyBasicSaveDamage(damageRoll, outcome, target) {
+  if (!damageRoll || outcome === "criticalSuccess") return;
+  const scaled =
+    outcome === "success"
+      ? await damageRoll.alter(0.5, 0)
+      : outcome === "criticalFailure"
+        ? await damageRoll.alter(2, 0)
+        : damageRoll; // failure: full damage, unscaled
+  await target.actor.applyDamage({
+    damage: scaled,
+    token: target.token,
+    outcome,
+  });
+  await applyDefeatIfReducedToZero(target);
+}
+
+/**
  * Casts `spellId` (from spellcasting entry `entryId`) at `target`, rolls the
  * target's own save against the spell's DC, then rolls and applies damage —
  * confirmed live this is a 4-step chain, not the single `cast()` call a
  * strike's `.roll()` might suggest by analogy: `entryDoc.cast()` alone
  * announces the spell (posts its chat card) but rolls no save and applies no
  * damage. The target's own `actor.saves[save].roll({dc})` produces the real
- * outcome; `spell.rollDamage({target, outcome})` then handles basic-save
- * doubling/halving internally, the same way `strike.damage()` handles
- * crit doubling for a Strike. Same dialog-suppression convention as
+ * outcome. #81/#83: `spell.rollDamage({target, outcome})` does NOT scale by
+ * outcome internally despite this function's own prior docblock claiming
+ * otherwise — confirmed against the real PF2e system source it always
+ * returns a flat, un-scaled roll, the same way #75/#79 already found for
+ * `castAttackSpellAndApplyRoll`. So a basic save's own scaling rule
+ * (half on `success`, double on `criticalFailure`, unscaled on `failure`,
+ * and — the worst of the un-fixed behavior — zero damage on
+ * `criticalSuccess`, the apply-damage step skipped entirely rather than
+ * calling `applyDamage` with a zeroed roll) is applied via the shared
+ * `applyBasicSaveDamage` helper above, the same one every other basic-save
+ * call site in this file now uses. Same dialog-suppression convention as
  * rollAndApplyStrikeAtVariant, since neither the save roll nor the damage
  * roll forwards a skipDialog option of its own.
  */
-async function castSpellAndApplySave(
+export async function castSpellAndApplySave(
   combatant,
   target,
   spellId,
@@ -3232,14 +3290,7 @@ async function castSpellAndApplySave(
       outcome,
       createMessage: true,
     });
-    if (damageRoll) {
-      await target.actor.applyDamage({
-        damage: damageRoll,
-        token: target.token,
-        outcome,
-      });
-      await applyDefeatIfReducedToZero(target);
-    }
+    await applyBasicSaveDamage(damageRoll, outcome, target);
     return outcome;
   } finally {
     await game.user.update({
@@ -3260,9 +3311,15 @@ async function castSpellAndApplySave(
  * which opponents a candidate's placement catches (that's how the
  * candidate was built), it bypasses that UI entirely and drives the same
  * per-target save/damage/apply sequence #118's castSpellAndApplySave uses
- * for a single target, just once per affected creature.
+ * for a single target, just once per affected creature — including #81's
+ * fix for that sequence's own outcome-scaling: `spell.rollDamage()` returns
+ * a flat, un-scaled roll regardless of outcome, so each target's own
+ * `.alter(mult, 0)` scaling (half on `success`, double on
+ * `criticalFailure`, unscaled on `failure`, skipped entirely — zero damage —
+ * on `criticalSuccess`) is applied per-target inside this loop, independent
+ * of every other target's own outcome.
  */
-async function castAreaSpellAndApplySaves(
+export async function castAreaSpellAndApplySaves(
   combatant,
   targets,
   spellId,
@@ -3298,14 +3355,7 @@ async function castAreaSpellAndApplySaves(
         outcome,
         createMessage: true,
       });
-      if (damageRoll) {
-        await target.actor.applyDamage({
-          damage: damageRoll,
-          token: target.token,
-          outcome,
-        });
-        await applyDefeatIfReducedToZero(target);
-      }
+      await applyBasicSaveDamage(damageRoll, outcome, target);
       outcomes.push({ targetId: target.id, outcome });
     }
     return outcomes;
@@ -3416,7 +3466,7 @@ async function castTierScalingAreaSpellAndApplySaves(
  * miss. `attackNumber` is always 1 — no spell-attack MAP tracking in v1,
  * matching #118/#119's spells (only a Strike bumps `mapIncrement`).
  */
-async function castAttackSpellAndApplyRoll(
+export async function castAttackSpellAndApplyRoll(
   combatant,
   target,
   spellId,
@@ -3444,8 +3494,23 @@ async function castAttackSpellAndApplyRoll(
     const outcome =
       game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
     playAttackSpellSound(outcome);
+    let damageMultiplier = null;
     if (outcome === "criticalSuccess") {
-      await drawAndApplyCriticalCard("hit", "Bomb or Spell", { combatant, target });
+      // Takes the first system.damage entry's own type as "the" spell's
+      // damage type for a conditional card's (Corrosive/Combustion) own
+      // acid/fire check -- correct for the common single-damage-instance
+      // attack spell this module casts. A spell with multiple differently
+      // -typed damage instances would have this pick by object key order
+      // rather than by whichever instance the card actually means; no
+      // spell this module casts does that today, so not worth a real
+      // "which instance is primary" resolution rule until one does (#75
+      // review).
+      const damageType = Object.values(spell.system.damage ?? {})[0]?.type;
+      damageMultiplier = await drawHitCardMultiplier("Bomb or Spell", {
+        combatant,
+        target,
+        damageType,
+      });
     } else if (outcome === "criticalFailure") {
       await drawAndApplyCriticalCard("fumble", "Spell", { combatant, target });
     }
@@ -3456,6 +3521,22 @@ async function castAttackSpellAndApplyRoll(
         createMessage: true,
       });
       if (damageRoll) {
+        // #75/#79: unlike strike.damage() (#61), spell.rollDamage() does NOT
+        // pre-double on a crit -- confirmed against the real PF2e system
+        // source -- so this resolves an *effective* multiplier before
+        // altering the roll rather than trusting rollDamage() to have
+        // scaled anything itself. `damageMultiplier` stays `null` unless a
+        // crit occurred (set only in the `criticalSuccess` branch above),
+        // so this check alone proves a plain "success" is never altered --
+        // no need to re-check `outcome` here too. A drawn card's own
+        // multiplier (2 or 3) already represents the FULL intended scaling
+        // for that crit (per #75) and is used as-is; `Math.max(..., 2)`
+        // applies PF2e's own baseline automatic crit-doubling (2x) as a
+        // floor for a crit with no card, or a card with no multiplier text
+        // -- this floor is the #79 fix.
+        if (damageMultiplier != null) {
+          await damageRoll.alter(Math.max(damageMultiplier, 2), 0);
+        }
         await target.actor.applyDamage({
           damage: damageRoll,
           token: target.token,
@@ -3541,7 +3622,7 @@ async function castDebuffSpellAndApplyCondition(
  * `castAreaSpellAndApplySaves` uses. A small, disclosed deviation from
  * strict rules text in favor of correctness.
  */
-async function castChainSpellAndApplySaves(
+export async function castChainSpellAndApplySaves(
   combatant,
   orderedTargets,
   spellId,
@@ -3577,14 +3658,7 @@ async function castChainSpellAndApplySaves(
         outcome,
         createMessage: true,
       });
-      if (damageRoll) {
-        await target.actor.applyDamage({
-          damage: damageRoll,
-          token: target.token,
-          outcome,
-        });
-        await applyDefeatIfReducedToZero(target);
-      }
+      await applyBasicSaveDamage(damageRoll, outcome, target);
       outcomes.push({ targetId: target.id, outcome });
       if (outcome === "criticalSuccess") break;
     }
@@ -3761,7 +3835,7 @@ async function castDualHealAndApply(
  * use #132's manual negation technique, with no bonus (the tier's own
  * "+8" clause is confirmed live to never attach to the area tier).
  */
-async function castDualAreaAndApply(
+export async function castDualAreaAndApply(
   combatant,
   harmTargets,
   healTargets,
@@ -3798,14 +3872,7 @@ async function castDualAreaAndApply(
         outcome,
         createMessage: true,
       });
-      if (damageRoll) {
-        await target.actor.applyDamage({
-          damage: damageRoll,
-          token: target.token,
-          outcome,
-        });
-        await applyDefeatIfReducedToZero(target);
-      }
+      await applyBasicSaveDamage(damageRoll, outcome, target);
       outcomes.push({ targetId: target.id, effect: "harm", outcome });
     }
     for (const target of healTargets) {
@@ -3859,7 +3926,7 @@ async function castDualAreaAndApply(
  * doesn't assume healing), mirroring #118/#127's standard save-and-apply
  * pattern, already IWR-correct via the real `DamageRoll` object.
  */
-async function castTargetCountSpellAndApply(
+export async function castTargetCountSpellAndApply(
   combatant,
   targets,
   spellId,
@@ -3897,14 +3964,7 @@ async function castTargetCountSpellAndApply(
           outcome,
           createMessage: true,
         });
-        if (damageRoll) {
-          await target.actor.applyDamage({
-            damage: damageRoll,
-            token: target.token,
-            outcome,
-          });
-          await applyDefeatIfReducedToZero(target);
-        }
+        await applyBasicSaveDamage(damageRoll, outcome, target);
         outcomes.push({ targetId: target.id, outcome });
       } else {
         const healRoll = await spell.rollDamage?.({
