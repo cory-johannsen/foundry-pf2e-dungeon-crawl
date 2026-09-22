@@ -374,17 +374,6 @@ export function roomsToEagerlyBuild(state) {
 }
 
 /**
- * Persists the physical-slot assignments startDungeonRun's eager GM-less
- * build loop already made in memory (#62) — without this, the run's
- * tracked physicalSlotByRoomId/nextPhysicalSlot bookkeeping would never
- * learn those rooms were built, and markRoomOutcome's own reuse-or-allocate
- * logic (which already correctly handles "this room's slot may already be
- * assigned" for the lazy/mutation case) would reassign colliding slots via
- * its counter instead of reusing them. `eagerlyBuilt` is exactly what
- * roomsToEagerlyBuild(state) returned — {room, physicalSlot} pairs, any
- * order.
- */
-/**
  * What a GM-less-hosted run's already-eagerly-built physical slots need
  * after a Reward/Ruin sequence mutation (#62) — computed by comparing the
  * "natural" slot for each still-unplayed room (physicalSlot === its index
@@ -438,6 +427,17 @@ export function roomsNeedingResync(
   return { toRebuild, toOrphan, toExtend };
 }
 
+/**
+ * Persists the physical-slot assignments startDungeonRun's eager GM-less
+ * build loop already made in memory (#62) — without this, the run's
+ * tracked physicalSlotByRoomId/nextPhysicalSlot bookkeeping would never
+ * learn those rooms were built, and markRoomOutcome's own reuse-or-allocate
+ * logic (which already correctly handles "this room's slot may already be
+ * assigned" for the lazy/mutation case) would reassign colliding slots via
+ * its counter instead of reusing them. `eagerlyBuilt` is exactly what
+ * roomsToEagerlyBuild(state) returned — {room, physicalSlot} pairs, any
+ * order.
+ */
 export async function commitEagerPhysicalSlots(
   sceneId,
   eagerlyBuilt,
