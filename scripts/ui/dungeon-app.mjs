@@ -10,6 +10,11 @@ import {
   recordPuzzleStageAttempt,
   roomsToEagerlyBuild,
   commitEagerPhysicalSlots,
+  roomsNeedingResync,
+  clearPuzzleState,
+  clearSkillChallengeState,
+  clearNarrativeState,
+  clearTrapState,
 } from "../dungeon-runner.mjs";
 import { canActOnDungeon } from "../dungeon-permissions.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
@@ -42,6 +47,8 @@ import {
   teardownDungeonRun,
   buildPopulateAndUnlockRoom,
   sweepCompletedDungeonScene,
+  clearSlotEncounter,
+  clearSlotTrap,
 } from "../dungeon-scene.mjs";
 import {
   startCombatForSlot,
@@ -179,6 +186,105 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
     ui.notifications.warn(
       game.i18n.localize("PF2EDC.Dungeon.RerunEncounterHint"),
     );
+  // #62: a GM-less-hosted run already eagerly built its whole sequence
+  // (startDungeonRun's own roomsToEagerlyBuild loop) — a Reward/Ruin
+  // sequence mutation (remove_next/insert_after) firing here shifts which
+  // logical room belongs at each already-built physical slot from this
+  // point on. Without reconciling that now, the party would walk into a
+  // physically-built slot showing the WRONG room's content (or, past the
+  // old tail, a slot with no content at all). A GM-hosted run
+  // (state.hostUserId null) never eagerly builds ahead — it has nothing to
+  // reconcile, and its existing one-room-ahead build below (the
+  // buildPopulateAndUnlockRoom(scene, state, nextRoom, nextPhysicalSlot)
+  // call past the `!nextRoomId` guard) already handles a mutation
+  // correctly today, unchanged.
+  // markRoomOutcome's own `nextPhysicalSlot` return value is computed from
+  // the PRE-mutation physicalSlotByRoomId via its plain reuse-or-allocate
+  // logic (see its own docblock) — it has no idea a GM-less run's eager
+  // build already occupies every slot by array index, and no idea
+  // roomsNeedingResync is about to renumber the shifted tail. For a
+  // remove_next mutation, nextRoomId's OLD slot entry still exists (from
+  // its own original eager build further down the sequence), so
+  // markRoomOutcome's `nextRoomId in physicalSlotByRoomId` reuse branch
+  // returns that STALE old slot, not its new one. For insert_after,
+  // nextRoomId is a brand-new room with no old entry, so markRoomOutcome
+  // falls to its `nextPhysicalSlot` running counter instead — a number
+  // from a completely different, non-eager numbering scheme, unrelated to
+  // roomsNeedingResync's array-index slot for it. Either way, blindly
+  // trusting the returned `nextPhysicalSlot` below would build/unlock the
+  // WRONG door. `resolvedNextPhysicalSlot` is corrected from the
+  // resync's own authoritative `toRebuild` list once computed just below;
+  // it stays as-is (correct, unchanged) for a GM-hosted run, which never
+  // eagerly builds ahead and so never hits this mismatch.
+  let resolvedNextPhysicalSlot = nextPhysicalSlot;
+  if (mutation && state.hostUserId) {
+    const { toRebuild, toOrphan } = roomsNeedingResync(
+      state,
+      preState.physicalSlotByRoomId,
+      state.currentIndex,
+    );
+    // Each toRebuild entry is a physical slot that now needs a DIFFERENT
+    // logical room's content than whatever it was eagerly built with
+    // before the mutation (an extended slot, per Task 5's own report,
+    // always also appears here — buildPopulateAndUnlockRoom's isSlotBuilt
+    // guard (Task 3) does a real build for it, same as any other slot that
+    // was never physically built at all). Teardown+rebuild happens one
+    // slot at a time, not the whole range up front, so a failure partway
+    // through leaves at most one slot mid-repair rather than every slot
+    // torn down with nothing rebuilt.
+    for (const { room, physicalSlot } of toRebuild) {
+      // Foundry-side teardown of whatever's currently AT this slot (the
+      // stale room's tokens/actors) — clearSlotEncounter/clearSlotTrap key
+      // purely off the slot's own dungeonSlot flag, not room identity, so
+      // this is correct regardless of what kind the stale room was.
+      await clearSlotEncounter(scene, physicalSlot);
+      await clearSlotTrap(scene, physicalSlot);
+      // Reset whatever persisted content state the room being PLACED here
+      // already carries from its own original eager build (at a different
+      // physical slot) — a skill_challenge's DC is calibrated by
+      // depthBiasFor(physicalSlot), so reusing state generated for the
+      // old slot would leave it mis-calibrated for the new one; a trap's
+      // persisted name/description (ensureTrapState) would otherwise keep
+      // pointing at the just-deleted hazard actor once a fresh one spawns
+      // below. All four are no-ops when the room has nothing of that type
+      // to clear (Task 4), so calling every one unconditionally is safe
+      // and reads more clearly here than re-deriving which single type
+      // this room's kind implies.
+      await clearPuzzleState(scene.id, room.id);
+      await clearSkillChallengeState(scene.id, room.id);
+      await clearNarrativeState(scene.id, room.id);
+      await clearTrapState(scene.id, room.id);
+      // unlock: false — this only re-establishes correct CONTENT at each
+      // shifted slot; door-unlock order is still governed by the normal
+      // resolution-order gate (the unchanged buildPopulateAndUnlockRoom
+      // call below unlocks the door to whatever's now genuinely next).
+      await buildPopulateAndUnlockRoom(scene, state, room, physicalSlot, {
+        unlock: false,
+      });
+    }
+    // A slot that fell off the end of the (now-shorter) sequence entirely
+    // — remove_next only, since insert_after only ever grows the tail.
+    for (const orphanSlot of toOrphan) {
+      await clearSlotEncounter(scene, orphanSlot);
+      await clearSlotTrap(scene, orphanSlot);
+    }
+    if (toRebuild.length) {
+      await commitEagerPhysicalSlots(
+        scene.id,
+        toRebuild.map(({ room, physicalSlot }) => ({ room, physicalSlot })),
+      );
+    }
+    // toRebuild always starts at physicalSlot === state.currentIndex + 1
+    // (mutationBoundaryIndex + 1) for both remove_next (the removed room
+    // WAS that slot, so whatever now occupies it differs) and insert_after
+    // (the newly-inserted room IS that slot, brand new) — which is exactly
+    // nextRoomId's own array position, so this lookup always finds an
+    // entry whenever nextRoomId is non-null and mutation actually changed
+    // the sequence.
+    const nextRebuildEntry = toRebuild.find((r) => r.room.id === nextRoomId);
+    if (nextRebuildEntry)
+      resolvedNextPhysicalSlot = nextRebuildEntry.physicalSlot;
+  }
   if (!nextRoomId) {
     // #204: the goal room was just resolved — nothing more to build, but
     // sweep any un-looted #172 corpse (or plain leftover NPC) before
@@ -189,7 +295,12 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
   }
 
   const nextRoom = state.rooms.find((r) => r.id === nextRoomId);
-  await buildPopulateAndUnlockRoom(scene, state, nextRoom, nextPhysicalSlot);
+  await buildPopulateAndUnlockRoom(
+    scene,
+    state,
+    nextRoom,
+    resolvedNextPhysicalSlot,
+  );
 }
 
 // A level well under the party's own, so a `friendly_aid` ally reads as a
