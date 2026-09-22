@@ -1,6 +1,6 @@
 /**
  * Selects a real trap-tagged hazard from PF2e's own `pf2e.hazards`
- * compendium for a `puzzle_or_trap` room resolved to a trap (#135) — same
+ * compendium for a `trap` room (#135, #32) — same
  * pattern `encounter-roster.mjs`'s `pickCreature` already uses for combat
  * rooms: a level-tolerance bestiary query against real official content,
  * not new trap content invented per room. `dungeon-scene.mjs`'s
