@@ -1292,10 +1292,12 @@ async function postReactiveStrikeChat(reactor, attacker) {
  * Every currently-eligible Reactive Strike opportunity against `mover` —
  * one entry per agent-controlled opponent with an unused reaction this
  * round, an in-scope Reactive Strike/Attack of Opportunity item, and a
- * ready Strike action that reaches `mover`'s current position. Pure
- * detection: takes no action itself, so every trigger source (a ranged
- * attack-roll chat message, an agent's own Stride, a GM's manual check)
- * shares one answer to "who gets to react right now."
+ * ready melee Strike action that reaches `mover`'s current position — a
+ * ranged action's own range increment doesn't count (#21: PF2e's Reactive
+ * Strike is a melee Strike only). Pure detection: takes no action itself,
+ * so every trigger source (a ranged attack-roll chat message, an agent's
+ * own Stride, a GM's manual check) shares one answer to "who gets to react
+ * right now."
  */
 export function findReactiveStrikeOpportunities(
   combat,
@@ -1311,7 +1313,7 @@ export function findReactiveStrikeOpportunities(
     if (!item) continue;
 
     const readyActions = (reactor.actor?.system?.actions ?? [])
-      .filter((a) => a.type === "strike" && a.ready !== false)
+      .filter((a) => a.type === "strike" && a.ready !== false && !a.item?.isRanged)
       .map((a) => ({
         slug: a.item?.slug ?? a.slug ?? a.label,
         label: a.label,
