@@ -2,22 +2,23 @@
 
 **Tracks:** [#20](https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/20)
 
-**Out of scope for this issue (not filed as follow-ups yet):**
-- Full AI decision-making for skill challenges, puzzles, or narrative rooms — those rooms only get auto-rolled checks when a mechanic specifically calls on an AI-controlled actor (see "Skill checks" below), not independent AI-driven choices.
+**Out of scope for this issue:**
+- Skill-challenge and puzzle automation. Investigated during planning: `scripts/ui/dungeon-app.mjs`'s skill-challenge and puzzle forms already let any present player (or the GM) pick *any* party actor — including an offline one's — from an unfiltered dropdown and roll for it (`#onAttemptSkillChallenge`, `#onAttemptPuzzleStage`). There is no "a mechanic calls on a specific actor" moment to hook — selection is always human-driven. This issue therefore does nothing here: the existing dropdown already lets the party roll for an offline player's actor with no code change.
+- Full AI decision-making for skill challenges, puzzles, or narrative rooms beyond the above.
 - Mid-run handoff — control is decided once at run start and does not change if a player logs in or out while the run is in progress.
 - Real-time/LLM-driven decision-making for movement or non-combat checks — this reuses the existing heuristic/LLM combat engine for combat only.
 
 ## Problem
 
-Dungeon crawls assume every party member is actively controlled by a logged-in human. If a player who started the crawl has party members who aren't currently logged in, those actors sit idle: they don't act in combat, don't move as the party explores, and can't contribute to skill challenges or puzzles that specifically call on them. This can stall or trivialize encounters that expect the full party's participation.
+Dungeon crawls assume every party member is actively controlled by a logged-in human. If a player who started the crawl has party members who aren't currently logged in, those actors sit idle: they don't act in combat and don't move as the party explores. This can stall or trivialize encounters that expect the full party's participation. (Skill challenges and puzzles are unaffected — see "Out of scope" above.)
 
 ## Goal
 
-When a dungeon crawl starts, automatically detect which party actors belong to a player who isn't currently logged in, and have those actors act on their own for the rest of the run: taking combat turns via the module's existing agent-controlled-turn engine, following the party leader as the group explores, and rolling their own skill checks when a room mechanic specifically calls on them.
+When a dungeon crawl starts, automatically detect which party actors belong to a player who isn't currently logged in, and have those actors act on their own for the rest of the run: taking combat turns via the module's existing agent-controlled-turn engine, and following the party leader as the group explores.
 
 ## Architecture
 
-One list, computed once, consumed by three independent subsystems:
+One list, computed once, consumed by two independent subsystems:
 
 ```
 createRun (dungeon-runner.mjs)
@@ -27,13 +28,9 @@ createRun (dungeon-runner.mjs)
         │     startCombat flags these actors agentControlled: true
         │     existing heuristic/LLM turn engine (ITEM-8/agent-loop) runs unmodified
         │
-        ├─→ Exploration (new dungeon-follow.mjs)
-        │     updateToken hook on the leader's token
-        │     → pathfinding.mjs routes each AI-controlled token toward the leader
-        │
-        └─→ Skill checks (skill-challenge.mjs, puzzle.mjs)
-              actor selected to roll is AI-controlled?
-              → rollSkillChallengeAttempt / rollPuzzleStageAttempt directly, no dialog
+        └─→ Exploration (new dungeon-follow.mjs)
+              updateToken hook on the leader's token
+              → pathfinding.mjs routes each AI-controlled token toward the leader
 ```
 
 ## Determining `aiControlledActorIds`
@@ -67,10 +64,6 @@ Room-to-room movement in this module is manual token dragging today — nothing 
 - Debounced to at most one recompute/move per AI token per ~250ms, so a drag producing many intermediate `updateToken` events doesn't spam movement or fight the leader's own in-progress drag.
 - If pathfinding can't find a route (e.g. blocked by a closed door or terrain), the token stays in place and a console warning is logged — no error surfaced to players, no retry loop.
 
-## Skill checks (`skill-challenge.mjs`, `puzzle.mjs`)
-
-Both `rollSkillChallengeAttempt(actor, skill, dc)` and `rollPuzzleStageAttempt(actor, skill, dc)` already suppress PF2e's roll-confirmation dialog and return `{outcome, dc, skill}` directly. Wherever existing code selects an actor and prompts a human to roll, add a branch: if that actor's id is in the active run's `aiControlledActorIds`, call the roll function directly and post the result to chat exactly as a human roll would be, skipping only the human-prompt step. No new decision logic — the actor doesn't choose *whether* to act, it's simply available whenever a mechanic calls on it.
-
 ## Error handling
 
 | Condition | Behavior |
@@ -84,7 +77,6 @@ Both `rollSkillChallengeAttempt(actor, skill, dc)` and `rollPuzzleStageAttempt(a
 
 - Unit tests for `aiControlledActorIds` computation: mocked `game.users` and actor ownership maps, covering an offline non-GM owner, an online non-GM owner, GM-only ownership, and no-owner cases.
 - Extend existing `dungeon-combat.mjs` tests to cover a party actor flagged `agentControlled` via the run's list, confirming the existing heuristic/LLM turn logic fires for it unchanged.
-- Unit tests for the skill-challenge/puzzle auto-roll branch: an AI-controlled actor bypasses the dialog and returns a result; a human-owned actor's flow is unaffected.
 - Unit-test the pure "find a free tile adjacent to the leader + path to it" computation in `dungeon-follow.mjs` in isolation from the `updateToken` hook wiring.
 - The `updateToken` hook itself, and the end-to-end follow behavior, are canvas-driven and verified manually against a live Foundry world via `foundry-rest`, matching this repo's existing precedent for hook/canvas-touching code (ITEM-6/8/11, the combat AI design's `getPendingAgentTurn`/`applyAgentDecision`).
 
