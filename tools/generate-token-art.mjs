@@ -157,6 +157,27 @@ export const STYLE = 'dark fantasy illustration, full color illustration, intric
 //     green/teal/mint set already named — the existing entries were added
 //     explicitly because the generic "colored background" term alone wasn't
 //     reliable, so the same treatment extends to these hues.
+//
+// ITEM-18 level 4 chunk 2b (2026-09-21): two more gaps in the colored-
+// background list, both caught on first-pass generation rather than found
+// during redos. A third, separate failure surfaced during this chunk's
+// redo rounds: `kasa-obake`, `trained-bat`, and `shae` — all `shapeless:
+// true` entries — each independently came back with a swirling vortex/
+// spiral pattern filling most of the frame instead of a plain black field,
+// distinct from the smoke/fog/cloud backdrop cluster already named (this is
+// a hard-edged spiral line pattern, not a soft haze). Three independent
+// hits is the same bar the other shared-constant promotions used.
+//   - plain green backdrop: `sea-devil-brute`'s own prompt describes
+//     "dark green-grey" *skin*, and the model bled that color into a flat
+//     dark green background fill — the existing hue list (teal/mint/purple/
+//     maroon/orange/red) never included plain green, on the assumption
+//     "green screen" already covered it; it doesn't, since a solid green
+//     fill isn't read as a screen-key backdrop specifically.
+//   - solid colored disc/circle behind the subject: `janni` came back with
+//     a large solid orange circle centered behind it — not literally the
+//     "moon"/"circular halo"/"aura ring" terms already listed (those read as
+//     thin rings or lunar imagery), but the same underlying pull toward a
+//     circular backdrop shape, reached via a plain filled disc instead.
 export const NEGATIVE = 'text, letters, words, watermark, signature, logo, frame, border, ornate border, '
   + 'parchment, paper texture, scroll, background scenery, landscape, architecture, interior, '
   + 'multiple figures, crowd, full body, tiny figure, blurry, deformed hands, extra limbs, '
@@ -169,7 +190,11 @@ export const NEGATIVE = 'text, letters, words, watermark, signature, logo, frame
   + 'black and white, monochrome, grayscale, greyscale, line art, woodcut print, engraving, sepia tone, '
   + 'colored background, tinted background, solid color backdrop, colored backdrop, studio backdrop, '
   + 'green screen, teal background, mint background, purple background, lavender background, '
-  + 'maroon background, orange background, red background, '
+  + 'maroon background, orange background, red background, green background, dark green backdrop, '
+  + 'forest green background, colored disc behind subject, sun disc backdrop, colored circle backdrop, '
+  + 'radiant disc behind subject, '
+  + 'swirl pattern, vortex background, spiral background, concentric spiral, spiral vortex, '
+  + 'radiating spiral lines, whirlpool pattern, '
   + 'room interior, indoor room, shop interior, workshop, office, library interior, shelf, shelving, '
   + 'bookshelf, shelf of bottles, shelf of coins, wall decoration, framed picture, painting on wall, '
   + 'chalkboard, city skyline, cityscape, alleyway, mountain vista, forest silhouette, night sky vista, '
@@ -2163,8 +2188,14 @@ export const MONSTER_ART = [
     prompt: "A tiny bipedal cat-like fey house spirit with bristling fur and sharp watchful eyes, baring its teeth as though barking, floating alone in empty black space with nothing else in the frame.",
     avoid: "human, large size, grain sacks, granary, straw, hay, grass, field, ground" },
   { id: 'shae', file: 'shae', dir: 'assets/creature-art', shapeless: true,
-    prompt: "A wispy humanoid shade with an amorphous, ever-shifting body of dark tenebrous smoke, draped in shifting shadow-spun robes, its face hidden behind a plain white stone mask",
-    avoid: "solid flesh, bright colors" },
+    // Rewritten after repeated swirling white-smoke bleed into the
+    // background (ITEM-18 level 4 chunk 2b) — the smoke is now explicitly
+    // confined to a humanoid silhouette with a sharp outline, and the mask
+    // reworded from "plain white stone" (which the model was reading as
+    // license to whiten the whole frame) to "pale bone-white", a smaller,
+    // more contained detail.
+    prompt: "A wispy humanoid shade, its body a tightly contained humanoid silhouette of dark tenebrous smoke with a sharp defined outline, draped in shifting shadow-spun robes, its face a pale bone-white mask, the smoke never spreading past the figure's own outline",
+    avoid: "solid flesh, bright colors, smoke filling the background, swirling smoke cloud, white haze" },
   { id: 'shriezyx', file: 'shriezyx', dir: 'assets/creature-art', shapeless: true,
     prompt: "A bestial three-eyed spider-like aberration covered in hard flammable chitin, spinnerets dripping strands of unformed sticky flesh instead of silk, crouched low and skittering",
     avoid: "humanoid, four eyes, clean silk web" },
@@ -2185,8 +2216,12 @@ export const MONSTER_ART = [
     prompt: "A bony humanoid aberration with inky black skin, large batlike wings, a long sinuous tail, and demonic horns atop a smooth featureless head with no face at all",
     avoid: "face, eyes, mouth" },
   { id: 'terror-shrike', file: 'terror-shrike', dir: 'assets/creature-art', shapeless: true,
-    prompt: "A large predatory shrike bird with a hooked raptorial beak, sharp talons, mottled grey-brown plumage, and a fierce piercing stare, perched with predatory intensity",
-    avoid: "humanoid, small songbird" },
+    // "perched" reliably drew a whole tree branch/twig backdrop across
+    // redos (ITEM-18 level 4 chunk 2b) — switched to mid-flight framing,
+    // which the rest of this file's flying-creature prompts already use
+    // successfully without a perch to stand on.
+    prompt: "A large predatory shrike bird with a hooked raptorial beak, sharp talons, mottled grey-brown plumage, and a fierce piercing stare, swooping down with predatory intensity, wings spread mid-flight",
+    avoid: "humanoid, small songbird, tree branch, twig, perch, forest" },
   { id: 'arboreal-warden', file: 'arboreal-warden', dir: 'assets/creature-art',
     prompt: "Centered studio portrait on a plain solid black background with absolutely nothing else in the frame, full color illustration: a large tree-like plant guardian with rough bark-textured skin, gnarled wooden limbs, and a crown of leaves and vines in place of hair, gripping a heavy wooden quarterstaff",
     avoid: "forest, trees in background, foliage backdrop, undergrowth scenery, monochrome, black and white" },
@@ -2247,8 +2282,8 @@ export const MONSTER_ART = [
   { id: 'satyr', file: 'satyr', dir: 'assets/creature-art',
     prompt: "A charming male satyr fey with curling goat horns, shaggy goat legs and hooves, a mischievous grin, holding a set of pipes, an air of roguish revelry" },
   { id: 'shadow-spawn', file: 'shadow-spawn', dir: 'assets/creature-art', shapeless: true,
-    prompt: "A wispy, weaker incorporeal shadow undead, a thin rippling patch of living darkness with faint glowing eyes, translucent edges trailing into smoky vapor",
-    avoid: "solid body, bright colors" },
+    prompt: "A wispy, weaker incorporeal shadow undead, a thin rippling patch of living darkness with faint glowing eyes, translucent edges trailing into smoky vapor, floating with nothing beneath it",
+    avoid: "solid body, bright colors, pale ground glow, white floor haze, ground reflection" },
   { id: 'gargoyle', file: 'gargoyle', dir: 'assets/creature-art',
     prompt: "A monstrous stone gargoyle with a horned humanoid shape, bat-like wings, rough grey granite hide carved with statue-like detail, crouched in a frozen predatory pose" },
   { id: 'vampire-servitor', file: 'vampire-servitor', dir: 'assets/creature-art',
@@ -2336,7 +2371,14 @@ export const MONSTER_ART = [
   { id: 'palace-guard', file: 'palace-guard', dir: 'assets/creature-art',
     prompt: "A disciplined human palace guard in polished ceremonial armor bearing a royal crest, standing at rigid attention with a halberd held upright" },
   { id: 'standard-bearer', file: 'standard-bearer', dir: 'assets/creature-art',
-    prompt: "A proud human standard bearer in worn military garb, gripping a tall banner pole with a fluttering flag, chin raised, rallying those around them" },
+    // Rewritten after this crest-banner reliably drew a real-world American
+    // flag and modern dress uniform on every attempt (ITEM-18 level 4 chunk
+    // 2b) — "flag"/"rallying" alone pulled hard toward that specific
+    // association, so the banner is now described as a heraldic cloth
+    // crest rather than a flag, and the setting/attire made explicitly
+    // medieval fantasy.
+    prompt: "A proud human standard bearer in medieval fantasy plate armor, gripping a tall wooden banner pole topped with a heraldic cloth crest bearing an unknown sigil, chin raised, a fantasy battlefield herald",
+    avoid: "American flag, US flag, stars and stripes, modern military uniform, real world soldier, dress uniform" },
   { id: 'tidewater-guard', file: 'tidewater-guard', dir: 'assets/creature-art',
     prompt: "An iruxi lizardfolk tidewater guard with scaled hide, wearing distinctive shoulder spaulders crafted from lacquered wood and hardened shell, gripping a weapon suited for amphibious combat" },
   { id: 'trained-bat', file: 'trained-bat', dir: 'assets/creature-art', shapeless: true,

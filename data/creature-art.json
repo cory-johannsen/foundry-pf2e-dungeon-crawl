@@ -5006,5 +5006,309 @@
     "name": "Shadow",
     "level": 4,
     "art": "shadow.webp"
+  },
+  {
+    "id": "hobgoblin_archer",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "JwOlSrHk1pkAKMRn",
+    "name": "Hobgoblin Archer",
+    "level": 4,
+    "art": "hobgoblin-archer.webp"
+  },
+  {
+    "id": "horned_archon",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "iII08V0HlvWGWSmu",
+    "name": "Horned Archon",
+    "level": 4,
+    "art": "horned-archon.webp"
+  },
+  {
+    "id": "hound_archon",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "ZKTz1ABoPTtlgYIy",
+    "name": "Hound Archon",
+    "level": 4,
+    "art": "hound-archon.webp"
+  },
+  {
+    "id": "janni",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "tMxtnGthVV01wNQb",
+    "name": "Janni",
+    "level": 4,
+    "art": "janni.webp"
+  },
+  {
+    "id": "jinx_eater",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "l5QgLQKKxM2pqcSl",
+    "name": "Jinx Eater",
+    "level": 4,
+    "art": "jinx-eater.webp"
+  },
+  {
+    "id": "kapoacinth",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "yq1BgQi0BsAMbU69",
+    "name": "Kapoacinth",
+    "level": 4,
+    "art": "kapoacinth.webp"
+  },
+  {
+    "id": "kasa_obake",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "hh7OuFB5BQIrfeRT",
+    "name": "Kasa-Obake",
+    "level": 4,
+    "art": "kasa-obake.webp"
+  },
+  {
+    "id": "kushtaka",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "cKy95PZJt6lGCsJk",
+    "name": "Kushtaka",
+    "level": 4,
+    "art": "kushtaka.webp"
+  },
+  {
+    "id": "larval_ofalth",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "lK4Xfb58mUNygoae",
+    "name": "Larval Ofalth",
+    "level": 4,
+    "art": "larval-ofalth.webp"
+  },
+  {
+    "id": "mastermind",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "fBd8Cfe7fRtF8HoJ",
+    "name": "Mastermind",
+    "level": 4,
+    "art": "mastermind.webp"
+  },
+  {
+    "id": "minotaur_hunter",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "vN2alMciNlKpBpKN",
+    "name": "Minotaur Hunter",
+    "level": 4,
+    "art": "minotaur-hunter.webp"
+  },
+  {
+    "id": "ogre_glutton",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "X7PaA6XgvrY5ByfM",
+    "name": "Ogre Glutton",
+    "level": 4,
+    "art": "ogre-glutton.webp"
+  },
+  {
+    "id": "orc_gamekeeper",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "hXcBMFGA45ES01Lb",
+    "name": "Orc Gamekeeper",
+    "level": 4,
+    "art": "orc-gamekeeper.webp"
+  },
+  {
+    "id": "otyugh",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "kPBSSOuR8n8vZHXB",
+    "name": "Otyugh",
+    "level": 4,
+    "art": "otyugh.webp"
+  },
+  {
+    "id": "owlbear",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "X03vq2RWi2jiA6Ri",
+    "name": "Owlbear",
+    "level": 4,
+    "art": "owlbear.webp"
+  },
+  {
+    "id": "pack_leader",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "mkyMSRTbDV4lho2o",
+    "name": "Pack Leader",
+    "level": 4,
+    "art": "pack-leader.webp"
+  },
+  {
+    "id": "palace_guard",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "94fOoBeUT8PgTywH",
+    "name": "Palace Guard",
+    "level": 4,
+    "art": "palace-guard.webp"
+  },
+  {
+    "id": "peryton",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "E4aJhHWyFDxgJcy9",
+    "name": "Peryton",
+    "level": 4,
+    "art": "peryton.webp"
+  },
+  {
+    "id": "satyr",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "aj4ZJUULa7VoPYWy",
+    "name": "Satyr",
+    "level": 4,
+    "art": "satyr.webp"
+  },
+  {
+    "id": "sea_devil_brute",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "UrviURGu5o9LkhxN",
+    "name": "Sea Devil Brute",
+    "level": 4,
+    "art": "sea-devil-brute.webp"
+  },
+  {
+    "id": "shadow_spawn",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "clzHAfegb9Rn6DOe",
+    "name": "Shadow Spawn",
+    "level": 4,
+    "art": "shadow-spawn.webp"
+  },
+  {
+    "id": "shriezyx",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "RGxxXsAMHngLOsCk",
+    "name": "Shriezyx",
+    "level": 4,
+    "art": "shriezyx.webp"
+  },
+  {
+    "id": "standard_bearer",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "1jMXYVdmSPvnFfxS",
+    "name": "Standard Bearer",
+    "level": 4,
+    "art": "standard-bearer.webp"
+  },
+  {
+    "id": "sweet_hag",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "zrzoj0L0ZwfCbHXr",
+    "name": "Sweet Hag",
+    "level": 4,
+    "art": "sweet-hag.webp"
+  },
+  {
+    "id": "tidewater_guard",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "3Hv0EXBkCOcSOTfp",
+    "name": "Tidewater Guard",
+    "level": 4,
+    "art": "tidewater-guard.webp"
+  },
+  {
+    "id": "tiger",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "JGwKk83oX4gTGlqe",
+    "name": "Tiger",
+    "level": 4,
+    "art": "tiger.webp"
+  },
+  {
+    "id": "trained_bat",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "ltUwrAv3r1udJRXu",
+    "name": "Trained Bat",
+    "level": 4,
+    "art": "trained-bat.webp"
+  },
+  {
+    "id": "tripkee_rain_caller",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "32rUvutdQbGfF7mw",
+    "name": "Tripkee Rain-Caller",
+    "level": 4,
+    "art": "tripkee-rain-caller.webp"
+  },
+  {
+    "id": "ugothol",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "fRjJkktWp7s8NBN7",
+    "name": "Ugothol",
+    "level": 4,
+    "art": "ugothol.webp"
+  },
+  {
+    "id": "vampire_servitor",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "dFzTXkrpoOOdbzuW",
+    "name": "Vampire Servitor",
+    "level": 4,
+    "art": "vampire-servitor.webp"
+  },
+  {
+    "id": "weretiger",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "yS0bUM8R6hb4fIx2",
+    "name": "Weretiger",
+    "level": 4,
+    "art": "weretiger.webp"
+  },
+  {
+    "id": "zealot_of_asmodeus",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "0iyGP5rLXE6NxdRr",
+    "name": "Zealot of Asmodeus",
+    "level": 4,
+    "art": "zealot-of-asmodeus.webp"
+  },
+  {
+    "id": "cairn_wight",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "sMNqIHHxcVBXG08h",
+    "name": "Cairn Wight",
+    "level": 4,
+    "art": "cairn-wight.webp"
+  },
+  {
+    "id": "carrion_golem",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "sbVdWfLZ2rdPh9Ec",
+    "name": "Carrion Golem",
+    "level": 4,
+    "art": "carrion-golem.webp"
+  },
+  {
+    "id": "coil_spy",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "y2w2jjs2O3gP0H5v",
+    "name": "Coil Spy",
+    "level": 4,
+    "art": "coil-spy.webp"
+  },
+  {
+    "id": "duskwalker_ghost_hunter",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "3t1z62LREP4nnIDr",
+    "name": "Duskwalker Ghost Hunter",
+    "level": 4,
+    "art": "duskwalker-ghost-hunter.webp"
+  },
+  {
+    "id": "gobmob_snake",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "fVDZrH3I8SSM6wRq",
+    "name": "Gobmob Snake",
+    "level": 4,
+    "art": "gobmob-snake.webp"
+  },
+  {
+    "id": "hellbound_attorney",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "R2Vgjb3Mpyq6HyjM",
+    "name": "Hellbound Attorney",
+    "level": 4,
+    "art": "hellbound-attorney.webp"
   }
 ]
