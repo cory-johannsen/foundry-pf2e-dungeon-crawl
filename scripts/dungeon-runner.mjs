@@ -649,6 +649,71 @@ export async function ensurePuzzleState(
 }
 
 /**
+ * Lazily attaches a trap's real name/description (#56) to `roomId`'s own
+ * room object the first time it's needed — a no-op if that room already
+ * has a `trap` state, the same "first attach wins" shape `ensurePuzzleState`
+ * uses above. `dungeon-scene.mjs`'s `populateSlotTrap` is the only caller,
+ * seeding this from the just-spawned hazard Actor's own `name`/
+ * `system.details.description` at room-build time. Exists so a player-facing
+ * surface (dungeon-app.mjs's setpiece display block) has real, room-specific
+ * trap data to read instead of always falling back to one of the 3 generic,
+ * unrelated static stub blurbs in `dungeon-setpieces.json` — the actual bug
+ * #56 fixes.
+ */
+export async function ensureTrapState(
+  sceneId,
+  roomId,
+  { name = null, description = null } = {},
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms.find((r) => r.id === roomId);
+  if (!room || room.trap) return state;
+  const trap = { name, description };
+  const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, trap } : r));
+  const newState = { ...state, rooms };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/**
+ * Applies an external agent's customized name/description to `roomId`'s own
+ * trap state (#56) — a no-op if that room has no `trap` state at all.
+ * `name`/`description` each override-or-keep-existing, same as
+ * `applyPuzzleCustomization`'s `name`/`summary` merge. Named
+ * `applyTrapRoomState` rather than `applyTrapCustomization` — that name is
+ * already taken by `trap-combat.mjs`'s own function (which writes the
+ * customization onto the live hazard Actor's `system.details.description`
+ * and is this function's only caller, right after that actor write, so the
+ * room-state mirror this function maintains stays in sync with it) — reusing
+ * the same name across the two modules would be confusing where they're
+ * imported together. This is what actually makes a trap customization
+ * visible to players: the raw actor field alone is never read by any
+ * player-facing surface, since the hazard Actor is spawned with
+ * `ownership.default: 0`.
+ */
+export async function applyTrapRoomState(
+  sceneId,
+  roomId,
+  { name = null, description = null } = {},
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms.find((r) => r.id === roomId);
+  if (!room?.trap) return state;
+  const trap = {
+    name: name ?? room.trap.name,
+    description: description ?? room.trap.description,
+  };
+  const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, trap } : r));
+  const newState = { ...state, rooms };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/**
  * Records one resolved puzzle-stage attempt (#137) against `roomId`'s own
  * puzzle state — a no-op if that room has no puzzle attached yet
  * (`ensurePuzzleState` never ran) or it's already resolved

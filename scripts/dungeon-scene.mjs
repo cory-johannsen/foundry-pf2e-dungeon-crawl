@@ -41,6 +41,7 @@ import {
   ensureSkillChallenge,
   ensurePuzzleState,
   ensureNarrativeState,
+  ensureTrapState,
   markRoomOutcome,
 } from "./dungeon-runner.mjs";
 import { depthBiasFor } from "./dungeon-deck.mjs";
@@ -478,19 +479,30 @@ export async function populateSlotEncounter(
  * case the compendium genuinely doesn't have."
  *
  * Flags the newly spawned actor `trapCustomization: {status: 'pending',
- * locationTag, partyLevel}` (#136) — the one place that flag gets set,
- * read back by `trap-combat.mjs`'s `getPendingTrapCustomization` for
- * `tools/agent-loop`'s poller to offer an external agent a chance to
- * rewrite its name/description before the room's reveal door ever opens.
- * `locationTag` is threaded straight through from the room (this
- * function's own caller already has it; `populateSlotTrap` itself has no
- * opinion on where it came from), so the agent knows what terrain/theme
- * to write flavor for.
+ * locationTag, partyLevel, sceneId, roomId}` (#136, `sceneId`/`roomId`
+ * added by #56) — the one place that flag gets set, read back by
+ * `trap-combat.mjs`'s `getPendingTrapCustomization` for `tools/agent-loop`'s
+ * poller to offer an external agent a chance to rewrite its name/description
+ * before the room's reveal door ever opens, and (#56) by
+ * `applyTrapCustomization` to find which room's persisted `trap` state to
+ * keep in sync once a customization actually lands. `locationTag` is
+ * threaded straight through from the room (this function's own caller
+ * already has it; `populateSlotTrap` itself has no opinion on where it came
+ * from), so the agent knows what terrain/theme to write flavor for.
+ *
+ * Also seeds `roomId`'s own persisted `trap` state (#56, via
+ * `ensureTrapState`) with the spawned hazard's own name/description — the
+ * same reason `ensurePuzzleState` persists a puzzle's name/summary onto the
+ * room rather than leaving it to be read fresh off the raw setpiece every
+ * render: it gives a player-facing display (dungeon-app.mjs's setpiece
+ * block) real, room-specific data to show instead of always falling back to
+ * one of the 3 generic, unrelated static stub blurbs in
+ * `dungeon-setpieces.json`, customized or not.
  */
 export async function populateSlotTrap(
   scene,
   slot,
-  { partyLevel, levelOffsetBias = 0, locationTag = null, seed = "" } = {},
+  { partyLevel, levelOffsetBias = 0, locationTag = null, seed = "", roomId } = {},
 ) {
   const rect = slotRect(seed, slot);
   const api = makeFoundryApi(scene);
@@ -522,6 +534,12 @@ export async function populateSlotTrap(
       status: "pending",
       locationTag,
       partyLevel,
+      sceneId: scene.id,
+      roomId,
+    });
+    await ensureTrapState(scene.id, roomId, {
+      name: actor.name,
+      description: actor.system?.details?.description ?? "",
     });
   }
 }
@@ -821,6 +839,7 @@ export async function buildPopulateAndUnlockRoom(
         }),
         locationTag: room.locationTag,
         seed: state.seed,
+        roomId: room.id,
       });
     } else if (room.kind === "puzzle" && room.setpieceId) {
       const setpieces = await loadDungeonSetpieces();

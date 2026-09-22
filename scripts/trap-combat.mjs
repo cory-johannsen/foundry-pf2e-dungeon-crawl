@@ -11,6 +11,7 @@ import {
   trapDetectionDC,
   isSimpleAutomatableTrap,
 } from "./trap-mechanics.mjs";
+import { applyTrapRoomState } from "./dungeon-runner.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 
@@ -226,6 +227,15 @@ export function getPendingTrapCustomization(sceneId = canvas?.scene?.id) {
  * cannot change a trap's DC, damage, or whether it's automatable, by
  * construction, since it never writes to `system.details.disable` or
  * `system.actions`. See module.mjs's api.applyTrapCustomization.
+ *
+ * #56: also mirrors the customization onto the room's own persisted `trap`
+ * state via `applyTrapRoomState`, using the `sceneId`/`roomId` stashed on
+ * the actor's own `trapCustomization` flag at spawn time (dungeon-scene.mjs's
+ * `populateSlotTrap`) — read out here *before* the flag gets overwritten to
+ * `{status: 'customized'}` below. Without this, the actor.update above was
+ * the whole bug: it writes real data onto a hazard Actor spawned with
+ * `ownership.default: 0`, which no player-facing surface in this module ever
+ * reads, so a customization landed somewhere no player could ever see it.
  */
 export async function applyTrapCustomization(
   actorId,
@@ -233,10 +243,14 @@ export async function applyTrapCustomization(
 ) {
   const actor = game.actors.get(actorId);
   if (!actor) return null;
+  const { sceneId, roomId } = actor.getFlag(MODULE_ID, "trapCustomization") ?? {};
   const updates = {};
   if (name) updates.name = name;
   if (description) updates["system.details.description"] = description;
   if (Object.keys(updates).length) await actor.update(updates);
+  if (sceneId && roomId) {
+    await applyTrapRoomState(sceneId, roomId, { name, description });
+  }
   await actor.setFlag(MODULE_ID, "trapCustomization", { status: "customized" });
   return { actorId, name: actor.name };
 }
