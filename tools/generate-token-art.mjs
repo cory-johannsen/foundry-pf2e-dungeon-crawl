@@ -2440,7 +2440,8 @@ export const MONSTER_ART = [
   { id: 'advisor', file: 'advisor', dir: 'assets/creature-art',
     prompt: "A court advisor, an elegantly dressed human counselor in fine robes, hands clasped, leaning in close as if whispering secretive counsel, a shrewd calculating expression" },
   { id: 'antipaladin', file: 'antipaladin', dir: 'assets/creature-art',
-    prompt: "An antipaladin, a menacing human warrior in blackened spiked plate armor, a tattered dark cloak, gripping a wicked serrated blade, eyes glinting with cruel unholy zeal, standing in an aggressive battle-ready stance" },
+    prompt: "An antipaladin, a menacing human warrior in blackened spiked plate armor, a tattered dark cloak, gripping a wicked serrated blade, eyes glinting with cruel unholy zeal, standing in an aggressive battle-ready stance",
+    avoid: "fire, flames, embers, lava, hell, inferno, burning ground" },
   { id: 'avuncular-professor', file: 'avuncular-professor', dir: 'assets/creature-art',
     prompt: "An avuncular professor, a plump elderly human scholar in a rumpled academic robe, round spectacles, a warm knowing smile, holding a thick leather-bound tome under one arm" },
   { id: 'azuretzi', file: 'azuretzi', dir: 'assets/creature-art', shapeless: true,
@@ -2453,7 +2454,12 @@ export const MONSTER_ART = [
   { id: 'basilisk', file: 'basilisk', dir: 'assets/creature-art', shapeless: true,
     prompt: "A basilisk, a large heavy-bodied reptile with rough grey-green scaled hide, a crest of small horns along its skull, eyes glowing with a faint petrifying light, hissing open mouth, moving with a slow lethargic gait" },
   { id: 'bog-mummy', file: 'bog-mummy', dir: 'assets/creature-art',
-    prompt: "A bog mummy, a withered undead corpse preserved in dark peat-stained wrappings and blackened leathery skin, matted reeds and mud clinging to its form, hollow sunken eyes glowing faintly with vengeful hatred, reaching forward with desiccated hands" },
+    // "matted reeds and mud clinging to its form" reliably drew a whole
+    // reed-field scene around it (ITEM-18 level 5 chunk 1) — reworded so
+    // the mud/reed detail reads as a texture on the body itself, not
+    // ground cover, and isolation stated explicitly.
+    prompt: "A bog mummy, a withered undead corpse preserved in dark peat-stained wrappings and blackened leathery skin, a few strands of dead reed fiber woven into its wrappings, hollow sunken eyes glowing faintly with vengeful hatred, reaching forward with desiccated hands, isolated alone with nothing surrounding it",
+    avoid: "field of reeds, swamp scenery, grass field" },
   { id: 'bogwid', file: 'bogwid', dir: 'assets/creature-art', shapeless: true,
     prompt: "A bogwid, a bloated toad-like creature with a cluster of thick rubbery tentacles beneath its body in place of legs, slick green warty skin, small writhing larvae clustered on its back, bulging eyes, half-submerged in murky swamp muck",
     avoid: "humanoid, clean dry skin" },
@@ -2468,8 +2474,14 @@ export const MONSTER_ART = [
   { id: 'champion-of-rovagug', file: 'champion-of-rovagug', dir: 'assets/creature-art',
     prompt: "A champion of Rovagug, a scarred and muscular human zealot in spiked crude armor plates, wielding a massive jagged greataxe, wild bloodshot eyes, an expression of savage destructive rage" },
   { id: 'cloaker', file: 'cloaker', dir: 'assets/creature-art', shapeless: true,
-    prompt: "A cloaker, a huge flat diamond-shaped aberration with thin rippling edges like billowing fabric, a long whip-like tail ending in a barbed spine, a wide fanged mouth-slit on its underside, small dim red eyes, gliding through darkness",
-    avoid: "humanoid, actual cloak or cape garment, wings, cheerful" },
+    // "billowing fabric edges" + "whip-like tail" reliably drew a legged,
+    // winged dragon-demon instead of the flat aberration (ITEM-18 level 5
+    // chunk 1) — the "avoid: wings" was already there and still lost to
+    // the positive prompt's own pull. Reworded around an explicit manta
+    // ray / stingray comparison, which has no legs and no wings by
+    // definition, and dropped "billowing fabric" entirely.
+    prompt: "A cloaker, a huge aberration shaped exactly like a giant black manta ray or stingray seen from below, no legs, no wings, no limbs at all, a flat rippling ray-like body with a long thin whip tail, a wide fanged mouth-slit on its underside, small dim red eyes, gliding through darkness like a ray swimming",
+    avoid: "humanoid, actual cloak or cape garment, wings, legs, dragon, demon, claws, cheerful" },
   { id: 'dandasuka', file: 'dandasuka', dir: 'assets/creature-art',
     prompt: "A dandasuka rakshasa, a small fiend with sharp needle-teeth, clawed hands, and yellow feline eyes, dressed in extravagant brightly-dyed silks and heavy jewelry, licking a trace of blood from its lips, a predatory hungry grin",
     avoid: "human child, halfling, gentle expression" },
@@ -2490,7 +2502,11 @@ export const MONSTER_ART = [
   { id: 'flame-drake', file: 'flame-drake', dir: 'assets/creature-art',
     prompt: "A flame drake, a stout scaled dragon-kin lacking forearms, with wide membranous wings and a thick tail, red scales fading to smoky black at the wing edges and tail tip, glowing ember-orange eyes, smoke curling from its nostrils, jaws parted in a snarl" },
   { id: 'forest-troll', file: 'forest-troll', dir: 'assets/creature-art',
-    prompt: "A forest troll, a hunched gangly giant with bark-like mottled green-brown hide streaked with moss, long claws, a wide toothy maw, twig-like growths sprouting from its shoulders, stooped and lurking among trees" },
+    // "lurking among trees" reliably drew a full birch-forest backdrop
+    // (ITEM-18 level 5 chunk 1) — dropped entirely; the bark/moss hide
+    // already carries the forest-creature concept without a literal forest.
+    prompt: "A forest troll, a hunched gangly giant with bark-like mottled green-brown hide streaked with moss, long claws, a wide toothy maw, twig-like growths sprouting from its shoulders, stooped in a menacing crouch",
+    avoid: "trees, birch trees, forest backdrop, woods" },
   { id: 'giant-crawling-hand', file: 'giant-crawling-hand', dir: 'assets/creature-art', shapeless: true,
     prompt: "Extreme close-up of a single giant severed hand only, nothing else in the frame, grey rotting undead flesh, thick cracked fingernails, dragging itself forward on splayed fingers, floating alone in plain empty black space",
     avoid: "arm, wrist stump bone, body, full skeleton" },
@@ -2504,7 +2520,11 @@ export const MONSTER_ART = [
     prompt: "A gibbering mouther, a bloated amorphous heap of oozing pale flesh covered in numerous jabbering mouths full of teeth and scattered lidless eyes, dripping wet and pulsating, no discernible head or limbs",
     avoid: "humanoid, single mouth, single eye, dry texture" },
   { id: 'globster', file: 'globster', dir: 'assets/creature-art', shapeless: true,
-    prompt: "A globster, a huge bloated heap of decaying blubbery grey-brown flesh and matted fibers fused together, oozing rancid fluid, half-buried in wet sand, faintly pulsating and reeking" },
+    // "half-buried in wet sand" reliably drew a full beach/desert scene
+    // (ITEM-18 level 5 chunk 1) — dropped; nothing in the concept needs
+    // a ground at all.
+    prompt: "A globster, a huge bloated heap of decaying blubbery grey-brown flesh and matted fibers fused together, oozing rancid fluid, faintly pulsating and reeking, floating alone in empty black space with nothing else in the frame",
+    avoid: "sand, beach, ground, buried, desert" },
   { id: 'gnokesh', file: 'gnokesh', dir: 'assets/creature-art', shapeless: true,
     prompt: "A gnokesh archon, a divine being composed of ancient glowing tomes and scrolls fused together into a compact clustered mass, faint golden light spilling from between the pages, hovering with no humanoid limbs, radiating serene scholarly calm",
     avoid: "humanoid body, ring of books surrounding head, halo shape" },
@@ -2519,7 +2539,12 @@ export const MONSTER_ART = [
   { id: 'hieracosphinx', file: 'hieracosphinx', dir: 'assets/creature-art', shapeless: true,
     prompt: "A hieracosphinx, a large winged beast with the head of a sharp-eyed falcon featuring a hooked beak, a muscular furred body, broad feathered wings, sharp talons, crouched low with a cruel predatory glare" },
   { id: 'hippopotamus', file: 'hippopotamus', dir: 'assets/creature-art', shapeless: true,
-    prompt: "A hippopotamus, a massive barrel-bodied grey animal with a wide bulbous snout, small ears, thick stubby legs, a huge gaping mouth showing large tusks, dripping wet from a riverbank" },
+    // "riverbank" reliably drew a full monochrome moonlit night scene with
+    // palm trees and water (ITEM-18 level 5 chunk 1) — dropped, and full
+    // color + isolation stated explicitly since a grey-skinned animal is
+    // an easy slide into a monochrome rendering.
+    prompt: "A hippopotamus, a massive barrel-bodied grey animal with a wide bulbous snout, small ears, thick stubby legs, a huge gaping mouth showing large tusks, wet glistening skin, a full color illustration, isolated alone with nothing else in the frame",
+    avoid: "riverbank, water, moon, night sky, palm trees, monochrome" },
   { id: 'jaathoom', file: 'jaathoom', dir: 'assets/creature-art',
     prompt: "A jaathoom genie, an elegant slender humanoid formed of swirling translucent wind and mist, faintly glowing eyes, tattered robes of vapor trailing into curling air currents, an inscrutable serene expression" },
   { id: 'kodama', file: 'kodama', dir: 'assets/creature-art', shapeless: true,
