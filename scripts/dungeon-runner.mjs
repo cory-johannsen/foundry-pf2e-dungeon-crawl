@@ -98,13 +98,20 @@ export async function createRun(
   {
     settingsRef = defaultSettingsRef(),
     partyOwnershipRef = defaultPartyOwnershipRef(),
-    setpieceIds = [],
+    puzzleSetpieceIds = [],
+    trapSetpieceIds = [],
     narrativeSetpieceIds = [],
   } = {},
 ) {
   const runSeed =
     seed ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  const rooms = getGenerator().buildRoomSequence({ seed: runSeed, roomCount, setpieceIds, narrativeSetpieceIds });
+  const rooms = getGenerator().buildRoomSequence({
+    seed: runSeed,
+    roomCount,
+    puzzleSetpieceIds,
+    trapSetpieceIds,
+    narrativeSetpieceIds,
+  });
   // Room 0 is where the party starts — built and occupied at Start, before
   // any resolution happens, so it's the only slot normally assigned up
   // front. The one exception: room 0 is always the safe entry, which has
@@ -169,7 +176,12 @@ export async function createRun(
  */
 export async function markRoomOutcome(
   { sceneId, succeeded },
-  { settingsRef = defaultSettingsRef(), setpieceIds = [], narrativeSetpieceIds = [] } = {},
+  {
+    settingsRef = defaultSettingsRef(),
+    puzzleSetpieceIds = [],
+    trapSetpieceIds = [],
+    narrativeSetpieceIds = [],
+  } = {},
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state || state.completed) {
@@ -259,7 +271,8 @@ export async function markRoomOutcome(
     mutation === "remove_next" || mutation === "insert_after"
       ? getGenerator().applySequenceMutation(state.rooms, state.currentIndex, mutation, {
           seed: state.seed,
-          setpieceIds,
+          puzzleSetpieceIds,
+          trapSetpieceIds,
           narrativeSetpieceIds,
         })
       : state.rooms;
@@ -636,6 +649,71 @@ export async function ensurePuzzleState(
 }
 
 /**
+ * Lazily attaches a trap's real name/description (#56) to `roomId`'s own
+ * room object the first time it's needed — a no-op if that room already
+ * has a `trap` state, the same "first attach wins" shape `ensurePuzzleState`
+ * uses above. `dungeon-scene.mjs`'s `populateSlotTrap` is the only caller,
+ * seeding this from the just-spawned hazard Actor's own `name`/
+ * `system.details.description` at room-build time. Exists so a player-facing
+ * surface (dungeon-app.mjs's setpiece display block) has real, room-specific
+ * trap data to read instead of always falling back to one of the 3 generic,
+ * unrelated static stub blurbs in `dungeon-setpieces.json` — the actual bug
+ * #56 fixes.
+ */
+export async function ensureTrapState(
+  sceneId,
+  roomId,
+  { name = null, description = null } = {},
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms.find((r) => r.id === roomId);
+  if (!room || room.trap) return state;
+  const trap = { name, description };
+  const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, trap } : r));
+  const newState = { ...state, rooms };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/**
+ * Applies an external agent's customized name/description to `roomId`'s own
+ * trap state (#56) — a no-op if that room has no `trap` state at all.
+ * `name`/`description` each override-or-keep-existing, same as
+ * `applyPuzzleCustomization`'s `name`/`summary` merge. Named
+ * `applyTrapRoomState` rather than `applyTrapCustomization` — that name is
+ * already taken by `trap-combat.mjs`'s own function (which writes the
+ * customization onto the live hazard Actor's `system.details.description`
+ * and is this function's only caller, right after that actor write, so the
+ * room-state mirror this function maintains stays in sync with it) — reusing
+ * the same name across the two modules would be confusing where they're
+ * imported together. This is what actually makes a trap customization
+ * visible to players: the raw actor field alone is never read by any
+ * player-facing surface, since the hazard Actor is spawned with
+ * `ownership.default: 0`.
+ */
+export async function applyTrapRoomState(
+  sceneId,
+  roomId,
+  { name = null, description = null } = {},
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms.find((r) => r.id === roomId);
+  if (!room?.trap) return state;
+  const trap = {
+    name: name ?? room.trap.name,
+    description: description ?? room.trap.description,
+  };
+  const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, trap } : r));
+  const newState = { ...state, rooms };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/**
  * Records one resolved puzzle-stage attempt (#137) against `roomId`'s own
  * puzzle state — a no-op if that room has no puzzle attached yet
  * (`ensurePuzzleState` never ran) or it's already resolved
@@ -694,25 +772,31 @@ export function getPendingPuzzleCustomization(
 }
 
 /**
- * Applies an external agent's customized name/summary/stageFlavor to
- * `roomId`'s own pending puzzle (#139) — a no-op if that room has no
- * puzzle at all. Only ever touches these three display fields, never
+ * Applies an external agent's customized name/summary/playerDescription/
+ * stageFlavor to `roomId`'s own pending puzzle (#139) — a no-op if that
+ * room has no puzzle at all. Only ever touches these display fields, never
  * `stages[].skill`/`stages[].dc`/`requiredSuccesses` — this cannot change
  * which skills are mechanically eligible, how hard a stage's check is, or
  * how many successes are needed, by construction, the same boundary
  * `applySkillChallengeCustomization` already draws for a challenge's own
- * name/summary/skillFlavor. `stageFlavor` (keyed by stage index, a string
- * per JSON's own key convention) merges onto the existing map rather than
- * replacing it wholesale, so a partial customization (flavor for only
- * some stages) doesn't blank out the rest — it overrides a stage's
- * *displayed* hint text (read by whatever renders `stages[i].hint` once
- * that stage succeeds); the stage's own mechanically-real `hint` field
- * itself is never touched. See module.mjs's api.applyPuzzleCustomization.
+ * name/summary/skillFlavor. `name`/`summary`/`playerDescription` each
+ * override-or-keep-existing (a call that omits one leaves it as it was);
+ * `stageFlavor` (keyed by stage index, a string per JSON's own key
+ * convention) merges onto the existing map rather than replacing it
+ * wholesale, so a partial customization (flavor for only some stages)
+ * doesn't blank out the rest — it overrides a stage's *displayed* hint
+ * text (read by whatever renders `stages[i].hint` once that stage
+ * succeeds); the stage's own mechanically-real `hint` field itself is
+ * never touched. `playerDescription` (#49) is the player-facing flavor
+ * text shown instead of the GM-facing `summary` — see dungeon-app.mjs's
+ * setpiece display block, which now prefers this over the raw setpiece
+ * template's own playerDescription the same way it already preferred
+ * `name`/`summary`. See module.mjs's api.applyPuzzleCustomization.
  */
 export async function applyPuzzleCustomization(
   sceneId,
   roomId,
-  { name = null, summary = null, stageFlavor = null } = {},
+  { name = null, summary = null, playerDescription = null, stageFlavor = null } = {},
   { settingsRef = defaultSettingsRef() } = {},
 ) {
   const state = getRunState(sceneId, { settingsRef });
@@ -723,6 +807,7 @@ export async function applyPuzzleCustomization(
     ...room.puzzle,
     name: name ?? room.puzzle.name,
     summary: summary ?? room.puzzle.summary,
+    playerDescription: playerDescription ?? room.puzzle.playerDescription,
     stageFlavor: stageFlavor
       ? { ...room.puzzle.stageFlavor, ...stageFlavor }
       : room.puzzle.stageFlavor,

@@ -261,9 +261,14 @@ export function buildConnectionGeometry(slot, seed) {
     revealDoorWall = { x1: corridorEndX, y1: gapY0, x2: corridorEndX, y2: gapY1 };
     plainWalls.push(
       { x1: faceX, y1: a.gy, x2: faceX, y2: doorY0 },
-      { x1: faceX, y1: doorY1, x2: faceX, y2: a.gy + a.gh },
+      // Extended to spanY1, not just a.gy + a.gh (#34): when the two rooms
+      // differ in size (ITEM-17), the OTHER room's own offset can push the
+      // trimmed span past this room's own edge — stopping at this room's own
+      // edge in that case would leave the strip between that edge and the
+      // cap below completely unwalled, leaking straight past it.
+      { x1: faceX, y1: doorY1, x2: faceX, y2: Math.max(a.gy + a.gh, spanY1) },
       { x1: corridorEndX, y1: b.gy, x2: corridorEndX, y2: gapY0 },
-      { x1: corridorEndX, y1: gapY1, x2: corridorEndX, y2: b.gy + b.gh },
+      { x1: corridorEndX, y1: gapY1, x2: corridorEndX, y2: Math.max(b.gy + b.gh, spanY1) },
       { x1: Math.min(faceX, corridorEndX), y1: spanY0, x2: Math.max(faceX, corridorEndX), y2: spanY0 },
       { x1: Math.min(faceX, corridorEndX), y1: spanY1, x2: Math.max(faceX, corridorEndX), y2: spanY1 }
     );
@@ -285,9 +290,11 @@ export function buildConnectionGeometry(slot, seed) {
     revealDoorWall = { x1: gapX0, y1: corridorEndY, x2: gapX1, y2: corridorEndY };
     plainWalls.push(
       { x1: a.gx, y1: faceY, x2: doorX0, y2: faceY },
-      { x1: doorX1, y1: faceY, x2: a.gx + a.gw, y2: faceY },
+      // Extended to spanX1, not just a.gx + a.gw (#34) — same reasoning as
+      // the east/west branch above, along x instead of y.
+      { x1: doorX1, y1: faceY, x2: Math.max(a.gx + a.gw, spanX1), y2: faceY },
       { x1: b.gx, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
-      { x1: gapX1, y1: corridorEndY, x2: b.gx + b.gw, y2: corridorEndY },
+      { x1: gapX1, y1: corridorEndY, x2: Math.max(b.gx + b.gw, spanX1), y2: corridorEndY },
       { x1: spanX0, y1: Math.min(faceY, corridorEndY), x2: spanX0, y2: Math.max(faceY, corridorEndY) },
       { x1: spanX1, y1: Math.min(faceY, corridorEndY), x2: spanX1, y2: Math.max(faceY, corridorEndY) }
     );

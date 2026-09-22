@@ -109,6 +109,27 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
   }
 }
 
+/** Debounces a `moveFollowersToward` call for `scene`, same as a leader
+ * token move — shared by both `followLeaderIfDue` and
+ * `followLeaderOnDoorOpened` so a leader move and a door opening right
+ * after it collapse into a single recompute. */
+function scheduleFollowMove(scene, leaderToken, aiControlledIds) {
+  clearTimeout(pendingByScene.get(scene.id));
+  pendingByScene.set(
+    scene.id,
+    setTimeout(
+      () =>
+        moveFollowersToward(scene, leaderToken, aiControlledIds).catch((err) =>
+          console.warn(
+            `${MODULE_ID} | dungeon-follow: error moving followers`,
+            err,
+          ),
+        ),
+      FOLLOW_DEBOUNCE_MS,
+    ),
+  );
+}
+
 /** Hook target for `updateToken` (module.mjs). Debounced per scene so a
  * drag's many intermediate position updates trigger at most one recompute
  * every FOLLOW_DEBOUNCE_MS. */
@@ -135,19 +156,30 @@ export function followLeaderIfDue(tokenDoc, changes) {
   }
   if (leaderToken.id !== tokenDoc.id) return;
 
-  clearTimeout(pendingByScene.get(scene.id));
-  pendingByScene.set(
-    scene.id,
-    setTimeout(
-      () =>
-        moveFollowersToward(scene, leaderToken, aiControlledIds).catch(
-          (err) =>
-            console.warn(
-              `${MODULE_ID} | dungeon-follow: error moving followers`,
-              err,
-            ),
-        ),
-      FOLLOW_DEBOUNCE_MS,
-    ),
-  );
+  scheduleFollowMove(scene, leaderToken, aiControlledIds);
+}
+
+/** Hook target for `updateWall` (module.mjs), alongside
+ * `handleDungeonDoorOpened`. #39: a follower that found "no route"
+ * (dungeon-follow-mechanics.mjs) because the connecting door was still
+ * closed at the time the leader moved is never retried by
+ * `followLeaderIfDue` alone — that only reacts to the leader's own token
+ * moving, not to the door opening afterward. Retrying here whenever any
+ * door opens is what actually resolves that stranding, via the same
+ * eligibility checks and debounce as a leader move. */
+export function followLeaderOnDoorOpened(wallDoc, changes) {
+  if (!game.user.isGM) return;
+  if (changes.ds !== CONST.WALL_DOOR_STATES.OPEN) return;
+  const scene = wallDoc.parent;
+  if (!scene) return;
+  if (hasActiveCombat(scene)) return;
+
+  const run = getRunState(scene.id);
+  const aiControlledIds = run?.aiControlledActorIds ?? [];
+  if (!aiControlledIds.length) return;
+
+  const leaderToken = resolveLeaderToken(scene, run.hostUserId);
+  if (!leaderToken) return;
+
+  scheduleFollowMove(scene, leaderToken, aiControlledIds);
 }

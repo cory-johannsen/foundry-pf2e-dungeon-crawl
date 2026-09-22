@@ -11,8 +11,13 @@ import {
 } from "../dungeon-runner.mjs";
 import { canActOnDungeon } from "../dungeon-permissions.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
-import { depthBiasFor, lootGpForTreasureRoom } from "../dungeon-deck.mjs";
-import { makeFoundryApi } from "../foundry-api.mjs";
+import {
+  depthBiasFor,
+  lootGpForTreasureRoom,
+  seededPick,
+  treasureRoomItemTableName,
+} from "../dungeon-deck.mjs";
+import { makeFoundryApi, drawTreasureItem } from "../foundry-api.mjs";
 import { xpFor } from "../encounter-roster.mjs";
 import { rollSkillChallengeAttempt } from "../skill-challenge.mjs";
 import { rollPuzzleStageAttempt } from "../puzzle.mjs";
@@ -49,7 +54,8 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 const ROOM_KIND_KEYS = {
   combat: "PF2EDC.Dungeon.Kind.combat",
   skill_challenge: "PF2EDC.Dungeon.Kind.skill_challenge",
-  puzzle_or_trap: "PF2EDC.Dungeon.Kind.puzzle_or_trap",
+  puzzle: "PF2EDC.Dungeon.Kind.puzzle",
+  trap: "PF2EDC.Dungeon.Kind.trap",
   narrative: "PF2EDC.Dungeon.Kind.narrative",
   treasure: "PF2EDC.Dungeon.Kind.treasure",
   safe_entry: "PF2EDC.Dungeon.Kind.safe_entry",
@@ -107,57 +113,66 @@ function skillLabel(slug) {
 export async function resolveCurrentRoom(succeeded, { scene } = {}) {
   if (!scene) return;
   const setpieces = await loadDungeonSetpieces();
-  // #30: a puzzle_or_trap room whose resolved setpiece is trap-kind (or has
-  // no setpiece at all — a real bestiary hazard actor spawned instead)
-  // grants XP on success here. This is the one place both the direct-GM
-  // and GM-less-relay resolution paths converge (dungeon-remote.mjs's own
-  // "resolveRoom" action calls this same function) — every other room
+  // Captured before markRoomOutcome advances currentIndex — both the XP
+  // grant below and applyRoomEffect's treasure-gp calc need the room that
+  // was just resolved, not whatever comes next.
+  const preState = getRunState(scene.id);
+  const currentRoom = preState?.rooms[preState.currentIndex];
+  const physicalSlot = currentRoom
+    ? preState.physicalSlotByRoomId[currentRoom.id]
+    : null;
+  // #30/#32: a trap room grants XP on success here, whether or not a real
+  // hazard actor ended up spawned for it. This is the one place both the
+  // direct-GM and GM-less-relay resolution paths converge (dungeon-remote.mjs's
+  // own "resolveRoom" action calls this same function) — every other room
   // kind grants its own XP before ever calling this (combat via
   // resolveSlotCombat/resolveCombat, skill challenges/puzzles via
-  // recordSkillChallengeOutcome/recordPuzzleStageOutcome above). Narrative
-  // and treasure grant no XP here either — neither has a pass/fail
-  // mechanic GM Core's non-combat XP guidance applies to.
-  if (succeeded) {
-    const preState = getRunState(scene.id);
-    const currentRoom = preState?.rooms[preState.currentIndex];
-    if (currentRoom?.kind === "puzzle_or_trap") {
-      const setpiece = currentRoom.setpieceId
-        ? setpieces.find((s) => s.id === currentRoom.setpieceId)
-        : null;
-      if (setpiece?.kind !== "puzzle") {
-        const physicalSlot = preState.physicalSlotByRoomId[currentRoom.id];
-        const trapToken = scene.tokens.find(
-          (t) =>
-            t.getFlag(MODULE_ID, "trapHazard") &&
-            t.getFlag(MODULE_ID, "dungeonSlot") === physicalSlot,
-        );
-        const trapLevel = trapToken?.actor?.system?.details?.level?.value;
-        const levelOffset =
-          trapLevel != null
-            ? trapLevel - (await makeFoundryApi().partyLevel())
-            : 0;
-        await makeFoundryApi().grantPartyXp(xpFor(levelOffset));
-      }
-    }
+  // recordSkillChallengeOutcome/recordPuzzleStageOutcome above — a puzzle
+  // room's XP is granted there, not here). Narrative and treasure grant no
+  // XP here either — neither has a pass/fail mechanic GM Core's non-combat
+  // XP guidance applies to.
+  if (succeeded && currentRoom?.kind === "trap") {
+    const trapToken = scene.tokens.find(
+      (t) =>
+        t.getFlag(MODULE_ID, "trapHazard") &&
+        t.getFlag(MODULE_ID, "dungeonSlot") === physicalSlot,
+    );
+    const trapLevel = trapToken?.actor?.system?.details?.level?.value;
+    const levelOffset =
+      trapLevel != null
+        ? trapLevel - (await makeFoundryApi().partyLevel())
+        : 0;
+    await makeFoundryApi().grantPartyXp(xpFor(levelOffset));
   }
-  const { state, mutation, nextRoomId, nextPhysicalSlot } =
+  const { state, effectKey, mutation, nextRoomId, nextPhysicalSlot } =
     await markRoomOutcome(
       { sceneId: scene.id, succeeded },
       {
-        // #165: filtered by kind so a puzzle_or_trap room's own draw can
-        // never land on a skill_challenge or narrative entry (those never
-        // use setpieceId at all — skill_challenge picks its own template
-        // separately, and neither would populate anything if drawn here) —
-        // a real, pre-existing bug this filter also fixes, not just a
-        // narrative-specific concern.
-        setpieceIds: setpieces
-          .filter((s) => s.kind === "puzzle" || s.kind === "trap")
+        // #32/#165: each kind draws from its own filtered pool, so a
+        // puzzle or trap room's own draw can never land on a skill_challenge
+        // or narrative entry (those never use setpieceId at all —
+        // skill_challenge picks its own template separately, and neither
+        // would populate anything if drawn here).
+        puzzleSetpieceIds: setpieces
+          .filter((s) => s.kind === "puzzle")
+          .map((s) => s.id),
+        trapSetpieceIds: setpieces
+          .filter((s) => s.kind === "trap")
           .map((s) => s.id),
         narrativeSetpieceIds: setpieces
           .filter((s) => s.kind === "narrative")
           .map((s) => s.id),
       },
     );
+  if (currentRoom && effectKey) {
+    await applyRoomEffect(effectKey, {
+      seed: preState.seed,
+      roomId: currentRoom.id,
+      physicalSlot,
+      roomCount: preState.rooms.length,
+      isGoal: currentRoom.isGoal,
+    });
+  }
   if (mutation === "rerun_encounter")
     ui.notifications.warn(
       game.i18n.localize("PF2EDC.Dungeon.RerunEncounterHint"),
@@ -173,6 +188,138 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
 
   const nextRoom = state.rooms.find((r) => r.id === nextRoomId);
   await buildPopulateAndUnlockRoom(scene, state, nextRoom, nextPhysicalSlot);
+}
+
+// A level well under the party's own, so a `friendly_aid` ally reads as a
+// helped-out traveler rather than a second combatant — arbitrary same as
+// this file's other placeholder tunables (e.g. #169's TREASURE_GP_PER_LEVEL)
+// until a real "ally" concept exists.
+const FRIENDLY_AID_LEVEL_OFFSET = -4;
+
+/**
+ * #31: the mechanical half of the 6 previously flavor-only reward/ruin
+ * outcome keys — `resolveCurrentRoom` calls this right after
+ * `markRoomOutcome` resolves an `effectKey`. `mutation`-carrying keys
+ * (`encounter`, `reduced_travel_time`, `extra_travel_time`) are already
+ * handled by `applySequenceMutation` inside markRoomOutcome itself and never
+ * reach here as anything but a no-op default case.
+ */
+/**
+ * The real treasure reward (gp + a rollable-table item draw) — shared by
+ * the dedicated treasure room kind's claimTreasureFor and the `treasure`
+ * outcome-slot key (#31), which draws the same reward from a different
+ * room kind rather than a second, lesser concept of what "treasure" means.
+ */
+async function grantTreasureReward(api, { partyLevel, physicalSlot, roomCount, isGoal }) {
+  const gp = lootGpForTreasureRoom({ partyLevel, physicalSlot, roomCount, isGoal });
+  await api.addCoins(game.actors.party.id, { gp });
+  ui.notifications.info(
+    game.i18n.format("PF2EDC.Dungeon.Treasure.Found", { gp }),
+  );
+  const tableName = treasureRoomItemTableName({
+    partyLevel,
+    physicalSlot,
+    roomCount,
+    isGoal,
+    rng: Math.random,
+  });
+  const itemDoc = await drawTreasureItem(tableName);
+  if (itemDoc) {
+    await game.actors.party.createEmbeddedDocuments("Item", [
+      itemDoc.toObject(),
+    ]);
+    ui.notifications.info(
+      game.i18n.format("PF2EDC.Dungeon.Treasure.ItemFound", {
+        item: itemDoc.name,
+      }),
+    );
+  }
+}
+
+async function applyRoomEffect(
+  effectKey,
+  { seed, roomId, physicalSlot, roomCount, isGoal },
+) {
+  const api = makeFoundryApi();
+  const partyMembers = (game.actors?.party?.members ?? []).filter(
+    (m) => m.type === "character",
+  );
+  switch (effectKey) {
+    case "treasure": {
+      if (!game.actors.party) return;
+      const partyLevel = await api.partyLevel();
+      await grantTreasureReward(api, { partyLevel, physicalSlot, roomCount, isGoal });
+      return;
+    }
+    case "exhaustion":
+    case "restless_night": {
+      for (const member of partyMembers) {
+        await api.increaseCondition(member.id, "fatigued", 1);
+      }
+      return;
+    }
+    case "ready_foraging": {
+      for (const member of partyMembers) {
+        const hasFatigued = member.itemTypes?.condition?.some(
+          (c) => c.slug === "fatigued",
+        );
+        if (hasFatigued) await api.decreaseCondition(member.id, "fatigued", 1);
+      }
+      return;
+    }
+    case "lost_gear": {
+      const candidates = [];
+      for (const member of partyMembers) {
+        const gear = await api.listGear(member.id);
+        for (const item of gear) {
+          candidates.push({
+            memberId: member.id,
+            memberName: member.name,
+            itemId: item.id,
+            itemName: item.name,
+          });
+        }
+      }
+      if (!candidates.length) return;
+      const picked = seededPick(seed, `lost-gear-${roomId}`, candidates);
+      await api.removeItems(picked.memberId, [picked.itemId]);
+      ui.notifications.warn(
+        game.i18n.format("PF2EDC.Dungeon.Effect.lost_gear_detail", {
+          actor: picked.memberName,
+          item: picked.itemName,
+        }),
+      );
+      return;
+    }
+    case "friendly_aid": {
+      const partyLevel = await api.partyLevel();
+      const maxLevel = Math.max(-1, partyLevel + FRIENDLY_AID_LEVEL_OFFSET);
+      const candidates = await api.findCreatures({ minLevel: -1, maxLevel });
+      if (!candidates.length) {
+        console.warn(
+          `pf2e-dungeon-crawl: no level -1..${maxLevel} creature found for friendly_aid`,
+        );
+        return;
+      }
+      const picked = seededPick(seed, `friendly-aid-${roomId}`, candidates);
+      await api.spawnCreatures([{ pack: picked.pack, id: picked.id }], {
+        disposition: 1,
+        // Without a focus, spawnCreatures falls back to the scene's center
+        // or an unbounded ring search — the ally could land outside the
+        // room the party is actually in. A party member's token is always
+        // in that room by the time an outcome resolves, so anchor there.
+        nearActorId: partyMembers[0]?.id ?? null,
+      });
+      ui.notifications.info(
+        game.i18n.format("PF2EDC.Dungeon.Effect.friendly_aid_detail", {
+          name: picked.name,
+        }),
+      );
+      return;
+    }
+    default:
+      return;
+  }
 }
 
 export async function startDungeonRun({
@@ -194,11 +341,13 @@ export async function startDungeonRun({
       hostUserId,
     },
     {
-      // #165: same kind-filtering as resolveCurrentRoom's own markRoomOutcome
-      // call — see its comment for why an unfiltered pool is a real bug, not
-      // just a narrative-specific concern.
-      setpieceIds: setpieces
-        .filter((s) => s.kind === "puzzle" || s.kind === "trap")
+      // #32/#165: same per-kind pool filtering as resolveCurrentRoom's own
+      // markRoomOutcome call — see its comment.
+      puzzleSetpieceIds: setpieces
+        .filter((s) => s.kind === "puzzle")
+        .map((s) => s.id),
+      trapSetpieceIds: setpieces
+        .filter((s) => s.kind === "trap")
         .map((s) => s.id),
       narrativeSetpieceIds: setpieces
         .filter((s) => s.kind === "narrative")
@@ -279,10 +428,14 @@ export async function recordPuzzleStageOutcome(
     });
 }
 
-/** A treasure room's own resolution (#169): grants real coins to the party
- * actor, scaled by party level and the room's own depthBiasFor ramp
- * (lootGpForTreasureRoom), then always resolves succeeded — same "nothing
- * to fail at" shape as continueNarrativeRoom. Silently grants nothing if
+/** A treasure room's own resolution (#169, item draw #29): grants real
+ * coins to the party actor, scaled by party level and the room's own
+ * depthBiasFor ramp (lootGpForTreasureRoom), then always resolves
+ * succeeded — same "nothing to fail at" shape as continueNarrativeRoom.
+ * Also draws one item from a real PF2e rollable table
+ * (treasureRoomItemTableName picks which; a treasure room always drops
+ * something, unlike an NPC corpse's ITEM_CHANCE-gated drop) and grants it
+ * to the party actor alongside the coins. Silently grants nothing if
  * there's no party actor to fund (matches resolveSlotCombat's own
  * `game.actors.party` guard for its combat-loot grant). */
 export async function claimTreasureFor(sceneId) {
@@ -296,16 +449,9 @@ export async function claimTreasureFor(sceneId) {
   if (game.actors.party) {
     const api = makeFoundryApi();
     const partyLevel = await api.partyLevel();
-    const gp = lootGpForTreasureRoom({
-      partyLevel,
-      physicalSlot,
-      roomCount: state.rooms.length,
-      isGoal: currentRoom.isGoal,
-    });
-    await api.addCoins(game.actors.party.id, { gp });
-    ui.notifications.info(
-      game.i18n.format("PF2EDC.Dungeon.Treasure.Found", { gp }),
-    );
+    const roomCount = state.rooms.length;
+    const isGoal = currentRoom.isGoal;
+    await grantTreasureReward(api, { partyLevel, physicalSlot, roomCount, isGoal });
   }
   await resolveCurrentRoom(true, { scene });
 }
@@ -549,22 +695,18 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       };
     }
 
-    // #137/#109: a puzzle_or_trap room whose resolved setpiece is
-    // puzzle-kind uses its own hint-check UI instead of the plain
-    // Succeed/Fail buttons — fully auto-resolving (per live discussion),
-    // so there's no GM judgment step the way the plain buttons need;
-    // resolveCurrentRoom is still what actually advances the room, called
-    // automatically once recordPuzzleStageAttempt's own reducer sets
+    // #137/#109/#32: a puzzle room uses its own hint-check UI instead of the
+    // plain Succeed/Fail buttons — fully auto-resolving (per live
+    // discussion), so there's no GM judgment step the way the plain buttons
+    // need; resolveCurrentRoom is still what actually advances the room,
+    // called automatically once recordPuzzleStageAttempt's own reducer sets
     // `resolved`, the same "only once resolved" gating
     // #onAttemptSkillChallenge already uses. The puzzle's own state is
     // attached at room-build time (dungeon-scene.mjs's
     // buildPopulateAndUnlockRoom), not lazily here — this is a pure read
     // of whatever's already persisted, same reasoning as the
     // skill_challenge block above.
-    const isPuzzleRoom =
-      currentRoom?.kind === "puzzle_or_trap" &&
-      setpiece?.kind === "puzzle" &&
-      !currentRoomResolved;
+    const isPuzzleRoom = currentRoom?.kind === "puzzle" && !currentRoomResolved;
     let puzzle = null;
     if (isPuzzleRoom && currentRoom.puzzle) {
       // #139: persisted onto the puzzle itself so applyPuzzleCustomization
@@ -577,6 +719,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       puzzle = {
         name: raw.name,
         summary: raw.summary,
+        playerDescription: raw.playerDescription,
         requiredSuccesses: raw.requiredSuccesses,
         successes: raw.successes,
         resolved: raw.resolved,
@@ -600,6 +743,22 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
           hint: s.succeeded ? (raw.stageFlavor?.[i] ?? s.hint) : null,
         })),
       };
+    }
+
+    // #56: read from the room's own *persisted* trap state (attached at
+    // room-build time by dungeon-scene.mjs's ensureTrapState, kept in sync by
+    // trap-combat.mjs's applyTrapCustomization/applyTrapRoomState), never
+    // straight off the raw setpiece stub — the same "persisted state wins
+    // over the raw template" rule puzzle/narrative already follow above.
+    // Previously nothing read currentRoom.trap at all, so a trap room always
+    // showed one of the 3 generic, disconnected static stub blurbs from
+    // dungeon-setpieces.json regardless of which real hazard was spawned or
+    // customized — the actual bug #56 fixes.
+    const isTrapRoom = currentRoom?.kind === "trap" && !currentRoomResolved;
+    let trap = null;
+    if (isTrapRoom && currentRoom.trap) {
+      const raw = currentRoom.trap;
+      trap = { name: raw.name, description: raw.description };
     }
 
     // #163: a narrative room is never succeeded/failed the way every other
@@ -702,17 +861,26 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
         kindLabel: game.i18n.localize(
           ROOM_KIND_KEYS[currentRoom.kind] ?? currentRoom.kind,
         ),
-        // #139/#167: prefers the puzzle's or narrative room's own
-        // *persisted* name/summary (which an agent's applyPuzzleCustomization/
-        // applyNarrativeCustomization may have overwritten) over the raw
-        // setpiece template's — this is the one generic display block every
-        // room kind's name/summary renders through, so either kind's
-        // customization needs to flow through here to be visible at all,
-        // not just in its own kind-specific block below.
+        // #139/#167/#56: prefers the puzzle's, narrative's, or trap room's
+        // own *persisted* name/summary/playerDescription (which an agent's
+        // applyPuzzleCustomization/applyNarrativeCustomization/
+        // applyTrapCustomization may have overwritten) over the raw setpiece
+        // template's — this is the one generic display block every room
+        // kind's name/summary renders through, so any kind's customization
+        // needs to flow through here to be visible at all, not just in its
+        // own kind-specific block below. playerDescription (#49) follows the
+        // same rule: a customized puzzle's player-facing flavor text must
+        // win over the raw setpiece's, the same way its GM-facing summary
+        // already does — otherwise players keep seeing stale, uncustomized
+        // flavor. A trap room (#56) has no separate GM-only summary concept
+        // (a hazard's description carries no mechanical secret the way a
+        // puzzle's summary does — verified live), so trap only ever feeds
+        // playerDescription, never summary.
         setpiece: setpiece && {
-          name: puzzle?.name ?? narrative?.name ?? setpiece.name,
+          name: puzzle?.name ?? narrative?.name ?? trap?.name ?? setpiece.name,
           summary: puzzle?.summary ?? narrative?.summary ?? setpiece.summary,
-          playerDescription: setpiece.playerDescription ?? null,
+          playerDescription:
+            puzzle?.playerDescription ?? trap?.description ?? setpiece.playerDescription ?? null,
           complete: setpiece.complete,
         },
       },

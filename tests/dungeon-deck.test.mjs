@@ -15,8 +15,17 @@ import {
   ROOM_KIND_WEIGHTS,
   roomKindAt,
   lootGpForTreasureRoom,
-  TREASURE_GP_PER_LEVEL
+  TREASURE_GP_PER_LEVEL,
+  seededPick,
+  treasureRoomItemTableName,
+  TREASURE_ROOM_CATEGORY_WEIGHTS
 } from '../scripts/dungeon-deck.mjs';
+import { nthLevelTableName, VALUABLE_TIERS } from '../scripts/treasure.mjs';
+
+function sequenceRng(values) {
+  let i = 0;
+  return () => values[i++ % values.length];
+}
 
 describe('buildRoomSequence', () => {
   it('ends with a combat goal room carrying no outcome slot', () => {
@@ -51,8 +60,8 @@ describe('buildRoomSequence', () => {
   });
 
   it('is deterministic for the same seed', () => {
-    const a = buildRoomSequence({ seed: 'alpha', roomCount: 8, setpieceIds: ['x', 'y', 'z'] });
-    const b = buildRoomSequence({ seed: 'alpha', roomCount: 8, setpieceIds: ['x', 'y', 'z'] });
+    const a = buildRoomSequence({ seed: 'alpha', roomCount: 8, puzzleSetpieceIds: ['x', 'y', 'z'] });
+    const b = buildRoomSequence({ seed: 'alpha', roomCount: 8, puzzleSetpieceIds: ['x', 'y', 'z'] });
     expect(a).toEqual(b);
   });
 
@@ -128,13 +137,25 @@ describe('buildRoomSequence', () => {
     }
   });
 
-  it('only assigns a set-piece to puzzle_or_trap rooms, and only when set-pieces are supplied', () => {
-    const withPieces = buildRoomSequence({ seed: 'delta', roomCount: 12, setpieceIds: ['p1', 'p2'] });
+  it('only assigns a set-piece to puzzle rooms, and only when puzzle set-pieces are supplied (#32)', () => {
+    const withPieces = buildRoomSequence({ seed: 'delta', roomCount: 12, puzzleSetpieceIds: ['p1', 'p2'] });
+    expect(withPieces.some((r) => r.kind === 'puzzle')).toBe(true);
     for (const room of withPieces) {
-      if (room.kind === 'puzzle_or_trap') expect(['p1', 'p2']).toContain(room.setpieceId);
+      if (room.kind === 'puzzle') expect(['p1', 'p2']).toContain(room.setpieceId);
       else expect(room.setpieceId).toBeNull();
     }
-    const withoutPieces = buildRoomSequence({ seed: 'delta', roomCount: 12, setpieceIds: [] });
+    const withoutPieces = buildRoomSequence({ seed: 'delta', roomCount: 12, puzzleSetpieceIds: [] });
+    for (const room of withoutPieces) expect(room.setpieceId).toBeNull();
+  });
+
+  it('only assigns a set-piece to trap rooms, and only when trap set-pieces are supplied (#32)', () => {
+    const withPieces = buildRoomSequence({ seed: 'delta', roomCount: 12, trapSetpieceIds: ['t1', 't2'] });
+    expect(withPieces.some((r) => r.kind === 'trap')).toBe(true);
+    for (const room of withPieces) {
+      if (room.kind === 'trap') expect(['t1', 't2']).toContain(room.setpieceId);
+      else expect(room.setpieceId).toBeNull();
+    }
+    const withoutPieces = buildRoomSequence({ seed: 'delta', roomCount: 12, trapSetpieceIds: [] });
     for (const room of withoutPieces) expect(room.setpieceId).toBeNull();
   });
 
@@ -154,14 +175,20 @@ describe('buildRoomSequence', () => {
     for (const room of withoutPieces) expect(room.setpieceId).toBeNull();
   });
 
-  it('draws puzzle_or_trap and narrative set-pieces from independent pools (#165)', () => {
+  it('draws puzzle, trap and narrative set-pieces from independent pools (#32, #165)', () => {
     const rooms = buildRoomSequence({
-      seed: 'gamma', roomCount: 12, setpieceIds: ['p1', 'p2'], narrativeSetpieceIds: ['n1', 'n2']
+      seed: 'gamma',
+      roomCount: 12,
+      puzzleSetpieceIds: ['p1', 'p2'],
+      trapSetpieceIds: ['t1', 't2'],
+      narrativeSetpieceIds: ['n1', 'n2']
     });
-    expect(rooms.some((r) => r.kind === 'puzzle_or_trap')).toBe(true);
+    expect(rooms.some((r) => r.kind === 'puzzle')).toBe(true);
+    expect(rooms.some((r) => r.kind === 'trap')).toBe(true);
     expect(rooms.some((r) => r.kind === 'narrative')).toBe(true);
     for (const room of rooms) {
-      if (room.kind === 'puzzle_or_trap') expect(['p1', 'p2']).toContain(room.setpieceId);
+      if (room.kind === 'puzzle') expect(['p1', 'p2']).toContain(room.setpieceId);
+      else if (room.kind === 'trap') expect(['t1', 't2']).toContain(room.setpieceId);
       else if (room.kind === 'narrative') expect(['n1', 'n2']).toContain(room.setpieceId);
       else expect(room.setpieceId).toBeNull();
     }
@@ -260,6 +287,22 @@ describe('ROOM_KIND_WEIGHTS', () => {
   it('includes a treasure kind (#169)', () => {
     expect(ROOM_KIND_WEIGHTS.some((w) => w.kind === 'treasure')).toBe(true);
   });
+
+  it('splits puzzle and trap into independent kinds with an even 1/1 weight (#32)', () => {
+    expect(ROOM_KIND_WEIGHTS.some((w) => w.kind === 'puzzle_or_trap')).toBe(false);
+    const puzzle = ROOM_KIND_WEIGHTS.find((w) => w.kind === 'puzzle');
+    const trap = ROOM_KIND_WEIGHTS.find((w) => w.kind === 'trap');
+    expect(puzzle?.weight).toBe(1);
+    expect(trap?.weight).toBe(1);
+  });
+
+  it('keeps the combined puzzle+trap weight, and the overall total, unchanged from before the split (#32)', () => {
+    const puzzle = ROOM_KIND_WEIGHTS.find((w) => w.kind === 'puzzle');
+    const trap = ROOM_KIND_WEIGHTS.find((w) => w.kind === 'trap');
+    expect(puzzle.weight + trap.weight).toBe(2);
+    const total = ROOM_KIND_WEIGHTS.reduce((sum, w) => sum + w.weight, 0);
+    expect(total).toBe(12);
+  });
 });
 
 describe('roomKindAt', () => {
@@ -267,6 +310,14 @@ describe('roomKindAt', () => {
     const kinds = new Set();
     for (let i = 0; i < 200; i += 1) kinds.add(roomKindAt('probe-seed', i));
     expect(kinds).toContain('treasure');
+  });
+
+  it('can produce a puzzle room and a trap room as independent kinds (#32)', () => {
+    const kinds = new Set();
+    for (let i = 0; i < 200; i += 1) kinds.add(roomKindAt('probe-seed', i));
+    expect(kinds).toContain('puzzle');
+    expect(kinds).toContain('trap');
+    expect(kinds.has('puzzle_or_trap')).toBe(false);
   });
 });
 
@@ -304,6 +355,49 @@ describe('lootGpForTreasureRoom', () => {
   });
 });
 
+describe('treasureRoomItemTableName', () => {
+  const args = { partyLevel: 5, physicalSlot: 0, roomCount: 8, isGoal: false };
+
+  it('lists permanent, valuable and consumable categories', () => {
+    expect(TREASURE_ROOM_CATEGORY_WEIGHTS.map((w) => w.category)).toEqual([
+      'permanent',
+      'valuable',
+      'consumable',
+    ]);
+  });
+
+  it('always returns a tableName regardless of rng — a treasure room always drops something', () => {
+    expect(typeof treasureRoomItemTableName({ ...args, rng: () => 0 })).toBe('string');
+    expect(typeof treasureRoomItemTableName({ ...args, rng: () => 0.999999 })).toBe('string');
+  });
+
+  it('picks the permanent-item table when the category roll is low', () => {
+    const result = treasureRoomItemTableName({ ...args, rng: sequenceRng([0]) });
+    expect(result).toBe(nthLevelTableName('permanent', args.partyLevel));
+  });
+
+  it('picks a valuable tier table when the category roll is mid-range', () => {
+    const result = treasureRoomItemTableName({ ...args, rng: sequenceRng([0.5]) });
+    expect(VALUABLE_TIERS.some((t) => t.name === result)).toBe(true);
+  });
+
+  it('picks the consumable table when the category roll is high', () => {
+    const result = treasureRoomItemTableName({ ...args, rng: sequenceRng([0.9]) });
+    expect(result).toBe(nthLevelTableName('consumable', args.partyLevel));
+  });
+
+  it('uses partyLevel for the Nth-Level lookup', () => {
+    const result = treasureRoomItemTableName({
+      partyLevel: 1,
+      physicalSlot: 0,
+      roomCount: 8,
+      isGoal: false,
+      rng: sequenceRng([0]),
+    });
+    expect(result).toBe('1st-Level Permanent Items');
+  });
+});
+
 describe('locationTagAt', () => {
   it('always returns a member of LOCATION_TAGS', () => {
     for (let i = 0; i < 20; i += 1) {
@@ -318,6 +412,31 @@ describe('locationTagAt', () => {
   it('varies across indices (not the same tag every time)', () => {
     const tags = new Set(Array.from({ length: 20 }, (_, i) => locationTagAt('alpha', i)));
     expect(tags.size).toBeGreaterThan(1);
+  });
+});
+
+describe('seededPick', () => {
+  it('is deterministic for the same seed and salt', () => {
+    const items = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+    expect(seededPick('alpha', 'lost-gear-room-3', items)).toBe(seededPick('alpha', 'lost-gear-room-3', items));
+  });
+
+  it('always returns one of the given items', () => {
+    const items = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+    for (let i = 0; i < 20; i += 1) {
+      expect(items).toContain(seededPick('seed', `salt-${i}`, items));
+    }
+  });
+
+  it('picks uniformly across items with no explicit weight', () => {
+    const items = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+    const picks = new Set(Array.from({ length: 30 }, (_, i) => seededPick('alpha', `salt-${i}`, items).id));
+    expect(picks.size).toBeGreaterThan(1);
+  });
+
+  it('returns the single item when only one is given', () => {
+    const only = [{ id: 'only' }];
+    expect(seededPick('seed', 'salt', only)).toBe(only[0]);
   });
 });
 

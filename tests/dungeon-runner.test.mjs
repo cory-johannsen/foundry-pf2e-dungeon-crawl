@@ -21,6 +21,8 @@ import {
   ensureNarrativeState,
   getPendingNarrativeCustomization,
   applyNarrativeCustomization,
+  ensureTrapState,
+  applyTrapRoomState,
 } from "../scripts/dungeon-runner.mjs";
 import { registerGenerator } from '../scripts/generator-registry.mjs';
 import { DefaultGenerator } from '../scripts/default-generator.mjs';
@@ -1202,6 +1204,41 @@ describe("getPendingPuzzleCustomization / applyPuzzleCustomization", () => {
     expect(room.puzzle.customization).toEqual({ status: "customized" });
   });
 
+  it("applyPuzzleCustomization overwrites playerDescription", async () => {
+    const settingsRef = makeSettingsStub();
+    const roomId = await makeRoomWithPuzzle(settingsRef);
+    const state = await applyPuzzleCustomization(
+      "s",
+      roomId,
+      { playerDescription: "The vault door hums with a faint violet light." },
+      { settingsRef },
+    );
+    const room = state.rooms.find((r) => r.id === roomId);
+    expect(room.puzzle.playerDescription).toBe(
+      "The vault door hums with a faint violet light.",
+    );
+  });
+
+  it("leaves a previously-set playerDescription untouched when a later call omits it", async () => {
+    const settingsRef = makeSettingsStub();
+    const roomId = await makeRoomWithPuzzle(settingsRef);
+    await applyPuzzleCustomization(
+      "s",
+      roomId,
+      { playerDescription: "Original customized flavor." },
+      { settingsRef },
+    );
+    const state = await applyPuzzleCustomization(
+      "s",
+      roomId,
+      { name: "New Name Only" },
+      { settingsRef },
+    );
+    const room = state.rooms.find((r) => r.id === roomId);
+    expect(room.puzzle.playerDescription).toBe("Original customized flavor.");
+    expect(room.puzzle.name).toBe("New Name Only");
+  });
+
   it("merges stageFlavor onto the existing map rather than replacing it, never touching skill/dc", async () => {
     const settingsRef = makeSettingsStub();
     const roomId = await makeRoomWithPuzzle(settingsRef);
@@ -1256,6 +1293,138 @@ describe("getPendingPuzzleCustomization / applyPuzzleCustomization", () => {
   it("applyPuzzleCustomization is a no-op with no run at all", async () => {
     const settingsRef = makeSettingsStub();
     const result = await applyPuzzleCustomization(
+      "nope",
+      "room-x",
+      { name: "Anything" },
+      { settingsRef },
+    );
+    expect(result).toBeNull();
+  });
+});
+
+describe("ensureTrapState / applyTrapRoomState", () => {
+  async function makeRoom(settingsRef) {
+    const created = await createRun(
+      { sceneId: "s", roomCount: 5, seed: "fixed" },
+      { settingsRef },
+    );
+    return created.rooms[1].id;
+  }
+
+  it("ensureTrapState attaches trap name/description to a room with none yet", async () => {
+    const settingsRef = makeSettingsStub();
+    const roomId = await makeRoom(settingsRef);
+    const state = await ensureTrapState(
+      "s",
+      roomId,
+      { name: "Scythe Blades", description: "A pressure plate triggers swinging blades." },
+      { settingsRef },
+    );
+    const room = state.rooms.find((r) => r.id === roomId);
+    expect(room.trap).toEqual({
+      name: "Scythe Blades",
+      description: "A pressure plate triggers swinging blades.",
+    });
+  });
+
+  it("ensureTrapState is a no-op if the room already has a trap state", async () => {
+    const settingsRef = makeSettingsStub();
+    const roomId = await makeRoom(settingsRef);
+    await ensureTrapState(
+      "s",
+      roomId,
+      { name: "Scythe Blades", description: "First." },
+      { settingsRef },
+    );
+    const state = await ensureTrapState(
+      "s",
+      roomId,
+      { name: "Different Trap", description: "Second." },
+      { settingsRef },
+    );
+    const room = state.rooms.find((r) => r.id === roomId);
+    expect(room.trap).toEqual({ name: "Scythe Blades", description: "First." });
+  });
+
+  it("ensureTrapState is a no-op with no matching room", async () => {
+    const settingsRef = makeSettingsStub();
+    await makeRoom(settingsRef);
+    const state = await ensureTrapState(
+      "s",
+      "room-nope",
+      { name: "X", description: "Y" },
+      { settingsRef },
+    );
+    expect(state.rooms.find((r) => r.id === "room-nope")).toBeUndefined();
+  });
+
+  it("ensureTrapState is a no-op with no run at all", async () => {
+    const settingsRef = makeSettingsStub();
+    const result = await ensureTrapState(
+      "nope",
+      "room-x",
+      { name: "X", description: "Y" },
+      { settingsRef },
+    );
+    expect(result).toBeNull();
+  });
+
+  it("applyTrapRoomState overwrites name/description when the room has an existing trap state", async () => {
+    const settingsRef = makeSettingsStub();
+    const roomId = await makeRoom(settingsRef);
+    await ensureTrapState(
+      "s",
+      roomId,
+      { name: "Scythe Blades", description: "Original." },
+      { settingsRef },
+    );
+    const state = await applyTrapRoomState(
+      "s",
+      roomId,
+      { name: "The Grinning Gears", description: "A customized flavor." },
+      { settingsRef },
+    );
+    const room = state.rooms.find((r) => r.id === roomId);
+    expect(room.trap).toEqual({
+      name: "The Grinning Gears",
+      description: "A customized flavor.",
+    });
+  });
+
+  it("applyTrapRoomState preserves whatever field wasn't passed", async () => {
+    const settingsRef = makeSettingsStub();
+    const roomId = await makeRoom(settingsRef);
+    await ensureTrapState(
+      "s",
+      roomId,
+      { name: "Scythe Blades", description: "Original." },
+      { settingsRef },
+    );
+    const state = await applyTrapRoomState(
+      "s",
+      roomId,
+      { name: "The Grinning Gears" },
+      { settingsRef },
+    );
+    const room = state.rooms.find((r) => r.id === roomId);
+    expect(room.trap).toEqual({ name: "The Grinning Gears", description: "Original." });
+  });
+
+  it("applyTrapRoomState is a no-op if the room has no trap state at all", async () => {
+    const settingsRef = makeSettingsStub();
+    const roomId = await makeRoom(settingsRef);
+    const state = await applyTrapRoomState(
+      "s",
+      roomId,
+      { name: "Anything" },
+      { settingsRef },
+    );
+    expect(state.rooms.find((r) => r.id === roomId).trap).toBeUndefined();
+  });
+
+  it("applyTrapRoomState is a no-op with no run at all", async () => {
+    const settingsRef = makeSettingsStub();
+    const result = await applyTrapRoomState(
       "nope",
       "room-x",
       { name: "Anything" },

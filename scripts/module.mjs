@@ -31,9 +31,13 @@ import {
   toggleAgentControlled,
   agentLoopStatus,
   handleRangedAttackForReactiveStrike,
+  handleManualStrikeDamage,
   offerReactiveStrikesAgainst,
 } from "./dungeon-combat.mjs";
-import { followLeaderIfDue } from "./dungeon-follow.mjs";
+import {
+  followLeaderIfDue,
+  followLeaderOnDoorOpened,
+} from "./dungeon-follow.mjs";
 import {
   getPendingTrapCustomization,
   applyTrapCustomization,
@@ -290,6 +294,7 @@ function openDungeonTrackerIfNotOpen() {
 }
 
 Hooks.on("updateWall", async (wall, changes) => {
+  followLeaderOnDoorOpened(wall, changes);
   if (changes.ds !== CONST.WALL_DOOR_STATES.OPEN) return;
   const { autoOpenTracker } = await handleDungeonDoorOpened(
     wall.parent?.id,
@@ -369,6 +374,11 @@ Hooks.on("updateToken", followLeaderIfDue);
 /** #202: reactive/triggered NPC abilities (ranged-Strike-triggered Reactive
  * Strike/Attack of Opportunity). */
 Hooks.on("createChatMessage", handleRangedAttackForReactiveStrike);
+
+/** #47: auto-applies a human party member's manual Strike damage to its
+ * roll's own already-correct target, instead of relying on PF2e's own
+ * manual "Apply Damage" button (which resolves from live selection state). */
+Hooks.on("createChatMessage", handleManualStrikeDamage);
 
 Hooks.on("getSceneControlButtons", (controls) => {
   const tokenControl =

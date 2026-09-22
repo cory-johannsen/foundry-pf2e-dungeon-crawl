@@ -12,13 +12,26 @@
  * handed to the table.
  */
 import { splitmix32, seedFromString, shuffle } from './prng.mjs';
+import {
+  nthLevelTableName,
+  valuableTierForBudget,
+  pickWeightedCategory,
+  ITEM_PRICE_BUDGET_FRACTION
+} from './treasure.mjs';
 
 // Tunable, with no anchor in the source material — unlike the encounter
 // deck's XP table, the Journey Spread never specifies a room-kind mix.
+// #32: puzzle and trap used to be one combined 'puzzle_or_trap' kind
+// (weight 2) whose actual identity was only decided after the room was
+// drawn, by resolving whichever setpiece a shared shuffle landed on. Split
+// into two independent kinds, decided up front like every other room kind
+// — an even 1/1 split (confirmed with the user), keeping the combined
+// weight (and so the overall room-kind mix) unchanged from before the split.
 export const ROOM_KIND_WEIGHTS = [
   { kind: 'combat', weight: 5 },
   { kind: 'skill_challenge', weight: 2 },
-  { kind: 'puzzle_or_trap', weight: 2 },
+  { kind: 'puzzle', weight: 1 },
+  { kind: 'trap', weight: 1 },
   { kind: 'narrative', weight: 1 },
   { kind: 'treasure', weight: 2 }
 ];
@@ -94,6 +107,32 @@ export function lootGpForTreasureRoom({ partyLevel, physicalSlot, roomCount, isG
   return Math.round(partyLevel * TREASURE_GP_PER_LEVEL * (1 + bias / MAX_DEPTH_BIAS));
 }
 
+// Which kind of table a treasure room's item draws from — tunable, no
+// anchor in the source material, same disclosed-heuristic spirit as
+// ROOM_KIND_WEIGHTS above. Unlike an NPC corpse's incidental drop, a
+// treasure room is the deliberate payoff moment, so this is skewed toward
+// the exciting stuff (a permanent magic item) rather than consumables.
+export const TREASURE_ROOM_CATEGORY_WEIGHTS = [
+  { category: 'permanent', weight: 45 },
+  { category: 'valuable', weight: 35 },
+  { category: 'consumable', weight: 20 }
+];
+
+/**
+ * A treasure room's item draw (#29) — unlike rollNpcTreasure's ITEM_CHANCE
+ * gate, a treasure room always drops something; this only decides which
+ * real `pf2e.rollable-tables` table to draw from. Reuses
+ * lootGpForTreasureRoom's own gp figure as the price budget for a
+ * 'valuable' category pick, so the two stay in sync.
+ */
+export function treasureRoomItemTableName({ partyLevel, physicalSlot, roomCount, isGoal, rng }) {
+  const gp = lootGpForTreasureRoom({ partyLevel, physicalSlot, roomCount, isGoal });
+  const category = pickWeightedCategory(TREASURE_ROOM_CATEGORY_WEIGHTS, rng());
+  return category === 'valuable'
+    ? valuableTierForBudget(gp * ITEM_PRICE_BUDGET_FRACTION)
+    : nthLevelTableName(category, partyLevel);
+}
+
 // Broad PF2e creature-type traits, deliberately common ones rather than
 // narrow subtypes, so a room's tag rarely starves the bestiary query to zero
 // once it's combined with whatever the dungeon-wide theme already asks for.
@@ -135,6 +174,18 @@ function pickAt(seed, salt, items) {
   return weightedPick(items, r);
 }
 
+/**
+ * The same deterministic-per-salt pick `outcomeSlotAt`/`roomKindAt` use
+ * internally, exposed for callers outside this file that need a seeded,
+ * reproducible choice among their own candidates (e.g. dungeon-app.mjs
+ * picking which party member loses a gear item, or which bestiary entry
+ * answers a `friendly_aid` outcome) — uniform unless an item carries its
+ * own `.weight`.
+ */
+export function seededPick(seed, salt, items) {
+  return pickAt(seed, salt, items);
+}
+
 /** The room kind at a given absolute room index, deterministic per seed. */
 export function roomKindAt(seed, index) {
   return pickAt(seed, `kind-${index}`, ROOM_KIND_WEIGHTS).kind;
@@ -146,11 +197,14 @@ export function outcomeSlotAt(seed, index) {
 }
 
 /**
- * The set-piece for the Nth puzzle_or_trap room encountered in a run (0
- * indexed by occurrence, not by absolute room index). `setpieceIds` is
- * shuffled once per seed, then cycled by occurrence, so a short dungeon
- * rarely repeats a set-piece and a long one cycles rather than repeating the
- * same one back-to-back. Returns null when no set-pieces are available.
+ * The set-piece for the Nth occurrence of a given kind's room encountered in
+ * a run (0 indexed by occurrence, not by absolute room index) — used for
+ * puzzle, trap and narrative rooms alike, each with its own occurrence
+ * counter, its own `setpieceIds` pool and its own `salt` so the three draws
+ * are fully independent of one another. `setpieceIds` is shuffled once per
+ * seed+salt, then cycled by occurrence, so a short dungeon rarely repeats a
+ * set-piece and a long one cycles rather than repeating the same one
+ * back-to-back. Returns null when no set-pieces are available.
  */
 export function setpieceAt(seed, occurrenceIndex, setpieceIds, salt = 'setpiece-order') {
   if (!setpieceIds?.length) return null;
@@ -172,7 +226,13 @@ export const MID_DUNGEON_REST_THRESHOLD = 6;
  * with no outcome slot — the climactic fight, and the end of the line for
  * reward/ruin resolution.
  */
-export function buildRoomSequence({ seed, roomCount, setpieceIds = [], narrativeSetpieceIds = [] }) {
+export function buildRoomSequence({
+  seed,
+  roomCount,
+  puzzleSetpieceIds = [],
+  trapSetpieceIds = [],
+  narrativeSetpieceIds = []
+}) {
   if (!Number.isInteger(roomCount) || roomCount < 2) {
     throw new Error('roomCount must be an integer of at least 2 (rooms plus a goal room)');
   }
@@ -189,15 +249,17 @@ export function buildRoomSequence({ seed, roomCount, setpieceIds = [], narrative
   // around it rather than the rest landing right before the goal.
   const restAfterIndex = roomCount > MID_DUNGEON_REST_THRESHOLD ? Math.floor((roomCount - 2) / 2) : -1;
   let puzzleOccurrence = 0;
+  let trapOccurrence = 0;
   let narrativeOccurrence = 0;
   for (let i = 0; i < roomCount - 1; i += 1) {
     const kind = roomKindAt(seed, i);
-    // #165: narrative rooms get a set-piece the same way puzzle_or_trap
-    // rooms already do — a separate occurrence counter and a separate
-    // salted shuffle (`narrative-setpiece-order`) over its own pool, so
-    // drawing one never depends on or exhausts the puzzle/trap pool.
+    // #32/#165: puzzle, trap and narrative rooms each get a set-piece from
+    // their own pool — a separate occurrence counter and a separate salted
+    // shuffle per kind, so drawing one never depends on or exhausts another
+    // kind's pool.
     const setpieceId =
-      kind === 'puzzle_or_trap' ? setpieceAt(seed, puzzleOccurrence++, setpieceIds)
+      kind === 'puzzle' ? setpieceAt(seed, puzzleOccurrence++, puzzleSetpieceIds, 'puzzle-setpiece-order')
+      : kind === 'trap' ? setpieceAt(seed, trapOccurrence++, trapSetpieceIds, 'trap-setpiece-order')
       : kind === 'narrative' ? setpieceAt(seed, narrativeOccurrence++, narrativeSetpieceIds, 'narrative-setpiece-order')
       : null;
     const outcomeSlot = outcomeSlotAt(seed, i);
@@ -247,7 +309,12 @@ export function resolveRoomOutcome(outcomeSlotTemplate, succeeded) {
  * the goal, and `insert_after` always lands strictly before it since the
  * goal room is never `currentIndex`'s neighbour once it's still ahead.
  */
-export function applySequenceMutation(rooms, currentIndex, mutation, { seed, setpieceIds = [], narrativeSetpieceIds = [] } = {}) {
+export function applySequenceMutation(
+  rooms,
+  currentIndex,
+  mutation,
+  { seed, puzzleSetpieceIds = [], trapSetpieceIds = [], narrativeSetpieceIds = [] } = {}
+) {
   if (mutation === 'remove_next') {
     const next = rooms[currentIndex + 1];
     if (!next || next.isGoal) return rooms;
@@ -258,7 +325,8 @@ export function applySequenceMutation(rooms, currentIndex, mutation, { seed, set
     const kind = pickAt(seed, `${salt}-kind`, ROOM_KIND_WEIGHTS).kind;
     const outcomeTemplate = pickAt(seed, `${salt}-outcome`, OUTCOME_SLOT_TEMPLATES);
     const setpieceId =
-      kind === 'puzzle_or_trap' ? setpieceAt(seed, rooms.length, setpieceIds)
+      kind === 'puzzle' ? setpieceAt(seed, rooms.length, puzzleSetpieceIds, 'puzzle-setpiece-order')
+      : kind === 'trap' ? setpieceAt(seed, rooms.length, trapSetpieceIds, 'trap-setpiece-order')
       : kind === 'narrative' ? setpieceAt(seed, rooms.length, narrativeSetpieceIds, 'narrative-setpiece-order')
       : null;
     const newRoom = {
