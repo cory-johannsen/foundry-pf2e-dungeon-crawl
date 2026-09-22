@@ -694,25 +694,31 @@ export function getPendingPuzzleCustomization(
 }
 
 /**
- * Applies an external agent's customized name/summary/stageFlavor to
- * `roomId`'s own pending puzzle (#139) — a no-op if that room has no
- * puzzle at all. Only ever touches these three display fields, never
+ * Applies an external agent's customized name/summary/playerDescription/
+ * stageFlavor to `roomId`'s own pending puzzle (#139) — a no-op if that
+ * room has no puzzle at all. Only ever touches these display fields, never
  * `stages[].skill`/`stages[].dc`/`requiredSuccesses` — this cannot change
  * which skills are mechanically eligible, how hard a stage's check is, or
  * how many successes are needed, by construction, the same boundary
  * `applySkillChallengeCustomization` already draws for a challenge's own
- * name/summary/skillFlavor. `stageFlavor` (keyed by stage index, a string
- * per JSON's own key convention) merges onto the existing map rather than
- * replacing it wholesale, so a partial customization (flavor for only
- * some stages) doesn't blank out the rest — it overrides a stage's
- * *displayed* hint text (read by whatever renders `stages[i].hint` once
- * that stage succeeds); the stage's own mechanically-real `hint` field
- * itself is never touched. See module.mjs's api.applyPuzzleCustomization.
+ * name/summary/skillFlavor. `name`/`summary`/`playerDescription` each
+ * override-or-keep-existing (a call that omits one leaves it as it was);
+ * `stageFlavor` (keyed by stage index, a string per JSON's own key
+ * convention) merges onto the existing map rather than replacing it
+ * wholesale, so a partial customization (flavor for only some stages)
+ * doesn't blank out the rest — it overrides a stage's *displayed* hint
+ * text (read by whatever renders `stages[i].hint` once that stage
+ * succeeds); the stage's own mechanically-real `hint` field itself is
+ * never touched. `playerDescription` (#49) is the player-facing flavor
+ * text shown instead of the GM-facing `summary` — see dungeon-app.mjs's
+ * setpiece display block, which now prefers this over the raw setpiece
+ * template's own playerDescription the same way it already preferred
+ * `name`/`summary`. See module.mjs's api.applyPuzzleCustomization.
  */
 export async function applyPuzzleCustomization(
   sceneId,
   roomId,
-  { name = null, summary = null, stageFlavor = null } = {},
+  { name = null, summary = null, playerDescription = null, stageFlavor = null } = {},
   { settingsRef = defaultSettingsRef() } = {},
 ) {
   const state = getRunState(sceneId, { settingsRef });
@@ -723,6 +729,7 @@ export async function applyPuzzleCustomization(
     ...room.puzzle,
     name: name ?? room.puzzle.name,
     summary: summary ?? room.puzzle.summary,
+    playerDescription: playerDescription ?? room.puzzle.playerDescription,
     stageFlavor: stageFlavor
       ? { ...room.puzzle.stageFlavor, ...stageFlavor }
       : room.puzzle.stageFlavor,

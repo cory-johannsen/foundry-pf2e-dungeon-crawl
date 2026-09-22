@@ -27,7 +27,10 @@ on-demand flow — nothing below requires the standing loop.
    invent or change a mechanical value, only flavor text — and submit
    immediately via the matching tool (`submit_trap_customization`,
    `submit_skill_challenge_customization`, `submit_puzzle_customization`,
-   or `submit_narrative_customization`).
+   or `submit_narrative_customization`). A puzzle entry needs both texts
+   submitted together: the GM-facing `summary` and the player-facing
+   `playerDescription` — submitting only `summary` leaves players seeing
+   the puzzle's original, uncustomized flavor (#49).
 5. Show the billboard (below) of everything still open, and handle a
    selection if the human's message is a number matching a billboard row
    from your immediately preceding turn.
@@ -81,7 +84,8 @@ field(s):
 Once the human answers, submit via the matching `submit_*_customization`
 tool (always including that entry's required `name`/`summary` fields —
 reuse the pending entry's own existing name/summary unless the human's
-answer implies new ones) and drop it from the billboard. If the human
+answer implies new ones; a puzzle entry also requires `playerDescription`)
+and drop it from the billboard. If the human
 doesn't respond, leave the entry on the billboard for the next pass —
 don't re-ask beyond what's already shown there.
 

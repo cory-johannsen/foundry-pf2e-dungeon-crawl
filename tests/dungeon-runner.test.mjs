@@ -1202,6 +1202,41 @@ describe("getPendingPuzzleCustomization / applyPuzzleCustomization", () => {
     expect(room.puzzle.customization).toEqual({ status: "customized" });
   });
 
+  it("applyPuzzleCustomization overwrites playerDescription", async () => {
+    const settingsRef = makeSettingsStub();
+    const roomId = await makeRoomWithPuzzle(settingsRef);
+    const state = await applyPuzzleCustomization(
+      "s",
+      roomId,
+      { playerDescription: "The vault door hums with a faint violet light." },
+      { settingsRef },
+    );
+    const room = state.rooms.find((r) => r.id === roomId);
+    expect(room.puzzle.playerDescription).toBe(
+      "The vault door hums with a faint violet light.",
+    );
+  });
+
+  it("leaves a previously-set playerDescription untouched when a later call omits it", async () => {
+    const settingsRef = makeSettingsStub();
+    const roomId = await makeRoomWithPuzzle(settingsRef);
+    await applyPuzzleCustomization(
+      "s",
+      roomId,
+      { playerDescription: "Original customized flavor." },
+      { settingsRef },
+    );
+    const state = await applyPuzzleCustomization(
+      "s",
+      roomId,
+      { name: "New Name Only" },
+      { settingsRef },
+    );
+    const room = state.rooms.find((r) => r.id === roomId);
+    expect(room.puzzle.playerDescription).toBe("Original customized flavor.");
+    expect(room.puzzle.name).toBe("New Name Only");
+  });
+
   it("merges stageFlavor onto the existing map rather than replacing it, never touching skill/dc", async () => {
     const settingsRef = makeSettingsStub();
     const roomId = await makeRoomWithPuzzle(settingsRef);
