@@ -99,7 +99,7 @@ export function isExcludedFromAutoPlay(combatant, partyIds) {
  * "cover items are never Combatants" as the intended behavior this flag
  * collision was silently violating. A trap hazard's own `dungeonSlot` flag
  * (`dungeon-scene.mjs`'s `populateSlotTrap`) is never actually reached by
- * this filter in practice — a `puzzle_or_trap` room never starts a Combat
+ * this filter in practice — a `trap` room never starts a Combat
  * at all — but excluding it here anyway costs nothing and closes off the
  * exact same class of bug before it can ever recur for a hazard actor that,
  * like a cover item, should never take a turn either. */

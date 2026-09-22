@@ -53,7 +53,8 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 const ROOM_KIND_KEYS = {
   combat: "PF2EDC.Dungeon.Kind.combat",
   skill_challenge: "PF2EDC.Dungeon.Kind.skill_challenge",
-  puzzle_or_trap: "PF2EDC.Dungeon.Kind.puzzle_or_trap",
+  puzzle: "PF2EDC.Dungeon.Kind.puzzle",
+  trap: "PF2EDC.Dungeon.Kind.trap",
   narrative: "PF2EDC.Dungeon.Kind.narrative",
   treasure: "PF2EDC.Dungeon.Kind.treasure",
   safe_entry: "PF2EDC.Dungeon.Kind.safe_entry",
@@ -111,51 +112,48 @@ function skillLabel(slug) {
 export async function resolveCurrentRoom(succeeded, { scene } = {}) {
   if (!scene) return;
   const setpieces = await loadDungeonSetpieces();
-  // #30: a puzzle_or_trap room whose resolved setpiece is trap-kind (or has
-  // no setpiece at all — a real bestiary hazard actor spawned instead)
-  // grants XP on success here. This is the one place both the direct-GM
-  // and GM-less-relay resolution paths converge (dungeon-remote.mjs's own
-  // "resolveRoom" action calls this same function) — every other room
+  // #30/#32: a trap room grants XP on success here, whether or not a real
+  // hazard actor ended up spawned for it. This is the one place both the
+  // direct-GM and GM-less-relay resolution paths converge (dungeon-remote.mjs's
+  // own "resolveRoom" action calls this same function) — every other room
   // kind grants its own XP before ever calling this (combat via
   // resolveSlotCombat/resolveCombat, skill challenges/puzzles via
-  // recordSkillChallengeOutcome/recordPuzzleStageOutcome above). Narrative
-  // and treasure grant no XP here either — neither has a pass/fail
-  // mechanic GM Core's non-combat XP guidance applies to.
+  // recordSkillChallengeOutcome/recordPuzzleStageOutcome above — a puzzle
+  // room's XP is granted there, not here). Narrative and treasure grant no
+  // XP here either — neither has a pass/fail mechanic GM Core's non-combat
+  // XP guidance applies to.
   if (succeeded) {
     const preState = getRunState(scene.id);
     const currentRoom = preState?.rooms[preState.currentIndex];
-    if (currentRoom?.kind === "puzzle_or_trap") {
-      const setpiece = currentRoom.setpieceId
-        ? setpieces.find((s) => s.id === currentRoom.setpieceId)
-        : null;
-      if (setpiece?.kind !== "puzzle") {
-        const physicalSlot = preState.physicalSlotByRoomId[currentRoom.id];
-        const trapToken = scene.tokens.find(
-          (t) =>
-            t.getFlag(MODULE_ID, "trapHazard") &&
-            t.getFlag(MODULE_ID, "dungeonSlot") === physicalSlot,
-        );
-        const trapLevel = trapToken?.actor?.system?.details?.level?.value;
-        const levelOffset =
-          trapLevel != null
-            ? trapLevel - (await makeFoundryApi().partyLevel())
-            : 0;
-        await makeFoundryApi().grantPartyXp(xpFor(levelOffset));
-      }
+    if (currentRoom?.kind === "trap") {
+      const physicalSlot = preState.physicalSlotByRoomId[currentRoom.id];
+      const trapToken = scene.tokens.find(
+        (t) =>
+          t.getFlag(MODULE_ID, "trapHazard") &&
+          t.getFlag(MODULE_ID, "dungeonSlot") === physicalSlot,
+      );
+      const trapLevel = trapToken?.actor?.system?.details?.level?.value;
+      const levelOffset =
+        trapLevel != null
+          ? trapLevel - (await makeFoundryApi().partyLevel())
+          : 0;
+      await makeFoundryApi().grantPartyXp(xpFor(levelOffset));
     }
   }
   const { state, mutation, nextRoomId, nextPhysicalSlot } =
     await markRoomOutcome(
       { sceneId: scene.id, succeeded },
       {
-        // #165: filtered by kind so a puzzle_or_trap room's own draw can
-        // never land on a skill_challenge or narrative entry (those never
-        // use setpieceId at all — skill_challenge picks its own template
-        // separately, and neither would populate anything if drawn here) —
-        // a real, pre-existing bug this filter also fixes, not just a
-        // narrative-specific concern.
-        setpieceIds: setpieces
-          .filter((s) => s.kind === "puzzle" || s.kind === "trap")
+        // #32/#165: each kind draws from its own filtered pool, so a
+        // puzzle or trap room's own draw can never land on a skill_challenge
+        // or narrative entry (those never use setpieceId at all —
+        // skill_challenge picks its own template separately, and neither
+        // would populate anything if drawn here).
+        puzzleSetpieceIds: setpieces
+          .filter((s) => s.kind === "puzzle")
+          .map((s) => s.id),
+        trapSetpieceIds: setpieces
+          .filter((s) => s.kind === "trap")
           .map((s) => s.id),
         narrativeSetpieceIds: setpieces
           .filter((s) => s.kind === "narrative")
@@ -198,11 +196,13 @@ export async function startDungeonRun({
       hostUserId,
     },
     {
-      // #165: same kind-filtering as resolveCurrentRoom's own markRoomOutcome
-      // call — see its comment for why an unfiltered pool is a real bug, not
-      // just a narrative-specific concern.
-      setpieceIds: setpieces
-        .filter((s) => s.kind === "puzzle" || s.kind === "trap")
+      // #32/#165: same per-kind pool filtering as resolveCurrentRoom's own
+      // markRoomOutcome call — see its comment.
+      puzzleSetpieceIds: setpieces
+        .filter((s) => s.kind === "puzzle")
+        .map((s) => s.id),
+      trapSetpieceIds: setpieces
+        .filter((s) => s.kind === "trap")
         .map((s) => s.id),
       narrativeSetpieceIds: setpieces
         .filter((s) => s.kind === "narrative")
@@ -568,22 +568,18 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       };
     }
 
-    // #137/#109: a puzzle_or_trap room whose resolved setpiece is
-    // puzzle-kind uses its own hint-check UI instead of the plain
-    // Succeed/Fail buttons — fully auto-resolving (per live discussion),
-    // so there's no GM judgment step the way the plain buttons need;
-    // resolveCurrentRoom is still what actually advances the room, called
-    // automatically once recordPuzzleStageAttempt's own reducer sets
+    // #137/#109/#32: a puzzle room uses its own hint-check UI instead of the
+    // plain Succeed/Fail buttons — fully auto-resolving (per live
+    // discussion), so there's no GM judgment step the way the plain buttons
+    // need; resolveCurrentRoom is still what actually advances the room,
+    // called automatically once recordPuzzleStageAttempt's own reducer sets
     // `resolved`, the same "only once resolved" gating
     // #onAttemptSkillChallenge already uses. The puzzle's own state is
     // attached at room-build time (dungeon-scene.mjs's
     // buildPopulateAndUnlockRoom), not lazily here — this is a pure read
     // of whatever's already persisted, same reasoning as the
     // skill_challenge block above.
-    const isPuzzleRoom =
-      currentRoom?.kind === "puzzle_or_trap" &&
-      setpiece?.kind === "puzzle" &&
-      !currentRoomResolved;
+    const isPuzzleRoom = currentRoom?.kind === "puzzle" && !currentRoomResolved;
     let puzzle = null;
     if (isPuzzleRoom && currentRoom.puzzle) {
       // #139: persisted onto the puzzle itself so applyPuzzleCustomization

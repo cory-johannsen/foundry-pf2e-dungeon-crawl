@@ -59,8 +59,8 @@ describe('buildRoomSequence', () => {
   });
 
   it('is deterministic for the same seed', () => {
-    const a = buildRoomSequence({ seed: 'alpha', roomCount: 8, setpieceIds: ['x', 'y', 'z'] });
-    const b = buildRoomSequence({ seed: 'alpha', roomCount: 8, setpieceIds: ['x', 'y', 'z'] });
+    const a = buildRoomSequence({ seed: 'alpha', roomCount: 8, puzzleSetpieceIds: ['x', 'y', 'z'] });
+    const b = buildRoomSequence({ seed: 'alpha', roomCount: 8, puzzleSetpieceIds: ['x', 'y', 'z'] });
     expect(a).toEqual(b);
   });
 
@@ -136,13 +136,25 @@ describe('buildRoomSequence', () => {
     }
   });
 
-  it('only assigns a set-piece to puzzle_or_trap rooms, and only when set-pieces are supplied', () => {
-    const withPieces = buildRoomSequence({ seed: 'delta', roomCount: 12, setpieceIds: ['p1', 'p2'] });
+  it('only assigns a set-piece to puzzle rooms, and only when puzzle set-pieces are supplied (#32)', () => {
+    const withPieces = buildRoomSequence({ seed: 'delta', roomCount: 12, puzzleSetpieceIds: ['p1', 'p2'] });
+    expect(withPieces.some((r) => r.kind === 'puzzle')).toBe(true);
     for (const room of withPieces) {
-      if (room.kind === 'puzzle_or_trap') expect(['p1', 'p2']).toContain(room.setpieceId);
+      if (room.kind === 'puzzle') expect(['p1', 'p2']).toContain(room.setpieceId);
       else expect(room.setpieceId).toBeNull();
     }
-    const withoutPieces = buildRoomSequence({ seed: 'delta', roomCount: 12, setpieceIds: [] });
+    const withoutPieces = buildRoomSequence({ seed: 'delta', roomCount: 12, puzzleSetpieceIds: [] });
+    for (const room of withoutPieces) expect(room.setpieceId).toBeNull();
+  });
+
+  it('only assigns a set-piece to trap rooms, and only when trap set-pieces are supplied (#32)', () => {
+    const withPieces = buildRoomSequence({ seed: 'delta', roomCount: 12, trapSetpieceIds: ['t1', 't2'] });
+    expect(withPieces.some((r) => r.kind === 'trap')).toBe(true);
+    for (const room of withPieces) {
+      if (room.kind === 'trap') expect(['t1', 't2']).toContain(room.setpieceId);
+      else expect(room.setpieceId).toBeNull();
+    }
+    const withoutPieces = buildRoomSequence({ seed: 'delta', roomCount: 12, trapSetpieceIds: [] });
     for (const room of withoutPieces) expect(room.setpieceId).toBeNull();
   });
 
@@ -162,14 +174,20 @@ describe('buildRoomSequence', () => {
     for (const room of withoutPieces) expect(room.setpieceId).toBeNull();
   });
 
-  it('draws puzzle_or_trap and narrative set-pieces from independent pools (#165)', () => {
+  it('draws puzzle, trap and narrative set-pieces from independent pools (#32, #165)', () => {
     const rooms = buildRoomSequence({
-      seed: 'gamma', roomCount: 12, setpieceIds: ['p1', 'p2'], narrativeSetpieceIds: ['n1', 'n2']
+      seed: 'gamma',
+      roomCount: 12,
+      puzzleSetpieceIds: ['p1', 'p2'],
+      trapSetpieceIds: ['t1', 't2'],
+      narrativeSetpieceIds: ['n1', 'n2']
     });
-    expect(rooms.some((r) => r.kind === 'puzzle_or_trap')).toBe(true);
+    expect(rooms.some((r) => r.kind === 'puzzle')).toBe(true);
+    expect(rooms.some((r) => r.kind === 'trap')).toBe(true);
     expect(rooms.some((r) => r.kind === 'narrative')).toBe(true);
     for (const room of rooms) {
-      if (room.kind === 'puzzle_or_trap') expect(['p1', 'p2']).toContain(room.setpieceId);
+      if (room.kind === 'puzzle') expect(['p1', 'p2']).toContain(room.setpieceId);
+      else if (room.kind === 'trap') expect(['t1', 't2']).toContain(room.setpieceId);
       else if (room.kind === 'narrative') expect(['n1', 'n2']).toContain(room.setpieceId);
       else expect(room.setpieceId).toBeNull();
     }
@@ -268,6 +286,22 @@ describe('ROOM_KIND_WEIGHTS', () => {
   it('includes a treasure kind (#169)', () => {
     expect(ROOM_KIND_WEIGHTS.some((w) => w.kind === 'treasure')).toBe(true);
   });
+
+  it('splits puzzle and trap into independent kinds with an even 1/1 weight (#32)', () => {
+    expect(ROOM_KIND_WEIGHTS.some((w) => w.kind === 'puzzle_or_trap')).toBe(false);
+    const puzzle = ROOM_KIND_WEIGHTS.find((w) => w.kind === 'puzzle');
+    const trap = ROOM_KIND_WEIGHTS.find((w) => w.kind === 'trap');
+    expect(puzzle?.weight).toBe(1);
+    expect(trap?.weight).toBe(1);
+  });
+
+  it('keeps the combined puzzle+trap weight, and the overall total, unchanged from before the split (#32)', () => {
+    const puzzle = ROOM_KIND_WEIGHTS.find((w) => w.kind === 'puzzle');
+    const trap = ROOM_KIND_WEIGHTS.find((w) => w.kind === 'trap');
+    expect(puzzle.weight + trap.weight).toBe(2);
+    const total = ROOM_KIND_WEIGHTS.reduce((sum, w) => sum + w.weight, 0);
+    expect(total).toBe(12);
+  });
 });
 
 describe('roomKindAt', () => {
@@ -275,6 +309,14 @@ describe('roomKindAt', () => {
     const kinds = new Set();
     for (let i = 0; i < 200; i += 1) kinds.add(roomKindAt('probe-seed', i));
     expect(kinds).toContain('treasure');
+  });
+
+  it('can produce a puzzle room and a trap room as independent kinds (#32)', () => {
+    const kinds = new Set();
+    for (let i = 0; i < 200; i += 1) kinds.add(roomKindAt('probe-seed', i));
+    expect(kinds).toContain('puzzle');
+    expect(kinds).toContain('trap');
+    expect(kinds.has('puzzle_or_trap')).toBe(false);
   });
 });
 

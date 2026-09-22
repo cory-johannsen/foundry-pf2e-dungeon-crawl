@@ -451,10 +451,10 @@ export async function populateSlotEncounter(
 
 /**
  * Spawn a real trap-tagged hazard from `pf2e.hazards` inside slot's own
- * footprint (#135), for a `puzzle_or_trap` room whose picked setpiece
- * resolved to a trap (`buildPopulateAndUnlockRoom`'s own job to know
- * that — this function doesn't care where `partyLevel`/`levelOffsetBias`
- * came from). Hidden, exactly like a combat room's own monsters
+ * footprint (#135), for a `trap` room (#32; `buildPopulateAndUnlockRoom`'s
+ * own job to know that — this function doesn't care where
+ * `partyLevel`/`levelOffsetBias` came from). Hidden, exactly like a combat
+ * room's own monsters
  * (`populateSlotEncounter` above) — `revealSlotTokens` already un-hides
  * anything flagged `dungeonSlot`, generic to token kind, so no changes
  * were needed there for this to work; #134's `rollTrapDetection` is what
@@ -465,8 +465,8 @@ export async function populateSlotEncounter(
  * `spawnCreatures` defaults to for monsters) — an unattended hazard isn't
  * anyone's combatant, same reasoning #96's cover items already use.
  * `trapHazard: true` alongside the usual `dungeonSlot` flag mirrors
- * #96/#146's own `coverItem` flag: nothing currently reads it (a
- * `puzzle_or_trap` room never starts a real Combat, so `dungeon-combat.mjs`'s
+ * #96/#146's own `coverItem` flag: nothing currently reads it (a `trap`
+ * room never starts a real Combat, so `dungeon-combat.mjs`'s
  * `combatantTokens` sweep never runs against this slot at all), but it's
  * cheap, harmless insurance against ever reintroducing that exact class of
  * bug for a hazard actor that, like a cover item, should never take a turn.
@@ -799,46 +799,43 @@ export async function buildPopulateAndUnlockRoom(
         template,
       });
     }
-    // #135: a puzzle_or_trap room's *specific* content (puzzle vs. trap) is
-    // still decided the existing way — dungeon-deck.mjs's setpieceAt shuffle
-    // over every dungeon-setpieces.json id, room.kind itself staying the
-    // generic 'puzzle_or_trap' bucket either way — only the resolved
-    // setpiece's own `kind` field, looked up here, says which one this
-    // occurrence actually is. A puzzle setpiece's own state is attached
-    // right here too (#109/#137) — it used to lazily attach itself the
-    // first time the room rendered in dungeon-app.mjs, the same pattern
-    // skill_challenge's own state used to use above before #109 moved it
-    // to this same build-time spot, for the same reason: a client only
-    // relaying a GM-less host's requests never renders DungeonApp at all.
-    // A trap setpiece additionally gets a real, mechanically-functional
-    // hazard spawned from pf2e.hazards for #134's engine to run.
-    if (room.kind === "puzzle_or_trap" && room.setpieceId) {
+    // #32: puzzle and trap are now decided up front as their own room kinds
+    // (dungeon-deck.mjs's ROOM_KIND_WEIGHTS/roomKindAt), so this dispatches
+    // directly on room.kind — no more resolving the setpiece just to find
+    // out which branch to take, the way the old combined 'puzzle_or_trap'
+    // kind required. A puzzle setpiece's own state is attached right here
+    // too (#109/#137) — it used to lazily attach itself the first time the
+    // room rendered in dungeon-app.mjs, the same pattern skill_challenge's
+    // own state used to use above before #109 moved it to this same
+    // build-time spot, for the same reason: a client only relaying a
+    // GM-less host's requests never renders DungeonApp at all. A trap room
+    // additionally gets a real, mechanically-functional hazard spawned from
+    // pf2e.hazards for #134's engine to run.
+    if (room.kind === "trap" && room.setpieceId) {
+      await populateSlotTrap(scene, physicalSlot, {
+        partyLevel: await makeFoundryApi().partyLevel(),
+        levelOffsetBias: depthBiasFor({
+          physicalSlot,
+          roomCount: state.rooms.length,
+          isGoal: room.isGoal,
+        }),
+        locationTag: room.locationTag,
+        seed: state.seed,
+      });
+    } else if (room.kind === "puzzle" && room.setpieceId) {
       const setpieces = await loadDungeonSetpieces();
       const setpiece = setpieces.find((s) => s.id === room.setpieceId);
-      if (setpiece?.kind === "trap") {
-        await populateSlotTrap(scene, physicalSlot, {
-          partyLevel: await makeFoundryApi().partyLevel(),
-          levelOffsetBias: depthBiasFor({
-            physicalSlot,
-            roomCount: state.rooms.length,
-            isGoal: room.isGoal,
-          }),
-          locationTag: room.locationTag,
-          seed: state.seed,
-        });
-      } else if (setpiece?.kind === "puzzle") {
-        await ensurePuzzleState(scene.id, room.id, {
-          hintChecks: setpiece.hintChecks,
-          requiredSuccesses: setpiece.requiredSuccesses ?? null,
-          partyLevel: await makeFoundryApi().partyLevel(),
-          name: setpiece.name ?? null,
-          summary: setpiece.summary ?? null,
-        });
-      }
+      await ensurePuzzleState(scene.id, room.id, {
+        hintChecks: setpiece.hintChecks,
+        requiredSuccesses: setpiece.requiredSuccesses ?? null,
+        partyLevel: await makeFoundryApi().partyLevel(),
+        name: setpiece.name ?? null,
+        summary: setpiece.summary ?? null,
+      });
     }
     // #167: a narrative room's own selected content is attached here too
-    // (#165 gives it a setpieceId the same way puzzle_or_trap has always
-    // had one) — persisted as `room.narrative` rather than read straight
+    // (#165 gives it a setpieceId the same way a puzzle or trap room has
+    // always had one) — persisted as `room.narrative` rather than read straight
     // off the raw setpiece (#165's original shape), so an external agent's
     // later customization (ensureNarrativeState's own docblock explains
     // why) has somewhere durable to land.
