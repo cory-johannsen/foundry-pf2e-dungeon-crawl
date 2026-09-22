@@ -125,3 +125,17 @@ may see the un-customized name/summary first and see it change in place
 only if and when a customization lands before the Dungeon Crawl tracker
 next re-renders. Accepted as the honest trade-off rather than blocking
 room display on it.
+
+## Standing customization loop (#19)
+
+`.claude/skills/dungeon-customizations` wraps the manual "check for and
+fulfill any pending dungeon customizations" flow above into a repeatable
+skill, and documents how to run it continuously: `/loop check for dungeon
+customizations`. This arms a `Monitor` on `tools/agent-loop/watch-pending.mjs`
+(`npm run agent-loop-watch` also runs it standalone), a dumb poller with no
+LLM/provider config of its own that prints one line whenever a new pending
+customization appears — giving the connected session a fast wake signal
+without a fixed cron cadence, and without reintroducing the
+hardcoded-provider coupling this MCP approach exists to avoid. See
+`docs/superpowers/specs/2026-09-21-dungeon-customization-agent-design.md`
+for the full design.
