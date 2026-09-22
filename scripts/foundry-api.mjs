@@ -13,6 +13,7 @@
 export const WRITE_METHODS = [
   "updateActor",
   "increaseCondition",
+  "decreaseCondition",
   "createEffect",
   "postChatCard",
   "addCoins",
@@ -579,6 +580,30 @@ export function makeFoundryApi(sceneRef = null) {
       console.warn(
         `Cannot apply condition ${condition} to ${actorId} — PF2e ConditionManager unavailable`,
       );
+    },
+
+    /**
+     * The inverse of `increaseCondition` (#31's `ready_foraging` — undoing a
+     * prior night's Fatigued rather than never applying it in the first
+     * place, since this module has no rest/rations resource of its own to
+     * track). Mirrors its actor.increaseCondition/ConditionManager split;
+     * a value that reaches (or would go below) zero removes the condition
+     * item outright rather than leaving a valueless one behind.
+     */
+    async decreaseCondition(actorId, condition, value) {
+      const actor = getActor(actorId);
+      if (typeof actor.decreaseCondition === "function") {
+        return actor.decreaseCondition(condition, { value });
+      }
+      const existing = actor.itemTypes?.condition?.find(
+        (c) => c.slug === condition,
+      );
+      if (!existing) return null;
+      const current = existing.system?.value?.value ?? 1;
+      if (current - value <= 0) {
+        return actor.deleteEmbeddedDocuments("Item", [existing.id]);
+      }
+      return existing.update({ "system.value.value": current - value });
     },
 
     async createEffect(actorId, effectData) {

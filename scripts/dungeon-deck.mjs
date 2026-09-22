@@ -167,6 +167,18 @@ function pickAt(seed, salt, items) {
   return weightedPick(items, r);
 }
 
+/**
+ * The same deterministic-per-salt pick `outcomeSlotAt`/`roomKindAt` use
+ * internally, exposed for callers outside this file that need a seeded,
+ * reproducible choice among their own candidates (e.g. dungeon-app.mjs
+ * picking which party member loses a gear item, or which bestiary entry
+ * answers a `friendly_aid` outcome) — uniform unless an item carries its
+ * own `.weight`.
+ */
+export function seededPick(seed, salt, items) {
+  return pickAt(seed, salt, items);
+}
+
 /** The room kind at a given absolute room index, deterministic per seed. */
 export function roomKindAt(seed, index) {
   return pickAt(seed, `kind-${index}`, ROOM_KIND_WEIGHTS).kind;
