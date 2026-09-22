@@ -16,7 +16,7 @@ export function traitOptionsHtml(traits, selected = []) {
 }
 
 export function wireTraitFilters(root) {
-  root.querySelectorAll('.dommt-trait-filter').forEach((input) => {
+  root.querySelectorAll('.pf2edc-trait-filter').forEach((input) => {
     input.addEventListener('input', () => {
       const select = root.querySelector(`select[name="${input.dataset.for}"]`);
       if (!select) return;
@@ -37,9 +37,9 @@ export function traitFieldHtml({ name, label, buttonLabel, selected = [] }) {
   return `
     <div class="form-group">
       <label>${label}</label>
-      <div class="dommt-trait-field">
-        <span class="dommt-trait-field__summary" data-for="${name}">${summaryText(selected)}</span>
-        <button type="button" class="dommt-trait-choose" data-for="${name}" data-title="${label}">${buttonLabel}</button>
+      <div class="pf2edc-trait-field">
+        <span class="pf2edc-trait-field__summary" data-for="${name}">${summaryText(selected)}</span>
+        <button type="button" class="pf2edc-trait-choose" data-for="${name}" data-title="${label}">${buttonLabel}</button>
       </div>
       <input type="hidden" name="${name}" value="${selected.join(',')}" />
     </div>`;
@@ -61,7 +61,7 @@ async function openTraitPickerDialog({ title, traits, selected }) {
     position: { width: 480 },
     content: `
       <form>
-        <input type="text" class="dommt-trait-filter" data-for="picker" placeholder="Filter…" />
+        <input type="text" class="pf2edc-trait-filter" data-for="picker" placeholder="Filter…" />
         <select name="picker" multiple size="16" style="width:100%; height:420px !important;">${traitOptionsHtml(traits, selected)}</select>
       </form>`,
     render: (_event, dialog) => wireTraitFilters(dialog.element),
@@ -79,18 +79,18 @@ async function openTraitPickerDialog({ title, traits, selected }) {
   });
 }
 
-/** Wires every `.dommt-trait-choose` button under `root` to open the popup
+/** Wires every `.pf2edc-trait-choose` button under `root` to open the popup
  * picker (fed by `traits`, the full available list) and write its result
  * back into that field's hidden input and summary text. */
 export function wireTraitPickerButtons(root, traits) {
-  root.querySelectorAll('.dommt-trait-choose').forEach((button) => {
+  root.querySelectorAll('.pf2edc-trait-choose').forEach((button) => {
     button.addEventListener('click', async () => {
       const name = button.dataset.for;
       const current = readTraitField(root, name);
       const result = await openTraitPickerDialog({ title: button.dataset.title, traits, selected: current });
       if (!result || result === 'cancel') return;
       root.querySelector(`input[type="hidden"][name="${name}"]`).value = result.join(',');
-      root.querySelector(`.dommt-trait-field__summary[data-for="${name}"]`).textContent = summaryText(result);
+      root.querySelector(`.pf2edc-trait-field__summary[data-for="${name}"]`).textContent = summaryText(result);
     });
   });
 }

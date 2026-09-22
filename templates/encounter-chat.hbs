@@ -3,13 +3,13 @@
   whisper chat card (after Accept) — same template, two callers, like
   card-chat.hbs and celtic-cross.hbs.
 --}}
-<div class="dommt-chat dommt-encounter">
-  <header class="dommt-chat__header">
+<div class="pf2edc-chat pf2edc-encounter">
+  <header class="pf2edc-chat__header">
     <h3>{{localize "PF2EDC.Encounter.Title"}}</h3>
   </header>
 
   {{#if roster.foes.length}}
-    <div class="dommt-encounter__section">
+    <div class="pf2edc-encounter__section">
       <strong>{{localize "PF2EDC.Encounter.FoeHeader"}}</strong>
       <ul>
         {{#each roster.foes}}
@@ -24,22 +24,22 @@
   {{/if}}
 
   {{#if roster.friend}}
-    <div class="dommt-encounter__section dommt-encounter__friend">
+    <div class="pf2edc-encounter__section pf2edc-encounter__friend">
       <strong>{{localize "PF2EDC.Encounter.FriendLabel"}}</strong>
       {{roster.friend.name}} ({{localize "PF2EDC.Encounter.LevelAbbrev"}} {{roster.friend.level}})
     </div>
   {{/if}}
 
   {{#if roster.lurker}}
-    <div class="dommt-encounter__section dommt-encounter__lurker">
+    <div class="pf2edc-encounter__section pf2edc-encounter__lurker">
       <strong>{{localize "PF2EDC.Encounter.LurkerLabel"}}</strong>
       {{roster.lurker.name}} ({{localize "PF2EDC.Encounter.LevelAbbrev"}} {{roster.lurker.level}})
-      <p class="dommt-encounter__hint">{{localize "PF2EDC.Encounter.LurkerHint"}}</p>
+      <p class="pf2edc-encounter__hint">{{localize "PF2EDC.Encounter.LurkerHint"}}</p>
     </div>
   {{/if}}
 
   {{#if roster.twins}}
-    <div class="dommt-encounter__section dommt-encounter__twin">
+    <div class="pf2edc-encounter__section pf2edc-encounter__twin">
       <strong>{{localize "PF2EDC.Encounter.TwinLabel"}}</strong>
       <ul>
         {{#each roster.twins}}
@@ -50,24 +50,24 @@
   {{/if}}
 
   {{#if roster.noncombat}}
-    <div class="dommt-encounter__section">
+    <div class="pf2edc-encounter__section">
       <strong>{{localize "PF2EDC.Encounter.NoncombatLabel"}}</strong>
     </div>
   {{/if}}
 
   {{#if roster.goal}}
-    <div class="dommt-encounter__section">
+    <div class="pf2edc-encounter__section">
       <strong>{{localize "PF2EDC.Encounter.GoalLabel"}}</strong>
     </div>
   {{/if}}
 
   {{#if roster.warnings.length}}
-    <ul class="dommt-encounter__warnings">
+    <ul class="pf2edc-encounter__warnings">
       {{#each roster.warnings}}<li>{{this}}</li>{{/each}}
     </ul>
   {{/if}}
 
-  <div class="dommt-encounter__severity">
+  <div class="pf2edc-encounter__severity">
     {{localize "PF2EDC.Encounter.ApproxSeverity"}}: {{roster.approxXp}} XP
   </div>
 </div>

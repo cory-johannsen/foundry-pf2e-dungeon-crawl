@@ -1,27 +1,27 @@
 /* ----- Dungeon crawl tracker ----- */
-.dommt-dungeon { display: flex; flex-direction: column; gap: 0.6rem; padding: 0.5rem; }
-.dommt-dungeon label { display: flex; flex-direction: column; gap: 0.2rem; font-weight: 600; }
-.dommt-dungeon footer { display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap; }
-.dommt-dungeon__progress { font-weight: 700; font-size: 1.1em; }
-.dommt-dungeon__room { border-left: 3px solid #7a5c2e; padding-left: 0.5rem; }
-.dommt-dungeon__setpiece-name { font-weight: 600; margin: 0.3rem 0 0.1rem; }
-.dommt-dungeon__history { max-height: 220px; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.3rem; }
-.dommt-dungeon__history-entry { display: flex; gap: 0.5rem; font-size: 0.85em; padding: 0.15rem 0; }
-.dommt-dungeon__history-outcome { font-weight: 600; min-width: 5em; }
+.pf2edc-dungeon { display: flex; flex-direction: column; gap: 0.6rem; padding: 0.5rem; }
+.pf2edc-dungeon label { display: flex; flex-direction: column; gap: 0.2rem; font-weight: 600; }
+.pf2edc-dungeon footer { display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap; }
+.pf2edc-dungeon__progress { font-weight: 700; font-size: 1.1em; }
+.pf2edc-dungeon__room { border-left: 3px solid #7a5c2e; padding-left: 0.5rem; }
+.pf2edc-dungeon__setpiece-name { font-weight: 600; margin: 0.3rem 0 0.1rem; }
+.pf2edc-dungeon__history { max-height: 220px; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.3rem; }
+.pf2edc-dungeon__history-entry { display: flex; gap: 0.5rem; font-size: 0.85em; padding: 0.15rem 0; }
+.pf2edc-dungeon__history-outcome { font-weight: 600; min-width: 5em; }
 
 /* ----- Trait picker (encounter theme + dungeon-start forms) ----- */
-.dommt-trait-field { display: flex; align-items: center; gap: 0.5rem; }
-.dommt-trait-field__summary { flex: 1; font-style: italic; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf2edc-trait-field { display: flex; align-items: center; gap: 0.5rem; }
+.pf2edc-trait-field__summary { flex: 1; font-style: italic; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ----- Encounter generator ----- */
-.dommt-chat { display: flex; flex-direction: column; gap: 0.5rem; }
-.dommt-chat__header { display: flex; justify-content: space-between; align-items: baseline; }
-.dommt-chat__header h3 { margin: 0; }
-.dommt-encounter__section { padding: 0.2rem 0; }
-.dommt-encounter__section ul { margin: 0.2rem 0; padding-left: 1.2rem; }
-.dommt-encounter__friend { border-left: 3px solid #4c8c4a; padding-left: 0.5rem; }
-.dommt-encounter__lurker { border-left: 3px solid #8c4a4a; padding-left: 0.5rem; }
-.dommt-encounter__twin { border-left: 3px solid #4a6c8c; padding-left: 0.5rem; }
-.dommt-encounter__hint { font-size: 0.85em; font-style: italic; opacity: 0.8; margin: 0.2rem 0 0; }
-.dommt-encounter__warnings { color: #b5651d; font-size: 0.85em; }
-.dommt-encounter__severity { font-weight: 600; margin-top: 0.3rem; }
+.pf2edc-chat { display: flex; flex-direction: column; gap: 0.5rem; }
+.pf2edc-chat__header { display: flex; justify-content: space-between; align-items: baseline; }
+.pf2edc-chat__header h3 { margin: 0; }
+.pf2edc-encounter__section { padding: 0.2rem 0; }
+.pf2edc-encounter__section ul { margin: 0.2rem 0; padding-left: 1.2rem; }
+.pf2edc-encounter__friend { border-left: 3px solid #4c8c4a; padding-left: 0.5rem; }
+.pf2edc-encounter__lurker { border-left: 3px solid #8c4a4a; padding-left: 0.5rem; }
+.pf2edc-encounter__twin { border-left: 3px solid #4a6c8c; padding-left: 0.5rem; }
+.pf2edc-encounter__hint { font-size: 0.85em; font-style: italic; opacity: 0.8; margin: 0.2rem 0 0; }
+.pf2edc-encounter__warnings { color: #b5651d; font-size: 0.85em; }
+.pf2edc-encounter__severity { font-weight: 600; margin-top: 0.3rem; }

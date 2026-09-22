@@ -28,10 +28,10 @@ for the full design.
    ANTHROPIC_API_KEY=<your Claude API key, only needed for combat-turn decisions>
    ```
 
-   `FOUNDRY_CLIENT_ID` and `DOMMT_AGENT_PROVIDER` (default `claude`) and
-   `DOMMT_POLL_INTERVAL_MS` (default `3000`) are optional overrides.
+   `FOUNDRY_CLIENT_ID` and `PF2EDC_AGENT_PROVIDER` (default `claude`) and
+   `PF2EDC_POLL_INTERVAL_MS` (default `3000`) are optional overrides.
 
-   **To use Laya instead of Claude** (`DOMMT_AGENT_PROVIDER=laya`), add:
+   **To use Laya instead of Claude** (`PF2EDC_AGENT_PROVIDER=laya`), add:
 
    ```
    LAYA_API_KEY=<your Laya deployment's key, if auth is enabled>

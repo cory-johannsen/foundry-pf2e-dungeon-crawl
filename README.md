@@ -19,9 +19,9 @@ module is required.
 
 Two macros are installed automatically on first load (GM only):
 
-- **DOMMT: Generate Encounter** — a standalone encounter generator, usable
+- **PF2EDC: Generate Encounter** — a standalone encounter generator, usable
   outside a dungeon run.
-- **DOMMT: Dungeon Crawl** — opens the dungeon tracker; starts a new run or
+- **PF2EDC: Dungeon Crawl** — opens the dungeon tracker; starts a new run or
   resumes/observes one already in progress.
 
 Both are also reachable from script/console via the module API:

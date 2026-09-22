@@ -1,10 +1,10 @@
 {{#if hasScene}}
   {{#if hasRun}}
-    <div class="dommt-dungeon">
+    <div class="pf2edc-dungeon">
       {{#unless interactive}}
         <p class="hint">{{localize "PF2EDC.Dungeon.ReadOnlyHint" host=hostName}}</p>
       {{/unless}}
-      <div class="dommt-dungeon__progress">
+      <div class="pf2edc-dungeon__progress">
         {{#if completed}}
           {{localize "PF2EDC.Dungeon.Completed"}}
         {{else}}
@@ -21,14 +21,14 @@
       </div>
 
       {{#if objective}}
-        <p class="dommt-dungeon__objective">{{localize
+        <p class="pf2edc-dungeon__objective">{{localize
             "PF2EDC.Dungeon.CurrentObjective"
             objective=objective
           }}</p>
       {{/if}}
 
       {{#if currentRoom}}
-        <div class="dommt-dungeon__room">
+        <div class="pf2edc-dungeon__room">
           {{#if currentRoom.isGoal}}
             <strong>{{localize "PF2EDC.Dungeon.Kind.goal"}}</strong>
           {{else}}
@@ -37,7 +37,7 @@
 
           {{#if currentRoom.setpiece}}
             <p
-              class="dommt-dungeon__setpiece-name"
+              class="pf2edc-dungeon__setpiece-name"
             >{{currentRoom.setpiece.name}}</p>
             <p>{{currentRoom.setpiece.summary}}</p>
           {{/if}}
@@ -85,10 +85,10 @@
               </footer>
             {{/if}}
           {{else if isSkillChallenge}}
-            <div class="dommt-dungeon__skill-challenge">
+            <div class="pf2edc-dungeon__skill-challenge">
               {{#if challenge.templateName}}
                 <p
-                  class="dommt-dungeon__setpiece-name"
+                  class="pf2edc-dungeon__setpiece-name"
                 >{{challenge.templateName}}</p>
                 <p>{{challenge.templateSummary}}</p>
               {{/if}}
@@ -102,7 +102,7 @@
                   n=challenge.attemptsRemaining
                 }}</p>
               {{#if challenge.templateName}}
-                <ul class="dommt-dungeon__skill-flavor">
+                <ul class="pf2edc-dungeon__skill-flavor">
                   {{#each challenge.specialtySkills}}
                     <li>
                       <strong>{{this.label}}</strong>
@@ -118,7 +118,7 @@
                     }}, {{/unless}}{{/each}}
                 </p>
               {{/if}}
-              <form class="dommt-dungeon__skill-challenge-form">
+              <form class="pf2edc-dungeon__skill-challenge-form">
                 <label>
                   {{localize "PF2EDC.Dungeon.SkillChallenge.WhoLabel"}}
                   <select name="actorId">
@@ -146,7 +146,7 @@
               </form>
             </div>
           {{else if isNarrativeRoom}}
-            <div class="dommt-dungeon__narrative">
+            <div class="pf2edc-dungeon__narrative">
               {{#unless currentRoom.setpiece}}
                 <p class="hint">{{localize
                     "PF2EDC.Dungeon.Narrative.Placeholder"
@@ -157,10 +157,10 @@
                 shared name/summary already rendered above via the generic
                 currentRoom.setpiece block. }}
               {{#if narrative.revealText}}
-                <p class="dommt-dungeon__narrative-reveal">{{narrative.revealText}}</p>
+                <p class="pf2edc-dungeon__narrative-reveal">{{narrative.revealText}}</p>
               {{/if}}
               {{#if narrative.npcHook}}
-                <p class="dommt-dungeon__narrative-npc">
+                <p class="pf2edc-dungeon__narrative-npc">
                   <strong>{{narrative.npcName}}</strong> — {{narrative.npcHook}}
                 </p>
               {{/if}}
@@ -170,7 +170,7 @@
                   the picked option's own consequence text becomes the
                   run's objective directly, so there's nothing left to
                   free-type. }}
-                <div class="dommt-dungeon__narrative-options">
+                <div class="pf2edc-dungeon__narrative-options">
                   {{#each narrative.options}}
                     <button
                       type="button"
@@ -180,11 +180,11 @@
                   {{/each}}
                 </div>
               {{else}}
-                <form class="dommt-dungeon__narrative-form">
+                <form class="pf2edc-dungeon__narrative-form">
                   <label>
                     {{localize "PF2EDC.Dungeon.Narrative.ObjectiveLabel"}}
                     <textarea
-                      name="dommt-narrative-objective"
+                      name="pf2edc-narrative-objective"
                       placeholder="{{localize
                         'PF2EDC.Dungeon.Narrative.ObjectivePlaceholder'
                       }}"
@@ -197,7 +197,7 @@
               {{/if}}
             </div>
           {{else if isTreasureRoom}}
-            <div class="dommt-dungeon__treasure">
+            <div class="pf2edc-dungeon__treasure">
               {{#unless currentRoom.setpiece}}
                 <p class="hint">{{localize
                     "PF2EDC.Dungeon.Treasure.Placeholder"
@@ -210,7 +210,7 @@
               </footer>
             </div>
           {{else if isPuzzleRoom}}
-            <div class="dommt-dungeon__puzzle">
+            <div class="pf2edc-dungeon__puzzle">
               {{! puzzle.summary is already shown above via the generic
                   currentRoom.setpiece block, which reads the same
                   (possibly agent-customized) persisted summary - not
@@ -220,7 +220,7 @@
                   successes=puzzle.successes
                   target=puzzle.requiredSuccesses
                 }}</p>
-              <ul class="dommt-dungeon__puzzle-stages">
+              <ul class="pf2edc-dungeon__puzzle-stages">
                 {{#each puzzle.stages}}
                   <li>
                     {{#if this.attempted}}
@@ -235,7 +235,7 @@
                       {{/if}}
                     {{else}}
                       <form
-                        class="dommt-dungeon__puzzle-stage-form"
+                        class="pf2edc-dungeon__puzzle-stage-form"
                         data-stage-index="{{this.index}}"
                       >
                         <label>
@@ -260,7 +260,7 @@
                 {{/each}}
               </ul>
               {{#if puzzle.solution}}
-                <p class="dommt-dungeon__puzzle-solution">{{puzzle.solution}}</p>
+                <p class="pf2edc-dungeon__puzzle-solution">{{puzzle.solution}}</p>
               {{/if}}
             </div>
           {{else}}
@@ -294,11 +294,11 @@
       {{/unless}}
 
       {{#if history.length}}
-        <div class="dommt-dungeon__history">
+        <div class="pf2edc-dungeon__history">
           {{#each history}}
-            <div class="dommt-dungeon__history-entry">
+            <div class="pf2edc-dungeon__history-entry">
               <span
-                class="dommt-dungeon__history-outcome"
+                class="pf2edc-dungeon__history-outcome"
               >{{this.outcomeLabel}}</span>
               <span>{{this.effectLabel}}</span>
             </div>
@@ -316,7 +316,7 @@
       </footer>
     </div>
   {{else}}
-    <form class="dommt-dungeon">
+    <form class="pf2edc-dungeon">
       <label>
         {{localize "PF2EDC.Dungeon.RoomCountLabel"}}
         <input
