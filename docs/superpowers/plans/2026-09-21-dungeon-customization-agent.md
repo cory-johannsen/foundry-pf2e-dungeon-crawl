@@ -215,7 +215,7 @@ In `package.json`, in the `"scripts"` object, add (alongside the existing `"agen
 - [ ] **Step 6: Run the full test suite to confirm nothing else broke**
 
 Run: `npm test`
-Expected: all existing suites still pass, plus the 6 new tests (total count increases by 6 from the pre-task baseline).
+Expected: all existing suites still pass, plus the 7 new tests (baseline 1242 passing → 1249 passing).
 
 - [ ] **Step 7: Commit**
 
