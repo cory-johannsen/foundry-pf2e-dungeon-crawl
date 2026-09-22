@@ -16,6 +16,7 @@
         "name": { "type": "string", "minLength": 1 },
         "difficulty": { "type": "string", "enum": ["easy", "medium", "hard"] },
         "summary": { "type": "string", "minLength": 1 },
+        "playerDescription": { "type": "string", "minLength": 1 },
         "complete": {
           "type": "boolean",
           "description": "False for a set-piece named in the source but not fully written out there — see summary for what's missing."
@@ -75,11 +76,11 @@
       "allOf": [
         {
           "if": { "properties": { "kind": { "const": "puzzle" } } },
-          "then": { "required": ["difficulty", "source"] }
+          "then": { "required": ["difficulty", "source", "playerDescription"] }
         },
         {
           "if": { "properties": { "kind": { "const": "trap" } } },
-          "then": { "required": ["difficulty", "source"] }
+          "then": { "required": ["difficulty", "source", "playerDescription"] }
         },
         {
           "if": {

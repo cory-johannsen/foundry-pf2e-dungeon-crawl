@@ -642,6 +642,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     return {
       hasScene: true,
       hasRun: true,
+      isGM: game.user.isGM,
       interactive,
       hostName,
       sceneId,
@@ -711,6 +712,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
         setpiece: setpiece && {
           name: puzzle?.name ?? narrative?.name ?? setpiece.name,
           summary: puzzle?.summary ?? narrative?.summary ?? setpiece.summary,
+          playerDescription: setpiece.playerDescription ?? null,
           complete: setpiece.complete,
         },
       },

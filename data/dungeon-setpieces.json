@@ -6,6 +6,7 @@
     "difficulty": "easy",
     "complete": true,
     "summary": "A statue of a halfling holds one card (the Rogue) and speaks a riddle naming four missing cards — Sage, Jester, Knight, Fates — and how each relates to the others (who dislikes being next to whom, who gazes at whom, who stands beside whom, orientation included). The party must find the four missing cards elsewhere nearby, then arrange all five in the statue's hand — in the correct order, each upright or reversed per the riddle — to slide the statue aside and reveal a secret door.",
+    "playerDescription": "A stone halfling statue stands in an alcove, a single tarot card — the Rogue — held in its carved hand. Faded card-shaped depressions ring the wall around it, four of them empty. When approached, the statue speaks in a dry, papery voice, reciting a riddle about companions who dislike, admire, and stand beside one another.",
     "hintChecks": [
       {
         "skill": "Perception",
@@ -33,6 +34,7 @@
     "difficulty": "medium",
     "complete": true,
     "summary": "A ghostly jester challenges the party to a Mastermind-style guessing game. She secretly holds four cards (drawn from six possibilities — Comet, Gem, Moon, Skull, Star, Sun — repeats allowed) face down. The party places a guess of four cards into a row; for each guess, a correct card in the correct position scores a red marker and a correct card in the wrong position scores a blue marker. Ten guesses total. Solving it in six or fewer wins a bonus treasure on top of the normal prize for winning at all.",
+    "playerDescription": "A translucent, faintly luminous jester lounges atop an overturned barrel, shuffling a deck that never seems to run out. She grins and lays four cards face-down in a row, inviting the party to guess — offering hints of red and blue after each attempt, and a bored little bow whether they win or lose.",
     "hintChecks": [
       {
         "skill": "Diplomacy",
@@ -51,6 +53,7 @@
     "difficulty": "hard",
     "complete": true,
     "summary": "A luminous warding glyph bars the way forward, inscribed with three distinct trial-marks — a spoken passphrase in a dead liturgical tongue, a minor ward-glyph that must be carefully unwound rather than broken, and a sigil that only answers to a specific gesture of respect. The ward was built to test three different kinds of worthiness, not just brute force.",
+    "playerDescription": "A luminous glyph blocks the passage ahead, its light pulsing faintly. Around its edge, three distinct marks are etched into the stone — one shaped like a mouth, one like a coiled thread, one like an open hand — each glowing faintly brighter as anyone nears it.",
     "hintChecks": [
       { "skill": "Religion", "dc": 10, "hint": "The liturgical passphrase isn't gibberish — it's a common invocation from a faith this dungeon's builders clearly practiced, just archaically phrased." },
       { "skill": "Arcana", "dc": 10, "hint": "The ward-glyph has a single thread that, pulled in the right order, unravels the whole working harmlessly — force instead triggers its ward." },
@@ -67,6 +70,7 @@
     "difficulty": "medium",
     "complete": true,
     "summary": "A stone door is sealed by an ancient gear-and-lever mechanism set into the wall beside it — three visible components: a stuck iron lever, a bank of interlocking dials etched with unfamiliar glyphs, and a tension crank that needs steady, careful pressure to avoid snapping its own cable. All three need to be understood and worked together before the door will budge.",
+    "playerDescription": "A stone door is set into the wall, flanked by a rusted mechanism bolted directly into the stone: a stuck iron lever jutting at an odd angle, a bank of dials etched with worn, unfamiliar glyphs, and a hand-crank straining against some unseen tension. The whole assembly groans faintly, as if still half-alive.",
     "hintChecks": [
       { "skill": "Athletics", "dc": 10, "hint": "The lever isn't broken, just corroded solid — it needs brute, sustained force, not a sharp yank." },
       { "skill": "Crafting", "dc": 10, "hint": "The dials aren't decorative — turning them in the right sequence is what actually unlocks the mechanism, not the lever alone." },
@@ -83,6 +87,7 @@
     "difficulty": "medium",
     "complete": true,
     "summary": "A locked cabinet holds a dozen labeled reagent vials, most inert, a few genuinely useful, one outright dangerous if mishandled. A brass plate beside it reads: \"Combine what answers true need, and the false lock falls away.\" The party must pick the right two or three vials and mix them correctly to dissolve the seal on a hidden compartment.",
+    "playerDescription": "A locked cabinet of dark wood and cracked glass holds a dozen labeled vials, each a different color and consistency — most inert-looking, one or two faintly worrying. A tarnished brass plate is bolted beside the lock, its engraving worn but legible up close.",
     "hintChecks": [
       { "skill": "Crafting", "dc": 10, "hint": "Half these labels are deliberately misleading — the vial's actual color and weight tell the true story, not the handwriting on it." },
       { "skill": "Nature", "dc": 10, "hint": "Two of the vials hold genuine plant extracts; everything else is mineral dust with no reaction at all." },
@@ -99,6 +104,7 @@
     "difficulty": "hard",
     "complete": true,
     "summary": "An ossuary chamber displays a wall of skeletal remains arranged into a deliberate tableau — a funerary procession frozen mid-stride, one skull turned to face the room rather than the wall. Pressing the wrong skull triggers nothing obvious, but pressing the right one — the one the tableau's own composition marks as significant — opens a passage beneath the floor.",
+    "playerDescription": "An ossuary chamber holds a wall of bones arranged into a frozen funerary procession — dozens of skulls set into deliberate poses, all facing away down the corridor of the dead... except one, turned to stare directly into the room.",
     "hintChecks": [
       { "skill": "Religion", "dc": 10, "hint": "The procession's arrangement matches a funerary rite for the dishonored, not the honored — the outward-facing skull was the one being mourned, not the one leading it." },
       { "skill": "Society", "dc": 10, "hint": "The remains' dress and posture place this burial several centuries before the rest of the dungeon's construction — this chamber predates everything around it." },
@@ -115,6 +121,7 @@
     "difficulty": "medium",
     "complete": true,
     "summary": "A ballroom of translucent, spectral courtiers replays the same masquerade on an endless loop, utterly indifferent to the living — until addressed correctly. The party must be accepted as guests rather than intruders to be allowed to cross to the far doors without the whole ghostly court turning hostile at once.",
+    "playerDescription": "A vast ballroom shimmers with translucent, spectral dancers endlessly repeating the same masquerade, their music and laughter carrying no warmth. None of them acknowledge the party's presence — yet.",
     "hintChecks": [
       { "skill": "Diplomacy", "dc": 10, "hint": "The courtiers only ever address each other by invented masquerade names, never real ones — using a real name marks you as an outsider instantly." },
       { "skill": "Performance", "dc": 10, "hint": "The loop has a rhythm — a recurring dance figure everyone in the room steps through at the same interval. Matching it, even roughly, reads as belonging." },
@@ -130,6 +137,7 @@
     "difficulty": "medium",
     "complete": false,
     "summary": "(mechanics not transcribed — the book's Chapter 4 \"Trap Rooms\" section names this trap but gives no base write-up anywhere in the printed text; it only reappears, modified, as a room in the Gardmore Abbey adventure later in the book: a narrow beam spanning a pit of grinding gears, with a pressure plate that raises spiked metal walls when weight shifts to the wrong side of the beam.)",
+    "playerDescription": "A narrow stone beam spans a pit filled with slowly grinding iron gears far below. A faint seam runs along part of the beam's surface, barely visible underfoot.",
     "source": {
       "chapter": 4,
       "note": "Only a reused, modified version survives in this copy, in the Gardmore Abbey chapter."
@@ -142,6 +150,7 @@
     "difficulty": "medium",
     "complete": false,
     "summary": "(mechanics not transcribed — named only in Chapter 4's \"Trap Rooms\" list, with no base write-up in the printed text; it reappears, modified, in the Gardmore Abbey chapter as three parallel halls under a scorching ceiling that deals fire damage to anyone inside each round.)",
+    "playerDescription": "Three parallel halls stretch ahead, their ceilings glowing a dull, angry orange. Waves of heat roll off the stone in visible shimmers, and the air itself feels thin and scorched.",
     "source": {
       "chapter": 4,
       "note": "Only a reused, modified version survives in this copy, in the Gardmore Abbey chapter."
@@ -154,6 +163,7 @@
     "difficulty": "medium",
     "complete": false,
     "summary": "(mechanics not transcribed — named only in Chapter 4's \"Trap Rooms\" list, with no base write-up in the printed text; it reappears, modified, in the Gardmore Abbey chapter as a chamber with a portcullis, a moon-phase glyph, and a lever puzzle gating passage north.)",
+    "playerDescription": "An iron portcullis bars the way north, set beneath a carved glyph depicting the phases of the moon. A single lever juts from the wall beside it, worn smooth by countless hands.",
     "source": {
       "chapter": 4,
       "note": "Only a reused, modified version survives in this copy, in the Gardmore Abbey chapter."
