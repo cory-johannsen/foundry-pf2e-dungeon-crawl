@@ -151,12 +151,13 @@ async function whisperGm(content) {
  * empty reminders."
  *
  * Excludes `grab`/`improved-grab`/`tongue-grab` (#51's `GRAB_RIDER_SLUGS`,
- * defined below) and `knockdown`/`improved-knockdown` (`KNOCKDOWN_RIDER_SLUGS`,
- * also below): `resolveGrabRider`/`resolveKnockdownRider` now auto-resolve
- * those and whisper their own real result immediately after this call at
- * both call sites -- leaving them in here would whisper a stale "resolve
- * this manually" reminder right next to the actual automated outcome,
- * telling the GM to do work that already happened.
+ * defined below), `knockdown`/`improved-knockdown` (`KNOCKDOWN_RIDER_SLUGS`),
+ * and `push`/`improved-push` (`PUSH_RIDER_SLUGS`): `resolveGrabRider`/
+ * `resolveKnockdownRider`/dungeon-combat.mjs's own push resolution now
+ * auto-resolve those and whisper their own real result immediately after
+ * this call at both call sites -- leaving them in here would whisper a
+ * stale "resolve this manually" reminder right next to the actual
+ * automated outcome, telling the GM to do work that already happened.
  */
 export async function postStrikeRiderReminder(combatant, strike, outcome) {
   if (outcome !== "success" && outcome !== "criticalSuccess") return;
@@ -166,7 +167,8 @@ export async function postStrikeRiderReminder(combatant, strike, outcome) {
   ).filter(
     (rider) =>
       !GRAB_RIDER_SLUGS.has(rider.slug) &&
-      !KNOCKDOWN_RIDER_SLUGS.has(rider.slug),
+      !KNOCKDOWN_RIDER_SLUGS.has(rider.slug) &&
+      !PUSH_RIDER_SLUGS.has(rider.slug),
   );
   if (riders.length === 0) return;
 
@@ -182,13 +184,18 @@ export async function postStrikeRiderReminder(combatant, strike, outcome) {
 
 const GRAB_RIDER_SLUGS = new Set(["grab", "improved-grab", "tongue-grab"]);
 const KNOCKDOWN_RIDER_SLUGS = new Set(["knockdown", "improved-knockdown"]);
+export const PUSH_RIDER_SLUGS = new Set(["push", "improved-push"]);
 
 /**
  * Shared shape behind every #51 mechanized rider so far: on a hit whose
  * strike carries one of `slugs`, rolls the attacker's own Athletics check
- * against the target's `saveKey` DC and, on success, applies `conditionSlug`
- * -- PF2e's real action (Grapple, Trip, ...) these rider abilities each
- * trigger. `label` names that action in the GM-whispered result.
+ * against the target's `saveKey` DC and, on success, runs `onSuccess`
+ * (given the roll's own outcome, `"success"` or `"criticalSuccess"`) --
+ * PF2e's real action (Grapple, Trip, Shove, ...) these rider abilities
+ * each trigger. `onSuccess` performs whatever that action's real effect is
+ * (apply a condition, move a token, ...) and returns a short description
+ * used in the GM-whispered result; `label` names the action itself in that
+ * same whisper.
  *
  * Only fires on an actual hit (`success`/`criticalSuccess`), matching
  * `postStrikeRiderReminder`'s own gate, and only when both an Athletics
@@ -202,16 +209,25 @@ const KNOCKDOWN_RIDER_SLUGS = new Set(["knockdown", "improved-knockdown"]);
  * `postStrikeRiderReminder`/`drawCriticalCardForStrike` alongside it don't
  * re-wrap either.
  *
+ * Exported (not just used internally by `resolveGrabRider`/
+ * `resolveKnockdownRider` below) so dungeon-combat.mjs's push resolution
+ * can call it directly with a movement `onSuccess` -- pushing a token is
+ * combat/pathfinding-coupled enough (reuses `posturePath`/`walkPath`) that
+ * it has to live in dungeon-combat.mjs itself rather than importing that
+ * machinery into this file, which would create a circular import (this
+ * file's own resolvers are already imported the other way, by
+ * dungeon-combat.mjs).
+ *
  * Returns the triggered action's own outcome (distinct from `outcome`, the
  * Strike's own attack-roll outcome this was gated on), or `null` when
  * nothing was rolled at all.
  */
-async function resolveAthleticsRider(
+export async function resolveAthleticsRider(
   combatant,
   target,
   strike,
   outcome,
-  { slugs, saveKey, conditionSlug, conditionLabel, label },
+  { slugs, saveKey, onSuccess, label },
 ) {
   if (outcome !== "success" && outcome !== "criticalSuccess") return null;
   const riders = extractRiderEffects(strike, combatant?.actor?.items ?? []);
@@ -227,16 +243,26 @@ async function resolveAthleticsRider(
 
   const attacker = escapeHtml(combatant?.name ?? "Attacker");
   if (rollOutcome === "success" || rollOutcome === "criticalSuccess") {
-    await target.actor.increaseCondition(conditionSlug);
+    const resultText = await onSuccess(rollOutcome);
     await whisperGm(
-      `<p><strong>${label} (${attacker}):</strong> Athletics check succeeded — target is now ${conditionLabel}.</p>`,
+      `<p><strong>${label} (${attacker}):</strong> Athletics check succeeded — ${resultText}.</p>`,
     );
   } else {
     await whisperGm(
-      `<p><strong>${label} (${attacker}):</strong> Athletics check failed — target is not ${conditionLabel}.</p>`,
+      `<p><strong>${label} (${attacker}):</strong> Athletics check failed — no effect.</p>`,
     );
   }
   return rollOutcome;
+}
+
+/** Wraps a plain condition-application `onSuccess` for `resolveAthleticsRider`
+ * -- the shape `resolveGrabRider`/`resolveKnockdownRider` both need, spelled
+ * out once. */
+function applyConditionOnSuccess(target, conditionSlug, conditionLabel) {
+  return async () => {
+    await target.actor.increaseCondition(conditionSlug);
+    return `target is now ${conditionLabel}`;
+  };
 }
 
 /**
@@ -253,8 +279,7 @@ export async function resolveGrabRider(combatant, target, strike, outcome) {
   return resolveAthleticsRider(combatant, target, strike, outcome, {
     slugs: GRAB_RIDER_SLUGS,
     saveKey: "fortitude",
-    conditionSlug: "grabbed",
-    conditionLabel: "Grabbed",
+    onSuccess: applyConditionOnSuccess(target, "grabbed", "Grabbed"),
     label: "Grapple",
   });
 }
@@ -273,8 +298,7 @@ export async function resolveKnockdownRider(combatant, target, strike, outcome) 
   return resolveAthleticsRider(combatant, target, strike, outcome, {
     slugs: KNOCKDOWN_RIDER_SLUGS,
     saveKey: "reflex",
-    conditionSlug: "prone",
-    conditionLabel: "Prone",
+    onSuccess: applyConditionOnSuccess(target, "prone", "Prone"),
     label: "Knockdown",
   });
 }
