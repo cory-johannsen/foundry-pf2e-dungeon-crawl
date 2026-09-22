@@ -39,6 +39,7 @@ import {
   startCombatForSlot,
   getCombatForSlot,
   resolveSlotCombat,
+  unpauseIfGmLessRun,
 } from "../dungeon-combat.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -194,6 +195,12 @@ export async function startDungeonRun({
   );
   await placePartyInSlot(scene, 0, partyMembers, state.seed);
   await scene.activate();
+  // #18: a GM-less run can begin already paused (Foundry's own pause state
+  // is unrelated to this module and can land at any time, e.g. on world
+  // reactivation or a GM client reconnecting) — lift it now, right as the
+  // party's dropped in and should be able to act, rather than leaving it
+  // stuck until whatever combat happens to start first.
+  unpauseIfGmLessRun(scene.id);
   // The canvas doesn't finish switching to the new scene the instant
   // activate() resolves — animatePan needs a beat to land on it, same
   // settling delay scene-divination.mjs already relies on for its own
