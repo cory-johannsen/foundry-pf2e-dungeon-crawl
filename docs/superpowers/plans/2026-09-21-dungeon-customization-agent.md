@@ -29,8 +29,8 @@
 - Test: `tests/agent-loop-watch-pending.test.mjs`
 
 **Interfaces:**
-- Consumes: `listPendingCustomizations(sceneId, opts)` from `tools/agent-loop/mcp-server.mjs` (already exported, returns `Promise<Array<{kind: "trap"|"skill_challenge"|"puzzle"|"narrative", sceneId?, actorId?, roomId?, name?, ...}>>` — trap entries have no `sceneId` field, per the existing fixtures in `tests/agent-loop-mcp-server.test.mjs`; the other three kinds do). `readEnvOrDotenv(name)` from `tools/agent-loop/foundry-client.mjs`.
-- Produces: `keyForPending(entry)` → `string`, the identity key for one pending entry (`trap:<actorId>` for a trap; `<kind>:<sceneId>:<roomId>` for the other three kinds). `diffPending(previousKeys, currentEntries)` → `{ newEntries: Array<Entry>, currentKeys: Set<string> }`, a pure function over one poll's snapshot. Both are imported directly by this task's tests; no other task depends on them (the skill in Task 2 only depends on `watch-pending.mjs`'s **stdout line format**, described in Task 2, not on these functions).
+- Consumes: `listPendingCustomizations(sceneId, opts)` from `tools/agent-loop/mcp-server.mjs` (already exported, returns `Promise<Array<{kind: "trap"|"skill_challenge"|"puzzle"|"narrative", sceneId, actorId?, roomId?, name?, ...}>>` — confirmed against `scripts/trap-combat.mjs`'s `getPendingTrapCustomization` and `scripts/dungeon-runner.mjs`'s `getPendingSkillChallengeCustomization`/`getPendingPuzzleCustomization`/`getPendingNarrativeCustomization`: all four kinds carry `sceneId`, trap included). `readEnvOrDotenv(name)` from `tools/agent-loop/foundry-client.mjs`.
+- Produces: `keyForPending(entry)` → `string`, the identity key for one pending entry — uniformly `<kind>:<sceneId>:<id>`, where `<id>` is `actorId` for a trap and `roomId` for the other three kinds. `diffPending(previousKeys, currentEntries)` → `{ newEntries: Array<Entry>, currentKeys: Set<string> }`, a pure function over one poll's snapshot. Both are imported directly by this task's tests; no other task depends on them (the skill in Task 2 only depends on `watch-pending.mjs`'s **stdout line format**, described in Task 2, not on these functions).
 
 Reusing `listPendingCustomizations` directly (rather than re-issuing an equivalent relay script by hand) is a small, deliberate refinement of the spec's Detector-script section: the spec's intent — this script and `mcp-server.mjs` don't share *runtime state* or a *running process* — holds regardless, since they're always two separate `node` invocations; importing the same already-exported, side-effect-free function is the DRY choice and avoids maintaining two copies of the same relay-script string.
 
@@ -42,7 +42,12 @@ Create `tests/agent-loop-watch-pending.test.mjs`:
 import { describe, it, expect } from "vitest";
 import { keyForPending, diffPending } from "../tools/agent-loop/watch-pending.mjs";
 
-const trapEntry = { kind: "trap", actorId: "trap1", name: "Scythe Blades" };
+const trapEntry = {
+  kind: "trap",
+  sceneId: "scene-1",
+  actorId: "trap1",
+  name: "Scythe Blades",
+};
 const narrativeEntry = {
   kind: "narrative",
   sceneId: "scene-1",
@@ -52,8 +57,8 @@ const narrativeEntry = {
 };
 
 describe("keyForPending", () => {
-  it("keys a trap entry by actorId alone (trap entries carry no sceneId)", () => {
-    expect(keyForPending(trapEntry)).toBe("trap:trap1");
+  it("keys a trap entry by kind, sceneId, and actorId", () => {
+    expect(keyForPending(trapEntry)).toBe("trap:scene-1:trap1");
   });
 
   it("keys a non-trap entry by kind, sceneId, and roomId", () => {
@@ -70,30 +75,30 @@ describe("diffPending", () => {
       [trapEntry, narrativeEntry],
     );
     expect(newEntries).toEqual([trapEntry, narrativeEntry]);
-    expect(currentKeys).toEqual(new Set(["trap:trap1", "narrative:scene-1:room-1"]));
+    expect(currentKeys).toEqual(new Set(["trap:scene-1:trap1", "narrative:scene-1:room-1"]));
   });
 
   it("does not re-report an entry already in the previous key set", () => {
-    const previousKeys = new Set(["trap:trap1"]);
+    const previousKeys = new Set(["trap:scene-1:trap1"]);
     const { newEntries, currentKeys } = diffPending(previousKeys, [trapEntry]);
     expect(newEntries).toEqual([]);
-    expect(currentKeys).toEqual(new Set(["trap:trap1"]));
+    expect(currentKeys).toEqual(new Set(["trap:scene-1:trap1"]));
   });
 
   it("reports only the genuinely new entry when one of two was already seen", () => {
-    const previousKeys = new Set(["trap:trap1"]);
+    const previousKeys = new Set(["trap:scene-1:trap1"]);
     const { newEntries, currentKeys } = diffPending(previousKeys, [
       trapEntry,
       narrativeEntry,
     ]);
     expect(newEntries).toEqual([narrativeEntry]);
     expect(currentKeys).toEqual(
-      new Set(["trap:trap1", "narrative:scene-1:room-1"]),
+      new Set(["trap:scene-1:trap1", "narrative:scene-1:room-1"]),
     );
   });
 
   it("treats zero pending entries as an empty, non-error result", () => {
-    const { newEntries, currentKeys } = diffPending(new Set(["trap:trap1"]), []);
+    const { newEntries, currentKeys } = diffPending(new Set(["trap:scene-1:trap1"]), []);
     expect(newEntries).toEqual([]);
     expect(currentKeys).toEqual(new Set());
   });
@@ -144,14 +149,13 @@ const WATCH_INTERVAL_MS = Number(
   readEnvOrDotenv("DOMMT_WATCH_INTERVAL_MS") ?? 5000,
 );
 
-/** Identity key for one pending entry across polls. Trap entries carry no
- * sceneId (see tests/agent-loop-mcp-server.test.mjs's trap fixtures), so a
- * trap is identified by actorId alone; the other three kinds are scene- and
- * room-scoped. */
+/** Identity key for one pending entry across polls. All four kinds carry
+ * sceneId (confirmed against scripts/trap-combat.mjs and
+ * scripts/dungeon-runner.mjs); a trap is scene+actor-scoped, the other
+ * three kinds are scene+room-scoped. */
 export function keyForPending(entry) {
-  return entry.kind === "trap"
-    ? `trap:${entry.actorId}`
-    : `${entry.kind}:${entry.sceneId}:${entry.roomId}`;
+  const id = entry.kind === "trap" ? entry.actorId : entry.roomId;
+  return `${entry.kind}:${entry.sceneId}:${id}`;
 }
 
 /** Pure diff over one poll's snapshot against the previous poll's key set. */
@@ -211,7 +215,7 @@ In `package.json`, in the `"scripts"` object, add (alongside the existing `"agen
 - [ ] **Step 6: Run the full test suite to confirm nothing else broke**
 
 Run: `npm test`
-Expected: all existing suites still pass, plus the 6 new tests (total count increases by 6 from the pre-task baseline).
+Expected: all existing suites still pass, plus the 7 new tests (baseline 1242 passing → 1249 passing).
 
 - [ ] **Step 7: Commit**
 
@@ -262,13 +266,12 @@ on-demand flow — nothing below requires the standing loop.
 
 1. Call `list_pending_customizations` with no `sceneId` (defaults to the
    GM's currently-viewed scene — never pass an explicit `sceneId`).
-2. For each returned entry, compute its identity key: a `trap` entry is
-   identified by its `actorId` alone (trap entries carry no `sceneId`
-   field); a `skill_challenge`, `puzzle`, or `narrative` entry is
-   identified by `(sceneId, roomId)`. Use this key to track, within this
-   conversation, which entries you've already auto-fulfilled or are
-   already holding open on the billboard — never re-process the same key
-   twice in one session.
+2. For each returned entry, compute its identity key: every entry carries
+   `sceneId`; a `trap` entry is identified by `(sceneId, actorId)`, and a
+   `skill_challenge`, `puzzle`, or `narrative` entry by `(sceneId, roomId)`.
+   Use this key to track, within this conversation, which entries you've
+   already auto-fulfilled or are already holding open on the billboard —
+   never re-process the same key twice in one session.
 3. Apply the triage rubric (below) to each not-yet-processed entry.
 4. Auto-fulfill entries the rubric clears: write fitting name/
    description/summary/flavor content matching the entry's own mechanical
@@ -359,7 +362,7 @@ bridge; it makes no LLM calls of its own.
 Re-read the new `SKILL.md` against `docs/superpowers/specs/2026-09-21-dungeon-customization-agent-design.md` and confirm each of the following is present and matches:
 
 - [ ] Triage protocol's three flagging conditions (ally/goal, choice, session-specific callback) appear verbatim in intent.
-- [ ] The identity-key rule (trap by `actorId` alone; others by `sceneId`+`roomId`) matches Task 1's `keyForPending` exactly.
+- [ ] The identity-key rule (trap by `sceneId`+`actorId`; others by `sceneId`+`roomId`) matches Task 1's `keyForPending` exactly.
 - [ ] The billboard's numbered format and "auto-fulfilled items don't stay on the billboard" rule match the spec's Billboard & selection protocol.
 - [ ] The selection flow (ask for missing fields, submit, drop from billboard, no re-prompt beyond the list) matches the spec.
 - [ ] The standing-loop section names the exact `/loop` invocation, the Monitor target (`watch-pending.mjs`), and the ~20-30 minute fallback, matching the spec's Skill & loop invocation section.

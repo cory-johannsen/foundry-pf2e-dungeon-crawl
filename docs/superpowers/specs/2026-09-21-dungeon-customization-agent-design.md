@@ -35,7 +35,7 @@ Net effect: response time to a new pending customization is bounded by the detec
 
 Each pass calls `list_pending_customizations` for the **current scene only** (no `sceneId` override — matches the tool's own default and how a GM actually plays: one dungeon crawl scene at a time). At most one entry per kind exists today (trap/skill_challenge/puzzle/narrative), so at most four entries per pass.
 
-None of `mcp-server.mjs`'s five tools return a stable `id` — a trap is identified by `actorId`, everything else by `{sceneId, roomId}`. The skill treats `(kind, sceneId, actorId-or-roomId)` as the identity key for tracking state across passes: has this been seen, auto-fulfilled, highlighted, or already asked about.
+None of `mcp-server.mjs`'s five tools return a stable `id` — every entry carries `sceneId`, plus either `actorId` (trap) or `roomId` (everything else). The skill treats `(kind, sceneId, actorId-or-roomId)` as the identity key for tracking state across passes: has this been seen, auto-fulfilled, highlighted, or already asked about.
 
 For each entry not yet resolved, the agent applies this rubric — auto-fulfill by default, flag for a human when:
 - A narrative room is `archetype: ally` or `goal` (needs an NPC's identity/hook, or what "the" objective actually is in this campaign — knowledge the agent doesn't have).
