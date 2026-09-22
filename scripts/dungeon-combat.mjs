@@ -1723,9 +1723,7 @@ function movementBlockedEdges(combat, combatant, excludeCell = null) {
     .map((w) => ({ x1: w.c[0], y1: w.c[1], x2: w.c[2], y2: w.c[3] }));
   const wallBlocked = blockedEdgesFromWalls(walls, gridSize);
   const hostiles = hostileFootprints(combat, combatant, gridSize, excludeCell);
-  return (a, b) =>
-    wallBlocked(a, b) ||
-    hostiles.some((f) => overlaps({ gx: b.gx, gy: b.gy, gw: 1, gh: 1 }, f));
+  return (a, b) => wallBlocked(a, b) || cellOccupied(b, hostiles);
 }
 
 /** Footprints (placement.mjs's {gx,gy,gw,gh} shape) of every hostile
@@ -1734,7 +1732,7 @@ function movementBlockedEdges(combat, combatant, excludeCell = null) {
  * whose own footprint sits exactly there — the specific square a Stride
  * is approaching (an opponent's own square) would otherwise become
  * permanently unreachable to findPath, even though walkPath's own
- * landing check (see allCombatantFootprints below) already guarantees the
+ * landing check (see otherCombatantFootprints below) already guarantees the
  * mover never actually ends up standing there. */
 function hostileFootprints(combat, combatant, gridSize, excludeCell = null) {
   return combatantOpponents(combat, combatant)
@@ -1744,18 +1742,26 @@ function hostileFootprints(combat, combatant, gridSize, excludeCell = null) {
     );
 }
 
-/** Footprints of every OTHER still-alive combatant, ally or hostile,
- * relative to `combatant` — #27: a Stride may never end its movement
- * sharing a square with anyone, even an ally (PF2e disallows it without
- * an explicit exception this module doesn't model). Passing THROUGH an
- * ally's square is still fine; only walkPath's landing choice consults
- * this list, never findPath's edge-blocking (which only cares about
- * hostiles, via hostileFootprints above). */
-function allCombatantFootprints(combat, combatant, gridSize) {
+/** Footprints of every OTHER still-alive combatant (i.e. excluding
+ * `combatant` itself), ally or hostile, relative to `combatant` — #27: a
+ * Stride may never end its movement sharing a square with anyone, even an
+ * ally (PF2e disallows it without an explicit exception this module
+ * doesn't model). Passing THROUGH an ally's square is still fine; only
+ * walkPath's landing choice consults this list, never findPath's
+ * edge-blocking (which only cares about hostiles, via hostileFootprints
+ * above). */
+function otherCombatantFootprints(combat, combatant, gridSize) {
   return [
     ...combatantOpponents(combat, combatant),
     ...combatantAllies(combat, combatant),
   ].map((c) => footprint(c.token, gridSize));
+}
+
+/** Whether `cell` (a single grid square) overlaps any footprint in
+ * `footprints` — the shared occupancy check `movementBlockedEdges` and
+ * `walkPath` both need. */
+function cellOccupied(cell, footprints) {
+  return footprints.some((f) => overlaps({ gx: cell.gx, gy: cell.gy, gw: 1, gh: 1 }, f));
 }
 
 /**
@@ -1830,8 +1836,7 @@ function walkPath(path, targetCell, speedSquares, stopWithinSquares, occupantFoo
     // on the way further along the path, but it never becomes the mover's
     // own final resting cell — only record it as a candidate stop if it's
     // unoccupied.
-    const cellFootprint = { gx: path[i].gx, gy: path[i].gy, gw: 1, gh: 1 };
-    if (!occupantFootprints.some((f) => overlaps(cellFootprint, f))) {
+    if (!cellOccupied(path[i], occupantFootprints)) {
       stepIndex = i;
     }
   }
@@ -1865,7 +1870,7 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
   const path = findPath(start, goal, isBlocked, bounds);
   if (!path) return;
 
-  const occupants = allCombatantFootprints(combat, combatant, gridSize);
+  const occupants = otherCombatantFootprints(combat, combatant, gridSize);
   const waypoint = walkPath(path, goal, speedSquares, MELEE_REACH_SQUARES, occupants);
   if (!waypoint) return;
   await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize });
@@ -2803,7 +2808,11 @@ export async function strideByPosture(combat, combatant, posture, target) {
   const start = tokenCell(me, gridSize);
   const targetCell = tokenCell(dest, gridSize);
   const bounds = sceneBounds(combat, gridSize);
-  const isBlocked = movementBlockedEdges(combat, combatant, targetCell);
+  const isBlocked = movementBlockedEdges(
+    combat,
+    combatant,
+    posture === "approach" ? targetCell : null,
+  );
   const path = posturePath(
     start,
     targetCell,
@@ -2814,7 +2823,7 @@ export async function strideByPosture(combat, combatant, posture, target) {
   );
   if (!path) return;
 
-  const occupants = allCombatantFootprints(combat, combatant, gridSize);
+  const occupants = otherCombatantFootprints(combat, combatant, gridSize);
   const stopWithin = posture === "approach" ? MELEE_REACH_SQUARES : 0;
   const waypoint = walkPath(path, targetCell, speedSquares, stopWithin, occupants);
   if (!waypoint) return;

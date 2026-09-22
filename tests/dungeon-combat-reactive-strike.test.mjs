@@ -433,7 +433,23 @@ describe("stepToward (Reactive Strike wiring)", () => {
 
   it("routes around a hostile creature instead of moving through it (#27)", async () => {
     installFoundryStubs();
-    const blocker = makeFullReactor({ id: "blocker", x: 100, y: 0 });
+    // The blocker sits at (3,-1) — the REAL unobstructed path's own
+    // landing waypoint for this exact mover/target/speed scenario
+    // (confirmed by the trace note above and the two ally tests that
+    // follow: (0,0) -> (1,-1) -> (2,-2) -> (3,-1) -> (4,0), landing at
+    // (3,-1) i.e. pixel (300,-100)). Placing it anywhere off that real
+    // path (e.g. the naive straight-line cell (1,0)/(100,0), the original
+    // vacuous placement) would make this test pass identically whether or
+    // not hostile-edge-blocking exists, since the unobstructed route never
+    // touches it either. Placing it at an earlier intermediate cell like
+    // (1,-1) instead is *also* insufficient here: blocking that one edge
+    // does force a different route (confirmed by tracing findPath
+    // directly), but that alternate route still happens to land on the
+    // exact same final cell (3,-1) — so only a landing-cell assertion
+    // (below) would stay vacuous even though the mechanism fired. Blocking
+    // the landing cell itself is what actually forces a *different final
+    // position*, which is what the assertions below can observe.
+    const blocker = makeFullReactor({ id: "blocker", x: 300, y: -100 });
     const farTarget = makeFullReactor({ id: "far", x: 400, y: 0 });
     const mover = makeMoverTarget();
     mover.token.update = async function (changes) {
@@ -444,9 +460,14 @@ describe("stepToward (Reactive Strike wiring)", () => {
 
     await stepToward(combat, mover, { token: { x: 400, y: 0 } }, 4);
 
-    // Must not have stopped on top of the blocker, and must still have
-    // reached adjacency (within MELEE_REACH_SQUARES) of the far target.
-    expect(mover.token.x === 100 && mover.token.y === 0).toBe(false);
+    // Must not have stopped on top of the blocker — which, since the
+    // blocker sits exactly on the baseline unblocked landing cell here,
+    // also proves the route genuinely changed because of it: if the mover
+    // landed there anyway, the blocker had no effect and this test would
+    // still be vacuous.
+    expect(mover.token.x === 300 && mover.token.y === -100).toBe(false);
+    // Must still have reached adjacency (within MELEE_REACH_SQUARES) of
+    // the far target despite the detour.
     const distanceToTarget = Math.max(
       Math.abs(mover.token.x - 400) / 100,
       Math.abs(mover.token.y - 0) / 100,
