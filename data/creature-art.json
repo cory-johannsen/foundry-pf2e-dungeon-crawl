@@ -5398,5 +5398,317 @@
     "name": "Shabti Redeemer",
     "level": 4,
     "art": "shabti-redeemer.webp"
+  },
+  {
+    "id": "aasimar_redeemer",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "gDMPUL0UiOHrUUd3",
+    "name": "Aasimar Redeemer",
+    "level": 5,
+    "art": "aasimar-redeemer.webp"
+  },
+  {
+    "id": "advisor",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "14yAShROmGYdRS1Z",
+    "name": "Advisor",
+    "level": 5,
+    "art": "advisor.webp"
+  },
+  {
+    "id": "antipaladin",
+    "pack": "pf2e.npc-gallery",
+    "docId": "K2STan8izudm9eEn",
+    "name": "Antipaladin",
+    "level": 5,
+    "art": "antipaladin.webp"
+  },
+  {
+    "id": "avuncular_professor",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "hZ2ch39MaaKFKgtJ",
+    "name": "Avuncular Professor",
+    "level": 5,
+    "art": "avuncular-professor.webp"
+  },
+  {
+    "id": "azuretzi",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "cRBVKMNukkRgELMs",
+    "name": "Azuretzi",
+    "level": 5,
+    "art": "azuretzi.webp"
+  },
+  {
+    "id": "barbazu",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "FIoRPHaHdYUPVKdT",
+    "name": "Barbazu",
+    "level": 5,
+    "art": "barbazu.webp"
+  },
+  {
+    "id": "basidirond",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "bAaVfrdNLfFh7iHv",
+    "name": "Basidirond",
+    "level": 5,
+    "art": "basidirond.webp"
+  },
+  {
+    "id": "basilisk",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "mX47c0W9rizbmMBM",
+    "name": "Basilisk",
+    "level": 5,
+    "art": "basilisk.webp"
+  },
+  {
+    "id": "bog_mummy",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "hIWzgjW2E2K6ImPA",
+    "name": "Bog Mummy",
+    "level": 5,
+    "art": "bog-mummy.webp"
+  },
+  {
+    "id": "bogwid",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "UuAvrw7KUEjOM6uN",
+    "name": "Bogwid",
+    "level": 5,
+    "art": "bogwid.webp"
+  },
+  {
+    "id": "brimorak",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "6UrgCT8MwC8CeGbu",
+    "name": "Brimorak",
+    "level": 5,
+    "art": "brimorak.webp"
+  },
+  {
+    "id": "castaway",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "OuMZr5YNGlMY9SVb",
+    "name": "Castaway",
+    "level": 5,
+    "art": "castaway.webp"
+  },
+  {
+    "id": "catrina",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "QgHtsAbVYswHzMC2",
+    "name": "Catrina",
+    "level": 5,
+    "art": "catrina.webp"
+  },
+  {
+    "id": "cecaelia_trapper",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "PVstJNeHeWLU2XoK",
+    "name": "Cecaelia Trapper",
+    "level": 5,
+    "art": "cecaelia-trapper.webp"
+  },
+  {
+    "id": "champion_of_rovagug",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "swsUKYW00lGAH55r",
+    "name": "Champion of Rovagug",
+    "level": 5,
+    "art": "champion-of-rovagug.webp"
+  },
+  {
+    "id": "cloaker",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "bkaDwBD3mIBgvULs",
+    "name": "Cloaker",
+    "level": 5,
+    "art": "cloaker.webp"
+  },
+  {
+    "id": "dandasuka",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "hNR4xZRsxUkGPI1v",
+    "name": "Dandasuka",
+    "level": 5,
+    "art": "dandasuka.webp"
+  },
+  {
+    "id": "demonbane_warrior",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "62L0yQBRKjnsDmzH",
+    "name": "Demonbane Warrior",
+    "level": 5,
+    "art": "demonbane-warrior.webp"
+  },
+  {
+    "id": "despot",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "u1Np0sUKfkTxrNT1",
+    "name": "Despot",
+    "level": 5,
+    "art": "despot.webp"
+  },
+  {
+    "id": "dig_widget",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "AybkJlxPivzb1cJb",
+    "name": "Dig-Widget",
+    "level": 5,
+    "art": "dig-widget.webp"
+  },
+  {
+    "id": "dromaar_lorekeeper",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "msItO7UjfQfWe9nZ",
+    "name": "Dromaar Lorekeeper",
+    "level": 5,
+    "art": "dromaar-lorekeeper.webp"
+  },
+  {
+    "id": "emperor_cobra",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "pzCgOvNPish9QlTC",
+    "name": "Emperor Cobra",
+    "level": 5,
+    "art": "emperor-cobra.webp"
+  },
+  {
+    "id": "ether_spider",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "TFRt64nosuS3PzmH",
+    "name": "Ether Spider",
+    "level": 5,
+    "art": "ether-spider.webp"
+  },
+  {
+    "id": "fence",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "HBcKkBXyGaWXZxSs",
+    "name": "Fence",
+    "level": 5,
+    "art": "fence.webp"
+  },
+  {
+    "id": "flame_drake",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "qlxVPpwVFw5qIVQM",
+    "name": "Flame Drake",
+    "level": 5,
+    "art": "flame-drake.webp"
+  },
+  {
+    "id": "giant_crawling_hand",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "TlDmc2ZKeIAJuD5v",
+    "name": "Giant Crawling Hand",
+    "level": 5,
+    "art": "giant-crawling-hand.webp"
+  },
+  {
+    "id": "giant_frilled_lizard",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "FFnsYr2aIfDGnUVS",
+    "name": "Giant Frilled Lizard",
+    "level": 5,
+    "art": "giant-frilled-lizard.webp"
+  },
+  {
+    "id": "giant_hermit_crab",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "istUwJdW3Mlln2hb",
+    "name": "Giant Hermit Crab",
+    "level": 5,
+    "art": "giant-hermit-crab.webp"
+  },
+  {
+    "id": "giant_moray_eel",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "WamGnH8v0QHz8NFr",
+    "name": "Giant Moray Eel",
+    "level": 5,
+    "art": "giant-moray-eel.webp"
+  },
+  {
+    "id": "gibbering_mouther",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "dEAneTvoPuQXZoLR",
+    "name": "Gibbering Mouther",
+    "level": 5,
+    "art": "gibbering-mouther.webp"
+  },
+  {
+    "id": "globster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "H9CHNiW18cRFocNO",
+    "name": "Globster",
+    "level": 5,
+    "art": "globster.webp"
+  },
+  {
+    "id": "gnokesh",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "28lDGjmeiGmbRilm",
+    "name": "Gnokesh",
+    "level": 5,
+    "art": "gnokesh.webp"
+  },
+  {
+    "id": "grimstalker",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "F5QibbbxUeO8A3Kj",
+    "name": "Grimstalker",
+    "level": 5,
+    "art": "grimstalker.webp"
+  },
+  {
+    "id": "grodair",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "peCOXs71JT57JLsn",
+    "name": "Grodair",
+    "level": 5,
+    "art": "grodair.webp"
+  },
+  {
+    "id": "harpy",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "uBNm3R9wbLTPrM9i",
+    "name": "Harpy",
+    "level": 5,
+    "art": "harpy.webp"
+  },
+  {
+    "id": "harpy_skeleton",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "SaNOrmVDvQGX5U1D",
+    "name": "Harpy Skeleton",
+    "level": 5,
+    "art": "harpy-skeleton.webp"
+  },
+  {
+    "id": "hieracosphinx",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "6rtLd2rN1qd6eCqK",
+    "name": "Hieracosphinx",
+    "level": 5,
+    "art": "hieracosphinx.webp"
+  },
+  {
+    "id": "hippopotamus",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "k6Qen3uOfNSh4FH9",
+    "name": "Hippopotamus",
+    "level": 5,
+    "art": "hippopotamus.webp"
+  },
+  {
+    "id": "jaathoom",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "OCZR5r4EBUrt97Ai",
+    "name": "Jaathoom",
+    "level": 5,
+    "art": "jaathoom.webp"
   }
 ]
