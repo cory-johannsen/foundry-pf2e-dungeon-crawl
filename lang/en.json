@@ -82,6 +82,7 @@
   "PF2EDC.Dungeon.Trap.NoneFoundWarning": "No level-appropriate trap found in the compendium for this room — it will just show its own flavor text, with no mechanical trap spawned.",
   "PF2EDC.Dungeon.Treasure.ClaimButton": "Claim Treasure",
   "PF2EDC.Dungeon.Treasure.Found": "The party finds {gp} gp!",
+  "PF2EDC.Dungeon.Treasure.ItemFound": "The party also finds {item}!",
   "PF2EDC.Dungeon.Treasure.Placeholder": "Nothing prepared for this room yet — narrate the find yourself, then claim it.",
   "PF2EDC.Dungeon.UndoButton": "Undo Last Entry",
   "PF2EDC.Encounter.AcceptButton": "Accept",

@@ -11,8 +11,12 @@ import {
 } from "../dungeon-runner.mjs";
 import { canActOnDungeon } from "../dungeon-permissions.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
-import { depthBiasFor, lootGpForTreasureRoom } from "../dungeon-deck.mjs";
-import { makeFoundryApi } from "../foundry-api.mjs";
+import {
+  depthBiasFor,
+  lootGpForTreasureRoom,
+  treasureRoomItemTableName,
+} from "../dungeon-deck.mjs";
+import { makeFoundryApi, drawTreasureItem } from "../foundry-api.mjs";
 import { xpFor } from "../encounter-roster.mjs";
 import { rollSkillChallengeAttempt } from "../skill-challenge.mjs";
 import { rollPuzzleStageAttempt } from "../puzzle.mjs";
@@ -279,10 +283,14 @@ export async function recordPuzzleStageOutcome(
     });
 }
 
-/** A treasure room's own resolution (#169): grants real coins to the party
- * actor, scaled by party level and the room's own depthBiasFor ramp
- * (lootGpForTreasureRoom), then always resolves succeeded — same "nothing
- * to fail at" shape as continueNarrativeRoom. Silently grants nothing if
+/** A treasure room's own resolution (#169, item draw #29): grants real
+ * coins to the party actor, scaled by party level and the room's own
+ * depthBiasFor ramp (lootGpForTreasureRoom), then always resolves
+ * succeeded — same "nothing to fail at" shape as continueNarrativeRoom.
+ * Also draws one item from a real PF2e rollable table
+ * (treasureRoomItemTableName picks which; a treasure room always drops
+ * something, unlike an NPC corpse's ITEM_CHANCE-gated drop) and grants it
+ * to the party actor alongside the coins. Silently grants nothing if
  * there's no party actor to fund (matches resolveSlotCombat's own
  * `game.actors.party` guard for its combat-loot grant). */
 export async function claimTreasureFor(sceneId) {
@@ -296,16 +304,27 @@ export async function claimTreasureFor(sceneId) {
   if (game.actors.party) {
     const api = makeFoundryApi();
     const partyLevel = await api.partyLevel();
-    const gp = lootGpForTreasureRoom({
-      partyLevel,
-      physicalSlot,
-      roomCount: state.rooms.length,
-      isGoal: currentRoom.isGoal,
-    });
+    const roomCount = state.rooms.length;
+    const isGoal = currentRoom.isGoal;
+    const gp = lootGpForTreasureRoom({ partyLevel, physicalSlot, roomCount, isGoal });
     await api.addCoins(game.actors.party.id, { gp });
     ui.notifications.info(
       game.i18n.format("PF2EDC.Dungeon.Treasure.Found", { gp }),
     );
+    const tableName = treasureRoomItemTableName({
+      partyLevel,
+      physicalSlot,
+      roomCount,
+      isGoal,
+      rng: Math.random,
+    });
+    const itemDoc = await drawTreasureItem(tableName);
+    if (itemDoc) {
+      await game.actors.party.createEmbeddedDocuments("Item", [itemDoc.toObject()]);
+      ui.notifications.info(
+        game.i18n.format("PF2EDC.Dungeon.Treasure.ItemFound", { item: itemDoc.name }),
+      );
+    }
   }
   await resolveCurrentRoom(true, { scene });
 }
