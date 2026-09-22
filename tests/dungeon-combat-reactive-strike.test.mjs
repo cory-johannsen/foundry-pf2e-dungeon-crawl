@@ -134,7 +134,12 @@ describe("findReactiveStrikeOpportunities", () => {
 
 function installFoundryStubs() {
   globalThis.foundry = { utils: {} };
-  globalThis.ChatMessage = { create: async () => {} };
+  globalThis.ChatMessage = {
+    create: async (data) => {
+      ChatMessage.calls.push(data);
+    },
+    calls: [],
+  };
   globalThis.game = {
     user: {
       isGM: true,
@@ -175,10 +180,12 @@ function makeFullReactor({
   disposition = 1,
   itemName = "Reactive Strike",
   strike = makeStrikeAction(),
+  name = "Test Reactor",
 } = {}) {
   const flags = { agentControlled: true };
   return {
     id,
+    name,
     tokenId: `${id}-token`,
     isDefeated: false,
     token: { x, y, disposition },
@@ -213,10 +220,11 @@ function makeFullCombat({ round = 1, combatants = [], sceneId = "scene1" } = {})
 // The struck target (not the reactor) is who rollAndApplyStrikeAtVariant's
 // `target.actor.applyDamage` and `applyDefeatIfReducedToZero` read — this
 // double stands in for the mover/attacker being reacted against.
-function makeMoverTarget({ id = "mover1", x = 0, y = 0, disposition = -1 } = {}) {
+function makeMoverTarget({ id = "mover1", x = 0, y = 0, disposition = -1, name = "Test Mover" } = {}) {
   const applyDamageCalls = [];
   return {
     id,
+    name,
     isDefeated: false,
     token: { x, y, disposition },
     actor: {
@@ -241,6 +249,8 @@ describe("offerReactiveStrikesAgainst", () => {
 
     expect(await combat.getFlag("pf2e-dungeon-crawl", "reactionUsed")).toEqual({ r1: 1 });
     expect(mover.applyDamageCalls).toHaveLength(1);
+    expect(ChatMessage.calls).toHaveLength(1);
+    expect(ChatMessage.calls[0].content).toBe("PF2EDC.Dungeon.Combat.ReactiveStrikeChat");
   });
 
   it("does nothing when no reactor is eligible", async () => {
