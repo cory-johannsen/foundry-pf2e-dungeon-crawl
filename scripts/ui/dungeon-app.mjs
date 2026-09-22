@@ -9,6 +9,7 @@ import {
   setObjective,
   recordPuzzleStageAttempt,
   roomsToEagerlyBuild,
+  commitEagerPhysicalSlots,
 } from "../dungeon-runner.mjs";
 import { canActOnDungeon } from "../dungeon-permissions.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
@@ -368,15 +369,30 @@ export async function startDungeonRun({
 
   // #62: a GM-less-hosted run (state.hostUserId set — same signal
   // unpauseIfGmLessRun/encounter-generator.mjs's skipPreview already use)
-  // builds every eligible room now, so room-to-room progression never
-  // depends on a live GM-privileged client being connected later. A
-  // GM-hosted run keeps the original one-room-ahead behavior unchanged.
-  // Either way, a combat-kind room at index 1 keeps its existing manual
-  // "Populate Next Room" deferral (ITEM-11) — see #onPopulateNext/
-  // populateNextRoom below.
+  // builds every eligible room now. buildPopulateAndUnlockRoom's own
+  // isSlotBuilt/isSlotPopulated guards make each build idempotent (so a
+  // later resolve-time call for the same room doesn't double-build it),
+  // and `unlock: physicalSlot === 1` keeps every door but the first
+  // locked, preserving the normal resolution-order gate instead of
+  // opening the whole dungeon at once. commitEagerPhysicalSlots below
+  // then folds these slot assignments into the run's own tracked state so
+  // markRoomOutcome's reuse-or-allocate logic recognizes them instead of
+  // reassigning colliding slots. This fixes double-build/collision/
+  // premature-unlock, but doesn't by itself remove every live-GM
+  // dependency — a Reward/Ruin sequence mutation still needs one; later
+  // tasks in #62 finish that. A GM-hosted run keeps the original
+  // one-room-ahead behavior unchanged. Either way, a combat-kind room at
+  // index 1 keeps its existing manual "Populate Next Room" deferral
+  // (ITEM-11) — see #onPopulateNext/populateNextRoom below.
   if (state.hostUserId) {
-    for (const { room, physicalSlot } of roomsToEagerlyBuild(state)) {
-      await buildPopulateAndUnlockRoom(scene, state, room, physicalSlot);
+    const eagerlyBuilt = roomsToEagerlyBuild(state);
+    for (const { room, physicalSlot } of eagerlyBuilt) {
+      await buildPopulateAndUnlockRoom(scene, state, room, physicalSlot, {
+        unlock: physicalSlot === 1,
+      });
+    }
+    if (eagerlyBuilt.length) {
+      await commitEagerPhysicalSlots(scene.id, eagerlyBuilt);
     }
   } else {
     const firstRealRoom = state.rooms[1];

@@ -373,6 +373,34 @@ export function roomsToEagerlyBuild(state) {
   return result;
 }
 
+/**
+ * Persists the physical-slot assignments startDungeonRun's eager GM-less
+ * build loop already made in memory (#62) — without this, the run's
+ * tracked physicalSlotByRoomId/nextPhysicalSlot bookkeeping would never
+ * learn those rooms were built, and markRoomOutcome's own reuse-or-allocate
+ * logic (which already correctly handles "this room's slot may already be
+ * assigned" for the lazy/mutation case) would reassign colliding slots via
+ * its counter instead of reusing them. `eagerlyBuilt` is exactly what
+ * roomsToEagerlyBuild(state) returned — {room, physicalSlot} pairs, any
+ * order.
+ */
+export async function commitEagerPhysicalSlots(
+  sceneId,
+  eagerlyBuilt,
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return state;
+  const physicalSlotByRoomId = { ...state.physicalSlotByRoomId };
+  let nextPhysicalSlot = state.nextPhysicalSlot;
+  for (const { room, physicalSlot } of eagerlyBuilt) {
+    physicalSlotByRoomId[room.id] = physicalSlot;
+    nextPhysicalSlot = Math.max(nextPhysicalSlot, physicalSlot + 1);
+  }
+  const newState = { ...state, physicalSlotByRoomId, nextPhysicalSlot };
+  return persist(sceneId, newState, settingsRef);
+}
+
 export async function undoLastRoomEntry(
   { sceneId },
   { settingsRef = defaultSettingsRef() } = {},

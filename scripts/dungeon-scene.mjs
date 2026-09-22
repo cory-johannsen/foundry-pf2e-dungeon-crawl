@@ -755,30 +755,35 @@ export async function buildPopulateAndUnlockRoom(
   state,
   room,
   physicalSlot,
+  { unlock = true } = {},
 ) {
-  await buildRoomAtSlot(scene, physicalSlot, {
-    isGoal: room.isGoal,
-    locationTag: room.locationTag,
-    artVariant: room.artVariant,
-    seed: state.seed,
-  });
-
-  if (room.kind === "combat") {
-    await populateSlotEncounter(scene, physicalSlot, {
-      prefillTraits: state.traits,
-      prefillExcludeTraits: state.excludeTraits,
-      levelOffsetBias: depthBiasFor({
-        physicalSlot,
-        roomCount: state.rooms.length,
-        isGoal: room.isGoal,
-      }),
+  if (!isSlotBuilt(scene, physicalSlot)) {
+    await buildRoomAtSlot(scene, physicalSlot, {
+      isGoal: room.isGoal,
       locationTag: room.locationTag,
+      artVariant: room.artVariant,
       seed: state.seed,
     });
+  }
+
+  if (room.kind === "combat") {
+    if (!isSlotPopulated(scene, physicalSlot)) {
+      await populateSlotEncounter(scene, physicalSlot, {
+        prefillTraits: state.traits,
+        prefillExcludeTraits: state.excludeTraits,
+        levelOffsetBias: depthBiasFor({
+          physicalSlot,
+          roomCount: state.rooms.length,
+          isGoal: room.isGoal,
+        }),
+        locationTag: room.locationTag,
+        seed: state.seed,
+      });
+    }
     // Only unlock once monsters are actually in place — a cancelled theme
     // dialog leaves the door locked rather than opening onto an empty room;
     // the GM retries via the "Populate Next Room" button.
-    if (isSlotPopulated(scene, physicalSlot))
+    if (unlock && isSlotPopulated(scene, physicalSlot))
       await unlockDoorToSlot(scene, physicalSlot);
   } else {
     // #109: a skill_challenge room's Victory Point state used to be
@@ -829,7 +834,11 @@ export async function buildPopulateAndUnlockRoom(
     // GM-less host's requests never renders DungeonApp at all. A trap room
     // additionally gets a real, mechanically-functional hazard spawned from
     // pf2e.hazards for #134's engine to run.
-    if (room.kind === "trap" && room.setpieceId) {
+    if (
+      room.kind === "trap" &&
+      room.setpieceId &&
+      !isSlotPopulated(scene, physicalSlot)
+    ) {
       await populateSlotTrap(scene, physicalSlot, {
         partyLevel: await makeFoundryApi().partyLevel(),
         levelOffsetBias: depthBiasFor({
@@ -865,7 +874,7 @@ export async function buildPopulateAndUnlockRoom(
         await ensureNarrativeState(scene.id, room.id, { setpiece });
       }
     }
-    await unlockDoorToSlot(scene, physicalSlot);
+    if (unlock) await unlockDoorToSlot(scene, physicalSlot);
   }
 }
 
