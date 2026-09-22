@@ -15,7 +15,8 @@ import {
   ROOM_KIND_WEIGHTS,
   roomKindAt,
   lootGpForTreasureRoom,
-  TREASURE_GP_PER_LEVEL
+  TREASURE_GP_PER_LEVEL,
+  seededPick
 } from '../scripts/dungeon-deck.mjs';
 
 describe('buildRoomSequence', () => {
@@ -318,6 +319,31 @@ describe('locationTagAt', () => {
   it('varies across indices (not the same tag every time)', () => {
     const tags = new Set(Array.from({ length: 20 }, (_, i) => locationTagAt('alpha', i)));
     expect(tags.size).toBeGreaterThan(1);
+  });
+});
+
+describe('seededPick', () => {
+  it('is deterministic for the same seed and salt', () => {
+    const items = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+    expect(seededPick('alpha', 'lost-gear-room-3', items)).toBe(seededPick('alpha', 'lost-gear-room-3', items));
+  });
+
+  it('always returns one of the given items', () => {
+    const items = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+    for (let i = 0; i < 20; i += 1) {
+      expect(items).toContain(seededPick('seed', `salt-${i}`, items));
+    }
+  });
+
+  it('picks uniformly across items with no explicit weight', () => {
+    const items = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+    const picks = new Set(Array.from({ length: 30 }, (_, i) => seededPick('alpha', `salt-${i}`, items).id));
+    expect(picks.size).toBeGreaterThan(1);
+  });
+
+  it('returns the single item when only one is given', () => {
+    const only = [{ id: 'only' }];
+    expect(seededPick('seed', 'salt', only)).toBe(only[0]);
   });
 });
 
