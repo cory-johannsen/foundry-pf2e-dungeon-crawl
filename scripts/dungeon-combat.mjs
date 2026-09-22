@@ -49,6 +49,8 @@ import {
   postCriticalSpecializationReminder,
   resolveGrabRider,
   resolveKnockdownRider,
+  resolveAthleticsRider,
+  PUSH_RIDER_SLUGS,
 } from "./dungeon-strike-riders.mjs";
 import {
   drawAndApplyCriticalCard,
@@ -1971,6 +1973,47 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
 }
 
 /**
+ * Moves `target`'s token directly away from `attacker`'s token along a
+ * real, wall-aware path, up to `distanceSquares` -- #51's push/
+ * improved-push rider resolution (a real Shove attempt's forced
+ * movement). Reuses `posturePath`'s own "retreat" branch as-is: it already
+ * projects a point directly away from a reference cell and shortens the
+ * distance progressively if the farthest one isn't reachable, so calling
+ * it with `attacker`'s cell as that reference point and `target` as the
+ * mover gets the exact same "shorten instead of cancel" behavior a wall
+ * right behind the target should have, with no new projection logic of
+ * its own. `stopWithinSquares: 0` in the `walkPath` call, same as
+ * `posturePath`'s own retreat callers use, since a push has no "stop
+ * short of melee range" concept to honor. A no-op (no token update at
+ * all) if `target` has nowhere to go -- fully boxed in by walls or other
+ * combatants -- rather than throwing.
+ */
+export async function pushTokenAway(combat, attacker, target, distanceSquares) {
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const start = tokenCell(target.token, gridSize);
+  const awayFrom = tokenCell(attacker.token, gridSize);
+  const bounds = sceneBounds(combat, gridSize);
+  const isBlocked = movementBlockedEdges(combat, target);
+  const path = posturePath(
+    start,
+    awayFrom,
+    "retreat",
+    distanceSquares,
+    isBlocked,
+    bounds,
+  );
+  if (!path) return;
+
+  const occupants = otherCombatantFootprints(combat, target, gridSize);
+  const waypoint = walkPath(path, awayFrom, distanceSquares, 0, occupants);
+  if (!waypoint) return;
+  await target.token.update({
+    x: waypoint.gx * gridSize,
+    y: waypoint.gy * gridSize,
+  });
+}
+
+/**
  * PF2e's own `applyDamage` never applies any condition on its own — confirmed
  * live (#107): a real critical hit took a scratch NPC from 1 HP to 0 with
  * zero condition change. `Combatant#isDefeated` (which `combatSideStatus`
@@ -2156,6 +2199,16 @@ async function rollAndApplyStrike(combat, combatant, target) {
       await postStrikeRiderReminder(combatant, strike, outcome);
       await resolveGrabRider(combatant, target, strike, outcome);
       await resolveKnockdownRider(combatant, target, strike, outcome);
+      await resolveAthleticsRider(combatant, target, strike, outcome, {
+        slugs: PUSH_RIDER_SLUGS,
+        saveKey: "fortitude",
+        label: "Push",
+        onSuccess: async (rollOutcome) => {
+          const distanceSquares = rollOutcome === "criticalSuccess" ? 2 : 1;
+          await pushTokenAway(combat, combatant, target, distanceSquares);
+          return `target is pushed ${distanceSquares * 5} feet away`;
+        },
+      });
       await drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target);
       if (outcome === "success" || outcome === "criticalSuccess") {
         const damageRoll = await strike.damage({
@@ -3009,6 +3062,16 @@ async function rollAndApplyStrikeAtVariant(
       await postStrikeRiderReminder(combatant, strike, outcome);
       await resolveGrabRider(combatant, target, strike, outcome);
       await resolveKnockdownRider(combatant, target, strike, outcome);
+      await resolveAthleticsRider(combatant, target, strike, outcome, {
+        slugs: PUSH_RIDER_SLUGS,
+        saveKey: "fortitude",
+        label: "Push",
+        onSuccess: async (rollOutcome) => {
+          const distanceSquares = rollOutcome === "criticalSuccess" ? 2 : 1;
+          await pushTokenAway(combat, combatant, target, distanceSquares);
+          return `target is pushed ${distanceSquares * 5} feet away`;
+        },
+      });
       await drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target);
       if (outcome === "success" || outcome === "criticalSuccess") {
         const damageRoll = await strike.damage({
