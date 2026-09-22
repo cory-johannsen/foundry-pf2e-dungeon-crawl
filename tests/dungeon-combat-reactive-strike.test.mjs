@@ -309,6 +309,92 @@ describe("offerReactiveStrikesAgainst", () => {
     await expect(offerReactiveStrikesAgainst(combat, mover)).resolves.toBeUndefined();
   });
 
+  it("applies a critical-deck card's damage multiplier to the actual damage roll (#61)", async () => {
+    installFoundryStubs();
+    globalThis.game.packs = {
+      get: (id) =>
+        id === "pf2e.criticaldeck"
+          ? {
+              getDocuments: async () => [
+                {
+                  name: "Critical Hit Deck #10",
+                  pages: [
+                    {
+                      text: {
+                        content:
+                          '<section class="critical-deck"><h1>Disembowel</h1><blockquote><p>Triple damage.</p></blockquote><p><code>Slashing</code></p></section>',
+                      },
+                    },
+                  ],
+                },
+              ],
+            }
+          : undefined,
+    };
+    const alterCalls = [];
+    const strike = makeStrikeAction({ outcome: "criticalSuccess" });
+    strike.item.system.damage = { damageType: "slashing" };
+    strike.damage = async () => ({
+      total: 4,
+      alter: async (multiplier, addend) => {
+        alterCalls.push({ multiplier, addend });
+      },
+    });
+    const mover = makeMoverTarget();
+    const reactor = makeFullReactor({ id: "r1", x: 100, y: 0, strike });
+    const combat = makeFullCombat({ combatants: [mover, reactor] });
+
+    await offerReactiveStrikesAgainst(combat, mover);
+
+    // "Disembowel" (Slashing) carries plain "Triple damage." -- the
+    // strike's own damageType ("slashing") routes the draw to that
+    // category, and the returned multiplier (3) is applied via .alter()
+    // to the actual damage roll before applyDamage sees it.
+    expect(alterCalls).toEqual([{ multiplier: 3, addend: 0 }]);
+    expect(mover.applyDamageCalls).toHaveLength(1);
+  });
+
+  it("does not call .alter() at all when the drawn card carries no multiplier", async () => {
+    installFoundryStubs();
+    globalThis.game.packs = {
+      get: (id) =>
+        id === "pf2e.criticaldeck"
+          ? {
+              getDocuments: async () => [
+                {
+                  name: "Critical Hit Deck #10",
+                  pages: [
+                    {
+                      text: {
+                        content:
+                          '<section class="critical-deck"><h1>Concussion</h1><blockquote><p>Normal damage.</p></blockquote><p><code>Slashing</code></p></section>',
+                      },
+                    },
+                  ],
+                },
+              ],
+            }
+          : undefined,
+    };
+    const alterCalls = [];
+    const strike = makeStrikeAction({ outcome: "criticalSuccess" });
+    strike.item.system.damage = { damageType: "slashing" };
+    strike.damage = async () => ({
+      total: 4,
+      alter: async (multiplier, addend) => {
+        alterCalls.push({ multiplier, addend });
+      },
+    });
+    const mover = makeMoverTarget();
+    const reactor = makeFullReactor({ id: "r1", x: 100, y: 0, strike });
+    const combat = makeFullCombat({ combatants: [mover, reactor] });
+
+    await offerReactiveStrikesAgainst(combat, mover);
+
+    expect(alterCalls).toEqual([]);
+    expect(mover.applyDamageCalls).toHaveLength(1);
+  });
+
   it("does nothing when the combat isn't owned by this module", async () => {
     installFoundryStubs();
     const mover = makeMoverTarget();

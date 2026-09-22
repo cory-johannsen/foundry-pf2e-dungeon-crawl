@@ -2146,14 +2146,20 @@ function strikeSoundContext(strike, target) {
  * model: `category` is one of "unarmed"/"simple"/"martial"/"advanced" --
  * the same field already gates access-to-training feats elsewhere in the
  * system).
+ *
+ * Returns the drawn card's damage multiplier (#61 -- 1/2/3, default 1) so
+ * the caller can `.alter()` its own already-in-flight `strike.damage()`
+ * roll once it resolves; only ever non-1 on the criticalSuccess/hit-deck
+ * branch (a fumble has no damage roll to scale).
  */
 async function drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target) {
   if (outcome === "criticalSuccess") {
-    await drawAndApplyCriticalCard(
+    const draw = await drawAndApplyCriticalCard(
       "hit",
       hitDeckCategory(soundContext.damageType),
-      { combatant, target },
+      { combatant, target, damageType: soundContext.damageType },
     );
+    return draw?.damageMultiplier ?? 1;
   } else if (outcome === "criticalFailure") {
     await drawAndApplyCriticalCard(
       "fumble",
@@ -2168,6 +2174,7 @@ async function drawCriticalCardForStrike(outcome, strike, soundContext, combatan
       { combatant, target, strike },
     );
   }
+  return 1;
 }
 
 /**
@@ -2213,7 +2220,13 @@ async function rollAndApplyStrike(combat, combatant, target) {
           return `target is pushed ${distanceSquares * 5} feet away`;
         },
       });
-      await drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target);
+      const damageMultiplier = await drawCriticalCardForStrike(
+        outcome,
+        strike,
+        soundContext,
+        combatant,
+        target,
+      );
       if (outcome === "success" || outcome === "criticalSuccess") {
         const damageRoll = await strike.damage({
           target: targetRef,
@@ -2221,6 +2234,14 @@ async function rollAndApplyStrike(combat, combatant, target) {
           createMessage: true,
         });
         if (damageRoll) {
+          // #61: a critical-deck card's own Triple/Double-damage text
+          // (e.g. "Disembowel", "Corrosive") multiplies the strike's own
+          // damage roll rather than adding a separate instance -- applied
+          // here, after the roll exists, since drawCriticalCardForStrike
+          // above ran before strike.damage() was ever called.
+          if (damageMultiplier !== 1) {
+            await damageRoll.alter(damageMultiplier, 0);
+          }
           await target.actor.applyDamage({
             damage: damageRoll,
             token: target.token,
@@ -3076,7 +3097,13 @@ async function rollAndApplyStrikeAtVariant(
           return `target is pushed ${distanceSquares * 5} feet away`;
         },
       });
-      await drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target);
+      const damageMultiplier = await drawCriticalCardForStrike(
+        outcome,
+        strike,
+        soundContext,
+        combatant,
+        target,
+      );
       if (outcome === "success" || outcome === "criticalSuccess") {
         const damageRoll = await strike.damage({
           target: targetRef,
@@ -3084,6 +3111,10 @@ async function rollAndApplyStrikeAtVariant(
           createMessage: true,
         });
         if (damageRoll) {
+          // #61: see rollAndApplyStrike's identical comment.
+          if (damageMultiplier !== 1) {
+            await damageRoll.alter(damageMultiplier, 0);
+          }
           await target.actor.applyDamage({
             damage: damageRoll,
             token: target.token,
