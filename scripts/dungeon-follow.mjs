@@ -5,9 +5,14 @@
  * this only runs between fights, whenever the run's host moves their own
  * token, and only on a genuinely GM-privileged client (mirrors
  * dungeon-combat.mjs's autoPlayCombatantTurnIfDue: every mutating action in
- * this module runs only on a human GM or the world's Agent-GM account).
+ * this module runs only on a human GM or the world's Agent-GM account) —
+ * a non-GM host requests it instead, via the same dungeon-remote.mjs relay
+ * every other GM-less mutating action in this codebase already uses (#65:
+ * previously there was no fallback at all, so follow-movement silently
+ * never ran whenever no GM-privileged client happened to be connected).
  */
 import { getRunState } from "./dungeon-runner.mjs";
+import { requestDungeonAction } from "./dungeon-remote.mjs";
 import { blockedEdgesFromWalls } from "./pathfinding.mjs";
 import {
   findFollowMove,
@@ -130,11 +135,34 @@ function scheduleFollowMove(scene, leaderToken, aiControlledIds) {
   );
 }
 
+/**
+ * Runs a follow-move computation for `sceneId` alone, resolving the scene/
+ * run/leader itself — the one entry point dungeon-remote.mjs's relayed
+ * `followMove` action calls on whichever client actually receives and
+ * executes the request (always genuinely GM-privileged by the time it gets
+ * here, per registerDungeonActionSocket's own game.user.isGM guard). #65:
+ * a non-GM host's own followLeaderIfDue/followLeaderOnDoorOpened can't run
+ * the move themselves, so they request it here instead of silently doing
+ * nothing.
+ */
+export function runFollowMoveNow(sceneId) {
+  const scene = game.scenes.get(sceneId);
+  if (!scene) return;
+  const run = getRunState(sceneId);
+  const aiControlledIds = run?.aiControlledActorIds ?? [];
+  if (!aiControlledIds.length) return;
+  const leaderToken = resolveLeaderToken(scene, run.hostUserId);
+  if (!leaderToken) return;
+  scheduleFollowMove(scene, leaderToken, aiControlledIds);
+}
+
 /** Hook target for `updateToken` (module.mjs). Debounced per scene so a
  * drag's many intermediate position updates trigger at most one recompute
- * every FOLLOW_DEBOUNCE_MS. */
+ * every FOLLOW_DEBOUNCE_MS. Runs the move directly on a GM-privileged
+ * client; a non-GM client that's the run's own host requests it via the
+ * relay instead (#65) — any other connected client does nothing, same as
+ * before. */
 export function followLeaderIfDue(tokenDoc, changes) {
-  if (!game.user.isGM) return;
   if (changes.x === undefined && changes.y === undefined) return;
   const scene = tokenDoc.parent;
   if (!scene) return;
@@ -156,7 +184,13 @@ export function followLeaderIfDue(tokenDoc, changes) {
   }
   if (leaderToken.id !== tokenDoc.id) return;
 
-  scheduleFollowMove(scene, leaderToken, aiControlledIds);
+  if (game.user.isGM) {
+    scheduleFollowMove(scene, leaderToken, aiControlledIds);
+    return;
+  }
+  if (game.user.id === run.hostUserId) {
+    requestDungeonAction("followMove", { sceneId: scene.id });
+  }
 }
 
 /** Hook target for `updateWall` (module.mjs), alongside
@@ -166,9 +200,9 @@ export function followLeaderIfDue(tokenDoc, changes) {
  * `followLeaderIfDue` alone — that only reacts to the leader's own token
  * moving, not to the door opening afterward. Retrying here whenever any
  * door opens is what actually resolves that stranding, via the same
- * eligibility checks and debounce as a leader move. */
+ * eligibility checks and debounce as a leader move. Same GM-direct vs.
+ * host-relay split as `followLeaderIfDue` (#65). */
 export function followLeaderOnDoorOpened(wallDoc, changes) {
-  if (!game.user.isGM) return;
   if (changes.ds !== CONST.WALL_DOOR_STATES.OPEN) return;
   const scene = wallDoc.parent;
   if (!scene) return;
@@ -181,5 +215,11 @@ export function followLeaderOnDoorOpened(wallDoc, changes) {
   const leaderToken = resolveLeaderToken(scene, run.hostUserId);
   if (!leaderToken) return;
 
-  scheduleFollowMove(scene, leaderToken, aiControlledIds);
+  if (game.user.isGM) {
+    scheduleFollowMove(scene, leaderToken, aiControlledIds);
+    return;
+  }
+  if (game.user.id === run.hostUserId) {
+    requestDungeonAction("followMove", { sceneId: scene.id });
+  }
 }
