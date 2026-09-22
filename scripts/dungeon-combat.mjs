@@ -1448,6 +1448,17 @@ export async function handleManualStrikeDamage(message) {
   if (!game.user.isGM) return;
   const context = message.flags?.pf2e?.context;
   if (context?.type !== "damage-roll") return;
+  // "damage-roll" also covers spell/cantrip damage, not just Strikes — PF2e
+  // tags a Strike's own roll options with "item:type:weapon" or
+  // "item:type:melee" (never for a spell's damage roll), the same
+  // roll-options-tag idiom `handleRangedAttackForReactiveStrike` above
+  // already uses for "ranged". Scopes this hook to Strikes only, matching
+  // its name and this issue's own request.
+  if (
+    !context.options?.includes("item:type:weapon") &&
+    !context.options?.includes("item:type:melee")
+  )
+    return;
   if (message.flags?.pf2e?.appliedDamage) return;
 
   const sceneId = message.speaker?.scene;
@@ -1479,6 +1490,14 @@ export async function handleManualStrikeDamage(message) {
     outcome: context.outcome,
   });
   await applyDefeatIfReducedToZero(target);
+  // Marks the source message resolved so PF2e's own chat-card Apply Damage
+  // button (still rendered — this hook never replaces the card) shows as
+  // already-applied instead of staying live, which is exactly the double
+  // -application this hook's own appliedDamage guard above expects to be
+  // able to detect on a later duplicate message.
+  await message.update({
+    "flags.pf2e.appliedDamage": { uuid: target.actor.uuid },
+  });
 }
 
 /**

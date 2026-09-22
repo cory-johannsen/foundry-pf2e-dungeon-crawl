@@ -69,16 +69,20 @@ function makeMessage({
   outcome = "success",
   appliedDamage = undefined,
   roll = { total: 7 },
+  options = ["item:type:weapon"],
 } = {}) {
+  const updateCalls = [];
   return {
     flags: {
       pf2e: {
-        context: { type, target: { token: targetTokenUuid }, outcome },
+        context: { type, target: { token: targetTokenUuid }, outcome, options },
         appliedDamage,
       },
     },
     speaker: { scene: sceneId, token: attackerTokenId },
     rolls: [roll],
+    update: async (changes) => updateCalls.push(changes),
+    updateCalls,
   };
 }
 
@@ -90,7 +94,8 @@ describe("handleManualStrikeDamage", () => {
     const combat = makeCombat({ combatants: [attacker, target] });
     game.combats.contents.push(combat);
 
-    await handleManualStrikeDamage(makeMessage());
+    const message = makeMessage();
+    await handleManualStrikeDamage(message);
 
     expect(target.applyDamageCalls).toHaveLength(1);
     expect(target.applyDamageCalls[0]).toMatchObject({
@@ -98,6 +103,23 @@ describe("handleManualStrikeDamage", () => {
       token: target.token,
       outcome: "success",
     });
+    expect(message.updateCalls).toEqual([
+      { "flags.pf2e.appliedDamage": { uuid: target.actor.uuid } },
+    ]);
+  });
+
+  it("ignores a damage-roll message with no weapon/melee item-type tag (e.g. a spell)", async () => {
+    installFoundryStubs();
+    const attacker = makeAttackerCombatant();
+    const target = makeTargetCombatant();
+    const combat = makeCombat({ combatants: [attacker, target] });
+    game.combats.contents.push(combat);
+
+    await handleManualStrikeDamage(
+      makeMessage({ options: ["item:type:spell"] }),
+    );
+
+    expect(target.applyDamageCalls).toHaveLength(0);
   });
 
   it("sets defeated when damage reduces the target to 0 HP", async () => {
