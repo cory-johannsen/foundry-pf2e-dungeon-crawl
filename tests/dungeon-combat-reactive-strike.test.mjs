@@ -430,4 +430,110 @@ describe("stepToward (Reactive Strike wiring)", () => {
 
     expect(await combat.getFlag("pf2e-dungeon-crawl", "reactionUsed")).toBeUndefined();
   });
+
+  it("routes around a hostile creature instead of moving through it (#27)", async () => {
+    installFoundryStubs();
+    // The blocker sits at (3,-1) — the REAL unobstructed path's own
+    // landing waypoint for this exact mover/target/speed scenario
+    // (confirmed by the trace note above and the two ally tests that
+    // follow: (0,0) -> (1,-1) -> (2,-2) -> (3,-1) -> (4,0), landing at
+    // (3,-1) i.e. pixel (300,-100)). Placing it anywhere off that real
+    // path (e.g. the naive straight-line cell (1,0)/(100,0), the original
+    // vacuous placement) would make this test pass identically whether or
+    // not hostile-edge-blocking exists, since the unobstructed route never
+    // touches it either. Placing it at an earlier intermediate cell like
+    // (1,-1) instead is *also* insufficient here: blocking that one edge
+    // does force a different route (confirmed by tracing findPath
+    // directly), but that alternate route still happens to land on the
+    // exact same final cell (3,-1) — so only a landing-cell assertion
+    // (below) would stay vacuous even though the mechanism fired. Blocking
+    // the landing cell itself is what actually forces a *different final
+    // position*, which is what the assertions below can observe.
+    const blocker = makeFullReactor({ id: "blocker", x: 300, y: -100 });
+    const farTarget = makeFullReactor({ id: "far", x: 400, y: 0 });
+    const mover = makeMoverTarget();
+    mover.token.update = async function (changes) {
+      Object.assign(this, changes);
+    };
+    mover.actor.system.movement = { speeds: { land: { value: 30 } } };
+    const combat = makeFullCombat({ combatants: [mover, blocker, farTarget] });
+
+    await stepToward(combat, mover, { token: { x: 400, y: 0 } }, 4);
+
+    // Must not have stopped on top of the blocker — which, since the
+    // blocker sits exactly on the baseline unblocked landing cell here,
+    // also proves the route genuinely changed because of it: if the mover
+    // landed there anyway, the blocker had no effect and this test would
+    // still be vacuous.
+    expect(mover.token.x === 300 && mover.token.y === -100).toBe(false);
+    // Must still have reached adjacency (within MELEE_REACH_SQUARES) of
+    // the far target despite the detour.
+    const distanceToTarget = Math.max(
+      Math.abs(mover.token.x - 400) / 100,
+      Math.abs(mover.token.y - 0) / 100,
+    );
+    expect(distanceToTarget).toBeLessThanOrEqual(1);
+  });
+
+  // #27 trace note: with no hostiles blocking (an ally never enters
+  // hostileFootprints), findPath's own tie-breaking between equal-f-score
+  // neighbors (DIRECTIONS explores (-1,-1)/(0,-1)/(1,-1) before (-1,0)/(1,0),
+  // and Map iteration keeps first-inserted on a tie) picks a diagonal
+  // zigzag for this straight east-facing approach, not the naive straight
+  // line: (0,0) -> (1,-1) -> (2,-2) -> (3,-1) -> (4,0). Confirmed by
+  // instrumenting findPath/walkPath directly against this exact start/goal.
+  // With no occupant at all, walkPath's MELEE_REACH_SQUARES=1 clamp lands
+  // the mover on (3,-1) — pixel (300,-100), NOT (300,0) as a naive
+  // straight-line trace would suggest. So an ally literally at (300,0)
+  // never sits on the path at all, and wouldn't exercise the landing-block
+  // logic. The two tests below place the ally on the real path's own
+  // natural-landing cell (300,-100) and on an earlier real path cell
+  // (100,-100) respectively, so they actually exercise walkPath's
+  // occupant-skipping behavior instead of coincidentally passing.
+  it("does not end movement standing on an ally's square, even when that's the natural stopping cell (#27)", async () => {
+    installFoundryStubs();
+    const allyInTheWay = {
+      id: "ally1",
+      isDefeated: false,
+      token: { x: 300, y: -100, disposition: -1 },
+      actor: { system: {} },
+    };
+    const mover = makeMoverTarget();
+    mover.token.update = async function (changes) {
+      Object.assign(this, changes);
+    };
+    mover.actor.system.movement = { speeds: { land: { value: 30 } } };
+    const combat = makeFullCombat({ combatants: [mover, allyInTheWay] });
+
+    await stepToward(combat, mover, { token: { x: 400, y: 0 } }, 4);
+
+    // Backs off to the previous real-path cell (200,-200) instead of
+    // landing on the ally's square.
+    expect(mover.token.x).toBe(200);
+    expect(mover.token.y).toBe(-200);
+  });
+
+  it("passes through an ally's square without stopping there, when a free square lies beyond it (#27)", async () => {
+    installFoundryStubs();
+    const allyPassedThrough = {
+      id: "ally1",
+      isDefeated: false,
+      token: { x: 100, y: -100, disposition: -1 },
+      actor: { system: {} },
+    };
+    const mover = makeMoverTarget();
+    mover.token.update = async function (changes) {
+      Object.assign(this, changes);
+    };
+    mover.actor.system.movement = { speeds: { land: { value: 30 } } };
+    const combat = makeFullCombat({ combatants: [mover, allyPassedThrough] });
+
+    await stepToward(combat, mover, { token: { x: 400, y: 0 } }, 4);
+
+    // Same result as if the ally weren't there at all (300,-100) — proves
+    // the ally's square didn't block the route, only prevented landing
+    // exactly on it.
+    expect(mover.token.x).toBe(300);
+    expect(mover.token.y).toBe(-100);
+  });
 });
