@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import {
   parseDeckEntry,
   extractDirectives,
+  extractDamageMultiplier,
   pickSubentry,
   hitDeckCategory,
   fumbleDeckCategory,
@@ -64,6 +65,14 @@ const FUMBLE_DECK_2 =
 
 const HIT_DECK_10 =
   '<section class="critical-deck"><h1>I See Stars</h1><blockquote><p>Normal damage. <strong>Crit Effect:</strong> The target is @UUID[Compendium.pf2e.conditionitems.Item.Dazzled] until healed.</p></blockquote><p><code>Bludgeoning</code></p><h1>Pinhole</h1><blockquote><p><strong>Crit Effect:</strong> The target takes @Localize[PF2E.PersistentDamage.Bleed1.success] that can\'t be removed until the target is healed.</p></blockquote><p><code>Piercing</code></p><h1>Disembowel</h1><blockquote><p>Triple damage.</p></blockquote><p><code>Slashing</code></p><h1>Conduit</h1><blockquote><p>The target takes a -2 status penalty to AC and saves against your bombs or spells until the end of your next turn.</p></blockquote><p><code>Bomb or Spell</code></p></section>';
+
+// Real fixture content pulled directly from the live pf2e.criticaldeck
+// pack (critical-hit-deck-19.json) -- #61's "a multiplier plus another
+// directive on the same card" case: "Triple damage." coexists with a
+// @UUID condition directive in the same sub-entry, and both must be
+// extracted independently (neither replaces the other).
+const HIT_DECK_19 =
+  '<section class="critical-deck"><h1>Devastating Strike</h1><blockquote><p>Triple damage. The target is @UUID[Compendium.pf2e.conditionitems.Item.Stunned]{Stunned 1}.</p></blockquote><p><code>Bomb or Spell</code></p></section>';
 
 const HIT_DECK_40 =
   '<section class="critical-deck"><h1>Breathless</h1><blockquote><p>The target is @UUID[Compendium.pf2e.conditionitems.Item.Fatigued].</p></blockquote><p><code>Bludgeoning</code></p><h1>Spun Around</h1><blockquote><p>The target is @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] until the end of its next turn.</p></blockquote><p><code>Piercing</code></p><h1>Sliced Hand</h1><blockquote><p>Normal damage. Until healed, the target is @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled]{Enfeebled 1}, @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Clumsy 1}, and can\'t used one of its hands (determined randomly by the GM).</p></blockquote><p><code>Slashing</code></p><h1>Combustion</h1><blockquote><p>If this is a fire bomb or spell, the target takes triple damage and @Damage[1d6[persistent,fire]]. Any other bomb or spell deals double damage.</p></blockquote><p><code>Bomb or Spell</code></p></section>';
@@ -452,6 +461,69 @@ describe("extractDirectives", () => {
   });
 });
 
+describe("extractDamageMultiplier", () => {
+  it("detects a plain 'Triple damage.' sentence (Disembowel)", () => {
+    const disembowel = parseDeckEntry(HIT_DECK_10).find(
+      (e) => e.name === "Disembowel",
+    );
+    expect(extractDamageMultiplier(disembowel.effectHtml)).toEqual({
+      kind: "flat",
+      multiplier: 3,
+    });
+  });
+
+  it("detects the conditional acid-vs-other shape (Corrosive)", () => {
+    const corrosive = parseDeckEntry(HIT_DECK_37).find(
+      (e) => e.name === "Corrosive",
+    );
+    expect(extractDamageMultiplier(corrosive.effectHtml)).toEqual({
+      kind: "conditional",
+      matchDamageType: "acid",
+      matchMultiplier: 3,
+      otherwiseMultiplier: 2,
+    });
+  });
+
+  it("detects the conditional fire-vs-other shape (Combustion)", () => {
+    const combustion = parseDeckEntry(HIT_DECK_40).find(
+      (e) => e.name === "Combustion",
+    );
+    expect(extractDamageMultiplier(combustion.effectHtml)).toEqual({
+      kind: "conditional",
+      matchDamageType: "fire",
+      matchMultiplier: 3,
+      otherwiseMultiplier: 2,
+    });
+  });
+
+  it("returns null for a card with no multiplier text (Breathless)", () => {
+    const breathless = parseDeckEntry(HIT_DECK_40).find(
+      (e) => e.name === "Breathless",
+    );
+    expect(extractDamageMultiplier(breathless.effectHtml)).toBeNull();
+  });
+
+  it("returns null for a card whose directives are unrelated to damage (Conduit)", () => {
+    const conduit = parseDeckEntry(HIT_DECK_10).find(
+      (e) => e.name === "Conduit",
+    );
+    expect(extractDamageMultiplier(conduit.effectHtml)).toBeNull();
+  });
+
+  it("coexists with another directive on the same card without either overriding the other (Devastating Strike)", () => {
+    const devastatingStrike = parseDeckEntry(HIT_DECK_19).find(
+      (e) => e.name === "Devastating Strike",
+    );
+    expect(extractDamageMultiplier(devastatingStrike.effectHtml)).toEqual({
+      kind: "flat",
+      multiplier: 3,
+    });
+    expect(devastatingStrike.directives).toEqual([
+      { type: "condition", slug: "stunned", value: 1, target: "target" },
+    ]);
+  });
+});
+
 describe("pickSubentry", () => {
   const subentries = [
     { name: "a", category: "Bludgeoning" },
@@ -797,6 +869,87 @@ describe("drawAndApplyCriticalCard", () => {
     expect(ChatMessage.calls).toHaveLength(1);
     expect(ChatMessage.calls[0].content).toContain("Triple damage.");
     expect(result.applied).toEqual([]);
+    expect(result.damageMultiplier).toBe(3);
+  });
+
+  it("defaults damageMultiplier to 1 for a card with no multiplier text", async () => {
+    const docs = [makeDoc("Critical Hit Deck #40", HIT_DECK_40)];
+    installFoundryStubs({ docs });
+    const combatant = { name: "Attacker", actor: makeActorDouble(), token: {} };
+    const target = { name: "Victim", actor: makeActorDouble(), token: {} };
+
+    const result = await drawAndApplyCriticalCard("hit", "Bludgeoning", {
+      combatant,
+      target,
+    });
+
+    expect(result.subentry.name).toBe("Breathless");
+    expect(result.damageMultiplier).toBe(1);
+  });
+
+  it("triples for a conditional card when the strike's damage type matches (Corrosive, acid)", async () => {
+    const docs = [makeDoc("Critical Hit Deck #37", HIT_DECK_37)];
+    installFoundryStubs({ docs });
+    const combatant = { name: "Attacker", actor: makeActorDouble(), token: {} };
+    const target = { name: "Victim", actor: makeActorDouble(), token: {} };
+
+    const result = await drawAndApplyCriticalCard("hit", "Bomb or Spell", {
+      combatant,
+      target,
+      damageType: "acid",
+    });
+
+    expect(result.subentry.name).toBe("Corrosive");
+    expect(result.damageMultiplier).toBe(3);
+  });
+
+  it("only doubles for a conditional card when the strike's damage type doesn't match (Corrosive, fire)", async () => {
+    const docs = [makeDoc("Critical Hit Deck #37", HIT_DECK_37)];
+    installFoundryStubs({ docs });
+    const combatant = { name: "Attacker", actor: makeActorDouble(), token: {} };
+    const target = { name: "Victim", actor: makeActorDouble(), token: {} };
+
+    const result = await drawAndApplyCriticalCard("hit", "Bomb or Spell", {
+      combatant,
+      target,
+      damageType: "fire",
+    });
+
+    expect(result.subentry.name).toBe("Corrosive");
+    expect(result.damageMultiplier).toBe(2);
+  });
+
+  it("never silently triples a conditional card when no damageType is supplied at all", async () => {
+    const docs = [makeDoc("Critical Hit Deck #40", HIT_DECK_40)];
+    installFoundryStubs({ docs });
+    const combatant = { name: "Attacker", actor: makeActorDouble(), token: {} };
+    const target = { name: "Victim", actor: makeActorDouble(), token: {} };
+
+    const result = await drawAndApplyCriticalCard("hit", "Bomb or Spell", {
+      combatant,
+      target,
+    });
+
+    expect(result.subentry.name).toBe("Combustion");
+    expect(result.damageMultiplier).toBe(2);
+  });
+
+  it("extracts the multiplier alongside another directive on the same card without either overriding the other (Devastating Strike)", async () => {
+    const docs = [makeDoc("Critical Hit Deck #19", HIT_DECK_19)];
+    installFoundryStubs({ docs });
+    const combatant = { name: "Attacker", actor: makeActorDouble(), token: {} };
+    const target = { name: "Victim", actor: makeActorDouble(), token: {} };
+
+    const result = await drawAndApplyCriticalCard("hit", "Bomb or Spell", {
+      combatant,
+      target,
+    });
+
+    expect(result.subentry.name).toBe("Devastating Strike");
+    expect(result.damageMultiplier).toBe(3);
+    expect(target.actor.increaseConditionCalls).toEqual([
+      { slug: "stunned", opts: { value: 1 } },
+    ]);
   });
 
   it("returns null and posts nothing when the pf2e.criticaldeck pack isn't available", async () => {

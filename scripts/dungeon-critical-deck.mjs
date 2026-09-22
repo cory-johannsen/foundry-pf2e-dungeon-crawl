@@ -201,6 +201,47 @@ function extractWeaponBrokenThreshold(effectHtml) {
   };
 }
 
+// #61: 8 real Hit-deck cards multiply the strike's own damage instead of
+// adding a separate one ("Disembowel", "Overwhelming Smash", "Terrible
+// Cut", "Devastating Strike", "Lean into the Blow", "Heart Shot" -- all
+// plain "Triple damage."; "Corrosive"/"Combustion" -- conditional on the
+// strike's actual damage type). Neither shape carries an @Keyword[...]
+// marker, so (like the broken-threshold sentence above) this is
+// prose-pattern-based, run independently of the normal directive walk --
+// the multiplier prose is left in place afterward (nothing to strip; it
+// never collides with @-directive extraction since it has no markers of
+// its own to double-match).
+const FLAT_MULTIPLIER_RE = /Triple damage\./;
+const CONDITIONAL_MULTIPLIER_RE =
+  /If this is an? (\w+) bomb or spell, the target takes triple damage[\s\S]*?Any other bomb or spell deals double damage\./i;
+
+/**
+ * Detects a card's damage-multiplier prose (if any) and returns how to
+ * resolve it:
+ *   - `null` -- no multiplier text.
+ *   - `{kind: "flat", multiplier: 3}` -- always triples.
+ *   - `{kind: "conditional", matchDamageType, matchMultiplier: 3,
+ *     otherwiseMultiplier: 2}` -- triples when the strike's own damage
+ *     type matches `matchDamageType` (e.g. "acid"/"fire"), doubles
+ *     otherwise. Pure: takes only the sub-entry's own effect HTML.
+ */
+export function extractDamageMultiplier(effectHtml) {
+  const plain = stripTags(effectHtml);
+  const conditional = CONDITIONAL_MULTIPLIER_RE.exec(plain);
+  if (conditional) {
+    return {
+      kind: "conditional",
+      matchDamageType: conditional[1].toLowerCase(),
+      matchMultiplier: 3,
+      otherwiseMultiplier: 2,
+    };
+  }
+  if (FLAT_MULTIPLIER_RE.test(plain)) {
+    return { kind: "flat", multiplier: 3 };
+  }
+  return null;
+}
+
 function findSentenceStart(text, endIndex) {
   const lastPeriod = text.lastIndexOf(".", endIndex - 1);
   return lastPeriod === -1 ? 0 : lastPeriod + 1;
@@ -564,16 +605,23 @@ function buildChatContent({ combatant, deckKind, chosen }) {
  * Fumble deck (`deckKind: 'hit'|'fumble'`), filtered to `category`,
  * auto-applies whichever of its directives resolve cleanly, and posts the
  * full card to chat. `combatant` is the attacker whose Strike/spell-attack
- * just crit or fumbled; `target` is who they rolled against. Returns
- * `{subentry, applied}` or `null` if the pack isn't available or has
- * nothing to draw from -- deliberately a soft no-op rather than throwing,
- * since a missing/renamed compendium shouldn't break the surrounding
- * combat resolution.
+ * just crit or fumbled; `target` is who they rolled against. `damageType`
+ * (#61) is the strike's own damage type (e.g. "acid"/"fire"), needed only
+ * to resolve a conditional multiplier card (Corrosive/Combustion) -- an
+ * unresolvable/missing damageType against a conditional card never
+ * silently triples, it falls to that card's own "any other" (double)
+ * branch instead.
+ *
+ * Returns `{subentry, applied, damageMultiplier}` (multiplier `1` when the
+ * card carries no multiplier text) or `null` if the pack isn't available
+ * or has nothing to draw from -- deliberately a soft no-op rather than
+ * throwing, since a missing/renamed compendium shouldn't break the
+ * surrounding combat resolution.
  */
 export async function drawAndApplyCriticalCard(
   deckKind,
   category,
-  { combatant, target, strike } = {},
+  { combatant, target, strike, damageType } = {},
 ) {
   const pack = game.packs?.get("pf2e.criticaldeck");
   if (!pack) return null;
@@ -606,5 +654,16 @@ export async function drawAndApplyCriticalCard(
     content: buildChatContent({ combatant, deckKind, chosen }),
   });
 
-  return { subentry: chosen, applied };
+  const multiplierSpec = extractDamageMultiplier(chosen.effectHtml);
+  let damageMultiplier = 1;
+  if (multiplierSpec?.kind === "flat") {
+    damageMultiplier = multiplierSpec.multiplier;
+  } else if (multiplierSpec?.kind === "conditional") {
+    damageMultiplier =
+      damageType === multiplierSpec.matchDamageType
+        ? multiplierSpec.matchMultiplier
+        : multiplierSpec.otherwiseMultiplier;
+  }
+
+  return { subentry: chosen, applied, damageMultiplier };
 }
