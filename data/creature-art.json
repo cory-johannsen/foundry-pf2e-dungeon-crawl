@@ -6142,5 +6142,125 @@
     "name": "Nyctessa",
     "level": 5,
     "art": "nyctessa.webp"
+  },
+  {
+    "id": "aapoph_granitescale",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "MXSKccQqbQqQ77Ii",
+    "name": "Aapoph Granitescale",
+    "level": 6,
+    "art": "aapoph-granitescale.webp"
+  },
+  {
+    "id": "abandoned_zealot",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "zMoJh88vXJQwSHsX",
+    "name": "Abandoned Zealot",
+    "level": 6,
+    "art": "abandoned-zealot.webp"
+  },
+  {
+    "id": "ankylosaurus",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "CYt04IKRQeiC9Ly9",
+    "name": "Ankylosaurus",
+    "level": 6,
+    "art": "ankylosaurus.webp"
+  },
+  {
+    "id": "annis_hag",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "t6Xh4fHdHi2GP87z",
+    "name": "Annis Hag",
+    "level": 6,
+    "art": "annis-hag.webp"
+  },
+  {
+    "id": "awakened_tree",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "0Dsy2I3mu86Czjm0",
+    "name": "Awakened Tree",
+    "level": 6,
+    "art": "awakened-tree.webp"
+  },
+  {
+    "id": "babau",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "Ud6Iy1GolgtwrKQK",
+    "name": "Babau",
+    "level": 6,
+    "art": "babau.webp"
+  },
+  {
+    "id": "beetle_carapace",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "36A1ktSN13zcg76g",
+    "name": "Beetle Carapace",
+    "level": 6,
+    "art": "beetle-carapace.webp"
+  },
+  {
+    "id": "big_boss_goblin",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "yr7kC9piMmRKrSop",
+    "name": "Big Boss Goblin",
+    "level": 6,
+    "art": "big-boss-goblin.webp"
+  },
+  {
+    "id": "blizzardborn",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "USDlLyXSuwUwGIoo",
+    "name": "Blizzardborn",
+    "level": 6,
+    "art": "blizzardborn.webp"
+  },
+  {
+    "id": "bone_mother",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "AMkz31YZPeFVdOVR",
+    "name": "Bone Mother",
+    "level": 6,
+    "art": "bone-mother.webp"
+  },
+  {
+    "id": "bralani",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "ZrDGTNxlISyxNAKX",
+    "name": "Bralani",
+    "level": 6,
+    "art": "bralani.webp"
+  },
+  {
+    "id": "caligni_caller",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "wTX5G19zieFnaHYD",
+    "name": "Caligni Caller",
+    "level": 6,
+    "art": "caligni-caller.webp"
+  },
+  {
+    "id": "captain_of_the_guard",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "vEdg4AXGWfet1Cgy",
+    "name": "Captain Of The Guard",
+    "level": 6,
+    "art": "captain-of-the-guard.webp"
+  },
+  {
+    "id": "catfolk_name_collector",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "AxB7Sh2Bbt9AcDPp",
+    "name": "Catfolk Name Collector",
+    "level": 6,
+    "art": "catfolk-name-collector.webp"
+  },
+  {
+    "id": "cave_bear",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "AZIG0COCaDBronJa",
+    "name": "Cave Bear",
+    "level": 6,
+    "art": "cave-bear.webp"
   }
 ]
