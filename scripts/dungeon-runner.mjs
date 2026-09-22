@@ -353,6 +353,26 @@ export function canUndoRoomEntry(state) {
   return !state.history.some((h) => h.roomId === state.lastAutoEntry.roomId);
 }
 
+/**
+ * Every room #62's GM-less precalculation should build eagerly at run
+ * start, as `{room, physicalSlot}` pairs in build order — every room in
+ * the base sequence except room 0 (the entry, built separately by
+ * startDungeonRun itself) and a combat-kind room at index 1, which keeps
+ * the existing manual "Populate Next Room" deferral (ITEM-11) regardless
+ * of host. A room's index into `state.rooms` is its physical slot here —
+ * this only ever runs once, before any door has been opened or any slot
+ * reassigned, so slot-per-index always holds at this point.
+ */
+export function roomsToEagerlyBuild(state) {
+  const result = [];
+  for (let i = 1; i < state.rooms.length; i += 1) {
+    const room = state.rooms[i];
+    if (i === 1 && room.kind === "combat") continue;
+    result.push({ room, physicalSlot: i });
+  }
+  return result;
+}
+
 export async function undoLastRoomEntry(
   { sceneId },
   { settingsRef = defaultSettingsRef() } = {},

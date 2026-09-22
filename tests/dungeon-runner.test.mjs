@@ -5,6 +5,7 @@ import {
   advanceToRoom,
   undoLastRoomEntry,
   canUndoRoomEntry,
+  roomsToEagerlyBuild,
   abandonRun,
   getRunState,
   ensureSkillChallenge,
@@ -1619,4 +1620,54 @@ describe("dungeonRuns settings namespace", () => {
 
     expect(seenModuleIds).toEqual(new Set(["pf2e-dungeon-crawl"]));
   });
+});
+
+it('roomsToEagerlyBuild returns every room after the entry, in order, as {room, physicalSlot} pairs', () => {
+  const state = {
+    rooms: [
+      { id: 'r0', kind: 'narrative' },
+      { id: 'r1', kind: 'narrative' },
+      { id: 'r2', kind: 'trap' },
+      { id: 'r3', kind: 'puzzle' },
+    ],
+  };
+  expect(roomsToEagerlyBuild(state)).toEqual([
+    { room: state.rooms[1], physicalSlot: 1 },
+    { room: state.rooms[2], physicalSlot: 2 },
+    { room: state.rooms[3], physicalSlot: 3 },
+  ]);
+});
+
+it('roomsToEagerlyBuild skips a combat-kind room at index 1, keeping the manual-populate deferral (ITEM-11)', () => {
+  const state = {
+    rooms: [
+      { id: 'r0', kind: 'narrative' },
+      { id: 'r1', kind: 'combat' },
+      { id: 'r2', kind: 'trap' },
+    ],
+  };
+  expect(roomsToEagerlyBuild(state)).toEqual([
+    { room: state.rooms[2], physicalSlot: 2 },
+  ]);
+});
+
+it('roomsToEagerlyBuild does NOT skip a combat-kind room at any index other than 1', () => {
+  const state = {
+    rooms: [
+      { id: 'r0', kind: 'narrative' },
+      { id: 'r1', kind: 'trap' },
+      { id: 'r2', kind: 'combat' },
+      { id: 'r3', kind: 'puzzle' },
+    ],
+  };
+  expect(roomsToEagerlyBuild(state)).toEqual([
+    { room: state.rooms[1], physicalSlot: 1 },
+    { room: state.rooms[2], physicalSlot: 2 },
+    { room: state.rooms[3], physicalSlot: 3 },
+  ]);
+});
+
+it('roomsToEagerlyBuild returns an empty array for a single-room (entry-only) dungeon', () => {
+  const state = { rooms: [{ id: 'r0', kind: 'narrative' }] };
+  expect(roomsToEagerlyBuild(state)).toEqual([]);
 });
