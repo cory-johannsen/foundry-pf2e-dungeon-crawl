@@ -5310,5 +5310,93 @@
     "name": "Hellbound Attorney",
     "level": 4,
     "art": "hellbound-attorney.webp"
+  },
+  {
+    "id": "shae",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "vhfeBnFTj2xm3jfH",
+    "name": "Shae",
+    "level": 4,
+    "art": "shae.webp"
+  },
+  {
+    "id": "terror_shrike",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "kU4QpEUIx4R1sF5K",
+    "name": "Terror Shrike",
+    "level": 4,
+    "art": "terror-shrike.webp"
+  },
+  {
+    "id": "kobold_earth_diver",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "mYbZJQPzpXx9DfIq",
+    "name": "Kobold Earth Diver",
+    "level": 4,
+    "art": "kobold-earth-diver.webp"
+  },
+  {
+    "id": "korred",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "xIvv8vKBa0YsTEzt",
+    "name": "Korred",
+    "level": 4,
+    "art": "korred.webp"
+  },
+  {
+    "id": "lovelorn",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "H2awmVR3ENs0VeYg",
+    "name": "Lovelorn",
+    "level": 4,
+    "art": "lovelorn.webp"
+  },
+  {
+    "id": "nightgaunt",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "g6sgRVXnvpjkl2KV",
+    "name": "Nightgaunt",
+    "level": 4,
+    "art": "nightgaunt.webp"
+  },
+  {
+    "id": "poracha",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "WNUvjcKRAqdguWfN",
+    "name": "Poracha",
+    "level": 4,
+    "art": "poracha.webp"
+  },
+  {
+    "id": "stone_lion",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ZLqdudajQtI8dkTT",
+    "name": "Stone Lion",
+    "level": 4,
+    "art": "stone-lion.webp"
+  },
+  {
+    "id": "werebear",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "h3JksV9Idr9eZLkE",
+    "name": "Werebear",
+    "level": 4,
+    "art": "werebear.webp"
+  },
+  {
+    "id": "corrupted_relic",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "uP6dE5adlWJ9DrFY",
+    "name": "Corrupted Relic",
+    "level": 4,
+    "art": "corrupted-relic.webp"
+  },
+  {
+    "id": "shabti_redeemer",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "RjJzLQ1nuPtKvnXU",
+    "name": "Shabti Redeemer",
+    "level": 4,
+    "art": "shabti-redeemer.webp"
   }
 ]
