@@ -544,6 +544,50 @@ export async function populateSlotTrap(
   }
 }
 
+/**
+ * Teardown counterpart to `populateSlotEncounter` above (#62 mutation
+ * reconciliation) — needed when a Reward/Ruin sequence mutation changes
+ * which logical room an already-built physical slot corresponds to, so
+ * that slot's stale content is removed before the new room's own content
+ * populates it (otherwise the new room's tokens would just layer on top of
+ * the old room's leftover tokens instead of replacing them). Deletes every
+ * token flagged `getFlag(MODULE_ID, "dungeonSlot") === slot`, and (for any
+ * non-party actor among them) that token's own Actor document too —
+ * mirrors `sweepLooseNpcActors`'s own token+actor deletion shape exactly,
+ * scoped to one slot instead of the whole scene. Guards against ever
+ * deleting a real party member's Actor document (defensive: a party token
+ * shouldn't carry a `dungeonSlot` flag in the first place, but this
+ * doesn't assume that). A no-op if nothing is flagged for this slot.
+ */
+export async function clearSlotEncounter(scene, slot) {
+  const tokens = scene.tokens.filter(
+    (t) => t.getFlag(MODULE_ID, "dungeonSlot") === slot,
+  );
+  if (!tokens.length) return;
+  const partyIds = partyActorIds();
+  const tokenIds = tokens.map((t) => t.id);
+  const actorIds = [
+    ...new Set(
+      tokens.map((t) => t.actor?.id).filter((id) => id && !partyIds.has(id)),
+    ),
+  ];
+  await scene.deleteEmbeddedDocuments("Token", tokenIds);
+  if (actorIds.length) await Actor.deleteDocuments(actorIds);
+}
+
+/**
+ * Teardown counterpart to `populateSlotTrap` above — a trap's spawned
+ * hazard token carries the same `dungeonSlot` flag a combat encounter's
+ * tokens do (see `populateSlotTrap`'s own `extraFlags`), so the same
+ * flag-scoped token+actor deletion `clearSlotEncounter` already does
+ * applies unchanged here. Does not touch `roomId`'s persisted `trap` state
+ * (`ensureTrapState`'s own field) — that's outside this function's scope;
+ * the caller is responsible for clearing room-level state separately.
+ */
+export async function clearSlotTrap(scene, slot) {
+  await clearSlotEncounter(scene, slot);
+}
+
 /** Un-hides slot's tagged tokens (discovery). Returns the ids revealed. */
 export async function revealSlotTokens(scene, slot) {
   const tokens = scene.tokens.filter(

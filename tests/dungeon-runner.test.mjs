@@ -11,6 +11,7 @@ import {
   getRunState,
   ensureSkillChallenge,
   recordSkillChallengeAttempt,
+  clearSkillChallengeState,
   setObjective,
   findActiveHostedRun,
   findHostedRunForBroadcast,
@@ -18,9 +19,11 @@ import {
   applySkillChallengeCustomization,
   ensurePuzzleState,
   recordPuzzleStageAttempt,
+  clearPuzzleState,
   getPendingPuzzleCustomization,
   applyPuzzleCustomization,
   ensureNarrativeState,
+  clearNarrativeState,
   getPendingNarrativeCustomization,
   applyNarrativeCustomization,
   ensureTrapState,
@@ -1589,6 +1592,129 @@ describe("ensureNarrativeState / getPendingNarrativeCustomization / applyNarrati
       { name: "Anything" },
       { settingsRef },
     );
+    expect(result).toBeNull();
+  });
+});
+
+describe("clearPuzzleState", () => {
+  it("clears an already-attached puzzle state back to null", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s4", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    await ensurePuzzleState("s4", roomId, { hintChecks: [] }, { settingsRef });
+    const cleared = await clearPuzzleState("s4", roomId, { settingsRef });
+    const room = cleared.rooms.find((r) => r.id === roomId);
+    expect(room.puzzle).toBeFalsy();
+  });
+
+  it("is a no-op against a room with no puzzle state attached", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s5", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    const cleared = await clearPuzzleState("s5", roomId, { settingsRef });
+    expect(cleared.rooms).toEqual(created.rooms);
+  });
+
+  it("is a no-op with no run at all", async () => {
+    const settingsRef = makeSettingsStub();
+    const result = await clearPuzzleState("nope", "room-x", { settingsRef });
+    expect(result).toBeNull();
+  });
+});
+
+describe("clearSkillChallengeState", () => {
+  it("clears an already-attached challenge back to null", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s6", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    await ensureSkillChallenge(
+      "s6",
+      roomId,
+      { seed: "fixed", locationTag: "undead", partySize: 4 },
+      { settingsRef },
+    );
+    const cleared = await clearSkillChallengeState("s6", roomId, {
+      settingsRef,
+    });
+    const room = cleared.rooms.find((r) => r.id === roomId);
+    expect(room.challenge).toBeFalsy();
+  });
+
+  it("is a no-op against a room with no challenge attached", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s7", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    const cleared = await clearSkillChallengeState("s7", roomId, {
+      settingsRef,
+    });
+    expect(cleared.rooms).toEqual(created.rooms);
+  });
+
+  it("is a no-op with no run at all", async () => {
+    const settingsRef = makeSettingsStub();
+    const result = await clearSkillChallengeState("nope", "room-x", {
+      settingsRef,
+    });
+    expect(result).toBeNull();
+  });
+});
+
+describe("clearNarrativeState", () => {
+  const loreSetpiece = {
+    id: "the_example_lore",
+    kind: "narrative",
+    archetype: "lore",
+    name: "The Example",
+    summary: "An example lore beat.",
+    revealText: "The ruins predate the empire.",
+  };
+
+  it("clears an already-attached narrative state back to null", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s8", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    await ensureNarrativeState(
+      "s8",
+      roomId,
+      { setpiece: loreSetpiece },
+      { settingsRef },
+    );
+    const cleared = await clearNarrativeState("s8", roomId, { settingsRef });
+    const room = cleared.rooms.find((r) => r.id === roomId);
+    expect(room.narrative).toBeFalsy();
+  });
+
+  it("is a no-op against a room with no narrative state attached", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s9", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    const cleared = await clearNarrativeState("s9", roomId, { settingsRef });
+    expect(cleared.rooms).toEqual(created.rooms);
+  });
+
+  it("is a no-op with no run at all", async () => {
+    const settingsRef = makeSettingsStub();
+    const result = await clearNarrativeState("nope", "room-x", {
+      settingsRef,
+    });
     expect(result).toBeNull();
   });
 });

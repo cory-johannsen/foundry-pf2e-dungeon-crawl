@@ -522,6 +522,33 @@ export async function ensureSkillChallenge(
 }
 
 /**
+ * Teardown counterpart to `ensureSkillChallenge` above (#62 mutation
+ * reconciliation) — clears `roomId`'s own `challenge` state back to `null`
+ * so a later `ensureSkillChallenge` call (once a Reward/Ruin mutation
+ * changes which logical room occupies this physical slot) attaches fresh
+ * state instead of finding the old room's `challenge` still set and
+ * treating it as "already attached." A no-op (no persist) if that room has
+ * no `challenge` at all, the same no-op shape `ensureSkillChallenge` itself
+ * uses.
+ */
+export async function clearSkillChallengeState(
+  sceneId,
+  roomId,
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms.find((r) => r.id === roomId);
+  if (!room || !room.challenge) return state;
+  const rooms = state.rooms.map((r) =>
+    r.id === roomId ? { ...r, challenge: null } : r,
+  );
+  const newState = { ...state, rooms };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/**
  * The skill-challenge room whose `challenge.customization.status ===
  * 'pending'` (#166), still unresolved — mirrors `trap-combat.mjs`'s
  * `getPendingTrapCustomization` exactly, adapted for a challenge's own
@@ -691,6 +718,32 @@ export async function ensurePuzzleState(
     customization: { status: "pending" },
   };
   const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, puzzle } : r));
+  const newState = { ...state, rooms };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/**
+ * Teardown counterpart to `ensurePuzzleState` above (#62 mutation
+ * reconciliation) — clears `roomId`'s own `puzzle` state back to `null` so
+ * a later `ensurePuzzleState` call (once a Reward/Ruin mutation changes
+ * which logical room occupies this physical slot) attaches fresh state
+ * instead of finding the old room's `puzzle` still set and treating it as
+ * "already attached." A no-op (no persist) if that room has no `puzzle` at
+ * all, the same no-op shape `ensurePuzzleState` itself uses.
+ */
+export async function clearPuzzleState(
+  sceneId,
+  roomId,
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms.find((r) => r.id === roomId);
+  if (!room || !room.puzzle) return state;
+  const rooms = state.rooms.map((r) =>
+    r.id === roomId ? { ...r, puzzle: null } : r,
+  );
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -904,6 +957,33 @@ export async function ensureNarrativeState(
   };
   const rooms = state.rooms.map((r) =>
     r.id === roomId ? { ...r, narrative } : r,
+  );
+  const newState = { ...state, rooms };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/**
+ * Teardown counterpart to `ensureNarrativeState` above (#62 mutation
+ * reconciliation) — clears `roomId`'s own `narrative` state back to `null`
+ * so a later `ensureNarrativeState` call (once a Reward/Ruin mutation
+ * changes which logical room occupies this physical slot) attaches the new
+ * room's own setpiece content instead of finding the old room's
+ * `narrative` still set and treating it as "already attached." A no-op (no
+ * persist) if that room has no `narrative` at all, the same no-op shape
+ * `ensureNarrativeState` itself uses.
+ */
+export async function clearNarrativeState(
+  sceneId,
+  roomId,
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms.find((r) => r.id === roomId);
+  if (!room || !room.narrative) return state;
+  const rooms = state.rooms.map((r) =>
+    r.id === roomId ? { ...r, narrative: null } : r,
   );
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
