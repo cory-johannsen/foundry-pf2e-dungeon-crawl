@@ -165,6 +165,64 @@ export async function postStrikeRiderReminder(combatant, strike, outcome) {
   await whisperGm(lines.join(""));
 }
 
+const GRAB_RIDER_SLUGS = new Set(["grab", "improved-grab", "tongue-grab"]);
+
+/**
+ * #51's first mechanized rider (of #36's chat-reminder-only set): on a hit
+ * whose strike carries `grab`/`improved-grab`/`tongue-grab`, rolls the
+ * attacker's own Athletics check against the target's Fortitude DC and, on
+ * success, applies the Grabbed condition -- PF2e's real Grapple-attempt
+ * resolution these abilities trigger. Deliberately a baseline resolution
+ * only: `improved-grab`'s "grab a second target simultaneously" / "no hand
+ * needs to be free" wording, and `tongue-grab`'s reach/release rules, are
+ * NOT modeled -- all three get the same Athletics-vs-Fortitude-DC ->
+ * Grabbed treatment. `knockdown`, `push`, `drain-life` and the rest of
+ * #51's slug list are untouched here; each is its own follow-up mechanic
+ * per that issue's own scope.
+ *
+ * Only fires on an actual hit (`success`/`criticalSuccess`), matching
+ * `postStrikeRiderReminder`'s own gate, and only when both an Athletics
+ * statistic (attacker) and a Fortitude DC (target) actually exist -- a
+ * creature with no `skills.athletics` (some incorporeal/mindless
+ * creatures) or a target with no `saves.fortitude` safely no-ops rather
+ * than throwing. No dialog-suppression wrapping here: both call sites
+ * (`rollAndApplyStrike`/`rollAndApplyStrikeAtVariant` in
+ * dungeon-combat.mjs) already suppress check/damage dialogs for their
+ * whole strike sequence before this ever runs -- the same reason
+ * `postStrikeRiderReminder`/`drawCriticalCardForStrike` alongside it don't
+ * re-wrap either.
+ *
+ * Returns the Grapple attempt's own outcome (distinct from `outcome`, the
+ * Strike's own attack-roll outcome this was gated on), or `null` when
+ * nothing was rolled at all.
+ */
+export async function resolveGrabRider(combatant, target, strike, outcome) {
+  if (outcome !== "success" && outcome !== "criticalSuccess") return null;
+  const riders = extractRiderEffects(strike, combatant?.actor?.items ?? []);
+  if (!riders.some((rider) => GRAB_RIDER_SLUGS.has(rider.slug))) return null;
+
+  const athletics = combatant?.actor?.skills?.athletics;
+  const fortitudeDc = target?.actor?.saves?.fortitude?.dc?.value;
+  if (!athletics || fortitudeDc == null) return null;
+
+  await athletics.roll({ dc: { value: fortitudeDc }, createMessage: true });
+  const grappleOutcome =
+    game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
+
+  const attacker = escapeHtml(combatant?.name ?? "Attacker");
+  if (grappleOutcome === "success" || grappleOutcome === "criticalSuccess") {
+    await target.actor.increaseCondition("grabbed");
+    await whisperGm(
+      `<p><strong>Grapple (${attacker}):</strong> Athletics check succeeded — target is now Grabbed.</p>`,
+    );
+  } else {
+    await whisperGm(
+      `<p><strong>Grapple (${attacker}):</strong> Athletics check failed — target is not Grabbed.</p>`,
+    );
+  }
+  return grappleOutcome;
+}
+
 /**
  * On a critical hit only, re-posts PF2e's own already-computed critical-
  * specialization note (see this file's header for where it actually lives)
