@@ -5710,5 +5710,293 @@
     "name": "Jaathoom",
     "level": 5,
     "art": "jaathoom.webp"
+  },
+  {
+    "id": "forest_troll",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "htK4dElL6YvFCLkz",
+    "name": "Forest Troll",
+    "level": 5,
+    "art": "forest-troll.webp"
+  },
+  {
+    "id": "lampad",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "j62ZpsgfHVfiRzAP",
+    "name": "Lampad",
+    "level": 5,
+    "art": "lampad.webp"
+  },
+  {
+    "id": "leucrotta",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "T3low0wQNMO0SEtr",
+    "name": "Leucrotta",
+    "level": 5,
+    "art": "leucrotta.webp"
+  },
+  {
+    "id": "living_landslide",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "4Ejgj6p1LAu1RAN3",
+    "name": "Living Landslide",
+    "level": 5,
+    "art": "living-landslide.webp"
+  },
+  {
+    "id": "living_waterfall",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "1AZoRkLec47xrTqY",
+    "name": "Living Waterfall",
+    "level": 5,
+    "art": "living-waterfall.webp"
+  },
+  {
+    "id": "living_wildfire",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "pVbggIyXxCo8pPue",
+    "name": "Living Wildfire",
+    "level": 5,
+    "art": "living-wildfire.webp"
+  },
+  {
+    "id": "lurker_in_light",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "73qJxJK8ES4Tbp2k",
+    "name": "Lurker In Light",
+    "level": 5,
+    "art": "lurker-in-light.webp"
+  },
+  {
+    "id": "megatherium",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "lrSuRCrRjP3xBfRy",
+    "name": "Megatherium",
+    "level": 5,
+    "art": "megatherium.webp"
+  },
+  {
+    "id": "necromancer",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "BcSzGmSxCn0uWkxU",
+    "name": "Necromancer",
+    "level": 5,
+    "art": "necromancer.webp"
+  },
+  {
+    "id": "ochre_jelly",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "uQBOJfjtzEXvpLQz",
+    "name": "Ochre Jelly",
+    "level": 5,
+    "art": "ochre-jelly.webp"
+  },
+  {
+    "id": "ogre_spider",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ou78GkBpPX59BeqL",
+    "name": "Ogre Spider",
+    "level": 5,
+    "art": "ogre-spider.webp"
+  },
+  {
+    "id": "orca",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "uco1YijAEotYjdnF",
+    "name": "Orca",
+    "level": 5,
+    "art": "orca.webp"
+  },
+  {
+    "id": "ostiarius",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "coq1W1ZQul6DtH0b",
+    "name": "Ostiarius",
+    "level": 5,
+    "art": "ostiarius.webp"
+  },
+  {
+    "id": "penanggalan",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Bz8Sexx3bGFhE1Lq",
+    "name": "Penanggalan",
+    "level": 5,
+    "art": "penanggalan.webp"
+  },
+  {
+    "id": "plague_doctor",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "txVORfqTxVCMD75C",
+    "name": "Plague Doctor",
+    "level": 5,
+    "art": "plague-doctor.webp"
+  },
+  {
+    "id": "polar_bear",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "UqFObUjgFAlWrriA",
+    "name": "Polar Bear",
+    "level": 5,
+    "art": "polar-bear.webp"
+  },
+  {
+    "id": "poltergeist",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "zpd6b6UPP72ZELCj",
+    "name": "Poltergeist",
+    "level": 5,
+    "art": "poltergeist.webp"
+  },
+  {
+    "id": "razzle_dazzler",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "t3z2RrO7pirntByc",
+    "name": "Razzle Dazzler",
+    "level": 5,
+    "art": "razzle-dazzler.webp"
+  },
+  {
+    "id": "redcap",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "fWAjkhQ0y50Eh2BT",
+    "name": "Redcap",
+    "level": 5,
+    "art": "redcap.webp"
+  },
+  {
+    "id": "sabosan",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Fyzj8WVOlsuTWTTU",
+    "name": "Sabosan",
+    "level": 5,
+    "art": "sabosan.webp"
+  },
+  {
+    "id": "shrine_skelm",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "sNEvW8qBxztZcI8p",
+    "name": "Shrine Skelm",
+    "level": 5,
+    "art": "shrine-skelm.webp"
+  },
+  {
+    "id": "skaveling",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "C0ZmzdUNtEdXdGcL",
+    "name": "Skaveling",
+    "level": 5,
+    "art": "skaveling.webp"
+  },
+  {
+    "id": "sniper",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "liMzj39g48s8ZtIf",
+    "name": "Sniper",
+    "level": 5,
+    "art": "sniper.webp"
+  },
+  {
+    "id": "spiny_eurypterid",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "ChzqT42N5waJZ9VS",
+    "name": "Spiny Eurypterid",
+    "level": 5,
+    "art": "spiny-eurypterid.webp"
+  },
+  {
+    "id": "spirit_priest",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "wuniRDzgL6STnyPa",
+    "name": "Spirit Priest",
+    "level": 5,
+    "art": "spirit-priest.webp"
+  },
+  {
+    "id": "storm_hag",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "AjEh9Mk44RleMwSR",
+    "name": "Storm Hag",
+    "level": 5,
+    "art": "storm-hag.webp"
+  },
+  {
+    "id": "tiger_topiary",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ANfTuWnyjZfH87QF",
+    "name": "Tiger Topiary",
+    "level": 5,
+    "art": "tiger-topiary.webp"
+  },
+  {
+    "id": "tomb_jelly",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "C1MfXltrIJRnFaZg",
+    "name": "Tomb Jelly",
+    "level": 5,
+    "art": "tomb-jelly.webp"
+  },
+  {
+    "id": "tomb_raider",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "Yl6pxCXAoFECt89L",
+    "name": "Tomb Raider",
+    "level": 5,
+    "art": "tomb-raider.webp"
+  },
+  {
+    "id": "tournament_combatant",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "EiRyw8CAoZoEZVbt",
+    "name": "Tournament Combatant",
+    "level": 5,
+    "art": "tournament-combatant.webp"
+  },
+  {
+    "id": "troll",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "gvCCATlH9mPGWbsp",
+    "name": "Troll",
+    "level": 5,
+    "art": "troll.webp"
+  },
+  {
+    "id": "umbral_gnome_rockwarden",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "6yTmbDaZmrkXUJ4t",
+    "name": "Umbral Gnome Rockwarden",
+    "level": 5,
+    "art": "umbral-gnome-rockwarden.webp"
+  },
+  {
+    "id": "unsanctioned_sheriff",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "CCxgC3FIPsEZqZEo",
+    "name": "Unsanctioned Sheriff",
+    "level": 5,
+    "art": "unsanctioned-sheriff.webp"
+  },
+  {
+    "id": "urdefhan_tormentor",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Jxp6YG8S7st2MZ3p",
+    "name": "Urdefhan Tormentor",
+    "level": 5,
+    "art": "urdefhan-tormentor.webp"
+  },
+  {
+    "id": "venedaemon",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "byShcvERXQVHNaoL",
+    "name": "Venedaemon",
+    "level": 5,
+    "art": "venedaemon.webp"
+  },
+  {
+    "id": "veteran_war_horse",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "ylxh6qisFZuVWVaf",
+    "name": "Veteran War Horse",
+    "level": 5,
+    "art": "veteran-war-horse.webp"
   }
 ]
