@@ -11,7 +11,11 @@ import {
 } from "../dungeon-runner.mjs";
 import { canActOnDungeon } from "../dungeon-permissions.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
-import { depthBiasFor, lootGpForTreasureRoom } from "../dungeon-deck.mjs";
+import {
+  depthBiasFor,
+  lootGpForTreasureRoom,
+  seededPick,
+} from "../dungeon-deck.mjs";
 import { makeFoundryApi } from "../foundry-api.mjs";
 import { xpFor } from "../encounter-roster.mjs";
 import { rollSkillChallengeAttempt } from "../skill-challenge.mjs";
@@ -107,6 +111,14 @@ function skillLabel(slug) {
 export async function resolveCurrentRoom(succeeded, { scene } = {}) {
   if (!scene) return;
   const setpieces = await loadDungeonSetpieces();
+  // Captured before markRoomOutcome advances currentIndex — both the XP
+  // grant below and applyRoomEffect's treasure-gp calc need the room that
+  // was just resolved, not whatever comes next.
+  const preState = getRunState(scene.id);
+  const currentRoom = preState?.rooms[preState.currentIndex];
+  const physicalSlot = currentRoom
+    ? preState.physicalSlotByRoomId[currentRoom.id]
+    : null;
   // #30: a puzzle_or_trap room whose resolved setpiece is trap-kind (or has
   // no setpiece at all — a real bestiary hazard actor spawned instead)
   // grants XP on success here. This is the one place both the direct-GM
@@ -117,30 +129,25 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
   // recordSkillChallengeOutcome/recordPuzzleStageOutcome above). Narrative
   // and treasure grant no XP here either — neither has a pass/fail
   // mechanic GM Core's non-combat XP guidance applies to.
-  if (succeeded) {
-    const preState = getRunState(scene.id);
-    const currentRoom = preState?.rooms[preState.currentIndex];
-    if (currentRoom?.kind === "puzzle_or_trap") {
-      const setpiece = currentRoom.setpieceId
-        ? setpieces.find((s) => s.id === currentRoom.setpieceId)
-        : null;
-      if (setpiece?.kind !== "puzzle") {
-        const physicalSlot = preState.physicalSlotByRoomId[currentRoom.id];
-        const trapToken = scene.tokens.find(
-          (t) =>
-            t.getFlag(MODULE_ID, "trapHazard") &&
-            t.getFlag(MODULE_ID, "dungeonSlot") === physicalSlot,
-        );
-        const trapLevel = trapToken?.actor?.system?.details?.level?.value;
-        const levelOffset =
-          trapLevel != null
-            ? trapLevel - (await makeFoundryApi().partyLevel())
-            : 0;
-        await makeFoundryApi().grantPartyXp(xpFor(levelOffset));
-      }
+  if (succeeded && currentRoom?.kind === "puzzle_or_trap") {
+    const setpiece = currentRoom.setpieceId
+      ? setpieces.find((s) => s.id === currentRoom.setpieceId)
+      : null;
+    if (setpiece?.kind !== "puzzle") {
+      const trapToken = scene.tokens.find(
+        (t) =>
+          t.getFlag(MODULE_ID, "trapHazard") &&
+          t.getFlag(MODULE_ID, "dungeonSlot") === physicalSlot,
+      );
+      const trapLevel = trapToken?.actor?.system?.details?.level?.value;
+      const levelOffset =
+        trapLevel != null
+          ? trapLevel - (await makeFoundryApi().partyLevel())
+          : 0;
+      await makeFoundryApi().grantPartyXp(xpFor(levelOffset));
     }
   }
-  const { state, mutation, nextRoomId, nextPhysicalSlot } =
+  const { state, effectKey, mutation, nextRoomId, nextPhysicalSlot } =
     await markRoomOutcome(
       { sceneId: scene.id, succeeded },
       {
@@ -158,6 +165,15 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
           .map((s) => s.id),
       },
     );
+  if (currentRoom && effectKey) {
+    await applyRoomEffect(effectKey, {
+      seed: preState.seed,
+      roomId: currentRoom.id,
+      physicalSlot,
+      roomCount: preState.rooms.length,
+      isGoal: currentRoom.isGoal,
+    });
+  }
   if (mutation === "rerun_encounter")
     ui.notifications.warn(
       game.i18n.localize("PF2EDC.Dungeon.RerunEncounterHint"),
@@ -173,6 +189,113 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
 
   const nextRoom = state.rooms.find((r) => r.id === nextRoomId);
   await buildPopulateAndUnlockRoom(scene, state, nextRoom, nextPhysicalSlot);
+}
+
+// A level well under the party's own, so a `friendly_aid` ally reads as a
+// helped-out traveler rather than a second combatant — arbitrary same as
+// this file's other placeholder tunables (e.g. #169's TREASURE_GP_PER_LEVEL)
+// until a real "ally" concept exists.
+const FRIENDLY_AID_LEVEL_OFFSET = -4;
+
+/**
+ * #31: the mechanical half of the 6 previously flavor-only reward/ruin
+ * outcome keys — `resolveCurrentRoom` calls this right after
+ * `markRoomOutcome` resolves an `effectKey`. `mutation`-carrying keys
+ * (`encounter`, `reduced_travel_time`, `extra_travel_time`) are already
+ * handled by `applySequenceMutation` inside markRoomOutcome itself and never
+ * reach here as anything but a no-op default case.
+ */
+async function applyRoomEffect(
+  effectKey,
+  { seed, roomId, physicalSlot, roomCount, isGoal },
+) {
+  const api = makeFoundryApi();
+  const partyMembers = (game.actors?.party?.members ?? []).filter(
+    (m) => m.type === "character",
+  );
+  switch (effectKey) {
+    case "treasure": {
+      // Same real gp grant as the dedicated treasure room kind's own
+      // claimTreasureFor — this is a second site that can draw the same
+      // reward, not a second concept of what "treasure" means.
+      if (!game.actors.party) return;
+      const partyLevel = await api.partyLevel();
+      const gp = lootGpForTreasureRoom({
+        partyLevel,
+        physicalSlot,
+        roomCount,
+        isGoal,
+      });
+      await api.addCoins(game.actors.party.id, { gp });
+      ui.notifications.info(
+        game.i18n.format("PF2EDC.Dungeon.Treasure.Found", { gp }),
+      );
+      return;
+    }
+    case "exhaustion":
+    case "restless_night": {
+      for (const member of partyMembers) {
+        await api.increaseCondition(member.id, "fatigued", 1);
+      }
+      return;
+    }
+    case "ready_foraging": {
+      for (const member of partyMembers) {
+        const hasFatigued = member.itemTypes?.condition?.some(
+          (c) => c.slug === "fatigued",
+        );
+        if (hasFatigued) await api.decreaseCondition(member.id, "fatigued", 1);
+      }
+      return;
+    }
+    case "lost_gear": {
+      const candidates = [];
+      for (const member of partyMembers) {
+        const gear = await api.listGear(member.id);
+        for (const item of gear) {
+          candidates.push({
+            memberId: member.id,
+            memberName: member.name,
+            itemId: item.id,
+            itemName: item.name,
+          });
+        }
+      }
+      if (!candidates.length) return;
+      const picked = seededPick(seed, `lost-gear-${roomId}`, candidates);
+      await api.removeItems(picked.memberId, [picked.itemId]);
+      ui.notifications.warn(
+        game.i18n.format("PF2EDC.Dungeon.Effect.lost_gear_detail", {
+          actor: picked.memberName,
+          item: picked.itemName,
+        }),
+      );
+      return;
+    }
+    case "friendly_aid": {
+      const partyLevel = await api.partyLevel();
+      const maxLevel = Math.max(-1, partyLevel + FRIENDLY_AID_LEVEL_OFFSET);
+      const candidates = await api.findCreatures({ minLevel: -1, maxLevel });
+      if (!candidates.length) {
+        console.warn(
+          `pf2e-dungeon-crawl: no level -1..${maxLevel} creature found for friendly_aid`,
+        );
+        return;
+      }
+      const picked = seededPick(seed, `friendly-aid-${roomId}`, candidates);
+      await api.spawnCreatures([{ pack: picked.pack, id: picked.id }], {
+        disposition: 1,
+      });
+      ui.notifications.info(
+        game.i18n.format("PF2EDC.Dungeon.Effect.friendly_aid_detail", {
+          name: picked.name,
+        }),
+      );
+      return;
+    }
+    default:
+      return;
+  }
 }
 
 export async function startDungeonRun({
