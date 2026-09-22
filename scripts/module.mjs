@@ -33,7 +33,10 @@ import {
   handleRangedAttackForReactiveStrike,
   offerReactiveStrikesAgainst,
 } from "./dungeon-combat.mjs";
-import { followLeaderIfDue } from "./dungeon-follow.mjs";
+import {
+  followLeaderIfDue,
+  followLeaderOnDoorOpened,
+} from "./dungeon-follow.mjs";
 import {
   getPendingTrapCustomization,
   applyTrapCustomization,
@@ -290,6 +293,7 @@ function openDungeonTrackerIfNotOpen() {
 }
 
 Hooks.on("updateWall", async (wall, changes) => {
+  followLeaderOnDoorOpened(wall, changes);
   if (changes.ds !== CONST.WALL_DOOR_STATES.OPEN) return;
   const { autoOpenTracker } = await handleDungeonDoorOpened(
     wall.parent?.id,
