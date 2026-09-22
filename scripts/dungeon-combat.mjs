@@ -1280,6 +1280,55 @@ async function postReactiveStrikeChat(reactor, attacker) {
 }
 
 /**
+ * Every currently-eligible Reactive Strike opportunity against `mover` —
+ * one entry per agent-controlled opponent with an unused reaction this
+ * round, an in-scope Reactive Strike/Attack of Opportunity item, and a
+ * ready Strike action that reaches `mover`'s current position. Pure
+ * detection: takes no action itself, so every trigger source (a ranged
+ * attack-roll chat message, an agent's own Stride, a GM's manual check)
+ * shares one answer to "who gets to react right now."
+ */
+export function findReactiveStrikeOpportunities(
+  combat,
+  mover,
+  gridSize,
+  gridDistanceFt,
+) {
+  const opportunities = [];
+  for (const reactor of combatantOpponents(combat, mover)) {
+    if (!reactor.getFlag(MODULE_ID, "agentControlled")) continue;
+    if (getReactionUsed(combat, reactor.id, combat.round)) continue;
+    const item = (reactor.actor?.items ?? []).find(isReactiveStrikeInScope);
+    if (!item) continue;
+
+    const readyActions = (reactor.actor?.system?.actions ?? [])
+      .filter((a) => a.type === "strike" && a.ready !== false)
+      .map((a) => ({
+        slug: a.item?.slug ?? a.slug ?? a.label,
+        label: a.label,
+        reachSquares: actionReachSquares(a, gridDistanceFt),
+      }));
+    const distanceSquares = chebyshevSquares(
+      reactor.token,
+      mover.token,
+      gridSize,
+    );
+    const inReachActions = readyActions.filter(
+      (a) => distanceSquares <= a.reachSquares,
+    );
+    if (!inReachActions.length) continue;
+    const restriction = parseReactiveStrikeWeaponRestriction(item.name);
+    const matched = restriction
+      ? matchMultiStrikeActionSlug(restriction, inReachActions)
+      : inReachActions[0];
+    if (!matched) continue;
+
+    opportunities.push({ reactor, actionSlug: matched.slug });
+  }
+  return opportunities;
+}
+
+/**
  * #202: reacts to a real ranged-Strike attack-roll chat message by
  * offering every eligible agent-controlled reactor a Reactive Strike
  * against the attacker — the one Reactive Strike trigger #202's own
