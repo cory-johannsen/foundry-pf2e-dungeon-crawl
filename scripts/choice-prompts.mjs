@@ -141,7 +141,7 @@ export async function promptKeepOne(card, prompt, options) {
   const { DialogV2 } = foundry.applications.api;
   const esc = (s) => foundry.utils.escapeHTML?.(String(s ?? '')) ?? String(s ?? '');
   const panels = options.map((o) => `
-    <label class="dommt-keep__panel" style="
+    <label class="pf2edc-keep__panel" style="
         flex:1 1 0; display:flex; flex-direction:column; gap:0.4rem; cursor:pointer;
         border:2px solid transparent; border-radius:6px; padding:0.4rem;">
       <input type="radio" name="keep" value="${esc(o.value)}" style="align-self:center;">
@@ -176,7 +176,7 @@ export async function promptKeepOne(card, prompt, options) {
       const sync = () => {
         const picked = root.querySelector('[name="keep"]:checked');
         if (apply) apply.disabled = !picked;
-        for (const panel of root.querySelectorAll('.dommt-keep__panel')) {
+        for (const panel of root.querySelectorAll('.pf2edc-keep__panel')) {
           const on = panel.querySelector('[name="keep"]')?.checked;
           panel.style.borderColor = on ? 'var(--color-border-highlight, #c9c7b8)' : 'transparent';
         }

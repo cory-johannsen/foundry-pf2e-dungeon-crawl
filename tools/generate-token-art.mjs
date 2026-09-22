@@ -4655,7 +4655,7 @@ const build = (prompt, seed, prefix, negative = NEGATIVE) => ({
 async function enqueue(workflow) {
   const res = await fetch(`${BASE}/prompt`, {
     method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ prompt: workflow, client_id: 'dommt-token-' + Math.random().toString(36).slice(2, 8) })
+    body: JSON.stringify({ prompt: workflow, client_id: 'pf2edc-token-' + Math.random().toString(36).slice(2, 8) })
   });
   if (!res.ok) throw new Error(`enqueue failed: ${res.status} ${await res.text()}`);
   return (await res.json()).prompt_id;
@@ -4765,7 +4765,7 @@ async function main() {
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
       process.stdout.write(`${s.id.padEnd(10)} attempt ${attempt + 1}… `);
       const id = await enqueue(build(prompt, (base + attempt * 7919) % 2_000_000_000,
-                                     `dommt-token-${s.id}`, negativeFor(s)));
+                                     `pf2edc-token-${s.id}`, negativeFor(s)));
       writeFileSync(dest, await fetchImage(await waitFor(id)));
       const score = backgroundScore(dest);
       if (score === null) { console.log('(unmeasured) kept'); best = { score: 0 }; break; }

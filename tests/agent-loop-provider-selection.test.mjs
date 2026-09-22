@@ -11,16 +11,16 @@ vi.mock('node:fs', () => ({
 const { resolveProvider } = await import('../tools/agent-loop/providers/index.mjs');
 
 describe('resolveProvider', () => {
-  const originalProvider = process.env.DOMMT_AGENT_PROVIDER;
+  const originalProvider = process.env.PF2EDC_AGENT_PROVIDER;
 
   beforeEach(() => {
-    delete process.env.DOMMT_AGENT_PROVIDER;
+    delete process.env.PF2EDC_AGENT_PROVIDER;
     mockedEnvFileContent = '';
   });
 
   afterEach(() => {
-    if (originalProvider === undefined) delete process.env.DOMMT_AGENT_PROVIDER;
-    else process.env.DOMMT_AGENT_PROVIDER = originalProvider;
+    if (originalProvider === undefined) delete process.env.PF2EDC_AGENT_PROVIDER;
+    else process.env.PF2EDC_AGENT_PROVIDER = originalProvider;
   });
 
   it('defaults to claude when nothing is configured', async () => {
@@ -33,20 +33,20 @@ describe('resolveProvider', () => {
     expect(resolveProvider('laya')).toBe(decideLaya);
   });
 
-  it('reads DOMMT_AGENT_PROVIDER from .env when it is not a real shell environment variable', async () => {
-    mockedEnvFileContent = 'DOMMT_AGENT_PROVIDER=laya\n';
+  it('reads PF2EDC_AGENT_PROVIDER from .env when it is not a real shell environment variable', async () => {
+    mockedEnvFileContent = 'PF2EDC_AGENT_PROVIDER=laya\n';
     const { decide: decideLaya } = await import('../tools/agent-loop/providers/laya.mjs');
     expect(resolveProvider()).toBe(decideLaya);
   });
 
   it('a real shell environment variable still works and is not shadowed by .env', async () => {
-    process.env.DOMMT_AGENT_PROVIDER = 'laya';
-    mockedEnvFileContent = 'DOMMT_AGENT_PROVIDER=claude\n';
+    process.env.PF2EDC_AGENT_PROVIDER = 'laya';
+    mockedEnvFileContent = 'PF2EDC_AGENT_PROVIDER=claude\n';
     const { decide: decideLaya } = await import('../tools/agent-loop/providers/laya.mjs');
     expect(resolveProvider()).toBe(decideLaya);
   });
 
   it('throws a helpful error for an unknown provider name', () => {
-    expect(() => resolveProvider('not-a-real-provider')).toThrow(/Unknown DOMMT_AGENT_PROVIDER/);
+    expect(() => resolveProvider('not-a-real-provider')).toThrow(/Unknown PF2EDC_AGENT_PROVIDER/);
   });
 });

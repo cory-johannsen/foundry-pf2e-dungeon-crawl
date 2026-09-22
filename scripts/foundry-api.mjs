@@ -530,7 +530,7 @@ export function makeFoundryApi(sceneRef = null) {
             id: i.id,
             name: i.name,
             type: i.type,
-            dommt: i.flags?.[MODULE_ID] ?? null,
+            pf2edc: i.flags?.[MODULE_ID] ?? null,
           }))
       );
     },

@@ -109,8 +109,8 @@ function combatantTokens(scene, flagKey, flagValue) {
 }
 
 /**
- * Every non-party combatant defaults to agent-controlled (flags.dommt.
- * agentControlled) the instant it's added to a Combat — a GM can disable it
+ * Every non-party combatant defaults to agent-controlled
+ * (flags["pf2e-dungeon-crawl"].agentControlled) the instant it's added to a Combat — a GM can disable it
  * per-combatant via the Combat Tracker's own context menu (module.mjs's
  * getCombatTrackerEntryContext hook). Party combatants never get the flag,
  * matching the partyActorIds() split ITEM-8's own reopening already uses.
@@ -1857,7 +1857,7 @@ async function applyDefeatIfReducedToZero(target) {
 
 /** Grid cells currently occupied by an undestroyed cover item (#96) on this
  * combat's scene — a hazard actor cover-items.mjs's spawnCoverItems flagged
- * `flags.dommt.coverItem` at spawn time, filtered to ones that still have HP
+ * `flags["pf2e-dungeon-crawl"].coverItem` at spawn time, filtered to ones that still have HP
  * (a destroyed cover item no longer blocks a line of fire, whatever state
  * its token/actor happen to still be in on the scene). */
 function activeCoverCells(combat) {
