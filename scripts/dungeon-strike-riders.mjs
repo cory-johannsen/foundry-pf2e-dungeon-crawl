@@ -151,18 +151,23 @@ async function whisperGm(content) {
  * empty reminders."
  *
  * Excludes `grab`/`improved-grab`/`tongue-grab` (#51's `GRAB_RIDER_SLUGS`,
- * defined below): `resolveGrabRider` now auto-resolves those and whispers
- * its own real Grapple-attempt result immediately after this call at both
- * call sites -- leaving them in here would whisper a stale "resolve this
- * manually" reminder right next to the actual automated outcome, telling
- * the GM to do work that already happened.
+ * defined below) and `knockdown`/`improved-knockdown` (`KNOCKDOWN_RIDER_SLUGS`,
+ * also below): `resolveGrabRider`/`resolveKnockdownRider` now auto-resolve
+ * those and whisper their own real result immediately after this call at
+ * both call sites -- leaving them in here would whisper a stale "resolve
+ * this manually" reminder right next to the actual automated outcome,
+ * telling the GM to do work that already happened.
  */
 export async function postStrikeRiderReminder(combatant, strike, outcome) {
   if (outcome !== "success" && outcome !== "criticalSuccess") return;
   const riders = extractRiderEffects(
     strike,
     combatant?.actor?.items ?? [],
-  ).filter((rider) => !GRAB_RIDER_SLUGS.has(rider.slug));
+  ).filter(
+    (rider) =>
+      !GRAB_RIDER_SLUGS.has(rider.slug) &&
+      !KNOCKDOWN_RIDER_SLUGS.has(rider.slug),
+  );
   if (riders.length === 0) return;
 
   const attacker = escapeHtml(combatant?.name ?? "Attacker");
@@ -231,6 +236,59 @@ export async function resolveGrabRider(combatant, target, strike, outcome) {
     );
   }
   return grappleOutcome;
+}
+
+const KNOCKDOWN_RIDER_SLUGS = new Set(["knockdown", "improved-knockdown"]);
+
+/**
+ * #51's second mechanized rider: on a hit whose strike carries
+ * `knockdown`/`improved-knockdown`, rolls the attacker's own Athletics
+ * check against the target's Reflex DC and, on success, applies the Prone
+ * condition -- PF2e's real Trip-equivalent resolution these abilities
+ * trigger. Deliberately a baseline resolution only: any wording specific
+ * to `improved-knockdown` beyond the base Knockdown glossary text is NOT
+ * modeled -- both slugs get the same Athletics-vs-Reflex-DC -> Prone
+ * treatment. `push`, `drain-life` and the rest of #51's slug list are
+ * untouched here; each is its own follow-up mechanic per that issue's own
+ * scope.
+ *
+ * Only fires on an actual hit (`success`/`criticalSuccess`), matching
+ * `postStrikeRiderReminder`'s own gate, and only when both an Athletics
+ * statistic (attacker) and a Reflex DC (target) actually exist -- a
+ * creature with no `skills.athletics` or a target with no `saves.reflex`
+ * safely no-ops rather than throwing. No dialog-suppression wrapping here,
+ * same reasoning as `resolveGrabRider` immediately above.
+ *
+ * Returns the Trip attempt's own outcome (distinct from `outcome`, the
+ * Strike's own attack-roll outcome this was gated on), or `null` when
+ * nothing was rolled at all.
+ */
+export async function resolveKnockdownRider(combatant, target, strike, outcome) {
+  if (outcome !== "success" && outcome !== "criticalSuccess") return null;
+  const riders = extractRiderEffects(strike, combatant?.actor?.items ?? []);
+  if (!riders.some((rider) => KNOCKDOWN_RIDER_SLUGS.has(rider.slug)))
+    return null;
+
+  const athletics = combatant?.actor?.skills?.athletics;
+  const reflexDc = target?.actor?.saves?.reflex?.dc?.value;
+  if (!athletics || reflexDc == null) return null;
+
+  await athletics.roll({ dc: { value: reflexDc }, createMessage: true });
+  const tripOutcome =
+    game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
+
+  const attacker = escapeHtml(combatant?.name ?? "Attacker");
+  if (tripOutcome === "success" || tripOutcome === "criticalSuccess") {
+    await target.actor.increaseCondition("prone");
+    await whisperGm(
+      `<p><strong>Knockdown (${attacker}):</strong> Athletics check succeeded — target is now Prone.</p>`,
+    );
+  } else {
+    await whisperGm(
+      `<p><strong>Knockdown (${attacker}):</strong> Athletics check failed — target is not Prone.</p>`,
+    );
+  }
+  return tripOutcome;
 }
 
 /**
