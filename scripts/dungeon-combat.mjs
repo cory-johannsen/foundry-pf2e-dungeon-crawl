@@ -3466,7 +3466,7 @@ export async function castAttackSpellAndApplyRoll(
     const outcome =
       game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
     playAttackSpellSound(outcome);
-    let damageMultiplier = 1;
+    let damageMultiplier = null;
     if (outcome === "criticalSuccess") {
       // Takes the first system.damage entry's own type as "the" spell's
       // damage type for a conditional card's (Corrosive/Combustion) own
@@ -3497,21 +3497,17 @@ export async function castAttackSpellAndApplyRoll(
         // pre-double on a crit -- confirmed against the real PF2e system
         // source -- so this resolves an *effective* multiplier before
         // altering the roll rather than trusting rollDamage() to have
-        // scaled anything itself. A drawn card's own multiplier (2 or 3)
-        // already represents the FULL intended scaling for that crit (per
-        // #75) and is used as-is -- it is not stacked with a separate
-        // doubling step. Only when NO card supplied a multiplier
-        // (damageMultiplier === 1: no card drawn, or a card with no
-        // multiplier text) does this fall back to PF2e's own baseline
-        // automatic crit-doubling (2x), which spell.rollDamage() never
-        // applies on its own -- this is the #79 fix. Explicitly scoped to
-        // outcome === "criticalSuccess" so a plain "success" is never
-        // altered, even though damageMultiplier can only exceed 1 when a
-        // crit already occurred.
-        if (outcome === "criticalSuccess") {
-          const effectiveMultiplier =
-            damageMultiplier > 1 ? damageMultiplier : 2;
-          await damageRoll.alter(effectiveMultiplier, 0);
+        // scaled anything itself. `damageMultiplier` stays `null` unless a
+        // crit occurred (set only in the `criticalSuccess` branch above),
+        // so this check alone proves a plain "success" is never altered --
+        // no need to re-check `outcome` here too. A drawn card's own
+        // multiplier (2 or 3) already represents the FULL intended scaling
+        // for that crit (per #75) and is used as-is; `Math.max(..., 2)`
+        // applies PF2e's own baseline automatic crit-doubling (2x) as a
+        // floor for a crit with no card, or a card with no multiplier text
+        // -- this floor is the #79 fix.
+        if (damageMultiplier != null) {
+          await damageRoll.alter(Math.max(damageMultiplier, 2), 0);
         }
         await target.actor.applyDamage({
           damage: damageRoll,
