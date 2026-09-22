@@ -7,14 +7,26 @@ import {
   stepToward,
 } from "../scripts/dungeon-combat.mjs";
 
-function makeStrike({ slug = "claw", label = "Claw", reach = null } = {}) {
+function makeStrike({
+  slug = "claw",
+  label = "Claw",
+  reach = null,
+  isRanged = false,
+  rangeIncrementFt = null,
+} = {}) {
   return {
     type: "strike",
     ready: true,
     slug,
     label,
     traits: reach ? [{ name: `reach-${reach}` }] : [],
-    item: { slug },
+    item: {
+      slug,
+      isRanged,
+      system: rangeIncrementFt
+        ? { range: { increment: rangeIncrementFt } }
+        : {},
+    },
   };
 }
 
@@ -125,6 +137,39 @@ describe("findReactiveStrikeOpportunities", () => {
       y: 0,
       itemName: "Attack of Opportunity (Claw Only)",
       strikes: [makeStrike({ slug: "claw" }), makeStrike({ slug: "bite" })],
+    });
+    const combat = makeCombat({ combatants: [mover, reactor] });
+
+    expect(
+      findReactiveStrikeOpportunities(combat, mover, GRID_SIZE, GRID_DISTANCE_FT),
+    ).toEqual([{ reactor, actionSlug: "claw" }]);
+  });
+
+  it("excludes a reactor whose only ready Strike is ranged, even if its range increment would cover the mover", () => {
+    const mover = makeMover();
+    const reactor = makeReactor({
+      id: "r1",
+      x: 500,
+      y: 0,
+      strikes: [makeStrike({ slug: "bow", isRanged: true, rangeIncrementFt: 60 })],
+    });
+    const combat = makeCombat({ combatants: [mover, reactor] });
+
+    expect(
+      findReactiveStrikeOpportunities(combat, mover, GRID_SIZE, GRID_DISTANCE_FT),
+    ).toEqual([]);
+  });
+
+  it("picks the melee Strike over a ranged one when both are ready", () => {
+    const mover = makeMover();
+    const reactor = makeReactor({
+      id: "r1",
+      x: 100,
+      y: 0,
+      strikes: [
+        makeStrike({ slug: "bow", isRanged: true, rangeIncrementFt: 60 }),
+        makeStrike({ slug: "claw", isRanged: false }),
+      ],
     });
     const combat = makeCombat({ combatants: [mover, reactor] });
 
