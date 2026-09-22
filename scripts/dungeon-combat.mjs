@@ -2260,9 +2260,8 @@ async function rollAndApplyStrike(combat, combatant, target) {
           // (e.g. "Disembowel", "Corrosive") is a card-drawn Hit-deck
           // effect, only ever drawn here on outcome === "criticalSuccess"
           // -- strike.damage() above already applied PF2e's own crit
-          // doubling for that outcome (confirmed at
-          // castSpellAndApplySave's own docblock: "the same way
-          // strike.damage() handles crit doubling for a Strike"), so a
+          // doubling for that outcome (confirmed live strike.damage(), unlike
+          // spell.rollDamage() -- see #81 -- DOES pre-double on a crit), so a
           // card's "double damage" (damageMultiplier 2) is already
           // exactly what that doubling gives -- no extra scaling needed.
           // Only "triple damage" (damageMultiplier 3) needs an
@@ -3213,13 +3212,21 @@ async function castMultiStrikeBundleAndApply(
  * strike's `.roll()` might suggest by analogy: `entryDoc.cast()` alone
  * announces the spell (posts its chat card) but rolls no save and applies no
  * damage. The target's own `actor.saves[save].roll({dc})` produces the real
- * outcome; `spell.rollDamage({target, outcome})` then handles basic-save
- * doubling/halving internally, the same way `strike.damage()` handles
- * crit doubling for a Strike. Same dialog-suppression convention as
+ * outcome. #81: `spell.rollDamage({target, outcome})` does NOT scale by
+ * outcome internally despite this function's own prior docblock claiming
+ * otherwise — confirmed against the real PF2e system source it always
+ * returns a flat, un-scaled roll, the same way #75/#79 already found for
+ * `castAttackSpellAndApplyRoll`. So a basic save's own scaling rule is
+ * applied here explicitly via the roll's `.alter(mult, 0)`, the same
+ * technique `castTierScalingAreaSpellAndApplySaves` (#127) already uses:
+ * half on `success`, double on `criticalFailure`, unscaled on `failure`, and
+ * — the worst of the un-fixed behavior — zero damage on `criticalSuccess`
+ * (the apply-damage step is skipped entirely rather than calling
+ * `applyDamage` with a zeroed roll). Same dialog-suppression convention as
  * rollAndApplyStrikeAtVariant, since neither the save roll nor the damage
  * roll forwards a skipDialog option of its own.
  */
-async function castSpellAndApplySave(
+export async function castSpellAndApplySave(
   combatant,
   target,
   spellId,
@@ -3254,9 +3261,15 @@ async function castSpellAndApplySave(
       outcome,
       createMessage: true,
     });
-    if (damageRoll) {
+    if (damageRoll && outcome !== "criticalSuccess") {
+      const scaled =
+        outcome === "success"
+          ? await damageRoll.alter(0.5, 0)
+          : outcome === "criticalFailure"
+            ? await damageRoll.alter(2, 0)
+            : damageRoll; // failure: full damage, unscaled
       await target.actor.applyDamage({
-        damage: damageRoll,
+        damage: scaled,
         token: target.token,
         outcome,
       });
@@ -3282,9 +3295,15 @@ async function castSpellAndApplySave(
  * which opponents a candidate's placement catches (that's how the
  * candidate was built), it bypasses that UI entirely and drives the same
  * per-target save/damage/apply sequence #118's castSpellAndApplySave uses
- * for a single target, just once per affected creature.
+ * for a single target, just once per affected creature — including #81's
+ * fix for that sequence's own outcome-scaling: `spell.rollDamage()` returns
+ * a flat, un-scaled roll regardless of outcome, so each target's own
+ * `.alter(mult, 0)` scaling (half on `success`, double on
+ * `criticalFailure`, unscaled on `failure`, skipped entirely — zero damage —
+ * on `criticalSuccess`) is applied per-target inside this loop, independent
+ * of every other target's own outcome.
  */
-async function castAreaSpellAndApplySaves(
+export async function castAreaSpellAndApplySaves(
   combatant,
   targets,
   spellId,
@@ -3320,9 +3339,15 @@ async function castAreaSpellAndApplySaves(
         outcome,
         createMessage: true,
       });
-      if (damageRoll) {
+      if (damageRoll && outcome !== "criticalSuccess") {
+        const scaled =
+          outcome === "success"
+            ? await damageRoll.alter(0.5, 0)
+            : outcome === "criticalFailure"
+              ? await damageRoll.alter(2, 0)
+              : damageRoll; // failure: full damage, unscaled
         await target.actor.applyDamage({
-          damage: damageRoll,
+          damage: scaled,
           token: target.token,
           outcome,
         });
