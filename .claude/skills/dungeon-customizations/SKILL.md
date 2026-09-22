@@ -107,7 +107,7 @@ bridge; it makes no LLM calls of its own.
 Also start `node tools/agent-loop/poll.mjs` in the background the first
 time the standing loop starts in a session, if it isn't already running.
 It's the separate combat-turn AI poller — drives agent-controlled
-combatants' turns via the provider configured by `DOMMT_AGENT_PROVIDER`
+combatants' turns via the provider configured by `PF2EDC_AGENT_PROVIDER`
 (needs `ANTHROPIC_API_KEY` for `claude`, none for `laya`) — not itself
 part of the customization check, but the standing loop is what's meant to
 keep both halves of the agent bridge running for the length of a session.

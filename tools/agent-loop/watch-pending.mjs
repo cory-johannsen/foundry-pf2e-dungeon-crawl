@@ -12,13 +12,13 @@
  *
  * Run: node tools/agent-loop/watch-pending.mjs
  * Requires: FOUNDRY_BASE_URL, FOUNDRY_REST_API_KEY (same as poll.mjs).
- * Optional: DOMMT_WATCH_INTERVAL_MS (default 5000).
+ * Optional: PF2EDC_WATCH_INTERVAL_MS (default 5000).
  */
 import { readEnvOrDotenv } from "./foundry-client.mjs";
 import { listPendingCustomizations } from "./mcp-server.mjs";
 
 const WATCH_INTERVAL_MS = Number(
-  readEnvOrDotenv("DOMMT_WATCH_INTERVAL_MS") ?? 5000,
+  readEnvOrDotenv("PF2EDC_WATCH_INTERVAL_MS") ?? 5000,
 );
 
 /** Identity key for one pending entry across polls. All four kinds carry

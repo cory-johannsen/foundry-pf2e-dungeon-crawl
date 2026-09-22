@@ -370,7 +370,7 @@ export async function abandonDungeonRun(sceneId) {
 
 export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
-    id: "dommt-dungeon-app",
+    id: "pf2edc-dungeon-app",
     tag: "section",
     window: { title: "PF2EDC.Dungeon.Title", icon: "fa-solid fa-dungeon" },
     position: { width: 480, height: "auto" },
@@ -801,7 +801,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!currentRoom?.challenge) return;
 
     const form = this.element.querySelector(
-      ".dommt-dungeon__skill-challenge-form",
+      ".pf2edc-dungeon__skill-challenge-form",
     );
     const actorId = form?.querySelector('[name="actorId"]')?.value;
     const skill = form?.querySelector('[name="skill"]')?.value;
@@ -855,7 +855,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!stage || stage.attempted) return;
 
     const form = this.element.querySelector(
-      `.dommt-dungeon__puzzle-stage-form[data-stage-index="${stageIndex}"]`,
+      `.pf2edc-dungeon__puzzle-stage-form[data-stage-index="${stageIndex}"]`,
     );
     const actorId = form?.querySelector('[name="actorId"]')?.value;
     const actor = actorId ? game.actors.get(actorId) : null;
@@ -894,7 +894,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const sceneId = canvas?.scene?.id;
     if (!sceneId) return;
     const textarea = this.element.querySelector(
-      '[name="dommt-narrative-objective"]',
+      '[name="pf2edc-narrative-objective"]',
     );
     const objective = textarea?.value?.trim() || null;
     if (game.user.isGM) {

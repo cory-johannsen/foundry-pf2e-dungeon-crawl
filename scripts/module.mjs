@@ -238,12 +238,12 @@ Hooks.once("ready", async () => {
 
 const MACRO_DEFS = [
   {
-    name: "DOMMT: Generate Encounter",
+    name: "PF2EDC: Generate Encounter",
     img: `modules/${MODULE_ID}/assets/icons/macro-encounter.webp`,
     command: `game.modules.get('${MODULE_ID}').api.generateEncounter();`,
   },
   {
-    name: "DOMMT: Dungeon Crawl",
+    name: "PF2EDC: Dungeon Crawl",
     img: `modules/${MODULE_ID}/assets/icons/macro-dungeon.webp`,
     command: `game.modules.get('${MODULE_ID}').api.openDungeon();`,
   },
@@ -285,7 +285,7 @@ Hooks.once("ready", registerDungeonActionSocket);
 
 /** #158: opens the Dungeon Crawl tracker if it isn't already rendered. */
 function openDungeonTrackerIfNotOpen() {
-  if (!foundry.applications.instances.get("dommt-dungeon-app"))
+  if (!foundry.applications.instances.get("pf2edc-dungeon-app"))
     new DungeonApp().render(true);
 }
 
@@ -301,7 +301,7 @@ Hooks.on("updateWall", async (wall, changes) => {
 /** #109: keeps every non-host, non-GM client's DungeonApp in sync with a
  * GM-less run. */
 function syncGmLessDungeonBroadcast() {
-  const existing = foundry.applications.instances.get("dommt-dungeon-app");
+  const existing = foundry.applications.instances.get("pf2edc-dungeon-app");
   const decision = decideGmLessBroadcast(
     findHostedRunForBroadcast(),
     !!existing,
@@ -375,7 +375,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
     controls.find?.((c) => c.name === "token") ?? controls.token;
   if (!tokenControl) return;
   const agentLoopButton = {
-    name: "dommt-agent-loop-status",
+    name: "pf2edc-agent-loop-status",
     title: game.i18n.localize("PF2EDC.SceneControl.AgentLoopStatusLabel"),
     icon: "fa-solid fa-robot",
     visible: game.user.isGM,
@@ -385,7 +385,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
   if (Array.isArray(tokenControl.tools)) {
     tokenControl.tools.push(agentLoopButton);
   } else if (tokenControl.tools && typeof tokenControl.tools === "object") {
-    tokenControl.tools["dommt-agent-loop-status"] = agentLoopButton;
+    tokenControl.tools["pf2edc-agent-loop-status"] = agentLoopButton;
   }
 });
 

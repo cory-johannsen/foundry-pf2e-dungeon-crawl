@@ -1,5 +1,5 @@
 /**
- * GM-facing orchestration for "DOMMT: Generate Encounter" — dialog-driven,
+ * GM-facing orchestration for "PF2EDC: Generate Encounter" — dialog-driven,
  * modelled on scene-divination.mjs's direct-call style rather than the
  * card-effects plan/replay system. That machinery exists to make a single,
  * irreversible draw from the shared depleting play deck previewable; this
@@ -191,7 +191,7 @@ export async function generateEncounter({
   }
   // #109: `scene` is already the dungeon scene by the time a room
   // population calls this (populateSlotEncounter passes its own `scene`
-  // through) — the standalone "DOMMT: Generate Encounter" macro passes no
+  // through) — the standalone "PF2EDC: Generate Encounter" macro passes no
   // override, so `scene` falls back to canvas?.scene there and `run` is
   // null. A GM-less run's host isn't the one executing this (it always runs
   // on whichever client is genuinely GM — see dungeon-remote.mjs), so
@@ -215,7 +215,7 @@ export async function generateEncounter({
   // "Start Dungeon" and reused unchanged for every room (ITEM-1's own
   // design), not just a prefill suggestion — so it skips straight to
   // dealing/previewing instead of asking for the same traits again (ITEM-21).
-  // The standalone "DOMMT: Generate Encounter" macro has no such prior
+  // The standalone "PF2EDC: Generate Encounter" macro has no such prior
   // context, so it always shows the dialog (skipThemeDialog defaults false).
   const theme = skipThemeDialog
     ? { traits: prefillTraits, excludeTraits: prefillExcludeTraits }

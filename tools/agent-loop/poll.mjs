@@ -16,15 +16,15 @@
  *
  * Run: node tools/agent-loop/poll.mjs
  * Requires: FOUNDRY_REST_API_KEY, FOUNDRY_BASE_URL (your self-hosted relay),
- * ANTHROPIC_API_KEY (only if DOMMT_AGENT_PROVIDER=claude) — see README.md.
+ * ANTHROPIC_API_KEY (only if PF2EDC_AGENT_PROVIDER=claude) — see README.md.
  */
 import { runFoundryScript, readEnvOrDotenv } from "./foundry-client.mjs";
 import { resolveProvider } from "./providers/index.mjs";
 
 const POLL_INTERVAL_MS = Number(
-  readEnvOrDotenv("DOMMT_POLL_INTERVAL_MS") ?? 3000,
+  readEnvOrDotenv("PF2EDC_POLL_INTERVAL_MS") ?? 3000,
 );
-const AGENT_PROVIDER_NAME = readEnvOrDotenv("DOMMT_AGENT_PROVIDER") ?? "claude";
+const AGENT_PROVIDER_NAME = readEnvOrDotenv("PF2EDC_AGENT_PROVIDER") ?? "claude";
 const MODULE_ID = "pf2e-dungeon-crawl";
 
 async function getPendingTurn() {
