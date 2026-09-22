@@ -126,6 +126,79 @@ describe("createRun hostUserId", () => {
   });
 });
 
+describe("createRun / aiControlledActorIds (#20)", () => {
+  function makePartyOwnershipStub({
+    actors = [],
+    activeUserIds = new Set(),
+    gmUserIds = new Set(),
+  } = {}) {
+    return {
+      partyActors: () => actors,
+      isUserActive: (userId) => activeUserIds.has(userId),
+      isUserGm: (userId) => gmUserIds.has(userId),
+    };
+  }
+
+  it("flags a party actor whose non-GM owner is offline", async () => {
+    const settingsRef = makeSettingsStub();
+    const partyOwnershipRef = makePartyOwnershipStub({
+      actors: [{ id: "actor-1", ownership: { "gm-1": 3, "user-1": 3 } }],
+      activeUserIds: new Set(),
+      gmUserIds: new Set(["gm-1"]),
+    });
+    const state = await createRun(
+      { sceneId: "scene-1", roomCount: 3 },
+      { settingsRef, partyOwnershipRef },
+    );
+    expect(state.aiControlledActorIds).toEqual(["actor-1"]);
+  });
+
+  it("leaves a party actor alone when its non-GM owner is online", async () => {
+    const settingsRef = makeSettingsStub();
+    const partyOwnershipRef = makePartyOwnershipStub({
+      actors: [{ id: "actor-1", ownership: { "gm-1": 3, "user-1": 3 } }],
+      activeUserIds: new Set(["user-1"]),
+      gmUserIds: new Set(["gm-1"]),
+    });
+    const state = await createRun(
+      { sceneId: "scene-1", roomCount: 3 },
+      { settingsRef, partyOwnershipRef },
+    );
+    expect(state.aiControlledActorIds).toEqual([]);
+  });
+
+  it("leaves an actor off the list when only the GM owns it", async () => {
+    const settingsRef = makeSettingsStub();
+    const partyOwnershipRef = makePartyOwnershipStub({
+      actors: [{ id: "actor-1", ownership: { "gm-1": 3 } }],
+      activeUserIds: new Set(),
+      gmUserIds: new Set(["gm-1"]),
+    });
+    const state = await createRun(
+      { sceneId: "scene-1", roomCount: 3 },
+      { settingsRef, partyOwnershipRef },
+    );
+    expect(state.aiControlledActorIds).toEqual([]);
+  });
+
+  it("handles a run with multiple party actors independently", async () => {
+    const settingsRef = makeSettingsStub();
+    const partyOwnershipRef = makePartyOwnershipStub({
+      actors: [
+        { id: "actor-1", ownership: { "gm-1": 3, "user-1": 3 } },
+        { id: "actor-2", ownership: { "gm-1": 3, "user-2": 3 } },
+      ],
+      activeUserIds: new Set(["user-2"]),
+      gmUserIds: new Set(["gm-1"]),
+    });
+    const state = await createRun(
+      { sceneId: "scene-1", roomCount: 3 },
+      { settingsRef, partyOwnershipRef },
+    );
+    expect(state.aiControlledActorIds).toEqual(["actor-1"]);
+  });
+});
+
 describe("findActiveHostedRun", () => {
   it("returns null when nothing is hosted", async () => {
     const settingsRef = makeSettingsStub();

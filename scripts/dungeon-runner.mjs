@@ -31,6 +31,42 @@ function defaultSettingsRef() {
   };
 }
 
+function defaultPartyOwnershipRef() {
+  if (typeof game === 'undefined') {
+    // Test environment without game global
+    return {
+      partyActors: () => [],
+      isUserActive: () => false,
+      isUserGm: () => false,
+    };
+  }
+  return {
+    partyActors: () => game.actors?.party?.members ?? [],
+    isUserActive: (userId) => !!game.users?.get(userId)?.active,
+    isUserGm: (userId) => !!game.users?.get(userId)?.isGM,
+  };
+}
+
+/** Party actor ids whose non-GM owner isn't currently connected (#20),
+ * computed once at run start. Each Trusted-User player owns exactly one
+ * party actor at OWNER level (ownership level 3, same literal
+ * foundry-api.mjs's partyLevel() already uses); the GM/Agent account owns
+ * everything too but is explicitly excluded. An actor with no non-GM owner
+ * at all (misconfigured ownership) is left off the list — it stays
+ * human/GM-controlled rather than guessed at. */
+function computeAiControlledActorIds(partyOwnershipRef) {
+  const result = [];
+  for (const actor of partyOwnershipRef.partyActors()) {
+    const ownerId = Object.entries(actor.ownership ?? {}).find(
+      ([userId, level]) => level === 3 && !partyOwnershipRef.isUserGm(userId),
+    )?.[0];
+    if (ownerId && !partyOwnershipRef.isUserActive(ownerId)) {
+      result.push(actor.id);
+    }
+  }
+  return result;
+}
+
 async function persist(sceneId, state, settingsRef) {
   const all = settingsRef.get(MODULE_ID, "dungeonRuns") ?? {};
   await settingsRef.set(MODULE_ID, "dungeonRuns", { ...all, [sceneId]: state });
@@ -56,7 +92,12 @@ export async function createRun(
     previousSceneId = null,
     hostUserId = null,
   },
-  { settingsRef = defaultSettingsRef(), setpieceIds = [], narrativeSetpieceIds = [] } = {},
+  {
+    settingsRef = defaultSettingsRef(),
+    partyOwnershipRef = defaultPartyOwnershipRef(),
+    setpieceIds = [],
+    narrativeSetpieceIds = [],
+  } = {},
 ) {
   const runSeed =
     seed ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -101,6 +142,10 @@ export async function createRun(
     // canActOnDungeon) and the sole trigger for broadcasting it read-only
     // to every other client (module.mjs's syncGmLessDungeonBroadcast).
     hostUserId,
+    // #20: party actor ids whose owning player isn't logged in at run
+    // start — see dungeon-combat.mjs (combat turns) and dungeon-follow.mjs
+    // (exploration following) for what reads this.
+    aiControlledActorIds: computeAiControlledActorIds(partyOwnershipRef),
   };
   return persist(sceneId, state, settingsRef);
 }
