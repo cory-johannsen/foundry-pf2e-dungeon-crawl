@@ -16,10 +16,7 @@
  */
 import { makeFoundryApi } from "./foundry-api.mjs";
 import { getRunState } from "./dungeon-runner.mjs";
-import {
-  totalCombatXp,
-  xpPerSurvivor,
-} from "./combat-rewards.mjs";
+import { totalCombatXp } from "./combat-rewards.mjs";
 import {
   initAgentTurnState,
   buildCandidateList,
@@ -320,16 +317,7 @@ async function resolveCombat(combat, outcome, api) {
     );
     const partyLevel = await api.partyLevel();
     const totalXp = totalCombatXp(hostileLevels, partyLevel);
-    const party = (game.actors?.party?.members ?? []).filter(
-      (m) => m.type === "character",
-    );
-    const share = xpPerSurvivor(totalXp, party.length);
-    for (const member of party) {
-      await member.update({
-        "system.details.xp.value":
-          (member.system.details.xp.value ?? 0) + share,
-      });
-    }
+    await api.grantPartyXp(totalXp);
   }
   // #172: a defeated hostile's own gear (granted at spawn time — see
   // spawnCreatures) becomes real, player-lootable treasure instead of

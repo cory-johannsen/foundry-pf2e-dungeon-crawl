@@ -49,6 +49,7 @@ import {
   rollNpcTreasure,
   LOOTABLE_ITEM_TYPES,
 } from "./treasure.mjs";
+import { xpPerSurvivor } from "./combat-rewards.mjs";
 
 export const CREATURE_PACK_PATTERN =
   /bestiary|monster-core|npc-core|npc-gallery/i;
@@ -566,6 +567,27 @@ export function makeFoundryApi(sceneRef = null) {
       if (typeof actor.inventory?.addCoins === "function")
         return actor.inventory.addCoins(coins);
       throw new Error(`Actor ${actorId} has no inventory to add coins to`);
+    },
+
+    /**
+     * Splits `totalXp` evenly across every party character actor and adds
+     * each share to `system.details.xp.value` (#30) — the same write-path
+     * combat's own XP grant already used inline in dungeon-combat.mjs's
+     * resolveCombat, extracted here so combat and the non-combat room kinds
+     * (skill challenge, puzzle, trap) all go through one place instead of
+     * three duplicated copies of this loop.
+     */
+    async grantPartyXp(totalXp) {
+      const party = (game.actors?.party?.members ?? []).filter(
+        (m) => m.type === "character",
+      );
+      const share = xpPerSurvivor(totalXp, party.length);
+      for (const member of party) {
+        await member.update({
+          "system.details.xp.value":
+            (member.system.details.xp.value ?? 0) + share,
+        });
+      }
     },
 
     /**

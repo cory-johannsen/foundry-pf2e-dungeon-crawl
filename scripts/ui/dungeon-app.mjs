@@ -13,6 +13,7 @@ import { canActOnDungeon } from "../dungeon-permissions.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
 import { depthBiasFor, lootGpForTreasureRoom } from "../dungeon-deck.mjs";
 import { makeFoundryApi } from "../foundry-api.mjs";
+import { xpFor } from "../encounter-roster.mjs";
 import { rollSkillChallengeAttempt } from "../skill-challenge.mjs";
 import { rollPuzzleStageAttempt } from "../puzzle.mjs";
 import { ALL_SKILLS, dcForAttempt } from "../skill-challenge-mechanics.mjs";
@@ -106,6 +107,39 @@ function skillLabel(slug) {
 export async function resolveCurrentRoom(succeeded, { scene } = {}) {
   if (!scene) return;
   const setpieces = await loadDungeonSetpieces();
+  // #30: a puzzle_or_trap room whose resolved setpiece is trap-kind (or has
+  // no setpiece at all — a real bestiary hazard actor spawned instead)
+  // grants XP on success here. This is the one place both the direct-GM
+  // and GM-less-relay resolution paths converge (dungeon-remote.mjs's own
+  // "resolveRoom" action calls this same function) — every other room
+  // kind grants its own XP before ever calling this (combat via
+  // resolveSlotCombat/resolveCombat, skill challenges/puzzles via
+  // recordSkillChallengeOutcome/recordPuzzleStageOutcome above). Narrative
+  // and treasure grant no XP here either — neither has a pass/fail
+  // mechanic GM Core's non-combat XP guidance applies to.
+  if (succeeded) {
+    const preState = getRunState(scene.id);
+    const currentRoom = preState?.rooms[preState.currentIndex];
+    if (currentRoom?.kind === "puzzle_or_trap") {
+      const setpiece = currentRoom.setpieceId
+        ? setpieces.find((s) => s.id === currentRoom.setpieceId)
+        : null;
+      if (setpiece?.kind !== "puzzle") {
+        const physicalSlot = preState.physicalSlotByRoomId[currentRoom.id];
+        const trapToken = scene.tokens.find(
+          (t) =>
+            t.getFlag(MODULE_ID, "trapHazard") &&
+            t.getFlag(MODULE_ID, "dungeonSlot") === physicalSlot,
+        );
+        const trapLevel = trapToken?.actor?.system?.details?.level?.value;
+        const levelOffset =
+          trapLevel != null
+            ? trapLevel - (await makeFoundryApi().partyLevel())
+            : 0;
+        await makeFoundryApi().grantPartyXp(xpFor(levelOffset));
+      }
+    }
+  }
   const { state, mutation, nextRoomId, nextPhysicalSlot } =
     await markRoomOutcome(
       { sceneId: scene.id, succeeded },
@@ -213,6 +247,9 @@ export async function recordSkillChallengeOutcome(sceneId, roomId, outcome) {
   const newState = await recordSkillChallengeAttempt(sceneId, roomId, outcome);
   const resolved = newState?.rooms.find((r) => r.id === roomId)?.challenge
     ?.resolved;
+  if (resolved === "success") {
+    await makeFoundryApi().grantPartyXp(xpFor(0));
+  }
   if (resolved)
     await resolveCurrentRoom(resolved === "success", {
       scene: game.scenes.get(sceneId),
@@ -233,6 +270,9 @@ export async function recordPuzzleStageOutcome(
   );
   const resolved = newState?.rooms.find((r) => r.id === roomId)?.puzzle
     ?.resolved;
+  if (resolved === "success") {
+    await makeFoundryApi().grantPartyXp(xpFor(0));
+  }
   if (resolved)
     await resolveCurrentRoom(resolved === "success", {
       scene: game.scenes.get(sceneId),
