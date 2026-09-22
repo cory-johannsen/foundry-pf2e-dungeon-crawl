@@ -66,6 +66,8 @@ Room-to-room movement in this module is manual token dragging today — nothing 
 
 ## Error handling
 
+Note: follow-the-leader is only active for player-initiated (GM-less) runs, since `hostUserId` — the leader's identity — is only ever set in that flow (#109). A GM-hosted run has no single "initiating player" distinct from the GM to designate as leader; combat AI (the other half of this issue) still works normally in GM-hosted runs regardless.
+
 | Condition | Behavior |
 |---|---|
 | Actor has no non-GM owner | Excluded from `aiControlledActorIds`; stays human/GM-controlled |
