@@ -35,6 +35,7 @@
  *     table.
  */
 import { splitmix32, seedFromString } from "./prng.mjs";
+import { MAX_DEPTH_BIAS } from "./dungeon-deck.mjs";
 
 // PF2e's own "Simple DC" table (GM Core) by character/party level. Same
 // confidence level as encounter-roster.mjs's RELATIVE_XP table — a stable,
@@ -102,6 +103,31 @@ export const VP_TARGET = 6;
 
 export function attemptBudgetForPartySize(partySize) {
   return Math.max(3, (partySize ?? 4) + 2);
+}
+
+/**
+ * How much easier an early/shallow skill challenge should be than the flat
+ * difficulty this file used before #35: `depthBias` (dungeon-deck.mjs's own
+ * combat/treasure depth-escalation signal, 0..MAX_DEPTH_BIAS) eases the
+ * required VP target DOWN and the attempt budget UP (see
+ * attemptBudgetForDepth below) for a shallow room, converging on today's
+ * original numbers exactly at MAX_DEPTH_BIAS/the goal room — so the
+ * hardest case this module has always shipped is unchanged, and only early
+ * rooms get easier. A missing depthBias defaults to MAX_DEPTH_BIAS (today's
+ * flat behavior) rather than silently going easy on a caller that doesn't
+ * know how deep this room is.
+ */
+export function vpTargetForDepth(depthBias = MAX_DEPTH_BIAS) {
+  const clamped = Math.max(0, Math.min(MAX_DEPTH_BIAS, depthBias));
+  return VP_TARGET - (MAX_DEPTH_BIAS - clamped);
+}
+
+/** The attempt-budget half of vpTargetForDepth's easing — same depth input,
+ * same convergence to attemptBudgetForPartySize's original value at
+ * MAX_DEPTH_BIAS. */
+export function attemptBudgetForDepth(partySize, depthBias = MAX_DEPTH_BIAS) {
+  const clamped = Math.max(0, Math.min(MAX_DEPTH_BIAS, depthBias));
+  return attemptBudgetForPartySize(partySize) + (MAX_DEPTH_BIAS - clamped);
 }
 
 // Every real (non-Lore) PF2e skill — Lore skills are excluded since
@@ -235,18 +261,26 @@ export function selectSkillChallengeTemplate(entries, seed, roomId) {
  * persisting these once here, at creation, is what makes that possible:
  * `dungeon-runner.mjs`'s `applySkillChallengeCustomization` overwrites
  * exactly these three fields, nothing else.
+ *
+ * `depthBias` (#35, optional, defaults to `MAX_DEPTH_BIAS`) is
+ * dungeon-deck.mjs's own combat/treasure depth-escalation signal
+ * (0..MAX_DEPTH_BIAS) — threaded through to `vpTargetForDepth`/
+ * `attemptBudgetForDepth` so a shallow room's ratio requirement eases off
+ * today's flat, hardest-case numbers instead of hitting them regardless of
+ * how deep into the dungeon this room actually is.
  */
 export function initSkillChallengeState({
   seed,
   roomId,
   locationTag,
   partySize,
+  depthBias = MAX_DEPTH_BIAS,
   template = null,
 }) {
   const valid = isValidSkillChallengeTemplate(template);
   return {
-    vpTarget: VP_TARGET,
-    attemptBudget: attemptBudgetForPartySize(partySize),
+    vpTarget: vpTargetForDepth(depthBias),
+    attemptBudget: attemptBudgetForDepth(partySize, depthBias),
     specialtySkills: valid
       ? template.specialtySkills
       : chooseSpecialtySkills(seed, roomId, locationTag),

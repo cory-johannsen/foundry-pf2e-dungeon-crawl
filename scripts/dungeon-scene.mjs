@@ -791,6 +791,11 @@ export async function buildPopulateAndUnlockRoom(
         seed: state.seed,
         locationTag: room.locationTag,
         partySize: partyMembers.length,
+        depthBias: depthBiasFor({
+          physicalSlot,
+          roomCount: state.rooms.length,
+          isGoal: room.isGoal,
+        }),
         template,
       });
     }
