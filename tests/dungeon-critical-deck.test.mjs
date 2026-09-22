@@ -25,6 +25,40 @@ const FUMBLE_DECK_10 =
 const FUMBLE_DECK_15 =
   '<section class="fumble-deck"><h1>Broken Weapon</h1><blockquote><p>Your weapon\'s current Hit Point are reduced to its Broken Threshold. If already @UUID[Compendium.pf2e.conditionitems.Item.Broken], the weapon takes @Damage[3d6] damage, ignoring Hardness.</p></blockquote><p><code>Melee</code></p><h1>My Spleeny Bits!</h1><blockquote><p>You become @UUID[Compendium.pf2e.conditionitems.Item.Wounded]{Wounded 1} or your wounded value increases by 1.</p></blockquote><p><code>Ranged</code></p><h1>Frustration</h1><blockquote><p>You take a @UUID[Compendium.pf2e.other-effects.Item.Effect: -2 circumstance penalty to attack rolls]{-2 circumstance penalty to attack rolls} until the end of your next turn.</p></blockquote><p><code>Unarmed</code></p><h1>Beastly Rift</h1><blockquote><p>Your spell becomes a @UUID[Compendium.pf2e.spells-srd.Item.Summon Animal] spell of the same rank. The animal attacks you.</p></blockquote><p><code>Spell</code></p></section>';
 
+// Real fixture content pulled directly from
+// /home/cjohannsen/pf2e-data/packs/pf2e/criticaldeck/critical-fumble-deck-14.json
+// -- simple weapon-HP damage (#60), no broken-threshold logic.
+const FUMBLE_DECK_14 =
+  '<section class="fumble-deck"><h1>Notched</h1><blockquote><p>Your weapon takes @Damage[1d6] damage, ignoring Hardness.</p></blockquote><p><code>Melee</code></p><h1>Notched Fingers</h1><blockquote><p>You take @Damage[1d4[bleed]].</p></blockquote><p><code>Ranged</code></p><h1>Hit the Wall</h1><blockquote><p>You are @UUID[Compendium.pf2e.conditionitems.Item.Fatigued].</p></blockquote><p><code>Unarmed</code></p><h1>Electrical Feedback</h1><blockquote><p>You take @Damage[2d6[electricity]] damage.</p></blockquote><p><code>Spell</code></p></section>';
+
+// Real fixture content pulled directly from
+// /home/cjohannsen/pf2e-data/packs/pf2e/criticaldeck/critical-fumble-deck-22.json
+// -- "Cracked"'s phrasing ("The ranged weapon (not the ammunition) you are
+// using takes...") doesn't match the old "your weapon"/"the weapon" literal
+// phrases at all; it fell through to the bare "you" match and was wrongly
+// self-directed (#60 latent-bug fix), not skipped like the other 4 cards.
+const FUMBLE_DECK_22 =
+  '<section class="fumble-deck"><h1>Wide Open</h1><blockquote><p>You are @UUID[Compendium.pf2e.other-effects.Item.Effect: Off-Guard until end of your next turn].</p></blockquote><p><code>Melee</code></p><h1>Cracked</h1><blockquote><p>The ranged weapon (not the ammunition) you are using takes @Damage[ 1d6] damage, ignoring Hardness.</p></blockquote><p><code>Ranged</code></p><h1>Fist meet Face</h1><blockquote><p>You critically hit yourself with the attack.</p></blockquote><p><code>Unarmed</code></p><h1>Distance Rift</h1><blockquote><p>You are teleported to the nearest space adjacent to your spell\'s target.</p></blockquote><p><code>Spell</code></p></section>';
+
+// Real fixture content pulled directly from
+// /home/cjohannsen/pf2e-data/packs/pf2e/criticaldeck/critical-fumble-deck-44.json
+// -- same broken-threshold shape as FUMBLE_DECK_15's "Broken Weapon", but
+// note this one's real text says "Hit Points" (plural, grammatically
+// correct) where card 15 says "Hit Point" (singular, PF2e's own compendium
+// typo) -- both must parse identically.
+const FUMBLE_DECK_44 =
+  "<section class=\"fumble-deck\"><h1>Hand it Over</h1><blockquote><p>Unless you succeed at a @Check[reflex], your target gains possessions of your weapon.</p></blockquote><p><code>Melee</code></p><h1>Broken</h1><blockquote><p>Your weapon's current Hit Points are reduced to its Broken Threshold. If already @UUID[Compendium.pf2e.conditionitems.Item.Broken], the weapon takes @Damage[3d6] damage, ignoring Hardness.</p></blockquote><p><code>Ranged</code></p><h1>Smash the Floor</h1><blockquote><p>You kick up a cloud of dust, becoming @UUID[Compendium.pf2e.conditionitems.Item.Blinded] until the end of your next turn.</p></blockquote><p><code>Unarmed</code></p><h1>You made 'em Faster</h1><blockquote><p>The target is @UUID[Compendium.pf2e.conditionitems.Item.Quickened] for 2 rounds.</p></blockquote><p><code>Spell</code></p></section>";
+
+// Real fixture content pulled directly from
+// /home/cjohannsen/pf2e-data/packs/pf2e/criticaldeck/critical-fumble-deck-50.json
+// -- same broken-threshold shape, but with NO @UUID[...Broken] marker at
+// all (bare "If already broken" prose) and a trailing "loses reach" clause
+// that isn't wrapped in any @-directive syntax -- proves the detection is
+// prose-pattern-based, not directive-based, and that the trailing sentence
+// is correctly left alone (flavor-only, not automated).
+const FUMBLE_DECK_50 =
+  '<section class="fumble-deck"><h1>Broken Haft</h1><blockquote><p>Your weapon\'s current Hit Points are reduced to its Broken Threshold. If already broken, the weapon takes @Damage[3d6] damage, ignoring Hardness. If your weapon is a reach weapon, it loses reach.</p></blockquote><p><code>Melee</code></p><h1>All Thumbs</h1><blockquote><p>Until healed, you are @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Clumsy 1}.</p></blockquote><p><code>Ranged</code></p><h1>Whiff</h1><blockquote><p>You hit yourself istead of the target.</p></blockquote><p><code>Unarmed</code></p><h1>Draining Magic</h1><blockquote><p>You are @UUID[Compendium.pf2e.conditionitems.Item.Drained]{Drained 1}.</p></blockquote><p><code>Spell</code></p></section>';
+
 const FUMBLE_DECK_2 =
   '<section class="fumble-deck"><h1>Wrong End</h1><blockquote><p>If you are using a slashing weapon, you take @Damage[1d6[slashing]] damage and 1 persistent bleed damage.</p></blockquote><p><code>Melee</code></p><h1>Phantom Wind</h1><blockquote><p>You take a @UUID[Compendium.pf2e.other-effects.Item.Effect: -2 circumstance penalty to ranged attacks]{-2 circumstance penalty to ranged attacks} until the end of your next turn.</p></blockquote><p><code>Ranged</code></p><h1>Overthink It</h1><blockquote><p>Your target gains a @UUID[Compendium.pf2e.other-effects.Item.Effect: +2 circumstance bonus to AC]{+2 circumstance bonus to AC} against attacks you make against it until the end of your next turn.</p></blockquote><p><code>Unarmed</code></p><h1>Power Down</h1><blockquote><p>Until healed, you are @UUID[Compendium.pf2e.conditionitems.Item.Stupefied]{Stupefied 2}</p></blockquote><p><code>Spell</code></p></section>';
 
@@ -159,26 +193,65 @@ describe("parseDeckEntry", () => {
     ]);
   });
 
-  it("weapon-HP damage is skipped even though it wraps @Damage (Something's Broken is self, Broken Weapon is skipped)", () => {
+  it("a self-directed damage card unrelated to any weapon still resolves as self (Something's Broken)", () => {
     const somethingsBroken = parseDeckEntry(FUMBLE_DECK_10).find(
       (e) => e.name === "Something's Broken",
     );
     expect(somethingsBroken.directives).toEqual([
       { type: "damage", formula: "1d4[bludgeoning]", target: "self" },
     ]);
+  });
 
+  it("weapon-HP damage resolves to a weapon-targeted directive, not skipped (Notched, Cracked)", () => {
+    const notched = parseDeckEntry(FUMBLE_DECK_14).find(
+      (e) => e.name === "Notched",
+    );
+    expect(notched.directives).toEqual([
+      { type: "damage", formula: "1d6", target: "weapon" },
+    ]);
+
+    // "Cracked"'s phrasing ("the ranged weapon... you are using") doesn't
+    // match "your weapon"/"the weapon" literally -- before #60 this fell
+    // through to the bare "you" match and was WRONGLY self-directed (a real
+    // latent bug: it dealt 1d6 to the attacker's own creature HP on a
+    // fumble). Now resolves correctly to the weapon.
+    const cracked = parseDeckEntry(FUMBLE_DECK_22).find(
+      (e) => e.name === "Cracked",
+    );
+    expect(cracked.directives).toEqual([
+      { type: "damage", formula: "1d6", target: "weapon" },
+    ]);
+  });
+
+  it("the broken-threshold two-stage sentence resolves to one weaponBrokenThreshold directive, not independent condition/damage directives (Broken Weapon, Broken)", () => {
     const brokenWeapon = parseDeckEntry(FUMBLE_DECK_15).find(
       (e) => e.name === "Broken Weapon",
     );
-    // Both the condition (ambiguous subject: "If already <UUID>,") and the
-    // weapon-HP damage ("the weapon takes @Damage[3d6]") are skipped.
     expect(brokenWeapon.directives).toEqual([
-      {
-        type: "skip",
-        raw: expect.stringContaining("Broken"),
-        reason: "subject",
-      },
-      { type: "skip", raw: expect.stringContaining("3d6"), reason: "subject" },
+      { type: "weaponBrokenThreshold", formula: "3d6", target: "weapon" },
+    ]);
+
+    // Same shape, real text says "Hit Points" (plural) rather than card
+    // 15's "Hit Point" (singular, PF2e's own compendium typo) -- both must
+    // parse identically.
+    const broken = parseDeckEntry(FUMBLE_DECK_44).find(
+      (e) => e.name === "Broken",
+    );
+    expect(broken.directives).toEqual([
+      { type: "weaponBrokenThreshold", formula: "3d6", target: "weapon" },
+    ]);
+  });
+
+  it("the broken-threshold sentence parses even with no @UUID[...Broken] marker at all, and leaves the trailing reach-loss clause alone (Broken Haft)", () => {
+    const brokenHaft = parseDeckEntry(FUMBLE_DECK_50).find(
+      (e) => e.name === "Broken Haft",
+    );
+    // Bare "If already broken" prose, no @UUID marker -- proves detection
+    // is prose-pattern-based, not directive-based. The trailing "If your
+    // weapon is a reach weapon, it loses reach." sentence isn't wrapped in
+    // any @-directive syntax, so it correctly produces no extra directive.
+    expect(brokenHaft.directives).toEqual([
+      { type: "weaponBrokenThreshold", formula: "3d6", target: "weapon" },
     ]);
   });
 
@@ -500,6 +573,19 @@ describe("drawAndApplyCriticalCard", () => {
     return { name, pages: [{ text: { content: html } }] };
   }
 
+  // #60: a real weapon Item's hp shape, confirmed live -- system.hp.{value,
+  // max, brokenThreshold}. `update` records its calls so a test can assert
+  // exactly what field got written, same pattern makeActorDouble uses.
+  function makeItemDouble({ hpValue, hpMax = 10, brokenThreshold = 5 }) {
+    const updateCalls = [];
+    return {
+      name: "Test Weapon",
+      system: { hp: { value: hpValue, max: hpMax, brokenThreshold } },
+      update: async (data) => updateCalls.push(data),
+      updateCalls,
+    };
+  }
+
   function makeActorDouble() {
     const applyDamageCalls = [];
     const increaseConditionCalls = [];
@@ -726,5 +812,157 @@ describe("drawAndApplyCriticalCard", () => {
 
     expect(result).toBeNull();
     expect(ChatMessage.calls).toHaveLength(0);
+  });
+
+  it("applies simple weapon-HP damage to the attacker's strike item, ignoring hardness (Notched)", async () => {
+    const docs = [makeDoc("Critical Fumble Deck #14", FUMBLE_DECK_14)];
+    installFoundryStubs({ docs });
+    const combatant = { name: "Attacker", actor: makeActorDouble(), token: {} };
+    const target = { name: "Victim", actor: makeActorDouble(), token: {} };
+    const item = makeItemDouble({ hpValue: 10 });
+    const strike = { item };
+
+    const result = await drawAndApplyCriticalCard("fumble", "Melee", {
+      combatant,
+      target,
+      strike,
+    });
+
+    expect(result.subentry.name).toBe("Notched");
+    // The test file's Roll stub deterministically returns total: 4.
+    expect(item.updateCalls).toEqual([{ "system.hp.value": 6 }]);
+    expect(combatant.actor.applyDamageCalls).toEqual([]);
+    expect(target.actor.applyDamageCalls).toEqual([]);
+  });
+
+  it("applies weapon-HP damage even when the phrase isn't the right-most match (Cracked)", async () => {
+    const docs = [makeDoc("Critical Fumble Deck #22", FUMBLE_DECK_22)];
+    installFoundryStubs({ docs });
+    const combatant = { name: "Attacker", actor: makeActorDouble(), token: {} };
+    const target = { name: "Victim", actor: makeActorDouble(), token: {} };
+    const item = makeItemDouble({ hpValue: 10 });
+    const strike = { item };
+
+    const result = await drawAndApplyCriticalCard("fumble", "Ranged", {
+      combatant,
+      target,
+      strike,
+    });
+
+    expect(result.subentry.name).toBe("Cracked");
+    expect(item.updateCalls).toEqual([{ "system.hp.value": 6 }]);
+    // The latent bug this fix corrects: before #60 this misapplied 1d6 to
+    // the attacker's own creature HP instead of the weapon.
+    expect(combatant.actor.applyDamageCalls).toEqual([]);
+  });
+
+  it("clamps weapon HP to zero rather than going negative", async () => {
+    const docs = [makeDoc("Critical Fumble Deck #14", FUMBLE_DECK_14)];
+    installFoundryStubs({ docs });
+    const combatant = { name: "Attacker", actor: makeActorDouble(), token: {} };
+    const target = { name: "Victim", actor: makeActorDouble(), token: {} };
+    const item = makeItemDouble({ hpValue: 2 });
+    const strike = { item };
+
+    await drawAndApplyCriticalCard("fumble", "Melee", {
+      combatant,
+      target,
+      strike,
+    });
+
+    // hpValue 2 minus the stubbed roll total of 4 would go negative.
+    expect(item.updateCalls).toEqual([{ "system.hp.value": 0 }]);
+  });
+
+  it("reduces weapon HP to its Broken Threshold instead of rolling damage, when not yet broken (Broken Weapon)", async () => {
+    const docs = [makeDoc("Critical Fumble Deck #15", FUMBLE_DECK_15)];
+    installFoundryStubs({ docs });
+    const combatant = { name: "Attacker", actor: makeActorDouble(), token: {} };
+    const target = { name: "Victim", actor: makeActorDouble(), token: {} };
+    // Above the brokenThreshold (5) -- not yet broken.
+    const item = makeItemDouble({ hpValue: 10, brokenThreshold: 5 });
+    const strike = { item };
+
+    const result = await drawAndApplyCriticalCard("fumble", "Melee", {
+      combatant,
+      target,
+      strike,
+    });
+
+    expect(result.subentry.name).toBe("Broken Weapon");
+    // Clamped straight to the threshold, no roll performed.
+    expect(item.updateCalls).toEqual([{ "system.hp.value": 5 }]);
+  });
+
+  it("rolls real damage instead, ignoring hardness, when the weapon is already at or below its Broken Threshold (Broken)", async () => {
+    const docs = [makeDoc("Critical Fumble Deck #44", FUMBLE_DECK_44)];
+    installFoundryStubs({ docs });
+    const combatant = { name: "Attacker", actor: makeActorDouble(), token: {} };
+    const target = { name: "Victim", actor: makeActorDouble(), token: {} };
+    // At the brokenThreshold (5) -- already broken.
+    const item = makeItemDouble({ hpValue: 5, brokenThreshold: 5 });
+    const strike = { item };
+
+    const result = await drawAndApplyCriticalCard("fumble", "Ranged", {
+      combatant,
+      target,
+      strike,
+    });
+
+    expect(result.subentry.name).toBe("Broken");
+    // The stubbed Roll total (4) subtracted for real, not clamped.
+    expect(item.updateCalls).toEqual([{ "system.hp.value": 1 }]);
+  });
+
+  it("the broken-threshold logic works identically with no @UUID[...Broken] marker at all (Broken Haft)", async () => {
+    const docs = [makeDoc("Critical Fumble Deck #50", FUMBLE_DECK_50)];
+    installFoundryStubs({ docs });
+    const combatant = { name: "Attacker", actor: makeActorDouble(), token: {} };
+    const target = { name: "Victim", actor: makeActorDouble(), token: {} };
+    const item = makeItemDouble({ hpValue: 3, brokenThreshold: 5 });
+    const strike = { item };
+
+    const result = await drawAndApplyCriticalCard("fumble", "Melee", {
+      combatant,
+      target,
+      strike,
+    });
+
+    expect(result.subentry.name).toBe("Broken Haft");
+    expect(item.updateCalls).toEqual([{ "system.hp.value": 0 }]);
+  });
+
+  it("is a graceful no-op when no strike/weapon item is available at all", async () => {
+    const docs = [makeDoc("Critical Fumble Deck #14", FUMBLE_DECK_14)];
+    installFoundryStubs({ docs });
+    const combatant = { name: "Attacker", actor: makeActorDouble(), token: {} };
+    const target = { name: "Victim", actor: makeActorDouble(), token: {} };
+
+    const result = await drawAndApplyCriticalCard("fumble", "Melee", {
+      combatant,
+      target,
+    });
+
+    expect(result.subentry.name).toBe("Notched");
+    expect(result.applied).toEqual([]);
+    expect(ChatMessage.calls).toHaveLength(1);
+  });
+
+  it("never calls actor.increaseCondition for a weapon-targeted condition directive", async () => {
+    const docs = [makeDoc("Critical Fumble Deck #15", FUMBLE_DECK_15)];
+    installFoundryStubs({ docs });
+    const combatant = { name: "Attacker", actor: makeActorDouble(), token: {} };
+    const target = { name: "Victim", actor: makeActorDouble(), token: {} };
+    const item = makeItemDouble({ hpValue: 10, brokenThreshold: 5 });
+    const strike = { item };
+
+    await drawAndApplyCriticalCard("fumble", "Melee", {
+      combatant,
+      target,
+      strike,
+    });
+
+    expect(combatant.actor.increaseConditionCalls).toEqual([]);
+    expect(target.actor.increaseConditionCalls).toEqual([]);
   });
 });

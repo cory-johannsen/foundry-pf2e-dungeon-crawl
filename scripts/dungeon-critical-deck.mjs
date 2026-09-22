@@ -57,11 +57,17 @@
  *   - Any other `@UUID[...]` (spells-srd, actionspf2e, ...), `@Check[...]`,
  *     and bare prose with no directive at all are never auto-applied --
  *     flavor text only.
- *   - Weapon/item HP damage ("Your weapon takes...", "the weapon is
- *     Broken...") is deliberately skipped even when it wraps an otherwise
- *     eligible `@Damage`/`@UUID` directive: there's no creature-damage
- *     precedent in this file for item damage to reuse, and applying it to a
- *     creature would just be wrong. (Split out to #60.)
+ *   - Weapon/item HP damage ("Your weapon takes...", "the weapon's current
+ *     Hit Points are reduced to its Broken Threshold...") is resolved to
+ *     `target: "weapon"` and applied to the attacker's actual strike weapon
+ *     item (#60) -- a direct `system.hp.value` write, ignoring hardness per
+ *     the card text, never an actor's HP. The "reduced to its Broken
+ *     Threshold, then real damage once already broken" two-stage cards are
+ *     handled as a separate, prose-pattern-matched `weaponBrokenThreshold`
+ *     directive rather than through the generic per-directive walk -- see
+ *     `extractWeaponBrokenThreshold`'s own docblock for why. A condition
+ *     directed at a weapon is still always a no-op: items don't take actor
+ *     conditions in this codebase's model.
  *
  * Subject detection walks back from each directive to the start of its
  * *sentence* (the text since the last `.`), then takes the right-most
@@ -69,9 +75,10 @@
  * -- because one sentence can carry several directives sharing one subject
  * clause (confirmed live against critical-hit-deck-40's "Sliced Hand": two
  * conditions, one "the target is" clause). "your weapon"/"the weapon"/
- * "your item"/"the item" always wins over a bare "you"/"your" match at the
- * same or an earlier position, since the alternation tries the more
- * specific phrases first. No match in the window at all -- an ambiguous or
+ * "your item"/"the item" always wins over a bare "you"/"your" match
+ * regardless of position, not just at the same or an earlier one -- see
+ * `detectSubject`'s own docblock for the real card (#60's "Cracked") this
+ * matters for. No match in the window at all -- an ambiguous or
  * third-party subject like "an ally" -- always skips, never guesses.
  *
  * A skipped directive does NOT cancel its sub-entry: whichever other
@@ -88,9 +95,14 @@ const ENTRY_RE =
 const DIRECTIVE_RE = /@(\w+)\[((?:[^[\]]|\[[^[\]]*\])*)\](?:\{([^}]*)\})?/g;
 
 // Rightmost match wins -- ordered most- to least-specific so "your weapon"
-// is preferred over the bare "your" it also contains.
+// is preferred over the bare "your" it also contains. "the ranged weapon"
+// covers critical-fumble-deck-22's "Cracked" ("The ranged weapon (not the
+// ammunition) you are using takes..."), which doesn't match the shorter
+// "the weapon" phrase at all and, before #60, wrongly fell through to the
+// bare "you" match a few words later (a real latent bug: it self-damaged
+// the attacker's own creature HP on a fumble instead of the weapon).
 const SUBJECT_RE =
-  /\b(your weapon|the weapon|your item|the item|the target|your target|you|your)\b/gi;
+  /\b(your weapon|the ranged weapon|the weapon|your item|the item|the target|your target|you|your)\b/gi;
 
 function stripTags(html) {
   return html
@@ -101,19 +113,33 @@ function stripTags(html) {
 
 /** The right-most subject-phrase match in `window` (the text since the
  * start of the directive's own sentence), classified into who an
- * auto-applicable directive should target -- or `"skip"` when nothing
- * matches (ambiguous/third-party subject) or the match is about a
- * weapon/item rather than a creature. */
+ * auto-applicable directive should target -- `"weapon"` (#60) for the
+ * attacker's own weapon/item, or `"skip"` when nothing matches (ambiguous/
+ * third-party subject).
+ *
+ * A weapon/item phrase wins regardless of its position, not just when it's
+ * the right-most match: critical-fumble-deck-22's "Cracked" ("The ranged
+ * weapon (not the ammunition) you are using takes...") has its weapon
+ * phrase early in the sentence, followed by a trailing "you" a few words
+ * later (from "you are using") that would otherwise be the right-most
+ * match. Plain "rightmost wins" would pick "you" and misclassify this as
+ * self-directed -- a real bug this fix corrects (#60), confirmed live: it
+ * previously dealt the card's damage to the attacker's own creature HP
+ * instead of the weapon. */
 function detectSubject(window) {
   let lastPhrase = null;
+  let lastWeaponPhrase = null;
   SUBJECT_RE.lastIndex = 0;
   let match;
   while ((match = SUBJECT_RE.exec(window))) {
-    lastPhrase = match[1].toLowerCase();
+    const phrase = match[1].toLowerCase();
+    lastPhrase = phrase;
+    if (phrase.includes("weapon") || phrase.includes("item")) {
+      lastWeaponPhrase = phrase;
+    }
   }
+  if (lastWeaponPhrase) return "weapon";
   if (!lastPhrase) return "skip";
-  if (lastPhrase.includes("weapon") || lastPhrase.includes("item"))
-    return "skip";
   if (lastPhrase.includes("target")) return "target";
   return "self";
 }
@@ -137,6 +163,42 @@ function parseConditionNameAndValue(uuidTail, brace) {
   const withValue = /^(.+?)\s+(\d+)$/.exec(label);
   if (withValue) return { name: withValue[1], value: Number(withValue[2]) };
   return { name: label, value: null };
+}
+
+// Matches PF2e's own recurring fumble-card sentence: "Your weapon's current
+// Hit Point(s) are reduced to its Broken Threshold. If already [broken /
+// @UUID[...Broken]], the weapon takes @Damage[<formula>] damage, ignoring
+// Hardness." (#60) Deliberately prose-pattern-based, not directive-based --
+// one of the three real cards using this shape ("Broken Haft",
+// critical-fumble-deck-50) has no @UUID marker for the "already broken"
+// check at all, just bare prose, so a design keying off parsing that
+// directive would miss it. `hit points?` tolerates PF2e's own compendium
+// typo ("Hit Point" singular on critical-fumble-deck-15) alongside the
+// grammatically-correct plural on the other two real cards.
+const BROKEN_THRESHOLD_RE =
+  /[\s\S]*?current hit points? are reduced to its broken threshold[\s\S]*?@Damage\[\s*([^\]]+?)\s*\]/i;
+
+/**
+ * Detects the broken-threshold sentence anywhere in `effectHtml` and, if
+ * found, returns the damage formula used for its "already broken" branch
+ * plus `effectHtml` with that entire matched span removed -- so the normal
+ * per-directive extraction below never independently re-processes the
+ * @UUID[...Broken]/@Damage[...] markers embedded inside it, which would
+ * otherwise double-apply, or apply the flat damage unconditionally instead
+ * of only when the weapon is already broken (the actual runtime check
+ * lives in applyDirective's own weaponBrokenThreshold branch, against the
+ * live item's hp vs. brokenThreshold). Returns null if the sentence isn't
+ * present, leaving the rest of extraction completely unchanged.
+ */
+function extractWeaponBrokenThreshold(effectHtml) {
+  const match = BROKEN_THRESHOLD_RE.exec(effectHtml);
+  if (!match) return null;
+  return {
+    formula: match[1].trim(),
+    strippedHtml:
+      effectHtml.slice(0, match.index) +
+      effectHtml.slice(match.index + match[0].length),
+  };
 }
 
 function findSentenceStart(text, endIndex) {
@@ -223,11 +285,28 @@ function buildDirective(keyword, bracketContent, brace, window, raw) {
  * order -- `{type: 'damage'|'condition'|'effect'|'skip', ...}`. Pure: takes
  * only the sub-entry's own effect HTML, no live Foundry dependency. */
 export function extractDirectives(effectHtml) {
-  const plain = stripTags(effectHtml);
+  // #60: the broken-threshold sentence, when present, is stripped out
+  // before the normal walk below ever sees it -- its embedded
+  // @UUID[...Broken]/@Damage[...] markers (present on 2 of the 3 real
+  // cards using this shape) must not also be independently extracted as
+  // ordinary condition/damage directives.
+  const brokenThreshold = extractWeaponBrokenThreshold(effectHtml);
+  const html = brokenThreshold ? brokenThreshold.strippedHtml : effectHtml;
+  const leadingDirectives = brokenThreshold
+    ? [
+        {
+          type: "weaponBrokenThreshold",
+          formula: brokenThreshold.formula,
+          target: "weapon",
+        },
+      ]
+    : [];
+
+  const plain = stripTags(html);
   const matches = Array.from(
     plain.matchAll(new RegExp(DIRECTIVE_RE.source, "g")),
   );
-  if (!matches.length) return [];
+  if (!matches.length) return leadingDirectives;
 
   // Sentence-boundary detection must ignore periods that are part of a
   // directive's own text -- a Compendium UUID path is full of them (e.g.
@@ -248,12 +327,15 @@ export function extractDirectives(effectHtml) {
       masked.slice(m.index + m[0].length);
   }
 
-  return matches.map((match) => {
-    const [raw, keyword, bracketContent, brace] = match;
-    const sentenceStart = findSentenceStart(masked, match.index);
-    const window = plain.slice(sentenceStart, match.index);
-    return buildDirective(keyword, bracketContent, brace, window, raw);
-  });
+  return [
+    ...leadingDirectives,
+    ...matches.map((match) => {
+      const [raw, keyword, bracketContent, brace] = match;
+      const sentenceStart = findSentenceStart(masked, match.index);
+      const window = plain.slice(sentenceStart, match.index);
+      return buildDirective(keyword, bracketContent, brace, window, raw);
+    }),
+  ];
 }
 
 /** Parses one deck document's page HTML into its sub-entries --
@@ -336,8 +418,60 @@ function pageTextContent(doc) {
  * crit-deck damage is flavor-scale (bleed, minor bludgeoning), not a
  * designed lethal blow, and that helper lives in dungeon-combat.mjs, not
  * here. */
-async function applyDirective(directive, { combatant, target }) {
+async function applyDirective(directive, { combatant, target, strike }) {
   if (directive.type === "skip") return null;
+
+  // #60: a "weapon" target is always the attacker's own equipment, never
+  // an actor -- handled in its own branch, before the generic who/actor
+  // resolution below, which would otherwise fall to the `: target` branch
+  // (the DEFENDER, since "weapon" !== "self") and misapply the directive
+  // to the wrong side, or to the wrong kind of document entirely.
+  if (directive.target === "weapon") {
+    const item = strike?.item;
+    if (!item) return null;
+
+    if (directive.type === "damage") {
+      const roll = await new Roll(directive.formula).evaluate();
+      const newValue = Math.max(0, (item.system?.hp?.value ?? 0) - roll.total);
+      await item.update({ "system.hp.value": newValue });
+      return {
+        type: "damage",
+        formula: directive.formula,
+        total: roll.total,
+        target: "weapon",
+        itemName: item.name,
+      };
+    }
+
+    if (directive.type === "weaponBrokenThreshold") {
+      const value = item.system?.hp?.value ?? 0;
+      const brokenThreshold = item.system?.hp?.brokenThreshold ?? 0;
+      if (value <= brokenThreshold) {
+        const roll = await new Roll(directive.formula).evaluate();
+        const newValue = Math.max(0, value - roll.total);
+        await item.update({ "system.hp.value": newValue });
+        return {
+          type: "weaponBrokenThreshold",
+          stage: "damage",
+          formula: directive.formula,
+          total: roll.total,
+          itemName: item.name,
+        };
+      }
+      const newValue = Math.min(value, brokenThreshold);
+      await item.update({ "system.hp.value": newValue });
+      return {
+        type: "weaponBrokenThreshold",
+        stage: "reduceToThreshold",
+        newValue,
+        itemName: item.name,
+      };
+    }
+
+    // A condition (or anything else) directed at a weapon is meaningless
+    // in this codebase's model -- items don't take actor conditions.
+    return null;
+  }
 
   const who = directive.target === "self" ? combatant : target;
   const actor = who?.actor;
@@ -439,7 +573,7 @@ function buildChatContent({ combatant, deckKind, chosen }) {
 export async function drawAndApplyCriticalCard(
   deckKind,
   category,
-  { combatant, target } = {},
+  { combatant, target, strike } = {},
 ) {
   const pack = game.packs?.get("pf2e.criticaldeck");
   if (!pack) return null;
@@ -460,7 +594,11 @@ export async function drawAndApplyCriticalCard(
 
   const applied = [];
   for (const directive of chosen.directives) {
-    const outcome = await applyDirective(directive, { combatant, target });
+    const outcome = await applyDirective(directive, {
+      combatant,
+      target,
+      strike,
+    });
     if (outcome) applied.push(outcome);
   }
 
