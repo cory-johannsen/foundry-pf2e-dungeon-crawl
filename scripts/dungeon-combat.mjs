@@ -1336,6 +1336,7 @@ export function findReactiveStrikeOpportunities(
  * regardless of what provoked the reaction.
  */
 export async function offerReactiveStrikesAgainst(combat, mover) {
+  if (!isModuleCombat(combat)) return;
   const gridSize = combat.scene?.grid?.size ?? 100;
   const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
   const opportunities = findReactiveStrikeOpportunities(
@@ -1754,7 +1755,7 @@ function walkPath(path, targetCell, speedSquares, stopWithinSquares) {
  * (MELEE_REACH_SQUARES). A no-op if already adjacent, if the combatant has
  * no speed to move with, or if no path to the target exists at all.
  */
-async function stepToward(combat, combatant, target, distanceSquares) {
+export async function stepToward(combat, combatant, target, distanceSquares) {
   if (distanceSquares <= MELEE_REACH_SQUARES) return;
   const gridSize = combat.scene?.grid?.size ?? 100;
   const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
@@ -1777,6 +1778,7 @@ async function stepToward(combat, combatant, target, distanceSquares) {
   const waypoint = walkPath(path, goal, speedSquares, MELEE_REACH_SQUARES);
   if (!waypoint) return;
   await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize });
+  await offerReactiveStrikesAgainst(combat, combatant);
 }
 
 /**

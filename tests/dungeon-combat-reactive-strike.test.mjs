@@ -4,6 +4,7 @@ import {
   offerReactiveStrikesAgainst,
   handleRangedAttackForReactiveStrike,
   strideByPosture,
+  stepToward,
 } from "../scripts/dungeon-combat.mjs";
 
 function makeStrike({ slug = "claw", label = "Claw", reach = null } = {}) {
@@ -261,6 +262,28 @@ describe("offerReactiveStrikesAgainst", () => {
 
     await expect(offerReactiveStrikesAgainst(combat, mover)).resolves.toBeUndefined();
   });
+
+  it("does nothing when the combat isn't owned by this module", async () => {
+    installFoundryStubs();
+    const mover = makeMoverTarget();
+    const reactor = makeFullReactor({ id: "r1", x: 100, y: 0 });
+    const setFlagCalls = [];
+    const combat = {
+      round: 1,
+      combatants: [mover, reactor],
+      scene: { id: "scene1", grid: { size: 100, distance: 5 }, tokens: [] },
+      getFlag: () => undefined,
+      setFlag: async (_moduleId, key, value) => {
+        setFlagCalls.push({ key, value });
+      },
+    };
+
+    await expect(offerReactiveStrikesAgainst(combat, mover)).resolves.toBeUndefined();
+
+    expect(setFlagCalls).toHaveLength(0);
+    expect(mover.applyDamageCalls).toHaveLength(0);
+    expect(ChatMessage.calls).toHaveLength(0);
+  });
 });
 
 describe("handleRangedAttackForReactiveStrike", () => {
@@ -318,6 +341,47 @@ describe("strideByPosture (Reactive Strike wiring)", () => {
     const combat = makeFullCombat({ combatants: [mover, reactor] });
 
     await strideByPosture(combat, mover, "approach", { token: { x: 100, y: 0 } });
+
+    expect(await combat.getFlag("pf2e-dungeon-crawl", "reactionUsed")).toBeUndefined();
+  });
+});
+
+describe("stepToward (Reactive Strike wiring)", () => {
+  it("offers a Reactive Strike after a real move ends within a reactor's reach", async () => {
+    installFoundryStubs();
+    const reactor = makeFullReactor({ id: "r1", x: 400, y: 0 });
+    const mover = makeMoverTarget();
+    mover.token.update = async function (changes) {
+      Object.assign(this, changes);
+    };
+    mover.actor.system.movement = { speeds: { land: { value: 30 } } };
+    const combat = makeFullCombat({ combatants: [mover, reactor] });
+
+    await stepToward(combat, mover, { token: { x: 400, y: 0 } }, 4);
+
+    expect(mover.token.x).toBe(300);
+    expect(await combat.getFlag("pf2e-dungeon-crawl", "reactionUsed")).toEqual({ r1: 1 });
+  });
+
+  it("does not trigger a Reactive Strike on a no-op move (distanceSquares at MELEE_REACH_SQUARES)", async () => {
+    installFoundryStubs();
+    const reactor = makeFullReactor({ id: "r1", x: 100, y: 0 });
+    const mover = {
+      id: "mover1",
+      isDefeated: false,
+      token: {
+        x: 0,
+        y: 0,
+        disposition: -1,
+        update: async () => {
+          throw new Error("should not move: distanceSquares <= MELEE_REACH_SQUARES");
+        },
+      },
+      actor: { system: { movement: { speeds: { land: { value: 30 } } } } },
+    };
+    const combat = makeFullCombat({ combatants: [mover, reactor] });
+
+    await stepToward(combat, mover, { token: { x: 100, y: 0 } }, 1);
 
     expect(await combat.getFlag("pf2e-dungeon-crawl", "reactionUsed")).toBeUndefined();
   });

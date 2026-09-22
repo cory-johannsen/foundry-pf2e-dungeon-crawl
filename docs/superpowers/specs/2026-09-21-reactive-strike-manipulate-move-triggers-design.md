@@ -15,7 +15,7 @@ This module's agent-controlled combatants never take manipulate actions at all �
 
 Move actions split into two cases with very different detectability:
 
-- **Agent-controlled Stride.** The module drives this itself: `strideByPosture()` (`dungeon-combat.mjs:2676`) is the only code path that moves an agent-controlled combatant's token, via `me.update({x, y})`. This is exactly, non-heuristically detectable — no ambiguity with GM drags or forced movement, because the module is the mover.
+- **Agent-controlled Stride.** The module drives this itself, via two code paths that both call `me.update({x, y})` on the combatant's own token: `strideByPosture()` (the agent-loop-driven AI's own turn) and `stepToward()` (the default heuristic AI's turn, and the agent-timeout fallback). Both are exactly, non-heuristically detectable — no ambiguity with GM drags or forced movement, because the module itself is the mover in both cases. (This correction was made during final review; the original investigation missed `stepToward` as a second instance of the same exact-detection case.)
 - **Player-character Stride.** Goes through Foundry's normal UI with no reliable hook, same as the manipulate-action case.
 
 ## Decision

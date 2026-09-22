@@ -385,7 +385,7 @@ Hooks.on("getCombatTrackerEntryContext", (html, menuItems) => {
     icon: '<i class="fa-solid fa-bolt"></i>',
     condition: (li) => {
       const combatant = game.combat?.combatants.get(li.dataset.combatantId);
-      return !!combatant && !combatant.isDefeated;
+      return game.user.isGM && !!combatant && !combatant.isDefeated;
     },
     callback: (li) => {
       if (!game.user.isGM) return;
