@@ -2235,12 +2235,19 @@ async function rollAndApplyStrike(combat, combatant, target) {
         });
         if (damageRoll) {
           // #61: a critical-deck card's own Triple/Double-damage text
-          // (e.g. "Disembowel", "Corrosive") multiplies the strike's own
-          // damage roll rather than adding a separate instance -- applied
-          // here, after the roll exists, since drawCriticalCardForStrike
-          // above ran before strike.damage() was ever called.
-          if (damageMultiplier !== 1) {
-            await damageRoll.alter(damageMultiplier, 0);
+          // (e.g. "Disembowel", "Corrosive") is a card-drawn Hit-deck
+          // effect, only ever drawn here on outcome === "criticalSuccess"
+          // -- strike.damage() above already applied PF2e's own crit
+          // doubling for that outcome (confirmed at
+          // castSpellAndApplySave's own docblock: "the same way
+          // strike.damage() handles crit doubling for a Strike"), so a
+          // card's "double damage" (damageMultiplier 2) is already
+          // exactly what that doubling gives -- no extra scaling needed.
+          // Only "triple damage" (damageMultiplier 3) needs an
+          // ADDITIONAL 1.5x on top of the existing 2x, to reach 3x total
+          // rather than stacking to 6x.
+          if (damageMultiplier === 3) {
+            await damageRoll.alter(1.5, 0);
           }
           await target.actor.applyDamage({
             damage: damageRoll,
@@ -3111,9 +3118,12 @@ async function rollAndApplyStrikeAtVariant(
           createMessage: true,
         });
         if (damageRoll) {
-          // #61: see rollAndApplyStrike's identical comment.
-          if (damageMultiplier !== 1) {
-            await damageRoll.alter(damageMultiplier, 0);
+          // #61: see rollAndApplyStrike's identical comment -- only
+          // "triple damage" needs an extra 1.5x on top of the crit
+          // doubling strike.damage() already applied; "double damage"
+          // already matches that doubling exactly.
+          if (damageMultiplier === 3) {
+            await damageRoll.alter(1.5, 0);
           }
           await target.actor.applyDamage({
             damage: damageRoll,
