@@ -125,7 +125,12 @@ describe("mcp-server relay wrappers", () => {
     const result = await applyPuzzleCustomization(
       "scene-1",
       "room-1",
-      { name: "The Whispering Vault", summary: "A vault hums.", stageFlavor: {} },
+      {
+        name: "The Whispering Vault",
+        summary: "A vault hums.",
+        playerDescription: "A faint hum rises from the vault door.",
+        stageFlavor: {},
+      },
       {
         baseUrl: "http://localhost:9999",
         apiKey: "k",
@@ -138,6 +143,7 @@ describe("mcp-server relay wrappers", () => {
     const script = JSON.parse(options.body).script;
     expect(script).toContain('applyPuzzleCustomization("scene-1", "room-1"');
     expect(script).toContain("The Whispering Vault");
+    expect(script).toContain("A faint hum rises from the vault door.");
   });
 
   it("getPendingNarrativeCustomization sends the module.api call with the given sceneId", async () => {
@@ -338,6 +344,7 @@ describe("mcp-server tool registration (full round-trip over an in-memory transp
         roomId: "room-1",
         name: "The Whispering Vault",
         summary: "A locked vault hums with old magic.",
+        playerDescription: "A faint hum rises from the vault door.",
         stageFlavor: { 0: "A far more vivid clue." },
       },
     });
@@ -349,6 +356,7 @@ describe("mcp-server tool registration (full round-trip over an in-memory transp
     const script = JSON.parse(options.body).script;
     expect(script).toContain("The Whispering Vault");
     expect(script).toContain("A far more vivid clue.");
+    expect(script).toContain("A faint hum rises from the vault door.");
   });
 
   it("submit_narrative_customization applies the customization via the relay", async () => {

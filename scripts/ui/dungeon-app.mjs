@@ -723,6 +723,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       puzzle = {
         name: raw.name,
         summary: raw.summary,
+        playerDescription: raw.playerDescription,
         requiredSuccesses: raw.requiredSuccesses,
         successes: raw.successes,
         resolved: raw.resolved,
@@ -849,16 +850,21 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
           ROOM_KIND_KEYS[currentRoom.kind] ?? currentRoom.kind,
         ),
         // #139/#167: prefers the puzzle's or narrative room's own
-        // *persisted* name/summary (which an agent's applyPuzzleCustomization/
-        // applyNarrativeCustomization may have overwritten) over the raw
-        // setpiece template's — this is the one generic display block every
-        // room kind's name/summary renders through, so either kind's
-        // customization needs to flow through here to be visible at all,
-        // not just in its own kind-specific block below.
+        // *persisted* name/summary/playerDescription (which an agent's
+        // applyPuzzleCustomization/applyNarrativeCustomization may have
+        // overwritten) over the raw setpiece template's — this is the one
+        // generic display block every room kind's name/summary renders
+        // through, so either kind's customization needs to flow through
+        // here to be visible at all, not just in its own kind-specific
+        // block below. playerDescription (#49) follows the same rule: a
+        // customized puzzle's player-facing flavor text must win over the
+        // raw setpiece's, the same way its GM-facing summary already does
+        // — otherwise players keep seeing stale, uncustomized flavor.
         setpiece: setpiece && {
           name: puzzle?.name ?? narrative?.name ?? setpiece.name,
           summary: puzzle?.summary ?? narrative?.summary ?? setpiece.summary,
-          playerDescription: setpiece.playerDescription ?? null,
+          playerDescription:
+            puzzle?.playerDescription ?? setpiece.playerDescription ?? null,
           complete: setpiece.complete,
         },
       },
