@@ -779,6 +779,34 @@ export async function ensureTrapState(
 }
 
 /**
+ * Teardown counterpart to `ensureTrapState` above (#62 mutation
+ * reconciliation) — clears `roomId`'s own `trap` state back to `null` so a
+ * later `ensureTrapState` call (once a Reward/Ruin mutation changes which
+ * logical room occupies this physical slot) attaches fresh state instead of
+ * finding the old room's `trap` still set and treating it as "already
+ * attached." A no-op (no persist) if that room has no `trap` at all, the
+ * same no-op shape `clearPuzzleState` itself uses. `dungeon-scene.mjs`'s
+ * `clearSlotTrap` handles the Foundry-side hazard actor/token teardown;
+ * this is the room-state-only counterpart the caller runs alongside it.
+ */
+export async function clearTrapState(
+  sceneId,
+  roomId,
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms.find((r) => r.id === roomId);
+  if (!room || !room.trap) return state;
+  const rooms = state.rooms.map((r) =>
+    r.id === roomId ? { ...r, trap: null } : r,
+  );
+  const newState = { ...state, rooms };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/**
  * Applies an external agent's customized name/description to `roomId`'s own
  * trap state (#56) — a no-op if that room has no `trap` state at all.
  * `name`/`description` each override-or-keep-existing, same as

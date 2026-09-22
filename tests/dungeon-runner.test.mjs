@@ -27,6 +27,7 @@ import {
   getPendingNarrativeCustomization,
   applyNarrativeCustomization,
   ensureTrapState,
+  clearTrapState,
   applyTrapRoomState,
 } from "../scripts/dungeon-runner.mjs";
 import { registerGenerator } from '../scripts/generator-registry.mjs';
@@ -1715,6 +1716,46 @@ describe("clearNarrativeState", () => {
     const result = await clearNarrativeState("nope", "room-x", {
       settingsRef,
     });
+    expect(result).toBeNull();
+  });
+});
+
+describe("clearTrapState", () => {
+  it("clears an already-attached trap state back to null", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s10", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    await ensureTrapState(
+      "s10",
+      roomId,
+      {
+        name: "Scythe Blades",
+        description: "A pressure plate triggers swinging blades.",
+      },
+      { settingsRef },
+    );
+    const cleared = await clearTrapState("s10", roomId, { settingsRef });
+    const room = cleared.rooms.find((r) => r.id === roomId);
+    expect(room.trap).toBeFalsy();
+  });
+
+  it("is a no-op against a room with no trap state attached", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s11", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    const cleared = await clearTrapState("s11", roomId, { settingsRef });
+    expect(cleared.rooms).toEqual(created.rooms);
+  });
+
+  it("is a no-op with no run at all", async () => {
+    const settingsRef = makeSettingsStub();
+    const result = await clearTrapState("nope", "room-x", { settingsRef });
     expect(result).toBeNull();
   });
 });

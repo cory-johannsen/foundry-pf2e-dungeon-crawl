@@ -581,8 +581,8 @@ export async function clearSlotEncounter(scene, slot) {
  * tokens do (see `populateSlotTrap`'s own `extraFlags`), so the same
  * flag-scoped token+actor deletion `clearSlotEncounter` already does
  * applies unchanged here. Does not touch `roomId`'s persisted `trap` state
- * (`ensureTrapState`'s own field) — that's outside this function's scope;
- * the caller is responsible for clearing room-level state separately.
+ * (`ensureTrapState`'s own field) — that's `dungeon-runner.mjs`'s
+ * `clearTrapState`'s job; the caller runs both together.
  */
 export async function clearSlotTrap(scene, slot) {
   await clearSlotEncounter(scene, slot);
