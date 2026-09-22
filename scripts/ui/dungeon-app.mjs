@@ -8,6 +8,7 @@ import {
   recordSkillChallengeAttempt,
   setObjective,
   recordPuzzleStageAttempt,
+  roomsToEagerlyBuild,
 } from "../dungeon-runner.mjs";
 import { canActOnDungeon } from "../dungeon-permissions.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
@@ -365,12 +366,23 @@ export async function startDungeonRun({
     seed: state.seed,
   });
 
-  // A combat first room's build+populate is deliberately deferred to the
-  // next "Populate Next Room" action instead — see #onPopulateNext/
-  // populateNextRoom below (ITEM-11).
-  const firstRealRoom = state.rooms[1];
-  if (firstRealRoom && firstRealRoom.kind !== "combat") {
-    await buildPopulateAndUnlockRoom(scene, state, firstRealRoom, 1);
+  // #62: a GM-less-hosted run (state.hostUserId set — same signal
+  // unpauseIfGmLessRun/encounter-generator.mjs's skipPreview already use)
+  // builds every eligible room now, so room-to-room progression never
+  // depends on a live GM-privileged client being connected later. A
+  // GM-hosted run keeps the original one-room-ahead behavior unchanged.
+  // Either way, a combat-kind room at index 1 keeps its existing manual
+  // "Populate Next Room" deferral (ITEM-11) — see #onPopulateNext/
+  // populateNextRoom below.
+  if (state.hostUserId) {
+    for (const { room, physicalSlot } of roomsToEagerlyBuild(state)) {
+      await buildPopulateAndUnlockRoom(scene, state, room, physicalSlot);
+    }
+  } else {
+    const firstRealRoom = state.rooms[1];
+    if (firstRealRoom && firstRealRoom.kind !== "combat") {
+      await buildPopulateAndUnlockRoom(scene, state, firstRealRoom, 1);
+    }
   }
 
   const partyMembers = (game.actors?.party?.members ?? []).filter(
