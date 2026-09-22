@@ -418,10 +418,15 @@ describe('buildConnectionGeometry', () => {
     expect(positions.size).toBeGreaterThan(1);
   });
 
-  it('builds each room\'s own wall segments from that room\'s own rect when the two rooms differ in size', () => {
+  it('builds each room\'s own wall segments from that room\'s own rect when the two rooms differ in size, reaching at least that room\'s own full height', () => {
     // Find a seed where an east/west-connected pair actually differs in
-    // size, then confirm each side's flanking wall reaches that side's own
-    // full height, not the other room's.
+    // size, then confirm each side's flanking wall reaches AT LEAST that
+    // side's own full height, not the other room's. "At least," not
+    // "exactly" (#34): when the trimmed span (spanY1) extends past a room's
+    // own edge — which this same search's first hit already does — that
+    // room's own flanking segment must extend to match the span, not stop
+    // short at its own edge (see the dedicated #34 regression test below for
+    // that gap itself).
     let checked = false;
     for (let i = 0; i < 100 && !checked; i += 1) {
       const seed = `size-diff-${i}`;
@@ -434,13 +439,48 @@ describe('buildConnectionGeometry', () => {
         const bFaceX = aFaceX + CORRIDOR_LEN;
         const aSegYs = plainWalls.filter((w) => w.x1 === aFaceX && w.x2 === aFaceX).flatMap((w) => [w.y1, w.y2]);
         const bSegYs = plainWalls.filter((w) => w.x1 === bFaceX && w.x2 === bFaceX).flatMap((w) => [w.y1, w.y2]);
-        expect(Math.max(...aSegYs)).toBe(a.gy + a.gh);
-        expect(Math.max(...bSegYs)).toBe(b.gy + b.gh);
+        expect(Math.max(...aSegYs)).toBeGreaterThanOrEqual(a.gy + a.gh);
+        expect(Math.max(...bSegYs)).toBeGreaterThanOrEqual(b.gy + b.gh);
         checked = true;
         break;
       }
     }
     expect(checked).toBe(true); // the search itself should hit a differently-sized pair
+  });
+
+  it('closes the corridor\'s own face wall out to the full trimmed span, not just the acting room\'s own edge, for a south (row-wrap) connection between differently-sized rooms (#34)', () => {
+    // slot 4 (row 0's last room, small, 6x6) -> slot 5 (row 1's first room,
+    // large, 12x12) -- a south/row-wrap connection. With this seed, slot 5's
+    // own incoming offset pushes the corridor's trimmed span (spanX1) past
+    // slot 4's own east edge -- live-confirmed (a real Foundry
+    // ClockwiseSweepPolygon computed from inside this exact corridor) that
+    // before this fix, the corridor's own face wall was unwalled for the gap
+    // between slot 4's own edge and spanX1, leaking sight straight through to
+    // the edge of the scene's pre-sized canvas (#34).
+    const seed = 'live-repro-seed';
+    const slot = 4;
+    const a = slotRect(seed, slot);
+    const b = slotRect(seed, slot + 1);
+    expect(a.gw).not.toBe(b.gw); // sanity: this seed really does connect two differently-sized rooms
+
+    const outgoing = doorOffsetAt(seed, slot, 'outgoing', a.gw);
+    const incoming = doorOffsetAt(seed, slot + 1, 'incoming', b.gw);
+    const faceY = a.gy + a.gh;
+    const doorX1 = a.gx + outgoing + DOOR_WIDTH;
+    const gapX1 = b.gx + incoming + DOOR_WIDTH;
+    const spanX1 = Math.max(doorX1, gapX1);
+    // Sanity: this seed/slot really does hit the bug's precondition -- the
+    // trimmed span extends past room A's own edge, not just up to it.
+    expect(spanX1).toBeGreaterThan(a.gx + a.gw);
+
+    const { plainWalls } = buildConnectionGeometry(slot, seed);
+    // Room A's own "after door" flanking segment (along y = faceY, starting
+    // at doorX1) must close the gap out to the full span, not just its own
+    // room edge -- otherwise the strip between the room's own edge and the
+    // span is left completely unwalled.
+    const aAfterDoor = plainWalls.find((w) => w.y1 === faceY && w.y2 === faceY && w.x1 === doorX1);
+    expect(aAfterDoor).toBeDefined();
+    expect(aAfterDoor.x2).toBeGreaterThanOrEqual(spanX1);
   });
 });
 
