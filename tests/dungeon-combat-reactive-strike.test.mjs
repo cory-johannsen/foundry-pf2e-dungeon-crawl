@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { findReactiveStrikeOpportunities } from "../scripts/dungeon-combat.mjs";
+import {
+  findReactiveStrikeOpportunities,
+  offerReactiveStrikesAgainst,
+  handleRangedAttackForReactiveStrike,
+} from "../scripts/dungeon-combat.mjs";
 
 function makeStrike({ slug = "claw", label = "Claw", reach = null } = {}) {
   return {
@@ -125,5 +129,144 @@ describe("findReactiveStrikeOpportunities", () => {
     expect(
       findReactiveStrikeOpportunities(combat, mover, GRID_SIZE, GRID_DISTANCE_FT),
     ).toEqual([{ reactor, actionSlug: "claw" }]);
+  });
+});
+
+function installFoundryStubs() {
+  globalThis.foundry = { utils: {} };
+  globalThis.ChatMessage = { create: async () => {} };
+  globalThis.game = {
+    user: {
+      isGM: true,
+      flags: { pf2e: { settings: {} } },
+      update: async () => {},
+    },
+    i18n: { format: (key) => key },
+    messages: { contents: [] },
+    combats: { contents: [] },
+  };
+}
+
+function makeStrikeAction({ slug = "claw", label = "Claw", outcome = "success" } = {}) {
+  return {
+    type: "strike",
+    ready: true,
+    slug,
+    label,
+    traits: [],
+    item: { slug, isRanged: false, system: {} },
+    variants: [
+      {
+        roll: async () => {
+          game.messages.contents.push({
+            flags: { pf2e: { context: { outcome } } },
+          });
+        },
+      },
+    ],
+    damage: async () => ({ total: 4 }),
+  };
+}
+
+function makeFullReactor({
+  id,
+  x,
+  y,
+  disposition = 1,
+  itemName = "Reactive Strike",
+  strike = makeStrikeAction(),
+} = {}) {
+  const flags = { agentControlled: true };
+  return {
+    id,
+    tokenId: `${id}-token`,
+    isDefeated: false,
+    token: { x, y, disposition },
+    getFlag: (_moduleId, key) => flags[key],
+    actor: {
+      type: "npc",
+      items: [
+        {
+          type: "action",
+          system: { actionType: { value: "reaction" } },
+          name: itemName,
+        },
+      ],
+      system: { actions: [strike] },
+    },
+  };
+}
+
+function makeFullCombat({ round = 1, combatants = [], sceneId = "scene1" } = {}) {
+  const flags = { dungeonSlot: 1 };
+  return {
+    round,
+    combatants,
+    scene: { id: sceneId, grid: { size: 100, distance: 5 }, tokens: [] },
+    getFlag: (_moduleId, key) => flags[key],
+    setFlag: async (_moduleId, key, value) => {
+      flags[key] = value;
+    },
+  };
+}
+
+// The struck target (not the reactor) is who rollAndApplyStrikeAtVariant's
+// `target.actor.applyDamage` and `applyDefeatIfReducedToZero` read — this
+// double stands in for the mover/attacker being reacted against.
+function makeMoverTarget({ id = "mover1", x = 0, y = 0, disposition = -1 } = {}) {
+  const applyDamageCalls = [];
+  return {
+    id,
+    isDefeated: false,
+    token: { x, y, disposition },
+    actor: {
+      type: "character",
+      applyDamage: async (args) => {
+        applyDamageCalls.push(args);
+      },
+      system: { attributes: { hp: { value: 10 } } },
+    },
+    applyDamageCalls,
+  };
+}
+
+describe("offerReactiveStrikesAgainst", () => {
+  it("marks the reaction used, rolls the Strike, applies damage, and posts a chat message", async () => {
+    installFoundryStubs();
+    const mover = makeMoverTarget();
+    const reactor = makeFullReactor({ id: "r1", x: 100, y: 0 });
+    const combat = makeFullCombat({ combatants: [mover, reactor] });
+
+    await offerReactiveStrikesAgainst(combat, mover);
+
+    expect(await combat.getFlag("pf2e-dungeon-crawl", "reactionUsed")).toEqual({ r1: 1 });
+    expect(mover.applyDamageCalls).toHaveLength(1);
+  });
+
+  it("does nothing when no reactor is eligible", async () => {
+    installFoundryStubs();
+    const mover = makeMoverTarget();
+    const combat = makeFullCombat({ combatants: [mover] });
+
+    await expect(offerReactiveStrikesAgainst(combat, mover)).resolves.toBeUndefined();
+  });
+});
+
+describe("handleRangedAttackForReactiveStrike", () => {
+  it("resolves the combat and attacker from the chat message and delegates to offerReactiveStrikesAgainst", async () => {
+    installFoundryStubs();
+    const attacker = { ...makeMoverTarget({ id: "mover1" }), tokenId: "attacker-token" };
+    const reactor = makeFullReactor({ id: "r1", x: 100, y: 0 });
+    const combat = makeFullCombat({ combatants: [attacker, reactor] });
+    game.combats.contents.push(combat);
+
+    const message = {
+      flags: { pf2e: { context: { type: "attack-roll", options: ["ranged"] } } },
+      speaker: { scene: "scene1", token: "attacker-token" },
+    };
+
+    await handleRangedAttackForReactiveStrike(message);
+
+    expect(await combat.getFlag("pf2e-dungeon-crawl", "reactionUsed")).toEqual({ r1: 1 });
   });
 });

@@ -1329,28 +1329,40 @@ export function findReactiveStrikeOpportunities(
 }
 
 /**
- * #202: reacts to a real ranged-Strike attack-roll chat message by
- * offering every eligible agent-controlled reactor a Reactive Strike
- * against the attacker — the one Reactive Strike trigger #202's own
- * research confirmed cleanly detectable via `createChatMessage`/
- * `flags.pf2e.context` (the exact mechanism this module already relies on
- * everywhere else for roll-outcome detection, e.g.
- * `rollAndApplyStrikeAtVariant`'s own outcome read). The other two real
- * Reactive Strike triggers (a manipulate action, a move action within
- * reach) have no reliable hook at all — confirmed live no pf2e-namespaced
- * "action used" hook exists, only generic `updateToken`/`moveToken` with
- * no way to tell a real Stride from a GM drag or forced movement —
- * deliberately out of scope, decided live with the user.
+ * Executes every current Reactive Strike opportunity against `mover` — the
+ * single entry point every trigger (ranged-attack chat message,
+ * agent-controlled Stride, GM manual check) calls into, so reaction
+ * economy, weapon restrictions, and the chat announcement stay identical
+ * regardless of what provoked the reaction.
+ */
+export async function offerReactiveStrikesAgainst(combat, mover) {
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  const opportunities = findReactiveStrikeOpportunities(
+    combat,
+    mover,
+    gridSize,
+    gridDistanceFt,
+  );
+  for (const { reactor, actionSlug } of opportunities) {
+    await markReactionUsed(combat, reactor.id, combat.round);
+    await rollAndApplyStrikeAtVariant(combat, reactor, mover, actionSlug, 0);
+    await postReactiveStrikeChat(reactor, mover);
+  }
+}
+
+/**
+ * #202: reacts to a real ranged-Strike attack-roll chat message by offering
+ * every eligible agent-controlled reactor a Reactive Strike against the
+ * attacker, via `offerReactiveStrikesAgainst` — shared with #13's
+ * agent-Stride and manual-check triggers.
  *
  * Fires globally regardless of whose turn it is (the whole point of a
  * reaction), including a player character's own ranged attack against an
- * agent-controlled monster within its reach — confirmed this is the
- * primary real-world case, not just NPC-vs-NPC. GM-gated (only the GM's
- * own client should ever mutate combat state from a global hook like
- * this, matching every other GM-only hook handler in this file) and
- * scoped to this module's own managed combats (`isModuleCombat`) — never
- * touches a Combat this module doesn't own. Registered against
- * `createChatMessage` in module.mjs.
+ * agent-controlled monster within its reach. GM-gated (only the GM's own
+ * client should ever mutate combat state from a global hook like this) and
+ * scoped to this module's own managed combats (`isModuleCombat`). Registered
+ * against `createChatMessage` in module.mjs.
  */
 export async function handleRangedAttackForReactiveStrike(message) {
   if (!game.user.isGM) return;
@@ -1370,47 +1382,7 @@ export async function handleRangedAttackForReactiveStrike(message) {
   );
   if (!attacker || attacker.isDefeated) return;
 
-  const gridSize = combat.scene?.grid?.size ?? 100;
-  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
-
-  for (const reactor of combatantOpponents(combat, attacker)) {
-    if (!reactor.getFlag(MODULE_ID, "agentControlled")) continue;
-    if (getReactionUsed(combat, reactor.id, combat.round)) continue;
-    const item = (reactor.actor?.items ?? []).find(isReactiveStrikeInScope);
-    if (!item) continue;
-
-    const readyActions = (reactor.actor?.system?.actions ?? [])
-      .filter((a) => a.type === "strike" && a.ready !== false)
-      .map((a) => ({
-        slug: a.item?.slug ?? a.slug ?? a.label,
-        label: a.label,
-        reachSquares: actionReachSquares(a, gridDistanceFt),
-      }));
-    const distanceSquares = chebyshevSquares(
-      reactor.token,
-      attacker.token,
-      gridSize,
-    );
-    const inReachActions = readyActions.filter(
-      (a) => distanceSquares <= a.reachSquares,
-    );
-    if (!inReachActions.length) continue;
-    const restriction = parseReactiveStrikeWeaponRestriction(item.name);
-    const matched = restriction
-      ? matchMultiStrikeActionSlug(restriction, inReachActions)
-      : inReachActions[0];
-    if (!matched) continue;
-
-    await markReactionUsed(combat, reactor.id, combat.round);
-    await rollAndApplyStrikeAtVariant(
-      combat,
-      reactor,
-      attacker,
-      matched.slug,
-      0,
-    );
-    await postReactiveStrikeChat(reactor, attacker);
-  }
+  await offerReactiveStrikesAgainst(combat, attacker);
 }
 
 /**
