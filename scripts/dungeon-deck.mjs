@@ -12,6 +12,12 @@
  * handed to the table.
  */
 import { splitmix32, seedFromString, shuffle } from './prng.mjs';
+import {
+  nthLevelTableName,
+  valuableTierForBudget,
+  pickWeightedCategory,
+  ITEM_PRICE_BUDGET_FRACTION
+} from './treasure.mjs';
 
 // Tunable, with no anchor in the source material — unlike the encounter
 // deck's XP table, the Journey Spread never specifies a room-kind mix.
@@ -92,6 +98,32 @@ export const TREASURE_GP_PER_LEVEL = 10;
 export function lootGpForTreasureRoom({ partyLevel, physicalSlot, roomCount, isGoal }) {
   const bias = depthBiasFor({ physicalSlot, roomCount, isGoal });
   return Math.round(partyLevel * TREASURE_GP_PER_LEVEL * (1 + bias / MAX_DEPTH_BIAS));
+}
+
+// Which kind of table a treasure room's item draws from — tunable, no
+// anchor in the source material, same disclosed-heuristic spirit as
+// ROOM_KIND_WEIGHTS above. Unlike an NPC corpse's incidental drop, a
+// treasure room is the deliberate payoff moment, so this is skewed toward
+// the exciting stuff (a permanent magic item) rather than consumables.
+export const TREASURE_ROOM_CATEGORY_WEIGHTS = [
+  { category: 'permanent', weight: 45 },
+  { category: 'valuable', weight: 35 },
+  { category: 'consumable', weight: 20 }
+];
+
+/**
+ * A treasure room's item draw (#29) — unlike rollNpcTreasure's ITEM_CHANCE
+ * gate, a treasure room always drops something; this only decides which
+ * real `pf2e.rollable-tables` table to draw from. Reuses
+ * lootGpForTreasureRoom's own gp figure as the price budget for a
+ * 'valuable' category pick, so the two stay in sync.
+ */
+export function treasureRoomItemTableName({ partyLevel, physicalSlot, roomCount, isGoal, rng }) {
+  const gp = lootGpForTreasureRoom({ partyLevel, physicalSlot, roomCount, isGoal });
+  const category = pickWeightedCategory(TREASURE_ROOM_CATEGORY_WEIGHTS, rng());
+  return category === 'valuable'
+    ? valuableTierForBudget(gp * ITEM_PRICE_BUDGET_FRACTION)
+    : nthLevelTableName(category, partyLevel);
 }
 
 // Broad PF2e creature-type traits, deliberately common ones rather than

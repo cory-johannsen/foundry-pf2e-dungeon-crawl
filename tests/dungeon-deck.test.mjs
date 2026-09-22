@@ -15,8 +15,16 @@ import {
   ROOM_KIND_WEIGHTS,
   roomKindAt,
   lootGpForTreasureRoom,
-  TREASURE_GP_PER_LEVEL
+  TREASURE_GP_PER_LEVEL,
+  treasureRoomItemTableName,
+  TREASURE_ROOM_CATEGORY_WEIGHTS
 } from '../scripts/dungeon-deck.mjs';
+import { nthLevelTableName, VALUABLE_TIERS } from '../scripts/treasure.mjs';
+
+function sequenceRng(values) {
+  let i = 0;
+  return () => values[i++ % values.length];
+}
 
 describe('buildRoomSequence', () => {
   it('ends with a combat goal room carrying no outcome slot', () => {
@@ -301,6 +309,49 @@ describe('lootGpForTreasureRoom', () => {
       expect(gp).toBeGreaterThanOrEqual(previous);
       previous = gp;
     }
+  });
+});
+
+describe('treasureRoomItemTableName', () => {
+  const args = { partyLevel: 5, physicalSlot: 0, roomCount: 8, isGoal: false };
+
+  it('lists permanent, valuable and consumable categories', () => {
+    expect(TREASURE_ROOM_CATEGORY_WEIGHTS.map((w) => w.category)).toEqual([
+      'permanent',
+      'valuable',
+      'consumable',
+    ]);
+  });
+
+  it('always returns a tableName regardless of rng — a treasure room always drops something', () => {
+    expect(typeof treasureRoomItemTableName({ ...args, rng: () => 0 })).toBe('string');
+    expect(typeof treasureRoomItemTableName({ ...args, rng: () => 0.999999 })).toBe('string');
+  });
+
+  it('picks the permanent-item table when the category roll is low', () => {
+    const result = treasureRoomItemTableName({ ...args, rng: sequenceRng([0]) });
+    expect(result).toBe(nthLevelTableName('permanent', args.partyLevel));
+  });
+
+  it('picks a valuable tier table when the category roll is mid-range', () => {
+    const result = treasureRoomItemTableName({ ...args, rng: sequenceRng([0.5]) });
+    expect(VALUABLE_TIERS.some((t) => t.name === result)).toBe(true);
+  });
+
+  it('picks the consumable table when the category roll is high', () => {
+    const result = treasureRoomItemTableName({ ...args, rng: sequenceRng([0.9]) });
+    expect(result).toBe(nthLevelTableName('consumable', args.partyLevel));
+  });
+
+  it('uses partyLevel for the Nth-Level lookup', () => {
+    const result = treasureRoomItemTableName({
+      partyLevel: 1,
+      physicalSlot: 0,
+      roomCount: 8,
+      isGoal: false,
+      rng: sequenceRng([0]),
+    });
+    expect(result).toBe('1st-Level Permanent Items');
   });
 });
 
