@@ -33,6 +33,7 @@ import {
   handleRangedAttackForReactiveStrike,
   offerReactiveStrikesAgainst,
 } from "./dungeon-combat.mjs";
+import { followLeaderIfDue } from "./dungeon-follow.mjs";
 import {
   getPendingTrapCustomization,
   applyTrapCustomization,
@@ -360,6 +361,10 @@ Hooks.on("updateCombat", (combat, changes) => {
   if (changes.turn === undefined && changes.round === undefined) return;
   autoPlayCombatantTurnIfDue(combat);
 });
+
+/** #20: moves AI-controlled party actors' tokens toward the run's leader
+ * as the party explores between fights. */
+Hooks.on("updateToken", followLeaderIfDue);
 
 /** #202: reactive/triggered NPC abilities (ranged-Strike-triggered Reactive
  * Strike/Attack of Opportunity). */
