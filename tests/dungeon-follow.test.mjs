@@ -1,20 +1,41 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { followLeaderOnDoorOpened } from "../scripts/dungeon-follow.mjs";
+import {
+  followLeaderOnDoorOpened,
+  followLeaderIfDue,
+  runFollowMoveNow,
+} from "../scripts/dungeon-follow.mjs";
+import { requestDungeonAction } from "../scripts/dungeon-remote.mjs";
+
+// Wholesale-mocked (not just requestDungeonAction picked out): dungeon-
+// remote.mjs's own real module pulls in dungeon-app.mjs's entire dependency
+// tree, which this file has no business loading just to assert a socket
+// request was requested. This also sidesteps the real two-way import
+// dungeon-follow.mjs/dungeon-remote.mjs now have (#65: follow needs
+// requestDungeonAction, remote needs runFollowMoveNow) ever needing to
+// resolve in this test file at all.
+vi.mock("../scripts/dungeon-remote.mjs", () => ({
+  requestDungeonAction: vi.fn(),
+}));
 
 const GRID = 100;
 const HOST_USER_ID = "host1";
+const OTHER_USER_ID = "player2";
 const LEADER_ACTOR_ID = "leader-actor";
 const FOLLOWER_ACTOR_ID = "follower-actor";
 const SCENE_ID = "scene1";
 
-function installFoundryStubs({ dungeonRuns = {}, isGM = true } = {}) {
+function installFoundryStubs({
+  dungeonRuns = {},
+  isGM = true,
+  userId = null,
+} = {}) {
   globalThis.CONST = {
     WALL_MOVEMENT_TYPES: { NONE: 0, NORMAL: 20 },
     WALL_DOOR_TYPES: { NONE: 0, DOOR: 1, SECRET: 2 },
     WALL_DOOR_STATES: { CLOSED: 0, OPEN: 1, LOCKED: 2 },
   };
   globalThis.game = {
-    user: { isGM },
+    user: { isGM, id: userId },
     actors: {
       party: {
         members: [
@@ -25,6 +46,7 @@ function installFoundryStubs({ dungeonRuns = {}, isGM = true } = {}) {
         ],
       },
     },
+    scenes: { get: () => undefined },
     combats: [],
     settings: {
       get: (_moduleId, key) => (key === "dungeonRuns" ? dungeonRuns : {}),
@@ -50,6 +72,7 @@ function makeScene({ id = SCENE_ID, walls = [], tokens = [] } = {}) {
     tokens,
   };
   for (const w of walls) w.parent = scene;
+  for (const t of tokens) t.parent = scene;
   return scene;
 }
 
@@ -69,6 +92,7 @@ function makeDoorWall({ ds }) {
 describe("followLeaderOnDoorOpened (#39)", () => {
   afterEach(() => {
     vi.useRealTimers();
+    requestDungeonAction.mockClear();
   });
 
   it("retries a stranded follower once the blocking door opens", async () => {
@@ -144,7 +168,7 @@ describe("followLeaderOnDoorOpened (#39)", () => {
     expect(follower.update).not.toHaveBeenCalled();
   });
 
-  it("does nothing when the current client isn't the GM", async () => {
+  it("does nothing when the current client is neither GM nor the run's host", async () => {
     vi.useFakeTimers();
     const door = makeDoorWall({ ds: 1 });
     const leader = makeToken({
@@ -163,6 +187,7 @@ describe("followLeaderOnDoorOpened (#39)", () => {
 
     installFoundryStubs({
       isGM: false,
+      userId: OTHER_USER_ID,
       dungeonRuns: {
         [SCENE_ID]: {
           hostUserId: HOST_USER_ID,
@@ -175,5 +200,218 @@ describe("followLeaderOnDoorOpened (#39)", () => {
     await vi.advanceTimersByTimeAsync(300);
 
     expect(follower.update).not.toHaveBeenCalled();
+    expect(requestDungeonAction).not.toHaveBeenCalled();
+  });
+
+  it("requests a follow-move via the relay when the current client is the non-GM host (#65)", async () => {
+    vi.useFakeTimers();
+    const door = makeDoorWall({ ds: 1 });
+    const leader = makeToken({
+      id: "t-leader",
+      x: 5 * GRID,
+      y: GRID,
+      actorId: LEADER_ACTOR_ID,
+    });
+    const follower = makeToken({
+      id: "t-follower",
+      x: 0,
+      y: GRID,
+      actorId: FOLLOWER_ACTOR_ID,
+    });
+    makeScene({ walls: [door], tokens: [leader, follower] });
+
+    installFoundryStubs({
+      isGM: false,
+      userId: HOST_USER_ID,
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: [FOLLOWER_ACTOR_ID],
+        },
+      },
+    });
+
+    followLeaderOnDoorOpened(door, { ds: CONST.WALL_DOOR_STATES.OPEN });
+    await vi.advanceTimersByTimeAsync(300);
+
+    // The actual move happens on whichever client receives and executes
+    // the relayed request, not this one -- this client only ever asks.
+    expect(follower.update).not.toHaveBeenCalled();
+    expect(requestDungeonAction).toHaveBeenCalledTimes(1);
+    expect(requestDungeonAction).toHaveBeenCalledWith("followMove", {
+      sceneId: SCENE_ID,
+    });
+  });
+});
+
+describe("followLeaderIfDue (#65)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    requestDungeonAction.mockClear();
+  });
+
+  function setUpScene() {
+    const leader = makeToken({
+      id: "t-leader",
+      x: 5 * GRID,
+      y: GRID,
+      actorId: LEADER_ACTOR_ID,
+    });
+    const follower = makeToken({
+      id: "t-follower",
+      x: 0,
+      y: GRID,
+      actorId: FOLLOWER_ACTOR_ID,
+    });
+    const scene = makeScene({ tokens: [leader, follower] });
+    return { leader, follower, scene };
+  }
+
+  it("moves followers toward the leader when its own token moves, on a GM client", async () => {
+    vi.useFakeTimers();
+    const { leader, follower } = setUpScene();
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: [FOLLOWER_ACTOR_ID],
+        },
+      },
+    });
+
+    followLeaderIfDue(leader, { x: leader.x, y: leader.y });
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(follower.update).toHaveBeenCalledTimes(1);
+  });
+
+  it("does nothing when the moved token isn't the leader's own", async () => {
+    vi.useFakeTimers();
+    const { follower } = setUpScene();
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: [FOLLOWER_ACTOR_ID],
+        },
+      },
+    });
+
+    followLeaderIfDue(follower, { x: follower.x, y: follower.y });
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(follower.update).not.toHaveBeenCalled();
+    expect(requestDungeonAction).not.toHaveBeenCalled();
+  });
+
+  it("does nothing when neither x nor y changed", async () => {
+    vi.useFakeTimers();
+    const { leader, follower } = setUpScene();
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: [FOLLOWER_ACTOR_ID],
+        },
+      },
+    });
+
+    followLeaderIfDue(leader, { elevation: 0 });
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(follower.update).not.toHaveBeenCalled();
+  });
+
+  it("does nothing when the current client is neither GM nor the run's host", async () => {
+    vi.useFakeTimers();
+    const { leader, follower } = setUpScene();
+    installFoundryStubs({
+      isGM: false,
+      userId: OTHER_USER_ID,
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: [FOLLOWER_ACTOR_ID],
+        },
+      },
+    });
+
+    followLeaderIfDue(leader, { x: leader.x, y: leader.y });
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(follower.update).not.toHaveBeenCalled();
+    expect(requestDungeonAction).not.toHaveBeenCalled();
+  });
+
+  it("requests a follow-move via the relay when the current client is the non-GM host (#65)", async () => {
+    vi.useFakeTimers();
+    const { leader, follower } = setUpScene();
+    installFoundryStubs({
+      isGM: false,
+      userId: HOST_USER_ID,
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: [FOLLOWER_ACTOR_ID],
+        },
+      },
+    });
+
+    followLeaderIfDue(leader, { x: leader.x, y: leader.y });
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(follower.update).not.toHaveBeenCalled();
+    expect(requestDungeonAction).toHaveBeenCalledTimes(1);
+    expect(requestDungeonAction).toHaveBeenCalledWith("followMove", {
+      sceneId: SCENE_ID,
+    });
+  });
+});
+
+describe("runFollowMoveNow (#65)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("resolves the scene/run/leader from sceneId alone and moves followers", async () => {
+    vi.useFakeTimers();
+    const leader = makeToken({
+      id: "t-leader",
+      x: 5 * GRID,
+      y: GRID,
+      actorId: LEADER_ACTOR_ID,
+    });
+    const follower = makeToken({
+      id: "t-follower",
+      x: 0,
+      y: GRID,
+      actorId: FOLLOWER_ACTOR_ID,
+    });
+    const scene = makeScene({ tokens: [leader, follower] });
+
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: [FOLLOWER_ACTOR_ID],
+        },
+      },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    runFollowMoveNow(SCENE_ID);
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(follower.update).toHaveBeenCalledTimes(1);
+  });
+
+  it("is a no-op for a scene with no matching run", async () => {
+    vi.useFakeTimers();
+    const scene = makeScene({ tokens: [] });
+    installFoundryStubs({ dungeonRuns: {} });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    expect(() => runFollowMoveNow(SCENE_ID)).not.toThrow();
+    await vi.advanceTimersByTimeAsync(300);
   });
 });

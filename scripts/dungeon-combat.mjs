@@ -48,6 +48,9 @@ import {
   postStrikeRiderReminder,
   postCriticalSpecializationReminder,
   resolveGrabRider,
+  resolveKnockdownRider,
+  resolveAthleticsRider,
+  PUSH_RIDER_SLUGS,
 } from "./dungeon-strike-riders.mjs";
 import {
   drawAndApplyCriticalCard,
@@ -1970,6 +1973,47 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
 }
 
 /**
+ * Moves `target`'s token directly away from `attacker`'s token along a
+ * real, wall-aware path, up to `distanceSquares` -- #51's push/
+ * improved-push rider resolution (a real Shove attempt's forced
+ * movement). Reuses `posturePath`'s own "retreat" branch as-is: it already
+ * projects a point directly away from a reference cell and shortens the
+ * distance progressively if the farthest one isn't reachable, so calling
+ * it with `attacker`'s cell as that reference point and `target` as the
+ * mover gets the exact same "shorten instead of cancel" behavior a wall
+ * right behind the target should have, with no new projection logic of
+ * its own. `stopWithinSquares: 0` in the `walkPath` call, same as
+ * `posturePath`'s own retreat callers use, since a push has no "stop
+ * short of melee range" concept to honor. A no-op (no token update at
+ * all) if `target` has nowhere to go -- fully boxed in by walls or other
+ * combatants -- rather than throwing.
+ */
+export async function pushTokenAway(combat, attacker, target, distanceSquares) {
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const start = tokenCell(target.token, gridSize);
+  const awayFrom = tokenCell(attacker.token, gridSize);
+  const bounds = sceneBounds(combat, gridSize);
+  const isBlocked = movementBlockedEdges(combat, target);
+  const path = posturePath(
+    start,
+    awayFrom,
+    "retreat",
+    distanceSquares,
+    isBlocked,
+    bounds,
+  );
+  if (!path) return;
+
+  const occupants = otherCombatantFootprints(combat, target, gridSize);
+  const waypoint = walkPath(path, awayFrom, distanceSquares, 0, occupants);
+  if (!waypoint) return;
+  await target.token.update({
+    x: waypoint.gx * gridSize,
+    y: waypoint.gy * gridSize,
+  });
+}
+
+/**
  * PF2e's own `applyDamage` never applies any condition on its own — confirmed
  * live (#107): a real critical hit took a scratch NPC from 1 HP to 0 with
  * zero condition change. `Combatant#isDefeated` (which `combatSideStatus`
@@ -2102,14 +2146,20 @@ function strikeSoundContext(strike, target) {
  * model: `category` is one of "unarmed"/"simple"/"martial"/"advanced" --
  * the same field already gates access-to-training feats elsewhere in the
  * system).
+ *
+ * Returns the drawn card's damage multiplier (#61 -- 1/2/3, default 1) so
+ * the caller can `.alter()` its own already-in-flight `strike.damage()`
+ * roll once it resolves; only ever non-1 on the criticalSuccess/hit-deck
+ * branch (a fumble has no damage roll to scale).
  */
 async function drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target) {
   if (outcome === "criticalSuccess") {
-    await drawAndApplyCriticalCard(
+    const draw = await drawAndApplyCriticalCard(
       "hit",
       hitDeckCategory(soundContext.damageType),
-      { combatant, target },
+      { combatant, target, damageType: soundContext.damageType },
     );
+    return draw?.damageMultiplier ?? 1;
   } else if (outcome === "criticalFailure") {
     await drawAndApplyCriticalCard(
       "fumble",
@@ -2117,9 +2167,14 @@ async function drawCriticalCardForStrike(outcome, strike, soundContext, combatan
         isRanged: soundContext.isRanged,
         isUnarmed: strike.item?.system?.category === "unarmed",
       }),
-      { combatant, target },
+      // #60: `strike` lets a weapon-HP-damage fumble card resolve the
+      // attacker's actual weapon item -- never threaded into the
+      // criticalSuccess/hit-deck branch above, since a weapon breaking
+      // from fumbling doesn't apply on a crit success.
+      { combatant, target, strike },
     );
   }
+  return 1;
 }
 
 /**
@@ -2154,7 +2209,24 @@ async function rollAndApplyStrike(combat, combatant, target) {
       playStrikeSound(outcome, soundContext);
       await postStrikeRiderReminder(combatant, strike, outcome);
       await resolveGrabRider(combatant, target, strike, outcome);
-      await drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target);
+      await resolveKnockdownRider(combatant, target, strike, outcome);
+      await resolveAthleticsRider(combatant, target, strike, outcome, {
+        slugs: PUSH_RIDER_SLUGS,
+        saveKey: "fortitude",
+        label: "Push",
+        onSuccess: async (rollOutcome) => {
+          const distanceSquares = rollOutcome === "criticalSuccess" ? 2 : 1;
+          await pushTokenAway(combat, combatant, target, distanceSquares);
+          return `target is pushed ${distanceSquares * 5} feet away`;
+        },
+      });
+      const damageMultiplier = await drawCriticalCardForStrike(
+        outcome,
+        strike,
+        soundContext,
+        combatant,
+        target,
+      );
       if (outcome === "success" || outcome === "criticalSuccess") {
         const damageRoll = await strike.damage({
           target: targetRef,
@@ -2162,6 +2234,21 @@ async function rollAndApplyStrike(combat, combatant, target) {
           createMessage: true,
         });
         if (damageRoll) {
+          // #61: a critical-deck card's own Triple/Double-damage text
+          // (e.g. "Disembowel", "Corrosive") is a card-drawn Hit-deck
+          // effect, only ever drawn here on outcome === "criticalSuccess"
+          // -- strike.damage() above already applied PF2e's own crit
+          // doubling for that outcome (confirmed at
+          // castSpellAndApplySave's own docblock: "the same way
+          // strike.damage() handles crit doubling for a Strike"), so a
+          // card's "double damage" (damageMultiplier 2) is already
+          // exactly what that doubling gives -- no extra scaling needed.
+          // Only "triple damage" (damageMultiplier 3) needs an
+          // ADDITIONAL 1.5x on top of the existing 2x, to reach 3x total
+          // rather than stacking to 6x.
+          if (damageMultiplier === 3) {
+            await damageRoll.alter(1.5, 0);
+          }
           await target.actor.applyDamage({
             damage: damageRoll,
             token: target.token,
@@ -3006,7 +3093,24 @@ async function rollAndApplyStrikeAtVariant(
       playStrikeSound(outcome, soundContext);
       await postStrikeRiderReminder(combatant, strike, outcome);
       await resolveGrabRider(combatant, target, strike, outcome);
-      await drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target);
+      await resolveKnockdownRider(combatant, target, strike, outcome);
+      await resolveAthleticsRider(combatant, target, strike, outcome, {
+        slugs: PUSH_RIDER_SLUGS,
+        saveKey: "fortitude",
+        label: "Push",
+        onSuccess: async (rollOutcome) => {
+          const distanceSquares = rollOutcome === "criticalSuccess" ? 2 : 1;
+          await pushTokenAway(combat, combatant, target, distanceSquares);
+          return `target is pushed ${distanceSquares * 5} feet away`;
+        },
+      });
+      const damageMultiplier = await drawCriticalCardForStrike(
+        outcome,
+        strike,
+        soundContext,
+        combatant,
+        target,
+      );
       if (outcome === "success" || outcome === "criticalSuccess") {
         const damageRoll = await strike.damage({
           target: targetRef,
@@ -3014,6 +3118,13 @@ async function rollAndApplyStrikeAtVariant(
           createMessage: true,
         });
         if (damageRoll) {
+          // #61: see rollAndApplyStrike's identical comment -- only
+          // "triple damage" needs an extra 1.5x on top of the crit
+          // doubling strike.damage() already applied; "double damage"
+          // already matches that doubling exactly.
+          if (damageMultiplier === 3) {
+            await damageRoll.alter(1.5, 0);
+          }
           await target.actor.applyDamage({
             damage: damageRoll,
             token: target.token,
