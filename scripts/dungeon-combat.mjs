@@ -1422,6 +1422,66 @@ export async function handleRangedAttackForReactiveStrike(message) {
 }
 
 /**
+ * #47: a human party member's manual Strike still goes through PF2e's own
+ * roll -> chat card "Apply Damage" button, which resolves its recipient
+ * from live `game.user.targets`/selection state — reproduced live as a
+ * Fighter's damage roll correctly recording its target
+ * (`flags.pf2e.context.target`) while the manual Apply click applied
+ * damage to the Fighter's own actor instead. `rollAndApplyStrike` already
+ * avoids this for NPC/agent-controlled strikes by never using the manual
+ * button at all; this closes the same gap for a human's own strike by
+ * reading the roll's own already-correct stored target instead of live
+ * selection state, then applying damage itself — same
+ * `applyDamage`/`applyDefeatIfReducedToZero` shape `rollAndApplyStrike`
+ * already uses.
+ *
+ * Only acts for a combatant `isExcludedFromAutoPlay` already excludes from
+ * this module's own auto-play (a human party member or a manually-added,
+ * player-summoned ally) — every other combatant's damage is already
+ * applied programmatically by `rollAndApplyStrike`/`rollAndApplyStrikeAtVariant`,
+ * and letting this hook act on those too would double-apply the same hit.
+ * GM-gated and scoped to this module's own managed combats, matching
+ * `handleRangedAttackForReactiveStrike` immediately above. Registered
+ * against `createChatMessage` in module.mjs.
+ */
+export async function handleManualStrikeDamage(message) {
+  if (!game.user.isGM) return;
+  const context = message.flags?.pf2e?.context;
+  if (context?.type !== "damage-roll") return;
+  if (message.flags?.pf2e?.appliedDamage) return;
+
+  const sceneId = message.speaker?.scene;
+  const attackerTokenId = message.speaker?.token;
+  if (!sceneId || !attackerTokenId) return;
+  const combat = game.combats.contents.find(
+    (c) => c.scene?.id === sceneId && isModuleCombat(c),
+  );
+  if (!combat) return;
+  const attacker = combat.combatants.find((c) => c.tokenId === attackerTokenId);
+  if (!attacker || attacker.isDefeated) return;
+  if (!isExcludedFromAutoPlay(attacker, partyActorIds())) return;
+
+  // A target's UUID is always `...Scene.<id>.Token.<id>` for a live combat
+  // token (linked or unlinked actor alike) — the trailing segment is the
+  // token document's own id, the same id `Combatant#tokenId` carries.
+  const targetTokenUuid = context.target?.token;
+  if (!targetTokenUuid) return;
+  const targetTokenId = targetTokenUuid.split(".").pop();
+  const target = combat.combatants.find((c) => c.tokenId === targetTokenId);
+  if (!target) return;
+
+  const damageRoll = message.rolls?.[0];
+  if (!damageRoll) return;
+
+  await target.actor.applyDamage({
+    damage: damageRoll,
+    token: target.token,
+    outcome: context.outcome,
+  });
+  await applyDefeatIfReducedToZero(target);
+}
+
+/**
  * The real Foundry-computed set of opponents caught by a cone template
  * aimed at each of `rawOpponents` in turn (one placement option per
  * opponent, matching #119's per-opponent burst placements) — confirmed
