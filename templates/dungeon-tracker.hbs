@@ -39,7 +39,16 @@
             <p
               class="pf2edc-dungeon__setpiece-name"
             >{{currentRoom.setpiece.name}}</p>
-            <p>{{currentRoom.setpiece.summary}}</p>
+            {{#if currentRoom.setpiece.playerDescription}}
+              <p>{{currentRoom.setpiece.playerDescription}}</p>
+              {{#if isGM}}
+                <p class="pf2edc-dungeon__setpiece-gm-note"><em>{{localize
+                    "PF2EDC.Dungeon.Setpiece.GmNoteLabel"
+                  }}</em> {{currentRoom.setpiece.summary}}</p>
+              {{/if}}
+            {{else}}
+              <p>{{currentRoom.setpiece.summary}}</p>
+            {{/if}}
           {{/if}}
         </div>
       {{/if}}

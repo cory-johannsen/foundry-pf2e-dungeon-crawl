@@ -66,6 +66,7 @@
   "PF2EDC.Dungeon.RoomCountLabel": "Number of rooms (including the goal room)",
   "PF2EDC.Dungeon.SafeEntryHint": "A safe room — no encounter, trap or puzzle. The way onward is already open.",
   "PF2EDC.Dungeon.SafeRestHint": "A safe place to rest partway through the dungeon — no encounter, trap or puzzle. The way onward is already open.",
+  "PF2EDC.Dungeon.Setpiece.GmNoteLabel": "GM notes:",
   "PF2EDC.Dungeon.SkillChallenge.AttemptButton": "Attempt",
   "PF2EDC.Dungeon.SkillChallenge.AttemptsRemaining": "{n} attempt(s) remaining",
   "PF2EDC.Dungeon.SkillChallenge.Progress": "Progress: {vp} / {target} Victory Points",
