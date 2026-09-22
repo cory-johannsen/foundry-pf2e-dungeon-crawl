@@ -103,3 +103,15 @@ wake — whether from the Monitor or the fallback — re-run a full check
 pass (Step "One check pass" above) and re-arm. `watch-pending.mjs` needs
 the same `FOUNDRY_BASE_URL`/`FOUNDRY_REST_API_KEY` as the rest of this
 bridge; it makes no LLM calls of its own.
+
+Also start `node tools/agent-loop/poll.mjs` in the background the first
+time the standing loop starts in a session, if it isn't already running.
+It's the separate combat-turn AI poller — drives agent-controlled
+combatants' turns via the provider configured by `DOMMT_AGENT_PROVIDER`
+(needs `ANTHROPIC_API_KEY` for `claude`, none for `laya`) — not itself
+part of the customization check, but the standing loop is what's meant to
+keep both halves of the agent bridge running for the length of a session.
+Start it as a plain background process, not a `Monitor` — its log lines
+aren't check-pass events to react to. Don't restart it on every wake;
+only (re)start it if it isn't currently running (never started this
+session, or it exited/crashed).
