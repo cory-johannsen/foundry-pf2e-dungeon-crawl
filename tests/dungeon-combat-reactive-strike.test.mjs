@@ -3,6 +3,7 @@ import {
   findReactiveStrikeOpportunities,
   offerReactiveStrikesAgainst,
   handleRangedAttackForReactiveStrike,
+  strideByPosture,
 } from "../scripts/dungeon-combat.mjs";
 
 function makeStrike({ slug = "claw", label = "Claw", reach = null } = {}) {
@@ -278,5 +279,46 @@ describe("handleRangedAttackForReactiveStrike", () => {
     await handleRangedAttackForReactiveStrike(message);
 
     expect(await combat.getFlag("pf2e-dungeon-crawl", "reactionUsed")).toEqual({ r1: 1 });
+  });
+});
+
+describe("strideByPosture (Reactive Strike wiring)", () => {
+  it("offers a Reactive Strike after a real move ends within a reactor's reach", async () => {
+    installFoundryStubs();
+    const reactor = makeFullReactor({ id: "r1", x: 400, y: 0 });
+    const mover = makeMoverTarget();
+    mover.token.update = async function (changes) {
+      Object.assign(this, changes);
+    };
+    mover.actor.system.movement = { speeds: { land: { value: 30 } } };
+    const combat = makeFullCombat({ combatants: [mover, reactor] });
+
+    await strideByPosture(combat, mover, "approach", { token: { x: 400, y: 0 } });
+
+    expect(mover.token.x).toBe(300);
+    expect(await combat.getFlag("pf2e-dungeon-crawl", "reactionUsed")).toEqual({ r1: 1 });
+  });
+
+  it("does not trigger a Reactive Strike on a no-op move (no speed)", async () => {
+    installFoundryStubs();
+    const reactor = makeFullReactor({ id: "r1", x: 100, y: 0 });
+    const mover = {
+      id: "mover1",
+      isDefeated: false,
+      token: {
+        x: 0,
+        y: 0,
+        disposition: -1,
+        update: async () => {
+          throw new Error("should not move: speed is 0");
+        },
+      },
+      actor: { system: { movement: { speeds: { land: { value: 0 } } } } },
+    };
+    const combat = makeFullCombat({ combatants: [mover, reactor] });
+
+    await strideByPosture(combat, mover, "approach", { token: { x: 100, y: 0 } });
+
+    expect(await combat.getFlag("pf2e-dungeon-crawl", "reactionUsed")).toBeUndefined();
   });
 });

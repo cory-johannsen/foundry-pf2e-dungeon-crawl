@@ -2694,7 +2694,7 @@ export async function getPendingAgentTurn(combat) {
  * concept, so it's unclamped, bounded only by speed and posturePath's own
  * progressively-shorter-distance fallback. A no-op if already at the desired
  * distance, with no speed to move, or if no usable path exists. */
-async function strideByPosture(combat, combatant, posture, target) {
+export async function strideByPosture(combat, combatant, posture, target) {
   const gridSize = combat.scene?.grid?.size ?? 100;
   const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
   const speedFt = combatant.actor?.system?.movement?.speeds?.land?.value ?? 0;
@@ -2721,6 +2721,7 @@ async function strideByPosture(combat, combatant, posture, target) {
   const waypoint = walkPath(path, targetCell, speedSquares, stopWithin);
   if (!waypoint) return;
   await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize });
+  await offerReactiveStrikesAgainst(combat, combatant);
 }
 
 /** Rolls one strike at a specific MAP `variantIndex` against `target` and
