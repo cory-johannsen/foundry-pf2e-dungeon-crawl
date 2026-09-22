@@ -31,6 +31,7 @@ import {
   toggleAgentControlled,
   agentLoopStatus,
   handleRangedAttackForReactiveStrike,
+  offerReactiveStrikesAgainst,
 } from "./dungeon-combat.mjs";
 import {
   getPendingTrapCustomization,
@@ -398,6 +399,20 @@ Hooks.on("getCombatTrackerEntryContext", (html, menuItems) => {
     callback: (li) => {
       const combatant = game.combat?.combatants.get(li.dataset.combatantId);
       if (combatant) toggleAgentControlled(combatant);
+    },
+  });
+  menuItems.push({
+    name: "PF2EDC.Dungeon.Combat.ReactiveStrikeCheckLabel",
+    icon: '<i class="fa-solid fa-bolt"></i>',
+    condition: (li) => {
+      const combatant = game.combat?.combatants.get(li.dataset.combatantId);
+      return game.user.isGM && !!combatant && !combatant.isDefeated;
+    },
+    callback: (li) => {
+      if (!game.user.isGM) return;
+      const combat = game.combat;
+      const combatant = combat?.combatants.get(li.dataset.combatantId);
+      if (combatant) offerReactiveStrikesAgainst(combat, combatant);
     },
   });
 });

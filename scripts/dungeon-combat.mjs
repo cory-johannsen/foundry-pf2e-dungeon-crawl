@@ -1289,28 +1289,90 @@ async function postReactiveStrikeChat(reactor, attacker) {
 }
 
 /**
- * #202: reacts to a real ranged-Strike attack-roll chat message by
- * offering every eligible agent-controlled reactor a Reactive Strike
- * against the attacker — the one Reactive Strike trigger #202's own
- * research confirmed cleanly detectable via `createChatMessage`/
- * `flags.pf2e.context` (the exact mechanism this module already relies on
- * everywhere else for roll-outcome detection, e.g.
- * `rollAndApplyStrikeAtVariant`'s own outcome read). The other two real
- * Reactive Strike triggers (a manipulate action, a move action within
- * reach) have no reliable hook at all — confirmed live no pf2e-namespaced
- * "action used" hook exists, only generic `updateToken`/`moveToken` with
- * no way to tell a real Stride from a GM drag or forced movement —
- * deliberately out of scope, decided live with the user.
+ * Every currently-eligible Reactive Strike opportunity against `mover` —
+ * one entry per agent-controlled opponent with an unused reaction this
+ * round, an in-scope Reactive Strike/Attack of Opportunity item, and a
+ * ready Strike action that reaches `mover`'s current position. Pure
+ * detection: takes no action itself, so every trigger source (a ranged
+ * attack-roll chat message, an agent's own Stride, a GM's manual check)
+ * shares one answer to "who gets to react right now."
+ */
+export function findReactiveStrikeOpportunities(
+  combat,
+  mover,
+  gridSize,
+  gridDistanceFt,
+) {
+  const opportunities = [];
+  for (const reactor of combatantOpponents(combat, mover)) {
+    if (!reactor.getFlag(MODULE_ID, "agentControlled")) continue;
+    if (getReactionUsed(combat, reactor.id, combat.round)) continue;
+    const item = (reactor.actor?.items ?? []).find(isReactiveStrikeInScope);
+    if (!item) continue;
+
+    const readyActions = (reactor.actor?.system?.actions ?? [])
+      .filter((a) => a.type === "strike" && a.ready !== false)
+      .map((a) => ({
+        slug: a.item?.slug ?? a.slug ?? a.label,
+        label: a.label,
+        reachSquares: actionReachSquares(a, gridDistanceFt),
+      }));
+    const distanceSquares = chebyshevSquares(
+      reactor.token,
+      mover.token,
+      gridSize,
+    );
+    const inReachActions = readyActions.filter(
+      (a) => distanceSquares <= a.reachSquares,
+    );
+    if (!inReachActions.length) continue;
+    const restriction = parseReactiveStrikeWeaponRestriction(item.name);
+    const matched = restriction
+      ? matchMultiStrikeActionSlug(restriction, inReachActions)
+      : inReachActions[0];
+    if (!matched) continue;
+
+    opportunities.push({ reactor, actionSlug: matched.slug });
+  }
+  return opportunities;
+}
+
+/**
+ * Executes every current Reactive Strike opportunity against `mover` — the
+ * single entry point every trigger (ranged-attack chat message,
+ * agent-controlled Stride, GM manual check) calls into, so reaction
+ * economy, weapon restrictions, and the chat announcement stay identical
+ * regardless of what provoked the reaction.
+ */
+export async function offerReactiveStrikesAgainst(combat, mover) {
+  if (!isModuleCombat(combat)) return;
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  const opportunities = findReactiveStrikeOpportunities(
+    combat,
+    mover,
+    gridSize,
+    gridDistanceFt,
+  );
+  for (const { reactor, actionSlug } of opportunities) {
+    await markReactionUsed(combat, reactor.id, combat.round);
+    await rollAndApplyStrikeAtVariant(combat, reactor, mover, actionSlug, 0);
+    await postReactiveStrikeChat(reactor, mover);
+  }
+}
+
+/**
+ * #202: reacts to a real ranged-Strike attack-roll chat message by offering
+ * every eligible agent-controlled reactor a Reactive Strike against the
+ * attacker, via `offerReactiveStrikesAgainst` — shared with #13's
+ * agent-Stride and manual-check triggers.
  *
  * Fires globally regardless of whose turn it is (the whole point of a
  * reaction), including a player character's own ranged attack against an
- * agent-controlled monster within its reach — confirmed this is the
- * primary real-world case, not just NPC-vs-NPC. GM-gated (only the GM's
- * own client should ever mutate combat state from a global hook like
- * this, matching every other GM-only hook handler in this file) and
- * scoped to this module's own managed combats (`isModuleCombat`) — never
- * touches a Combat this module doesn't own. Registered against
- * `createChatMessage` in module.mjs.
+ * agent-controlled monster within its reach. GM-gated (only the GM's own
+ * client should ever mutate combat state from a global hook like this) and
+ * scoped to this module's own managed combats (`isModuleCombat`). Registered
+ * against `createChatMessage` in module.mjs.
  */
 export async function handleRangedAttackForReactiveStrike(message) {
   if (!game.user.isGM) return;
@@ -1330,47 +1392,7 @@ export async function handleRangedAttackForReactiveStrike(message) {
   );
   if (!attacker || attacker.isDefeated) return;
 
-  const gridSize = combat.scene?.grid?.size ?? 100;
-  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
-
-  for (const reactor of combatantOpponents(combat, attacker)) {
-    if (!reactor.getFlag(MODULE_ID, "agentControlled")) continue;
-    if (getReactionUsed(combat, reactor.id, combat.round)) continue;
-    const item = (reactor.actor?.items ?? []).find(isReactiveStrikeInScope);
-    if (!item) continue;
-
-    const readyActions = (reactor.actor?.system?.actions ?? [])
-      .filter((a) => a.type === "strike" && a.ready !== false)
-      .map((a) => ({
-        slug: a.item?.slug ?? a.slug ?? a.label,
-        label: a.label,
-        reachSquares: actionReachSquares(a, gridDistanceFt),
-      }));
-    const distanceSquares = chebyshevSquares(
-      reactor.token,
-      attacker.token,
-      gridSize,
-    );
-    const inReachActions = readyActions.filter(
-      (a) => distanceSquares <= a.reachSquares,
-    );
-    if (!inReachActions.length) continue;
-    const restriction = parseReactiveStrikeWeaponRestriction(item.name);
-    const matched = restriction
-      ? matchMultiStrikeActionSlug(restriction, inReachActions)
-      : inReachActions[0];
-    if (!matched) continue;
-
-    await markReactionUsed(combat, reactor.id, combat.round);
-    await rollAndApplyStrikeAtVariant(
-      combat,
-      reactor,
-      attacker,
-      matched.slug,
-      0,
-    );
-    await postReactiveStrikeChat(reactor, attacker);
-  }
+  await offerReactiveStrikesAgainst(combat, attacker);
 }
 
 /**
@@ -1742,7 +1764,7 @@ function walkPath(path, targetCell, speedSquares, stopWithinSquares) {
  * (MELEE_REACH_SQUARES). A no-op if already adjacent, if the combatant has
  * no speed to move with, or if no path to the target exists at all.
  */
-async function stepToward(combat, combatant, target, distanceSquares) {
+export async function stepToward(combat, combatant, target, distanceSquares) {
   if (distanceSquares <= MELEE_REACH_SQUARES) return;
   const gridSize = combat.scene?.grid?.size ?? 100;
   const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
@@ -1765,6 +1787,7 @@ async function stepToward(combat, combatant, target, distanceSquares) {
   const waypoint = walkPath(path, goal, speedSquares, MELEE_REACH_SQUARES);
   if (!waypoint) return;
   await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize });
+  await offerReactiveStrikesAgainst(combat, combatant);
 }
 
 /**
@@ -2682,7 +2705,7 @@ export async function getPendingAgentTurn(combat) {
  * concept, so it's unclamped, bounded only by speed and posturePath's own
  * progressively-shorter-distance fallback. A no-op if already at the desired
  * distance, with no speed to move, or if no usable path exists. */
-async function strideByPosture(combat, combatant, posture, target) {
+export async function strideByPosture(combat, combatant, posture, target) {
   const gridSize = combat.scene?.grid?.size ?? 100;
   const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
   const speedFt = combatant.actor?.system?.movement?.speeds?.land?.value ?? 0;
@@ -2709,6 +2732,7 @@ async function strideByPosture(combat, combatant, posture, target) {
   const waypoint = walkPath(path, targetCell, speedSquares, stopWithin);
   if (!waypoint) return;
   await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize });
+  await offerReactiveStrikesAgainst(combat, combatant);
 }
 
 /** Rolls one strike at a specific MAP `variantIndex` against `target` and

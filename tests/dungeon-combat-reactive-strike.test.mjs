@@ -1,0 +1,388 @@
+import { describe, it, expect } from "vitest";
+import {
+  findReactiveStrikeOpportunities,
+  offerReactiveStrikesAgainst,
+  handleRangedAttackForReactiveStrike,
+  strideByPosture,
+  stepToward,
+} from "../scripts/dungeon-combat.mjs";
+
+function makeStrike({ slug = "claw", label = "Claw", reach = null } = {}) {
+  return {
+    type: "strike",
+    ready: true,
+    slug,
+    label,
+    traits: reach ? [{ name: `reach-${reach}` }] : [],
+    item: { slug },
+  };
+}
+
+function makeReactor({
+  id,
+  x,
+  y,
+  disposition = 1,
+  agentControlled = true,
+  itemName = "Reactive Strike",
+  strikes = [makeStrike()],
+} = {}) {
+  const flags = { agentControlled };
+  return {
+    id,
+    isDefeated: false,
+    token: { x, y, disposition },
+    getFlag: (_moduleId, key) => flags[key],
+    actor: {
+      items: [
+        {
+          type: "action",
+          system: { actionType: { value: "reaction" } },
+          name: itemName,
+        },
+      ],
+      system: { actions: strikes },
+    },
+  };
+}
+
+function makeMover({ id = "mover1", x = 0, y = 0, disposition = -1 } = {}) {
+  return { id, isDefeated: false, token: { x, y, disposition } };
+}
+
+function makeCombat({ round = 1, combatants = [], reactionUsed = {} } = {}) {
+  const flags = { reactionUsed: { ...reactionUsed } };
+  return {
+    round,
+    combatants,
+    getFlag: (_moduleId, key) => flags[key],
+  };
+}
+
+const GRID_SIZE = 100;
+const GRID_DISTANCE_FT = 5;
+
+describe("findReactiveStrikeOpportunities", () => {
+  it("finds an eligible reactor with a ready Strike in reach", () => {
+    const mover = makeMover();
+    const reactor = makeReactor({ id: "r1", x: 100, y: 0 });
+    const combat = makeCombat({ combatants: [mover, reactor] });
+
+    expect(
+      findReactiveStrikeOpportunities(combat, mover, GRID_SIZE, GRID_DISTANCE_FT),
+    ).toEqual([{ reactor, actionSlug: "claw" }]);
+  });
+
+  it("excludes a reactor that isn't agent-controlled", () => {
+    const mover = makeMover();
+    const reactor = makeReactor({ id: "r1", x: 100, y: 0, agentControlled: false });
+    const combat = makeCombat({ combatants: [mover, reactor] });
+
+    expect(
+      findReactiveStrikeOpportunities(combat, mover, GRID_SIZE, GRID_DISTANCE_FT),
+    ).toEqual([]);
+  });
+
+  it("excludes a reactor that already used its reaction this round", () => {
+    const mover = makeMover();
+    const reactor = makeReactor({ id: "r1", x: 100, y: 0 });
+    const combat = makeCombat({
+      combatants: [mover, reactor],
+      round: 2,
+      reactionUsed: { r1: 2 },
+    });
+
+    expect(
+      findReactiveStrikeOpportunities(combat, mover, GRID_SIZE, GRID_DISTANCE_FT),
+    ).toEqual([]);
+  });
+
+  it("excludes a reactor with no in-scope Reactive Strike item", () => {
+    const mover = makeMover();
+    const reactor = makeReactor({ id: "r1", x: 100, y: 0, itemName: "Aid" });
+    const combat = makeCombat({ combatants: [mover, reactor] });
+
+    expect(
+      findReactiveStrikeOpportunities(combat, mover, GRID_SIZE, GRID_DISTANCE_FT),
+    ).toEqual([]);
+  });
+
+  it("excludes a reactor with no ready Strike within reach", () => {
+    const mover = makeMover();
+    const reactor = makeReactor({ id: "r1", x: 1000, y: 0 });
+    const combat = makeCombat({ combatants: [mover, reactor] });
+
+    expect(
+      findReactiveStrikeOpportunities(combat, mover, GRID_SIZE, GRID_DISTANCE_FT),
+    ).toEqual([]);
+  });
+
+  it("matches the weapon-restricted Strike among several ready actions", () => {
+    const mover = makeMover();
+    const reactor = makeReactor({
+      id: "r1",
+      x: 100,
+      y: 0,
+      itemName: "Attack of Opportunity (Claw Only)",
+      strikes: [makeStrike({ slug: "claw" }), makeStrike({ slug: "bite" })],
+    });
+    const combat = makeCombat({ combatants: [mover, reactor] });
+
+    expect(
+      findReactiveStrikeOpportunities(combat, mover, GRID_SIZE, GRID_DISTANCE_FT),
+    ).toEqual([{ reactor, actionSlug: "claw" }]);
+  });
+});
+
+function installFoundryStubs() {
+  globalThis.foundry = { utils: {} };
+  globalThis.ChatMessage = {
+    create: async (data) => {
+      ChatMessage.calls.push(data);
+    },
+    calls: [],
+  };
+  globalThis.game = {
+    user: {
+      isGM: true,
+      flags: { pf2e: { settings: {} } },
+      update: async () => {},
+    },
+    i18n: { format: (key) => key },
+    messages: { contents: [] },
+    combats: { contents: [] },
+  };
+}
+
+function makeStrikeAction({ slug = "claw", label = "Claw", outcome = "success" } = {}) {
+  return {
+    type: "strike",
+    ready: true,
+    slug,
+    label,
+    traits: [],
+    item: { slug, isRanged: false, system: {} },
+    variants: [
+      {
+        roll: async () => {
+          game.messages.contents.push({
+            flags: { pf2e: { context: { outcome } } },
+          });
+        },
+      },
+    ],
+    damage: async () => ({ total: 4 }),
+  };
+}
+
+function makeFullReactor({
+  id,
+  x,
+  y,
+  disposition = 1,
+  itemName = "Reactive Strike",
+  strike = makeStrikeAction(),
+  name = "Test Reactor",
+} = {}) {
+  const flags = { agentControlled: true };
+  return {
+    id,
+    name,
+    tokenId: `${id}-token`,
+    isDefeated: false,
+    token: { x, y, disposition },
+    getFlag: (_moduleId, key) => flags[key],
+    actor: {
+      type: "npc",
+      items: [
+        {
+          type: "action",
+          system: { actionType: { value: "reaction" } },
+          name: itemName,
+        },
+      ],
+      system: { actions: [strike] },
+    },
+  };
+}
+
+function makeFullCombat({ round = 1, combatants = [], sceneId = "scene1" } = {}) {
+  const flags = { dungeonSlot: 1 };
+  return {
+    round,
+    combatants,
+    scene: { id: sceneId, grid: { size: 100, distance: 5 }, tokens: [] },
+    getFlag: (_moduleId, key) => flags[key],
+    setFlag: async (_moduleId, key, value) => {
+      flags[key] = value;
+    },
+  };
+}
+
+// The struck target (not the reactor) is who rollAndApplyStrikeAtVariant's
+// `target.actor.applyDamage` and `applyDefeatIfReducedToZero` read — this
+// double stands in for the mover/attacker being reacted against.
+function makeMoverTarget({ id = "mover1", x = 0, y = 0, disposition = -1, name = "Test Mover" } = {}) {
+  const applyDamageCalls = [];
+  return {
+    id,
+    name,
+    isDefeated: false,
+    token: { x, y, disposition },
+    actor: {
+      type: "character",
+      applyDamage: async (args) => {
+        applyDamageCalls.push(args);
+      },
+      system: { attributes: { hp: { value: 10 } } },
+    },
+    applyDamageCalls,
+  };
+}
+
+describe("offerReactiveStrikesAgainst", () => {
+  it("marks the reaction used, rolls the Strike, applies damage, and posts a chat message", async () => {
+    installFoundryStubs();
+    const mover = makeMoverTarget();
+    const reactor = makeFullReactor({ id: "r1", x: 100, y: 0 });
+    const combat = makeFullCombat({ combatants: [mover, reactor] });
+
+    await offerReactiveStrikesAgainst(combat, mover);
+
+    expect(await combat.getFlag("pf2e-dungeon-crawl", "reactionUsed")).toEqual({ r1: 1 });
+    expect(mover.applyDamageCalls).toHaveLength(1);
+    expect(ChatMessage.calls).toHaveLength(1);
+    expect(ChatMessage.calls[0].content).toBe("PF2EDC.Dungeon.Combat.ReactiveStrikeChat");
+  });
+
+  it("does nothing when no reactor is eligible", async () => {
+    installFoundryStubs();
+    const mover = makeMoverTarget();
+    const combat = makeFullCombat({ combatants: [mover] });
+
+    await expect(offerReactiveStrikesAgainst(combat, mover)).resolves.toBeUndefined();
+  });
+
+  it("does nothing when the combat isn't owned by this module", async () => {
+    installFoundryStubs();
+    const mover = makeMoverTarget();
+    const reactor = makeFullReactor({ id: "r1", x: 100, y: 0 });
+    const setFlagCalls = [];
+    const combat = {
+      round: 1,
+      combatants: [mover, reactor],
+      scene: { id: "scene1", grid: { size: 100, distance: 5 }, tokens: [] },
+      getFlag: () => undefined,
+      setFlag: async (_moduleId, key, value) => {
+        setFlagCalls.push({ key, value });
+      },
+    };
+
+    await expect(offerReactiveStrikesAgainst(combat, mover)).resolves.toBeUndefined();
+
+    expect(setFlagCalls).toHaveLength(0);
+    expect(mover.applyDamageCalls).toHaveLength(0);
+    expect(ChatMessage.calls).toHaveLength(0);
+  });
+});
+
+describe("handleRangedAttackForReactiveStrike", () => {
+  it("resolves the combat and attacker from the chat message and delegates to offerReactiveStrikesAgainst", async () => {
+    installFoundryStubs();
+    const attacker = { ...makeMoverTarget({ id: "mover1" }), tokenId: "attacker-token" };
+    const reactor = makeFullReactor({ id: "r1", x: 100, y: 0 });
+    const combat = makeFullCombat({ combatants: [attacker, reactor] });
+    game.combats.contents.push(combat);
+
+    const message = {
+      flags: { pf2e: { context: { type: "attack-roll", options: ["ranged"] } } },
+      speaker: { scene: "scene1", token: "attacker-token" },
+    };
+
+    await handleRangedAttackForReactiveStrike(message);
+
+    expect(await combat.getFlag("pf2e-dungeon-crawl", "reactionUsed")).toEqual({ r1: 1 });
+  });
+});
+
+describe("strideByPosture (Reactive Strike wiring)", () => {
+  it("offers a Reactive Strike after a real move ends within a reactor's reach", async () => {
+    installFoundryStubs();
+    const reactor = makeFullReactor({ id: "r1", x: 400, y: 0 });
+    const mover = makeMoverTarget();
+    mover.token.update = async function (changes) {
+      Object.assign(this, changes);
+    };
+    mover.actor.system.movement = { speeds: { land: { value: 30 } } };
+    const combat = makeFullCombat({ combatants: [mover, reactor] });
+
+    await strideByPosture(combat, mover, "approach", { token: { x: 400, y: 0 } });
+
+    expect(mover.token.x).toBe(300);
+    expect(await combat.getFlag("pf2e-dungeon-crawl", "reactionUsed")).toEqual({ r1: 1 });
+  });
+
+  it("does not trigger a Reactive Strike on a no-op move (no speed)", async () => {
+    installFoundryStubs();
+    const reactor = makeFullReactor({ id: "r1", x: 100, y: 0 });
+    const mover = {
+      id: "mover1",
+      isDefeated: false,
+      token: {
+        x: 0,
+        y: 0,
+        disposition: -1,
+        update: async () => {
+          throw new Error("should not move: speed is 0");
+        },
+      },
+      actor: { system: { movement: { speeds: { land: { value: 0 } } } } },
+    };
+    const combat = makeFullCombat({ combatants: [mover, reactor] });
+
+    await strideByPosture(combat, mover, "approach", { token: { x: 100, y: 0 } });
+
+    expect(await combat.getFlag("pf2e-dungeon-crawl", "reactionUsed")).toBeUndefined();
+  });
+});
+
+describe("stepToward (Reactive Strike wiring)", () => {
+  it("offers a Reactive Strike after a real move ends within a reactor's reach", async () => {
+    installFoundryStubs();
+    const reactor = makeFullReactor({ id: "r1", x: 400, y: 0 });
+    const mover = makeMoverTarget();
+    mover.token.update = async function (changes) {
+      Object.assign(this, changes);
+    };
+    mover.actor.system.movement = { speeds: { land: { value: 30 } } };
+    const combat = makeFullCombat({ combatants: [mover, reactor] });
+
+    await stepToward(combat, mover, { token: { x: 400, y: 0 } }, 4);
+
+    expect(mover.token.x).toBe(300);
+    expect(await combat.getFlag("pf2e-dungeon-crawl", "reactionUsed")).toEqual({ r1: 1 });
+  });
+
+  it("does not trigger a Reactive Strike on a no-op move (distanceSquares at MELEE_REACH_SQUARES)", async () => {
+    installFoundryStubs();
+    const reactor = makeFullReactor({ id: "r1", x: 100, y: 0 });
+    const mover = {
+      id: "mover1",
+      isDefeated: false,
+      token: {
+        x: 0,
+        y: 0,
+        disposition: -1,
+        update: async () => {
+          throw new Error("should not move: distanceSquares <= MELEE_REACH_SQUARES");
+        },
+      },
+      actor: { system: { movement: { speeds: { land: { value: 30 } } } } },
+    };
+    const combat = makeFullCombat({ combatants: [mover, reactor] });
+
+    await stepToward(combat, mover, { token: { x: 100, y: 0 } }, 1);
+
+    expect(await combat.getFlag("pf2e-dungeon-crawl", "reactionUsed")).toBeUndefined();
+  });
+});

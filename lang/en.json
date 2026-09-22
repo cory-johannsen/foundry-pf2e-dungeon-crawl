@@ -18,6 +18,7 @@
   "PF2EDC.Dungeon.Combat.InProgressHint": "Combat is underway — the party can't move on until it's resolved.",
   "PF2EDC.Dungeon.Combat.OpenTrackerButton": "Open Combat Tracker",
   "PF2EDC.Dungeon.Combat.ReactiveStrikeChat": "<p><strong>{name}</strong> reacts with a Reactive Strike against {target}!</p>",
+  "PF2EDC.Dungeon.Combat.ReactiveStrikeCheckLabel": "Reactive Strike Check",
   "PF2EDC.Dungeon.Combat.StartCombatButton": "Start Combat",
   "PF2EDC.Dungeon.Combat.ToggleAgentControlLabel": "Toggle Agent Control",
   "PF2EDC.Dungeon.Completed": "Dungeon complete",
