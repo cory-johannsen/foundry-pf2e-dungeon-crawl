@@ -7206,5 +7206,125 @@
     "name": "Giant Jellyfish",
     "level": 7,
     "art": "giant-jellyfish.webp"
+  },
+  {
+    "id": "greater_shadow",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "5meW7DytYnF7Iq2V",
+    "name": "Greater Shadow",
+    "level": 7,
+    "art": "greater-shadow.webp"
+  },
+  {
+    "id": "halfling_yarnspinner",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "9EzCOBw3rMsyfr5Q",
+    "name": "Halfling Yarnspinner",
+    "level": 7,
+    "art": "halfling-yarnspinner.webp"
+  },
+  {
+    "id": "hellcat",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "U0pKGj1yJemGAXyc",
+    "name": "Hellcat",
+    "level": 7,
+    "art": "hellcat.webp"
+  },
+  {
+    "id": "hill_giant",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "aqW5sp9HPgZgpXxs",
+    "name": "Hill Giant",
+    "level": 7,
+    "art": "hill-giant.webp"
+  },
+  {
+    "id": "hunter",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "XqIKuHK4R6yFOKbs",
+    "name": "Hunter",
+    "level": 7,
+    "art": "hunter.webp"
+  },
+  {
+    "id": "harakasura",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "gdr3v0rBehOKnh82",
+    "name": "H\u0101rakasura",
+    "level": 7,
+    "art": "harakasura.webp"
+  },
+  {
+    "id": "invidiak",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "M2BkGD9YwEmCvD9D",
+    "name": "Invidiak",
+    "level": 7,
+    "art": "invidiak.webp"
+  },
+  {
+    "id": "jabali",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "WDBGcfNArKSpN7z0",
+    "name": "Jabali",
+    "level": 7,
+    "art": "jabali.webp"
+  },
+  {
+    "id": "kanya",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "hmcXFrf8xwrYQIg6",
+    "name": "Kanya",
+    "level": 7,
+    "art": "kanya.webp"
+  },
+  {
+    "id": "kholo_outrider",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "w7mf2yC3rE3CjGD5",
+    "name": "Kholo Outrider",
+    "level": 7,
+    "art": "kholo-outrider.webp"
+  },
+  {
+    "id": "knight",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "fSwCwS75z9FeUazU",
+    "name": "Knight",
+    "level": 7,
+    "art": "knight.webp"
+  },
+  {
+    "id": "lantern_archon_gestalt",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "gztjujplfVCBVXv0",
+    "name": "Lantern Archon (Gestalt)",
+    "level": 7,
+    "art": "lantern-archon-gestalt.webp"
+  },
+  {
+    "id": "legion_archon",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "4B47SUq57pcl3U9u",
+    "name": "Legion Archon",
+    "level": 7,
+    "art": "legion-archon.webp"
+  },
+  {
+    "id": "levaloch",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "g2UXJD84mrssh4tc",
+    "name": "Levaloch",
+    "level": 7,
+    "art": "levaloch.webp"
+  },
+  {
+    "id": "living_tar",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "EWYXtfIQYhUbWK4R",
+    "name": "Living Tar",
+    "level": 7,
+    "art": "living-tar.webp"
   }
 ]
