@@ -117,6 +117,9 @@ export async function generateCustomization(
         },
       ],
     }),
+    // Fails a stuck upstream call promptly (surfacing as a 502) rather than
+    // hanging, so it can't block the other kinds queued behind it.
+    signal: AbortSignal.timeout(30000),
   });
 
   if (!res.ok) {

@@ -45,6 +45,14 @@ describe("claude provider decide()", () => {
     expect(JSON.stringify(body.messages)).toContain("Yamaraj");
   });
 
+  it("passes an AbortSignal so a stuck upstream call times out instead of hanging", async () => {
+    const fetchImpl = fakeFetch(
+      '{"candidateId": "endTurn", "rationale": "no good options"}',
+    );
+    await decide(CONTEXT, { apiKey: "test-key", fetchImpl });
+    expect(fetchImpl.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);
+  });
+
   it("returns the chosen candidateId and rationale", async () => {
     const fetchImpl = fakeFetch(
       '{"candidateId": "endTurn", "rationale": "no good options"}',

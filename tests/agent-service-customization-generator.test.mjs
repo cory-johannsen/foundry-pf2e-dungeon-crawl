@@ -27,6 +27,7 @@ describe('generateCustomization', () => {
     expect(result).toEqual({ name: 'The Weeping Door', description: 'A door that drips illusory blood.' });
     const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
     expect(body.tools[0].input_schema.required).toEqual(['name', 'description']);
+    expect(fetchImpl.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);
   });
 
   it('generates skill-challenge flavor scoped to skillFlavor only', async () => {

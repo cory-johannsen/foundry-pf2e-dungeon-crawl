@@ -45,7 +45,10 @@ export async function decide(context, {
       ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
+    // Under Foundry's 45s AGENT_TIMEOUT_MS budget, so a stuck upstream
+    // call becomes a prompt 502 instead of hanging the request.
+    signal: AbortSignal.timeout(30000)
   });
   // Checked before parsing as JSON — an error response isn't guaranteed to
   // be JSON (a 500 can come back as plain text), and res.json() throwing on

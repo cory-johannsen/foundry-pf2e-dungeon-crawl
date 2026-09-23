@@ -22,6 +22,18 @@ describe('agent-service-client', () => {
     expect(JSON.parse(options.body)).toEqual(context);
   });
 
+  it('strips a trailing slash from baseUrl so the path has a single slash', async () => {
+    const fetchImpl = fakeFetch(200, { candidateId: 'endTurn' });
+    await fetchCombatDecision({ baseUrl: 'https://agent.example/', apiKey: 'k', context: {}, fetchImpl });
+    expect(fetchImpl.mock.calls[0][0]).toBe('https://agent.example/v1/combat-decision');
+  });
+
+  it('passes an AbortSignal so an unresponsive service times out instead of hanging', async () => {
+    const fetchImpl = fakeFetch(200, { candidateId: 'endTurn' });
+    await fetchCombatDecision({ baseUrl: 'https://agent.example', apiKey: 'k', context: {}, fetchImpl });
+    expect(fetchImpl.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);
+  });
+
   it('fetchCombatDecision throws with the response status and error on a non-ok response', async () => {
     const fetchImpl = fakeFetch(502, { error: 'provider call failed: boom' });
     await expect(

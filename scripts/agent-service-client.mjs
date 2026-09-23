@@ -6,14 +6,23 @@
  * HTTP to the hosted service.
  */
 
+// Slightly longer than the service's own 30s upstream timeout, so the
+// service's clear 502 normally arrives first; this only fires if the
+// service itself is unresponsive.
+const CLIENT_TIMEOUT_MS = 35000;
+
 async function postJson(baseUrl, path, body, { apiKey, fetchImpl = fetch }) {
-  const res = await fetchImpl(`${baseUrl}${path}`, {
+  // Strip one trailing slash so a configured "https://host/" doesn't yield
+  // "https://host//v1/..." (which the service 404s).
+  const url = `${baseUrl.replace(/\/$/, "")}${path}`;
+  const res = await fetchImpl(url, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(CLIENT_TIMEOUT_MS),
   });
   const payload = await res.json();
   if (!res.ok) {
