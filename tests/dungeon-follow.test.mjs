@@ -322,6 +322,41 @@ describe("followLeaderIfDue (#65)", () => {
     expect(follower.update).not.toHaveBeenCalled();
   });
 
+  // #87 (reopened after #100): Foundry v14's newer ruler/pathfinding-driven
+  // movement pipeline can deliver a real position change to the updateToken
+  // hook with the new position only reflected in a `_movement` object
+  // (`origin`/`destination`/`waypoints`/`method` -- confirmed live on a
+  // v14.368 world: a moved token's own `_movement.method` was `"keyboard"`
+  // with full waypoint data), not as top-level `changes.x`/`changes.y`. Pre-
+  // fix, the `changes.x === undefined && changes.y === undefined` guard
+  // bailed out on every such call, so AI-controlled followers never moved
+  // at all under v14 even with #100's findFollowMove fix deployed and the
+  // door open -- exactly the symptom reported live after #100 merged.
+  it("moves followers toward the leader on a v14-style update carrying only _movement, no top-level x/y (#87)", async () => {
+    vi.useFakeTimers();
+    const { leader, follower } = setUpScene();
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: [FOLLOWER_ACTOR_ID],
+        },
+      },
+    });
+
+    followLeaderIfDue(leader, {
+      _movement: {
+        origin: { x: 4 * GRID, y: GRID },
+        destination: { x: leader.x, y: leader.y },
+        waypoints: [{ x: leader.x, y: leader.y }],
+        method: "keyboard",
+      },
+    });
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(follower.update).toHaveBeenCalledTimes(1);
+  });
+
   it("does nothing when the current client is neither GM nor the run's host", async () => {
     vi.useFakeTimers();
     const { leader, follower } = setUpScene();
