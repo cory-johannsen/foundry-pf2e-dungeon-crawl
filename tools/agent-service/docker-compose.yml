@@ -1,0 +1,14 @@
+services:
+  agent-service:
+    build:
+      context: ../..
+      dockerfile: tools/agent-service/Dockerfile
+    ports:
+      - "8787:8787"
+    environment:
+      AGENT_SERVICE_API_KEY: ${AGENT_SERVICE_API_KEY}
+      PF2EDC_AGENT_PROVIDER: ${PF2EDC_AGENT_PROVIDER:-claude}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      LAYA_API_KEY: ${LAYA_API_KEY}
+      LAYA_BASE_URL: ${LAYA_BASE_URL}
+    restart: unless-stopped
