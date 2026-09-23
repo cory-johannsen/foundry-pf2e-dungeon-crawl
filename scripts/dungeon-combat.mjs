@@ -2078,7 +2078,7 @@ function walkPath(
 export async function stepToward(combat, combatant, target, distanceSquares) {
   const gridSize = combat.scene?.grid?.size ?? 100;
   await snapTokenToGrid(combatant.token, gridSize);
-  if (distanceSquares <= MELEE_REACH_SQUARES) return;
+  if (distanceSquares <= MELEE_REACH_SQUARES) return "already-there";
   const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
   // Confirmed live: an NPC's land speed lives at system.movement.speeds.land,
   // not system.attributes.speed (which doesn't exist) — the wrong path
@@ -2086,7 +2086,7 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
   // moved.
   const speedFt = combatant.actor?.system?.movement?.speeds?.land?.value ?? 0;
   const speedSquares = Math.floor(speedFt / gridDistanceFt);
-  if (speedSquares <= 0) return;
+  if (speedSquares <= 0) return "no-speed";
 
   const me = combatant.token;
   const dest = target.token;
@@ -2096,7 +2096,7 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
   const bounds = sceneBounds(combat, gridSize);
   const isBlocked = movementBlockedEdges(combat, combatant, goal, moverFootprint);
   const path = findPath(start, goal, isBlocked, bounds, 20000, moverFootprint);
-  if (!path) return;
+  if (!path) return "no-route";
 
   const occupants = otherCombatantFootprints(combat, combatant, gridSize);
   const waypoint = walkPath(
@@ -2107,9 +2107,10 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
     occupants,
     moverFootprint,
   );
-  if (!waypoint) return;
+  if (!waypoint) return "blocked";
   await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize });
   await offerReactiveStrikesAgainst(combat, combatant);
+  return "moved";
 }
 
 /**
@@ -3243,7 +3244,7 @@ export async function strideByPosture(combat, combatant, posture, target) {
   const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
   const speedFt = combatant.actor?.system?.movement?.speeds?.land?.value ?? 0;
   const speedSquares = Math.floor(speedFt / gridDistanceFt);
-  if (speedSquares <= 0 || !target) return;
+  if (speedSquares <= 0 || !target) return "no-speed";
 
   const me = combatant.token;
   const dest = target.token;
@@ -3266,7 +3267,7 @@ export async function strideByPosture(combat, combatant, posture, target) {
     bounds,
     moverFootprint,
   );
-  if (!path) return;
+  if (!path) return "no-route";
 
   const occupants = otherCombatantFootprints(combat, combatant, gridSize);
   const stopWithin = posture === "approach" ? MELEE_REACH_SQUARES : 0;
@@ -3278,9 +3279,10 @@ export async function strideByPosture(combat, combatant, posture, target) {
     occupants,
     moverFootprint,
   );
-  if (!waypoint) return;
+  if (!waypoint) return "blocked";
   await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize });
   await offerReactiveStrikesAgainst(combat, combatant);
+  return "moved";
 }
 
 /** Rolls one strike at a specific MAP `variantIndex` against `target` and
@@ -4388,6 +4390,24 @@ async function postAgentDecisionChat(combatant, candidate, rationale) {
   await ChatMessage.create({ content, whisper: gmIds });
 }
 
+/** Whispers the GM a follow-up chat card when an agent-controlled
+ * combatant's chosen stride resolved to "blocked" (#140) -- a route
+ * exists but every landing cell within reach was occupied, distinct from
+ * a normal silent move or a genuinely unreachable target ("no-route",
+ * not flagged here since that's the ordinary "nothing to do" case the
+ * pre-move announcement's own summary already covers). Purely a
+ * visibility improvement; no retry or behavior change. */
+async function postMoveStalledChat(combatant, status) {
+  if (status !== "blocked") return;
+  const esc = (s) => foundry.utils.escapeHTML?.(String(s)) ?? String(s);
+  const content = game.i18n.format(
+    "PF2EDC.Dungeon.Combat.AgentMoveStalled",
+    { name: esc(combatant.name) },
+  );
+  const gmIds = ChatMessage.getWhisperRecipients("GM").map((u) => u.id);
+  await ChatMessage.create({ content, whisper: gmIds });
+}
+
 /**
  * Executes exactly one chosen candidate for `combatantId`'s current turn in
  * `combat`, updates the per-turn state, and advances the turn once actions
@@ -4431,7 +4451,8 @@ export async function applyAgentDecision(
       );
       target = hazard ? { token: { x: hazard.x, y: hazard.y } } : null;
     }
-    await strideByPosture(combat, combatant, candidate.posture, target);
+    const status = await strideByPosture(combat, combatant, candidate.posture, target);
+    await postMoveStalledChat(combatant, status);
   } else if (candidate.type === "strike") {
     const target = combatantOpponents(combat, combatant).find(
       (c) => c.id === candidate.targetId,

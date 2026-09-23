@@ -6,6 +6,7 @@
   "PF2EDC.Dungeon.AlreadyHostedWarning": "A dungeon crawl is already in progress, hosted by {host}.",
   "PF2EDC.Dungeon.AlreadyResolvedUndoWarning": "That room has already been judged — its door and any further rooms can't be undone from here.",
   "PF2EDC.Dungeon.Combat.AgentDecisionChat": "<p><strong>{name}</strong> (agent-controlled) chose: {summary}</p>",
+  "PF2EDC.Dungeon.Combat.AgentMoveStalled": "<p><strong>{name}</strong>'s move is blocked — a route exists, but every reachable square is occupied.</p>",
   "PF2EDC.Dungeon.Combat.AgentServiceStatusNotConfigured": "Agent service: not configured — set the Agent Service URL/API Key in module settings.",
   "PF2EDC.Dungeon.Combat.AgentServiceStatusReachable": "Agent service: reachable.",
   "PF2EDC.Dungeon.Combat.AgentServiceStatusUnreachable": "Agent service: unreachable — check it's running and your URL/key settings.",

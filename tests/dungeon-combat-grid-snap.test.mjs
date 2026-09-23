@@ -398,4 +398,110 @@ describe("footprint-aware movement (#140)", () => {
     expect(mover.token.x).toBe(1 * GRID_SIZE);
     expect(mover.token.y).toBe(0);
   });
+
+  it("stepToward returns 'no-route' when the target is fully walled off", async () => {
+    installFoundryStubs();
+    globalThis.CONST = {
+      WALL_MOVEMENT_TYPES: { NONE: 0, NORMAL: 20 },
+      WALL_DOOR_TYPES: { NONE: 0, DOOR: 1, SECRET: 2 },
+      WALL_DOOR_STATES: { CLOSED: 0, OPEN: 1, LOCKED: 2 },
+    };
+    const mover = makeCombatant({ id: "mover", x: 0, y: 0, speedFt: 100 });
+    const target = makeCombatant({
+      id: "target",
+      x: 5 * GRID_SIZE,
+      y: 0,
+    });
+    const combat = makeCombat({ combatants: [mover, target] });
+    // Wall off the target's own square on all four sides.
+    const gx = 5;
+    combat.scene.walls.contents = [
+      { move: 20, door: 0, c: [gx * GRID_SIZE, 0, (gx + 1) * GRID_SIZE, 0] },
+      {
+        move: 20,
+        door: 0,
+        c: [gx * GRID_SIZE, GRID_SIZE, (gx + 1) * GRID_SIZE, GRID_SIZE],
+      },
+      { move: 20, door: 0, c: [gx * GRID_SIZE, 0, gx * GRID_SIZE, GRID_SIZE] },
+      {
+        move: 20,
+        door: 0,
+        c: [(gx + 1) * GRID_SIZE, 0, (gx + 1) * GRID_SIZE, GRID_SIZE],
+      },
+    ];
+
+    const status = await stepToward(combat, mover, target, 10);
+
+    expect(status).toBe("no-route");
+    expect(mover.token.update).not.toHaveBeenCalled();
+  });
+
+  it("stepToward returns 'blocked' when a route exists but every landing cell is occupied", async () => {
+    installFoundryStubs();
+    const mover = makeCombatant({ id: "mover", x: 0, y: 0, speedFt: 30 });
+    const blocker = makeCombatant({ id: "blocker", x: GRID_SIZE, y: 0 });
+    const target = makeCombatant({
+      id: "target",
+      x: 2 * GRID_SIZE,
+      y: 0,
+    });
+    const combat = makeCombat({ combatants: [mover, blocker, target] });
+    combat.scene.width = 4 * GRID_SIZE;
+    combat.scene.height = GRID_SIZE;
+
+    // Mover's speed only reaches the blocker's own square (distance 1),
+    // which is occupied and the only cell within its speed budget -- no
+    // valid landing cell, but a route genuinely exists.
+    const status = await stepToward(combat, mover, target, 2);
+
+    expect(status).toBe("blocked");
+    expect(mover.token.update).not.toHaveBeenCalled();
+  });
+
+  it("stepToward returns 'moved' on a normal successful move", async () => {
+    installFoundryStubs();
+    const mover = makeCombatant({ id: "mover", x: 0, y: 0, speedFt: 30 });
+    const target = makeCombatant({
+      id: "target",
+      x: 5 * GRID_SIZE,
+      y: 0,
+    });
+    const combat = makeCombat({ combatants: [mover, target] });
+
+    const status = await stepToward(combat, mover, target, 10);
+
+    expect(status).toBe("moved");
+    expect(mover.token.update).toHaveBeenCalled();
+  });
+
+  it("stepToward returns 'already-there' when already within melee reach", async () => {
+    installFoundryStubs();
+    const mover = makeCombatant({ id: "mover", x: 0, y: 0 });
+    const target = makeCombatant({ id: "target", x: GRID_SIZE, y: 0 });
+    const combat = makeCombat({ combatants: [mover, target] });
+
+    const status = await stepToward(combat, mover, target, 1);
+
+    expect(status).toBe("already-there");
+  });
+
+  it("stepToward returns 'no-speed' when the mover has no speed", async () => {
+    installFoundryStubs();
+    const mover = makeCombatant({
+      id: "mover",
+      x: 0,
+      y: 0,
+      speedFt: 0,
+    });
+    const target = makeCombatant({
+      id: "target",
+      x: 5 * GRID_SIZE,
+      y: 0,
+    });
+    const combat = makeCombat({ combatants: [mover, target] });
+
+    const status = await stepToward(combat, mover, target, 10);
+
+    expect(status).toBe("no-speed");
+  });
 });
