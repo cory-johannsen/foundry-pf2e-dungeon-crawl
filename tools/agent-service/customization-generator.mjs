@@ -54,6 +54,25 @@ const SCHEMAS = {
   },
 };
 
+// Per-kind tool descriptions. Defaults to a generic sentence; "narrative"
+// overrides it with the archetype→field guidance that
+// tools/agent-loop/mcp-server.mjs's retired submit_narrative_customization
+// tool spelled out explicitly (see its description there). The narrative
+// schema lists revealText/npcName/npcHook/options/suggestedObjective as
+// siblings with no schema-level conditional gating — without this text the
+// model has no way to know which archetype implies which optional field.
+const TOOL_DESCRIPTIONS = {
+  narrative:
+    'Write flavor text for a Pathfinder 2e dungeon narrative room. Never invent mechanics — only name/summary/flavor text. Only supply the fields matching this entry\'s own archetype: "lore" wants revealText; "ally" wants npcName and npcHook; "choice" wants exactly 2 options (each with a label and a consequence); "goal" wants suggestedObjective. name/summary always apply.',
+};
+
+function toolDescription(kind) {
+  return (
+    TOOL_DESCRIPTIONS[kind] ??
+    `Write flavor text for a Pathfinder 2e dungeon ${kind.replace("_", " ")}. Never invent mechanics — only name/description/summary/flavor text.`
+  );
+}
+
 /** Never changes gameplay values — only name/description/summary/flavor
  * text, mirroring the field-scoping rules tools/agent-loop/mcp-server.mjs's
  * submit_*_customization tools already enforced. `kind` selects which of
@@ -86,7 +105,7 @@ export async function generateCustomization(
       tools: [
         {
           name: "customize",
-          description: `Write flavor text for a Pathfinder 2e dungeon ${kind.replace("_", " ")}. Never invent mechanics — only name/description/summary/flavor text.`,
+          description: toolDescription(kind),
           input_schema: schema,
         },
       ],

@@ -61,6 +61,22 @@ describe('generateCustomization', () => {
     expect(result.revealText).toBeUndefined();
   });
 
+  it('tells the model the archetype-to-field mapping for narrative entries', async () => {
+    const fetchImpl = fakeClaudeFetch({
+      name: 'The Weeping Statue',
+      summary: 'An old statue remembers the fall of the keep.',
+      revealText: 'The keep fell not to siege, but to betrayal from within.'
+    });
+    await generateCustomization(
+      'narrative',
+      { sceneId: 's1', roomId: 'r1', archetype: 'lore' },
+      { apiKey: 'test-key', fetchImpl }
+    );
+    const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    const description = body.tools[0].description;
+    expect(description).toMatch(/"lore"[^.]*revealText/);
+  });
+
   it('throws a clear error when Claude returns no tool_use block', async () => {
     const fetchImpl = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ content: [] }) });
     await expect(
