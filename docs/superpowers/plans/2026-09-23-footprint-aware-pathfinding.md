@@ -479,12 +479,32 @@ describe("footprint-aware movement (#140)", () => {
       WALL_DOOR_TYPES: { NONE: 0, DOOR: 1, SECRET: 2 },
       WALL_DOOR_STATES: { CLOSED: 0, OPEN: 1, LOCKED: 2 },
     };
-    // Corrected during Task 2's own review: the original version of this
-    // test placed the blocker such that whichever candidate cell got
-    // blocked was always superseded by a later free candidate regardless
-    // of footprint width, so its final landing cell never actually
-    // differed between a 1x1 and a footprint-aware landing check -- it
-    // passed even with the footprint threading reverted entirely.
+    // Corrected during Task 2's own review, twice: (1) the original
+    // version of this test placed the blocker such that whichever
+    // candidate cell got blocked was always superseded by a later free
+    // candidate regardless of footprint width, so its final landing cell
+    // never actually differed between a 1x1 and a footprint-aware landing
+    // check. (2) the first fix (speed-limited path to a blocker at gx=3)
+    // still failed: with no walls, and the blocker excluded from the
+    // *search* itself (it shares the mover's own disposition, so
+    // combatantOpponents/hostileFootprints never sees it -- only
+    // walkPath's landing check, via otherCombatantFootprints, does),
+    // findPath's A* (unmodified, from Task 1) costs every step --
+    // diagonal or orthogonal -- as exactly 1, so a diagonal detour away
+    // from y=0 ties the straight horizontal line on cost every step, and
+    // findPath's deterministic tie-break (DIRECTIONS' own declared
+    // order, pathfinding.mjs:13-21: {dx:1,dy:0} at index 4 precedes
+    // {dx:1,dy:1} at index 7) happens to still favor (1,0) over (1,1) at
+    // f-score ties -- confirmed by hand-tracing the open-set scan -- but
+    // only once vertical movement is bounded to exactly the mover's own
+    // 2-row footprint height (gy in [0,1]); with no bounds at all, a
+    // deeper diagonal detour (into gy=-1, gy=-2, ...) ties every step the
+    // same way and wins because it's checked earlier in DIRECTIONS'
+    // order than staying on row 0. Bounding the scene to gy in [0,1]
+    // (matching the mover's own footprint height, so its start doesn't
+    // straddle a boundary -- the same lesson as tests 1/2) removes that
+    // deeper tie option entirely: `inBounds` rejects gy=-1/gy=2 before
+    // `isBlocked` is ever consulted, no wall segments needed.
     //
     // Speed-limited to exactly 3 squares (not the target-proximity stop
     // clamp, which never triggers here -- target is far away) so the only
@@ -511,6 +531,8 @@ describe("footprint-aware movement (#140)", () => {
       y: 0,
     });
     const combat = makeCombat({ combatants: [mover, blocker, target] });
+    combat.scene.width = 12 * GRID_SIZE;
+    combat.scene.height = 2 * GRID_SIZE;
 
     await stepToward(combat, mover, target, 10);
 
