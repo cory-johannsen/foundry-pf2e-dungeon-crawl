@@ -30,31 +30,33 @@ merge approval each time.
 A GitHub issue's tracked status must always reflect the true current state
 of the work, not just be updated at the end of a session or a chunk.
 
+Issues move through a strict, sequential lifecycle that agents must not
+skip or bypass: `assigned` → `spec` → `planned` → `in progress` → done
+(issue closed). Each label replaces the previous one — an issue carries
+at most one lifecycle label at a time.
+
 - Update an issue's progress table/comment in the same turn the state
   actually changes — chunk start, meaningful progress counts, chunk
   completion, a deferred item, a real bug found — not batched up for later.
-- Apply the `in progress` label (create it if the repo doesn't have a
-  status label yet) while an issue is actively being worked, and remove it
-  when paused or done.
+- Claiming an issue: apply the `assigned` label (create it if the repo
+  doesn't have one yet) and post a comment naming the agent's session ID,
+  in the same turn you decide to work an issue — before doing any other
+  work on it (reading code, planning, editing). Check for an existing
+  lifecycle label (`assigned`, `spec`, `planned`, or `in progress`) before
+  starting work on any issue, and pick a different one if one is already
+  present — an unlabeled issue is fair game for another agent to pick up,
+  a labeled one means someone already owns it.
 - Apply the `spec` label (create it if the repo doesn't have one yet) the
   same turn an issue's spec is fully written and its path is attached to
-  the issue (comment or issue body). Remove `spec` when the issue advances
-  to `planned`.
+  the issue (comment or issue body). Remove `assigned`.
 - Apply the `planned` label (create it if the repo doesn't have one yet)
   the same turn an issue's implementation plan is fully written and its
-  path is attached to the issue. Remove `planned` when work begins and
-  `in progress` is applied.
-- `spec` and `planned` are lifecycle labels, not additive tags — an issue
-  carries at most one of `spec`, `planned`, `in progress` at a time,
-  mirroring the backlog skill's `spec` → `planned` → `in-progress`
-  transitions.
-- Claiming an issue and labeling it `in progress` are the same action, not
-  two steps — apply the label in the same turn you decide to work an
-  issue, before doing any other work on it (reading code, planning,
-  editing). An unlabeled issue is fair game for another agent to pick up;
-  the label is what tells other agents "already claimed, don't duplicate
-  this." Check for an existing `in progress` label before starting work on
-  any issue, and pick a different one if it's already there.
+  path is attached to the issue. Remove `spec`.
+- Apply the `in progress` label (create it if the repo doesn't have one
+  yet) only once an agent is actively implementing the plan — writing or
+  editing code, not while still drafting the spec or the plan. Remove
+  `planned` when this happens, and remove `in progress` when paused or
+  done.
 - A multi-session effort's issue (like ITEM-18, #16) is the resumable
   source of truth for whoever — or whichever agent — picks it up next. A
   stale table misleads them.
