@@ -6606,5 +6606,117 @@
     "name": "Sea Devil Baron",
     "level": 6,
     "art": "sea-devil-baron.webp"
+  },
+  {
+    "id": "sea_drake",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "tIDbOvltrFsgnwgf",
+    "name": "Sea Drake",
+    "level": 6,
+    "art": "sea-drake.webp"
+  },
+  {
+    "id": "sedacthy_speaker",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "NAKHn3jzuaZTerir",
+    "name": "Sedacthy Speaker",
+    "level": 6,
+    "art": "sedacthy-speaker.webp"
+  },
+  {
+    "id": "shambler",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "6XlGTt3RveX49YbC",
+    "name": "Shambler",
+    "level": 6,
+    "art": "shambler.webp"
+  },
+  {
+    "id": "ship_captain",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "bMKM6SKTBN8M4I8K",
+    "name": "Ship Captain",
+    "level": 6,
+    "art": "ship-captain.webp"
+  },
+  {
+    "id": "skrik_nettle",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "LtaVzD7ADtWmBWap",
+    "name": "Skrik Nettle",
+    "level": 6,
+    "art": "skrik-nettle.webp"
+  },
+  {
+    "id": "skull_peeler",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "69ymtDVWT6e8gFbW",
+    "name": "Skull Peeler",
+    "level": 6,
+    "art": "skull-peeler.webp"
+  },
+  {
+    "id": "smoke_creeper",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "1Flhs1lWpOmAujhd",
+    "name": "Smoke Creeper",
+    "level": 6,
+    "art": "smoke-creeper.webp"
+  },
+  {
+    "id": "spy",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "PXukrrvpLA40chXN",
+    "name": "Spy",
+    "level": 6,
+    "art": "spy.webp"
+  },
+  {
+    "id": "striding_fire",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "qdelXqVZKfk1MlAB",
+    "name": "Striding Fire",
+    "level": 6,
+    "art": "striding-fire.webp"
+  },
+  {
+    "id": "sulfur_zombie",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ekC1VHJtexh3AgVv",
+    "name": "Sulfur Zombie",
+    "level": 6,
+    "art": "sulfur-zombie.webp"
+  },
+  {
+    "id": "tengu_bladesmith",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "YBNskadw9c8n1E21",
+    "name": "Tengu Bladesmith",
+    "level": 6,
+    "art": "tengu-bladesmith.webp"
+  },
+  {
+    "id": "terra_cotta_soldier",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "ULfACJrDBnZLNBKj",
+    "name": "Terra-Cotta Soldier",
+    "level": 6,
+    "art": "terra-cotta-soldier.webp"
+  },
+  {
+    "id": "verdurous_ooze",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "GOQPbXk8HZDypZzd",
+    "name": "Verdurous Ooze",
+    "level": 6,
+    "art": "verdurous-ooze.webp"
+  },
+  {
+    "id": "veteran_noble",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "e4f7h4XJ6Hmm8jZl",
+    "name": "Veteran Noble",
+    "level": 6,
+    "art": "veteran-noble.webp"
   }
 ]
