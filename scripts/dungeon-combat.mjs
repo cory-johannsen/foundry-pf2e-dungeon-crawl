@@ -577,7 +577,13 @@ export async function runAgentDecisionLoop(
   while (pending) {
     let decision;
     try {
-      decision = await fetchDecision({ baseUrl, apiKey, context: pending.context });
+      // actorProfile is reserved for future actor-complexity tiering; the
+      // v1 service ignores it, but the request contract always carries it.
+      decision = await fetchDecision({
+        baseUrl,
+        apiKey,
+        context: { ...pending.context, actorProfile: { tier: "standard" } },
+      });
     } catch (err) {
       console.error("agent-service: combat-decision call failed:", err.message);
       return;

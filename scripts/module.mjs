@@ -140,7 +140,7 @@ Hooks.once("ready", async () => {
       let reachable = false;
       if (baseUrl) {
         try {
-          const res = await fetch(`${baseUrl}/v1/health`);
+          const res = await fetch(`${baseUrl.replace(/\/$/, "")}/v1/health`);
           reachable = res.ok;
         } catch {
           reachable = false;

@@ -30,7 +30,7 @@ describe('runAgentDecisionLoop', () => {
     expect(fetchDecision).toHaveBeenCalledWith({
       baseUrl: 'https://agent.example',
       apiKey: 'test-key',
-      context: pendingTurn.context,
+      context: { ...pendingTurn.context, actorProfile: { tier: 'standard' } },
     });
     expect(applyDecision).toHaveBeenCalledWith(combat, 'atk', 'endTurn', 'Nothing worth doing.');
   });
