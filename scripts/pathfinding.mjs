@@ -55,6 +55,46 @@ function reconstructPath(cameFrom, current) {
   return path.reverse();
 }
 
+/** Whether moving the mover's own `footprint.gw × footprint.gh` block of
+ * cells from `current` to `neighbor` (delta `dx,dy`) is blocked — checked
+ * per individual cell of the footprint via `isBlocked`'s existing
+ * single-cell-pair signature, rather than inventing swept-polygon
+ * geometry. A 1×1 footprint reduces to exactly `isBlocked(current,
+ * neighbor)`. */
+function footprintBlocked(current, dx, dy, isBlocked, footprint) {
+  for (let fx = 0; fx < footprint.gw; fx += 1) {
+    for (let fy = 0; fy < footprint.gh; fy += 1) {
+      const a = { gx: current.gx + fx, gy: current.gy + fy };
+      const b = { gx: a.gx + dx, gy: a.gy + dy };
+      if (isBlocked(a, b)) return true;
+    }
+  }
+  return false;
+}
+
+/** Whether the mover's footprint is valid at a position — all cells within
+ * the footprint must be connected without any walls running through them.
+ * A 1×1 footprint is always valid. */
+function footprintValid(position, isBlocked, footprint) {
+  for (let fx = 0; fx < footprint.gw; fx += 1) {
+    for (let fy = 0; fy < footprint.gh; fy += 1) {
+      // Check right neighbor
+      if (fx + 1 < footprint.gw) {
+        const a = { gx: position.gx + fx, gy: position.gy + fy };
+        const b = { gx: a.gx + 1, gy: a.gy };
+        if (isBlocked(a, b)) return false;
+      }
+      // Check bottom neighbor
+      if (fy + 1 < footprint.gh) {
+        const a = { gx: position.gx + fx, gy: position.gy + fy };
+        const b = { gx: a.gx, gy: a.gy + 1 };
+        if (isBlocked(a, b)) return false;
+      }
+    }
+  }
+  return true;
+}
+
 /**
  * A* over an 8-directional grid of unit squares. `start`/`goal` are
  * `{gx, gy}` integer grid-square coordinates. `isBlocked(a, b)` takes two
@@ -77,6 +117,15 @@ function reconstructPath(cameFrom, current) {
  * space is small (bounded by a `maxExpansions` safety valve either way, so a
  * pathological unbounded call can't loop forever).
  *
+ * `footprint` (#140) — `{gw, gh}`, default `{gw:1,gh:1}` — is the mover's
+ * own size in grid squares, `start`/`goal` still naming its top-left corner
+ * (same convention `placement.mjs`'s `footprint()` uses). Every candidate
+ * step (including the diagonal corner-cutting flank checks) is decomposed
+ * across the mover's own `gw×gh` cells via `footprintBlocked`, so a mover too
+ * big for a gap is refused the same way a 1×1 mover is refused a walled-off
+ * cell. The default reduces to exactly today's single-cell behavior — a no-op
+ * for every caller that doesn't opt in.
+ *
  * Returns an array of `{gx, gy}` waypoints from `start` to `goal` inclusive
  * (`start` is always first), or `null` if no path exists.
  */
@@ -86,6 +135,7 @@ export function findPath(
   isBlocked,
   bounds = null,
   maxExpansions = 20000,
+  footprint = { gw: 1, gh: 1 },
 ) {
   if (start.gx === goal.gx && start.gy === goal.gy) return [{ ...start }];
   if (!inBounds(goal, bounds)) return null;
@@ -118,18 +168,21 @@ export function findPath(
     for (const { dx, dy } of DIRECTIONS) {
       const neighbor = { gx: current.gx + dx, gy: current.gy + dy };
       if (!inBounds(neighbor, bounds)) continue;
+      if (!footprintValid(neighbor, isBlocked, footprint)) continue;
 
       const diagonal = dx !== 0 && dy !== 0;
       if (diagonal) {
+        const blockedNearSource =
+          footprintBlocked(current, dx, 0, isBlocked, footprint) ||
+          footprintBlocked(current, 0, dy, isBlocked, footprint);
         const flankA = { gx: current.gx + dx, gy: current.gy };
         const flankB = { gx: current.gx, gy: current.gy + dy };
-        const blockedNearSource =
-          isBlocked(current, flankA) || isBlocked(current, flankB);
         const blockedNearTarget =
-          isBlocked(flankA, neighbor) || isBlocked(flankB, neighbor);
+          footprintBlocked(flankA, 0, dy, isBlocked, footprint) ||
+          footprintBlocked(flankB, dx, 0, isBlocked, footprint);
         if (blockedNearSource || blockedNearTarget) continue;
       }
-      if (isBlocked(current, neighbor)) continue;
+      if (footprintBlocked(current, dx, dy, isBlocked, footprint)) continue;
 
       const tentativeG = currentG + 1;
       const neighborKey = key(neighbor);
