@@ -73,11 +73,18 @@ npm run tokens          # generate missing entries
 npm run tokens:check    # verify existing entries
 ```
 
-### GM-less combat AI (agent loop)
+### GM-less combat AI (hosted agent service)
+
+GM-less combat decisions and flavor-text customization are served by a
+persistent hosted HTTP service under `tools/agent-service/`, not a
+local-process poller. Run it locally with:
 
 ```bash
-npm run agent-loop        # poll Foundry for pending agent-controlled turns
-npm run agent-bridge-mcp  # MCP server for agent-driven customization
+npm run agent-service   # starts the hosted agent service (tools/agent-service/entrypoint.mjs)
 ```
 
-See `tools/agent-loop/README.md` for details.
+Point a running Foundry world at it via the module's `agentServiceUrl` and
+`agentServiceApiKey` settings. See
+`docs/superpowers/specs/2026-09-22-hosted-agent-service-design.md` for the
+full design (a dedicated `tools/agent-service/README.md` with deployment
+instructions is coming — see that spec's task list).
