@@ -18,6 +18,7 @@ import {
 } from "../dungeon-runner.mjs";
 import { canActOnDungeon } from "../dungeon-permissions.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
+import { fulfillPendingCustomizations } from "../dungeon-customization-fulfillment.mjs";
 import {
   depthBiasFor,
   lootGpForTreasureRoom,
@@ -762,6 +763,11 @@ export async function populateNextRoom(sceneId) {
     locationTag: nextRoom.locationTag,
     seed: state.seed,
   });
+  // Fire-and-forget: never awaited, so a slow or failed hosted-service
+  // call can't delay the door unlocking below. See
+  // dungeon-customization-fulfillment.mjs's own docstring for why this is
+  // safe to leave un-awaited.
+  fulfillPendingCustomizations(sceneId);
   if (isSlotPopulated(scene, slot)) await unlockDoorToSlot(scene, slot);
 }
 
