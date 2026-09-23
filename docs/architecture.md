@@ -324,6 +324,7 @@ graph LR
   tools_agent_service_providers_laya_mjs --> tools_agent_service_env_mjs
   tools_agent_service_server_mjs --> tools_agent_service_providers_index_mjs
   tools_agent_service_server_mjs --> tools_agent_service_customization_generator_mjs
+  tools_agent_service_server_mjs --> tools_agent_service_env_mjs
 ```
 
 Notably, `tools/agent-service/*` never imports anything from `scripts/`,
