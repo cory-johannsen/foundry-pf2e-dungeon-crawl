@@ -240,9 +240,11 @@ graph LR
   scripts_dungeon_deck_mjs --> scripts_prng_mjs
   scripts_dungeon_deck_mjs --> scripts_treasure_mjs
   scripts_dungeon_follow_mechanics_mjs --> scripts_pathfinding_mjs
+  scripts_dungeon_follow_mechanics_mjs --> scripts_placement_mjs
   scripts_dungeon_follow_mjs --> scripts_dungeon_runner_mjs
   scripts_dungeon_follow_mjs --> scripts_dungeon_remote_mjs
   scripts_dungeon_follow_mjs --> scripts_pathfinding_mjs
+  scripts_dungeon_follow_mjs --> scripts_placement_mjs
   scripts_dungeon_follow_mjs --> scripts_dungeon_follow_mechanics_mjs
   scripts_dungeon_layout_mjs --> scripts_prng_mjs
   scripts_dungeon_remote_mjs --> scripts_player_choice_mjs

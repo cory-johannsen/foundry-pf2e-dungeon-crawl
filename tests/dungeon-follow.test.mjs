@@ -54,8 +54,8 @@ function installFoundryStubs({
   };
 }
 
-function makeToken({ id, x, y, actorId }) {
-  const token = { id, x, y, actor: { id: actorId } };
+function makeToken({ id, x, y, actorId, width = 1, height = 1 }) {
+  const token = { id, x, y, actor: { id: actorId }, width, height };
   token.update = vi.fn(async (changes) => Object.assign(token, changes));
   return token;
 }
@@ -583,5 +583,100 @@ describe("runFollowMoveNow (#65)", () => {
     expect(follower.update).toHaveBeenCalledTimes(1);
     expect(follower.x % GRID).toBe(0);
     expect(follower.y % GRID).toBe(0);
+  });
+});
+
+describe("moveFollowersToward footprint-awareness (#140)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // A 2x2 follower's own footprint, anchored at (4,0) or (4,1) — the two
+  // candidate cells among the leader's 8 adjacent cells that are closest
+  // to a follower starting at (0,0) — would each overlap the leader's own
+  // (5,1) square (a 1x1 footprint anchored at the same cells would not).
+  // Only (4,2), one step farther, is genuinely free for a mover that size.
+  it("a 2x2 follower avoids landing on a cell whose own footprint would overlap the leader's square", async () => {
+    vi.useFakeTimers();
+    const leader = makeToken({
+      id: "t-leader",
+      x: 5 * GRID,
+      y: 1 * GRID,
+      actorId: LEADER_ACTOR_ID,
+    });
+    const follower = makeToken({
+      id: "t-follower",
+      x: 0,
+      y: 0,
+      actorId: FOLLOWER_ACTOR_ID,
+      width: 2,
+      height: 2,
+    });
+    const scene = makeScene({ tokens: [leader, follower] });
+
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: [FOLLOWER_ACTOR_ID],
+        },
+      },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    runFollowMoveNow(SCENE_ID);
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(follower.update).toHaveBeenCalledTimes(1);
+    const [{ x, y }] = follower.update.mock.calls[0];
+    const gx = x / GRID;
+    const gy = y / GRID;
+    const overlapsLeader = gx <= 5 && gx + 2 > 5 && gy <= 1 && gy + 2 > 1;
+    expect(overlapsLeader).toBe(false);
+  });
+
+  it("does not treat the follower's own body as an obstacle to itself", async () => {
+    vi.useFakeTimers();
+    const leader = makeToken({
+      id: "t-leader",
+      x: 5 * GRID,
+      y: 5 * GRID,
+      actorId: LEADER_ACTOR_ID,
+    });
+    const follower = makeToken({
+      id: "t-follower",
+      x: 6 * GRID,
+      y: 7 * GRID,
+      actorId: FOLLOWER_ACTOR_ID,
+      width: 2,
+      height: 2,
+    });
+    const scene = makeScene({ tokens: [leader, follower] });
+    // The default scene (7x3 grid cells) is too small for this test's
+    // coordinates (follower starts at gy=7) -- widen it so the follower
+    // has genuine room to path in every direction.
+    scene.width = 12 * GRID;
+    scene.height = 12 * GRID;
+
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: [FOLLOWER_ACTOR_ID],
+        },
+      },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    runFollowMoveNow(SCENE_ID);
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(follower.update).toHaveBeenCalledTimes(1);
+    const [{ x, y }] = follower.update.mock.calls[0];
+    // Verified independently by running findFollowMove directly: with
+    // the follower's own footprint wrongly counted as an obstacle to
+    // itself, the result is {gx:4,gy:6} -- one square worse (farther
+    // from the follower's own start) than the correct {gx:5,gy:6}.
+    expect({ gx: x / GRID, gy: y / GRID }).toEqual({ gx: 5, gy: 6 });
   });
 });
