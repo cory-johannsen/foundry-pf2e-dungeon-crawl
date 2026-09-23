@@ -3,6 +3,8 @@ import {
   followLeaderOnDoorOpened,
   followLeaderIfDue,
   runFollowMoveNow,
+  resnapDriftedTokens,
+  resnapTokenNow,
 } from "../scripts/dungeon-follow.mjs";
 import { requestDungeonAction } from "../scripts/dungeon-remote.mjs";
 
@@ -678,5 +680,179 @@ describe("moveFollowersToward footprint-awareness (#140)", () => {
     // itself, the result is {gx:4,gy:6} -- one square worse (farther
     // from the follower's own start) than the correct {gx:5,gy:6}.
     expect({ gx: x / GRID, gy: y / GRID }).toEqual({ gx: 5, gy: 6 });
+  });
+});
+
+describe("resnapTokenNow (#141)", () => {
+  it("snaps an off-grid token back to the nearest grid cell", () => {
+    const token = makeToken({
+      id: "t-drifted",
+      x: 5.49 * GRID,
+      y: 3.49 * GRID,
+      actorId: "some-actor",
+    });
+    const scene = makeScene({ tokens: [token] });
+    installFoundryStubs();
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    resnapTokenNow(SCENE_ID, "t-drifted");
+
+    expect(token.update).toHaveBeenCalledTimes(1);
+    expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
+  });
+
+  it("does not call update on a token that's already grid-aligned", () => {
+    const token = makeToken({
+      id: "t-aligned",
+      x: 5 * GRID,
+      y: 3 * GRID,
+      actorId: "some-actor",
+    });
+    const scene = makeScene({ tokens: [token] });
+    installFoundryStubs();
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    resnapTokenNow(SCENE_ID, "t-aligned");
+
+    expect(token.update).not.toHaveBeenCalled();
+  });
+
+  it("is a no-op when the scene or token can't be found", () => {
+    installFoundryStubs();
+    game.scenes = { get: () => undefined };
+
+    expect(() => resnapTokenNow(SCENE_ID, "nonexistent")).not.toThrow();
+  });
+});
+
+describe("resnapDriftedTokens (#141)", () => {
+  afterEach(() => {
+    requestDungeonAction.mockClear();
+  });
+
+  it("snaps an off-grid token directly on a GM client, on a dungeon-run-managed scene", () => {
+    const token = makeToken({
+      id: "t-drifted",
+      x: 5.49 * GRID,
+      y: 3.49 * GRID,
+      actorId: "some-actor",
+    });
+    const scene = makeScene({ tokens: [token] });
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: { hostUserId: HOST_USER_ID, aiControlledActorIds: [] },
+      },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    resnapDriftedTokens(token, { x: token.x, y: token.y });
+
+    expect(token.update).toHaveBeenCalledTimes(1);
+    expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
+    expect(requestDungeonAction).not.toHaveBeenCalled();
+  });
+
+  it("does nothing on a scene with no active dungeon run", () => {
+    const token = makeToken({
+      id: "t-drifted",
+      x: 5.49 * GRID,
+      y: 3.49 * GRID,
+      actorId: "some-actor",
+    });
+    makeScene({ tokens: [token] });
+    installFoundryStubs({ dungeonRuns: {} });
+
+    resnapDriftedTokens(token, { x: token.x, y: token.y });
+
+    expect(token.update).not.toHaveBeenCalled();
+    expect(requestDungeonAction).not.toHaveBeenCalled();
+  });
+
+  it("does nothing when the update isn't a position change", () => {
+    const token = makeToken({
+      id: "t-drifted",
+      x: 5.49 * GRID,
+      y: 3.49 * GRID,
+      actorId: "some-actor",
+    });
+    makeScene({ tokens: [token] });
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: { hostUserId: HOST_USER_ID, aiControlledActorIds: [] },
+      },
+    });
+
+    resnapDriftedTokens(token, { elevation: 0 });
+
+    expect(token.update).not.toHaveBeenCalled();
+  });
+
+  it("does nothing when the token is already grid-aligned", () => {
+    const token = makeToken({
+      id: "t-aligned",
+      x: 5 * GRID,
+      y: 3 * GRID,
+      actorId: "some-actor",
+    });
+    const scene = makeScene({ tokens: [token] });
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: { hostUserId: HOST_USER_ID, aiControlledActorIds: [] },
+      },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    resnapDriftedTokens(token, { x: token.x, y: token.y });
+
+    expect(token.update).not.toHaveBeenCalled();
+    expect(requestDungeonAction).not.toHaveBeenCalled();
+  });
+
+  it("requests a resnap via the relay when the current client is the non-GM host (#65)", () => {
+    const token = makeToken({
+      id: "t-drifted",
+      x: 5.49 * GRID,
+      y: 3.49 * GRID,
+      actorId: "some-actor",
+    });
+    makeScene({ tokens: [token] });
+    installFoundryStubs({
+      isGM: false,
+      userId: HOST_USER_ID,
+      dungeonRuns: {
+        [SCENE_ID]: { hostUserId: HOST_USER_ID, aiControlledActorIds: [] },
+      },
+    });
+
+    resnapDriftedTokens(token, { x: token.x, y: token.y });
+
+    expect(token.update).not.toHaveBeenCalled();
+    expect(requestDungeonAction).toHaveBeenCalledTimes(1);
+    expect(requestDungeonAction).toHaveBeenCalledWith("resnapToken", {
+      sceneId: SCENE_ID,
+      tokenId: "t-drifted",
+    });
+  });
+
+  it("does nothing when the current client is neither GM nor the run's host", () => {
+    const token = makeToken({
+      id: "t-drifted",
+      x: 5.49 * GRID,
+      y: 3.49 * GRID,
+      actorId: "some-actor",
+    });
+    makeScene({ tokens: [token] });
+    installFoundryStubs({
+      isGM: false,
+      userId: OTHER_USER_ID,
+      dungeonRuns: {
+        [SCENE_ID]: { hostUserId: HOST_USER_ID, aiControlledActorIds: [] },
+      },
+    });
+
+    resnapDriftedTokens(token, { x: token.x, y: token.y });
+
+    expect(token.update).not.toHaveBeenCalled();
+    expect(requestDungeonAction).not.toHaveBeenCalled();
   });
 });

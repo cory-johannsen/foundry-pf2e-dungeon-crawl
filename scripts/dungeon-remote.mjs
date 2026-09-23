@@ -26,7 +26,7 @@ import {
   claimTreasureFor,
 } from "./ui/dungeon-app.mjs";
 import { undoRoomEntry } from "./dungeon-scene.mjs";
-import { runFollowMoveNow } from "./dungeon-follow.mjs";
+import { runFollowMoveNow, resnapTokenNow } from "./dungeon-follow.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 const DEFAULT_TIMEOUT_MS = 15_000;
@@ -69,6 +69,8 @@ const DUNGEON_ACTIONS = {
   // directly, so they request it — this is the one entry point that
   // actually runs on whichever client receives and executes the request.
   followMove: (args) => runFollowMoveNow(args.sceneId),
+  // #141: same #65 pattern, for resnapDriftedTokens's own self-heal write.
+  resnapToken: (args) => resnapTokenNow(args.sceneId, args.tokenId),
 };
 
 /**
