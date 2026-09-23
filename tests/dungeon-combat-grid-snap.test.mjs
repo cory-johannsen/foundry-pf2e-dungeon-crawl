@@ -504,4 +504,38 @@ describe("footprint-aware movement (#140)", () => {
 
     expect(status).toBe("no-speed");
   });
+
+  it("a 2x2 mover is not blocked by a hostile combatant touching only its right/bottom edge", async () => {
+    installFoundryStubs();
+    const mover = makeCombatant({
+      id: "mover",
+      x: 0,
+      y: 0,
+      width: 2,
+      height: 2,
+      speedFt: 100,
+    });
+    const hostileRight = makeCombatant({
+      id: "hostileRight",
+      x: 2 * GRID_SIZE,
+      y: 0,
+      disposition: 1,
+    });
+    const target = makeCombatant({
+      id: "target",
+      x: 6 * GRID_SIZE,
+      y: 4 * GRID_SIZE,
+      disposition: 1,
+    });
+    const combat = makeCombat({ combatants: [mover, hostileRight, target] });
+
+    const status = await stepToward(combat, mover, target, 10);
+
+    // Before the fix, movementBlockedEdges re-expanded the hostile's
+    // occupied square by the mover's own footprint a second time,
+    // extending the blocked area one square past the mover's real body
+    // -- a hostile only touching the mover's right/bottom edge (never
+    // actually overlapping it) made findPath return null entirely.
+    expect(status).toBe("moved");
+  });
 });

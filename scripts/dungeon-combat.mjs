@@ -1888,16 +1888,11 @@ function sceneWallBlockedEdges(combat) {
  * enemy's space, any more than it can pass through a wall. `excludeCell`,
  * if given, is dropped from the hostile-block list (see
  * `hostileFootprints`'s own docblock for why that's needed). */
-function movementBlockedEdges(
-  combat,
-  combatant,
-  excludeCell = null,
-  moverFootprint = { gw: 1, gh: 1 },
-) {
+function movementBlockedEdges(combat, combatant, excludeCell = null) {
   const gridSize = combat.scene?.grid?.size ?? 100;
   const wallBlocked = sceneWallBlockedEdges(combat);
   const hostiles = hostileFootprints(combat, combatant, gridSize, excludeCell);
-  return (a, b) => wallBlocked(a, b) || cellOccupied(b, hostiles, moverFootprint);
+  return (a, b) => wallBlocked(a, b) || cellOccupied(b, hostiles);
 }
 
 /**
@@ -2094,7 +2089,7 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
   const start = tokenCell(me, gridSize);
   const goal = tokenCell(dest, gridSize);
   const bounds = sceneBounds(combat, gridSize);
-  const isBlocked = movementBlockedEdges(combat, combatant, goal, moverFootprint);
+  const isBlocked = movementBlockedEdges(combat, combatant, goal);
   const path = findPath(start, goal, isBlocked, bounds, 20000, moverFootprint);
   if (!path) return "no-route";
 
@@ -2136,12 +2131,7 @@ export async function pushTokenAway(combat, attacker, target, distanceSquares) {
   const start = tokenCell(target.token, gridSize);
   const awayFrom = tokenCell(attacker.token, gridSize);
   const bounds = sceneBounds(combat, gridSize);
-  const isBlocked = movementBlockedEdges(
-    combat,
-    target,
-    null,
-    moverFootprint,
-  );
+  const isBlocked = movementBlockedEdges(combat, target);
   const path = posturePath(
     start,
     awayFrom,
@@ -3256,7 +3246,6 @@ export async function strideByPosture(combat, combatant, posture, target) {
     combat,
     combatant,
     posture === "approach" ? targetCell : null,
-    moverFootprint,
   );
   const path = posturePath(
     start,

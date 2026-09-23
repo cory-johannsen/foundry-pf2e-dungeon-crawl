@@ -634,4 +634,49 @@ describe("moveFollowersToward footprint-awareness (#140)", () => {
     const overlapsLeader = gx <= 5 && gx + 2 > 5 && gy <= 1 && gy + 2 > 1;
     expect(overlapsLeader).toBe(false);
   });
+
+  it("does not treat the follower's own body as an obstacle to itself", async () => {
+    vi.useFakeTimers();
+    const leader = makeToken({
+      id: "t-leader",
+      x: 5 * GRID,
+      y: 5 * GRID,
+      actorId: LEADER_ACTOR_ID,
+    });
+    const follower = makeToken({
+      id: "t-follower",
+      x: 6 * GRID,
+      y: 7 * GRID,
+      actorId: FOLLOWER_ACTOR_ID,
+      width: 2,
+      height: 2,
+    });
+    const scene = makeScene({ tokens: [leader, follower] });
+    // The default scene (7x3 grid cells) is too small for this test's
+    // coordinates (follower starts at gy=7) -- widen it so the follower
+    // has genuine room to path in every direction.
+    scene.width = 12 * GRID;
+    scene.height = 12 * GRID;
+
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: [FOLLOWER_ACTOR_ID],
+        },
+      },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    runFollowMoveNow(SCENE_ID);
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(follower.update).toHaveBeenCalledTimes(1);
+    const [{ x, y }] = follower.update.mock.calls[0];
+    // Verified independently by running findFollowMove directly: with
+    // the follower's own footprint wrongly counted as an obstacle to
+    // itself, the result is {gx:4,gy:6} -- one square worse (farther
+    // from the follower's own start) than the correct {gx:5,gy:6}.
+    expect({ gx: x / GRID, gy: y / GRID }).toEqual({ gx: 5, gy: 6 });
+  });
 });

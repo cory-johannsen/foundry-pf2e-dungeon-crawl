@@ -97,6 +97,23 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
       }
       const moverFootprint = footprint(token, gridSize);
       const fromCell = tokenCell(token, gridSize);
+      // #140: exclude the follower's own current footprint from the
+      // occupancy list before searching for its own move -- otherwise a
+      // 2x2+ follower's own body can make a leader-adjacent candidate
+      // look "occupied" by itself, unlike dungeon-combat.mjs's own
+      // hostileFootprints/otherCombatantFootprints, which both already
+      // exclude the mover itself (c.id !== combatant.id). Restored below
+      // if the follower doesn't actually move, so later followers in
+      // this same loop still see it correctly occupying its own cell.
+      const myIndex = occupied.findIndex(
+        (f) =>
+          f.gx === fromCell.gx &&
+          f.gy === fromCell.gy &&
+          f.gw === moverFootprint.gw &&
+          f.gh === moverFootprint.gh,
+      );
+      const myFootprint =
+        myIndex !== -1 ? occupied.splice(myIndex, 1)[0] : null;
       const result = findFollowMove(
         fromCell,
         leaderCell,
@@ -105,21 +122,15 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
         bounds,
         moverFootprint,
       );
-      if (result.status === "already-near") continue;
-      if (result.status === "no-route") {
-        console.warn(
-          `${MODULE_ID} | dungeon-follow: no route for actor ${actorId} to reach the leader.`,
-        );
+      if (result.status === "already-near" || result.status === "no-route") {
+        if (myFootprint) occupied.push(myFootprint);
+        if (result.status === "no-route") {
+          console.warn(
+            `${MODULE_ID} | dungeon-follow: no route for actor ${actorId} to reach the leader.`,
+          );
+        }
         continue;
       }
-      const myIndex = occupied.findIndex(
-        (f) =>
-          f.gx === fromCell.gx &&
-          f.gy === fromCell.gy &&
-          f.gw === moverFootprint.gw &&
-          f.gh === moverFootprint.gh,
-      );
-      if (myIndex !== -1) occupied.splice(myIndex, 1);
       occupied.push({
         gx: result.to.gx,
         gy: result.to.gy,
