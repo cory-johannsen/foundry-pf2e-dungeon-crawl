@@ -175,21 +175,40 @@ describe('buildRoomSequence', () => {
     for (const room of withoutPieces) expect(room.setpieceId).toBeNull();
   });
 
-  it('draws puzzle, trap and narrative set-pieces from independent pools (#32, #165)', () => {
+  it('only assigns a set-piece to treasure rooms, and only when treasure set-pieces are supplied (#89)', () => {
+    // seed 'gamma' + roomCount 12 is confirmed (roomKindAt) to include at
+    // least one treasure-kind room, so this actually exercises the
+    // assignment rather than passing vacuously.
+    const withPieces = buildRoomSequence({
+      seed: 'gamma', roomCount: 12, treasureSetpieceIds: ['tr1', 'tr2']
+    });
+    expect(withPieces.some((r) => r.kind === 'treasure')).toBe(true);
+    for (const room of withPieces) {
+      if (room.kind === 'treasure') expect(['tr1', 'tr2']).toContain(room.setpieceId);
+      else expect(room.setpieceId).toBeNull();
+    }
+    const withoutPieces = buildRoomSequence({ seed: 'gamma', roomCount: 12, treasureSetpieceIds: [] });
+    for (const room of withoutPieces) expect(room.setpieceId).toBeNull();
+  });
+
+  it('draws puzzle, trap, narrative and treasure set-pieces from independent pools (#32, #165, #89)', () => {
     const rooms = buildRoomSequence({
       seed: 'gamma',
       roomCount: 12,
       puzzleSetpieceIds: ['p1', 'p2'],
       trapSetpieceIds: ['t1', 't2'],
-      narrativeSetpieceIds: ['n1', 'n2']
+      narrativeSetpieceIds: ['n1', 'n2'],
+      treasureSetpieceIds: ['tr1', 'tr2']
     });
     expect(rooms.some((r) => r.kind === 'puzzle')).toBe(true);
     expect(rooms.some((r) => r.kind === 'trap')).toBe(true);
     expect(rooms.some((r) => r.kind === 'narrative')).toBe(true);
+    expect(rooms.some((r) => r.kind === 'treasure')).toBe(true);
     for (const room of rooms) {
       if (room.kind === 'puzzle') expect(['p1', 'p2']).toContain(room.setpieceId);
       else if (room.kind === 'trap') expect(['t1', 't2']).toContain(room.setpieceId);
       else if (room.kind === 'narrative') expect(['n1', 'n2']).toContain(room.setpieceId);
+      else if (room.kind === 'treasure') expect(['tr1', 'tr2']).toContain(room.setpieceId);
       else expect(room.setpieceId).toBeNull();
     }
   });
@@ -253,6 +272,24 @@ describe('applySequenceMutation', () => {
     const before = rooms();
     expect(applySequenceMutation(before, 0, null, { seed: 'seq' })).toBe(before);
     expect(applySequenceMutation(before, 0, 'rerun_encounter', { seed: 'seq' })).toBe(before);
+  });
+
+  it('an inserted treasure room draws from treasureSetpieceIds when supplied (#89)', () => {
+    // seed/currentIndex/rooms.length picked (by probing roomKindAt) so the
+    // inserted room actually lands on kind 'treasure' — otherwise this
+    // would pass vacuously the same way the buildRoomSequence pool tests
+    // above guard against.
+    let found = null;
+    for (let seed = 0; seed < 50 && !found; seed += 1) {
+      const before = buildRoomSequence({ seed: `insert-treasure-${seed}`, roomCount: 5 });
+      const after = applySequenceMutation(before, 1, 'insert_after', {
+        seed: `insert-treasure-${seed}`,
+        treasureSetpieceIds: ['tr1', 'tr2'],
+      });
+      if (after[2]?.kind === 'treasure') found = after[2];
+    }
+    expect(found).not.toBeNull();
+    expect(['tr1', 'tr2']).toContain(found.setpieceId);
   });
 });
 
