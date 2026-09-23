@@ -7934,5 +7934,125 @@
     "name": "Coral Dragon (Young, Spellcaster)",
     "level": 8,
     "art": "coral-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "denizen_of_leng",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "RLpV0XLGZJWjtEYT",
+    "name": "Denizen of Leng",
+    "level": 8,
+    "art": "denizen-of-leng.webp"
+  },
+  {
+    "id": "desert_drake",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "irl1wnfk4b83JWkY",
+    "name": "Desert Drake",
+    "level": 8,
+    "art": "desert-drake.webp"
+  },
+  {
+    "id": "destrachan",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "xUtl7Nkb6iJpPUMK",
+    "name": "Destrachan",
+    "level": 8,
+    "art": "destrachan.webp"
+  },
+  {
+    "id": "drill_sergeant",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "g4SvRClK7ftg3kSD",
+    "name": "Drill Sergeant",
+    "level": 8,
+    "art": "drill-sergeant.webp"
+  },
+  {
+    "id": "dwarf_general",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "T5WxYghxUxqHgyl4",
+    "name": "Dwarf General",
+    "level": 8,
+    "art": "dwarf-general.webp"
+  },
+  {
+    "id": "erinys",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "ETNlci6VnSthx5V6",
+    "name": "Erinys",
+    "level": 8,
+    "art": "erinys.webp"
+  },
+  {
+    "id": "gendarme",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "bzRxQ0Z317yeCUE5",
+    "name": "Gendarme",
+    "level": 8,
+    "art": "gendarme.webp"
+  },
+  {
+    "id": "giant_anaconda",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "XDNJSVxOOryeuN44",
+    "name": "Giant Anaconda",
+    "level": 8,
+    "art": "giant-anaconda.webp"
+  },
+  {
+    "id": "giant_octopus",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "k5p4mRDT26DrDXPA",
+    "name": "Giant Octopus",
+    "level": 8,
+    "art": "giant-octopus.webp"
+  },
+  {
+    "id": "giant_slug",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "g1htYgARxNKxc7MV",
+    "name": "Giant Slug",
+    "level": 8,
+    "art": "giant-slug.webp"
+  },
+  {
+    "id": "girtablilu_sentry",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Eqyg78faM4mqIoh5",
+    "name": "Girtablilu Sentry",
+    "level": 8,
+    "art": "girtablilu-sentry.webp"
+  },
+  {
+    "id": "golem",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "HZHEXtTSAxAC01N4",
+    "name": "Golem",
+    "level": 8,
+    "art": "golem.webp"
+  },
+  {
+    "id": "granite_glyptodont",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "oo6wVzEKDYTb62Ai",
+    "name": "Granite Glyptodont",
+    "level": 8,
+    "art": "granite-glyptodont.webp"
+  },
+  {
+    "id": "green_dragon_young",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "xZQIChzzIYbNIEoT",
+    "name": "Green Dragon (Young)",
+    "level": 8,
+    "art": "green-dragon-young.webp"
+  },
+  {
+    "id": "green_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "5XtCOknYJuEl4SfD",
+    "name": "Green Dragon (Young, Spellcaster)",
+    "level": 8,
+    "art": "green-dragon-young-spellcaster.webp"
   }
 ]
