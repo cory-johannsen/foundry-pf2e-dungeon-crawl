@@ -6718,5 +6718,109 @@
     "name": "Veteran Noble",
     "level": 6,
     "art": "veteran-noble.webp"
+  },
+  {
+    "id": "vrykolakas_spawn",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "8IyfadYYpYXBvlXN",
+    "name": "Vrykolakas Spawn",
+    "level": 6,
+    "art": "vrykolakas-spawn.webp"
+  },
+  {
+    "id": "vulpinal",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "NnIEe9PZHqUOmAY9",
+    "name": "Vulpinal",
+    "level": 6,
+    "art": "vulpinal.webp"
+  },
+  {
+    "id": "warden",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "UcyRCjAUf7mijca0",
+    "name": "Warden",
+    "level": 6,
+    "art": "warden.webp"
+  },
+  {
+    "id": "white_dragon_young",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "3OPUMuBQThM5EXjz",
+    "name": "White Dragon (Young)",
+    "level": 6,
+    "art": "white-dragon-young.webp"
+  },
+  {
+    "id": "white_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "csfVqep68nYGHExr",
+    "name": "White Dragon (Young, Spellcaster)",
+    "level": 6,
+    "art": "white-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "wihsaak",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "hj7in3ZZlTu8n4vi",
+    "name": "Wihsaak",
+    "level": 6,
+    "art": "wihsaak.webp"
+  },
+  {
+    "id": "will_o_wisp",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "KgJq51AeYrENo3Db",
+    "name": "Will-o'-Wisp",
+    "level": 6,
+    "art": "will-o-wisp.webp"
+  },
+  {
+    "id": "woolly_rhinoceros",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "loYbh3SealeYmxai",
+    "name": "Woolly Rhinoceros",
+    "level": 6,
+    "art": "woolly-rhinoceros.webp"
+  },
+  {
+    "id": "wraith",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Gu0cJHGwPd547OtC",
+    "name": "Wraith",
+    "level": 6,
+    "art": "wraith.webp"
+  },
+  {
+    "id": "wyvern",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "5iqkL9Me5164H7NY",
+    "name": "Wyvern",
+    "level": 6,
+    "art": "wyvern.webp"
+  },
+  {
+    "id": "zombie_hulk",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "EDYKUdYmilw3rgJg",
+    "name": "Zombie Hulk",
+    "level": 6,
+    "art": "zombie-hulk.webp"
+  },
+  {
+    "id": "baobhan_sith",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "SfPoGbcaQqPlgJ85",
+    "name": "Baobhan Sith",
+    "level": 6,
+    "art": "baobhan-sith.webp"
+  },
+  {
+    "id": "bauble_beast",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "Yg7R4UgB1FjF2Euu",
+    "name": "Bauble Beast",
+    "level": 6,
+    "art": "bauble-beast.webp"
   }
 ]
