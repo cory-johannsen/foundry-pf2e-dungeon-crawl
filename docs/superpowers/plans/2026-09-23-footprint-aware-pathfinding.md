@@ -1417,6 +1417,18 @@ In `tests/dungeon-combat-grid-snap.test.mjs`, add to the
       y: 0,
     });
     const combat = makeCombat({ combatants: [mover, blocker, target] });
+    // makeCombat()'s scene has no width/height by default, so
+    // sceneBounds() returns null (unbounded search) -- found during
+    // Task 5's own implementation: with no bounds, the mover simply
+    // steps diagonally around the single blocker into open space (e.g.
+    // to gx=1,gy=-1), lands within melee reach of the target from there,
+    // and returns "moved" instead of "blocked". Locking the scene to
+    // exactly one row tall (height = GRID_SIZE) makes any gy != 0
+    // neighbor rejected by inBounds before isBlocked is ever consulted
+    // -- no diagonal escape is even a candidate, so the only route is
+    // the straight line through the blocker's own square.
+    combat.scene.width = 4 * GRID_SIZE;
+    combat.scene.height = GRID_SIZE;
 
     // Mover's speed only reaches the blocker's own square (distance 1),
     // which is occupied and the only cell within its speed budget -- no
@@ -1584,6 +1596,12 @@ describe("applyAgentDecision move-stalled chat card (#140)", () => {
       disposition: 1,
     });
     const combat = makeCombat({ attacker, opponent, blocker });
+    // Same reasoning as dungeon-combat-grid-snap.test.mjs's own "blocked"
+    // test: without scene bounds, the mover diagonals around the single
+    // blocker into open space instead of being genuinely blocked. Locks
+    // the scene to one row tall so no gy != 0 move is ever a candidate.
+    combat.scene.width = 4 * GRID_SIZE;
+    combat.scene.height = GRID_SIZE;
 
     const turn = await getPendingAgentTurn(combat);
     const candidate = turn.candidates.find((c) => c.id === "stride:approach:opp");
