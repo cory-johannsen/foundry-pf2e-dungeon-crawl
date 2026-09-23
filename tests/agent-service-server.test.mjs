@@ -1,6 +1,19 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EventEmitter } from 'node:events';
 import { createServer } from '../tools/agent-service/server.mjs';
+import { resolveProvider } from '../tools/agent-service/providers/index.mjs';
+
+// Wraps the real resolveProvider so every existing test (which relies on
+// the real claude.mjs decide() — see the 502 test's real-network-failure
+// path below) keeps working unchanged, while individual tests can swap in
+// a stub decide() via mockReturnValueOnce for a single call.
+vi.mock('../tools/agent-service/providers/index.mjs', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    resolveProvider: vi.fn(actual.resolveProvider)
+  };
+});
 
 describe('agent-service server', () => {
   let server;
@@ -139,5 +152,25 @@ describe('POST /v1/combat-decision', () => {
     expect(res.status).toBe(502);
     const body = await res.json();
     expect(body.error).toBeTruthy();
+  });
+
+  it('returns 200 with the provider decision passed through unmodified', async () => {
+    const stubDecide = vi.fn().mockResolvedValue({ candidateId: 'endTurn', rationale: 'test rationale' });
+    resolveProvider.mockReturnValueOnce(stubDecide);
+
+    const res = await fetch(`${baseUrl}/v1/combat-decision`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer test-key', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        self: { name: 'Yamaraj', hp: 40, conditions: [] },
+        opponents: [],
+        candidates: [{ id: 'endTurn', summary: 'End turn' }],
+        roundNumber: 1
+      })
+    });
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toEqual({ candidateId: 'endTurn', rationale: 'test rationale' });
   });
 });
