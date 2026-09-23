@@ -310,7 +310,17 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
     // sweep any un-looted #172 corpse (or plain leftover NPC) before
     // returning, since this was previously the one completion path with no
     // cleanup trigger at all (teardownDungeonRun only ever fires on Abandon).
-    await sweepCompletedDungeonScene(scene);
+    // #62 final review: markRoomOutcome also returns a null nextRoomId from
+    // several guards that are NOT genuine completion — its duplicate-resolve
+    // guard (#152, e.g. a double-click race), its no-outcome-slot guard, and
+    // its own already-completed guard. Gate on the returned state's actual
+    // `completed` flag (set true only in markRoomOutcome's real
+    // goal-room-resolved branch) rather than treating every null nextRoomId
+    // as "run done" — with every room now eagerly built (#62), sweeping on a
+    // false positive would wipe every pre-populated encounter and trap
+    // hazard across the whole dungeon, not just the one room the old
+    // one-room-ahead design could have lost.
+    if (state?.completed) await sweepCompletedDungeonScene(scene);
     return;
   }
 
@@ -518,9 +528,28 @@ export async function startDungeonRun({
   if (state.hostUserId) {
     const eagerlyBuilt = roomsToEagerlyBuild(state);
     for (const { room, physicalSlot } of eagerlyBuilt) {
-      await buildPopulateAndUnlockRoom(scene, state, room, physicalSlot, {
-        unlock: physicalSlot === 1,
-      });
+      // #62 final review: before eager-build, a single room's build failure
+      // (a compendium lookup miss, a hazard-actor spawn failure, etc.) was
+      // limited to whatever one room the old lazy one-room-ahead design was
+      // building. Now every room in the sequence builds here in one loop, so
+      // an uncaught throw from one room would otherwise abort the whole run
+      // start — before commitEagerPhysicalSlots, placePartyInSlot,
+      // scene.activate(), and the unpause below all run. Catch and log
+      // instead: buildPopulateAndUnlockRoom's own isSlotBuilt/isSlotPopulated
+      // guards (Task 3) and resolve-time's own `if (!isSlotPopulated...)`
+      // re-populate logic already make a skipped room recoverable later via
+      // the existing "Populate Next Room" button, so one bad room shouldn't
+      // take down every other room or the run's own setup.
+      try {
+        await buildPopulateAndUnlockRoom(scene, state, room, physicalSlot, {
+          unlock: physicalSlot === 1,
+        });
+      } catch (e) {
+        console.error(
+          `${MODULE_ID} | eager build failed for room "${room.id}" (slot ${physicalSlot})`,
+          e,
+        );
+      }
     }
     if (eagerlyBuilt.length) {
       await commitEagerPhysicalSlots(scene.id, eagerlyBuilt);
