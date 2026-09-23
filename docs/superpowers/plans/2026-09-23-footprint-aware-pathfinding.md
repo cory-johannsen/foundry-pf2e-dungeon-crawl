@@ -965,9 +965,25 @@ describe("findFollowMove", () => {
   // footprint wouldn't fit into cleanly (here, overlapping a 1x1 blocker
   // one square east of the otherwise-closest candidate).
   it("with a non-default footprint, refuses a candidate cell the mover's own footprint would overlap", () => {
-    const occupied = [{ gx: 5, gy: 6, gw: 1, gh: 1 }]; // sits inside a 2x2 footprint anchored at (4,6) or (5,5) etc.
+    // Corrected during Task 3's own review: the original version placed
+    // the occupied cell where the chebyshev-closest candidate to
+    // fromCell never overlapped it regardless of footprint size, so the
+    // test passed identically with footprint-aware occupancy reverted
+    // entirely (same defect class as Task 2's test 3, found there twice
+    // -- verified empirically here too, the same way).
+    //
+    // fromCell=(3,3) makes (4,4) the UNIQUE closest candidate (chebyshev
+    // 1, no tie) among the leader's 8 adjacent cells. occupied=(5,4)
+    // overlaps a 2x2 footprint anchored at (4,4) (columns 4-5, rows 4-5
+    // both cover (5,4)) but NOT a 1x1 footprint there (exact-cell match
+    // only, and (5,4) != (4,4)) -- forcing a 2x2 mover past (4,4) (and
+    // (5,4) itself, which self-overlaps the occupant) to the next
+    // genuinely free candidate, (4,5), while a 1x1 mover would land
+    // directly on (4,4). The two footprint sizes are forced to
+    // genuinely different winning candidates.
+    const occupied = [{ gx: 5, gy: 4, gw: 1, gh: 1 }];
     const result = findFollowMove(
-      { gx: 0, gy: 0 },
+      { gx: 3, gy: 3 },
       { gx: 5, gy: 5 },
       occupied,
       noWalls(),
@@ -975,15 +991,7 @@ describe("findFollowMove", () => {
       { gw: 2, gh: 2 },
     );
     expect(result.status).toBe("move");
-    // Every candidate whose own 2x2 block would overlap (5,6) must be
-    // excluded -- confirm the chosen destination's own 2x2 footprint does
-    // not cover (5,6).
-    const overlapsBlocker =
-      result.to.gx <= 5 &&
-      result.to.gx + 2 > 5 &&
-      result.to.gy <= 6 &&
-      result.to.gy + 2 > 6;
-    expect(overlapsBlocker).toBe(false);
+    expect(result.to).toEqual({ gx: 4, gy: 5 });
   });
 });
 ```
