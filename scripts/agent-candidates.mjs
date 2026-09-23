@@ -11,6 +11,20 @@
 export const MAX_ACTIONS_PER_TURN = 3;
 export const AGENT_MELEE_REACH_SQUARES = 1;
 
+/** Whether `target` (an opponent, dungeon-combat.mjs's own `opponents`
+ * entry) is a legitimate Strike/spell target: within `maxSquares` AND —
+ * #91 — not blocked by a wall. `hasLineOfSight` is computed by
+ * dungeon-combat.mjs (the only caller with real Scene/wall access, this
+ * file has none at all); it's `false` only when that real check found a
+ * blocked line, so a `target` that never carries the field at all (every
+ * caller/test that predates #91) or carries `true` is always treated as
+ * visible — distance is still the only gate for those, unchanged. */
+function withinRangeAndSight(target, maxSquares) {
+  return (
+    target.distanceSquares <= maxSquares && target.hasLineOfSight !== false
+  );
+}
+
 /** Fresh per-turn bookkeeping — reset the instant an agent-controlled
  * combatant's turn becomes current. */
 export function initAgentTurnState() {
@@ -60,7 +74,7 @@ export function buildStrikeCandidates({ readyActions, opponents, mapIncrement })
   for (const action of readyActions) {
     const variantIndex = Math.min(mapIncrement, action.variantCount - 1);
     for (const opponent of opponents) {
-      if (opponent.distanceSquares > action.reachSquares) continue;
+      if (!withinRangeAndSight(opponent, action.reachSquares)) continue;
       candidates.push({
         id: `strike:${action.slug}:${opponent.id}`, type: 'strike',
         actionSlug: action.slug, targetId: opponent.id, variantIndex, cost: 1,
@@ -83,7 +97,7 @@ export function buildSpellCandidates({ readySpells, opponents, actionsRemaining 
   for (const spell of readySpells) {
     if (spell.cost > actionsRemaining) continue;
     for (const opponent of opponents) {
-      if (opponent.distanceSquares > spell.rangeSquares) continue;
+      if (!withinRangeAndSight(opponent, spell.rangeSquares)) continue;
       candidates.push({
         id: `cast:${spell.slug}:${opponent.id}`, type: 'cast',
         spellId: spell.id, entryId: spell.entryId, targetId: opponent.id, cost: spell.cost,
@@ -490,7 +504,7 @@ export function buildAttackSpellCandidates({ readyAttackSpells, opponents, actio
   for (const spell of readyAttackSpells) {
     if (spell.cost > actionsRemaining) continue;
     for (const opponent of opponents) {
-      if (opponent.distanceSquares > spell.rangeSquares) continue;
+      if (!withinRangeAndSight(opponent, spell.rangeSquares)) continue;
       candidates.push({
         id: `castAttack:${spell.slug}:${opponent.id}`, type: 'castAttack',
         spellId: spell.id, entryId: spell.entryId, targetId: opponent.id, cost: spell.cost,
@@ -674,7 +688,7 @@ export function buildMultiStrikeCandidates({ readyMultiStrikeBundles, opponents,
   for (const bundle of readyMultiStrikeBundles) {
     if (bundle.cost > actionsRemaining) continue;
     for (const opponent of opponents) {
-      if (opponent.distanceSquares > bundle.reachSquares) continue;
+      if (!withinRangeAndSight(opponent, bundle.reachSquares)) continue;
       candidates.push({
         id: `multiStrike:${bundle.slug}:${opponent.id}`, type: 'multiStrike',
         itemId: bundle.itemId, targetId: opponent.id, cost: bundle.cost,
@@ -699,7 +713,7 @@ export function buildDebuffSpellCandidates({ readyDebuffSpells, opponents, actio
   for (const spell of readyDebuffSpells) {
     if (spell.cost > actionsRemaining) continue;
     for (const opponent of opponents) {
-      if (opponent.distanceSquares > spell.rangeSquares) continue;
+      if (!withinRangeAndSight(opponent, spell.rangeSquares)) continue;
       candidates.push({
         id: `castDebuff:${spell.slug}:${opponent.id}`, type: 'castDebuff',
         spellId: spell.id, entryId: spell.entryId, targetId: opponent.id, cost: spell.cost,
@@ -770,7 +784,7 @@ export function buildChainSpellCandidates({ readyChainSpells, opponents, actions
   const candidates = [];
   for (const spell of readyChainSpells) {
     if (spell.cost > actionsRemaining) continue;
-    const validPrimaries = opponents.filter((o) => o.distanceSquares <= spell.rangeSquares);
+    const validPrimaries = opponents.filter((o) => withinRangeAndSight(o, spell.rangeSquares));
     if (!validPrimaries.length) continue;
     let best = null;
     for (const primary of validPrimaries) {

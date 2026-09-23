@@ -34,7 +34,11 @@ import {
   parseSpellEffectUuid,
   parseReactiveStrikeWeaponRestriction,
 } from "./agent-candidates.mjs";
-import { findPath, blockedEdgesFromWalls } from "./pathfinding.mjs";
+import {
+  findPath,
+  blockedEdgesFromWalls,
+  hasLineOfSight as sightLineClear,
+} from "./pathfinding.mjs";
 import { footprint, overlaps } from "./placement.mjs";
 import { LOOTABLE_ITEM_TYPES } from "./treasure.mjs";
 import { coverBlocksLineOfFire, COVER_EFFECT_DATA } from "./cover-items.mjs";
@@ -1339,6 +1343,9 @@ export function findReactiveStrikeOpportunities(
     if (getReactionUsed(combat, reactor.id, combat.round)) continue;
     const item = (reactor.actor?.items ?? []).find(isReactiveStrikeInScope);
     if (!item) continue;
+    // #91: reach alone doesn't mean a Reactive Strike can actually land --
+    // a reach weapon can measure "in range" straight through a solid wall.
+    if (!hasLineOfSight(combat, reactor.token, mover.token)) continue;
 
     const readyActions = (reactor.actor?.system?.actions ?? [])
       .filter(
@@ -1494,6 +1501,48 @@ export async function handleManualStrikeDamage(message) {
     outcome: context.outcome,
   });
   await applyDefeatIfReducedToZero(target);
+
+  // #92: a player's own manual Strike goes through this hook instead of
+  // rollAndApplyStrike, which already draws a Critical Hit/Fumble Deck card
+  // on criticalSuccess/criticalFailure via drawCriticalCardForStrike --
+  // this closes that same gap here. Unlike rollAndApplyStrike, this hook
+  // never rolled the Strike itself, so it has no live `strike` action
+  // object to hand drawCriticalCardForStrike. Read both functions: the only
+  // field either of them ever reads off `strike` is `strike.item` (the
+  // weapon), so `message.item` -- PF2e's own ChatMessagePF2e getter,
+  // resolving straight to the live weapon Item off the attacker's actor via
+  // the message's own stored origin flag, not a stale clone -- is exactly
+  // enough to rebuild a strike-shaped `{ item }` and the `soundContext`
+  // shape (`damageType`/`isRanged`) drawCriticalCardForStrike needs,
+  // mirroring strikeSoundContext's own damageType derivation above. A
+  // missing/unresolvable item is a soft no-op, matching this module's
+  // existing "a missing compendium/item shouldn't break combat resolution"
+  // philosophy (see drawAndApplyCriticalCard's own doc comment).
+  if (
+    context.outcome === "criticalSuccess" ||
+    context.outcome === "criticalFailure"
+  ) {
+    const weaponItem = message.item ?? null;
+    if (weaponItem) {
+      const strike = { item: weaponItem };
+      const damageRolls = Object.values(weaponItem.system?.damageRolls ?? {});
+      const soundContext = {
+        isRanged: !!weaponItem.isRanged,
+        damageType:
+          weaponItem.system?.damage?.damageType ??
+          damageRolls[0]?.damageType ??
+          null,
+      };
+      await drawCriticalCardForStrike(
+        context.outcome,
+        strike,
+        soundContext,
+        attacker,
+        target,
+      );
+    }
+  }
+
   // Marks the source message resolved so PF2e's own chat-card Apply Damage
   // button (still rendered — this hook never replaces the card) shows as
   // already-applied instead of staying live, which is exactly the double
@@ -1815,6 +1864,19 @@ function wallBlocksMovement(wall) {
   return true;
 }
 
+/** The isBlocked(a, b) predicate for this combat's real scene walls alone
+ * (no combatant-occupancy blocking) — the shared wall-lookup both
+ * `movementBlockedEdges` (movement, below) and `hasLineOfSight` (#91,
+ * ranged/spell target eligibility) build on, so a wall/door blocks both the
+ * same way from one single source of wall data. */
+function sceneWallBlockedEdges(combat) {
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const walls = (combat.scene?.walls?.contents ?? [])
+    .filter(wallBlocksMovement)
+    .map((w) => ({ x1: w.c[0], y1: w.c[1], x2: w.c[2], y2: w.c[3] }));
+  return blockedEdgesFromWalls(walls, gridSize);
+}
+
 /** The isBlocked(a, b) predicate pathfinding.mjs's findPath expects, built
  * from this combat's real scene walls, plus — #27 — every hostile
  * combatant's own occupied square: a Stride must never pass through an
@@ -1823,12 +1885,37 @@ function wallBlocksMovement(wall) {
  * `hostileFootprints`'s own docblock for why that's needed). */
 function movementBlockedEdges(combat, combatant, excludeCell = null) {
   const gridSize = combat.scene?.grid?.size ?? 100;
-  const walls = (combat.scene?.walls?.contents ?? [])
-    .filter(wallBlocksMovement)
-    .map((w) => ({ x1: w.c[0], y1: w.c[1], x2: w.c[2], y2: w.c[3] }));
-  const wallBlocked = blockedEdgesFromWalls(walls, gridSize);
+  const wallBlocked = sceneWallBlockedEdges(combat);
   const hostiles = hostileFootprints(combat, combatant, gridSize, excludeCell);
   return (a, b) => wallBlocked(a, b) || cellOccupied(b, hostiles);
+}
+
+/**
+ * Whether `attackerToken` has a clear, wall-unobstructed straight line to
+ * `targetToken` — #91: ranged Strikes and ranged/area spells were
+ * targetable purely by grid distance, with no wall/door check at all, so a
+ * target in an entirely different room (behind a solid wall) could be hit.
+ * Grid/edge-based rather than Foundry's own canvas vision primitives
+ * (`canvas.walls`, `canvas.effects.visibility`) deliberately: those depend
+ * on a live, rendered canvas, which isn't guaranteed to exist on whichever
+ * client executes a relay-driven, GM-less agent turn (no human necessarily
+ * looking at that scene) — the same reasoning pathfinding.mjs's own
+ * docblock already gives for why movement pathing here is
+ * Foundry-canvas-decoupled, not just Scene-document-decoupled. Reuses
+ * `sceneWallBlockedEdges`'s own wall-lookup, so a wall or door blocks a
+ * shot exactly the same way it already blocks movement, including
+ * `wallBlocksMovement`'s existing open-door exception (an open door, reveal
+ * door or otherwise, never blocks — the module's own
+ * `dungeonRevealDoorForSlot`/`dungeonDoorToSlot` flags are irrelevant to
+ * this, same as they already are for movement, since `wallBlocksMovement`
+ * only ever consults the native `door`/`ds` fields).
+ */
+export function hasLineOfSight(combat, attackerToken, targetToken) {
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const isBlocked = sceneWallBlockedEdges(combat);
+  const start = tokenCell(attackerToken, gridSize);
+  const goal = tokenCell(targetToken, gridSize);
+  return sightLineClear(start, goal, isBlocked);
 }
 
 /** Footprints (placement.mjs's {gx,gy,gw,gh} shape) of every hostile
@@ -2425,11 +2512,20 @@ export async function getPendingAgentTurn(combat) {
 
   const rawOpponents = combatantOpponents(combat, combatant);
   const rawAllies = combatantAllies(combat, combatant);
+  // #91: every opponent-facing ranged/spell target-eligibility check below
+  // needs "is there actually a clear shot," not just "is it in range" — a
+  // wall-blocked opponent still appears in `opponents` (movement/approach
+  // candidates still need to know it's there and how far away), but is
+  // flagged so agent-candidates.mjs's strike/spell candidate builders (and
+  // this function's own chain/target-count/dual-nature filtering below)
+  // can exclude it from anything that actually requires a line of sight.
+  const canSee = (c) => hasLineOfSight(combat, combatant.token, c.token);
   const opponents = rawOpponents.map((c) => ({
     id: c.id,
     name: c.name,
     distanceSquares: chebyshevSquares(combatant.token, c.token, gridSize),
     hp: c.actor?.system?.attributes?.hp?.value ?? null,
+    hasLineOfSight: canSee(c),
   }));
   const allies = rawAllies.map((c) => ({
     id: c.id,
@@ -2736,8 +2832,20 @@ export async function getPendingAgentTurn(combat) {
                   to.token,
                   gridSize,
                 ),
+                // #91: a chain hop is still a bolt arcing to the next
+                // creature — it can't jump through a wall any more than a
+                // direct shot at the primary target could.
+                hasLineOfSight: hasLineOfSight(combat, from.token, to.token),
               }))
-              .filter((o) => o.distanceSquares <= hopDistanceSquares);
+              .filter(
+                (o) =>
+                  o.distanceSquares <= hopDistanceSquares && o.hasLineOfSight,
+              )
+              .map(({ id, name, distanceSquares }) => ({
+                id,
+                name,
+                distanceSquares,
+              }));
           }
           return {
             id: spell.id,
@@ -2843,7 +2951,11 @@ export async function getPendingAgentTurn(combat) {
                 (o) =>
                   polarity(o) === "harm" &&
                   chebyshevSquares(combatant.token, o.token, gridSize) <=
-                    rangeSquares,
+                    rangeSquares &&
+                  // #91: the harm-direction effect is a single-target
+                  // ranged/touch spell like any other attack spell here —
+                  // it needs the same wall check.
+                  canSee(o),
               )
               .map((o) => ({ id: o.id, name: o.name }));
             const healTargets = rawAllies
@@ -2930,6 +3042,12 @@ export async function getPendingAgentTurn(combat) {
                 chebyshevSquares(combatant.token, c.token, gridSize) <=
                 rangeSquares,
             )
+            // #91: only ever gates the opponent-facing (damage) pool — a
+            // heal-direction target-count spell still targets allies
+            // unconditionally, matching this file's existing, deliberate
+            // choice not to require a wall check for ally-targeting heal/
+            // buff spells (see hasLineOfSight's own callers above).
+            .filter((c) => isHealing || canSee(c))
             .filter(
               (c) =>
                 !isHealing ||

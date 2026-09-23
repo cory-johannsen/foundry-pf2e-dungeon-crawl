@@ -205,3 +205,88 @@ export function blockedEdgesFromWalls(walls, gridSize) {
     return false;
   };
 }
+
+/**
+ * Every unit grid cell the straight line from `start`'s own center to
+ * `goal`'s own center passes through, `start` first and `goal` last — an
+ * Amanatides–Woo grid raycast (#91's line-of-sight support), not a
+ * supercover walk: when the line passes exactly through a lattice corner
+ * (crossing a vertical and a horizontal cell boundary at the same point),
+ * this takes that one diagonal step rather than the two orthogonal
+ * "staircase" steps a supercover walk would also visit, since only the
+ * corner-touching cell is actually on the line itself. Every consecutive
+ * pair of cells this returns is therefore one of `findPath`'s own 8
+ * adjacent directions, so `hasLineOfSight` below can reuse the exact same
+ * `isBlocked(a, b)` edge predicate `findPath`/`blockedEdgesFromWalls`
+ * already use for movement.
+ */
+function cellsAlongLine(start, goal) {
+  const cells = [{ gx: start.gx, gy: start.gy }];
+  if (start.gx === goal.gx && start.gy === goal.gy) return cells;
+
+  const x0 = start.gx + 0.5;
+  const y0 = start.gy + 0.5;
+  const dx = goal.gx + 0.5 - x0;
+  const dy = goal.gy + 0.5 - y0;
+  const stepX = dx > 0 ? 1 : dx < 0 ? -1 : 0;
+  const stepY = dy > 0 ? 1 : dy < 0 ? -1 : 0;
+  const tDeltaX = stepX !== 0 ? Math.abs(1 / dx) : Infinity;
+  const tDeltaY = stepY !== 0 ? Math.abs(1 / dy) : Infinity;
+
+  let gx = start.gx;
+  let gy = start.gy;
+  let tMaxX = stepX !== 0 ? ((stepX > 0 ? gx + 1 : gx) - x0) / dx : Infinity;
+  let tMaxY = stepY !== 0 ? ((stepY > 0 ? gy + 1 : gy) - y0) / dy : Infinity;
+
+  const EPS = 1e-9;
+  while (gx !== goal.gx || gy !== goal.gy) {
+    if (stepX !== 0 && stepY !== 0 && Math.abs(tMaxX - tMaxY) < EPS) {
+      gx += stepX;
+      gy += stepY;
+      tMaxX += tDeltaX;
+      tMaxY += tDeltaY;
+    } else if (tMaxX < tMaxY) {
+      gx += stepX;
+      tMaxX += tDeltaX;
+    } else {
+      gy += stepY;
+      tMaxY += tDeltaY;
+    }
+    cells.push({ gx, gy });
+  }
+  return cells;
+}
+
+/**
+ * Whether a straight, unobstructed line exists between `start` and `goal`
+ * (plain `{gx, gy}` grid squares) given the same `isBlocked(a, b)` edge
+ * predicate `findPath` consumes — #91: ranged/spell target eligibility
+ * needs "is there a clear shot" (an arbitrary-distance straight line).
+ * Reuses `cellsAlongLine`'s own straight-line cell walk, then checks every
+ * consecutive pair it visits against `isBlocked` exactly like `findPath`
+ * already does for its own steps: an orthogonal step is blocked whenever
+ * `isBlocked` says so directly, and a diagonal step (the line passing
+ * exactly through a lattice corner) is blocked if EITHER flanking
+ * orthogonal edge around that corner is blocked — the identical
+ * corner-cutting rule `findPath` already applies to movement (see its own
+ * docblock), so a line of sight refuses to clip a wall corner exactly the
+ * same way a Stride refuses to cut one.
+ */
+export function hasLineOfSight(start, goal, isBlocked) {
+  const cells = cellsAlongLine(start, goal);
+  for (let i = 1; i < cells.length; i += 1) {
+    const a = cells[i - 1];
+    const b = cells[i];
+    const diagonal = a.gx !== b.gx && a.gy !== b.gy;
+    if (diagonal) {
+      const flankA = { gx: b.gx, gy: a.gy };
+      const flankB = { gx: a.gx, gy: b.gy };
+      const blockedNearSource = isBlocked(a, flankA) || isBlocked(a, flankB);
+      const blockedNearTarget = isBlocked(flankA, b) || isBlocked(flankB, b);
+      if (blockedNearSource || blockedNearTarget) return false;
+    } else if (isBlocked(a, b)) {
+      return false;
+    }
+  }
+  return true;
+}
