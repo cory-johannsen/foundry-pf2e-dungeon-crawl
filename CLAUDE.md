@@ -35,6 +35,16 @@ skip or bypass: `assigned` → `spec` → `planned` → `in progress` → done
 (issue closed). Each label replaces the previous one — an issue carries
 at most one lifecycle label at a time.
 
+- **Every piece of real work needs a claimed issue before it starts** —
+  not just feature/bug work that already has one filed. This includes
+  operational/infrastructure work (deploying a service, standing up local
+  tooling, configuring environment/settings) that doesn't touch code in a
+  PR-able way. If no issue exists yet for what you're about to do, create
+  one first, then claim it, then start — in that order, same turn. The
+  point is collision avoidance between concurrent sessions: an unticketed
+  task is invisible to everyone else, so nothing stops two sessions from
+  doing the same deployment or touching the same shared infrastructure at
+  once.
 - Update an issue's progress table/comment in the same turn the state
   actually changes — chunk start, meaningful progress counts, chunk
   completion, a deferred item, a real bug found — not batched up for later.
