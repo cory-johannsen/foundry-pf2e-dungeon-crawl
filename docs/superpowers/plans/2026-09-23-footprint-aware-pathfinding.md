@@ -479,33 +479,47 @@ describe("footprint-aware movement (#140)", () => {
       WALL_DOOR_TYPES: { NONE: 0, DOOR: 1, SECRET: 2 },
       WALL_DOOR_STATES: { CLOSED: 0, OPEN: 1, LOCKED: 2 },
     };
-    // A 2x2 mover approaching a 1x1 blocker that sits one square past the
-    // mover's own reach: the mover's footprint would overlap the blocker's
-    // square if it advanced its full speed, so it must stop one square
-    // short instead of straddling the blocker.
+    // Corrected during Task 2's own review: the original version of this
+    // test placed the blocker such that whichever candidate cell got
+    // blocked was always superseded by a later free candidate regardless
+    // of footprint width, so its final landing cell never actually
+    // differed between a 1x1 and a footprint-aware landing check -- it
+    // passed even with the footprint threading reverted entirely.
+    //
+    // Speed-limited to exactly 3 squares (not the target-proximity stop
+    // clamp, which never triggers here -- target is far away) so the only
+    // reachable candidates are gx=1, 2, 3. A 1x1 blocker sits at gx=3: a
+    // 1-wide mover can land right next to it at gx=2 (footprint gx=2..2
+    // doesn't reach column 3), but a 2-wide mover's own footprint at
+    // gx=2 already spans columns 2-3, reaching straight into the
+    // blocker's own square -- it must stop one square further back, at
+    // gx=1, where a 2-wide footprint (columns 1-2) still doesn't reach
+    // column 3. The two footprint sizes are forced to genuinely
+    // different final landing cells.
     const mover = makeCombatant({
       id: "mover",
       x: 0,
       y: 0,
       width: 2,
       height: 2,
-      speedFt: 20,
+      speedFt: 15,
     });
-    const blocker = makeCombatant({ id: "blocker", x: 2 * GRID_SIZE, y: 0 });
+    const blocker = makeCombatant({ id: "blocker", x: 3 * GRID_SIZE, y: 0 });
     const target = makeCombatant({
       id: "target",
-      x: 6 * GRID_SIZE,
+      x: 10 * GRID_SIZE,
       y: 0,
     });
     const combat = makeCombat({ combatants: [mover, blocker, target] });
 
     await stepToward(combat, mover, target, 10);
 
-    // The mover's own 2x2 footprint from its landing cell must not overlap
-    // the blocker's (2,0) square.
-    const landedGx = Math.round(mover.token.x / GRID_SIZE);
-    const overlapsBlocker = landedGx <= 2 && landedGx + 2 > 2;
-    expect(overlapsBlocker).toBe(false);
+    // A 2-wide mover must land at gx=1, one square further back than a
+    // 1-wide mover (which would land at gx=2) -- this is only true when
+    // the landing check actually accounts for the mover's own footprint
+    // width.
+    expect(mover.token.x).toBe(1 * GRID_SIZE);
+    expect(mover.token.y).toBe(0);
   });
 });
 ```
