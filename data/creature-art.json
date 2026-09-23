@@ -7086,5 +7086,125 @@
     "name": "Dedicated Druid",
     "level": 7,
     "art": "dedicated-druid.webp"
+  },
+  {
+    "id": "demonologist",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "hR9n5d0tfyOkeZFb",
+    "name": "Demonologist",
+    "level": 7,
+    "art": "demonologist.webp"
+  },
+  {
+    "id": "departmental_chair",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "MxcprNbX7hcpAU8p",
+    "name": "Departmental Chair",
+    "level": 7,
+    "art": "departmental-chair.webp"
+  },
+  {
+    "id": "elasmosaurus",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "czYNR3AktDDQYDUB",
+    "name": "Elasmosaurus",
+    "level": 7,
+    "art": "elasmosaurus.webp"
+  },
+  {
+    "id": "elephant",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "1x0BdpVQLX7o3rrA",
+    "name": "Elephant",
+    "level": 7,
+    "art": "elephant.webp"
+  },
+  {
+    "id": "empress_bore_worm",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "FOG8qK1bWVxp7vmE",
+    "name": "Empress Bore Worm",
+    "level": 7,
+    "art": "empress-bore-worm.webp"
+  },
+  {
+    "id": "empress_ice_worm",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "Rgy8OyRY5szgE6d0",
+    "name": "Empress Ice Worm",
+    "level": 7,
+    "art": "empress-ice-worm.webp"
+  },
+  {
+    "id": "empress_lava_worm",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "YsgpbtWVT3q0OLWv",
+    "name": "Empress Lava Worm",
+    "level": 7,
+    "art": "empress-lava-worm.webp"
+  },
+  {
+    "id": "empress_mage_eater_worm",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "JGpz9B0QkkAcHT4e",
+    "name": "Empress Mage-Eater Worm",
+    "level": 7,
+    "art": "empress-mage-eater-worm.webp"
+  },
+  {
+    "id": "empress_necral_worm",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "XnHmGsR7bQCHTMdA",
+    "name": "Empress Necral Worm",
+    "level": 7,
+    "art": "empress-necral-worm.webp"
+  },
+  {
+    "id": "experienced_hound",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "KOgFliu3yM3avhv5",
+    "name": "Experienced Hound",
+    "level": 7,
+    "art": "experienced-hound.webp"
+  },
+  {
+    "id": "fleshwarper",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "kbZstaIc8R4Ce9A3",
+    "name": "Fleshwarper",
+    "level": 7,
+    "art": "fleshwarper.webp"
+  },
+  {
+    "id": "frost_drake",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "2SixuEUfKpEyfOEY",
+    "name": "Frost Drake",
+    "level": 7,
+    "art": "frost-drake.webp"
+  },
+  {
+    "id": "gang_leader",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "AdZ4EklEmpHViycl",
+    "name": "Gang Leader",
+    "level": 7,
+    "art": "gang-leader.webp"
+  },
+  {
+    "id": "giant_animated_statue",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "I00S3LWnDJfCn4zv",
+    "name": "Giant Animated Statue",
+    "level": 7,
+    "art": "giant-animated-statue.webp"
+  },
+  {
+    "id": "giant_jellyfish",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "klE1DOebNsmqmmzh",
+    "name": "Giant Jellyfish",
+    "level": 7,
+    "art": "giant-jellyfish.webp"
   }
 ]
