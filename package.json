@@ -14,9 +14,7 @@
     "tokens:import": "node tools/import-token.mjs",
     "prompts": "node tools/token-prompts.mjs",
     "architecture:graph": "node tools/generate-architecture-graph.mjs",
-    "agent-loop": "node tools/agent-loop/poll.mjs",
-    "agent-loop-watch": "node tools/agent-loop/watch-pending.mjs",
-    "agent-bridge-mcp": "node tools/agent-loop/mcp-server.mjs",
+    "agent-service": "node tools/agent-service/entrypoint.mjs",
     "format": "prettier --write ."
   },
   "devDependencies": {
