@@ -72,9 +72,14 @@ function footprintBlocked(current, dx, dy, isBlocked, footprint) {
   return false;
 }
 
-/** Whether the mover's footprint is valid at a position — all cells within
- * the footprint must be connected without any walls running through them.
- * A 1×1 footprint is always valid. */
+/** Whether the mover's footprint is valid at a position — every internal
+ * adjacent-cell pair within the footprint (each cell and its right neighbor,
+ * each cell and its bottom neighbor) must be unblocked. This is stricter
+ * than "the footprint's interior is topologically connected": a single
+ * blocked internal edge fails this check even when the rest of the interior
+ * is still reachable by going around it, because a solid creature's body
+ * can't have a wall segment running through any part of it, corner or not.
+ * A 1×1 footprint has no internal pairs to check and is always valid. */
 function footprintValid(position, isBlocked, footprint) {
   for (let fx = 0; fx < footprint.gw; fx += 1) {
     for (let fy = 0; fy < footprint.gh; fy += 1) {
@@ -137,6 +142,7 @@ export function findPath(
   maxExpansions = 20000,
   footprint = { gw: 1, gh: 1 },
 ) {
+  if (!footprintValid(start, isBlocked, footprint)) return null;
   if (start.gx === goal.gx && start.gy === goal.gy) return [{ ...start }];
   if (!inBounds(goal, bounds)) return null;
 

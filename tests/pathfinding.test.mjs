@@ -178,6 +178,31 @@ describe("findPath", () => {
     );
     expect(withDefault).toEqual(withoutParam);
   });
+
+  it("returns null when start itself has an invalid footprint (a wall runs through its own interior)", () => {
+    // A 2x2 mover starting at (0,0) covers (0,0),(1,0),(0,1),(1,1). A wall
+    // between (0,0) and (1,0) -- an edge internal to the footprint itself,
+    // never crossed by any transition -- means this starting position is
+    // invalid regardless of where the mover is trying to go.
+    const isBlocked = (a, b) =>
+      (a.gx === 0 && a.gy === 0 && b.gx === 1 && b.gy === 0) ||
+      (a.gx === 1 && a.gy === 0 && b.gx === 0 && b.gy === 0);
+    const start = { gx: 0, gy: 0 };
+    const footprint = { gw: 2, gh: 2 };
+
+    // A different goal: must not return a path, even though the goal itself
+    // and every transition edge toward it are perfectly open.
+    expect(
+      findPath(start, { gx: 5, gy: 5 }, isBlocked, null, 20000, footprint),
+    ).toBeNull();
+
+    // The degenerate start === goal case must also refuse -- not shortcut to
+    // a trivial 1-cell path -- since the mover's own footprint doesn't fit
+    // at that cell regardless of whether it needs to move at all.
+    expect(
+      findPath(start, { ...start }, isBlocked, null, 20000, footprint),
+    ).toBeNull();
+  });
 });
 
 describe("blockedEdgesFromWalls", () => {
