@@ -8582,5 +8582,141 @@
     "name": "Nabasu",
     "level": 8,
     "art": "nabasu.webp"
+  },
+  {
+    "id": "treerazer",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "P8pNcpNeXQcj6lBB",
+    "name": "Treerazer",
+    "level": 25,
+    "art": "treerazer.webp"
+  },
+  {
+    "id": "green_man",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "vpXcLtLPWNRGSQWA",
+    "name": "Green Man",
+    "level": 24,
+    "art": "green-man.webp"
+  },
+  {
+    "id": "hekatonkheires_titan",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "TWr3kyBo1FhAX2oH",
+    "name": "Hekatonkheires Titan",
+    "level": 24,
+    "art": "hekatonkheires-titan.webp"
+  },
+  {
+    "id": "sorvuth_ka",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "yRZhGvSBQSShp9HF",
+    "name": "Sorvuth-Ka",
+    "level": 24,
+    "art": "sorvuth-ka.webp"
+  },
+  {
+    "id": "danava_titan",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "l3ULL4wKnaoOZ51P",
+    "name": "Danava Titan",
+    "level": 23,
+    "art": "danava-titan.webp"
+  },
+  {
+    "id": "jabberwock",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "Y0qsrBFTFMbaiLzr",
+    "name": "Jabberwock",
+    "level": 23,
+    "art": "jabberwock.webp"
+  },
+  {
+    "id": "solar",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "c4uQKZaRWv9n9IHo",
+    "name": "Solar",
+    "level": 23,
+    "art": "solar.webp"
+  },
+  {
+    "id": "thanatotic_titan",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Ww4WnWmMJcfqZlCX",
+    "name": "Thanatotic Titan",
+    "level": 22,
+    "art": "thanatotic-titan.webp"
+  },
+  {
+    "id": "volnagur",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "XVEpt8dz9fMBXROb",
+    "name": "Volnagur",
+    "level": 22,
+    "art": "volnagur.webp"
+  },
+  {
+    "id": "lerritan",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "xfcFXLbadD3KdlHW",
+    "name": "Lerritan",
+    "level": 21,
+    "art": "lerritan.webp"
+  },
+  {
+    "id": "mu_spore",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "VUJrPHKOjYkIQnWn",
+    "name": "Mu Spore",
+    "level": 21,
+    "art": "mu-spore.webp"
+  },
+  {
+    "id": "tor_linnorm",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "0H54u83vZ1w3xHcD",
+    "name": "Tor Linnorm",
+    "level": 21,
+    "art": "tor-linnorm.webp"
+  },
+  {
+    "id": "elysian_titan",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "synED0IrMbFHimtc",
+    "name": "Elysian Titan",
+    "level": 21,
+    "art": "elysian-titan.webp"
+  },
+  {
+    "id": "ouroboros",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "rrkjmcNlODuIpbz6",
+    "name": "Ouroboros",
+    "level": 21,
+    "art": "ouroboros.webp"
+  },
+  {
+    "id": "ravener",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "iOYLNPBikuBfVBDu",
+    "name": "Ravener",
+    "level": 21,
+    "art": "ravener.webp"
+  },
+  {
+    "id": "grim_reaper",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "kKFfigxrJ2vbJazp",
+    "name": "Grim Reaper",
+    "level": 21,
+    "art": "grim-reaper.webp"
+  },
+  {
+    "id": "krampus",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "hOgYpdscvGo4MHHo",
+    "name": "Krampus",
+    "level": 21,
+    "art": "krampus.webp"
   }
 ]
