@@ -61,6 +61,15 @@ import {
 const MODULE_ID = "pf2e-dungeon-crawl";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
+// Same escape-before-interpolating-into-chat-HTML convention as
+// dungeon-combat.mjs's postReactiveStrikeChat and dungeon-critical-deck.mjs's
+// `esc` -- a drawn item's name (#88) is real PF2e compendium content, not
+// player input, but nothing here guarantees it can never carry HTML-special
+// characters.
+function escapeHtml(value) {
+  return foundry.utils.escapeHTML?.(String(value)) ?? String(value);
+}
+
 const ROOM_KIND_KEYS = {
   combat: "PF2EDC.Dungeon.Kind.combat",
   skill_challenge: "PF2EDC.Dungeon.Kind.skill_challenge",
@@ -149,9 +158,7 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
     );
     const trapLevel = trapToken?.actor?.system?.details?.level?.value;
     const levelOffset =
-      trapLevel != null
-        ? trapLevel - (await makeFoundryApi().partyLevel())
-        : 0;
+      trapLevel != null ? trapLevel - (await makeFoundryApi().partyLevel()) : 0;
     await makeFoundryApi().grantPartyXp(xpFor(levelOffset));
   }
   const { state, effectKey, mutation, nextRoomId, nextPhysicalSlot } =
@@ -353,12 +360,28 @@ const FRIENDLY_AID_LEVEL_OFFSET = -4;
  * outcome-slot key (#31), which draws the same reward from a different
  * room kind rather than a second, lesser concept of what "treasure" means.
  */
-async function grantTreasureReward(api, { partyLevel, physicalSlot, roomCount, isGoal }) {
-  const gp = lootGpForTreasureRoom({ partyLevel, physicalSlot, roomCount, isGoal });
+export async function grantTreasureReward(
+  api,
+  { partyLevel, physicalSlot, roomCount, isGoal },
+) {
+  const gp = lootGpForTreasureRoom({
+    partyLevel,
+    physicalSlot,
+    roomCount,
+    isGoal,
+  });
   await api.addCoins(game.actors.party.id, { gp });
-  ui.notifications.info(
-    game.i18n.format("PF2EDC.Dungeon.Treasure.Found", { gp }),
-  );
+  // #88: ui.notifications is a local, ephemeral toast on whichever client
+  // calls it -- never broadcast or persisted -- so a party member other
+  // than that one client never saw their own treasure reward. Posted to
+  // the public chat log instead, same as this module's other reward/outcome
+  // announcements (see dungeon-combat.mjs's postReactiveStrikeChat,
+  // dungeon-critical-deck.mjs's drawAndApplyCriticalCard): no ui.notifications
+  // toast alongside it, since none of those cited chat-post conventions
+  // double up a GM-local toast for the same event either.
+  await ChatMessage.create({
+    content: game.i18n.format("PF2EDC.Dungeon.Treasure.Found", { gp }),
+  });
   const tableName = treasureRoomItemTableName({
     partyLevel,
     physicalSlot,
@@ -371,11 +394,11 @@ async function grantTreasureReward(api, { partyLevel, physicalSlot, roomCount, i
     await game.actors.party.createEmbeddedDocuments("Item", [
       itemDoc.toObject(),
     ]);
-    ui.notifications.info(
-      game.i18n.format("PF2EDC.Dungeon.Treasure.ItemFound", {
-        item: itemDoc.name,
+    await ChatMessage.create({
+      content: game.i18n.format("PF2EDC.Dungeon.Treasure.ItemFound", {
+        item: escapeHtml(itemDoc.name),
       }),
-    );
+    });
   }
 }
 
@@ -391,7 +414,12 @@ async function applyRoomEffect(
     case "treasure": {
       if (!game.actors.party) return;
       const partyLevel = await api.partyLevel();
-      await grantTreasureReward(api, { partyLevel, physicalSlot, roomCount, isGoal });
+      await grantTreasureReward(api, {
+        partyLevel,
+        physicalSlot,
+        roomCount,
+        isGoal,
+      });
       return;
     }
     case "exhaustion":
@@ -639,7 +667,12 @@ export async function claimTreasureFor(sceneId) {
     const partyLevel = await api.partyLevel();
     const roomCount = state.rooms.length;
     const isGoal = currentRoom.isGoal;
-    await grantTreasureReward(api, { partyLevel, physicalSlot, roomCount, isGoal });
+    await grantTreasureReward(api, {
+      partyLevel,
+      physicalSlot,
+      roomCount,
+      isGoal,
+    });
   }
   await resolveCurrentRoom(true, { scene });
 }
@@ -804,12 +837,16 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
         traitsFieldHtml: traitFieldHtml({
           name: "traits",
           label: game.i18n.localize("PF2EDC.Encounter.ThemeLabel"),
-          buttonLabel: game.i18n.localize("PF2EDC.Encounter.ChooseTraitsButton"),
+          buttonLabel: game.i18n.localize(
+            "PF2EDC.Encounter.ChooseTraitsButton",
+          ),
         }),
         excludeTraitsFieldHtml: traitFieldHtml({
           name: "excludeTraits",
           label: game.i18n.localize("PF2EDC.Encounter.ExcludeTraitsLabel"),
-          buttonLabel: game.i18n.localize("PF2EDC.Encounter.ChooseTraitsButton"),
+          buttonLabel: game.i18n.localize(
+            "PF2EDC.Encounter.ChooseTraitsButton",
+          ),
         }),
       };
     }
@@ -1068,7 +1105,10 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
           name: puzzle?.name ?? narrative?.name ?? trap?.name ?? setpiece.name,
           summary: puzzle?.summary ?? narrative?.summary ?? setpiece.summary,
           playerDescription:
-            puzzle?.playerDescription ?? trap?.description ?? setpiece.playerDescription ?? null,
+            puzzle?.playerDescription ??
+            trap?.description ??
+            setpiece.playerDescription ??
+            null,
           complete: setpiece.complete,
         },
       },
