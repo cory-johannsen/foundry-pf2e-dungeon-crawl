@@ -87,6 +87,16 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
     for (const actorId of aiControlledIds) {
       const token = scene.tokens.find((t) => t.actor?.id === actorId);
       if (!token) continue;
+      // #86: correct a follower's own off-grid position (e.g. from a
+      // manual, unsnapped drag in Foundry's own UI) before
+      // findFollowMove's "already-near" status can skip straight past it
+      // without ever calling `update()` at all -- mirrors
+      // dungeon-combat.mjs's own `snapTokenToGrid`.
+      const snappedX = Math.round(token.x / gridSize) * gridSize;
+      const snappedY = Math.round(token.y / gridSize) * gridSize;
+      if (token.x !== snappedX || token.y !== snappedY) {
+        await token.update({ x: snappedX, y: snappedY });
+      }
       const fromCell = tokenCell(token, gridSize);
       const result = findFollowMove(
         fromCell,

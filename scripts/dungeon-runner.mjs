@@ -353,6 +353,108 @@ export function canUndoRoomEntry(state) {
   return !state.history.some((h) => h.roomId === state.lastAutoEntry.roomId);
 }
 
+/**
+ * Every room #62's GM-less precalculation should build eagerly at run
+ * start, as `{room, physicalSlot}` pairs in build order — every room in
+ * the base sequence except room 0 (the entry, built separately by
+ * startDungeonRun itself) and a combat-kind room at index 1, which keeps
+ * the existing manual "Populate Next Room" deferral (ITEM-11) regardless
+ * of host. A room's index into `state.rooms` is its physical slot here —
+ * this only ever runs once, before any door has been opened or any slot
+ * reassigned, so slot-per-index always holds at this point.
+ */
+export function roomsToEagerlyBuild(state) {
+  const result = [];
+  for (let i = 1; i < state.rooms.length; i += 1) {
+    const room = state.rooms[i];
+    if (i === 1 && room.kind === "combat") continue;
+    result.push({ room, physicalSlot: i });
+  }
+  return result;
+}
+
+/**
+ * What a GM-less-hosted run's already-eagerly-built physical slots need
+ * after a Reward/Ruin sequence mutation (#62) — computed by comparing the
+ * "natural" slot for each still-unplayed room (physicalSlot === its index
+ * into the now-mutated state.rooms, the same invariant roomsToEagerlyBuild
+ * used when it originally built everything) against what was actually
+ * built there before the mutation. Geometry never needs to change (a pure
+ * function of slot number, confirmed in the design doc) — only which
+ * logical room's CONTENT occupies a slot does.
+ */
+export function roomsNeedingResync(
+  state,
+  previousPhysicalSlotByRoomId,
+  mutationBoundaryIndex,
+) {
+  const previousRoomIdBySlot = {};
+  for (const [roomId, slot] of Object.entries(previousPhysicalSlotByRoomId)) {
+    previousRoomIdBySlot[slot] = roomId;
+  }
+
+  const toRebuild = [];
+  const usedSlots = new Set();
+  for (let i = mutationBoundaryIndex + 1; i < state.rooms.length; i += 1) {
+    const room = state.rooms[i];
+    const physicalSlot = i;
+    usedSlots.add(physicalSlot);
+    const previousRoomId = previousRoomIdBySlot[physicalSlot] ?? null;
+    if (previousRoomId !== room.id) {
+      toRebuild.push({ room, physicalSlot, previousRoomId });
+    }
+  }
+
+  const maxPreviousSlot = Object.values(previousPhysicalSlotByRoomId).reduce(
+    (max, slot) => Math.max(max, slot),
+    -1,
+  );
+  const toOrphan = [];
+  for (
+    let slot = mutationBoundaryIndex + 1;
+    slot <= maxPreviousSlot;
+    slot += 1
+  ) {
+    if (previousRoomIdBySlot[slot] != null && !usedSlots.has(slot)) {
+      toOrphan.push(slot);
+    }
+  }
+
+  const toExtend = toRebuild
+    .filter(({ physicalSlot }) => physicalSlot > maxPreviousSlot)
+    .map(({ room, physicalSlot }) => ({ room, physicalSlot }));
+
+  return { toRebuild, toOrphan, toExtend };
+}
+
+/**
+ * Persists the physical-slot assignments startDungeonRun's eager GM-less
+ * build loop already made in memory (#62) — without this, the run's
+ * tracked physicalSlotByRoomId/nextPhysicalSlot bookkeeping would never
+ * learn those rooms were built, and markRoomOutcome's own reuse-or-allocate
+ * logic (which already correctly handles "this room's slot may already be
+ * assigned" for the lazy/mutation case) would reassign colliding slots via
+ * its counter instead of reusing them. `eagerlyBuilt` is exactly what
+ * roomsToEagerlyBuild(state) returned — {room, physicalSlot} pairs, any
+ * order.
+ */
+export async function commitEagerPhysicalSlots(
+  sceneId,
+  eagerlyBuilt,
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return state;
+  const physicalSlotByRoomId = { ...state.physicalSlotByRoomId };
+  let nextPhysicalSlot = state.nextPhysicalSlot;
+  for (const { room, physicalSlot } of eagerlyBuilt) {
+    physicalSlotByRoomId[room.id] = physicalSlot;
+    nextPhysicalSlot = Math.max(nextPhysicalSlot, physicalSlot + 1);
+  }
+  const newState = { ...state, physicalSlotByRoomId, nextPhysicalSlot };
+  return persist(sceneId, newState, settingsRef);
+}
+
 export async function undoLastRoomEntry(
   { sceneId },
   { settingsRef = defaultSettingsRef() } = {},
@@ -467,6 +569,33 @@ export async function ensureSkillChallenge(
   };
   const rooms = state.rooms.map((r) =>
     r.id === roomId ? { ...r, challenge } : r,
+  );
+  const newState = { ...state, rooms };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/**
+ * Teardown counterpart to `ensureSkillChallenge` above (#62 mutation
+ * reconciliation) — clears `roomId`'s own `challenge` state back to `null`
+ * so a later `ensureSkillChallenge` call (once a Reward/Ruin mutation
+ * changes which logical room occupies this physical slot) attaches fresh
+ * state instead of finding the old room's `challenge` still set and
+ * treating it as "already attached." A no-op (no persist) if that room has
+ * no `challenge` at all, the same no-op shape `ensureSkillChallenge` itself
+ * uses.
+ */
+export async function clearSkillChallengeState(
+  sceneId,
+  roomId,
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms.find((r) => r.id === roomId);
+  if (!room || !room.challenge) return state;
+  const rooms = state.rooms.map((r) =>
+    r.id === roomId ? { ...r, challenge: null } : r,
   );
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
@@ -649,6 +778,32 @@ export async function ensurePuzzleState(
 }
 
 /**
+ * Teardown counterpart to `ensurePuzzleState` above (#62 mutation
+ * reconciliation) — clears `roomId`'s own `puzzle` state back to `null` so
+ * a later `ensurePuzzleState` call (once a Reward/Ruin mutation changes
+ * which logical room occupies this physical slot) attaches fresh state
+ * instead of finding the old room's `puzzle` still set and treating it as
+ * "already attached." A no-op (no persist) if that room has no `puzzle` at
+ * all, the same no-op shape `ensurePuzzleState` itself uses.
+ */
+export async function clearPuzzleState(
+  sceneId,
+  roomId,
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms.find((r) => r.id === roomId);
+  if (!room || !room.puzzle) return state;
+  const rooms = state.rooms.map((r) =>
+    r.id === roomId ? { ...r, puzzle: null } : r,
+  );
+  const newState = { ...state, rooms };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/**
  * Lazily attaches a trap's real name/description (#56) to `roomId`'s own
  * room object the first time it's needed — a no-op if that room already
  * has a `trap` state, the same "first attach wins" shape `ensurePuzzleState`
@@ -672,6 +827,34 @@ export async function ensureTrapState(
   if (!room || room.trap) return state;
   const trap = { name, description };
   const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, trap } : r));
+  const newState = { ...state, rooms };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/**
+ * Teardown counterpart to `ensureTrapState` above (#62 mutation
+ * reconciliation) — clears `roomId`'s own `trap` state back to `null` so a
+ * later `ensureTrapState` call (once a Reward/Ruin mutation changes which
+ * logical room occupies this physical slot) attaches fresh state instead of
+ * finding the old room's `trap` still set and treating it as "already
+ * attached." A no-op (no persist) if that room has no `trap` at all, the
+ * same no-op shape `clearPuzzleState` itself uses. `dungeon-scene.mjs`'s
+ * `clearSlotTrap` handles the Foundry-side hazard actor/token teardown;
+ * this is the room-state-only counterpart the caller runs alongside it.
+ */
+export async function clearTrapState(
+  sceneId,
+  roomId,
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms.find((r) => r.id === roomId);
+  if (!room || !room.trap) return state;
+  const rooms = state.rooms.map((r) =>
+    r.id === roomId ? { ...r, trap: null } : r,
+  );
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -856,6 +1039,33 @@ export async function ensureNarrativeState(
   };
   const rooms = state.rooms.map((r) =>
     r.id === roomId ? { ...r, narrative } : r,
+  );
+  const newState = { ...state, rooms };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/**
+ * Teardown counterpart to `ensureNarrativeState` above (#62 mutation
+ * reconciliation) — clears `roomId`'s own `narrative` state back to `null`
+ * so a later `ensureNarrativeState` call (once a Reward/Ruin mutation
+ * changes which logical room occupies this physical slot) attaches the new
+ * room's own setpiece content instead of finding the old room's
+ * `narrative` still set and treating it as "already attached." A no-op (no
+ * persist) if that room has no `narrative` at all, the same no-op shape
+ * `ensureNarrativeState` itself uses.
+ */
+export async function clearNarrativeState(
+  sceneId,
+  roomId,
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms.find((r) => r.id === roomId);
+  if (!room || !room.narrative) return state;
+  const rooms = state.rooms.map((r) =>
+    r.id === roomId ? { ...r, narrative: null } : r,
   );
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);

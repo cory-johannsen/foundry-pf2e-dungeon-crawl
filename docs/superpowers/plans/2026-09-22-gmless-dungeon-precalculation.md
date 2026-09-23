@@ -898,6 +898,301 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 ---
 
+## Revision 2 (2026-09-22, later the same day): Task 7 added after a second final-review stop
+
+Tasks 1-6 above are DONE and independently verified correct (commits
+through `61ce825` on branch `worktree-agent-aa5921258df7bf67c`). The final
+whole-branch review found one more Critical bug, rooted in the same class
+of false premise as the first (a design-doc claim that turned out to be
+true-but-incomplete), not implementer error. Full trace: the controller's
+own stop report in this session, and the revised design doc's "Second gap"
+paragraph (`docs/superpowers/specs/2026-09-22-gmless-dungeon-precalculation-design.md`).
+
+Global Constraints update: **the prior blanket ban on touching
+`buildRoomAtSlot`/`dungeon-layout.mjs` is lifted, narrowly** — Task 7 may
+add wall *flags* (metadata) to `roomEnclosureWalls`'s consumption in
+`buildRoomAtSlot`. It may NOT change any geometry-shape function's actual
+output — `roomSizeAt`, `slotRowCol`, `slotRect`, `roomSides`,
+`outgoingFaceWall`, `doorOffsetAt`, `buildConnectionGeometry`,
+`connectionDirection` all keep returning exactly what they return today,
+for the same inputs. `applySequenceMutation` (`dungeon-deck.mjs`) remains
+untouched, same as before.
+
+### Task 7: Goal-room outgoing-connection retrofit
+
+**Files:**
+- Modify: `scripts/dungeon-scene.mjs` (`buildRoomAtSlot`'s wall creation, currently lines 177-267 per this plan's Task 3 changes — re-verify exact lines, other work may have shifted them; new `openGoalRoomExit` function near it)
+- Modify: `scripts/ui/dungeon-app.mjs` (`resolveCurrentRoom`'s re-sync wiring from Task 6)
+- Test: no automated test possible for the Foundry-heavy pieces (same boundary as the rest of `dungeon-scene.mjs`) — verified via live verification + hand-trace, per Step 4-5 below
+
+**Interfaces:**
+- Consumes: `connectionDirection(slot)`, `outgoingFaceWall(seed, slot)` (`dungeon-layout.mjs`, already exported, unchanged). `roomsNeedingResync`'s `toRebuild` entries (`{room, physicalSlot, previousRoomId}`, Task 5) and whatever pre-mutation snapshot Task 6 already captures.
+- Produces: `async function openGoalRoomExit(scene, slot, seed)` in `dungeon-scene.mjs` — no return value needed (matches this file's other void-returning mutation helpers like `unlockDoorToSlot`).
+
+- [ ] **Step 1: Read the current exact code before editing**
+
+Read `buildRoomAtSlot`'s full current body (`scripts/dungeon-scene.mjs`) and confirm: (a) the exact line where `roomEnclosureWalls(...).map((side) => wallDoc(side))` builds the regular enclosure walls (no flags today), (b) the exact shape of the `if (!isGoal) { ... }` frontier-placeholder block (already read once during this plan's research — reconfirm it hasn't shifted), (c) `wallDoc`'s own signature (used throughout this file already, confirm it accepts a `flags` option the same way the door-wall calls in the `if (slot > 0)` block already use it).
+
+- [ ] **Step 2: Tag enclosure walls with slot + direction**
+
+Change:
+
+```js
+const walls = roomEnclosureWalls(seed, slot, { hasOutgoing: !isGoal }).map(
+  (side) => wallDoc(side),
+);
+```
+
+to:
+
+```js
+const walls = roomEnclosureWalls(seed, slot, { hasOutgoing: !isGoal }).map(
+  (side) =>
+    wallDoc(side, {
+      flags: {
+        [MODULE_ID]: {
+          dungeonEnclosureWallForSlot: slot,
+          dungeonEnclosureWallDirection: side.dir,
+        },
+      },
+    }),
+);
+```
+
+Confirm `side.dir` is the actual field name `roomEnclosureWalls`'s returned objects carry (it should be, per `roomEnclosureWalls`'s own `.map(([dir, c]) => ({ dir, ...c }))` — re-confirm against the real code from Step 1, don't assume).
+
+- [ ] **Step 3: Implement `openGoalRoomExit`**
+
+Add near `buildRoomAtSlot` in `scripts/dungeon-scene.mjs`:
+
+```js
+/**
+ * Retrofits a slot originally built as the goal room (isGoal: true,
+ * hasOutgoing: false, no frontier placeholder) into a normal room with a
+ * real outgoing connection — needed when a sequence mutation (#62) shifts
+ * the goal to a new slot and a non-goal room ends up occupying this one.
+ * Finds and deletes the one enclosure wall on this slot's own connection
+ * direction (flagged by buildRoomAtSlot's own wall creation above), then
+ * creates the same frontier-placeholder wall a normal non-goal room gets
+ * from the start (buildRoomAtSlot's `if (!isGoal)` block) — after this,
+ * the existing, unmodified supersede-on-next-build logic in buildRoomAtSlot
+ * (the `if (slot > 0)` block) already knows how to find and replace a
+ * dungeonFrontierWallForSlot-flagged wall once the chain extends past it.
+ */
+export async function openGoalRoomExit(scene, slot, seed) {
+  const dir = connectionDirection(slot);
+  const staleWallIds = scene.walls
+    .filter(
+      (w) =>
+        w.getFlag(MODULE_ID, "dungeonEnclosureWallForSlot") === slot &&
+        w.getFlag(MODULE_ID, "dungeonEnclosureWallDirection") === dir,
+    )
+    .map((w) => w.id);
+  if (!staleWallIds.length) return;
+  await scene.createEmbeddedDocuments("Wall", [
+    wallDoc(outgoingFaceWall(seed, slot), {
+      flags: { [MODULE_ID]: { dungeonFrontierWallForSlot: slot } },
+    }),
+  ]);
+  await scene.deleteEmbeddedDocuments("Wall", staleWallIds);
+}
+```
+
+Note the create-then-delete order (matches the existing `if (slot > 0)` block's own comment about why — never delete before the replacement exists, to avoid a real vision/light-leak window). Confirm `connectionDirection` and `outgoingFaceWall` are already imported into this file from `dungeon-layout.mjs` (they're used elsewhere in this file already, per this plan's earlier research) — add them to the import if not.
+
+- [ ] **Step 4: Wire it into Task 6's re-sync step**
+
+Read Task 6's current code in `resolveCurrentRoom` (`scripts/ui/dungeon-app.mjs`) — the loop over `toRebuild` entries. Before that loop's existing `buildPopulateAndUnlockRoom` call for a given entry, add a check: if this entry's slot was previously the goal room's slot, call `openGoalRoomExit` first.
+
+You need to know whether `physicalSlot` was previously the goal's slot. The cleanest signal: capture, alongside the `previousPhysicalSlotByRoomId` snapshot Task 6 already takes before the mutation, which room id was flagged `isGoal` in the pre-mutation `state.rooms` (there is always exactly one). Then for each `toRebuild` entry, check whether its `previousRoomId` matches that captured goal-room id:
+
+```js
+const previousGoalRoomId = newState.rooms.find((r) => r.isGoal)?.id;
+// ...capture this from `state` BEFORE markRoomOutcome mutates it, same
+// timing as previousPhysicalSlotByRoomId — re-derive the exact variable
+// names from your own Step 1 read of the current code, this is the logic,
+// not a literal drop-in.
+```
+
+Wait — re-derive this carefully: the goal room's identity doesn't change across a mutation (`applySequenceMutation` never touches it, confirmed in the design doc), so `previousGoalRoomId` can be found from either the pre- or post-mutation `state.rooms` — they're the same room either way. What changes is which SLOT that room now occupies (a fresh one, via `toExtend`). So the actual check for `openGoalRoomExit` is simpler than the draft above: for each `toRebuild` entry, call `openGoalRoomExit(scene, physicalSlot, state.seed)` if `entry.previousRoomId === previousGoalRoomId` — i.e., if the room that USED TO occupy this slot (before re-sync) was the goal. Use `roomsNeedingResync`'s own `previousRoomId` field (Task 5) for this, not a fresh lookup.
+
+```js
+for (const { room, physicalSlot, previousRoomId } of toRebuild) {
+  if (previousRoomId === previousGoalRoomId) {
+    await openGoalRoomExit(scene, physicalSlot, newState.seed);
+  }
+  await clearSlotEncounter(scene, physicalSlot);
+  /* ...rest of Task 6's existing per-entry teardown+rebuild, unchanged... */
+}
+```
+
+Adjust variable names to match Task 6's actual current code (re-read via Step 1's own instruction — do not assume the names above are exactly what's there).
+
+- [ ] **Step 5: Run the full suite and format check**
+
+Run: `npm test`
+Expected: PASS, no regressions from the Task 1-6 baseline.
+
+Run: `npx prettier --check scripts/dungeon-scene.mjs scripts/ui/dungeon-app.mjs`
+
+- [ ] **Step 6: Attempt live verification**
+
+Same command/fallback as every prior task:
+
+```bash
+.claude/skills/foundry-rest/foundry-exec.sh <<'EOF'
+return { worldId: game.world.id, actorCount: game.actors.size };
+EOF
+```
+
+If reachable: start a GM-less run, force an `insert_after` (via `extra_travel_time`), and confirm the party can walk from the old goal's slot, through the newly-opened connection, to the new goal slot — no locked/missing wall, no vision leak. If unreachable (expected — every attempt across three sessions has failed so far), disclose it and rely on Step 7's hand-trace.
+
+- [ ] **Step 7: Self-review — hand-trace the exact scenario that broke this the first time**
+
+Write out, referencing exact line numbers in your own diff: an `insert_after` firing when the room immediately before the (old) goal resolves — confirm `openGoalRoomExit` is called for the slot the goal used to occupy, confirm it finds exactly one stale wall (the one on `connectionDirection(slot)`), confirm the replacement frontier-placeholder wall has the correct coordinates (matches `outgoingFaceWall(seed, slot)`, the same function a normal room's own build would have used), and confirm the NEW goal slot (via `toExtend`, already built by Task 6's existing code) gets real `isGoal: true` / `hasOutgoing: false` geometry, unaffected by any of this. Include this trace in your task report — this is exactly the class of bug that slipped through twice already, so don't skip it.
+
+- [ ] **Step 8: Update issue #62 and run `update-architecture-docs`**
+
+Post a progress comment on #62 marking Task 7 done. Run the `update-architecture-docs` skill once (per this repo's CLAUDE.md, required whenever a merge rewires `scripts/` imports — Tasks 3-7 together add several new cross-file exports).
+
+- [ ] **Step 9: Bump version and commit**
+
+Check `module.json`'s current version in your worktree (never reuse a prior number — other work keeps merging). Patch bump.
+
+```bash
+git add scripts/dungeon-scene.mjs scripts/ui/dungeon-app.mjs module.json docs/architecture.md
+git commit -m "Retrofit a relocated goal room's outgoing connection after a mutation (#62)
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+```
+
+---
+
+## Revision 3 (2026-09-22, same day): Task 8 added after a third final-review stop
+
+Tasks 1-7 above are DONE and independently verified correct (commits through
+`580c25e` on branch `worktree-agent-aa5921258df7bf67c`). Task 7's own
+adversarial final-review pass found a fourth instance of the same bug
+class — this one in the original Task 1 `roomsToEagerlyBuild` logic, not
+in any of the mutation-reconciliation work, and not requiring a mutation
+to trigger at all.
+
+**The bug:** a GM-less run whose room at index 1 happens to be combat-kind
+(the pre-existing ITEM-11 deferral, decided purely by the seeded room-kind
+draw) permanently strands the party. `roomsToEagerlyBuild` skips slot 1
+(deferred to "Populate Next Room") but still eagerly builds slot 2. Slot 2's
+build (`buildRoomAtSlot`'s `if (slot > 0)` block) unconditionally pours the
+real door connecting slot 1→2 onto slot 1's own outgoing face — before slot
+1 itself has been built at all. When slot 1 is later built (via "Populate
+Next Room"), its own `if (!isGoal)` frontier-placeholder block
+unconditionally creates a NEW placeholder wall directly over that
+already-real door, with no way to ever be superseded, because the
+supersede-on-next-build logic only runs when the NEXT slot gets built —
+and slot 2 is already built and will never be built again.
+
+**The fix (confirmed independently against the source, not just reported):**
+guard the frontier-placeholder creation with `isSlotBuilt`, the exact same
+idempotency-guard function Task 3 already established — if the next slot
+already exists, a placeholder would immediately be wrong (the real
+connection is already there), so skip creating one.
+
+Global Constraints addition: this task edits `buildRoomAtSlot`'s existing
+`if (!isGoal)` block directly (a conditional guard around an existing
+`walls.push(...)` call) — still no change to any geometry-shape function's
+actual output for the cases where the guard doesn't fire.
+
+### Task 8: Skip the frontier placeholder when the next slot is already built
+
+**Files:**
+- Modify: `scripts/dungeon-scene.mjs` (`buildRoomAtSlot`'s `if (!isGoal)` block)
+- Test: no automated test possible (same Foundry-heavy boundary as Tasks 3/7) — verified via live verification + hand-trace
+
+**Interfaces:**
+- Consumes: `isSlotBuilt(scene, slot)` (`dungeon-scene.mjs`, already exported, unchanged).
+- Produces: no new exports — `buildRoomAtSlot`'s external behavior is unchanged for every case except "the next slot already exists," which is the exact case that was broken.
+
+- [ ] **Step 1: Read the current exact code**
+
+Re-read `buildRoomAtSlot`'s `if (!isGoal) { ... }` block in full (`scripts/dungeon-scene.mjs`) — confirm it hasn't shifted since Task 7's own edits.
+
+- [ ] **Step 2: Add the guard**
+
+Change:
+
+```js
+  if (!isGoal) {
+    // Frontier placeholder (ITEM-20): ...
+    walls.push(
+      wallDoc(outgoingFaceWall(seed, slot), {
+        flags: { [MODULE_ID]: { dungeonFrontierWallForSlot: slot } },
+      }),
+    );
+  }
+```
+
+to:
+
+```js
+  if (!isGoal && !isSlotBuilt(scene, slot + 1)) {
+    // Frontier placeholder (ITEM-20): this room has no outgoing connection
+    // built yet, so without a wall here it's open on that entire face
+    // until the next room is built — vision, light, and movement all leak
+    // straight across the rest of the scene's pre-sized canvas. Deleted
+    // and replaced by the real door/opening geometry above the moment
+    // that next room actually gets built. Skipped entirely if the next
+    // slot is ALREADY built (#62) — an eager GM-less build can build a
+    // higher-numbered slot before this one (e.g. a deferred combat room
+    // at slot 1 built after slot 2 already exists), in which case the
+    // real connection already exists and a placeholder here would
+    // immediately be stale, permanently overlaying a door that will never
+    // get superseded (nothing triggers supersede-on-next-build for an
+    // already-built next slot).
+    walls.push(
+      wallDoc(outgoingFaceWall(seed, slot), {
+        flags: { [MODULE_ID]: { dungeonFrontierWallForSlot: slot } },
+      }),
+    );
+  }
+```
+
+- [ ] **Step 3: Run the full suite and format check**
+
+Run: `npm test`
+Expected: PASS, no regressions from the Task 1-7 baseline (39 files / 1680 tests).
+
+Run: `npx prettier --check scripts/dungeon-scene.mjs`
+
+- [ ] **Step 4: Attempt live verification**
+
+Same command/fallback as every prior task. If reachable: start a GM-less run seeded so room 1 is combat-kind, resolve room 0 (auto-advances), confirm slot 2 (and beyond) built correctly, then use "Populate Next Room" to build slot 1 and confirm the slot 1↔2 door is the original real one (not overwritten), and the party can walk through normally. If unreachable (check whether `FOUNDRY_REST_API_KEY` is actually configured in your worktree this time — the prior session flagged a harder failure mode than "relay unreachable"; if it's a missing/misconfigured key rather than an unreachable world, say so explicitly, it's a different problem than the "world not open in a browser" case every prior session hit), disclose whichever it is and rely on Step 5.
+
+- [ ] **Step 5: Self-review — hand-trace the exact scenario that broke this**
+
+Write out, referencing exact line numbers in your own diff: a GM-less run where `roomsToEagerlyBuild` skips slot 1 (combat-kind) and builds slot 2 first — confirm slot 2's build creates the real slot-1↔2 door via `buildConnectionGeometry(1, seed)`. Then confirm that when slot 1 is later built via "Populate Next Room," `isSlotBuilt(scene, 2)` correctly returns true, the guard skips the placeholder, and slot 1's own enclosure walls (from `roomEnclosureWalls`, which already excludes the outgoing-direction face when `hasOutgoing` is true) leave that face correctly open onto the already-real connection with no stale wall on top of it. Include this trace in your task report.
+
+- [ ] **Step 6: Update issue #62**
+
+Post a progress comment marking Task 8 done.
+
+- [ ] **Step 7: Bump version and commit**
+
+Check `module.json`'s current version (never reuse a prior number).
+
+```bash
+git add scripts/dungeon-scene.mjs module.json
+git commit -m "Skip the frontier-placeholder wall when the next slot is already built (#62)
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+```
+
+- [ ] **Step 8: Final whole-branch review, then PR**
+
+Dispatch the final whole-branch review covering all 8 tasks together (per the subagent-driven-development skill's own process — most capable model). Point it explicitly at the pattern this whole plan has now hit three times (an ascending-build-order assumption breaking in a spot none of the prior passes checked) and ask it to look adversarially for a fifth instance, the same way Task 7's own review was asked to. If clean (or findings are fixed/parked-with-ruling per the skill's own breaker process), open the PR (body ending "Closes #62", standard attribution) and STOP — do not merge or enable automerge, same reasoning as every prior task in this plan. Leave `in progress` on #62 until it's merged.
+
+If this review finds yet another gap in the same class: stop and report with full independent verification, exactly as the last three times — do not attempt a fifth fix without going back to Cory first.
+
+---
+
 ## Self-Review Notes
 
 **Tasks 1-2 (original):**

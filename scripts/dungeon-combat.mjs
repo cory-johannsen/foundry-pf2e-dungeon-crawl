@@ -1755,6 +1755,31 @@ function tokenCell(token, gridSize) {
   };
 }
 
+/** Corrects `token`'s own stored position to its nearest grid cell if it
+ * isn't already exactly grid-aligned -- #86: a token can end up off-grid
+ * (visibly straddling four grid squares) for reasons entirely outside this
+ * module's own movement math, e.g. a manual, unsnapped drag in Foundry's own
+ * UI. Every mover function below has at least one early-return path
+ * (already in range, no speed, no path, no valid waypoint) that only ever
+ * *reads* the mover/target's current position to decide whether to act, and
+ * previously left that position completely untouched otherwise -- silently
+ * preserving a pre-existing off-grid position for the rest of that
+ * combatant's turns, since nothing else in this module ever re-validates a
+ * token it isn't actively moving. Called unconditionally, before any of
+ * those early returns can fire, so a bad existing position gets corrected
+ * even on a turn that otherwise wouldn't move the token at all. A no-op (no
+ * `update` call) when the token is already aligned -- overwhelmingly the
+ * common case -- so this never adds a second write alongside a real move's
+ * own single `update()` call. */
+async function snapTokenToGrid(token, gridSize) {
+  const cell = tokenCell(token, gridSize);
+  const snappedX = cell.gx * gridSize;
+  const snappedY = cell.gy * gridSize;
+  if (token.x !== snappedX || token.y !== snappedY) {
+    await token.update({ x: snappedX, y: snappedY });
+  }
+}
+
 /** {gx0, gy0, gx1, gy1} bounding every grid square the scene actually
  * covers, so findPath's search space stays finite even on this generator's
  * deliberately over-provisioned canvas (ITEM-20). Null (unbounded search) if
@@ -1935,12 +1960,14 @@ function walkPath(
 /**
  * Moves `combatant`'s token toward `target`'s token along a real,
  * wall-aware path (#100), up to its own speed, stopping once adjacent
- * (MELEE_REACH_SQUARES). A no-op if already adjacent, if the combatant has
- * no speed to move with, or if no path to the target exists at all.
+ * (MELEE_REACH_SQUARES). A no-op (beyond `snapTokenToGrid`'s own possible
+ * correction, #86) if already adjacent, if the combatant has no speed to
+ * move with, or if no path to the target exists at all.
  */
 export async function stepToward(combat, combatant, target, distanceSquares) {
-  if (distanceSquares <= MELEE_REACH_SQUARES) return;
   const gridSize = combat.scene?.grid?.size ?? 100;
+  await snapTokenToGrid(combatant.token, gridSize);
+  if (distanceSquares <= MELEE_REACH_SQUARES) return;
   const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
   // Confirmed live: an NPC's land speed lives at system.movement.speeds.land,
   // not system.attributes.speed (which doesn't exist) — the wrong path
@@ -1984,12 +2011,13 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
  * right behind the target should have, with no new projection logic of
  * its own. `stopWithinSquares: 0` in the `walkPath` call, same as
  * `posturePath`'s own retreat callers use, since a push has no "stop
- * short of melee range" concept to honor. A no-op (no token update at
- * all) if `target` has nowhere to go -- fully boxed in by walls or other
- * combatants -- rather than throwing.
+ * short of melee range" concept to honor. A no-op beyond `snapTokenToGrid`'s
+ * own possible correction (#86) if `target` has nowhere to go -- fully
+ * boxed in by walls or other combatants -- rather than throwing.
  */
 export async function pushTokenAway(combat, attacker, target, distanceSquares) {
   const gridSize = combat.scene?.grid?.size ?? 100;
+  await snapTokenToGrid(target.token, gridSize);
   const start = tokenCell(target.token, gridSize);
   const awayFrom = tokenCell(attacker.token, gridSize);
   const bounds = sceneBounds(combat, gridSize);
@@ -2149,7 +2177,10 @@ function strikeSoundContext(strike, target) {
  * here would be the wrong kind of "sharing" (deduping code that isn't
  * actually the same operation).
  */
-async function drawHitCardMultiplier(category, { combatant, target, damageType }) {
+async function drawHitCardMultiplier(
+  category,
+  { combatant, target, damageType },
+) {
   const draw = await drawAndApplyCriticalCard("hit", category, {
     combatant,
     target,
@@ -2175,7 +2206,13 @@ async function drawHitCardMultiplier(category, { combatant, target, damageType }
  * roll once it resolves; only ever non-1 on the criticalSuccess/hit-deck
  * branch (a fumble has no damage roll to scale).
  */
-async function drawCriticalCardForStrike(outcome, strike, soundContext, combatant, target) {
+async function drawCriticalCardForStrike(
+  outcome,
+  strike,
+  soundContext,
+  combatant,
+  target,
+) {
   if (outcome === "criticalSuccess") {
     return drawHitCardMultiplier(hitDeckCategory(soundContext.damageType), {
       combatant,
@@ -3034,10 +3071,12 @@ export async function getPendingAgentTurn(combat) {
  * For `approach`, stops adjacent to the target rather than overshooting past
  * it — the same clamp stepToward uses. `retreat` has no "don't overshoot"
  * concept, so it's unclamped, bounded only by speed and posturePath's own
- * progressively-shorter-distance fallback. A no-op if already at the desired
- * distance, with no speed to move, or if no usable path exists. */
+ * progressively-shorter-distance fallback. A no-op beyond `snapTokenToGrid`'s
+ * own possible correction (#86) if already at the desired distance, with no
+ * speed to move, or if no usable path exists. */
 export async function strideByPosture(combat, combatant, posture, target) {
   const gridSize = combat.scene?.grid?.size ?? 100;
+  await snapTokenToGrid(combatant.token, gridSize);
   const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
   const speedFt = combatant.actor?.system?.movement?.speeds?.land?.value ?? 0;
   const speedSquares = Math.floor(speedFt / gridDistanceFt);

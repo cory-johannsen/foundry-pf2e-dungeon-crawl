@@ -91,11 +91,47 @@ slot-to-slot corridor) is a pure function of `(seed, slot, isGoal)` only,
 never of room *kind* — so the corridor between consecutive slot numbers
 never needs to change shape. What needs to change is which logical room's
 *content* (encounter/trap/puzzle/skill-challenge/narrative state) occupies
-a given already-built slot. Confirmed separately: `applySequenceMutation`
-already refuses to mutate the goal room (`if (!next || next.isGoal) return
-rooms`, `dungeon-deck.mjs:312`), so the one room whose geometry is genuinely
-special (`hasOutgoing: false`) can never be a mutation's target — the
-kind-independence claim above holds at the one place it would matter most.
+a given already-built slot.
+
+**Second gap, found the same way as the first (2026-09-22, later the same
+day):** Tasks 3-6 implementing the mechanism above were built, individually
+task-reviewed, and passed — then failed final whole-branch review again.
+The claim "`applySequenceMutation` already refuses to mutate the goal room...
+so the one room whose geometry is genuinely special can never be a
+mutation's target" (the original version of this paragraph) was true but
+incomplete: the goal room itself is never REPLACED by a mutation, but
+`insert_after` always splices before it (the goal is always last), so the
+goal always SHIFTS to a new, higher slot number — and the room that ends up
+occupying the goal's OLD slot number is a regular, non-goal room that needs
+a real outgoing connection. That slot's geometry was built with
+`hasOutgoing: false` (`roomEnclosureWalls(seed, slot, {hasOutgoing: false})`,
+`dungeon-scene.mjs`'s `buildRoomAtSlot`), which means **no wall exists on
+that face with any flag at all** — unlike a normal (non-goal) room's
+outgoing face, which always gets a temporary, flagged placeholder wall
+(`dungeonFrontierWallForSlot`, see below) precisely so it can later be found
+and superseded. A goal room, having no outgoing face by design, never gets
+that placeholder — so there is nothing to find. This is routine (any
+`extra_travel_time` outcome), not an edge case.
+
+Cory's choice: **option 1 — tag enclosure walls with a flag**, lifting this
+plan's prior blanket ban on touching `buildRoomAtSlot`/`dungeon-layout.mjs`,
+scoped narrowly to *adding metadata to walls already being created*, never
+changing their geometry/shape/position. This turned out to have a direct,
+existing precedent to extend rather than a new mechanism to invent:
+`buildRoomAtSlot`'s own `if (!isGoal)` branch (`dungeon-scene.mjs:269-281`)
+already creates exactly this kind of placeholder — a temporary wall on a
+room's outgoing face, flagged `dungeonFrontierWallForSlot: slot`, deleted
+and superseded by real door/corridor geometry the moment the next room
+actually gets built (the same `if (slot > 0)` block just above it, lines
+190-215, already contains the find-and-delete logic for that flag). The fix
+is to give a goal-turned-non-goal slot the same retrofit: tag every regular
+enclosure wall (`roomEnclosureWalls`'s output, currently built with no flags
+at all via a bare `wallDoc(side)`) with its slot and direction, so the ONE
+enclosure wall on a former goal's connection-direction face can be found and
+deleted, then replaced with the same frontier-placeholder wall a normal
+room would have had from the start — after which the existing, unmodified
+`if (slot > 0)` supersede-on-next-build logic just works, no further new
+code needed downstream.
 
 No new "GM-less mode" flag: reuse the existing `hostUserId` signal —
 confirmed via implementation to be `state.hostUserId` truthiness directly
@@ -160,46 +196,66 @@ Three pieces of new work, none of which touch corridor/wall geometry:
      built — there is no partial-eager-build case to handle. Re-sync always
      walks from the mutation point to the already-built tail.
 
+4. **A goal-room outgoing-connection retrofit** (this revision's addition):
+   `roomEnclosureWalls`'s consumption in `buildRoomAtSlot`
+   (`dungeon-scene.mjs:184-186`) tags every regular enclosure wall with its
+   slot and direction (currently untagged — a bare `wallDoc(side)`). When
+   `roomsNeedingResync`'s `toRebuild` list contains an entry whose
+   PREVIOUS occupant was the goal room (i.e. this slot was originally built
+   `isGoal: true`, `hasOutgoing: false`), before the normal teardown/rebuild
+   sequence runs: find the one enclosure wall flagged for this slot's
+   `connectionDirection`, delete it, and create the same frontier-placeholder
+   wall (`dungeonFrontierWallForSlot: slot`) `buildRoomAtSlot`'s own
+   `if (!isGoal)` branch already creates for a normal room from the start.
+   From that point on the existing, unmodified supersede-on-next-build logic
+   (`dungeon-scene.mjs:190-215`) needs no further changes — it already knows
+   how to find and delete a `dungeonFrontierWallForSlot`-flagged wall the
+   moment the following slot gets built for real.
+
 ## Architecture
 
-**Already implemented (Tasks 1-2, commits `791c8fc`/`af80e24`/`0da6900` on
-branch `worktree-agent-aa5921258df7bf67c`, passed their own task reviews):**
-a pure `roomsToEagerlyBuild(state)` in `dungeon-runner.mjs` returns
-`{room, physicalSlot}` pairs for every room the GM-less path should build
-(every room except an index-1 combat room), and `startDungeonRun`
-(`dungeon-app.mjs`) branches on `state.hostUserId` — GM-hosted keeps the
-original single-room build, GM-less loops `buildPopulateAndUnlockRoom` over
-that list. This part is correct and does not change.
+**Already implemented and verified correct (Tasks 1-6, commits through
+`61ce825` on branch `worktree-agent-aa5921258df7bf67c`, all passed their own
+task reviews):** `roomsToEagerlyBuild`/`commitEagerPhysicalSlots`/
+`roomsNeedingResync` (pure, `dungeon-runner.mjs`), the `unlock` option and
+idempotency guards on `buildPopulateAndUnlockRoom`, per-content-type
+teardown functions, and the re-sync wiring into `resolveCurrentRoom`. This
+is the slot-bookkeeping and content-reconciliation mechanism (items 1-3
+above) — correct and does not need to change. Only item 4 (this revision)
+is new, unimplemented work.
 
 **New work this revision adds (not yet implemented):**
 
-1. `buildPopulateAndUnlockRoom(scene, state, room, physicalSlot, { unlock = true } = {})`
-   gains the `unlock` option described above. The GM-less eager loop passes
-   `unlock: physicalSlot === 1`.
-2. One teardown function per content type, each living next to its
-   `ensure*`/`populate*` counterpart: something like
-   `clearSlotEncounter(scene, physicalSlot)`,
-   `clearSlotTrap(scene, physicalSlot)`, `clearPuzzleState(sceneId, roomId)`,
-   `clearSkillChallengeState(sceneId, roomId)`, `clearNarrativeState(sceneId, roomId)`
-   — exact names/signatures are an implementation-time decision, not fixed
-   here; each just needs to undo exactly what its counterpart does (delete
-   spawned tokens/actors, or delete the room-keyed setting entry).
-3. A re-sync function, called from `markRoomOutcome` (`dungeon-runner.mjs:177`)
-   immediately after `applySequenceMutation` runs, only when
-   `state.hostUserId` is set: for `remove_next`, tear down and re-populate
-   every already-built slot from the mutation point to the old tail, then
-   tear down the now-orphaned trailing slot; for `insert_after`, tear down
-   and re-populate the same range, then call `buildPopulateAndUnlockRoom`
-   once more to physically extend the chain by one slot. Neither case calls
-   `buildRoomAtSlot` for any slot whose room didn't change identity —
-   re-populating in place is enough there, no need to tear down walls that
-   are already correct for that slot number.
+1. Tag `roomEnclosureWalls`'s wall documents (`dungeon-scene.mjs:184-186`,
+   currently `wallDoc(side)` with no flags) with
+   `{ dungeonEnclosureWallForSlot: slot, dungeonEnclosureWallDirection: side.dir }`
+   — purely additive metadata, zero change to wall shape/position/count.
+2. A new function, e.g. `openGoalRoomExit(scene, slot, seed)`
+   (`dungeon-scene.mjs`, near `buildRoomAtSlot`): finds the wall flagged
+   `dungeonEnclosureWallForSlot === slot` whose
+   `dungeonEnclosureWallDirection` matches `connectionDirection(slot)`
+   (`dungeon-layout.mjs`, already exported), deletes it, then creates the
+   frontier-placeholder wall `buildRoomAtSlot`'s own `if (!isGoal)` branch
+   already creates for a normal room
+   (`wallDoc(outgoingFaceWall(seed, slot), {flags: {[MODULE_ID]: {dungeonFrontierWallForSlot: slot}}})`,
+   `outgoingFaceWall` already exported from `dungeon-layout.mjs`). After
+   this call, the slot behaves exactly like any other non-goal room's
+   outgoing face — the existing, unmodified `if (slot > 0)` block in
+   `buildRoomAtSlot` (lines 190-215) already knows how to find and supersede
+   a `dungeonFrontierWallForSlot`-flagged wall the moment the next slot is
+   built for real.
+3. Wire it into the already-implemented re-sync step (Task 6): when a
+   `roomsNeedingResync` `toRebuild` entry's `previousRoomId` was the goal
+   room (checkable against `state.rooms` before the mutation, or by
+   recording which room was flagged `isGoal` in the pre-mutation snapshot),
+   call `openGoalRoomExit(scene, physicalSlot, state.seed)` before that
+   slot's normal teardown/rebuild sequence runs.
 
-`applySequenceMutation` itself, `buildRoomAtSlot`/`buildConnectionGeometry`
-and the rest of `dungeon-layout.mjs`, and the relay fallback
-(`dungeon-remote.mjs`) are all untouched — this design deliberately adds a
-reconciliation step around the existing mutation/geometry code rather than
-changing either.
+`applySequenceMutation`, `buildConnectionGeometry`, `roomSizeAt`,
+`slotRowCol`, `slotRect`, `doorOffsetAt`, and every other geometry-shape
+function in `dungeon-layout.mjs` remain untouched — this fix adds wall
+*metadata* and one narrowly-scoped retrofit function, it does not change
+how any room's shape, size, or position is computed.
 
 ## Data flow
 
@@ -253,6 +309,14 @@ the one in-flight slot inconsistent, not the whole reconciled range.
   slot matching the post-mutation `state.rooms`, not via wall/geometry
   assertions (geometry is asserted unchanged, via the same seed/slot pure
   functions the implementation itself calls).
+- `openGoalRoomExit`: no Foundry test harness exists for `dungeon-scene.mjs`
+  (same boundary as every other function there) — verify via live
+  verification and an explicit hand-trace instead (same fallback pattern
+  Task 2 already established): confirm the flagged enclosure wall is found
+  and deleted, confirm the replacement frontier-placeholder wall carries the
+  same flag/coordinates a normal non-goal room's would, and confirm the
+  existing (untouched) supersede-on-next-build logic then correctly
+  replaces it once the chain is extended past that slot.
 
 ## Out of scope
 
