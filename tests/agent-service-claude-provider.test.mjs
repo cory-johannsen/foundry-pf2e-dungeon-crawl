@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { decide } from "../tools/agent-loop/providers/claude.mjs";
+import { decide } from "../tools/agent-service/providers/claude.mjs";
 
 const CONTEXT = {
   self: { name: "Yamaraj", hp: 40, conditions: [] },

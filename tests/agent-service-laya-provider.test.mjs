@@ -8,7 +8,7 @@ vi.mock('node:fs', () => ({
   readFileSync: () => { throw new Error('ENOENT: no such file'); }
 }));
 
-const { decide } = await import('../tools/agent-loop/providers/laya.mjs');
+const { decide } = await import('../tools/agent-service/providers/laya.mjs');
 
 const CONTEXT = {
   self: { name: 'Yamaraj', hp: 40, conditions: [] },

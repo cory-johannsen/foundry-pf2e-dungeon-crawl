@@ -7,7 +7,7 @@
  * generated text — see #102 for the confirmed wire protocol this mirrors.
  */
 
-import { readEnvOrDotenv } from '../foundry-client.mjs';
+import { readEnvOrDotenv } from "../env.mjs";
 
 // Laya's `choice` question silently truncates each option's token budget
 // past ~20 candidates rather than erroring — degrading accuracy with no

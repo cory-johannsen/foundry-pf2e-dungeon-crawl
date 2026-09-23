@@ -11,7 +11,7 @@
  * hardcoded API call — fulfills those instead.
  */
 
-import { readEnvOrDotenv } from "../foundry-client.mjs";
+import { readEnvOrDotenv } from "../env.mjs";
 
 const CLAUDE_MODEL = "claude-sonnet-5";
 
