@@ -8406,5 +8406,77 @@
     "name": "Mix Coatl",
     "level": 8,
     "art": "mix-coatl.webp"
+  },
+  {
+    "id": "moonflower",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "wqsmnoby2n3BOvKu",
+    "name": "Moonflower",
+    "level": 8,
+    "art": "moonflower.webp"
+  },
+  {
+    "id": "nosferatu_thrall",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "nzlBAi0k8n5Mzbzk",
+    "name": "Nosferatu Thrall",
+    "level": 8,
+    "art": "nosferatu-thrall.webp"
+  },
+  {
+    "id": "phantom_beast",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "YAGc6gQ5VrvWyR37",
+    "name": "Phantom Beast",
+    "level": 8,
+    "art": "phantom-beast.webp"
+  },
+  {
+    "id": "shantak",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "HhuHFmaq69ekSgEl",
+    "name": "Shantak",
+    "level": 8,
+    "art": "shantak.webp"
+  },
+  {
+    "id": "two_headed_troll",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "1LBt5H8GekcuzDHw",
+    "name": "Two-Headed Troll",
+    "level": 8,
+    "art": "two-headed-troll.webp"
+  },
+  {
+    "id": "xoarian",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "mpkGWfPHmwAYPYJH",
+    "name": "Xoarian",
+    "level": 8,
+    "art": "xoarian.webp"
+  },
+  {
+    "id": "lifeleecher_brawler",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "324ZRtmDYulbw0CM",
+    "name": "Lifeleecher Brawler",
+    "level": 8,
+    "art": "lifeleecher-brawler.webp"
+  },
+  {
+    "id": "sandpoint_devil",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "YFvur5htRwt9EfQs",
+    "name": "Sandpoint Devil",
+    "level": 8,
+    "art": "sandpoint-devil.webp"
+  },
+  {
+    "id": "wealthy_vigilante",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "iexsv5iflfbqj8po",
+    "name": "Wealthy Vigilante",
+    "level": 8,
+    "art": "wealthy-vigilante.webp"
   }
 ]
