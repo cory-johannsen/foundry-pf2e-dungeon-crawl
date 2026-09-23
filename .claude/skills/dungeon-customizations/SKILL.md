@@ -119,3 +119,18 @@ Start it as a plain background process, not a `Monitor` — its log lines
 aren't check-pass events to react to. Don't restart it on every wake;
 only (re)start it if it isn't currently running (never started this
 session, or it exited/crashed).
+
+Report what it did on every check pass, the same way you report
+auto-fulfilled customizations: read `poll.mjs`'s background task output
+and take only the lines you haven't already reported this session (track
+a line-count/offset per its task id, the same never-re-report discipline
+as the customization identity keys) — never re-read the whole log from
+the start. Summarize any `chose ...` decisions briefly in one line (e.g.
+"Combat AI: Wizard cast daze, Fighter approached") alongside the "Also
+auto-fulfilled" line, below the billboard, never inside it. Call out an
+`error`/`provider error` line explicitly rather than folding it into the
+same summary — that needs attention, not a passing mention. If nothing
+new logged since the last pass, say nothing extra about it — an idle
+poller isn't worth a line. Skip this reporting entirely on a one-off
+invocation with no standing loop running (`poll.mjs` was never started
+this session) — there's nothing to summarize.
