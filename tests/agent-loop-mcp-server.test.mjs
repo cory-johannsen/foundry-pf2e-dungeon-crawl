@@ -11,6 +11,8 @@ import {
   applyPuzzleCustomization,
   getPendingNarrativeCustomization,
   applyNarrativeCustomization,
+  getPendingTreasureCustomization,
+  applyTreasureCustomization,
   listPendingCustomizations,
 } from "../tools/agent-loop/mcp-server.mjs";
 
@@ -182,6 +184,46 @@ describe("mcp-server relay wrappers", () => {
     expect(script).toContain("The Last Warden's Oath");
   });
 
+  it("getPendingTreasureCustomization sends the module.api call with the given sceneId", async () => {
+    const fetchImpl = fakeFetch({
+      roomId: "room-1",
+      name: "The Locked Strongbox",
+    });
+    const result = await getPendingTreasureCustomization("scene-1", {
+      baseUrl: "http://localhost:9999",
+      apiKey: "k",
+      clientId: "abc",
+      fetchImpl,
+    });
+    expect(result).toEqual({ roomId: "room-1", name: "The Locked Strongbox" });
+    const [, options] = fetchImpl.mock.calls[0];
+    const script = JSON.parse(options.body).script;
+    expect(script).toContain('getPendingTreasureCustomization("scene-1")');
+  });
+
+  it("applyTreasureCustomization sends sceneId, roomId, and the customization payload", async () => {
+    const fetchImpl = fakeFetch({ sceneId: "scene-1", roomId: "room-1" });
+    const result = await applyTreasureCustomization(
+      "scene-1",
+      "room-1",
+      {
+        name: "The Cairn of the Unnamed",
+        summary: "A low cairn of fitted stones.",
+      },
+      {
+        baseUrl: "http://localhost:9999",
+        apiKey: "k",
+        clientId: "abc",
+        fetchImpl,
+      },
+    );
+    expect(result).toEqual({ sceneId: "scene-1", roomId: "room-1" });
+    const [, options] = fetchImpl.mock.calls[0];
+    const script = JSON.parse(options.body).script;
+    expect(script).toContain('applyTreasureCustomization("scene-1", "room-1"');
+    expect(script).toContain("The Cairn of the Unnamed");
+  });
+
   it("listPendingCustomizations tags each present result with its kind and omits nulls", async () => {
     // All lookups fire in parallel (Promise.all) — a shared counter
     // incremented per fetchImpl call would be read by both .json() calls
@@ -252,7 +294,7 @@ describe("mcp-server tool registration (full round-trip over an in-memory transp
     return client;
   }
 
-  it("lists all five tools", async () => {
+  it("lists all six tools", async () => {
     const client = await connectedClient();
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([
@@ -261,6 +303,7 @@ describe("mcp-server tool registration (full round-trip over an in-memory transp
       "submit_puzzle_customization",
       "submit_skill_challenge_customization",
       "submit_trap_customization",
+      "submit_treasure_customization",
     ]);
   });
 
@@ -409,5 +452,29 @@ describe("mcp-server tool registration (full round-trip over an in-memory transp
     const [, options] = globalThis.fetch.mock.calls[0];
     const script = JSON.parse(options.body).script;
     expect(script).toContain("A grateful, watchful ally.");
+  });
+
+  it("submit_treasure_customization applies the customization via the relay", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      json: async () => ({ result: { sceneId: "scene-1", roomId: "room-1" } }),
+    });
+    const client = await connectedClient();
+    const result = await client.callTool({
+      name: "submit_treasure_customization",
+      arguments: {
+        sceneId: "scene-1",
+        roomId: "room-1",
+        name: "The Locked Strongbox",
+        summary: "A dented iron strongbox, its lock never picked.",
+      },
+    });
+    expect(JSON.parse(result.content[0].text)).toEqual({
+      sceneId: "scene-1",
+      roomId: "room-1",
+    });
+    const [, options] = globalThis.fetch.mock.calls[0];
+    const script = JSON.parse(options.body).script;
+    expect(script).toContain("The Locked Strongbox");
+    expect(script).toContain("its lock never picked");
   });
 });

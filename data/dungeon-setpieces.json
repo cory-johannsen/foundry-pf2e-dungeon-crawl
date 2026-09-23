@@ -382,5 +382,60 @@
       "chapter": null,
       "note": "Hand-authored — no PF2e compendium ships narrative content; see #165."
     }
+  },
+  {
+    "id": "the_locked_strongbox",
+    "kind": "treasure",
+    "name": "The Locked Strongbox",
+    "complete": true,
+    "summary": "A dented iron strongbox is wedged into a gap behind a collapsed section of wall, its hinges rusted solid and its lock never picked — whoever hid it here clearly meant to come back for it, and the dust says it's been a long time since anyone tried.",
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships treasure-room flavor content; see #89."
+    }
+  },
+  {
+    "id": "the_cairn_of_the_unnamed",
+    "kind": "treasure",
+    "name": "The Cairn of the Unnamed",
+    "complete": true,
+    "summary": "A low cairn of fitted stones marks a burial no one left a name on — whoever stacked these rocks worked fast but wasn't careless, and buried real wealth here alongside the body rather than strip it and run.",
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships treasure-room flavor content; see #89."
+    }
+  },
+  {
+    "id": "the_hidden_vault",
+    "kind": "treasure",
+    "name": "The Hidden Vault",
+    "complete": true,
+    "summary": "A section of wall rings hollow under a careful knock, and behind it sits a small vault cut directly into the stone — sealed, deliberate, and old enough that whatever was once meant to guard the door has long since stopped caring.",
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships treasure-room flavor content; see #89."
+    }
+  },
+  {
+    "id": "the_fallen_adventurers_gear",
+    "kind": "treasure",
+    "name": "A Fallen Adventurer's Gear",
+    "complete": true,
+    "summary": "A skeleton in traveling gear is slumped against the wall, one hand still curled loosely around a satchel strap — whoever they were, they got this far and no further, and left behind everything they were carrying for whoever comes next.",
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships treasure-room flavor content; see #89."
+    }
+  },
+  {
+    "id": "the_forgotten_offering",
+    "kind": "treasure",
+    "name": "The Forgotten Offering",
+    "complete": true,
+    "summary": "A small stone offering box sits undisturbed at the foot of a weathered shrine, its lid sealed with wax gone brittle with age — whatever was once owed here was paid in full, and never claimed.",
+    "source": {
+      "chapter": null,
+      "note": "Hand-authored — no PF2e compendium ships treasure-room flavor content; see #89."
+    }
   }
 ]

@@ -30,6 +30,10 @@ import {
   ensureTrapState,
   clearTrapState,
   applyTrapRoomState,
+  ensureTreasureState,
+  clearTreasureState,
+  getPendingTreasureCustomization,
+  applyTreasureCustomization,
 } from "../scripts/dungeon-runner.mjs";
 import { registerGenerator } from '../scripts/generator-registry.mjs';
 import { DefaultGenerator } from '../scripts/default-generator.mjs';
@@ -1757,6 +1761,197 @@ describe("clearTrapState", () => {
   it("is a no-op with no run at all", async () => {
     const settingsRef = makeSettingsStub();
     const result = await clearTrapState("nope", "room-x", { settingsRef });
+    expect(result).toBeNull();
+  });
+});
+
+describe("ensureTreasureState / getPendingTreasureCustomization / applyTreasureCustomization", () => {
+  const strongboxSetpiece = {
+    id: "the_example_strongbox",
+    kind: "treasure",
+    name: "The Example Strongbox",
+    summary: "A dented iron strongbox, its lock never picked.",
+  };
+
+  async function makeRoomWithTreasure(settingsRef, setpiece = strongboxSetpiece) {
+    const created = await createRun(
+      { sceneId: "s", roomCount: 5, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    await ensureTreasureState("s", roomId, { setpiece }, { settingsRef });
+    return roomId;
+  }
+
+  it("ensureTreasureState attaches the setpiece's name/summary and flags it pending", async () => {
+    const settingsRef = makeSettingsStub();
+    const roomId = await makeRoomWithTreasure(settingsRef);
+    const state = getRunState("s", { settingsRef });
+    const room = state.rooms.find((r) => r.id === roomId);
+    expect(room.treasure.name).toBe("The Example Strongbox");
+    expect(room.treasure.summary).toBe(
+      "A dented iron strongbox, its lock never picked.",
+    );
+    expect(room.treasure.customization).toEqual({ status: "pending" });
+  });
+
+  it("ensureTreasureState is a no-op if the room already has treasure state", async () => {
+    const settingsRef = makeSettingsStub();
+    const roomId = await makeRoomWithTreasure(settingsRef);
+    await ensureTreasureState(
+      "s",
+      roomId,
+      { setpiece: { ...strongboxSetpiece, name: "Different" } },
+      { settingsRef },
+    );
+    const room = getRunState("s", { settingsRef }).rooms.find(
+      (r) => r.id === roomId,
+    );
+    expect(room.treasure.name).toBe("The Example Strongbox");
+  });
+
+  it("getPendingTreasureCustomization finds the pending room and hands back its content", async () => {
+    const settingsRef = makeSettingsStub();
+    const roomId = await makeRoomWithTreasure(settingsRef);
+    const room = getRunState("s", { settingsRef }).rooms.find(
+      (r) => r.id === roomId,
+    );
+    const pending = getPendingTreasureCustomization("s", { settingsRef });
+    expect(pending.roomId).toBe(roomId);
+    expect(pending.sceneId).toBe("s");
+    expect(pending.name).toBe("The Example Strongbox");
+    expect(pending.summary).toBe(strongboxSetpiece.summary);
+    expect(pending.locationTag).toBe(room.locationTag);
+  });
+
+  it("returns null when nothing is pending", () => {
+    const settingsRef = makeSettingsStub();
+    expect(getPendingTreasureCustomization("nope", { settingsRef })).toBeNull();
+  });
+
+  it("applyTreasureCustomization overwrites name/summary and marks it customized", async () => {
+    const settingsRef = makeSettingsStub();
+    const roomId = await makeRoomWithTreasure(settingsRef);
+    const state = await applyTreasureCustomization(
+      "s",
+      roomId,
+      {
+        name: "The Cairn of the Unnamed",
+        summary: "A low cairn of fitted stones marks a burial no one named.",
+      },
+      { settingsRef },
+    );
+    const room = state.rooms.find((r) => r.id === roomId);
+    expect(room.treasure.name).toBe("The Cairn of the Unnamed");
+    expect(room.treasure.summary).toBe(
+      "A low cairn of fitted stones marks a burial no one named.",
+    );
+    expect(room.treasure.customization).toEqual({ status: "customized" });
+  });
+
+  it("applyTreasureCustomization never touches gp/item mechanics (treasure state carries none)", async () => {
+    const settingsRef = makeSettingsStub();
+    const roomId = await makeRoomWithTreasure(settingsRef);
+    const state = await applyTreasureCustomization(
+      "s",
+      roomId,
+      { name: "New Name" },
+      { settingsRef },
+    );
+    const room = state.rooms.find((r) => r.id === roomId);
+    expect(Object.keys(room.treasure).sort()).toEqual(
+      ["customization", "name", "summary"].sort(),
+    );
+  });
+
+  it("no longer appears as pending once customization is applied", async () => {
+    const settingsRef = makeSettingsStub();
+    const roomId = await makeRoomWithTreasure(settingsRef);
+    await applyTreasureCustomization(
+      "s",
+      roomId,
+      { name: "New Name" },
+      { settingsRef },
+    );
+    expect(getPendingTreasureCustomization("s", { settingsRef })).toBeNull();
+  });
+
+  it("stops being offered once the room is resolved, even if still marked pending", async () => {
+    const settingsRef = makeSettingsStub();
+    const roomId = await makeRoomWithTreasure(settingsRef);
+    await advancePastEntry("s", settingsRef);
+    await markRoomOutcome({ sceneId: "s", succeeded: true }, { settingsRef });
+    expect(getPendingTreasureCustomization("s", { settingsRef })).toBeNull();
+  });
+
+  it("applyTreasureCustomization is a no-op if the room has no treasure state at all", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s", roomCount: 5, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    const state = await applyTreasureCustomization(
+      "s",
+      roomId,
+      { name: "Anything" },
+      { settingsRef },
+    );
+    expect(state.rooms.find((r) => r.id === roomId).treasure).toBeUndefined();
+  });
+
+  it("applyTreasureCustomization is a no-op with no run at all", async () => {
+    const settingsRef = makeSettingsStub();
+    const result = await applyTreasureCustomization(
+      "nope",
+      "room-x",
+      { name: "Anything" },
+      { settingsRef },
+    );
+    expect(result).toBeNull();
+  });
+});
+
+describe("clearTreasureState", () => {
+  const strongboxSetpiece = {
+    id: "the_example_strongbox",
+    kind: "treasure",
+    name: "The Example Strongbox",
+    summary: "A dented iron strongbox, its lock never picked.",
+  };
+
+  it("clears an already-attached treasure state back to null", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s12", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    await ensureTreasureState(
+      "s12",
+      roomId,
+      { setpiece: strongboxSetpiece },
+      { settingsRef },
+    );
+    const cleared = await clearTreasureState("s12", roomId, { settingsRef });
+    const room = cleared.rooms.find((r) => r.id === roomId);
+    expect(room.treasure).toBeFalsy();
+  });
+
+  it("is a no-op against a room with no treasure state attached", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s13", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    const cleared = await clearTreasureState("s13", roomId, { settingsRef });
+    expect(cleared.rooms).toEqual(created.rooms);
+  });
+
+  it("is a no-op with no run at all", async () => {
+    const settingsRef = makeSettingsStub();
+    const result = await clearTreasureState("nope", "room-x", { settingsRef });
     expect(result).toBeNull();
   });
 });

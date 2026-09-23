@@ -1,6 +1,6 @@
 ---
 name: dungeon-customizations
-description: Use when connected to the foundry-agent-bridge MCP server and asked to check, fulfill, or run a standing loop for pending dungeon customizations (trap, skill-challenge, puzzle, or narrative-room flavor text). Covers the triage rubric for auto-fulfilling vs. flagging for a human, the billboard format for open items, and wiring a fast standing loop via /loop's dynamic mode and the watch-pending detector.
+description: Use when connected to the foundry-agent-bridge MCP server and asked to check, fulfill, or run a standing loop for pending dungeon customizations (trap, skill-challenge, puzzle, narrative-room, or treasure-room flavor text). Covers the triage rubric for auto-fulfilling vs. flagging for a human, the billboard format for open items, and wiring a fast standing loop via /loop's dynamic mode and the watch-pending detector.
 ---
 
 # Dungeon customization fulfillment
@@ -16,10 +16,10 @@ on-demand flow — nothing below requires the standing loop.
    GM's currently-viewed scene — never pass an explicit `sceneId`).
 2. For each returned entry, compute its identity key: every entry carries
    `sceneId`; a `trap` entry is identified by `(sceneId, actorId)`, and a
-   `skill_challenge`, `puzzle`, or `narrative` entry by `(sceneId, roomId)`.
-   Use this key to track, within this conversation, which entries you've
-   already auto-fulfilled or are already holding open on the billboard —
-   never re-process the same key twice in one session.
+   `skill_challenge`, `puzzle`, `narrative`, or `treasure` entry by
+   `(sceneId, roomId)`. Use this key to track, within this conversation,
+   which entries you've already auto-fulfilled or are already holding open
+   on the billboard — never re-process the same key twice in one session.
 3. Apply the triage rubric (below) to each not-yet-processed entry.
 4. Auto-fulfill entries the rubric clears: write fitting name/
    description/summary/flavor content matching the entry's own mechanical
@@ -27,10 +27,14 @@ on-demand flow — nothing below requires the standing loop.
    invent or change a mechanical value, only flavor text — and submit
    immediately via the matching tool (`submit_trap_customization`,
    `submit_skill_challenge_customization`, `submit_puzzle_customization`,
-   or `submit_narrative_customization`). A puzzle entry needs both texts
-   submitted together: the GM-facing `summary` and the player-facing
-   `playerDescription` — submitting only `summary` leaves players seeing
-   the puzzle's original, uncustomized flavor (#49).
+   `submit_narrative_customization`, or `submit_treasure_customization`). A
+   puzzle entry needs both texts submitted together: the GM-facing
+   `summary` and the player-facing `playerDescription` — submitting only
+   `summary` leaves players seeing the puzzle's original, uncustomized
+   flavor (#49). A treasure entry has no mechanical fields at all — its
+   `name`/`summary` are purely the discovery narration players read when
+   they open the room; never touches the room's gp amount or item draw,
+   which live entirely outside this state.
 5. Show the billboard (below) of everything still open, and handle a
    selection if the human's message is a number matching a billboard row
    from your immediately preceding turn.
@@ -49,8 +53,15 @@ Auto-fulfill by default. Flag an entry for a human instead when:
   callback to something session-specific (a name, a prior NPC, an
   in-fiction detail) that you have no way to know.
 
-Everything else — trap flavor, skill-challenge/puzzle flavor text, and
-narrative `lore` entries — gets auto-fulfilled.
+Everything else — trap flavor, skill-challenge/puzzle flavor text,
+narrative `lore` entries, and every `treasure` entry — gets
+auto-fulfilled. A treasure entry has no ally/goal/choice-equivalent
+archetype and nothing mechanical to preserve, so it's always safe to
+auto-fulfill unless it trips the session-specific-callback rule above;
+write it as a short discovery narration (a container, a context, a
+concrete detail) in the same understated voice the hand-authored setpieces
+already use — see `data/dungeon-setpieces.json`'s `kind: "treasure"`
+entries for the tone.
 
 ## Billboard format
 
