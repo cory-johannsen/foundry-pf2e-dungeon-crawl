@@ -6822,5 +6822,157 @@
     "name": "Bauble Beast",
     "level": 6,
     "art": "bauble-beast.webp"
+  },
+  {
+    "id": "blodeuwedd",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "nzLGh9GKCk7imto3",
+    "name": "Blodeuwedd",
+    "level": 6,
+    "art": "blodeuwedd.webp"
+  },
+  {
+    "id": "bodach",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "zOJAns7vq3rNPXQ4",
+    "name": "Bodach",
+    "level": 6,
+    "art": "bodach.webp"
+  },
+  {
+    "id": "clockwork_soldier",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "7xZDgCCOkbDAv4Sm",
+    "name": "Clockwork Soldier",
+    "level": 6,
+    "art": "clockwork-soldier.webp"
+  },
+  {
+    "id": "divine_warden_of_pharasma",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Maj1QnVcPU84O55X",
+    "name": "Divine Warden of Pharasma",
+    "level": 6,
+    "art": "divine-warden-of-pharasma.webp"
+  },
+  {
+    "id": "graveknight_captain",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "AfubOmkdmPRctnLX",
+    "name": "Graveknight Captain",
+    "level": 6,
+    "art": "graveknight-captain.webp"
+  },
+  {
+    "id": "hodag",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "gUF7bigH5jyJM8AG",
+    "name": "Hodag",
+    "level": 6,
+    "art": "hodag.webp"
+  },
+  {
+    "id": "kurobozu",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "OsWFo87OQ4G67zMS",
+    "name": "Kurobozu",
+    "level": 6,
+    "art": "kurobozu.webp"
+  },
+  {
+    "id": "lunar_naga",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "DEo5AEY1i9s0kWYZ",
+    "name": "Lunar Naga",
+    "level": 6,
+    "art": "lunar-naga.webp"
+  },
+  {
+    "id": "mi_go",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "WmLoggAiAGBUZDSZ",
+    "name": "Mi-Go",
+    "level": 6,
+    "art": "mi-go.webp"
+  },
+  {
+    "id": "owb",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "V6CX3rQPq8iqQccW",
+    "name": "Owb",
+    "level": 6,
+    "art": "owb.webp"
+  },
+  {
+    "id": "rhu_chalik",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "yj2nhIS8ZsAJh2l5",
+    "name": "Rhu-Chalik",
+    "level": 6,
+    "art": "rhu-chalik.webp"
+  },
+  {
+    "id": "rocketeer",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "SHQHNG2o1T172Qm4",
+    "name": "Rocketeer",
+    "level": 6,
+    "art": "rocketeer.webp"
+  },
+  {
+    "id": "umasi",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "mupW1Mgec250lQiZ",
+    "name": "Umasi",
+    "level": 6,
+    "art": "umasi.webp"
+  },
+  {
+    "id": "vampire_count",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "pPQyoQHTxrE2U7px",
+    "name": "Vampire Count",
+    "level": 6,
+    "art": "vampire-count.webp"
+  },
+  {
+    "id": "witchwyrd",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "AEa3tvzinib5eaIo",
+    "name": "Witchwyrd",
+    "level": 6,
+    "art": "witchwyrd.webp"
+  },
+  {
+    "id": "wood_golem",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "7UBCht1tQfeba2Ih",
+    "name": "Wood Golem",
+    "level": 6,
+    "art": "wood-golem.webp"
+  },
+  {
+    "id": "xill",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "cd2IaNGpdmHHZnrN",
+    "name": "Xill",
+    "level": 6,
+    "art": "xill.webp"
+  },
+  {
+    "id": "zecui",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "vVs0N3mcWYHsyccc",
+    "name": "Zecui",
+    "level": 6,
+    "art": "zecui.webp"
+  },
+  {
+    "id": "gurgist_mauler",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "ilGMPBvjT9ovIiXB",
+    "name": "Gurgist Mauler",
+    "level": 6,
+    "art": "gurgist-mauler.webp"
   }
 ]
