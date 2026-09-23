@@ -54,10 +54,14 @@ Hooks.once("init", () => {
     type: Object,
     default: {},
   });
+  // Client scope, not world: a world-scope setting's value syncs to every
+  // connected client (players included) regardless of config visibility,
+  // which would expose the GM's bearer token via game.settings.get(). Each
+  // GM's browser holds its own copy instead.
   game.settings.register(MODULE_ID, "agentServiceUrl", {
     name: "PF2EDC.Settings.AgentServiceUrlLabel",
     hint: "PF2EDC.Settings.AgentServiceUrlHint",
-    scope: "world",
+    scope: "client",
     config: true,
     type: String,
     default: "",
@@ -65,7 +69,7 @@ Hooks.once("init", () => {
   game.settings.register(MODULE_ID, "agentServiceApiKey", {
     name: "PF2EDC.Settings.AgentServiceApiKeyLabel",
     hint: "PF2EDC.Settings.AgentServiceApiKeyHint",
-    scope: "world",
+    scope: "client",
     config: true,
     type: String,
     default: "",

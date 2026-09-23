@@ -110,8 +110,8 @@
   "PF2EDC.GM.ChooseAbility.Label": "Ability",
   "PF2EDC.GM.ChooseAbility.Prompt": "Choose the ability score to boost by +{delta}.",
   "PF2EDC.SceneControl.AgentLoopStatusLabel": "Agent Loop Status",
-  "PF2EDC.Settings.AgentServiceApiKeyHint": "The bearer token your agent-service deployment was started with (AGENT_SERVICE_API_KEY).",
+  "PF2EDC.Settings.AgentServiceApiKeyHint": "The bearer token your agent-service deployment was started with (AGENT_SERVICE_API_KEY). Stored only in this browser (never synced to players), so each GM sets it in their own browser.",
   "PF2EDC.Settings.AgentServiceApiKeyLabel": "Agent Service API Key",
-  "PF2EDC.Settings.AgentServiceUrlHint": "Base URL of your self-hosted tools/agent-service instance (e.g. https://agent.yourdomain.com).",
+  "PF2EDC.Settings.AgentServiceUrlHint": "Base URL of your self-hosted tools/agent-service instance (e.g. https://agent.yourdomain.com). Stored only in this browser, so each GM sets it in their own browser.",
   "PF2EDC.Settings.AgentServiceUrlLabel": "Agent Service URL"
 }

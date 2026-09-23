@@ -22,12 +22,16 @@ to run continuously (e.g. via Docker) rather than be started per-session.
 From the repo root:
 
 ```bash
-docker compose -f tools/agent-service/docker-compose.yml up -d
+docker compose --env-file .env -f tools/agent-service/docker-compose.yml up -d
 ```
 
 This builds and runs the image defined by `tools/agent-service/Dockerfile`
 and publishes it on port `8787`. Provide the following via a `.env` file
-in the repo root (or the shell environment) before running it:
+in the repo root (see `.env.example`), or the shell environment, before
+running it. The explicit `--env-file .env` matters: Docker Compose v2
+resolves its default `.env` relative to the compose file's directory
+(`tools/agent-service/`), not the directory you run the command from, so
+without the flag a repo-root `.env` is silently ignored.
 
 - `AGENT_SERVICE_API_KEY` — a secret you generate yourself, e.g.
   `openssl rand -hex 32`. The service refuses to start without this set
@@ -48,6 +52,14 @@ Claude:
   "Self-hosting Laya" below). Falls back to a default hosted instance if
   unset.
 
+Optional, for locking down CORS:
+
+- `AGENT_SERVICE_ALLOWED_ORIGIN` — the `Access-Control-Allow-Origin` value
+  the service sends (Foundry calls it via browser `fetch()` from a
+  different origin). Defaults to `*`, which is safe because auth is a
+  bearer token rather than a cookie, but you can lock it to your GM's
+  actual Foundry origin, e.g. `https://foundry.yourdomain.com`.
+
 Example `.env`:
 
 ```
@@ -60,6 +72,14 @@ infrastructure, not something you start and stop per session. Wherever
 you deploy it, make sure it's reachable from the machine(s) running
 Foundry (a LAN address, or a public/reverse-proxied hostname if Foundry
 and the service aren't on the same network).
+
+**If Foundry is served over HTTPS** (a reverse proxy with TLS, or Forge
+VTT hosting), the agent-service URL must also be HTTPS — e.g. behind a
+reverse proxy with a real certificate, or a self-signed certificate the
+GM's browser is configured to trust. Browsers block a plain-HTTP `fetch()`
+from an HTTPS page as mixed content, and every call silently fails. A
+plain LAN URL like `http://<host-ip>:8787` only works when Foundry itself
+is also served over plain HTTP.
 
 For local development without Docker, the same entrypoint is available
 as an npm script (reads the same env vars from the shell or a `.env` in
@@ -75,12 +95,17 @@ In this module's settings, set:
 
 - **Agent Service URL** — the base URL where the deployed service is
   reachable, e.g. `https://agent.yourdomain.com` if reverse-proxied, or
-  `http://<host-ip>:8787` on a LAN.
+  `http://<host-ip>:8787` on a LAN (only if Foundry is also plain HTTP —
+  see the HTTPS note above).
 - **Agent Service API Key** — the same value as `AGENT_SERVICE_API_KEY`
   you deployed the service with.
 
-Both settings are world-scoped and GM-only (`agentServiceUrl` /
-`agentServiceApiKey` in `scripts/module.mjs`).
+Both settings are **client-scoped** (`agentServiceUrl` /
+`agentServiceApiKey` in `scripts/module.mjs`): they're stored in each
+browser, not in the world, so the API key never syncs to players'
+clients. That means they are per-GM-browser, not per-world — every GM
+who might run a session needs to set them in their own browser (and again
+after clearing browser storage or switching browsers/machines).
 
 ## Checking it's working
 
@@ -140,7 +165,7 @@ different surface than `/v1/predict`).
 - **Either way**, check the service's own logs for the underlying error:
 
   ```bash
-  docker compose -f tools/agent-service/docker-compose.yml logs agent-service
+  docker compose --env-file .env -f tools/agent-service/docker-compose.yml logs agent-service
   ```
 
   Common causes: `AGENT_SERVICE_API_KEY` mismatch between Foundry's
@@ -148,4 +173,5 @@ different surface than `/v1/predict`).
   `ANTHROPIC_API_KEY` (or `LAYA_API_KEY`/`LAYA_BASE_URL` if using the
   Laya provider), or the service simply not being reachable from
   Foundry's network (firewall, wrong host/port, reverse proxy
-  misconfigured).
+  misconfigured). If the browser console shows a CORS or mixed-content
+  error, check `AGENT_SERVICE_ALLOWED_ORIGIN` and the HTTPS note above.
