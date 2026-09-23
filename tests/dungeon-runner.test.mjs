@@ -5,10 +5,14 @@ import {
   advanceToRoom,
   undoLastRoomEntry,
   canUndoRoomEntry,
+  roomsToEagerlyBuild,
+  commitEagerPhysicalSlots,
+  roomsNeedingResync,
   abandonRun,
   getRunState,
   ensureSkillChallenge,
   recordSkillChallengeAttempt,
+  clearSkillChallengeState,
   setObjective,
   findActiveHostedRun,
   findHostedRunForBroadcast,
@@ -16,12 +20,15 @@ import {
   applySkillChallengeCustomization,
   ensurePuzzleState,
   recordPuzzleStageAttempt,
+  clearPuzzleState,
   getPendingPuzzleCustomization,
   applyPuzzleCustomization,
   ensureNarrativeState,
+  clearNarrativeState,
   getPendingNarrativeCustomization,
   applyNarrativeCustomization,
   ensureTrapState,
+  clearTrapState,
   applyTrapRoomState,
 } from "../scripts/dungeon-runner.mjs";
 import { registerGenerator } from '../scripts/generator-registry.mjs';
@@ -1591,6 +1598,169 @@ describe("ensureNarrativeState / getPendingNarrativeCustomization / applyNarrati
   });
 });
 
+describe("clearPuzzleState", () => {
+  it("clears an already-attached puzzle state back to null", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s4", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    await ensurePuzzleState("s4", roomId, { hintChecks: [] }, { settingsRef });
+    const cleared = await clearPuzzleState("s4", roomId, { settingsRef });
+    const room = cleared.rooms.find((r) => r.id === roomId);
+    expect(room.puzzle).toBeFalsy();
+  });
+
+  it("is a no-op against a room with no puzzle state attached", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s5", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    const cleared = await clearPuzzleState("s5", roomId, { settingsRef });
+    expect(cleared.rooms).toEqual(created.rooms);
+  });
+
+  it("is a no-op with no run at all", async () => {
+    const settingsRef = makeSettingsStub();
+    const result = await clearPuzzleState("nope", "room-x", { settingsRef });
+    expect(result).toBeNull();
+  });
+});
+
+describe("clearSkillChallengeState", () => {
+  it("clears an already-attached challenge back to null", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s6", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    await ensureSkillChallenge(
+      "s6",
+      roomId,
+      { seed: "fixed", locationTag: "undead", partySize: 4 },
+      { settingsRef },
+    );
+    const cleared = await clearSkillChallengeState("s6", roomId, {
+      settingsRef,
+    });
+    const room = cleared.rooms.find((r) => r.id === roomId);
+    expect(room.challenge).toBeFalsy();
+  });
+
+  it("is a no-op against a room with no challenge attached", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s7", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    const cleared = await clearSkillChallengeState("s7", roomId, {
+      settingsRef,
+    });
+    expect(cleared.rooms).toEqual(created.rooms);
+  });
+
+  it("is a no-op with no run at all", async () => {
+    const settingsRef = makeSettingsStub();
+    const result = await clearSkillChallengeState("nope", "room-x", {
+      settingsRef,
+    });
+    expect(result).toBeNull();
+  });
+});
+
+describe("clearNarrativeState", () => {
+  const loreSetpiece = {
+    id: "the_example_lore",
+    kind: "narrative",
+    archetype: "lore",
+    name: "The Example",
+    summary: "An example lore beat.",
+    revealText: "The ruins predate the empire.",
+  };
+
+  it("clears an already-attached narrative state back to null", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s8", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    await ensureNarrativeState(
+      "s8",
+      roomId,
+      { setpiece: loreSetpiece },
+      { settingsRef },
+    );
+    const cleared = await clearNarrativeState("s8", roomId, { settingsRef });
+    const room = cleared.rooms.find((r) => r.id === roomId);
+    expect(room.narrative).toBeFalsy();
+  });
+
+  it("is a no-op against a room with no narrative state attached", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s9", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    const cleared = await clearNarrativeState("s9", roomId, { settingsRef });
+    expect(cleared.rooms).toEqual(created.rooms);
+  });
+
+  it("is a no-op with no run at all", async () => {
+    const settingsRef = makeSettingsStub();
+    const result = await clearNarrativeState("nope", "room-x", {
+      settingsRef,
+    });
+    expect(result).toBeNull();
+  });
+});
+
+describe("clearTrapState", () => {
+  it("clears an already-attached trap state back to null", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s10", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    await ensureTrapState(
+      "s10",
+      roomId,
+      {
+        name: "Scythe Blades",
+        description: "A pressure plate triggers swinging blades.",
+      },
+      { settingsRef },
+    );
+    const cleared = await clearTrapState("s10", roomId, { settingsRef });
+    const room = cleared.rooms.find((r) => r.id === roomId);
+    expect(room.trap).toBeFalsy();
+  });
+
+  it("is a no-op against a room with no trap state attached", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s11", roomCount: 3, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.rooms[1].id;
+    const cleared = await clearTrapState("s11", roomId, { settingsRef });
+    expect(cleared.rooms).toEqual(created.rooms);
+  });
+
+  it("is a no-op with no run at all", async () => {
+    const settingsRef = makeSettingsStub();
+    const result = await clearTrapState("nope", "room-x", { settingsRef });
+    expect(result).toBeNull();
+  });
+});
+
 describe("dungeonRuns settings namespace", () => {
   /** Regression test for a bug where this file's settings access stayed
    * pinned to a stale module id, which module.mjs no longer registers
@@ -1618,5 +1788,186 @@ describe("dungeonRuns settings namespace", () => {
     await abandonRun("scene-1", { settingsRef });
 
     expect(seenModuleIds).toEqual(new Set(["pf2e-dungeon-crawl"]));
+  });
+});
+
+it('roomsToEagerlyBuild returns every room after the entry, in order, as {room, physicalSlot} pairs', () => {
+  const state = {
+    rooms: [
+      { id: 'r0', kind: 'narrative' },
+      { id: 'r1', kind: 'narrative' },
+      { id: 'r2', kind: 'trap' },
+      { id: 'r3', kind: 'puzzle' },
+    ],
+  };
+  expect(roomsToEagerlyBuild(state)).toEqual([
+    { room: state.rooms[1], physicalSlot: 1 },
+    { room: state.rooms[2], physicalSlot: 2 },
+    { room: state.rooms[3], physicalSlot: 3 },
+  ]);
+});
+
+it('roomsToEagerlyBuild skips a combat-kind room at index 1, keeping the manual-populate deferral (ITEM-11)', () => {
+  const state = {
+    rooms: [
+      { id: 'r0', kind: 'narrative' },
+      { id: 'r1', kind: 'combat' },
+      { id: 'r2', kind: 'trap' },
+    ],
+  };
+  expect(roomsToEagerlyBuild(state)).toEqual([
+    { room: state.rooms[2], physicalSlot: 2 },
+  ]);
+});
+
+it('roomsToEagerlyBuild does NOT skip a combat-kind room at any index other than 1', () => {
+  const state = {
+    rooms: [
+      { id: 'r0', kind: 'narrative' },
+      { id: 'r1', kind: 'trap' },
+      { id: 'r2', kind: 'combat' },
+      { id: 'r3', kind: 'puzzle' },
+    ],
+  };
+  expect(roomsToEagerlyBuild(state)).toEqual([
+    { room: state.rooms[1], physicalSlot: 1 },
+    { room: state.rooms[2], physicalSlot: 2 },
+    { room: state.rooms[3], physicalSlot: 3 },
+  ]);
+});
+
+it('roomsToEagerlyBuild returns an empty array for a single-room (entry-only) dungeon', () => {
+  const state = { rooms: [{ id: 'r0', kind: 'narrative' }] };
+  expect(roomsToEagerlyBuild(state)).toEqual([]);
+});
+
+describe("commitEagerPhysicalSlots", () => {
+  it("merges eagerly-built slot assignments into physicalSlotByRoomId and advances nextPhysicalSlot past the highest committed slot", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s1", roomCount: 5, traits: [], excludeTraits: [] },
+      { settingsRef },
+    );
+    const eagerlyBuilt = [
+      { room: created.rooms[2], physicalSlot: 2 },
+      { room: created.rooms[3], physicalSlot: 3 },
+      { room: created.rooms[4], physicalSlot: 4 },
+    ];
+    const result = await commitEagerPhysicalSlots("s1", eagerlyBuilt, {
+      settingsRef,
+    });
+    expect(result.physicalSlotByRoomId[created.rooms[2].id]).toBe(2);
+    expect(result.physicalSlotByRoomId[created.rooms[3].id]).toBe(3);
+    expect(result.physicalSlotByRoomId[created.rooms[4].id]).toBe(4);
+    expect(result.nextPhysicalSlot).toBe(5);
+  });
+
+  it("does not regress nextPhysicalSlot when called a second time with the same or a lower slot", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s2", roomCount: 3, traits: [], excludeTraits: [] },
+      { settingsRef },
+    );
+    await commitEagerPhysicalSlots(
+      "s2",
+      [{ room: created.rooms[2], physicalSlot: 2 }],
+      { settingsRef },
+    );
+    const result = await commitEagerPhysicalSlots(
+      "s2",
+      [{ room: created.rooms[2], physicalSlot: 2 }],
+      { settingsRef },
+    );
+    expect(result.nextPhysicalSlot).toBe(3);
+  });
+
+  it("does not touch state.rooms, state.currentIndex, or any other field", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createRun(
+      { sceneId: "s3", roomCount: 3, traits: [], excludeTraits: [] },
+      { settingsRef },
+    );
+    const result = await commitEagerPhysicalSlots(
+      "s3",
+      [{ room: created.rooms[2], physicalSlot: 2 }],
+      { settingsRef },
+    );
+    expect(result.rooms).toEqual(created.rooms);
+    expect(result.currentIndex).toBe(created.currentIndex);
+  });
+});
+
+describe("roomsNeedingResync", () => {
+  it("remove_next: rooms after the mutation point that shifted to a new slot are flagged for rebuild, and the vacated trailing slot is orphaned", () => {
+    // Pre-mutation: eager-built rooms 0-4 at slots 0-4 (physicalSlot === index).
+    // remove_next spliced out the old index-2 room — state.rooms now has 4
+    // entries where the old index-3 room is now at index 2, old index-4 is
+    // now at index 3.
+    const oldR2 = { id: "r2-old" };
+    const oldR3 = { id: "r3-old" };
+    const oldR4 = { id: "r4-old" };
+    const state = {
+      currentIndex: 1,
+      rooms: [
+        { id: "r0" },
+        { id: "r1" },
+        oldR3, // now at index 2, was at slot 3
+        oldR4, // now at index 3, was at slot 4
+      ],
+    };
+    const previousPhysicalSlotByRoomId = {
+      r0: 0,
+      r1: 1,
+      "r2-old": 2,
+      "r3-old": 3,
+      "r4-old": 4,
+    };
+    const result = roomsNeedingResync(state, previousPhysicalSlotByRoomId, 1);
+    expect(result.toRebuild).toEqual([
+      { room: oldR3, physicalSlot: 2, previousRoomId: "r2-old" },
+      { room: oldR4, physicalSlot: 3, previousRoomId: "r3-old" },
+    ]);
+    expect(result.toOrphan).toEqual([4]);
+    expect(result.toExtend).toEqual([]);
+  });
+
+  it("insert_after: rooms after the mutation point shift the other way, and one new slot is needed at the tail", () => {
+    const newRoom = { id: "r-new" };
+    const oldR2 = { id: "r2-old" };
+    const oldR3 = { id: "r3-old" };
+    const state = {
+      currentIndex: 1,
+      rooms: [
+        { id: "r0" },
+        { id: "r1" },
+        newRoom, // inserted, now at index 2
+        oldR2, // now at index 3, was at slot 2
+        oldR3, // now at index 4, was at slot 3
+      ],
+    };
+    const previousPhysicalSlotByRoomId = {
+      r0: 0,
+      r1: 1,
+      "r2-old": 2,
+      "r3-old": 3,
+    };
+    const result = roomsNeedingResync(state, previousPhysicalSlotByRoomId, 1);
+    expect(result.toRebuild).toEqual([
+      { room: newRoom, physicalSlot: 2, previousRoomId: "r2-old" },
+      { room: oldR2, physicalSlot: 3, previousRoomId: "r3-old" },
+      { room: oldR3, physicalSlot: 4, previousRoomId: null },
+    ]);
+    expect(result.toOrphan).toEqual([]);
+    expect(result.toExtend).toEqual([{ room: oldR3, physicalSlot: 4 }]);
+  });
+
+  it("returns all-empty when nothing after the mutation point actually changed identity", () => {
+    const state = {
+      currentIndex: 1,
+      rooms: [{ id: "r0" }, { id: "r1" }, { id: "r2" }],
+    };
+    const previousPhysicalSlotByRoomId = { r0: 0, r1: 1, r2: 2 };
+    const result = roomsNeedingResync(state, previousPhysicalSlotByRoomId, 1);
+    expect(result).toEqual({ toRebuild: [], toOrphan: [], toExtend: [] });
   });
 });

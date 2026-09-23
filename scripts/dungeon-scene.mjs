@@ -30,6 +30,7 @@ import {
   buildConnectionGeometry,
   corridorTileVariant,
   outgoingFaceWall,
+  connectionDirection,
 } from "./dungeon-layout.mjs";
 import { freeSpotInRect } from "./placement.mjs";
 import { generateEncounter } from "./encounter-generator.mjs";
@@ -182,7 +183,15 @@ export async function buildRoomAtSlot(
   await ensureSceneCovers(scene, slot);
 
   const walls = roomEnclosureWalls(seed, slot, { hasOutgoing: !isGoal }).map(
-    (side) => wallDoc(side),
+    (side) =>
+      wallDoc(side, {
+        flags: {
+          [MODULE_ID]: {
+            dungeonEnclosureWallForSlot: slot,
+            dungeonEnclosureWallDirection: side.dir,
+          },
+        },
+      }),
   );
   const tiles = [];
   let placeholderIds = [];
@@ -266,13 +275,20 @@ export async function buildRoomAtSlot(
     }
   }
 
-  if (!isGoal) {
+  if (!isGoal && !isSlotBuilt(scene, slot + 1)) {
     // Frontier placeholder (ITEM-20): this room has no outgoing connection
-    // built yet, so without a wall here it's open on that entire face until
-    // the next room is built — vision, light, and movement all leak straight
-    // across the rest of the scene's pre-sized canvas. Deleted and replaced
-    // by the real door/opening geometry above the moment that next room
-    // actually gets built.
+    // built yet, so without a wall here it's open on that entire face
+    // until the next room is built — vision, light, and movement all leak
+    // straight across the rest of the scene's pre-sized canvas. Deleted
+    // and replaced by the real door/opening geometry above the moment
+    // that next room actually gets built. Skipped entirely if the next
+    // slot is ALREADY built (#62) — an eager GM-less build can build a
+    // higher-numbered slot before this one (e.g. a deferred combat room
+    // at slot 1 built after slot 2 already exists), in which case the
+    // real connection already exists and a placeholder here would
+    // immediately be stale, permanently overlaying a door that will never
+    // get superseded (nothing triggers supersede-on-next-build for an
+    // already-built next slot).
     walls.push(
       wallDoc(outgoingFaceWall(seed, slot), {
         flags: { [MODULE_ID]: { dungeonFrontierWallForSlot: slot } },
@@ -316,6 +332,42 @@ export async function buildRoomAtSlot(
       config: { dim, bright, color: ROOM_LIGHT_COLOR, alpha: ROOM_LIGHT_ALPHA },
     },
   ]);
+}
+
+/**
+ * Retrofits a slot originally built as the goal room (isGoal: true,
+ * hasOutgoing: false, no frontier placeholder) into a normal room with a
+ * real outgoing connection — needed when a sequence mutation (#62) shifts
+ * the goal to a new slot and a non-goal room ends up occupying this one.
+ * Finds and deletes the one enclosure wall on this slot's own connection
+ * direction (flagged by buildRoomAtSlot's own wall creation above), then
+ * creates the same frontier-placeholder wall a normal non-goal room gets
+ * from the start (buildRoomAtSlot's `if (!isGoal)` block) — after this,
+ * the existing, unmodified supersede-on-next-build logic in buildRoomAtSlot
+ * (the `if (slot > 0)` block) already knows how to find and replace a
+ * dungeonFrontierWallForSlot-flagged wall once the chain extends past it.
+ */
+export async function openGoalRoomExit(scene, slot, seed) {
+  const dir = connectionDirection(slot);
+  const staleWallIds = scene.walls
+    .filter(
+      (w) =>
+        w.getFlag(MODULE_ID, "dungeonEnclosureWallForSlot") === slot &&
+        w.getFlag(MODULE_ID, "dungeonEnclosureWallDirection") === dir,
+    )
+    .map((w) => w.id);
+  if (!staleWallIds.length) return;
+  // Create-then-delete, not the other way around — same reasoning as the
+  // buildRoomAtSlot `if (slot > 0)` block's own placeholder-supersede
+  // comment: deleting the stale wall first would leave a real window with
+  // zero walls on this face at all, leaking vision/light/movement straight
+  // across the rest of the scene until the replacement lands.
+  await scene.createEmbeddedDocuments("Wall", [
+    wallDoc(outgoingFaceWall(seed, slot), {
+      flags: { [MODULE_ID]: { dungeonFrontierWallForSlot: slot } },
+    }),
+  ]);
+  await scene.deleteEmbeddedDocuments("Wall", staleWallIds);
 }
 
 /**
@@ -544,6 +596,50 @@ export async function populateSlotTrap(
   }
 }
 
+/**
+ * Teardown counterpart to `populateSlotEncounter` above (#62 mutation
+ * reconciliation) — needed when a Reward/Ruin sequence mutation changes
+ * which logical room an already-built physical slot corresponds to, so
+ * that slot's stale content is removed before the new room's own content
+ * populates it (otherwise the new room's tokens would just layer on top of
+ * the old room's leftover tokens instead of replacing them). Deletes every
+ * token flagged `getFlag(MODULE_ID, "dungeonSlot") === slot`, and (for any
+ * non-party actor among them) that token's own Actor document too —
+ * mirrors `sweepLooseNpcActors`'s own token+actor deletion shape exactly,
+ * scoped to one slot instead of the whole scene. Guards against ever
+ * deleting a real party member's Actor document (defensive: a party token
+ * shouldn't carry a `dungeonSlot` flag in the first place, but this
+ * doesn't assume that). A no-op if nothing is flagged for this slot.
+ */
+export async function clearSlotEncounter(scene, slot) {
+  const tokens = scene.tokens.filter(
+    (t) => t.getFlag(MODULE_ID, "dungeonSlot") === slot,
+  );
+  if (!tokens.length) return;
+  const partyIds = partyActorIds();
+  const tokenIds = tokens.map((t) => t.id);
+  const actorIds = [
+    ...new Set(
+      tokens.map((t) => t.actor?.id).filter((id) => id && !partyIds.has(id)),
+    ),
+  ];
+  await scene.deleteEmbeddedDocuments("Token", tokenIds);
+  if (actorIds.length) await Actor.deleteDocuments(actorIds);
+}
+
+/**
+ * Teardown counterpart to `populateSlotTrap` above — a trap's spawned
+ * hazard token carries the same `dungeonSlot` flag a combat encounter's
+ * tokens do (see `populateSlotTrap`'s own `extraFlags`), so the same
+ * flag-scoped token+actor deletion `clearSlotEncounter` already does
+ * applies unchanged here. Does not touch `roomId`'s persisted `trap` state
+ * (`ensureTrapState`'s own field) — that's `dungeon-runner.mjs`'s
+ * `clearTrapState`'s job; the caller runs both together.
+ */
+export async function clearSlotTrap(scene, slot) {
+  await clearSlotEncounter(scene, slot);
+}
+
 /** Un-hides slot's tagged tokens (discovery). Returns the ids revealed. */
 export async function revealSlotTokens(scene, slot) {
   const tokens = scene.tokens.filter(
@@ -755,30 +851,35 @@ export async function buildPopulateAndUnlockRoom(
   state,
   room,
   physicalSlot,
+  { unlock = true } = {},
 ) {
-  await buildRoomAtSlot(scene, physicalSlot, {
-    isGoal: room.isGoal,
-    locationTag: room.locationTag,
-    artVariant: room.artVariant,
-    seed: state.seed,
-  });
-
-  if (room.kind === "combat") {
-    await populateSlotEncounter(scene, physicalSlot, {
-      prefillTraits: state.traits,
-      prefillExcludeTraits: state.excludeTraits,
-      levelOffsetBias: depthBiasFor({
-        physicalSlot,
-        roomCount: state.rooms.length,
-        isGoal: room.isGoal,
-      }),
+  if (!isSlotBuilt(scene, physicalSlot)) {
+    await buildRoomAtSlot(scene, physicalSlot, {
+      isGoal: room.isGoal,
       locationTag: room.locationTag,
+      artVariant: room.artVariant,
       seed: state.seed,
     });
+  }
+
+  if (room.kind === "combat") {
+    if (!isSlotPopulated(scene, physicalSlot)) {
+      await populateSlotEncounter(scene, physicalSlot, {
+        prefillTraits: state.traits,
+        prefillExcludeTraits: state.excludeTraits,
+        levelOffsetBias: depthBiasFor({
+          physicalSlot,
+          roomCount: state.rooms.length,
+          isGoal: room.isGoal,
+        }),
+        locationTag: room.locationTag,
+        seed: state.seed,
+      });
+    }
     // Only unlock once monsters are actually in place — a cancelled theme
     // dialog leaves the door locked rather than opening onto an empty room;
     // the GM retries via the "Populate Next Room" button.
-    if (isSlotPopulated(scene, physicalSlot))
+    if (unlock && isSlotPopulated(scene, physicalSlot))
       await unlockDoorToSlot(scene, physicalSlot);
   } else {
     // #109: a skill_challenge room's Victory Point state used to be
@@ -829,7 +930,11 @@ export async function buildPopulateAndUnlockRoom(
     // GM-less host's requests never renders DungeonApp at all. A trap room
     // additionally gets a real, mechanically-functional hazard spawned from
     // pf2e.hazards for #134's engine to run.
-    if (room.kind === "trap" && room.setpieceId) {
+    if (
+      room.kind === "trap" &&
+      room.setpieceId &&
+      !isSlotPopulated(scene, physicalSlot)
+    ) {
       await populateSlotTrap(scene, physicalSlot, {
         partyLevel: await makeFoundryApi().partyLevel(),
         levelOffsetBias: depthBiasFor({
@@ -865,7 +970,7 @@ export async function buildPopulateAndUnlockRoom(
         await ensureNarrativeState(scene.id, room.id, { setpiece });
       }
     }
-    await unlockDoorToSlot(scene, physicalSlot);
+    if (unlock) await unlockDoorToSlot(scene, physicalSlot);
   }
 }
 
