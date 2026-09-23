@@ -8,6 +8,13 @@ import {
   recordSkillChallengeAttempt,
   setObjective,
   recordPuzzleStageAttempt,
+  roomsToEagerlyBuild,
+  commitEagerPhysicalSlots,
+  roomsNeedingResync,
+  clearPuzzleState,
+  clearSkillChallengeState,
+  clearNarrativeState,
+  clearTrapState,
 } from "../dungeon-runner.mjs";
 import { canActOnDungeon } from "../dungeon-permissions.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
@@ -30,6 +37,7 @@ import {
 import {
   createDungeonScene,
   buildRoomAtSlot,
+  openGoalRoomExit,
   unlockDoorToSlot,
   populateSlotEncounter,
   isSlotPopulated,
@@ -40,6 +48,8 @@ import {
   teardownDungeonRun,
   buildPopulateAndUnlockRoom,
   sweepCompletedDungeonScene,
+  clearSlotEncounter,
+  clearSlotTrap,
 } from "../dungeon-scene.mjs";
 import {
   startCombatForSlot,
@@ -177,17 +187,150 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
     ui.notifications.warn(
       game.i18n.localize("PF2EDC.Dungeon.RerunEncounterHint"),
     );
+  // #62: a GM-less-hosted run already eagerly built its whole sequence
+  // (startDungeonRun's own roomsToEagerlyBuild loop) — a Reward/Ruin
+  // sequence mutation (remove_next/insert_after) firing here shifts which
+  // logical room belongs at each already-built physical slot from this
+  // point on. Without reconciling that now, the party would walk into a
+  // physically-built slot showing the WRONG room's content (or, past the
+  // old tail, a slot with no content at all). A GM-hosted run
+  // (state.hostUserId null) never eagerly builds ahead — it has nothing to
+  // reconcile, and its existing one-room-ahead build below (the
+  // buildPopulateAndUnlockRoom(scene, state, nextRoom, nextPhysicalSlot)
+  // call past the `!nextRoomId` guard) already handles a mutation
+  // correctly today, unchanged.
+  // markRoomOutcome's own `nextPhysicalSlot` return value is computed from
+  // the PRE-mutation physicalSlotByRoomId via its plain reuse-or-allocate
+  // logic (see its own docblock) — it has no idea a GM-less run's eager
+  // build already occupies every slot by array index, and no idea
+  // roomsNeedingResync is about to renumber the shifted tail. For a
+  // remove_next mutation, nextRoomId's OLD slot entry still exists (from
+  // its own original eager build further down the sequence), so
+  // markRoomOutcome's `nextRoomId in physicalSlotByRoomId` reuse branch
+  // returns that STALE old slot, not its new one. For insert_after,
+  // nextRoomId is a brand-new room with no old entry, so markRoomOutcome
+  // falls to its `nextPhysicalSlot` running counter instead — a number
+  // from a completely different, non-eager numbering scheme, unrelated to
+  // roomsNeedingResync's array-index slot for it. Either way, blindly
+  // trusting the returned `nextPhysicalSlot` below would build/unlock the
+  // WRONG door. `resolvedNextPhysicalSlot` is corrected from the
+  // resync's own authoritative `toRebuild` list once computed just below;
+  // it stays as-is (correct, unchanged) for a GM-hosted run, which never
+  // eagerly builds ahead and so never hits this mismatch.
+  let resolvedNextPhysicalSlot = nextPhysicalSlot;
+  if (mutation && state.hostUserId) {
+    const { toRebuild, toOrphan } = roomsNeedingResync(
+      state,
+      preState.physicalSlotByRoomId,
+      state.currentIndex,
+    );
+    // The goal room's identity is unaffected by any mutation
+    // (applySequenceMutation never targets it — see the design doc), so
+    // this is the same room id whether read from the pre- or post-mutation
+    // rooms array. What changes is which physical slot it occupies (a
+    // fresh one, via toExtend below) — the OLD slot it used to occupy is
+    // what needs its outgoing wall retrofitted, identified by matching a
+    // toRebuild entry's own previousRoomId against this id.
+    const previousGoalRoomId = preState.rooms.find((r) => r.isGoal)?.id;
+    // Each toRebuild entry is a physical slot that now needs a DIFFERENT
+    // logical room's content than whatever it was eagerly built with
+    // before the mutation (an extended slot, per Task 5's own report,
+    // always also appears here — buildPopulateAndUnlockRoom's isSlotBuilt
+    // guard (Task 3) does a real build for it, same as any other slot that
+    // was never physically built at all). Teardown+rebuild happens one
+    // slot at a time, not the whole range up front, so a failure partway
+    // through leaves at most one slot mid-repair rather than every slot
+    // torn down with nothing rebuilt.
+    for (const { room, physicalSlot, previousRoomId } of toRebuild) {
+      // #62 Task 7: the room that used to occupy this slot was the goal —
+      // built with hasOutgoing:false and no frontier placeholder, so its
+      // one outgoing-face wall is a full solid enclosure wall nothing else
+      // can find or remove. A non-goal room is about to occupy this slot
+      // instead, so it needs a real outgoing connection: swap that stale
+      // wall for the same frontier-placeholder wall a non-goal room gets
+      // from its own original build, before any other teardown/rebuild
+      // below touches this slot.
+      if (previousRoomId === previousGoalRoomId) {
+        await openGoalRoomExit(scene, physicalSlot, state.seed);
+      }
+      // Foundry-side teardown of whatever's currently AT this slot (the
+      // stale room's tokens/actors) — clearSlotEncounter/clearSlotTrap key
+      // purely off the slot's own dungeonSlot flag, not room identity, so
+      // this is correct regardless of what kind the stale room was.
+      await clearSlotEncounter(scene, physicalSlot);
+      await clearSlotTrap(scene, physicalSlot);
+      // Reset whatever persisted content state the room being PLACED here
+      // already carries from its own original eager build (at a different
+      // physical slot) — a skill_challenge's DC is calibrated by
+      // depthBiasFor(physicalSlot), so reusing state generated for the
+      // old slot would leave it mis-calibrated for the new one; a trap's
+      // persisted name/description (ensureTrapState) would otherwise keep
+      // pointing at the just-deleted hazard actor once a fresh one spawns
+      // below. All four are no-ops when the room has nothing of that type
+      // to clear (Task 4), so calling every one unconditionally is safe
+      // and reads more clearly here than re-deriving which single type
+      // this room's kind implies.
+      await clearPuzzleState(scene.id, room.id);
+      await clearSkillChallengeState(scene.id, room.id);
+      await clearNarrativeState(scene.id, room.id);
+      await clearTrapState(scene.id, room.id);
+      // unlock: false — this only re-establishes correct CONTENT at each
+      // shifted slot; door-unlock order is still governed by the normal
+      // resolution-order gate (the unchanged buildPopulateAndUnlockRoom
+      // call below unlocks the door to whatever's now genuinely next).
+      await buildPopulateAndUnlockRoom(scene, state, room, physicalSlot, {
+        unlock: false,
+      });
+    }
+    // A slot that fell off the end of the (now-shorter) sequence entirely
+    // — remove_next only, since insert_after only ever grows the tail.
+    for (const orphanSlot of toOrphan) {
+      await clearSlotEncounter(scene, orphanSlot);
+      await clearSlotTrap(scene, orphanSlot);
+    }
+    if (toRebuild.length) {
+      await commitEagerPhysicalSlots(
+        scene.id,
+        toRebuild.map(({ room, physicalSlot }) => ({ room, physicalSlot })),
+      );
+    }
+    // toRebuild always starts at physicalSlot === state.currentIndex + 1
+    // (mutationBoundaryIndex + 1) for both remove_next (the removed room
+    // WAS that slot, so whatever now occupies it differs) and insert_after
+    // (the newly-inserted room IS that slot, brand new) — which is exactly
+    // nextRoomId's own array position, so this lookup always finds an
+    // entry whenever nextRoomId is non-null and mutation actually changed
+    // the sequence.
+    const nextRebuildEntry = toRebuild.find((r) => r.room.id === nextRoomId);
+    if (nextRebuildEntry)
+      resolvedNextPhysicalSlot = nextRebuildEntry.physicalSlot;
+  }
   if (!nextRoomId) {
     // #204: the goal room was just resolved — nothing more to build, but
     // sweep any un-looted #172 corpse (or plain leftover NPC) before
     // returning, since this was previously the one completion path with no
     // cleanup trigger at all (teardownDungeonRun only ever fires on Abandon).
-    await sweepCompletedDungeonScene(scene);
+    // #62 final review: markRoomOutcome also returns a null nextRoomId from
+    // several guards that are NOT genuine completion — its duplicate-resolve
+    // guard (#152, e.g. a double-click race), its no-outcome-slot guard, and
+    // its own already-completed guard. Gate on the returned state's actual
+    // `completed` flag (set true only in markRoomOutcome's real
+    // goal-room-resolved branch) rather than treating every null nextRoomId
+    // as "run done" — with every room now eagerly built (#62), sweeping on a
+    // false positive would wipe every pre-populated encounter and trap
+    // hazard across the whole dungeon, not just the one room the old
+    // one-room-ahead design could have lost.
+    if (state?.completed) await sweepCompletedDungeonScene(scene);
     return;
   }
 
   const nextRoom = state.rooms.find((r) => r.id === nextRoomId);
-  await buildPopulateAndUnlockRoom(scene, state, nextRoom, nextPhysicalSlot);
+  await buildPopulateAndUnlockRoom(
+    scene,
+    state,
+    nextRoom,
+    resolvedNextPhysicalSlot,
+  );
 }
 
 // A level well under the party's own, so a `friendly_aid` ally reads as a
@@ -365,12 +508,57 @@ export async function startDungeonRun({
     seed: state.seed,
   });
 
-  // A combat first room's build+populate is deliberately deferred to the
-  // next "Populate Next Room" action instead — see #onPopulateNext/
-  // populateNextRoom below (ITEM-11).
-  const firstRealRoom = state.rooms[1];
-  if (firstRealRoom && firstRealRoom.kind !== "combat") {
-    await buildPopulateAndUnlockRoom(scene, state, firstRealRoom, 1);
+  // #62: a GM-less-hosted run (state.hostUserId set — same signal
+  // unpauseIfGmLessRun/encounter-generator.mjs's skipPreview already use)
+  // builds every eligible room now. buildPopulateAndUnlockRoom's own
+  // isSlotBuilt/isSlotPopulated guards make each build idempotent (so a
+  // later resolve-time call for the same room doesn't double-build it),
+  // and `unlock: physicalSlot === 1` keeps every door but the first
+  // locked, preserving the normal resolution-order gate instead of
+  // opening the whole dungeon at once. commitEagerPhysicalSlots below
+  // then folds these slot assignments into the run's own tracked state so
+  // markRoomOutcome's reuse-or-allocate logic recognizes them instead of
+  // reassigning colliding slots. This fixes double-build/collision/
+  // premature-unlock, but doesn't by itself remove every live-GM
+  // dependency — a Reward/Ruin sequence mutation still needs one; later
+  // tasks in #62 finish that. A GM-hosted run keeps the original
+  // one-room-ahead behavior unchanged. Either way, a combat-kind room at
+  // index 1 keeps its existing manual "Populate Next Room" deferral
+  // (ITEM-11) — see #onPopulateNext/populateNextRoom below.
+  if (state.hostUserId) {
+    const eagerlyBuilt = roomsToEagerlyBuild(state);
+    for (const { room, physicalSlot } of eagerlyBuilt) {
+      // #62 final review: before eager-build, a single room's build failure
+      // (a compendium lookup miss, a hazard-actor spawn failure, etc.) was
+      // limited to whatever one room the old lazy one-room-ahead design was
+      // building. Now every room in the sequence builds here in one loop, so
+      // an uncaught throw from one room would otherwise abort the whole run
+      // start — before commitEagerPhysicalSlots, placePartyInSlot,
+      // scene.activate(), and the unpause below all run. Catch and log
+      // instead: buildPopulateAndUnlockRoom's own isSlotBuilt/isSlotPopulated
+      // guards (Task 3) and resolve-time's own `if (!isSlotPopulated...)`
+      // re-populate logic already make a skipped room recoverable later via
+      // the existing "Populate Next Room" button, so one bad room shouldn't
+      // take down every other room or the run's own setup.
+      try {
+        await buildPopulateAndUnlockRoom(scene, state, room, physicalSlot, {
+          unlock: physicalSlot === 1,
+        });
+      } catch (e) {
+        console.error(
+          `${MODULE_ID} | eager build failed for room "${room.id}" (slot ${physicalSlot})`,
+          e,
+        );
+      }
+    }
+    if (eagerlyBuilt.length) {
+      await commitEagerPhysicalSlots(scene.id, eagerlyBuilt);
+    }
+  } else {
+    const firstRealRoom = state.rooms[1];
+    if (firstRealRoom && firstRealRoom.kind !== "combat") {
+      await buildPopulateAndUnlockRoom(scene, state, firstRealRoom, 1);
+    }
   }
 
   const partyMembers = (game.actors?.party?.members ?? []).filter(
