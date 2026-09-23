@@ -13,12 +13,22 @@
 # can be used in a chain without checking the output by eye.
 set -uo pipefail
 
-BASE="${FOUNDRY_BASE_URL:-https://foundryrestapi.com}"
 SHOW_CLIENT=0
 [ "${1:-}" = "-c" ] && { SHOW_CLIENT=1; shift; }
 
-# A .env in the working directory is the usual home for the key. Sourced only
-# for the variables wanted, rather than executed wholesale.
+# A .env in the working directory is the usual home for these. Sourced only
+# for the variables wanted, rather than executed wholesale. FOUNDRY_BASE_URL
+# needs this fallback just as much as the API key does — without it, a
+# self-hosted relay configured only in .env (not separately exported) is
+# silently skipped in favor of the public default, which has no registered
+# client and fails with the same "no client registered" error a genuinely
+# closed world would produce (#134 — this caused real, repeated false
+# "relay unreachable" conclusions before this fix).
+if [ -z "${FOUNDRY_BASE_URL:-}" ] && [ -f .env ]; then
+  FOUNDRY_BASE_URL=$(grep -E '^FOUNDRY_BASE_URL=' .env | head -1 | cut -d= -f2-)
+fi
+BASE="${FOUNDRY_BASE_URL:-https://foundryrestapi.com}"
+
 if [ -z "${FOUNDRY_REST_API_KEY:-}" ] && [ -f .env ]; then
   FOUNDRY_REST_API_KEY=$(grep -E '^FOUNDRY_REST_API_KEY=' .env | head -1 | cut -d= -f2-)
 fi
