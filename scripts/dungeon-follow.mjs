@@ -14,11 +14,11 @@
 import { getRunState } from "./dungeon-runner.mjs";
 import { requestDungeonAction } from "./dungeon-remote.mjs";
 import { blockedEdgesFromWalls } from "./pathfinding.mjs";
+import { footprint } from "./placement.mjs";
 import {
   findFollowMove,
   tokenCell,
   sceneBounds,
-  cellKey,
 } from "./dungeon-follow-mechanics.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -80,9 +80,7 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
     const bounds = sceneBounds(scene, gridSize);
     const isBlocked = movementBlockedEdges(scene, gridSize);
     const leaderCell = tokenCell(leaderToken, gridSize);
-    const occupied = new Set(
-      scene.tokens.map((t) => cellKey(tokenCell(t, gridSize))),
-    );
+    const occupied = scene.tokens.map((t) => footprint(t, gridSize));
 
     for (const actorId of aiControlledIds) {
       const token = scene.tokens.find((t) => t.actor?.id === actorId);
@@ -97,6 +95,7 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
       if (token.x !== snappedX || token.y !== snappedY) {
         await token.update({ x: snappedX, y: snappedY });
       }
+      const moverFootprint = footprint(token, gridSize);
       const fromCell = tokenCell(token, gridSize);
       const result = findFollowMove(
         fromCell,
@@ -104,6 +103,7 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
         occupied,
         isBlocked,
         bounds,
+        moverFootprint,
       );
       if (result.status === "already-near") continue;
       if (result.status === "no-route") {
@@ -112,8 +112,20 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
         );
         continue;
       }
-      occupied.delete(cellKey(fromCell));
-      occupied.add(cellKey(result.to));
+      const myIndex = occupied.findIndex(
+        (f) =>
+          f.gx === fromCell.gx &&
+          f.gy === fromCell.gy &&
+          f.gw === moverFootprint.gw &&
+          f.gh === moverFootprint.gh,
+      );
+      if (myIndex !== -1) occupied.splice(myIndex, 1);
+      occupied.push({
+        gx: result.to.gx,
+        gy: result.to.gy,
+        gw: moverFootprint.gw,
+        gh: moverFootprint.gh,
+      });
       await token.update({
         x: result.to.gx * gridSize,
         y: result.to.gy * gridSize,
