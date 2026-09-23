@@ -1112,8 +1112,6 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
           complete: setpiece.complete,
         },
       },
-      traits: state.traits.join(", "),
-      excludeTraits: state.excludeTraits.join(", "),
       history: state.history
         .slice()
         .reverse()
