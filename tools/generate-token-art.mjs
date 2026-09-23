@@ -41,8 +41,20 @@ export const TOKEN_PX = 512;
 // creatures (beggar, commoner, and one gnome-philomath attempt) drifted into
 // a black-and-white woodcut/engraving style unprompted — "rich jewel-tone
 // colors" alone wasn't enough to hold the model on full color every time.
+//
+// "vividly saturated colors, fully painted with no bare white areas" added
+// after ITEM-18 level 6 chunks 1-3: six separate creatures across three
+// chunks came back as pure uncolored line art (white background, black
+// outline, zero fill) despite "full color illustration" already being
+// here — the negative-list fix (see NEGATIVE's "uncolored line art"
+// cluster) was documented in a comment at the time but never actually
+// added to the shared list, so it only ever protected the one entry it
+// was written for. Fixed properly this time, but keeping the positive
+// reinforcement too since a negative list alone has proven unreliable
+// for this specific failure.
 export const STYLE = 'dark fantasy illustration, full color illustration, intricate linework, '
-  + 'rich jewel-tone colors, dramatic rim lighting, centered bust portrait, isolated on a '
+  + 'rich jewel-tone colors, vividly saturated colors, fully painted with no bare white areas, '
+  + 'dramatic rim lighting, centered bust portrait, isolated on a '
   + 'plain solid black background, black background, not grey, not white, no scenery, no backdrop';
 
 // The three clusters appended after "photograph, 3d render" were all learned
@@ -194,6 +206,8 @@ export const NEGATIVE = 'text, letters, words, watermark, signature, logo, frame
   + 'mandala, moon, full moon, arch, archway, gothic arch, doorway, window, stained glass, portal, '
   + 'aura ring, nimbus, radial halo glow, glowing halo behind head, '
   + 'black and white, monochrome, grayscale, greyscale, line art, woodcut print, engraving, sepia tone, '
+  + 'uncolored line art, uncolored outline art, coloring book style, no color fill, pure outline art, '
+  + 'unfinished coloring, blank white silhouette, ink wash, unpainted linework, '
   + 'colored background, tinted background, solid color backdrop, colored backdrop, studio backdrop, '
   + 'green screen, teal background, mint background, purple background, lavender background, '
   + 'maroon background, orange background, red background, green background, dark green backdrop, '
@@ -241,7 +255,8 @@ export const NEGATIVE = 'text, letters, words, watermark, signature, logo, frame
  * cannot be standing in a landscape.
  */
 export const SHAPELESS_STYLE = 'dark fantasy illustration, full color illustration, intricate linework, '
-  + 'rich jewel-tone colors, dramatic rim lighting, one single creature alone, floating in empty '
+  + 'rich jewel-tone colors, vividly saturated colors, fully painted with no bare white areas, '
+  + 'dramatic rim lighting, one single creature alone, floating in empty '
   + 'black space with nothing around it, isolated on a plain solid black background, black '
   + 'background, no scenery, no ground, no backdrop';
 
