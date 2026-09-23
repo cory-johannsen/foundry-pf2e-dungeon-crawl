@@ -414,4 +414,96 @@ describe("runFollowMoveNow (#65)", () => {
     expect(() => runFollowMoveNow(SCENE_ID)).not.toThrow();
     await vi.advanceTimersByTimeAsync(300);
   });
+
+  // #87: a follower stuck at the previous room's far side of a single-row
+  // doorway/hallway used to report "no route" and stay put even though a
+  // path existed, because findFollowMove only ever tried the one adjacent
+  // cell closest to it by raw distance -- and at a doorway, that closest
+  // cell is very often a walled-off pocket right next to the door rather
+  // than the door tile itself. Real wall geometry (not the pure
+  // dungeon-follow-mechanics.mjs unit test's synthetic isBlocked) walls in
+  // gx6,gy1 -- the cell tied for closest to the follower among the 8 cells
+  // adjacent to the leader -- on all four sides, while gx5,gy2 (through the
+  // one-row-high door) is wide open.
+  it("routes a follower through the door tile when the nearest adjacent cell to the leader is a walled-off pocket (#87)", async () => {
+    vi.useFakeTimers();
+    const leader = makeToken({
+      id: "t-leader",
+      x: 7 * GRID,
+      y: 2 * GRID,
+      actorId: LEADER_ACTOR_ID,
+    });
+    const follower = makeToken({
+      id: "t-follower",
+      x: 0,
+      y: 2 * GRID,
+      actorId: FOLLOWER_ACTOR_ID,
+    });
+    const doorRow = 2;
+    // Vertical wall segments along the column-5 boundary blocking every row
+    // except the door row (which has no wall segment at all -- a plain
+    // opening -- so isBlocked never flags that boundary/row pair).
+    const doorGapWalls = [0, 1, 3, 4].map((row, i) => ({
+      id: `door-block-${i}`,
+      c: [5 * GRID, row * GRID, 5 * GRID, (row + 1) * GRID],
+      move: 20,
+      door: 0,
+    }));
+    // Seal gx6,gy1 -- tied-closest pocket to the follower among the 8 cells
+    // adjacent to the leader -- on all four sides.
+    const pocketWalls = [
+      {
+        id: "pocket-n",
+        c: [6 * GRID, 1 * GRID, 7 * GRID, 1 * GRID],
+        move: 20,
+        door: 0,
+      },
+      {
+        id: "pocket-s",
+        c: [6 * GRID, 2 * GRID, 7 * GRID, 2 * GRID],
+        move: 20,
+        door: 0,
+      },
+      {
+        id: "pocket-w",
+        c: [6 * GRID, 1 * GRID, 6 * GRID, 2 * GRID],
+        move: 20,
+        door: 0,
+      },
+      {
+        id: "pocket-e",
+        c: [7 * GRID, 1 * GRID, 7 * GRID, 2 * GRID],
+        move: 20,
+        door: 0,
+      },
+    ];
+    const walls = [...doorGapWalls, ...pocketWalls];
+    const scene = {
+      id: SCENE_ID,
+      grid: { size: GRID },
+      width: 9 * GRID,
+      height: 5 * GRID,
+      walls: { contents: walls },
+      tokens: [leader, follower],
+    };
+    for (const w of walls) w.parent = scene;
+    for (const t of [leader, follower]) t.parent = scene;
+
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: [FOLLOWER_ACTOR_ID],
+        },
+      },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    runFollowMoveNow(SCENE_ID);
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(follower.update).toHaveBeenCalledTimes(1);
+    const [{ x, y }] = follower.update.mock.calls[0];
+    expect({ gx: x / GRID, gy: y / GRID }).not.toEqual({ gx: 6, gy: 1 });
+  });
 });
