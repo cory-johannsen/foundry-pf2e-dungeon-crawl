@@ -90,4 +90,23 @@ describe('fulfillPendingCustomizations', () => {
       skillFlavor: { athletics: 'Flavor.' }
     });
   });
+
+  it('still fulfills a later kind when an earlier kind fails', async () => {
+    getPendingTrapCustomization.mockReturnValue({ actorId: 'a1', trapLevel: 1, partyLevel: 1 });
+    getPendingSkillChallengeCustomization.mockResolvedValue({ sceneId: 's1', roomId: 'r1', specialtySkills: ['athletics'] });
+    fetchFlavorCustomization.mockImplementation(({ kind }) =>
+      kind === 'trap'
+        ? Promise.reject(new Error('network error'))
+        : Promise.resolve({ name: 'Challenge Name', summary: 'Summary.', skillFlavor: { athletics: 'Flavor.' } })
+    );
+
+    await expect(fulfillPendingCustomizations('scene1')).resolves.toBeUndefined();
+
+    expect(applyTrapCustomization).not.toHaveBeenCalled();
+    expect(applySkillChallengeCustomization).toHaveBeenCalledWith('s1', 'r1', {
+      name: 'Challenge Name',
+      summary: 'Summary.',
+      skillFlavor: { athletics: 'Flavor.' }
+    });
+  });
 });
