@@ -29,7 +29,6 @@ import {
   getPendingAgentTurn,
   applyAgentDecision,
   toggleAgentControlled,
-  agentLoopStatus,
   handleRangedAttackForReactiveStrike,
   handleManualStrikeDamage,
   offerReactiveStrikesAgainst,
@@ -141,31 +140,6 @@ Hooks.once("ready", async () => {
         provider,
         pollIntervalMs,
       });
-    },
-    getAgentLoopStatus: () => {
-      if (!game.user.isGM)
-        return ui.notifications.warn(
-          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
-        );
-      return agentLoopStatus();
-    },
-    postAgentLoopStatus: async () => {
-      if (!game.user.isGM)
-        return ui.notifications.warn(
-          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
-        );
-      const status = agentLoopStatus();
-      const key = status.connected
-        ? "PF2EDC.Dungeon.Combat.AgentLoopStatusConnected"
-        : status.lastSeenMs
-          ? "PF2EDC.Dungeon.Combat.AgentLoopStatusStale"
-          : "PF2EDC.Dungeon.Combat.AgentLoopStatusNeverSeen";
-      const content = game.i18n.format(key, {
-        provider: status.provider ?? "?",
-        seconds: status.secondsAgo ?? 0,
-      });
-      const gmIds = ChatMessage.getWhisperRecipients("GM").map((u) => u.id);
-      return ChatMessage.create({ content, whisper: gmIds });
     },
     getPendingTrapCustomization: (sceneId) => {
       if (!game.user.isGM)
@@ -345,25 +319,6 @@ Hooks.on("createChatMessage", handleRangedAttackForReactiveStrike);
  * roll's own already-correct target, instead of relying on PF2e's own
  * manual "Apply Damage" button (which resolves from live selection state). */
 Hooks.on("createChatMessage", handleManualStrikeDamage);
-
-Hooks.on("getSceneControlButtons", (controls) => {
-  const tokenControl =
-    controls.find?.((c) => c.name === "token") ?? controls.token;
-  if (!tokenControl) return;
-  const agentLoopButton = {
-    name: "pf2edc-agent-loop-status",
-    title: game.i18n.localize("PF2EDC.SceneControl.AgentLoopStatusLabel"),
-    icon: "fa-solid fa-robot",
-    visible: game.user.isGM,
-    button: true,
-    onClick: () => game.modules.get(MODULE_ID).api.postAgentLoopStatus(),
-  };
-  if (Array.isArray(tokenControl.tools)) {
-    tokenControl.tools.push(agentLoopButton);
-  } else if (tokenControl.tools && typeof tokenControl.tools === "object") {
-    tokenControl.tools["pf2edc-agent-loop-status"] = agentLoopButton;
-  }
-});
 
 /** GM per-combatant override for the agentControlled default (Task 2). */
 Hooks.on("getCombatTrackerEntryContext", (html, menuItems) => {

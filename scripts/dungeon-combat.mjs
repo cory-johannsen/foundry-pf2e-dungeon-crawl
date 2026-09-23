@@ -61,6 +61,7 @@ import {
   hitDeckCategory,
   fumbleDeckCategory,
 } from "./dungeon-critical-deck.mjs";
+import { fetchCombatDecision } from "./agent-service-client.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 
@@ -510,45 +511,6 @@ const AUTO_PLAY_DELAY_MS = 700;
 // mid-turn (rather than never starting at all) still recovers.
 export const AGENT_TIMEOUT_MS = 45000;
 
-// #113: a heartbeat is considered stale once it's this many multiples of the
-// poller's own reported interval old — long enough that one slow cycle
-// doesn't false-positive "disconnected," short enough to distinguish a
-// genuinely stuck/dead poller well before AGENT_TIMEOUT_MS's 45s fallback
-// fires. Used when a heartbeat exists but didn't report its own interval.
-const HEARTBEAT_STALE_MULTIPLE = 3;
-const HEARTBEAT_STALE_FALLBACK_MS = 15000;
-
-/**
- * `{connected, lastSeenMs, secondsAgo, provider}` from the world's recorded
- * agent-loop heartbeat (#113: `tools/agent-loop/poll.mjs` pings
- * `recordAgentLoopHeartbeat` once per loop iteration, independent of
- * whether there's a pending turn to act on). `connected` is a heuristic,
- * not a real handshake — Foundry has no way to know the external poller
- * process is alive except by this self-reported ping, so a poller that
- * crashed mid-cycle still reads as "connected" until its last heartbeat
- * ages past the stale threshold.
- */
-export function agentLoopStatus() {
-  const heartbeat = game.settings.get(MODULE_ID, "agentLoopHeartbeat");
-  if (!heartbeat?.timestamp)
-    return {
-      connected: false,
-      lastSeenMs: null,
-      secondsAgo: null,
-      provider: null,
-    };
-  const staleAfterMs =
-    (heartbeat.pollIntervalMs ?? 0) * HEARTBEAT_STALE_MULTIPLE ||
-    HEARTBEAT_STALE_FALLBACK_MS;
-  const ageMs = Date.now() - heartbeat.timestamp;
-  return {
-    connected: ageMs < staleAfterMs,
-    lastSeenMs: heartbeat.timestamp,
-    secondsAgo: Math.round(ageMs / 1000),
-    provider: heartbeat.provider ?? null,
-  };
-}
-
 /**
  * Waits AGENT_TIMEOUT_MS, then fires the heuristic fallback for `combatant`
  * — but only if this exact timer is still the freshest thing watching this
@@ -561,13 +523,7 @@ export function agentLoopStatus() {
  * fire, re-checks the combatant is still current, the round/turn haven't
  * moved on (catches the same combatant's *next* turn, not just a different
  * one), and the counter is unchanged (catches a decision already applied by
- * this same turn's more-recently-armed timer or the external poller).
- *
- * #113: the warning/chat message branches on `agentLoopStatus()` so a GM
- * sees a different message for "the poller is running but didn't respond in
- * time for this turn" (heartbeat fresh) than for "the poller doesn't appear
- * to be running at all" (no/stale heartbeat) — previously both looked
- * identical, which was the actual gap #113 reported.
+ * this same turn's more-recently-armed timer or `runAgentDecisionLoop`).
  */
 export async function armAgentTimeout(combat, combatant) {
   const armedRound = combat.round;
@@ -581,13 +537,8 @@ export async function armAgentTimeout(combat, combatant) {
   const currentCounter =
     currentStoredAgentTurnState(combat, combatant.id)?.counter ?? 0;
   if (currentCounter !== armedCounter) return;
-  const { connected } = agentLoopStatus();
-  const warningKey = connected
-    ? "PF2EDC.Dungeon.Combat.AgentTimeoutWarning"
-    : "PF2EDC.Dungeon.Combat.AgentTimeoutWarningDisconnected";
-  const chatKey = connected
-    ? "PF2EDC.Dungeon.Combat.AgentTimeoutChat"
-    : "PF2EDC.Dungeon.Combat.AgentTimeoutChatDisconnected";
+  const warningKey = "PF2EDC.Dungeon.Combat.AgentTimeoutWarning";
+  const chatKey = "PF2EDC.Dungeon.Combat.AgentTimeoutChat";
   ui.notifications.warn(game.i18n.format(warningKey, { name: combatant.name }));
   const gmIds = ChatMessage.getWhisperRecipients("GM").map((u) => u.id);
   await ChatMessage.create({
@@ -595,6 +546,54 @@ export async function armAgentTimeout(combat, combatant) {
     whisper: gmIds,
   });
   await playHeuristicTurn(combat, combatant);
+}
+
+/**
+ * Replaces tools/agent-loop/poll.mjs's external decide-apply loop: calls
+ * the GM's configured hosted agent service directly and applies whatever
+ * it decides, in-process, using the same getPendingAgentTurn/
+ * applyAgentDecision this file already exposes on module.api. Runs
+ * alongside armAgentTimeout (not instead of it) — armAgentTimeout is the
+ * only thing that ever falls back to the heuristic, so a rejected fetch,
+ * an unconfigured service, or a slow response all resolve the same way
+ * they already do today: silently, letting the timeout's existing
+ * warning/fallback fire. `deps` is test-only dependency injection (see
+ * this task's own test) — production callers never pass it.
+ */
+export async function runAgentDecisionLoop(
+  combat,
+  combatant,
+  {
+    fetchDecision = fetchCombatDecision,
+    getPending = getPendingAgentTurn,
+    applyDecision = applyAgentDecision,
+  } = {},
+) {
+  const baseUrl = game.settings.get(MODULE_ID, "agentServiceUrl");
+  const apiKey = game.settings.get(MODULE_ID, "agentServiceApiKey");
+  if (!baseUrl) return;
+
+  let pending = await getPending(combat);
+  while (pending) {
+    let decision;
+    try {
+      decision = await fetchDecision({ baseUrl, apiKey, context: pending.context });
+    } catch (err) {
+      console.error("agent-service: combat-decision call failed:", err.message);
+      return;
+    }
+    try {
+      pending = await applyDecision(
+        combat,
+        pending.combatantId,
+        decision.candidateId,
+        decision.rationale,
+      );
+    } catch (err) {
+      console.error("agent-service: applyAgentDecision failed:", err.message);
+      return;
+    }
+  }
 }
 
 /** Every other still-alive combatant on the opposing side (token disposition
@@ -2453,9 +2452,14 @@ export async function autoPlayCombatantTurnIfDue(combat) {
   if (combatant.getFlag(MODULE_ID, "agentControlled")) {
     // Not awaited — arms a background timeout and returns immediately, same
     // fire-and-forget style module.mjs's own updateCombat hook already uses
-    // to call this function. getPendingAgentTurn/applyAgentDecision (Task 3)
-    // are the only things that act on this turn in the meantime.
+    // to call this function. runAgentDecisionLoop is the thing that actually
+    // decides and applies this turn's actions against the hosted agent
+    // service; armAgentTimeout is only the heuristic fallback that fires if
+    // that loop never resolves in time (unconfigured service, slow/failed
+    // fetch, etc.) — it races runAgentDecisionLoop rather than depending on
+    // it.
     armAgentTimeout(combat, combatant);
+    runAgentDecisionLoop(combat, combatant);
     return;
   }
 
