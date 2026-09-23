@@ -8478,5 +8478,109 @@
     "name": "Wealthy Vigilante",
     "level": 8,
     "art": "wealthy-vigilante.webp"
+  },
+  {
+    "id": "living_graffiti_blood",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "XfHvnixZO9zVwZxC",
+    "name": "Living Graffiti (Blood)",
+    "level": 3,
+    "art": "living-graffiti-blood.webp"
+  },
+  {
+    "id": "huldra",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "sp0CZ8B2IPw3bBVi",
+    "name": "Huldra",
+    "level": 4,
+    "art": "huldra.webp"
+  },
+  {
+    "id": "phantom_knight",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "9VMoTqyVaKc4ZR4H",
+    "name": "Phantom Knight",
+    "level": 4,
+    "art": "phantom-knight.webp"
+  },
+  {
+    "id": "kodama",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "X6Avn6djuSmMPGrG",
+    "name": "Kodama",
+    "level": 5,
+    "art": "kodama.webp"
+  },
+  {
+    "id": "living_whirlwind",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "XgGeD4fz5m7nQQlN",
+    "name": "Living Whirlwind",
+    "level": 5,
+    "art": "living-whirlwind.webp"
+  },
+  {
+    "id": "mountaineer",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "lX6pkCTREEzPzmuY",
+    "name": "Mountaineer",
+    "level": 5,
+    "art": "mountaineer.webp"
+  },
+  {
+    "id": "namorrodor",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "kBIl96jzJjOd0LkZ",
+    "name": "Namorrodor",
+    "level": 5,
+    "art": "namorrodor.webp"
+  },
+  {
+    "id": "drider",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "B7eLG2k7qUo8HU6O",
+    "name": "Drider",
+    "level": 6,
+    "art": "drider.webp"
+  },
+  {
+    "id": "smilodon",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "6EgJNAJss45TQqpa",
+    "name": "Smilodon",
+    "level": 6,
+    "art": "smilodon.webp"
+  },
+  {
+    "id": "wood_giant",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "5l0b80kz53Ie26gq",
+    "name": "Wood Giant",
+    "level": 6,
+    "art": "wood-giant.webp"
+  },
+  {
+    "id": "ahuizotl",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "zstEJQKVAKoMskcM",
+    "name": "Ahuizotl",
+    "level": 6,
+    "art": "ahuizotl.webp"
+  },
+  {
+    "id": "champion_of_shelyn",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "RSwVjNvidoFL7SaJ",
+    "name": "Champion of Shelyn",
+    "level": 7,
+    "art": "champion-of-shelyn.webp"
+  },
+  {
+    "id": "nabasu",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "jQ7zBVDCEhuMOOTl",
+    "name": "Nabasu",
+    "level": 8,
+    "art": "nabasu.webp"
   }
 ]
