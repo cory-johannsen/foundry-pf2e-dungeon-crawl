@@ -2,6 +2,7 @@ import { createServer as createHttpServer } from "node:http";
 import { timingSafeEqual } from "node:crypto";
 import { resolveProvider } from "./providers/index.mjs";
 import { generateCustomization } from "./customization-generator.mjs";
+import { readEnvOrDotenv } from "./env.mjs";
 
 const PROTECTED_ROUTES = new Set(["/v1/combat-decision", "/v1/flavor-customization"]);
 
@@ -59,8 +60,15 @@ function readBody(req) {
   });
 }
 
+/** Every response carries Access-Control-Allow-Origin so a browser (Foundry
+ * calls this service via fetch() from a different origin) is allowed to
+ * read it. The request handler stashes the resolved origin on `res`, so
+ * every sendJson call site gets the header without threading it through. */
 function sendJson(res, status, body) {
-  res.writeHead(status, { "Content-Type": "application/json" });
+  res.writeHead(status, {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": res.allowedOrigin ?? "*"
+  });
   res.end(JSON.stringify(body));
 }
 
@@ -84,9 +92,29 @@ function isAuthorized(req, apiKey) {
  * per self-hosted instance is sufficient (no multi-tenant isolation
  * needed). Routes are registered here in Task 2 (health, auth gate) and
  * extended by Task 3 (/v1/combat-decision) and Task 4
- * (/v1/flavor-customization). */
-export function createServer({ apiKey }) {
+ * (/v1/flavor-customization).
+ *
+ * `allowedOrigin` is the CORS Access-Control-Allow-Origin value sent on
+ * every response: AGENT_SERVICE_ALLOWED_ORIGIN if set, else `*`. `*` is
+ * safe here because auth is a bearer token in a header, not a cookie. */
+export function createServer({
+  apiKey,
+  allowedOrigin = readEnvOrDotenv("AGENT_SERVICE_ALLOWED_ORIGIN") || "*"
+}) {
   return createHttpServer(async (req, res) => {
+    res.allowedOrigin = allowedOrigin;
+
+    // CORS preflight — answered before the auth gate, since a browser's
+    // preflight OPTIONS never carries the Authorization header.
+    if (req.method === "OPTIONS" && req.url?.startsWith("/v1/")) {
+      res.writeHead(204, {
+        "Access-Control-Allow-Origin": allowedOrigin,
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Authorization, Content-Type"
+      });
+      return res.end();
+    }
+
     if (req.method === "GET" && req.url === "/v1/health") {
       return sendJson(res, 200, { ok: true });
     }

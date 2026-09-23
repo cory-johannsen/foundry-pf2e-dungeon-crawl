@@ -36,6 +36,41 @@ describe('agent-service server', () => {
     expect(body).toEqual({ ok: true });
   });
 
+  it('GET /v1/health includes Access-Control-Allow-Origin so a browser can read it', async () => {
+    const res = await fetch(`${baseUrl}/v1/health`);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+  });
+
+  it('answers a CORS preflight OPTIONS on a protected route with 204 and no auth required', async () => {
+    const res = await fetch(`${baseUrl}/v1/combat-decision`, { method: 'OPTIONS' });
+    expect(res.status).toBe(204);
+    expect(res.headers.get('access-control-allow-origin')).toBe('*');
+    expect(res.headers.get('access-control-allow-methods')).toBe('GET, POST, OPTIONS');
+    expect(res.headers.get('access-control-allow-headers')).toBe('Authorization, Content-Type');
+  });
+
+  it('includes Access-Control-Allow-Origin on error responses too (401, 404)', async () => {
+    const unauthorized = await fetch(`${baseUrl}/v1/flavor-customization`, { method: 'POST', body: '{}' });
+    expect(unauthorized.status).toBe(401);
+    expect(unauthorized.headers.get('access-control-allow-origin')).toBe('*');
+    const notFound = await fetch(`${baseUrl}/v1/nonexistent`);
+    expect(notFound.headers.get('access-control-allow-origin')).toBe('*');
+  });
+
+  it('uses an explicit allowedOrigin instead of * when one is configured', async () => {
+    const locked = createServer({ apiKey: 'test-key', allowedOrigin: 'https://foundry.example.com' });
+    await new Promise((resolve) => locked.listen(0, resolve));
+    try {
+      const url = `http://127.0.0.1:${locked.address().port}`;
+      const preflight = await fetch(`${url}/v1/flavor-customization`, { method: 'OPTIONS' });
+      expect(preflight.headers.get('access-control-allow-origin')).toBe('https://foundry.example.com');
+      const health = await fetch(`${url}/v1/health`);
+      expect(health.headers.get('access-control-allow-origin')).toBe('https://foundry.example.com');
+    } finally {
+      await new Promise((resolve) => locked.close(resolve));
+    }
+  });
+
   it('rejects a protected route with 401 when the Authorization header is missing', async () => {
     const res = await fetch(`${baseUrl}/v1/combat-decision`, { method: 'POST', body: '{}' });
     expect(res.status).toBe(401);
