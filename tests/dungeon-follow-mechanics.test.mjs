@@ -14,7 +14,7 @@ describe("findFollowMove", () => {
     const result = findFollowMove(
       { gx: 5, gy: 5 },
       { gx: 5, gy: 6 },
-      new Set(),
+      [],
       noWalls(),
       null,
     );
@@ -25,7 +25,7 @@ describe("findFollowMove", () => {
     const result = findFollowMove(
       { gx: 0, gy: 0 },
       { gx: 5, gy: 5 },
-      new Set(),
+      [],
       noWalls(),
       null,
     );
@@ -36,7 +36,15 @@ describe("findFollowMove", () => {
   });
 
   it("avoids an already-occupied adjacent cell", () => {
-    const occupied = new Set(["4,5", "4,4", "5,4", "6,4", "6,5", "6,6", "5,6"]);
+    const occupied = [
+      { gx: 4, gy: 5, gw: 1, gh: 1 },
+      { gx: 4, gy: 4, gw: 1, gh: 1 },
+      { gx: 5, gy: 4, gw: 1, gh: 1 },
+      { gx: 6, gy: 4, gw: 1, gh: 1 },
+      { gx: 6, gy: 5, gw: 1, gh: 1 },
+      { gx: 6, gy: 6, gw: 1, gh: 1 },
+      { gx: 5, gy: 6, gw: 1, gh: 1 },
+    ];
     const result = findFollowMove(
       { gx: 0, gy: 0 },
       { gx: 5, gy: 5 },
@@ -48,16 +56,16 @@ describe("findFollowMove", () => {
   });
 
   it("returns no-route when every adjacent cell is occupied", () => {
-    const occupied = new Set([
-      "4,4",
-      "4,5",
-      "4,6",
-      "5,4",
-      "5,6",
-      "6,4",
-      "6,5",
-      "6,6",
-    ]);
+    const occupied = [
+      { gx: 4, gy: 4, gw: 1, gh: 1 },
+      { gx: 4, gy: 5, gw: 1, gh: 1 },
+      { gx: 4, gy: 6, gw: 1, gh: 1 },
+      { gx: 5, gy: 4, gw: 1, gh: 1 },
+      { gx: 5, gy: 6, gw: 1, gh: 1 },
+      { gx: 6, gy: 4, gw: 1, gh: 1 },
+      { gx: 6, gy: 5, gw: 1, gh: 1 },
+      { gx: 6, gy: 6, gw: 1, gh: 1 },
+    ];
     const result = findFollowMove(
       { gx: 0, gy: 0 },
       { gx: 5, gy: 5 },
@@ -72,22 +80,13 @@ describe("findFollowMove", () => {
     const result = findFollowMove(
       { gx: 0, gy: 0 },
       { gx: 5, gy: 5 },
-      new Set(),
+      [],
       () => true,
       null,
     );
     expect(result).toEqual({ status: "no-route" });
   });
 
-  // #87: the closest-by-chebyshev adjacent cell used to be the *only* one
-  // ever tried. At a doorway, that closest cell is very often a dead pocket
-  // — walled off on every side except through a cell one square farther
-  // away (the door tile itself) — while every other free adjacent cell,
-  // including the door tile a follower actually needs to path through, was
-  // never attempted at all. This reproduces that geometry directly: (4,4)
-  // is the single closest free cell adjacent to the leader at (5,5) from a
-  // follower all the way out at (0,0), but it's walled off on every side,
-  // while (4,5)/(5,4)/etc. are wide open.
   it("falls back to another free adjacent cell when the single closest one is a walled-off dead pocket (#87)", () => {
     const bounds = { gx0: 0, gy0: 0, gx1: 10, gy1: 10 };
     const isBlocked = (a, b) =>
@@ -96,7 +95,7 @@ describe("findFollowMove", () => {
     const result = findFollowMove(
       { gx: 0, gy: 0 },
       { gx: 5, gy: 5 },
-      new Set(),
+      [],
       isBlocked,
       bounds,
     );
@@ -106,6 +105,31 @@ describe("findFollowMove", () => {
     expect(
       Math.max(Math.abs(result.to.gx - 5), Math.abs(result.to.gy - 5)),
     ).toBe(1);
+  });
+
+  // #140: a 2x2 follower must refuse a candidate adjacent cell its own
+  // footprint wouldn't fit into cleanly (here, overlapping a 1x1 blocker
+  // one square east of the otherwise-closest candidate).
+  it("with a non-default footprint, refuses a candidate cell the mover's own footprint would overlap", () => {
+    const occupied = [{ gx: 5, gy: 6, gw: 1, gh: 1 }]; // sits inside a 2x2 footprint anchored at (4,6) or (5,5) etc.
+    const result = findFollowMove(
+      { gx: 0, gy: 0 },
+      { gx: 5, gy: 5 },
+      occupied,
+      noWalls(),
+      null,
+      { gw: 2, gh: 2 },
+    );
+    expect(result.status).toBe("move");
+    // Every candidate whose own 2x2 block would overlap (5,6) must be
+    // excluded -- confirm the chosen destination's own 2x2 footprint does
+    // not cover (5,6).
+    const overlapsBlocker =
+      result.to.gx <= 5 &&
+      result.to.gx + 2 > 5 &&
+      result.to.gy <= 6 &&
+      result.to.gy + 2 > 6;
+    expect(overlapsBlocker).toBe(false);
   });
 });
 
