@@ -55,11 +55,21 @@ Hooks.once("init", () => {
     type: Object,
     default: {},
   });
-  game.settings.register(MODULE_ID, "agentLoopHeartbeat", {
+  game.settings.register(MODULE_ID, "agentServiceUrl", {
+    name: "PF2EDC.Settings.AgentServiceUrlLabel",
+    hint: "PF2EDC.Settings.AgentServiceUrlHint",
     scope: "world",
-    config: false,
-    type: Object,
-    default: null,
+    config: true,
+    type: String,
+    default: "",
+  });
+  game.settings.register(MODULE_ID, "agentServiceApiKey", {
+    name: "PF2EDC.Settings.AgentServiceApiKeyLabel",
+    hint: "PF2EDC.Settings.AgentServiceApiKeyHint",
+    scope: "world",
+    config: true,
+    type: String,
+    default: "",
   });
 });
 
