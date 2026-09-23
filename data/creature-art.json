@@ -8286,5 +8286,125 @@
     "name": "Ankhrav Hive Mother",
     "level": 8,
     "art": "ankhrav-hive-mother.webp"
+  },
+  {
+    "id": "bodak",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "jCJUvzs1FaL6PAkq",
+    "name": "Bodak",
+    "level": 8,
+    "art": "bodak.webp"
+  },
+  {
+    "id": "bone_prophet",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "SMLMW81mKN5VlcVV",
+    "name": "Bone Prophet",
+    "level": 8,
+    "art": "bone-prophet.webp"
+  },
+  {
+    "id": "charnel_creation",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "GUjtk2h6Yj0NKifF",
+    "name": "Charnel Creation",
+    "level": 8,
+    "art": "charnel-creation.webp"
+  },
+  {
+    "id": "chimera",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "bVn0EUj4xrOWjtna",
+    "name": "Chimera",
+    "level": 8,
+    "art": "chimera.webp"
+  },
+  {
+    "id": "dynamo",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "3edjm6pFh3JhZHah",
+    "name": "Dynamo",
+    "level": 8,
+    "art": "dynamo.webp"
+  },
+  {
+    "id": "flesh_golem",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "sNFBOw4z9KagWUHe",
+    "name": "Flesh Golem",
+    "level": 8,
+    "art": "flesh-golem.webp"
+  },
+  {
+    "id": "giant_hippocampus",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "wvP8zBmI0PDO1Uq2",
+    "name": "Giant Hippocampus",
+    "level": 8,
+    "art": "giant-hippocampus.webp"
+  },
+  {
+    "id": "glass_golem",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "ABMn623izSLHA0sx",
+    "name": "Glass Golem",
+    "level": 8,
+    "art": "glass-golem.webp"
+  },
+  {
+    "id": "gorgon",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "cmuCFkXdn1JuVTK4",
+    "name": "Gorgon",
+    "level": 8,
+    "art": "gorgon.webp"
+  },
+  {
+    "id": "greater_herexen",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "ZlAzJNsHYz1ZtMVK",
+    "name": "Greater Herexen",
+    "level": 8,
+    "art": "greater-herexen.webp"
+  },
+  {
+    "id": "guecubu",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "GHv9BN8JQEPJVp5n",
+    "name": "Guecubu",
+    "level": 8,
+    "art": "guecubu.webp"
+  },
+  {
+    "id": "hadrinnex",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "OKoayj8C936nmmd0",
+    "name": "Hadrinnex",
+    "level": 8,
+    "art": "hadrinnex.webp"
+  },
+  {
+    "id": "intellect_devourer",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "OFHr8UhsBOOgj0ef",
+    "name": "Intellect Devourer",
+    "level": 8,
+    "art": "intellect-devourer.webp"
+  },
+  {
+    "id": "jah_tohl",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "YUI465JYqM65iimj",
+    "name": "Jah-Tohl",
+    "level": 8,
+    "art": "jah-tohl.webp"
+  },
+  {
+    "id": "mix_coatl",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "B9XWYO1yD0VFXphr",
+    "name": "Mix Coatl",
+    "level": 8,
+    "art": "mix-coatl.webp"
   }
 ]
