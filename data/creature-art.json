@@ -6486,5 +6486,125 @@
     "name": "Manticore (Scorpion Tail)",
     "level": 6,
     "art": "manticore-scorpion-tail.webp"
+  },
+  {
+    "id": "monster_hunter",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "3qDYEHtyAobpCg5r",
+    "name": "Monster Hunter",
+    "level": 6,
+    "art": "monster-hunter.webp"
+  },
+  {
+    "id": "mountain_guardian",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "mD4gjp3Yus8TXGUs",
+    "name": "Mountain Guardian",
+    "level": 6,
+    "art": "mountain-guardian.webp"
+  },
+  {
+    "id": "mummy_guardian",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "XZWUQklzWF6YFPmG",
+    "name": "Mummy Guardian",
+    "level": 6,
+    "art": "mummy-guardian.webp"
+  },
+  {
+    "id": "nightmare",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "qRUqoezeEnQ2KdyT",
+    "name": "Nightmare",
+    "level": 6,
+    "art": "nightmare.webp"
+  },
+  {
+    "id": "ocean_nomad",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "UTDcZPzjM6D26MZK",
+    "name": "Ocean Nomad",
+    "level": 6,
+    "art": "ocean-nomad.webp"
+  },
+  {
+    "id": "priest_of_pharasma",
+    "pack": "pf2e.npc-gallery",
+    "docId": "XpkGaDlyMH2V5wxR",
+    "name": "Priest of Pharasma",
+    "level": 6,
+    "art": "priest-of-pharasma.webp"
+  },
+  {
+    "id": "priest_of_sarenrae",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "DYqFgKrgZBf07NZS",
+    "name": "Priest of Sarenrae",
+    "level": 6,
+    "art": "priest-of-sarenrae.webp"
+  },
+  {
+    "id": "puppeteer",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "1GVm2vOnSKHTIvGA",
+    "name": "Puppeteer",
+    "level": 6,
+    "art": "puppeteer.webp"
+  },
+  {
+    "id": "reckless_scientist",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "zqesJ7AlPM39Qqcw",
+    "name": "Reckless Scientist",
+    "level": 6,
+    "art": "reckless-scientist.webp"
+  },
+  {
+    "id": "revenant",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "bsrQp0pLgvjJr6mC",
+    "name": "Revenant",
+    "level": 6,
+    "art": "revenant.webp"
+  },
+  {
+    "id": "sage",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "3R2J90R84AUgFJH2",
+    "name": "Sage",
+    "level": 6,
+    "art": "sage.webp"
+  },
+  {
+    "id": "sand_sentry",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "wpu3AsCPAKMSvDqN",
+    "name": "Sand Sentry",
+    "level": 6,
+    "art": "sand-sentry.webp"
+  },
+  {
+    "id": "sargassum_heap",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "2A7jnl9tpmeTBkQy",
+    "name": "Sargassum Heap",
+    "level": 6,
+    "art": "sargassum-heap.webp"
+  },
+  {
+    "id": "scythe_tree",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "Aa652cDdKTani3DY",
+    "name": "Scythe Tree",
+    "level": 6,
+    "art": "scythe-tree.webp"
+  },
+  {
+    "id": "sea_devil_baron",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "HFbZ580RDOG6Rxz2",
+    "name": "Sea Devil Baron",
+    "level": 6,
+    "art": "sea-devil-baron.webp"
   }
 ]
