@@ -14,11 +14,11 @@
 import { getRunState } from "./dungeon-runner.mjs";
 import { requestDungeonAction } from "./dungeon-remote.mjs";
 import { blockedEdgesFromWalls } from "./pathfinding.mjs";
+import { footprint } from "./placement.mjs";
 import {
   findFollowMove,
   tokenCell,
   sceneBounds,
-  cellKey,
 } from "./dungeon-follow-mechanics.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -80,9 +80,7 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
     const bounds = sceneBounds(scene, gridSize);
     const isBlocked = movementBlockedEdges(scene, gridSize);
     const leaderCell = tokenCell(leaderToken, gridSize);
-    const occupied = new Set(
-      scene.tokens.map((t) => cellKey(tokenCell(t, gridSize))),
-    );
+    const occupied = scene.tokens.map((t) => footprint(t, gridSize));
 
     for (const actorId of aiControlledIds) {
       const token = scene.tokens.find((t) => t.actor?.id === actorId);
@@ -97,23 +95,48 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
       if (token.x !== snappedX || token.y !== snappedY) {
         await token.update({ x: snappedX, y: snappedY });
       }
+      const moverFootprint = footprint(token, gridSize);
       const fromCell = tokenCell(token, gridSize);
+      // #140: exclude the follower's own current footprint from the
+      // occupancy list before searching for its own move -- otherwise a
+      // 2x2+ follower's own body can make a leader-adjacent candidate
+      // look "occupied" by itself, unlike dungeon-combat.mjs's own
+      // hostileFootprints/otherCombatantFootprints, which both already
+      // exclude the mover itself (c.id !== combatant.id). Restored below
+      // if the follower doesn't actually move, so later followers in
+      // this same loop still see it correctly occupying its own cell.
+      const myIndex = occupied.findIndex(
+        (f) =>
+          f.gx === fromCell.gx &&
+          f.gy === fromCell.gy &&
+          f.gw === moverFootprint.gw &&
+          f.gh === moverFootprint.gh,
+      );
+      const myFootprint =
+        myIndex !== -1 ? occupied.splice(myIndex, 1)[0] : null;
       const result = findFollowMove(
         fromCell,
         leaderCell,
         occupied,
         isBlocked,
         bounds,
+        moverFootprint,
       );
-      if (result.status === "already-near") continue;
-      if (result.status === "no-route") {
-        console.warn(
-          `${MODULE_ID} | dungeon-follow: no route for actor ${actorId} to reach the leader.`,
-        );
+      if (result.status === "already-near" || result.status === "no-route") {
+        if (myFootprint) occupied.push(myFootprint);
+        if (result.status === "no-route") {
+          console.warn(
+            `${MODULE_ID} | dungeon-follow: no route for actor ${actorId} to reach the leader.`,
+          );
+        }
         continue;
       }
-      occupied.delete(cellKey(fromCell));
-      occupied.add(cellKey(result.to));
+      occupied.push({
+        gx: result.to.gx,
+        gy: result.to.gy,
+        gw: moverFootprint.gw,
+        gh: moverFootprint.gh,
+      });
       await token.update({
         x: result.to.gx * gridSize,
         y: result.to.gy * gridSize,

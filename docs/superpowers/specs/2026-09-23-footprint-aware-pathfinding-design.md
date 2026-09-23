@@ -124,12 +124,34 @@ and pass its `{gw,gh}` to `findPath`/`walkPath`.
 `dungeon-follow-mechanics.mjs`'s `findFollowMove` does the same for its
 own mover.
 
-**Destination self-fit**: with occupancy now footprint-aware end to end,
-`walkPath` landing on a cell where the mover's own footprint would overlap
-a wall-enclosed area is already caught by the wall-decomposition above
-(a wall between two of the footprint's own cells blocks the move that
-would straddle it) — no separate destination-only check needed beyond
-what (a) already provides.
+**Destination self-fit — correction (found during Task 1's review, not
+anticipated when this section was first written):** the claim originally
+here — that `footprintBlocked`'s transition checks alone catch a
+footprint straddling a wall — is wrong, and was disproven empirically
+during Task 1's task review. `footprintBlocked` only checks edges
+*crossed* by a candidate move (source-cell-to-destination-cell pairs); it
+never checks edges *internal* to a single candidate position (adjacency
+between two of that position's own footprint cells). A 2×2 mover can
+therefore end up with its footprint straddling an internal wall it never
+"crossed" — e.g. sliding sideways along a corridor whose footprint already
+spans both sides of a perpendicular wall from the very first candidate
+cell, since a purely horizontal move never triggers a check on that
+wall's (vertical) edges at all.
+
+The fix, implemented in Task 1: a second, independent helper —
+`footprintValid(position, isBlocked, footprint)` — that rejects a
+candidate position outright whenever *any* single edge between two of its
+own footprint's own adjacent cells is blocked (a "fully open interior"
+requirement, not merely "connected via some interior path" — a solid
+creature's own body cannot have a wall segment running through any part
+of it, so even one blocked internal edge is disqualifying regardless of
+whether the rest of the interior would still be topologically connected
+around it). Applied to every candidate `neighbor` in the search, and to
+`start` itself (including the `start === goal` short-circuit) — a mover
+already sitting in a position its own footprint doesn't fit is refused a
+"path" of length 1 the same way any other invalid position is refused.
+1×1 footprints are unaffected (no internal cell pairs exist to check, so
+the helper is an unconditional no-op).
 
 ### (c) Explicit stuck signal
 

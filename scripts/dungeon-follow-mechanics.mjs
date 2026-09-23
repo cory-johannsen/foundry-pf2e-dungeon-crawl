@@ -8,6 +8,7 @@
  * plain shapes.
  */
 import { findPath } from "./pathfinding.mjs";
+import { overlaps } from "./placement.mjs";
 
 /** The `"gx,gy"` string key used to store/compare grid cells in a Set —
  * the one place this format is spelled out, so dungeon-follow.mjs's own
@@ -42,17 +43,34 @@ function chebyshev(a, b) {
   return Math.max(Math.abs(a.gx - b.gx), Math.abs(a.gy - b.gy));
 }
 
-/** Every free grid cell adjacent (incl. diagonally) to `leaderCell`, not
- * present in `occupiedCells`, ordered closest-to-`fromCell` first so
- * multiple AI-controlled tokens spread out around the leader instead of
- * all aiming for the same cell. Empty if all 8 are occupied. */
-function freeAdjacentCells(leaderCell, fromCell, occupiedCells) {
+/** Every free grid cell adjacent (incl. diagonally) to `leaderCell` where
+ * the mover's own `footprint.gw × footprint.gh` block, anchored there,
+ * doesn't overlap anything in `occupiedFootprints` — ordered closest-to-
+ * `fromCell` first so multiple AI-controlled tokens spread out around the
+ * leader instead of all aiming for the same cell. Empty if all 8 are
+ * blocked. `footprint` defaults to a single square (#140: a no-op for
+ * every pre-existing caller). */
+function freeAdjacentCells(
+  leaderCell,
+  fromCell,
+  occupiedFootprints,
+  footprint = { gw: 1, gh: 1 },
+) {
   const candidates = [];
   for (let dx = -1; dx <= 1; dx += 1) {
     for (let dy = -1; dy <= 1; dy += 1) {
       if (dx === 0 && dy === 0) continue;
       const cell = { gx: leaderCell.gx + dx, gy: leaderCell.gy + dy };
-      if (!occupiedCells.has(cellKey(cell))) candidates.push(cell);
+      const candidateFootprint = {
+        gx: cell.gx,
+        gy: cell.gy,
+        gw: footprint.gw,
+        gh: footprint.gh,
+      };
+      const blocked = occupiedFootprints.some((f) =>
+        overlaps(candidateFootprint, f),
+      );
+      if (!blocked) candidates.push(cell);
     }
   }
   candidates.sort((a, b) => chebyshev(a, fromCell) - chebyshev(b, fromCell));
@@ -82,15 +100,21 @@ function freeAdjacentCells(leaderCell, fromCell, occupiedCells) {
 export function findFollowMove(
   fromCell,
   leaderCell,
-  occupiedCells,
+  occupiedFootprints,
   isBlocked,
   bounds,
+  footprint = { gw: 1, gh: 1 },
 ) {
   if (chebyshev(fromCell, leaderCell) <= 1) return { status: "already-near" };
 
-  const candidates = freeAdjacentCells(leaderCell, fromCell, occupiedCells);
+  const candidates = freeAdjacentCells(
+    leaderCell,
+    fromCell,
+    occupiedFootprints,
+    footprint,
+  );
   for (const target of candidates) {
-    const path = findPath(fromCell, target, isBlocked, bounds);
+    const path = findPath(fromCell, target, isBlocked, bounds, 20000, footprint);
     if (path && path.length > 1) return { status: "move", to: target };
   }
   return { status: "no-route" };

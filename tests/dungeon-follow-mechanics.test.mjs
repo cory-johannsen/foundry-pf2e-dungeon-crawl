@@ -14,7 +14,7 @@ describe("findFollowMove", () => {
     const result = findFollowMove(
       { gx: 5, gy: 5 },
       { gx: 5, gy: 6 },
-      new Set(),
+      [],
       noWalls(),
       null,
     );
@@ -25,7 +25,7 @@ describe("findFollowMove", () => {
     const result = findFollowMove(
       { gx: 0, gy: 0 },
       { gx: 5, gy: 5 },
-      new Set(),
+      [],
       noWalls(),
       null,
     );
@@ -36,7 +36,15 @@ describe("findFollowMove", () => {
   });
 
   it("avoids an already-occupied adjacent cell", () => {
-    const occupied = new Set(["4,5", "4,4", "5,4", "6,4", "6,5", "6,6", "5,6"]);
+    const occupied = [
+      { gx: 4, gy: 5, gw: 1, gh: 1 },
+      { gx: 4, gy: 4, gw: 1, gh: 1 },
+      { gx: 5, gy: 4, gw: 1, gh: 1 },
+      { gx: 6, gy: 4, gw: 1, gh: 1 },
+      { gx: 6, gy: 5, gw: 1, gh: 1 },
+      { gx: 6, gy: 6, gw: 1, gh: 1 },
+      { gx: 5, gy: 6, gw: 1, gh: 1 },
+    ];
     const result = findFollowMove(
       { gx: 0, gy: 0 },
       { gx: 5, gy: 5 },
@@ -48,16 +56,16 @@ describe("findFollowMove", () => {
   });
 
   it("returns no-route when every adjacent cell is occupied", () => {
-    const occupied = new Set([
-      "4,4",
-      "4,5",
-      "4,6",
-      "5,4",
-      "5,6",
-      "6,4",
-      "6,5",
-      "6,6",
-    ]);
+    const occupied = [
+      { gx: 4, gy: 4, gw: 1, gh: 1 },
+      { gx: 4, gy: 5, gw: 1, gh: 1 },
+      { gx: 4, gy: 6, gw: 1, gh: 1 },
+      { gx: 5, gy: 4, gw: 1, gh: 1 },
+      { gx: 5, gy: 6, gw: 1, gh: 1 },
+      { gx: 6, gy: 4, gw: 1, gh: 1 },
+      { gx: 6, gy: 5, gw: 1, gh: 1 },
+      { gx: 6, gy: 6, gw: 1, gh: 1 },
+    ];
     const result = findFollowMove(
       { gx: 0, gy: 0 },
       { gx: 5, gy: 5 },
@@ -72,7 +80,7 @@ describe("findFollowMove", () => {
     const result = findFollowMove(
       { gx: 0, gy: 0 },
       { gx: 5, gy: 5 },
-      new Set(),
+      [],
       () => true,
       null,
     );
@@ -96,7 +104,7 @@ describe("findFollowMove", () => {
     const result = findFollowMove(
       { gx: 0, gy: 0 },
       { gx: 5, gy: 5 },
-      new Set(),
+      [],
       isBlocked,
       bounds,
     );
@@ -106,6 +114,36 @@ describe("findFollowMove", () => {
     expect(
       Math.max(Math.abs(result.to.gx - 5), Math.abs(result.to.gy - 5)),
     ).toBe(1);
+  });
+
+  it("with a non-default footprint, refuses a candidate cell the mover's own footprint would overlap", () => {
+    // Corrected during Task 3's own review: the original version placed
+    // the occupied cell where the chebyshev-closest candidate to
+    // fromCell never overlapped it regardless of footprint size, so the
+    // test passed identically with footprint-aware occupancy reverted
+    // entirely (same defect class as Task 2's test 3, found there twice
+    // -- verified empirically here too, the same way).
+    //
+    // fromCell=(3,3) makes (4,4) the UNIQUE closest candidate (chebyshev
+    // 1, no tie) among the leader's 8 adjacent cells. occupied=(5,4)
+    // overlaps a 2x2 footprint anchored at (4,4) (columns 4-5, rows 4-5
+    // both cover (5,4)) but NOT a 1x1 footprint there (exact-cell match
+    // only, and (5,4) != (4,4)) -- forcing a 2x2 mover past (4,4) (and
+    // (5,4) itself, which self-overlaps the occupant) to the next
+    // genuinely free candidate, (4,5), while a 1x1 mover would land
+    // directly on (4,4). The two footprint sizes are forced to
+    // genuinely different winning candidates.
+    const occupied = [{ gx: 5, gy: 4, gw: 1, gh: 1 }];
+    const result = findFollowMove(
+      { gx: 3, gy: 3 },
+      { gx: 5, gy: 5 },
+      occupied,
+      noWalls(),
+      null,
+      { gw: 2, gh: 2 },
+    );
+    expect(result.status).toBe("move");
+    expect(result.to).toEqual({ gx: 4, gy: 5 });
   });
 });
 

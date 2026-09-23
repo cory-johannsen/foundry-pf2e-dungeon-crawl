@@ -116,6 +116,93 @@ describe("findPath", () => {
       expect(cell.gy).toBeLessThanOrEqual(3);
     }
   });
+
+  it("with a non-default footprint, refuses a corridor only wide enough for a 1x1 mover", () => {
+    // A 1-row-tall corridor at gy=1 (open), walled top (between gy 0/1) and
+    // bottom (between gy 1/2) for gx 0..5 -- a 2x2 mover can never fit
+    // inside it, since its own second row would always cross a wall.
+    const isBlocked = (a, b) =>
+      a.gy !== b.gy && Math.min(a.gy, b.gy) === 0 && a.gx >= 0 && a.gx <= 5 && b.gx >= 0 && b.gx <= 5
+        ? true
+        : a.gy !== b.gy && Math.min(a.gy, b.gy) === 1 && a.gx >= 0 && a.gx <= 5 && b.gx >= 0 && b.gx <= 5;
+    const bounds = { gx0: 0, gy0: 0, gx1: 6, gy1: 3 };
+    const path1x1 = findPath({ gx: 0, gy: 1 }, { gx: 5, gy: 1 }, isBlocked, bounds);
+    expect(path1x1).not.toBeNull();
+    const path2x2 = findPath(
+      { gx: 0, gy: 1 },
+      { gx: 5, gy: 1 },
+      isBlocked,
+      bounds,
+      20000,
+      { gw: 2, gh: 2 },
+    );
+    expect(path2x2).toBeNull();
+  });
+
+  it("with a non-default footprint, still finds a route through a corridor wide enough for its real size", () => {
+    // Two open rows (gy 1 and gy 2), walled above gy=1 and below gy=2, for
+    // gx 0..5 -- exactly wide enough for a 2x2 mover.
+    const isBlocked = (a, b) => {
+      if (a.gy === b.gy) return false;
+      const boundary = Math.max(a.gy, b.gy);
+      const inCols = a.gx >= 0 && a.gx <= 5 && b.gx >= 0 && b.gx <= 5;
+      return inCols && (boundary === 1 || boundary === 3);
+    };
+    const bounds = { gx0: 0, gy0: 0, gx1: 6, gy1: 4 };
+    const path = findPath(
+      { gx: 0, gy: 1 },
+      { gx: 5, gy: 1 },
+      isBlocked,
+      bounds,
+      20000,
+      { gw: 2, gh: 2 },
+    );
+    expect(path).not.toBeNull();
+    for (const cell of path) {
+      expect(cell.gy).toBeGreaterThanOrEqual(1);
+      expect(cell.gy).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it("a 1x1 footprint (the default) is byte-identical to calling without the parameter", () => {
+    const isBlocked = (a, b) =>
+      a.gy !== b.gy && Math.max(a.gy, b.gy) === 1 && a.gx >= 0 && a.gx <= 4 && b.gx >= 0 && b.gx <= 4;
+    const withoutParam = findPath({ gx: 2, gy: 0 }, { gx: 2, gy: 3 }, isBlocked);
+    const withDefault = findPath(
+      { gx: 2, gy: 0 },
+      { gx: 2, gy: 3 },
+      isBlocked,
+      null,
+      20000,
+      { gw: 1, gh: 1 },
+    );
+    expect(withDefault).toEqual(withoutParam);
+  });
+
+  it("returns null when start itself has an invalid footprint (a wall runs through its own interior)", () => {
+    // A 2x2 mover starting at (0,0) covers (0,0),(1,0),(0,1),(1,1). A wall
+    // between (0,0) and (1,0) -- an edge internal to the footprint itself,
+    // never crossed by any transition -- means this starting position is
+    // invalid regardless of where the mover is trying to go.
+    const isBlocked = (a, b) =>
+      (a.gx === 0 && a.gy === 0 && b.gx === 1 && b.gy === 0) ||
+      (a.gx === 1 && a.gy === 0 && b.gx === 0 && b.gy === 0);
+    const start = { gx: 0, gy: 0 };
+    const footprint = { gw: 2, gh: 2 };
+
+    // A different goal: must not return a path, even though the goal itself
+    // and every transition edge toward it are perfectly open.
+    expect(
+      findPath(start, { gx: 5, gy: 5 }, isBlocked, null, 20000, footprint),
+    ).toBeNull();
+
+    // The degenerate start === goal case must also refuse -- not shortcut to
+    // a trivial 1-cell path -- since the mover's own footprint doesn't fit
+    // at that cell regardless of whether it needs to move at all.
+    expect(
+      findPath(start, { ...start }, isBlocked, null, 20000, footprint),
+    ).toBeNull();
+  });
 });
 
 describe("blockedEdgesFromWalls", () => {

@@ -8718,5 +8718,125 @@
     "name": "Krampus",
     "level": 21,
     "art": "krampus.webp"
+  },
+  {
+    "id": "accuser_agent",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "u1coIGvOeO8XZjKu",
+    "name": "Accuser Agent",
+    "level": 9,
+    "art": "accuser-agent.webp"
+  },
+  {
+    "id": "adamantine_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "CXoAvRxBt3bJ5IZQ",
+    "name": "Adamantine Dragon (Young)",
+    "level": 9,
+    "art": "adamantine-dragon-young.webp"
+  },
+  {
+    "id": "adamantine_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "YV83qiV7nEtVDPEP",
+    "name": "Adamantine Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "adamantine-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "animated_furnace",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "P3jFBFnHhjl6VsLd",
+    "name": "Animated Furnace",
+    "level": 9,
+    "art": "animated-furnace.webp"
+  },
+  {
+    "id": "aurumvorax",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "zjPdqdQGNjO3Kto7",
+    "name": "Aurumvorax",
+    "level": 9,
+    "art": "aurumvorax.webp"
+  },
+  {
+    "id": "baykok",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "an7tww93Y4pQ8HP6",
+    "name": "Baykok",
+    "level": 9,
+    "art": "baykok.webp"
+  },
+  {
+    "id": "blood_painter",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "vLgNUa2zB9FPwfhB",
+    "name": "Blood Painter",
+    "level": 9,
+    "art": "blood-painter.webp"
+  },
+  {
+    "id": "blue_dragon_young",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "ar0tszs8NAgQamHX",
+    "name": "Blue Dragon (Young)",
+    "level": 9,
+    "art": "blue-dragon-young.webp"
+  },
+  {
+    "id": "blue_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "fd3Bf10lloqMg2jW",
+    "name": "Blue Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "blue-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "bronze_dragon_young",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "uQOTCiHslczvrNpt",
+    "name": "Bronze Dragon (Young)",
+    "level": 9,
+    "art": "bronze-dragon-young.webp"
+  },
+  {
+    "id": "bronze_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "fsdCVADRbLxpBVT8",
+    "name": "Bronze Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "bronze-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "cuckoo_hag",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "kngoPtu4Cr3BtgW8",
+    "name": "Cuckoo Hag",
+    "level": 9,
+    "art": "cuckoo-hag.webp"
+  },
+  {
+    "id": "deinosuchus",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "xC6v5Ef8mDt05QFK",
+    "name": "Deinosuchus",
+    "level": 9,
+    "art": "deinosuchus.webp"
+  },
+  {
+    "id": "desert_giant",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "D1P14zfFcD1Y0vXe",
+    "name": "Desert Giant",
+    "level": 9,
+    "art": "desert-giant.webp"
+  },
+  {
+    "id": "despair_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Z3qKSY1HK2wP9UVl",
+    "name": "Despair Dragon (Young)",
+    "level": 9,
+    "art": "despair-dragon-young.webp"
   }
 ]
