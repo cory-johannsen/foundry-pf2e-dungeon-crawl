@@ -275,13 +275,20 @@ export async function buildRoomAtSlot(
     }
   }
 
-  if (!isGoal) {
+  if (!isGoal && !isSlotBuilt(scene, slot + 1)) {
     // Frontier placeholder (ITEM-20): this room has no outgoing connection
-    // built yet, so without a wall here it's open on that entire face until
-    // the next room is built — vision, light, and movement all leak straight
-    // across the rest of the scene's pre-sized canvas. Deleted and replaced
-    // by the real door/opening geometry above the moment that next room
-    // actually gets built.
+    // built yet, so without a wall here it's open on that entire face
+    // until the next room is built — vision, light, and movement all leak
+    // straight across the rest of the scene's pre-sized canvas. Deleted
+    // and replaced by the real door/opening geometry above the moment
+    // that next room actually gets built. Skipped entirely if the next
+    // slot is ALREADY built (#62) — an eager GM-less build can build a
+    // higher-numbered slot before this one (e.g. a deferred combat room
+    // at slot 1 built after slot 2 already exists), in which case the
+    // real connection already exists and a placeholder here would
+    // immediately be stale, permanently overlaying a door that will never
+    // get superseded (nothing triggers supersede-on-next-build for an
+    // already-built next slot).
     walls.push(
       wallDoc(outgoingFaceWall(seed, slot), {
         flags: { [MODULE_ID]: { dungeonFrontierWallForSlot: slot } },
