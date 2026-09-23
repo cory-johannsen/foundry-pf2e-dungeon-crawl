@@ -1494,6 +1494,48 @@ export async function handleManualStrikeDamage(message) {
     outcome: context.outcome,
   });
   await applyDefeatIfReducedToZero(target);
+
+  // #92: a player's own manual Strike goes through this hook instead of
+  // rollAndApplyStrike, which already draws a Critical Hit/Fumble Deck card
+  // on criticalSuccess/criticalFailure via drawCriticalCardForStrike --
+  // this closes that same gap here. Unlike rollAndApplyStrike, this hook
+  // never rolled the Strike itself, so it has no live `strike` action
+  // object to hand drawCriticalCardForStrike. Read both functions: the only
+  // field either of them ever reads off `strike` is `strike.item` (the
+  // weapon), so `message.item` -- PF2e's own ChatMessagePF2e getter,
+  // resolving straight to the live weapon Item off the attacker's actor via
+  // the message's own stored origin flag, not a stale clone -- is exactly
+  // enough to rebuild a strike-shaped `{ item }` and the `soundContext`
+  // shape (`damageType`/`isRanged`) drawCriticalCardForStrike needs,
+  // mirroring strikeSoundContext's own damageType derivation above. A
+  // missing/unresolvable item is a soft no-op, matching this module's
+  // existing "a missing compendium/item shouldn't break combat resolution"
+  // philosophy (see drawAndApplyCriticalCard's own doc comment).
+  if (
+    context.outcome === "criticalSuccess" ||
+    context.outcome === "criticalFailure"
+  ) {
+    const weaponItem = message.item ?? null;
+    if (weaponItem) {
+      const strike = { item: weaponItem };
+      const damageRolls = Object.values(weaponItem.system?.damageRolls ?? {});
+      const soundContext = {
+        isRanged: !!weaponItem.isRanged,
+        damageType:
+          weaponItem.system?.damage?.damageType ??
+          damageRolls[0]?.damageType ??
+          null,
+      };
+      await drawCriticalCardForStrike(
+        context.outcome,
+        strike,
+        soundContext,
+        attacker,
+        target,
+      );
+    }
+  }
+
   // Marks the source message resolved so PF2e's own chat-card Apply Damage
   // button (still rendered — this hook never replaces the card) shows as
   // already-applied instead of staying live, which is exactly the double
