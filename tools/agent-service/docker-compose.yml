@@ -12,4 +12,18 @@ services:
       LAYA_API_KEY: ${LAYA_API_KEY}
       LAYA_BASE_URL: ${LAYA_BASE_URL}
       AGENT_SERVICE_ALLOWED_ORIGIN: ${AGENT_SERVICE_ALLOWED_ORIGIN}
+      AGENT_SERVICE_CUSTOMIZATION_PROVIDER: ${AGENT_SERVICE_CUSTOMIZATION_PROVIDER:-claude}
+      LOCAL_LLM_BASE_URL: ${LOCAL_LLM_BASE_URL}
+      LOCAL_LLM_MODEL: ${LOCAL_LLM_MODEL}
+      LOCAL_LLM_API_KEY: ${LOCAL_LLM_API_KEY}
+      LOCAL_LLM_TIMEOUT_MS: ${LOCAL_LLM_TIMEOUT_MS}
+    # Lets AGENT_SERVICE_CUSTOMIZATION_PROVIDER=local reach a host-run
+    # Ollama (or other local OpenAI-compatible server) via
+    # http://host.docker.internal:<port> — "localhost" inside this
+    # container refers to the container itself, not the Docker host, so
+    # without this the local provider can never reach a host-run model
+    # server. Standard, portable (Linux/Mac/Windows) Docker Compose
+    # mechanism.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped

@@ -80,8 +80,10 @@ dependency of its own.
 process (`tools/agent-loop/poll.mjs`) and an interactive-MCP-session flow
 (`tools/agent-loop/mcp-server.mjs`); both are retired. `tools/agent-service/`
 is a persistent, self-hosted `node:http` service (`server.mjs`, wrapping
-the moved `providers/claude.mjs`/`providers/laya.mjs` adapters and a new
-Claude-only `customization-generator.mjs`) exposing `GET /v1/health`,
+the moved `providers/claude.mjs`/`providers/laya.mjs` adapters and
+`customization-generator.mjs`, which defaults to Claude but can be
+switched to a self-hosted OpenAI-compatible local model via
+`AGENT_SERVICE_CUSTOMIZATION_PROVIDER=local`) exposing `GET /v1/health`,
 `POST /v1/combat-decision`, and `POST /v1/flavor-customization` behind a
 bearer token. Foundry's own client-side code calls it directly — no relay,
 no local process a GM has to keep alive — via

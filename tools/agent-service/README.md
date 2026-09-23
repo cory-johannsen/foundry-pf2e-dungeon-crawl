@@ -39,7 +39,9 @@ without the flag a repo-root `.env` is silently ignored.
   present this key as a bearer token. Foundry needs the same value (see
   "Configure Foundry" below).
 - `ANTHROPIC_API_KEY` — required for the default `claude` decision
-  provider.
+  provider, and for the default `claude` flavor-customization provider
+  (see "Using a local model instead of Claude" below for the
+  no-Anthropic-account alternative).
 
 Optional, only needed if you want the Laya decision provider instead of
 Claude:
@@ -116,7 +118,96 @@ configured, or unreachable. You can trigger the same check from the
 console:
 
 ```js
-game.modules.get('pf2e-dungeon-crawl').api.postAgentLoopStatus()
+game.modules.get("pf2e-dungeon-crawl").api.postAgentLoopStatus();
+```
+
+## Using a local model instead of Claude (optional)
+
+Flavor-customization generation (trap/skill-challenge/puzzle/narrative
+room text, and treasure-room name+description) defaults to calling
+Claude directly and needs `ANTHROPIC_API_KEY` for that. If you don't have
+an Anthropic account — for example you're already running the Laya
+provider for combat decisions and want to skip Anthropic entirely — you
+can instead point flavor customization at any self-hosted,
+OpenAI-compatible chat-completions server that supports tool/function
+calling. This has been confirmed working against
+[Ollama](https://ollama.com/) running `qwen2.5:3b-instruct`.
+
+Set:
+
+- `AGENT_SERVICE_CUSTOMIZATION_PROVIDER=local` — switches the
+  flavor-customization provider. Defaults to `claude` if unset (no
+  behavior change if you don't set this).
+- `LOCAL_LLM_BASE_URL` — the base URL of your local server, **including
+  any API-version path segment it needs**. Ollama's OpenAI-compatible
+  routes live under `/v1`, so its base URL is `http://<host>:11434/v1`
+  — this module always POSTs to `${LOCAL_LLM_BASE_URL}/chat/completions`.
+  Required when the provider is `local`.
+- `LOCAL_LLM_MODEL` — the model name as your local server knows it, e.g.
+  `qwen2.5:3b-instruct`. Must support tool/function calling — this
+  module always requests a forced tool call, the same way the `claude`
+  path does. Required when the provider is `local`.
+- `LOCAL_LLM_API_KEY` — optional bearer token. Most local
+  OpenAI-compatible servers, including Ollama, don't require auth; set
+  this only if yours does.
+- `LOCAL_LLM_TIMEOUT_MS` — optional request timeout in milliseconds,
+  default `300000` (5 minutes). Local inference on modest hardware is
+  genuinely slow and variable — flavor-customization requests during
+  testing against `qwen2.5:3b-instruct` on a modest 6-core CPU under real
+  memory pressure ranged from about 2 minutes up to **over 6 minutes**
+  for one full trap name+description generation, i.e. sometimes _past_
+  the 5-minute default. This is a real, accepted tradeoff for running
+  without Anthropic, not a bug: flavor customization already never
+  blocks anything synchronously (see "Troubleshooting" below) — a room
+  or trap keeps its template content until the (slow) call finishes or
+  fails, then updates. If you see local-provider requests failing with a
+  timeout, raise `LOCAL_LLM_TIMEOUT_MS` rather than assume something is
+  broken. Don't expect anything close to Claude-speed responses; a
+  faster/larger local model or better hardware will help, but budget for
+  genuinely slow generation either way.
+
+### The `host.docker.internal` networking requirement
+
+**This is the single most likely thing to silently not work.** The
+agent service runs inside its own Docker container (this
+`docker-compose.yml`), separate from wherever you run your local model
+server (e.g. Ollama, itself often in its own container). Inside a
+container, `localhost` refers to the container itself, not the Docker
+host — so `LOCAL_LLM_BASE_URL=http://localhost:11434/v1` will silently
+fail to reach a host-run Ollama once this service is deployed via
+`docker compose`, even though the exact same URL works fine testing
+directly on the host (e.g. `node tools/agent-service/server.mjs` outside
+Docker, or a local `curl`).
+
+This `docker-compose.yml` already adds the fix
+(`extra_hosts: ["host.docker.internal:host-gateway"]` on the
+`agent-service` service) — the standard, portable (Linux/Mac/Windows)
+Docker Compose mechanism for letting a container reach a service running
+on its Docker host. With that in place, point `LOCAL_LLM_BASE_URL` at
+`http://host.docker.internal:11434/v1` (adjust the port for your local
+server) instead of `localhost`, and the agent-service container will
+reach a host-run Ollama correctly.
+
+If your local model server itself also runs in Docker (e.g. Ollama's own
+official image) on the same Docker host, `host.docker.internal` still
+works, because it resolves to the host's own network, not into another
+container — as long as that server's port is published to the host (as
+`ollama/ollama`'s default port mapping does).
+
+Quick way to run Ollama itself via Docker, for reference:
+
+```bash
+docker run -d --name ollama -p 127.0.0.1:11434:11434 ollama/ollama
+docker exec ollama ollama pull qwen2.5:3b-instruct
+```
+
+Then set (in the repo-root `.env`, or the shell environment before
+`docker compose up`):
+
+```
+AGENT_SERVICE_CUSTOMIZATION_PROVIDER=local
+LOCAL_LLM_BASE_URL=http://host.docker.internal:11434/v1
+LOCAL_LLM_MODEL=qwen2.5:3b-instruct
 ```
 
 ## Self-hosting Laya (optional)
@@ -175,3 +266,12 @@ different surface than `/v1/predict`).
   Foundry's network (firewall, wrong host/port, reverse proxy
   misconfigured). If the browser console shows a CORS or mixed-content
   error, check `AGENT_SERVICE_ALLOWED_ORIGIN` and the HTTPS note above.
+  If `AGENT_SERVICE_CUSTOMIZATION_PROVIDER=local`, also check: a missing
+  `LOCAL_LLM_BASE_URL`/`LOCAL_LLM_MODEL` fails fast with a clear error in
+  the logs; `LOCAL_LLM_BASE_URL=http://localhost:...` will _not_ reach a
+  host-run server from inside the container — use
+  `http://host.docker.internal:...` instead (see "Using a local model
+  instead of Claude" above); and a timeout under `LOCAL_LLM_TIMEOUT_MS`
+  (default 5 minutes) on slow hardware just means the model hasn't
+  finished yet, not that something is broken — try a smaller model or a
+  longer timeout.
