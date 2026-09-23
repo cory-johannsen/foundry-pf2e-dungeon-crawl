@@ -1888,11 +1888,16 @@ function sceneWallBlockedEdges(combat) {
  * enemy's space, any more than it can pass through a wall. `excludeCell`,
  * if given, is dropped from the hostile-block list (see
  * `hostileFootprints`'s own docblock for why that's needed). */
-function movementBlockedEdges(combat, combatant, excludeCell = null) {
+function movementBlockedEdges(
+  combat,
+  combatant,
+  excludeCell = null,
+  moverFootprint = { gw: 1, gh: 1 },
+) {
   const gridSize = combat.scene?.grid?.size ?? 100;
   const wallBlocked = sceneWallBlockedEdges(combat);
   const hostiles = hostileFootprints(combat, combatant, gridSize, excludeCell);
-  return (a, b) => wallBlocked(a, b) || cellOccupied(b, hostiles);
+  return (a, b) => wallBlocked(a, b) || cellOccupied(b, hostiles, moverFootprint);
 }
 
 /**
@@ -1955,12 +1960,17 @@ function otherCombatantFootprints(combat, combatant, gridSize) {
   ].map((c) => footprint(c.token, gridSize));
 }
 
-/** Whether `cell` (a single grid square) overlaps any footprint in
- * `footprints` — the shared occupancy check `movementBlockedEdges` and
- * `walkPath` both need. */
-function cellOccupied(cell, footprints) {
+/** Whether the mover's own `moverFootprint.gw × moverFootprint.gh` block,
+ * anchored top-left at `cell`, overlaps any footprint in `footprints` — the
+ * shared occupancy check `movementBlockedEdges` and `walkPath` both need.
+ * `moverFootprint` defaults to a single square (#140: every pre-existing
+ * caller that doesn't pass one keeps today's exact 1x1 behavior). */
+function cellOccupied(cell, footprints, moverFootprint = { gw: 1, gh: 1 }) {
   return footprints.some((f) =>
-    overlaps({ gx: cell.gx, gy: cell.gy, gw: 1, gh: 1 }, f),
+    overlaps(
+      { gx: cell.gx, gy: cell.gy, gw: moverFootprint.gw, gh: moverFootprint.gh },
+      f,
+    ),
   );
 }
 
@@ -1986,9 +1996,10 @@ function posturePath(
   speedSquares,
   isBlocked,
   bounds,
+  moverFootprint = { gw: 1, gh: 1 },
 ) {
   if (posture !== "retreat" && posture !== "reposition")
-    return findPath(start, targetCell, isBlocked, bounds);
+    return findPath(start, targetCell, isBlocked, bounds, 20000, moverFootprint);
 
   const dx = Math.sign(start.gx - targetCell.gx) || 1;
   const dy = Math.sign(start.gy - targetCell.gy) || 1;
@@ -1999,7 +2010,14 @@ function posturePath(
       gx = Math.min(Math.max(gx, bounds.gx0), bounds.gx1);
       gy = Math.min(Math.max(gy, bounds.gy0), bounds.gy1);
     }
-    const path = findPath(start, { gx, gy }, isBlocked, bounds);
+    const path = findPath(
+      start,
+      { gx, gy },
+      isBlocked,
+      bounds,
+      20000,
+      moverFootprint,
+    );
     if (path && path.length > 1) return path;
   }
   return null;
@@ -2028,6 +2046,7 @@ function walkPath(
   speedSquares,
   stopWithinSquares,
   occupantFootprints = [],
+  moverFootprint = { gw: 1, gh: 1 },
 ) {
   let stepIndex = 0;
   for (let i = 1; i < path.length && i <= speedSquares; i += 1) {
@@ -2042,7 +2061,7 @@ function walkPath(
     // on the way further along the path, but it never becomes the mover's
     // own final resting cell — only record it as a candidate stop if it's
     // unoccupied.
-    if (!cellOccupied(path[i], occupantFootprints)) {
+    if (!cellOccupied(path[i], occupantFootprints, moverFootprint)) {
       stepIndex = i;
     }
   }
@@ -2071,11 +2090,12 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
 
   const me = combatant.token;
   const dest = target.token;
+  const moverFootprint = footprint(me, gridSize);
   const start = tokenCell(me, gridSize);
   const goal = tokenCell(dest, gridSize);
   const bounds = sceneBounds(combat, gridSize);
-  const isBlocked = movementBlockedEdges(combat, combatant, goal);
-  const path = findPath(start, goal, isBlocked, bounds);
+  const isBlocked = movementBlockedEdges(combat, combatant, goal, moverFootprint);
+  const path = findPath(start, goal, isBlocked, bounds, 20000, moverFootprint);
   if (!path) return;
 
   const occupants = otherCombatantFootprints(combat, combatant, gridSize);
@@ -2085,6 +2105,7 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
     speedSquares,
     MELEE_REACH_SQUARES,
     occupants,
+    moverFootprint,
   );
   if (!waypoint) return;
   await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize });
@@ -2110,10 +2131,16 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
 export async function pushTokenAway(combat, attacker, target, distanceSquares) {
   const gridSize = combat.scene?.grid?.size ?? 100;
   await snapTokenToGrid(target.token, gridSize);
+  const moverFootprint = footprint(target.token, gridSize);
   const start = tokenCell(target.token, gridSize);
   const awayFrom = tokenCell(attacker.token, gridSize);
   const bounds = sceneBounds(combat, gridSize);
-  const isBlocked = movementBlockedEdges(combat, target);
+  const isBlocked = movementBlockedEdges(
+    combat,
+    target,
+    null,
+    moverFootprint,
+  );
   const path = posturePath(
     start,
     awayFrom,
@@ -2121,11 +2148,19 @@ export async function pushTokenAway(combat, attacker, target, distanceSquares) {
     distanceSquares,
     isBlocked,
     bounds,
+    moverFootprint,
   );
   if (!path) return;
 
   const occupants = otherCombatantFootprints(combat, target, gridSize);
-  const waypoint = walkPath(path, awayFrom, distanceSquares, 0, occupants);
+  const waypoint = walkPath(
+    path,
+    awayFrom,
+    distanceSquares,
+    0,
+    occupants,
+    moverFootprint,
+  );
   if (!waypoint) return;
   await target.token.update({
     x: waypoint.gx * gridSize,
@@ -3212,6 +3247,7 @@ export async function strideByPosture(combat, combatant, posture, target) {
 
   const me = combatant.token;
   const dest = target.token;
+  const moverFootprint = footprint(me, gridSize);
   const start = tokenCell(me, gridSize);
   const targetCell = tokenCell(dest, gridSize);
   const bounds = sceneBounds(combat, gridSize);
@@ -3219,6 +3255,7 @@ export async function strideByPosture(combat, combatant, posture, target) {
     combat,
     combatant,
     posture === "approach" ? targetCell : null,
+    moverFootprint,
   );
   const path = posturePath(
     start,
@@ -3227,6 +3264,7 @@ export async function strideByPosture(combat, combatant, posture, target) {
     speedSquares,
     isBlocked,
     bounds,
+    moverFootprint,
   );
   if (!path) return;
 
@@ -3238,6 +3276,7 @@ export async function strideByPosture(combat, combatant, posture, target) {
     speedSquares,
     stopWithin,
     occupants,
+    moverFootprint,
   );
   if (!waypoint) return;
   await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize });
