@@ -30,6 +30,7 @@ import {
   buildConnectionGeometry,
   corridorTileVariant,
   outgoingFaceWall,
+  connectionDirection,
 } from "./dungeon-layout.mjs";
 import { freeSpotInRect } from "./placement.mjs";
 import { generateEncounter } from "./encounter-generator.mjs";
@@ -182,7 +183,15 @@ export async function buildRoomAtSlot(
   await ensureSceneCovers(scene, slot);
 
   const walls = roomEnclosureWalls(seed, slot, { hasOutgoing: !isGoal }).map(
-    (side) => wallDoc(side),
+    (side) =>
+      wallDoc(side, {
+        flags: {
+          [MODULE_ID]: {
+            dungeonEnclosureWallForSlot: slot,
+            dungeonEnclosureWallDirection: side.dir,
+          },
+        },
+      }),
   );
   const tiles = [];
   let placeholderIds = [];
@@ -316,6 +325,42 @@ export async function buildRoomAtSlot(
       config: { dim, bright, color: ROOM_LIGHT_COLOR, alpha: ROOM_LIGHT_ALPHA },
     },
   ]);
+}
+
+/**
+ * Retrofits a slot originally built as the goal room (isGoal: true,
+ * hasOutgoing: false, no frontier placeholder) into a normal room with a
+ * real outgoing connection — needed when a sequence mutation (#62) shifts
+ * the goal to a new slot and a non-goal room ends up occupying this one.
+ * Finds and deletes the one enclosure wall on this slot's own connection
+ * direction (flagged by buildRoomAtSlot's own wall creation above), then
+ * creates the same frontier-placeholder wall a normal non-goal room gets
+ * from the start (buildRoomAtSlot's `if (!isGoal)` block) — after this,
+ * the existing, unmodified supersede-on-next-build logic in buildRoomAtSlot
+ * (the `if (slot > 0)` block) already knows how to find and replace a
+ * dungeonFrontierWallForSlot-flagged wall once the chain extends past it.
+ */
+export async function openGoalRoomExit(scene, slot, seed) {
+  const dir = connectionDirection(slot);
+  const staleWallIds = scene.walls
+    .filter(
+      (w) =>
+        w.getFlag(MODULE_ID, "dungeonEnclosureWallForSlot") === slot &&
+        w.getFlag(MODULE_ID, "dungeonEnclosureWallDirection") === dir,
+    )
+    .map((w) => w.id);
+  if (!staleWallIds.length) return;
+  // Create-then-delete, not the other way around — same reasoning as the
+  // buildRoomAtSlot `if (slot > 0)` block's own placeholder-supersede
+  // comment: deleting the stale wall first would leave a real window with
+  // zero walls on this face at all, leaking vision/light/movement straight
+  // across the rest of the scene until the replacement lands.
+  await scene.createEmbeddedDocuments("Wall", [
+    wallDoc(outgoingFaceWall(seed, slot), {
+      flags: { [MODULE_ID]: { dungeonFrontierWallForSlot: slot } },
+    }),
+  ]);
+  await scene.deleteEmbeddedDocuments("Wall", staleWallIds);
 }
 
 /**

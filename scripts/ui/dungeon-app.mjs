@@ -37,6 +37,7 @@ import {
 import {
   createDungeonScene,
   buildRoomAtSlot,
+  openGoalRoomExit,
   unlockDoorToSlot,
   populateSlotEncounter,
   isSlotPopulated,
@@ -223,6 +224,14 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
       preState.physicalSlotByRoomId,
       state.currentIndex,
     );
+    // The goal room's identity is unaffected by any mutation
+    // (applySequenceMutation never targets it — see the design doc), so
+    // this is the same room id whether read from the pre- or post-mutation
+    // rooms array. What changes is which physical slot it occupies (a
+    // fresh one, via toExtend below) — the OLD slot it used to occupy is
+    // what needs its outgoing wall retrofitted, identified by matching a
+    // toRebuild entry's own previousRoomId against this id.
+    const previousGoalRoomId = preState.rooms.find((r) => r.isGoal)?.id;
     // Each toRebuild entry is a physical slot that now needs a DIFFERENT
     // logical room's content than whatever it was eagerly built with
     // before the mutation (an extended slot, per Task 5's own report,
@@ -232,7 +241,18 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
     // slot at a time, not the whole range up front, so a failure partway
     // through leaves at most one slot mid-repair rather than every slot
     // torn down with nothing rebuilt.
-    for (const { room, physicalSlot } of toRebuild) {
+    for (const { room, physicalSlot, previousRoomId } of toRebuild) {
+      // #62 Task 7: the room that used to occupy this slot was the goal —
+      // built with hasOutgoing:false and no frontier placeholder, so its
+      // one outgoing-face wall is a full solid enclosure wall nothing else
+      // can find or remove. A non-goal room is about to occupy this slot
+      // instead, so it needs a real outgoing connection: swap that stale
+      // wall for the same frontier-placeholder wall a non-goal room gets
+      // from its own original build, before any other teardown/rebuild
+      // below touches this slot.
+      if (previousRoomId === previousGoalRoomId) {
+        await openGoalRoomExit(scene, physicalSlot, state.seed);
+      }
       // Foundry-side teardown of whatever's currently AT this slot (the
       // stale room's tokens/actors) — clearSlotEncounter/clearSlotTrap key
       // purely off the slot's own dungeonSlot flag, not room identity, so
