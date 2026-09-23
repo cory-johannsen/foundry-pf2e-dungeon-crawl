@@ -6974,5 +6974,117 @@
     "name": "Gurgist Mauler",
     "level": 6,
     "art": "gurgist-mauler.webp"
+  },
+  {
+    "id": "aesra",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Re7B1kEJMFlgpaSc",
+    "name": "Aesra",
+    "level": 7,
+    "art": "aesra.webp"
+  },
+  {
+    "id": "allosaurus",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "RfpphckQI1o3qOWO",
+    "name": "Allosaurus",
+    "level": 7,
+    "art": "allosaurus.webp"
+  },
+  {
+    "id": "arboreal_reaper",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "9Gex7SavD3YJDPBs",
+    "name": "Arboreal Reaper",
+    "level": 7,
+    "art": "arboreal-reaper.webp"
+  },
+  {
+    "id": "azarketi_tide_tamer",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "jTszZSs0K6vOqidM",
+    "name": "Azarketi Tide Tamer",
+    "level": 7,
+    "art": "azarketi-tide-tamer.webp"
+  },
+  {
+    "id": "black_dragon_young",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "v0GZ6zDWhD1Y3xs9",
+    "name": "Black Dragon (Young)",
+    "level": 7,
+    "art": "black-dragon-young.webp"
+  },
+  {
+    "id": "black_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "kR1wGS61ubIpH8A6",
+    "name": "Black Dragon (Young, Spellcaster)",
+    "level": 7,
+    "art": "black-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "black_pudding",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "saEPHCN5lDiylb5H",
+    "name": "Black Pudding",
+    "level": 7,
+    "art": "black-pudding.webp"
+  },
+  {
+    "id": "brass_dragon_young",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "uA0cv4OT5mQnym0V",
+    "name": "Brass Dragon (Young)",
+    "level": 7,
+    "art": "brass-dragon-young.webp"
+  },
+  {
+    "id": "brass_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "fcE9PgnC82e9haL5",
+    "name": "Brass Dragon (Young, Spellcaster)",
+    "level": 7,
+    "art": "brass-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "chuul",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "aD76W2uEQhFFUrom",
+    "name": "Chuul",
+    "level": 7,
+    "art": "chuul.webp"
+  },
+  {
+    "id": "coarti",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "VbN33np2jBfaxhAz",
+    "name": "Coarti",
+    "level": 7,
+    "art": "coarti.webp"
+  },
+  {
+    "id": "con_rit",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "aCTOWweRtjucLmfe",
+    "name": "Con Rit",
+    "level": 7,
+    "art": "con-rit.webp"
+  },
+  {
+    "id": "cult_leader",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "MKwLXGzr48qU0hZR",
+    "name": "Cult Leader",
+    "level": 7,
+    "art": "cult-leader.webp"
+  },
+  {
+    "id": "dedicated_druid",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "FTqAUF89sIKC0qPm",
+    "name": "Dedicated Druid",
+    "level": 7,
+    "art": "dedicated-druid.webp"
   }
 ]
