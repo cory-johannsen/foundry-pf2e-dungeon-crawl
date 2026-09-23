@@ -231,7 +231,8 @@ export function buildRoomSequence({
   roomCount,
   puzzleSetpieceIds = [],
   trapSetpieceIds = [],
-  narrativeSetpieceIds = []
+  narrativeSetpieceIds = [],
+  treasureSetpieceIds = []
 }) {
   if (!Number.isInteger(roomCount) || roomCount < 2) {
     throw new Error('roomCount must be an integer of at least 2 (rooms plus a goal room)');
@@ -251,16 +252,18 @@ export function buildRoomSequence({
   let puzzleOccurrence = 0;
   let trapOccurrence = 0;
   let narrativeOccurrence = 0;
+  let treasureOccurrence = 0;
   for (let i = 0; i < roomCount - 1; i += 1) {
     const kind = roomKindAt(seed, i);
-    // #32/#165: puzzle, trap and narrative rooms each get a set-piece from
-    // their own pool — a separate occurrence counter and a separate salted
-    // shuffle per kind, so drawing one never depends on or exhausts another
-    // kind's pool.
+    // #32/#165/#89: puzzle, trap, narrative and treasure rooms each get a
+    // set-piece from their own pool — a separate occurrence counter and a
+    // separate salted shuffle per kind, so drawing one never depends on or
+    // exhausts another kind's pool.
     const setpieceId =
       kind === 'puzzle' ? setpieceAt(seed, puzzleOccurrence++, puzzleSetpieceIds, 'puzzle-setpiece-order')
       : kind === 'trap' ? setpieceAt(seed, trapOccurrence++, trapSetpieceIds, 'trap-setpiece-order')
       : kind === 'narrative' ? setpieceAt(seed, narrativeOccurrence++, narrativeSetpieceIds, 'narrative-setpiece-order')
+      : kind === 'treasure' ? setpieceAt(seed, treasureOccurrence++, treasureSetpieceIds, 'treasure-setpiece-order')
       : null;
     const outcomeSlot = outcomeSlotAt(seed, i);
     rooms.push({
@@ -313,7 +316,13 @@ export function applySequenceMutation(
   rooms,
   currentIndex,
   mutation,
-  { seed, puzzleSetpieceIds = [], trapSetpieceIds = [], narrativeSetpieceIds = [] } = {}
+  {
+    seed,
+    puzzleSetpieceIds = [],
+    trapSetpieceIds = [],
+    narrativeSetpieceIds = [],
+    treasureSetpieceIds = []
+  } = {}
 ) {
   if (mutation === 'remove_next') {
     const next = rooms[currentIndex + 1];
@@ -328,6 +337,7 @@ export function applySequenceMutation(
       kind === 'puzzle' ? setpieceAt(seed, rooms.length, puzzleSetpieceIds, 'puzzle-setpiece-order')
       : kind === 'trap' ? setpieceAt(seed, rooms.length, trapSetpieceIds, 'trap-setpiece-order')
       : kind === 'narrative' ? setpieceAt(seed, rooms.length, narrativeSetpieceIds, 'narrative-setpiece-order')
+      : kind === 'treasure' ? setpieceAt(seed, rooms.length, treasureSetpieceIds, 'treasure-setpiece-order')
       : null;
     const newRoom = {
       id: `room-${salt}`,

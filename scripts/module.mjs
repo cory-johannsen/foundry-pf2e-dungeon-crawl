@@ -11,6 +11,8 @@ import {
   applyPuzzleCustomization,
   getPendingNarrativeCustomization,
   applyNarrativeCustomization,
+  getPendingTreasureCustomization,
+  applyTreasureCustomization,
 } from "./dungeon-runner.mjs";
 import {
   decideOpenDungeon,
@@ -222,6 +224,24 @@ Hooks.once("ready", async () => {
           game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
         );
       return applyNarrativeCustomization(
+        sceneId ?? canvas?.scene?.id,
+        roomId,
+        customization,
+      );
+    },
+    getPendingTreasureCustomization: (sceneId) => {
+      if (!game.user.isGM)
+        return ui.notifications.warn(
+          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
+        );
+      return getPendingTreasureCustomization(sceneId ?? canvas?.scene?.id);
+    },
+    applyTreasureCustomization: (sceneId, roomId, customization) => {
+      if (!game.user.isGM)
+        return ui.notifications.warn(
+          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
+        );
+      return applyTreasureCustomization(
         sceneId ?? canvas?.scene?.id,
         roomId,
         customization,

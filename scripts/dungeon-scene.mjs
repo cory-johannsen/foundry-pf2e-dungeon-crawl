@@ -43,6 +43,7 @@ import {
   ensurePuzzleState,
   ensureNarrativeState,
   ensureTrapState,
+  ensureTreasureState,
   markRoomOutcome,
 } from "./dungeon-runner.mjs";
 import { depthBiasFor } from "./dungeon-deck.mjs";
@@ -968,6 +969,24 @@ export async function buildPopulateAndUnlockRoom(
       const setpiece = setpieces.find((s) => s.id === room.setpieceId);
       if (setpiece?.kind === "narrative" && isValidNarrativeTemplate(setpiece)) {
         await ensureNarrativeState(scene.id, room.id, { setpiece });
+      }
+    }
+    // #89: a treasure room's own selected content is attached here too, the
+    // same build-time spot as puzzle/narrative above — treasure has no
+    // per-archetype mechanical shape to validate (unlike narrative's
+    // isValidNarrativeTemplate) since a treasure setpiece carries nothing
+    // but name/summary; any setpiece of this kind is usable as-is. This is
+    // the integration point that makes treasure participate correctly in
+    // #62's eager-build-for-GM-less-runs and mutation-reconciliation
+    // machinery the same way every other kind already does — without it, a
+    // GM-less run would never get a treasure room's flavor attached at all,
+    // and a mutation that relocates a treasure room wouldn't reconcile its
+    // content correctly either.
+    if (room.kind === "treasure" && room.setpieceId) {
+      const setpieces = await loadDungeonSetpieces();
+      const setpiece = setpieces.find((s) => s.id === room.setpieceId);
+      if (setpiece?.kind === "treasure") {
+        await ensureTreasureState(scene.id, room.id, { setpiece });
       }
     }
     if (unlock) await unlockDoorToSlot(scene, physicalSlot);
