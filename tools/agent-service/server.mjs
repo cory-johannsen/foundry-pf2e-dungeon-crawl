@@ -1,6 +1,7 @@
 import { createServer as createHttpServer } from "node:http";
 import { timingSafeEqual } from "node:crypto";
 import { resolveProvider } from "./providers/index.mjs";
+import { generateCustomization } from "./customization-generator.mjs";
 
 const PROTECTED_ROUTES = new Set(["/v1/combat-decision", "/v1/flavor-customization"]);
 
@@ -28,6 +29,24 @@ async function handleCombatDecision(body, res) {
     return sendJson(res, 200, decision);
   } catch (err) {
     return sendJson(res, 502, { error: `combat-decision: provider call failed: ${err.message}` });
+  }
+}
+
+const KNOWN_KINDS = new Set(["trap", "skill_challenge", "puzzle", "narrative"]);
+
+/** Always calls generateCustomization(), which talks to Claude directly —
+ * never resolveProvider() — because Laya cannot generate free text. This
+ * route must not become provider-selectable. */
+async function handleFlavorCustomization(body, res) {
+  const { kind, ...context } = body ?? {};
+  if (!KNOWN_KINDS.has(kind)) {
+    return sendJson(res, 400, { error: `flavor-customization: kind must be one of ${[...KNOWN_KINDS].join(", ")}` });
+  }
+  try {
+    const result = await generateCustomization(kind, context);
+    return sendJson(res, 200, result);
+  } catch (err) {
+    return sendJson(res, 502, { error: `flavor-customization: generation failed: ${err.message}` });
   }
 }
 
@@ -89,7 +108,7 @@ export function createServer({ apiKey }) {
         return handleCombatDecision(body, res);
       }
       if (req.url === "/v1/flavor-customization") {
-        return sendJson(res, 501, { error: "not implemented" }); // Task 4
+        return handleFlavorCustomization(body, res);
       }
     }
 

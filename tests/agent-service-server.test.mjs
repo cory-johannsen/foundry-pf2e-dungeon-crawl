@@ -174,3 +174,36 @@ describe('POST /v1/combat-decision', () => {
     expect(body).toEqual({ candidateId: 'endTurn', rationale: 'test rationale' });
   });
 });
+
+describe('POST /v1/flavor-customization', () => {
+  let server;
+  let baseUrl;
+
+  beforeEach(async () => {
+    server = createServer({ apiKey: 'test-key' });
+    await new Promise((resolve) => server.listen(0, resolve));
+    baseUrl = `http://127.0.0.1:${server.address().port}`;
+  });
+
+  afterEach(async () => {
+    await new Promise((resolve) => server.close(resolve));
+  });
+
+  it('returns 400 when kind is missing', async () => {
+    const res = await fetch(`${baseUrl}/v1/flavor-customization`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer test-key', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ actorId: 'a1' })
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for an unknown kind', async () => {
+    const res = await fetch(`${baseUrl}/v1/flavor-customization`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer test-key', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind: 'not-a-real-kind' })
+    });
+    expect(res.status).toBe(400);
+  });
+});
