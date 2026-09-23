@@ -8,7 +8,7 @@ vi.mock('node:fs', () => ({
   readFileSync: () => { throw new Error('ENOENT: no such file'); }
 }));
 
-const { decide } = await import('../tools/agent-loop/providers/laya.mjs');
+const { decide } = await import('../tools/agent-service/providers/laya.mjs');
 
 const CONTEXT = {
   self: { name: 'Yamaraj', hp: 40, conditions: [] },
@@ -48,6 +48,7 @@ describe('laya provider decide()', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     const [url, options] = fetchImpl.mock.calls[0];
     expect(url).toBe('https://laya.johannsen.cloud/v1/predict');
+    expect(options.signal).toBeInstanceOf(AbortSignal);
     const body = JSON.parse(options.body);
     expect(body.state).toEqual({ self: CONTEXT.self, opponents: CONTEXT.opponents, roundNumber: CONTEXT.roundNumber });
     expect(body.questions.candidate.type).toBe('choice');

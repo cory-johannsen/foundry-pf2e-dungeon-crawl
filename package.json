@@ -14,17 +14,13 @@
     "tokens:import": "node tools/import-token.mjs",
     "prompts": "node tools/token-prompts.mjs",
     "architecture:graph": "node tools/generate-architecture-graph.mjs",
-    "agent-loop": "node tools/agent-loop/poll.mjs",
-    "agent-loop-watch": "node tools/agent-loop/watch-pending.mjs",
-    "agent-bridge-mcp": "node tools/agent-loop/mcp-server.mjs",
+    "agent-service": "node tools/agent-service/entrypoint.mjs",
     "format": "prettier --write ."
   },
   "devDependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "prettier": "^3.3.3",
-    "vitest": "^2.1.4",
-    "zod": "^4.6.5"
+    "vitest": "^2.1.4"
   }
 }

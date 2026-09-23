@@ -31,7 +31,6 @@ import {
   getPendingAgentTurn,
   applyAgentDecision,
   toggleAgentControlled,
-  agentLoopStatus,
   handleRangedAttackForReactiveStrike,
   handleManualStrikeDamage,
   offerReactiveStrikesAgainst,
@@ -57,11 +56,25 @@ Hooks.once("init", () => {
     type: Object,
     default: {},
   });
-  game.settings.register(MODULE_ID, "agentLoopHeartbeat", {
-    scope: "world",
-    config: false,
-    type: Object,
-    default: null,
+  // Client scope, not world: a world-scope setting's value syncs to every
+  // connected client (players included) regardless of config visibility,
+  // which would expose the GM's bearer token via game.settings.get(). Each
+  // GM's browser holds its own copy instead.
+  game.settings.register(MODULE_ID, "agentServiceUrl", {
+    name: "PF2EDC.Settings.AgentServiceUrlLabel",
+    hint: "PF2EDC.Settings.AgentServiceUrlHint",
+    scope: "client",
+    config: true,
+    type: String,
+    default: "",
+  });
+  game.settings.register(MODULE_ID, "agentServiceApiKey", {
+    name: "PF2EDC.Settings.AgentServiceApiKeyLabel",
+    hint: "PF2EDC.Settings.AgentServiceApiKeyHint",
+    scope: "client",
+    config: true,
+    type: String,
+    default: "",
   });
 });
 
@@ -120,44 +133,28 @@ Hooks.once("ready", async () => {
         ? applyAgentDecision(combat, combatantId, candidateId, rationale)
         : null;
     },
-    recordAgentLoopHeartbeat: ({
-      provider = null,
-      pollIntervalMs = null,
-    } = {}) => {
-      if (!game.user.isGM)
-        return ui.notifications.warn(
-          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
-        );
-      return game.settings.set(MODULE_ID, "agentLoopHeartbeat", {
-        timestamp: Date.now(),
-        provider,
-        pollIntervalMs,
-      });
-    },
-    getAgentLoopStatus: () => {
-      if (!game.user.isGM)
-        return ui.notifications.warn(
-          game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
-        );
-      return agentLoopStatus();
-    },
     postAgentLoopStatus: async () => {
       if (!game.user.isGM)
         return ui.notifications.warn(
           game.i18n.localize("PF2EDC.Dungeon.GmOnlyWarning"),
         );
-      const status = agentLoopStatus();
-      const key = status.connected
-        ? "PF2EDC.Dungeon.Combat.AgentLoopStatusConnected"
-        : status.lastSeenMs
-          ? "PF2EDC.Dungeon.Combat.AgentLoopStatusStale"
-          : "PF2EDC.Dungeon.Combat.AgentLoopStatusNeverSeen";
-      const content = game.i18n.format(key, {
-        provider: status.provider ?? "?",
-        seconds: status.secondsAgo ?? 0,
-      });
+      const baseUrl = game.settings.get(MODULE_ID, "agentServiceUrl");
+      let reachable = false;
+      if (baseUrl) {
+        try {
+          const res = await fetch(`${baseUrl.replace(/\/$/, "")}/v1/health`);
+          reachable = res.ok;
+        } catch {
+          reachable = false;
+        }
+      }
+      const key = !baseUrl
+        ? "PF2EDC.Dungeon.Combat.AgentServiceStatusNotConfigured"
+        : reachable
+          ? "PF2EDC.Dungeon.Combat.AgentServiceStatusReachable"
+          : "PF2EDC.Dungeon.Combat.AgentServiceStatusUnreachable";
       const gmIds = ChatMessage.getWhisperRecipients("GM").map((u) => u.id);
-      return ChatMessage.create({ content, whisper: gmIds });
+      return ChatMessage.create({ content: game.i18n.localize(key), whisper: gmIds });
     },
     getPendingTrapCustomization: (sceneId) => {
       if (!game.user.isGM)
