@@ -54,11 +54,6 @@
       {{/if}}
 
       {{#unless completed}}
-        <p class="hint">{{localize
-            "PF2EDC.Dungeon.ThemeReminder"
-            traits=traits
-            excludeTraits=excludeTraits
-          }}</p>
         {{#if isSafeRoom}}
           {{#unless nextRoomPending}}
             {{#if isSafeEntry}}
