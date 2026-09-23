@@ -7326,5 +7326,125 @@
     "name": "Living Tar",
     "level": 7,
     "art": "living-tar.webp"
+  },
+  {
+    "id": "master_of_disguise",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "G2AJ9Ya7QG7ebNPO",
+    "name": "Master of Disguise",
+    "level": 7,
+    "art": "master-of-disguise.webp"
+  },
+  {
+    "id": "medusa",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "QCPpQya5TEUuIxQn",
+    "name": "Medusa",
+    "level": 7,
+    "art": "medusa.webp"
+  },
+  {
+    "id": "megalania",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "XmuMPoHv108sHJOu",
+    "name": "Megalania",
+    "level": 7,
+    "art": "megalania.webp"
+  },
+  {
+    "id": "mixed_martial_artist",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "2hBS767YPGZwXeiP",
+    "name": "Mixed Martial Artist",
+    "level": 7,
+    "art": "mixed-martial-artist.webp"
+  },
+  {
+    "id": "narrik",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "zzQEec5eoMKRCcnx",
+    "name": "Narrik",
+    "level": 7,
+    "art": "narrik.webp"
+  },
+  {
+    "id": "naunet",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "JumkQRD1Cn4TF5XS",
+    "name": "Naunet",
+    "level": 7,
+    "art": "naunet.webp"
+  },
+  {
+    "id": "ogre_boss",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "oopxVowT2jnUQJiS",
+    "name": "Ogre Boss",
+    "level": 7,
+    "art": "ogre-boss.webp"
+  },
+  {
+    "id": "omen_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "7Uf4Q9w3dCDEV30e",
+    "name": "Omen Dragon (Young)",
+    "level": 7,
+    "art": "omen-dragon-young.webp"
+  },
+  {
+    "id": "omen_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "IKmiLv4ZNiLD10zv",
+    "name": "Omen Dragon (Young, Spellcaster)",
+    "level": 7,
+    "art": "omen-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "pairaka",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "D4apkwiUo5Rb6TFr",
+    "name": "Pairaka",
+    "level": 7,
+    "art": "pairaka.webp"
+  },
+  {
+    "id": "phade",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "HKXa9E91WLy6dAZA",
+    "name": "Phade",
+    "level": 7,
+    "art": "phade.webp"
+  },
+  {
+    "id": "praskith",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "yUzeqpglgpcn34Yc",
+    "name": "Praskith",
+    "level": 7,
+    "art": "praskith.webp"
+  },
+  {
+    "id": "pukwudgie",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "1ZRHjuGOluR4IUrs",
+    "name": "Pukwudgie",
+    "level": 7,
+    "art": "pukwudgie.webp"
+  },
+  {
+    "id": "quatoid_mc1",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "dfshMY9yEEXOUoMo",
+    "name": "Quatoid",
+    "level": 7,
+    "art": "quatoid-mc1.webp"
+  },
+  {
+    "id": "quatoid_b1",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "Jgh0WGVetNXi5jlM",
+    "name": "Quatoid",
+    "level": 7,
+    "art": "quatoid-b1.webp"
   }
 ]
