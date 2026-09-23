@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Regenerates the Mermaid dependency diagram embedded in
- * docs/architecture.md (#69) — walks scripts/ and tools/agent-loop/ for
+ * docs/architecture.md (#69) — walks scripts/ and tools/agent-service/ for
  * .mjs files, parses each file's own relative `import ... from "./x.mjs"`
  * statements, and emits a `graph LR` grouped into subgraph clusters by
  * subsystem. Bare-specifier imports (npm packages like `zod`,
@@ -51,12 +51,17 @@ function relativeImports(file) {
 }
 
 // Subsystem groupings (#69's own scope) — order matters: first match wins,
-// so more specific groups (agent-loop) are listed before the broad
+// so more specific groups (agent-service) are listed before the broad
 // mechanics-pairs bucket that would otherwise also claim them.
 const GROUPS = [
   {
-    name: "Agent-loop (external LLM combat AI)",
-    match: (p) => p.startsWith("tools/agent-loop/"),
+    name: "Hosted agent service (combat AI + flavor customization)",
+    match: (p) =>
+      p.startsWith("tools/agent-service/") ||
+      [
+        "scripts/agent-service-client.mjs",
+        "scripts/dungeon-customization-fulfillment.mjs",
+      ].includes(p),
   },
   {
     name: "GM-less relay & permissions",
@@ -160,7 +165,7 @@ function nodeId(path) {
 function main() {
   const files = [
     ...walk(join(ROOT, "scripts")),
-    ...walk(join(ROOT, "tools", "agent-loop")),
+    ...walk(join(ROOT, "tools", "agent-service")),
   ].map((f) => relative(ROOT, f));
 
   const edges = [];
@@ -185,7 +190,7 @@ function main() {
     for (const file of members.sort()) {
       const label = file
         .replace(/^scripts\//, "")
-        .replace(/^tools\/agent-loop\//, "agent-loop/");
+        .replace(/^tools\/agent-service\//, "agent-service/");
       lines.push(`    ${nodeId(file)}["${label}"]`);
     }
     lines.push("  end");

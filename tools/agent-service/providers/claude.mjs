@@ -11,9 +11,12 @@
  * hardcoded API call — fulfills those instead.
  */
 
-import { readEnvOrDotenv } from "../foundry-client.mjs";
+import { readEnvOrDotenv } from "../env.mjs";
 
 const CLAUDE_MODEL = "claude-sonnet-5";
+// Under Foundry's 45s AGENT_TIMEOUT_MS budget, so a stuck upstream call
+// becomes a prompt 502 instead of hanging the request.
+const UPSTREAM_TIMEOUT_MS = 30000;
 
 async function callClaude(
   body,
@@ -27,6 +30,7 @@ async function callClaude(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
   });
   const payload = await res.json();
   if (!res.ok) {
