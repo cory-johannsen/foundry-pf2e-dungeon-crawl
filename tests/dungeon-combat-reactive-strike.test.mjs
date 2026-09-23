@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import {
   findReactiveStrikeOpportunities,
   offerReactiveStrikesAgainst,
@@ -63,12 +63,31 @@ function makeMover({ id = "mover1", x = 0, y = 0, disposition = -1 } = {}) {
   return { id, isDefeated: false, token: { x, y, disposition } };
 }
 
-function makeCombat({ round = 1, combatants = [], reactionUsed = {} } = {}) {
+function makeCombat({
+  round = 1,
+  combatants = [],
+  reactionUsed = {},
+  scene,
+} = {}) {
   const flags = { reactionUsed: { ...reactionUsed } };
   return {
     round,
     combatants,
     getFlag: (_moduleId, key) => flags[key],
+    scene,
+  };
+}
+
+// A vertical wall segment at pixel x, spanning grid rows [gyLo, gyHi)
+// (exclusive of its own end row) -- same shape
+// dungeon-combat-line-of-sight.test.mjs uses for hasLineOfSight's own wall
+// fixtures.
+function verticalWall(gx, gyLo, gyHi) {
+  return {
+    move: 20,
+    door: 0,
+    ds: 0,
+    c: [gx * GRID_SIZE, gyLo * GRID_SIZE, gx * GRID_SIZE, gyHi * GRID_SIZE],
   };
 }
 
@@ -177,6 +196,61 @@ describe("findReactiveStrikeOpportunities", () => {
     expect(
       findReactiveStrikeOpportunities(combat, mover, GRID_SIZE, GRID_DISTANCE_FT),
     ).toEqual([{ reactor, actionSlug: "claw" }]);
+  });
+
+  // #91: actionReachSquares' own reach math never checked for a wall
+  // between the reactor and the mover, so a reach weapon (or even plain
+  // melee reach) could trigger a Reactive Strike across a solid wall.
+  describe("line of sight (#91)", () => {
+    beforeEach(() => {
+      globalThis.CONST = {
+        WALL_MOVEMENT_TYPES: { NONE: 0, NORMAL: 20 },
+        WALL_DOOR_TYPES: { NONE: 0, DOOR: 1, SECRET: 2 },
+        WALL_DOOR_STATES: { CLOSED: 0, OPEN: 1, LOCKED: 2 },
+      };
+    });
+
+    it("excludes a reactor within reach but separated from the mover by a solid wall", () => {
+      const mover = makeMover({ x: 0, y: 0 });
+      const reactor = makeReactor({ id: "r1", x: 100, y: 0 });
+      const combat = makeCombat({
+        combatants: [mover, reactor],
+        scene: {
+          grid: { size: GRID_SIZE, distance: GRID_DISTANCE_FT },
+          walls: { contents: [verticalWall(1, 0, 1)] },
+        },
+      });
+
+      expect(
+        findReactiveStrikeOpportunities(
+          combat,
+          mover,
+          GRID_SIZE,
+          GRID_DISTANCE_FT,
+        ),
+      ).toEqual([]);
+    });
+
+    it("still finds a reactor within reach when the scene has walls that don't cross the line to the mover", () => {
+      const mover = makeMover({ x: 0, y: 0 });
+      const reactor = makeReactor({ id: "r1", x: 100, y: 0 });
+      const combat = makeCombat({
+        combatants: [mover, reactor],
+        scene: {
+          grid: { size: GRID_SIZE, distance: GRID_DISTANCE_FT },
+          walls: { contents: [verticalWall(1, 5, 6)] },
+        },
+      });
+
+      expect(
+        findReactiveStrikeOpportunities(
+          combat,
+          mover,
+          GRID_SIZE,
+          GRID_DISTANCE_FT,
+        ),
+      ).toEqual([{ reactor, actionSlug: "claw" }]);
+    });
   });
 });
 
