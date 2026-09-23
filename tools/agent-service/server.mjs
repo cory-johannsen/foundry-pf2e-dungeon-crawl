@@ -1,4 +1,5 @@
 import { createServer as createHttpServer } from "node:http";
+import { timingSafeEqual } from "node:crypto";
 
 const PROTECTED_ROUTES = new Set(["/v1/combat-decision", "/v1/flavor-customization"]);
 
@@ -16,9 +17,18 @@ function sendJson(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
+/** Constant-time bearer-token check. Uses `timingSafeEqual` so a wrong
+ * guess doesn't leak how many leading characters matched via response
+ * timing. `timingSafeEqual` throws on mismatched buffer lengths, so we
+ * length-check first — that's safe here because the token's *length*
+ * isn't the secret, only its value is. */
 function isAuthorized(req, apiKey) {
   const header = req.headers.authorization ?? "";
-  return header === `Bearer ${apiKey}`;
+  const expected = `Bearer ${apiKey}`;
+  const headerBuf = Buffer.from(header);
+  const expectedBuf = Buffer.from(expected);
+  if (headerBuf.length !== expectedBuf.length) return false;
+  return timingSafeEqual(headerBuf, expectedBuf);
 }
 
 /** Creates an unstarted node:http server. `apiKey` is the single shared
@@ -36,11 +46,15 @@ export function createServer({ apiKey }) {
 
     if (PROTECTED_ROUTES.has(req.url) && req.method === "POST") {
       if (!isAuthorized(req, apiKey)) return sendJson(res, 401, { error: "unauthorized" });
-      const raw = await readBody(req);
       let body;
       try {
+        const raw = await readBody(req);
         body = JSON.parse(raw || "{}");
       } catch {
+        // Covers both a malformed JSON body and a request-stream error
+        // (e.g. the client aborts mid-upload) — readBody's rejection
+        // lands here too, so neither can escape as an unhandled
+        // rejection inside the request handler.
         return sendJson(res, 400, { error: "invalid JSON body" });
       }
       // Route-specific handling added in Task 3 / Task 4.

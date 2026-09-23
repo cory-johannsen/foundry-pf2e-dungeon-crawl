@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { EventEmitter } from 'node:events';
 import { createServer } from '../tools/agent-service/server.mjs';
 
 describe('agent-service server', () => {
@@ -39,5 +40,48 @@ describe('agent-service server', () => {
   it('returns 404 for an unknown route', async () => {
     const res = await fetch(`${baseUrl}/v1/nonexistent`);
     expect(res.status).toBe(404);
+  });
+
+  it('rejects a protected route with 401 when the bearer token has the wrong length', async () => {
+    // Regression coverage for the constant-time compare: the length-check
+    // short-circuit is a separate branch from timingSafeEqual and must
+    // also reject (not throw, not crash the handler).
+    const res = await fetch(`${baseUrl}/v1/combat-decision`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer short' },
+      body: '{}'
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('returns a clean 400 instead of crashing when the request body stream errors on a protected route', async () => {
+    // Exercises readBody's rejection path directly by invoking the
+    // server's request listener with a fake req that emits 'error' after
+    // auth succeeds, since reliably forcing a real socket-level stream
+    // error through fetch()/undici is not straightforward in this setup.
+    const [listener] = server.listeners('request');
+
+    const req = new EventEmitter();
+    req.method = 'POST';
+    req.url = '/v1/combat-decision';
+    req.headers = { authorization: 'Bearer test-key' };
+
+    let statusCode;
+    let responseBody = '';
+    const res = {
+      writeHead: (status) => {
+        statusCode = status;
+      },
+      end: (chunk) => {
+        responseBody = chunk;
+      }
+    };
+
+    const handled = listener(req, res);
+    req.emit('error', new Error('simulated socket error'));
+    await handled;
+
+    expect(statusCode).toBe(400);
+    expect(JSON.parse(responseBody)).toEqual({ error: 'invalid JSON body' });
   });
 });
