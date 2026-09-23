@@ -6262,5 +6262,117 @@
     "name": "Cave Bear",
     "level": 6,
     "art": "cave-bear.webp"
+  },
+  {
+    "id": "cave_giant",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "zjt9MtcggYu1cG9i",
+    "name": "Cave Giant",
+    "level": 6,
+    "art": "cave-giant.webp"
+  },
+  {
+    "id": "cavern_troll",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "yHduMu4VBVUHnssz",
+    "name": "Cavern Troll",
+    "level": 6,
+    "art": "cavern-troll.webp"
+  },
+  {
+    "id": "ceustodaemon",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "NW1Ax1QGE9W4DmiN",
+    "name": "Ceustodaemon",
+    "level": 6,
+    "art": "ceustodaemon.webp"
+  },
+  {
+    "id": "choral",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "9SNpsnwlzZjH4DQf",
+    "name": "Choral",
+    "level": 6,
+    "art": "choral.webp"
+  },
+  {
+    "id": "chouchin_obake",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "EGyCQDseM9FaCl78",
+    "name": "Chouchin-Obake",
+    "level": 6,
+    "art": "chouchin-obake.webp"
+  },
+  {
+    "id": "elananx",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "RJFpwZIGbuOuCtXr",
+    "name": "Elananx",
+    "level": 6,
+    "art": "elananx.webp"
+  },
+  {
+    "id": "ettin",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "skwkJmgz7mqIcStF",
+    "name": "Ettin",
+    "level": 6,
+    "art": "ettin.webp"
+  },
+  {
+    "id": "evangelist",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "66MUUmu8950MEXFf",
+    "name": "Evangelist",
+    "level": 6,
+    "art": "evangelist.webp"
+  },
+  {
+    "id": "executioner",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "pHaQew7IEmk198Wz",
+    "name": "Executioner",
+    "level": 6,
+    "art": "executioner.webp"
+  },
+  {
+    "id": "gadgeteer",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "jx5KZC2tbgJIJnOq",
+    "name": "Gadgeteer",
+    "level": 6,
+    "art": "gadgeteer.webp"
+  },
+  {
+    "id": "gamekeeper",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "RQTIsAmhiMkfcgsb",
+    "name": "Gamekeeper",
+    "level": 6,
+    "art": "gamekeeper.webp"
+  },
+  {
+    "id": "giant_mosquito",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "mno9JBZ1XgEHo6m4",
+    "name": "Giant Mosquito",
+    "level": 6,
+    "art": "giant-mosquito.webp"
+  },
+  {
+    "id": "giant_tarantula",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "4ISm82EYQeOndynw",
+    "name": "Giant Tarantula",
+    "level": 6,
+    "art": "giant-tarantula.webp"
+  },
+  {
+    "id": "gnome_conservationist",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "V2wfIJdGvD4mQ1pU",
+    "name": "Gnome Conservationist",
+    "level": 6,
+    "art": "gnome-conservationist.webp"
   }
 ]
