@@ -8054,5 +8054,117 @@
     "name": "Green Dragon (Young, Spellcaster)",
     "level": 8,
     "art": "green-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "guildmaster",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "fadWrz7SnifBx4yz",
+    "name": "Guildmaster",
+    "level": 8,
+    "art": "guildmaster.webp"
+  },
+  {
+    "id": "hobgoblin_vanguard",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "PoH1pKba7YEqgWVn",
+    "name": "Hobgoblin Vanguard",
+    "level": 8,
+    "art": "hobgoblin-vanguard.webp"
+  },
+  {
+    "id": "horned_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "5lbXQ6MSn4AndglU",
+    "name": "Horned Dragon (Young)",
+    "level": 8,
+    "art": "horned-dragon-young.webp"
+  },
+  {
+    "id": "horned_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "wdHIc6Tg1OBMGaK5",
+    "name": "Horned Dragon (Young, Spellcaster)",
+    "level": 8,
+    "art": "horned-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "kishi",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "dtkq45qf18bENXBd",
+    "name": "Kishi",
+    "level": 8,
+    "art": "kishi.webp"
+  },
+  {
+    "id": "krooth",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "f15mNNhOT3aq66VQ",
+    "name": "Krooth",
+    "level": 8,
+    "art": "krooth.webp"
+  },
+  {
+    "id": "lamia_matriarch",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "0qaGLx8ads9blcfS",
+    "name": "Lamia Matriarch",
+    "level": 8,
+    "art": "lamia-matriarch.webp"
+  },
+  {
+    "id": "lucky_courser",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "NKSglx8RnXfuhb3m",
+    "name": "Lucky Courser",
+    "level": 8,
+    "art": "lucky-courser.webp"
+  },
+  {
+    "id": "mage_killer",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "P8Rd7OxbsyH9GmNM",
+    "name": "Mage Killer",
+    "level": 8,
+    "art": "mage-killer.webp"
+  },
+  {
+    "id": "magma_scorpion",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "tlz1pWkPehmFj6YS",
+    "name": "Magma Scorpion",
+    "level": 8,
+    "art": "magma-scorpion.webp"
+  },
+  {
+    "id": "marsh_giant",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "tuuSayyL0A5R6hZh",
+    "name": "Marsh Giant",
+    "level": 8,
+    "art": "marsh-giant.webp"
+  },
+  {
+    "id": "megaprimatus",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "pyTr1VOPrPYH8UNg",
+    "name": "Megaprimatus",
+    "level": 8,
+    "art": "megaprimatus.webp"
+  },
+  {
+    "id": "mohrg",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "OaNtHZAraCrVLuSo",
+    "name": "Mohrg",
+    "level": 8,
+    "art": "mohrg.webp"
+  },
+  {
+    "id": "mountain_oni",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "yVS5i5U28fQyGz99",
+    "name": "Mountain Oni",
+    "level": 8,
+    "art": "mountain-oni.webp"
   }
 ]
