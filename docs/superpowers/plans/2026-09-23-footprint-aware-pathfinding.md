@@ -376,17 +376,24 @@ describe("footprint-aware movement (#140)", () => {
       WALL_DOOR_STATES: { CLOSED: 0, OPEN: 1, LOCKED: 2 },
     };
     // Two rooms connected by a single 1-square-wide gap at gx=3 between
-    // gy=0 and gy=1 -- walled everywhere else along that boundary row.
-    // A 2x2 mover starting at (0,0) can never cross without its second
-    // row (gy=1..2) clipping a wall, even though the single gap cell
-    // itself is open.
+    // gy=1 and gy=2 -- walled everywhere else along that boundary row.
+    // The boundary is one row below the mover's own starting footprint
+    // (gy=0..1), not the boundary its start straddles (#140, found during
+    // Task 2's own implementation): a 2x2 mover's start position already
+    // occupies both gy=0 and gy=1, so testing a wall at the gy=0/gy=1
+    // boundary would make Task 1's start-footprint validation reject the
+    // mover outright before any movement happens at all, passing this
+    // test for the wrong reason (never moving) and failing the paired
+    // "wide enough" test below identically regardless of gap width. Using
+    // the next boundary down means the mover legitimately starts valid
+    // and must actually attempt a real transition to hit the gap.
     const wallSegments = [];
     for (let gx = 0; gx <= 6; gx += 1) {
       if (gx === 3) continue; // the one gap
       wallSegments.push({
         move: 20,
         door: 0,
-        c: [gx * GRID_SIZE, GRID_SIZE, (gx + 1) * GRID_SIZE, GRID_SIZE],
+        c: [gx * GRID_SIZE, 2 * GRID_SIZE, (gx + 1) * GRID_SIZE, 2 * GRID_SIZE],
       });
     }
     const mover = makeCombatant({
@@ -407,9 +414,9 @@ describe("footprint-aware movement (#140)", () => {
 
     await stepToward(combat, mover, target, 10);
 
-    // Never crossed into gy >= 1 -- confirms the mover was refused the
+    // Never crossed into gy >= 2 -- confirms the mover was refused the
     // gap rather than squeezing a corner of its own footprint through it.
-    expect(mover.token.y).toBeLessThan(GRID_SIZE);
+    expect(mover.token.y).toBeLessThan(2 * GRID_SIZE);
   });
 
   it("a 2x2 mover successfully crosses a 2-wide gap sized to fit it", async () => {
@@ -419,13 +426,16 @@ describe("footprint-aware movement (#140)", () => {
       WALL_DOOR_TYPES: { NONE: 0, DOOR: 1, SECRET: 2 },
       WALL_DOOR_STATES: { CLOSED: 0, OPEN: 1, LOCKED: 2 },
     };
+    // Same gy=1/gy=2 boundary as the paired "refuses" test above, for the
+    // same reason (the mover's own gy=0..1 starting footprint must not
+    // already straddle the tested boundary).
     const wallSegments = [];
     for (let gx = 0; gx <= 6; gx += 1) {
       if (gx === 3 || gx === 4) continue; // a 2-wide gap
       wallSegments.push({
         move: 20,
         door: 0,
-        c: [gx * GRID_SIZE, GRID_SIZE, (gx + 1) * GRID_SIZE, GRID_SIZE],
+        c: [gx * GRID_SIZE, 2 * GRID_SIZE, (gx + 1) * GRID_SIZE, 2 * GRID_SIZE],
       });
     }
     const mover = makeCombatant({
@@ -446,7 +456,7 @@ describe("footprint-aware movement (#140)", () => {
 
     await stepToward(combat, mover, target, 10);
 
-    expect(mover.token.y).toBeGreaterThanOrEqual(GRID_SIZE);
+    expect(mover.token.y).toBeGreaterThanOrEqual(2 * GRID_SIZE);
   });
 
   it("walkPath's landing check refuses a cell where the mover's own footprint would overlap another combatant", async () => {
