@@ -103,12 +103,18 @@ falls back to the GM-less relay above when the client reacting to the
 hook isn't itself GM-privileged but is the run's own host.
 
 **Run state & UI** (`dungeon-runner.mjs`, `module.mjs`,
-`scripts/ui/dungeon-app.mjs`) — `dungeon-runner.mjs` reads/writes the
-`dungeonRuns` world setting (the durable record of an in-progress run);
-`module.mjs` is the Foundry module's own entry point (hook registration,
-`game.modules.get(...).api` surface); `dungeon-app.mjs` is the player/GM-
-facing `Application` that renders the tracker and dispatches every user
-action either directly (GM) or through the relay (non-GM host).
+`scripts/ui/dungeon-app.mjs`, `world-macros.mjs`) — `dungeon-runner.mjs`
+reads/writes the `dungeonRuns` world setting (the durable record of an
+in-progress run); `module.mjs` is the Foundry module's own entry point
+(hook registration, `game.modules.get(...).api` surface); `dungeon-app.mjs`
+is the player/GM-facing `Application` that renders the tracker and
+dispatches every user action either directly (GM) or through the relay
+(non-GM host); `world-macros.mjs` (split out of `module.mjs` in #96) owns
+`MACRO_DEFS` and `ensureWorldMacros()`, creating/renaming this module's
+world macros in place by matching on their own `flags.<MODULE_ID>.generated`
+marker rather than by (renameable) name — small and isolated enough from
+the rest of `module.mjs`'s heavy import graph to carry real unit test
+coverage despite touching `game.macros`/`Macro`.
 
 ## Dependency graph
 
@@ -183,6 +189,7 @@ graph LR
     scripts_dungeon_runner_mjs["dungeon-runner.mjs"]
     scripts_module_mjs["module.mjs"]
     scripts_ui_dungeon_app_mjs["ui/dungeon-app.mjs"]
+    scripts_world_macros_mjs["world-macros.mjs"]
   end
   subgraph "Other"
     scripts_pathfinding_mjs["pathfinding.mjs"]
@@ -260,6 +267,7 @@ graph LR
   scripts_module_mjs --> scripts_trap_combat_mjs
   scripts_module_mjs --> scripts_generator_registry_mjs
   scripts_module_mjs --> scripts_default_generator_mjs
+  scripts_module_mjs --> scripts_world_macros_mjs
   scripts_player_choice_mjs --> scripts_choice_prompts_mjs
   scripts_puzzle_mechanics_mjs --> scripts_skill_challenge_mechanics_mjs
   scripts_skill_challenge_mechanics_mjs --> scripts_prng_mjs
