@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { findPath, blockedEdgesFromWalls } from "../scripts/pathfinding.mjs";
+import {
+  findPath,
+  blockedEdgesFromWalls,
+  hasLineOfSight,
+} from "../scripts/pathfinding.mjs";
 
 const openField = () => false;
 
@@ -176,5 +180,104 @@ describe("blockedEdgesFromWalls", () => {
     });
     expect(path).not.toBeNull();
     for (const cell of path) expect(cell.gy).toBe(1);
+  });
+});
+
+describe("hasLineOfSight (#91)", () => {
+  it("is true between the same cell", () => {
+    expect(hasLineOfSight({ gx: 2, gy: 2 }, { gx: 2, gy: 2 }, openField)).toBe(
+      true,
+    );
+  });
+
+  it("is true across an open field, adjacent cells", () => {
+    expect(hasLineOfSight({ gx: 0, gy: 0 }, { gx: 1, gy: 0 }, openField)).toBe(
+      true,
+    );
+  });
+
+  it("is true across an open field at a longer straight-line distance", () => {
+    expect(hasLineOfSight({ gx: 0, gy: 0 }, { gx: 6, gy: 0 }, openField)).toBe(
+      true,
+    );
+  });
+
+  it("is false when a wall directly crosses the straight orthogonal line between two cells", () => {
+    // Wall boundary blocks stepping from column 0 to column 1 at row 0 --
+    // blockedEdgesFromWalls' own isBlocked(a,b) shape.
+    const isBlocked = (a, b) =>
+      a.gy === 0 && b.gy === 0 && Math.max(a.gx, b.gx) === 1;
+    expect(hasLineOfSight({ gx: 0, gy: 0 }, { gx: 3, gy: 0 }, isBlocked)).toBe(
+      false,
+    );
+  });
+
+  it("is false when a wall crosses the line partway between two far-apart cells, not just at an adjacent boundary", () => {
+    // Wall between column 3 and column 4 at row 0 -- several cells past the
+    // attacker's own cell, well short of the target.
+    const isBlocked = (a, b) =>
+      a.gy === 0 && b.gy === 0 && Math.max(a.gx, b.gx) === 4;
+    expect(hasLineOfSight({ gx: 0, gy: 0 }, { gx: 8, gy: 0 }, isBlocked)).toBe(
+      false,
+    );
+  });
+
+  it("is true when a wall exists but doesn't cross the straight line between attacker and target", () => {
+    // Wall blocks column0->column1 at row 5 -- irrelevant to a shot fired
+    // along row 0.
+    const isBlocked = (a, b) =>
+      a.gy === 5 && b.gy === 5 && Math.max(a.gx, b.gx) === 1;
+    expect(hasLineOfSight({ gx: 0, gy: 0 }, { gx: 3, gy: 0 }, isBlocked)).toBe(
+      true,
+    );
+  });
+
+  it("is false along a vertical line crossing a horizontal wall", () => {
+    const isBlocked = (a, b) =>
+      a.gx === 0 && b.gx === 0 && Math.max(a.gy, b.gy) === 2;
+    expect(hasLineOfSight({ gx: 0, gy: 0 }, { gx: 0, gy: 4 }, isBlocked)).toBe(
+      false,
+    );
+  });
+
+  it("is true along a clear diagonal line with no walls", () => {
+    expect(hasLineOfSight({ gx: 0, gy: 0 }, { gx: 4, gy: 4 }, openField)).toBe(
+      true,
+    );
+  });
+
+  it("is false when a diagonal line clips a wall corner (matches findPath's own corner-cut refusal)", () => {
+    // Same L-corner shape as findPath's own corner-cutting test: a vertical
+    // wall on (1,0)/(1,1) and a horizontal wall on (0,1)/(1,1) meeting at
+    // the (1,1) corner the diagonal line from (0,0) to (2,2) passes through.
+    const isBlocked = (a, b) => {
+      const vertical =
+        (a.gx === 1 && a.gy === 0 && b.gx === 1 && b.gy === 1) ||
+        (a.gx === 1 && a.gy === 1 && b.gx === 1 && b.gy === 0);
+      const horizontal =
+        (a.gx === 0 && a.gy === 1 && b.gx === 1 && b.gy === 1) ||
+        (a.gx === 1 && a.gy === 1 && b.gx === 0 && b.gy === 1);
+      return vertical || horizontal;
+    };
+    expect(hasLineOfSight({ gx: 0, gy: 0 }, { gx: 2, gy: 2 }, isBlocked)).toBe(
+      false,
+    );
+  });
+
+  it("is true when a diagonal line passes through a lattice corner with no wall flanking it", () => {
+    expect(hasLineOfSight({ gx: 0, gy: 0 }, { gx: 2, gy: 2 }, openField)).toBe(
+      true,
+    );
+  });
+
+  it("is symmetric: swapping attacker and target gives the same answer", () => {
+    const isBlocked = (a, b) =>
+      a.gy === 0 && b.gy === 0 && Math.max(a.gx, b.gx) === 2;
+    expect(hasLineOfSight({ gx: 0, gy: 0 }, { gx: 4, gy: 0 }, isBlocked)).toBe(
+      false,
+    );
+    expect(hasLineOfSight({ gx: 4, gy: 0 }, { gx: 0, gy: 0 }, isBlocked)).toBe(
+      false,
+    );
   });
 });

@@ -6374,5 +6374,117 @@
     "name": "Gnome Conservationist",
     "level": 6,
     "art": "gnome-conservationist.webp"
+  },
+  {
+    "id": "gourd_leshy_witch",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "dgKQirSInfVaPMYq",
+    "name": "Gourd Leshy Witch",
+    "level": 6,
+    "art": "gourd-leshy-witch.webp"
+  },
+  {
+    "id": "halfling_smuggler",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "GPRL88DEmTVn0jkY",
+    "name": "Halfling Smuggler",
+    "level": 6,
+    "art": "halfling-smuggler.webp"
+  },
+  {
+    "id": "hobgoblin_general",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "xgKDQB6ZYmAutwAm",
+    "name": "Hobgoblin General",
+    "level": 6,
+    "art": "hobgoblin-general.webp"
+  },
+  {
+    "id": "hungry_ghost",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "KLMu7hWQWnc0Plt0",
+    "name": "Hungry Ghost",
+    "level": 6,
+    "art": "hungry-ghost.webp"
+  },
+  {
+    "id": "hydra",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Bkr0soTDhQq1qjWx",
+    "name": "Hydra",
+    "level": 6,
+    "art": "hydra.webp"
+  },
+  {
+    "id": "iguanodon",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "8G5IWZdj7LG4WHPv",
+    "name": "Iguanodon",
+    "level": 6,
+    "art": "iguanodon.webp"
+  },
+  {
+    "id": "interrogator",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "1V3cvVmMte15i5sJ",
+    "name": "Interrogator",
+    "level": 6,
+    "art": "interrogator.webp"
+  },
+  {
+    "id": "iron_hag",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "lfUUnFazGLAtqRsP",
+    "name": "Iron Hag",
+    "level": 6,
+    "art": "iron-hag.webp"
+  },
+  {
+    "id": "jungle_drake",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "aYDbWuOj66nve8r4",
+    "name": "Jungle Drake",
+    "level": 6,
+    "art": "jungle-drake.webp"
+  },
+  {
+    "id": "lamia",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "vqYrJ33XgoeQUUle",
+    "name": "Lamia",
+    "level": 6,
+    "art": "lamia.webp"
+  },
+  {
+    "id": "legbreaker",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "WzBMIigC3lfvZyhJ",
+    "name": "Legbreaker",
+    "level": 6,
+    "art": "legbreaker.webp"
+  },
+  {
+    "id": "maftet_guardian",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Xn65difyR7Jp4K3q",
+    "name": "Maftet Guardian",
+    "level": 6,
+    "art": "maftet-guardian.webp"
+  },
+  {
+    "id": "manticore_quill_tail",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "ZeUxgpNi5AXr9pX6",
+    "name": "Manticore (Quill Tail)",
+    "level": 6,
+    "art": "manticore-quill-tail.webp"
+  },
+  {
+    "id": "manticore_scorpion_tail",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "k89Kw65a4Ip2ZSGA",
+    "name": "Manticore (Scorpion Tail)",
+    "level": 6,
+    "art": "manticore-scorpion-tail.webp"
   }
 ]

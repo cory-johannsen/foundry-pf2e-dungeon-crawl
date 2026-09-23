@@ -44,6 +44,7 @@ import {
 } from "./trap-combat.mjs";
 import { registerGenerator } from "./generator-registry.mjs";
 import { DefaultGenerator } from "./default-generator.mjs";
+import { ensureWorldMacros } from "./world-macros.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 
@@ -239,51 +240,6 @@ Hooks.once("ready", async () => {
     `${MODULE_ID} | ready — api attached to game.modules.get('${MODULE_ID}').api`,
   );
 });
-
-const MACRO_DEFS = [
-  {
-    name: "PF2EDC: Generate Encounter",
-    img: `modules/${MODULE_ID}/assets/icons/macro-encounter.webp`,
-    command: `game.modules.get('${MODULE_ID}').api.generateEncounter();`,
-  },
-  {
-    name: "PF2EDC: Dungeon Crawl",
-    img: `modules/${MODULE_ID}/assets/icons/macro-dungeon.webp`,
-    command: `game.modules.get('${MODULE_ID}').api.openDungeon();`,
-  },
-];
-
-async function ensureWorldMacros({ force = false } = {}) {
-  const toCreate = [];
-  const toUpdate = [];
-  for (const def of MACRO_DEFS) {
-    const existing = game.macros.find((m) => m.name === def.name);
-    if (existing) {
-      if (
-        force ||
-        existing.command !== def.command ||
-        existing.img !== def.img
-      ) {
-        toUpdate.push({ _id: existing.id, command: def.command, img: def.img });
-      }
-    } else {
-      toCreate.push({
-        name: def.name,
-        type: "script",
-        img: def.img,
-        command: def.command,
-        scope: "global",
-        flags: { [MODULE_ID]: { generated: true } },
-      });
-    }
-  }
-  if (toCreate.length) await Macro.createDocuments(toCreate);
-  if (toUpdate.length) await Macro.updateDocuments(toUpdate);
-  const msg = `PF2e Dungeon Crawl: ${toCreate.length} macro(s) created, ${toUpdate.length} updated.`;
-  ui.notifications?.info(msg);
-  console.log(`${MODULE_ID} | ${msg}`);
-  return { created: toCreate.length, updated: toUpdate.length };
-}
 
 Hooks.once("ready", registerDungeonActionSocket);
 
