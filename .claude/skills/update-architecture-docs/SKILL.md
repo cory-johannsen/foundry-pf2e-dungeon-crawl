@@ -1,6 +1,6 @@
 ---
 name: update-architecture-docs
-description: Use as part of the per-merge checklist alongside the module.json version bump (#69) — regenerates docs/architecture.md's dependency diagram from the current scripts/ import graph and checks whether the subsystem prose still describes reality. Run before merging any PR that adds, removes, or rewires a scripts/ or tools/agent-loop/ file's imports.
+description: Use as part of the per-merge checklist alongside the module.json version bump (#69) — regenerates docs/architecture.md's dependency diagram from the current scripts/ import graph and checks whether the subsystem prose still describes reality. Run before merging any PR that adds, removes, or rewires a scripts/ or tools/agent-service/ file's imports.
 ---
 
 # Update architecture docs

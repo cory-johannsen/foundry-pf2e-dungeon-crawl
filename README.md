@@ -84,7 +84,8 @@ npm run agent-service   # starts the hosted agent service (tools/agent-service/e
 ```
 
 Point a running Foundry world at it via the module's `agentServiceUrl` and
-`agentServiceApiKey` settings. See
+`agentServiceApiKey` settings (client-scoped — each GM sets them in their
+own browser). See [`tools/agent-service/README.md`](tools/agent-service/README.md)
+for deployment (Docker), Foundry configuration, and troubleshooting, and
 `docs/superpowers/specs/2026-09-22-hosted-agent-service-design.md` for the
-full design (a dedicated `tools/agent-service/README.md` with deployment
-instructions is coming — see that spec's task list).
+full design.

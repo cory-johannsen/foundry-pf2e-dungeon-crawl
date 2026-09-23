@@ -14,7 +14,7 @@ change as an update.  Every agent MUST bump the version.  NEVER reuse a version 
 - If several commits land in one push, a single catch-up bump covering
   all of them is fine — it doesn't need to be one bump per commit.
 - Run the `update-architecture-docs` skill in the same pass whenever a
-  merge adds, removes, or rewires a `scripts/`/`tools/agent-loop/` file's
+  merge adds, removes, or rewires a `scripts/`/`tools/agent-service/` file's
   imports — `docs/architecture.md` stays honest only if it's refreshed as
   part of the same merge that changed the shape it describes, not as a
   separate follow-up (#69).

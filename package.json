@@ -18,11 +18,9 @@
     "format": "prettier --write ."
   },
   "devDependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "prettier": "^3.3.3",
-    "vitest": "^2.1.4",
-    "zod": "^4.6.5"
+    "vitest": "^2.1.4"
   }
 }
