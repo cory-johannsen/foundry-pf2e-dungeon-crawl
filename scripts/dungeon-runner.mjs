@@ -101,6 +101,7 @@ export async function createRun(
     puzzleSetpieceIds = [],
     trapSetpieceIds = [],
     narrativeSetpieceIds = [],
+    treasureSetpieceIds = [],
   } = {},
 ) {
   const runSeed =
@@ -111,6 +112,7 @@ export async function createRun(
     puzzleSetpieceIds,
     trapSetpieceIds,
     narrativeSetpieceIds,
+    treasureSetpieceIds,
   });
   // Room 0 is where the party starts — built and occupied at Start, before
   // any resolution happens, so it's the only slot normally assigned up
@@ -181,6 +183,7 @@ export async function markRoomOutcome(
     puzzleSetpieceIds = [],
     trapSetpieceIds = [],
     narrativeSetpieceIds = [],
+    treasureSetpieceIds = [],
   } = {},
 ) {
   const state = getRunState(sceneId, { settingsRef });
@@ -274,6 +277,7 @@ export async function markRoomOutcome(
           puzzleSetpieceIds,
           trapSetpieceIds,
           narrativeSetpieceIds,
+          treasureSetpieceIds,
         })
       : state.rooms;
 
@@ -1157,6 +1161,137 @@ export async function applyNarrativeCustomization(
   };
   const rooms = state.rooms.map((r) =>
     r.id === roomId ? { ...r, narrative } : r,
+  );
+  const newState = { ...state, rooms };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/**
+ * Attaches `setpiece`'s own name/summary to `roomId` as persisted
+ * `room.treasure` state (#89) — a no-op if that room already has one.
+ * Mirrors `ensureNarrativeState` exactly, but for treasure's own,
+ * deliberately smaller field shape: a treasure setpiece has no mechanical
+ * fields at all (no archetype, no revealText/npcName/npcHook/options/
+ * suggestedObjective) — the gp amount and item-table draw
+ * (grantTreasureReward/claimTreasureFor in ui/dungeon-app.mjs) are computed
+ * entirely separately and never read this state at all, by design (this
+ * exists purely for flavor text, never for anything a treasure room's real
+ * reward depends on). Flags the room `customization: {status: 'pending'}`,
+ * read back by `getPendingTreasureCustomization`/`applyTreasureCustomization`
+ * below.
+ */
+export async function ensureTreasureState(
+  sceneId,
+  roomId,
+  { setpiece },
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms.find((r) => r.id === roomId);
+  if (!room || room.treasure) return state;
+  const treasure = {
+    name: setpiece.name,
+    summary: setpiece.summary,
+    customization: { status: "pending" },
+  };
+  const rooms = state.rooms.map((r) =>
+    r.id === roomId ? { ...r, treasure } : r,
+  );
+  const newState = { ...state, rooms };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/**
+ * Teardown counterpart to `ensureTreasureState` above (#62 mutation
+ * reconciliation) — clears `roomId`'s own `treasure` state back to `null`
+ * so a later `ensureTreasureState` call (once a Reward/Ruin mutation
+ * changes which logical room occupies this physical slot) attaches the new
+ * room's own setpiece content instead of finding the old room's `treasure`
+ * still set and treating it as "already attached." A no-op (no persist) if
+ * that room has no `treasure` at all, the same no-op shape
+ * `ensureTreasureState` itself uses.
+ */
+export async function clearTreasureState(
+  sceneId,
+  roomId,
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms.find((r) => r.id === roomId);
+  if (!room || !room.treasure) return state;
+  const rooms = state.rooms.map((r) =>
+    r.id === roomId ? { ...r, treasure: null } : r,
+  );
+  const newState = { ...state, rooms };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/**
+ * The treasure room whose `treasure.customization.status === 'pending'`
+ * (#89), still unresolved — mirrors `getPendingNarrativeCustomization`
+ * exactly, adapted for treasure's own smaller state (just name/summary, no
+ * archetype-specific extras). A treasure room's resolution goes straight
+ * through the shared `markRoomOutcome` path without ever touching
+ * `room.treasure` itself — so "already resolved" is read off
+ * `state.history` instead, the same check `getPendingNarrativeCustomization`
+ * already uses. The *only* read surface `tools/agent-loop`'s poller uses
+ * for this.
+ */
+export function getPendingTreasureCustomization(
+  sceneId,
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms.find(
+    (r) =>
+      r.treasure?.customization?.status === "pending" &&
+      !state.history.some((h) => h.roomId === r.id),
+  );
+  if (!room) return null;
+  const t = room.treasure;
+  return {
+    sceneId,
+    roomId: room.id,
+    name: t.name ?? null,
+    summary: t.summary ?? null,
+    locationTag: room.locationTag,
+  };
+}
+
+/**
+ * Applies an external agent's customized name/summary to `roomId`'s own
+ * pending treasure state (#89) — a no-op if that room has no treasure state
+ * at all. Only ever touches these two display fields — there is no
+ * "mechanical" field to protect here at all, by construction: a treasure
+ * room's real reward (gp amount, item-table draw) is computed entirely
+ * separately in ui/dungeon-app.mjs's grantTreasureReward/claimTreasureFor
+ * and never reads `room.treasure`, so this can never rewrite gameplay
+ * values even by accident. See module.mjs's api.applyTreasureCustomization.
+ */
+export async function applyTreasureCustomization(
+  sceneId,
+  roomId,
+  { name = null, summary = null } = {},
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms.find((r) => r.id === roomId);
+  if (!room?.treasure) return state;
+  const treasure = {
+    ...room.treasure,
+    name: name ?? room.treasure.name,
+    summary: summary ?? room.treasure.summary,
+    customization: { status: "customized" },
+  };
+  const rooms = state.rooms.map((r) =>
+    r.id === roomId ? { ...r, treasure } : r,
   );
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);

@@ -1,5 +1,8 @@
 import { fetchFlavorCustomization } from "./agent-service-client.mjs";
-import { getPendingTrapCustomization, applyTrapCustomization } from "./trap-combat.mjs";
+import {
+  getPendingTrapCustomization,
+  applyTrapCustomization,
+} from "./trap-combat.mjs";
 import {
   getPendingSkillChallengeCustomization,
   applySkillChallengeCustomization,
@@ -7,6 +10,8 @@ import {
   applyPuzzleCustomization,
   getPendingNarrativeCustomization,
   applyNarrativeCustomization,
+  getPendingTreasureCustomization,
+  applyTreasureCustomization,
 } from "./dungeon-runner.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -34,12 +39,15 @@ async function fulfillKind(kind, getPending, apply) {
     if (!pending) return;
     await fulfillOne(kind, pending, (result) => apply(pending, result));
   } catch (err) {
-    console.error(`agent-service: ${kind} customization failed, leaving template content:`, err.message);
+    console.error(
+      `agent-service: ${kind} customization failed, leaving template content:`,
+      err.message,
+    );
   }
 }
 
 /**
- * Checks all four pending-customization kinds for `sceneId` and fulfills
+ * Checks all five pending-customization kinds for `sceneId` and fulfills
  * whichever are pending via the hosted agent service — replaces the old
  * interactive-MCP-session flow (an agent connecting to
  * tools/agent-loop/mcp-server.mjs on its own schedule). Called
@@ -48,7 +56,7 @@ async function fulfillKind(kind, getPending, apply) {
  * leaves the original template content in place, same as "nothing
  * fulfilled it in time" does today. Each kind is checked and fulfilled
  * inside its own try/catch (see fulfillKind), so a failure in one kind's
- * lookup, fetch, or apply step never prevents the other three kinds from
+ * lookup, fetch, or apply step never prevents the other four kinds from
  * being checked and fulfilled in the same call, and this function itself
  * never throws.
  */
@@ -63,18 +71,31 @@ export async function fulfillPendingCustomizations(sceneId) {
     "skill_challenge",
     () => getPendingSkillChallengeCustomization(sceneId),
     (skillChallenge, result) =>
-      applySkillChallengeCustomization(skillChallenge.sceneId, skillChallenge.roomId, result),
+      applySkillChallengeCustomization(
+        skillChallenge.sceneId,
+        skillChallenge.roomId,
+        result,
+      ),
   );
 
   await fulfillKind(
     "puzzle",
     () => getPendingPuzzleCustomization(sceneId),
-    (puzzle, result) => applyPuzzleCustomization(puzzle.sceneId, puzzle.roomId, result),
+    (puzzle, result) =>
+      applyPuzzleCustomization(puzzle.sceneId, puzzle.roomId, result),
   );
 
   await fulfillKind(
     "narrative",
     () => getPendingNarrativeCustomization(sceneId),
-    (narrative, result) => applyNarrativeCustomization(narrative.sceneId, narrative.roomId, result),
+    (narrative, result) =>
+      applyNarrativeCustomization(narrative.sceneId, narrative.roomId, result),
+  );
+
+  await fulfillKind(
+    "treasure",
+    () => getPendingTreasureCustomization(sceneId),
+    (treasure, result) =>
+      applyTreasureCustomization(treasure.sceneId, treasure.roomId, result),
   );
 }

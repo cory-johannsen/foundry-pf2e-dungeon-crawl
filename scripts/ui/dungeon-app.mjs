@@ -15,6 +15,7 @@ import {
   clearSkillChallengeState,
   clearNarrativeState,
   clearTrapState,
+  clearTreasureState,
 } from "../dungeon-runner.mjs";
 import { canActOnDungeon } from "../dungeon-permissions.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
@@ -180,6 +181,9 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
         narrativeSetpieceIds: setpieces
           .filter((s) => s.kind === "narrative")
           .map((s) => s.id),
+        treasureSetpieceIds: setpieces
+          .filter((s) => s.kind === "treasure")
+          .map((s) => s.id),
       },
     );
   if (currentRoom && effectKey) {
@@ -274,14 +278,16 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
       // old slot would leave it mis-calibrated for the new one; a trap's
       // persisted name/description (ensureTrapState) would otherwise keep
       // pointing at the just-deleted hazard actor once a fresh one spawns
-      // below. All four are no-ops when the room has nothing of that type
-      // to clear (Task 4), so calling every one unconditionally is safe
-      // and reads more clearly here than re-deriving which single type
-      // this room's kind implies.
+      // below. All five are no-ops when the room has nothing of that type
+      // to clear (Task 4; #89 added clearTreasureState to this same set),
+      // so calling every one unconditionally is safe and reads more
+      // clearly here than re-deriving which single type this room's kind
+      // implies.
       await clearPuzzleState(scene.id, room.id);
       await clearSkillChallengeState(scene.id, room.id);
       await clearNarrativeState(scene.id, room.id);
       await clearTrapState(scene.id, room.id);
+      await clearTreasureState(scene.id, room.id);
       // unlock: false — this only re-establishes correct CONTENT at each
       // shifted slot; door-unlock order is still governed by the normal
       // resolution-order gate (the unchanged buildPopulateAndUnlockRoom
@@ -523,6 +529,9 @@ export async function startDungeonRun({
         .map((s) => s.id),
       narrativeSetpieceIds: setpieces
         .filter((s) => s.kind === "narrative")
+        .map((s) => s.id),
+      treasureSetpieceIds: setpieces
+        .filter((s) => s.kind === "treasure")
         .map((s) => s.id),
     },
   );
@@ -1028,6 +1037,23 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // Spread outcome via resolveCurrentRoom/markRoomOutcome).
     const isTreasureRoom =
       currentRoom?.kind === "treasure" && !currentRoomResolved;
+    // #89: read from the room's own *persisted* treasure state (attached at
+    // room-build time by dungeon-scene.mjs's ensureTreasureState), the same
+    // "persisted state wins over the raw template" rule puzzle/narrative
+    // already follow above — gives an external agent's customization
+    // somewhere durable to land instead of being silently overwritten by
+    // the shared template on the next render (#139's own invisible-
+    // customization bug). Deliberately just name/summary: a treasure
+    // setpiece has no archetype-specific extras the way narrative does, and
+    // no GM-only mechanical field the way puzzle's summary/playerDescription
+    // split protects — the gp amount and item-table draw are computed
+    // entirely separately (grantTreasureReward/claimTreasureFor below) and
+    // never read this state at all.
+    let treasure = null;
+    if (isTreasureRoom && currentRoom.treasure) {
+      const raw = currentRoom.treasure;
+      treasure = { name: raw.name, summary: raw.summary };
+    }
 
     return {
       hasScene: true,
@@ -1092,24 +1118,39 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
         kindLabel: game.i18n.localize(
           ROOM_KIND_KEYS[currentRoom.kind] ?? currentRoom.kind,
         ),
-        // #139/#167/#56: prefers the puzzle's, narrative's, or trap room's
-        // own *persisted* name/summary/playerDescription (which an agent's
-        // applyPuzzleCustomization/applyNarrativeCustomization/
-        // applyTrapCustomization may have overwritten) over the raw setpiece
-        // template's — this is the one generic display block every room
-        // kind's name/summary renders through, so any kind's customization
-        // needs to flow through here to be visible at all, not just in its
-        // own kind-specific block below. playerDescription (#49) follows the
-        // same rule: a customized puzzle's player-facing flavor text must
-        // win over the raw setpiece's, the same way its GM-facing summary
-        // already does — otherwise players keep seeing stale, uncustomized
-        // flavor. A trap room (#56) has no separate GM-only summary concept
-        // (a hazard's description carries no mechanical secret the way a
-        // puzzle's summary does — verified live), so trap only ever feeds
-        // playerDescription, never summary.
+        // #139/#167/#56/#89: prefers the puzzle's, narrative's, trap's, or
+        // treasure room's own *persisted* name/summary/playerDescription
+        // (which an agent's applyPuzzleCustomization/
+        // applyNarrativeCustomization/applyTrapCustomization/
+        // applyTreasureCustomization may have overwritten) over the raw
+        // setpiece template's — this is the one generic display block every
+        // room kind's name/summary renders through, so any kind's
+        // customization needs to flow through here to be visible at all,
+        // not just in its own kind-specific block below. playerDescription
+        // (#49) follows the same rule: a customized puzzle's player-facing
+        // flavor text must win over the raw setpiece's, the same way its
+        // GM-facing summary already does — otherwise players keep seeing
+        // stale, uncustomized flavor. A trap room (#56) has no separate
+        // GM-only summary concept (a hazard's description carries no
+        // mechanical secret the way a puzzle's summary does — verified
+        // live), so trap only ever feeds playerDescription, never summary.
+        // A treasure room (#89) has the same shape as trap here — its
+        // flavor text has nothing GM-only to withhold either (unlike a
+        // puzzle's solution-adjacent summary, there's no mechanical secret
+        // to protect), so treasure only ever feeds summary, the same single
+        // field narrative already uses, and never playerDescription.
         setpiece: setpiece && {
-          name: puzzle?.name ?? narrative?.name ?? trap?.name ?? setpiece.name,
-          summary: puzzle?.summary ?? narrative?.summary ?? setpiece.summary,
+          name:
+            puzzle?.name ??
+            narrative?.name ??
+            trap?.name ??
+            treasure?.name ??
+            setpiece.name,
+          summary:
+            puzzle?.summary ??
+            narrative?.summary ??
+            treasure?.summary ??
+            setpiece.summary,
           playerDescription:
             puzzle?.playerDescription ??
             trap?.description ??

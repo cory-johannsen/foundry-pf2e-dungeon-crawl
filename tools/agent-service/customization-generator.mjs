@@ -42,13 +42,24 @@ const SCHEMAS = {
         type: "array",
         items: {
           type: "object",
-          properties: { label: { type: "string" }, consequence: { type: "string" } },
+          properties: {
+            label: { type: "string" },
+            consequence: { type: "string" },
+          },
           required: ["label", "consequence"],
         },
         minItems: 2,
         maxItems: 2,
       },
       suggestedObjective: { type: "string" },
+    },
+    required: ["name", "summary"],
+  },
+  treasure: {
+    type: "object",
+    properties: {
+      name: { type: "string" },
+      summary: { type: "string" },
     },
     required: ["name", "summary"],
   },
@@ -76,7 +87,7 @@ function toolDescription(kind) {
 /** Never changes gameplay values — only name/description/summary/flavor
  * text, mirroring the field-scoping rules tools/agent-loop/mcp-server.mjs's
  * submit_*_customization tools already enforced. `kind` selects which of
- * the four schemas is offered; the model can only fill fields real for
+ * the five schemas is offered; the model can only fill fields real for
  * that kind.
  *
  * This module always calls the Claude Messages API directly — it never
@@ -90,7 +101,8 @@ export async function generateCustomization(
   { apiKey = readEnvOrDotenv("ANTHROPIC_API_KEY"), fetchImpl = fetch } = {},
 ) {
   const schema = SCHEMAS[kind];
-  if (!schema) throw new Error(`customization-generator: unknown kind "${kind}"`);
+  if (!schema)
+    throw new Error(`customization-generator: unknown kind "${kind}"`);
 
   const res = await fetchImpl("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -124,11 +136,18 @@ export async function generateCustomization(
 
   if (!res.ok) {
     const errBody = await res.text();
-    throw new Error(`customization-generator: API request failed (${res.status}): ${errBody}`);
+    throw new Error(
+      `customization-generator: API request failed (${res.status}): ${errBody}`,
+    );
   }
 
   const payload = await res.json();
-  const toolUse = payload.content?.find((c) => c.type === "tool_use" && c.name === "customize");
-  if (!toolUse) throw new Error("customization-generator: no customize tool call in response");
+  const toolUse = payload.content?.find(
+    (c) => c.type === "tool_use" && c.name === "customize",
+  );
+  if (!toolUse)
+    throw new Error(
+      "customization-generator: no customize tool call in response",
+    );
   return toolUse.input;
 }
