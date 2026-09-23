@@ -411,6 +411,16 @@ describe("footprint-aware movement (#140)", () => {
     });
     const combat = makeCombat({ combatants: [mover, target] });
     combat.scene.walls.contents = wallSegments;
+    // makeCombat()'s scene has no width/height, so sceneBounds() (called
+    // inside stepToward) returns null -- an unbounded search -- by
+    // default. Bounded here to exactly the wall list's own span (gx 0..6)
+    // so findPath can't flank around the open west/east edges where the
+    // wall list simply has no data (found during Task 2's own
+    // implementation: an unbounded 2x2 mover walked around through
+    // gx=-1/-2, where nothing blocks it, re-entering the corridor past
+    // the gap from outside the tested columns entirely).
+    combat.scene.width = 7 * GRID_SIZE;
+    combat.scene.height = 6 * GRID_SIZE;
 
     await stepToward(combat, mover, target, 10);
 
@@ -453,6 +463,9 @@ describe("footprint-aware movement (#140)", () => {
     });
     const combat = makeCombat({ combatants: [mover, target] });
     combat.scene.walls.contents = wallSegments;
+    // Same bounding as the paired "refuses" test above, same reason.
+    combat.scene.width = 7 * GRID_SIZE;
+    combat.scene.height = 6 * GRID_SIZE;
 
     await stepToward(combat, mover, target, 10);
 
