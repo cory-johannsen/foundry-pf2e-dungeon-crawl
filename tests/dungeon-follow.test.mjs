@@ -506,4 +506,47 @@ describe("runFollowMoveNow (#65)", () => {
     const [{ x, y }] = follower.update.mock.calls[0];
     expect({ gx: x / GRID, gy: y / GRID }).not.toEqual({ gx: 6, gy: 1 });
   });
+
+  // #86: a follower's own token can end up off-grid for reasons entirely
+  // outside this module's own movement math (e.g. a manual, unsnapped drag
+  // in Foundry's own UI). findFollowMove's "already-near" status -- the
+  // follower is already within one square of the leader -- used to leave
+  // that stale position completely untouched, since it never reaches the
+  // `token.update()` call at all.
+  it("snaps an already-near follower to its nearest grid cell even though it doesn't need to move (#86)", async () => {
+    vi.useFakeTimers();
+    const leader = makeToken({
+      id: "t-leader",
+      x: 5 * GRID,
+      y: GRID,
+      actorId: LEADER_ACTOR_ID,
+    });
+    // Straddling four grid squares: a half-cell offset in both axes, one
+    // square away (Chebyshev) from the leader -- findFollowMove's own
+    // "already-near" branch.
+    const follower = makeToken({
+      id: "t-follower",
+      x: 5.5 * GRID,
+      y: 1.5 * GRID,
+      actorId: FOLLOWER_ACTOR_ID,
+    });
+    const scene = makeScene({ tokens: [leader, follower] });
+
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: [FOLLOWER_ACTOR_ID],
+        },
+      },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    runFollowMoveNow(SCENE_ID);
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(follower.update).toHaveBeenCalledTimes(1);
+    expect(follower.x % GRID).toBe(0);
+    expect(follower.y % GRID).toBe(0);
+  });
 });
