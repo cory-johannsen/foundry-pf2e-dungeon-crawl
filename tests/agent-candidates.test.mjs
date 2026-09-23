@@ -95,6 +95,29 @@ describe('buildStrikeCandidates', () => {
       { id: 'strike:tentacle:opp2', type: 'strike', actionSlug: 'tentacle', targetId: 'opp2', variantIndex: 0, cost: 1, summary: 'Tentacle vs Cleric (variant 0)' }
     ]);
   });
+
+  // #91: an opponent within reach but with no line of sight (a wall between
+  // attacker and target) must not be offered as a strike target.
+  it('excludes an in-reach opponent with hasLineOfSight: false', () => {
+    const blocked = { id: 'opp3', name: 'Archer', distanceSquares: 1, hasLineOfSight: false };
+    const candidates = buildStrikeCandidates({ readyActions: [claw], opponents: [blocked], mapIncrement: 0 });
+    expect(candidates).toEqual([]);
+  });
+
+  it('still offers a strike against an in-reach opponent with hasLineOfSight: true', () => {
+    const visible = { id: 'opp4', name: 'Archer', distanceSquares: 1, hasLineOfSight: true };
+    const candidates = buildStrikeCandidates({ readyActions: [claw], opponents: [visible], mapIncrement: 0 });
+    expect(candidates).toEqual([
+      { id: 'strike:claw:opp4', type: 'strike', actionSlug: 'claw', targetId: 'opp4', variantIndex: 0, cost: 1, summary: 'Claw vs Archer (variant 0)' }
+    ]);
+  });
+
+  it('still offers a strike against an in-reach opponent when hasLineOfSight is omitted (backward compatible)', () => {
+    const candidates = buildStrikeCandidates({ readyActions: [claw], opponents: [opponentAdjacent], mapIncrement: 0 });
+    expect(candidates).toEqual([
+      { id: 'strike:claw:opp1', type: 'strike', actionSlug: 'claw', targetId: 'opp1', variantIndex: 0, cost: 1, summary: 'Claw vs Fighter (variant 0)' }
+    ]);
+  });
 });
 
 describe('buildSpellCandidates', () => {
@@ -116,6 +139,12 @@ describe('buildSpellCandidates', () => {
 
   it('omits an opponent outside the spell\'s range', () => {
     const candidates = buildSpellCandidates({ readySpells: [spiritBlast], opponents: [opponentOutOfRange], actionsRemaining: 3 });
+    expect(candidates).toEqual([]);
+  });
+
+  it('omits an in-range opponent with no line of sight (#91)', () => {
+    const blocked = { id: 'opp3', name: 'Archer', distanceSquares: 5, hasLineOfSight: false };
+    const candidates = buildSpellCandidates({ readySpells: [spiritBlast], opponents: [blocked], actionsRemaining: 3 });
     expect(candidates).toEqual([]);
   });
 });
@@ -498,6 +527,12 @@ describe('buildAttackSpellCandidates', () => {
     const candidates = buildAttackSpellCandidates({ readyAttackSpells: [rayOfFrost], opponents: [opponentOutOfRange], actionsRemaining: 3 });
     expect(candidates).toEqual([]);
   });
+
+  it('omits an in-range opponent with no line of sight (#91)', () => {
+    const blocked = { id: 'opp3', name: 'Archer', distanceSquares: 5, hasLineOfSight: false };
+    const candidates = buildAttackSpellCandidates({ readyAttackSpells: [rayOfFrost], opponents: [blocked], actionsRemaining: 3 });
+    expect(candidates).toEqual([]);
+  });
 });
 
 describe('parseConditionsByOutcome', () => {
@@ -699,6 +734,14 @@ describe('buildMultiStrikeCandidates', () => {
     });
     expect(candidates).toEqual([]);
   });
+
+  it('omits an in-reach opponent with no line of sight (#91)', () => {
+    const blocked = { id: 'opp3', name: 'Archer', distanceSquares: 1, hasLineOfSight: false };
+    const candidates = buildMultiStrikeCandidates({
+      readyMultiStrikeBundles: [draconicFrenzy], opponents: [blocked], actionsRemaining: 3
+    });
+    expect(candidates).toEqual([]);
+  });
 });
 
 describe('buildDebuffSpellCandidates', () => {
@@ -728,6 +771,12 @@ describe('buildDebuffSpellCandidates', () => {
 
   it('omits an opponent outside the spell\'s range', () => {
     const candidates = buildDebuffSpellCandidates({ readyDebuffSpells: [fear], opponents: [opponentOutOfRange], actionsRemaining: 3 });
+    expect(candidates).toEqual([]);
+  });
+
+  it('omits an in-range opponent with no line of sight (#91)', () => {
+    const blocked = { id: 'opp3', name: 'Archer', distanceSquares: 5, hasLineOfSight: false };
+    const candidates = buildDebuffSpellCandidates({ readyDebuffSpells: [fear], opponents: [blocked], actionsRemaining: 3 });
     expect(candidates).toEqual([]);
   });
 });
@@ -784,6 +833,20 @@ describe('buildChainSpellCandidates', () => {
   it('omits a spell when no opponent is within range as a primary target', () => {
     const candidates = buildChainSpellCandidates({
       readyChainSpells: [chainLightning], opponents: [opponentOutOfRange3], actionsRemaining: 3
+    });
+    expect(candidates).toEqual([]);
+  });
+
+  it('never picks an in-range opponent with no line of sight as the primary target (#91)', () => {
+    const blockedPrimary = { id: 'opp4', name: 'Wizard', distanceSquares: 2, hasLineOfSight: false };
+    const spell = {
+      ...chainLightning,
+      chainGraph: { ...chainLightning.chainGraph, opp4: [] },
+    };
+    const candidates = buildChainSpellCandidates({
+      readyChainSpells: [spell],
+      opponents: [blockedPrimary],
+      actionsRemaining: 3
     });
     expect(candidates).toEqual([]);
   });
