@@ -7814,5 +7814,125 @@
     "name": "Slithering Pit",
     "level": 7,
     "art": "slithering-pit.webp"
+  },
+  {
+    "id": "anancus",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "aATQbGnSA0KOWG53",
+    "name": "Anancus",
+    "level": 8,
+    "art": "anancus.webp"
+  },
+  {
+    "id": "angazhani",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "JD5sD7vwwlU2DwJI",
+    "name": "Angazhani",
+    "level": 8,
+    "art": "angazhani.webp"
+  },
+  {
+    "id": "arboreal_regent",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "z2l8K7woKYPkm0qz",
+    "name": "Arboreal Regent",
+    "level": 8,
+    "art": "arboreal-regent.webp"
+  },
+  {
+    "id": "assassin",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "jOASgCgSyk3enLfP",
+    "name": "Assassin",
+    "level": 8,
+    "art": "assassin.webp"
+  },
+  {
+    "id": "axiomite",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "7v1gykqjBO1YHDfu",
+    "name": "Axiomite",
+    "level": 8,
+    "art": "axiomite.webp"
+  },
+  {
+    "id": "balisse",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Q1wybC7rSc4MIF9g",
+    "name": "Balisse",
+    "level": 8,
+    "art": "balisse.webp"
+  },
+  {
+    "id": "behir",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "6wpHJXze0RLxl780",
+    "name": "Behir",
+    "level": 8,
+    "art": "behir.webp"
+  },
+  {
+    "id": "blood_hag",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Jbc4BC6wv9GLtoY7",
+    "name": "Blood Hag",
+    "level": 8,
+    "art": "blood-hag.webp"
+  },
+  {
+    "id": "bulette",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "CzxQpB3p0d9hwPeR",
+    "name": "Bulette",
+    "level": 8,
+    "art": "bulette.webp"
+  },
+  {
+    "id": "conspirator_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "DQbHmsmYuodcQ2KC",
+    "name": "Conspirator Dragon (Young)",
+    "level": 8,
+    "art": "conspirator-dragon-young.webp"
+  },
+  {
+    "id": "conspirator_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "YHoXWNZhIaZWdq0Y",
+    "name": "Conspirator Dragon (Young, Spellcaster)",
+    "level": 8,
+    "art": "conspirator-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "copper_dragon_young",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "3W2PMV6IbVdouOB1",
+    "name": "Copper Dragon (Young)",
+    "level": 8,
+    "art": "copper-dragon-young.webp"
+  },
+  {
+    "id": "copper_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "pzG7Od1aHj0DkTzS",
+    "name": "Copper Dragon (Young, Spellcaster)",
+    "level": 8,
+    "art": "copper-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "coral_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "wjcBIL5AuLGaYYXV",
+    "name": "Coral Dragon (Young)",
+    "level": 8,
+    "art": "coral-dragon-young.webp"
+  },
+  {
+    "id": "coral_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "9KX6dFXIS22jaSfi",
+    "name": "Coral Dragon (Young, Spellcaster)",
+    "level": 8,
+    "art": "coral-dragon-young-spellcaster.webp"
   }
 ]
