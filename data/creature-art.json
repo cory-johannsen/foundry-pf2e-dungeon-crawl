@@ -7566,5 +7566,125 @@
     "name": "Whisper Dragon (Young)",
     "level": 7,
     "art": "whisper-dragon-young.webp"
+  },
+  {
+    "id": "whisper_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "fLnF7AuWNJx78Oe9",
+    "name": "Whisper Dragon (Young, Spellcaster)",
+    "level": 7,
+    "art": "whisper-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "winter_hag",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "MrDjKHDkUS9UMjEL",
+    "name": "Winter Hag",
+    "level": 7,
+    "art": "winter-hag.webp"
+  },
+  {
+    "id": "xorn",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "4npwV3fuBm3sBCPG",
+    "name": "Xorn",
+    "level": 7,
+    "art": "xorn.webp"
+  },
+  {
+    "id": "zetogeki",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "oR8cm0Aj5FIDF67w",
+    "name": "Zetogeki",
+    "level": 7,
+    "art": "zetogeki.webp"
+  },
+  {
+    "id": "alghollthu_master",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "tuIqEvsct8EO33xs",
+    "name": "Alghollthu Master",
+    "level": 7,
+    "art": "alghollthu-master.webp"
+  },
+  {
+    "id": "aqudel",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "RcUtyItT8AAKVpXM",
+    "name": "Aqudel",
+    "level": 7,
+    "art": "aqudel.webp"
+  },
+  {
+    "id": "caulborn",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "sgZGrUQrfH3QPdXF",
+    "name": "Caulborn",
+    "level": 7,
+    "art": "caulborn.webp"
+  },
+  {
+    "id": "culdewen",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "coNTMrHerjBIf2ig",
+    "name": "Culdewen",
+    "level": 7,
+    "art": "culdewen.webp"
+  },
+  {
+    "id": "dark_naga",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "0MOWKI97bgGDf5Xi",
+    "name": "Dark Naga",
+    "level": 7,
+    "art": "dark-naga.webp"
+  },
+  {
+    "id": "drainberry_bush",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "MAxlGSzjsTYi1w6c",
+    "name": "Drainberry Bush",
+    "level": 7,
+    "art": "drainberry-bush.webp"
+  },
+  {
+    "id": "dullahan",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "GNwLVbfFx8EPz7xO",
+    "name": "Dullahan",
+    "level": 7,
+    "art": "dullahan.webp"
+  },
+  {
+    "id": "dweomercat",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Of7WVNrWgvkwctfE",
+    "name": "Dweomercat",
+    "level": 7,
+    "art": "dweomercat.webp"
+  },
+  {
+    "id": "greater_barghest",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "DlRe4c2XlBSpwmms",
+    "name": "Greater Barghest",
+    "level": 7,
+    "art": "greater-barghest.webp"
+  },
+  {
+    "id": "manticore_paaridar",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "QyuUubTtR38kafue",
+    "name": "Manticore Paaridar",
+    "level": 7,
+    "art": "manticore-paaridar.webp"
+  },
+  {
+    "id": "naiad_queen",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "H8lGFF3PKUv2yRL2",
+    "name": "Naiad Queen",
+    "level": 7,
+    "art": "naiad-queen.webp"
   }
 ]
