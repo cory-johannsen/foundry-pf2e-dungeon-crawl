@@ -7686,5 +7686,133 @@
     "name": "Naiad Queen",
     "level": 7,
     "art": "naiad-queen.webp"
+  },
+  {
+    "id": "remorhaz",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "Zbvh6ChdD0TWv257",
+    "name": "Remorhaz",
+    "level": 7,
+    "art": "remorhaz.webp"
+  },
+  {
+    "id": "shaitan",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "xqnl2eFzy5H2NZoQ",
+    "name": "Shaitan",
+    "level": 7,
+    "art": "shaitan.webp"
+  },
+  {
+    "id": "shoggti",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "wByXwxI5r7YRlkAK",
+    "name": "Shoggti",
+    "level": 7,
+    "art": "shoggti.webp"
+  },
+  {
+    "id": "smaranava",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "CYyxzpymkIZxX4Zo",
+    "name": "Smaranava",
+    "level": 7,
+    "art": "smaranava.webp"
+  },
+  {
+    "id": "soul_eater",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "SY8pvLPqc2EgP9Xj",
+    "name": "Soul Eater",
+    "level": 7,
+    "art": "soul-eater.webp"
+  },
+  {
+    "id": "stygira",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "7kiT6lveGXWzNo23",
+    "name": "Stygira",
+    "level": 7,
+    "art": "stygira.webp"
+  },
+  {
+    "id": "succubus",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "md1fhwGMwDv4NNwO",
+    "name": "Succubus",
+    "level": 7,
+    "art": "succubus.webp"
+  },
+  {
+    "id": "crossroads_guardian",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "qvVmYuERMib26Atc",
+    "name": "Crossroads Guardian",
+    "level": 7,
+    "art": "crossroads-guardian.webp"
+  },
+  {
+    "id": "fortune_eater",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "kU0ZXzbHqHUIND6m",
+    "name": "Fortune Eater",
+    "level": 7,
+    "art": "fortune-eater.webp"
+  },
+  {
+    "id": "gunwitch",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "ow76NqtsZUhZMf9f",
+    "name": "Gunwitch",
+    "level": 7,
+    "art": "gunwitch.webp"
+  },
+  {
+    "id": "hound_of_tindalos_b2",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "JgePINrFINmlsvn3",
+    "name": "Hound Of Tindalos",
+    "level": 7,
+    "art": "hound-of-tindalos-b2.webp"
+  },
+  {
+    "id": "hound_of_tindalos_mc2",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "QIRi0t71ejowE10b",
+    "name": "Hound of Tindalos",
+    "level": 7,
+    "art": "hound-of-tindalos-mc2.webp"
+  },
+  {
+    "id": "kirin",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "8lQf8PNcJvxwmqLd",
+    "name": "Kirin",
+    "level": 7,
+    "art": "kirin.webp"
+  },
+  {
+    "id": "mothman",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "L5cNazEKC5gASp41",
+    "name": "Mothman",
+    "level": 7,
+    "art": "mothman.webp"
+  },
+  {
+    "id": "sceaduinar",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "NE7DrsBhrbZfRz1Z",
+    "name": "Sceaduinar",
+    "level": 7,
+    "art": "sceaduinar.webp"
+  },
+  {
+    "id": "slithering_pit",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "AEIZnjIGnqkYIeQo",
+    "name": "Slithering Pit",
+    "level": 7,
+    "art": "slithering-pit.webp"
   }
 ]
