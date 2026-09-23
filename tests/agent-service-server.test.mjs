@@ -85,3 +85,59 @@ describe('agent-service server', () => {
     expect(JSON.parse(responseBody)).toEqual({ error: 'invalid JSON body' });
   });
 });
+
+describe('POST /v1/combat-decision', () => {
+  let server;
+  let baseUrl;
+  const originalProvider = process.env.PF2EDC_AGENT_PROVIDER;
+  const originalKey = process.env.ANTHROPIC_API_KEY;
+
+  beforeEach(async () => {
+    process.env.PF2EDC_AGENT_PROVIDER = 'claude';
+    process.env.ANTHROPIC_API_KEY = 'test-anthropic-key';
+    server = createServer({ apiKey: 'test-key' });
+    await new Promise((resolve) => server.listen(0, resolve));
+    baseUrl = `http://127.0.0.1:${server.address().port}`;
+  });
+
+  afterEach(async () => {
+    await new Promise((resolve) => server.close(resolve));
+    if (originalProvider === undefined) delete process.env.PF2EDC_AGENT_PROVIDER;
+    else process.env.PF2EDC_AGENT_PROVIDER = originalProvider;
+    if (originalKey === undefined) delete process.env.ANTHROPIC_API_KEY;
+    else process.env.ANTHROPIC_API_KEY = originalKey;
+  });
+
+  it('returns 400 when candidates is missing', async () => {
+    const res = await fetch(`${baseUrl}/v1/combat-decision`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer test-key', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ self: {}, opponents: [], roundNumber: 1 })
+    });
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 502 with a clear error when the upstream provider fails', async () => {
+    // No real Anthropic call happens in this test: PF2EDC_AGENT_PROVIDER
+    // resolves to the real claude.mjs decide(), which reads
+    // ANTHROPIC_API_KEY from the environment set in beforeEach and calls
+    // the real https://api.anthropic.com endpoint via the real global
+    // fetch — that call fails in this sandboxed test environment (no
+    // network access / invalid key), which is exactly the failure path
+    // this test wants to exercise: a real upstream failure surfacing as a
+    // clean 502, not an unhandled rejection or a hung request.
+    const res = await fetch(`${baseUrl}/v1/combat-decision`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer test-key', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        self: { name: 'Yamaraj', hp: 40, conditions: [] },
+        opponents: [],
+        candidates: [{ id: 'endTurn', summary: 'End turn' }],
+        roundNumber: 1
+      })
+    });
+    expect(res.status).toBe(502);
+    const body = await res.json();
+    expect(body.error).toBeTruthy();
+  });
+});

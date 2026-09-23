@@ -1,7 +1,35 @@
 import { createServer as createHttpServer } from "node:http";
 import { timingSafeEqual } from "node:crypto";
+import { resolveProvider } from "./providers/index.mjs";
 
 const PROTECTED_ROUTES = new Set(["/v1/combat-decision", "/v1/flavor-customization"]);
+
+function isValidCombatDecisionBody(body) {
+  return (
+    body &&
+    typeof body === "object" &&
+    Array.isArray(body.candidates) &&
+    body.candidates.length > 0
+  );
+}
+
+async function handleCombatDecision(body, res) {
+  if (!isValidCombatDecisionBody(body)) {
+    return sendJson(res, 400, { error: "combat-decision: candidates is required and must be non-empty" });
+  }
+  let decide;
+  try {
+    decide = resolveProvider();
+  } catch (err) {
+    return sendJson(res, 500, { error: err.message });
+  }
+  try {
+    const decision = await decide(body);
+    return sendJson(res, 200, decision);
+  } catch (err) {
+    return sendJson(res, 502, { error: `combat-decision: provider call failed: ${err.message}` });
+  }
+}
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -57,8 +85,12 @@ export function createServer({ apiKey }) {
         // rejection inside the request handler.
         return sendJson(res, 400, { error: "invalid JSON body" });
       }
-      // Route-specific handling added in Task 3 / Task 4.
-      return sendJson(res, 501, { error: "not implemented" });
+      if (req.url === "/v1/combat-decision") {
+        return handleCombatDecision(body, res);
+      }
+      if (req.url === "/v1/flavor-customization") {
+        return sendJson(res, 501, { error: "not implemented" }); // Task 4
+      }
     }
 
     return sendJson(res, 404, { error: "not found" });
