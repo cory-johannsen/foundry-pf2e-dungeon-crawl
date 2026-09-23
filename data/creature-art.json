@@ -8166,5 +8166,125 @@
     "name": "Mountain Oni",
     "level": 8,
     "art": "mountain-oni.webp"
+  },
+  {
+    "id": "onidoshi",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "7EppoGdIcmd0AV9B",
+    "name": "Onidoshi",
+    "level": 8,
+    "art": "onidoshi.webp"
+  },
+  {
+    "id": "palace_skelm",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "xnrXf66rFvAfyhE9",
+    "name": "Palace Skelm",
+    "level": 8,
+    "art": "palace-skelm.webp"
+  },
+  {
+    "id": "procyal",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "kOwaB2H8v9c2BXGf",
+    "name": "Procyal",
+    "level": 8,
+    "art": "procyal.webp"
+  },
+  {
+    "id": "resurrection_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "EhDNktwbMsq9C4yl",
+    "name": "Resurrection Dragon (Young)",
+    "level": 8,
+    "art": "resurrection-dragon-young.webp"
+  },
+  {
+    "id": "resurrection_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "mGgYxXQN0vQR60Gt",
+    "name": "Resurrection Dragon (Young, Spellcaster)",
+    "level": 8,
+    "art": "resurrection-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "sarglagon",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "UMlGhyoHMvhVW6kv",
+    "name": "Sarglagon",
+    "level": 8,
+    "art": "sarglagon.webp"
+  },
+  {
+    "id": "skin_shifter",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "OF4s2rErk7xHgZU1",
+    "name": "Skin Shifter",
+    "level": 8,
+    "art": "skin-shifter.webp"
+  },
+  {
+    "id": "sphinx",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "rdgs2gxTWxkyanD6",
+    "name": "Sphinx",
+    "level": 8,
+    "art": "sphinx.webp"
+  },
+  {
+    "id": "stone_giant",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "zT3fSxNatEbrkCzN",
+    "name": "Stone Giant",
+    "level": 8,
+    "art": "stone-giant.webp"
+  },
+  {
+    "id": "triceratops",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "zAxKR8XWtQm2rqh4",
+    "name": "Triceratops",
+    "level": 8,
+    "art": "triceratops.webp"
+  },
+  {
+    "id": "tylosaurus",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "s6A2tdZ3r3uOLca1",
+    "name": "Tylosaurus",
+    "level": 8,
+    "art": "tylosaurus.webp"
+  },
+  {
+    "id": "woolly_wrangler",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "gIjhrY21iwTApvXT",
+    "name": "Woolly Wrangler",
+    "level": 8,
+    "art": "woolly-wrangler.webp"
+  },
+  {
+    "id": "aigamuxa",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "XJeAmfO0gB6JYALJ",
+    "name": "Aigamuxa",
+    "level": 8,
+    "art": "aigamuxa.webp"
+  },
+  {
+    "id": "animate_dream",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "r3PNRpEir4BVjnCC",
+    "name": "Animate Dream",
+    "level": 8,
+    "art": "animate-dream.webp"
+  },
+  {
+    "id": "ankhrav_hive_mother",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "qYw2ToefDK5Vrwgu",
+    "name": "Ankhrav Hive Mother",
+    "level": 8,
+    "art": "ankhrav-hive-mother.webp"
   }
 ]
