@@ -7446,5 +7446,125 @@
     "name": "Quatoid",
     "level": 7,
     "art": "quatoid-b1.webp"
+  },
+  {
+    "id": "quetzalcoatlus",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "a4LgD3NrgkiINvru",
+    "name": "Quetzalcoatlus",
+    "level": 7,
+    "art": "quetzalcoatlus.webp"
+  },
+  {
+    "id": "salamander",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "CHIh3vMssFixUlw8",
+    "name": "Salamander",
+    "level": 7,
+    "art": "salamander.webp"
+  },
+  {
+    "id": "skeletal_hulk",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "V4rVnbjJbcOIdC4Z",
+    "name": "Skeletal Hulk",
+    "level": 7,
+    "art": "skeletal-hulk.webp"
+  },
+  {
+    "id": "specter",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "HNEUSYnInffvGPHK",
+    "name": "Specter",
+    "level": 7,
+    "art": "specter.webp"
+  },
+  {
+    "id": "spriggan_warlord",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "MDdbC8XDUPFg4FCv",
+    "name": "Spriggan Warlord",
+    "level": 7,
+    "art": "spriggan-warlord.webp"
+  },
+  {
+    "id": "stegosaurus",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "qtJ36jlcRQw5sBnr",
+    "name": "Stegosaurus",
+    "level": 7,
+    "art": "stegosaurus.webp"
+  },
+  {
+    "id": "tendriculos",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "yBglC9GBy6p1x87t",
+    "name": "Tendriculos",
+    "level": 7,
+    "art": "tendriculos.webp"
+  },
+  {
+    "id": "theletos",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "JJOscf3TNaZQ6AW1",
+    "name": "Theletos",
+    "level": 7,
+    "art": "theletos.webp"
+  },
+  {
+    "id": "therapeutic_healer",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "fh7fcZjLGqih2m9J",
+    "name": "Therapeutic Healer",
+    "level": 7,
+    "art": "therapeutic-healer.webp"
+  },
+  {
+    "id": "tiddalik",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "nIXWanjtyklfwH7u",
+    "name": "Tiddalik",
+    "level": 7,
+    "art": "tiddalik.webp"
+  },
+  {
+    "id": "totenmaske",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Bg9QWIRHTPIsKKyy",
+    "name": "Totenmaske",
+    "level": 7,
+    "art": "totenmaske.webp"
+  },
+  {
+    "id": "tripkee_fiend_keeper",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "bQsdRYWGcUvXdp5G",
+    "name": "Tripkee Fiend-Keeper",
+    "level": 7,
+    "art": "tripkee-fiend-keeper.webp"
+  },
+  {
+    "id": "tupilaq",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "FxGtlYqs1bRrpAuZ",
+    "name": "Tupilaq",
+    "level": 7,
+    "art": "tupilaq.webp"
+  },
+  {
+    "id": "vanth",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "74TxKGaW7RPzTdbm",
+    "name": "Vanth",
+    "level": 7,
+    "art": "vanth.webp"
+  },
+  {
+    "id": "whisper_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "X4zhNBhgxE74TPb5",
+    "name": "Whisper Dragon (Young)",
+    "level": 7,
+    "art": "whisper-dragon-young.webp"
   }
 ]
