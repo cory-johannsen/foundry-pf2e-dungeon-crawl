@@ -36,6 +36,18 @@ of the work, not just be updated at the end of a session or a chunk.
 - Apply the `in progress` label (create it if the repo doesn't have a
   status label yet) while an issue is actively being worked, and remove it
   when paused or done.
+- Apply the `spec` label (create it if the repo doesn't have one yet) the
+  same turn an issue's spec is fully written and its path is attached to
+  the issue (comment or issue body). Remove `spec` when the issue advances
+  to `planned`.
+- Apply the `planned` label (create it if the repo doesn't have one yet)
+  the same turn an issue's implementation plan is fully written and its
+  path is attached to the issue. Remove `planned` when work begins and
+  `in progress` is applied.
+- `spec` and `planned` are lifecycle labels, not additive tags — an issue
+  carries at most one of `spec`, `planned`, `in progress` at a time,
+  mirroring the backlog skill's `spec` → `planned` → `in-progress`
+  transitions.
 - Claiming an issue and labeling it `in progress` are the same action, not
   two steps — apply the label in the same turn you decide to work an
   issue, before doing any other work on it (reading code, planning,
