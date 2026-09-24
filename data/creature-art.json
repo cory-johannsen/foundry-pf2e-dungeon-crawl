@@ -9030,5 +9030,181 @@
     "name": "Norn",
     "level": 20,
     "art": "norn.webp"
+  },
+  {
+    "id": "obcisidaemon",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "5AafVmcECTFaicll",
+    "name": "Obcisidaemon",
+    "level": 19,
+    "art": "obcisidaemon.webp"
+  },
+  {
+    "id": "star_archon",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "FRTpT9rLxUBKGdin",
+    "name": "Star Archon",
+    "level": 19,
+    "art": "star-archon.webp"
+  },
+  {
+    "id": "cinder_dragon_ancient",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "dbcJTXE93zLQQ3Vx",
+    "name": "Cinder Dragon (Ancient)",
+    "level": 19,
+    "art": "cinder-dragon-ancient.webp"
+  },
+  {
+    "id": "cinder_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ZpI0J6giV6hacfTw",
+    "name": "Cinder Dragon (Ancient, Spellcaster)",
+    "level": 19,
+    "art": "cinder-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "empyreal_dragon_ancient",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "mRtBMD6vmFEdlgzA",
+    "name": "Empyreal Dragon (Ancient)",
+    "level": 19,
+    "art": "empyreal-dragon-ancient.webp"
+  },
+  {
+    "id": "empyreal_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "osscRiyHUXzfv0yz",
+    "name": "Empyreal Dragon (Ancient, Spellcaster)",
+    "level": 19,
+    "art": "empyreal-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "fortune_dragon_ancient",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "dbElCgziDp8ysxqR",
+    "name": "Fortune Dragon (Ancient)",
+    "level": 19,
+    "art": "fortune-dragon-ancient.webp"
+  },
+  {
+    "id": "fortune_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "GdqPoQ2WWnuzEzbu",
+    "name": "Fortune Dragon (Ancient, Spellcaster)",
+    "level": 19,
+    "art": "fortune-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "hesperid_queen",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "dA6UaeIi9wFgBAQO",
+    "name": "Hesperid Queen",
+    "level": 19,
+    "art": "hesperid-queen.webp"
+  },
+  {
+    "id": "red_dragon_ancient",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "9H11QHnoKz8hHKSM",
+    "name": "Red Dragon (Ancient)",
+    "level": 19,
+    "art": "red-dragon-ancient.webp"
+  },
+  {
+    "id": "red_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "2T2cN4j4EzfDAIEe",
+    "name": "Red Dragon (Ancient, Spellcaster)",
+    "level": 19,
+    "art": "red-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "rune_dragon_ancient",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "VK5OKW5viAEWQVzU",
+    "name": "Rune Dragon (Ancient)",
+    "level": 19,
+    "art": "rune-dragon-ancient.webp"
+  },
+  {
+    "id": "rune_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "tyjxoRht7sjiwHnz",
+    "name": "Rune Dragon (Ancient, Spellcaster)",
+    "level": 19,
+    "art": "rune-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "silver_dragon_ancient",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "SWOZ0e2IQifxzlgL",
+    "name": "Silver Dragon (Ancient)",
+    "level": 19,
+    "art": "silver-dragon-ancient.webp"
+  },
+  {
+    "id": "silver_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "jlEFaUJjAK4MTsLc",
+    "name": "Silver Dragon (Ancient, Spellcaster)",
+    "level": 19,
+    "art": "silver-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "taiga_linnorm",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "NAy7eUqFI8tGm3Ug",
+    "name": "Taiga Linnorm",
+    "level": 19,
+    "art": "taiga-linnorm.webp"
+  },
+  {
+    "id": "tzitzimitl",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Ws6554On4eh2Blq7",
+    "name": "Tzitzimitl",
+    "level": 19,
+    "art": "tzitzimitl.webp"
+  },
+  {
+    "id": "guthallath",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "BPznJcLvfkpfeQ2q",
+    "name": "Guthallath",
+    "level": 19,
+    "art": "guthallath.webp"
+  },
+  {
+    "id": "sard",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "eD1kydftMIp4CL2K",
+    "name": "Sard",
+    "level": 19,
+    "art": "sard.webp"
+  },
+  {
+    "id": "tempest_incarnate",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "rxBaSTbWJflJPfz5",
+    "name": "Tempest Incarnate",
+    "level": 19,
+    "art": "tempest-incarnate.webp"
+  },
+  {
+    "id": "terotricus",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "3IPLvfez8DzwwNqm",
+    "name": "Terotricus",
+    "level": 19,
+    "art": "terotricus.webp"
+  },
+  {
+    "id": "grendel",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "cPX0NmB242FqSRxa",
+    "name": "Grendel",
+    "level": 19,
+    "art": "grendel.webp"
   }
 ]
