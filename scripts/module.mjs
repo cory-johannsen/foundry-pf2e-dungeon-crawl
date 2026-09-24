@@ -38,6 +38,7 @@ import {
 import {
   followLeaderIfDue,
   followLeaderOnDoorOpened,
+  resnapDriftedTokens,
 } from "./dungeon-follow.mjs";
 import {
   getPendingTrapCustomization,
@@ -343,6 +344,12 @@ Hooks.on("updateCombat", (combat, changes) => {
 /** #20: moves AI-controlled party actors' tokens toward the run's leader
  * as the party explores between fights. */
 Hooks.on("updateToken", followLeaderIfDue);
+
+/** #141: self-heals any token that lands off-grid after a position update,
+ * on any scene this module manages — a separate concern from
+ * `followLeaderIfDue` on the same hook, not gated to the leader/followers
+ * or to outside-combat only. */
+Hooks.on("updateToken", resnapDriftedTokens);
 
 /** #202: reactive/triggered NPC abilities (ranged-Strike-triggered Reactive
  * Strike/Attack of Opportunity). */

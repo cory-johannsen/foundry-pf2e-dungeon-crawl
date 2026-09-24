@@ -281,3 +281,79 @@ export function followLeaderOnDoorOpened(wallDoc, changes) {
     requestDungeonAction("followMove", { sceneId: scene.id });
   }
 }
+
+/** Snaps `tokenId` on `sceneId` back to the grid if it's currently off-grid
+ * — the actual correction `dungeon-remote.mjs`'s relayed `resnapToken`
+ * action runs on whichever client executes it (always genuinely
+ * GM-privileged by the time it gets here, same as `runFollowMoveNow`).
+ * Re-reads the token's current position fresh from the scene rather than
+ * trusting caller-supplied coordinates, since a non-GM host's own request
+ * only carries the ids that triggered it, not a position it's entitled to
+ * dictate. A no-op if the scene/token can't be found or is already
+ * grid-aligned. */
+export async function resnapTokenNow(sceneId, tokenId) {
+  const scene = game.scenes.get(sceneId);
+  const token = scene?.tokens.find((t) => t.id === tokenId);
+  if (!token) return;
+  const gridSize = scene.grid?.size ?? 100;
+  const snappedX = Math.round(token.x / gridSize) * gridSize;
+  const snappedY = Math.round(token.y / gridSize) * gridSize;
+  if (token.x !== snappedX || token.y !== snappedY) {
+    await token.update({ x: snappedX, y: snappedY });
+  }
+}
+
+/** Hook target for `updateToken` (module.mjs), registered alongside
+ * `followLeaderIfDue` — a separate concern on the same hook. Self-heals
+ * ANY token that lands off-grid after a position-changing update, on any
+ * scene this module manages, not just the leader or AI-controlled
+ * followers (#141: Foundry's own drag-animation pipeline can nudge an
+ * unrelated token to a non-grid-aligned position as a side effect of
+ * dragging a different token — confirmed live against a real v14.368
+ * world; this module's own write paths are already grid-exact by
+ * construction throughout, so the drift is never this module's own doing).
+ * Closes the same gap for combat-time monster drift (#86, #140) that
+ * `moveFollowersToward`'s own snap-correction already closes for
+ * followers mid-follow-move — deliberately NOT gated on `hasActiveCombat`
+ * like `followLeaderIfDue` is, since a non-acting combatant drifting
+ * during someone else's turn is exactly the scenario #86/#140 describe.
+ * Safe to run unconditionally during combat because every position this
+ * module's own combat code writes (`dungeon-combat.mjs`'s
+ * `snapTokenToGrid`/`waypoint.gx * gridSize` throughout) is already
+ * grid-exact by construction, so a real combat step is never mistaken
+ * for drift. Same GM-direct vs. host-relay split as `followLeaderIfDue`
+ * (#65). Self-limiting: the correction write is itself a real
+ * `updateToken` event, but it's already grid-aligned, so this no-ops on
+ * it — no separate debounce or reentrancy guard needed.
+ *
+ * Known limitation (tracked as a follow-up, not fixed here): this snaps
+ * to the *nearest* grid cell, which isn't necessarily the cell this
+ * module originally intended — a drifted token could round to a cell
+ * across a wall, or one already occupied. `snapTokenToGrid` shares this
+ * same limitation; this hook just applies it more broadly. `getRunState`
+ * also keeps returning a completed (not just active) run's data until
+ * `abandonRun` clears it, so this stays live on a finished run's scene
+ * too — harmless (still the same square-grid dungeon scene) but worth
+ * knowing. A GM's own deliberate off-grid placement on a managed scene
+ * gets snapped back too; there's no way to distinguish that from drift. */
+export function resnapDriftedTokens(tokenDoc, changes) {
+  if (!isPositionChange(changes)) return;
+  const scene = tokenDoc.parent;
+  if (!scene) return;
+  const run = getRunState(scene.id);
+  if (!run) return;
+  const gridSize = scene.grid?.size ?? 100;
+  const snappedX = Math.round(tokenDoc.x / gridSize) * gridSize;
+  const snappedY = Math.round(tokenDoc.y / gridSize) * gridSize;
+  if (tokenDoc.x === snappedX && tokenDoc.y === snappedY) return;
+
+  if (game.user.isGM) {
+    return resnapTokenNow(scene.id, tokenDoc.id);
+  }
+  if (game.user.id === run.hostUserId) {
+    requestDungeonAction("resnapToken", {
+      sceneId: scene.id,
+      tokenId: tokenDoc.id,
+    });
+  }
+}
