@@ -9206,5 +9206,109 @@
     "name": "Grendel",
     "level": 19,
     "art": "grendel.webp"
+  },
+  {
+    "id": "duneshaker_solifugid",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "r3yLNfqS00g8sdrT",
+    "name": "Duneshaker Solifugid",
+    "level": 18,
+    "art": "duneshaker-solifugid.webp"
+  },
+  {
+    "id": "katpaskir",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "TbkLKyfQI6hBwaVo",
+    "name": "Katpaskir",
+    "level": 18,
+    "art": "katpaskir.webp"
+  },
+  {
+    "id": "purrodaemon",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "GfJLotTcrZmn6tay",
+    "name": "Purrodaemon",
+    "level": 18,
+    "art": "purrodaemon.webp"
+  },
+  {
+    "id": "urveth",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Loyg6crVl1LcdZ6c",
+    "name": "Urveth",
+    "level": 18,
+    "art": "urveth.webp"
+  },
+  {
+    "id": "adamantine_dragon_ancient",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "KdUMMd6ol83JpP62",
+    "name": "Adamantine Dragon (Ancient)",
+    "level": 18,
+    "art": "adamantine-dragon-ancient.webp"
+  },
+  {
+    "id": "adamantine_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "ptaN3MY80GiE6PHW",
+    "name": "Adamantine Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "adamantine-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "blue_dragon_ancient",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "uPxh3VpA80zZdWfx",
+    "name": "Blue Dragon (Ancient)",
+    "level": 18,
+    "art": "blue-dragon-ancient.webp"
+  },
+  {
+    "id": "blue_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "4C3Sh2lO9oWi78Zo",
+    "name": "Blue Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "blue-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "bronze_dragon_ancient",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "BzBFDaNj51PP97RZ",
+    "name": "Bronze Dragon (Ancient)",
+    "level": 18,
+    "art": "bronze-dragon-ancient.webp"
+  },
+  {
+    "id": "bronze_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "MLmwdUIW4o7ZSUEG",
+    "name": "Bronze Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "bronze-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "cairn_linnorm",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "Wtok8DP7ybbEJ1fB",
+    "name": "Cairn Linnorm",
+    "level": 18,
+    "art": "cairn-linnorm.webp"
+  },
+  {
+    "id": "despair_dragon_ancient",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "5aLSif13KCcvnuLO",
+    "name": "Despair Dragon (Ancient)",
+    "level": 18,
+    "art": "despair-dragon-ancient.webp"
+  },
+  {
+    "id": "despair_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "wfsRPYfsXIEhNEXd",
+    "name": "Despair Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "despair-dragon-ancient-spellcaster.webp"
   }
 ]
