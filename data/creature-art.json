@@ -8838,5 +8838,197 @@
     "name": "Despair Dragon (Young)",
     "level": 9,
     "art": "despair-dragon-young.webp"
+  },
+  {
+    "id": "balor",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "9vNYtJZiseCEf4wt",
+    "name": "Balor",
+    "level": 20,
+    "art": "balor.webp"
+  },
+  {
+    "id": "baomal",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Hk2cd4HlPbhBJKfx",
+    "name": "Baomal",
+    "level": 20,
+    "art": "baomal.webp"
+  },
+  {
+    "id": "bikkhasura",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "D5bZbv6KOSyDqEmj",
+    "name": "Bikkhasura",
+    "level": 20,
+    "art": "bikkhasura.webp"
+  },
+  {
+    "id": "draconal",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "7gzLs1OP0aCZZNU9",
+    "name": "Draconal",
+    "level": 20,
+    "art": "draconal.webp"
+  },
+  {
+    "id": "eremite",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "zYVxMOCM8Yqnjn6T",
+    "name": "Eremite",
+    "level": 20,
+    "art": "eremite.webp"
+  },
+  {
+    "id": "izfiitar",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "TbkQnciNLvcWCrxo",
+    "name": "Izfiitar",
+    "level": 20,
+    "art": "izfiitar.webp"
+  },
+  {
+    "id": "kimenhul",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "dl5JB5ZgKPcbKEMw",
+    "name": "Kimenhul",
+    "level": 20,
+    "art": "kimenhul.webp"
+  },
+  {
+    "id": "nasurgeth",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "sz52sgsgCjOROtST",
+    "name": "Nasurgeth",
+    "level": 20,
+    "art": "nasurgeth.webp"
+  },
+  {
+    "id": "nessari",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "BlTEvlCUKPOfBYMR",
+    "name": "Nessari",
+    "level": 20,
+    "art": "nessari.webp"
+  },
+  {
+    "id": "olethrodaemon",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "37FAi1y5S8snofws",
+    "name": "Olethrodaemon",
+    "level": 20,
+    "art": "olethrodaemon.webp"
+  },
+  {
+    "id": "pleroma",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "HLM55InRGOAUkqoH",
+    "name": "Pleroma",
+    "level": 20,
+    "art": "pleroma.webp"
+  },
+  {
+    "id": "veranallia",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "n2zUhVaFXuOJE8a1",
+    "name": "Veranallia",
+    "level": 20,
+    "art": "veranallia.webp"
+  },
+  {
+    "id": "vrolikai",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "iy5XBb2u4BOVxjtz",
+    "name": "Vrolikai",
+    "level": 20,
+    "art": "vrolikai.webp"
+  },
+  {
+    "id": "diabolic_dragon_ancient",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "mz7ZO0g4begL6EGH",
+    "name": "Diabolic Dragon (Ancient)",
+    "level": 20,
+    "art": "diabolic-dragon-ancient.webp"
+  },
+  {
+    "id": "diabolic_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "ylhweChE6bNwf7Q2",
+    "name": "Diabolic Dragon (Ancient, Spellcaster)",
+    "level": 20,
+    "art": "diabolic-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "gold_dragon_ancient",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "nWiibOE9wVSlTdkx",
+    "name": "Gold Dragon (Ancient)",
+    "level": 20,
+    "art": "gold-dragon-ancient.webp"
+  },
+  {
+    "id": "gold_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "VEnjCj4geJBzTgBJ",
+    "name": "Gold Dragon (Ancient, Spellcaster)",
+    "level": 20,
+    "art": "gold-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "requiem_dragon_ancient",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ct5z8lpPOFlOTkMz",
+    "name": "Requiem Dragon (Ancient)",
+    "level": 20,
+    "art": "requiem-dragon-ancient.webp"
+  },
+  {
+    "id": "requiem_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "jYkywyKGULplBGla",
+    "name": "Requiem Dragon (Ancient, Spellcaster)",
+    "level": 20,
+    "art": "requiem-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "tarn_linnorm",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "k0HUy6WdbZUNfG8X",
+    "name": "Tarn Linnorm",
+    "level": 20,
+    "art": "tarn-linnorm.webp"
+  },
+  {
+    "id": "yamaraj",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "00uNOPsU5VognIcB",
+    "name": "Yamaraj",
+    "level": 20,
+    "art": "yamaraj.webp"
+  },
+  {
+    "id": "bastion_archon",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "H37tfTiLiUhpYxaS",
+    "name": "Bastion Archon",
+    "level": 20,
+    "art": "bastion-archon.webp"
+  },
+  {
+    "id": "maharaja",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "RicPhk9hLC3dDjp5",
+    "name": "Maharaja",
+    "level": 20,
+    "art": "maharaja.webp"
+  },
+  {
+    "id": "norn",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "8w0LwQHkip8nzFo0",
+    "name": "Norn",
+    "level": 20,
+    "art": "norn.webp"
   }
 ]
