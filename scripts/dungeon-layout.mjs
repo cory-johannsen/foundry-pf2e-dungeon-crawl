@@ -457,15 +457,21 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       plainWalls: [
         { x1: fromRect.gx, y1: faceY, x2: doorX0, y2: faceY },
         { x1: doorX1, y1: faceY, x2: Math.max(fromRect.gx + fromRect.gw, spanX1), y2: faceY },
-        // #93 pre-flight fix: constrained to THIS connection's own
-        // `toSlot` (was `toRect.gx`/`toRect.gx + toRect.gw` — the WHOLE
-        // target room's width). A merge or shortcut-target room can
-        // have several incoming connections sharing its north face,
-        // each with its own slot (northDoorSlots, Task 5); spanning the
-        // full room width here would wall off a SIBLING connection's
-        // door, not just fill this connection's own gap.
+        // #93 pre-flight fix, round 2 (found during Task 6's own redo):
+        // capped strictly at `toSlot.x1`/`toSlot.x2` — NEVER `spanX1`.
+        // `spanX1` also folds in the SOURCE room's own door offset
+        // (`doorX1`, bounded by the SOURCE's full width, not the
+        // TARGET's narrower slot) — using it here (round 1's fix used
+        // `Math.max(toSlot.x2, spanX1)`, which picks whichever is
+        // LARGER) could still push this flanking wall past the slot
+        // boundary into a sibling connection's own territory whenever
+        // the source room is wider than one slot — routine for any
+        // merge room with 2+ real parents. `gapX0`/`gapX1` are already
+        // guaranteed within `[toSlot.x1, toSlot.x2]` (`incomingOffset`
+        // is bounded by `slotWidth`), so these two walls need no
+        // `Math.max`/`Math.min` at all — just the slot's own edges.
         { x1: toSlot.x1, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
-        { x1: gapX1, y1: corridorEndY, x2: Math.max(toSlot.x2, spanX1), y2: corridorEndY }
+        { x1: gapX1, y1: corridorEndY, x2: toSlot.x2, y2: corridorEndY }
       ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2),
       corridorSegments: [{ gx: spanX0, gy: faceY, gw: spanX1 - spanX0, gh: corridorEndY - faceY }]
     };
