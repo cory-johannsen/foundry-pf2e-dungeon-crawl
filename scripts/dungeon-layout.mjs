@@ -411,6 +411,75 @@ export function buildConnectionGeometry(slot, seed) {
 }
 
 /**
+ * Edge geometry connecting fromRoomId's exitFace to a specific door slot
+ * on toRoomId's north face (`toSlot`, from `northDoorSlots` — Task 5's
+ * redesign means "incoming" is always north, but potentially one of
+ * several slots when the target has more than one real parent or a
+ * hidden extra). Generalizes the old buildConnectionGeometry (slot to
+ * slot+1, always straight) to any two graph-positioned rects: same-column
+ * rooms still get a single straight corridor; different-column rooms get
+ * an L-shaped 2-segment corridor (first segment leaves fromRect on
+ * exitFace, second segment approaches `toSlot`, joined by a single
+ * corner).
+ */
+export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, exitFace, toSlot) {
+  const slotWidth = toSlot.x2 - toSlot.x1;
+  const outgoingOffset = doorOffsetAt(seed, `${fromRoomId}-${exitFace}`, 'outgoing', fromRect.gw);
+  const incomingOffset = doorOffsetAt(seed, `${toRoomId}-north-${toSlot.x1}`, 'incoming', slotWidth);
+
+  const sameColumn = fromRect.gx === toRect.gx;
+  if (exitFace === 'south' && sameColumn) {
+    const faceY = fromRect.gy + fromRect.gh;
+    const corridorEndY = faceY + CORRIDOR_LEN;
+    const doorX0 = fromRect.gx + outgoingOffset;
+    const doorX1 = doorX0 + DOOR_WIDTH;
+    const gapX0 = toSlot.x1 + incomingOffset;
+    const gapX1 = gapX0 + DOOR_WIDTH;
+    const spanX0 = Math.min(doorX0, gapX0);
+    const spanX1 = Math.max(doorX1, gapX1);
+    return {
+      doorWall: { x1: doorX0, y1: faceY, x2: doorX1, y2: faceY },
+      revealDoorWall: { x1: gapX0, y1: corridorEndY, x2: gapX1, y2: corridorEndY },
+      plainWalls: [
+        { x1: fromRect.gx, y1: faceY, x2: doorX0, y2: faceY },
+        { x1: doorX1, y1: faceY, x2: Math.max(fromRect.gx + fromRect.gw, spanX1), y2: faceY },
+        { x1: toRect.gx, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
+        { x1: gapX1, y1: corridorEndY, x2: Math.max(toRect.gx + toRect.gw, spanX1), y2: corridorEndY }
+      ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2),
+      corridorSegments: [{ gx: spanX0, gy: faceY, gw: spanX1 - spanX0, gh: CORRIDOR_LEN }]
+    };
+  }
+
+  // Different column (or a non-south exit face): a straight leg out of
+  // fromRect on exitFace, a corner, then a straight leg into `toSlot`.
+  // Simpler than the same-column case's precise two-door offset
+  // trimming — a candidate for a future refinement pass if a reviewer
+  // finds the corner geometry too blocky in practice.
+  const exitPoint = exitFace === 'east'
+    ? { x: fromRect.gx + fromRect.gw, y: fromRect.gy + fromRect.gh / 2 }
+    : exitFace === 'west'
+    ? { x: fromRect.gx, y: fromRect.gy + fromRect.gh / 2 }
+    : { x: fromRect.gx + fromRect.gw / 2, y: fromRect.gy + fromRect.gh };
+  const entryPoint = { x: toSlot.x1 + slotWidth / 2, y: toSlot.y1 };
+  const corner = { x: entryPoint.x, y: exitPoint.y };
+
+  const doorWall = exitFace === 'south'
+    ? { x1: exitPoint.x - DOOR_WIDTH / 2, y1: exitPoint.y, x2: exitPoint.x + DOOR_WIDTH / 2, y2: exitPoint.y }
+    : { x1: exitPoint.x, y1: exitPoint.y - DOOR_WIDTH / 2, x2: exitPoint.x, y2: exitPoint.y + DOOR_WIDTH / 2 };
+  const revealDoorWall = { x1: entryPoint.x - DOOR_WIDTH / 2, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH / 2, y2: entryPoint.y };
+
+  return {
+    doorWall,
+    revealDoorWall,
+    plainWalls: [],
+    corridorSegments: [
+      { gx: Math.min(exitPoint.x, corner.x), gy: Math.min(exitPoint.y, corner.y), gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - exitPoint.x)), gh: CORRIDOR_LEN },
+      { gx: Math.min(corner.x, entryPoint.x), gy: Math.min(corner.y, entryPoint.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(entryPoint.y - corner.y)) }
+    ]
+  };
+}
+
+/**
  * Which corridor art tile — and what rotation — belongs at `index` (0-based)
  * of a `length`-tile gallery (ITEM-12). `corridor.webp` is a fully-walled 1x1
  * box, correct on its own only for a single-tile gallery (`length <= 1`,

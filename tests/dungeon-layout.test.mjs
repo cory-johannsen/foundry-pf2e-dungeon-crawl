@@ -3,7 +3,7 @@ import {
   ROOM_SIZE_SMALL, ROOM_SIZE_LARGE, ROOMS_PER_ROW, CORRIDOR_LEN, DOOR_WIDTH,
   roomSizeAt, buildConnectionGeometry, doorOffsetAt, corridorTileVariant,
   computeRanks, computeColumns,
-  roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, northDoorSlots,
+  roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, northDoorSlots, buildEdgeCorridor,
   slotRowCol, slotRect, connectionDirection
 } from '../scripts/dungeon-layout.mjs';
 import { buildRoomGraph } from '../scripts/dungeon-deck.mjs';
@@ -552,5 +552,54 @@ describe('computeColumns', () => {
         }
       }
     }
+  });
+});
+
+describe('buildEdgeCorridor', () => {
+  it('same-column rooms (straight south connection) produce one corridor segment', () => {
+    const from = roomRect('alpha', 'a', 0, 0);
+    const to = roomRect('alpha', 'b', 1, 0);
+    const toSlot = northDoorSlots(to, 1)[0];
+    const { corridorSegments } = buildEdgeCorridor('alpha', 'a', 'b', from, to, 'south', toSlot);
+    expect(corridorSegments).toHaveLength(1);
+  });
+
+  it('different-column rooms produce an L-shaped (2-segment) corridor', () => {
+    const from = roomRect('alpha', 'a', 0, 0);
+    const to = roomRect('alpha', 'b', 1, 2);
+    const toSlot = northDoorSlots(to, 1)[0];
+    const { corridorSegments } = buildEdgeCorridor('alpha', 'a', 'b', from, to, 'south', toSlot);
+    expect(corridorSegments).toHaveLength(2);
+  });
+
+  it('always returns a door wall and a reveal door wall', () => {
+    const from = roomRect('alpha', 'a', 0, 0);
+    const to = roomRect('alpha', 'b', 1, 1);
+    const toSlot = northDoorSlots(to, 1)[0];
+    const { doorWall, revealDoorWall } = buildEdgeCorridor('alpha', 'a', 'b', from, to, 'south', toSlot);
+    expect(doorWall).toBeDefined();
+    expect(revealDoorWall).toBeDefined();
+  });
+
+  it('two exits from the same room on different faces never share a door offset key', () => {
+    const from = roomRect('alpha', 'a', 0, 0);
+    const toSouth = roomRect('alpha', 'b', 1, 0);
+    const toEast = roomRect('alpha', 'c', 0, 1);
+    const south = buildEdgeCorridor('alpha', 'a', 'b', from, toSouth, 'south', northDoorSlots(toSouth, 1)[0]);
+    const east = buildEdgeCorridor('alpha', 'a', 'c', from, toEast, 'east', northDoorSlots(toEast, 1)[0]);
+    expect(south.doorWall).not.toEqual(east.doorWall);
+  });
+
+  it('#93 pre-flight fix regression — two different incoming connections to the same merge room land on distinct, non-overlapping door slots', () => {
+    const parentA = roomRect('alpha', 'a', 0, 0);
+    const parentB = roomRect('alpha', 'b', 0, 1);
+    const merge = roomRect('alpha', 'm', 1, 0);
+    const slots = northDoorSlots(merge, 2);
+    const fromA = buildEdgeCorridor('alpha', 'a', 'm', parentA, merge, 'south', slots[0]);
+    const fromB = buildEdgeCorridor('alpha', 'b', 'm', parentB, merge, 'south', slots[1]);
+    expect(fromA.revealDoorWall).not.toEqual(fromB.revealDoorWall);
+    // The two doors must not overlap — slot 0's door stays left of slot 1's.
+    expect(Math.max(fromA.revealDoorWall.x1, fromA.revealDoorWall.x2))
+      .toBeLessThanOrEqual(Math.min(fromB.revealDoorWall.x1, fromB.revealDoorWall.x2));
   });
 });
