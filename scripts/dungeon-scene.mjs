@@ -492,6 +492,22 @@ export async function buildRoomAtGraphNode(
   // art/light never depended on the connecting door in the old code
   // either — only the `rect` source changed (roomRect instead of
   // slotRect).
+  //
+  // #93 pre-flight fix (fix round 2 — found by this task's own re-review
+  // of its own round-1 fix): flagged `dungeonRoomBuilt: roomId`. isSlotBuilt
+  // (below) originally checked for a room's own frontier placeholders/
+  // enclosure walls as its "already built" marker — but frontier
+  // placeholders are exactly the walls each CHILD's own build later
+  // DELETES (#110 ordering), so under full eager pregeneration (parents
+  // built before children, Task 12), by the time a room's own children are
+  // ALSO built, none of those markers survive — isSlotBuilt would flip
+  // back to false for an already-fully-built room, and Task 11's lazy
+  // fallback would rebuild it: duplicate walls/tiles/lights, and a second
+  // set of frontier placeholders laid directly over the room's already-
+  // open, already-built exits, which nothing would ever delete again. This
+  // Tile is the one thing this function creates exactly once and NEVER
+  // deletes or supersedes afterward — a dedicated flag on it is a stable,
+  // permanent "this room was built" marker, unlike any wall-based signal.
   const tiles = [
     {
       texture: {
@@ -503,6 +519,7 @@ export async function buildRoomAtGraphNode(
       y: toPixels(rect.gy),
       width: toPixels(rect.gw),
       height: toPixels(rect.gh),
+      flags: { [MODULE_ID]: { dungeonRoomBuilt: roomId } },
     },
   ];
   await scene.createEmbeddedDocuments("Tile", tiles);
@@ -665,32 +682,34 @@ export function isSlotPopulated(scene, slot) {
  * (ITEM-11 reopening) apart from one that's merely unpopulated after a
  * cancelled Accept/Reroll).
  *
- * #93 pre-flight fix (fix round 1 — found by task review): this used to
- * check the OLD `dungeonDoorToSlot` flag, which only the old, now-kept-
- * only-for-backward-compat `buildRoomAtSlot`/`buildConnectionGeometry`
- * path ever wrote — `buildRoomAtGraphNode`/`buildPopulateAndUnlockGraphNode`
- * never write it, so this always returned `false` for every graph-built
- * room, making `buildPopulateAndUnlockGraphNode` never idempotent: every
- * call (including Task 11's lazy-fallback check on EVERY door-open) would
- * silently rebuild an already-built room from scratch — duplicate walls,
- * tiles, and lights, plus a second set of full-face frontier placeholders
- * laid directly over the room's already-open exits, which nothing would
- * ever delete again. A room ALWAYS has at least one of these three markers
- * once `buildRoomAtGraphNode` has run for it: an enclosure wall (the entry
- * room; the goal room; any room with a spare face not claimed by an
- * outgoing connection), a frontier placeholder for one of its own real
- * children (any non-goal room), or a hidden-outgoing placeholder. A room
- * with exactly 3 real children and at least one incoming connection has
- * ZERO enclosure walls (all 4 faces claimed), which is why this checks all
- * three markers, not just one.
+ * #93 pre-flight fix, TWO rounds (both found by this task's own review — a
+ * Critical the first pass introduced was caught by the SAME review's own
+ * re-check of its own fix):
+ *
+ * Round 1's problem: this used to check the OLD `dungeonDoorToSlot` flag,
+ * which only the old, now-kept-only-for-backward-compat `buildRoomAtSlot`/
+ * `buildConnectionGeometry` path ever wrote —
+ * `buildRoomAtGraphNode`/`buildPopulateAndUnlockGraphNode` never write it,
+ * so this always returned `false` for every graph-built room.
+ *
+ * Round 2's problem: the round-1 fix (checking
+ * `dungeonEnclosureWallForRoom`/`dungeonFrontierWallForEdge`/
+ * `dungeonHiddenDoorForEdge`) LOOKED complete but wasn't — a room's own
+ * frontier placeholders are exactly the walls each of ITS OWN CHILDREN's
+ * build later DELETES (#110 ordering). Under full eager pregeneration
+ * (parents built before children, Task 12), by the time a room's children
+ * are ALSO built, none of its own frontier-placeholder markers survive —
+ * this would flip back to `false` for an already-fully-built room, exactly
+ * the same "not idempotent, Task 11 lazy fallback rebuilds it" failure
+ * round 1 was meant to fix, just delayed until the room's children finish
+ * building instead of happening immediately.
+ *
+ * Fix: use a dedicated marker that `buildRoomAtGraphNode` creates exactly
+ * once and NEVER deletes or supersedes — the room's own floor-art Tile
+ * (flagged `dungeonRoomBuilt: roomId`), not any wall.
  */
 export function isSlotBuilt(scene, roomId) {
-  return scene.walls.some(
-    (w) =>
-      w.getFlag(MODULE_ID, "dungeonEnclosureWallForRoom") === roomId ||
-      w.getFlag(MODULE_ID, "dungeonFrontierWallForEdge")?.startsWith(`${roomId}->`) ||
-      w.getFlag(MODULE_ID, "dungeonHiddenDoorForEdge")?.startsWith(`${roomId}->`),
-  );
+  return scene.tiles.some((t) => t.getFlag(MODULE_ID, "dungeonRoomBuilt") === roomId);
 }
 
 /**
