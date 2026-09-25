@@ -18,7 +18,9 @@ import {
   TREASURE_GP_PER_LEVEL,
   seededPick,
   treasureRoomItemTableName,
-  TREASURE_ROOM_CATEGORY_WEIGHTS
+  TREASURE_ROOM_CATEGORY_WEIGHTS,
+  EXIT_COUNT_WEIGHTS,
+  exitCountAt
 } from '../scripts/dungeon-deck.mjs';
 import { nthLevelTableName, VALUABLE_TIERS } from '../scripts/treasure.mjs';
 
@@ -493,5 +495,26 @@ describe('roomArtVariantAt', () => {
   it('varies across indices (not the same variant every time)', () => {
     const variants = new Set(Array.from({ length: 20 }, (_, i) => roomArtVariantAt('alpha', i)));
     expect(variants.size).toBeGreaterThan(1);
+  });
+});
+
+describe('exitCountAt', () => {
+  it('always returns a count between 1 and 3', () => {
+    for (let i = 0; i < 200; i += 1) {
+      const count = exitCountAt('alpha', `room-${i}`);
+      expect(count).toBeGreaterThanOrEqual(1);
+      expect(count).toBeLessThanOrEqual(3);
+    }
+  });
+
+  it('is deterministic for the same seed and room id', () => {
+    expect(exitCountAt('alpha', 'room-3')).toBe(exitCountAt('alpha', 'room-3'));
+  });
+
+  it('skews toward 1-2 exits over 3, per EXIT_COUNT_WEIGHTS', () => {
+    const counts = { 1: 0, 2: 0, 3: 0 };
+    for (let i = 0; i < 1000; i += 1) counts[exitCountAt('alpha', `room-${i}`)] += 1;
+    expect(counts[3]).toBeLessThan(counts[1]);
+    expect(counts[3]).toBeLessThan(counts[2]);
   });
 });

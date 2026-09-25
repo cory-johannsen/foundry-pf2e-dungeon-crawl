@@ -36,6 +36,15 @@ export const ROOM_KIND_WEIGHTS = [
   { kind: 'treasure', weight: 2 }
 ];
 
+// Frequent branching, capped at 2 extra exits (3 total) — confirmed with
+// Cory during #93's design. Skewed toward 1-2 so most rooms still read as
+// a single path and full 3-way branches stay a genuine event.
+export const EXIT_COUNT_WEIGHTS = [
+  { count: 1, weight: 5 },
+  { count: 2, weight: 4 },
+  { count: 3, weight: 1 }
+];
+
 // Each slot pairs a Reward meaning (the challenge was handled well) with a
 // Ruin meaning (handled poorly), read off the SAME drawn slot — the book
 // never fixes a Reward/Ruin correspondence, so these pairings are a tunable,
@@ -189,6 +198,11 @@ export function seededPick(seed, salt, items) {
 /** The room kind at a given absolute room index, deterministic per seed. */
 export function roomKindAt(seed, index) {
   return pickAt(seed, `kind-${index}`, ROOM_KIND_WEIGHTS).kind;
+}
+
+/** Deterministic per-room exit count (1-3), same seeded-per-salt pattern as roomKindAt. */
+export function exitCountAt(seed, roomId) {
+  return pickAt(seed, `exits-${roomId}`, EXIT_COUNT_WEIGHTS).count;
 }
 
 /** The outcome-slot template at a given absolute room index. */
