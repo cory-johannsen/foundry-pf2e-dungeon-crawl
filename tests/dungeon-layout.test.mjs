@@ -602,4 +602,27 @@ describe('buildEdgeCorridor', () => {
     expect(Math.max(fromA.revealDoorWall.x1, fromA.revealDoorWall.x2))
       .toBeLessThanOrEqual(Math.min(fromB.revealDoorWall.x1, fromB.revealDoorWall.x2));
   });
+
+  it('#93 pre-flight fix regression (Task 10 review) — a same-column connection\'s plainWalls never extend past its own slot into a sibling\'s (would otherwise wall off the sibling\'s door)', () => {
+    const parentA = roomRect('alpha', 'a', 0, 0);
+    const merge = roomRect('alpha', 'm', 1, 0); // same column as parentA -> sameColumn branch
+    const slots = northDoorSlots(merge, 2);
+    const fromA = buildEdgeCorridor('alpha', 'a', 'm', parentA, merge, 'south', slots[0]);
+    for (const w of fromA.plainWalls) {
+      expect(Math.max(w.x1, w.x2)).toBeLessThanOrEqual(slots[0].x2);
+      expect(Math.min(w.x1, w.x2)).toBeGreaterThanOrEqual(slots[0].x1);
+    }
+  });
+
+  it('#93 pre-flight fix regression (Task 10 review) — a same-column corridor reaches the target\'s REAL position, not a fixed CORRIDOR_LEN, when the source is more than one rank above the target', () => {
+    const from = roomRect('alpha', 'a', 0, 0);
+    // Simulate a merge room whose rank is 3 above one of its real parents
+    // (computeRanks takes the MAX over all parents + 1 — a parent not on
+    // the longest path can sit several ranks above the merge room).
+    const to = roomRect('alpha', 'm', 3, 0);
+    const toSlot = northDoorSlots(to, 1)[0];
+    const { revealDoorWall, corridorSegments } = buildEdgeCorridor('alpha', 'a', 'm', from, to, 'south', toSlot);
+    expect(revealDoorWall.y1).toBe(to.gy);
+    expect(corridorSegments[0].gy + corridorSegments[0].gh).toBe(to.gy);
+  });
 });
