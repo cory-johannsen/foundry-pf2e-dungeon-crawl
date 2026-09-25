@@ -9878,5 +9878,29 @@
     "name": "Phase Dragon (Young)",
     "level": 9,
     "art": "phase-dragon-young.webp"
+  },
+  {
+    "id": "tennin",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "lnaGhOB5LdNb7xB1",
+    "name": "Tennin",
+    "level": 9,
+    "art": "tennin.webp"
+  },
+  {
+    "id": "titan_centipede",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "n1jTYFRCaqF1nQrf",
+    "name": "Titan Centipede",
+    "level": 9,
+    "art": "titan-centipede.webp"
+  },
+  {
+    "id": "vescavor_queen",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "mOr6eIUhNuggjCKH",
+    "name": "Vescavor Queen",
+    "level": 9,
+    "art": "vescavor-queen.webp"
   }
 ]
