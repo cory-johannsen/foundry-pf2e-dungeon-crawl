@@ -7,16 +7,16 @@ services:
       - "8787:8787"
     environment:
       AGENT_SERVICE_API_KEY: ${AGENT_SERVICE_API_KEY}
-      PF2EDC_AGENT_PROVIDER: ${PF2EDC_AGENT_PROVIDER:-claude}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      PF2EDC_AGENT_PROVIDER: ${PF2EDC_AGENT_PROVIDER:-litellm}
       LAYA_API_KEY: ${LAYA_API_KEY}
       LAYA_BASE_URL: ${LAYA_BASE_URL}
       AGENT_SERVICE_ALLOWED_ORIGIN: ${AGENT_SERVICE_ALLOWED_ORIGIN}
-      AGENT_SERVICE_CUSTOMIZATION_PROVIDER: ${AGENT_SERVICE_CUSTOMIZATION_PROVIDER:-claude}
-      LOCAL_LLM_BASE_URL: ${LOCAL_LLM_BASE_URL}
-      LOCAL_LLM_MODEL: ${LOCAL_LLM_MODEL}
-      LOCAL_LLM_API_KEY: ${LOCAL_LLM_API_KEY}
-      LOCAL_LLM_TIMEOUT_MS: ${LOCAL_LLM_TIMEOUT_MS}
+      LITELLM_BASE_URL: ${LITELLM_BASE_URL:-http://litellm:4000/v1}
+      LITELLM_API_KEY: ${LITELLM_API_KEY}
+      LITELLM_TIMEOUT_MS: ${LITELLM_TIMEOUT_MS}
+      COMBAT_REASONING_CANDIDATE_THRESHOLD: ${COMBAT_REASONING_CANDIDATE_THRESHOLD}
+    depends_on:
+      - litellm
     # Lets AGENT_SERVICE_CUSTOMIZATION_PROVIDER=local reach a host-run
     # Ollama (or other local OpenAI-compatible server) via
     # http://host.docker.internal:<port> — "localhost" inside this
@@ -24,6 +24,15 @@ services:
     # without this the local provider can never reach a host-run model
     # server. Standard, portable (Linux/Mac/Windows) Docker Compose
     # mechanism.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    volumes:
+      - ./litellm-config.yaml:/app/config.yaml
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
