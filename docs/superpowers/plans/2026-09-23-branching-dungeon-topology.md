@@ -161,6 +161,17 @@ describe('buildRoomGraph', () => {
     }
   });
 
+  it('the goal room has exactly one incoming edge across a wide seed/roomCount sweep, including near-budget-exhaustion 3-exit rolls (#93 pre-flight fix regression — concrete repros before the fix: seed-0@3, seed-1@26)', () => {
+    for (let n = 0; n < 60; n += 1) {
+      const seed = `seed-${n}`;
+      for (const roomCount of [2, 3, 4, 5, 6, 8, 12, 20, 26, 40]) {
+        const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+        const goal = Object.values(rooms).find((r) => r.isGoal);
+        expect(parentsOf(edges, goal.id)).toHaveLength(1);
+      }
+    }
+  });
+
   it('is a DAG — no room is reachable from itself', () => {
     const { rooms, edges } = buildRoomGraph({ seed: 'delta', roomCount: 15 });
     for (const startId of Object.keys(rooms)) {
@@ -267,7 +278,24 @@ export function buildRoomGraph({
     }
 
     const tipId = tips.shift();
-    const exitCount = Math.min(exitCountAt(seed, tipId), roomCount - 1 - built);
+    // #93 pre-flight fix (Task 2 review found this empirically: capping
+    // exitCount only by total remaining budget lets a single tip's own
+    // branching alone consume the whole budget while OTHER already-open
+    // tips (still sitting in `tips` below) never get a chance to reach
+    // this loop's own merge check again — the loop then exits with every
+    // one of them wired straight to goal, violating "goal always has
+    // exactly one incoming edge" in ~22% of (seed, roomCount) pairs
+    // (confirmed by sweep: e.g. seed='seed-0', roomCount=3 -> 2 goal
+    // parents; seed='seed-1', roomCount=26 -> 4 goal parents). The fix:
+    // cap exitCount so that AFTER this tip's children are created, the
+    // loop's own invariant (remaining budget >= open tip count) still
+    // holds for every tip still waiting — otherTips is `tips.length`
+    // right after the shift above, i.e. every OTHER currently-open tip
+    // that isn't the one being processed right now.
+    const otherTips = tips.length;
+    const avail = roomCount - 1 - built;
+    const maxExitCount = Math.max(1, Math.floor((avail - otherTips) / 2));
+    const exitCount = Math.min(exitCountAt(seed, tipId), maxExitCount);
     const nextTips = [];
     for (let i = 0; i < Math.max(1, exitCount); i += 1) {
       if (built >= roomCount - 1) break;
