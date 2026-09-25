@@ -384,11 +384,26 @@ describe('attachHiddenPaths', () => {
     expect(a.hiddenEdges).toEqual(b.hiddenEdges);
   });
 
-  it('every hidden edge source room still has its normal edges untouched', () => {
+  it('every room that already existed before the call keeps its own edges array untouched (#93 pre-flight fix — this must NOT deep-equal the whole edges object: attaching a detour legitimately ADDS a new key for the new detour room itself, per its own outgoing edge below)', () => {
     const graph = buildRoomGraph({ seed: 'gamma', roomCount: 14 });
     const before = JSON.parse(JSON.stringify(graph.edges));
     const { edges } = attachHiddenPaths({ ...graph, seed: 'gamma' });
-    expect(edges).toEqual(before);
+    for (const roomId of Object.keys(before)) {
+      expect(edges[roomId]).toEqual(before[roomId]);
+    }
+  });
+
+  it('every detour room has a discoverable outgoing path to its toId (#93 pre-flight fix regression — a detour with no recorded edge anywhere is a guaranteed dead end the moment it is revealed)', () => {
+    for (let n = 0; n < 40; n += 1) {
+      const seed = `detour-reachable-${n}`;
+      for (const roomCount of [4, 6, 8, 12, 16, 20]) {
+        const graph = buildRoomGraph({ seed, roomCount });
+        const { edges, hiddenRooms } = attachHiddenPaths({ ...graph, seed });
+        for (const detourId of hiddenRooms) {
+          expect(Array.isArray(edges[detourId]) && edges[detourId].length > 0).toBe(true);
+        }
+      }
+    }
   });
 });
 ```
@@ -413,11 +428,28 @@ export const HIDDEN_PATH_CHANCE = 0.2;
  * Attach pregenerated-but-hidden shortcuts/detours to a graph's non-entry,
  * non-goal edges (#93 — replaces runtime insert_after/remove_next
  * splicing). A shortcut edge skips the immediate next room on a branch; a
- * detour room is spliced hidden between two already-adjacent rooms. Both
- * are excluded from `edges` (normal traversal never sees them) until an
- * outcome reveal flips them into the live graph — see dungeon-runner.mjs's
- * revealTravelTimeEffect.
+ * detour room is spliced hidden between two already-adjacent rooms.
+ *
+ * What's actually hidden is the INCOMING connection, in `hiddenEdges`, not
+ * a detour room's own outgoing edge: `edges[detour.id] = [toId]` is a real
+ * entry in the live `edges` map (a detour room needs SOME recorded path
+ * onward, live or it's a guaranteed dead end the moment it's revealed —
+ * caught by pre-flight review, do not remove this line believing it
+ * belongs in `hiddenEdges` instead). Normal traversal still never reaches
+ * `detour.id` regardless, since nothing in the live graph points INTO it
+ * until an outcome reveal adds that incoming edge — see
+ * dungeon-runner.mjs's revealTravelTimeEffect.
  */
+// #93 pre-flight fix: two different children of the same fromId can
+// independently roll a shortcut landing on the same downstream skipTarget
+// (confirmed by review sweep, ~0.7% of graphs) — dedup so `hiddenEdges`
+// never carries a repeated target, which would otherwise skew a future
+// pick-one-to-reveal selection toward that duplicate.
+function pushHiddenTarget(hiddenEdges, fromId, targetId) {
+  const bucket = (hiddenEdges[fromId] ??= []);
+  if (!bucket.includes(targetId)) bucket.push(targetId);
+}
+
 export function attachHiddenPaths({ rooms, edges, seed }) {
   const hiddenRooms = new Set();
   const hiddenEdges = {};
@@ -453,14 +485,14 @@ export function attachHiddenPaths({ rooms, edges, seed }) {
         rooms[detour.id] = detour;
         edges[detour.id] = [toId];
         hiddenRooms.add(detour.id);
-        (hiddenEdges[fromId] ??= []).push(detour.id);
+        pushHiddenTarget(hiddenEdges, fromId, detour.id);
       } else {
         // A shortcut needs a room beyond `toId` to skip TO — only attach
         // one when `toId` itself has an onward edge to skip past, and
         // never when that onward edge is the goal room itself.
         const skipTarget = edges[toId]?.[0];
         if (!skipTarget || skipTarget === goalId) continue;
-        (hiddenEdges[fromId] ??= []).push(skipTarget);
+        pushHiddenTarget(hiddenEdges, fromId, skipTarget);
       }
     }
   }
