@@ -215,7 +215,20 @@ export function roomEnclosureWalls(seed, roomId, { incomingCount = 0, outgoingFa
  */
 export function doorOffsetAt(seed, slot, role, roomSize) {
   const r = splitmix32(seedFromString(`${seed}-door-${role}-${slot}`))();
-  const maxOffset = roomSize - DOOR_WIDTH;
+  // #93 pre-flight fix (found during this task's own final review, a
+  // third independent pass, via a 13,860-configuration sweep): floored,
+  // not bare `roomSize - DOOR_WIDTH`. Every OLD caller always passed an
+  // integer roomSize (ROOM_SIZE_SMALL/ROOM_SIZE_LARGE), so this never
+  // mattered before — but buildEdgeCorridor (Task 6) is the first caller
+  // to pass a slotWidth (`toSlot.x2 - toSlot.x1`, from northDoorSlots),
+  // which is fractional whenever the incoming-door count doesn't evenly
+  // divide the room's width (e.g. ROOM_SIZE_SMALL = 6 split 4 ways ->
+  // slotWidth = 1.5). Unfloored, `Math.floor(r * (maxOffset + 1))` can
+  // round UP PAST a fractional maxOffset (e.g. maxOffset = 0.5 can still
+  // return 1), pushing a door outside its own slot into a sibling's —
+  // zero behavior change for every existing integer-roomSize call site,
+  // since Math.floor of an already-integer value is a no-op.
+  const maxOffset = Math.floor(roomSize - DOOR_WIDTH);
   return Math.floor(r * (maxOffset + 1));
 }
 

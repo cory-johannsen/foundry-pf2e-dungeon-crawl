@@ -634,4 +634,17 @@ describe('buildEdgeCorridor', () => {
     expect(revealDoorWall.y1).toBe(to.gy);
     expect(corridorSegments[0].gy + corridorSegments[0].gh).toBe(to.gy);
   });
+
+  it('#93 pre-flight fix regression (this task\'s own final review) — a same-column room whose incoming-door count doesn\'t evenly divide its width still keeps every door within its own slot (doorOffsetAt must not exceed a fractional maxOffset)', () => {
+    const parentA = roomRect('alpha', 'a', 0, 0);
+    const parentB = roomRect('alpha', 'b', 0, 1);
+    const merge = roomRect('alpha', 'm', 1, 0); // ROOM_SIZE_SMALL = 6, split 4 ways below -> slotWidth = 1.5
+    const slots = northDoorSlots(merge, 4);
+    for (let i = 0; i < slots.length; i += 1) {
+      const from = i === 0 ? parentA : parentB; // exitFace/column irrelevant to this bug; same-column (i===0) is where it reproduces
+      const { revealDoorWall } = buildEdgeCorridor('alpha', from === parentA ? 'a' : 'b', 'm', from, merge, 'south', slots[i]);
+      expect(Math.min(revealDoorWall.x1, revealDoorWall.x2)).toBeGreaterThanOrEqual(slots[i].x1);
+      expect(Math.max(revealDoorWall.x1, revealDoorWall.x2)).toBeLessThanOrEqual(slots[i].x2);
+    }
+  });
 });
