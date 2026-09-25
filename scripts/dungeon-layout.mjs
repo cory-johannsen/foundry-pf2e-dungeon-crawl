@@ -149,7 +149,11 @@ export function incomingConnectionsFor(layoutEdges, roomId, hiddenIncomingByRoom
   return [...real, ...hidden];
 }
 
-function roomSidesFor(rect) {
+/** A room's own four wall segments, by compass side — exported (Task 10's
+ * own #93 pre-flight fix) so dungeon-scene.mjs can look up an individual
+ * outgoing face's segment directly (e.g. for a per-connection frontier
+ * placeholder) without needing a new wrapper here. */
+export function roomSidesForRect(rect) {
   const { gx, gy, gw, gh } = rect;
   return {
     north: { x1: gx, y1: gy, x2: gx + gw, y2: gy },
@@ -187,7 +191,7 @@ export function northDoorSlots(rect, count) {
  * version could derive `slotRect` internally.
  */
 export function roomEnclosureWalls(seed, roomId, { incomingCount = 0, outgoingFaces = [] }, rect) {
-  const sides = roomSidesFor(rect);
+  const sides = roomSidesForRect(rect);
   const walls = [];
   for (const face of ['south', 'east', 'west']) {
     if (!outgoingFaces.includes(face)) walls.push({ dir: face, ...sides[face] });

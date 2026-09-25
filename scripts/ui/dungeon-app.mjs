@@ -55,8 +55,8 @@ import {
   unsealHiddenDoorFromRoom,
 } from "../dungeon-scene.mjs";
 import {
-  startCombatForSlot,
-  getCombatForSlot,
+  startCombatForRoom,
+  getCombatForRoom,
   resolveSlotCombat,
   unpauseIfGmLessRun,
 } from "../dungeon-combat.mjs";
@@ -757,7 +757,7 @@ export async function startCombatRecoveryFor(sceneId) {
   const currentRoom = state?.rooms[state.currentIndex];
   const slot = currentRoom ? state.physicalSlotByRoomId[currentRoom.id] : null;
   if (slot == null) return;
-  await startCombatForSlot(scene, slot);
+  await startCombatForRoom(scene, slot);
 }
 
 export async function populateNextRoom(sceneId) {
@@ -912,7 +912,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const isSafeRest = currentRoom?.kind === "safe_rest";
     const activeCombat =
       isCombatRoom && currentSlot != null
-        ? getCombatForSlot(scene, currentSlot)
+        ? getCombatForRoom(scene, currentSlot)
         : null;
 
     // #109: whether THIS client may act on the run, not just whether one
