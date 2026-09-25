@@ -3,8 +3,9 @@
  * modelled on scene-divination.mjs's direct-call style rather than the
  * card-effects plan/replay system. That machinery exists to make a single,
  * irreversible draw from the shared depleting play deck previewable; this
- * generator never touches that deck, and its own Accept/Reroll preview
- * dialog already serves the "look before you commit" purpose.
+ * generator never touches that deck.
+ * #93: the dealt roster is always accepted outright — there is no
+ * Accept/Reroll preview step (see generateEncounter below).
  */
 import { makeFoundryApi } from "./foundry-api.mjs";
 import { buildEncounterDeck, dealEncounter } from "./encounter-deck.mjs";
@@ -18,7 +19,6 @@ import {
 } from "./trait-picker.mjs";
 import { startCombatForEncounterId } from "./dungeon-combat.mjs";
 import { chooseCoverItemTypes } from "./cover-items.mjs";
-import { getRunState } from "./dungeon-runner.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 
@@ -60,32 +60,6 @@ async function chooseThemeAndSize({
           traits: readTraitField(dialog.element, "traits"),
           excludeTraits: readTraitField(dialog.element, "excludeTraits"),
         }),
-      },
-      { action: "cancel", label: "Cancel" },
-    ],
-    rejectClose: false,
-  });
-}
-
-async function showEncounterPreview(roster) {
-  const { DialogV2 } = foundry.applications.api;
-  const content = await renderTemplate(
-    `modules/${MODULE_ID}/templates/encounter-chat.hbs`,
-    { roster },
-  );
-  return DialogV2.wait({
-    window: { title: game.i18n.localize("PF2EDC.Encounter.PreviewTitle") },
-    position: { width: 480 },
-    content,
-    buttons: [
-      {
-        action: "accept",
-        label: game.i18n.localize("PF2EDC.Encounter.AcceptButton"),
-        default: true,
-      },
-      {
-        action: "reroll",
-        label: game.i18n.localize("PF2EDC.Encounter.RerollButton"),
       },
       { action: "cancel", label: "Cancel" },
     ],
@@ -189,17 +163,6 @@ export async function generateEncounter({
     ui.notifications.warn(game.i18n.localize("PF2EDC.Encounter.GmOnlyWarning"));
     return;
   }
-  // #109: `scene` is already the dungeon scene by the time a room
-  // population calls this (populateSlotEncounter passes its own `scene`
-  // through) — the standalone "PF2EDC: Generate Encounter" macro passes no
-  // override, so `scene` falls back to canvas?.scene there and `run` is
-  // null. A GM-less run's host isn't the one executing this (it always runs
-  // on whichever client is genuinely GM — see dungeon-remote.mjs), so
-  // nobody's watching this client's screen to click Accept/Reroll: the
-  // first dealt roster is used directly instead.
-  const run = getRunState(scene.id);
-  const skipPreview = Boolean(run?.hostUserId);
-
   const api = makeFoundryApi(scene);
   const creatureArt = await loadCreatureArt();
   const partyLevel = await api.partyLevel();
@@ -222,26 +185,22 @@ export async function generateEncounter({
     : await chooseThemeAndSize({ api, prefillTraits, prefillExcludeTraits });
   if (!theme || theme === "cancel") return;
 
-  let seed = freshSeed();
-  let roster;
-  for (;;) {
-    const deckSlots = buildEncounterDeck({ seed });
-    const dealt = dealEncounter(deckSlots, { seed, partySize });
-    roster = await getGenerator().generateEncounterRoster({
-      resolved: dealt.resolved,
-      api,
-      partyLevel,
-      traits: theme.traits,
-      excludeTraits: theme.excludeTraits,
-      levelOffsetBias,
-      requireTrait: locationTag,
-      partySize,
-    });
-    const action = skipPreview ? "accept" : await showEncounterPreview(roster);
-    if (action === "accept") break;
-    if (action !== "reroll") return;
-    seed = freshSeed();
-  }
+  const seed = freshSeed();
+  const deckSlots = buildEncounterDeck({ seed });
+  const dealt = dealEncounter(deckSlots, { seed, partySize });
+  // #93: the Accept/Reroll approval gate is removed outright — every run
+  // pregenerates in bulk, and a synchronous per-room human approval can't
+  // work against that. The roster generated above is always accepted.
+  const roster = await getGenerator().generateEncounterRoster({
+    resolved: dealt.resolved,
+    api,
+    partyLevel,
+    traits: theme.traits,
+    excludeTraits: theme.excludeTraits,
+    levelOffsetBias,
+    requireTrait: locationTag,
+    partySize,
+  });
 
   await postEncounterChatCard(api, roster);
   // Every spawned token carries an encounterId flag alongside whatever the
@@ -263,8 +222,7 @@ export async function generateEncounter({
   // Cover (#96) only makes sense for a bounded room, not the standalone
   // macro's unbounded "wherever the party happens to be" placement — same
   // originArea-gated split spawnCreatures itself already draws below. Seeded
-  // off this encounter's own seed, so a reroll (a fresh seed each loop) also
-  // reshuffles what cover it gets, and the same accepted encounter always
+  // off this encounter's own seed, so the same accepted encounter always
   // gets the same cover if ever regenerated from its own seed.
   if (originArea) {
     const coverTypes = chooseCoverItemTypes(seed);
