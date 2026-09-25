@@ -1718,7 +1718,7 @@ This task now builds N incoming doors per room (N from
 
 **Interfaces:**
 - Consumes: `roomRect`, `roomEnclosureWalls`, `exitFaceForIndex`, `parentRoomIdsFor`, `incomingConnectionsFor`, `northDoorSlots`, `ROW_STRIDE`, `COLUMN_STRIDE` (Task 5), `buildEdgeCorridor` (Task 6).
-- Produces: `buildRoomAtGraphNode(scene, roomId, {rank, col, childIds, incomingConnections, hiddenChildId, isGoal, locationTag, artVariant, seed})` (replaces `buildRoomAtSlot`, this room's own enclosure walls/floor art/light only — creates them directly rather than returning them, also writes a `dungeonDoorToRoomId` flag onto each created real door/reveal-door wall — Task 11 reads it directly off the wall, no separate in-memory lookup needed — and returns `{rect, outgoingFaces, placeholderIdsByConnection}`, one placeholder-id list per entry in `incomingConnections`, deliberately NOT deleting any of them itself, deferring that to the caller for #110 ordering); `buildPopulateAndUnlockGraphNode(scene, state, room, {rank, col, childIds, hiddenChildId, unlock})` (replaces `buildPopulateAndUnlockRoom` — walls + every incoming connection's geometry (real AND hidden, one per `incomingConnectionsFor(state.layoutEdges, room.id, state.hiddenIncomingByRoomId)` entry) + content population + door unlock, the actual function Tasks 11/12/13 call); `resizeSceneForLayout(scene, {maxRank, maxCol})` (new, replaces the per-room `ensureSceneCovers`/`requiredDimensions(maxSlot)` pair — called ONCE by Task 12 right after layout is computed, before any room builds, since the whole graph's extent is known up front under full pregeneration); `unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildIds)` (new — unlocks every one of `roomId`'s outgoing doors whose target is in `childIds` but not in `hiddenChildIds`, via each door's own `dungeonDoorToRoomId` flag; used by Task 13's corrected trailing block instead of building a "next room").
+- Produces: `buildRoomAtGraphNode(scene, roomId, {rank, col, childIds, incomingConnections, hiddenChildId, isGoal, locationTag, artVariant, seed})` (replaces `buildRoomAtSlot`, this room's own enclosure walls/floor art/light only — creates them directly rather than returning them, also writes a `dungeonDoorToRoomId` flag onto each created real door/reveal-door wall — Task 11 reads it directly off the wall, no separate in-memory lookup needed — and returns `{rect, outgoingFaces, placeholderIdsByConnection}`, one placeholder-id list per entry in `incomingConnections`, deliberately NOT deleting any of them itself, deferring that to the caller for #110 ordering); `buildPopulateAndUnlockGraphNode(scene, state, room, {rank, col, childIds, hiddenChildId, unlock})` (replaces `buildPopulateAndUnlockRoom` — walls + every incoming connection's geometry (real AND hidden, one per `incomingConnectionsFor(state.layoutEdges, room.id, state.hiddenIncomingByRoomId)` entry) + content population + door unlock, the actual function Tasks 11/12/13 call; every real door/reveal-door wall carries BOTH `dungeonDoorToRoomId` (target) and `dungeonDoorFromRoomId` (source) — #93 pre-flight fix, a merge room's several real doors all share the same target id, so unlocking needs both ends to find the right one); `resizeSceneForLayout(scene, {maxRank, maxCol})` (new, replaces the per-room `ensureSceneCovers`/`requiredDimensions(maxSlot)` pair — called ONCE by Task 12 right after layout is computed, before any room builds, since the whole graph's extent is known up front under full pregeneration); `unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildIds)` (new — unlocks every one of `roomId`'s outgoing doors whose target is in `childIds` but not in `hiddenChildIds`, via each door's own `dungeonDoorToRoomId`+`dungeonDoorFromRoomId` flag pair; used by Task 13's corrected trailing block instead of building a "next room"); `isSlotBuilt` (existing name, corrected body — #93 pre-flight fix, see Step 3e — the old slot-flag check never matches anything the new build functions write, which silently broke idempotency).
 
 **#156 fix — hidden edges get real, sealed geometry at build time, not a runtime retrofit.** A room's hidden outgoing edge (`hiddenEdges[roomId]`, at most one — Task 3) reserves the face right after its real `childIds` and gets a placeholder/door exactly like a real edge, EXCEPT it's flagged `dungeonHiddenDoorForEdge` instead of `dungeonFrontierWallForEdge`/`dungeonDoorToRoomId`. That distinct flag is what keeps it sealed: the per-room-populated unlock step (`unlockDoorsFromRoom`, above) only ever matches the normal flag, so a `dungeonHiddenDoorForEdge`-flagged door is never touched by it and stays `LOCKED` until Task 9's reveal explicitly promotes it (the addendum above). A room's INCOMING side handles this uniformly now (Task 5's redesign): `incomingConnectionsFor` already marks each connection `{sourceId, hidden}` — a detour room's one real parent link comes back marked `hidden: true` by the caller (its sole connection IS the hidden path — see Step 3c), a shortcut target's extra connection from `hiddenIncomingByRoomId` comes back `hidden: true` directly from `incomingConnectionsFor` itself, and everything else is `hidden: false`. `hiddenChildId` (this room's own hidden OUTGOING target, if any — `hiddenEdges[roomId]?.[0]`) is unchanged from before: reserves and builds its placeholder face, same as a real child but hidden-flagged.
 
@@ -1937,9 +1937,23 @@ export async function buildPopulateAndUnlockGraphNode(
           ...plainWalls.map((w) => wallDoc(w)),
         );
       } else {
+        // #93 pre-flight fix (found during this task's own review): a
+        // real door wall must carry BOTH ends of the edge, not just the
+        // target. `dungeonDoorToRoomId` alone is what Task 11's
+        // `handleDungeonDoorOpened` reads off ONE specific clicked wall
+        // (fine, unambiguous there) — but a merge room has MULTIPLE real
+        // doors all flagged `dungeonDoorToRoomId: room.id` (one per real
+        // parent), and `unlockDoorsFromRoom` (Step 3f, below) needs to
+        // find the ONE door belonging to a SPECIFIC source room, not
+        // "whichever one Array.find happens across the whole scene."
+        // Without `dungeonDoorFromRoomId`, resolving room A's own
+        // outcome could unlock room B's door into the merge room instead
+        // of A's — the exact "every parent but one dead-ends" bug this
+        // whole redesign exists to fix, just moved from build-time to
+        // unlock-time.
         connectionWalls.push(
-          wallDoc(doorWall, { flags: { [MODULE_ID]: { dungeonDoorToRoomId: room.id } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR }),
-          wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonRevealDoorForSlot: room.id } }, ds: CONST.WALL_DOOR_STATES.CLOSED, door: CONST.WALL_DOOR_TYPES.DOOR }),
+          wallDoc(doorWall, { flags: { [MODULE_ID]: { dungeonDoorToRoomId: room.id, dungeonDoorFromRoomId: sourceId } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR }),
+          wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonRevealDoorForSlot: room.id, dungeonDoorFromRoomId: sourceId } }, ds: CONST.WALL_DOOR_STATES.CLOSED, door: CONST.WALL_DOOR_TYPES.DOOR }),
           ...plainWalls.map((w) => wallDoc(w)),
         );
       }
@@ -2015,9 +2029,30 @@ export async function populateSlotEncounter(scene, roomId, { rect, prefillTraits
 
 Rename `startCombatForSlot`/`getCombatForSlot` (`dungeon-combat.mjs`) to `startCombatForRoom`/`getCombatForRoom` for clarity — purely a name change (both are already generic `(scene, value)` pass-throughs to `startCombat`/a flag-equality lookup, never doing arithmetic on the value), 4 call sites total, all inside `dungeon-scene.mjs`/`ui/dungeon-app.mjs` (both already being touched by this plan).
 
-- [ ] **Step 3e: `isSlotBuilt`/`isSlotPopulated`/`unlockDoorToSlot`/`relockDoorToSlot` — flag value type only, names unchanged**
+- [ ] **Step 3e: `isSlotPopulated`/`unlockDoorToSlot`/`relockDoorToSlot` unchanged; `isSlotBuilt` needs a real body fix**
 
-These four functions' bodies don't need to change at all — they already take an opaque `slot` param and compare it via `===` against a flag value. Just confirm every CALLER now passes a `room.id` string where it used to pass an integer `physicalSlot`/`slot` (Step 3c/3d above already do this). Do not rename these four functions or their flags.
+`isSlotPopulated`/`unlockDoorToSlot`/`relockDoorToSlot` don't need to change at all — they already take an opaque `slot` param and compare it via `===` against a flag value (`dungeonSlot`, still written by `populateSlotEncounter`/`populateSlotTrap` in Step 3d). Just confirm every CALLER now passes a `room.id` string where it used to pass an integer `physicalSlot`/`slot` (Step 3c/3d above already do this). Do not rename these three functions or their flags.
+
+**`isSlotBuilt` is the one exception — #93 pre-flight fix (found during this task's own review).** Its current body checks `w.getFlag(MODULE_ID, "dungeonDoorToSlot") === slot` — but `buildRoomAtGraphNode`/`buildPopulateAndUnlockGraphNode` never write a `dungeonDoorToSlot`-flagged wall anywhere (that flag belonged to the old slot system's own door-building code, not this task's). Left as originally drafted, `isSlotBuilt` returns `false` for EVERY room built via the new graph functions, always — `alreadyBuilt` is never true, so `buildPopulateAndUnlockGraphNode` is never idempotent: every call (including Task 11's lazy-fallback check on EVERY door-open) rebuilds the room from scratch — duplicate walls, tiles, and lights, and a second set of full-face frontier placeholders laid directly over the room's already-open exits, which nothing ever deletes again since the room's real children are already built. Replace its body:
+
+```js
+export function isSlotBuilt(scene, roomId) {
+  // A room ALWAYS has at least one of these once buildRoomAtGraphNode
+  // has run for it: an enclosure wall (the entry room; the goal room;
+  // any room with a spare face not claimed by an outgoing connection),
+  // a frontier placeholder for one of its own real children (any
+  // non-goal room — exitCountAt never returns 0), or a hidden-outgoing
+  // placeholder. A room with exactly 3 real children and at least one
+  // incoming connection has ZERO enclosure walls (all 4 faces claimed),
+  // which is why this checks all three markers, not just one.
+  return scene.walls.some(
+    (w) =>
+      w.getFlag(MODULE_ID, "dungeonEnclosureWallForRoom") === roomId ||
+      w.getFlag(MODULE_ID, "dungeonFrontierWallForEdge")?.startsWith(`${roomId}->`) ||
+      w.getFlag(MODULE_ID, "dungeonHiddenDoorForEdge")?.startsWith(`${roomId}->`),
+  );
+}
+```
 
 - [ ] **Step 3f: Add `unlockDoorsFromRoom` and `resizeSceneForLayout`**
 
@@ -2026,12 +2061,25 @@ These four functions' bodies don't need to change at all — they already take a
  * childIds but not in hiddenChildIds — #93: a graph room can have several
  * exits, all needing unlocking together once its own outcome resolves,
  * unlike the old single unlockDoorToSlot call. Each door was flagged
- * dungeonDoorToRoomId with its own target room id at build time
- * (buildPopulateAndUnlockGraphNode / Step 3c above). */
+ * dungeonDoorToRoomId with its own target room id AND
+ * dungeonDoorFromRoomId with its own source room id at build time
+ * (buildPopulateAndUnlockGraphNode / Step 3c above).
+ *
+ * #93 pre-flight fix (found during this task's own review): matching on
+ * `dungeonDoorToRoomId === targetId` ALONE is not enough — a merge
+ * target can have several real doors, all flagged with the SAME target
+ * id (one per real parent), so `Array.find` would return whichever one
+ * happens to come first in the scene's wall list, not necessarily THIS
+ * room's own door. Matching on both ends of the edge together is what
+ * actually picks out the right one. */
 export async function unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildIds = []) {
   const targets = childIds.filter((id) => !hiddenChildIds.includes(id));
   for (const targetId of targets) {
-    const wall = scene.walls.find((w) => w.getFlag(MODULE_ID, "dungeonDoorToRoomId") === targetId);
+    const wall = scene.walls.find(
+      (w) =>
+        w.getFlag(MODULE_ID, "dungeonDoorToRoomId") === targetId &&
+        w.getFlag(MODULE_ID, "dungeonDoorFromRoomId") === roomId,
+    );
     if (wall) {
       await wall.update({ ds: CONST.WALL_DOOR_STATES.CLOSED });
       playDoorSound("unlock");
