@@ -212,8 +212,32 @@ Confirmed with Cory across several rounds:
   array." Concretely: revealing a shortcut unlocks its door (bypassing the
   skipped intermediate room(s), which become unused exactly like any
   other unchosen branch); revealing a detour unlocks the door into the
-  detour room and re-routes the "onward" door so the party must pass
-  through it before reaching the room it was hidden in front of.
+  detour room as an **additional, optional route** alongside the existing
+  direct door to the same target — not a forced reroute. (Revised by #156:
+  the original wording here said the reveal "re-routes the onward door so
+  the party must pass through it," but the direct door must stay a
+  guaranteed route regardless of whether `extra_travel_time` ever rolls
+  for a given room — locking an already-built, possibly-already-unlocked
+  direct door on reveal risks stranding a branch when the outcome
+  quietly never fires. An optional alternate route has no such failure
+  mode and never touches already-built geometry.)
+- **Hidden-path geometry is built eagerly and sealed, never retrofitted
+  (#156).** The original plan for #93 attached hidden shortcuts/detours as
+  pure out-of-band data (not reachable via the normal `edges` graph),
+  which meant they were never included in layout or eager building, and a
+  room with a hidden edge never got a reserved wall face for it — so a
+  reveal had nothing built to unlock. The corrected design: every room's
+  outgoing face budget (at most 3 — `south`/`east`/`west`) is allocated
+  across its real exits *and* at most one hidden extra at generation time;
+  the hidden door is built like any other door — real walls, a real
+  corridor — just `LOCKED` and flagged distinctly so the normal
+  per-room-populated unlock step skips it. A reveal is then a pure
+  flag/state flip (`LOCKED` → `CLOSED`, hidden flag → normal
+  `dungeonDoorToRoomId`) against already-built geometry, matching this
+  document's own "never builds or splices anything at runtime" framing
+  exactly — the original plan's Tasks 3/4/5/7/9/10 just didn't yet
+  implement that promise. See `docs/superpowers/plans/2026-09-23-branching-dungeon-topology.md`
+  for the corrected task-level detail.
 
 ### Goal convergence
 
