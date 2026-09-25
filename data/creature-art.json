@@ -9478,5 +9478,165 @@
     "name": "Simurgh",
     "level": 18,
     "art": "simurgh.webp"
+  },
+  {
+    "id": "deimavigga",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "rxeSI37OvsSoXvYf",
+    "name": "Deimavigga",
+    "level": 17,
+    "art": "deimavigga.webp"
+  },
+  {
+    "id": "eldritch_emeritus",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "SlabO2qbzHYS3kA6",
+    "name": "Eldritch Emeritus",
+    "level": 17,
+    "art": "eldritch-emeritus.webp"
+  },
+  {
+    "id": "eseneth",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "TOysExbCm3LNzrDl",
+    "name": "Eseneth",
+    "level": 17,
+    "art": "eseneth.webp"
+  },
+  {
+    "id": "island_oni",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "VGPtiSeeT7CYgWrv",
+    "name": "Island Oni",
+    "level": 17,
+    "art": "island-oni.webp"
+  },
+  {
+    "id": "kadamel",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "jDJ5XzsSAMDasITG",
+    "name": "Kadamel",
+    "level": 17,
+    "art": "kadamel.webp"
+  },
+  {
+    "id": "keketar",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "z1TEwL0plpK4l2uf",
+    "name": "Keketar",
+    "level": 17,
+    "art": "keketar.webp"
+  },
+  {
+    "id": "marilith",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "ImueS9YFhV6sxqBP",
+    "name": "Marilith",
+    "level": 17,
+    "art": "marilith.webp"
+  },
+  {
+    "id": "phasmadaemon",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "kqbvkWsmrnlziWNp",
+    "name": "Phasmadaemon",
+    "level": 17,
+    "art": "phasmadaemon.webp"
+  },
+  {
+    "id": "vaspercham",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "PLHzkMMyajrodRUU",
+    "name": "Vaspercham",
+    "level": 17,
+    "art": "vaspercham.webp"
+  },
+  {
+    "id": "despair_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "t2IZHTaoFiZM3sxV",
+    "name": "Despair Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "despair-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "doldrums_heap",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "9qlccWxGFcQmgL3h",
+    "name": "Doldrums Heap",
+    "level": 9,
+    "art": "doldrums-heap.webp"
+  },
+  {
+    "id": "dragon_turtle",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "kLhBdqKOMHDGjdFz",
+    "name": "Dragon Turtle",
+    "level": 9,
+    "art": "dragon-turtle.webp"
+  },
+  {
+    "id": "giant_squid",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "32HHvah2Ji6FjJnM",
+    "name": "Giant Squid",
+    "level": 9,
+    "art": "giant-squid.webp"
+  },
+  {
+    "id": "hesperid",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "cEHRuzsGF73PVT3P",
+    "name": "Hesperid",
+    "level": 9,
+    "art": "hesperid.webp"
+  },
+  {
+    "id": "ximtal",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "FlrIq6SquIYb9REJ",
+    "name": "Ximtal",
+    "level": 17,
+    "art": "ximtal.webp"
+  },
+  {
+    "id": "banshee",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "XKOQ3ll9TGNso0uB",
+    "name": "Banshee",
+    "level": 17,
+    "art": "banshee.webp"
+  },
+  {
+    "id": "conspirator_dragon_ancient",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "7ikLoTK1gQJ08YDR",
+    "name": "Conspirator Dragon (Ancient)",
+    "level": 17,
+    "art": "conspirator-dragon-ancient.webp"
+  },
+  {
+    "id": "conspirator_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "C5o3vQKGHhGEsAuV",
+    "name": "Conspirator Dragon (Ancient, Spellcaster)",
+    "level": 17,
+    "art": "conspirator-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "copper_dragon_ancient",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "B9KJUdZre51J3E3e",
+    "name": "Copper Dragon (Ancient)",
+    "level": 17,
+    "art": "copper-dragon-ancient.webp"
+  },
+  {
+    "id": "copper_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "qGvK4f8Clc6dOwLU",
+    "name": "Copper Dragon (Ancient, Spellcaster)",
+    "level": 17,
+    "art": "copper-dragon-ancient-spellcaster.webp"
   }
 ]

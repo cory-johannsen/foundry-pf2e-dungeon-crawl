@@ -1,14 +1,9 @@
 level,rarity,pack,docId,name
 1,common,pf2e.pathfinder-monster-core-2,nLlS3MBFCO3DKwBX,Suli Dune Dancer
-9,common,pf2e.pathfinder-monster-core-2,t2IZHTaoFiZM3sxV,"Despair Dragon (Young, Spellcaster)"
-9,common,pf2e.pathfinder-monster-core,9qlccWxGFcQmgL3h,Doldrums Heap
-9,common,pf2e.pathfinder-monster-core,kLhBdqKOMHDGjdFz,Dragon Turtle
 9,common,pf2e.pathfinder-bestiary,SUpy8sleRwi2Egsq,Drakauthix
 9,common,pf2e.pathfinder-monster-core,893mp411SdYren3H,Frost Giant
 9,common,pf2e.pathfinder-monster-core-2,ej7H1ft2CNCIsTMg,Garuda
 9,common,pf2e.pathfinder-bestiary-2,fVvRASaKa6SkQkYG,Giant Snapping Turtle
-9,common,pf2e.pathfinder-bestiary-2,32HHvah2Ji6FjJnM,Giant Squid
-9,common,pf2e.pathfinder-monster-core-2,cEHRuzsGF73PVT3P,Hesperid
 9,common,pf2e.pathfinder-npc-core,XmWD4T7LcpvNkq6b,Humanitarian Hermit
 9,common,pf2e.pathfinder-monster-core,oKaewcA4gu3fbSVP,Ifrit
 9,common,pf2e.pathfinder-monster-core,DEZNEMDhWXvv7BrT,Irnakurse
@@ -412,21 +407,6 @@ level,rarity,pack,docId,name
 16,rare,pf2e.pathfinder-bestiary-3,epTO8fPDjyy2WhzD,Mithral Golem
 16,rare,pf2e.pathfinder-monster-core,NxLQHUMs57TktiZa,Vilderavn
 16,rare,pf2e.pathfinder-npc-core,Vp2PPBttJl1h8iZe,World Ender
-17,common,pf2e.pathfinder-monster-core-2,rxeSI37OvsSoXvYf,Deimavigga
-17,common,pf2e.pathfinder-npc-core,SlabO2qbzHYS3kA6,Eldritch Emeritus
-17,common,pf2e.pathfinder-monster-core-2,TOysExbCm3LNzrDl,Eseneth
-17,common,pf2e.pathfinder-monster-core,VGPtiSeeT7CYgWrv,Island Oni
-17,common,pf2e.pathfinder-monster-core-2,jDJ5XzsSAMDasITG,Kadamel
-17,common,pf2e.pathfinder-monster-core,z1TEwL0plpK4l2uf,Keketar
-17,common,pf2e.pathfinder-bestiary,ImueS9YFhV6sxqBP,Marilith
-17,common,pf2e.pathfinder-monster-core-2,kqbvkWsmrnlziWNp,Phasmadaemon
-17,common,pf2e.pathfinder-monster-core-2,PLHzkMMyajrodRUU,Vaspercham
-17,common,pf2e.pathfinder-monster-core-2,FlrIq6SquIYb9REJ,Ximtal
-17,uncommon,pf2e.pathfinder-monster-core,XKOQ3ll9TGNso0uB,Banshee
-17,uncommon,pf2e.pathfinder-monster-core,7ikLoTK1gQJ08YDR,Conspirator Dragon (Ancient)
-17,uncommon,pf2e.pathfinder-monster-core,C5o3vQKGHhGEsAuV,"Conspirator Dragon (Ancient, Spellcaster)"
-17,uncommon,pf2e.pathfinder-bestiary,B9KJUdZre51J3E3e,Copper Dragon (Ancient)
-17,uncommon,pf2e.pathfinder-bestiary,qGvK4f8Clc6dOwLU,"Copper Dragon (Ancient, Spellcaster)"
 17,uncommon,pf2e.pathfinder-monster-core-2,L0GbthgIX8icmRhF,Coral Dragon (Ancient)
 17,uncommon,pf2e.pathfinder-monster-core-2,Ec8MUOsVm84nDhaU,"Coral Dragon (Ancient, Spellcaster)"
 17,uncommon,pf2e.pathfinder-npc-core,iOAX2QVvgaBdGc0B,Grandmaster
