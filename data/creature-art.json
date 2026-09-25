@@ -9774,5 +9774,37 @@
     "name": "Thrasfyr",
     "level": 17,
     "art": "thrasfyr.webp"
+  },
+  {
+    "id": "humanitarian_hermit",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "XmWD4T7LcpvNkq6b",
+    "name": "Humanitarian Hermit",
+    "level": 9,
+    "art": "humanitarian-hermit.webp"
+  },
+  {
+    "id": "jyoti",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "VeCpLJCnBiHAwfCg",
+    "name": "Jyoti",
+    "level": 9,
+    "art": "jyoti.webp"
+  },
+  {
+    "id": "kithangian",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "c21HwKyf4IKgMfcv",
+    "name": "Kithangian",
+    "level": 9,
+    "art": "kithangian.webp"
+  },
+  {
+    "id": "leukodaemon",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "bb5Z4z4EHb5LbCLK",
+    "name": "Leukodaemon",
+    "level": 9,
+    "art": "leukodaemon.webp"
   }
 ]
