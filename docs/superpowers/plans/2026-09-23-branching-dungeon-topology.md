@@ -2025,13 +2025,15 @@ git commit -m "feat: build+populate+unlock multi-exit graph rooms with per-edge 
 - Modify: `scripts/dungeon-scene.mjs`
 - Test: manual/live verification (same boundary as Task 10).
 
+**#93 pre-flight fix — this task's scope was under-drafted.** An earlier draft's `handleDungeonDoorOpened` only handled routing (resolve `roomId`, lazy-build, `advanceToRoom`) and silently dropped everything else the CURRENT function does: the `game.user.isGM` guard (this hook fires on every connected client), `playDoorSound`, `revealSlotTokens`, starting combat before the reveal gives it away, `focusCameraOnSlot`, the `{autoOpenTracker}` return contract another caller depends on, and — the real gap — the rest room's own auto-resolve (a rest room has nothing to Succeed/Fail, so it resolves itself immediately instead of leaving the party stuck with no button to press). Dispatched as originally drafted, this would have been a real feature regression, not just an incomplete diff. The corrected version below restores all of it, adapted to the room-id model.
+
 **Interfaces:**
-- Consumes: `advanceToRoom` (Task 8), `doorToRoomId` lookup (Task 10), `buildPopulateAndUnlockGraphNode` (Task 10 — now resolves a room's own `incomingConnections` internally via `state.layoutEdges`/`state.hiddenIncomingByRoomId`/`state.hiddenRooms`, so this task's caller only needs `childIds`/`hiddenChildId`).
-- Produces: `handleDungeonDoorOpened(sceneId, wallId)` (existing name, new body) resolving `wallId` → `doorToRoomId[wallId]` → calls `advanceToRoom` with that specific child, instead of the old single `state.rooms[state.currentIndex + 1]` check. Adds the Review Focus lazy-fallback build: if the resolved room's content isn't present yet (eager pregeneration failed for it), build AND populate it on demand before revealing (a walls-only fallback would leave the party in an empty, permanently-locked room — see Task 10's Step 3c split).
+- Consumes: `advanceToRoom` (Task 8), `markRoomOutcome`/`unlockDoorsFromRoom` (Task 9/10 — the rest-room auto-resolve no longer builds anything, full pregeneration already built every room; it only unlocks the rest room's own outgoing doors, same pattern as Task 13's `resolveCurrentRoom`), `doorToRoomId` lookup (Task 10), `buildPopulateAndUnlockGraphNode` (Task 10 — now resolves a room's own `incomingConnections` internally via `state.layoutEdges`/`state.hiddenIncomingByRoomId`/`state.hiddenRooms`, so this task's caller only needs `childIds`/`hiddenChildId`), `startCombatForRoom` (Task 10 Step 3d's rename of `startCombatForSlot`), a new `focusCameraOnRoom` (this task, see below).
+- Produces: `handleDungeonDoorOpened(sceneId, wallId)` (existing name, new body) resolving `wallId` → `doorToRoomId[wallId]` → calls `advanceToRoom` with that specific child, instead of the old single `state.rooms[state.currentIndex + 1]` check. Adds the Review Focus lazy-fallback build: if the resolved room's content isn't present yet (eager pregeneration failed for it), build AND populate it on demand before revealing (a walls-only fallback would leave the party in an empty, permanently-locked room — see Task 10's Step 3c split). Keeps every other existing behavior (GM guard, sound, token reveal, combat start, camera focus, `{autoOpenTracker}` return, rest-room auto-resolve) intact under the new model.
 
 - [ ] **Step 1: Write the manual verification checklist**
 
-(a) opening a 2-exit room's first door advances the party into that door's specific child, not the other exit's child; (b) opening the second door afterward (if the player backtracks — same undo-window semantics as today) resolves to the OTHER child correctly; (c) a room whose eager build failed (simulate by not pre-building it) still gets built on first door-open, and the party is not stuck.
+(a) opening a 2-exit room's first door advances the party into that door's specific child, not the other exit's child; (b) opening the second door afterward (if the player backtracks — same undo-window semantics as today) resolves to the OTHER child correctly; (c) a room whose eager build failed (simulate by not pre-building it) still gets built on first door-open, and the party is not stuck; (d) a non-GM client opening a door does nothing (the hook fires client-side for everyone, only the GM acts); (e) a combat room's monsters stay hidden until the door is actually opened, then Combat starts; (f) opening a door into a rest room immediately resolves it (no Succeed/Fail prompt) and unlocks its own onward door(s), matching today's behavior; (g) the Dungeon Crawl tracker auto-opens for every non-combat room reveal (combat already surfaces via Foundry's native Combat Tracker).
 
 - [ ] **Step 2: (N/A — no automated test to run first for this task)**
 
@@ -2039,13 +2041,17 @@ git commit -m "feat: build+populate+unlock multi-exit graph rooms with per-edge 
 
 ```js
 export async function handleDungeonDoorOpened(sceneId, wallId) {
+  // Called directly from a global hook, which fires on every connected
+  // client — only the GM's own client should act on it.
+  if (!game.user.isGM) return { autoOpenTracker: false };
   const scene = game.scenes.get(sceneId);
   const wall = scene?.walls.get(wallId);
   const roomId = wall?.getFlag(MODULE_ID, "dungeonDoorToRoomId");
-  if (!roomId) return;
+  if (!roomId) return { autoOpenTracker: false };
 
   const state = getRunState(sceneId);
-  if (!state || !(state.edges[state.currentRoomId] ?? []).includes(roomId)) return;
+  if (!state || !(state.edges[state.currentRoomId] ?? []).includes(roomId))
+    return { autoOpenTracker: false };
 
   // Lazy fallback (#93 error handling): if eager pregeneration somehow
   // failed for this room, build AND populate it now rather than leaving
@@ -2075,11 +2081,69 @@ export async function handleDungeonDoorOpened(sceneId, wallId) {
     });
   }
 
-  await advanceToRoom({ sceneId, roomId, revealedTokenIds: [] });
+  playDoorSound("open");
+  const revealedTokenIds = await revealSlotTokens(scene, roomId);
+  const room = state.rooms[roomId];
+  // Started here, not at populate/build time — the room's monsters spawn
+  // hidden, and starting Combat before the door is actually opened would
+  // give away that a fight is coming.
+  if (room?.kind === "combat") await startCombatForRoom(scene, roomId);
+  const { state: advancedState } = await advanceToRoom({
+    sceneId,
+    roomId,
+    revealedTokenIds,
+  });
+  const { rank, col } = state.layoutPositionByRoomId[roomId];
+  focusCameraOnRoom(scene, roomId, rank, col, state.seed);
+
+  // A rest room (ITEM-5) is safe and has nothing to resolve — like the
+  // entry, its own way forward opens immediately, no GM click required,
+  // instead of leaving the party stuck with no Succeed/Fail button to
+  // press. #93: under full pregeneration every room is already built
+  // (Task 12's eager loop) — nothing to build here anymore, only unlock
+  // the rest room's own outgoing doors, the exact same pattern Task 13's
+  // resolveCurrentRoom uses for every other room's outcome resolution
+  // (markRoomOutcome no longer returns a "next room" to build at all).
+  if (room?.kind === "safe_rest" && advancedState) {
+    const { state: resolvedState } = await markRoomOutcome({
+      sceneId,
+      succeeded: true,
+    });
+    await unlockDoorsFromRoom(
+      scene,
+      roomId,
+      resolvedState.edges[roomId] ?? [],
+      resolvedState.hiddenEdges[roomId] ?? [],
+    );
+  }
+
+  return { autoOpenTracker: room?.kind !== "combat" };
 }
 ```
 
-**Note for the implementer:** `wall.getFlag(MODULE_ID, "dungeonDoorToRoomId")` must be set when each door wall is created in Task 10 (add it alongside the existing `dungeonDoorToSlot`-style flag, now storing the target room id directly rather than a slot number — simplest possible `doorToRoomId` lookup, keyed by wall flag rather than a separately-threaded map, avoiding new state). `isSlotBuilt` (unchanged name — Step 3e) already generalizes cleanly: it takes an opaque `slot` param and compares it by `===` against a flag value, so passing a room id string where it used to get an integer works with no body changes.
+**New helper, alongside `focusCameraOnSlot` (do not replace or delete it — the two other call sites in `scripts/ui/dungeon-app.mjs` are outside this task's file scope and still key off the old physical-slot model; whichever of Tasks 12/13 finishes migrating that file's own rendering context to room ids should repoint them at this new function too):**
+
+```js
+/** Graph-aware twin of focusCameraOnSlot — same camera-fit math, keyed by
+ * roomRect(seed, roomId, rank, col) instead of slotRect(seed, slot), since
+ * a room's position is no longer derivable from an integer alone. */
+export function focusCameraOnRoom(scene, roomId, rank, col, seed) {
+  if (canvas?.scene?.id !== scene.id) return;
+  const rect = roomRect(seed, roomId, rank, col);
+  const roomPixelSize = Math.max(toPixels(rect.gw), toPixels(rect.gh));
+  const [screenWidth, screenHeight] = canvas.screenDimensions ?? [1000, 1000];
+  const fitScale = Math.min(screenWidth, screenHeight) / (roomPixelSize * 1.3);
+  const scale = Math.min(1.5, Math.max(0.3, fitScale));
+  canvas.animatePan({
+    x: toPixels(rect.gx + rect.gw / 2),
+    y: toPixels(rect.gy + rect.gh / 2),
+    scale,
+    duration: 250,
+  });
+}
+```
+
+**Note for the implementer:** `wall.getFlag(MODULE_ID, "dungeonDoorToRoomId")` must be set when each door wall is created in Task 10 (add it alongside the existing `dungeonDoorToSlot`-style flag, now storing the target room id directly rather than a slot number — simplest possible `doorToRoomId` lookup, keyed by wall flag rather than a separately-threaded map, avoiding new state). `isSlotBuilt`/`revealSlotTokens`/`startCombatForRoom` (renamed from `startCombatForSlot`, Step 3d) all already generalize cleanly: they take an opaque value compared by `===` against a flag, so passing a room id string where it used to get an integer works with no body changes.
 
 - [ ] **Step 4: Live verification**
 
@@ -2246,7 +2310,7 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
       trapLevel != null ? trapLevel - (await makeFoundryApi().partyLevel()) : 0;
     await makeFoundryApi().grantPartyXp(xpFor(levelOffset));
   }
-  const { state, effectKey } = await markRoomOutcome(
+  const { state, effectKey, revealedRoomId } = await markRoomOutcome(
     { sceneId: scene.id, succeeded },
     {
       puzzleSetpieceIds: setpieces
@@ -2264,12 +2328,22 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
     },
   );
   if (currentRoom && effectKey) {
+    // #93 pre-flight fix (found during Task 9's review): Task 9's own
+    // `applyRoomEffect` addendum (its `reduced_travel_time`/
+    // `extra_travel_time` case, dungeon-app.mjs) reads `scene` and
+    // `revealedRoomId` off THIS call's params to call
+    // `unsealHiddenDoorFromRoom` — an earlier draft of this task dropped
+    // both here, which would have silently disconnected Task 9's unseal
+    // step (a hidden door revealed by outcome would never actually
+    // unlock in the scene, even though the data merge succeeded).
     await applyRoomEffect(effectKey, {
+      scene,
       seed: preState.seed,
       roomId: currentRoom.id,
       rank: preState.layoutPositionByRoomId[currentRoom.id].rank,
       maxRank: preState.maxRank,
       isGoal: currentRoom.isGoal,
+      revealedRoomId,
     });
   }
   // #93: full pregeneration means every room the party can reach is
@@ -2291,7 +2365,7 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
 }
 ```
 
-Update `applyRoomEffect`'s own destructure (`dungeon-app.mjs:412-414`) from `{ seed, roomId, physicalSlot, roomCount, isGoal }` to `{ seed, roomId, rank, maxRank, isGoal }`, and its `treasure` case's call into `grantTreasureReward` (`dungeon-app.mjs:421-431`) from `{ physicalSlot, roomCount }` to `{ rank, maxRank }`. Update `grantTreasureReward`'s own destructure (`dungeon-app.mjs:370-372`) the same way, and its two calls into `lootGpForTreasureRoom`/`treasureRoomItemTableName` (`dungeon-app.mjs:374-379`, `392-398`) to pass `{ rank, maxRank, ... }` instead of `{ physicalSlot, roomCount, ... }` — both functions' own signatures already take `rank`/`maxRank` as of Task 9's Step 3a, so this is purely threading the renamed fields through, not a new rename.
+Update `applyRoomEffect`'s own destructure (`dungeon-app.mjs:412-414`) from `{ seed, roomId, physicalSlot, roomCount, isGoal }` to `{ scene, seed, roomId, rank, maxRank, isGoal, revealedRoomId }` (adding `scene`/`revealedRoomId` — required by Task 9's already-landed `reduced_travel_time`/`extra_travel_time` case in this same function, which reads both), and its `treasure` case's call into `grantTreasureReward` (`dungeon-app.mjs:421-431`) from `{ physicalSlot, roomCount }` to `{ rank, maxRank }`. Update `grantTreasureReward`'s own destructure (`dungeon-app.mjs:370-372`) the same way, and its two calls into `lootGpForTreasureRoom`/`treasureRoomItemTableName` (`dungeon-app.mjs:374-379`, `392-398`) to pass `{ rank, maxRank, ... }` instead of `{ physicalSlot, roomCount, ... }` — both functions' own signatures already take `rank`/`maxRank` as of Task 9's Step 3a, so this is purely threading the renamed fields through, not a new rename.
 
 Delete `roomsNeedingResync` entirely from `scripts/dungeon-runner.mjs` (its export, `dungeon-runner.mjs:390` onward through the end of its function body) and remove it from the `roomsNeedingResync` import in `scripts/ui/dungeon-app.mjs:13` (the whole import line, since nothing else in that block depended on it — verify no other name shares the line before deleting the line itself rather than just the one specifier). Delete its `describe("roomsNeedingResync", ...)` block from `tests/dungeon-runner.test.mjs:2095-2166` and remove `roomsNeedingResync` from that file's own import list (`tests/dungeon-runner.test.mjs:10`).
 
