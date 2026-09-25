@@ -332,3 +332,59 @@ export function corridorTileVariant(index, length, vertical) {
   if (index === length - 1) return { variant: 'end', rotation: vertical ? 180 : 90 };
   return { variant: 'mid', rotation: vertical ? 0 : 90 };
 }
+
+/** Topological rank (longest path from entryId) for every room in edges. */
+export function computeRanks(edges, entryId) {
+  const ranks = { [entryId]: 0 };
+  // Kahn-style relaxation: repeatedly push rank = max(parent ranks) + 1
+  // until stable — simpler than a strict topo-sort given this graph's
+  // small size, and just as correct for a DAG.
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const [fromId, children] of Object.entries(edges)) {
+      if (!(fromId in ranks)) continue;
+      for (const childId of children) {
+        const candidate = ranks[fromId] + 1;
+        if (!(childId in ranks) || ranks[childId] < candidate) {
+          ranks[childId] = candidate;
+          changed = true;
+        }
+      }
+    }
+  }
+  return ranks;
+}
+
+/**
+ * Column index (integer, per-rank left-to-right order) via a single DFS
+ * pass from entryId — #93 pre-flight fix (see the note below the
+ * function for what the original bottom-up-width/top-down-centering
+ * design got wrong and why it was replaced). Every room is visited
+ * exactly once (first parent to reach it wins, matching the design's
+ * "merge rooms placed once, whichever parent reaches them first"
+ * intent); each NEW room claims the next unused column at its own rank
+ * via a monotonic per-rank counter, which is what actually guarantees
+ * two different rooms at the same rank can never collide on a column —
+ * `ranks` (pre-computed by computeRanks, already correctly reflecting a
+ * merge room's longest-path rank) is looked up directly, not re-derived
+ * from DFS depth, so a merge room still lands at its correct rank
+ * regardless of which parent's branch reaches it first.
+ */
+export function computeColumns(edges, ranks, entryId) {
+  const columns = {};
+  const nextColByRank = {};
+  const visited = new Set();
+
+  function visit(roomId) {
+    if (visited.has(roomId)) return;
+    visited.add(roomId);
+    const rank = ranks[roomId];
+    const col = nextColByRank[rank] ?? 0;
+    columns[roomId] = col;
+    nextColByRank[rank] = col + 1;
+    for (const childId of edges[roomId] ?? []) visit(childId);
+  }
+  visit(entryId);
+  return columns;
+}

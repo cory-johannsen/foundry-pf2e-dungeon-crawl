@@ -2,8 +2,10 @@ import { describe, it, expect } from 'vitest';
 import {
   ROOM_SIZE_SMALL, ROOM_SIZE_LARGE, ROOMS_PER_ROW, CORRIDOR_LEN, DOOR_WIDTH,
   slotRowCol, slotRect, connectionDirection, roomEnclosureWalls,
-  buildConnectionGeometry, doorOffsetAt, corridorTileVariant, outgoingFaceWall, roomSizeAt
+  buildConnectionGeometry, doorOffsetAt, corridorTileVariant, outgoingFaceWall, roomSizeAt,
+  computeRanks, computeColumns
 } from '../scripts/dungeon-layout.mjs';
+import { buildRoomGraph } from '../scripts/dungeon-deck.mjs';
 
 const SEED = 'seed-a';
 
@@ -526,6 +528,74 @@ describe('corridorTileVariant', () => {
         } else {
           expect(endCount).toBe(2);
           expect(midCount).toBe(length - 2);
+        }
+      }
+    }
+  });
+});
+
+describe('computeRanks', () => {
+  it('entry is rank 0; a straight chain increments by 1', () => {
+    const edges = { 'room-entry': ['a'], a: ['b'], b: ['c'], c: [] };
+    const ranks = computeRanks(edges, 'room-entry');
+    expect(ranks['room-entry']).toBe(0);
+    expect(ranks.a).toBe(1);
+    expect(ranks.b).toBe(2);
+    expect(ranks.c).toBe(3);
+  });
+
+  it('a merge room takes the max rank over all its parents', () => {
+    const edges = { 'room-entry': ['a', 'b'], a: ['m'], b: ['x', 'm'], x: ['m'], m: [] };
+    const ranks = computeRanks(edges, 'room-entry');
+    // a=1, b=1, x=2 (via b), m must be max(rank(a)+1, rank(b)+1, rank(x)+1) = 3
+    expect(ranks.m).toBe(3);
+  });
+});
+
+describe('computeColumns', () => {
+  it('two siblings at the same rank get distinct columns', () => {
+    const edges = { 'room-entry': ['a', 'b'], a: [], b: [] };
+    const ranks = computeRanks(edges, 'room-entry');
+    const cols = computeColumns(edges, ranks, 'room-entry');
+    expect(cols.a).not.toBe(cols.b);
+  });
+
+  it('a single child is centered under a single parent (same column)', () => {
+    const edges = { 'room-entry': ['a'], a: ['b'], b: [] };
+    const ranks = computeRanks(edges, 'room-entry');
+    const cols = computeColumns(edges, ranks, 'room-entry');
+    expect(cols.a).toBe(cols['room-entry']);
+    expect(cols.b).toBe(cols.a);
+  });
+
+  it('is deterministic and assigns every room a column', () => {
+    const edges = { 'room-entry': ['a', 'b'], a: ['c'], b: ['c'], c: [] };
+    const ranks = computeRanks(edges, 'room-entry');
+    const cols = computeColumns(edges, ranks, 'room-entry');
+    for (const id of Object.keys(edges)) expect(typeof cols[id]).toBe('number');
+  });
+
+  it('a diamond (two parents converging on the same child) still gives the two parents distinct columns (#93 pre-flight fix regression — the original centering design collapsed both onto the shared child\'s column, which roomRect would then place at the exact same grid cell)', () => {
+    const edges = { 'room-entry': ['a', 'b'], a: ['c'], b: ['c'], c: [] };
+    const ranks = computeRanks(edges, 'room-entry');
+    const cols = computeColumns(edges, ranks, 'room-entry');
+    expect(cols.a).not.toBe(cols.b);
+  });
+
+  it('no two rooms at the same rank ever share a column, across a wide sweep of generated graphs (the real invariant roomRect depends on to avoid overlapping rooms)', () => {
+    for (let n = 0; n < 40; n += 1) {
+      const seed = `layout-${n}`;
+      for (const roomCount of [3, 4, 6, 8, 12, 16, 24]) {
+        const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+        const ranks = computeRanks(edges, 'room-entry');
+        const cols = computeColumns(edges, ranks, 'room-entry');
+        const seenByRank = {};
+        for (const roomId of Object.keys(rooms)) {
+          const key = ranks[roomId];
+          const col = cols[roomId];
+          seenByRank[key] ??= new Set();
+          expect(seenByRank[key].has(col)).toBe(false);
+          seenByRank[key].add(col);
         }
       }
     }
