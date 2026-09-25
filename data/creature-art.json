@@ -9830,5 +9830,53 @@
     "name": "Giant Snapping Turtle",
     "level": 9,
     "art": "giant-snapping-turtle.webp"
+  },
+  {
+    "id": "ifrit",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "oKaewcA4gu3fbSVP",
+    "name": "Ifrit",
+    "level": 9,
+    "art": "ifrit.webp"
+  },
+  {
+    "id": "irnakurse",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "DEZNEMDhWXvv7BrT",
+    "name": "Irnakurse",
+    "level": 9,
+    "art": "irnakurse.webp"
+  },
+  {
+    "id": "mirage_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "8JbgbskxcU0EloJX",
+    "name": "Mirage Dragon (Young)",
+    "level": 9,
+    "art": "mirage-dragon-young.webp"
+  },
+  {
+    "id": "osyluth",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "xjV0TmPNfKR7UcKu",
+    "name": "Osyluth",
+    "level": 9,
+    "art": "osyluth.webp"
+  },
+  {
+    "id": "pakalchi",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "vDYawEVRlCxiIp5k",
+    "name": "Pakalchi",
+    "level": 9,
+    "art": "pakalchi.webp"
+  },
+  {
+    "id": "phase_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Akp3E1BEO0pTsTWY",
+    "name": "Phase Dragon (Young)",
+    "level": 9,
+    "art": "phase-dragon-young.webp"
   }
 ]
