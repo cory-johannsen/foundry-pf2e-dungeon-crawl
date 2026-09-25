@@ -2395,27 +2395,31 @@ git commit -m "feat: resolve door-opens against a room's specific graph child, w
 
 ---
 
-## Task 12: Wire full pregeneration into `startDungeonRun`, remove ITEM-11 deferral
+## Task 12: Wire full pregeneration into `startDungeonRun`, remove ITEM-11 deferral, and migrate `state.rooms` to a real dict everywhere
+
+**#93 pre-flight fix — this task's scope was massively under-drafted.** The original draft only rewrote `startDungeonRun` itself. Direct investigation (prompted by Task 11's review flagging that `state.rooms`/`layoutPositionByRoomId` "don't exist yet" against current code) found this task is the FIRST point in the whole plan where `state.rooms` actually becomes a dict keyed by room id for a real run (`createRun` still produces an array via the old `buildRoomSequence` generator, and nothing before this task ever overwrites that). That single shape change is load-bearing everywhere: **19 exported functions in `scripts/dungeon-runner.mjs`** (every `ensure*State`/`clear*State`/`apply*Customization`/`get*PendingCustomization`/`record*Attempt` reducer — none of them touched by any of Tasks 1-11) call `.find`/`.map` on `state.rooms`, which throws a `TypeError` the instant `state.rooms` is a plain object instead of an array. **Several functions in `scripts/ui/dungeon-app.mjs`** outside `startDungeonRun`/`resolveCurrentRoom` (`_prepareContext` — the tracker panel's own core render method — plus `_onRender`, `chooseNarrativeOption`, `resolveCombatRoomOutcome`, `startCombatRecoveryFor`, `recordSkillChallengeOutcome`, `recordPuzzleStageOutcome`, `#onAttemptSkillChallenge`, `#onAttemptPuzzleStage`) still read `state.rooms[state.currentIndex]`/`state.physicalSlotByRoomId[...]`, the old array/slot model. And `scripts/dungeon-scene.mjs`'s `undoRoomEntry` reads `entry.fromIndex`, a field `advanceToRoom` (Task 8) stopped writing when it introduced `lastAutoEntry.fromRoomId` instead — **already broken today**, independent of this task, confirmed by direct reading (not just theory). Dispatched as originally drafted, every one of these would have broken the instant a real graph-shaped run started — most severely, `_prepareContext` failing silently would have left the ENTIRE Dungeon Crawl tracker panel non-functional (no current room, no Succeed/Fail buttons) for every run created after this task landed, undetected until Task 15's final review or later. Fixed by expanding this task to cover the complete migration in one coherent pass, since it's all one conceptual change: "`state.rooms` is a dict now — every consumer must agree."
 
 **Files:**
-- Modify: `scripts/ui/dungeon-app.mjs`
-- Test: manual/live verification (this file drives Foundry UI directly).
+- Modify: `scripts/ui/dungeon-app.mjs`, `scripts/dungeon-runner.mjs`, `scripts/dungeon-scene.mjs`, `templates/dungeon-tracker.hbs`, `tests/dungeon-runner.test.mjs`
+- Test: `tests/dungeon-runner.test.mjs` (existing fixtures for the 19 migrated reducers — fix any that still construct `state.rooms` as an array, same as Task 7's own precedent for `roomsToEagerlyBuild`'s tests); everything UI-facing is manual/live verification (these files drive Foundry directly).
 
 **Interfaces:**
-- Consumes: `buildRoomGraph`, `attachHiddenPaths` (Tasks 2-3), `computeRanks`/`computeColumns` (Task 4), `roomsToEagerlyBuild`/`commitEagerPhysicalSlots` (Task 7), `buildPopulateAndUnlockGraphNode`/`resizeSceneForLayout`/`unlockDoorsFromRoom` (Task 10).
-- Produces: `startDungeonRun` builds the whole graph for every run (drops the `if (state.hostUserId)` gate at dungeon-app.mjs:556) and no longer skips a combat-kind room at generation-order position 1. Persists `state.maxRank` (the graph's deepest rank, from `computeRanks`) alongside `layoutPositionByRoomId` — Task 9's `depthBiasFor` rename and Task 13's `applyRoomEffect` call both read it.
+- Consumes: `buildRoomGraph`, `attachHiddenPaths` (Tasks 2-3), `computeRanks`/`computeColumns` (Task 4), `roomsToEagerlyBuild` (Task 7), `buildPopulateAndUnlockGraphNode`/`resizeSceneForLayout`/`unlockDoorsFromRoom`/`isSlotBuilt`/`isSlotPopulated`/`getCombatForRoom` (Task 10), `focusCameraOnRoom` (Task 11).
+- Produces: `startDungeonRun` builds the whole graph for every run (drops the `if (state.hostUserId)` gate) and no longer skips a combat-kind room at generation-order position 1. Persists `state.maxRank` alongside `layoutPositionByRoomId` — Task 9's `depthBiasFor` rename and Task 13's `applyRoomEffect` call both read it. Every reducer in `dungeon-runner.mjs` and every remaining reader in `dungeon-app.mjs`/`dungeon-scene.mjs` now treats `state.rooms` as a dict (`state.rooms[roomId]`, never `.find`/`.map`). New helpers `relockDoorFromRoom`/`moveTokensToRoom`/`placePartyInRoom` (`dungeon-scene.mjs`) — room-id-keyed twins of `relockDoorToSlot`/`moveTokensToSlot`/`placePartyInSlot`, which this task deletes/stops calling respectively.
 
-**#156 fix:** `computeRanks`/`computeColumns` must run over `layoutEdges` (Task 3's output, includes detour rooms), not `edges` — otherwise a detour room's `layoutPositionByRoomId` entry is `{rank: undefined, col: undefined}` and every downstream `roomRect` call for it produces garbage. `state.layoutEdges`/`state.hiddenIncomingByRoomId`/`state.hiddenRooms` are persisted on state precisely so `buildPopulateAndUnlockGraphNode` (Task 10) can resolve each room's own `incomingConnections` internally — this task's eager-build loop itself no longer computes any incoming-face/parent lookup at all (Task 10's #93 merge-door redesign moved that inside the function it's shared with Task 11's lazy fallback, so both paths agree on a room's geometry by construction).
+**#156 fix:** `computeRanks`/`computeColumns` must run over `layoutEdges` (Task 3's output, includes detour rooms), not `edges` — otherwise a detour room's `layoutPositionByRoomId` entry is `{rank: undefined, col: undefined}` and every downstream `roomRect` call for it produces garbage. `state.layoutEdges`/`state.hiddenIncomingByRoomId`/`state.hiddenRooms` are persisted on state precisely so `buildPopulateAndUnlockGraphNode` (Task 10) can resolve each room's own `incomingConnections` internally — this task's eager-build loop itself no longer computes any incoming-face/parent lookup at all.
+
+**Scope ruling — what stays untouched on purpose:** `createRun` (`dungeon-runner.mjs`) still calls the old `getGenerator().buildRoomSequence(...)` and still sets `physicalSlotByRoomId`/`nextPhysicalSlot`/`currentIndex`/array-`rooms`/`edges` on the state it returns — wasteful (an entire discarded generation pass) but harmless, since `startDungeonRun`'s own code below immediately overwrites every field that matters and this task strips the stale legacy ones from the object it persists forward (see Step 3). Simplifying `createRun` itself is explicitly OUT of this task's scope (lower risk to leave a shipped, widely-used function alone) — ledgered as a deferred cleanup for whoever next touches it. Likewise `commitEagerPhysicalSlots`, `relockDoorToSlot`'s slot-based sibling functions `buildRoomAtSlot`/`buildPopulateAndUnlockRoom`/`unlockDoorToSlot` (and `isSlotBuilt`'s/`isSlotPopulated`'s remaining integer-slot callers inside them) are left defined but now fully uncalled from anywhere reachable — flagged for Task 15's final-review dead-code sweep, not deleted here, since none of them are load-bearing for this task's correctness and deleting them means also deleting their own test coverage, out of scope for an already-large task. `relockDoorToSlot`/`moveTokensToSlot` ARE deleted by this task (Step 5 below) — unlike the others, they have zero remaining callers anywhere, not even from another still-defined (if unreachable) function, so nothing is served by keeping them.
 
 - [ ] **Step 1: Write the manual verification checklist**
 
-(a) a GM-present run now pregenerates every room at scene creation, same as a GM-less run; (b) the "Populate Next Room" button and its `populateNextRoom` handler no longer appear/are removed from the app; (c) a dungeon whose first generated room (after entry) is combat-kind is still fully built and playable immediately, with no manual population step required.
+(a) a GM-present run now pregenerates every room at scene creation, same as a GM-less run; (b) the "Populate Next Room" button and its `populateNextRoom` handler no longer appear/are removed from the app, including the template's own now-dead button markup; (c) a dungeon whose first generated room (after entry) is combat-kind is still fully built and playable immediately, with no manual population step required; (d) the tracker panel renders correctly for a fresh run — current room, Succeed/Fail buttons, room-progress counter — not a blank/broken panel; (e) the room-progress counter (`roomNumber`/`roomTotal`) advances correctly as the party moves through a branching path, still excluding the entry and any rest room from the count; (f) undoing the most recent room entry (the Undo button) correctly re-locks the door, re-hides the revealed room, and steps the party's tokens back to the previous room — for both a normal room and a room reached via a revealed hidden shortcut/detour; (g) a skill-challenge attempt, a puzzle-stage attempt, a trap resolution, a narrative continuation/choice, and a treasure claim all still correctly read and update their room's own persisted state (Victory Points, puzzle stage progress, etc.) after this task's `dungeon-runner.mjs` migration; (h) resolving a combat room's outcome (`resolveCombatRoomOutcome`) and the combat-recovery button (`startCombatRecoveryFor`) both still work against a room id.
 
-- [ ] **Step 2: (N/A — no automated test for this UI-driving file)**
+- [ ] **Step 2: (N/A — no automated test for the UI-driving files; `tests/dungeon-runner.test.mjs` covers the pure-reducer migration in Step 4)**
 
-- [ ] **Step 3: Write the implementation**
+- [ ] **Step 3: `startDungeonRun` — write the graph-generation and eager-build implementation**
 
-In `scripts/ui/dungeon-app.mjs`'s `startDungeonRun` (around line 496-583):
+In `scripts/ui/dungeon-app.mjs`'s `startDungeonRun` (around line 496-639): first change `const state = await createRun(...)` to `let state = await createRun(...)` (the code below reassigns `state`), then replace everything from the `createRun(...)` call's result through the end of the function:
 
 ```js
   const { rooms, edges } = getGenerator().buildRoomGraph({
@@ -2438,8 +2442,15 @@ In `scripts/ui/dungeon-app.mjs`'s `startDungeonRun` (around line 496-583):
   const maxRank = Math.max(...Object.values(ranks));
   const maxCol = Math.max(...Object.values(columns));
 
+  // #93 pre-flight fix: strip the OLD array-model fields createRun still
+  // sets (currentIndex/physicalSlotByRoomId/nextPhysicalSlot, from its own
+  // now-fully-discarded buildRoomSequence() generation) rather than
+  // carrying them forward stale — nothing reads them once this task's own
+  // migration below lands, and leaving them in persisted state is
+  // needlessly confusing for anyone debugging a run later.
+  const { currentIndex: _oldIndex, physicalSlotByRoomId: _oldSlots, nextPhysicalSlot: _oldNext, ...stateWithoutLegacyFields } = state;
   state = {
-    ...state,
+    ...stateWithoutLegacyFields,
     rooms,
     edges,
     layoutEdges,
@@ -2483,22 +2494,301 @@ In `scripts/ui/dungeon-app.mjs`'s `startDungeonRun` (around line 496-583):
       unlock: room.id === 'room-entry',
     });
   }
-  await commitEagerPhysicalSlots(scene.id, eagerlyBuilt);
+  // #93 pre-flight fix: commitEagerPhysicalSlots dropped entirely — it
+  // only ever maintained physicalSlotByRoomId/nextPhysicalSlot, both fully
+  // retired by this task's own migration (Step 4/6 below read state.rooms
+  // directly by id; nothing reads a "physical slot" anymore).
+
+  const partyMembers = (game.actors?.party?.members ?? []).filter(
+    (m) => m.type === 'character',
+  );
+  const { rank: entryRank, col: entryCol } = layoutPositionByRoomId['room-entry'];
+  await placePartyInRoom(scene, 'room-entry', entryRank, entryCol, partyMembers, state.seed);
+  await scene.activate();
+  unpauseIfGmLessRun(scene.id);
+  await new Promise((r) => setTimeout(r, 400));
+  focusCameraOnRoom(scene, 'room-entry', entryRank, entryCol, state.seed);
 ```
 
 Delete `populateNextRoom` (dungeon-app.mjs:733) and its call site/UI button wiring (the `#onPopulateNext` handler and template button referencing it), per the confirmed removal of the ITEM-11 deferral.
 
-**Note for the implementer:** `roomsToEagerlyBuild` already returns rooms in topological (parents-before-children) order over `layoutEdges` (Task 7), so by the time any room's `buildPopulateAndUnlockGraphNode` call runs, every one of its real parents (`parentRoomIdsFor`, resolved inside that function) already has its own `layoutPositionByRoomId` entry and has already been built by an earlier loop iteration — required, since each parent's rect is read via `state.layoutPositionByRoomId[sourceId]` inside Step 3c.
+Remove the now-unused imports `buildRoomAtSlot`, `unlockDoorToSlot`, `placePartyInSlot`, `buildPopulateAndUnlockRoom`, `focusCameraOnSlot`, `commitEagerPhysicalSlots`, `isSlotPopulated`, `isSlotBuilt` from `dungeon-app.mjs`'s import blocks (their only remaining call sites in this file are inside `populateNextRoom`, deleted by this step, and `_prepareContext`'s `nextRoomPending` computation, removed by Step 6 — confirm both are gone before removing these two imports, since Step 6 lands in the same task but a later step) and add `focusCameraOnRoom`, `placePartyInRoom` (both from `dungeon-scene.mjs`) in their place. Also add two NEW top-level imports this step's code needs that aren't in this file yet: `import { getGenerator } from "../generator-registry.mjs";` and `import { computeRanks, computeColumns } from "../dungeon-layout.mjs";` (confirmed neither is currently imported here — `getGenerator` is already used the same way by `dungeon-runner.mjs`/`encounter-generator.mjs`; `computeRanks`/`computeColumns` are `dungeon-layout.mjs:558`/`:595`).
 
-- [ ] **Step 4: Live verification**
+**Note for the implementer:** `roomsToEagerlyBuild` already returns rooms in topological (parents-before-children) order over `layoutEdges` (Task 7), so by the time any room's `buildPopulateAndUnlockGraphNode` call runs, every one of its real parents (`parentRoomIdsFor`, resolved inside that function) already has its own `layoutPositionByRoomId` entry and has already been built by an earlier loop iteration.
 
-Run the Step 1 checklist against a real Foundry world, both as a GM-present and a GM-less (agent-hosted) run.
+- [ ] **Step 4: `scripts/dungeon-runner.mjs` — migrate every `state.rooms.find`/`.map` reducer to dict access**
 
-- [ ] **Step 5: Commit**
+19 exported functions read or write `state.rooms` as an array. Apply this EXACT mechanical transform to every one — do not skip any, and grep for `state.rooms.find\|state.rooms.map` in this file when done to confirm zero matches remain outside `createRun`/`roomsNeedingResync` (the two deliberately-untouched exceptions, see below).
+
+**Pattern A — read-one-by-id-then-immutably-replace (17 functions):** `ensureSkillChallenge`, `clearSkillChallengeState`, `applySkillChallengeCustomization`, `recordSkillChallengeAttempt`, `ensurePuzzleState`, `clearPuzzleState`, `recordPuzzleStageAttempt`, `applyPuzzleCustomization`, `ensureTrapState`, `clearTrapState`, `applyTrapRoomState`, `ensureNarrativeState`, `clearNarrativeState`, `applyNarrativeCustomization`, `ensureTreasureState`, `clearTreasureState`, `applyTreasureCustomization`. Every one follows this exact shape (shown against `ensureTrapState`, the shortest — apply the identical transform to the other 16, each keeping its own field name(s) and other logic untouched):
+
+```js
+// OLD:
+const room = state.rooms.find((r) => r.id === roomId);
+if (!room || room.trap) return state;
+const trap = { name, description };
+const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, trap } : r));
+const newState = { ...state, rooms };
+
+// NEW:
+const room = state.rooms[roomId];
+if (!room || room.trap) return state;
+const trap = { name, description };
+const rooms = { ...state.rooms, [roomId]: { ...room, trap } };
+const newState = { ...state, rooms };
+```
+
+That is: `state.rooms.find((r) => r.id === X)` → `state.rooms[X]`; `state.rooms.map((r) => (r.id === X ? {...r, ...changes} : r))` → `{ ...state.rooms, [X]: { ...room, ...changes } }` (reusing the already-looked-up `room` variable rather than re-reading `state.rooms[X]` a second time).
+
+**Pattern B — read-only, predicate-based find, not tied to a known id (4 functions):** `getPendingSkillChallengeCustomization`, `getPendingPuzzleCustomization`, `getPendingNarrativeCustomization`, `getPendingTreasureCustomization`. Each does `state.rooms.find((r) => <predicate not keyed on a specific id>)` — since a plain object has no `.find`, wrap it: `state.rooms.find((r) => ...)` → `Object.values(state.rooms).find((r) => ...)`. No other change needed in these four.
+
+**Deliberately NOT touched by this step:**
+- `createRun` (still produces array-shaped `rooms` from `buildRoomSequence` — see this task's own Scope ruling above).
+- `roomsNeedingResync` — already scheduled for outright deletion by Task 13 (dead code, do not fix it here only to have Task 13 delete it).
+- `markRoomOutcome` (already correctly branches on `Array.isArray(state.rooms)` vs dict — no change needed, already handles both).
+
+**Also in this same file, `advanceToRoom` and `undoLastRoomEntry`:** both still compute a `currentIndex`/`previousIndex` via an `Array.isArray(state.rooms)` backward-compat branch that falls through to `state.currentIndex + 1`/`- 1` (→ `NaN`) once `state.rooms` is always a dict — now fully dead computation, since nothing anywhere reads `state.currentIndex` after Step 6 below lands. Delete both functions' `Array.isArray`/`currentIndex`/`previousIndex` blocks entirely and stop writing `currentIndex` into either function's returned state.
+
+Run the full `tests/dungeon-runner.test.mjs` suite after this step. Every one of the 19 migrated functions has existing test coverage with array-shaped `state.rooms` fixtures — update each failing fixture to the dict shape (`rooms: { roomId: {...} }` instead of `rooms: [{...}]`) rather than changing the functions' own logic further, same precedent Task 7 already established for `roomsToEagerlyBuild`'s own tests.
+
+- [ ] **Step 5: `scripts/dungeon-scene.mjs` — fix `undoRoomEntry` (already broken today) and add room-id-keyed helpers**
+
+`undoRoomEntry` currently reads `entry.fromIndex`, a field that has never existed on `lastAutoEntry` since Task 8 shipped (`advanceToRoom` writes `lastAutoEntry: {roomId, fromRoomId, toRoomId, revealedTokenIds}` — confirmed directly, no `fromIndex`). This means `undoRoomEntry` throws today, independent of this task, for ANY run — pre-existing, not introduced by #93, but this task is the right place to fix it since it also needs the same room-id-keyed door/token helpers this task is already adding.
+
+Add two new helpers (room-id-keyed twins of `relockDoorToSlot`/`moveTokensToSlot`, same reasoning as Task 11's `focusCameraOnRoom`):
+
+```js
+/** Undo-only twin of unlockDoorsFromRoom: re-locks the progress-gate door
+ * AND re-closes the reveal door between fromRoomId and toRoomId — a full
+ * undo of both doors' state, not just the one a GM would think to check,
+ * in case a player had already opened the second one too. Matches on both
+ * ends of the edge together, same reasoning as unlockDoorsFromRoom's own
+ * fix round 1 (a merge target's several doors all share the same
+ * dungeonDoorToRoomId; only the fromRoomId/dungeonDoorFromRoomId pair picks
+ * out the specific one this undo needs to reverse). */
+export async function relockDoorFromRoom(scene, fromRoomId, toRoomId) {
+  const wall = scene.walls.find(
+    (w) =>
+      w.getFlag(MODULE_ID, "dungeonDoorToRoomId") === toRoomId &&
+      w.getFlag(MODULE_ID, "dungeonDoorFromRoomId") === fromRoomId,
+  );
+  if (wall) {
+    await wall.update({ ds: CONST.WALL_DOOR_STATES.LOCKED });
+    playDoorSound("lock");
+  }
+  const revealWall = scene.walls.find(
+    (w) =>
+      w.getFlag(MODULE_ID, "dungeonRevealDoorForSlot") === toRoomId &&
+      w.getFlag(MODULE_ID, "dungeonDoorFromRoomId") === fromRoomId,
+  );
+  if (revealWall) await revealWall.update({ ds: CONST.WALL_DOOR_STATES.CLOSED });
+}
+
+/** Move already-placed tokens into roomId — for undo, stepping the party
+ * back. Graph-aware twin of moveTokensToSlot, keyed by roomRect(seed,
+ * roomId, rank, col) instead of slotRect(seed, slot), since a room's
+ * position is no longer derivable from an integer alone. */
+export async function moveTokensToRoom(scene, tokenIds, roomId, rank, col, seed) {
+  if (!tokenIds?.length) return;
+  const rect = roomRect(seed, roomId, rank, col);
+  const updates = tokenIds.map((id, i) => ({
+    _id: id,
+    x: toPixels(rect.gx + (i % rect.gw)),
+    y: toPixels(rect.gy + Math.floor(i / rect.gw)),
+  }));
+  await scene.updateEmbeddedDocuments("Token", updates);
+}
+
+/** Start-of-run: place the party's tokens inside roomId, removing any of
+ * their tokens elsewhere in the world first. Graph-aware twin of
+ * placePartyInSlot, keyed by roomRect instead of slotRect. */
+export async function placePartyInRoom(scene, roomId, rank, col, partyMembers, seed) {
+  const rect = roomRect(seed, roomId, rank, col);
+  const occupied = [];
+  const createdIds = [];
+  for (const actor of partyMembers) {
+    await removeActorTokensFromAllScenes(actor.id);
+    const spot = freeSpotInRect({ occupied, rect, gw: 1, gh: 1 }) ?? {
+      gx: rect.gx,
+      gy: rect.gy,
+      gw: 1,
+      gh: 1,
+    };
+    occupied.push(spot);
+    const td = await actor.getTokenDocument({
+      x: toPixels(spot.gx),
+      y: toPixels(spot.gy),
+    });
+    const [created] = await scene.createEmbeddedDocuments("Token", [
+      td.toObject(),
+    ]);
+    createdIds.push(created.id);
+  }
+  return createdIds;
+}
+```
+
+Replace `undoRoomEntry`'s body:
+
+```js
+export async function undoRoomEntry(sceneId) {
+  const scene = game.scenes.get(sceneId);
+  const state = getRunState(sceneId);
+  if (!scene || !canUndoRoomEntry(state)) {
+    ui.notifications.warn(
+      game.i18n.localize("PF2EDC.Dungeon.AlreadyResolvedUndoWarning"),
+    );
+    return;
+  }
+
+  const entry = state.lastAutoEntry;
+  await hideTokens(scene, entry.revealedTokenIds);
+  await relockDoorFromRoom(scene, entry.fromRoomId, entry.roomId);
+
+  const previousRoomId = entry.fromRoomId;
+  const { rank, col } = state.layoutPositionByRoomId[previousRoomId];
+  const partyIds = partyActorIds();
+  const partyTokenIds = scene.tokens
+    .filter((t) => partyIds.has(t.actor?.id))
+    .map((t) => t.id);
+  await moveTokensToRoom(scene, partyTokenIds, previousRoomId, rank, col, state.seed);
+
+  await undoLastRoomEntry({ sceneId });
+}
+```
+
+Delete `relockDoorToSlot` and `moveTokensToSlot` entirely — once this step lands they have zero remaining callers anywhere in the codebase (unlike `buildRoomAtSlot`/`buildPopulateAndUnlockRoom`/`unlockDoorToSlot`/`placePartyInSlot`/`focusCameraOnSlot`, which this task's Step 3 also stops calling but which stay defined for now, per this task's Scope ruling — those still reference each other internally; these two do not).
+
+- [ ] **Step 6: `scripts/ui/dungeon-app.mjs` — migrate `_prepareContext`, `_onRender`, and the remaining small action handlers**
+
+**`_prepareContext`** (around dungeon-app.mjs:843-1195), three changes:
+
+1. Extend the stale-legacy-run detection gate (line ~858) to also catch a pre-#93 array-shaped run, same "clear and let the GM start fresh" handling it already uses for an even older shape:
+```js
+// #93: a run created before this update has state.rooms as an array with
+// currentIndex/physicalSlotByRoomId — the old linear-sequence shape this
+// app no longer understands. Same "clear and let the GM start fresh"
+// handling the pre-existing Tier-1 check already uses for an even older
+// shape, extended to also catch this one.
+if (state && (!state.physicalSlotByRoomId || Array.isArray(state.rooms)) && game.user.isGM) {
+```
+
+2. Replace the current-room/next-room/slot block:
+```js
+// OLD:
+const currentRoom = state.rooms[state.currentIndex] ?? null;
+...
+const nextRoom = state.rooms[state.currentIndex + 1] ?? null;
+const nextSlot = nextRoom ? state.physicalSlotByRoomId[nextRoom.id] : null;
+const nextRoomPending = !!(
+  nextRoom &&
+  nextRoom.kind === "combat" &&
+  nextSlot != null &&
+  !isSlotPopulated(scene, nextSlot)
+);
+
+const currentSlot = currentRoom
+  ? state.physicalSlotByRoomId[currentRoom.id]
+  : null;
+const isCombatRoom = currentRoom?.kind === "combat" && !currentRoomResolved;
+const isSafeEntry = currentRoom?.kind === "safe_entry";
+const isSafeRest = currentRoom?.kind === "safe_rest";
+const activeCombat =
+  isCombatRoom && currentSlot != null
+    ? getCombatForRoom(scene, currentSlot)
+    : null;
+
+// NEW:
+const currentRoom = state.rooms[state.currentRoomId] ?? null;
+...
+// #93: no more "next room" concept in a branching graph (a room can have
+// 2-3 children, not one) — and no more "pending" state at all, since full
+// pregeneration means every room is already built+populated by the time
+// its door can be opened (Task 10/11's #93 redesign). The whole
+// ITEM-11/populateNextRoom feature this powered is deleted (Step 3).
+const isCombatRoom = currentRoom?.kind === "combat" && !currentRoomResolved;
+const isSafeEntry = currentRoom?.kind === "safe_entry";
+const isSafeRest = currentRoom?.kind === "safe_rest";
+const activeCombat =
+  isCombatRoom && currentRoom ? getCombatForRoom(scene, currentRoom.id) : null;
+```
+(The `currentRoomResolved` line above this block is unchanged — it already reads `currentRoom?.id`, not an index.)
+
+3. Replace the returned context object's `currentSlot`/`nextRoomPending`/`roomNumber`/`roomTotal` fields:
+```js
+// OLD (remove currentSlot and nextRoomPending entirely):
+currentSlot,
+...
+roomNumber: state.rooms
+  .slice(0, state.currentIndex + 1)
+  .filter((r) => !UNCOUNTED_ROOM_KINDS.has(r.kind)).length,
+roomTotal: state.rooms.filter((r) => !UNCOUNTED_ROOM_KINDS.has(r.kind))
+  .length,
+...
+nextRoomPending,
+
+// NEW:
+currentRoomId: currentRoom?.id ?? null,
+// Not rendered — just threaded to _onRender's own focusCameraOnRoom call,
+// which needs the room's rank/col to know its actual position and size
+// (ITEM-17) — a room's geometry is no longer derivable from an integer
+// alone (#93).
+currentRoomRank: currentRoom ? state.layoutPositionByRoomId[currentRoom.id]?.rank : null,
+currentRoomCol: currentRoom ? state.layoutPositionByRoomId[currentRoom.id]?.col : null,
+...
+// #93: neither the entry nor a mid-dungeon rest room (ITEM-5) counts
+// toward the room total — same exclusion as before, now counted via the
+// party's actual traversal path (state.history plus the current room, if
+// not yet resolved) instead of a linear array index, since a branching
+// graph has no single "position N of the sequence" the way a linear
+// dungeon did.
+roomNumber: (currentRoomResolved
+  ? state.history.map((h) => h.roomId)
+  : [...state.history.map((h) => h.roomId), ...(currentRoom ? [currentRoom.id] : [])]
+).filter((id) => !UNCOUNTED_ROOM_KINDS.has(state.rooms[id]?.kind)).length,
+roomTotal: Object.values(state.rooms).filter(
+  (r) => !UNCOUNTED_ROOM_KINDS.has(r.kind),
+).length,
+```
+(Drop the `nextRoomPending` key from the return object entirely — nothing computes it anymore.)
+
+**`_onRender`** — replace the camera-focus call:
+```js
+// OLD:
+if (context.currentSlot != null && canvas?.scene?.id === context.sceneId) {
+  focusCameraOnSlot(canvas.scene, context.currentSlot, context.seed);
+}
+// NEW:
+if (context.currentRoomId != null && canvas?.scene?.id === context.sceneId) {
+  focusCameraOnRoom(canvas.scene, context.currentRoomId, context.currentRoomRank, context.currentRoomCol, context.seed);
+}
+```
+
+**Small action handlers**, each the same one-line fix (`state.rooms[state.currentIndex]` → `state.rooms[state.currentRoomId]`, and drop the `physicalSlotByRoomId` indirection in favor of the room id itself, which is what `dungeonSlot`-flag-based lookups already compare against directly per Task 10's established convention):
+
+- `chooseNarrativeOption` (dungeon-app.mjs:730-737): `state?.rooms[state.currentIndex]?.narrative?.options[...]` → `state?.rooms[state.currentRoomId]?.narrative?.options[...]`.
+- `resolveCombatRoomOutcome` (dungeon-app.mjs:739-752): replace `const currentRoom = state?.rooms[state.currentIndex]; const slot = currentRoom ? state.physicalSlotByRoomId[currentRoom.id] : null; if (slot == null) return; await resolveSlotCombat(scene, slot, ...)` with `const currentRoom = state?.rooms[state.currentRoomId]; if (!currentRoom) return; await resolveSlotCombat(scene, currentRoom.id, ...)` — `resolveSlotCombat`'s own `slot` param is unchanged in name (same `dungeonSlot`-flag-name-unchanged convention as Task 10) but now receives a room-id string, which its existing `===`-based flag comparison already handles correctly.
+- `startCombatRecoveryFor` (dungeon-app.mjs:754-761): same transform — `const currentRoom = state?.rooms[state.currentRoomId]; if (!currentRoom) return; await startCombatForRoom(scene, currentRoom.id);`.
+- `recordSkillChallengeOutcome` (dungeon-app.mjs:641-652): `newState?.rooms.find((r) => r.id === roomId)?.challenge` → `newState?.rooms[roomId]?.challenge`.
+- `recordPuzzleStageOutcome` (dungeon-app.mjs:654-675): `newState?.rooms.find((r) => r.id === roomId)?.puzzle` → `newState?.rooms[roomId]?.puzzle`.
+- `#onAttemptSkillChallenge` (dungeon-app.mjs:1299-1310ish): `state?.rooms[state.currentIndex]` → `state?.rooms[state.currentRoomId]`.
+- `#onAttemptPuzzleStage` (dungeon-app.mjs:1350-1358): same.
+
+`claimTreasureFor` is deliberately NOT touched here — it also calls `grantTreasureReward`, whose own `{physicalSlot, roomCount}` → `{rank, maxRank}` signature migration is Task 13's job (alongside `resolveCurrentRoom`'s identical call); fixing `claimTreasureFor` in lockstep with that signature change belongs in Task 13, not here — see that task's own updated scope.
+
+- [ ] **Step 7: `templates/dungeon-tracker.hbs` — delete the dead ITEM-11 button markup**
+
+Delete the `{{#if nextRoomPending}}...{{/if}}` block (lines 283-290, the `DoorLockedHint`/`PopulateNextButton` block) entirely — `nextRoomPending` no longer exists in the render context (Step 6), so this block can now never render; deleting it removes the dead markup and its reference to the now-deleted `populateNext` action rather than leaving it silently inert. The `{{#unless nextRoomPending}}` wrapper around the safe-room hint text (lines 58-64) can be simplified by removing the now-always-true `{{#unless}}`/`{{/unless}}` wrapper (keeping its inner `{{#if isSafeEntry}}...{{else}}...{{/if}}` content) — optional cleanup, not required for correctness, since an absent `nextRoomPending` already makes `{{#unless}}` a no-op that always renders its body, which is the desired behavior now.
+
+- [ ] **Step 8: Live verification**
+
+Run the Step 1 checklist against a real Foundry world, both as a GM-present and a GM-less (agent-hosted) run — pay particular attention to (d)/(f)/(g)/(h), the checklist items this task's expanded scope specifically exists to keep working.
+
+- [ ] **Step 9: Commit**
 
 ```bash
-git add scripts/ui/dungeon-app.mjs
-git commit -m "feat: pregenerate the full branching graph for every run, drop ITEM-11 deferral"
+git add scripts/ui/dungeon-app.mjs scripts/dungeon-runner.mjs scripts/dungeon-scene.mjs templates/dungeon-tracker.hbs tests/dungeon-runner.test.mjs
+git commit -m "feat: pregenerate the full branching graph for every run, migrate state.rooms to a dict everywhere"
 ```
 
 ---
@@ -2651,9 +2941,58 @@ Uses the same `PF2EDC.Dungeon.RoomBuildFailedError` localization key Task 11 add
 
 Update `applyRoomEffect`'s own destructure (`dungeon-app.mjs:412-414`) from `{ seed, roomId, physicalSlot, roomCount, isGoal }` to `{ scene, seed, roomId, rank, maxRank, isGoal, revealedRoomId }` (adding `scene`/`revealedRoomId` — required by Task 9's already-landed `reduced_travel_time`/`extra_travel_time` case in this same function, which reads both), and its `treasure` case's call into `grantTreasureReward` (`dungeon-app.mjs:421-431`) from `{ physicalSlot, roomCount }` to `{ rank, maxRank }`. Update `grantTreasureReward`'s own destructure (`dungeon-app.mjs:370-372`) the same way, and its two calls into `lootGpForTreasureRoom`/`treasureRoomItemTableName` (`dungeon-app.mjs:374-379`, `392-398`) to pass `{ rank, maxRank, ... }` instead of `{ physicalSlot, roomCount, ... }` — both functions' own signatures already take `rank`/`maxRank` as of Task 9's Step 3a, so this is purely threading the renamed fields through, not a new rename.
 
+**#93 pre-flight fix (found during Task 12's own pre-dispatch investigation):** `claimTreasureFor` (`dungeon-app.mjs`, a treasure room's own Claim button handler) is `grantTreasureReward`'s OTHER caller, and Task 12 deliberately left it untouched since it's tightly coupled to this exact signature change, not to Task 12's own `state.rooms`-is-a-dict theme. Fix it here, in lockstep with `grantTreasureReward`'s new `{rank, maxRank}` shape:
+
+```js
+// OLD:
+export async function claimTreasureFor(sceneId) {
+  const scene = game.scenes.get(sceneId);
+  const state = scene ? getRunState(sceneId) : null;
+  const currentRoom = state?.rooms[state.currentIndex];
+  const physicalSlot = currentRoom
+    ? state.physicalSlotByRoomId[currentRoom.id]
+    : null;
+  if (physicalSlot == null) return;
+  if (game.actors.party) {
+    const api = makeFoundryApi();
+    const partyLevel = await api.partyLevel();
+    const roomCount = state.rooms.length;
+    const isGoal = currentRoom.isGoal;
+    await grantTreasureReward(api, {
+      partyLevel,
+      physicalSlot,
+      roomCount,
+      isGoal,
+    });
+  }
+  await resolveCurrentRoom(true, { scene });
+}
+
+// NEW:
+export async function claimTreasureFor(sceneId) {
+  const scene = game.scenes.get(sceneId);
+  const state = scene ? getRunState(sceneId) : null;
+  const currentRoom = state?.rooms[state.currentRoomId];
+  if (!currentRoom) return;
+  if (game.actors.party) {
+    const api = makeFoundryApi();
+    const partyLevel = await api.partyLevel();
+    const { rank } = state.layoutPositionByRoomId[currentRoom.id];
+    const isGoal = currentRoom.isGoal;
+    await grantTreasureReward(api, {
+      partyLevel,
+      rank,
+      maxRank: state.maxRank,
+      isGoal,
+    });
+  }
+  await resolveCurrentRoom(true, { scene });
+}
+```
+
 Delete `roomsNeedingResync` entirely from `scripts/dungeon-runner.mjs` (its export, `dungeon-runner.mjs:390` onward through the end of its function body) and remove it from the `roomsNeedingResync` import in `scripts/ui/dungeon-app.mjs:13` (the whole import line, since nothing else in that block depended on it — verify no other name shares the line before deleting the line itself rather than just the one specifier). Delete its `describe("roomsNeedingResync", ...)` block from `tests/dungeon-runner.test.mjs:2095-2166` and remove `roomsNeedingResync` from that file's own import list (`tests/dungeon-runner.test.mjs:10`).
 
-**Note for the implementer:** `openGoalRoomExit`, `clearSlotEncounter`, `clearSlotTrap`, `clearPuzzleState`, `clearSkillChallengeState`, `clearNarrativeState`, `clearTrapState`, `clearTreasureState`, and `commitEagerPhysicalSlots` were only ever called from the deleted mutation-resync block within this function — leave their own definitions/exports alone (they're still used elsewhere, e.g. `commitEagerPhysicalSlots` by Task 12's eager-build loop), just confirm `resolveCurrentRoom` itself no longer references any of them. If any import in this file becomes unused after this deletion, remove that import too. Add `buildPopulateAndUnlockGraphNode` to the existing `dungeon-scene.mjs` import block at `scripts/ui/dungeon-app.mjs:39-56` (alongside `buildPopulateAndUnlockRoom`, which stays — it's still used by the old physical-slot path elsewhere in this file).
+**Note for the implementer:** `openGoalRoomExit`, `clearSlotEncounter`, `clearSlotTrap`, `clearPuzzleState`, `clearSkillChallengeState`, `clearNarrativeState`, `clearTrapState`, `clearTreasureState` were only ever called from the deleted mutation-resync block within this function — leave their own definitions/exports alone (unused-but-kept, same as the other now-dead old-model functions Task 12 flagged for Task 15's cleanup sweep), just confirm `resolveCurrentRoom` itself no longer references any of them. `commitEagerPhysicalSlots` is ALSO now fully unused (Task 12 stopped calling it) — do not reference it here either. If any import in this file becomes unused after this deletion, remove that import too (this now includes `commitEagerPhysicalSlots`, if Task 12 hasn't already removed it from this file's imports by the time this task is dispatched). Add `buildPopulateAndUnlockGraphNode` to the existing `dungeon-scene.mjs` import block at `scripts/ui/dungeon-app.mjs:39-56` — `buildPopulateAndUnlockRoom` does NOT stay this time (Task 12 already removes it and every other old-physical-slot-path import from this file; confirm before adding anything that you're not re-adding an import Task 12 just deleted).
 
 - [ ] **Step 4: Run tests, then live verification**
 
