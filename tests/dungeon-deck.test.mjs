@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   buildRoomSequence,
   buildRoomGraph,
+  attachHiddenPaths,
   resolveRoomOutcome,
   applySequenceMutation,
   findOutcomeTemplate,
@@ -592,5 +593,45 @@ describe('buildRoomGraph', () => {
 
   it('rejects a roomCount below 2', () => {
     expect(() => buildRoomGraph({ seed: 'alpha', roomCount: 1 })).toThrow();
+  });
+});
+
+describe('attachHiddenPaths', () => {
+  it('never attaches a hidden shortcut/detour touching the entry or goal room', () => {
+    const graph = buildRoomGraph({ seed: 'alpha', roomCount: 12 });
+    const { hiddenEdges, hiddenRooms } = attachHiddenPaths({ ...graph, seed: 'alpha' });
+    expect(hiddenEdges['room-entry']).toBeUndefined();
+    const goalId = Object.values(graph.rooms).find((r) => r.isGoal).id;
+    expect(hiddenEdges[goalId]).toBeUndefined();
+    for (const roomId of hiddenRooms) expect(graph.rooms[roomId].isGoal).toBe(false);
+  });
+
+  it('never attaches a hidden shortcut/detour TARGETING the goal room — a shortcut skips ONE HOP past toId, which can itself be adjacent to goal, even though toId itself is never goal (#93 pre-flight fix regression)', () => {
+    for (let n = 0; n < 40; n += 1) {
+      const seed = `hidden-goal-target-${n}`;
+      for (const roomCount of [3, 4, 5, 6, 8, 12, 20]) {
+        const graph = buildRoomGraph({ seed, roomCount });
+        const goalId = Object.values(graph.rooms).find((r) => r.isGoal).id;
+        const { hiddenEdges } = attachHiddenPaths({ ...graph, seed });
+        for (const targets of Object.values(hiddenEdges)) {
+          expect(targets).not.toContain(goalId);
+        }
+      }
+    }
+  });
+
+  it('is deterministic for the same seed', () => {
+    const graph = buildRoomGraph({ seed: 'beta', roomCount: 10 });
+    const a = attachHiddenPaths({ ...graph, seed: 'beta' });
+    const b = attachHiddenPaths({ ...graph, seed: 'beta' });
+    expect([...a.hiddenRooms]).toEqual([...b.hiddenRooms]);
+    expect(a.hiddenEdges).toEqual(b.hiddenEdges);
+  });
+
+  it('every hidden edge source room still has its normal edges untouched', () => {
+    const graph = buildRoomGraph({ seed: 'gamma', roomCount: 14 });
+    const before = JSON.parse(JSON.stringify(graph.edges));
+    const { edges } = attachHiddenPaths({ ...graph, seed: 'gamma' });
+    expect(edges).toEqual(before);
   });
 });
