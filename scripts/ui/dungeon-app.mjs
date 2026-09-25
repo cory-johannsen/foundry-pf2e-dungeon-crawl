@@ -10,11 +10,6 @@ import {
   recordPuzzleStageAttempt,
   roomsToEagerlyBuild,
   replaceRunState,
-  clearPuzzleState,
-  clearSkillChallengeState,
-  clearNarrativeState,
-  clearTrapState,
-  clearTreasureState,
 } from "../dungeon-runner.mjs";
 import { canActOnDungeon } from "../dungeon-permissions.mjs";
 import { fulfillPendingCustomizations } from "../dungeon-customization-fulfillment.mjs";
@@ -36,7 +31,6 @@ import {
 } from "../trait-picker.mjs";
 import {
   createDungeonScene,
-  openGoalRoomExit,
   isSlotBuilt,
   placePartyInRoom,
   undoRoomEntry,
@@ -46,8 +40,6 @@ import {
   resizeSceneForLayout,
   unlockDoorsFromRoom,
   sweepCompletedDungeonScene,
-  clearSlotEncounter,
-  clearSlotTrap,
   unsealHiddenDoorFromRoom,
 } from "../dungeon-scene.mjs";
 import {
@@ -224,13 +216,36 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
   // so calling it for an already-fully-built child costs nothing beyond
   // that internal check — this is not a second build pass on the common
   // path, same reasoning as Task 11's identical rest-room-branch loop.
-  if (currentRoom && !currentRoom.isGoal) {
+  // #93 fix round 1 (found by this task's own review): gated on `effectKey`
+  // too, not just `currentRoom && !currentRoom.isGoal`. `markRoomOutcome`
+  // returns `effectKey: null` from exactly three reject/guard paths — no
+  // state/already completed, the #152 duplicate-resolve guard (the SAME
+  // room already appears in `state.history`), and a non-goal/non-rest room
+  // with no outcome slot — and a non-null string from every genuine
+  // resolution path (goal, rest, or a real outcome template), confirmed by
+  // reading `markRoomOutcome` directly. Without this gate, a double-click
+  // (or a slow click registering twice before the first await resolves —
+  // the exact #152 scenario, still possible here since no UI-level
+  // debounce exists) would re-run the ensure-built loop and
+  // `unlockDoorsFromRoom` for a room that was NOT actually just resolved —
+  // `unlockDoorsFromRoom` sets `ds: CLOSED` unconditionally on the matched
+  // door, which would silently re-close a door the party had already
+  // manually opened.
+  if (currentRoom && !currentRoom.isGoal && effectKey) {
     const childIds = state.edges[currentRoom.id] ?? [];
     const hiddenChildIds = state.hiddenEdges[currentRoom.id] ?? [];
     for (const childId of [...childIds, ...hiddenChildIds]) {
-      const child = state.rooms[childId];
-      const { rank: childRank, col: childCol } = state.layoutPositionByRoomId[childId];
+      // #93 fix round 1 (found by this task's own review — the same class
+      // of bug Task 11's own fix round 2 already caught and fixed in its
+      // identical rest-room-branch loop): both lookups must sit INSIDE the
+      // try, not before it. A throw here would otherwise abort the WHOLE
+      // loop (skipping every remaining child) AND skip `unlockDoorsFromRoom`
+      // below entirely — the party would be stuck behind locked doors with
+      // no error shown at all, exactly the silent failure Review Focus
+      // item 1 warns against.
       try {
+        const child = state.rooms[childId];
+        const { rank: childRank, col: childCol } = state.layoutPositionByRoomId[childId];
         await buildPopulateAndUnlockGraphNode(scene, state, child, {
           rank: childRank,
           col: childCol,
