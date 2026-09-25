@@ -3063,13 +3063,36 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
   // so calling it for an already-fully-built child costs nothing beyond
   // that internal check — this is not a second build pass on the common
   // path, same reasoning as Task 11's identical rest-room-branch loop.
-  if (currentRoom && !currentRoom.isGoal) {
+  // #93 fix round 1 (found by this task's own review): gated on `effectKey`
+  // too, not just `currentRoom && !currentRoom.isGoal`. `markRoomOutcome`
+  // returns `effectKey: null` from exactly three reject/guard paths — no
+  // state/already completed, the #152 duplicate-resolve guard (the SAME
+  // room already appears in `state.history`), and a non-goal/non-rest room
+  // with no outcome slot — and a non-null string from every genuine
+  // resolution path (goal, rest, or a real outcome template), confirmed by
+  // reading `markRoomOutcome` directly. Without this gate, a double-click
+  // (or a slow click registering twice before the first await resolves —
+  // the exact #152 scenario, still possible here since no UI-level
+  // debounce exists) would re-run the ensure-built loop and
+  // `unlockDoorsFromRoom` for a room that was NOT actually just resolved —
+  // `unlockDoorsFromRoom` sets `ds: CLOSED` unconditionally on the matched
+  // door, which would silently re-close a door the party had already
+  // manually opened.
+  if (currentRoom && !currentRoom.isGoal && effectKey) {
     const childIds = state.edges[currentRoom.id] ?? [];
     const hiddenChildIds = state.hiddenEdges[currentRoom.id] ?? [];
     for (const childId of [...childIds, ...hiddenChildIds]) {
-      const child = state.rooms[childId];
-      const { rank: childRank, col: childCol } = state.layoutPositionByRoomId[childId];
+      // #93 fix round 1 (found by this task's own review — the same class
+      // of bug Task 11's own fix round 2 already caught and fixed in its
+      // identical rest-room-branch loop): both lookups must sit INSIDE the
+      // try, not before it. A throw here would otherwise abort the WHOLE
+      // loop (skipping every remaining child) AND skip `unlockDoorsFromRoom`
+      // below entirely — the party would be stuck behind locked doors with
+      // no error shown at all, exactly the silent failure Review Focus
+      // item 1 warns against.
       try {
+        const child = state.rooms[childId];
+        const { rank: childRank, col: childCol } = state.layoutPositionByRoomId[childId];
         await buildPopulateAndUnlockGraphNode(scene, state, child, {
           rank: childRank,
           col: childCol,
@@ -3089,6 +3112,8 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
   if (state?.completed) await sweepCompletedDungeonScene(scene);
 }
 ```
+
+**#93 fix round 1 (found by this task's own review):** the brief's own "remove any import that becomes unused" instruction (Step 3, above) was under-applied — 8 imports besides `commitEagerPhysicalSlots`/`buildPopulateAndUnlockRoom` are ALSO now fully unused in `scripts/ui/dungeon-app.mjs` once the old mutation-resync block (their only caller) is gone: `clearPuzzleState`, `clearSkillChallengeState`, `clearNarrativeState`, `clearTrapState`, `clearTreasureState`, `openGoalRoomExit`, `clearSlotEncounter`, `clearSlotTrap`. Confirm each has zero remaining references in this file (grep, not assumption — their own definitions/exports in `dungeon-scene.mjs`/`dungeon-runner.mjs` stay, per this task's own already-correct note above) and remove all 8 from the import list.
 
 Uses the same `PF2EDC.Dungeon.RoomBuildFailedError` localization key Task 11 adds — do not add it a second time; if Task 11 has already landed when this task is dispatched, the key already exists in `lang/en.json`.
 
