@@ -1226,6 +1226,43 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
 }
 ```
 
+**Third pre-flight fix — `doorOffsetAt` itself needs a one-line bound fix (found during this task's own final review, a third independent pass after the two rounds above).** `doorOffsetAt` is pre-existing, shared code (`scripts/dungeon-layout.mjs`, reused unchanged per this task's own Interfaces line), never designed against a non-integer `roomSize` — every one of its OLD callers always passed an integer (`ROOM_SIZE_SMALL`/`ROOM_SIZE_LARGE`). This task is the first caller to pass `slotWidth` (`toSlot.x2 - toSlot.x1`, from `northDoorSlots(rect, count)` — Task 5), which is `rect.gw / count` and is **not** integer whenever `count` doesn't evenly divide the room's width (e.g. `ROOM_SIZE_SMALL = 6` with a routine 4-way merge-room split → `slotWidth = 1.5`). Confirmed by a 13,860-configuration sweep: `doorOffsetAt`'s existing formula —
+
+```js
+export function doorOffsetAt(seed, slot, role, roomSize) {
+  const r = splitmix32(seedFromString(`${seed}-door-${role}-${slot}`))();
+  const maxOffset = roomSize - DOOR_WIDTH;
+  return Math.floor(r * (maxOffset + 1));
+}
+```
+
+— only stays within `[0, maxOffset]` when `maxOffset` is itself an integer; for a fractional `roomSize` (hence fractional `maxOffset`), `Math.floor(r * (maxOffset + 1))` can round UP PAST `maxOffset` (e.g. `maxOffset = 0.5` can still return `1`), pushing a same-column connection's door position outside its own `toSlot` and into a sibling connection's slot — two adjacent doors physically overlapping. This is the exact "walls off / collides with a sibling's door" failure this whole redesign exists to prevent, arriving via the door's own position rather than a flanking wall. Fix (floors the bound itself, not the caller — zero behavior change for every existing integer-`roomSize` call site, since `Math.floor` of an already-integer value is a no-op):
+
+```js
+export function doorOffsetAt(seed, slot, role, roomSize) {
+  const r = splitmix32(seedFromString(`${seed}-door-${role}-${slot}`))();
+  const maxOffset = Math.floor(roomSize - DOOR_WIDTH);
+  return Math.floor(r * (maxOffset + 1));
+}
+```
+
+Add a regression test to `describe('buildEdgeCorridor', ...)` (in `tests/dungeon-layout.test.mjs`) targeting exactly the reproduced case — a room size that does NOT evenly divide by the split count:
+
+```js
+it('#93 pre-flight fix regression (this task\'s own final review) — a same-column room whose incoming-door count doesn\'t evenly divide its width still keeps every door within its own slot (doorOffsetAt must not exceed a fractional maxOffset)', () => {
+  const parentA = roomRect('alpha', 'a', 0, 0);
+  const parentB = roomRect('alpha', 'b', 0, 1);
+  const merge = roomRect('alpha', 'm', 1, 0); // ROOM_SIZE_SMALL = 6, split 4 ways below -> slotWidth = 1.5
+  const slots = northDoorSlots(merge, 4);
+  for (let i = 0; i < slots.length; i += 1) {
+    const from = i === 0 ? parentA : parentB; // exitFace/column irrelevant to this bug; same-column (i===0) is where it reproduces
+    const { revealDoorWall } = buildEdgeCorridor('alpha', from === parentA ? 'a' : 'b', 'm', from, merge, 'south', slots[i]);
+    expect(Math.min(revealDoorWall.x1, revealDoorWall.x2)).toBeGreaterThanOrEqual(slots[i].x1);
+    expect(Math.max(revealDoorWall.x1, revealDoorWall.x2)).toBeLessThanOrEqual(slots[i].x2);
+  }
+});
+```
+
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-layout.test.mjs -t buildEdgeCorridor`
