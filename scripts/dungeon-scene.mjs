@@ -669,22 +669,34 @@ export async function relockDoorToSlot(scene, slot) {
  * pregeneration (Task 10). Finds every wall flagged
  * `dungeonHiddenDoorForEdge` starting with `${roomId}->` (the doorWall on
  * the revealing room's own face, and its matching revealDoorWall on the
- * target's face both carry this prefix, per Task 10's addendum), and:
+ * target's face both carry this prefix, per Task 10's addendum) and, per
+ * wall, based on its `dungeonHiddenDoorRole` ('gate' vs 'reveal', Task 10):
  * - sets `ds: CONST.WALL_DOOR_STATES.CLOSED` (unlocked, same convention as
- *   `unlockDoorToSlot`)
- * - replaces the `dungeonHiddenDoorForEdge` flag with the normal
- *   `dungeonDoorToRoomId` flag (set to the edge's target room id) so
- *   `handleDungeonDoorOpened` (Task 11) can resolve it like any other door
+ *   `unlockDoorToSlot`) on both
+ * - the 'gate' wall gets `dungeonDoorToRoomId` (matches a normal
+ *   progress-gate door — not itself a reveal trigger)
+ * - the 'reveal' wall gets `dungeonRevealDoorForSlot` (Task 11's actual
+ *   door-open reveal trigger — without this, opening the now-unsealed
+ *   door would never fire `handleDungeonDoorOpened`'s reveal/combat-
+ *   start/advance sequence)
+ * - both get `dungeonDoorFromRoomId: roomId` (matches the normal-door
+ *   convention Task 10's own fix round 1 established, for consistency —
+ *   nothing currently reads it off a promoted hidden door, but a future
+ *   caller keying off both ends shouldn't find this door the one
+ *   exception)
  */
 export async function unsealHiddenDoorFromRoom(scene, roomId, targetRoomId) {
   const walls = scene.walls.filter(
     (w) => w.getFlag(MODULE_ID, "dungeonHiddenDoorForEdge") === `${roomId}->${targetRoomId}`,
   );
   for (const wall of walls) {
+    const isReveal = wall.getFlag(MODULE_ID, "dungeonHiddenDoorRole") === "reveal";
     await wall.update({
       ds: CONST.WALL_DOOR_STATES.CLOSED,
-      [`flags.${MODULE_ID}.dungeonDoorToRoomId`]: targetRoomId,
+      [`flags.${MODULE_ID}.${isReveal ? "dungeonRevealDoorForSlot" : "dungeonDoorToRoomId"}`]: targetRoomId,
+      [`flags.${MODULE_ID}.dungeonDoorFromRoomId`]: roomId,
       [`flags.${MODULE_ID}.-=dungeonHiddenDoorForEdge`]: null,
+      [`flags.${MODULE_ID}.-=dungeonHiddenDoorRole`]: null,
     });
   }
 }
@@ -1347,13 +1359,28 @@ export async function buildPopulateAndUnlockGraphNode(
         buildEdgeCorridor(state.seed, sourceId, room.id, sourceRect, rect, exitFaceFromSource, toSlot);
       if (hidden) {
         // #156: sealed until Task 9's reveal step explicitly promotes it
-        // (both doorWall and revealDoorWall share the SAME flag value,
-        // matching unsealHiddenDoorFromRoom's own lookup) — never added to
-        // dungeonDoorToRoomId, so a locked hidden door can't resolve
-        // through handleDungeonDoorOpened (Task 11) before that happens.
+        // (both doorWall and revealDoorWall share the SAME
+        // dungeonHiddenDoorForEdge value, matching
+        // unsealHiddenDoorFromRoom's own lookup) — never added to
+        // `dungeonDoorToRoomId`/`dungeonRevealDoorForSlot`, so a locked
+        // hidden door can't resolve through handleDungeonDoorOpened
+        // (Task 11) before that happens.
+        //
+        // #93 pre-flight fix (found during Task 11's own review, fix round
+        // 2): also tagged `dungeonHiddenDoorRole` ('gate'/'reveal') on each
+        // wall — the two are otherwise geometrically indistinguishable
+        // once queried back by their shared dungeonHiddenDoorForEdge
+        // value, and `unsealHiddenDoorFromRoom` (Task 9 addendum) needs to
+        // know which one to promote to `dungeonDoorToRoomId` (the
+        // progress-gate flag, never itself the reveal trigger) vs.
+        // `dungeonRevealDoorForSlot` (Task 11's actual reveal-open
+        // trigger, added in that task's own fix round 1) — without this,
+        // a revealed hidden door would carry only `dungeonDoorToRoomId`
+        // and Task 11's handler (which reads `dungeonRevealDoorForSlot`)
+        // would silently never fire for it.
         connectionWalls.push(
-          wallDoc(doorWall, { flags: { [MODULE_ID]: { dungeonHiddenDoorForEdge: `${sourceId}->${room.id}` } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR }),
-          wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonHiddenDoorForEdge: `${sourceId}->${room.id}` } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR }),
+          wallDoc(doorWall, { flags: { [MODULE_ID]: { dungeonHiddenDoorForEdge: `${sourceId}->${room.id}`, dungeonHiddenDoorRole: "gate" } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR }),
+          wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonHiddenDoorForEdge: `${sourceId}->${room.id}`, dungeonHiddenDoorRole: "reveal" } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR }),
           ...plainWalls.map((w) => wallDoc(w)),
         );
       } else {
@@ -1572,6 +1599,15 @@ export async function resizeSceneForLayout(scene, { maxRank, maxCol }) {
   }
 }
 
+// Module-private reentrancy guard: `updateWall`'s door-open hook can in
+// principle fire more than once for the same wall/room before the first
+// call's advanceToRoom/markRoomOutcome round-trip settles (a fast
+// close-then-reopen, or the hook double-firing) — without this, a second
+// concurrent call would re-run token reveal/combat start/advance for a
+// room already being handled. Declared once at module scope, alongside
+// this function.
+const roomsBeingOpened = new Set();
+
 /**
  * Called from module.mjs's `updateWall` hook whenever any door's state
  * changes to OPEN — ignores anything that isn't the true reveal door
@@ -1593,15 +1629,6 @@ export async function resizeSceneForLayout(scene, { maxRank, maxCol }) {
  * only ever hands back the plain boolean, same bridge pattern
  * `onCombatAutoResolved` already uses for `resolveCurrentRoom`.
  */
-// Module-private reentrancy guard: `updateWall`'s door-open hook can in
-// principle fire more than once for the same wall/room before the first
-// call's advanceToRoom/markRoomOutcome round-trip settles (a fast
-// close-then-reopen, or the hook double-firing) — without this, a second
-// concurrent call would re-run token reveal/combat start/advance for a
-// room already being handled. Declared once at module scope, alongside
-// this function.
-const roomsBeingOpened = new Set();
-
 export async function handleDungeonDoorOpened(sceneId, wallId) {
   // Called directly from a global hook, which fires on every connected
   // client — only the GM's own client should act on it.
@@ -1671,9 +1698,16 @@ export async function handleDungeonDoorOpened(sceneId, wallId) {
       // isSlotBuilt/isSlotPopulated internally), so calling it for an
       // already-fully-built child is a cheap no-op, not a duplicate build.
       for (const childId of [...childIds, ...hiddenChildIds]) {
-        const child = resolvedState.rooms[childId];
-        const { rank: childRank, col: childCol } = resolvedState.layoutPositionByRoomId[childId];
+        // #93 fix round 2 (found by this fix round's own re-review): the
+        // {rank, col} lookup must sit INSIDE the try too — it's a plain
+        // object-property read against `layoutPositionByRoomId`, same
+        // risk class as the build call itself, and letting it throw
+        // uncaught would abort the whole loop (skipping every remaining
+        // child) and the notification, exactly the failure this try/catch
+        // exists to contain.
         try {
+          const child = resolvedState.rooms[childId];
+          const { rank: childRank, col: childCol } = resolvedState.layoutPositionByRoomId[childId];
           await buildPopulateAndUnlockGraphNode(scene, resolvedState, child, {
             rank: childRank,
             col: childCol,
