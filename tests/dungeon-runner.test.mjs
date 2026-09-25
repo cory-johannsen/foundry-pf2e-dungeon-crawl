@@ -1986,53 +1986,83 @@ describe("dungeonRuns settings namespace", () => {
   });
 });
 
-it('roomsToEagerlyBuild returns every room after the entry, in order, as {room, physicalSlot} pairs', () => {
-  const state = {
-    rooms: [
-      { id: 'r0', kind: 'narrative' },
-      { id: 'r1', kind: 'narrative' },
-      { id: 'r2', kind: 'trap' },
-      { id: 'r3', kind: 'puzzle' },
-    ],
-  };
-  expect(roomsToEagerlyBuild(state)).toEqual([
-    { room: state.rooms[1], physicalSlot: 1 },
-    { room: state.rooms[2], physicalSlot: 2 },
-    { room: state.rooms[3], physicalSlot: 3 },
-  ]);
+describe('roomsToEagerlyBuild (graph)', () => {
+  function graphState(overrides = {}) {
+    return {
+      rooms: {
+        'room-entry': { id: 'room-entry', kind: 'safe_entry', isGoal: false },
+        a: { id: 'a', kind: 'combat', isGoal: false },
+        b: { id: 'b', kind: 'trap', isGoal: false },
+        goal: { id: 'goal', kind: 'combat', isGoal: true }
+      },
+      edges: { 'room-entry': ['a', 'b'], a: ['goal'], b: ['goal'], goal: [] },
+      layoutEdges: { 'room-entry': ['a', 'b'], a: ['goal'], b: ['goal'], goal: [] },
+      hostUserId: null,
+      ...overrides
+    };
+  }
+
+  it('builds every room except the entry, regardless of hostUserId', () => {
+    const withHost = roomsToEagerlyBuild(graphState({ hostUserId: 'u1' }));
+    const withoutHost = roomsToEagerlyBuild(graphState({ hostUserId: null }));
+    expect(withHost.map((e) => e.room.id).sort()).toEqual(['a', 'b', 'goal']);
+    expect(withoutHost.map((e) => e.room.id).sort()).toEqual(['a', 'b', 'goal']);
+  });
+
+  it('every room appears after all of its parents (topological order)', () => {
+    const built = roomsToEagerlyBuild(graphState());
+    const order = built.map((e) => e.room.id);
+    expect(order.indexOf('a')).toBeLessThan(order.indexOf('goal'));
+    expect(order.indexOf('b')).toBeLessThan(order.indexOf('goal'));
+  });
+
+  it('a combat room at generation-order position 1 is still eagerly built (ITEM-11 deferral removed)', () => {
+    const built = roomsToEagerlyBuild(graphState());
+    expect(built.some((e) => e.room.id === 'a' && e.room.kind === 'combat')).toBe(true);
+  });
+
+  it('#156: a detour room reachable only via layoutEdges (not edges) is still built', () => {
+    const state = graphState({
+      rooms: {
+        'room-entry': { id: 'room-entry', kind: 'safe_entry', isGoal: false },
+        a: { id: 'a', kind: 'combat', isGoal: false },
+        'room-detour-0': { id: 'room-detour-0', kind: 'trap', isGoal: false },
+        goal: { id: 'goal', kind: 'combat', isGoal: true }
+      },
+      edges: { 'room-entry': ['a'], a: ['goal'], 'room-detour-0': ['goal'], goal: [] },
+      layoutEdges: { 'room-entry': ['a'], a: ['goal', 'room-detour-0'], 'room-detour-0': ['goal'], goal: [] }
+    });
+    const built = roomsToEagerlyBuild(state);
+    expect(built.map((e) => e.room.id)).toContain('room-detour-0');
+  });
 });
 
-it('roomsToEagerlyBuild skips a combat-kind room at index 1, keeping the manual-populate deferral (ITEM-11)', () => {
+it('roomsToEagerlyBuild returns every room after the entry, in order, as {room, buildOrder} pairs', () => {
+  const r1 = { id: 'r1', kind: 'narrative' };
+  const r2 = { id: 'r2', kind: 'trap' };
+  const r3 = { id: 'r3', kind: 'puzzle' };
   const state = {
-    rooms: [
-      { id: 'r0', kind: 'narrative' },
-      { id: 'r1', kind: 'combat' },
-      { id: 'r2', kind: 'trap' },
-    ],
+    rooms: {
+      'room-entry': { id: 'room-entry', kind: 'narrative' },
+      r1,
+      r2,
+      r3,
+    },
+    edges: { 'room-entry': ['r1', 'r2', 'r3'], r1: [], r2: [], r3: [] },
+    layoutEdges: { 'room-entry': ['r1', 'r2', 'r3'], r1: [], r2: [], r3: [] },
   };
-  expect(roomsToEagerlyBuild(state)).toEqual([
-    { room: state.rooms[2], physicalSlot: 2 },
-  ]);
-});
-
-it('roomsToEagerlyBuild does NOT skip a combat-kind room at any index other than 1', () => {
-  const state = {
-    rooms: [
-      { id: 'r0', kind: 'narrative' },
-      { id: 'r1', kind: 'trap' },
-      { id: 'r2', kind: 'combat' },
-      { id: 'r3', kind: 'puzzle' },
-    ],
-  };
-  expect(roomsToEagerlyBuild(state)).toEqual([
-    { room: state.rooms[1], physicalSlot: 1 },
-    { room: state.rooms[2], physicalSlot: 2 },
-    { room: state.rooms[3], physicalSlot: 3 },
-  ]);
+  const result = roomsToEagerlyBuild(state);
+  expect(result).toHaveLength(3);
+  expect(result.map((e) => e.room.id).sort()).toEqual(['r1', 'r2', 'r3']);
+  expect(result.every((e) => typeof e.buildOrder === 'number')).toBe(true);
 });
 
 it('roomsToEagerlyBuild returns an empty array for a single-room (entry-only) dungeon', () => {
-  const state = { rooms: [{ id: 'r0', kind: 'narrative' }] };
+  const state = {
+    rooms: { 'room-entry': { id: 'room-entry', kind: 'narrative' } },
+    edges: { 'room-entry': [] },
+    layoutEdges: { 'room-entry': [] },
+  };
   expect(roomsToEagerlyBuild(state)).toEqual([]);
 });
 
@@ -2044,9 +2074,9 @@ describe("commitEagerPhysicalSlots", () => {
       { settingsRef },
     );
     const eagerlyBuilt = [
-      { room: created.rooms[2], physicalSlot: 2 },
-      { room: created.rooms[3], physicalSlot: 3 },
-      { room: created.rooms[4], physicalSlot: 4 },
+      { room: created.rooms[2], buildOrder: 2 },
+      { room: created.rooms[3], buildOrder: 3 },
+      { room: created.rooms[4], buildOrder: 4 },
     ];
     const result = await commitEagerPhysicalSlots("s1", eagerlyBuilt, {
       settingsRef,
@@ -2065,12 +2095,12 @@ describe("commitEagerPhysicalSlots", () => {
     );
     await commitEagerPhysicalSlots(
       "s2",
-      [{ room: created.rooms[2], physicalSlot: 2 }],
+      [{ room: created.rooms[2], buildOrder: 2 }],
       { settingsRef },
     );
     const result = await commitEagerPhysicalSlots(
       "s2",
-      [{ room: created.rooms[2], physicalSlot: 2 }],
+      [{ room: created.rooms[2], buildOrder: 2 }],
       { settingsRef },
     );
     expect(result.nextPhysicalSlot).toBe(3);
@@ -2084,7 +2114,7 @@ describe("commitEagerPhysicalSlots", () => {
     );
     const result = await commitEagerPhysicalSlots(
       "s3",
-      [{ room: created.rooms[2], physicalSlot: 2 }],
+      [{ room: created.rooms[2], buildOrder: 2 }],
       { settingsRef },
     );
     expect(result.rooms).toEqual(created.rooms);

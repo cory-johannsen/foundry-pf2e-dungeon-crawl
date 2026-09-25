@@ -358,23 +358,38 @@ export function canUndoRoomEntry(state) {
 }
 
 /**
- * Every room #62's GM-less precalculation should build eagerly at run
- * start, as `{room, physicalSlot}` pairs in build order — every room in
- * the base sequence except room 0 (the entry, built separately by
- * startDungeonRun itself) and a combat-kind room at index 1, which keeps
- * the existing manual "Populate Next Room" deferral (ITEM-11) regardless
- * of host. A room's index into `state.rooms` is its physical slot here —
- * this only ever runs once, before any door has been opened or any slot
- * reassigned, so slot-per-index always holds at this point.
+ * Every room #93's full-graph pregeneration should build eagerly at run
+ * start, as `{room, buildOrder}` pairs in topological order (a room always
+ * appears after every one of its parents) — every room except the entry
+ * (built separately by startDungeonRun itself). Unconditional: applies to
+ * every run, GM-present or GM-less alike (no more hostUserId gate), and no
+ * longer special-cases a combat room at generation-order position 1 — the
+ * ITEM-11 manual deferral is removed, since per-door lazy building and the
+ * Accept/Reroll dialog it paced around are both gone.
  */
 export function roomsToEagerlyBuild(state) {
-  const result = [];
-  for (let i = 1; i < state.rooms.length; i += 1) {
-    const room = state.rooms[i];
-    if (i === 1 && room.kind === "combat") continue;
-    result.push({ room, physicalSlot: i });
+  const { rooms, layoutEdges } = state;
+  const order = [];
+  const visited = new Set(['room-entry']);
+  const indegree = {};
+  for (const id of Object.keys(rooms)) indegree[id] = 0;
+  for (const children of Object.values(layoutEdges)) {
+    for (const childId of children) indegree[childId] += 1;
   }
-  return result;
+  const queue = (layoutEdges['room-entry'] ?? []).slice();
+  while (queue.length) {
+    const id = queue.shift();
+    if (visited.has(id)) continue;
+    // Only ready once every parent has already been queued/visited — a
+    // simple readiness re-check via indegree decrement per visit below.
+    visited.add(id);
+    order.push(rooms[id]);
+    for (const childId of layoutEdges[id] ?? []) {
+      indegree[childId] -= 1;
+      if (indegree[childId] <= 0 && !visited.has(childId)) queue.push(childId);
+    }
+  }
+  return order.map((room, i) => ({ room, buildOrder: i }));
 }
 
 /**
@@ -439,7 +454,7 @@ export function roomsNeedingResync(
  * logic (which already correctly handles "this room's slot may already be
  * assigned" for the lazy/mutation case) would reassign colliding slots via
  * its counter instead of reusing them. `eagerlyBuilt` is exactly what
- * roomsToEagerlyBuild(state) returned — {room, physicalSlot} pairs, any
+ * roomsToEagerlyBuild(state) returned — {room, buildOrder} pairs, any
  * order.
  */
 export async function commitEagerPhysicalSlots(
@@ -451,9 +466,9 @@ export async function commitEagerPhysicalSlots(
   if (!state) return state;
   const physicalSlotByRoomId = { ...state.physicalSlotByRoomId };
   let nextPhysicalSlot = state.nextPhysicalSlot;
-  for (const { room, physicalSlot } of eagerlyBuilt) {
-    physicalSlotByRoomId[room.id] = physicalSlot;
-    nextPhysicalSlot = Math.max(nextPhysicalSlot, physicalSlot + 1);
+  for (const { room, buildOrder } of eagerlyBuilt) {
+    physicalSlotByRoomId[room.id] = buildOrder;
+    nextPhysicalSlot = Math.max(nextPhysicalSlot, buildOrder + 1);
   }
   const newState = { ...state, physicalSlotByRoomId, nextPhysicalSlot };
   return persist(sceneId, newState, settingsRef);
