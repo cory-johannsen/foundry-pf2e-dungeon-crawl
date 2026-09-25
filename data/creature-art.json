@@ -9806,5 +9806,29 @@
     "name": "Leukodaemon",
     "level": 9,
     "art": "leukodaemon.webp"
+  },
+  {
+    "id": "drakauthix",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "SUpy8sleRwi2Egsq",
+    "name": "Drakauthix",
+    "level": 9,
+    "art": "drakauthix.webp"
+  },
+  {
+    "id": "frost_giant",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "893mp411SdYren3H",
+    "name": "Frost Giant",
+    "level": 9,
+    "art": "frost-giant.webp"
+  },
+  {
+    "id": "giant_snapping_turtle",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "fVvRASaKa6SkQkYG",
+    "name": "Giant Snapping Turtle",
+    "level": 9,
+    "art": "giant-snapping-turtle.webp"
   }
 ]
