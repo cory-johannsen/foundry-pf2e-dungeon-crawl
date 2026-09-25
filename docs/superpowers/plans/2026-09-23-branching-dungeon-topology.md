@@ -2400,8 +2400,8 @@ git commit -m "feat: resolve door-opens against a room's specific graph child, w
 **#93 pre-flight fix — this task's scope was massively under-drafted.** The original draft only rewrote `startDungeonRun` itself. Direct investigation (prompted by Task 11's review flagging that `state.rooms`/`layoutPositionByRoomId` "don't exist yet" against current code) found this task is the FIRST point in the whole plan where `state.rooms` actually becomes a dict keyed by room id for a real run (`createRun` still produces an array via the old `buildRoomSequence` generator, and nothing before this task ever overwrites that). That single shape change is load-bearing everywhere: **19 exported functions in `scripts/dungeon-runner.mjs`** (every `ensure*State`/`clear*State`/`apply*Customization`/`get*PendingCustomization`/`record*Attempt` reducer — none of them touched by any of Tasks 1-11) call `.find`/`.map` on `state.rooms`, which throws a `TypeError` the instant `state.rooms` is a plain object instead of an array. **Several functions in `scripts/ui/dungeon-app.mjs`** outside `startDungeonRun`/`resolveCurrentRoom` (`_prepareContext` — the tracker panel's own core render method — plus `_onRender`, `chooseNarrativeOption`, `resolveCombatRoomOutcome`, `startCombatRecoveryFor`, `recordSkillChallengeOutcome`, `recordPuzzleStageOutcome`, `#onAttemptSkillChallenge`, `#onAttemptPuzzleStage`) still read `state.rooms[state.currentIndex]`/`state.physicalSlotByRoomId[...]`, the old array/slot model. And `scripts/dungeon-scene.mjs`'s `undoRoomEntry` reads `entry.fromIndex`, a field `advanceToRoom` (Task 8) stopped writing when it introduced `lastAutoEntry.fromRoomId` instead — **already broken today**, independent of this task, confirmed by direct reading (not just theory). Dispatched as originally drafted, every one of these would have broken the instant a real graph-shaped run started — most severely, `_prepareContext` failing silently would have left the ENTIRE Dungeon Crawl tracker panel non-functional (no current room, no Succeed/Fail buttons) for every run created after this task landed, undetected until Task 15's final review or later. Fixed by expanding this task to cover the complete migration in one coherent pass, since it's all one conceptual change: "`state.rooms` is a dict now — every consumer must agree."
 
 **Files:**
-- Modify: `scripts/ui/dungeon-app.mjs`, `scripts/dungeon-runner.mjs`, `scripts/dungeon-scene.mjs`, `templates/dungeon-tracker.hbs`, `tests/dungeon-runner.test.mjs`
-- Test: `tests/dungeon-runner.test.mjs` (existing fixtures for the 19 migrated reducers — fix any that still construct `state.rooms` as an array, same as Task 7's own precedent for `roomsToEagerlyBuild`'s tests); everything UI-facing is manual/live verification (these files drive Foundry directly).
+- Modify: `scripts/ui/dungeon-app.mjs`, `scripts/dungeon-runner.mjs`, `scripts/dungeon-scene.mjs`, `scripts/dungeon-deck.mjs`, `scripts/default-generator.mjs`, `scripts/dungeon-customization-fulfillment.mjs`, `templates/dungeon-tracker.hbs`, `tests/dungeon-runner.test.mjs`, `tests/dungeon-customization-fulfillment.test.mjs` (if Step 3c's loop fix needs a mock adjustment)
+- Test: `tests/dungeon-runner.test.mjs` (existing fixtures for the 21 migrated reducers — fix any that still construct `state.rooms` as an array, same as Task 7's own precedent for `roomsToEagerlyBuild`'s tests); `tests/dungeon-customization-fulfillment.test.mjs` (Step 3c); everything UI-facing is manual/live verification (these files drive Foundry directly).
 
 **Interfaces:**
 - Consumes: `buildRoomGraph`, `attachHiddenPaths` (Tasks 2-3), `computeRanks`/`computeColumns` (Task 4), `roomsToEagerlyBuild` (Task 7), `buildPopulateAndUnlockGraphNode`/`resizeSceneForLayout`/`unlockDoorsFromRoom`/`isSlotBuilt`/`isSlotPopulated`/`getCombatForRoom` (Task 10), `focusCameraOnRoom` (Task 11).
@@ -2481,17 +2481,52 @@ In `scripts/ui/dungeon-app.mjs`'s `startDungeonRun` (around line 496-639): first
   // agree on a room's geometry by construction rather than duplicating
   // the same lookup twice. `roomsToEagerlyBuild` walks `layoutEdges`
   // (Task 7) so detour rooms are included.
+  // #93 fix round 1 (found by this task's own review): roomsToEagerlyBuild
+  // deliberately excludes 'room-entry' (Task 7 seeds it as already
+  // visited) — the brief's own loop never built OR unlocked the entry
+  // room at all, stranding the party the instant a run started. Build it
+  // explicitly first, walls-only (unlock happens below, once its own
+  // children are confirmed built), the same idempotent call every other
+  // room uses.
+  //
+  // #93 fix round 1: every iteration (including the entry) is now wrapped
+  // in try/catch, mirroring the pre-#93 code's own #62-era reasoning —
+  // "one bad room shouldn't take down every other room or the run's own
+  // setup." Without this, a single compendium miss or hazard-spawn
+  // failure anywhere in the whole graph would throw out of this loop and
+  // abort startDungeonRun entirely, before placePartyInRoom/
+  // scene.activate() even run — a far worse failure than "one room didn't
+  // build," and one that defeats Task 11/13's whole resolution-time
+  // "ensure-built" safety net (which only ever gets a chance to retry a
+  // room once the RUN has actually started).
+  const buildRoomSafely = async (room, opts) => {
+    try {
+      await buildPopulateAndUnlockGraphNode(scene, state, room, opts);
+    } catch (err) {
+      console.error(`${MODULE_ID} | eager build failed for room "${room.id}"`, err);
+    }
+  };
+
+  const { rank: entryRank, col: entryCol } = layoutPositionByRoomId['room-entry'];
+  await buildRoomSafely(rooms['room-entry'], {
+    rank: entryRank,
+    col: entryCol,
+    childIds: edges['room-entry'] ?? [],
+    hiddenChildId: hiddenEdges['room-entry']?.[0] ?? null,
+    unlock: false,
+  });
+
   const eagerlyBuilt = roomsToEagerlyBuild(state);
-  for (const { room, buildOrder } of eagerlyBuilt) {
+  for (const { room } of eagerlyBuilt) {
     const { rank, col } = layoutPositionByRoomId[room.id];
-    await buildPopulateAndUnlockGraphNode(scene, state, room, {
+    await buildRoomSafely(room, {
       rank,
       col,
       childIds: edges[room.id] ?? [],
       // This room's own hidden outgoing target (shortcut or detour), if
       // any — reserves and seals the extra face (#156).
       hiddenChildId: hiddenEdges[room.id]?.[0] ?? null,
-      unlock: room.id === 'room-entry',
+      unlock: false,
     });
   }
   // #93 pre-flight fix: commitEagerPhysicalSlots dropped entirely — it
@@ -2499,26 +2534,144 @@ In `scripts/ui/dungeon-app.mjs`'s `startDungeonRun` (around line 496-639): first
   // retired by this task's own migration (Step 4/6 below read state.rooms
   // directly by id; nothing reads a "physical slot" anymore).
 
+  // #93 fix round 1: the entry room is never "resolved" the way every
+  // other room is (markRoomOutcome returns early for it) — there is no
+  // later resolution-time moment to hang an ensure-built retry off of for
+  // ITS children, unlike every other room in the graph (which Task 11's
+  // rest-room branch or Task 13's resolveCurrentRoom will always
+  // eventually cover). So the entry's own children get one best-effort
+  // retry here, right before their doors unlock — the same idempotent
+  // pattern, just inlined instead of deferred to a later resolution.
+  const entryChildIds = edges['room-entry'] ?? [];
+  const entryHiddenChildIds = hiddenEdges['room-entry'] ?? [];
+  for (const childId of [...entryChildIds, ...entryHiddenChildIds]) {
+    if (isSlotBuilt(scene, childId)) continue;
+    const child = rooms[childId];
+    const { rank: childRank, col: childCol } = layoutPositionByRoomId[childId];
+    await buildRoomSafely(child, {
+      rank: childRank,
+      col: childCol,
+      childIds: edges[childId] ?? [],
+      hiddenChildId: hiddenEdges[childId]?.[0] ?? null,
+      unlock: false,
+    });
+  }
+  await unlockDoorsFromRoom(scene, 'room-entry', entryChildIds, entryHiddenChildIds);
+
   const partyMembers = (game.actors?.party?.members ?? []).filter(
     (m) => m.type === 'character',
   );
-  const { rank: entryRank, col: entryCol } = layoutPositionByRoomId['room-entry'];
   await placePartyInRoom(scene, 'room-entry', entryRank, entryCol, partyMembers, state.seed);
   await scene.activate();
   unpauseIfGmLessRun(scene.id);
   await new Promise((r) => setTimeout(r, 400));
   focusCameraOnRoom(scene, 'room-entry', entryRank, entryCol, state.seed);
+
+  // #93 fix round 1: fire-and-forget, mirroring the old populateNextRoom
+  // call site's own "never delay room population or reveal" reasoning —
+  // full pregeneration means several rooms of the same customization kind
+  // can be pending at once now, which is why Step 3c below also fixes
+  // fulfillPendingCustomizations itself to drain every pending room per
+  // kind, not just the first.
+  fulfillPendingCustomizations(scene.id);
 ```
 
 Delete `populateNextRoom` (dungeon-app.mjs:733) and its call site/UI button wiring (the `#onPopulateNext` handler and template button referencing it), per the confirmed removal of the ITEM-11 deferral.
 
-Remove the now-unused imports `buildRoomAtSlot`, `unlockDoorToSlot`, `placePartyInSlot`, `buildPopulateAndUnlockRoom`, `focusCameraOnSlot`, `commitEagerPhysicalSlots`, `isSlotPopulated`, `isSlotBuilt` from `dungeon-app.mjs`'s import blocks (their only remaining call sites in this file are inside `populateNextRoom`, deleted by this step, and `_prepareContext`'s `nextRoomPending` computation, removed by Step 6 — confirm both are gone before removing these two imports, since Step 6 lands in the same task but a later step) and add `focusCameraOnRoom`, `placePartyInRoom` (both from `dungeon-scene.mjs`) in their place. Also add two NEW top-level imports this step's code needs that aren't in this file yet: `import { getGenerator } from "../generator-registry.mjs";` and `import { computeRanks, computeColumns } from "../dungeon-layout.mjs";` (confirmed neither is currently imported here — `getGenerator` is already used the same way by `dungeon-runner.mjs`/`encounter-generator.mjs`; `computeRanks`/`computeColumns` are `dungeon-layout.mjs:558`/`:595`).
+Remove the now-unused imports `buildRoomAtSlot`, `unlockDoorToSlot`, `placePartyInSlot`, `buildPopulateAndUnlockRoom`, `focusCameraOnSlot`, `commitEagerPhysicalSlots`, `isSlotPopulated` from `dungeon-app.mjs`'s import blocks (their only remaining call sites in this file are inside `populateNextRoom`, deleted by this step, and `_prepareContext`'s `nextRoomPending` computation, removed by Step 6 — confirm both are gone before removing these imports, since Step 6 lands in the same task but a later step) and add `focusCameraOnRoom`, `placePartyInRoom` (both from `dungeon-scene.mjs`) in their place. **Keep `isSlotBuilt`** — fix round 1 (above) reintroduces a use of it in the entry-room ensure-built loop, so it is NOT unused after all; do not remove it. Also add three NEW top-level imports this step's code needs that aren't in this file yet: `import { getGenerator } from "../generator-registry.mjs";`, `import { computeRanks, computeColumns } from "../dungeon-layout.mjs";`, and `import { fulfillPendingCustomizations } from "../dungeon-customization-fulfillment.mjs";` (confirmed none of the three is currently imported here — `getGenerator` is already used the same way by `dungeon-runner.mjs`/`encounter-generator.mjs`; `computeRanks`/`computeColumns` are `dungeon-layout.mjs:558`/`:595`; `fulfillPendingCustomizations` is fix round 1's own re-fix, see Step 3c below — it was imported by the deleted `populateNextRoom` and must move to this new call site, not be dropped).
 
 **Note for the implementer:** `roomsToEagerlyBuild` already returns rooms in topological (parents-before-children) order over `layoutEdges` (Task 7), so by the time any room's `buildPopulateAndUnlockGraphNode` call runs, every one of its real parents (`parentRoomIdsFor`, resolved inside that function) already has its own `layoutPositionByRoomId` entry and has already been built by an earlier loop iteration.
 
+- [ ] **Step 3b: `scripts/dungeon-deck.mjs`/`scripts/default-generator.mjs` — thread `treasureSetpieceIds` through `buildRoomGraph` (#89 regression, found by this task's own review)**
+
+`buildRoomGraph`'s own `makeRoom` never assigns a treasure room a `setpieceId` — its signature doesn't even accept `treasureSetpieceIds`, unlike `buildRoomSequence` (the old generator, which already handles all four kinds correctly, `dungeon-deck.mjs` around line 280). This is a Task 2 gap — `buildRoomGraph` predates this task — but it only becomes LIVE now, since this is the first task that actually calls `buildRoomGraph` for a real run; every graph-generated treasure room would silently get no content, no customization, nothing for `buildPopulateAndUnlockGraphNode`'s `room.kind === "treasure" && room.setpieceId` branch to act on.
+
+In `scripts/dungeon-deck.mjs`'s `buildRoomGraph`, add the missing parameter and occurrence counter, mirroring the other three kinds exactly:
+
+```js
+// Signature: add treasureSetpieceIds = [] alongside the existing three.
+export function buildRoomGraph({
+  seed,
+  roomCount,
+  puzzleSetpieceIds = [],
+  trapSetpieceIds = [],
+  narrativeSetpieceIds = [],
+  treasureSetpieceIds = [],
+}) {
+  ...
+  let narrativeOccurrence = 0;
+  let treasureOccurrence = 0; // new, alongside the other three counters
+  let built = 0;
+  ...
+  function makeRoom(salt) {
+    const kind = roomKindAt(seed, salt);
+    const setpieceId =
+      kind === 'puzzle' ? setpieceAt(seed, puzzleOccurrence++, puzzleSetpieceIds, 'puzzle-setpiece-order')
+      : kind === 'trap' ? setpieceAt(seed, trapOccurrence++, trapSetpieceIds, 'trap-setpiece-order')
+      : kind === 'narrative' ? setpieceAt(seed, narrativeOccurrence++, narrativeSetpieceIds, 'narrative-setpiece-order')
+      : kind === 'treasure' ? setpieceAt(seed, treasureOccurrence++, treasureSetpieceIds, 'treasure-setpiece-order')
+      : null;
+    ...
+```
+
+In `scripts/default-generator.mjs`, `DefaultGenerator.buildRoomGraph` (this task's own new re-export, added by fix round 1's predecessor work) already delegates its whole options object straight through to the real `dungeon-deck.mjs` function — no change needed there beyond confirming the delegation is a plain pass-through (not a destructure that would silently drop the new field).
+
+In `scripts/ui/dungeon-app.mjs`'s Step 3 code (above), add `treasureSetpieceIds` (already computed as a local const alongside `puzzleSetpieceIds`/`trapSetpieceIds`/`narrativeSetpieceIds`, per the `let`/undefined-variable fix already folded into this step) to the `getGenerator().buildRoomGraph({...})` call's options object.
+
+**Out of scope for this fix, ledgered separately:** `attachHiddenPaths` (Task 3)'s own detour-room creation always sets `setpieceId: null` regardless of kind — a puzzle/trap/narrative detour room gets no content either, a related but separately-rooted gap in a different function. Not fixed here (Task 3's own design, a larger question than this task's scope) — flagged for whoever next revisits Task 3, or Task 15's final review.
+
+- [ ] **Step 3c: `scripts/dungeon-customization-fulfillment.mjs` — drain every pending room per kind, not just the first (found by this task's own review)**
+
+`fulfillPendingCustomizations` was only ever called from the now-deleted `populateNextRoom`, which populated exactly one room at a time — so `fulfillKind`'s own one-room-per-call design was correct for that caller. Under full pregeneration, this task's eager-build loop can build several rooms of the same customization-eligible kind (trap, skill_challenge, puzzle, narrative, treasure) in a single pass, each with its own pending customization — a single post-eager-build call would only ever fulfill the FIRST pending room of each kind, permanently silently starving every other one down to template-only content. `populateNextRoom`'s deletion (this task's Step 3) also removed the ONLY call site of `fulfillPendingCustomizations` entirely — this step re-adds the call (from Step 3, above) AND fixes the underlying one-room-per-kind limitation so a single fire-and-forget call after the eager loop actually reaches every pending room, not just one.
+
+Replace `fulfillKind`'s body in `scripts/dungeon-customization-fulfillment.mjs`:
+
+```js
+// #93 fix round 1: loop this kind until nothing is left pending, instead
+// of handling only the first — full pregeneration can leave several rooms
+// of the same kind pending at once (the original one-room-per-call design
+// assumed the old populateNextRoom's "exactly one new room at a time"
+// caller). Capped defensively (MAX_PENDING_PER_KIND) so a getPending/apply
+// bug that never actually clears "pending" can't spin forever; no real
+// dungeon has anywhere near this many rooms of one kind. Stops (rather
+// than continuing to the next iteration) on any error, so a persistently
+// failing room isn't retried in a tight loop within the same call — it'll
+// get another chance whenever this function is next invoked.
+const MAX_PENDING_PER_KIND = 50;
+
+async function fulfillKind(kind, getPending, apply) {
+  for (let i = 0; i < MAX_PENDING_PER_KIND; i += 1) {
+    let pending;
+    try {
+      pending = await getPending();
+    } catch (err) {
+      console.error(
+        `agent-service: ${kind} customization failed, leaving template content:`,
+        err.message,
+      );
+      return;
+    }
+    if (!pending) return;
+    try {
+      await fulfillOne(kind, pending, (result) => apply(pending, result));
+    } catch (err) {
+      console.error(
+        `agent-service: ${kind} customization failed, leaving template content:`,
+        err.message,
+      );
+      return;
+    }
+  }
+}
+```
+
+(Fix the stray `#` typo above if your editor doesn't strip it — it must read `// failing room isn't retried...`, a plain comment line, not a directive.)
+
+Run `npx vitest run tests/dungeon-customization-fulfillment.test.mjs` after this change — its existing tests each expect exactly one `fulfillOne`/apply call per kind for a single pending room, which this loop still produces (it only iterates again once `getPending()` returns null, which a mocked single-pending-room test fixture will do on the second call) — if any existing test's mock only supports being called once and would throw or misbehave on a second `getPending()` call, adjust that test's mock to return `null` after its one pending room, rather than changing `fulfillKind`'s own loop behavior.
+
 - [ ] **Step 4: `scripts/dungeon-runner.mjs` — migrate every `state.rooms.find`/`.map` reducer to dict access**
 
-19 exported functions read or write `state.rooms` as an array. Apply this EXACT mechanical transform to every one — do not skip any, and grep for `state.rooms.find\|state.rooms.map` in this file when done to confirm zero matches remain outside `createRun`/`roomsNeedingResync` (the two deliberately-untouched exceptions, see below).
+21 exported functions read or write `state.rooms` as an array (17 Pattern-A + 4 Pattern-B below — the brief's earlier "19" was an arithmetic slip, corrected here). Apply this EXACT mechanical transform to every one — do not skip any, and grep for `state.rooms.find\|state.rooms.map` in this file when done to confirm zero matches remain outside `createRun`/`roomsNeedingResync` (the two deliberately-untouched exceptions, see below).
 
 **Pattern A — read-one-by-id-then-immutably-replace (17 functions):** `ensureSkillChallenge`, `clearSkillChallengeState`, `applySkillChallengeCustomization`, `recordSkillChallengeAttempt`, `ensurePuzzleState`, `clearPuzzleState`, `recordPuzzleStageAttempt`, `applyPuzzleCustomization`, `ensureTrapState`, `clearTrapState`, `applyTrapRoomState`, `ensureNarrativeState`, `clearNarrativeState`, `applyNarrativeCustomization`, `ensureTreasureState`, `clearTreasureState`, `applyTreasureCustomization`. Every one follows this exact shape (shown against `ensureTrapState`, the shortest — apply the identical transform to the other 16, each keeping its own field name(s) and other logic untouched):
 
@@ -2787,7 +2940,7 @@ Run the Step 1 checklist against a real Foundry world, both as a GM-present and 
 - [ ] **Step 9: Commit**
 
 ```bash
-git add scripts/ui/dungeon-app.mjs scripts/dungeon-runner.mjs scripts/dungeon-scene.mjs templates/dungeon-tracker.hbs tests/dungeon-runner.test.mjs
+git add scripts/ui/dungeon-app.mjs scripts/dungeon-runner.mjs scripts/dungeon-scene.mjs scripts/dungeon-deck.mjs scripts/default-generator.mjs scripts/dungeon-customization-fulfillment.mjs templates/dungeon-tracker.hbs tests/dungeon-runner.test.mjs tests/dungeon-customization-fulfillment.test.mjs
 git commit -m "feat: pregenerate the full branching graph for every run, migrate state.rooms to a dict everywhere"
 ```
 
