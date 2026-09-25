@@ -1691,6 +1691,8 @@ git commit -m "feat: redefine travel-time outcomes as hidden-path reveals, not r
 
 **New function, `scripts/dungeon-scene.mjs`:**
 
+**#93 fix (found during Task 11's own review, fix round 2 — this function originally promoted BOTH the gate and reveal walls to the same `dungeonDoorToRoomId` flag, which matched Task 11's ORIGINAL door-open trigger. Task 11's own fix round 1 moved that trigger to `dungeonRevealDoorForSlot` instead, which this function never wrote — silently breaking every hidden-door reveal. Fixed below by differentiating on the `dungeonHiddenDoorRole` flag Task 10's hidden branch now also writes.):**
+
 ```js
 /**
  * #156: promote a hidden shortcut/detour door from sealed to normal, once
@@ -1700,22 +1702,34 @@ git commit -m "feat: redefine travel-time outcomes as hidden-path reveals, not r
  * eager pregeneration (Task 10). Finds every wall flagged
  * `dungeonHiddenDoorForEdge` starting with `${roomId}->` (the doorWall on
  * the revealing room's own face, and its matching revealDoorWall on the
- * target's face both carry this prefix, per Task 10's addendum), and:
+ * target's face both carry this prefix, per Task 10's addendum) and, per
+ * wall, based on its `dungeonHiddenDoorRole` ('gate' vs 'reveal', Task 10):
  * - sets `ds: CONST.WALL_DOOR_STATES.CLOSED` (unlocked, same convention as
- *   `unlockDoorToSlot`)
- * - replaces the `dungeonHiddenDoorForEdge` flag with the normal
- *   `dungeonDoorToRoomId` flag (set to the edge's target room id) so
- *   `handleDungeonDoorOpened` (Task 11) can resolve it like any other door
+ *   `unlockDoorToSlot`) on both
+ * - the 'gate' wall gets `dungeonDoorToRoomId` (matches a normal
+ *   progress-gate door — not itself a reveal trigger)
+ * - the 'reveal' wall gets `dungeonRevealDoorForSlot` (Task 11's actual
+ *   door-open reveal trigger — without this, opening the now-unsealed
+ *   door would never fire `handleDungeonDoorOpened`'s reveal/combat-
+ *   start/advance sequence)
+ * - both get `dungeonDoorFromRoomId: roomId` (matches the normal-door
+ *   convention Task 10's own fix round 1 established, for consistency —
+ *   nothing currently reads it off a promoted hidden door, but a future
+ *   caller keying off both ends shouldn't find this door the one
+ *   exception)
  */
 export async function unsealHiddenDoorFromRoom(scene, roomId, targetRoomId) {
   const walls = scene.walls.filter(
     (w) => w.getFlag(MODULE_ID, "dungeonHiddenDoorForEdge") === `${roomId}->${targetRoomId}`,
   );
   for (const wall of walls) {
+    const isReveal = wall.getFlag(MODULE_ID, "dungeonHiddenDoorRole") === "reveal";
     await wall.update({
       ds: CONST.WALL_DOOR_STATES.CLOSED,
-      [`flags.${MODULE_ID}.dungeonDoorToRoomId`]: targetRoomId,
+      [`flags.${MODULE_ID}.${isReveal ? "dungeonRevealDoorForSlot" : "dungeonDoorToRoomId"}`]: targetRoomId,
+      [`flags.${MODULE_ID}.dungeonDoorFromRoomId`]: roomId,
       [`flags.${MODULE_ID}.-=dungeonHiddenDoorForEdge`]: null,
+      [`flags.${MODULE_ID}.-=dungeonHiddenDoorRole`]: null,
     });
   }
 }
@@ -1994,13 +2008,28 @@ export async function buildPopulateAndUnlockGraphNode(
         buildEdgeCorridor(state.seed, sourceId, room.id, sourceRect, rect, exitFaceFromSource, toSlot);
       if (hidden) {
         // #156: sealed until Task 9's reveal step explicitly promotes it
-        // (both doorWall and revealDoorWall share the SAME flag value,
-        // matching unsealHiddenDoorFromRoom's own lookup) — never added
-        // to `doorToRoomId`, so a locked hidden door can't resolve
-        // through handleDungeonDoorOpened (Task 11) before that happens.
+        // (both doorWall and revealDoorWall share the SAME
+        // dungeonHiddenDoorForEdge value, matching
+        // unsealHiddenDoorFromRoom's own lookup) — never added to
+        // `dungeonDoorToRoomId`/`dungeonRevealDoorForSlot`, so a locked
+        // hidden door can't resolve through handleDungeonDoorOpened
+        // (Task 11) before that happens.
+        //
+        // #93 pre-flight fix (found during Task 11's own review, fix round
+        // 2): also tagged `dungeonHiddenDoorRole` ('gate'/'reveal') on each
+        // wall — the two are otherwise geometrically indistinguishable
+        // once queried back by their shared dungeonHiddenDoorForEdge
+        // value, and `unsealHiddenDoorFromRoom` (Task 9 addendum) needs to
+        // know which one to promote to `dungeonDoorToRoomId` (the
+        // progress-gate flag, never itself the reveal trigger) vs.
+        // `dungeonRevealDoorForSlot` (Task 11's actual reveal-open
+        // trigger, added in that task's own fix round 1) — without this,
+        // a revealed hidden door would carry only `dungeonDoorToRoomId`
+        // and Task 11's handler (which reads `dungeonRevealDoorForSlot`)
+        // would silently never fire for it.
         connectionWalls.push(
-          wallDoc(doorWall, { flags: { [MODULE_ID]: { dungeonHiddenDoorForEdge: `${sourceId}->${room.id}` } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR }),
-          wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonHiddenDoorForEdge: `${sourceId}->${room.id}` } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR }),
+          wallDoc(doorWall, { flags: { [MODULE_ID]: { dungeonHiddenDoorForEdge: `${sourceId}->${room.id}`, dungeonHiddenDoorRole: "gate" } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR }),
+          wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonHiddenDoorForEdge: `${sourceId}->${room.id}`, dungeonHiddenDoorRole: "reveal" } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR }),
           ...plainWalls.map((w) => wallDoc(w)),
         );
       } else {
@@ -2204,6 +2233,8 @@ git commit -m "feat: build+populate+unlock multi-exit graph rooms with per-edge 
 
 Both fixes are folded into the corrected Step 3 reference code below.
 
+**#93 fix round 2 (found by this fix round's own re-review):** the `roomsBeingOpened` reentrancy-guard comment and `const` must go BEFORE the function's own existing JSDoc comment in the actual file (`scripts/dungeon-scene.mjs`), not between that JSDoc and the `export async function` line — round 1's diff inserted it in the middle, which detaches the JSDoc from the function it documents (IDE hovers/doc tooling would show it on the `const` instead). The Step 3 code block below already shows the correct order (guard comment+const, THEN the function, with its own inline comments — there was never a separate top-level JSDoc for this function to begin with, so this only matters for wherever round 1 physically placed its insertion in the file).
+
 - [ ] **Step 1: Write the manual verification checklist**
 
 (a) opening a 2-exit room's first door advances the party into that door's specific child, not the other exit's child; (b) opening the second door afterward (if the player backtracks — same undo-window semantics as today) resolves to the OTHER child correctly; (c) a room whose eager build failed (simulate by not pre-building it) still gets built on first door-open, and the party is not stuck; (d) a non-GM client opening a door does nothing (the hook fires client-side for everyone, only the GM acts); (e) a combat room's monsters stay hidden until the door is actually opened, then Combat starts; (f) opening a door into a rest room immediately resolves it (no Succeed/Fail prompt) and unlocks its own onward door(s), matching today's behavior; (g) the Dungeon Crawl tracker auto-opens for every non-combat room reveal (combat already surfaces via Foundry's native Combat Tracker).
@@ -2291,9 +2322,16 @@ export async function handleDungeonDoorOpened(sceneId, wallId) {
       // isSlotBuilt/isSlotPopulated internally), so calling it for an
       // already-fully-built child is a cheap no-op, not a duplicate build.
       for (const childId of [...childIds, ...hiddenChildIds]) {
-        const child = resolvedState.rooms[childId];
-        const { rank: childRank, col: childCol } = resolvedState.layoutPositionByRoomId[childId];
+        // #93 fix round 2 (found by this fix round's own re-review): the
+        // {rank, col} lookup must sit INSIDE the try too — it's a plain
+        // object-property read against `layoutPositionByRoomId`, same
+        // risk class as the build call itself, and letting it throw
+        // uncaught would abort the whole loop (skipping every remaining
+        // child) and the notification, exactly the failure this try/catch
+        // exists to contain.
         try {
+          const child = resolvedState.rooms[childId];
+          const { rank: childRank, col: childCol } = resolvedState.layoutPositionByRoomId[childId];
           await buildPopulateAndUnlockGraphNode(scene, resolvedState, child, {
             rank: childRank,
             col: childCol,
