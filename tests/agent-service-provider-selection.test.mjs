@@ -23,9 +23,9 @@ describe('resolveProvider', () => {
     else process.env.PF2EDC_AGENT_PROVIDER = originalProvider;
   });
 
-  it('defaults to claude when nothing is configured', async () => {
-    const { decide: decideClaude } = await import('../tools/agent-service/providers/claude.mjs');
-    expect(resolveProvider()).toBe(decideClaude);
+  it('defaults to litellm when nothing is configured', async () => {
+    const { decide: decideLitellm } = await import('../tools/agent-service/providers/litellm.mjs');
+    expect(resolveProvider()).toBe(decideLitellm);
   });
 
   it('picks the provider named by an explicit argument, ignoring env entirely', async () => {
@@ -41,7 +41,7 @@ describe('resolveProvider', () => {
 
   it('a real shell environment variable still works and is not shadowed by .env', async () => {
     process.env.PF2EDC_AGENT_PROVIDER = 'laya';
-    mockedEnvFileContent = 'PF2EDC_AGENT_PROVIDER=claude\n';
+    mockedEnvFileContent = 'PF2EDC_AGENT_PROVIDER=litellm\n';
     const { decide: decideLaya } = await import('../tools/agent-service/providers/laya.mjs');
     expect(resolveProvider()).toBe(decideLaya);
   });

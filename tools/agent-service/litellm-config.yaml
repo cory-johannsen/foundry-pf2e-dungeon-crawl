@@ -1,0 +1,9 @@
+model_list:
+  - model_name: fast
+    litellm_params:
+      model: ollama/qwen2.5:3b-instruct
+      api_base: http://host.docker.internal:11434
+  - model_name: reasoning
+    litellm_params:
+      model: ollama/qwen2.5:3b-instruct
+      api_base: http://host.docker.internal:11434

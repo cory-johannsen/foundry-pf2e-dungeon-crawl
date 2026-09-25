@@ -80,10 +80,15 @@ dependency of its own.
 process (`tools/agent-loop/poll.mjs`) and an interactive-MCP-session flow
 (`tools/agent-loop/mcp-server.mjs`); both are retired. `tools/agent-service/`
 is a persistent, self-hosted `node:http` service (`server.mjs`, wrapping
-the moved `providers/claude.mjs`/`providers/laya.mjs` adapters and
-`customization-generator.mjs`, which defaults to Claude but can be
-switched to a self-hosted OpenAI-compatible local model via
-`AGENT_SERVICE_CUSTOMIZATION_PROVIDER=local`) exposing `GET /v1/health`,
+the `providers/litellm.mjs`/`providers/laya.mjs` adapters and
+`customization-generator.mjs`) that talks to a sidecar `litellm` proxy
+(deployed alongside it via `docker-compose.yml`) rather than any model
+provider directly. `providers/litellm.mjs` and `customization-generator.mjs`
+both route requests through the shared `node-fetch.mjs` transport and pick
+a model tier (`fast` vs `reasoning`, litellm's own aliases, configured in
+`litellm-config.yaml`) via the pure `tier-selection.mjs` classifier —
+`litellm` is the default combat-decision provider, `laya` remains
+selectable via `PF2EDC_AGENT_PROVIDER=laya`. Exposes `GET /v1/health`,
 `POST /v1/combat-decision`, and `POST /v1/flavor-customization` behind a
 bearer token. Foundry's own client-side code calls it directly — no relay,
 no local process a GM has to keep alive — via
@@ -153,10 +158,12 @@ graph LR
     tools_agent_service_customization_generator_mjs["agent-service/customization-generator.mjs"]
     tools_agent_service_entrypoint_mjs["agent-service/entrypoint.mjs"]
     tools_agent_service_env_mjs["agent-service/env.mjs"]
-    tools_agent_service_providers_claude_mjs["agent-service/providers/claude.mjs"]
+    tools_agent_service_node_fetch_mjs["agent-service/node-fetch.mjs"]
     tools_agent_service_providers_index_mjs["agent-service/providers/index.mjs"]
     tools_agent_service_providers_laya_mjs["agent-service/providers/laya.mjs"]
+    tools_agent_service_providers_litellm_mjs["agent-service/providers/litellm.mjs"]
     tools_agent_service_server_mjs["agent-service/server.mjs"]
+    tools_agent_service_tier_selection_mjs["agent-service/tier-selection.mjs"]
   end
   subgraph "GM-less relay & permissions"
     scripts_choice_prompts_mjs["choice-prompts.mjs"]
@@ -318,17 +325,22 @@ graph LR
   scripts_ui_dungeon_app_mjs --> scripts_trait_picker_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_scene_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_combat_mjs
+  tools_agent_service_customization_generator_mjs --> tools_agent_service_node_fetch_mjs
   tools_agent_service_customization_generator_mjs --> tools_agent_service_env_mjs
+  tools_agent_service_customization_generator_mjs --> tools_agent_service_tier_selection_mjs
   tools_agent_service_entrypoint_mjs --> tools_agent_service_server_mjs
   tools_agent_service_entrypoint_mjs --> tools_agent_service_env_mjs
-  tools_agent_service_providers_claude_mjs --> tools_agent_service_env_mjs
   tools_agent_service_providers_index_mjs --> tools_agent_service_env_mjs
-  tools_agent_service_providers_index_mjs --> tools_agent_service_providers_claude_mjs
+  tools_agent_service_providers_index_mjs --> tools_agent_service_providers_litellm_mjs
   tools_agent_service_providers_index_mjs --> tools_agent_service_providers_laya_mjs
   tools_agent_service_providers_laya_mjs --> tools_agent_service_env_mjs
+  tools_agent_service_providers_litellm_mjs --> tools_agent_service_env_mjs
+  tools_agent_service_providers_litellm_mjs --> tools_agent_service_node_fetch_mjs
+  tools_agent_service_providers_litellm_mjs --> tools_agent_service_tier_selection_mjs
   tools_agent_service_server_mjs --> tools_agent_service_providers_index_mjs
   tools_agent_service_server_mjs --> tools_agent_service_customization_generator_mjs
   tools_agent_service_server_mjs --> tools_agent_service_env_mjs
+  tools_agent_service_tier_selection_mjs --> tools_agent_service_env_mjs
 ```
 
 Notably, `tools/agent-service/*` never imports anything from `scripts/`,
