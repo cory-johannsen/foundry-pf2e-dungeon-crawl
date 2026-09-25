@@ -614,6 +614,24 @@ export function focusCameraOnSlot(scene, slot, seed) {
   });
 }
 
+/** Graph-aware twin of focusCameraOnSlot — same camera-fit math, keyed by
+ * roomRect(seed, roomId, rank, col) instead of slotRect(seed, slot), since
+ * a room's position is no longer derivable from an integer alone. */
+export function focusCameraOnRoom(scene, roomId, rank, col, seed) {
+  if (canvas?.scene?.id !== scene.id) return;
+  const rect = roomRect(seed, roomId, rank, col);
+  const roomPixelSize = Math.max(toPixels(rect.gw), toPixels(rect.gh));
+  const [screenWidth, screenHeight] = canvas.screenDimensions ?? [1000, 1000];
+  const fitScale = Math.min(screenWidth, screenHeight) / (roomPixelSize * 1.3);
+  const scale = Math.min(1.5, Math.max(0.3, fitScale));
+  canvas.animatePan({
+    x: toPixels(rect.gx + rect.gw / 2),
+    y: toPixels(rect.gy + rect.gh / 2),
+    scale,
+    duration: 250,
+  });
+}
+
 export async function unlockDoorToSlot(scene, slot) {
   const wall = scene.walls.find(
     (w) => w.getFlag(MODULE_ID, "dungeonDoorToSlot") === slot,
@@ -1556,10 +1574,11 @@ export async function resizeSceneForLayout(scene, { maxRank, maxCol }) {
 
 /**
  * Called from module.mjs's `updateWall` hook whenever any door's state
- * changes to OPEN — ignores anything that isn't the true frontier room's own
- * reveal door (`dungeonRevealDoorForSlot`), so a plain scenery door, an
- * already-passed room's door being reopened, or a GM idly clicking a wall
- * can't desync the tracker.
+ * changes to OPEN — ignores anything that isn't a door flagged
+ * `dungeonDoorToRoomId` for a room that's actually a live child of the
+ * party's current room (`state.edges[state.currentRoomId]`), so a plain
+ * scenery door, an already-passed room's door being reopened, or a GM idly
+ * clicking a wall can't desync the tracker.
  *
  * Returns `{ autoOpenTracker }` (`false` on every early-return path, since
  * nothing was actually revealed) — #158: a combat room's own reveal already
@@ -1579,52 +1598,78 @@ export async function handleDungeonDoorOpened(sceneId, wallId) {
   if (!game.user.isGM) return { autoOpenTracker: false };
   const scene = game.scenes.get(sceneId);
   const wall = scene?.walls.get(wallId);
-  const slot = wall?.getFlag(MODULE_ID, "dungeonRevealDoorForSlot");
-  if (slot == null) return { autoOpenTracker: false };
+  const roomId = wall?.getFlag(MODULE_ID, "dungeonDoorToRoomId");
+  if (!roomId) return { autoOpenTracker: false };
 
   const state = getRunState(sceneId);
-  if (!state) return { autoOpenTracker: false };
-  const nextRoomId = state.rooms[state.currentIndex + 1]?.id;
-  if (!nextRoomId || state.physicalSlotByRoomId[nextRoomId] !== slot)
+  if (!state || !(state.edges[state.currentRoomId] ?? []).includes(roomId))
     return { autoOpenTracker: false };
 
+  // Lazy fallback (#93 error handling): if eager pregeneration somehow
+  // failed for this room, build AND populate it now rather than leaving
+  // the party stuck in an empty, permanently-locked room — the same
+  // idempotent build+populate step the eager pass already used
+  // (buildPopulateAndUnlockGraphNode, not the walls-only
+  // buildRoomAtGraphNode — see Task 10's Step 3c). `unlock: false`
+  // because this room itself has not been resolved yet — its own
+  // outgoing doors unlock only when its outcome resolves (Task 13).
+  // #93 merge-door redesign: buildPopulateAndUnlockGraphNode now
+  // resolves this room's own `incomingConnections` internally (every
+  // real parent it has, plus any hidden extra) via `state.layoutEdges`/
+  // `state.hiddenIncomingByRoomId`/`state.hiddenRooms` — this call site
+  // only needs to pass its own outgoing shape (`childIds`/
+  // `hiddenChildId`), same as Task 12's eager-build call, so both build
+  // paths agree on this room's geometry by construction, not by
+  // duplicating the same lookup twice.
+  if (!isSlotBuilt(scene, roomId)) {
+    const room = state.rooms[roomId];
+    const { rank, col } = state.layoutPositionByRoomId[roomId];
+    await buildPopulateAndUnlockGraphNode(scene, state, room, {
+      rank,
+      col,
+      childIds: state.edges[roomId] ?? [],
+      hiddenChildId: state.hiddenEdges[roomId]?.[0] ?? null,
+      unlock: false,
+    });
+  }
+
   playDoorSound("open");
-  const revealedTokenIds = await revealSlotTokens(scene, slot);
-  const nextRoom = state.rooms.find((r) => r.id === nextRoomId);
-  // Started here, not at populateSlotEncounter/build time — the room's
-  // monsters spawn hidden, and starting Combat before the door is actually
-  // opened would give away that a fight is coming.
-  if (nextRoom?.kind === "combat") await startCombatForRoom(scene, slot);
+  const revealedTokenIds = await revealSlotTokens(scene, roomId);
+  const room = state.rooms[roomId];
+  // Started here, not at populate/build time — the room's monsters spawn
+  // hidden, and starting Combat before the door is actually opened would
+  // give away that a fight is coming.
+  if (room?.kind === "combat") await startCombatForRoom(scene, roomId);
   const { state: advancedState } = await advanceToRoom({
     sceneId,
-    roomId: nextRoomId,
+    roomId,
     revealedTokenIds,
   });
-  focusCameraOnSlot(scene, slot, state.seed);
+  const { rank, col } = state.layoutPositionByRoomId[roomId];
+  focusCameraOnRoom(scene, roomId, rank, col, state.seed);
 
   // A rest room (ITEM-5) is safe and has nothing to resolve — like the
   // entry, its own way forward opens immediately, no GM click required,
-  // instead of leaving the party stuck with no Succeed/Fail button to press.
-  if (nextRoom?.kind === "safe_rest" && advancedState) {
-    const {
-      state: resolvedState,
-      nextRoomId: afterRestId,
-      nextPhysicalSlot: afterRestSlot,
-    } = await markRoomOutcome({ sceneId, succeeded: true });
-    if (afterRestId && afterRestSlot != null) {
-      const afterRestRoom = resolvedState.rooms.find(
-        (r) => r.id === afterRestId,
-      );
-      await buildPopulateAndUnlockRoom(
-        scene,
-        resolvedState,
-        afterRestRoom,
-        afterRestSlot,
-      );
-    }
+  // instead of leaving the party stuck with no Succeed/Fail button to
+  // press. #93: under full pregeneration every room is already built
+  // (Task 12's eager loop) — nothing to build here anymore, only unlock
+  // the rest room's own outgoing doors, the exact same pattern Task 13's
+  // resolveCurrentRoom uses for every other room's outcome resolution
+  // (markRoomOutcome no longer returns a "next room" to build at all).
+  if (room?.kind === "safe_rest" && advancedState) {
+    const { state: resolvedState } = await markRoomOutcome({
+      sceneId,
+      succeeded: true,
+    });
+    await unlockDoorsFromRoom(
+      scene,
+      roomId,
+      resolvedState.edges[roomId] ?? [],
+      resolvedState.hiddenEdges[roomId] ?? [],
+    );
   }
 
-  return { autoOpenTracker: nextRoom?.kind !== "combat" };
+  return { autoOpenTracker: room?.kind !== "combat" };
 }
 
 /** Reverses the most recent automatic entry: re-hides what was revealed,
