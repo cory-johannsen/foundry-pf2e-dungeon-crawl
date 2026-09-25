@@ -1,5 +1,4 @@
 import { describe, it, expect, vi } from "vitest";
-import { createServer } from "node:http";
 
 vi.mock("node:fs", () => ({
   readFileSync: () => {
@@ -7,87 +6,69 @@ vi.mock("node:fs", () => ({
   },
 }));
 
-const { generateCustomization } =
-  await import("../tools/agent-service/customization-generator.mjs");
+const { generateCustomization } = await import("../tools/agent-service/customization-generator.mjs");
 
-function fakeClaudeFetch(toolInput) {
+function fakeFetch(toolArgs, { ok = true, status = 200 } = {}) {
   return vi.fn().mockResolvedValue({
-    ok: true,
-    status: 200,
+    ok,
+    status,
+    text: async () => JSON.stringify({ error: "boom" }),
     json: async () => ({
-      content: [{ type: "tool_use", name: "customize", input: toolInput }],
+      choices: [
+        { message: { tool_calls: [{ function: { name: "customize", arguments: JSON.stringify(toolArgs) } }] } },
+      ],
     }),
   });
 }
 
+const OPTS = { baseUrl: "http://litellm:4000/v1", fetchImpl: null };
+
 describe("generateCustomization", () => {
-  it("generates a trap name and description", async () => {
-    const fetchImpl = fakeClaudeFetch({
-      name: "The Weeping Door",
-      description: "A door that drips illusory blood.",
-    });
+  it("generates a trap name and description at the fast tier", async () => {
+    const fetchImpl = fakeFetch({ name: "The Weeping Door", description: "A door that drips illusory blood." });
     const result = await generateCustomization(
       "trap",
       { actorId: "actor1", trapLevel: 3, partyLevel: 2 },
-      { apiKey: "test-key", fetchImpl },
+      { ...OPTS, fetchImpl },
     );
-    expect(result).toEqual({
-      name: "The Weeping Door",
-      description: "A door that drips illusory blood.",
-    });
-    const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
-    expect(body.tools[0].input_schema.required).toEqual([
-      "name",
-      "description",
-    ]);
-    expect(fetchImpl.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);
+    expect(result).toEqual({ name: "The Weeping Door", description: "A door that drips illusory blood." });
+    const [url, options] = fetchImpl.mock.calls[0];
+    expect(url).toBe("http://litellm:4000/v1/chat/completions");
+    const body = JSON.parse(options.body);
+    expect(body.model).toBe("fast");
+    expect(body.tools[0].function.parameters.required).toEqual(["name", "description"]);
   });
 
-  it("generates a treasure room name and summary", async () => {
-    const fetchImpl = fakeClaudeFetch({
-      name: "The Cairn of the Unnamed",
-      summary: "A quiet burial mound.",
-    });
+  it("generates a treasure room name and summary at the fast tier", async () => {
+    const fetchImpl = fakeFetch({ name: "The Cairn of the Unnamed", summary: "A quiet burial mound." });
     const result = await generateCustomization(
       "treasure",
       { sceneId: "s1", roomId: "r1", locationTag: null },
-      { apiKey: "test-key", fetchImpl },
+      { ...OPTS, fetchImpl },
     );
-    expect(result).toEqual({
-      name: "The Cairn of the Unnamed",
-      summary: "A quiet burial mound.",
-    });
+    expect(result).toEqual({ name: "The Cairn of the Unnamed", summary: "A quiet burial mound." });
     const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
-    expect(body.tools[0].input_schema.required).toEqual(["name", "summary"]);
+    expect(body.model).toBe("fast");
   });
 
-  it("generates skill-challenge flavor scoped to skillFlavor only", async () => {
-    const fetchImpl = fakeClaudeFetch({
+  it("generates skill-challenge flavor at the reasoning tier, scoped to skillFlavor only", async () => {
+    const fetchImpl = fakeFetch({
       name: "The Silent Vault",
       summary: "A vault sealed by an old ward.",
-      skillFlavor: {
-        athletics: "Force the ward apart.",
-        arcana: "Unweave the ward.",
-      },
+      skillFlavor: { athletics: "Force the ward apart.", arcana: "Unweave the ward." },
     });
     const result = await generateCustomization(
       "skill_challenge",
-      {
-        sceneId: "s1",
-        roomId: "r1",
-        specialtySkills: ["athletics", "arcana"],
-        locationTag: "vault",
-      },
-      { apiKey: "test-key", fetchImpl },
+      { sceneId: "s1", roomId: "r1", specialtySkills: ["athletics", "arcana"], locationTag: "vault" },
+      { ...OPTS, fetchImpl },
     );
-    expect(result.skillFlavor).toEqual({
-      athletics: "Force the ward apart.",
-      arcana: "Unweave the ward.",
-    });
+    expect(result.skillFlavor).toEqual({ athletics: "Force the ward apart.", arcana: "Unweave the ward." });
+    const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    expect(body.model).toBe("reasoning");
   });
 
-  it("generates narrative content scoped to the entry's own archetype fields", async () => {
-    const fetchImpl = fakeClaudeFetch({
+  it("generates narrative content at the reasoning tier, scoped to the entry's own archetype fields", async () => {
+    const fetchImpl = fakeFetch({
       name: "A Fork in the Tunnel",
       summary: "Two passages, one choice.",
       options: [
@@ -98,297 +79,90 @@ describe("generateCustomization", () => {
     const result = await generateCustomization(
       "narrative",
       { sceneId: "s1", roomId: "r1", archetype: "choice" },
-      { apiKey: "test-key", fetchImpl },
+      { ...OPTS, fetchImpl },
     );
     expect(result.options).toHaveLength(2);
     expect(result.revealText).toBeUndefined();
+    const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    expect(body.model).toBe("reasoning");
   });
 
   it("tells the model the archetype-to-field mapping for narrative entries", async () => {
-    const fetchImpl = fakeClaudeFetch({
+    const fetchImpl = fakeFetch({
       name: "The Weeping Statue",
       summary: "An old statue remembers the fall of the keep.",
       revealText: "The keep fell not to siege, but to betrayal from within.",
     });
-    await generateCustomization(
-      "narrative",
-      { sceneId: "s1", roomId: "r1", archetype: "lore" },
-      { apiKey: "test-key", fetchImpl },
-    );
+    await generateCustomization("narrative", { sceneId: "s1", roomId: "r1", archetype: "lore" }, { ...OPTS, fetchImpl });
     const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
-    const description = body.tools[0].description;
-    expect(description).toMatch(/"lore"[^.]*revealText/);
+    expect(body.tools[0].function.description).toMatch(/"lore"[^.]*revealText/);
   });
 
-  it("throws a clear error when Claude returns no tool_use block", async () => {
-    const fetchImpl = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ content: [] }),
-    });
-    await expect(
-      generateCustomization(
-        "trap",
-        { actorId: "actor1", trapLevel: 1, partyLevel: 1 },
-        { apiKey: "test-key", fetchImpl },
-      ),
-    ).rejects.toThrow(/no customize tool call/);
-  });
-});
-
-function fakeLocalFetch(toolArgs) {
-  return vi.fn().mockResolvedValue({
-    ok: true,
-    status: 200,
-    json: async () => ({
-      choices: [
-        {
-          message: {
-            tool_calls: [
-              {
-                function: {
-                  name: "customize",
-                  arguments: JSON.stringify(toolArgs),
-                },
-              },
-            ],
-          },
-        },
-      ],
-    }),
-  });
-}
-
-describe("generateCustomization — local provider", () => {
-  it("generates a trap name and description via a local OpenAI-compatible endpoint", async () => {
-    const fetchImpl = fakeLocalFetch({
-      name: "The Weeping Door",
-      description: "A door that drips illusory blood.",
-    });
-    const result = await generateCustomization(
-      "trap",
-      { actorId: "actor1", trapLevel: 3, partyLevel: 2 },
-      {
-        provider: "local",
-        baseUrl: "http://localhost:11434/v1",
-        model: "qwen2.5:3b-instruct",
-        fetchImpl,
-      },
-    );
-    expect(result).toEqual({
-      name: "The Weeping Door",
-      description: "A door that drips illusory blood.",
-    });
-  });
-
-  it("sends an OpenAI-shaped tool-call request to {baseUrl}/chat/completions", async () => {
-    const fetchImpl = fakeLocalFetch({ name: "x", description: "y" });
-    await generateCustomization(
-      "trap",
-      { actorId: "actor1", trapLevel: 1, partyLevel: 1 },
-      {
-        provider: "local",
-        baseUrl: "http://localhost:11434/v1",
-        model: "qwen2.5:3b-instruct",
-        fetchImpl,
-      },
-    );
-    expect(fetchImpl.mock.calls[0][0]).toBe(
-      "http://localhost:11434/v1/chat/completions",
-    );
+  it("sends an OpenAI-shaped tool-call request", async () => {
+    const fetchImpl = fakeFetch({ name: "x", description: "y" });
+    await generateCustomization("trap", { actorId: "actor1", trapLevel: 1, partyLevel: 1 }, { ...OPTS, fetchImpl });
     const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
-    expect(body.model).toBe("qwen2.5:3b-instruct");
     expect(body.tools[0]).toEqual({
       type: "function",
       function: {
         name: "customize",
         description: expect.any(String),
-        parameters: expect.objectContaining({
-          required: ["name", "description"],
-        }),
+        parameters: expect.objectContaining({ required: ["name", "description"] }),
       },
     });
-    expect(body.tool_choice).toEqual({
-      type: "function",
-      function: { name: "customize" },
-    });
+    expect(body.tool_choice).toEqual({ type: "function", function: { name: "customize" } });
   });
 
-  it("sends a bearer token when a local API key is configured", async () => {
-    const fetchImpl = fakeLocalFetch({ name: "x", description: "y" });
+  it("sends a bearer token when an API key is configured", async () => {
+    const fetchImpl = fakeFetch({ name: "x", description: "y" });
     await generateCustomization(
       "trap",
       { actorId: "actor1", trapLevel: 1, partyLevel: 1 },
-      {
-        provider: "local",
-        baseUrl: "http://localhost:11434/v1",
-        model: "qwen2.5:3b-instruct",
-        localApiKey: "secret-token",
-        fetchImpl,
-      },
+      { ...OPTS, apiKey: "secret-token", fetchImpl },
     );
-    expect(fetchImpl.mock.calls[0][1].headers.Authorization).toBe(
-      "Bearer secret-token",
-    );
+    expect(fetchImpl.mock.calls[0][1].headers.Authorization).toBe("Bearer secret-token");
   });
 
-  it("uses an AbortSignal derived from the configured local timeout", async () => {
-    const fetchImpl = fakeLocalFetch({ name: "x", description: "y" });
-    await generateCustomization(
-      "trap",
-      { actorId: "actor1", trapLevel: 1, partyLevel: 1 },
-      {
-        provider: "local",
-        baseUrl: "http://localhost:11434/v1",
-        model: "qwen2.5:3b-instruct",
-        fetchImpl,
-      },
-    );
+  it("omits the Authorization header when no API key is configured", async () => {
+    const fetchImpl = fakeFetch({ name: "x", description: "y" });
+    await generateCustomization("trap", { actorId: "actor1", trapLevel: 1, partyLevel: 1 }, { ...OPTS, fetchImpl });
+    expect(fetchImpl.mock.calls[0][1].headers.Authorization).toBeUndefined();
+  });
+
+  it("passes an AbortSignal derived from the configured timeout", async () => {
+    const fetchImpl = fakeFetch({ name: "x", description: "y" });
+    await generateCustomization("trap", { actorId: "actor1", trapLevel: 1, partyLevel: 1 }, { ...OPTS, fetchImpl });
     expect(fetchImpl.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);
   });
 
-  it("throws a clear error when LOCAL_LLM_BASE_URL is missing", async () => {
+  it("throws a clear error for an unknown kind", async () => {
     await expect(
-      generateCustomization(
-        "trap",
-        { actorId: "actor1", trapLevel: 1, partyLevel: 1 },
-        { provider: "local", model: "qwen2.5:3b-instruct", fetchImpl: vi.fn() },
-      ),
-    ).rejects.toThrow(/LOCAL_LLM_BASE_URL/);
+      generateCustomization("not-a-real-kind", {}, { ...OPTS, fetchImpl: vi.fn() }),
+    ).rejects.toThrow(/unknown kind/);
   });
 
-  it("throws a clear error when LOCAL_LLM_MODEL is missing", async () => {
+  it("throws a clear error when the response is not ok", async () => {
+    const fetchImpl = fakeFetch({}, { ok: false, status: 502 });
     await expect(
-      generateCustomization(
-        "trap",
-        { actorId: "actor1", trapLevel: 1, partyLevel: 1 },
-        {
-          provider: "local",
-          baseUrl: "http://localhost:11434/v1",
-          fetchImpl: vi.fn(),
-        },
-      ),
-    ).rejects.toThrow(/LOCAL_LLM_MODEL/);
+      generateCustomization("trap", { actorId: "actor1", trapLevel: 1, partyLevel: 1 }, { ...OPTS, fetchImpl }),
+    ).rejects.toThrow(/502/);
   });
 
-  it("throws a clear error for an unknown provider value", async () => {
+  it("throws a clear error when there is no tool call in the response", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ choices: [{ message: {} }] }) });
     await expect(
-      generateCustomization(
-        "trap",
-        { actorId: "actor1", trapLevel: 1, partyLevel: 1 },
-        { provider: "bogus", fetchImpl: vi.fn() },
-      ),
-    ).rejects.toThrow(/unknown.*provider/i);
-  });
-
-  it("throws a clear error when the local response has no tool call", async () => {
-    const fetchImpl = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ choices: [{ message: {} }] }),
-    });
-    await expect(
-      generateCustomization(
-        "trap",
-        { actorId: "actor1", trapLevel: 1, partyLevel: 1 },
-        {
-          provider: "local",
-          baseUrl: "http://localhost:11434/v1",
-          model: "qwen2.5:3b-instruct",
-          fetchImpl,
-        },
-      ),
+      generateCustomization("trap", { actorId: "actor1", trapLevel: 1, partyLevel: 1 }, { ...OPTS, fetchImpl }),
     ).rejects.toThrow(/no customize tool call/);
   });
 
-  it("throws a clear error when the local tool call arguments are not valid JSON", async () => {
+  it("throws a clear error when the tool call arguments are not valid JSON", async () => {
     const fetchImpl = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => ({
-        choices: [
-          {
-            message: {
-              tool_calls: [
-                { function: { name: "customize", arguments: "{not json" } },
-              ],
-            },
-          },
-        ],
-      }),
+      json: async () => ({ choices: [{ message: { tool_calls: [{ function: { name: "customize", arguments: "{not json" } }] } }] }),
     });
     await expect(
-      generateCustomization(
-        "trap",
-        { actorId: "actor1", trapLevel: 1, partyLevel: 1 },
-        {
-          provider: "local",
-          baseUrl: "http://localhost:11434/v1",
-          model: "qwen2.5:3b-instruct",
-          fetchImpl,
-        },
-      ),
+      generateCustomization("trap", { actorId: "actor1", trapLevel: 1, partyLevel: 1 }, { ...OPTS, fetchImpl }),
     ).rejects.toThrow(/customization-generator/);
-  });
-
-  it("round-trips over a real HTTP connection when no fetchImpl is injected", async () => {
-    // Regression coverage for a real, confirmed failure mode: Node's
-    // built-in global fetch (undici) has its own internal headersTimeout
-    // (default 300000ms) that isn't governed by the AbortSignal passed to
-    // fetch() — a slow-but-legitimate local-model response can trip that
-    // hidden watchdog before our own configured timeout, surfacing as a
-    // confusing raw `UND_ERR_HEADERS_TIMEOUT` instead of respecting
-    // LOCAL_LLM_TIMEOUT_MS. The local provider's default transport must
-    // not be global fetch for this reason; this test exercises that
-    // default (no fetchImpl override) against a real socket to prove the
-    // wiring works end to end, not just against a mock.
-    const server = createServer((req, res) => {
-      let raw = "";
-      req.on("data", (chunk) => (raw += chunk));
-      req.on("end", () => {
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(
-          JSON.stringify({
-            choices: [
-              {
-                message: {
-                  tool_calls: [
-                    {
-                      function: {
-                        name: "customize",
-                        arguments: JSON.stringify({
-                          name: "Real Door",
-                          description: "A real HTTP round trip.",
-                        }),
-                      },
-                    },
-                  ],
-                },
-              },
-            ],
-          }),
-        );
-      });
-    });
-    await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-    const { port } = server.address();
-
-    try {
-      const result = await generateCustomization(
-        "trap",
-        { actorId: "actor1", trapLevel: 1, partyLevel: 1 },
-        {
-          provider: "local",
-          baseUrl: `http://127.0.0.1:${port}`,
-          model: "test-model",
-        },
-      );
-      expect(result).toEqual({
-        name: "Real Door",
-        description: "A real HTTP round trip.",
-      });
-    } finally {
-      await new Promise((resolve) => server.close(resolve));
-    }
   });
 });
