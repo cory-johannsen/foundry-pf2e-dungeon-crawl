@@ -534,8 +534,8 @@ describe("advanceToRoom", () => {
     expect(state.currentIndex).toBe(1);
     expect(state.lastAutoEntry).toEqual({
       roomId: nextRoomId,
-      fromIndex: 0,
-      toIndex: 1,
+      fromRoomId: created.rooms[0].id,
+      toRoomId: nextRoomId,
       revealedTokenIds: ["t1"],
     });
   });
@@ -631,6 +631,172 @@ describe("canUndoRoomEntry / undoLastRoomEntry", () => {
     expect(canUndoRoomEntry(getRunState("s", { settingsRef }))).toBe(false);
     const { ok } = await undoLastRoomEntry({ sceneId: "s" }, { settingsRef });
     expect(ok).toBe(false);
+  });
+});
+
+describe("advanceToRoom (graph)", () => {
+  it("accepts any of the current room's children, not just a fixed 'index + 1' successor", async () => {
+    const settingsRef = makeSettingsStub();
+    // Arrange a run state at a 2-exit room with children 'east-room' and 'south-room'
+    const state = {
+      seed: "test",
+      createdAt: Date.now(),
+      traits: [],
+      excludeTraits: [],
+      rooms: {
+        'room-entry': { id: 'room-entry', kind: 'safe_entry' },
+        'start-room': { id: 'start-room', kind: 'combat' },
+        'east-room': { id: 'east-room', kind: 'combat' },
+        'south-room': { id: 'south-room', kind: 'encounter' },
+      },
+      currentRoomId: 'start-room',
+      edges: {
+        'room-entry': ['start-room'],
+        'start-room': ['east-room', 'south-room'],
+        'east-room': [],
+        'south-room': [],
+      },
+      completed: false,
+      history: [],
+      physicalSlotByRoomId: {
+        'room-entry': 0,
+        'start-room': 1,
+        'east-room': 2,
+        'south-room': 3,
+      },
+      nextPhysicalSlot: 4,
+      lastAutoEntry: null,
+      previousSceneId: null,
+      objective: null,
+      hostUserId: null,
+      aiControlledActorIds: [],
+    };
+    await settingsRef.set('pf2e-dungeon-crawl', 'dungeonRuns', { 's': state });
+
+    // Assert the party can move into either child
+    const { ok: okEast, state: stateEast } = await advanceToRoom(
+      { sceneId: 's', roomId: 'east-room', revealedTokenIds: [] },
+      { settingsRef },
+    );
+    expect(okEast).toBe(true);
+    expect(stateEast.currentRoomId).toBe('east-room');
+    expect(stateEast.lastAutoEntry).toEqual({
+      roomId: 'east-room',
+      fromRoomId: 'start-room',
+      toRoomId: 'east-room',
+      revealedTokenIds: [],
+    });
+
+    // Reset and try the other direction
+    await settingsRef.set('pf2e-dungeon-crawl', 'dungeonRuns', { 's': state });
+    const { ok: okSouth, state: stateSouth } = await advanceToRoom(
+      { sceneId: 's', roomId: 'south-room', revealedTokenIds: ['t1', 't2'] },
+      { settingsRef },
+    );
+    expect(okSouth).toBe(true);
+    expect(stateSouth.currentRoomId).toBe('south-room');
+    expect(stateSouth.lastAutoEntry).toEqual({
+      roomId: 'south-room',
+      fromRoomId: 'start-room',
+      toRoomId: 'south-room',
+      revealedTokenIds: ['t1', 't2'],
+    });
+  });
+
+  it("rejects a roomId that is not one of the current room's children", async () => {
+    const settingsRef = makeSettingsStub();
+    const state = {
+      seed: "test",
+      createdAt: Date.now(),
+      traits: [],
+      excludeTraits: [],
+      rooms: {
+        'room-entry': { id: 'room-entry', kind: 'safe_entry' },
+        'start-room': { id: 'start-room', kind: 'combat' },
+        'east-room': { id: 'east-room', kind: 'combat' },
+        'south-room': { id: 'south-room', kind: 'encounter' },
+        'unrelated-room': { id: 'unrelated-room', kind: 'treasure' },
+      },
+      currentRoomId: 'start-room',
+      edges: {
+        'room-entry': ['start-room'],
+        'start-room': ['east-room', 'south-room'],
+        'east-room': [],
+        'south-room': [],
+        'unrelated-room': [],
+      },
+      completed: false,
+      history: [],
+      physicalSlotByRoomId: {
+        'room-entry': 0,
+        'start-room': 1,
+        'east-room': 2,
+        'south-room': 3,
+        'unrelated-room': 4,
+      },
+      nextPhysicalSlot: 5,
+      lastAutoEntry: null,
+      previousSceneId: null,
+      objective: null,
+      hostUserId: null,
+      aiControlledActorIds: [],
+    };
+    await settingsRef.set('pf2e-dungeon-crawl', 'dungeonRuns', { 's': state });
+
+    const before = getRunState('s', { settingsRef });
+    const { ok, state: returned } = await advanceToRoom(
+      { sceneId: 's', roomId: 'unrelated-room' },
+      { settingsRef },
+    );
+    expect(ok).toBe(false);
+    expect(returned).toEqual(before);
+    expect(getRunState('s', { settingsRef })).toEqual(before);
+  });
+
+  it("undoLastRoomEntry correctly restores the previous room using fromRoomId", async () => {
+    const settingsRef = makeSettingsStub();
+    const state = {
+      seed: "test",
+      createdAt: Date.now(),
+      traits: [],
+      excludeTraits: [],
+      rooms: {
+        'room-a': { id: 'room-a', kind: 'combat' },
+        'room-b': { id: 'room-b', kind: 'encounter' },
+      },
+      currentRoomId: 'room-b',
+      edges: {
+        'room-a': ['room-b'],
+        'room-b': [],
+      },
+      completed: false,
+      history: [],
+      physicalSlotByRoomId: {
+        'room-a': 0,
+        'room-b': 1,
+      },
+      nextPhysicalSlot: 2,
+      lastAutoEntry: {
+        roomId: 'room-b',
+        fromRoomId: 'room-a',
+        toRoomId: 'room-b',
+        revealedTokenIds: [],
+      },
+      previousSceneId: null,
+      objective: null,
+      hostUserId: null,
+      aiControlledActorIds: [],
+    };
+    await settingsRef.set('pf2e-dungeon-crawl', 'dungeonRuns', { 's': state });
+
+    const { ok, state: undoneState, undone } = await undoLastRoomEntry(
+      { sceneId: 's' },
+      { settingsRef },
+    );
+    expect(ok).toBe(true);
+    expect(undoneState.currentRoomId).toBe('room-a');
+    expect(undoneState.lastAutoEntry).toBeNull();
+    expect(undone.roomId).toBe('room-b');
   });
 });
 

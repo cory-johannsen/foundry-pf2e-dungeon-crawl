@@ -126,6 +126,11 @@ export async function createRun(
     physicalSlotByRoomId[rooms[1].id] = 1;
     nextPhysicalSlot = 2;
   }
+  // Build edges dict for graph navigation: each room maps to its children
+  const edges = {};
+  for (let i = 0; i < rooms.length; i += 1) {
+    edges[rooms[i].id] = i + 1 < rooms.length ? [rooms[i + 1].id] : [];
+  }
   const state = {
     seed: runSeed,
     createdAt: Date.now(),
@@ -133,6 +138,8 @@ export async function createRun(
     excludeTraits,
     rooms,
     currentIndex: 0,
+    currentRoomId: rooms[0].id,
+    edges,
     completed: false,
     history: [],
     physicalSlotByRoomId,
@@ -329,16 +336,25 @@ export async function advanceToRoom(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return { ok: false, state: null };
-  const expectedId = state.rooms[state.currentIndex + 1]?.id ?? null;
-  if (!expectedId || expectedId !== roomId) return { ok: false, state };
+  const children = state.edges[state.currentRoomId] ?? [];
+  if (!children.includes(roomId)) return { ok: false, state };
+
+  // For backward compatibility with code that still uses currentIndex:
+  // if rooms is an array, find the room index; otherwise just increment
+  let newIndex = state.currentIndex + 1;
+  if (Array.isArray(state.rooms)) {
+    const roomIndex = state.rooms.findIndex((r) => r.id === roomId);
+    if (roomIndex >= 0) newIndex = roomIndex;
+  }
 
   const newState = {
     ...state,
-    currentIndex: state.currentIndex + 1,
+    currentIndex: newIndex,
+    currentRoomId: roomId,
     lastAutoEntry: {
       roomId,
-      fromIndex: state.currentIndex,
-      toIndex: state.currentIndex + 1,
+      fromRoomId: state.currentRoomId,
+      toRoomId: roomId,
       revealedTokenIds,
     },
   };
@@ -483,9 +499,18 @@ export async function undoLastRoomEntry(
     return { ok: false, state: state ?? null, undone: null };
 
   const undone = state.lastAutoEntry;
+  // For backward compatibility with code that still uses currentIndex:
+  // if rooms is an array, find the room index; otherwise decrement
+  let previousIndex = state.currentIndex - 1;
+  if (Array.isArray(state.rooms)) {
+    const roomIndex = state.rooms.findIndex((r) => r.id === undone.fromRoomId);
+    if (roomIndex >= 0) previousIndex = roomIndex;
+  }
+
   const newState = {
     ...state,
-    currentIndex: undone.fromIndex,
+    currentIndex: previousIndex,
+    currentRoomId: undone.fromRoomId,
     lastAutoEntry: null,
   };
   await persist(sceneId, newState, settingsRef);
