@@ -23,6 +23,7 @@ import {
   clearTreasureState,
 } from "../dungeon-runner.mjs";
 import { canActOnDungeon } from "../dungeon-permissions.mjs";
+import { fulfillPendingCustomizations } from "../dungeon-customization-fulfillment.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
 import {
   lootGpForTreasureRoom,
@@ -42,6 +43,7 @@ import {
 import {
   createDungeonScene,
   openGoalRoomExit,
+  isSlotBuilt,
   placePartyInRoom,
   undoRoomEntry,
   focusCameraOnRoom,
@@ -570,6 +572,7 @@ export async function startDungeonRun({
     puzzleSetpieceIds,
     trapSetpieceIds,
     narrativeSetpieceIds,
+    treasureSetpieceIds,
   });
   const { hiddenRooms, hiddenEdges, layoutEdges, hiddenIncomingByRoomId } =
     getGenerator().attachHiddenPaths({ rooms, edges, seed: state.seed });
@@ -620,57 +623,90 @@ export async function startDungeonRun({
   // Only the entry room's own outgoing doors unlock immediately; every
   // other room stays locked until its own outcome resolves (Task 13's
   // unlockDoorsFromRoom call) — so this loop always passes
-  // `unlock: false` except for 'room-entry' itself. #93 merge-door
-  // redesign: buildPopulateAndUnlockGraphNode resolves each room's own
-  // incoming connections (real parent(s), plus any hidden extra)
-  // internally from `state` — this loop only threads its OWN outgoing
-  // shape through, same as Task 11's lazy fallback, so both build paths
-  // agree on a room's geometry by construction rather than duplicating
-  // the same lookup twice. `roomsToEagerlyBuild` walks `layoutEdges`
-  // (Task 7) so detour rooms are included.
+  // `unlock: false`. #93 merge-door redesign:
+  // buildPopulateAndUnlockGraphNode resolves each room's own incoming
+  // connections (real parent(s), plus any hidden extra) internally from
+  // `state` — this loop only threads its OWN outgoing shape through, same
+  // as Task 11's lazy fallback, so both build paths agree on a room's
+  // geometry by construction rather than duplicating the same lookup
+  // twice. `roomsToEagerlyBuild` walks `layoutEdges` (Task 7) so detour
+  // rooms are included.
+  // #93 fix round 1 (found by this task's own review): roomsToEagerlyBuild
+  // deliberately excludes 'room-entry' (Task 7 seeds it as already
+  // visited) — the brief's own loop never built OR unlocked the entry
+  // room at all, stranding the party the instant a run started. Build it
+  // explicitly first, walls-only (unlock happens below, once its own
+  // children are confirmed built), the same idempotent call every other
+  // room uses.
   //
-  // Task 12 implementer fix: roomsToEagerlyBuild deliberately never returns
-  // 'room-entry' itself (its own docblock: "every room except the entry
-  // (built separately by startDungeonRun itself)"), so the entry has to be
-  // built explicitly here, FIRST — its children's builds each delete one of
-  // its frontier placeholders (#110 ordering) and draw their incoming door
-  // from its rect. Its own outgoing doors don't exist until those children
-  // are built (each child builds its own incoming door/corridor), so it's
-  // built with `unlock: false` and its doors are unlocked once, after the
-  // loop below.
+  // #93 fix round 1: every iteration (including the entry) is now wrapped
+  // in try/catch, mirroring the pre-#93 code's own #62-era reasoning —
+  // "one bad room shouldn't take down every other room or the run's own
+  // setup." Without this, a single compendium miss or hazard-spawn
+  // failure anywhere in the whole graph would throw out of this loop and
+  // abort startDungeonRun entirely, before placePartyInRoom/
+  // scene.activate() even run — a far worse failure than "one room didn't
+  // build," and one that defeats Task 11/13's whole resolution-time
+  // "ensure-built" safety net (which only ever gets a chance to retry a
+  // room once the RUN has actually started).
+  const buildRoomSafely = async (room, opts) => {
+    try {
+      await buildPopulateAndUnlockGraphNode(scene, state, room, opts);
+    } catch (err) {
+      console.error(`${MODULE_ID} | eager build failed for room "${room.id}"`, err);
+    }
+  };
+
   const { rank: entryRank, col: entryCol } = layoutPositionByRoomId['room-entry'];
-  await buildPopulateAndUnlockGraphNode(scene, state, rooms['room-entry'], {
+  await buildRoomSafely(rooms['room-entry'], {
     rank: entryRank,
     col: entryCol,
     childIds: edges['room-entry'] ?? [],
     hiddenChildId: hiddenEdges['room-entry']?.[0] ?? null,
     unlock: false,
   });
+
   const eagerlyBuilt = roomsToEagerlyBuild(state);
-  for (const { room, buildOrder } of eagerlyBuilt) {
+  for (const { room } of eagerlyBuilt) {
     const { rank, col } = layoutPositionByRoomId[room.id];
-    await buildPopulateAndUnlockGraphNode(scene, state, room, {
+    await buildRoomSafely(room, {
       rank,
       col,
       childIds: edges[room.id] ?? [],
       // This room's own hidden outgoing target (shortcut or detour), if
       // any — reserves and seals the extra face (#156).
       hiddenChildId: hiddenEdges[room.id]?.[0] ?? null,
-      unlock: room.id === 'room-entry',
+      unlock: false,
     });
   }
-  // Now that every child of the entry has built its own incoming door,
-  // unlock the entry's outgoing doors (see the entry build above).
-  await unlockDoorsFromRoom(
-    scene,
-    'room-entry',
-    edges['room-entry'] ?? [],
-    hiddenEdges['room-entry'] ?? [],
-  );
   // #93 pre-flight fix: commitEagerPhysicalSlots dropped entirely — it
   // only ever maintained physicalSlotByRoomId/nextPhysicalSlot, both fully
   // retired by this task's own migration (Step 4/6 below read state.rooms
   // directly by id; nothing reads a "physical slot" anymore).
+
+  // #93 fix round 1: the entry room is never "resolved" the way every
+  // other room is (markRoomOutcome returns early for it) — there is no
+  // later resolution-time moment to hang an ensure-built retry off of for
+  // ITS children, unlike every other room in the graph (which Task 11's
+  // rest-room branch or Task 13's resolveCurrentRoom will always
+  // eventually cover). So the entry's own children get one best-effort
+  // retry here, right before their doors unlock — the same idempotent
+  // pattern, just inlined instead of deferred to a later resolution.
+  const entryChildIds = edges['room-entry'] ?? [];
+  const entryHiddenChildIds = hiddenEdges['room-entry'] ?? [];
+  for (const childId of [...entryChildIds, ...entryHiddenChildIds]) {
+    if (isSlotBuilt(scene, childId)) continue;
+    const child = rooms[childId];
+    const { rank: childRank, col: childCol } = layoutPositionByRoomId[childId];
+    await buildRoomSafely(child, {
+      rank: childRank,
+      col: childCol,
+      childIds: edges[childId] ?? [],
+      hiddenChildId: hiddenEdges[childId]?.[0] ?? null,
+      unlock: false,
+    });
+  }
+  await unlockDoorsFromRoom(scene, 'room-entry', entryChildIds, entryHiddenChildIds);
 
   const partyMembers = (game.actors?.party?.members ?? []).filter(
     (m) => m.type === 'character',
@@ -680,6 +716,14 @@ export async function startDungeonRun({
   unpauseIfGmLessRun(scene.id);
   await new Promise((r) => setTimeout(r, 400));
   focusCameraOnRoom(scene, 'room-entry', entryRank, entryCol, state.seed);
+
+  // #93 fix round 1: fire-and-forget, mirroring the old populateNextRoom
+  // call site's own "never delay room population or reveal" reasoning —
+  // full pregeneration means several rooms of the same customization kind
+  // can be pending at once now, which is why Step 3c below also fixes
+  // fulfillPendingCustomizations itself to drain every pending room per
+  // kind, not just the first.
+  fulfillPendingCustomizations(scene.id);
 }
 
 export async function recordSkillChallengeOutcome(sceneId, roomId, outcome) {

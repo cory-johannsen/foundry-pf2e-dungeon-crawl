@@ -571,6 +571,19 @@ describe('buildRoomGraph', () => {
     }
   });
 
+  it('assigns every treasure room a setpieceId from treasureSetpieceIds (#93 Task 12 fix round 1)', () => {
+    let sawTreasure = false;
+    for (const seed of ['t1', 't2', 't3', 't4', 't5', 't6']) {
+      const { rooms } = buildRoomGraph({ seed, roomCount: 20, treasureSetpieceIds: ['tr1', 'tr2'] });
+      for (const room of Object.values(rooms)) {
+        if (room.kind !== 'treasure') continue;
+        sawTreasure = true;
+        expect(['tr1', 'tr2']).toContain(room.setpieceId);
+      }
+    }
+    expect(sawTreasure).toBe(true);
+  });
+
   it('is a DAG — no room is reachable from itself', () => {
     const { rooms, edges } = buildRoomGraph({ seed: 'delta', roomCount: 15 });
     for (const startId of Object.keys(rooms)) {

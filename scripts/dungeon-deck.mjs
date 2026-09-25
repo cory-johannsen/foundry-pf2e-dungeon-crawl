@@ -382,7 +382,8 @@ export function buildRoomGraph({
   roomCount,
   puzzleSetpieceIds = [],
   trapSetpieceIds = [],
-  narrativeSetpieceIds = []
+  narrativeSetpieceIds = [],
+  treasureSetpieceIds = [],
 }) {
   if (!Number.isInteger(roomCount) || roomCount < 2) {
     throw new Error('roomCount must be an integer of at least 2 (rooms plus a goal room)');
@@ -393,6 +394,7 @@ export function buildRoomGraph({
   let puzzleOccurrence = 0;
   let trapOccurrence = 0;
   let narrativeOccurrence = 0;
+  let treasureOccurrence = 0;
   let built = 0; // non-entry, non-goal rooms built so far
 
   const entry = {
@@ -408,6 +410,7 @@ export function buildRoomGraph({
       kind === 'puzzle' ? setpieceAt(seed, puzzleOccurrence++, puzzleSetpieceIds, 'puzzle-setpiece-order')
       : kind === 'trap' ? setpieceAt(seed, trapOccurrence++, trapSetpieceIds, 'trap-setpiece-order')
       : kind === 'narrative' ? setpieceAt(seed, narrativeOccurrence++, narrativeSetpieceIds, 'narrative-setpiece-order')
+      : kind === 'treasure' ? setpieceAt(seed, treasureOccurrence++, treasureSetpieceIds, 'treasure-setpiece-order')
       : null;
     const outcomeSlot = outcomeSlotAt(seed, salt);
     const room = {
