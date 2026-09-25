@@ -628,10 +628,25 @@ describe('attachHiddenPaths', () => {
     expect(a.hiddenEdges).toEqual(b.hiddenEdges);
   });
 
-  it('every hidden edge source room still has its normal edges untouched', () => {
+  it('every room that already existed before the call keeps its own edges array untouched (#93 pre-flight fix — this must NOT deep-equal the whole edges object: attaching a detour legitimately ADDS a new key for the new detour room itself, per its own outgoing edge below)', () => {
     const graph = buildRoomGraph({ seed: 'gamma', roomCount: 14 });
     const before = JSON.parse(JSON.stringify(graph.edges));
     const { edges } = attachHiddenPaths({ ...graph, seed: 'gamma' });
-    expect(edges).toEqual(before);
+    for (const roomId of Object.keys(before)) {
+      expect(edges[roomId]).toEqual(before[roomId]);
+    }
+  });
+
+  it('every detour room has a discoverable outgoing path to its toId (#93 pre-flight fix regression — a detour with no recorded edge anywhere is a guaranteed dead end the moment it is revealed)', () => {
+    for (let n = 0; n < 40; n += 1) {
+      const seed = `detour-reachable-${n}`;
+      for (const roomCount of [4, 6, 8, 12, 16, 20]) {
+        const graph = buildRoomGraph({ seed, roomCount });
+        const { edges, hiddenRooms } = attachHiddenPaths({ ...graph, seed });
+        for (const detourId of hiddenRooms) {
+          expect(Array.isArray(edges[detourId]) && edges[detourId].length > 0).toBe(true);
+        }
+      }
+    }
   });
 });
