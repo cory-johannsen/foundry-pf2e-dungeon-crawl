@@ -275,6 +275,34 @@ export function slotRect(seed, slot) {
   return { gx, gy, gw: size, gh: size };
 }
 
+function roomSides(seed, slot) {
+  const { gx, gy, gw, gh } = slotRect(seed, slot);
+  return {
+    north: { x1: gx, y1: gy, x2: gx + gw, y2: gy },
+    south: { x1: gx, y1: gy + gh, x2: gx + gw, y2: gy + gh },
+    west: { x1: gx, y1: gy, x2: gx, y2: gy + gh },
+    east: { x1: gx + gw, y1: gy, x2: gx + gw, y2: gy + gh }
+  };
+}
+
+/**
+ * The full, unsplit wall segment on slot's own outgoing-connection face
+ * (ITEM-20) — a temporary placeholder dungeon-scene.mjs's buildRoomAtSlot
+ * creates the instant a non-goal room is built, since roomEnclosureWalls
+ * deliberately excludes this side (buildConnectionGeometry supplies the real,
+ * precisely-cut door/opening geometry there, but only once the *next* room is
+ * actually built). Without it, a room's outgoing face has zero wall segments
+ * — and therefore blocks nothing — for however long the party sits in it
+ * before the next room exists, leaking vision/light (and movement) straight
+ * across the rest of the scene's pre-sized canvas. Superseded — deleted, not
+ * merely covered — by buildConnectionGeometry's own plainWalls the moment
+ * that next room's build step runs; see buildRoomAtSlot.
+ */
+export function outgoingFaceWall(seed, slot) {
+  const dir = connectionDirection(slot);
+  return { dir, ...roomSides(seed, slot)[dir] };
+}
+
 /**
  * Door geometry connecting `slot` to `slot + 1`, each end at its own
  * independent offset (`doorOffsetAt`) so the two doors often don't line up.
