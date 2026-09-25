@@ -2191,8 +2191,18 @@ git commit -m "feat: build+populate+unlock multi-exit graph rooms with per-edge 
 **#93 pre-flight fix — this task's scope was under-drafted.** An earlier draft's `handleDungeonDoorOpened` only handled routing (resolve `roomId`, lazy-build, `advanceToRoom`) and silently dropped everything else the CURRENT function does: the `game.user.isGM` guard (this hook fires on every connected client), `playDoorSound`, `revealSlotTokens`, starting combat before the reveal gives it away, `focusCameraOnSlot`, the `{autoOpenTracker}` return contract another caller depends on, and — the real gap — the rest room's own auto-resolve (a rest room has nothing to Succeed/Fail, so it resolves itself immediately instead of leaving the party stuck with no button to press). Dispatched as originally drafted, this would have been a real feature regression, not just an incomplete diff. The corrected version below restores all of it, adapted to the room-id model.
 
 **Interfaces:**
-- Consumes: `advanceToRoom` (Task 8), `markRoomOutcome`/`unlockDoorsFromRoom` (Task 9/10 — the rest-room auto-resolve no longer builds anything, full pregeneration already built every room; it only unlocks the rest room's own outgoing doors, same pattern as Task 13's `resolveCurrentRoom`), `doorToRoomId` lookup (Task 10), `buildPopulateAndUnlockGraphNode` (Task 10 — now resolves a room's own `incomingConnections` internally via `state.layoutEdges`/`state.hiddenIncomingByRoomId`/`state.hiddenRooms`, so this task's caller only needs `childIds`/`hiddenChildId`), `startCombatForRoom` (Task 10 Step 3d's rename of `startCombatForSlot`), a new `focusCameraOnRoom` (this task, see below).
-- Produces: `handleDungeonDoorOpened(sceneId, wallId)` (existing name, new body) resolving `wallId` → `doorToRoomId[wallId]` → calls `advanceToRoom` with that specific child, instead of the old single `state.rooms[state.currentIndex + 1]` check. Adds the Review Focus lazy-fallback build: if the resolved room's content isn't present yet (eager pregeneration failed for it), build AND populate it on demand before revealing (a walls-only fallback would leave the party in an empty, permanently-locked room — see Task 10's Step 3c split). Keeps every other existing behavior (GM guard, sound, token reveal, combat start, camera focus, `{autoOpenTracker}` return, rest-room auto-resolve) intact under the new model.
+- Consumes: `advanceToRoom` (Task 8), `markRoomOutcome`/`unlockDoorsFromRoom` (Task 9/10 — the rest-room auto-resolve no longer builds anything ad hoc from inside the door handler; it ensures each child is built the same way Task 13's `resolveCurrentRoom` does, then unlocks the rest room's own outgoing doors), `dungeonRevealDoorForSlot` wall-flag lookup (Task 10 — see the trigger-door correction below), `buildPopulateAndUnlockGraphNode` (Task 10 — now resolves a room's own `incomingConnections` internally via `state.layoutEdges`/`state.hiddenIncomingByRoomId`/`state.hiddenRooms`, so this task's caller only needs `childIds`/`hiddenChildId`), `startCombatForRoom` (Task 10 Step 3d's rename of `startCombatForSlot`), a new `focusCameraOnRoom` (this task, see below).
+- Produces: `handleDungeonDoorOpened(sceneId, wallId)` (existing name, new body) resolving `wallId` → the opened wall's `dungeonRevealDoorForSlot` flag → calls `advanceToRoom` with that specific child, instead of the old single `state.rooms[state.currentIndex + 1]` check. Keeps every other existing behavior (GM guard, sound, token reveal, combat start, camera focus, `{autoOpenTracker}` return, rest-room auto-resolve) intact under the new model.
+
+**#93 fix round 1 (found by this task's own review) — two Critical/Important corrections to the reference code below, both crossing into Task 13's territory, ruled on and fixed here in the plan text before re-dispatch:**
+
+1. **The door-open-time lazy fallback was dead code.** A room's incoming doors — BOTH the progress-gate `doorWall` (flagged `dungeonDoorToRoomId`) AND the reveal `revealDoorWall` (flagged `dungeonRevealDoorForSlot`) — are created inside that SAME room's own `buildPopulateAndUnlockGraphNode` call, in the same synchronous pass that also writes its `dungeonRoomBuilt` Tile flag (see Task 10's Step 3b/3e). So any door carrying either flag already implies `isSlotBuilt` is true for that room — a door for an unbuilt room can never exist for the player to click, and the guard `if (!isSlotBuilt(scene, roomId)) { ...build... }` inside the door handler could never fire. If eager pregeneration (Task 12) truly failed to build a room, its parent has only a plain, non-door frontier-placeholder wall on that face — nothing to open, no handler ever runs, and the party is stuck exactly as Review Focus item 1 warns against.
+
+   **Fix:** move the "ensure this child is built" safety net from door-open time to room-OUTCOME-RESOLUTION time — the one place in the whole run where we already know we're about to unlock a specific set of children, before any door needs to exist yet. Concretely: immediately before calling `unlockDoorsFromRoom`, loop over every child id (real + hidden) and call the SAME idempotent `buildPopulateAndUnlockGraphNode(..., { unlock: false })` used by eager pregeneration, wrapped in try/catch. Since that function already internally no-ops the wall/tile creation when `isSlotBuilt` is already true but still separately checks/repairs `isSlotPopulated` for combat rooms, this single call is a true idempotent "ensure fully built and populated" step regardless of whether the room was never built, partially built, or already fully built — it costs nothing extra on the common (fully-built) path. This task applies the fix to the rest-room branch below; **Task 13's plan text is also fixed (see that task)** to apply the identical pattern in `resolveCurrentRoom`, since that is the resolution path for every OTHER room kind.
+
+2. **The trigger door was wrong.** The reference code below resolved `roomId` off `dungeonDoorToRoomId` — the progress-gate `doorWall`, unlocked programmatically by `unlockDoorsFromRoom` (never manually "opened" by a player in the reveal sense). Per `buildEdgeCorridor`'s own docblock (`dungeon-layout.mjs`, Task 6): "*opening* [the `revealDoorWall`] is what reveals the next room and advances the tracker" — a deliberate two-door design (an always-closed-never-locked inner threshold the party opens themselves, reachable only once the outer gate has been unlocked and walked through). Resolving off the wrong door would fire the reveal/combat-start/camera-focus/advance sequence as soon as the outer gate unlocks, before the party has actually walked up and opened the room's real door — the exact "give away that a fight is coming" bug the function's own comment already warns against for combat timing specifically. **Fix:** resolve `roomId` from `wall.getFlag(MODULE_ID, "dungeonRevealDoorForSlot")` instead.
+
+Both fixes are folded into the corrected Step 3 reference code below.
 
 - [ ] **Step 1: Write the manual verification checklist**
 
@@ -2203,86 +2213,112 @@ git commit -m "feat: build+populate+unlock multi-exit graph rooms with per-edge 
 - [ ] **Step 3: Write the implementation**
 
 ```js
+// Module-private reentrancy guard: `updateWall`'s door-open hook can in
+// principle fire more than once for the same wall/room before the first
+// call's advanceToRoom/markRoomOutcome round-trip settles (a fast
+// close-then-reopen, or the hook double-firing) — without this, a second
+// concurrent call would re-run token reveal/combat start/advance for a
+// room already being handled. Declared once at module scope, alongside
+// this function.
+const roomsBeingOpened = new Set();
+
 export async function handleDungeonDoorOpened(sceneId, wallId) {
   // Called directly from a global hook, which fires on every connected
   // client — only the GM's own client should act on it.
   if (!game.user.isGM) return { autoOpenTracker: false };
   const scene = game.scenes.get(sceneId);
   const wall = scene?.walls.get(wallId);
-  const roomId = wall?.getFlag(MODULE_ID, "dungeonDoorToRoomId");
+  // #93 fix round 1 (found by this task's own review): the REVEAL door
+  // (`dungeonRevealDoorForSlot`) is the real "open it and see what's
+  // inside" trigger — the progress-gate door (`dungeonDoorToRoomId`) only
+  // ever gets unlocked programmatically by `unlockDoorsFromRoom`; resolving
+  // off IT instead would fire the reveal as soon as a room's outcome
+  // resolves, before the party has actually opened its real door. See
+  // buildEdgeCorridor's docblock (dungeon-layout.mjs, Task 6).
+  const roomId = wall?.getFlag(MODULE_ID, "dungeonRevealDoorForSlot");
   if (!roomId) return { autoOpenTracker: false };
 
   const state = getRunState(sceneId);
   if (!state || !(state.edges[state.currentRoomId] ?? []).includes(roomId))
     return { autoOpenTracker: false };
 
-  // Lazy fallback (#93 error handling): if eager pregeneration somehow
-  // failed for this room, build AND populate it now rather than leaving
-  // the party stuck in an empty, permanently-locked room — the same
-  // idempotent build+populate step the eager pass already used
-  // (buildPopulateAndUnlockGraphNode, not the walls-only
-  // buildRoomAtGraphNode — see Task 10's Step 3c). `unlock: false`
-  // because this room itself has not been resolved yet — its own
-  // outgoing doors unlock only when its outcome resolves (Task 13).
-  // #93 merge-door redesign: buildPopulateAndUnlockGraphNode now
-  // resolves this room's own `incomingConnections` internally (every
-  // real parent it has, plus any hidden extra) via `state.layoutEdges`/
-  // `state.hiddenIncomingByRoomId`/`state.hiddenRooms` — this call site
-  // only needs to pass its own outgoing shape (`childIds`/
-  // `hiddenChildId`), same as Task 12's eager-build call, so both build
-  // paths agree on this room's geometry by construction, not by
-  // duplicating the same lookup twice.
-  if (!isSlotBuilt(scene, roomId)) {
+  if (roomsBeingOpened.has(roomId)) return { autoOpenTracker: false };
+  roomsBeingOpened.add(roomId);
+  try {
+    // #93 fix round 1: no lazy-build fallback here anymore — see this
+    // task's own "fix round 1" note above. By the time this room's reveal
+    // door exists at all, that room's own build (Tile flag + both doors,
+    // all written in the same buildPopulateAndUnlockGraphNode call) has
+    // already completed; a door-open-time build-on-demand check here could
+    // never fire. The real safety net for a room eager pregeneration
+    // failed to build now lives at resolution time — see the rest-room
+    // branch below, and Task 13's resolveCurrentRoom for every other kind.
+    playDoorSound("open");
+    const revealedTokenIds = await revealSlotTokens(scene, roomId);
     const room = state.rooms[roomId];
-    const { rank, col } = state.layoutPositionByRoomId[roomId];
-    await buildPopulateAndUnlockGraphNode(scene, state, room, {
-      rank,
-      col,
-      childIds: state.edges[roomId] ?? [],
-      hiddenChildId: state.hiddenEdges[roomId]?.[0] ?? null,
-      unlock: false,
-    });
-  }
-
-  playDoorSound("open");
-  const revealedTokenIds = await revealSlotTokens(scene, roomId);
-  const room = state.rooms[roomId];
-  // Started here, not at populate/build time — the room's monsters spawn
-  // hidden, and starting Combat before the door is actually opened would
-  // give away that a fight is coming.
-  if (room?.kind === "combat") await startCombatForRoom(scene, roomId);
-  const { state: advancedState } = await advanceToRoom({
-    sceneId,
-    roomId,
-    revealedTokenIds,
-  });
-  const { rank, col } = state.layoutPositionByRoomId[roomId];
-  focusCameraOnRoom(scene, roomId, rank, col, state.seed);
-
-  // A rest room (ITEM-5) is safe and has nothing to resolve — like the
-  // entry, its own way forward opens immediately, no GM click required,
-  // instead of leaving the party stuck with no Succeed/Fail button to
-  // press. #93: under full pregeneration every room is already built
-  // (Task 12's eager loop) — nothing to build here anymore, only unlock
-  // the rest room's own outgoing doors, the exact same pattern Task 13's
-  // resolveCurrentRoom uses for every other room's outcome resolution
-  // (markRoomOutcome no longer returns a "next room" to build at all).
-  if (room?.kind === "safe_rest" && advancedState) {
-    const { state: resolvedState } = await markRoomOutcome({
+    // Started here, not at populate/build time — the room's monsters spawn
+    // hidden, and starting Combat before the door is actually opened would
+    // give away that a fight is coming.
+    if (room?.kind === "combat") await startCombatForRoom(scene, roomId);
+    const { ok, state: advancedState } = await advanceToRoom({
       sceneId,
-      succeeded: true,
-    });
-    await unlockDoorsFromRoom(
-      scene,
       roomId,
-      resolvedState.edges[roomId] ?? [],
-      resolvedState.hiddenEdges[roomId] ?? [],
-    );
-  }
+      revealedTokenIds,
+    });
+    const { rank, col } = state.layoutPositionByRoomId[roomId];
+    focusCameraOnRoom(scene, roomId, rank, col, state.seed);
 
-  return { autoOpenTracker: room?.kind !== "combat" };
+    // A rest room (ITEM-5) is safe and has nothing to resolve — like the
+    // entry, its own way forward opens immediately, no GM click required,
+    // instead of leaving the party stuck with no Succeed/Fail button to
+    // press. #93: under full pregeneration every room is ALREADY built
+    // (Task 12's eager loop) in the common case — the ensure-built loop
+    // below is the Review Focus item 1 safety net for the uncommon case
+    // where it wasn't, not the normal path.
+    if (room?.kind === "safe_rest" && ok) {
+      const { state: resolvedState } = await markRoomOutcome({
+        sceneId,
+        succeeded: true,
+      });
+      const childIds = resolvedState.edges[roomId] ?? [];
+      const hiddenChildIds = resolvedState.hiddenEdges[roomId] ?? [];
+      // #93 fix round 1: ensure every child this room is about to unlock
+      // a door to is actually built (and, for combat rooms, populated)
+      // BEFORE unlocking — the one place a door is guaranteed not to
+      // exist yet for the player to click, so it's the right place for
+      // the fallback build, not the door-open handler itself.
+      // buildPopulateAndUnlockGraphNode is already idempotent (checks
+      // isSlotBuilt/isSlotPopulated internally), so calling it for an
+      // already-fully-built child is a cheap no-op, not a duplicate build.
+      for (const childId of [...childIds, ...hiddenChildIds]) {
+        const child = resolvedState.rooms[childId];
+        const { rank: childRank, col: childCol } = resolvedState.layoutPositionByRoomId[childId];
+        try {
+          await buildPopulateAndUnlockGraphNode(scene, resolvedState, child, {
+            rank: childRank,
+            col: childCol,
+            childIds: resolvedState.edges[childId] ?? [],
+            hiddenChildId: resolvedState.hiddenEdges[childId]?.[0] ?? null,
+            unlock: false,
+          });
+        } catch (err) {
+          console.error(`${MODULE_ID} | failed to build child room ${childId} before unlock`, err);
+          ui.notifications?.error(
+            game.i18n.localize("PF2EDC.Dungeon.RoomBuildFailedError"),
+          );
+        }
+      }
+      await unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildIds);
+    }
+
+    return { autoOpenTracker: room?.kind !== "combat" };
+  } finally {
+    roomsBeingOpened.delete(roomId);
+  }
 }
 ```
+
+Add a `PF2EDC.Dungeon.RoomBuildFailedError` localization key (same `lang/en.json` block the other `PF2EDC.Dungeon.*` strings live in — e.g. right beside `RerunEncounterHint`) with text along the lines of "Dungeon Crawl: failed to prepare the next room — see console for details."
 
 **New helper, alongside `focusCameraOnSlot` (do not replace or delete it — the two other call sites in `scripts/ui/dungeon-app.mjs` are outside this task's file scope and still key off the old physical-slot model; whichever of Tasks 12/13 finishes migrating that file's own rendering context to room ids should repoint them at this new function too):**
 
@@ -2306,7 +2342,7 @@ export function focusCameraOnRoom(scene, roomId, rank, col, seed) {
 }
 ```
 
-**Note for the implementer:** `wall.getFlag(MODULE_ID, "dungeonDoorToRoomId")` must be set when each door wall is created in Task 10 (add it alongside the existing `dungeonDoorToSlot`-style flag, now storing the target room id directly rather than a slot number — simplest possible `doorToRoomId` lookup, keyed by wall flag rather than a separately-threaded map, avoiding new state). `isSlotBuilt`/`revealSlotTokens`/`startCombatForRoom` (renamed from `startCombatForSlot`, Step 3d) all already generalize cleanly: they take an opaque value compared by `===` against a flag, so passing a room id string where it used to get an integer works with no body changes.
+**Note for the implementer:** both `dungeonDoorToRoomId` (on the progress-gate `doorWall`) and `dungeonRevealDoorForSlot` (on the reveal `revealDoorWall`) are already written by Task 10's `buildPopulateAndUnlockGraphNode` (confirmed present at `scripts/dungeon-scene.mjs:1356` and the neighboring `revealDoorWall` line) — nothing to add here, just read the correct one (`dungeonRevealDoorForSlot`) off the wall that actually fired the hook. `revealSlotTokens`/`startCombatForRoom` (renamed from `startCombatForSlot`, Step 3d) already generalize cleanly: they take an opaque value compared by `===` against a flag, so passing a room id string where it used to get an integer works with no body changes. Do not read `isSlotBuilt` inside this function at all anymore — see this task's "fix round 1" note above for why that check moved to resolution time.
 
 - [ ] **Step 4: Live verification**
 
@@ -2436,8 +2472,10 @@ git commit -m "feat: pregenerate the full branching graph for every run, drop IT
 - Test: `tests/dungeon-runner.test.mjs` (delete `roomsNeedingResync`'s own describe block); the rest is manual/live verification (this file drives Foundry UI directly, same existing boundary as the rest of `resolveCurrentRoom`).
 
 **Interfaces:**
-- Consumes: `markRoomOutcome` → `{state, effectKey}` (Task 9, already drops mutation logic internally), `unlockDoorsFromRoom` (Task 10), `depthBiasFor`/`lootGpForTreasureRoom`/`treasureRoomItemTableName` rank/maxRank rename (Task 9's Step 3a), `state.maxRank` (Task 12).
-- Produces: `resolveCurrentRoom` (existing name) no longer branches on `mutation && state.hostUserId`, calls no resync/reconciliation step, and builds nothing — it only unlocks the just-resolved room's own outgoing doors via `unlockDoorsFromRoom` (dead code per #62's now-superseded reconciliation mechanism, superseded again by full pregeneration). `roomsNeedingResync` (`dungeon-runner.mjs`) is deleted outright — nothing calls it once this task lands.
+- Consumes: `markRoomOutcome` → `{state, effectKey}` (Task 9, already drops mutation logic internally), `unlockDoorsFromRoom` (Task 10), `buildPopulateAndUnlockGraphNode` (Task 10 — see the Task 11 fix-round-1 ensure-built pattern this task mirrors, below), `depthBiasFor`/`lootGpForTreasureRoom`/`treasureRoomItemTableName` rank/maxRank rename (Task 9's Step 3a), `state.maxRank` (Task 12).
+- Produces: `resolveCurrentRoom` (existing name) no longer branches on `mutation && state.hostUserId`, calls no resync/reconciliation step, and does not build anything on the eager-pregeneration-succeeded path — it only unlocks the just-resolved room's own outgoing doors via `unlockDoorsFromRoom` (dead code per #62's now-superseded reconciliation mechanism, superseded again by full pregeneration). It DOES ensure each child is built first (see Step 3's ensure-built loop) — the same Review Focus item 1 safety net Task 11's door handler uses for rest rooms, applied here for every other room kind's outcome resolution. `roomsNeedingResync` (`dungeon-runner.mjs`) is deleted outright — nothing calls it once this task lands.
+
+**#93 pre-flight fix (found during Task 11's own review, before this task was dispatched):** Task 11's review found the door-open-time lazy-build fallback for an eager-pregeneration failure was dead code — a room's doors can only exist once that room is already built, so "build it when the player clicks its door" can never trigger for a room that failed to build. The fix moved that safety net to resolution time instead. This task is the OTHER resolution path (every room kind besides the rest-room special case Task 11 already covers) and needs the identical "ensure each child is built before unlocking its door" step, folded into the Step 3 code below.
 
 - [ ] **Step 1: Write the manual verification checklist**
 
@@ -2523,29 +2561,61 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
       game.i18n.localize("PF2EDC.Dungeon.RerunEncounterHint"),
     );
   // #93: full pregeneration means every room the party can reach is
-  // already built (Task 12's eager-build loop) and any hidden path this
-  // outcome revealed was already merged into `state.edges` inside
-  // markRoomOutcome (Task 9's revealTravelTimeEffect) — resolving a room
-  // never builds, rebuilds, or reconciles physical slots. All that's
-  // left is unlocking the resolved room's own outgoing doors so the
-  // party can walk through them; the goal room has none.
+  // already built (Task 12's eager-build loop) in the common case, and
+  // any hidden path this outcome revealed was already merged into
+  // `state.edges` inside markRoomOutcome (Task 9's revealTravelTimeEffect)
+  // — resolving a room never rebuilds or reconciles physical slots. All
+  // that's normally left is unlocking the resolved room's own outgoing
+  // doors so the party can walk through them; the goal room has none.
+  //
+  // #93 pre-flight fix (found during Task 11's own review): the
+  // ensure-built loop below is the Review Focus item 1 safety net for
+  // the uncommon case where eager pregeneration failed for one of these
+  // children — NOT the normal path. A child room's own doors (both the
+  // progress-gate and reveal doors) only ever get created as part of
+  // THAT room's own build, in the same call that marks it built — so a
+  // door-open-time fallback (the original design) could never fire for a
+  // room that truly failed to build; this is the one place we already
+  // know which children are about to be unlockable, before any door
+  // needs to exist for the player to click. buildPopulateAndUnlockGraphNode
+  // is already idempotent (checks isSlotBuilt/isSlotPopulated internally),
+  // so calling it for an already-fully-built child costs nothing beyond
+  // that internal check — this is not a second build pass on the common
+  // path, same reasoning as Task 11's identical rest-room-branch loop.
   if (currentRoom && !currentRoom.isGoal) {
-    await unlockDoorsFromRoom(
-      scene,
-      currentRoom.id,
-      state.edges[currentRoom.id] ?? [],
-      state.hiddenEdges[currentRoom.id] ?? [],
-    );
+    const childIds = state.edges[currentRoom.id] ?? [];
+    const hiddenChildIds = state.hiddenEdges[currentRoom.id] ?? [];
+    for (const childId of [...childIds, ...hiddenChildIds]) {
+      const child = state.rooms[childId];
+      const { rank: childRank, col: childCol } = state.layoutPositionByRoomId[childId];
+      try {
+        await buildPopulateAndUnlockGraphNode(scene, state, child, {
+          rank: childRank,
+          col: childCol,
+          childIds: state.edges[childId] ?? [],
+          hiddenChildId: state.hiddenEdges[childId]?.[0] ?? null,
+          unlock: false,
+        });
+      } catch (err) {
+        console.error(`${MODULE_ID} | failed to build child room ${childId} before unlock`, err);
+        ui.notifications?.error(
+          game.i18n.localize("PF2EDC.Dungeon.RoomBuildFailedError"),
+        );
+      }
+    }
+    await unlockDoorsFromRoom(scene, currentRoom.id, childIds, hiddenChildIds);
   }
   if (state?.completed) await sweepCompletedDungeonScene(scene);
 }
 ```
 
+Uses the same `PF2EDC.Dungeon.RoomBuildFailedError` localization key Task 11 adds — do not add it a second time; if Task 11 has already landed when this task is dispatched, the key already exists in `lang/en.json`.
+
 Update `applyRoomEffect`'s own destructure (`dungeon-app.mjs:412-414`) from `{ seed, roomId, physicalSlot, roomCount, isGoal }` to `{ scene, seed, roomId, rank, maxRank, isGoal, revealedRoomId }` (adding `scene`/`revealedRoomId` — required by Task 9's already-landed `reduced_travel_time`/`extra_travel_time` case in this same function, which reads both), and its `treasure` case's call into `grantTreasureReward` (`dungeon-app.mjs:421-431`) from `{ physicalSlot, roomCount }` to `{ rank, maxRank }`. Update `grantTreasureReward`'s own destructure (`dungeon-app.mjs:370-372`) the same way, and its two calls into `lootGpForTreasureRoom`/`treasureRoomItemTableName` (`dungeon-app.mjs:374-379`, `392-398`) to pass `{ rank, maxRank, ... }` instead of `{ physicalSlot, roomCount, ... }` — both functions' own signatures already take `rank`/`maxRank` as of Task 9's Step 3a, so this is purely threading the renamed fields through, not a new rename.
 
 Delete `roomsNeedingResync` entirely from `scripts/dungeon-runner.mjs` (its export, `dungeon-runner.mjs:390` onward through the end of its function body) and remove it from the `roomsNeedingResync` import in `scripts/ui/dungeon-app.mjs:13` (the whole import line, since nothing else in that block depended on it — verify no other name shares the line before deleting the line itself rather than just the one specifier). Delete its `describe("roomsNeedingResync", ...)` block from `tests/dungeon-runner.test.mjs:2095-2166` and remove `roomsNeedingResync` from that file's own import list (`tests/dungeon-runner.test.mjs:10`).
 
-**Note for the implementer:** `openGoalRoomExit`, `clearSlotEncounter`, `clearSlotTrap`, `clearPuzzleState`, `clearSkillChallengeState`, `clearNarrativeState`, `clearTrapState`, `clearTreasureState`, and `commitEagerPhysicalSlots` were only ever called from the deleted mutation-resync block within this function — leave their own definitions/exports alone (they're still used elsewhere, e.g. `commitEagerPhysicalSlots` by Task 12's eager-build loop), just confirm `resolveCurrentRoom` itself no longer references any of them. If any import in this file becomes unused after this deletion, remove that import too.
+**Note for the implementer:** `openGoalRoomExit`, `clearSlotEncounter`, `clearSlotTrap`, `clearPuzzleState`, `clearSkillChallengeState`, `clearNarrativeState`, `clearTrapState`, `clearTreasureState`, and `commitEagerPhysicalSlots` were only ever called from the deleted mutation-resync block within this function — leave their own definitions/exports alone (they're still used elsewhere, e.g. `commitEagerPhysicalSlots` by Task 12's eager-build loop), just confirm `resolveCurrentRoom` itself no longer references any of them. If any import in this file becomes unused after this deletion, remove that import too. Add `buildPopulateAndUnlockGraphNode` to the existing `dungeon-scene.mjs` import block at `scripts/ui/dungeon-app.mjs:39-56` (alongside `buildPopulateAndUnlockRoom`, which stays — it's still used by the old physical-slot path elsewhere in this file).
 
 - [ ] **Step 4: Run tests, then live verification**
 
