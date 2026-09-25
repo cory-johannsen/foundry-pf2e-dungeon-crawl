@@ -735,14 +735,16 @@ git commit -m "feat: add rank/column tree-layout pass for branching graphs"
 - Modify: `scripts/dungeon-layout.mjs`
 - Test: `tests/dungeon-layout.test.mjs`
 
+**#93 pre-flight fix — face allocation redesigned (incoming and outgoing now use structurally disjoint faces).** The original design computed a room's incoming face as `OPPOSITE[exitFaceForIndex(parentIndex)]` — north, west, or east depending on which numbered child this room is of its parent — while a room's own outgoing faces independently use `south`/`east`/`west` (`exitFaceForIndex` applied to ITS OWN children). These two computations are unrelated, so a room that's the 2nd or 3rd child of a branching parent (routine — roughly half of rooms have 2+ exits per `EXIT_COUNT_WEIGHTS`) gets `west` or `east` as its own incoming face, and if that same room also rolls its own 2-3 exits, one of them can land on that identical direction — two unrelated door systems (the parent's incoming connection, this room's own outgoing connection to a child) would build wall geometry on the same physical wall segment. Separately, a **merge room** (multiple tips forced together by Task 2's forced-merge algorithm — routine throughout the graph, not just the final goal; Task 4's own review sweep found ~1.45 merge rooms per generated graph) has more than one real parent in `edges`, but the original design only ever resolved ONE of them (`incomingFaceFor` returning the first match) — every OTHER real parent's branch would dead-end at a permanently sealed wall, since nothing ever built its side of the connection. Both problems share one root cause (the face-allocation model doesn't reserve incoming capacity correctly) and one fix: **incoming ALWAYS uses the room's north face, subdivided into one door slot per real incoming connection** (1 for a normal room, N for a merge room, or a normal room's real parent plus one more for a shortcut's hidden extra incoming — #156). Outgoing is unchanged (south/east/west, up to 3 real + 1 hidden, `exitFaceForIndex`). North is never used for outgoing, so incoming and outgoing can never collide, for any room, regardless of branching factor or parent-child index — structurally guaranteed, not merely by convention.
+
 **Interfaces:**
 - Consumes: `roomSizeAt(seed, roomId)` (existing, works unchanged with a string id in place of an integer slot), `computeRanks`/`computeColumns` (Task 4).
-- Produces: `ROW_STRIDE`, `COLUMN_STRIDE` constants; `roomRect(seed, roomId, rank, col)` → `{gx, gy, gw, gh}`; `exitFaceForIndex(index)` → `'south' | 'east' | 'west'`; `roomEnclosureWalls(seed, roomId, { incomingFace, outgoingFaces }, rect)` (replaces the old `{hasOutgoing}` boolean signature — **breaking change**, callers updated in Task 10); `OPPOSITE` (exported face-inversion map); `incomingFaceFor(edges, roomId)` and `parentRoomIdFor(edges, roomId)` (both new, share one parent lookup, used together by Tasks 11/12).
+- Produces: `ROW_STRIDE`, `COLUMN_STRIDE` constants; `roomRect(seed, roomId, rank, col)` → `{gx, gy, gw, gh}`; `exitFaceForIndex(index)` → `'south' | 'east' | 'west'`; `OPPOSITE` (exported face-inversion map, still used by Task 6's corridor routing); `parentRoomIdsFor(layoutEdges, roomId)` → `string[]` (every real parent, in deterministic `Object.entries` order — empty for the entry room, length 1 for a normal room, length 2+ for a merge room; `layoutEdges` not bare `edges` so a detour room's one real parent link, which only exists as a `layoutEdges` entry, resolves too — #156); `incomingConnectionsFor(layoutEdges, roomId, hiddenIncomingByRoomId)` → `{sourceId, hidden}[]` (every incoming connection a room needs a door for, in slot order: real parents first via `parentRoomIdsFor`, then a shortcut's hidden extra incoming source if any); `northDoorSlots(rect, count)` → `{x1, y1, x2, y2}[]` (divides a room's north wall into `count` equal, contiguous, left-to-right door slots — one per entry `incomingConnectionsFor` returns); `roomEnclosureWalls(seed, roomId, { incomingCount, outgoingFaces }, rect)` (replaces the old `{hasOutgoing}` boolean signature AND the old singular `{incomingFace}` shape — **breaking change**, callers updated in Task 10; `incomingCount` is `incomingConnectionsFor(...).length`, 0 for the entry room).
 
 - [ ] **Step 1: Write the failing tests**
 
 ```js
-import { roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE } from '../scripts/dungeon-layout.mjs';
+import { roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, northDoorSlots } from '../scripts/dungeon-layout.mjs';
 
 describe('roomRect', () => {
   it('is a pure function of (seed, roomId, rank, col)', () => {
@@ -782,8 +784,8 @@ describe('roomEnclosureWalls (multi-exit)', () => {
   // is enough since these tests only assert on `.dir`, never coordinates.
   const rect = { gx: 0, gy: 0, gw: 4, gh: 4 };
 
-  it('excludes the incoming face and every outgoing face', () => {
-    const walls = roomEnclosureWalls('alpha', 'x', { incomingFace: 'north', outgoingFaces: ['south', 'east'] }, rect);
+  it('excludes north (incoming) and every outgoing face', () => {
+    const walls = roomEnclosureWalls('alpha', 'x', { incomingCount: 1, outgoingFaces: ['south', 'east'] }, rect);
     const dirs = walls.map((w) => w.dir);
     expect(dirs).not.toContain('north');
     expect(dirs).not.toContain('south');
@@ -791,9 +793,71 @@ describe('roomEnclosureWalls (multi-exit)', () => {
     expect(dirs).toContain('west');
   });
 
-  it('the entry room (no incomingFace) walls every side except its outgoing faces', () => {
-    const walls = roomEnclosureWalls('alpha', 'room-entry', { incomingFace: null, outgoingFaces: ['south'] }, rect);
+  it('the entry room (incomingCount 0) walls every side except its outgoing faces', () => {
+    const walls = roomEnclosureWalls('alpha', 'room-entry', { incomingCount: 0, outgoingFaces: ['south'] }, rect);
     expect(walls.map((w) => w.dir)).toEqual(expect.arrayContaining(['north', 'east', 'west']));
+  });
+
+  it('a merge room with several real incoming connections still only excludes north ONCE (one shared face, subdivided into door slots later — not one excluded face per incoming connection, which would run out of faces past 3)', () => {
+    const walls = roomEnclosureWalls('alpha', 'm', { incomingCount: 3, outgoingFaces: ['south'] }, rect);
+    const dirs = walls.map((w) => w.dir);
+    expect(dirs).not.toContain('north');
+    expect(dirs).toContain('east');
+    expect(dirs).toContain('west');
+  });
+});
+
+describe('parentRoomIdsFor', () => {
+  it('returns every real parent for a merge room, in deterministic order', () => {
+    const layoutEdges = { 'room-entry': ['a', 'b'], a: ['m'], b: ['m'], m: [] };
+    expect(parentRoomIdsFor(layoutEdges, 'm')).toEqual(['a', 'b']);
+  });
+
+  it('returns a single-element array for a normal (non-merge) room', () => {
+    const layoutEdges = { 'room-entry': ['a'], a: [] };
+    expect(parentRoomIdsFor(layoutEdges, 'a')).toEqual(['room-entry']);
+  });
+
+  it('returns an empty array for the entry room', () => {
+    expect(parentRoomIdsFor({ 'room-entry': [] }, 'room-entry')).toEqual([]);
+  });
+
+  it('resolves a detour room\'s one real parent via layoutEdges (#156 — a plain edges lookup would find none)', () => {
+    const layoutEdges = { 'room-entry': ['a'], a: ['b', 'room-detour-0'], b: [], 'room-detour-0': ['b'] };
+    expect(parentRoomIdsFor(layoutEdges, 'room-detour-0')).toEqual(['a']);
+  });
+});
+
+describe('incomingConnectionsFor', () => {
+  it('lists real parents first (in parentRoomIdsFor order), then any hidden incoming source', () => {
+    const layoutEdges = { 'room-entry': ['a', 'b'], a: ['m'], b: ['m'], m: [] };
+    const hiddenIncomingByRoomId = { m: ['x'] };
+    expect(incomingConnectionsFor(layoutEdges, 'm', hiddenIncomingByRoomId)).toEqual([
+      { sourceId: 'a', hidden: false },
+      { sourceId: 'b', hidden: false },
+      { sourceId: 'x', hidden: true },
+    ]);
+  });
+
+  it('a room with no hidden incoming just returns its real parent(s)', () => {
+    const layoutEdges = { 'room-entry': ['a'], a: [] };
+    expect(incomingConnectionsFor(layoutEdges, 'a')).toEqual([{ sourceId: 'room-entry', hidden: false }]);
+  });
+});
+
+describe('northDoorSlots', () => {
+  it('divides the north edge into count equal, contiguous, left-to-right slots', () => {
+    const rect = { gx: 0, gy: 0, gw: 4, gh: 4 };
+    const slots = northDoorSlots(rect, 2);
+    expect(slots).toEqual([
+      { x1: 0, y1: 0, x2: 2, y2: 0 },
+      { x1: 2, y1: 0, x2: 4, y2: 0 },
+    ]);
+  });
+
+  it('a single slot spans the whole north edge', () => {
+    const rect = { gx: 0, gy: 0, gw: 4, gh: 4 };
+    expect(northDoorSlots(rect, 1)).toEqual([{ x1: 0, y1: 0, x2: 4, y2: 0 }]);
   });
 });
 ```
@@ -833,53 +897,52 @@ export function exitFaceForIndex(index) {
   return ['south', 'east', 'west'][index];
 }
 
-// #93 pre-flight fix: exported (not just module-internal) so Task 10's
-// buildPopulateAndUnlockGraphNode (dungeon-scene.mjs) can derive a room's
-// exit-face-toward-a-specific-child directly as OPPOSITE[childsIncomingFace]
-// instead of re-deriving it a second, less direct way.
+// Still used by Task 6's corridor routing to determine a straight
+// segment's opposite endpoint direction — unrelated to which face a
+// room's OWN incoming/outgoing connections land on (see below, #93
+// pre-flight fix: incoming and outgoing are now always on structurally
+// disjoint faces, north vs. south/east/west, never computed via OPPOSITE
+// of each other for a room's own enclosure).
 export const OPPOSITE = { north: 'south', south: 'north', east: 'west', west: 'east' };
 
 /**
- * The compass face on `roomId` where its one incoming connection arrives —
- * derived from whichever parent's `childIds` includes it, and at which
- * index (exitFaceForIndex, then OPPOSITE). Returns null for the entry room
- * (no parent) and throws if `roomId` has no parent in `layoutEdges` and
- * isn't the entry — every other room in a valid graph has exactly one
- * parent by construction (buildRoomGraph never gives a non-entry room two
- * parents outside a forced merge, and a merge room's OWN incoming face
- * still comes from a single position in the layout — see computeColumns'
- * "placed under whichever parent reaches it first" rule, which is also the
- * parent this function must agree with).
- *
- * **#156:** takes `layoutEdges` (Task 3's `edges` + detour rooms), not bare
- * `edges` — a detour room's only "parent" link is the hidden edge folded
- * into `layoutEdges`, so looking it up against plain `edges` would throw.
- * `layoutEdges` equals `edges` for every non-detour room, so every existing
- * call site is safe to repoint at it.
+ * Every real parent of `roomId` in `layoutEdges`, in deterministic
+ * `Object.entries` order. Empty for the entry room. Usually length 1; a
+ * merge room (multiple tips forced together by Task 2's forced-merge
+ * algorithm — routine throughout the graph, not just the final goal) can
+ * be longer. `layoutEdges` (not bare `edges`) so a detour room's one real
+ * parent link — which only exists as a `layoutEdges` entry (#156) —
+ * resolves too; `layoutEdges` equals `edges` for every non-detour room,
+ * so every call site is safe to pass either.
  */
-export function incomingFaceFor(layoutEdges, roomId) {
-  if (roomId === 'room-entry') return null;
+export function parentRoomIdsFor(layoutEdges, roomId) {
+  if (roomId === 'room-entry') return [];
+  const parents = [];
   for (const [parentId, children] of Object.entries(layoutEdges)) {
-    const index = children.indexOf(roomId);
-    if (index !== -1) return OPPOSITE[exitFaceForIndex(index)];
+    if (children.includes(roomId)) parents.push(parentId);
   }
-  throw new Error(`no parent found for room ${roomId}`);
+  return parents;
 }
 
 /**
- * The id of `roomId`'s one parent in `edges` — same lookup as
- * `incomingFaceFor`, returning the parent id instead of the face. Every
- * caller that needs `buildPopulateAndUnlockGraphNode`'s `parentRoomId` and
- * `incomingFace` together (Tasks 11, 12) calls both against the same
- * `edges` so the two agree by construction. Returns null for the entry
- * room, throws under the same conditions `incomingFaceFor` does.
+ * Every incoming connection `roomId` needs its own door for, in slot
+ * order — real parents first (`parentRoomIdsFor`, deterministic), then a
+ * shortcut's hidden extra incoming source if any (`hiddenIncomingByRoomId`,
+ * Task 3 — set only for a shortcut's target room; a detour room's one
+ * incoming is already counted via its real `layoutEdges` parent link
+ * above, never both). #93 pre-flight fix: this is the whole redesign in
+ * one function — every entry this returns gets its own door slot on the
+ * room's NORTH face (northDoorSlots, below), never a separate compass
+ * direction. That's what actually guarantees a merge room gets a door
+ * for EVERY real parent (previously only one was ever built, silently
+ * dead-ending every other branch) and that incoming can never collide
+ * with a room's own outgoing faces (south/east/west, always disjoint
+ * from north).
  */
-export function parentRoomIdFor(edges, roomId) {
-  if (roomId === 'room-entry') return null;
-  for (const [parentId, children] of Object.entries(edges)) {
-    if (children.includes(roomId)) return parentId;
-  }
-  throw new Error(`no parent found for room ${roomId}`);
+export function incomingConnectionsFor(layoutEdges, roomId, hiddenIncomingByRoomId = {}) {
+  const real = parentRoomIdsFor(layoutEdges, roomId).map((sourceId) => ({ sourceId, hidden: false }));
+  const hidden = (hiddenIncomingByRoomId[roomId] ?? []).map((sourceId) => ({ sourceId, hidden: true }));
+  return [...real, ...hidden];
 }
 
 function roomSidesFor(rect) {
@@ -893,24 +956,44 @@ function roomSidesFor(rect) {
 }
 
 /**
- * A room's own enclosing walls (#93 generalization), excluding its one
- * incoming face and every one of its (possibly several) outgoing faces —
- * each excluded face gets real connection/frontier geometry from
- * buildEdgeCorridor / dungeon-scene.mjs's build step instead. `rect` is
- * the room's own already-computed `roomRect(...)` result — required,
- * since rank/col (and so the rect) aren't derivable from `roomId` alone
- * the way the old slot-indexed version could derive `slotRect` internally.
+ * Divides a room's north wall into `count` equal, contiguous, left-to-
+ * right door slots. Used for EVERY incoming connection — whether 1 for a
+ * normal room, N for a merge room, or a normal room's real parent plus a
+ * shortcut's extra hidden one (see `incomingConnectionsFor`, whose Nth
+ * entry corresponds to this function's Nth slot).
  */
-export function roomEnclosureWalls(seed, roomId, { incomingFace, outgoingFaces }, rect) {
-  const excluded = new Set(outgoingFaces);
-  if (incomingFace) excluded.add(incomingFace);
-  return Object.entries(roomSidesFor(rect))
-    .filter(([dir]) => !excluded.has(dir))
-    .map(([dir, c]) => ({ dir, ...c }));
+export function northDoorSlots(rect, count) {
+  const { gx, gy, gw } = rect;
+  const step = gw / count;
+  return Array.from({ length: count }, (_, i) => ({
+    x1: gx + i * step, y1: gy, x2: gx + (i + 1) * step, y2: gy,
+  }));
+}
+
+/**
+ * A room's own enclosing walls (#93 generalization). South/east/west stay
+ * full-face, excluded per `outgoingFaces` (unchanged from before). North
+ * is either a single solid wall (`incomingCount === 0`, the entry room)
+ * or entirely excluded (`incomingCount > 0`) — its individual door slots
+ * are built separately by the caller via `northDoorSlots`, one per real
+ * connection-building step (needs the connecting room's rect, which this
+ * function doesn't have), not here. `rect` is the room's own already-
+ * computed `roomRect(...)` result — required, since rank/col (and so the
+ * rect) aren't derivable from `roomId` alone the way the old slot-indexed
+ * version could derive `slotRect` internally.
+ */
+export function roomEnclosureWalls(seed, roomId, { incomingCount = 0, outgoingFaces = [] }, rect) {
+  const sides = roomSidesFor(rect);
+  const walls = [];
+  for (const face of ['south', 'east', 'west']) {
+    if (!outgoingFaces.includes(face)) walls.push({ dir: face, ...sides[face] });
+  }
+  if (incomingCount === 0) walls.push({ dir: 'north', ...sides.north });
+  return walls;
 }
 ```
 
-**Note for the implementer:** callers (Task 10) must pass the room's already-computed `roomRect(...)` result as the 4th argument — this is a breaking signature change from the old `roomEnclosureWalls(seed, slot, {hasOutgoing})`, so every existing call site is updated in this task, not left dual-supporting both shapes.
+**Note for the implementer:** callers (Task 10) must pass the room's already-computed `roomRect(...)` result as the 4th argument — this is a breaking signature change from the old `roomEnclosureWalls(seed, slot, {hasOutgoing})`, so every existing call site is updated in this task, not left dual-supporting both shapes. `roomSidesFor` is exported as `roomSidesForRect` (Task 10's own note) for callers that need a specific face's coordinates directly, not just the enclosure-wall list.
 
 - [ ] **Step 4: Run tests to verify they pass**
 
@@ -932,34 +1015,39 @@ git commit -m "feat: replace linear slot geometry with graph rank/column room re
 - Modify: `scripts/dungeon-layout.mjs`
 - Test: `tests/dungeon-layout.test.mjs`
 
+**#93 pre-flight fix — routes to a specific door slot, not always the room's dead-center.** Task 5's redesign means a target room's incoming connection always lands on its north face, but potentially at ONE OF SEVERAL slots (`northDoorSlots`) when the room has more than one real parent (a merge room) or a hidden extra (a shortcut target). The original signature assumed a single, centered incoming point per room — generalized below to target a specific `toSlot`.
+
 **Interfaces:**
-- Consumes: `roomRect` (Task 5), existing `doorOffsetAt`, `corridorTileVariant` (unchanged in spirit, `doorOffsetAt`'s `slot` param renamed conceptually to a `(seed, roomId, face, role, roomSize)` key so two different exit faces on the same room never collide on the same offset).
-- Produces: `buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, exitFace)` → `{ doorWall, revealDoorWall, plainWalls, corridorSegments }`. `corridorSegments` is an array of 1+ `{gx, gy, gw, gh}` rects (1 when `fromRect`/`toRect` share a column, 2 — an L-shape — otherwise), replacing the old single `corridorRect`.
+- Consumes: `roomRect`, `northDoorSlots` (Task 5), existing `doorOffsetAt`, `corridorTileVariant` (unchanged in spirit, `doorOffsetAt`'s `slot` param renamed conceptually to a `(seed, roomId, face, role, roomSize)` key so two different exit faces on the same room never collide on the same offset).
+- Produces: `buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, exitFace, toSlot)` → `{ doorWall, revealDoorWall, plainWalls, corridorSegments }`. `toSlot` is the specific `{x1, y1, x2, y2}` entry from `northDoorSlots(toRect, incomingConnectionsFor(...).length)` this connection should land on (index-matched to `incomingConnectionsFor`'s own ordering — Task 10 threads this through). `corridorSegments` is an array of 1+ `{gx, gy, gw, gh}` rects (1 when `fromRect` and `toSlot` share a column, 2 — an L-shape — otherwise), replacing the old single `corridorRect`.
 
 - [ ] **Step 1: Write the failing tests**
 
 ```js
-import { roomRect, buildEdgeCorridor } from '../scripts/dungeon-layout.mjs';
+import { roomRect, northDoorSlots, buildEdgeCorridor } from '../scripts/dungeon-layout.mjs';
 
 describe('buildEdgeCorridor', () => {
   it('same-column rooms (straight south connection) produce one corridor segment', () => {
     const from = roomRect('alpha', 'a', 0, 0);
     const to = roomRect('alpha', 'b', 1, 0);
-    const { corridorSegments } = buildEdgeCorridor('alpha', 'a', 'b', from, to, 'south');
+    const toSlot = northDoorSlots(to, 1)[0];
+    const { corridorSegments } = buildEdgeCorridor('alpha', 'a', 'b', from, to, 'south', toSlot);
     expect(corridorSegments).toHaveLength(1);
   });
 
   it('different-column rooms produce an L-shaped (2-segment) corridor', () => {
     const from = roomRect('alpha', 'a', 0, 0);
     const to = roomRect('alpha', 'b', 1, 2);
-    const { corridorSegments } = buildEdgeCorridor('alpha', 'a', 'b', from, to, 'south');
+    const toSlot = northDoorSlots(to, 1)[0];
+    const { corridorSegments } = buildEdgeCorridor('alpha', 'a', 'b', from, to, 'south', toSlot);
     expect(corridorSegments).toHaveLength(2);
   });
 
   it('always returns a door wall and a reveal door wall', () => {
     const from = roomRect('alpha', 'a', 0, 0);
     const to = roomRect('alpha', 'b', 1, 1);
-    const { doorWall, revealDoorWall } = buildEdgeCorridor('alpha', 'a', 'b', from, to, 'south');
+    const toSlot = northDoorSlots(to, 1)[0];
+    const { doorWall, revealDoorWall } = buildEdgeCorridor('alpha', 'a', 'b', from, to, 'south', toSlot);
     expect(doorWall).toBeDefined();
     expect(revealDoorWall).toBeDefined();
   });
@@ -968,9 +1056,22 @@ describe('buildEdgeCorridor', () => {
     const from = roomRect('alpha', 'a', 0, 0);
     const toSouth = roomRect('alpha', 'b', 1, 0);
     const toEast = roomRect('alpha', 'c', 0, 1);
-    const south = buildEdgeCorridor('alpha', 'a', 'b', from, toSouth, 'south');
-    const east = buildEdgeCorridor('alpha', 'a', 'c', from, toEast, 'east');
+    const south = buildEdgeCorridor('alpha', 'a', 'b', from, toSouth, 'south', northDoorSlots(toSouth, 1)[0]);
+    const east = buildEdgeCorridor('alpha', 'a', 'c', from, toEast, 'east', northDoorSlots(toEast, 1)[0]);
     expect(south.doorWall).not.toEqual(east.doorWall);
+  });
+
+  it('#93 pre-flight fix regression — two different incoming connections to the same merge room land on distinct, non-overlapping door slots', () => {
+    const parentA = roomRect('alpha', 'a', 0, 0);
+    const parentB = roomRect('alpha', 'b', 0, 1);
+    const merge = roomRect('alpha', 'm', 1, 0);
+    const slots = northDoorSlots(merge, 2);
+    const fromA = buildEdgeCorridor('alpha', 'a', 'm', parentA, merge, 'south', slots[0]);
+    const fromB = buildEdgeCorridor('alpha', 'b', 'm', parentB, merge, 'south', slots[1]);
+    expect(fromA.revealDoorWall).not.toEqual(fromB.revealDoorWall);
+    // The two doors must not overlap — slot 0's door stays left of slot 1's.
+    expect(Math.max(fromA.revealDoorWall.x1, fromA.revealDoorWall.x2))
+      .toBeLessThanOrEqual(Math.min(fromB.revealDoorWall.x1, fromB.revealDoorWall.x2));
   });
 });
 ```
@@ -986,18 +1087,21 @@ Add to `scripts/dungeon-layout.mjs` (reuses `doorOffsetAt`'s existing signature,
 
 ```js
 /**
- * Edge geometry connecting fromRoomId's exitFace to toRoomId's incoming
- * face (always the opposite compass direction). Generalizes the old
- * buildConnectionGeometry (slot to slot+1, always straight) to any two
- * graph-positioned rects: same-column rooms still get the old single
- * straight corridor; different-column rooms get an L-shaped 2-segment
- * corridor (first segment leaves fromRect on exitFace, second segment
- * approaches toRect on its incoming face, joined by a single corner).
+ * Edge geometry connecting fromRoomId's exitFace to a specific door slot
+ * on toRoomId's north face (`toSlot`, from `northDoorSlots` — Task 5's
+ * redesign means "incoming" is always north, but potentially one of
+ * several slots when the target has more than one real parent or a
+ * hidden extra). Generalizes the old buildConnectionGeometry (slot to
+ * slot+1, always straight) to any two graph-positioned rects: same-column
+ * rooms still get a single straight corridor; different-column rooms get
+ * an L-shaped 2-segment corridor (first segment leaves fromRect on
+ * exitFace, second segment approaches `toSlot`, joined by a single
+ * corner).
  */
-export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, exitFace) {
-  const incomingFace = OPPOSITE[exitFace];
+export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, exitFace, toSlot) {
+  const slotWidth = toSlot.x2 - toSlot.x1;
   const outgoingOffset = doorOffsetAt(seed, `${fromRoomId}-${exitFace}`, 'outgoing', fromRect.gw);
-  const incomingOffset = doorOffsetAt(seed, `${toRoomId}-${incomingFace}`, 'incoming', toRect.gw);
+  const incomingOffset = doorOffsetAt(seed, `${toRoomId}-north-${toSlot.x1}`, 'incoming', slotWidth);
 
   const sameColumn = fromRect.gx === toRect.gx;
   if (exitFace === 'south' && sameColumn) {
@@ -1005,7 +1109,7 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     const corridorEndY = faceY + CORRIDOR_LEN;
     const doorX0 = fromRect.gx + outgoingOffset;
     const doorX1 = doorX0 + DOOR_WIDTH;
-    const gapX0 = toRect.gx + incomingOffset;
+    const gapX0 = toSlot.x1 + incomingOffset;
     const gapX1 = gapX0 + DOOR_WIDTH;
     const spanX0 = Math.min(doorX0, gapX0);
     const spanX1 = Math.max(doorX1, gapX1);
@@ -1023,16 +1127,16 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
   }
 
   // Different column (or a non-south exit face): a straight leg out of
-  // fromRect on exitFace, a corner, then a straight leg into toRect on its
-  // incoming face. Simpler than the same-column case's precise two-door
-  // offset trimming — a candidate for a future refinement pass if a
-  // reviewer finds the corner geometry too blocky in practice.
+  // fromRect on exitFace, a corner, then a straight leg into `toSlot`.
+  // Simpler than the same-column case's precise two-door offset
+  // trimming — a candidate for a future refinement pass if a reviewer
+  // finds the corner geometry too blocky in practice.
   const exitPoint = exitFace === 'east'
     ? { x: fromRect.gx + fromRect.gw, y: fromRect.gy + fromRect.gh / 2 }
     : exitFace === 'west'
     ? { x: fromRect.gx, y: fromRect.gy + fromRect.gh / 2 }
     : { x: fromRect.gx + fromRect.gw / 2, y: fromRect.gy + fromRect.gh };
-  const entryPoint = { x: toRect.gx + toRect.gw / 2, y: toRect.gy };
+  const entryPoint = { x: toSlot.x1 + slotWidth / 2, y: toSlot.y1 };
   const corner = { x: entryPoint.x, y: exitPoint.y };
 
   const doorWall = exitFace === 'south'
