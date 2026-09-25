@@ -9638,5 +9638,141 @@
     "name": "Copper Dragon (Ancient, Spellcaster)",
     "level": 17,
     "art": "copper-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "coral_dragon_ancient",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "L0GbthgIX8icmRhF",
+    "name": "Coral Dragon (Ancient)",
+    "level": 17,
+    "art": "coral-dragon-ancient.webp"
+  },
+  {
+    "id": "coral_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Ec8MUOsVm84nDhaU",
+    "name": "Coral Dragon (Ancient, Spellcaster)",
+    "level": 17,
+    "art": "coral-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "grandmaster",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "iOAX2QVvgaBdGc0B",
+    "name": "Grandmaster",
+    "level": 17,
+    "art": "grandmaster.webp"
+  },
+  {
+    "id": "green_dragon_ancient",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "0FGz2eXm0SB04sJW",
+    "name": "Green Dragon (Ancient)",
+    "level": 17,
+    "art": "green-dragon-ancient.webp"
+  },
+  {
+    "id": "green_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "p2ECLKUzZ0GhFg22",
+    "name": "Green Dragon (Ancient, Spellcaster)",
+    "level": 17,
+    "art": "green-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "horned_dragon_ancient",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "DZoKH4IXR4zeNxoa",
+    "name": "Horned Dragon (Ancient)",
+    "level": 17,
+    "art": "horned-dragon-ancient.webp"
+  },
+  {
+    "id": "horned_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "6uiRT0sNk6TMQ309",
+    "name": "Horned Dragon (Ancient, Spellcaster)",
+    "level": 17,
+    "art": "horned-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "ice_linnorm",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Np5Z7RMQzvSNnH0h",
+    "name": "Ice Linnorm",
+    "level": 17,
+    "art": "ice-linnorm.webp"
+  },
+  {
+    "id": "leydroth",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "GBBVBEAsznP8A5gv",
+    "name": "Leydroth",
+    "level": 17,
+    "art": "leydroth.webp"
+  },
+  {
+    "id": "ninkonda",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "nBTJHNrjvCOu43SJ",
+    "name": "Ninkonda",
+    "level": 17,
+    "art": "ninkonda.webp"
+  },
+  {
+    "id": "garuda",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ej7H1ft2CNCIsTMg",
+    "name": "Garuda",
+    "level": 9,
+    "art": "garuda.webp"
+  },
+  {
+    "id": "radiant_warden",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "qF9hjssrMjHuVFYK",
+    "name": "Radiant Warden",
+    "level": 17,
+    "art": "radiant-warden.webp"
+  },
+  {
+    "id": "resurrection_dragon_ancient",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ahSJaAKNhPGcVOgr",
+    "name": "Resurrection Dragon (Ancient)",
+    "level": 17,
+    "art": "resurrection-dragon-ancient.webp"
+  },
+  {
+    "id": "resurrection_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "CZc6eVvRcsVJgjBU",
+    "name": "Resurrection Dragon (Ancient, Spellcaster)",
+    "level": 17,
+    "art": "resurrection-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "wendigo",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "RDFvGocLW0OuHmlC",
+    "name": "Wendigo",
+    "level": 17,
+    "art": "wendigo.webp"
+  },
+  {
+    "id": "bandersnatch",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "fgZx6VJkVZ26GFyI",
+    "name": "Bandersnatch",
+    "level": 17,
+    "art": "bandersnatch.webp"
+  },
+  {
+    "id": "thrasfyr",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "luPebMfNmwtOZcWR",
+    "name": "Thrasfyr",
+    "level": 17,
+    "art": "thrasfyr.webp"
   }
 ]
