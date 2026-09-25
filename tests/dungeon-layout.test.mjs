@@ -603,12 +603,21 @@ describe('buildEdgeCorridor', () => {
       .toBeLessThanOrEqual(Math.min(fromB.revealDoorWall.x1, fromB.revealDoorWall.x2));
   });
 
-  it('#93 pre-flight fix regression (Task 10 review) — a same-column connection\'s plainWalls never extend past its own slot into a sibling\'s (would otherwise wall off the sibling\'s door)', () => {
+  it('#93 pre-flight fix regression (Task 10 review) — a same-column connection\'s TARGET-side plainWalls never extend past its own slot into a sibling\'s (would otherwise wall off the sibling\'s door)', () => {
     const parentA = roomRect('alpha', 'a', 0, 0);
     const merge = roomRect('alpha', 'm', 1, 0); // same column as parentA -> sameColumn branch
     const slots = northDoorSlots(merge, 2);
     const fromA = buildEdgeCorridor('alpha', 'a', 'm', parentA, merge, 'south', slots[0]);
-    for (const w of fromA.plainWalls) {
+    // Only the walls ON THE TARGET'S OWN north face (y === corridorEndY,
+    // i.e. merge.gy) are bounded by the target's slot — a connection's
+    // SOURCE-side walls (at faceY, closing off parentA's own south face)
+    // have nothing to do with the target's slot layout at all (parentA
+    // has no siblings sharing ITS OWN south face), so they're
+    // deliberately excluded from this assertion (#93 pre-flight fix,
+    // round 2 — the original version of this test wrongly asserted
+    // those too, and failed against an otherwise-correct fix).
+    const targetSideWalls = fromA.plainWalls.filter((w) => w.y1 === merge.gy);
+    for (const w of targetSideWalls) {
       expect(Math.max(w.x1, w.x2)).toBeLessThanOrEqual(slots[0].x2);
       expect(Math.min(w.x1, w.x2)).toBeGreaterThanOrEqual(slots[0].x1);
     }
