@@ -659,15 +659,37 @@ export function isSlotPopulated(scene, slot) {
   return scene.tokens.some((t) => t.getFlag(MODULE_ID, "dungeonSlot") === slot);
 }
 
-/** Whether slot's own walls/geometry have been built yet — `dungeonDoorToSlot`
- * only ever exists on the connecting door `buildConnectionGeometry` adds
- * inside `buildRoomAtSlot`'s `slot > 0` branch, so its presence means the
- * room itself has already been constructed (used to tell a first real combat
- * room whose build is still deliberately deferred (ITEM-11 reopening) apart
- * from one that's merely unpopulated after a cancelled Accept/Reroll). */
-export function isSlotBuilt(scene, slot) {
+/**
+ * Whether roomId's own walls/geometry have been built yet (used to tell a
+ * first real combat room whose build is still deliberately deferred
+ * (ITEM-11 reopening) apart from one that's merely unpopulated after a
+ * cancelled Accept/Reroll).
+ *
+ * #93 pre-flight fix (fix round 1 — found by task review): this used to
+ * check the OLD `dungeonDoorToSlot` flag, which only the old, now-kept-
+ * only-for-backward-compat `buildRoomAtSlot`/`buildConnectionGeometry`
+ * path ever wrote — `buildRoomAtGraphNode`/`buildPopulateAndUnlockGraphNode`
+ * never write it, so this always returned `false` for every graph-built
+ * room, making `buildPopulateAndUnlockGraphNode` never idempotent: every
+ * call (including Task 11's lazy-fallback check on EVERY door-open) would
+ * silently rebuild an already-built room from scratch — duplicate walls,
+ * tiles, and lights, plus a second set of full-face frontier placeholders
+ * laid directly over the room's already-open exits, which nothing would
+ * ever delete again. A room ALWAYS has at least one of these three markers
+ * once `buildRoomAtGraphNode` has run for it: an enclosure wall (the entry
+ * room; the goal room; any room with a spare face not claimed by an
+ * outgoing connection), a frontier placeholder for one of its own real
+ * children (any non-goal room), or a hidden-outgoing placeholder. A room
+ * with exactly 3 real children and at least one incoming connection has
+ * ZERO enclosure walls (all 4 faces claimed), which is why this checks all
+ * three markers, not just one.
+ */
+export function isSlotBuilt(scene, roomId) {
   return scene.walls.some(
-    (w) => w.getFlag(MODULE_ID, "dungeonDoorToSlot") === slot,
+    (w) =>
+      w.getFlag(MODULE_ID, "dungeonEnclosureWallForRoom") === roomId ||
+      w.getFlag(MODULE_ID, "dungeonFrontierWallForEdge")?.startsWith(`${roomId}->`) ||
+      w.getFlag(MODULE_ID, "dungeonHiddenDoorForEdge")?.startsWith(`${roomId}->`),
   );
 }
 
@@ -1298,9 +1320,22 @@ export async function buildPopulateAndUnlockGraphNode(
           ...plainWalls.map((w) => wallDoc(w)),
         );
       } else {
+        // #93 pre-flight fix (fix round 1 — found by task review): a real
+        // door wall must carry BOTH ends of the edge, not just the target.
+        // `dungeonDoorToRoomId` alone is what Task 11's
+        // `handleDungeonDoorOpened` reads off ONE specific clicked wall
+        // (fine, unambiguous there) — but a merge room has MULTIPLE real
+        // doors all flagged `dungeonDoorToRoomId: room.id` (one per real
+        // parent), and `unlockDoorsFromRoom` (below) needs to find the ONE
+        // door belonging to a SPECIFIC source room, not "whichever one
+        // Array.find happens across the whole scene." Without
+        // `dungeonDoorFromRoomId`, resolving room A's own outcome could
+        // unlock room B's door into the merge room instead of A's — the
+        // exact "every parent but one dead-ends" bug this whole redesign
+        // exists to fix, just moved from build-time to unlock-time.
         connectionWalls.push(
-          wallDoc(doorWall, { flags: { [MODULE_ID]: { dungeonDoorToRoomId: room.id } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR }),
-          wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonRevealDoorForSlot: room.id } }, ds: CONST.WALL_DOOR_STATES.CLOSED, door: CONST.WALL_DOOR_TYPES.DOOR }),
+          wallDoc(doorWall, { flags: { [MODULE_ID]: { dungeonDoorToRoomId: room.id, dungeonDoorFromRoomId: sourceId } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR }),
+          wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonRevealDoorForSlot: room.id, dungeonDoorFromRoomId: sourceId } }, ds: CONST.WALL_DOOR_STATES.CLOSED, door: CONST.WALL_DOOR_TYPES.DOOR }),
           ...plainWalls.map((w) => wallDoc(w)),
         );
       }
@@ -1458,12 +1493,24 @@ export async function buildPopulateAndUnlockGraphNode(
  * but not in hiddenChildIds — #93: a graph room can have several exits, all
  * needing unlocking together once its own outcome resolves, unlike the old
  * single unlockDoorToSlot call. Each door was flagged dungeonDoorToRoomId
- * with its own target room id at build time
- * (buildPopulateAndUnlockGraphNode above). */
+ * with its own target room id AND dungeonDoorFromRoomId with its own source
+ * room id at build time (buildPopulateAndUnlockGraphNode above).
+ *
+ * #93 pre-flight fix (fix round 1 — found by task review): matching on
+ * `dungeonDoorToRoomId === targetId` ALONE is not enough — a merge target
+ * can have several real doors, all flagged with the SAME target id (one
+ * per real parent), so `Array.find` would return whichever one happens to
+ * come first in the scene's wall list, not necessarily THIS room's own
+ * door. Matching on both ends of the edge together is what actually picks
+ * out the right one. */
 export async function unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildIds = []) {
   const targets = childIds.filter((id) => !hiddenChildIds.includes(id));
   for (const targetId of targets) {
-    const wall = scene.walls.find((w) => w.getFlag(MODULE_ID, "dungeonDoorToRoomId") === targetId);
+    const wall = scene.walls.find(
+      (w) =>
+        w.getFlag(MODULE_ID, "dungeonDoorToRoomId") === targetId &&
+        w.getFlag(MODULE_ID, "dungeonDoorFromRoomId") === roomId,
+    );
     if (wall) {
       await wall.update({ ds: CONST.WALL_DOOR_STATES.CLOSED });
       playDoorSound("unlock");
