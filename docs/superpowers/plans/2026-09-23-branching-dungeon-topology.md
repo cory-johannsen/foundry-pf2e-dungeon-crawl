@@ -529,6 +529,7 @@ git commit -m "feat: attach pregenerated hidden shortcuts/detours to branch edge
 
 ```js
 import { computeRanks, computeColumns } from '../scripts/dungeon-layout.mjs';
+import { buildRoomGraph } from '../scripts/dungeon-deck.mjs';
 
 describe('computeRanks', () => {
   it('entry is rank 0; a straight chain increments by 1', () => {
@@ -570,6 +571,32 @@ describe('computeColumns', () => {
     const cols = computeColumns(edges, ranks, 'room-entry');
     for (const id of Object.keys(edges)) expect(typeof cols[id]).toBe('number');
   });
+
+  it('a diamond (two parents converging on the same child) still gives the two parents distinct columns (#93 pre-flight fix regression — the original centering design collapsed both onto the shared child\'s column, which roomRect would then place at the exact same grid cell)', () => {
+    const edges = { 'room-entry': ['a', 'b'], a: ['c'], b: ['c'], c: [] };
+    const ranks = computeRanks(edges, 'room-entry');
+    const cols = computeColumns(edges, ranks, 'room-entry');
+    expect(cols.a).not.toBe(cols.b);
+  });
+
+  it('no two rooms at the same rank ever share a column, across a wide sweep of generated graphs (the real invariant roomRect depends on to avoid overlapping rooms)', () => {
+    for (let n = 0; n < 40; n += 1) {
+      const seed = `layout-${n}`;
+      for (const roomCount of [3, 4, 6, 8, 12, 16, 24]) {
+        const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+        const ranks = computeRanks(edges, 'room-entry');
+        const cols = computeColumns(edges, ranks, 'room-entry');
+        const seenByRank = {};
+        for (const roomId of Object.keys(rooms)) {
+          const key = ranks[roomId];
+          const col = cols[roomId];
+          seenByRank[key] ??= new Set();
+          expect(seenByRank[key].has(col)).toBe(false);
+          seenByRank[key].add(col);
+        }
+      }
+    }
+  });
 });
 ```
 
@@ -607,56 +634,40 @@ export function computeRanks(edges, entryId) {
 }
 
 /**
- * Column index (integer, per-rank left-to-right order) via a bottom-up
- * subtree-width / top-down centering pass — a simplified tree layout: a
- * leaf's width is 1 column unit, a room's width is the sum of its
- * children's widths (min 1), and each room is centered over its children's
- * combined span. Merge rooms (multiple parents) are placed once, under
- * whichever parent reaches them first in a stable DFS order; every other
- * parent's edge simply routes to that already-placed column.
+ * Column index (integer, per-rank left-to-right order) via a single DFS
+ * pass from entryId — #93 pre-flight fix (see the note below the
+ * function for what the original bottom-up-width/top-down-centering
+ * design got wrong and why it was replaced). Every room is visited
+ * exactly once (first parent to reach it wins, matching the design's
+ * "merge rooms placed once, whichever parent reaches them first"
+ * intent); each NEW room claims the next unused column at its own rank
+ * via a monotonic per-rank counter, which is what actually guarantees
+ * two different rooms at the same rank can never collide on a column —
+ * `ranks` (pre-computed by computeRanks, already correctly reflecting a
+ * merge room's longest-path rank) is looked up directly, not re-derived
+ * from DFS depth, so a merge room still lands at its correct rank
+ * regardless of which parent's branch reaches it first.
  */
 export function computeColumns(edges, ranks, entryId) {
-  const widths = {};
-  const placed = new Set();
-  function widthOf(roomId) {
-    if (roomId in widths) return widths[roomId];
-    const children = (edges[roomId] ?? []).filter((c) => !placed.has(c) || widths[c] === undefined);
-    widths[roomId] = 1; // placeholder to guard against revisiting mid-computation
-    const total = (edges[roomId] ?? []).reduce((sum, childId) => {
-      if (placed.has(childId)) return sum; // already counted via an earlier parent
-      placed.add(childId);
-      return sum + widthOf(childId);
-    }, 0);
-    widths[roomId] = Math.max(1, total);
-    return widths[roomId];
-  }
-  placed.add(entryId);
-  widthOf(entryId);
-
   const columns = {};
-  function assign(roomId, startCol) {
-    const children = (edges[roomId] ?? []).filter((c) => !(c in columns) || columns[c] === undefined);
-    if (roomId in columns) return;
-    let cursor = startCol;
-    const childCols = [];
-    for (const childId of edges[roomId] ?? []) {
-      if (childId in columns) {
-        childCols.push(columns[childId]);
-        continue;
-      }
-      const w = widths[childId] ?? 1;
-      assign(childId, cursor);
-      childCols.push(columns[childId]);
-      cursor += w;
-    }
-    columns[roomId] = childCols.length
-      ? Math.round(childCols.reduce((a, b) => a + b, 0) / childCols.length)
-      : startCol;
+  const nextColByRank = {};
+  const visited = new Set();
+
+  function visit(roomId) {
+    if (visited.has(roomId)) return;
+    visited.add(roomId);
+    const rank = ranks[roomId];
+    const col = nextColByRank[rank] ?? 0;
+    columns[roomId] = col;
+    nextColByRank[rank] = col + 1;
+    for (const childId of edges[roomId] ?? []) visit(childId);
   }
-  assign(entryId, 0);
+  visit(entryId);
   return columns;
 }
 ```
+
+**Why the original design was replaced (found during pre-flight review, before dispatch — Task 2 and Task 3's reviews both found similar "looks fine, isn't" bugs in this same plan's reference code, so this function got the same scrutiny before being handed to an implementer):** the original bottom-up-width/top-down-centering version computed each room's column as the AVERAGE of its children's columns — including children it merely referenced but didn't itself place (a merge room already positioned under an earlier sibling branch). For the extremely common diamond shape `entry -> [a, b]`, `a -> c`, `b -> c` (routine under Task 2's forced-merge algorithm, not a rare edge case), the original algorithm placed `a` and `b` — two DIFFERENT, SIMULTANEOUSLY-EXISTING rooms at the SAME rank — at the exact same column, because `b`'s only child `c` was already placed (under `a`'s branch) and `b`'s own column collapsed onto `c`'s column instead of respecting its own reserved offset. Since `roomRect(seed, roomId, rank, col)` (Task 5) computes a room's grid position purely from `(rank, col)`, two rooms sharing both would compute the SAME rect — a literal physical overlap of their walls, floor tiles, and content in the built Foundry scene. The replacement drops the "centered over children" visual niceness (not tested by, or required by, anything in this plan) in favor of the load-bearing correctness guarantee: no two rooms at the same rank ever share a column. `buildEdgeCorridor` (Task 6) already handles connecting rooms whose columns aren't adjacent via an L-shaped 2-segment corridor, so nothing downstream assumes parent/child columns are close together.
 
 - [ ] **Step 4: Run tests to verify they pass**
 
