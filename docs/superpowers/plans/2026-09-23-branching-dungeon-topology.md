@@ -317,6 +317,8 @@ git commit -m "feat: add buildRoomGraph with forced-merge single-entrance goal g
 - Consumes: the `{rooms, edges}` shape from Task 2's `buildRoomGraph`.
 - Produces: `attachHiddenPaths({ rooms, edges, seed })` → `{ rooms, edges, hiddenRooms: Set<string>, hiddenEdges: {[fromId]: string[]} }`. `hiddenRooms` marks detour room ids (already present in `rooms`, just flagged); `hiddenEdges` lists shortcut/detour edges not present in the normal `edges` map (so normal traversal/layout never sees them until revealed).
 
+**Known limitation (tracked separately, not this task's scope — issue #156):** neither a detour room's geometry nor a shortcut's connecting door is ever built, eagerly or on reveal, anywhere in this plan (Tasks 4/7/9/12's graph walks all traverse `edges` only, never `hiddenEdges`/`hiddenRooms`). A `reduced_travel_time`/`extra_travel_time` outcome (Task 9) will merge the edge into live `edges` and `unlockDoorsFromRoom` (Task 10) will silently no-op — no door or room appears. This is a real, deliberately deferred gap: fixing it needs an on-the-fly layout-position assignment plus a lazy build for the detour case, and a "retrofit a door into an already-solid wall face" operation for the shortcut case, neither of which is small enough to fold into this pass. #93 ships with hidden paths inert but harmless; #156 tracks making them actually walkable.
+
 - [ ] **Step 1: Write the failing tests**
 
 ```js
@@ -594,7 +596,7 @@ git commit -m "feat: add rank/column tree-layout pass for branching graphs"
 
 **Interfaces:**
 - Consumes: `roomSizeAt(seed, roomId)` (existing, works unchanged with a string id in place of an integer slot), `computeRanks`/`computeColumns` (Task 4).
-- Produces: `ROW_STRIDE`, `COLUMN_STRIDE` constants; `roomRect(seed, roomId, rank, col)` → `{gx, gy, gw, gh}`; `exitFaceForIndex(index)` → `'south' | 'east' | 'west'`; `roomEnclosureWalls(seed, roomId, { incomingFace, outgoingFaces })` (replaces the old `{hasOutgoing}` boolean signature — **breaking change**, callers updated in Task 10).
+- Produces: `ROW_STRIDE`, `COLUMN_STRIDE` constants; `roomRect(seed, roomId, rank, col)` → `{gx, gy, gw, gh}`; `exitFaceForIndex(index)` → `'south' | 'east' | 'west'`; `roomEnclosureWalls(seed, roomId, { incomingFace, outgoingFaces }, rect)` (replaces the old `{hasOutgoing}` boolean signature — **breaking change**, callers updated in Task 10); `OPPOSITE` (exported face-inversion map); `incomingFaceFor(edges, roomId)` and `parentRoomIdFor(edges, roomId)` (both new, share one parent lookup, used together by Tasks 11/12).
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -630,8 +632,17 @@ describe('exitFaceForIndex', () => {
 });
 
 describe('roomEnclosureWalls (multi-exit)', () => {
+  // #93 pre-flight fix: roomEnclosureWalls' real Step-3 implementation
+  // takes `rect` as a mandatory 4th argument (documented in this task's
+  // own "Note for the implementer" and matching Task 10's real call
+  // site) -- the Interfaces section's 3-arg summary above was incomplete.
+  // Omitting it here would throw ("Cannot destructure property 'gx' of
+  // undefined") rather than fail cleanly. A plain, arbitrary valid rect
+  // is enough since these tests only assert on `.dir`, never coordinates.
+  const rect = { gx: 0, gy: 0, gw: 4, gh: 4 };
+
   it('excludes the incoming face and every outgoing face', () => {
-    const walls = roomEnclosureWalls('alpha', 'x', { incomingFace: 'north', outgoingFaces: ['south', 'east'] });
+    const walls = roomEnclosureWalls('alpha', 'x', { incomingFace: 'north', outgoingFaces: ['south', 'east'] }, rect);
     const dirs = walls.map((w) => w.dir);
     expect(dirs).not.toContain('north');
     expect(dirs).not.toContain('south');
@@ -640,7 +651,7 @@ describe('roomEnclosureWalls (multi-exit)', () => {
   });
 
   it('the entry room (no incomingFace) walls every side except its outgoing faces', () => {
-    const walls = roomEnclosureWalls('alpha', 'room-entry', { incomingFace: null, outgoingFaces: ['south'] });
+    const walls = roomEnclosureWalls('alpha', 'room-entry', { incomingFace: null, outgoingFaces: ['south'] }, rect);
     expect(walls.map((w) => w.dir)).toEqual(expect.arrayContaining(['north', 'east', 'west']));
   });
 });
@@ -681,7 +692,11 @@ export function exitFaceForIndex(index) {
   return ['south', 'east', 'west'][index];
 }
 
-const OPPOSITE = { north: 'south', south: 'north', east: 'west', west: 'east' };
+// #93 pre-flight fix: exported (not just module-internal) so Task 10's
+// buildPopulateAndUnlockGraphNode (dungeon-scene.mjs) can derive a room's
+// exit-face-toward-a-specific-child directly as OPPOSITE[childsIncomingFace]
+// instead of re-deriving it a second, less direct way.
+export const OPPOSITE = { north: 'south', south: 'north', east: 'west', west: 'east' };
 
 /**
  * The compass face on `roomId` where its one incoming connection arrives —
@@ -700,6 +715,22 @@ export function incomingFaceFor(edges, roomId) {
   for (const [parentId, children] of Object.entries(edges)) {
     const index = children.indexOf(roomId);
     if (index !== -1) return OPPOSITE[exitFaceForIndex(index)];
+  }
+  throw new Error(`no parent found for room ${roomId}`);
+}
+
+/**
+ * The id of `roomId`'s one parent in `edges` — same lookup as
+ * `incomingFaceFor`, returning the parent id instead of the face. Every
+ * caller that needs `buildPopulateAndUnlockGraphNode`'s `parentRoomId` and
+ * `incomingFace` together (Tasks 11, 12) calls both against the same
+ * `edges` so the two agree by construction. Returns null for the entry
+ * room, throws under the same conditions `incomingFaceFor` does.
+ */
+export function parentRoomIdFor(edges, roomId) {
+  if (roomId === 'room-entry') return null;
+  for (const [parentId, children] of Object.entries(edges)) {
+    if (children.includes(roomId)) return parentId;
   }
   throw new Error(`no parent found for room ${roomId}`);
 }
@@ -1072,6 +1103,37 @@ export async function advanceToRoom(
 
 **Note for the implementer:** `canUndoRoomEntry` reads `state.lastAutoEntry.roomId` only, so it's unaffected by the `fromIndex`/`toIndex` → `fromRoomId`/`toRoomId` rename — verify this by re-running its existing tests unmodified after this change; if anything else in the file destructures `lastAutoEntry.fromIndex`/`.toIndex`, update it to the new field names in this same task.
 
+**#93 pre-flight fix — a real gap, not covered by the note above:**
+`undoLastRoomEntry` (`dungeon-runner.mjs`, current implementation below)
+reads `undone.fromIndex` and writes `currentIndex: undone.fromIndex` — it
+must be updated in this same task, or undo silently breaks (references an
+undefined field, never actually restores the room):
+
+```js
+export async function undoLastRoomEntry(
+  { sceneId },
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state || !canUndoRoomEntry(state))
+    return { ok: false, state: state ?? null, undone: null };
+
+  const undone = state.lastAutoEntry;
+  const newState = {
+    ...state,
+    currentRoomId: undone.fromRoomId,
+    lastAutoEntry: null,
+  };
+  await persist(sceneId, newState, settingsRef);
+  return { ok: true, state: newState, undone };
+}
+```
+
+Add a test for this alongside the two above: arrange a state whose
+`lastAutoEntry` is `{roomId: 'b', fromRoomId: 'a', toRoomId: 'b'}` and
+`currentRoomId: 'b'`, call `undoLastRoomEntry`, assert the returned
+state's `currentRoomId` is `'a'`.
+
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-runner.test.mjs -t "advanceToRoom"`
@@ -1094,7 +1156,7 @@ git commit -m "feat: make advanceToRoom accept any of the current room's graph c
 
 **Interfaces:**
 - Consumes: `state.rooms`/`state.edges`/`state.currentRoomId` (graph shape), `state.hiddenEdges`/`state.hiddenRooms` (Task 3's shape, carried on run state).
-- Produces: `revealTravelTimeEffect({ edges, hiddenEdges }, roomId, effectKey)` (new, `dungeon-deck.mjs`) → `{ edges, hiddenEdges }` with the room's hidden path (if any) merged into the live `edges` and removed from `hiddenEdges`, or unchanged if there's nothing hidden to reveal. `markRoomOutcome` (existing name, `dungeon-runner.mjs`) drops all `applySequenceMutation`/physical-slot-assignment logic and instead calls `revealTravelTimeEffect` when `effectKey` is `'reduced_travel_time'` or `'extra_travel_time'`.
+- Produces: `revealTravelTimeEffect({ edges, hiddenEdges }, roomId, effectKey)` (new, `dungeon-deck.mjs`) → `{ edges, hiddenEdges }` with the room's hidden path (if any) merged into the live `edges` and removed from `hiddenEdges`, or unchanged if there's nothing hidden to reveal. `markRoomOutcome` (existing name, `dungeon-runner.mjs`) drops all `applySequenceMutation`/physical-slot-assignment logic and instead calls `revealTravelTimeEffect` when `effectKey` is `'reduced_travel_time'` or `'extra_travel_time'`. `depthBiasFor({rank, maxRank, isGoal})`/`lootGpForTreasureRoom({partyLevel, rank, maxRank, isGoal})`/`treasureRoomItemTableName({partyLevel, rank, maxRank, isGoal, rng})` (all three existing names, `dungeon-deck.mjs`, `physicalSlot`/`roomCount` renamed to `rank`/`maxRank` — #93 pre-flight fix, Step 3a; Task 10's own `depthBiasFor` call and Task 13's `applyRoomEffect`/`grantTreasureReward` call depend on this rename).
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1150,6 +1212,9 @@ Add to `scripts/dungeon-deck.mjs`:
  * builds or removes a room; the target was already constructed at
  * scene-creation time. A no-op if nothing was hidden there.
  */
+// Data-only reveal — see #156, filed during #93 pre-flight review: no
+// door/room geometry is built for the revealed edge anywhere in this
+// plan yet. Deliberately deferred; do not block this task on it.
 export function revealTravelTimeEffect({ edges, hiddenEdges }, roomId, effectKey) {
   if (effectKey !== 'reduced_travel_time' && effectKey !== 'extra_travel_time') {
     return { edges, hiddenEdges };
@@ -1191,6 +1256,41 @@ In `scripts/dungeon-runner.mjs`, replace the `mutation`/`rooms`/physical-slot-as
 
 **Note for the implementer:** the function's earlier lines (`const room = state.rooms[state.currentIndex]` and the double-resolution guard checking `state.history`) must be updated too — `room = state.rooms[state.currentRoomId]`. `getGenerator()` is this file's existing indirection for swapping the sequence generator module in tests; confirm `revealTravelTimeEffect` is added to whatever object `getGenerator()` returns (mirroring how `resolveRoomOutcome`/`findOutcomeTemplate`/`applySequenceMutation` are already exposed there) and remove `applySequenceMutation` from that surface since nothing calls it anymore after this task. For type consistency, also trim `mutation`/`nextRoomId`/`nextPhysicalSlot` from every early-return object earlier in the function (the `!state || state.completed` guard, the double-resolution guard, and the missing-outcome-slot guard) so every return path from `markRoomOutcome` shares the same `{state, effectKey}` shape — a caller destructuring `.mutation` off any return path should get `undefined`, not have some paths carry a stale `null` for a field that no longer means anything.
 
+- [ ] **Step 3a: #93 pre-flight fix — rename `depthBiasFor`'s `physicalSlot`/`roomCount` to `rank`/`maxRank`**
+
+`depthBiasFor` (`scripts/dungeon-deck.mjs:88-92`) computes a room's difficulty/reward ramp from `physicalSlot / (roomCount - 1)` — both parameters are pure linear-sequence concepts that don't exist once rooms are graph nodes with a `rank`/`col` position instead of an array index. Left unrenamed, Task 10's Step 3c combat branch (which passes `rank`/`state.maxRank`, since this task lands before Task 10) would be silently passing its arguments into a `physicalSlot`/`roomCount`-shaped destructure, leaving the real `physicalSlot` field `undefined` and `fraction` computing as `NaN` — a dungeon-wide silent break of encounter difficulty AND treasure-room loot/item-tier scaling, not a localized bug. Fix the source of the mismatch instead of the call sites papering over it:
+
+```js
+export function depthBiasFor({ rank, maxRank, isGoal }) {
+  if (isGoal) return MAX_DEPTH_BIAS;
+  const fraction = rank / Math.max(1, maxRank);
+  return Math.round(fraction * MAX_DEPTH_BIAS);
+}
+```
+
+`maxRank` is the graph's own deepest rank (computed once by Task 12 via `computeRanks` and stored on `state.maxRank` — see Task 12's Step 3), replacing `roomCount - 1`'s role as the normalization denominator; `rank` replaces `physicalSlot` directly (both start at the entry room's own rank/slot and increase with depth, so the ramp's shape is unchanged, just re-keyed).
+
+This same file's two `physicalSlot`-shaped dependents take the identical rename, since both just forward the field straight into `depthBiasFor`:
+
+```js
+export function lootGpForTreasureRoom({ partyLevel, rank, maxRank, isGoal }) {
+  const bias = depthBiasFor({ rank, maxRank, isGoal });
+  return Math.round(partyLevel * TREASURE_GP_PER_LEVEL * (1 + bias / MAX_DEPTH_BIAS));
+}
+
+export function treasureRoomItemTableName({ partyLevel, rank, maxRank, isGoal, rng }) {
+  const gp = lootGpForTreasureRoom({ partyLevel, rank, maxRank, isGoal });
+  const category = pickWeightedCategory(TREASURE_ROOM_CATEGORY_WEIGHTS, rng());
+  return category === 'valuable'
+    ? valuableTierForBudget(gp * ITEM_PRICE_BUDGET_FRACTION)
+    : nthLevelTableName(category, partyLevel);
+}
+```
+
+Update every existing test in `tests/dungeon-deck.test.mjs` that constructs a `{physicalSlot, roomCount, ...}` args object for `depthBiasFor`/`lootGpForTreasureRoom`/`treasureRoomItemTableName` (lines 298, 302-303, 310, 318, 363, 369, 373-374, 379-380, 388, 396, 429 as of this plan's writing — re-grep, since Task numbering elsewhere in this plan may shift exact line numbers before this task runs) to pass `{rank, maxRank, ...}` instead, preserving each test's original intent (e.g. `physicalSlot: 0, roomCount: 8` → `rank: 0, maxRank: 7`; `physicalSlot: 19, roomCount: 20` → `rank: 19, maxRank: 19`; the ratio `physicalSlot / (roomCount - 1)` and `rank / maxRank` must land on the same fraction for each converted case).
+
+`applyRoomEffect`/`grantTreasureReward` in `scripts/ui/dungeon-app.mjs` (the treasure-room caller) are updated by Task 13, which already touches that file and now has this rename as a dependency.
+
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs tests/dungeon-runner.test.mjs`
@@ -1205,25 +1305,63 @@ git commit -m "feat: redefine travel-time outcomes as hidden-path reveals, not r
 
 ---
 
-## Task 10: Multi-exit room build and frontier placeholders (`dungeon-scene.mjs`)
+## Task 10: Multi-exit room build, content population, and frontier placeholders (`dungeon-scene.mjs`)
+
+**#93 pre-flight fix — this task's scope was expanded during plan review.**
+The original version only replaced `buildRoomAtSlot` (walls/geometry). Live
+verification against the actual current codebase (not just the 2-day-old
+plan text) found that `buildRoomAtSlot` is never called by itself in
+practice — every real caller goes through `buildPopulateAndUnlockRoom`
+(`dungeon-scene.mjs:850`), which ALSO populates each room's content
+(encounter/trap/puzzle/skill-challenge/narrative/treasure) and unlocks its
+door, all keyed by the same `physicalSlot`/`dungeonSlot` flag the geometry
+functions used. The original plan left this entire function — and the
+`dungeonSlot`-flag-keyed helpers it calls (`populateSlotEncounter`,
+`populateSlotTrap`, `unlockDoorToSlot`, `isSlotPopulated`, `isSlotBuilt`)
+— completely unaddressed. Dispatched as originally written, Tasks 10/12
+would have built a dungeon of empty, permanently-locked rooms. This
+corrected version covers the whole thing in one task, since it's all the
+same file and the same "slot → graph node" generalization.
 
 **Files:**
-- Modify: `scripts/dungeon-scene.mjs`
+- Modify: `scripts/dungeon-scene.mjs`, `scripts/dungeon-layout.mjs` (export `roomSidesFor` as `roomSidesForRect`), `scripts/dungeon-combat.mjs` (rename `startCombatForSlot`/`getCombatForSlot` — see Step 3d)
 - Test: manual/live verification only (this file has no Foundry test harness, same existing boundary as `buildRoomAtSlot`/`buildConnectionGeometry` today — see the spec's Testing section).
 
 **Interfaces:**
-- Consumes: `roomRect`, `roomEnclosureWalls`, `exitFaceForIndex`, `incomingFaceFor` (Task 5), `buildEdgeCorridor` (Task 6).
-- Produces: `buildRoomAtGraphNode(scene, roomId, { rank, col, incomingFace, childIds, isGoal, locationTag, artVariant, seed })` (replaces `buildRoomAtSlot`) and a `doorToRoomId` lookup accumulated as each room builds (consumed by Task 11).
+- Consumes: `roomRect`, `roomEnclosureWalls`, `exitFaceForIndex`, `incomingFaceFor`, `parentRoomIdFor`, `OPPOSITE`, `ROW_STRIDE`, `COLUMN_STRIDE` (Task 5), `buildEdgeCorridor` (Task 6).
+- Produces: `buildRoomAtGraphNode(scene, roomId, {rank, col, incomingFace, childIds, isGoal, locationTag, artVariant, seed})` (replaces `buildRoomAtSlot`, this room's own enclosure walls/floor art/light only — creates them directly rather than returning them, also writes a `dungeonDoorToRoomId` flag onto each created door/reveal-door wall — Task 11 reads it directly off the wall, no separate in-memory lookup needed — and returns `{rect, outgoingFaces, placeholderIds}`, deliberately NOT deleting `placeholderIds` itself, deferring that to the caller for #110 ordering); `buildPopulateAndUnlockGraphNode(scene, state, room, {rank, col, incomingFace, childIds, parentRoomId, unlock})` (replaces `buildPopulateAndUnlockRoom` — walls + parent-connection geometry + content population + door unlock, the actual function Tasks 11/12/13 call; `parentRoomId` comes from `parentRoomIdFor(edges, room.id)`, resolved by the caller against the same `edges` used for `incomingFace`); `resizeSceneForLayout(scene, {maxRank, maxCol})` (new, replaces the per-room `ensureSceneCovers`/`requiredDimensions(maxSlot)` pair — called ONCE by Task 12 right after layout is computed, before any room builds, since the whole graph's extent is known up front under full pregeneration); `unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildIds)` (new — unlocks every one of `roomId`'s outgoing doors whose target is in `childIds` but not in `hiddenChildIds`, via each door's own `dungeonDoorToRoomId` flag; used by Task 13's corrected trailing block instead of building a "next room").
 
 - [ ] **Step 1: Write the plan for manual verification**
 
-No unit test — write out, in a comment block above the new function, the exact live-verification checklist to run once implemented (mirrors the spec's Testing section): (a) a 1-exit room behaves identically to today's single-corridor case; (b) a 2-exit room gets two independently lockable doors on different faces, each leading to its own distinct child; (c) opening either door correctly supersedes only that door's own frontier placeholder, leaving the room's other still-unopened exit's placeholder untouched; (d) the real walls for a newly built connection are always created before the old frontier placeholder for that same face is deleted (never the reverse — the existing #110 fog-leak-avoidance ordering).
+No unit test — write out, in a comment block above `buildRoomAtGraphNode`, the exact live-verification checklist to run once implemented (mirrors the spec's Testing section): (a) a 1-exit room behaves identically to today's single-corridor case, content and all; (b) a 2-exit room gets two independently lockable doors on different faces, each leading to its own distinct populated child; (c) opening either door correctly supersedes only that door's own frontier placeholder, leaving the room's other still-unopened exit's placeholder untouched; (d) the real walls for a newly built connection are always created before the old frontier placeholder for that same face is deleted (never the reverse — the existing #110 fog-leak-avoidance ordering); (e) a trap/skill_challenge/puzzle/narrative/treasure room's own persisted state (`ensureTrapState`/`ensureSkillChallenge`/etc.) is attached exactly once per room, same as today.
 
 - [ ] **Step 2: (N/A — no automated test to run first for this task)**
 
-- [ ] **Step 3: Write the implementation**
+- [ ] **Step 3a: Update this file's own import block**
 
-Replace `buildRoomAtSlot` in `scripts/dungeon-scene.mjs` with `buildRoomAtGraphNode`, generalizing its existing body (creation-before-deletion ordering, wall flag conventions, `ensureSceneCovers` call) from "one outgoing face, keyed by slot" to "N outgoing faces, keyed by `{roomId, face}`":
+`dungeon-scene.mjs` currently imports `slotRect, slotRowCol, buildConnectionGeometry, outgoingFaceWall, connectionDirection` from `dungeon-layout.mjs` — all deleted by Tasks 5/6. Replace that import block with:
+
+```js
+import {
+  ROOM_SIZE_LARGE,
+  ROW_STRIDE,
+  COLUMN_STRIDE,
+  INITIAL_GX,
+  roomRect,
+  roomEnclosureWalls,
+  roomSidesForRect,
+  exitFaceForIndex,
+  incomingFaceFor,
+  parentRoomIdFor,
+  OPPOSITE,
+  buildEdgeCorridor,
+  corridorTileVariant,
+} from "./dungeon-layout.mjs";
+```
+
+(`ROOMS_PER_ROW`/`CORRIDOR_LEN` drop out of this file's own use — `CORRIDOR_LEN` stays needed only inside `dungeon-layout.mjs` itself, already covered by Tasks 5/6's own imports there.)
+
+- [ ] **Step 3b: Replace `buildRoomAtSlot` with `buildRoomAtGraphNode`**
 
 ```js
 export async function buildRoomAtGraphNode(
@@ -1232,7 +1370,6 @@ export async function buildRoomAtGraphNode(
   { rank, col, incomingFace = null, childIds = [], isGoal = false, locationTag = null, artVariant = 0, seed = "" },
 ) {
   const rect = roomRect(seed, roomId, rank, col);
-  await ensureSceneCovers(scene, rect);
 
   const outgoingFaces = isGoal ? [] : childIds.map((_, i) => exitFaceForIndex(i));
   const walls = roomEnclosureWalls(seed, roomId, { incomingFace, outgoingFaces }, rect).map(
@@ -1247,22 +1384,22 @@ export async function buildRoomAtGraphNode(
       }),
   );
 
-  // Supersede the parent's frontier placeholder for THIS face (looked up
-  // now, deleted only after the real geometry below is created — #110's
-  // creation-before-deletion ordering, generalized from "the one placeholder
-  // for slot - 1" to "the placeholder for this specific incoming edge").
+  // Supersede the parent's frontier placeholder for THIS incoming edge
+  // (looked up now, deleted only after the real geometry below is
+  // created — #110's creation-before-deletion ordering, generalized from
+  // "the one placeholder for slot - 1" to "the placeholder for this
+  // specific incoming edge").
   const placeholderIds = incomingFace
     ? scene.walls
-        .filter((w) => w.getFlag(MODULE_ID, "dungeonFrontierWallForEdge") === `->${roomId}`)
+        .filter((w) => w.getFlag(MODULE_ID, "dungeonFrontierWallForEdge")?.endsWith(`->${roomId}`))
         .map((w) => w.id)
     : [];
 
   // One frontier placeholder per outgoing face — findable/superseded later
-  // by whichever child builds next on that face, same lifecycle
-  // buildConnectionGeometry's single placeholder had, just N of them now.
+  // by whichever child builds next on that face.
   for (let i = 0; i < childIds.length; i += 1) {
     const face = exitFaceForIndex(i);
-    const side = roomSidesForRect(rect)[face]; // same shape roomEnclosureWalls' internals use
+    const side = roomSidesForRect(rect)[face];
     walls.push(
       wallDoc(side, {
         flags: { [MODULE_ID]: { dungeonFrontierWallForEdge: `${roomId}->${childIds[i]}` } },
@@ -1270,24 +1407,201 @@ export async function buildRoomAtGraphNode(
     );
   }
 
-  const created = await scene.createEmbeddedDocuments("Wall", walls);
-  if (placeholderIds.length) await scene.deleteEmbeddedDocuments("Wall", placeholderIds);
+  // This room's OWN enclosure walls, created now — but the frontier
+  // placeholder they supersede is NOT deleted here. #110's ordering
+  // requires the placeholder to survive until the REAL connecting door
+  // exists, and that door is built by the caller (buildPopulateAndUnlockGraphNode,
+  // Step 3c below, which has the parent's rect this function doesn't) —
+  // deleting the placeholder here, before that door exists, would leave
+  // exactly the gap #110 fixed (a face with neither the placeholder nor
+  // real geometry). `placeholderIds` is returned for the caller to delete
+  // only once ITS OWN connection-wall creation succeeds.
+  if (walls.length) await scene.createEmbeddedDocuments("Wall", walls);
 
-  return { rect, walls: created };
+  // This room's own floor-art Tile + AmbientLight (ported unchanged from
+  // the current buildRoomAtSlot, dungeon-scene.mjs:304-335 — read it
+  // directly: `roomArtPath({locationTag, isGoal, artVariant})` for the
+  // Tile texture at anchorX/Y:0 sized to `rect`, then `roomLightRadii(rect.gw)`
+  // for one centered AmbientLight). Unlike the CORRIDOR tiles (which
+  // depend on a parent and so belong in buildPopulateAndUnlockGraphNode
+  // below, not here), this room's own art/light never depended on the
+  // connecting door in the old code either — port it verbatim; no flag
+  // value needs to change here (art/light documents carry no
+  // dungeonSlot-style flag today), only the `rect` source.
+
+  return { rect, outgoingFaces, placeholderIds };
 }
 ```
 
-**Note for the implementer:** `roomSidesForRect` is `dungeon-layout.mjs`'s internal `roomSidesFor` — export it (rename to `roomSidesForRect` for clarity at the call site) alongside this task's other Task 5 exports rather than duplicating the compass-side math here. `ensureSceneCovers` currently takes a slot integer to size the scene — update its signature to accept a `rect` directly (it only ever used the slot to look up `slotRect` internally; passing the already-computed rect is a strict simplification, not a behavior change) and update every other caller in this file accordingly. When a room actually builds and needs to connect to its already-built parent's placeholder for the edge leading to it, call `buildEdgeCorridor(seed, parentId, roomId, parentRect, rect, exitFace)` (Task 6) to get the real `doorWall`/`revealDoorWall`/`plainWalls`/`corridorSegments`, append `doorWall`+`revealDoorWall`+`plainWalls` to this room's own `walls` array before creating them (same creation-before-deletion ordering), and record `doorToRoomId[revealDoorWall's created wall id] = roomId` in a lookup this function threads through its caller (Task 11 consumes it) — mirroring exactly how the old `buildRoomAtSlot` folded `buildConnectionGeometry`'s output into its own `walls` array before the single `createEmbeddedDocuments` call.
+**Design note:** `buildRoomAtGraphNode` creates its own enclosure walls, floor art, and light directly (self-contained, matching the original `buildRoomAtSlot`'s scope for a room's own geometry) — but does NOT delete the parent's frontier placeholder itself, and does NOT yet know about the corridor connection (needs the parent's rect, which this function has no way to know). The corridor CONNECTION to a parent (door/reveal-door/corridor walls+tiles) is `buildPopulateAndUnlockGraphNode`'s own job (Step 3c) — it creates the connection walls in a SECOND `createEmbeddedDocuments` call, and only THEN deletes the `placeholderIds` this function returned, preserving #110's exact creation-before-deletion ordering (placeholder survives from before this room existed at all, through this room's own enclosure build, until the moment real connecting geometry actually replaces it).
+
+- [ ] **Step 3c: Replace `buildPopulateAndUnlockRoom` with `buildPopulateAndUnlockGraphNode`**
+
+This is the function every real caller (Tasks 11/12/13) actually calls — it wraps `buildRoomAtGraphNode`, adds the parent-connection geometry, then populates content and unlocks doors exactly like the original `buildPopulateAndUnlockRoom` did, keyed by `room.id` (string) everywhere the original used `physicalSlot` (integer) as the `dungeonSlot` flag value and the `populateSlot*`/`depthBiasFor` argument — **the flag NAME `dungeonSlot` is unchanged** (avoids touching `dungeon-combat.mjs` or its 4 existing test files, which only ever compare this flag's value for equality, never as a number), only what gets stored in it changes.
+
+```js
+export async function buildPopulateAndUnlockGraphNode(
+  scene,
+  state,
+  room,
+  { rank, col, incomingFace = null, childIds = [], parentRoomId = null, unlock = true } = {},
+) {
+  const alreadyBuilt = isSlotBuilt(scene, room.id);
+  const rect = roomRect(state.seed, room.id, rank, col);
+
+  if (!alreadyBuilt) {
+    // Creates this room's own enclosure walls + floor art + light
+    // already (see Step 3b) — does NOT delete the parent's placeholder
+    // yet (that's this function's own job, after the connection below).
+    const { placeholderIds } = await buildRoomAtGraphNode(
+      scene,
+      room.id,
+      {
+        rank, col, incomingFace, childIds,
+        isGoal: room.isGoal, locationTag: room.locationTag,
+        artVariant: room.artVariant, seed: state.seed,
+      },
+    );
+
+    const connectionWalls = [];
+    const tiles = [];
+    if (incomingFace && parentRoomId) {
+      const parentPos = state.layoutPositionByRoomId[parentRoomId];
+      const parentRect = roomRect(state.seed, parentRoomId, parentPos.rank, parentPos.col);
+      // The parent's own exit face toward THIS room is the opposite of
+      // this room's incoming face (OPPOSITE is bidirectional/self-inverse
+      // — Task 5's own exported constant, dungeon-layout.mjs).
+      const exitFaceFromParent = OPPOSITE[incomingFace];
+      const { doorWall, revealDoorWall, plainWalls, corridorSegments } =
+        buildEdgeCorridor(state.seed, parentRoomId, room.id, parentRect, rect, exitFaceFromParent);
+      connectionWalls.push(
+        wallDoc(doorWall, { flags: { [MODULE_ID]: { dungeonDoorToRoomId: room.id } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR }),
+        wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonRevealDoorForSlot: room.id } }, ds: CONST.WALL_DOOR_STATES.CLOSED, door: CONST.WALL_DOOR_TYPES.DOOR }),
+        ...plainWalls.map((w) => wallDoc(w)),
+      );
+      // Port the corridor floor-tile loop from the CURRENT
+      // buildRoomAtSlot (dungeon-scene.mjs:219-266, read it directly —
+      // it's the exact tile-placement logic to adapt, including WHY
+      // anchorX/Y stays at Foundry's default center for rotated tiles)
+      // unchanged in spirit, just run once per corridorSegments entry
+      // instead of once for a single corridorRect (a straight edge has
+      // 1 segment, an L-shaped edge has 2 — Task 6). For each segment:
+      // `vertical = segment.gh >= segment.gw`, `length = vertical ?
+      // segment.gh : segment.gw`, then the same
+      // `corridorTileVariant(i, length, vertical)` per-tile loop the
+      // current code already has, offset by `segment.gx`/`segment.gy`
+      // instead of `corridorRect.gx`/`corridorRect.gy`, pushing into
+      // this same `tiles` array (push the resulting Tile data objects,
+      // not TileDocuments — same shape `buildRoomAtSlot` builds today).
+    }
+
+    // #110 ordering: create the new connection geometry (and this room's
+    // own tiles) BEFORE deleting the parent's frontier placeholder, so
+    // there is never a frame where the shared wall is neither the
+    // placeholder nor the real corridor/door.
+    if (connectionWalls.length) await scene.createEmbeddedDocuments("Wall", connectionWalls);
+    if (tiles.length) await scene.createEmbeddedDocuments("Tile", tiles);
+    if (placeholderIds.length) await scene.deleteEmbeddedDocuments("Wall", placeholderIds);
+  }
+
+  if (room.kind === "combat") {
+    if (!isSlotPopulated(scene, room.id)) {
+      await populateSlotEncounter(scene, room.id, {
+        rect,
+        prefillTraits: state.traits,
+        prefillExcludeTraits: state.excludeTraits,
+        levelOffsetBias: depthBiasFor({ rank, maxRank: state.maxRank, isGoal: room.isGoal }),
+        locationTag: room.locationTag,
+        seed: state.seed,
+      });
+    }
+    if (unlock && isSlotPopulated(scene, room.id)) await unlockDoorsFromRoom(scene, room.id, childIds, state.hiddenEdges[room.id] ?? []);
+  } else {
+    // ... every other room.kind branch (skill_challenge / trap / puzzle /
+    // narrative / treasure) is UNCHANGED from the current
+    // buildPopulateAndUnlockRoom body (dungeon-scene.mjs:885-991) — copy
+    // it verbatim, replacing every `physicalSlot` argument to
+    // populateSlotTrap/depthBiasFor with `room.id`/`rank` respectively
+    // (see Step 3e), and the final `if (unlock) await
+    // unlockDoorToSlot(scene, physicalSlot);` with `if (unlock) await
+    // unlockDoorsFromRoom(scene, room.id, childIds, state.hiddenEdges[room.id] ?? []);`.
+  }
+}
+```
+
+- [ ] **Step 3d: Generalize `populateSlotEncounter`/`populateSlotTrap` to accept `rect` directly**
+
+Both currently call the now-deleted `slotRect(seed, slot)` internally. Change their signatures to accept `rect` as a param instead of computing it (drop the internal `slotRect` call in each; every other line is unchanged, just replace `slot` params with `roomId` where they're used purely as the `dungeonSlot`/`trapCustomization.roomId` flag value, not for geometry):
+
+```js
+export async function populateSlotEncounter(scene, roomId, { rect, prefillTraits = [], prefillExcludeTraits = [], hidden = true, levelOffsetBias = 0, locationTag = null, seed = "" } = {}) {
+  await generateEncounter({
+    prefillTraits, prefillExcludeTraits, levelOffsetBias, locationTag,
+    skipThemeDialog: true, scene,
+    originArea: { x: toPixels(rect.gx), y: toPixels(rect.gy), width: toPixels(rect.gw), height: toPixels(rect.gh) },
+    forceHidden: hidden,
+    extraFlags: { [MODULE_ID]: { dungeonSlot: roomId } },
+  });
+}
+```
+
+(Same treatment for `populateSlotTrap`: add a `rect` param, drop its internal `slotRect(seed, slot)` call, keep everything else — including its own `roomId` param, which it already threads through unchanged into `trapCustomization`/`ensureTrapState`.)
+
+Rename `startCombatForSlot`/`getCombatForSlot` (`dungeon-combat.mjs`) to `startCombatForRoom`/`getCombatForRoom` for clarity — purely a name change (both are already generic `(scene, value)` pass-throughs to `startCombat`/a flag-equality lookup, never doing arithmetic on the value), 4 call sites total, all inside `dungeon-scene.mjs`/`ui/dungeon-app.mjs` (both already being touched by this plan).
+
+- [ ] **Step 3e: `isSlotBuilt`/`isSlotPopulated`/`unlockDoorToSlot`/`relockDoorToSlot` — flag value type only, names unchanged**
+
+These four functions' bodies don't need to change at all — they already take an opaque `slot` param and compare it via `===` against a flag value. Just confirm every CALLER now passes a `room.id` string where it used to pass an integer `physicalSlot`/`slot` (Step 3c/3d above already do this). Do not rename these four functions or their flags.
+
+- [ ] **Step 3f: Add `unlockDoorsFromRoom` and `resizeSceneForLayout`**
+
+```js
+/** Unlocks every one of roomId's outgoing doors whose target is in
+ * childIds but not in hiddenChildIds — #93: a graph room can have several
+ * exits, all needing unlocking together once its own outcome resolves,
+ * unlike the old single unlockDoorToSlot call. Each door was flagged
+ * dungeonDoorToRoomId with its own target room id at build time
+ * (buildPopulateAndUnlockGraphNode / Step 3c above). */
+export async function unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildIds = []) {
+  const targets = childIds.filter((id) => !hiddenChildIds.includes(id));
+  for (const targetId of targets) {
+    const wall = scene.walls.find((w) => w.getFlag(MODULE_ID, "dungeonDoorToRoomId") === targetId);
+    if (wall) {
+      await wall.update({ ds: CONST.WALL_DOOR_STATES.CLOSED });
+      playDoorSound("unlock");
+    }
+  }
+}
+
+/** Resizes the scene ONCE for the whole graph's known extent — #93:
+ * replaces the old per-room ensureSceneCovers/requiredDimensions(maxSlot)
+ * pair, which depended on the deleted slotRowCol. Under full
+ * pregeneration the graph's max rank/col is known before any room
+ * builds, so there's no need to incrementally grow the canvas per room
+ * anymore; called once by Task 12's startDungeonRun wiring right after
+ * layoutPositionByRoomId is computed. */
+export async function resizeSceneForLayout(scene, { maxRank, maxCol }) {
+  const width = toPixels(INITIAL_GX + (maxCol + 1) * COLUMN_STRIDE + MARGIN_ROOMS);
+  const height = toPixels((maxRank + 1) * ROW_STRIDE + MARGIN_ROOMS);
+  const nextWidth = Math.max(scene.width ?? 0, width);
+  const nextHeight = Math.max(scene.height ?? 0, height);
+  if (nextWidth > (scene.width ?? 0) || nextHeight > (scene.height ?? 0)) {
+    await scene.update({ width: nextWidth, height: nextHeight });
+  }
+}
+```
+
+Delete `requiredDimensions`/`ensureSceneCovers` entirely (both superseded). `createDungeonScene`'s own initial sizing call (`...requiredDimensions(ROOMS_PER_ROW)`) becomes a fixed conservative default sized for just the entry room, e.g. `...{ width: toPixels(INITIAL_GX + COLUMN_STRIDE + MARGIN_ROOMS), height: toPixels(ROW_STRIDE + MARGIN_ROOMS) }` — `resizeSceneForLayout` corrects it to the real full size moments later in `startDungeonRun`, before any room past the entry builds.
 
 - [ ] **Step 4: Live verification**
 
-Run the checklist written in Step 1 against a real Foundry world (same existing convention noted in `dungeon-scene.mjs`'s other functions) before committing.
+Run the checklist written in Step 1 against a real Foundry world (same existing convention noted in `dungeon-scene.mjs`'s other functions) before committing. This task can only be meaningfully live-verified together with Task 12's wiring (nothing calls `buildPopulateAndUnlockGraphNode` until then) — it's fine to write Task 10's code now and defer live verification to Task 12's own Step 4, noting that explicitly in this task's commit message rather than skipping verification silently.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add scripts/dungeon-scene.mjs scripts/dungeon-layout.mjs
-git commit -m "feat: build multi-exit rooms with per-edge frontier placeholders"
+git add scripts/dungeon-scene.mjs scripts/dungeon-layout.mjs scripts/dungeon-combat.mjs
+git commit -m "feat: build+populate+unlock multi-exit graph rooms with per-edge frontier placeholders"
 ```
 
 ---
@@ -1299,8 +1613,8 @@ git commit -m "feat: build multi-exit rooms with per-edge frontier placeholders"
 - Test: manual/live verification (same boundary as Task 10).
 
 **Interfaces:**
-- Consumes: `advanceToRoom` (Task 8), `doorToRoomId` lookup (Task 10), `buildRoomAtGraphNode` (Task 10).
-- Produces: `handleDungeonDoorOpened(sceneId, wallId)` (existing name, new body) resolving `wallId` → `doorToRoomId[wallId]` → calls `advanceToRoom` with that specific child, instead of the old single `state.rooms[state.currentIndex + 1]` check. Adds the Review Focus lazy-fallback build: if the resolved room's content isn't present yet (eager pregeneration failed for it), build it on demand before revealing.
+- Consumes: `advanceToRoom` (Task 8), `doorToRoomId` lookup (Task 10), `buildPopulateAndUnlockGraphNode` (Task 10), `incomingFaceFor`/`parentRoomIdFor` (Task 5).
+- Produces: `handleDungeonDoorOpened(sceneId, wallId)` (existing name, new body) resolving `wallId` → `doorToRoomId[wallId]` → calls `advanceToRoom` with that specific child, instead of the old single `state.rooms[state.currentIndex + 1]` check. Adds the Review Focus lazy-fallback build: if the resolved room's content isn't present yet (eager pregeneration failed for it), build AND populate it on demand before revealing (a walls-only fallback would leave the party in an empty, permanently-locked room — see Task 10's Step 3c split).
 
 - [ ] **Step 1: Write the manual verification checklist**
 
@@ -1321,19 +1635,23 @@ export async function handleDungeonDoorOpened(sceneId, wallId) {
   if (!state || !(state.edges[state.currentRoomId] ?? []).includes(roomId)) return;
 
   // Lazy fallback (#93 error handling): if eager pregeneration somehow
-  // failed for this room, build it now rather than leaving the party
-  // stuck — the same idempotent build step the eager pass already used.
-  if (!isRoomBuilt(scene, roomId)) {
+  // failed for this room, build AND populate it now rather than leaving
+  // the party stuck in an empty, permanently-locked room — the same
+  // idempotent build+populate step the eager pass already used
+  // (buildPopulateAndUnlockGraphNode, not the walls-only
+  // buildRoomAtGraphNode — see Task 10's Step 3c). `unlock: false`
+  // because this room itself has not been resolved yet — its own
+  // outgoing doors unlock only when its outcome resolves (Task 13).
+  if (!isSlotBuilt(scene, roomId)) {
     const room = state.rooms[roomId];
-    await buildRoomAtGraphNode(scene, roomId, {
-      rank: state.layoutPositionByRoomId[roomId].rank,
-      col: state.layoutPositionByRoomId[roomId].col,
+    const { rank, col } = state.layoutPositionByRoomId[roomId];
+    await buildPopulateAndUnlockGraphNode(scene, state, room, {
+      rank,
+      col,
       incomingFace: incomingFaceFor(state.edges, roomId),
       childIds: state.edges[roomId] ?? [],
-      isGoal: room.isGoal,
-      locationTag: room.locationTag,
-      artVariant: room.artVariant,
-      seed: state.seed,
+      parentRoomId: parentRoomIdFor(state.edges, roomId),
+      unlock: false,
     });
   }
 
@@ -1341,7 +1659,7 @@ export async function handleDungeonDoorOpened(sceneId, wallId) {
 }
 ```
 
-**Note for the implementer:** `wall.getFlag(MODULE_ID, "dungeonDoorToRoomId")` must be set when each door wall is created in Task 10 (add it alongside the existing `dungeonDoorToSlot`-style flag, now storing the target room id directly rather than a slot number — simplest possible `doorToRoomId` lookup, keyed by wall flag rather than a separately-threaded map, avoiding new state). `isRoomBuilt` generalizes the existing `isSlotBuilt`/`isSlotPopulated` presence check (`dungeon-scene.mjs:391-403`) from a slot number to a room id — same presence-check logic, just keyed differently.
+**Note for the implementer:** `wall.getFlag(MODULE_ID, "dungeonDoorToRoomId")` must be set when each door wall is created in Task 10 (add it alongside the existing `dungeonDoorToSlot`-style flag, now storing the target room id directly rather than a slot number — simplest possible `doorToRoomId` lookup, keyed by wall flag rather than a separately-threaded map, avoiding new state). `isSlotBuilt` (unchanged name — Step 3e) already generalizes cleanly: it takes an opaque `slot` param and compares it by `===` against a flag value, so passing a room id string where it used to get an integer works with no body changes.
 
 - [ ] **Step 4: Live verification**
 
@@ -1363,8 +1681,8 @@ git commit -m "feat: resolve door-opens against a room's specific graph child, w
 - Test: manual/live verification (this file drives Foundry UI directly).
 
 **Interfaces:**
-- Consumes: `buildRoomGraph`, `attachHiddenPaths` (Tasks 2-3), `computeRanks`/`computeColumns` (Task 4), `roomsToEagerlyBuild`/`commitEagerPhysicalSlots` (Task 7), `buildRoomAtGraphNode` (Task 10).
-- Produces: `startDungeonRun` builds the whole graph for every run (drops the `if (state.hostUserId)` gate at dungeon-app.mjs:556) and no longer skips a combat-kind room at generation-order position 1.
+- Consumes: `buildRoomGraph`, `attachHiddenPaths` (Tasks 2-3), `computeRanks`/`computeColumns` (Task 4), `incomingFaceFor`/`parentRoomIdFor` (Task 5), `roomsToEagerlyBuild`/`commitEagerPhysicalSlots` (Task 7), `buildPopulateAndUnlockGraphNode`/`resizeSceneForLayout`/`unlockDoorsFromRoom` (Task 10).
+- Produces: `startDungeonRun` builds the whole graph for every run (drops the `if (state.hostUserId)` gate at dungeon-app.mjs:556) and no longer skips a combat-kind room at generation-order position 1. Persists `state.maxRank` (the graph's deepest rank, from `computeRanks`) alongside `layoutPositionByRoomId` — Task 9's `depthBiasFor` rename and Task 13's `applyRoomEffect` call both read it.
 
 - [ ] **Step 1: Write the manual verification checklist**
 
@@ -1390,6 +1708,8 @@ In `scripts/ui/dungeon-app.mjs`'s `startDungeonRun` (around line 496-583):
   const layoutPositionByRoomId = Object.fromEntries(
     Object.keys(rooms).map((id) => [id, { rank: ranks[id], col: columns[id] }]),
   );
+  const maxRank = Math.max(...Object.values(ranks));
+  const maxCol = Math.max(...Object.values(columns));
 
   state = {
     ...state,
@@ -1398,23 +1718,32 @@ In `scripts/ui/dungeon-app.mjs`'s `startDungeonRun` (around line 496-583):
     hiddenRooms: [...hiddenRooms],
     hiddenEdges,
     layoutPositionByRoomId,
+    maxRank,
     currentRoomId: 'room-entry',
     history: [],
   };
 
+  // #93: the whole graph's extent is known up front under full
+  // pregeneration — resize once, before any room is built, instead of
+  // the old per-room ensureSceneCovers/requiredDimensions growth.
+  await resizeSceneForLayout(scene, { maxRank, maxCol });
+
   // #93: full pregeneration for every run, GM-present or GM-less alike —
   // no more hostUserId gate, no more ITEM-11 first-combat-room deferral.
+  // Only the entry room's own outgoing doors unlock immediately; every
+  // other room stays locked until its own outcome resolves (Task 13's
+  // unlockDoorsFromRoom call) — so this loop always passes
+  // `unlock: false` except for 'room-entry' itself.
   const eagerlyBuilt = roomsToEagerlyBuild(state);
   for (const { room, buildOrder } of eagerlyBuilt) {
     const { rank, col } = layoutPositionByRoomId[room.id];
-    await buildRoomAtGraphNode(scene, room.id, {
-      rank, col,
+    await buildPopulateAndUnlockGraphNode(scene, state, room, {
+      rank,
+      col,
       incomingFace: incomingFaceFor(edges, room.id),
       childIds: edges[room.id] ?? [],
-      isGoal: room.isGoal,
-      locationTag: room.locationTag,
-      artVariant: room.artVariant,
-      seed: state.seed,
+      parentRoomId: parentRoomIdFor(edges, room.id),
+      unlock: room.id === 'room-entry',
     });
   }
   await commitEagerPhysicalSlots(scene.id, eagerlyBuilt);
@@ -1422,7 +1751,7 @@ In `scripts/ui/dungeon-app.mjs`'s `startDungeonRun` (around line 496-583):
 
 Delete `populateNextRoom` (dungeon-app.mjs:733) and its call site/UI button wiring (the `#onPopulateNext` handler and template button referencing it), per the confirmed removal of the ITEM-11 deferral.
 
-**Note for the implementer:** `incomingFaceFor` is Task 5's shared helper (`dungeon-layout.mjs`) — the same one Task 11's lazy fallback uses, so both call sites agree on the same parent/face resolution.
+**Note for the implementer:** `incomingFaceFor`/`parentRoomIdFor` are Task 5's shared helpers (`dungeon-layout.mjs`) — the same pair Task 11's lazy fallback uses, so both call sites agree on the same parent/face resolution. `roomsToEagerlyBuild` already returns rooms in topological (parents-before-children) order (Task 7), so by the time any room's `buildPopulateAndUnlockGraphNode` call runs, `parentRoomIdFor`'s result for that room already has its own `layoutPositionByRoomId` entry and (if non-entry) has already been built by an earlier loop iteration — required, since the parent's rect is read via `state.layoutPositionByRoomId[parentRoomId]` inside Step 3c.
 
 - [ ] **Step 4: Live verification**
 
@@ -1440,32 +1769,110 @@ git commit -m "feat: pregenerate the full branching graph for every run, drop IT
 ## Task 13: Simplify `resolveCurrentRoom` (drop mutation/resync logic)
 
 **Files:**
-- Modify: `scripts/ui/dungeon-app.mjs`
-- Test: manual/live verification.
+- Modify: `scripts/ui/dungeon-app.mjs`, `scripts/dungeon-runner.mjs` (delete dead `roomsNeedingResync`)
+- Test: `tests/dungeon-runner.test.mjs` (delete `roomsNeedingResync`'s own describe block); the rest is manual/live verification (this file drives Foundry UI directly, same existing boundary as the rest of `resolveCurrentRoom`).
 
 **Interfaces:**
-- Consumes: `markRoomOutcome` (Task 9, already drops mutation logic internally).
-- Produces: `resolveCurrentRoom` (existing name) no longer branches on `mutation && state.hostUserId` or calls any resync/reconciliation step (dungeon-app.mjs:198-299 area, per #62's now-superseded reconciliation mechanism) — that entire code path is dead once nothing splices `state.rooms` at runtime.
+- Consumes: `markRoomOutcome` → `{state, effectKey}` (Task 9, already drops mutation logic internally), `unlockDoorsFromRoom` (Task 10), `depthBiasFor`/`lootGpForTreasureRoom`/`treasureRoomItemTableName` rank/maxRank rename (Task 9's Step 3a), `state.maxRank` (Task 12).
+- Produces: `resolveCurrentRoom` (existing name) no longer branches on `mutation && state.hostUserId`, calls no resync/reconciliation step, and builds nothing — it only unlocks the just-resolved room's own outgoing doors via `unlockDoorsFromRoom` (dead code per #62's now-superseded reconciliation mechanism, superseded again by full pregeneration). `roomsNeedingResync` (`dungeon-runner.mjs`) is deleted outright — nothing calls it once this task lands.
 
 - [ ] **Step 1: Write the manual verification checklist**
 
-(a) resolving a room whose outcome is `reduced_travel_time`/`extra_travel_time` no longer triggers any teardown/rebuild of already-built rooms — the party simply sees a newly unlocked door where the hidden path was revealed; (b) resolving every other outcome kind behaves exactly as before (unaffected by this change).
+(a) resolving a room whose outcome is `reduced_travel_time`/`extra_travel_time` no longer triggers any teardown/rebuild of already-built rooms — the party simply sees a newly unlocked door where the hidden path was revealed; (b) resolving every other outcome kind behaves exactly as before (unaffected by this change); (c) a trap room's XP grant on success still fires (uses the resolved room's own `dungeonSlot`-flagged trap token, now keyed by room id rather than integer slot); (d) a treasure room's coin/item grant still scales with depth — a treasure room near the entry grants noticeably less than one near the goal, confirming the `depthBiasFor` rank/maxRank rename (Task 9 Step 3a) reached this call site correctly; (e) resolving the goal room does not attempt to unlock any doors (it has none) and still sweeps the completed scene.
 
-- [ ] **Step 2: (N/A — manual verification file)**
+- [ ] **Step 2: (N/A — manual verification file, `roomsNeedingResync`'s test deletion has no new assertions to fail first)**
 
 - [ ] **Step 3: Write the implementation**
 
-In `scripts/ui/dungeon-app.mjs`'s `resolveCurrentRoom` (around line 132-299), delete the `mutation`-branching block and its resync-step call entirely (the code guarded by `if (mutation && state.hostUserId)` at line 228 and everything through `commitEagerPhysicalSlots` reconciliation at line 299) — `markRoomOutcome`'s return no longer includes `mutation`/`nextRoomId`/`nextPhysicalSlot` (Task 9), so this whole branch has nothing left to key off.
+Replace `resolveCurrentRoom` (`scripts/ui/dungeon-app.mjs:134-348`) in full:
 
-- [ ] **Step 4: Live verification**
+```js
+export async function resolveCurrentRoom(succeeded, { scene } = {}) {
+  if (!scene) return;
+  const setpieces = await loadDungeonSetpieces();
+  // Captured before markRoomOutcome runs — both the XP grant below and
+  // applyRoomEffect's treasure-gp calc need the room that was just
+  // resolved, keyed by id now that state.rooms is a dict (#93).
+  const preState = getRunState(scene.id);
+  const currentRoom = preState?.rooms[preState.currentRoomId];
+  // #93: the dungeonSlot flag's NAME is unchanged (dungeon-combat.mjs and
+  // its tests only ever compare it for equality — see Task 10's design
+  // note); its VALUE is now the room's own string id instead of an
+  // integer physical slot.
+  if (succeeded && currentRoom?.kind === "trap") {
+    const trapToken = scene.tokens.find(
+      (t) =>
+        t.getFlag(MODULE_ID, "trapHazard") &&
+        t.getFlag(MODULE_ID, "dungeonSlot") === currentRoom.id,
+    );
+    const trapLevel = trapToken?.actor?.system?.details?.level?.value;
+    const levelOffset =
+      trapLevel != null ? trapLevel - (await makeFoundryApi().partyLevel()) : 0;
+    await makeFoundryApi().grantPartyXp(xpFor(levelOffset));
+  }
+  const { state, effectKey } = await markRoomOutcome(
+    { sceneId: scene.id, succeeded },
+    {
+      puzzleSetpieceIds: setpieces
+        .filter((s) => s.kind === "puzzle")
+        .map((s) => s.id),
+      trapSetpieceIds: setpieces
+        .filter((s) => s.kind === "trap")
+        .map((s) => s.id),
+      narrativeSetpieceIds: setpieces
+        .filter((s) => s.kind === "narrative")
+        .map((s) => s.id),
+      treasureSetpieceIds: setpieces
+        .filter((s) => s.kind === "treasure")
+        .map((s) => s.id),
+    },
+  );
+  if (currentRoom && effectKey) {
+    await applyRoomEffect(effectKey, {
+      seed: preState.seed,
+      roomId: currentRoom.id,
+      rank: preState.layoutPositionByRoomId[currentRoom.id].rank,
+      maxRank: preState.maxRank,
+      isGoal: currentRoom.isGoal,
+    });
+  }
+  // #93: full pregeneration means every room the party can reach is
+  // already built (Task 12's eager-build loop) and any hidden path this
+  // outcome revealed was already merged into `state.edges` inside
+  // markRoomOutcome (Task 9's revealTravelTimeEffect) — resolving a room
+  // never builds, rebuilds, or reconciles physical slots. All that's
+  // left is unlocking the resolved room's own outgoing doors so the
+  // party can walk through them; the goal room has none.
+  if (currentRoom && !currentRoom.isGoal) {
+    await unlockDoorsFromRoom(
+      scene,
+      currentRoom.id,
+      state.edges[currentRoom.id] ?? [],
+      state.hiddenEdges[currentRoom.id] ?? [],
+    );
+  }
+  if (state?.completed) await sweepCompletedDungeonScene(scene);
+}
+```
 
-Run the Step 1 checklist.
+Update `applyRoomEffect`'s own destructure (`dungeon-app.mjs:412-414`) from `{ seed, roomId, physicalSlot, roomCount, isGoal }` to `{ seed, roomId, rank, maxRank, isGoal }`, and its `treasure` case's call into `grantTreasureReward` (`dungeon-app.mjs:421-431`) from `{ physicalSlot, roomCount }` to `{ rank, maxRank }`. Update `grantTreasureReward`'s own destructure (`dungeon-app.mjs:370-372`) the same way, and its two calls into `lootGpForTreasureRoom`/`treasureRoomItemTableName` (`dungeon-app.mjs:374-379`, `392-398`) to pass `{ rank, maxRank, ... }` instead of `{ physicalSlot, roomCount, ... }` — both functions' own signatures already take `rank`/`maxRank` as of Task 9's Step 3a, so this is purely threading the renamed fields through, not a new rename.
+
+Delete `roomsNeedingResync` entirely from `scripts/dungeon-runner.mjs` (its export, `dungeon-runner.mjs:390` onward through the end of its function body) and remove it from the `roomsNeedingResync` import in `scripts/ui/dungeon-app.mjs:13` (the whole import line, since nothing else in that block depended on it — verify no other name shares the line before deleting the line itself rather than just the one specifier). Delete its `describe("roomsNeedingResync", ...)` block from `tests/dungeon-runner.test.mjs:2095-2166` and remove `roomsNeedingResync` from that file's own import list (`tests/dungeon-runner.test.mjs:10`).
+
+**Note for the implementer:** `openGoalRoomExit`, `clearSlotEncounter`, `clearSlotTrap`, `clearPuzzleState`, `clearSkillChallengeState`, `clearNarrativeState`, `clearTrapState`, `clearTreasureState`, and `commitEagerPhysicalSlots` were only ever called from the deleted mutation-resync block within this function — leave their own definitions/exports alone (they're still used elsewhere, e.g. `commitEagerPhysicalSlots` by Task 12's eager-build loop), just confirm `resolveCurrentRoom` itself no longer references any of them. If any import in this file becomes unused after this deletion, remove that import too.
+
+- [ ] **Step 4: Run tests, then live verification**
+
+Run: `npx vitest run tests/dungeon-runner.test.mjs`
+Expected: PASS (with `roomsNeedingResync`'s own describe block gone, not skipped)
+
+Then run the Step 1 checklist against a real Foundry world.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add scripts/ui/dungeon-app.mjs
-git commit -m "refactor: remove dead mutation-resync logic from resolveCurrentRoom"
+git add scripts/ui/dungeon-app.mjs scripts/dungeon-runner.mjs tests/dungeon-runner.test.mjs
+git commit -m "refactor: simplify resolveCurrentRoom to unlock-only under full pregeneration, delete dead roomsNeedingResync"
 ```
 
 ---
