@@ -35,7 +35,7 @@ async function handleCombatDecision(body, res) {
 
 const KNOWN_KINDS = new Set(["trap", "skill_challenge", "puzzle", "narrative"]);
 
-/** Always calls generateCustomization(), which talks to Claude directly —
+/** Always calls generateCustomization(), which talks to litellm directly —
  * never resolveProvider() — because Laya cannot generate free text. This
  * route must not become provider-selectable. */
 async function handleFlavorCustomization(body, res) {

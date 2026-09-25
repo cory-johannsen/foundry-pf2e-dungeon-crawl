@@ -17,6 +17,29 @@ session, and no MCP server to keep configured in `.mcp.json`. Foundry now
 talks to this service directly over plain HTTP, and the service is meant
 to run continuously (e.g. via Docker) rather than be started per-session.
 
+## Prerequisite: Ollama on the host
+
+The default `tools/agent-service/litellm-config.yaml` routes both the
+`fast` and `reasoning` model aliases to a local Ollama server running on
+the Docker **host**, not inside a container. Before deploying:
+
+1. [Install Ollama](https://ollama.com) on the machine that will host this
+   stack and make sure it's running (it listens on `:11434` by default).
+2. Pull the model `litellm-config.yaml` references:
+   ```bash
+   ollama pull qwen2.5:3b-instruct
+   ```
+
+`litellm-config.yaml`'s `api_base` for each model entry points at
+`http://host.docker.internal:11434` rather than `http://localhost:11434`.
+Inside the `litellm` container, `localhost` refers to the container
+itself, not the Docker host — `host.docker.internal` (resolved via the
+`extra_hosts: host.docker.internal:host-gateway` entry in
+`docker-compose.yml`) is the portable (Linux/Mac/Windows) way to reach a
+host-run server from a container. If you point `litellm-config.yaml` at a
+different model provider entirely (see "Configuring model tiers" below),
+this Ollama prerequisite no longer applies.
+
 ## Deploy the service
 
 From the repo root:
@@ -40,19 +63,23 @@ without the flag a repo-root `.env` is silently ignored.
   "Configure Foundry" below).
 - `LITELLM_BASE_URL` — the base URL of the litellm proxy sidecar.
   Defaults to `http://litellm:4000/v1` (the compose-network hostname).
-  Only needs overriding for non-compose deployments. Required — there is
-  no fallback.
+  Only needs overriding for non-compose deployments.
 - `LITELLM_API_KEY` — optional bearer token. Matches whatever
   `litellm-config.yaml` and litellm's own auth is set up to expect, if
   anything. Not required for the default sidecar setup since it runs
   inside the compose network and isn't published to a host port.
-- `LITELLM_TIMEOUT_MS` — optional request timeout in milliseconds, default
-  `300000` (5 minutes). Matches local-inference speed.
+- `LITELLM_TIMEOUT_MS` — optional request timeout in milliseconds for
+  flavor-customization calls, default `300000` (5 minutes). Matches
+  local-inference speed.
+- `LITELLM_COMBAT_TIMEOUT_MS` — optional request timeout in milliseconds
+  for combat-decision calls, default `30000`. Kept under Foundry's 35s
+  client-side combat-decision timeout so a stuck upstream call fails
+  promptly instead of tying up Ollama's serial request queue.
 - `COMBAT_REASONING_CANDIDATE_THRESHOLD` — optional threshold above which
   combat decisions request the `reasoning` model tier instead of `fast`,
-  default `8`. If the decision has 8+ candidates, litellm routes to the
-  `reasoning` alias; fewer candidates use the `fast` alias (see
-  "Configuring model tiers" below).
+  default `8`. If the decision has more than 8 candidates, litellm routes
+  to the `reasoning` alias; 8 or fewer candidates use the `fast` alias
+  (see "Configuring model tiers" below).
 
 Optional, only needed if you want the Laya decision provider instead of
 litellm:
@@ -151,9 +178,11 @@ model_list:
   - model_name: fast
     litellm_params:
       model: ollama/dolphin-mixtral
+      api_base: http://host.docker.internal:11434
   - model_name: reasoning
     litellm_params:
       model: ollama/qwen2.5:32b-instruct-q5_k_m
+      api_base: http://host.docker.internal:11434
 ```
 
 After editing `litellm-config.yaml`, restart the litellm service to pick
@@ -161,19 +190,20 @@ up the change (no code rebuild required, since it is a volume-mounted
 config file):
 
 ```bash
-docker compose -f tools/agent-service/docker-compose.yml restart litellm
+docker compose --env-file .env -f tools/agent-service/docker-compose.yml restart litellm
 ```
 
 Or, if the service isn't yet running, bring up the full stack (including
 litellm):
 
 ```bash
-docker compose -f tools/agent-service/docker-compose.yml up -d
+docker compose --env-file .env -f tools/agent-service/docker-compose.yml up -d
 ```
 
 The `COMBAT_REASONING_CANDIDATE_THRESHOLD` env var (default `8`) controls
-when the `reasoning` tier is requested: if a combat decision has 8 or more
-candidates, litellm routes to `reasoning`; fewer candidates use `fast`.
+when the `reasoning` tier is requested: if a combat decision has more than
+8 candidates, litellm routes to `reasoning`; 8 or fewer candidates use
+`fast`.
 
 ## Migrating from older deployments
 
@@ -181,7 +211,9 @@ If you deployed the agent-service before this change, your `.env` file
 likely contains environment variables that are no longer used:
 
 - `AGENT_SERVICE_CUSTOMIZATION_PROVIDER` — remove this from your `.env`.
-  Customizations now always go through litellm's flavor-model alias.
+  Customizations now always go through litellm, using the same `fast`/
+  `reasoning` model aliases combat decisions use (see "Configuring model
+  tiers" above).
 - `LOCAL_LLM_BASE_URL`, `LOCAL_LLM_MODEL`, `LOCAL_LLM_API_KEY`,
   `LOCAL_LLM_TIMEOUT_MS` — remove these. The local Ollama model is now
   configured in `tools/agent-service/litellm-config.yaml` instead, and
@@ -197,7 +229,7 @@ The `litellm` service is now a required dependency. Bring up the full
 stack including it:
 
 ```bash
-docker compose -f tools/agent-service/docker-compose.yml up -d
+docker compose --env-file .env -f tools/agent-service/docker-compose.yml up -d
 ```
 
 Both `agent-service` and `litellm` must be running for the module to work.
@@ -254,13 +286,15 @@ different surface than `/v1/predict`).
   Common causes: `AGENT_SERVICE_API_KEY` mismatch between Foundry's
   module settings and the deployed service, `LITELLM_BASE_URL` pointing to
   an unreachable litellm instance (check the sidecar is running: `docker
-  compose -f tools/agent-service/docker-compose.yml ps`), missing or
+  compose --env-file .env -f tools/agent-service/docker-compose.yml ps`), missing or
   misconfigured models in `tools/agent-service/litellm-config.yaml`, a
   missing/invalid `LAYA_API_KEY`/`LAYA_BASE_URL` if using the Laya
   provider, or the service simply not being reachable from Foundry's
   network (firewall, wrong host/port, reverse proxy misconfigured). If the
   browser console shows a CORS or mixed-content error, check
-  `AGENT_SERVICE_ALLOWED_ORIGIN` and the HTTPS note above. If requests
-  are timing out, check `LITELLM_TIMEOUT_MS` (default 5 minutes) — on slow
-  hardware or a slow model, the inference may just need more time. Check
-  the litellm logs as well: `docker compose -f tools/agent-service/docker-compose.yml logs litellm`.
+  `AGENT_SERVICE_ALLOWED_ORIGIN` and the HTTPS note above. If combat
+  decisions are timing out, check `LITELLM_COMBAT_TIMEOUT_MS` (default
+  30000ms); if flavor-customization calls are timing out, check
+  `LITELLM_TIMEOUT_MS` (default 5 minutes) — on slow hardware or a slow
+  model, the inference may just need more time. Check the litellm logs as
+  well: `docker compose --env-file .env -f tools/agent-service/docker-compose.yml logs litellm`.

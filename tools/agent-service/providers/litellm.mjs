@@ -2,7 +2,13 @@ import { readEnvOrDotenv } from "../env.mjs";
 import { nodeFetch } from "../node-fetch.mjs";
 import { selectCombatTier } from "../tier-selection.mjs";
 
-const DEFAULT_TIMEOUT_MS = 300000;
+// Deliberately its own (shorter) default, separate from
+// customization-generator.mjs's LITELLM_TIMEOUT_MS: kept well under
+// Foundry's 35s client-side combat-decision timeout
+// (scripts/agent-service-client.mjs's CLIENT_TIMEOUT_MS) and its 45s total
+// AGENT_TIMEOUT_MS budget, so a stuck upstream call becomes a prompt 502
+// instead of tying up Ollama's serial request queue.
+const DEFAULT_COMBAT_TIMEOUT_MS = 30000;
 
 async function callLiteLLM(body, { baseUrl, apiKey, timeoutMs, fetchImpl }) {
   const headers = { "Content-Type": "application/json" };
@@ -25,7 +31,7 @@ export async function decide(
   {
     baseUrl = readEnvOrDotenv("LITELLM_BASE_URL") ?? "http://litellm:4000/v1",
     apiKey = readEnvOrDotenv("LITELLM_API_KEY"),
-    timeoutMs = Number(readEnvOrDotenv("LITELLM_TIMEOUT_MS")) || DEFAULT_TIMEOUT_MS,
+    timeoutMs = Number(readEnvOrDotenv("LITELLM_COMBAT_TIMEOUT_MS")) || DEFAULT_COMBAT_TIMEOUT_MS,
     fetchImpl = nodeFetch,
   } = {},
 ) {
