@@ -558,6 +558,17 @@ describe('buildRoomGraph', () => {
     }
   });
 
+  it('the goal room has exactly one incoming edge across a wide seed/roomCount sweep, including near-budget-exhaustion 3-exit rolls (#93 pre-flight fix regression — concrete repros before the fix: seed-0@3, seed-1@26)', () => {
+    for (let n = 0; n < 60; n += 1) {
+      const seed = `seed-${n}`;
+      for (const roomCount of [2, 3, 4, 5, 6, 8, 12, 20, 26, 40]) {
+        const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+        const goal = Object.values(rooms).find((r) => r.isGoal);
+        expect(parentsOf(edges, goal.id)).toHaveLength(1);
+      }
+    }
+  });
+
   it('is a DAG — no room is reachable from itself', () => {
     const { rooms, edges } = buildRoomGraph({ seed: 'delta', roomCount: 15 });
     for (const startId of Object.keys(rooms)) {
