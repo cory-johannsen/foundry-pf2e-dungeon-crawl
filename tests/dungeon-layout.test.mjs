@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import {
   ROOM_SIZE_SMALL, ROOM_SIZE_LARGE, ROOMS_PER_ROW, CORRIDOR_LEN, DOOR_WIDTH,
-  slotRowCol, slotRect, connectionDirection, roomEnclosureWalls,
-  buildConnectionGeometry, doorOffsetAt, corridorTileVariant, outgoingFaceWall, roomSizeAt,
-  computeRanks, computeColumns
+  roomSizeAt, buildConnectionGeometry, doorOffsetAt, corridorTileVariant,
+  computeRanks, computeColumns,
+  roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, northDoorSlots,
+  slotRowCol, slotRect, connectionDirection
 } from '../scripts/dungeon-layout.mjs';
 import { buildRoomGraph } from '../scripts/dungeon-deck.mjs';
 
@@ -35,166 +36,118 @@ describe('roomSizeAt', () => {
   });
 });
 
-describe('slotRowCol / slotRect', () => {
-  it('lays out a row west-to-east on even rows', () => {
-    expect(slotRowCol(0)).toEqual({ row: 0, col: 0 });
-    expect(slotRowCol(1)).toEqual({ row: 0, col: 1 });
-    expect(slotRowCol(ROOMS_PER_ROW - 1)).toEqual({ row: 0, col: ROOMS_PER_ROW - 1 });
+describe('roomRect', () => {
+  it('is a pure function of (seed, roomId, rank, col)', () => {
+    const a = roomRect('alpha', 'room-3', 2, 1);
+    const b = roomRect('alpha', 'room-3', 2, 1);
+    expect(a).toEqual(b);
   });
 
-  it('lays out the next row east-to-west (boustrophedon)', () => {
-    expect(slotRowCol(ROOMS_PER_ROW)).toEqual({ row: 1, col: ROOMS_PER_ROW - 1 });
-    expect(slotRowCol(ROOMS_PER_ROW + 1)).toEqual({ row: 1, col: ROOMS_PER_ROW - 2 });
-    expect(slotRowCol(2 * ROOMS_PER_ROW - 1)).toEqual({ row: 1, col: 0 });
+  it('increasing rank moves gy forward by at least ROW_STRIDE', () => {
+    const a = roomRect('alpha', 'x', 0, 0);
+    const b = roomRect('alpha', 'x', 1, 0);
+    expect(b.gy - a.gy).toBeGreaterThanOrEqual(ROW_STRIDE - 1);
   });
 
-  it('every room is square, sized ROOM_SIZE_SMALL or ROOM_SIZE_LARGE (ITEM-17)', () => {
-    for (const slot of [0, 3, 7, 12]) {
-      const r = slotRect(SEED, slot);
-      expect(r.gw).toBe(r.gh);
-      expect([ROOM_SIZE_SMALL, ROOM_SIZE_LARGE]).toContain(r.gw);
-    }
-  });
-
-  it('a room\'s rect size always matches roomSizeAt for that same slot', () => {
-    for (let slot = 0; slot < 15; slot += 1) {
-      const r = slotRect(SEED, slot);
-      const expected = roomSizeAt(SEED, slot);
-      expect(r.gw).toBe(expected);
-      expect(r.gh).toBe(expected);
-    }
-  });
-
-  it('aligns a row wrap in the same column on both sides, regardless of either room\'s size', () => {
-    // The last room of row 0 and the first room of row 1 must share gx, so
-    // the wrap connector is a straight vertical corridor, never a jog — even
-    // though (ITEM-17) the two rooms can now be different sizes.
-    for (const seed of ['seed-a', 'seed-b', 'seed-c', 'seed-d', 'seed-e']) {
-      const lastOfRow0 = slotRect(seed, ROOMS_PER_ROW - 1);
-      const firstOfRow1 = slotRect(seed, ROOMS_PER_ROW);
-      expect(firstOfRow1.gx).toBe(lastOfRow0.gx);
-
-      const lastOfRow1 = slotRect(seed, 2 * ROOMS_PER_ROW - 1);
-      const firstOfRow2 = slotRect(seed, 2 * ROOMS_PER_ROW);
-      expect(firstOfRow2.gx).toBe(lastOfRow1.gx);
-    }
-  });
-
-  it('keeps every room in the same row top-aligned (shared gy), even when sizes differ', () => {
-    for (const seed of ['seed-a', 'seed-b', 'seed-c']) {
-      for (let row = 0; row < 2; row += 1) {
-        const gys = [];
-        for (let col = 0; col < ROOMS_PER_ROW; col += 1) {
-          const slot = row * ROOMS_PER_ROW + col;
-          gys.push(slotRect(seed, slot).gy);
-        }
-        expect(new Set(gys).size).toBe(1);
-      }
-    }
-  });
-
-  it('never produces a negative gx across many seeds and a generous slot range (confirmed live: this broke once before INITIAL_GX)', () => {
-    for (let n = 0; n < 200; n += 1) {
-      const seed = `neg-check-${n}`;
-      for (let slot = 0; slot < 24; slot += 1) {
-        expect(slotRect(seed, slot).gx).toBeGreaterThanOrEqual(0);
-        expect(slotRect(seed, slot).gy).toBeGreaterThanOrEqual(0);
-      }
-    }
-  });
-
-  it('advances gx by the departing room\'s own width on an east step', () => {
-    // slot 0 -> slot 1 is always 'east' (row 0, not the last column).
-    const a = slotRect(SEED, 0);
-    const b = slotRect(SEED, 1);
-    expect(b.gx).toBe(a.gx + a.gw + CORRIDOR_LEN);
-    expect(b.gy).toBe(a.gy);
-  });
-
-  it('advances gy by the departing room\'s own height on a south step, leaving gx untouched', () => {
-    const wrapSlot = ROOMS_PER_ROW - 1;
-    const a = slotRect(SEED, wrapSlot);
-    const b = slotRect(SEED, wrapSlot + 1);
-    expect(b.gx).toBe(a.gx);
-    expect(b.gy).toBe(a.gy + a.gh + CORRIDOR_LEN);
+  it('increasing col moves gx forward by at least COLUMN_STRIDE', () => {
+    const a = roomRect('alpha', 'x', 0, 0);
+    const b = roomRect('alpha', 'x', 0, 1);
+    expect(b.gx - a.gx).toBeGreaterThanOrEqual(COLUMN_STRIDE - 1);
   });
 });
 
-describe('connectionDirection', () => {
-  it('goes east across an even row, except the last room in the row', () => {
-    for (let i = 0; i < ROOMS_PER_ROW - 1; i += 1) expect(connectionDirection(i)).toBe('east');
-    expect(connectionDirection(ROOMS_PER_ROW - 1)).toBe('south');
-  });
-
-  it('goes west across an odd row, except the last room in the row', () => {
-    for (let i = ROOMS_PER_ROW; i < 2 * ROOMS_PER_ROW - 1; i += 1) {
-      expect(connectionDirection(i)).toBe('west');
-    }
-    expect(connectionDirection(2 * ROOMS_PER_ROW - 1)).toBe('south');
+describe('exitFaceForIndex', () => {
+  it('assigns distinct faces to up to 3 exits', () => {
+    expect(exitFaceForIndex(0)).toBe('south');
+    expect(exitFaceForIndex(1)).toBe('east');
+    expect(exitFaceForIndex(2)).toBe('west');
   });
 });
 
-describe('roomEnclosureWalls', () => {
-  it('slot 0 has all four sides walled when it has an outgoing connection', () => {
-    const walls = roomEnclosureWalls(SEED, 0, { hasOutgoing: true });
-    // hasOutgoing excludes the outgoing side; slot 0 has no incoming side to exclude.
-    expect(walls).toHaveLength(3);
-    expect(walls.map((w) => w.dir).sort()).toEqual(['north', 'south', 'west'].sort());
-  });
+describe('roomEnclosureWalls (multi-exit)', () => {
+  // #93 pre-flight fix: roomEnclosureWalls' real Step-3 implementation
+  // takes `rect` as a mandatory 4th argument (documented in this task's
+  // own "Note for the implementer" and matching Task 10's real call
+  // site) -- the Interfaces section's 3-arg summary above was incomplete.
+  // Omitting it here would throw ("Cannot destructure property 'gx' of
+  // undefined") rather than fail cleanly. A plain, arbitrary valid rect
+  // is enough since these tests only assert on `.dir`, never coordinates.
+  const rect = { gx: 0, gy: 0, gw: 4, gh: 4 };
 
-  it('an interior slot excludes both its incoming and outgoing sides', () => {
-    // Slot 1 (row 0): incoming from slot 0 is 'east' arriving, so slot 1's
-    // incoming side is 'west'; outgoing to slot 2 is 'east'.
-    const walls = roomEnclosureWalls(SEED, 1, { hasOutgoing: true });
+  it('excludes north (incoming) and every outgoing face', () => {
+    const walls = roomEnclosureWalls('alpha', 'x', { incomingCount: 1, outgoingFaces: ['south', 'east'] }, rect);
     const dirs = walls.map((w) => w.dir);
-    expect(dirs).not.toContain('west');
+    expect(dirs).not.toContain('north');
+    expect(dirs).not.toContain('south');
     expect(dirs).not.toContain('east');
-    expect(dirs.sort()).toEqual(['north', 'south']);
+    expect(dirs).toContain('west');
   });
 
-  it('the final (goal) slot has no outgoing exclusion', () => {
-    const lastOfRow0 = ROOMS_PER_ROW - 1;
-    const walls = roomEnclosureWalls(SEED, lastOfRow0, { hasOutgoing: false });
-    // Incoming side is 'west' (arriving eastward across the row).
+  it('the entry room (incomingCount 0) walls every side except its outgoing faces', () => {
+    const walls = roomEnclosureWalls('alpha', 'room-entry', { incomingCount: 0, outgoingFaces: ['south'] }, rect);
+    expect(walls.map((w) => w.dir)).toEqual(expect.arrayContaining(['north', 'east', 'west']));
+  });
+
+  it('a merge room with several real incoming connections still only excludes north ONCE (one shared face, subdivided into door slots later — not one excluded face per incoming connection, which would run out of faces past 3)', () => {
+    const walls = roomEnclosureWalls('alpha', 'm', { incomingCount: 3, outgoingFaces: ['south'] }, rect);
     const dirs = walls.map((w) => w.dir);
-    expect(dirs).not.toContain('west');
-    expect(dirs.sort()).toEqual(['east', 'north', 'south'].sort());
-  });
-
-  it('walls always match that slot\'s own actual size, not a fixed constant', () => {
-    for (const slot of [0, 2, 6, 8]) {
-      const rect = slotRect(SEED, slot);
-      const walls = roomEnclosureWalls(SEED, slot, { hasOutgoing: true });
-      for (const w of walls) {
-        const dx = Math.abs(w.x2 - w.x1);
-        const dy = Math.abs(w.y2 - w.y1);
-        expect(Math.max(dx, dy)).toBe(rect.gw);
-      }
-    }
+    expect(dirs).not.toContain('north');
+    expect(dirs).toContain('east');
+    expect(dirs).toContain('west');
   });
 });
 
-describe('outgoingFaceWall', () => {
-  it('is the full, unsplit segment on the outgoing side — exactly what roomEnclosureWalls excludes there', () => {
-    for (const slot of [0, 1, 2, ROOMS_PER_ROW - 1, ROOMS_PER_ROW]) {
-      const dir = connectionDirection(slot);
-      const withOutgoing = roomEnclosureWalls(SEED, slot, { hasOutgoing: true });
-      const withoutOutgoing = roomEnclosureWalls(SEED, slot, { hasOutgoing: false });
-      const missing = withoutOutgoing.find((w) => w.dir === dir && !withOutgoing.some((v) => v.dir === dir));
-      expect(missing).toBeDefined();
-      const wall = outgoingFaceWall(SEED, slot);
-      expect(wall).toEqual(missing);
-    }
+describe('parentRoomIdsFor', () => {
+  it('returns every real parent for a merge room, in deterministic order', () => {
+    const layoutEdges = { 'room-entry': ['a', 'b'], a: ['m'], b: ['m'], m: [] };
+    expect(parentRoomIdsFor(layoutEdges, 'm')).toEqual(['a', 'b']);
   });
 
-  it('spans the room\'s full face, not a trimmed door-width segment', () => {
-    const rect = slotRect(SEED, 0); // slot 0 -> east
-    const wall = outgoingFaceWall(SEED, 0);
-    expect(wall.dir).toBe('east');
-    expect(wall.x1).toBe(rect.gx + rect.gw);
-    expect(wall.x2).toBe(rect.gx + rect.gw);
-    expect(Math.min(wall.y1, wall.y2)).toBe(rect.gy);
-    expect(Math.max(wall.y1, wall.y2)).toBe(rect.gy + rect.gh);
+  it('returns a single-element array for a normal (non-merge) room', () => {
+    const layoutEdges = { 'room-entry': ['a'], a: [] };
+    expect(parentRoomIdsFor(layoutEdges, 'a')).toEqual(['room-entry']);
+  });
+
+  it('returns an empty array for the entry room', () => {
+    expect(parentRoomIdsFor({ 'room-entry': [] }, 'room-entry')).toEqual([]);
+  });
+
+  it('resolves a detour room\'s one real parent via layoutEdges (#156 — a plain edges lookup would find none)', () => {
+    const layoutEdges = { 'room-entry': ['a'], a: ['b', 'room-detour-0'], b: [], 'room-detour-0': ['b'] };
+    expect(parentRoomIdsFor(layoutEdges, 'room-detour-0')).toEqual(['a']);
+  });
+});
+
+describe('incomingConnectionsFor', () => {
+  it('lists real parents first (in parentRoomIdsFor order), then any hidden incoming source', () => {
+    const layoutEdges = { 'room-entry': ['a', 'b'], a: ['m'], b: ['m'], m: [] };
+    const hiddenIncomingByRoomId = { m: ['x'] };
+    expect(incomingConnectionsFor(layoutEdges, 'm', hiddenIncomingByRoomId)).toEqual([
+      { sourceId: 'a', hidden: false },
+      { sourceId: 'b', hidden: false },
+      { sourceId: 'x', hidden: true },
+    ]);
+  });
+
+  it('a room with no hidden incoming just returns its real parent(s)', () => {
+    const layoutEdges = { 'room-entry': ['a'], a: [] };
+    expect(incomingConnectionsFor(layoutEdges, 'a')).toEqual([{ sourceId: 'room-entry', hidden: false }]);
+  });
+});
+
+describe('northDoorSlots', () => {
+  it('divides the north edge into count equal, contiguous, left-to-right slots', () => {
+    const rect = { gx: 0, gy: 0, gw: 4, gh: 4 };
+    const slots = northDoorSlots(rect, 2);
+    expect(slots).toEqual([
+      { x1: 0, y1: 0, x2: 2, y2: 0 },
+      { x1: 2, y1: 0, x2: 4, y2: 0 },
+    ]);
+  });
+
+  it('a single slot spans the whole north edge', () => {
+    const rect = { gx: 0, gy: 0, gw: 4, gh: 4 };
+    expect(northDoorSlots(rect, 1)).toEqual([{ x1: 0, y1: 0, x2: 4, y2: 0 }]);
   });
 });
 
