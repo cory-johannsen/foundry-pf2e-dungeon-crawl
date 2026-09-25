@@ -27,7 +27,7 @@
 // landing they're all still exported (Task 5's report flagged exactly this:
 // "there was no indication that outgoingFaceWall's caller sites would be
 // handled elsewhere"), and this file's OWN focusCameraOnSlot/
-// placePartyInSlot/moveTokensToSlot/openGoalRoomExit — none of which this
+// placePartyInSlot/openGoalRoomExit — none of which this
 // task touches; Task 11's own brief explicitly says "do not replace or
 // delete [focusCameraOnSlot] — the two other call sites in
 // scripts/ui/dungeon-app.mjs ... still key off the old physical-slot
@@ -642,22 +642,30 @@ export async function unlockDoorToSlot(scene, slot) {
   }
 }
 
-/** Re-locks the progress-gate door AND re-closes the reveal door beyond it —
- * a full undo of both doors' state, not just the one a GM would think to
- * check, in case a player had already opened the second one too. */
-export async function relockDoorToSlot(scene, slot) {
+/** Undo-only twin of unlockDoorsFromRoom: re-locks the progress-gate door
+ * AND re-closes the reveal door between fromRoomId and toRoomId — a full
+ * undo of both doors' state, not just the one a GM would think to check,
+ * in case a player had already opened the second one too. Matches on both
+ * ends of the edge together, same reasoning as unlockDoorsFromRoom's own
+ * fix round 1 (a merge target's several doors all share the same
+ * dungeonDoorToRoomId; only the fromRoomId/dungeonDoorFromRoomId pair picks
+ * out the specific one this undo needs to reverse). */
+export async function relockDoorFromRoom(scene, fromRoomId, toRoomId) {
   const wall = scene.walls.find(
-    (w) => w.getFlag(MODULE_ID, "dungeonDoorToSlot") === slot,
+    (w) =>
+      w.getFlag(MODULE_ID, "dungeonDoorToRoomId") === toRoomId &&
+      w.getFlag(MODULE_ID, "dungeonDoorFromRoomId") === fromRoomId,
   );
   if (wall) {
     await wall.update({ ds: CONST.WALL_DOOR_STATES.LOCKED });
     playDoorSound("lock");
   }
   const revealWall = scene.walls.find(
-    (w) => w.getFlag(MODULE_ID, "dungeonRevealDoorForSlot") === slot,
+    (w) =>
+      w.getFlag(MODULE_ID, "dungeonRevealDoorForSlot") === toRoomId &&
+      w.getFlag(MODULE_ID, "dungeonDoorFromRoomId") === fromRoomId,
   );
-  if (revealWall)
-    await revealWall.update({ ds: CONST.WALL_DOOR_STATES.CLOSED });
+  if (revealWall) await revealWall.update({ ds: CONST.WALL_DOOR_STATES.CLOSED });
 }
 
 /**
@@ -994,6 +1002,34 @@ export async function placePartyInSlot(scene, slot, partyMembers, seed) {
   return createdIds;
 }
 
+/** Start-of-run: place the party's tokens inside roomId, removing any of
+ * their tokens elsewhere in the world first. Graph-aware twin of
+ * placePartyInSlot, keyed by roomRect instead of slotRect. */
+export async function placePartyInRoom(scene, roomId, rank, col, partyMembers, seed) {
+  const rect = roomRect(seed, roomId, rank, col);
+  const occupied = [];
+  const createdIds = [];
+  for (const actor of partyMembers) {
+    await removeActorTokensFromAllScenes(actor.id);
+    const spot = freeSpotInRect({ occupied, rect, gw: 1, gh: 1 }) ?? {
+      gx: rect.gx,
+      gy: rect.gy,
+      gw: 1,
+      gh: 1,
+    };
+    occupied.push(spot);
+    const td = await actor.getTokenDocument({
+      x: toPixels(spot.gx),
+      y: toPixels(spot.gy),
+    });
+    const [created] = await scene.createEmbeddedDocuments("Token", [
+      td.toObject(),
+    ]);
+    createdIds.push(created.id);
+  }
+  return createdIds;
+}
+
 /**
  * End-of-run return trip (ITEM-18's teardownDungeonRun): cluster the party
  * near a scene's own center, in that scene's own grid units rather than this
@@ -1106,11 +1142,13 @@ export async function teardownDungeonRun(
   };
 }
 
-/** Move already-placed tokens into slot — for undo, stepping the party back.
- * `seed` (ITEM-17) is needed to know this room's own actual size. */
-export async function moveTokensToSlot(scene, tokenIds, slot, seed) {
+/** Move already-placed tokens into roomId — for undo, stepping the party
+ * back. Graph-aware twin of moveTokensToSlot, keyed by roomRect(seed,
+ * roomId, rank, col) instead of slotRect(seed, slot), since a room's
+ * position is no longer derivable from an integer alone. */
+export async function moveTokensToRoom(scene, tokenIds, roomId, rank, col, seed) {
   if (!tokenIds?.length) return;
-  const rect = slotRect(seed, slot);
+  const rect = roomRect(seed, roomId, rank, col);
   const updates = tokenIds.map((id, i) => ({
     _id: id,
     x: toPixels(rect.gx + (i % rect.gw)),
@@ -1745,15 +1783,15 @@ export async function undoRoomEntry(sceneId) {
 
   const entry = state.lastAutoEntry;
   await hideTokens(scene, entry.revealedTokenIds);
-  await relockDoorToSlot(scene, state.physicalSlotByRoomId[entry.roomId]);
+  await relockDoorFromRoom(scene, entry.fromRoomId, entry.roomId);
 
-  const previousRoomId = state.rooms[entry.fromIndex].id;
-  const previousSlot = state.physicalSlotByRoomId[previousRoomId];
+  const previousRoomId = entry.fromRoomId;
+  const { rank, col } = state.layoutPositionByRoomId[previousRoomId];
   const partyIds = partyActorIds();
   const partyTokenIds = scene.tokens
     .filter((t) => partyIds.has(t.actor?.id))
     .map((t) => t.id);
-  await moveTokensToSlot(scene, partyTokenIds, previousSlot, state.seed);
+  await moveTokensToRoom(scene, partyTokenIds, previousRoomId, rank, col, state.seed);
 
   await undoLastRoomEntry({ sceneId });
 }

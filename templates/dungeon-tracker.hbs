@@ -55,13 +55,11 @@
 
       {{#unless completed}}
         {{#if isSafeRoom}}
-          {{#unless nextRoomPending}}
-            {{#if isSafeEntry}}
-              <p class="hint">{{localize "PF2EDC.Dungeon.SafeEntryHint"}}</p>
-            {{else}}
-              <p class="hint">{{localize "PF2EDC.Dungeon.SafeRestHint"}}</p>
-            {{/if}}
-          {{/unless}}
+          {{#if isSafeEntry}}
+            <p class="hint">{{localize "PF2EDC.Dungeon.SafeEntryHint"}}</p>
+          {{else}}
+            <p class="hint">{{localize "PF2EDC.Dungeon.SafeRestHint"}}</p>
+          {{/if}}
         {{else}}
           {{#if isCombatRoom}}
             {{#if combatActive}}
@@ -279,14 +277,6 @@
               </footer>
             {{/unless}}
           {{/if}}
-        {{/if}}
-        {{#if nextRoomPending}}
-          <p class="hint">{{localize "PF2EDC.Dungeon.DoorLockedHint"}}</p>
-          <footer>
-            <button type="button" data-action="populateNext">{{localize
-                "PF2EDC.Dungeon.PopulateNextButton"
-              }}</button>
-          </footer>
         {{/if}}
         {{#if canUndo}}
           <footer>

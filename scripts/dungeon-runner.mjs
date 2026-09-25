@@ -6,9 +6,9 @@
  * in-memory stub instead of live `game.settings`.
  *
  * `currentRoomId` names the room the party is physically STANDING IN, not the
- * room most recently judged (`currentIndex` is kept in sync alongside it,
- * purely for backward compatibility with any caller still reading it —
- * see advanceToRoom/undoLastRoomEntry). Resolving a room (markRoomOutcome)
+ * room most recently judged (#93: `currentIndex` is no longer written or
+ * read anywhere — `state.rooms` is a dict keyed by room id for every run
+ * started via startDungeonRun). Resolving a room (markRoomOutcome)
  * never moves it — it only decides the outcome effect and, for a hidden-path
  * effect, reveals it (see markRoomOutcome's own docblock). Only the
  * automatic room-entry trigger (advanceToRoom) moves currentRoomId, once the
@@ -85,6 +85,20 @@ export function getRunState(
 ) {
   const all = settingsRef.get(MODULE_ID, "dungeonRuns") ?? {};
   return all[sceneId] ?? null;
+}
+
+/**
+ * Overwrite this scene's whole persisted run state (#93) — used once, by
+ * ui/dungeon-app.mjs's startDungeonRun, to replace createRun's legacy
+ * array-shaped state with the graph-shaped one (rooms dict, edges,
+ * layoutPositionByRoomId, ...) before any room is built.
+ */
+export async function replaceRunState(
+  sceneId,
+  state,
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  return persist(sceneId, state, settingsRef);
 }
 
 export async function createRun(
@@ -297,17 +311,8 @@ export async function advanceToRoom(
   const children = state.edges[state.currentRoomId] ?? [];
   if (!children.includes(roomId)) return { ok: false, state };
 
-  // For backward compatibility with code that still uses currentIndex:
-  // if rooms is an array, find the room index; otherwise just increment
-  let newIndex = state.currentIndex + 1;
-  if (Array.isArray(state.rooms)) {
-    const roomIndex = state.rooms.findIndex((r) => r.id === roomId);
-    if (roomIndex >= 0) newIndex = roomIndex;
-  }
-
   const newState = {
     ...state,
-    currentIndex: newIndex,
     currentRoomId: roomId,
     lastAutoEntry: {
       roomId,
@@ -457,17 +462,8 @@ export async function undoLastRoomEntry(
     return { ok: false, state: state ?? null, undone: null };
 
   const undone = state.lastAutoEntry;
-  // For backward compatibility with code that still uses currentIndex:
-  // if rooms is an array, find the room index; otherwise decrement
-  let previousIndex = state.currentIndex - 1;
-  if (Array.isArray(state.rooms)) {
-    const roomIndex = state.rooms.findIndex((r) => r.id === undone.fromRoomId);
-    if (roomIndex >= 0) previousIndex = roomIndex;
-  }
-
   const newState = {
     ...state,
-    currentIndex: previousIndex,
     currentRoomId: undone.fromRoomId,
     lastAutoEntry: null,
   };
@@ -556,7 +552,7 @@ export async function ensureSkillChallenge(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || room.challenge) return state;
   const challenge = {
     ...initSkillChallengeState({
@@ -569,9 +565,7 @@ export async function ensureSkillChallenge(
     }),
     customization: { status: "pending" },
   };
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, challenge } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, challenge } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -594,11 +588,9 @@ export async function clearSkillChallengeState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || !room.challenge) return state;
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, challenge: null } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, challenge: null } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -622,7 +614,7 @@ export function getPendingSkillChallengeCustomization(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find(
+  const room = Object.values(state.rooms).find(
     (r) =>
       r.challenge?.customization?.status === "pending" && !r.challenge.resolved,
   );
@@ -659,7 +651,7 @@ export async function applySkillChallengeCustomization(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room?.challenge) return state;
   const challenge = {
     ...room.challenge,
@@ -670,9 +662,7 @@ export async function applySkillChallengeCustomization(
       : room.challenge.skillFlavor,
     customization: { status: "customized" },
   };
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, challenge } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, challenge } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -714,12 +704,10 @@ export async function recordSkillChallengeAttempt(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room?.challenge || room.challenge.resolved) return state;
   const challenge = applySkillChallengeAttempt(room.challenge, outcome);
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, challenge } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, challenge } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -761,7 +749,7 @@ export async function ensurePuzzleState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || room.puzzle) return state;
   const puzzle = {
     ...initPuzzleState({
@@ -773,7 +761,7 @@ export async function ensurePuzzleState(
     }),
     customization: { status: "pending" },
   };
-  const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, puzzle } : r));
+  const rooms = { ...state.rooms, [roomId]: { ...room, puzzle } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -795,11 +783,9 @@ export async function clearPuzzleState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || !room.puzzle) return state;
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, puzzle: null } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, puzzle: null } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -825,10 +811,10 @@ export async function ensureTrapState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || room.trap) return state;
   const trap = { name, description };
-  const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, trap } : r));
+  const rooms = { ...state.rooms, [roomId]: { ...room, trap } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -852,11 +838,9 @@ export async function clearTrapState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || !room.trap) return state;
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, trap: null } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, trap: null } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -886,13 +870,13 @@ export async function applyTrapRoomState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room?.trap) return state;
   const trap = {
     name: name ?? room.trap.name,
     description: description ?? room.trap.description,
   };
-  const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, trap } : r));
+  const rooms = { ...state.rooms, [roomId]: { ...room, trap } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -915,10 +899,10 @@ export async function recordPuzzleStageAttempt(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room?.puzzle || room.puzzle.resolved) return state;
   const puzzle = applyPuzzleStageAttempt(room.puzzle, stageIndex, outcome);
-  const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, puzzle } : r));
+  const rooms = { ...state.rooms, [roomId]: { ...room, puzzle } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -940,7 +924,7 @@ export function getPendingPuzzleCustomization(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find(
+  const room = Object.values(state.rooms).find(
     (r) => r.puzzle?.customization?.status === "pending" && !r.puzzle.resolved,
   );
   if (!room) return null;
@@ -986,7 +970,7 @@ export async function applyPuzzleCustomization(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room?.puzzle) return state;
   const puzzle = {
     ...room.puzzle,
@@ -998,7 +982,7 @@ export async function applyPuzzleCustomization(
       : room.puzzle.stageFlavor,
     customization: { status: "customized" },
   };
-  const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, puzzle } : r));
+  const rooms = { ...state.rooms, [roomId]: { ...room, puzzle } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -1026,7 +1010,7 @@ export async function ensureNarrativeState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || room.narrative) return state;
   const narrative = {
     archetype: setpiece.archetype,
@@ -1039,9 +1023,7 @@ export async function ensureNarrativeState(
     suggestedObjective: setpiece.suggestedObjective ?? null,
     customization: { status: "pending" },
   };
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, narrative } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, narrative } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -1064,11 +1046,9 @@ export async function clearNarrativeState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || !room.narrative) return state;
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, narrative: null } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, narrative: null } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -1092,7 +1072,7 @@ export function getPendingNarrativeCustomization(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find(
+  const room = Object.values(state.rooms).find(
     (r) =>
       r.narrative?.customization?.status === "pending" &&
       !state.history.some((h) => h.roomId === r.id),
@@ -1144,7 +1124,7 @@ export async function applyNarrativeCustomization(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room?.narrative) return state;
   const narrative = {
     ...room.narrative,
@@ -1157,9 +1137,7 @@ export async function applyNarrativeCustomization(
     suggestedObjective: suggestedObjective ?? room.narrative.suggestedObjective,
     customization: { status: "customized" },
   };
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, narrative } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, narrative } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -1187,16 +1165,14 @@ export async function ensureTreasureState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || room.treasure) return state;
   const treasure = {
     name: setpiece.name,
     summary: setpiece.summary,
     customization: { status: "pending" },
   };
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, treasure } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, treasure } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -1219,11 +1195,9 @@ export async function clearTreasureState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || !room.treasure) return state;
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, treasure: null } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, treasure: null } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -1246,7 +1220,7 @@ export function getPendingTreasureCustomization(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find(
+  const room = Object.values(state.rooms).find(
     (r) =>
       r.treasure?.customization?.status === "pending" &&
       !state.history.some((h) => h.roomId === r.id),
@@ -1280,7 +1254,7 @@ export async function applyTreasureCustomization(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room?.treasure) return state;
   const treasure = {
     ...room.treasure,
@@ -1288,9 +1262,7 @@ export async function applyTreasureCustomization(
     summary: summary ?? room.treasure.summary,
     customization: { status: "customized" },
   };
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, treasure } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, treasure } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;

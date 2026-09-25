@@ -50,13 +50,18 @@ function makeSettingsStub(initial = {}) {
   };
 }
 
-/** Moves currentIndex from the safe entry (room 0) to the first real room
+/** Moves currentRoomId from the safe entry (room 0) to the first real room
  * (room 1) — its physical slot is already assigned by createRun, so this
  * never needs markRoomOutcome, matching how the real door-open trigger
  * reaches it. */
 async function advancePastEntry(sceneId, settingsRef) {
   const state = getRunState(sceneId, { settingsRef });
-  return advanceToRoom({ sceneId, roomId: state.rooms[1].id }, { settingsRef });
+  // Via edges (not state.rooms[1]) so this works for both createRun's
+  // array-shaped rooms and createDictRun's #93 dict-shaped ones.
+  return advanceToRoom(
+    { sceneId, roomId: state.edges[state.currentRoomId][0] },
+    { settingsRef },
+  );
 }
 
 /** #93/#156: markRoomOutcome no longer returns a `nextRoomId` — there's no
@@ -66,6 +71,25 @@ async function advancePastEntry(sceneId, settingsRef) {
  * always exactly one) IS the next room, live in the graph from run start. */
 function nextChildId(state) {
   return state.edges[state.currentRoomId]?.[0] ?? null;
+}
+
+/** #93: every reducer from ensureSkillChallenge onward reads/writes
+ * `state.rooms` as a dict keyed by room id — the shape startDungeonRun
+ * persists for every real run (createRun itself still returns the legacy
+ * array). Runs createRun, then re-persists the same rooms keyed by id,
+ * plus a test-only `roomOrder` (generation-order ids) so fixtures can
+ * still pick "the first real room" by position. */
+async function createDictRun(args, opts) {
+  const created = await createRun(args, opts);
+  const roomOrder = created.rooms.map((r) => r.id);
+  const rooms = Object.fromEntries(created.rooms.map((r) => [r.id, r]));
+  const all = opts.settingsRef.get("pf2e-dungeon-crawl", "dungeonRuns") ?? {};
+  const state = { ...created, rooms, roomOrder };
+  opts.settingsRef.set("pf2e-dungeon-crawl", "dungeonRuns", {
+    ...all,
+    [args.sceneId]: state,
+  });
+  return state;
 }
 
 describe("createRun / getRunState", () => {
@@ -335,7 +359,7 @@ describe("markRoomOutcome", () => {
     expect(result.state).toEqual(before); // untouched — no history entry, no mutation
   });
 
-  it("does not move currentIndex, and records the resolution in history", async () => {
+  it("does not move currentRoomId, and records the resolution in history", async () => {
     const settingsRef = makeSettingsStub();
     await createRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
@@ -347,7 +371,6 @@ describe("markRoomOutcome", () => {
       { sceneId: "s", succeeded: true },
       { settingsRef },
     );
-    expect(state.currentIndex).toBe(before.currentIndex);
     expect(state.currentRoomId).toBe(before.currentRoomId);
     expect(state.history).toHaveLength(1);
     expect(state.history[0].roomId).toBe(before.currentRoomId);
@@ -470,12 +493,15 @@ describe("markRoomOutcome", () => {
     );
     await advancePastEntry("s", settingsRef);
 
-    // Walk forward, resolving each room in turn, until currentIndex itself
+    // Walk forward, resolving each room in turn, until currentRoomId itself
     // lands on the rest room. #93/#156: markRoomOutcome no longer returns a
     // nextRoomId to drive this — the next room is just the current room's
     // one structural child, already live in state.edges from run start.
     let state = getRunState("s", { settingsRef });
-    while (state.rooms[state.currentIndex].kind !== "safe_rest") {
+    // #93: advanceToRoom no longer writes currentIndex — look the current
+    // room up by currentRoomId (createRun's own rooms are still an array).
+    const currentRoomOf = (st) => st.rooms.find((r) => r.id === st.currentRoomId);
+    while (currentRoomOf(state).kind !== "safe_rest") {
       const nextId = nextChildId(state);
       await markRoomOutcome(
         { sceneId: "s", succeeded: true },
@@ -495,14 +521,14 @@ describe("markRoomOutcome", () => {
     );
     expect(effectKey).toBe("rest_room_passed");
     expect(after.history.at(-1)).toMatchObject({
-      roomId: before.rooms[before.currentIndex].id,
+      roomId: before.currentRoomId,
       effectKey: "rest_room_passed",
     });
   });
 });
 
 describe("advanceToRoom", () => {
-  it("advances currentIndex and records lastAutoEntry straight from the entry room, no markRoomOutcome needed", async () => {
+  it("advances currentRoomId and records lastAutoEntry straight from the entry room, no markRoomOutcome needed", async () => {
     const settingsRef = makeSettingsStub();
     const created = await createRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
@@ -514,7 +540,7 @@ describe("advanceToRoom", () => {
       { settingsRef },
     );
     expect(ok).toBe(true);
-    expect(state.currentIndex).toBe(1);
+    expect(state.currentRoomId).toBe(nextRoomId);
     expect(state.lastAutoEntry).toEqual({
       roomId: nextRoomId,
       fromRoomId: created.rooms[0].id,
@@ -540,7 +566,7 @@ describe("advanceToRoom", () => {
       { settingsRef },
     );
     expect(ok).toBe(true);
-    expect(state.currentIndex).toBe(2);
+    expect(state.currentRoomId).toBe(nextRoomId);
   });
 
   it("rejects a roomId that is not genuinely the next room, without mutating state", async () => {
@@ -586,7 +612,7 @@ describe("canUndoRoomEntry / undoLastRoomEntry", () => {
       { settingsRef },
     );
     expect(ok).toBe(true);
-    expect(state.currentIndex).toBe(0);
+    expect(state.currentRoomId).toBe(created.rooms[0].id);
     expect(state.lastAutoEntry).toBeNull();
     expect(undone.roomId).toBe(nextRoomId);
   });
@@ -902,48 +928,48 @@ describe("abandonRun", () => {
 describe("ensureSkillChallenge / recordSkillChallengeAttempt", () => {
   it("attaches a fresh challenge to the named room only", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     const state = await ensureSkillChallenge(
       "s",
       roomId,
       { seed: "fixed", locationTag: "undead", partySize: 4 },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.challenge).toBeTruthy();
     expect(room.challenge.vp).toBe(0);
     expect(room.challenge.resolved).toBeNull();
     // Every other room stays untouched.
     expect(
-      state.rooms.find((r) => r.id === created.rooms[2].id).challenge,
+      state.rooms[created.roomOrder[2]].challenge,
     ).toBeUndefined();
   });
 
   it("is a no-op if the room already has a challenge (never rerolls it)", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     const first = await ensureSkillChallenge(
       "s",
       roomId,
       { seed: "fixed", locationTag: "undead", partySize: 4 },
       { settingsRef },
     );
-    const firstChallenge = first.rooms.find((r) => r.id === roomId).challenge;
+    const firstChallenge = first.rooms[roomId].challenge;
     const second = await ensureSkillChallenge(
       "s",
       roomId,
       { seed: "fixed", locationTag: "undead", partySize: 4 },
       { settingsRef },
     );
-    expect(second.rooms.find((r) => r.id === roomId).challenge).toEqual(
+    expect(second.rooms[roomId].challenge).toEqual(
       firstChallenge,
     );
   });
@@ -961,11 +987,11 @@ describe("ensureSkillChallenge / recordSkillChallengeAttempt", () => {
 
   it("records an attempt's VP delta against the room's own challenge", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     await ensureSkillChallenge(
       "s",
       roomId,
@@ -975,32 +1001,32 @@ describe("ensureSkillChallenge / recordSkillChallengeAttempt", () => {
     const state = await recordSkillChallengeAttempt("s", roomId, "success", {
       settingsRef,
     });
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.challenge.vp).toBe(1);
     expect(room.challenge.attemptsUsed).toBe(1);
   });
 
   it("is a no-op if the room has no challenge attached yet", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     const state = await recordSkillChallengeAttempt("s", roomId, "success", {
       settingsRef,
     });
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.challenge).toBeUndefined();
   });
 
   it("is a no-op once the challenge is already resolved", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     await ensureSkillChallenge(
       "s",
       roomId,
@@ -1014,9 +1040,7 @@ describe("ensureSkillChallenge / recordSkillChallengeAttempt", () => {
         settingsRef,
       });
     }
-    const resolvedChallenge = state.rooms.find(
-      (r) => r.id === roomId,
-    ).challenge;
+    const resolvedChallenge = state.rooms[roomId].challenge;
     expect(resolvedChallenge.resolved).toBe("failure");
     const again = await recordSkillChallengeAttempt(
       "s",
@@ -1024,7 +1048,7 @@ describe("ensureSkillChallenge / recordSkillChallengeAttempt", () => {
       "criticalSuccess",
       { settingsRef },
     );
-    expect(again.rooms.find((r) => r.id === roomId).challenge).toEqual(
+    expect(again.rooms[roomId].challenge).toEqual(
       resolvedChallenge,
     );
   });
@@ -1058,66 +1082,66 @@ const HINT_CHECKS = [
 describe("ensurePuzzleState / recordPuzzleStageAttempt", () => {
   it("attaches fresh puzzle state to the named room only", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     const state = await ensurePuzzleState(
       "s",
       roomId,
       { hintChecks: HINT_CHECKS },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.puzzle).toBeTruthy();
     expect(room.puzzle.stages).toHaveLength(3);
     expect(room.puzzle.resolved).toBeNull();
     expect(room.puzzle.customization).toEqual({ status: "pending" });
     expect(
-      state.rooms.find((r) => r.id === created.rooms[2].id).puzzle,
+      state.rooms[created.roomOrder[2]].puzzle,
     ).toBeUndefined();
   });
 
   it("scales every stage's dc to the given partyLevel", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     const state = await ensurePuzzleState(
       "s",
       roomId,
       { hintChecks: HINT_CHECKS, partyLevel: 5 },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     // simpleDcForLevel(5) === 20 (skill-challenge-mechanics.mjs's own table)
     expect(room.puzzle.stages.every((s) => s.dc === 20)).toBe(true);
   });
 
   it("is a no-op if the room already has puzzle state (never rerolls it)", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     const first = await ensurePuzzleState(
       "s",
       roomId,
       { hintChecks: HINT_CHECKS },
       { settingsRef },
     );
-    const firstPuzzle = first.rooms.find((r) => r.id === roomId).puzzle;
+    const firstPuzzle = first.rooms[roomId].puzzle;
     const second = await ensurePuzzleState(
       "s",
       roomId,
       { hintChecks: HINT_CHECKS },
       { settingsRef },
     );
-    expect(second.rooms.find((r) => r.id === roomId).puzzle).toEqual(
+    expect(second.rooms[roomId].puzzle).toEqual(
       firstPuzzle,
     );
   });
@@ -1135,11 +1159,11 @@ describe("ensurePuzzleState / recordPuzzleStageAttempt", () => {
 
   it("records a stage attempt against the room's own puzzle state", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     await ensurePuzzleState(
       "s",
       roomId,
@@ -1149,32 +1173,32 @@ describe("ensurePuzzleState / recordPuzzleStageAttempt", () => {
     const state = await recordPuzzleStageAttempt("s", roomId, 0, "success", {
       settingsRef,
     });
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.puzzle.stages[0].succeeded).toBe(true);
     expect(room.puzzle.successes).toBe(1);
   });
 
   it("is a no-op if the room has no puzzle attached yet", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     const state = await recordPuzzleStageAttempt("s", roomId, 0, "success", {
       settingsRef,
     });
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.puzzle).toBeUndefined();
   });
 
   it("is a no-op once the puzzle is already resolved", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     await ensurePuzzleState(
       "s",
       roomId,
@@ -1186,12 +1210,12 @@ describe("ensurePuzzleState / recordPuzzleStageAttempt", () => {
     const state = await recordPuzzleStageAttempt("s", roomId, 1, "success", {
       settingsRef,
     });
-    const resolvedPuzzle = state.rooms.find((r) => r.id === roomId).puzzle;
+    const resolvedPuzzle = state.rooms[roomId].puzzle;
     expect(resolvedPuzzle.resolved).toBe("success");
     const again = await recordPuzzleStageAttempt("s", roomId, 2, "success", {
       settingsRef,
     });
-    expect(again.rooms.find((r) => r.id === roomId).puzzle).toEqual(
+    expect(again.rooms[roomId].puzzle).toEqual(
       resolvedPuzzle,
     );
   });
@@ -1214,7 +1238,7 @@ describe("ensurePuzzleState / recordPuzzleStageAttempt", () => {
 describe("setObjective", () => {
   it("sets a run-wide objective, visible regardless of the current room", async () => {
     const settingsRef = makeSettingsStub();
-    await createRun(
+    await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
@@ -1229,7 +1253,7 @@ describe("setObjective", () => {
 
   it("overwrites a previously-set objective rather than accumulating a log", async () => {
     const settingsRef = makeSettingsStub();
-    await createRun(
+    await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
@@ -1240,7 +1264,7 @@ describe("setObjective", () => {
 
   it("treats a blank/whitespace-only string as clearing the objective", async () => {
     const settingsRef = makeSettingsStub();
-    await createRun(
+    await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
@@ -1251,7 +1275,7 @@ describe("setObjective", () => {
 
   it("clears the objective when called with null", async () => {
     const settingsRef = makeSettingsStub();
-    await createRun(
+    await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
@@ -1269,11 +1293,11 @@ describe("setObjective", () => {
 
 describe("getPendingSkillChallengeCustomization / applySkillChallengeCustomization", () => {
   async function makeRoomWithChallenge(settingsRef) {
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     await ensureSkillChallenge(
       "s",
       roomId,
@@ -1287,7 +1311,7 @@ describe("getPendingSkillChallengeCustomization / applySkillChallengeCustomizati
     const settingsRef = makeSettingsStub();
     const roomId = await makeRoomWithChallenge(settingsRef);
     const state = getRunState("s", { settingsRef });
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.challenge.customization).toEqual({ status: "pending" });
   });
 
@@ -1298,9 +1322,7 @@ describe("getPendingSkillChallengeCustomization / applySkillChallengeCustomizati
     // `locationTag` makeRoomWithChallenge passed to ensureSkillChallenge
     // (that one only ever feeds the generic specialty-skill fallback pick,
     // never stored on the room itself) — assert against the real room.
-    const room = getRunState("s", { settingsRef }).rooms.find(
-      (r) => r.id === roomId,
-    );
+    const room = getRunState("s", { settingsRef }).rooms[roomId];
     const pending = getPendingSkillChallengeCustomization("s", { settingsRef });
     expect(pending.roomId).toBe(roomId);
     expect(pending.sceneId).toBe("s");
@@ -1324,7 +1346,7 @@ describe("getPendingSkillChallengeCustomization / applySkillChallengeCustomizati
       { name: "The Iron Concord", summary: "A tense truce negotiation." },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.challenge.name).toBe("The Iron Concord");
     expect(room.challenge.summary).toBe("A tense truce negotiation.");
     expect(room.challenge.customization).toEqual({ status: "customized" });
@@ -1333,9 +1355,7 @@ describe("getPendingSkillChallengeCustomization / applySkillChallengeCustomizati
   it("merges skillFlavor onto the existing map rather than replacing it", async () => {
     const settingsRef = makeSettingsStub();
     const roomId = await makeRoomWithChallenge(settingsRef);
-    const before = getRunState("s", { settingsRef }).rooms.find(
-      (r) => r.id === roomId,
-    );
+    const before = getRunState("s", { settingsRef }).rooms[roomId];
     const skill = before.challenge.specialtySkills[0];
     const state = await applySkillChallengeCustomization(
       "s",
@@ -1343,7 +1363,7 @@ describe("getPendingSkillChallengeCustomization / applySkillChallengeCustomizati
       { skillFlavor: { [skill]: "A vivid new detail." } },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.challenge.skillFlavor[skill]).toBe("A vivid new detail.");
   });
 
@@ -1376,18 +1396,18 @@ describe("getPendingSkillChallengeCustomization / applySkillChallengeCustomizati
 
   it("applySkillChallengeCustomization is a no-op if the room has no challenge at all", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     const state = await applySkillChallengeCustomization(
       "s",
       roomId,
       { name: "Anything" },
       { settingsRef },
     );
-    expect(state.rooms.find((r) => r.id === roomId).challenge).toBeUndefined();
+    expect(state.rooms[roomId].challenge).toBeUndefined();
   });
 
   it("applySkillChallengeCustomization is a no-op with no run at all", async () => {
@@ -1404,11 +1424,11 @@ describe("getPendingSkillChallengeCustomization / applySkillChallengeCustomizati
 
 describe("getPendingPuzzleCustomization / applyPuzzleCustomization", () => {
   async function makeRoomWithPuzzle(settingsRef) {
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     await ensurePuzzleState(
       "s",
       roomId,
@@ -1422,7 +1442,7 @@ describe("getPendingPuzzleCustomization / applyPuzzleCustomization", () => {
     const settingsRef = makeSettingsStub();
     const roomId = await makeRoomWithPuzzle(settingsRef);
     const state = getRunState("s", { settingsRef });
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.puzzle.customization).toEqual({ status: "pending" });
   });
 
@@ -1456,7 +1476,7 @@ describe("getPendingPuzzleCustomization / applyPuzzleCustomization", () => {
       },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.puzzle.name).toBe("The Whispering Vault");
     expect(room.puzzle.summary).toBe("A locked vault hums with old magic.");
     expect(room.puzzle.customization).toEqual({ status: "customized" });
@@ -1471,7 +1491,7 @@ describe("getPendingPuzzleCustomization / applyPuzzleCustomization", () => {
       { playerDescription: "The vault door hums with a faint violet light." },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.puzzle.playerDescription).toBe(
       "The vault door hums with a faint violet light.",
     );
@@ -1492,7 +1512,7 @@ describe("getPendingPuzzleCustomization / applyPuzzleCustomization", () => {
       { name: "New Name Only" },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.puzzle.playerDescription).toBe("Original customized flavor.");
     expect(room.puzzle.name).toBe("New Name Only");
   });
@@ -1506,7 +1526,7 @@ describe("getPendingPuzzleCustomization / applyPuzzleCustomization", () => {
       { stageFlavor: { 0: "A far more vivid clue." } },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.puzzle.stageFlavor[0]).toBe("A far more vivid clue.");
     expect(room.puzzle.stages[0].skill).toBe("perception");
     expect(room.puzzle.stages[0].dc).toBe(HINT_CHECKS[0].dc);
@@ -1534,18 +1554,18 @@ describe("getPendingPuzzleCustomization / applyPuzzleCustomization", () => {
 
   it("applyPuzzleCustomization is a no-op if the room has no puzzle at all", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     const state = await applyPuzzleCustomization(
       "s",
       roomId,
       { name: "Anything" },
       { settingsRef },
     );
-    expect(state.rooms.find((r) => r.id === roomId).puzzle).toBeUndefined();
+    expect(state.rooms[roomId].puzzle).toBeUndefined();
   });
 
   it("applyPuzzleCustomization is a no-op with no run at all", async () => {
@@ -1562,11 +1582,11 @@ describe("getPendingPuzzleCustomization / applyPuzzleCustomization", () => {
 
 describe("ensureTrapState / applyTrapRoomState", () => {
   async function makeRoom(settingsRef) {
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    return created.rooms[1].id;
+    return created.roomOrder[1];
   }
 
   it("ensureTrapState attaches trap name/description to a room with none yet", async () => {
@@ -1578,7 +1598,7 @@ describe("ensureTrapState / applyTrapRoomState", () => {
       { name: "Scythe Blades", description: "A pressure plate triggers swinging blades." },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.trap).toEqual({
       name: "Scythe Blades",
       description: "A pressure plate triggers swinging blades.",
@@ -1600,7 +1620,7 @@ describe("ensureTrapState / applyTrapRoomState", () => {
       { name: "Different Trap", description: "Second." },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.trap).toEqual({ name: "Scythe Blades", description: "First." });
   });
 
@@ -1613,7 +1633,7 @@ describe("ensureTrapState / applyTrapRoomState", () => {
       { name: "X", description: "Y" },
       { settingsRef },
     );
-    expect(state.rooms.find((r) => r.id === "room-nope")).toBeUndefined();
+    expect(state.rooms["room-nope"]).toBeUndefined();
   });
 
   it("ensureTrapState is a no-op with no run at all", async () => {
@@ -1642,7 +1662,7 @@ describe("ensureTrapState / applyTrapRoomState", () => {
       { name: "The Grinning Gears", description: "A customized flavor." },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.trap).toEqual({
       name: "The Grinning Gears",
       description: "A customized flavor.",
@@ -1664,7 +1684,7 @@ describe("ensureTrapState / applyTrapRoomState", () => {
       { name: "The Grinning Gears" },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.trap).toEqual({ name: "The Grinning Gears", description: "Original." });
   });
 
@@ -1677,7 +1697,7 @@ describe("ensureTrapState / applyTrapRoomState", () => {
       { name: "Anything" },
       { settingsRef },
     );
-    expect(state.rooms.find((r) => r.id === roomId).trap).toBeUndefined();
+    expect(state.rooms[roomId].trap).toBeUndefined();
   });
 
   it("applyTrapRoomState is a no-op with no run at all", async () => {
@@ -1708,11 +1728,11 @@ describe("ensureNarrativeState / getPendingNarrativeCustomization / applyNarrati
   };
 
   async function makeRoomWithNarrative(settingsRef, setpiece = loreSetpiece) {
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     await ensureNarrativeState("s", roomId, { setpiece }, { settingsRef });
     return roomId;
   }
@@ -1721,7 +1741,7 @@ describe("ensureNarrativeState / getPendingNarrativeCustomization / applyNarrati
     const settingsRef = makeSettingsStub();
     const roomId = await makeRoomWithNarrative(settingsRef);
     const state = getRunState("s", { settingsRef });
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.narrative.archetype).toBe("lore");
     expect(room.narrative.name).toBe("The Example");
     expect(room.narrative.summary).toBe("An example lore beat.");
@@ -1739,18 +1759,14 @@ describe("ensureNarrativeState / getPendingNarrativeCustomization / applyNarrati
       { setpiece: { ...loreSetpiece, name: "Different" } },
       { settingsRef },
     );
-    const room = getRunState("s", { settingsRef }).rooms.find(
-      (r) => r.id === roomId,
-    );
+    const room = getRunState("s", { settingsRef }).rooms[roomId];
     expect(room.narrative.name).toBe("The Example");
   });
 
   it("getPendingNarrativeCustomization finds the pending room and hands back its content", async () => {
     const settingsRef = makeSettingsStub();
     const roomId = await makeRoomWithNarrative(settingsRef, choiceSetpiece);
-    const room = getRunState("s", { settingsRef }).rooms.find(
-      (r) => r.id === roomId,
-    );
+    const room = getRunState("s", { settingsRef }).rooms[roomId];
     const pending = getPendingNarrativeCustomization("s", { settingsRef });
     expect(pending.roomId).toBe(roomId);
     expect(pending.sceneId).toBe("s");
@@ -1777,7 +1793,7 @@ describe("ensureNarrativeState / getPendingNarrativeCustomization / applyNarrati
       },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.narrative.name).toBe("The Warden's Last Stand");
     expect(room.narrative.summary).toBe("A collapsed guardpost.");
     expect(room.narrative.revealText).toBe("They knew exactly what was coming.");
@@ -1797,7 +1813,7 @@ describe("ensureNarrativeState / getPendingNarrativeCustomization / applyNarrati
       { options: newOptions },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.narrative.options).toEqual(newOptions);
   });
 
@@ -1823,18 +1839,18 @@ describe("ensureNarrativeState / getPendingNarrativeCustomization / applyNarrati
 
   it("applyNarrativeCustomization is a no-op if the room has no narrative state at all", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     const state = await applyNarrativeCustomization(
       "s",
       roomId,
       { name: "Anything" },
       { settingsRef },
     );
-    expect(state.rooms.find((r) => r.id === roomId).narrative).toBeUndefined();
+    expect(state.rooms[roomId].narrative).toBeUndefined();
   });
 
   it("applyNarrativeCustomization is a no-op with no run at all", async () => {
@@ -1852,24 +1868,24 @@ describe("ensureNarrativeState / getPendingNarrativeCustomization / applyNarrati
 describe("clearPuzzleState", () => {
   it("clears an already-attached puzzle state back to null", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s4", roomCount: 3, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     await ensurePuzzleState("s4", roomId, { hintChecks: [] }, { settingsRef });
     const cleared = await clearPuzzleState("s4", roomId, { settingsRef });
-    const room = cleared.rooms.find((r) => r.id === roomId);
+    const room = cleared.rooms[roomId];
     expect(room.puzzle).toBeFalsy();
   });
 
   it("is a no-op against a room with no puzzle state attached", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s5", roomCount: 3, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     const cleared = await clearPuzzleState("s5", roomId, { settingsRef });
     expect(cleared.rooms).toEqual(created.rooms);
   });
@@ -1884,11 +1900,11 @@ describe("clearPuzzleState", () => {
 describe("clearSkillChallengeState", () => {
   it("clears an already-attached challenge back to null", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s6", roomCount: 3, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     await ensureSkillChallenge(
       "s6",
       roomId,
@@ -1898,17 +1914,17 @@ describe("clearSkillChallengeState", () => {
     const cleared = await clearSkillChallengeState("s6", roomId, {
       settingsRef,
     });
-    const room = cleared.rooms.find((r) => r.id === roomId);
+    const room = cleared.rooms[roomId];
     expect(room.challenge).toBeFalsy();
   });
 
   it("is a no-op against a room with no challenge attached", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s7", roomCount: 3, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     const cleared = await clearSkillChallengeState("s7", roomId, {
       settingsRef,
     });
@@ -1936,11 +1952,11 @@ describe("clearNarrativeState", () => {
 
   it("clears an already-attached narrative state back to null", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s8", roomCount: 3, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     await ensureNarrativeState(
       "s8",
       roomId,
@@ -1948,17 +1964,17 @@ describe("clearNarrativeState", () => {
       { settingsRef },
     );
     const cleared = await clearNarrativeState("s8", roomId, { settingsRef });
-    const room = cleared.rooms.find((r) => r.id === roomId);
+    const room = cleared.rooms[roomId];
     expect(room.narrative).toBeFalsy();
   });
 
   it("is a no-op against a room with no narrative state attached", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s9", roomCount: 3, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     const cleared = await clearNarrativeState("s9", roomId, { settingsRef });
     expect(cleared.rooms).toEqual(created.rooms);
   });
@@ -1975,11 +1991,11 @@ describe("clearNarrativeState", () => {
 describe("clearTrapState", () => {
   it("clears an already-attached trap state back to null", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s10", roomCount: 3, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     await ensureTrapState(
       "s10",
       roomId,
@@ -1990,17 +2006,17 @@ describe("clearTrapState", () => {
       { settingsRef },
     );
     const cleared = await clearTrapState("s10", roomId, { settingsRef });
-    const room = cleared.rooms.find((r) => r.id === roomId);
+    const room = cleared.rooms[roomId];
     expect(room.trap).toBeFalsy();
   });
 
   it("is a no-op against a room with no trap state attached", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s11", roomCount: 3, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     const cleared = await clearTrapState("s11", roomId, { settingsRef });
     expect(cleared.rooms).toEqual(created.rooms);
   });
@@ -2021,11 +2037,11 @@ describe("ensureTreasureState / getPendingTreasureCustomization / applyTreasureC
   };
 
   async function makeRoomWithTreasure(settingsRef, setpiece = strongboxSetpiece) {
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     await ensureTreasureState("s", roomId, { setpiece }, { settingsRef });
     return roomId;
   }
@@ -2034,7 +2050,7 @@ describe("ensureTreasureState / getPendingTreasureCustomization / applyTreasureC
     const settingsRef = makeSettingsStub();
     const roomId = await makeRoomWithTreasure(settingsRef);
     const state = getRunState("s", { settingsRef });
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.treasure.name).toBe("The Example Strongbox");
     expect(room.treasure.summary).toBe(
       "A dented iron strongbox, its lock never picked.",
@@ -2051,18 +2067,14 @@ describe("ensureTreasureState / getPendingTreasureCustomization / applyTreasureC
       { setpiece: { ...strongboxSetpiece, name: "Different" } },
       { settingsRef },
     );
-    const room = getRunState("s", { settingsRef }).rooms.find(
-      (r) => r.id === roomId,
-    );
+    const room = getRunState("s", { settingsRef }).rooms[roomId];
     expect(room.treasure.name).toBe("The Example Strongbox");
   });
 
   it("getPendingTreasureCustomization finds the pending room and hands back its content", async () => {
     const settingsRef = makeSettingsStub();
     const roomId = await makeRoomWithTreasure(settingsRef);
-    const room = getRunState("s", { settingsRef }).rooms.find(
-      (r) => r.id === roomId,
-    );
+    const room = getRunState("s", { settingsRef }).rooms[roomId];
     const pending = getPendingTreasureCustomization("s", { settingsRef });
     expect(pending.roomId).toBe(roomId);
     expect(pending.sceneId).toBe("s");
@@ -2088,7 +2100,7 @@ describe("ensureTreasureState / getPendingTreasureCustomization / applyTreasureC
       },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(room.treasure.name).toBe("The Cairn of the Unnamed");
     expect(room.treasure.summary).toBe(
       "A low cairn of fitted stones marks a burial no one named.",
@@ -2105,7 +2117,7 @@ describe("ensureTreasureState / getPendingTreasureCustomization / applyTreasureC
       { name: "New Name" },
       { settingsRef },
     );
-    const room = state.rooms.find((r) => r.id === roomId);
+    const room = state.rooms[roomId];
     expect(Object.keys(room.treasure).sort()).toEqual(
       ["customization", "name", "summary"].sort(),
     );
@@ -2133,18 +2145,18 @@ describe("ensureTreasureState / getPendingTreasureCustomization / applyTreasureC
 
   it("applyTreasureCustomization is a no-op if the room has no treasure state at all", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     const state = await applyTreasureCustomization(
       "s",
       roomId,
       { name: "Anything" },
       { settingsRef },
     );
-    expect(state.rooms.find((r) => r.id === roomId).treasure).toBeUndefined();
+    expect(state.rooms[roomId].treasure).toBeUndefined();
   });
 
   it("applyTreasureCustomization is a no-op with no run at all", async () => {
@@ -2169,11 +2181,11 @@ describe("clearTreasureState", () => {
 
   it("clears an already-attached treasure state back to null", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s12", roomCount: 3, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     await ensureTreasureState(
       "s12",
       roomId,
@@ -2181,17 +2193,17 @@ describe("clearTreasureState", () => {
       { settingsRef },
     );
     const cleared = await clearTreasureState("s12", roomId, { settingsRef });
-    const room = cleared.rooms.find((r) => r.id === roomId);
+    const room = cleared.rooms[roomId];
     expect(room.treasure).toBeFalsy();
   });
 
   it("is a no-op against a room with no treasure state attached", async () => {
     const settingsRef = makeSettingsStub();
-    const created = await createRun(
+    const created = await createDictRun(
       { sceneId: "s13", roomCount: 3, seed: "fixed" },
       { settingsRef },
     );
-    const roomId = created.rooms[1].id;
+    const roomId = created.roomOrder[1];
     const cleared = await clearTreasureState("s13", roomId, { settingsRef });
     expect(cleared.rooms).toEqual(created.rooms);
   });

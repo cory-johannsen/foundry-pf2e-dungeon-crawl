@@ -6,6 +6,8 @@
  */
 import {
   buildRoomSequence,
+  buildRoomGraph,
+  attachHiddenPaths,
   findOutcomeTemplate,
   resolveRoomOutcome,
   revealTravelTimeEffect,
@@ -14,6 +16,10 @@ import { resolveEncounterRoster } from './encounter-roster.mjs';
 
 export const DefaultGenerator = {
   buildRoomSequence,
+  // #93: startDungeonRun's full-graph pregeneration calls these through
+  // getGenerator(), same indirection as buildRoomSequence above.
+  buildRoomGraph,
+  attachHiddenPaths,
   findOutcomeTemplate,
   resolveRoomOutcome,
   revealTravelTimeEffect,
