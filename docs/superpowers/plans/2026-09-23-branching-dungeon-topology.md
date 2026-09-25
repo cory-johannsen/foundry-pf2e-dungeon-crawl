@@ -343,7 +343,9 @@ git commit -m "feat: add buildRoomGraph with forced-merge single-entrance goal g
 
 **Interfaces:**
 - Consumes: the `{rooms, edges}` shape from Task 2's `buildRoomGraph`.
-- Produces: `attachHiddenPaths({ rooms, edges, seed })` → `{ rooms, edges, hiddenRooms: Set<string>, hiddenEdges: {[fromId]: string[]} }`. `hiddenRooms` marks detour room ids (already present in `rooms`, just flagged); `hiddenEdges` lists shortcut/detour edges not present in the normal `edges` map (so normal traversal/layout never sees them until revealed).
+- Produces: `attachHiddenPaths({ rooms, edges, seed })` → `{ rooms, edges, hiddenRooms: Set<string>, hiddenEdges: {[fromId]: string[]}, layoutEdges: {[roomId]: string[]}, hiddenIncomingByRoomId: {[targetId]: string[]} }`. `hiddenRooms` marks detour room ids (already present in `rooms`, just flagged); `hiddenEdges` lists shortcut/detour edges not present in the normal `edges` map (so normal traversal never sees them until revealed). `layoutEdges` is `edges` with each detour room appended as an extra child of its attaching room (NOT shortcuts, which target an already-positioned room) — Task 4/7/12 walk this instead of `edges` so detour rooms get a real rank/col and get eagerly built. `hiddenIncomingByRoomId` is the reverse of `hiddenEdges` (`targetId -> [fromId, ...]`) — Task 10/12 use it to reserve a second incoming face on a shortcut's target room.
+
+**Face-budget constraint (the actual bug #156 is about):** a room has exactly 4 compass faces; one is reserved for its own real incoming edge, leaving at most 3 for outgoing (`exitFaceForIndex` only ever returns `south|east|west`). `EXIT_COUNT_WEIGHTS` already allows up to 3 real exits, which can fill all 3 — so a room can only take a hidden edge if it has a spare outgoing face (`edges[roomId].length <= 2`), and a shortcut's *target* room needs a spare face too, for the extra incoming door (`edges[targetId].length <= 2`). Previously `attachHiddenPaths` had no awareness of this ceiling at all and could (a) silently overflow a room's face budget by rolling a hidden path on every one of its real edges independently, and (b) attach a shortcut into a room with no free face to receive it. The fix below decides **once per candidate room** (not once per edge) and filters on spare capacity before attaching anything.
 
 **Known limitation (tracked separately, not this task's scope — issue #156):** neither a detour room's geometry nor a shortcut's connecting door is ever built, eagerly or on reveal, anywhere in this plan (Tasks 4/7/9/12's graph walks all traverse `edges` only, never `hiddenEdges`/`hiddenRooms`). A `reduced_travel_time`/`extra_travel_time` outcome (Task 9) will merge the edge into live `edges` and `unlockDoorsFromRoom` (Task 10) will silently no-op — no door or room appears. This is a real, deliberately deferred gap: fixing it needs an on-the-fly layout-position assignment plus a lazy build for the detour case, and a "retrofit a door into an already-solid wall face" operation for the shortcut case, neither of which is small enough to fold into this pass. #93 ships with hidden paths inert but harmless; #156 tracks making them actually walkable.
 
@@ -405,6 +407,40 @@ describe('attachHiddenPaths', () => {
       }
     }
   });
+
+  it('never attaches more than one hidden edge to the same room, and never to a room with 3 real exits', () => {
+    const graph = buildRoomGraph({ seed: 'delta', roomCount: 30 });
+    const { edges, hiddenEdges } = attachHiddenPaths({ ...graph, seed: 'delta' });
+    for (const [fromId, hidden] of Object.entries(hiddenEdges)) {
+      expect(hidden.length).toBe(1);
+      expect(edges[fromId].length).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it('never attaches a shortcut into a room with no spare incoming face', () => {
+    const graph = buildRoomGraph({ seed: 'epsilon', roomCount: 30 });
+    const { edges, hiddenEdges, hiddenRooms } = attachHiddenPaths({ ...graph, seed: 'epsilon' });
+    for (const targets of Object.values(hiddenEdges)) {
+      for (const targetId of targets) {
+        if (hiddenRooms.has(targetId)) continue; // detour room, not a shortcut target
+        expect(edges[targetId].length).toBeLessThanOrEqual(2);
+      }
+    }
+  });
+
+  it('layoutEdges includes every detour room as an extra child of its attaching room, and excludes shortcut targets', () => {
+    const graph = buildRoomGraph({ seed: 'zeta', roomCount: 30 });
+    const { edges, hiddenEdges, hiddenRooms, layoutEdges } = attachHiddenPaths({ ...graph, seed: 'zeta' });
+    for (const [fromId, targets] of Object.entries(hiddenEdges)) {
+      for (const targetId of targets) {
+        if (hiddenRooms.has(targetId)) {
+          expect(layoutEdges[fromId]).toEqual([...edges[fromId], targetId]);
+        } else {
+          expect(layoutEdges[fromId]).toEqual(edges[fromId]);
+        }
+      }
+    }
+  });
 });
 ```
 
@@ -426,78 +462,88 @@ export const HIDDEN_PATH_CHANCE = 0.2;
 
 /**
  * Attach pregenerated-but-hidden shortcuts/detours to a graph's non-entry,
- * non-goal edges (#93 — replaces runtime insert_after/remove_next
- * splicing). A shortcut edge skips the immediate next room on a branch; a
- * detour room is spliced hidden between two already-adjacent rooms.
+ * non-goal rooms (#93 — replaces runtime insert_after/remove_next
+ * splicing; #156 — fixes the face-budget overflow and layout/build
+ * unreachability the original version of this function had). A shortcut
+ * edge skips the immediate next room on a branch; a detour room is spliced
+ * hidden between two already-adjacent rooms. At most ONE hidden extra per
+ * room, decided once per candidate room (not once per edge), and only
+ * when the room (and, for a shortcut, its target) has a spare outgoing
+ * face left after its real exits (`exitFaceForIndex` only has 3 slots:
+ * south/east/west).
  *
  * What's actually hidden is the INCOMING connection, in `hiddenEdges`, not
- * a detour room's own outgoing edge: `edges[detour.id] = [toId]` is a real
- * entry in the live `edges` map (a detour room needs SOME recorded path
- * onward, live or it's a guaranteed dead end the moment it's revealed —
- * caught by pre-flight review, do not remove this line believing it
- * belongs in `hiddenEdges` instead). Normal traversal still never reaches
- * `detour.id` regardless, since nothing in the live graph points INTO it
- * until an outcome reveal adds that incoming edge — see
- * dungeon-runner.mjs's revealTravelTimeEffect.
+ * a detour room's own outgoing edge: `edges[detour.id] = [toId]` (and
+ * `layoutEdges[detour.id]`) is a real entry in the live map — a detour
+ * room needs SOME recorded path onward, live, or it's a guaranteed dead
+ * end the moment it's revealed (caught by pre-flight review; do not
+ * remove that line believing it belongs in `hiddenEdges` instead — an
+ * earlier implementer made exactly this mistake). Normal traversal still
+ * never reaches `detour.id` regardless, since nothing in the live `edges`
+ * graph points INTO it until an outcome reveal adds that incoming edge —
+ * see dungeon-runner.mjs's revealTravelTimeEffect.
  */
-// #93 pre-flight fix: two different children of the same fromId can
-// independently roll a shortcut landing on the same downstream skipTarget
-// (confirmed by review sweep, ~0.7% of graphs) — dedup so `hiddenEdges`
-// never carries a repeated target, which would otherwise skew a future
-// pick-one-to-reveal selection toward that duplicate.
-function pushHiddenTarget(hiddenEdges, fromId, targetId) {
-  const bucket = (hiddenEdges[fromId] ??= []);
-  if (!bucket.includes(targetId)) bucket.push(targetId);
-}
-
 export function attachHiddenPaths({ rooms, edges, seed }) {
   const hiddenRooms = new Set();
   const hiddenEdges = {};
+  const hiddenIncomingByRoomId = {};
+  const layoutEdges = Object.fromEntries(
+    Object.entries(edges).map(([id, children]) => [id, [...children]]),
+  );
   let detourSalt = 0;
-  // #93 pre-flight fix: a shortcut's `skipTarget` is ONE HOP PAST `toId`
-  // (`edges[toId][0]`), not `toId` itself — the `toRoom.isGoal` guard
-  // below only excludes `toId` from being the goal, it says nothing
-  // about what `toId` points to. A room whose own single child IS the
-  // goal (any room adjacent to it) would otherwise let a shortcut land
-  // directly on the goal room, giving it a second incoming edge on
-  // reveal and violating "the goal room always has exactly one incoming
-  // edge... regardless of how branching rolled" (Global Constraints).
-  const goalId = Object.values(rooms).find((r) => r.isGoal)?.id;
 
   for (const [fromId, children] of Object.entries(edges)) {
     const fromRoom = rooms[fromId];
     if (!fromRoom || fromRoom.isGoal || fromId === 'room-entry') continue;
-    for (const toId of children) {
-      const toRoom = rooms[toId];
-      if (!toRoom || toRoom.isGoal) continue;
-      const r = splitmix32(seedFromString(`${seed}-hidden-${fromId}-${toId}`))();
-      if (r >= HIDDEN_PATH_CHANCE) continue;
+    if (children.length === 0 || children.length > 2) continue; // no spare face
 
-      const wantsDetour = splitmix32(seedFromString(`${seed}-hidden-kind-${fromId}-${toId}`))() < 0.5;
-      if (wantsDetour) {
-        const detour = {
-          id: `room-detour-${detourSalt}`, kind: roomKindAt(seed, `detour-${detourSalt}`),
-          isGoal: false, setpieceId: null, outcomeSlotId: null,
-          locationTag: locationTagAt(seed, `detour-${detourSalt}`),
-          artVariant: roomArtVariantAt(seed, `detour-${detourSalt}`)
-        };
-        detourSalt += 1;
-        rooms[detour.id] = detour;
-        edges[detour.id] = [toId];
-        hiddenRooms.add(detour.id);
-        pushHiddenTarget(hiddenEdges, fromId, detour.id);
-      } else {
-        // A shortcut needs a room beyond `toId` to skip TO — only attach
-        // one when `toId` itself has an onward edge to skip past, and
-        // never when that onward edge is the goal room itself.
-        const skipTarget = edges[toId]?.[0];
-        if (!skipTarget || skipTarget === goalId) continue;
-        pushHiddenTarget(hiddenEdges, fromId, skipTarget);
-      }
+    const r = splitmix32(seedFromString(`${seed}-hidden-${fromId}`))();
+    if (r >= HIDDEN_PATH_CHANCE) continue;
+
+    // Anchor on the room's first real child — deterministic, and this
+    // function only needs *a* nearby room to build a shortcut/detour off
+    // of, not a specific one.
+    const toId = children[0];
+    const toRoom = rooms[toId];
+    if (!toRoom || toRoom.isGoal) continue;
+
+    const wantsDetour = splitmix32(seedFromString(`${seed}-hidden-kind-${fromId}`))() < 0.5;
+    if (wantsDetour) {
+      const detour = {
+        id: `room-detour-${detourSalt}`, kind: roomKindAt(seed, `detour-${detourSalt}`),
+        isGoal: false, setpieceId: null, outcomeSlotId: null,
+        locationTag: locationTagAt(seed, `detour-${detourSalt}`),
+        artVariant: roomArtVariantAt(seed, `detour-${detourSalt}`)
+      };
+      detourSalt += 1;
+      rooms[detour.id] = detour;
+      edges[detour.id] = [toId];
+      layoutEdges[detour.id] = [toId];
+      hiddenRooms.add(detour.id);
+      hiddenEdges[fromId] = [detour.id];
+      layoutEdges[fromId] = [...children, detour.id];
+    } else {
+      // A shortcut needs a room beyond `toId` to skip TO — only attach one
+      // when `toId` itself has an onward edge to skip past, that target
+      // isn't the goal (pre-flight fix: a shortcut's target is ONE HOP
+      // PAST `toId` — `edges[toId][0]` — so `toRoom.isGoal` above does NOT
+      // already cover this; a room adjacent to goal could otherwise
+      // shortcut straight onto it), and the target has a spare incoming
+      // face left (own real exit count <= 2, since it already uses one
+      // face for its real incoming edge and needs one more for this
+      // shortcut's second incoming door).
+      const skipTarget = edges[toId]?.[0];
+      const skipTargetRoom = skipTarget ? rooms[skipTarget] : null;
+      if (!skipTarget || !skipTargetRoom || skipTargetRoom.isGoal) continue;
+      if ((edges[skipTarget]?.length ?? 0) > 2) continue;
+      hiddenEdges[fromId] = [skipTarget];
+      (hiddenIncomingByRoomId[skipTarget] ??= []).push(fromId);
+      // Shortcuts don't add a new node, so layoutEdges is untouched here —
+      // the target's rank/col already comes from its real parent.
     }
   }
 
-  return { rooms, edges, hiddenRooms, hiddenEdges };
+  return { rooms, edges, hiddenRooms, hiddenEdges, layoutEdges, hiddenIncomingByRoomId };
 }
 ```
 
@@ -797,17 +843,23 @@ export const OPPOSITE = { north: 'south', south: 'north', east: 'west', west: 'e
  * The compass face on `roomId` where its one incoming connection arrives —
  * derived from whichever parent's `childIds` includes it, and at which
  * index (exitFaceForIndex, then OPPOSITE). Returns null for the entry room
- * (no parent) and throws if `roomId` has no parent in `edges` and isn't the
- * entry — every other room in a valid graph has exactly one parent by
- * construction (buildRoomGraph never gives a non-entry room two parents
- * outside a forced merge, and a merge room's OWN incoming face still comes
- * from a single position in the layout — see computeColumns' "placed under
- * whichever parent reaches it first" rule, which is also the parent this
- * function must agree with).
+ * (no parent) and throws if `roomId` has no parent in `layoutEdges` and
+ * isn't the entry — every other room in a valid graph has exactly one
+ * parent by construction (buildRoomGraph never gives a non-entry room two
+ * parents outside a forced merge, and a merge room's OWN incoming face
+ * still comes from a single position in the layout — see computeColumns'
+ * "placed under whichever parent reaches it first" rule, which is also the
+ * parent this function must agree with).
+ *
+ * **#156:** takes `layoutEdges` (Task 3's `edges` + detour rooms), not bare
+ * `edges` — a detour room's only "parent" link is the hidden edge folded
+ * into `layoutEdges`, so looking it up against plain `edges` would throw.
+ * `layoutEdges` equals `edges` for every non-detour room, so every existing
+ * call site is safe to repoint at it.
  */
-export function incomingFaceFor(edges, roomId) {
+export function incomingFaceFor(layoutEdges, roomId) {
   if (roomId === 'room-entry') return null;
-  for (const [parentId, children] of Object.entries(edges)) {
+  for (const [parentId, children] of Object.entries(layoutEdges)) {
     const index = children.indexOf(roomId);
     if (index !== -1) return OPPOSITE[exitFaceForIndex(index)];
   }
@@ -1021,8 +1073,10 @@ git commit -m "feat: add buildEdgeCorridor for straight and L-shaped graph edges
 - Test: `tests/dungeon-runner.test.mjs`
 
 **Interfaces:**
-- Consumes: `{rooms, edges}` (Task 2/3).
+- Consumes: `{rooms, edges, layoutEdges}` (Task 2/3 — `layoutEdges` per #156's fix includes detour rooms as extra children, so they get built too).
 - Produces: `roomsToEagerlyBuild(state)` (same exported name, new graph-walk implementation, unconditional — no `hostUserId` gate, no ITEM-11 index-1 special case) → array of `{room, buildOrder}` in topological order (parents before children). `buildOrder` replaces the old `physicalSlot` name in this return shape (still a plain monotonic integer, same role); `commitEagerPhysicalSlots` (existing) keeps working unmodified against this shape since it only destructures `{room, physicalSlot}` — **rename the destructured field to `buildOrder` in both functions together** so the two stay in sync.
+
+**#156 fix:** this walks `state.layoutEdges`, not `state.edges` — `layoutEdges` is `edges` plus each detour room appended as an extra child of its attaching room (Task 3). Walking `edges` alone never reaches a detour room (its only incoming connection is a hidden edge, not a normal one), so it would silently never get built. Shortcut targets need no special walk handling — they're already real rooms reachable via their own real parent in `edges`/`layoutEdges` alike.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1038,6 +1092,7 @@ function graphState(overrides = {}) {
       goal: { id: 'goal', kind: 'combat', isGoal: true }
     },
     edges: { 'room-entry': ['a', 'b'], a: ['goal'], b: ['goal'], goal: [] },
+    layoutEdges: { 'room-entry': ['a', 'b'], a: ['goal'], b: ['goal'], goal: [] },
     hostUserId: null,
     ...overrides
   };
@@ -1061,6 +1116,21 @@ describe('roomsToEagerlyBuild (graph)', () => {
   it('a combat room at generation-order position 1 is still eagerly built (ITEM-11 deferral removed)', () => {
     const built = roomsToEagerlyBuild(graphState());
     expect(built.some((e) => e.room.id === 'a' && e.room.kind === 'combat')).toBe(true);
+  });
+
+  it('#156: a detour room reachable only via layoutEdges (not edges) is still built', () => {
+    const state = graphState({
+      rooms: {
+        'room-entry': { id: 'room-entry', kind: 'safe_entry', isGoal: false },
+        a: { id: 'a', kind: 'combat', isGoal: false },
+        'room-detour-0': { id: 'room-detour-0', kind: 'trap', isGoal: false },
+        goal: { id: 'goal', kind: 'combat', isGoal: true }
+      },
+      edges: { 'room-entry': ['a'], a: ['goal'], 'room-detour-0': ['goal'], goal: [] },
+      layoutEdges: { 'room-entry': ['a'], a: ['goal', 'room-detour-0'], 'room-detour-0': ['goal'], goal: [] }
+    });
+    const built = roomsToEagerlyBuild(state);
+    expect(built.map((e) => e.room.id)).toContain('room-detour-0');
   });
 });
 ```
@@ -1086,15 +1156,15 @@ Replace the existing `roomsToEagerlyBuild` in `scripts/dungeon-runner.mjs`:
  * Accept/Reroll dialog it paced around are both gone.
  */
 export function roomsToEagerlyBuild(state) {
-  const { rooms, edges } = state;
+  const { rooms, layoutEdges } = state;
   const order = [];
   const visited = new Set(['room-entry']);
   const indegree = {};
   for (const id of Object.keys(rooms)) indegree[id] = 0;
-  for (const children of Object.values(edges)) {
+  for (const children of Object.values(layoutEdges)) {
     for (const childId of children) indegree[childId] += 1;
   }
-  const queue = (edges['room-entry'] ?? []).slice();
+  const queue = (layoutEdges['room-entry'] ?? []).slice();
   while (queue.length) {
     const id = queue.shift();
     if (visited.has(id)) continue;
@@ -1102,7 +1172,7 @@ export function roomsToEagerlyBuild(state) {
     // simple readiness re-check via indegree decrement per visit below.
     visited.add(id);
     order.push(rooms[id]);
-    for (const childId of edges[id] ?? []) {
+    for (const childId of layoutEdges[id] ?? []) {
       indegree[childId] -= 1;
       if (indegree[childId] <= 0 && !visited.has(childId)) queue.push(childId);
     }
@@ -1251,7 +1321,7 @@ git commit -m "feat: make advanceToRoom accept any of the current room's graph c
 
 **Interfaces:**
 - Consumes: `state.rooms`/`state.edges`/`state.currentRoomId` (graph shape), `state.hiddenEdges`/`state.hiddenRooms` (Task 3's shape, carried on run state).
-- Produces: `revealTravelTimeEffect({ edges, hiddenEdges }, roomId, effectKey)` (new, `dungeon-deck.mjs`) → `{ edges, hiddenEdges }` with the room's hidden path (if any) merged into the live `edges` and removed from `hiddenEdges`, or unchanged if there's nothing hidden to reveal. `markRoomOutcome` (existing name, `dungeon-runner.mjs`) drops all `applySequenceMutation`/physical-slot-assignment logic and instead calls `revealTravelTimeEffect` when `effectKey` is `'reduced_travel_time'` or `'extra_travel_time'`. `depthBiasFor({rank, maxRank, isGoal})`/`lootGpForTreasureRoom({partyLevel, rank, maxRank, isGoal})`/`treasureRoomItemTableName({partyLevel, rank, maxRank, isGoal, rng})` (all three existing names, `dungeon-deck.mjs`, `physicalSlot`/`roomCount` renamed to `rank`/`maxRank` — #93 pre-flight fix, Step 3a; Task 10's own `depthBiasFor` call and Task 13's `applyRoomEffect`/`grantTreasureReward` call depend on this rename).
+- Produces: `revealTravelTimeEffect({ edges, hiddenEdges }, roomId, effectKey)` (new, `dungeon-deck.mjs`) → `{ edges, hiddenEdges, revealedRoomId }` with the room's hidden path (if any) merged into the live `edges` and removed from `hiddenEdges`, or unchanged (and `revealedRoomId: null`) if there's nothing hidden to reveal. `revealedRoomId` (#156) is the target room id that just became live — `markRoomOutcome` forwards it so the scene layer (Task 9 addendum) knows which hidden door to unseal, without having to re-derive it from a `hiddenEdges` entry that's already been deleted by the time the scene-side step runs. `markRoomOutcome` (existing name, `dungeon-runner.mjs`) drops all `applySequenceMutation`/physical-slot-assignment logic and instead calls `revealTravelTimeEffect` when `effectKey` is `'reduced_travel_time'` or `'extra_travel_time'`. `depthBiasFor({rank, maxRank, isGoal})`/`lootGpForTreasureRoom({partyLevel, rank, maxRank, isGoal})`/`treasureRoomItemTableName({partyLevel, rank, maxRank, isGoal, rng})` (all three existing names, `dungeon-deck.mjs`, `physicalSlot`/`roomCount` renamed to `rank`/`maxRank` — #93 pre-flight fix, Step 3a; Task 10's own `depthBiasFor` call and Task 13's `applyRoomEffect`/`grantTreasureReward` call depend on this rename).
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1312,15 +1382,16 @@ Add to `scripts/dungeon-deck.mjs`:
 // plan yet. Deliberately deferred; do not block this task on it.
 export function revealTravelTimeEffect({ edges, hiddenEdges }, roomId, effectKey) {
   if (effectKey !== 'reduced_travel_time' && effectKey !== 'extra_travel_time') {
-    return { edges, hiddenEdges };
+    return { edges, hiddenEdges, revealedRoomId: null };
   }
   const hidden = hiddenEdges[roomId];
-  if (!hidden?.length) return { edges, hiddenEdges };
+  if (!hidden?.length) return { edges, hiddenEdges, revealedRoomId: null };
   const newHiddenEdges = { ...hiddenEdges };
   delete newHiddenEdges[roomId];
   return {
     edges: { ...edges, [roomId]: [...(edges[roomId] ?? []), ...hidden] },
-    hiddenEdges: newHiddenEdges
+    hiddenEdges: newHiddenEdges,
+    revealedRoomId: hidden[0], // attachHiddenPaths (#156) guarantees at most one hidden target per room
   };
 }
 ```
@@ -1333,7 +1404,7 @@ In `scripts/dungeon-runner.mjs`, replace the `mutation`/`rooms`/physical-slot-as
       ? { effectKey: "rest_room_passed" }
       : getGenerator().resolveRoomOutcome(getGenerator().findOutcomeTemplate(room.outcomeSlotId), succeeded);
 
-  const { edges, hiddenEdges } = getGenerator().revealTravelTimeEffect(
+  const { edges, hiddenEdges, revealedRoomId } = getGenerator().revealTravelTimeEffect(
     { edges: state.edges, hiddenEdges: state.hiddenEdges },
     room.id,
     effectKey,
@@ -1346,7 +1417,7 @@ In `scripts/dungeon-runner.mjs`, replace the `mutation`/`rooms`/physical-slot-as
     history: [...state.history, { ...base, effectKey }],
   };
   await persist(sceneId, newState, settingsRef);
-  return { state: newState, effectKey };
+  return { state: newState, effectKey, revealedRoomId };
 ```
 
 **Note for the implementer:** the function's earlier lines (`const room = state.rooms[state.currentIndex]` and the double-resolution guard checking `state.history`) must be updated too — `room = state.rooms[state.currentRoomId]`. `getGenerator()` is this file's existing indirection for swapping the sequence generator module in tests; confirm `revealTravelTimeEffect` is added to whatever object `getGenerator()` returns (mirroring how `resolveRoomOutcome`/`findOutcomeTemplate`/`applySequenceMutation` are already exposed there) and remove `applySequenceMutation` from that surface since nothing calls it anymore after this task. For type consistency, also trim `mutation`/`nextRoomId`/`nextPhysicalSlot` from every early-return object earlier in the function (the `!state || state.completed` guard, the double-resolution guard, and the missing-outcome-slot guard) so every return path from `markRoomOutcome` shares the same `{state, effectKey}` shape — a caller destructuring `.mutation` off any return path should get `undefined`, not have some paths carry a stale `null` for a field that no longer means anything.
@@ -1400,6 +1471,61 @@ git commit -m "feat: redefine travel-time outcomes as hidden-path reveals, not r
 
 ---
 
+### Task 9 addendum (#156): scene-side unseal on reveal
+
+`revealTravelTimeEffect` only merges data (`edges`/`hiddenEdges`). Per Task 10's build-time change, the actual door wall for a hidden edge already exists in the scene — built LOCKED and flagged `dungeonHiddenDoorForEdge` — so revealing it is a pure "flip the flag/state" scene update, never a build. This was the original plan's real gap (per #156): there was no step here at all.
+
+**Files:**
+- Modify: `scripts/dungeon-scene.mjs` (new function), `scripts/ui/dungeon-app.mjs` (new `applyRoomEffect` case)
+
+**New function, `scripts/dungeon-scene.mjs`:**
+
+```js
+/**
+ * #156: promote a hidden shortcut/detour door from sealed to normal, once
+ * `revealTravelTimeEffect` (dungeon-runner.mjs) has merged its edge into
+ * the live graph. Never builds anything — the door and its corridor were
+ * already constructed (LOCKED, `dungeonHiddenDoorForEdge`-flagged) during
+ * eager pregeneration (Task 10). Finds every wall flagged
+ * `dungeonHiddenDoorForEdge` starting with `${roomId}->` (the doorWall on
+ * the revealing room's own face, and its matching revealDoorWall on the
+ * target's face both carry this prefix, per Task 10's addendum), and:
+ * - sets `ds: CONST.WALL_DOOR_STATES.CLOSED` (unlocked, same convention as
+ *   `unlockDoorToSlot`)
+ * - replaces the `dungeonHiddenDoorForEdge` flag with the normal
+ *   `dungeonDoorToRoomId` flag (set to the edge's target room id) so
+ *   `handleDungeonDoorOpened` (Task 11) can resolve it like any other door
+ */
+export async function unsealHiddenDoorFromRoom(scene, roomId, targetRoomId) {
+  const walls = scene.walls.filter(
+    (w) => w.getFlag(MODULE_ID, "dungeonHiddenDoorForEdge") === `${roomId}->${targetRoomId}`,
+  );
+  for (const wall of walls) {
+    await wall.update({
+      ds: CONST.WALL_DOOR_STATES.CLOSED,
+      [`flags.${MODULE_ID}.dungeonDoorToRoomId`]: targetRoomId,
+      [`flags.${MODULE_ID}.-=dungeonHiddenDoorForEdge`]: null,
+    });
+  }
+}
+```
+
+**`scripts/ui/dungeon-app.mjs`'s `applyRoomEffect`:** add a case (the old comment above the function claiming `reduced_travel_time`/`extra_travel_time` "never reach here" is now wrong post-#93/#156 — `markRoomOutcome` no longer intercepts them, so update that comment too):
+
+```js
+case "reduced_travel_time":
+case "extra_travel_time": {
+  if (revealedRoomId) {
+    await unsealHiddenDoorFromRoom(scene, roomId, revealedRoomId);
+  }
+  return;
+}
+```
+
+**Note for the implementer:** `markRoomOutcome` now returns `revealedRoomId` alongside `effectKey` (Task 9's main body, updated above) — thread it through `resolveCurrentRoom`'s existing `applyRoomEffect(effectKey, {...})` call the same way `roomId`/`physicalSlot`/etc. already are, rather than re-deriving it from `state.hiddenEdges[roomId]` inside `applyRoomEffect` (that entry is already deleted by the time this runs, since `applyRoomEffect` executes against the post-merge state).
+
+---
+
 ## Task 10: Multi-exit room build, content population, and frontier placeholders (`dungeon-scene.mjs`)
 
 **#93 pre-flight fix — this task's scope was expanded during plan review.**
@@ -1416,7 +1542,11 @@ functions used. The original plan left this entire function — and the
 — completely unaddressed. Dispatched as originally written, Tasks 10/12
 would have built a dungeon of empty, permanently-locked rooms. This
 corrected version covers the whole thing in one task, since it's all the
-same file and the same "slot → graph node" generalization.
+same file and the same "slot → graph node" generalization. **#156** layers
+its own hidden-edge geometry on top of this same combined function (not
+the narrower `buildRoomAtSlot`-only shape #156 was originally drafted
+against) — see the `hiddenChildId`/`hiddenIncomingFromId`/`isHiddenIncoming`
+params below.
 
 **Files:**
 - Modify: `scripts/dungeon-scene.mjs`, `scripts/dungeon-layout.mjs` (export `roomSidesFor` as `roomSidesForRect`), `scripts/dungeon-combat.mjs` (rename `startCombatForSlot`/`getCombatForSlot` — see Step 3d)
@@ -1424,11 +1554,16 @@ same file and the same "slot → graph node" generalization.
 
 **Interfaces:**
 - Consumes: `roomRect`, `roomEnclosureWalls`, `exitFaceForIndex`, `incomingFaceFor`, `parentRoomIdFor`, `OPPOSITE`, `ROW_STRIDE`, `COLUMN_STRIDE` (Task 5), `buildEdgeCorridor` (Task 6).
-- Produces: `buildRoomAtGraphNode(scene, roomId, {rank, col, incomingFace, childIds, isGoal, locationTag, artVariant, seed})` (replaces `buildRoomAtSlot`, this room's own enclosure walls/floor art/light only — creates them directly rather than returning them, also writes a `dungeonDoorToRoomId` flag onto each created door/reveal-door wall — Task 11 reads it directly off the wall, no separate in-memory lookup needed — and returns `{rect, outgoingFaces, placeholderIds}`, deliberately NOT deleting `placeholderIds` itself, deferring that to the caller for #110 ordering); `buildPopulateAndUnlockGraphNode(scene, state, room, {rank, col, incomingFace, childIds, parentRoomId, unlock})` (replaces `buildPopulateAndUnlockRoom` — walls + parent-connection geometry + content population + door unlock, the actual function Tasks 11/12/13 call; `parentRoomId` comes from `parentRoomIdFor(edges, room.id)`, resolved by the caller against the same `edges` used for `incomingFace`); `resizeSceneForLayout(scene, {maxRank, maxCol})` (new, replaces the per-room `ensureSceneCovers`/`requiredDimensions(maxSlot)` pair — called ONCE by Task 12 right after layout is computed, before any room builds, since the whole graph's extent is known up front under full pregeneration); `unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildIds)` (new — unlocks every one of `roomId`'s outgoing doors whose target is in `childIds` but not in `hiddenChildIds`, via each door's own `dungeonDoorToRoomId` flag; used by Task 13's corrected trailing block instead of building a "next room").
+- Produces: `buildRoomAtGraphNode(scene, roomId, {rank, col, incomingFace, childIds, hiddenChildId, hiddenIncomingFromId, isHiddenIncoming, isGoal, locationTag, artVariant, seed})` (replaces `buildRoomAtSlot`, this room's own enclosure walls/floor art/light only — creates them directly rather than returning them, also writes a `dungeonDoorToRoomId` flag onto each created real door/reveal-door wall — Task 11 reads it directly off the wall, no separate in-memory lookup needed — and returns `{rect, outgoingFaces, placeholderIds, hiddenIncomingPlaceholderIds}`, deliberately NOT deleting either placeholder-id list itself, deferring that to the caller for #110 ordering); `buildPopulateAndUnlockGraphNode(scene, state, room, {rank, col, incomingFace, childIds, parentRoomId, unlock})` (replaces `buildPopulateAndUnlockRoom` — walls + parent-connection geometry (real AND hidden) + content population + door unlock, the actual function Tasks 11/12/13 call; `parentRoomId` comes from `parentRoomIdFor(layoutEdges, room.id)`, resolved by the caller against the same `layoutEdges` used for `incomingFace`); `resizeSceneForLayout(scene, {maxRank, maxCol})` (new, replaces the per-room `ensureSceneCovers`/`requiredDimensions(maxSlot)` pair — called ONCE by Task 12 right after layout is computed, before any room builds, since the whole graph's extent is known up front under full pregeneration); `unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildIds)` (new — unlocks every one of `roomId`'s outgoing doors whose target is in `childIds` but not in `hiddenChildIds`, via each door's own `dungeonDoorToRoomId` flag; used by Task 13's corrected trailing block instead of building a "next room").
+
+**#156 fix — hidden edges get real, sealed geometry at build time, not a runtime retrofit.** A room's hidden outgoing edge (`hiddenEdges[roomId]`, at most one — Task 3) reserves the face right after its real `childIds` and gets a placeholder/door exactly like a real edge, EXCEPT it's flagged `dungeonHiddenDoorForEdge` instead of `dungeonFrontierWallForEdge`/`dungeonDoorToRoomId`. That distinct flag is what keeps it sealed: the per-room-populated unlock step (`unlockDoorsFromRoom`, above) only ever matches the normal flag, so a `dungeonHiddenDoorForEdge`-flagged door is never touched by it and stays `LOCKED` until Task 9's reveal explicitly promotes it (the addendum above). Three new params thread this through:
+- `hiddenChildId`: this room's own hidden outgoing target, if any (`hiddenEdges[roomId]?.[0]`) — reserves and builds its placeholder face, same as a real child but hidden-flagged.
+- `hiddenIncomingFromId`: set only when building a **shortcut's target** room — the shortcut's source room id (`hiddenIncomingByRoomId[roomId]?.[0]`, Task 3). Reserves and completes a *second*, hidden-flagged incoming face, alongside the room's normal real `incomingFace`.
+- `isHiddenIncoming`: true only when building a **detour room** — its one real `incomingFace`/parent link (already resolved via `incomingFaceFor(layoutEdges, ...)`, since detours live in `layoutEdges`) should be completed with the hidden flag/LOCKED state instead of the normal one, because that connection IS the hidden path.
 
 - [ ] **Step 1: Write the plan for manual verification**
 
-No unit test — write out, in a comment block above `buildRoomAtGraphNode`, the exact live-verification checklist to run once implemented (mirrors the spec's Testing section): (a) a 1-exit room behaves identically to today's single-corridor case, content and all; (b) a 2-exit room gets two independently lockable doors on different faces, each leading to its own distinct populated child; (c) opening either door correctly supersedes only that door's own frontier placeholder, leaving the room's other still-unopened exit's placeholder untouched; (d) the real walls for a newly built connection are always created before the old frontier placeholder for that same face is deleted (never the reverse — the existing #110 fog-leak-avoidance ordering); (e) a trap/skill_challenge/puzzle/narrative/treasure room's own persisted state (`ensureTrapState`/`ensureSkillChallenge`/etc.) is attached exactly once per room, same as today.
+No unit test — write out, in a comment block above `buildRoomAtGraphNode`, the exact live-verification checklist to run once implemented (mirrors the spec's Testing section): (a) a 1-exit room behaves identically to today's single-corridor case, content and all; (b) a 2-exit room gets two independently lockable doors on different faces, each leading to its own distinct populated child; (c) opening either door correctly supersedes only that door's own frontier placeholder, leaving the room's other still-unopened exit's placeholder untouched; (d) the real walls for a newly built connection are always created before the old frontier placeholder for that same face is deleted (never the reverse — the existing #110 fog-leak-avoidance ordering); (e) a trap/skill_challenge/puzzle/narrative/treasure room's own persisted state (`ensureTrapState`/`ensureSkillChallenge`/etc.) is attached exactly once per room, same as today; (f) **[#156]** a room with a hidden shortcut/detour edge still has that face solidly built (a real door wall, `ds: LOCKED`, flagged `dungeonHiddenDoorForEdge`) rather than left as a plain solid enclosure wall; (g) **[#156]** opening every one of a room's *normal* doors never reveals or unlocks its hidden door.
 
 - [ ] **Step 2: (N/A — no automated test to run first for this task)**
 
@@ -1462,11 +1597,24 @@ import {
 export async function buildRoomAtGraphNode(
   scene,
   roomId,
-  { rank, col, incomingFace = null, childIds = [], isGoal = false, locationTag = null, artVariant = 0, seed = "" },
+  {
+    rank, col, incomingFace = null, childIds = [],
+    hiddenChildId = null, hiddenIncomingFromId = null, isHiddenIncoming = false,
+    isGoal = false, locationTag = null, artVariant = 0, seed = "",
+  },
 ) {
   const rect = roomRect(seed, roomId, rank, col);
 
-  const outgoingFaces = isGoal ? [] : childIds.map((_, i) => exitFaceForIndex(i));
+  const realOutgoingFaces = isGoal ? [] : childIds.map((_, i) => exitFaceForIndex(i));
+  const hiddenFaceIndex = childIds.length; // reserved right after the real children
+  const outgoingFaces = hiddenChildId ? [...realOutgoingFaces, exitFaceForIndex(hiddenFaceIndex)] : realOutgoingFaces;
+  // A shortcut target reserves ONE MORE face for its extra hidden incoming
+  // door — distinct from `incomingFace` (its real parent's face). There's
+  // no compass direction left to "exclude" for it via roomEnclosureWalls
+  // (incoming faces aren't part of that exclusion set the way outgoing
+  // faces are — see incomingFaceFor: a room's incoming always lands on
+  // whichever face its real parent's index maps to), so its wall is simply
+  // carved the same way any other reserved face is, keyed by direction.
   const walls = roomEnclosureWalls(seed, roomId, { incomingFace, outgoingFaces }, rect).map(
     (side) =>
       wallDoc(side, {
@@ -1480,13 +1628,40 @@ export async function buildRoomAtGraphNode(
   );
 
   // Supersede the parent's frontier placeholder for THIS incoming edge
-  // (looked up now, deleted only after the real geometry below is
-  // created — #110's creation-before-deletion ordering, generalized from
-  // "the one placeholder for slot - 1" to "the placeholder for this
-  // specific incoming edge").
+  // (looked up now, deleted only after the real geometry is created by
+  // the CALLER — #110's creation-before-deletion ordering, generalized
+  // from "the one placeholder for slot - 1" to "the placeholder for this
+  // specific incoming edge"; see buildPopulateAndUnlockGraphNode, Step
+  // 3c, which has the parent's rect this function doesn't).
+  // #156: a detour room's incoming connection is hidden — its placeholder
+  // was flagged `dungeonHiddenDoorForEdge` by its parent (the hidden-outgoing
+  // block below), not `dungeonFrontierWallForEdge`, so look it up under the
+  // matching flag. `endsWith` (not `===`) because the flag's value encodes
+  // the full `sourceId->targetId` edge (set below, in the outgoing-face
+  // loops) — matching on the target suffix is what actually finds it,
+  // regardless of which specific parent built it.
+  const placeholderFlag = isHiddenIncoming ? "dungeonHiddenDoorForEdge" : "dungeonFrontierWallForEdge";
   const placeholderIds = incomingFace
     ? scene.walls
-        .filter((w) => w.getFlag(MODULE_ID, "dungeonFrontierWallForEdge")?.endsWith(`->${roomId}`))
+        .filter((w) => w.getFlag(MODULE_ID, placeholderFlag)?.endsWith(`->${roomId}`))
+        .map((w) => w.id)
+    : [];
+
+  // #156: a shortcut TARGET also completes a second, hidden-flagged
+  // incoming connection from `hiddenIncomingFromId` — its source room
+  // already built a `dungeonHiddenDoorForEdge`-flagged placeholder on its
+  // own reserved face (see the hidden-outgoing block below). Both this
+  // block and the `isHiddenIncoming` block above find a placeholder to
+  // supersede; a detour room only ever hits the `isHiddenIncoming` one
+  // (its sole real parent link IS the hidden edge) and a shortcut target
+  // only ever hits this one (its real parent link is a normal edge, and
+  // the shortcut is a second, independent incoming connection) — a room is
+  // never both. Deferred to the caller to delete too, same #110 reasoning
+  // — the hidden connection's own real geometry (built by the shortcut's
+  // SOURCE room, a separate caller step) must exist first.
+  const hiddenIncomingPlaceholderIds = hiddenIncomingFromId
+    ? scene.walls
+        .filter((w) => w.getFlag(MODULE_ID, "dungeonHiddenDoorForEdge") === `${hiddenIncomingFromId}->${roomId}`)
         .map((w) => w.id)
     : [];
 
@@ -1501,16 +1676,31 @@ export async function buildRoomAtGraphNode(
       }),
     );
   }
+  // #156: the hidden outgoing placeholder, if any — same lifecycle as a
+  // real frontier placeholder (superseded when the target room builds),
+  // but flagged so the generic per-room-populated unlock step never
+  // touches it.
+  if (hiddenChildId) {
+    const face = exitFaceForIndex(hiddenFaceIndex);
+    const side = roomSidesForRect(rect)[face];
+    walls.push(
+      wallDoc(side, {
+        ds: CONST.WALL_DOOR_STATES.LOCKED,
+        flags: { [MODULE_ID]: { dungeonHiddenDoorForEdge: `${roomId}->${hiddenChildId}` } },
+      }),
+    );
+  }
 
-  // This room's OWN enclosure walls, created now — but the frontier
-  // placeholder they supersede is NOT deleted here. #110's ordering
-  // requires the placeholder to survive until the REAL connecting door
-  // exists, and that door is built by the caller (buildPopulateAndUnlockGraphNode,
-  // Step 3c below, which has the parent's rect this function doesn't) —
-  // deleting the placeholder here, before that door exists, would leave
-  // exactly the gap #110 fixed (a face with neither the placeholder nor
-  // real geometry). `placeholderIds` is returned for the caller to delete
-  // only once ITS OWN connection-wall creation succeeds.
+  // This room's OWN enclosure walls, created now — but neither
+  // `placeholderIds` nor `hiddenIncomingPlaceholderIds` is deleted here.
+  // #110's ordering requires each placeholder to survive until ITS OWN
+  // real connecting door exists, and those doors are built by the caller
+  // (buildPopulateAndUnlockGraphNode, Step 3c below, which has the
+  // parent rect(s) this function doesn't) — deleting a placeholder here,
+  // before its door exists, would leave exactly the gap #110 fixed (a
+  // face with neither the placeholder nor real geometry). Both lists are
+  // returned for the caller to delete, each only once ITS OWN matching
+  // connection-wall creation succeeds.
   if (walls.length) await scene.createEmbeddedDocuments("Wall", walls);
 
   // This room's own floor-art Tile + AmbientLight (ported unchanged from
@@ -1524,11 +1714,11 @@ export async function buildRoomAtGraphNode(
   // value needs to change here (art/light documents carry no
   // dungeonSlot-style flag today), only the `rect` source.
 
-  return { rect, outgoingFaces, placeholderIds };
+  return { rect, outgoingFaces, placeholderIds, hiddenIncomingPlaceholderIds };
 }
 ```
 
-**Design note:** `buildRoomAtGraphNode` creates its own enclosure walls, floor art, and light directly (self-contained, matching the original `buildRoomAtSlot`'s scope for a room's own geometry) — but does NOT delete the parent's frontier placeholder itself, and does NOT yet know about the corridor connection (needs the parent's rect, which this function has no way to know). The corridor CONNECTION to a parent (door/reveal-door/corridor walls+tiles) is `buildPopulateAndUnlockGraphNode`'s own job (Step 3c) — it creates the connection walls in a SECOND `createEmbeddedDocuments` call, and only THEN deletes the `placeholderIds` this function returned, preserving #110's exact creation-before-deletion ordering (placeholder survives from before this room existed at all, through this room's own enclosure build, until the moment real connecting geometry actually replaces it).
+**Design note:** `buildRoomAtGraphNode` creates its own enclosure walls, floor art, and light directly (self-contained, matching the original `buildRoomAtSlot`'s scope for a room's own geometry) — but does NOT delete either the real parent's frontier placeholder or a shortcut's hidden-incoming placeholder itself, and does NOT yet know about either corridor connection (needs the source room's rect, which this function has no way to know). The corridor CONNECTION(s) to a parent (real door/reveal-door/corridor walls+tiles, and — for a shortcut target — a second, hidden-flagged, LOCKED one) are `buildPopulateAndUnlockGraphNode`'s own job (Step 3c) — it creates the connection walls in later `createEmbeddedDocuments` calls, and only THEN deletes each matching placeholder-id list this function returned, preserving #110's exact creation-before-deletion ordering independently for the real and hidden connections (a placeholder survives from before this room existed at all, through this room's own enclosure build, until the moment ITS OWN real connecting geometry actually replaces it).
 
 - [ ] **Step 3c: Replace `buildPopulateAndUnlockRoom` with `buildPopulateAndUnlockGraphNode`**
 
@@ -1688,6 +1878,10 @@ export async function resizeSceneForLayout(scene, { maxRank, maxCol }) {
 
 Delete `requiredDimensions`/`ensureSceneCovers` entirely (both superseded). `createDungeonScene`'s own initial sizing call (`...requiredDimensions(ROOMS_PER_ROW)`) becomes a fixed conservative default sized for just the entry room, e.g. `...{ width: toPixels(INITIAL_GX + COLUMN_STRIDE + MARGIN_ROOMS), height: toPixels(ROW_STRIDE + MARGIN_ROOMS) }` — `resizeSceneForLayout` corrects it to the real full size moments later in `startDungeonRun`, before any room past the entry builds.
 
+**#156 addendum — completing a hidden connection:** when `isHiddenIncoming` or `hiddenIncomingFromId` is set, complete it the exact same way (`buildEdgeCorridor(seed, sourceId, roomId, sourceRect, rect, exitFace)`, append its output to this room's own `walls` before creation), with two differences: (1) set both the resulting `doorWall` and `revealDoorWall` to `ds: CONST.WALL_DOOR_STATES.LOCKED` (not the real case's default open-once-populated state) and flag them `dungeonHiddenDoorForEdge` (not `dungeonDoorToRoomId`/the real per-edge flag) — this is what keeps them sealed until Task 9's reveal step; (2) do **not** add the resulting wall id to `doorToRoomId` — a locked, hidden-flagged door must never resolve through `handleDungeonDoorOpened` (Task 11) until reveal promotes it. `sourceRect` for a hidden connection is `roomRect(seed, sourceId, ...)` recomputed from `state.layoutPositionByRoomId[sourceId]` (the caller already has this from building `sourceId` earlier in topological order) — same as how a normal child looks up its parent's rect today.
+
+**Pre-existing bug found while writing this fix (not part of #156, fixed here only incidentally):** the frontier-placeholder lookup above now uses `.endsWith(`->${roomId}`)`. The original draft of this task used `=== `->${roomId}`` against a flag value that was always set as `${roomId}->${childIds[i]}` (parent **and** child, e.g. `"roomA->roomB"`) — that never equals `"->roomB"`, so no frontier placeholder would ever have actually been found/superseded for *any* edge, hidden or not (every doorway would keep a redundant leftover placeholder wall). Both the normal and hidden lookups share this one `placeholderIds` computation, so switching it to `.endsWith` (needed for the hidden case regardless, since the hidden flag value must stay parent-specific to disambiguate) fixes the pre-existing case too, for free.
+
 - [ ] **Step 4: Live verification**
 
 Run the checklist written in Step 1 against a real Foundry world (same existing convention noted in `dungeon-scene.mjs`'s other functions) before committing. This task can only be meaningfully live-verified together with Task 12's wiring (nothing calls `buildPopulateAndUnlockGraphNode` until then) — it's fine to write Task 10's code now and defer live verification to Task 12's own Step 4, noting that explicitly in this task's commit message rather than skipping verification silently.
@@ -1708,7 +1902,7 @@ git commit -m "feat: build+populate+unlock multi-exit graph rooms with per-edge 
 - Test: manual/live verification (same boundary as Task 10).
 
 **Interfaces:**
-- Consumes: `advanceToRoom` (Task 8), `doorToRoomId` lookup (Task 10), `buildPopulateAndUnlockGraphNode` (Task 10), `incomingFaceFor`/`parentRoomIdFor` (Task 5).
+- Consumes: `advanceToRoom` (Task 8), `doorToRoomId` lookup (Task 10), `buildPopulateAndUnlockGraphNode` (Task 10), `incomingFaceFor`/`parentRoomIdFor` (Task 5), `state.layoutEdges`/`state.hiddenEdges`/`state.hiddenIncomingByRoomId`/`state.hiddenRooms` (Task 3, carried on run state per Task 12).
 - Produces: `handleDungeonDoorOpened(sceneId, wallId)` (existing name, new body) resolving `wallId` → `doorToRoomId[wallId]` → calls `advanceToRoom` with that specific child, instead of the old single `state.rooms[state.currentIndex + 1]` check. Adds the Review Focus lazy-fallback build: if the resolved room's content isn't present yet (eager pregeneration failed for it), build AND populate it on demand before revealing (a walls-only fallback would leave the party in an empty, permanently-locked room — see Task 10's Step 3c split).
 
 - [ ] **Step 1: Write the manual verification checklist**
@@ -1737,15 +1931,27 @@ export async function handleDungeonDoorOpened(sceneId, wallId) {
   // buildRoomAtGraphNode — see Task 10's Step 3c). `unlock: false`
   // because this room itself has not been resolved yet — its own
   // outgoing doors unlock only when its outcome resolves (Task 13).
+  // #156: threads the same hidden-edge params as Task 12's eager-build
+  // call (layoutEdges for the incoming lookup, hidden-edge fields) — a
+  // room reached here via a resolved `dungeonDoorToRoomId` is, by
+  // construction, never still sealed itself (a still-hidden door has no
+  // such flag and returns above), but it can still be the SOURCE of its
+  // own separate hidden edge, or (a detour room specifically) still
+  // structurally have a hidden incoming connection even after that
+  // connection's own door was promoted — passing the same params as the
+  // eager path keeps both build paths agreeing on this room's geometry.
   if (!isSlotBuilt(scene, roomId)) {
     const room = state.rooms[roomId];
     const { rank, col } = state.layoutPositionByRoomId[roomId];
     await buildPopulateAndUnlockGraphNode(scene, state, room, {
       rank,
       col,
-      incomingFace: incomingFaceFor(state.edges, roomId),
+      incomingFace: incomingFaceFor(state.layoutEdges, roomId),
       childIds: state.edges[roomId] ?? [],
-      parentRoomId: parentRoomIdFor(state.edges, roomId),
+      parentRoomId: parentRoomIdFor(state.layoutEdges, roomId),
+      hiddenChildId: state.hiddenEdges[roomId]?.[0] ?? null,
+      hiddenIncomingFromId: state.hiddenIncomingByRoomId[roomId]?.[0] ?? null,
+      isHiddenIncoming: state.hiddenRooms.includes(roomId), // state.hiddenRooms is an array (Task 12's [...hiddenRooms] conversion), not the Set attachHiddenPaths itself returns
       unlock: false,
     });
   }
@@ -1779,6 +1985,8 @@ git commit -m "feat: resolve door-opens against a room's specific graph child, w
 - Consumes: `buildRoomGraph`, `attachHiddenPaths` (Tasks 2-3), `computeRanks`/`computeColumns` (Task 4), `incomingFaceFor`/`parentRoomIdFor` (Task 5), `roomsToEagerlyBuild`/`commitEagerPhysicalSlots` (Task 7), `buildPopulateAndUnlockGraphNode`/`resizeSceneForLayout`/`unlockDoorsFromRoom` (Task 10).
 - Produces: `startDungeonRun` builds the whole graph for every run (drops the `if (state.hostUserId)` gate at dungeon-app.mjs:556) and no longer skips a combat-kind room at generation-order position 1. Persists `state.maxRank` (the graph's deepest rank, from `computeRanks`) alongside `layoutPositionByRoomId` — Task 9's `depthBiasFor` rename and Task 13's `applyRoomEffect` call both read it.
 
+**#156 fix:** `computeRanks`/`computeColumns` must run over `layoutEdges` (Task 3's output, includes detour rooms), not `edges` — otherwise a detour room's `layoutPositionByRoomId` entry is `{rank: undefined, col: undefined}` and every downstream `roomRect` call for it produces garbage. The eager-build loop must also pass each room's hidden-edge info (`hiddenChildId`/`hiddenIncomingFromId`/`isHiddenIncoming`, Task 10) so hidden doors actually get built sealed instead of the face just being walled solid.
+
 - [ ] **Step 1: Write the manual verification checklist**
 
 (a) a GM-present run now pregenerates every room at scene creation, same as a GM-less run; (b) the "Populate Next Room" button and its `populateNextRoom` handler no longer appear/are removed from the app; (c) a dungeon whose first generated room (after entry) is combat-kind is still fully built and playable immediately, with no manual population step required.
@@ -1797,9 +2005,13 @@ In `scripts/ui/dungeon-app.mjs`'s `startDungeonRun` (around line 496-583):
     trapSetpieceIds,
     narrativeSetpieceIds,
   });
-  const { hiddenRooms, hiddenEdges } = getGenerator().attachHiddenPaths({ rooms, edges, seed: state.seed });
-  const ranks = computeRanks(edges, 'room-entry');
-  const columns = computeColumns(edges, ranks, 'room-entry');
+  const { hiddenRooms, hiddenEdges, layoutEdges, hiddenIncomingByRoomId } =
+    getGenerator().attachHiddenPaths({ rooms, edges, seed: state.seed });
+  // #156: rank/col must come from layoutEdges (includes detour rooms), not
+  // edges (visible-only) — computing over edges leaves every detour room's
+  // rank/col undefined, since its only incoming connection is hidden.
+  const ranks = computeRanks(layoutEdges, 'room-entry');
+  const columns = computeColumns(layoutEdges, ranks, 'room-entry');
   const layoutPositionByRoomId = Object.fromEntries(
     Object.keys(rooms).map((id) => [id, { rank: ranks[id], col: columns[id] }]),
   );
@@ -1810,8 +2022,10 @@ In `scripts/ui/dungeon-app.mjs`'s `startDungeonRun` (around line 496-583):
     ...state,
     rooms,
     edges,
+    layoutEdges,
     hiddenRooms: [...hiddenRooms],
     hiddenEdges,
+    hiddenIncomingByRoomId,
     layoutPositionByRoomId,
     maxRank,
     currentRoomId: 'room-entry',
@@ -1828,16 +2042,32 @@ In `scripts/ui/dungeon-app.mjs`'s `startDungeonRun` (around line 496-583):
   // Only the entry room's own outgoing doors unlock immediately; every
   // other room stays locked until its own outcome resolves (Task 13's
   // unlockDoorsFromRoom call) — so this loop always passes
-  // `unlock: false` except for 'room-entry' itself.
+  // `unlock: false` except for 'room-entry' itself. #156: walks
+  // layoutEdges (Task 7) so detour rooms are included, and threads each
+  // room's hidden-edge params through so hidden doors get built sealed
+  // instead of the face just being walled solid.
   const eagerlyBuilt = roomsToEagerlyBuild(state);
   for (const { room, buildOrder } of eagerlyBuilt) {
     const { rank, col } = layoutPositionByRoomId[room.id];
+    const isDetour = hiddenRooms.has(room.id);
     await buildPopulateAndUnlockGraphNode(scene, state, room, {
       rank,
       col,
-      incomingFace: incomingFaceFor(edges, room.id),
+      // #156: incomingFaceFor now takes layoutEdges so a detour room's
+      // (hidden) parent link resolves instead of throwing.
+      incomingFace: incomingFaceFor(layoutEdges, room.id),
       childIds: edges[room.id] ?? [],
-      parentRoomId: parentRoomIdFor(edges, room.id),
+      parentRoomId: parentRoomIdFor(layoutEdges, room.id),
+      // #156: this room's own hidden outgoing target (shortcut or detour),
+      // if any — reserves and seals the extra face.
+      hiddenChildId: hiddenEdges[room.id]?.[0] ?? null,
+      // #156: set only for a shortcut's target room — the source room id
+      // whose hidden edge points at this room, reserving a second sealed
+      // incoming face distinct from this room's real parent link.
+      hiddenIncomingFromId: hiddenIncomingByRoomId[room.id]?.[0] ?? null,
+      // #156: true only for a detour room — its one real incoming link IS
+      // the hidden path, so it's completed sealed/LOCKED instead of open.
+      isHiddenIncoming: isDetour,
       unlock: room.id === 'room-entry',
     });
   }
@@ -1846,7 +2076,7 @@ In `scripts/ui/dungeon-app.mjs`'s `startDungeonRun` (around line 496-583):
 
 Delete `populateNextRoom` (dungeon-app.mjs:733) and its call site/UI button wiring (the `#onPopulateNext` handler and template button referencing it), per the confirmed removal of the ITEM-11 deferral.
 
-**Note for the implementer:** `incomingFaceFor`/`parentRoomIdFor` are Task 5's shared helpers (`dungeon-layout.mjs`) — the same pair Task 11's lazy fallback uses, so both call sites agree on the same parent/face resolution. `roomsToEagerlyBuild` already returns rooms in topological (parents-before-children) order (Task 7), so by the time any room's `buildPopulateAndUnlockGraphNode` call runs, `parentRoomIdFor`'s result for that room already has its own `layoutPositionByRoomId` entry and (if non-entry) has already been built by an earlier loop iteration — required, since the parent's rect is read via `state.layoutPositionByRoomId[parentRoomId]` inside Step 3c.
+**Note for the implementer:** `incomingFaceFor`/`parentRoomIdFor` are Task 5's shared helpers (`dungeon-layout.mjs`) — the same pair Task 11's lazy fallback uses, so both call sites agree on the same parent/face resolution, and both now take `layoutEdges` (not `edges`) so a detour room's hidden parent link resolves instead of throwing. `roomsToEagerlyBuild` already returns rooms in topological (parents-before-children) order over `layoutEdges` (Task 7), so by the time any room's `buildPopulateAndUnlockGraphNode` call runs, `parentRoomIdFor`'s result for that room already has its own `layoutPositionByRoomId` entry and (if non-entry) has already been built by an earlier loop iteration — required, since the parent's rect is read via `state.layoutPositionByRoomId[parentRoomId]` inside Step 3c.
 
 - [ ] **Step 4: Live verification**
 
