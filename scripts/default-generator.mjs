@@ -8,7 +8,7 @@ import {
   buildRoomSequence,
   findOutcomeTemplate,
   resolveRoomOutcome,
-  applySequenceMutation,
+  revealTravelTimeEffect,
 } from './dungeon-deck.mjs';
 import { resolveEncounterRoster } from './encounter-roster.mjs';
 
@@ -16,6 +16,6 @@ export const DefaultGenerator = {
   buildRoomSequence,
   findOutcomeTemplate,
   resolveRoomOutcome,
-  applySequenceMutation,
+  revealTravelTimeEffect,
   generateEncounterRoster: resolveEncounterRoster,
 };

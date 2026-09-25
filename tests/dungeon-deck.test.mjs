@@ -22,7 +22,8 @@ import {
   treasureRoomItemTableName,
   TREASURE_ROOM_CATEGORY_WEIGHTS,
   EXIT_COUNT_WEIGHTS,
-  exitCountAt
+  exitCountAt,
+  revealTravelTimeEffect
 } from '../scripts/dungeon-deck.mjs';
 import { nthLevelTableName, VALUABLE_TIERS } from '../scripts/treasure.mjs';
 
@@ -299,27 +300,27 @@ describe('applySequenceMutation', () => {
 
 describe('depthBiasFor', () => {
   it('is zero at room 0', () => {
-    expect(depthBiasFor({ physicalSlot: 0, roomCount: 8, isGoal: false })).toBe(0);
+    expect(depthBiasFor({ rank: 0, maxRank: 7, isGoal: false })).toBe(0);
   });
 
   it('always gives the goal room the maximum bias, regardless of dungeon length', () => {
-    expect(depthBiasFor({ physicalSlot: 1, roomCount: 2, isGoal: true })).toBe(MAX_DEPTH_BIAS);
-    expect(depthBiasFor({ physicalSlot: 19, roomCount: 20, isGoal: true })).toBe(MAX_DEPTH_BIAS);
+    expect(depthBiasFor({ rank: 1, maxRank: 1, isGoal: true })).toBe(MAX_DEPTH_BIAS);
+    expect(depthBiasFor({ rank: 19, maxRank: 19, isGoal: true })).toBe(MAX_DEPTH_BIAS);
   });
 
   it('is monotonically non-decreasing across a dungeon\'s non-goal rooms', () => {
-    const roomCount = 9;
+    const maxRank = 8;
     let previous = -Infinity;
-    for (let slot = 0; slot < roomCount - 1; slot += 1) {
-      const bias = depthBiasFor({ physicalSlot: slot, roomCount, isGoal: false });
+    for (let rank = 0; rank < maxRank; rank += 1) {
+      const bias = depthBiasFor({ rank, maxRank, isGoal: false });
       expect(bias).toBeGreaterThanOrEqual(previous);
       previous = bias;
     }
   });
 
   it('never exceeds MAX_DEPTH_BIAS', () => {
-    for (let slot = 0; slot < 10; slot += 1) {
-      expect(depthBiasFor({ physicalSlot: slot, roomCount: 10, isGoal: false })).toBeLessThanOrEqual(MAX_DEPTH_BIAS);
+    for (let rank = 0; rank < 10; rank += 1) {
+      expect(depthBiasFor({ rank, maxRank: 9, isGoal: false })).toBeLessThanOrEqual(MAX_DEPTH_BIAS);
     }
   });
 });
@@ -364,32 +365,32 @@ describe('roomKindAt', () => {
 
 describe('lootGpForTreasureRoom', () => {
   it('follows the documented placeholder formula', () => {
-    const args = { partyLevel: 5, physicalSlot: 0, roomCount: 8, isGoal: false };
+    const args = { partyLevel: 5, rank: 0, maxRank: 7, isGoal: false };
     const expected = Math.round(5 * TREASURE_GP_PER_LEVEL);
     expect(lootGpForTreasureRoom(args)).toBe(expected);
   });
 
   it('is 0 for party level 0', () => {
-    expect(lootGpForTreasureRoom({ partyLevel: 0, physicalSlot: 0, roomCount: 8, isGoal: false })).toBe(0);
+    expect(lootGpForTreasureRoom({ partyLevel: 0, rank: 0, maxRank: 7, isGoal: false })).toBe(0);
   });
 
   it('scales up with party level', () => {
-    const low = lootGpForTreasureRoom({ partyLevel: 2, physicalSlot: 0, roomCount: 8, isGoal: false });
-    const high = lootGpForTreasureRoom({ partyLevel: 10, physicalSlot: 0, roomCount: 8, isGoal: false });
+    const low = lootGpForTreasureRoom({ partyLevel: 2, rank: 0, maxRank: 7, isGoal: false });
+    const high = lootGpForTreasureRoom({ partyLevel: 10, rank: 0, maxRank: 7, isGoal: false });
     expect(high).toBeGreaterThan(low);
   });
 
   it('doubles the base amount at maximum depth bias (the goal room)', () => {
-    const base = lootGpForTreasureRoom({ partyLevel: 6, physicalSlot: 0, roomCount: 8, isGoal: false });
-    const atGoal = lootGpForTreasureRoom({ partyLevel: 6, physicalSlot: 7, roomCount: 8, isGoal: true });
+    const base = lootGpForTreasureRoom({ partyLevel: 6, rank: 0, maxRank: 7, isGoal: false });
+    const atGoal = lootGpForTreasureRoom({ partyLevel: 6, rank: 7, maxRank: 7, isGoal: true });
     expect(atGoal).toBe(base * 2);
   });
 
   it('is monotonically non-decreasing with depth for a fixed party level', () => {
-    const roomCount = 9;
+    const maxRank = 8;
     let previous = -Infinity;
-    for (let slot = 0; slot < roomCount - 1; slot += 1) {
-      const gp = lootGpForTreasureRoom({ partyLevel: 4, physicalSlot: slot, roomCount, isGoal: false });
+    for (let rank = 0; rank < maxRank; rank += 1) {
+      const gp = lootGpForTreasureRoom({ partyLevel: 4, rank, maxRank, isGoal: false });
       expect(gp).toBeGreaterThanOrEqual(previous);
       previous = gp;
     }
@@ -397,7 +398,7 @@ describe('lootGpForTreasureRoom', () => {
 });
 
 describe('treasureRoomItemTableName', () => {
-  const args = { partyLevel: 5, physicalSlot: 0, roomCount: 8, isGoal: false };
+  const args = { partyLevel: 5, rank: 0, maxRank: 7, isGoal: false };
 
   it('lists permanent, valuable and consumable categories', () => {
     expect(TREASURE_ROOM_CATEGORY_WEIGHTS.map((w) => w.category)).toEqual([
@@ -430,8 +431,8 @@ describe('treasureRoomItemTableName', () => {
   it('uses partyLevel for the Nth-Level lookup', () => {
     const result = treasureRoomItemTableName({
       partyLevel: 1,
-      physicalSlot: 0,
-      roomCount: 8,
+      rank: 0,
+      maxRank: 7,
       isGoal: false,
       rng: sequenceRng([0]),
     });
@@ -648,5 +649,32 @@ describe('attachHiddenPaths', () => {
         }
       }
     }
+  });
+});
+
+describe('revealTravelTimeEffect', () => {
+  it('merges a room\'s hidden edge into the live edges and removes it from hiddenEdges', () => {
+    const state = { edges: { a: ['b'] }, hiddenEdges: { a: ['shortcut-target'] } };
+    const result = revealTravelTimeEffect(state, 'a', 'reduced_travel_time');
+    expect(result.edges.a).toEqual(expect.arrayContaining(['b', 'shortcut-target']));
+    expect(result.hiddenEdges.a).toBeUndefined();
+    expect(result.revealedRoomId).toBe('shortcut-target');
+  });
+
+  it('is a no-op when the room has no hidden edge', () => {
+    const state = { edges: { a: ['b'] }, hiddenEdges: {} };
+    const result = revealTravelTimeEffect(state, 'a', 'extra_travel_time');
+    // Not a bare toEqual(state): the function always includes a
+    // revealedRoomId key (null here), per its documented return contract
+    // ({edges, hiddenEdges, revealedRoomId}) — state itself has no such key.
+    expect(result.edges).toEqual(state.edges);
+    expect(result.hiddenEdges).toEqual(state.hiddenEdges);
+    expect(result.revealedRoomId).toBeNull();
+  });
+
+  it('is a no-op for an effectKey other than reduced_travel_time/extra_travel_time', () => {
+    const state = { edges: { a: ['b'] }, hiddenEdges: { a: ['shortcut-target'] } };
+    const result = revealTravelTimeEffect(state, 'a', 'treasure');
+    expect(result).toEqual({ ...state, revealedRoomId: null });
   });
 });

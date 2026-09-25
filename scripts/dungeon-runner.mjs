@@ -5,15 +5,17 @@
  * draw-target.mjs's canvasRef/userRef, so this is testable against an
  * in-memory stub instead of live `game.settings`.
  *
- * `currentIndex` names the room the party is physically STANDING IN, not the
- * room most recently judged. Resolving a room (markRoomOutcome) never moves
- * it — it only decides what comes next and assigns that next room a physical
- * slot number so dungeon-scene.mjs knows what to build. Only the automatic
- * room-entry trigger (advanceToRoom) moves currentIndex, once the party has
- * actually walked there. Physical slots are handed out in the exact order
- * rooms are approached (a plain incrementing counter), never reassigned —
- * see dungeon-layout.mjs for why that needs no reindexing even when a Ruin
- * or Reward inserts or removes a room from the sequence.
+ * `currentRoomId` names the room the party is physically STANDING IN, not the
+ * room most recently judged (`currentIndex` is kept in sync alongside it,
+ * purely for backward compatibility with any caller still reading it —
+ * see advanceToRoom/undoLastRoomEntry). Resolving a room (markRoomOutcome)
+ * never moves it — it only decides the outcome effect and, for a hidden-path
+ * effect, reveals it (see markRoomOutcome's own docblock). Only the
+ * automatic room-entry trigger (advanceToRoom) moves currentRoomId, once the
+ * party has actually walked there. #93's eager pregeneration
+ * (roomsToEagerlyBuild) builds every room's physical geometry up front, at
+ * run start — there is no more per-room physical-slot assignment as the
+ * party progresses.
  */
 import { getGenerator } from "./generator-registry.mjs";
 import {
@@ -170,18 +172,25 @@ export async function createRun(
 }
 
 /**
- * Resolve the CURRENT room as succeeded or failed.
+ * Resolve the CURRENT room (`state.currentRoomId`) as succeeded or failed.
  *
- * Does NOT move currentIndex — see the file docblock. For the goal room this
- * just ends the run. For any other room it resolves the outcome slot, applies
- * any sequence mutation, and — if there's a room after it — assigns that next
- * room its physical slot number the first time it's ever reached (a plain
- * incrementing counter; `dungeon-deck.mjs`'s own mutation logic already
- * decides which logical room that is, this file doesn't need to know why).
+ * Does NOT move currentRoomId — see the file docblock; only advanceToRoom
+ * does that, once the party actually walks there. For the goal room this
+ * just ends the run. For any other room it resolves the outcome slot and,
+ * for a `reduced_travel_time`/`extra_travel_time` effect, reveals whatever
+ * hidden shortcut/detour path generation (#93's attachHiddenPaths) already
+ * attached to this room — merging it into the live `edges` and dropping it
+ * from `hiddenEdges` (see `revealTravelTimeEffect`, dungeon-deck.mjs). Every
+ * room in the graph is already built at scene-creation time (#93's eager
+ * pregeneration, roomsToEagerlyBuild) — this never builds, removes, or
+ * reassigns a room the way the old linear-sequence version of this function
+ * used to.
  *
- * Returns `nextRoomId`/`nextPhysicalSlot` (both null once there's nothing
- * left, i.e. the goal room was just resolved) so the caller knows what to
- * physically build next.
+ * Returns `revealedRoomId` (#156) — the target room id whose hidden door
+ * just became live, non-null only for a genuine reveal — so the caller
+ * (`ui/dungeon-app.mjs`'s `applyRoomEffect`) knows which scene door to
+ * unseal, without re-deriving it from `hiddenEdges`, which is already
+ * mutated by the time that runs.
  */
 export async function markRoomOutcome(
   { sceneId, succeeded },
@@ -195,16 +204,12 @@ export async function markRoomOutcome(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state || state.completed) {
-    return {
-      state,
-      effectKey: null,
-      mutation: null,
-      nextRoomId: null,
-      nextPhysicalSlot: null,
-    };
+    return { state, effectKey: null };
   }
 
-  const room = state.rooms[state.currentIndex];
+  const room = Array.isArray(state.rooms)
+    ? state.rooms.find((r) => r.id === state.currentRoomId)
+    : state.rooms[state.currentRoomId];
   // #152 investigation: resolving a room never moves currentIndex (see this
   // file's own docblock) — only actually walking into the next one does, via
   // advanceToRoom. That means the Succeed/Fail/Declare Victory/Declare Defeat
@@ -219,13 +224,7 @@ export async function markRoomOutcome(
   // Guarded here, once, at the single place every resolution path funnels
   // through, rather than patching each caller's button individually.
   if (state.history.some((h) => h.roomId === room.id)) {
-    return {
-      state,
-      effectKey: null,
-      mutation: null,
-      nextRoomId: null,
-      nextPhysicalSlot: null,
-    };
+    return { state, effectKey: null };
   }
   // The entry (see buildRoomSequence) has no outcome slot and nothing to
   // resolve; its own transition happens automatically (createRun/
@@ -236,13 +235,7 @@ export async function markRoomOutcome(
   // it falls through below instead of returning here — see the `safe_rest`
   // branch just past this guard.
   if (!room.isGoal && room.outcomeSlotId == null && room.kind !== "safe_rest") {
-    return {
-      state,
-      effectKey: null,
-      mutation: null,
-      nextRoomId: null,
-      nextPhysicalSlot: null,
-    };
+    return { state, effectKey: null };
   }
 
   const base = {
@@ -260,66 +253,31 @@ export async function markRoomOutcome(
       history: [...state.history, { ...base, effectKey }],
     };
     await persist(sceneId, newState, settingsRef);
-    return {
-      state: newState,
-      effectKey,
-      mutation: null,
-      nextRoomId: null,
-      nextPhysicalSlot: null,
-    };
+    return { state: newState, effectKey };
   }
 
-  // A rest room has nothing to reward or ruin — just move the sequence along
-  // to whatever comes after it, same slot-assignment bookkeeping as any
-  // other room (ITEM-5), rather than running findOutcomeTemplate/
+  // A rest room has nothing to reward or ruin — just move on to whatever
+  // comes after it (ITEM-5), rather than running findOutcomeTemplate/
   // resolveRoomOutcome against its null outcomeSlotId.
-  const { effectKey, mutation } =
+  const { effectKey } =
     room.kind === "safe_rest"
-      ? { effectKey: "rest_room_passed", mutation: null }
+      ? { effectKey: "rest_room_passed" }
       : getGenerator().resolveRoomOutcome(getGenerator().findOutcomeTemplate(room.outcomeSlotId), succeeded);
-  const rooms =
-    mutation === "remove_next" || mutation === "insert_after"
-      ? getGenerator().applySequenceMutation(state.rooms, state.currentIndex, mutation, {
-          seed: state.seed,
-          puzzleSetpieceIds,
-          trapSetpieceIds,
-          narrativeSetpieceIds,
-          treasureSetpieceIds,
-        })
-      : state.rooms;
 
-  const nextRoomId = rooms[state.currentIndex + 1]?.id ?? null;
-  let physicalSlotByRoomId = state.physicalSlotByRoomId;
-  let nextPhysicalSlot = state.nextPhysicalSlot;
-  let assignedSlot = null;
-  if (nextRoomId) {
-    if (nextRoomId in physicalSlotByRoomId) {
-      assignedSlot = physicalSlotByRoomId[nextRoomId];
-    } else {
-      assignedSlot = nextPhysicalSlot;
-      physicalSlotByRoomId = {
-        ...physicalSlotByRoomId,
-        [nextRoomId]: assignedSlot,
-      };
-      nextPhysicalSlot += 1;
-    }
-  }
+  const { edges, hiddenEdges, revealedRoomId } = getGenerator().revealTravelTimeEffect(
+    { edges: state.edges, hiddenEdges: state.hiddenEdges ?? {} },
+    room.id,
+    effectKey,
+  );
 
   const newState = {
     ...state,
-    rooms,
-    physicalSlotByRoomId,
-    nextPhysicalSlot,
+    edges,
+    hiddenEdges,
     history: [...state.history, { ...base, effectKey }],
   };
   await persist(sceneId, newState, settingsRef);
-  return {
-    state: newState,
-    effectKey,
-    mutation,
-    nextRoomId,
-    nextPhysicalSlot: assignedSlot,
-  };
+  return { state: newState, effectKey, revealedRoomId };
 }
 
 /**

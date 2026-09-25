@@ -441,6 +441,35 @@ export async function relockDoorToSlot(scene, slot) {
     await revealWall.update({ ds: CONST.WALL_DOOR_STATES.CLOSED });
 }
 
+/**
+ * #156: promote a hidden shortcut/detour door from sealed to normal, once
+ * `revealTravelTimeEffect` (dungeon-deck.mjs, called from
+ * dungeon-runner.mjs's markRoomOutcome) has merged its edge into the live
+ * graph. Never builds anything — the door and its corridor were already
+ * constructed (LOCKED, `dungeonHiddenDoorForEdge`-flagged) during eager
+ * pregeneration (Task 10). Finds every wall flagged
+ * `dungeonHiddenDoorForEdge` starting with `${roomId}->` (the doorWall on
+ * the revealing room's own face, and its matching revealDoorWall on the
+ * target's face both carry this prefix, per Task 10's addendum), and:
+ * - sets `ds: CONST.WALL_DOOR_STATES.CLOSED` (unlocked, same convention as
+ *   `unlockDoorToSlot`)
+ * - replaces the `dungeonHiddenDoorForEdge` flag with the normal
+ *   `dungeonDoorToRoomId` flag (set to the edge's target room id) so
+ *   `handleDungeonDoorOpened` (Task 11) can resolve it like any other door
+ */
+export async function unsealHiddenDoorFromRoom(scene, roomId, targetRoomId) {
+  const walls = scene.walls.filter(
+    (w) => w.getFlag(MODULE_ID, "dungeonHiddenDoorForEdge") === `${roomId}->${targetRoomId}`,
+  );
+  for (const wall of walls) {
+    await wall.update({
+      ds: CONST.WALL_DOOR_STATES.CLOSED,
+      [`flags.${MODULE_ID}.dungeonDoorToRoomId`]: targetRoomId,
+      [`flags.${MODULE_ID}.-=dungeonHiddenDoorForEdge`]: null,
+    });
+  }
+}
+
 /** Whether a combat room's monsters have already been placed. */
 export function isSlotPopulated(scene, slot) {
   return scene.tokens.some((t) => t.getFlag(MODULE_ID, "dungeonSlot") === slot);

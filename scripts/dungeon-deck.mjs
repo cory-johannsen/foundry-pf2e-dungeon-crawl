@@ -94,9 +94,9 @@ export const MAX_DEPTH_BIAS = 2;
  * room actually built. The goal room always gets the max regardless of where
  * it lands (a short dungeon shouldn't have a soft final boss).
  */
-export function depthBiasFor({ physicalSlot, roomCount, isGoal }) {
+export function depthBiasFor({ rank, maxRank, isGoal }) {
   if (isGoal) return MAX_DEPTH_BIAS;
-  const fraction = physicalSlot / Math.max(1, roomCount - 1);
+  const fraction = rank / Math.max(1, maxRank);
   return Math.round(fraction * MAX_DEPTH_BIAS);
 }
 
@@ -111,8 +111,8 @@ export const TREASURE_GP_PER_LEVEL = 10;
  * MAX_DEPTH_BIAS/the goal room), the same depth-escalation signal combat
  * rooms already use for encounter difficulty.
  */
-export function lootGpForTreasureRoom({ partyLevel, physicalSlot, roomCount, isGoal }) {
-  const bias = depthBiasFor({ physicalSlot, roomCount, isGoal });
+export function lootGpForTreasureRoom({ partyLevel, rank, maxRank, isGoal }) {
+  const bias = depthBiasFor({ rank, maxRank, isGoal });
   return Math.round(partyLevel * TREASURE_GP_PER_LEVEL * (1 + bias / MAX_DEPTH_BIAS));
 }
 
@@ -134,8 +134,8 @@ export const TREASURE_ROOM_CATEGORY_WEIGHTS = [
  * lootGpForTreasureRoom's own gp figure as the price budget for a
  * 'valuable' category pick, so the two stay in sync.
  */
-export function treasureRoomItemTableName({ partyLevel, physicalSlot, roomCount, isGoal, rng }) {
-  const gp = lootGpForTreasureRoom({ partyLevel, physicalSlot, roomCount, isGoal });
+export function treasureRoomItemTableName({ partyLevel, rank, maxRank, isGoal, rng }) {
+  const gp = lootGpForTreasureRoom({ partyLevel, rank, maxRank, isGoal });
   const category = pickWeightedCategory(TREASURE_ROOM_CATEGORY_WEIGHTS, rng());
   return category === 'valuable'
     ? valuableTierForBudget(gp * ITEM_PRICE_BUDGET_FRACTION)
@@ -558,4 +558,29 @@ export function attachHiddenPaths({ rooms, edges, seed }) {
   }
 
   return { rooms, edges, hiddenRooms, hiddenEdges };
+}
+
+/**
+ * Resolve a reduced_travel_time/extra_travel_time outcome against a
+ * pregenerated graph (#93) — reveals whatever hidden shortcut/detour edge
+ * generation attached to `roomId` (attachHiddenPaths), if any. Never
+ * builds or removes a room; the target was already constructed at
+ * scene-creation time. A no-op if nothing was hidden there.
+ */
+// Data-only reveal — see #156, filed during #93 pre-flight review: no
+// door/room geometry is built for the revealed edge anywhere in this
+// plan yet. Deliberately deferred; do not block this task on it.
+export function revealTravelTimeEffect({ edges, hiddenEdges }, roomId, effectKey) {
+  if (effectKey !== 'reduced_travel_time' && effectKey !== 'extra_travel_time') {
+    return { edges, hiddenEdges, revealedRoomId: null };
+  }
+  const hidden = hiddenEdges[roomId];
+  if (!hidden?.length) return { edges, hiddenEdges, revealedRoomId: null };
+  const newHiddenEdges = { ...hiddenEdges };
+  delete newHiddenEdges[roomId];
+  return {
+    edges: { ...edges, [roomId]: [...(edges[roomId] ?? []), ...hidden] },
+    hiddenEdges: newHiddenEdges,
+    revealedRoomId: hidden[0], // attachHiddenPaths (#156) guarantees at most one hidden target per room
+  };
 }

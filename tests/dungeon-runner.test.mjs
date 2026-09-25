@@ -59,6 +59,15 @@ async function advancePastEntry(sceneId, settingsRef) {
   return advanceToRoom({ sceneId, roomId: state.rooms[1].id }, { settingsRef });
 }
 
+/** #93/#156: markRoomOutcome no longer returns a `nextRoomId` — there's no
+ * more per-room sequence mutation/physical-slot assignment for it to
+ * compute. The single structural child recorded in `state.edges` (createRun's
+ * buildRoomSequence output is a straight, non-branching chain, so there's
+ * always exactly one) IS the next room, live in the graph from run start. */
+function nextChildId(state) {
+  return state.edges[state.currentRoomId]?.[0] ?? null;
+}
+
 describe("createRun / getRunState", () => {
   it("creates a fresh run scoped to a scene: a safe entry room prepended, not counted in roomCount", async () => {
     const settingsRef = makeSettingsStub();
@@ -322,12 +331,11 @@ describe("markRoomOutcome", () => {
       { settingsRef },
     );
     expect(result.effectKey).toBeNull();
-    expect(result.mutation).toBeNull();
-    expect(result.nextRoomId).toBeNull();
+    expect(result.mutation).toBeUndefined(); // #93/#156: no longer part of the return shape
     expect(result.state).toEqual(before); // untouched — no history entry, no mutation
   });
 
-  it("does not move currentIndex, and reports the next room + its assigned physical slot", async () => {
+  it("does not move currentIndex, and records the resolution in history", async () => {
     const settingsRef = makeSettingsStub();
     await createRun(
       { sceneId: "s", roomCount: 5, seed: "fixed" },
@@ -335,41 +343,24 @@ describe("markRoomOutcome", () => {
     );
     await advancePastEntry("s", settingsRef);
     const before = getRunState("s", { settingsRef });
-    const { state, nextRoomId, nextPhysicalSlot } = await markRoomOutcome(
+    const { state, effectKey } = await markRoomOutcome(
       { sceneId: "s", succeeded: true },
       { settingsRef },
     );
     expect(state.currentIndex).toBe(before.currentIndex);
+    expect(state.currentRoomId).toBe(before.currentRoomId);
     expect(state.history).toHaveLength(1);
-    expect(nextRoomId).toBe(state.rooms[2].id);
-    expect(nextPhysicalSlot).toBe(2); // slot 0: entry, slot 1: first real room, slot 2: this one
-    expect(state.physicalSlotByRoomId[nextRoomId]).toBe(2);
-    expect(state.nextPhysicalSlot).toBe(3);
+    expect(state.history[0].roomId).toBe(before.currentRoomId);
+    expect(effectKey).toBeTruthy();
+    // #93/#156: every room is already built eagerly at run start
+    // (roomsToEagerlyBuild) — markRoomOutcome no longer assigns physical
+    // slots as the party progresses, so these stay exactly as createRun set
+    // them.
+    expect(state.physicalSlotByRoomId).toEqual(before.physicalSlotByRoomId);
+    expect(state.nextPhysicalSlot).toBe(before.nextPhysicalSlot);
   });
 
-  it("assigns each newly-reached room the next slot number in order", async () => {
-    const settingsRef = makeSettingsStub();
-    await createRun(
-      { sceneId: "s", roomCount: 5, seed: "fixed" },
-      { settingsRef },
-    );
-    await advancePastEntry("s", settingsRef);
-    const r1 = await markRoomOutcome(
-      { sceneId: "s", succeeded: true },
-      { settingsRef },
-    );
-    await advanceToRoom(
-      { sceneId: "s", roomId: r1.nextRoomId },
-      { settingsRef },
-    );
-    const r2 = await markRoomOutcome(
-      { sceneId: "s", succeeded: true },
-      { settingsRef },
-    );
-    expect(r2.nextPhysicalSlot).toBe(3);
-  });
-
-  it("marks the run completed when the goal room is resolved, with no next room", async () => {
+  it("marks the run completed when the goal room is resolved", async () => {
     const settingsRef = makeSettingsStub();
     await createRun(
       { sceneId: "s", roomCount: 2, seed: "fixed" },
@@ -381,13 +372,12 @@ describe("markRoomOutcome", () => {
       { sceneId: "s", roomId: getRunState("s", { settingsRef }).rooms[2].id },
       { settingsRef },
     );
-    const { state, effectKey, nextRoomId } = await markRoomOutcome(
+    const { state, effectKey } = await markRoomOutcome(
       { sceneId: "s", succeeded: true },
       { settingsRef },
     );
     expect(state.completed).toBe(true);
     expect(effectKey).toBe("goal_cleared");
-    expect(nextRoomId).toBeNull();
   });
 
   it("reports goal_failed on a failed goal room", async () => {
@@ -428,7 +418,7 @@ describe("markRoomOutcome", () => {
       { settingsRef },
     );
     expect(again.state).toEqual(completedState);
-    expect(again.nextRoomId).toBeNull();
+    expect(again.effectKey).toBeNull();
   });
 
   it("is a no-op with no run at all", async () => {
@@ -438,7 +428,7 @@ describe("markRoomOutcome", () => {
       { settingsRef },
     );
     expect(result.state).toBeNull();
-    expect(result.nextRoomId).toBeNull();
+    expect(result.effectKey).toBeNull();
   });
 
   // #152 investigation: currentIndex doesn't move until the party actually
@@ -459,19 +449,19 @@ describe("markRoomOutcome", () => {
       { sceneId: "s", succeeded: true },
       { settingsRef },
     );
-    expect(first.nextRoomId).not.toBeNull();
+    expect(first.effectKey).not.toBeNull();
+    expect(first.state.history).toHaveLength(1);
 
     const again = await markRoomOutcome(
       { sceneId: "s", succeeded: true },
       { settingsRef },
     );
     expect(again.effectKey).toBeNull();
-    expect(again.mutation).toBeNull();
-    expect(again.nextRoomId).toBeNull();
+    expect(again.mutation).toBeUndefined();
     expect(again.state).toEqual(first.state); // untouched — no second history entry, no re-mutation
   });
 
-  it("auto-advances past a mid-dungeon rest room (ITEM-5): no reward/ruin, but still assigns the next room its slot", async () => {
+  it("auto-advances past a mid-dungeon rest room (ITEM-5): no reward/ruin", async () => {
     const settingsRef = makeSettingsStub();
     // roomCount 10 always gets a rest room (above MID_DUNGEON_REST_THRESHOLD).
     await createRun(
@@ -481,36 +471,29 @@ describe("markRoomOutcome", () => {
     await advancePastEntry("s", settingsRef);
 
     // Walk forward, resolving each room in turn, until currentIndex itself
-    // lands on the rest room.
+    // lands on the rest room. #93/#156: markRoomOutcome no longer returns a
+    // nextRoomId to drive this — the next room is just the current room's
+    // one structural child, already live in state.edges from run start.
     let state = getRunState("s", { settingsRef });
     while (state.rooms[state.currentIndex].kind !== "safe_rest") {
-      const { nextRoomId } = await markRoomOutcome(
+      const nextId = nextChildId(state);
+      await markRoomOutcome(
         { sceneId: "s", succeeded: true },
         { settingsRef },
       );
       await advanceToRoom(
-        { sceneId: "s", roomId: nextRoomId },
+        { sceneId: "s", roomId: nextId },
         { settingsRef },
       );
       state = getRunState("s", { settingsRef });
     }
 
     const before = state;
-    const {
-      state: after,
-      effectKey,
-      mutation,
-      nextRoomId,
-      nextPhysicalSlot,
-    } = await markRoomOutcome(
+    const { state: after, effectKey } = await markRoomOutcome(
       { sceneId: "s", succeeded: true },
       { settingsRef },
     );
     expect(effectKey).toBe("rest_room_passed");
-    expect(mutation).toBeNull();
-    expect(nextRoomId).toBe(before.rooms[before.currentIndex + 1].id);
-    expect(nextPhysicalSlot).toBeTypeOf("number");
-    expect(after.physicalSlotByRoomId[nextRoomId]).toBe(nextPhysicalSlot);
     expect(after.history.at(-1)).toMatchObject({
       roomId: before.rooms[before.currentIndex].id,
       effectKey: "rest_room_passed",
@@ -547,7 +530,8 @@ describe("advanceToRoom", () => {
       { settingsRef },
     );
     await advancePastEntry("s", settingsRef);
-    const { nextRoomId } = await markRoomOutcome(
+    const nextRoomId = nextChildId(getRunState("s", { settingsRef }));
+    await markRoomOutcome(
       { sceneId: "s", succeeded: true },
       { settingsRef },
     );
@@ -797,6 +781,103 @@ describe("advanceToRoom (graph)", () => {
     expect(undoneState.currentRoomId).toBe('room-a');
     expect(undoneState.lastAutoEntry).toBeNull();
     expect(undone.roomId).toBe('room-b');
+  });
+});
+
+describe("markRoomOutcome (graph)", () => {
+  /** A minimal, fully dict-shaped graph run state (#93) — matches the
+   * convention "advanceToRoom (graph)" above already established: `rooms`
+   * keyed by id, `currentRoomId` (not `currentIndex`) as the pointer, and a
+   * `hiddenEdges` entry on the current room so a `reduced_travel_time`/
+   * `extra_travel_time` outcome has something real to reveal. */
+  function seedRunState(overrides = {}) {
+    return {
+      seed: 'test',
+      createdAt: Date.now(),
+      traits: [],
+      excludeTraits: [],
+      rooms: {
+        'room-entry': { id: 'room-entry', kind: 'safe_entry', isGoal: false, outcomeSlotId: null },
+        'start-room': { id: 'start-room', kind: 'combat', isGoal: false, outcomeSlotId: 'pace' },
+        'east-room': { id: 'east-room', kind: 'combat', isGoal: false, outcomeSlotId: null },
+        'shortcut-target': { id: 'shortcut-target', kind: 'treasure', isGoal: false, outcomeSlotId: null },
+      },
+      currentRoomId: 'start-room',
+      edges: {
+        'room-entry': ['start-room'],
+        'start-room': ['east-room'],
+        'east-room': [],
+        'shortcut-target': [],
+      },
+      hiddenEdges: {
+        'start-room': ['shortcut-target'],
+      },
+      completed: false,
+      history: [],
+      physicalSlotByRoomId: {
+        'room-entry': 0,
+        'start-room': 1,
+        'east-room': 2,
+        'shortcut-target': 3,
+      },
+      nextPhysicalSlot: 4,
+      lastAutoEntry: null,
+      previousSceneId: null,
+      objective: null,
+      hostUserId: null,
+      aiControlledActorIds: [],
+      ...overrides,
+    };
+  }
+
+  it("never mutates state.rooms/state.edges shape via splicing — only reveals hidden paths", async () => {
+    const settingsRef = makeSettingsStub();
+    const state = seedRunState();
+    await settingsRef.set('pf2e-dungeon-crawl', 'dungeonRuns', { s: state });
+
+    const { state: after, effectKey, revealedRoomId } = await markRoomOutcome(
+      { sceneId: 's', succeeded: true },
+      { settingsRef },
+    );
+
+    expect(effectKey).toBe('reduced_travel_time');
+    expect(revealedRoomId).toBe('shortcut-target');
+    // The hidden edge is now live, merged onto the existing structural edge.
+    expect(after.edges['start-room']).toEqual(
+      expect.arrayContaining(['east-room', 'shortcut-target']),
+    );
+    expect(after.hiddenEdges['start-room']).toBeUndefined();
+    // state.rooms itself is never spliced/rebuilt — same keys, same room
+    // objects, nothing added or removed.
+    expect(Object.keys(after.rooms).sort()).toEqual(
+      Object.keys(state.rooms).sort(),
+    );
+    expect(after.rooms).toEqual(state.rooms);
+    // No physical-slot-assignment side effect either — #93's eager
+    // pregeneration already built and slotted every room at run start.
+    expect(after.physicalSlotByRoomId).toEqual(state.physicalSlotByRoomId);
+    expect(after.nextPhysicalSlot).toBe(state.nextPhysicalSlot);
+    expect(after.currentRoomId).toBe('start-room'); // unmoved — only advanceToRoom moves it
+  });
+
+  it("is a no-op (nothing revealed) when the room has no hidden edge", async () => {
+    const settingsRef = makeSettingsStub();
+    const state = seedRunState({
+      currentRoomId: 'east-room',
+      rooms: {
+        ...seedRunState().rooms,
+        'east-room': { id: 'east-room', kind: 'combat', isGoal: false, outcomeSlotId: 'pace' },
+      },
+    });
+    await settingsRef.set('pf2e-dungeon-crawl', 'dungeonRuns', { s: state });
+
+    const { revealedRoomId, state: after } = await markRoomOutcome(
+      { sceneId: 's', succeeded: true },
+      { settingsRef },
+    );
+    expect(revealedRoomId).toBeNull();
+    expect(after.edges).toEqual(state.edges);
+    expect(after.hiddenEdges).toEqual(state.hiddenEdges);
   });
 });
 

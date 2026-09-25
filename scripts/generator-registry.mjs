@@ -8,7 +8,7 @@ const REQUIRED_METHODS = [
   'buildRoomSequence',
   'findOutcomeTemplate',
   'resolveRoomOutcome',
-  'applySequenceMutation',
+  'revealTravelTimeEffect',
   'generateEncounterRoster',
 ];
 

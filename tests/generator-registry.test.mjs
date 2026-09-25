@@ -14,7 +14,7 @@ describe('generator-registry', () => {
     const stubMethods = {
       findOutcomeTemplate: () => {},
       resolveRoomOutcome: () => {},
-      applySequenceMutation: () => {},
+      revealTravelTimeEffect: () => {},
       generateEncounterRoster: () => {},
     };
     const genA = { ...stubMethods, buildRoomSequence: () => 'a' };

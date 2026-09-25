@@ -52,6 +52,7 @@ import {
   sweepCompletedDungeonScene,
   clearSlotEncounter,
   clearSlotTrap,
+  unsealHiddenDoorFromRoom,
 } from "../dungeon-scene.mjs";
 import {
   startCombatForSlot,
@@ -163,7 +164,16 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
       trapLevel != null ? trapLevel - (await makeFoundryApi().partyLevel()) : 0;
     await makeFoundryApi().grantPartyXp(xpFor(levelOffset));
   }
-  const { state, effectKey, mutation, nextRoomId, nextPhysicalSlot } =
+  // #93/#156: markRoomOutcome no longer returns mutation/nextRoomId/
+  // nextPhysicalSlot at all (that whole sequence-splicing/physical-slot-
+  // assignment model is gone — every room is eagerly built up front now,
+  // see roomsToEagerlyBuild). They're destructured here anyway (always
+  // undefined) purely so the mutation-resync block and the `!nextRoomId`
+  // early-return below it stay syntactically intact rather than throwing a
+  // ReferenceError — both blocks are already permanently unreachable/no-op
+  // dead code as a result, left for a later task in this plan to remove
+  // outright alongside the rest of the one-room-ahead build path.
+  const { state, effectKey, mutation, nextRoomId, nextPhysicalSlot, revealedRoomId } =
     await markRoomOutcome(
       { sceneId: scene.id, succeeded },
       {
@@ -193,6 +203,8 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
       physicalSlot,
       roomCount: preState.rooms.length,
       isGoal: currentRoom.isGoal,
+      scene,
+      revealedRoomId,
     });
   }
   if (mutation === "rerun_encounter")
@@ -356,10 +368,11 @@ const FRIENDLY_AID_LEVEL_OFFSET = -4;
 /**
  * #31: the mechanical half of the 6 previously flavor-only reward/ruin
  * outcome keys — `resolveCurrentRoom` calls this right after
- * `markRoomOutcome` resolves an `effectKey`. `mutation`-carrying keys
- * (`encounter`, `reduced_travel_time`, `extra_travel_time`) are already
- * handled by `applySequenceMutation` inside markRoomOutcome itself and never
- * reach here as anything but a no-op default case.
+ * `markRoomOutcome` resolves an `effectKey`. Per #93/#156, `markRoomOutcome`
+ * no longer intercepts `reduced_travel_time`/`extra_travel_time` itself —
+ * it only reveals the hidden path's data (edges/hiddenEdges) and hands back
+ * `revealedRoomId`; unsealing the corresponding scene door is this
+ * function's own case below.
  */
 /**
  * The real treasure reward (gp + a rollable-table item draw) — shared by
@@ -411,7 +424,7 @@ export async function grantTreasureReward(
 
 async function applyRoomEffect(
   effectKey,
-  { seed, roomId, physicalSlot, roomCount, isGoal },
+  { seed, roomId, physicalSlot, roomCount, isGoal, scene, revealedRoomId },
 ) {
   const api = makeFoundryApi();
   const partyMembers = (game.actors?.party?.members ?? []).filter(
@@ -493,6 +506,13 @@ async function applyRoomEffect(
           name: picked.name,
         }),
       );
+      return;
+    }
+    case "reduced_travel_time":
+    case "extra_travel_time": {
+      if (revealedRoomId) {
+        await unsealHiddenDoorFromRoom(scene, roomId, revealedRoomId);
+      }
       return;
     }
     default:
