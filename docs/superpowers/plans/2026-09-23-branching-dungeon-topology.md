@@ -1078,6 +1078,29 @@ describe('buildEdgeCorridor', () => {
     expect(Math.max(fromA.revealDoorWall.x1, fromA.revealDoorWall.x2))
       .toBeLessThanOrEqual(Math.min(fromB.revealDoorWall.x1, fromB.revealDoorWall.x2));
   });
+
+  it('#93 pre-flight fix regression (Task 10 review) — a same-column connection\'s plainWalls never extend past its own slot into a sibling\'s (would otherwise wall off the sibling\'s door)', () => {
+    const parentA = roomRect('alpha', 'a', 0, 0);
+    const merge = roomRect('alpha', 'm', 1, 0); // same column as parentA -> sameColumn branch
+    const slots = northDoorSlots(merge, 2);
+    const fromA = buildEdgeCorridor('alpha', 'a', 'm', parentA, merge, 'south', slots[0]);
+    for (const w of fromA.plainWalls) {
+      expect(Math.max(w.x1, w.x2)).toBeLessThanOrEqual(slots[0].x2);
+      expect(Math.min(w.x1, w.x2)).toBeGreaterThanOrEqual(slots[0].x1);
+    }
+  });
+
+  it('#93 pre-flight fix regression (Task 10 review) — a same-column corridor reaches the target\'s REAL position, not a fixed CORRIDOR_LEN, when the source is more than one rank above the target', () => {
+    const from = roomRect('alpha', 'a', 0, 0);
+    // Simulate a merge room whose rank is 3 above one of its real parents
+    // (computeRanks takes the MAX over all parents + 1 — a parent not on
+    // the longest path can sit several ranks above the merge room).
+    const to = roomRect('alpha', 'm', 3, 0);
+    const toSlot = northDoorSlots(to, 1)[0];
+    const { revealDoorWall, corridorSegments } = buildEdgeCorridor('alpha', 'a', 'm', from, to, 'south', toSlot);
+    expect(revealDoorWall.y1).toBe(to.gy);
+    expect(corridorSegments[0].gy + corridorSegments[0].gh).toBe(to.gy);
+  });
 });
 ```
 
@@ -1111,7 +1134,17 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
   const sameColumn = fromRect.gx === toRect.gx;
   if (exitFace === 'south' && sameColumn) {
     const faceY = fromRect.gy + fromRect.gh;
-    const corridorEndY = faceY + CORRIDOR_LEN;
+    // #93 pre-flight fix (found during Task 10's review): was
+    // `faceY + CORRIDOR_LEN`, which only reached the target's actual
+    // north edge when the source's room-size exactly filled one
+    // ROW_STRIDE gap AND the two rooms were exactly one rank apart. A
+    // merge room's rank is the MAX over all its real parents' ranks + 1
+    // (computeRanks, Task 4) — a parent not on the longest path can sit
+    // several ranks above the merge room, or roomSizeAt can roll a
+    // smaller-than-max size, either of which left the corridor short of
+    // the target (a door floating in empty space, not actually
+    // connected). Use the target's real position directly instead.
+    const corridorEndY = toRect.gy;
     const doorX0 = fromRect.gx + outgoingOffset;
     const doorX1 = doorX0 + DOOR_WIDTH;
     const gapX0 = toSlot.x1 + incomingOffset;
@@ -1124,10 +1157,17 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       plainWalls: [
         { x1: fromRect.gx, y1: faceY, x2: doorX0, y2: faceY },
         { x1: doorX1, y1: faceY, x2: Math.max(fromRect.gx + fromRect.gw, spanX1), y2: faceY },
-        { x1: toRect.gx, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
-        { x1: gapX1, y1: corridorEndY, x2: Math.max(toRect.gx + toRect.gw, spanX1), y2: corridorEndY }
+        // #93 pre-flight fix: constrained to THIS connection's own
+        // `toSlot` (was `toRect.gx`/`toRect.gx + toRect.gw` — the WHOLE
+        // target room's width). A merge or shortcut-target room can
+        // have several incoming connections sharing its north face,
+        // each with its own slot (northDoorSlots, Task 5); spanning the
+        // full room width here would wall off a SIBLING connection's
+        // door, not just fill this connection's own gap.
+        { x1: toSlot.x1, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
+        { x1: gapX1, y1: corridorEndY, x2: Math.max(toSlot.x2, spanX1), y2: corridorEndY }
       ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2),
-      corridorSegments: [{ gx: spanX0, gy: faceY, gw: spanX1 - spanX0, gh: CORRIDOR_LEN }]
+      corridorSegments: [{ gx: spanX0, gy: faceY, gw: spanX1 - spanX0, gh: corridorEndY - faceY }]
     };
   }
 
@@ -1149,10 +1189,20 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     : { x1: exitPoint.x, y1: exitPoint.y - DOOR_WIDTH / 2, x2: exitPoint.x, y2: exitPoint.y + DOOR_WIDTH / 2 };
   const revealDoorWall = { x1: entryPoint.x - DOOR_WIDTH / 2, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH / 2, y2: entryPoint.y };
 
+  // #93 pre-flight fix: flank the door WITHIN this connection's own
+  // `toSlot` (was `plainWalls: []` — left the room's whole north face
+  // open beyond just the door itself, and left nothing to separate this
+  // slot from a sibling's). Mirrors the same-column branch's own
+  // slot-constrained plainWalls above.
+  const plainWalls = [
+    { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x - DOOR_WIDTH / 2, y2: entryPoint.y },
+    { x1: entryPoint.x + DOOR_WIDTH / 2, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
+  ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
+
   return {
     doorWall,
     revealDoorWall,
-    plainWalls: [],
+    plainWalls,
     corridorSegments: [
       { gx: Math.min(exitPoint.x, corner.x), gy: Math.min(exitPoint.y, corner.y), gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - exitPoint.x)), gh: CORRIDOR_LEN },
       { gx: Math.min(corner.x, entryPoint.x), gy: Math.min(corner.y, entryPoint.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(entryPoint.y - corner.y)) }
