@@ -9310,5 +9310,173 @@
     "name": "Despair Dragon (Ancient, Spellcaster)",
     "level": 18,
     "art": "despair-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "enchanting_ritualist",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "ZlA2Cp5e62nE16gD",
+    "name": "Enchanting Ritualist",
+    "level": 18,
+    "art": "enchanting-ritualist.webp"
+  },
+  {
+    "id": "kraken",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "bgKwwvO0uDGD7XsG",
+    "name": "Kraken",
+    "level": 18,
+    "art": "kraken.webp"
+  },
+  {
+    "id": "mirage_dragon_ancient",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "uc61UL57ywxLy0q0",
+    "name": "Mirage Dragon (Ancient)",
+    "level": 18,
+    "art": "mirage-dragon-ancient.webp"
+  },
+  {
+    "id": "mirage_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "heMHnYShW7TCJCJb",
+    "name": "Mirage Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "mirage-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "phase_dragon_ancient",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "NrfzOgCuPadLmKwj",
+    "name": "Phase Dragon (Ancient)",
+    "level": 18,
+    "art": "phase-dragon-ancient.webp"
+  },
+  {
+    "id": "phase_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "OEa6bKFqSc11OUl4",
+    "name": "Phase Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "phase-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "skulltaker",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "zkl6planCbeCuAdS",
+    "name": "Skulltaker",
+    "level": 18,
+    "art": "skulltaker.webp"
+  },
+  {
+    "id": "thulgant",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "mEjCLVRt7iDiNZL6",
+    "name": "Thulgant",
+    "level": 18,
+    "art": "thulgant.webp"
+  },
+  {
+    "id": "adamant_sentinel",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "w6MKljfQYYaCYsFR",
+    "name": "Adamant Sentinel",
+    "level": 18,
+    "art": "adamant-sentinel.webp"
+  },
+  {
+    "id": "adamantine_golem",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "keCgklXcy4HZgQIL",
+    "name": "Adamantine Golem",
+    "level": 18,
+    "art": "adamantine-golem.webp"
+  },
+  {
+    "id": "aolaz",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "KdW5UeZSqeTZZlo5",
+    "name": "Aolaz",
+    "level": 18,
+    "art": "aolaz.webp"
+  },
+  {
+    "id": "hatred_siktempora",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "V9SxfxUgljJR9xx5",
+    "name": "Hatred Siktempora",
+    "level": 18,
+    "art": "hatred-siktempora.webp"
+  },
+  {
+    "id": "expedition_leader",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "Dd7E7pMKxPhrXaa8",
+    "name": "Expedition Leader",
+    "level": 9,
+    "art": "expedition-leader.webp"
+  },
+  {
+    "id": "faydhaan",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "CAEdqhfZDfMLmEyS",
+    "name": "Faydhaan",
+    "level": 9,
+    "art": "faydhaan.webp"
+  },
+  {
+    "id": "firewyrm",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "MX2cLbODuo4gECPJ",
+    "name": "Firewyrm",
+    "level": 9,
+    "art": "firewyrm.webp"
+  },
+  {
+    "id": "galvo",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "wv0hiJIGQjTU1pnO",
+    "name": "Galvo",
+    "level": 9,
+    "art": "galvo.webp"
+  },
+  {
+    "id": "greater_hell_hound",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "15TyWlbDQWNjMKeL",
+    "name": "Greater Hell Hound",
+    "level": 9,
+    "art": "greater-hell-hound.webp"
+  },
+  {
+    "id": "high_priest_of_pharasma",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "deQ6Vg46CS6GTu7J",
+    "name": "High Priest of Pharasma",
+    "level": 9,
+    "art": "high-priest-of-pharasma.webp"
+  },
+  {
+    "id": "magma_worm",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "jh3XmHoFtcGYkdJm",
+    "name": "Magma Worm",
+    "level": 18,
+    "art": "magma-worm.webp"
+  },
+  {
+    "id": "shoggoth",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "p4GHJGguGRp5ucHV",
+    "name": "Shoggoth",
+    "level": 18,
+    "art": "shoggoth.webp"
+  },
+  {
+    "id": "simurgh",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "ASc5sT2hU84tp1fx",
+    "name": "Simurgh",
+    "level": 18,
+    "art": "simurgh.webp"
   }
 ]
