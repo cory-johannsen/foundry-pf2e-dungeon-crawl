@@ -486,78 +486,88 @@ export const HIDDEN_PATH_CHANCE = 0.2;
 
 /**
  * Attach pregenerated-but-hidden shortcuts/detours to a graph's non-entry,
- * non-goal edges (#93 — replaces runtime insert_after/remove_next
- * splicing). A shortcut edge skips the immediate next room on a branch; a
- * detour room is spliced hidden between two already-adjacent rooms.
+ * non-goal rooms (#93 — replaces runtime insert_after/remove_next
+ * splicing; #156 — fixes the face-budget overflow and layout/build
+ * unreachability the original version of this function had). A shortcut
+ * edge skips the immediate next room on a branch; a detour room is spliced
+ * hidden between two already-adjacent rooms. At most ONE hidden extra per
+ * room, decided once per candidate room (not once per edge), and only
+ * when the room (and, for a shortcut, its target) has a spare outgoing
+ * face left after its real exits (`exitFaceForIndex` only has 3 slots:
+ * south/east/west).
  *
  * What's actually hidden is the INCOMING connection, in `hiddenEdges`, not
- * a detour room's own outgoing edge: `edges[detour.id] = [toId]` is a real
- * entry in the live `edges` map (a detour room needs SOME recorded path
- * onward, live or it's a guaranteed dead end the moment it's revealed —
- * caught by pre-flight review, do not remove this line believing it
- * belongs in `hiddenEdges` instead). Normal traversal still never reaches
- * `detour.id` regardless, since nothing in the live graph points INTO it
- * until an outcome reveal adds that incoming edge — see
- * dungeon-runner.mjs's revealTravelTimeEffect.
+ * a detour room's own outgoing edge: `edges[detour.id] = [toId]` (and
+ * `layoutEdges[detour.id]`) is a real entry in the live map — a detour
+ * room needs SOME recorded path onward, live, or it's a guaranteed dead
+ * end the moment it's revealed (caught by pre-flight review; do not
+ * remove that line believing it belongs in `hiddenEdges` instead — an
+ * earlier implementer made exactly this mistake). Normal traversal still
+ * never reaches `detour.id` regardless, since nothing in the live `edges`
+ * graph points INTO it until an outcome reveal adds that incoming edge —
+ * see dungeon-runner.mjs's revealTravelTimeEffect.
  */
-// #93 pre-flight fix: two different children of the same fromId can
-// independently roll a shortcut landing on the same downstream skipTarget
-// (confirmed by review sweep, ~0.7% of graphs) — dedup so `hiddenEdges`
-// never carries a repeated target, which would otherwise skew a future
-// pick-one-to-reveal selection toward that duplicate.
-function pushHiddenTarget(hiddenEdges, fromId, targetId) {
-  const bucket = (hiddenEdges[fromId] ??= []);
-  if (!bucket.includes(targetId)) bucket.push(targetId);
-}
-
 export function attachHiddenPaths({ rooms, edges, seed }) {
   const hiddenRooms = new Set();
   const hiddenEdges = {};
+  const hiddenIncomingByRoomId = {};
+  const layoutEdges = Object.fromEntries(
+    Object.entries(edges).map(([id, children]) => [id, [...children]]),
+  );
   let detourSalt = 0;
-  // #93 pre-flight fix: a shortcut's `skipTarget` is ONE HOP PAST `toId`
-  // (`edges[toId][0]`), not `toId` itself — the `toRoom.isGoal` guard
-  // below only excludes `toId` from being the goal, it says nothing
-  // about what `toId` points to. A room whose own single child IS the
-  // goal (any room adjacent to it) would otherwise let a shortcut land
-  // directly on the goal room, giving it a second incoming edge on
-  // reveal and violating "the goal room always has exactly one incoming
-  // edge... regardless of how branching rolled" (Global Constraints).
-  const goalId = Object.values(rooms).find((r) => r.isGoal)?.id;
 
   for (const [fromId, children] of Object.entries(edges)) {
     const fromRoom = rooms[fromId];
     if (!fromRoom || fromRoom.isGoal || fromId === 'room-entry') continue;
-    for (const toId of children) {
-      const toRoom = rooms[toId];
-      if (!toRoom || toRoom.isGoal) continue;
-      const r = splitmix32(seedFromString(`${seed}-hidden-${fromId}-${toId}`))();
-      if (r >= HIDDEN_PATH_CHANCE) continue;
+    if (children.length === 0 || children.length > 2) continue; // no spare face
 
-      const wantsDetour = splitmix32(seedFromString(`${seed}-hidden-kind-${fromId}-${toId}`))() < 0.5;
-      if (wantsDetour) {
-        const detour = {
-          id: `room-detour-${detourSalt}`, kind: roomKindAt(seed, `detour-${detourSalt}`),
-          isGoal: false, setpieceId: null, outcomeSlotId: null,
-          locationTag: locationTagAt(seed, `detour-${detourSalt}`),
-          artVariant: roomArtVariantAt(seed, `detour-${detourSalt}`)
-        };
-        detourSalt += 1;
-        rooms[detour.id] = detour;
-        edges[detour.id] = [toId];
-        hiddenRooms.add(detour.id);
-        pushHiddenTarget(hiddenEdges, fromId, detour.id);
-      } else {
-        // A shortcut needs a room beyond `toId` to skip TO — only attach
-        // one when `toId` itself has an onward edge to skip past, and
-        // never when that onward edge is the goal room itself.
-        const skipTarget = edges[toId]?.[0];
-        if (!skipTarget || skipTarget === goalId) continue;
-        pushHiddenTarget(hiddenEdges, fromId, skipTarget);
-      }
+    const r = splitmix32(seedFromString(`${seed}-hidden-${fromId}`))();
+    if (r >= HIDDEN_PATH_CHANCE) continue;
+
+    // Anchor on the room's first real child — deterministic, and this
+    // function only needs *a* nearby room to build a shortcut/detour off
+    // of, not a specific one.
+    const toId = children[0];
+    const toRoom = rooms[toId];
+    if (!toRoom || toRoom.isGoal) continue;
+
+    const wantsDetour = splitmix32(seedFromString(`${seed}-hidden-kind-${fromId}`))() < 0.5;
+    if (wantsDetour) {
+      const detour = {
+        id: `room-detour-${detourSalt}`, kind: roomKindAt(seed, `detour-${detourSalt}`),
+        isGoal: false, setpieceId: null, outcomeSlotId: null,
+        locationTag: locationTagAt(seed, `detour-${detourSalt}`),
+        artVariant: roomArtVariantAt(seed, `detour-${detourSalt}`)
+      };
+      detourSalt += 1;
+      rooms[detour.id] = detour;
+      edges[detour.id] = [toId];
+      layoutEdges[detour.id] = [toId];
+      hiddenRooms.add(detour.id);
+      hiddenEdges[fromId] = [detour.id];
+      layoutEdges[fromId] = [...children, detour.id];
+    } else {
+      // A shortcut needs a room beyond `toId` to skip TO — only attach one
+      // when `toId` itself has an onward edge to skip past, that target
+      // isn't the goal (pre-flight fix: a shortcut's target is ONE HOP
+      // PAST `toId` — `edges[toId][0]` — so `toRoom.isGoal` above does NOT
+      // already cover this; a room adjacent to goal could otherwise
+      // shortcut straight onto it), and the target has a spare incoming
+      // face left (own real exit count <= 2, since it already uses one
+      // face for its real incoming edge and needs one more for this
+      // shortcut's second incoming door).
+      const skipTarget = edges[toId]?.[0];
+      const skipTargetRoom = skipTarget ? rooms[skipTarget] : null;
+      if (!skipTarget || !skipTargetRoom || skipTargetRoom.isGoal) continue;
+      if ((edges[skipTarget]?.length ?? 0) > 2) continue;
+      hiddenEdges[fromId] = [skipTarget];
+      (hiddenIncomingByRoomId[skipTarget] ??= []).push(fromId);
+      // Shortcuts don't add a new node, so layoutEdges is untouched here —
+      // the target's rank/col already comes from its real parent.
     }
   }
 
-  return { rooms, edges, hiddenRooms, hiddenEdges };
+  return { rooms, edges, hiddenRooms, hiddenEdges, layoutEdges, hiddenIncomingByRoomId };
 }
 
 /**

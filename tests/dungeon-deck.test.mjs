@@ -622,9 +622,15 @@ describe('attachHiddenPaths', () => {
   });
 
   it('is deterministic for the same seed', () => {
-    const graph = buildRoomGraph({ seed: 'beta', roomCount: 10 });
-    const a = attachHiddenPaths({ ...graph, seed: 'beta' });
-    const b = attachHiddenPaths({ ...graph, seed: 'beta' });
+    // Two independently-built graphs, not one graph reused across both
+    // calls: attachHiddenPaths mutates its `rooms`/`edges` inputs in place
+    // (by design — see its docstring), so reusing the same graph object for
+    // both calls would let the second call observe the first call's
+    // residue (e.g. a freshly-added detour room becoming a new candidate
+    // fromId) and fail this assertion for reasons that have nothing to do
+    // with whether the function is actually deterministic.
+    const a = attachHiddenPaths({ ...buildRoomGraph({ seed: 'beta', roomCount: 10 }), seed: 'beta' });
+    const b = attachHiddenPaths({ ...buildRoomGraph({ seed: 'beta', roomCount: 10 }), seed: 'beta' });
     expect([...a.hiddenRooms]).toEqual([...b.hiddenRooms]);
     expect(a.hiddenEdges).toEqual(b.hiddenEdges);
   });
@@ -646,6 +652,40 @@ describe('attachHiddenPaths', () => {
         const { edges, hiddenRooms } = attachHiddenPaths({ ...graph, seed });
         for (const detourId of hiddenRooms) {
           expect(Array.isArray(edges[detourId]) && edges[detourId].length > 0).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('never attaches more than one hidden edge to the same room, and never to a room with 3 real exits', () => {
+    const graph = buildRoomGraph({ seed: 'delta', roomCount: 30 });
+    const { edges, hiddenEdges } = attachHiddenPaths({ ...graph, seed: 'delta' });
+    for (const [fromId, hidden] of Object.entries(hiddenEdges)) {
+      expect(hidden.length).toBe(1);
+      expect(edges[fromId].length).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it('never attaches a shortcut into a room with no spare incoming face', () => {
+    const graph = buildRoomGraph({ seed: 'epsilon', roomCount: 30 });
+    const { edges, hiddenEdges, hiddenRooms } = attachHiddenPaths({ ...graph, seed: 'epsilon' });
+    for (const targets of Object.values(hiddenEdges)) {
+      for (const targetId of targets) {
+        if (hiddenRooms.has(targetId)) continue; // detour room, not a shortcut target
+        expect(edges[targetId].length).toBeLessThanOrEqual(2);
+      }
+    }
+  });
+
+  it('layoutEdges includes every detour room as an extra child of its attaching room, and excludes shortcut targets', () => {
+    const graph = buildRoomGraph({ seed: 'zeta', roomCount: 30 });
+    const { edges, hiddenEdges, hiddenRooms, layoutEdges } = attachHiddenPaths({ ...graph, seed: 'zeta' });
+    for (const [fromId, targets] of Object.entries(hiddenEdges)) {
+      for (const targetId of targets) {
+        if (hiddenRooms.has(targetId)) {
+          expect(layoutEdges[fromId]).toEqual([...edges[fromId], targetId]);
+        } else {
+          expect(layoutEdges[fromId]).toEqual(edges[fromId]);
         }
       }
     }
