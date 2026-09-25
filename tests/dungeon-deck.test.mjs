@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildRoomSequence,
+  buildRoomGraph,
   resolveRoomOutcome,
   applySequenceMutation,
   findOutcomeTemplate,
@@ -516,5 +517,69 @@ describe('exitCountAt', () => {
     for (let i = 0; i < 1000; i += 1) counts[exitCountAt('alpha', `room-${i}`)] += 1;
     expect(counts[3]).toBeLessThan(counts[1]);
     expect(counts[3]).toBeLessThan(counts[2]);
+  });
+});
+
+function parentsOf(edges, roomId) {
+  return Object.entries(edges)
+    .filter(([, children]) => children.includes(roomId))
+    .map(([parent]) => parent);
+}
+
+describe('buildRoomGraph', () => {
+  it('at the minimum roomCount (2), still produces a single-entrance goal', () => {
+    const { rooms, edges } = buildRoomGraph({ seed: 'alpha', roomCount: 2 });
+    const goal = Object.values(rooms).find((r) => r.isGoal);
+    expect(goal).toBeDefined();
+    expect(parentsOf(edges, goal.id)).toHaveLength(1);
+  });
+
+  it('the entry room has no incoming edges and is never the goal', () => {
+    const { rooms, edges } = buildRoomGraph({ seed: 'alpha', roomCount: 8 });
+    expect(parentsOf(edges, 'room-entry')).toHaveLength(0);
+    expect(rooms['room-entry'].isGoal).toBe(false);
+    expect(rooms['room-entry'].kind).toBe('safe_entry');
+  });
+
+  it('every non-entry, non-goal room has 1-3 outgoing edges', () => {
+    const { rooms, edges } = buildRoomGraph({ seed: 'gamma', roomCount: 20 });
+    for (const room of Object.values(rooms)) {
+      if (room.id === 'room-entry' || room.isGoal) continue;
+      expect(edges[room.id]?.length).toBeGreaterThanOrEqual(1);
+      expect(edges[room.id]?.length).toBeLessThanOrEqual(3);
+    }
+  });
+
+  it('the goal room always has exactly one incoming edge, even under heavy branching', () => {
+    for (const seed of ['a', 'b', 'c', 'd', 'e']) {
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount: 25 });
+      const goal = Object.values(rooms).find((r) => r.isGoal);
+      expect(parentsOf(edges, goal.id)).toHaveLength(1);
+    }
+  });
+
+  it('is a DAG — no room is reachable from itself', () => {
+    const { rooms, edges } = buildRoomGraph({ seed: 'delta', roomCount: 15 });
+    for (const startId of Object.keys(rooms)) {
+      const seen = new Set();
+      const stack = [...(edges[startId] ?? [])];
+      while (stack.length) {
+        const id = stack.pop();
+        expect(id).not.toBe(startId);
+        if (seen.has(id)) continue;
+        seen.add(id);
+        stack.push(...(edges[id] ?? []));
+      }
+    }
+  });
+
+  it('is deterministic for the same seed', () => {
+    const a = buildRoomGraph({ seed: 'alpha', roomCount: 10 });
+    const b = buildRoomGraph({ seed: 'alpha', roomCount: 10 });
+    expect(a).toEqual(b);
+  });
+
+  it('rejects a roomCount below 2', () => {
+    expect(() => buildRoomGraph({ seed: 'alpha', roomCount: 1 })).toThrow();
   });
 });

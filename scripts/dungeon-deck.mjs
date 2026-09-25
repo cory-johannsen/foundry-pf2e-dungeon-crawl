@@ -366,3 +366,97 @@ export function applySequenceMutation(
   }
   return rooms;
 }
+
+/**
+ * Build a fresh branching room graph (#93). Unlike buildRoomSequence, this
+ * has no single fixed "next room" — each non-goal, non-entry room rolls its
+ * own exit count (exitCountAt) and grows one child per exit. To guarantee
+ * the goal room ends up with exactly one incoming edge no matter how much
+ * branching happened, generation tracks "open tips" (leaf rooms still
+ * awaiting children) and forces merges — routing 2+ open tips into the SAME
+ * next room — once the remaining room budget can no longer afford to keep
+ * every tip open through to its own goal connection.
+ */
+export function buildRoomGraph({
+  seed,
+  roomCount,
+  puzzleSetpieceIds = [],
+  trapSetpieceIds = [],
+  narrativeSetpieceIds = []
+}) {
+  if (!Number.isInteger(roomCount) || roomCount < 2) {
+    throw new Error('roomCount must be an integer of at least 2 (rooms plus a goal room)');
+  }
+
+  const rooms = {};
+  const edges = {};
+  let puzzleOccurrence = 0;
+  let trapOccurrence = 0;
+  let narrativeOccurrence = 0;
+  let built = 0; // non-entry, non-goal rooms built so far
+
+  const entry = {
+    id: 'room-entry', kind: 'safe_entry', isGoal: false, setpieceId: null, outcomeSlotId: null,
+    locationTag: locationTagAt(seed, 'entry'), artVariant: roomArtVariantAt(seed, 'entry')
+  };
+  rooms[entry.id] = entry;
+  edges[entry.id] = [];
+
+  function makeRoom(salt) {
+    const kind = roomKindAt(seed, salt);
+    const setpieceId =
+      kind === 'puzzle' ? setpieceAt(seed, puzzleOccurrence++, puzzleSetpieceIds, 'puzzle-setpiece-order')
+      : kind === 'trap' ? setpieceAt(seed, trapOccurrence++, trapSetpieceIds, 'trap-setpiece-order')
+      : kind === 'narrative' ? setpieceAt(seed, narrativeOccurrence++, narrativeSetpieceIds, 'narrative-setpiece-order')
+      : null;
+    const outcomeSlot = outcomeSlotAt(seed, salt);
+    const room = {
+      id: `room-${salt}`, kind, isGoal: false, setpieceId, outcomeSlotId: outcomeSlot.id,
+      locationTag: locationTagAt(seed, salt), artVariant: roomArtVariantAt(seed, salt)
+    };
+    rooms[room.id] = room;
+    edges[room.id] = [];
+    return room;
+  }
+
+  // Open tips grow the graph breadth-first; each pop may add 1-3 children.
+  let tips = [entry.id];
+  while (built < roomCount - 1) {
+    // Forced merge: once every remaining tip would need its own room just
+    // to reach the goal, and the budget can't afford one room per tip PLUS
+    // the goal, collapse all open tips onto a single new shared room before
+    // continuing — this is what guarantees exactly one goal parent.
+    const remaining = roomCount - 1 - built;
+    if (tips.length > 1 && remaining <= tips.length) {
+      const merged = makeRoom(`merge-${built}`);
+      built += 1;
+      for (const tipId of tips) edges[tipId].push(merged.id);
+      tips = [merged.id];
+      continue;
+    }
+
+    const tipId = tips.shift();
+    const exitCount = Math.min(exitCountAt(seed, tipId), roomCount - 1 - built);
+    const nextTips = [];
+    for (let i = 0; i < Math.max(1, exitCount); i += 1) {
+      if (built >= roomCount - 1) break;
+      const child = makeRoom(`${tipId}-${i}`);
+      built += 1;
+      edges[tipId].push(child.id);
+      nextTips.push(child.id);
+    }
+    tips.push(...nextTips);
+  }
+
+  // Every remaining open tip becomes the goal's parent — force-merge to one
+  // if more than one tip is still open (mirrors the loop's own merge step).
+  const goal = {
+    id: 'room-goal', kind: 'combat', isGoal: true, setpieceId: null, outcomeSlotId: null,
+    locationTag: locationTagAt(seed, 'goal'), artVariant: roomArtVariantAt(seed, 'goal')
+  };
+  rooms[goal.id] = goal;
+  edges[goal.id] = [];
+  for (const tipId of tips) edges[tipId].push(goal.id);
+
+  return { rooms, edges };
+}
