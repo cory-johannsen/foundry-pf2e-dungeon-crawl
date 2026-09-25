@@ -362,6 +362,20 @@ describe('attachHiddenPaths', () => {
     for (const roomId of hiddenRooms) expect(graph.rooms[roomId].isGoal).toBe(false);
   });
 
+  it('never attaches a hidden shortcut/detour TARGETING the goal room — a shortcut skips ONE HOP past toId, which can itself be adjacent to goal, even though toId itself is never goal (#93 pre-flight fix regression)', () => {
+    for (let n = 0; n < 40; n += 1) {
+      const seed = `hidden-goal-target-${n}`;
+      for (const roomCount of [3, 4, 5, 6, 8, 12, 20]) {
+        const graph = buildRoomGraph({ seed, roomCount });
+        const goalId = Object.values(graph.rooms).find((r) => r.isGoal).id;
+        const { hiddenEdges } = attachHiddenPaths({ ...graph, seed });
+        for (const targets of Object.values(hiddenEdges)) {
+          expect(targets).not.toContain(goalId);
+        }
+      }
+    }
+  });
+
   it('is deterministic for the same seed', () => {
     const graph = buildRoomGraph({ seed: 'beta', roomCount: 10 });
     const a = attachHiddenPaths({ ...graph, seed: 'beta' });
@@ -408,6 +422,15 @@ export function attachHiddenPaths({ rooms, edges, seed }) {
   const hiddenRooms = new Set();
   const hiddenEdges = {};
   let detourSalt = 0;
+  // #93 pre-flight fix: a shortcut's `skipTarget` is ONE HOP PAST `toId`
+  // (`edges[toId][0]`), not `toId` itself — the `toRoom.isGoal` guard
+  // below only excludes `toId` from being the goal, it says nothing
+  // about what `toId` points to. A room whose own single child IS the
+  // goal (any room adjacent to it) would otherwise let a shortcut land
+  // directly on the goal room, giving it a second incoming edge on
+  // reveal and violating "the goal room always has exactly one incoming
+  // edge... regardless of how branching rolled" (Global Constraints).
+  const goalId = Object.values(rooms).find((r) => r.isGoal)?.id;
 
   for (const [fromId, children] of Object.entries(edges)) {
     const fromRoom = rooms[fromId];
@@ -433,9 +456,10 @@ export function attachHiddenPaths({ rooms, edges, seed }) {
         (hiddenEdges[fromId] ??= []).push(detour.id);
       } else {
         // A shortcut needs a room beyond `toId` to skip TO — only attach
-        // one when `toId` itself has an onward edge to skip past.
+        // one when `toId` itself has an onward edge to skip past, and
+        // never when that onward edge is the goal room itself.
         const skipTarget = edges[toId]?.[0];
-        if (!skipTarget) continue;
+        if (!skipTarget || skipTarget === goalId) continue;
         (hiddenEdges[fromId] ??= []).push(skipTarget);
       }
     }
