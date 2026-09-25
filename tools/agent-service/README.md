@@ -38,16 +38,27 @@ without the flag a repo-root `.env` is silently ignored.
   (see `tools/agent-service/entrypoint.mjs`), and every request to it must
   present this key as a bearer token. Foundry needs the same value (see
   "Configure Foundry" below).
-- `ANTHROPIC_API_KEY` — required for the default `claude` decision
-  provider, and for the default `claude` flavor-customization provider
-  (see "Using a local model instead of Claude" below for the
-  no-Anthropic-account alternative).
+- `LITELLM_BASE_URL` — the base URL of the litellm proxy sidecar.
+  Defaults to `http://litellm:4000/v1` (the compose-network hostname).
+  Only needs overriding for non-compose deployments. Required — there is
+  no fallback.
+- `LITELLM_API_KEY` — optional bearer token. Matches whatever
+  `litellm-config.yaml` and litellm's own auth is set up to expect, if
+  anything. Not required for the default sidecar setup since it runs
+  inside the compose network and isn't published to a host port.
+- `LITELLM_TIMEOUT_MS` — optional request timeout in milliseconds, default
+  `300000` (5 minutes). Matches local-inference speed.
+- `COMBAT_REASONING_CANDIDATE_THRESHOLD` — optional threshold above which
+  combat decisions request the `reasoning` model tier instead of `fast`,
+  default `8`. If the decision has 8+ candidates, litellm routes to the
+  `reasoning` alias; fewer candidates use the `fast` alias (see
+  "Configuring model tiers" below).
 
 Optional, only needed if you want the Laya decision provider instead of
-Claude:
+litellm:
 
 - `PF2EDC_AGENT_PROVIDER=laya` — switches the combat-decision provider.
-  Defaults to `claude` if unset.
+  Defaults to `litellm` if unset.
 - `LAYA_API_KEY` — bearer token for your Laya deployment, if it requires
   auth.
 - `LAYA_BASE_URL` — base URL of your self-hosted Laya instance (see
@@ -66,8 +77,11 @@ Example `.env`:
 
 ```
 AGENT_SERVICE_API_KEY=<output of `openssl rand -hex 32`>
-ANTHROPIC_API_KEY=sk-ant-...
 ```
+
+The `litellm` sidecar (deployed by the same compose file) handles model
+access. No Anthropic API key or local-model config needed — the sidecar
+is containerized and configured separately.
 
 Leave the service running continuously — it's meant to be always-on
 infrastructure, not something you start and stop per session. Wherever
@@ -121,94 +135,72 @@ console:
 game.modules.get("pf2e-dungeon-crawl").api.postAgentLoopStatus();
 ```
 
-## Using a local model instead of Claude (optional)
+## Configuring model tiers
 
-Flavor-customization generation (trap/skill-challenge/puzzle/narrative
-room text, and treasure-room name+description) defaults to calling
-Claude directly and needs `ANTHROPIC_API_KEY` for that. If you don't have
-an Anthropic account — for example you're already running the Laya
-provider for combat decisions and want to skip Anthropic entirely — you
-can instead point flavor customization at any self-hosted,
-OpenAI-compatible chat-completions server that supports tool/function
-calling. This has been confirmed working against
-[Ollama](https://ollama.com/) running `qwen2.5:3b-instruct`.
+The `litellm` sidecar exposes two model aliases: `fast` (for simple
+decisions and customizations) and `reasoning` (for higher-stakes or
+complex decisions). Both currently point to the same local Ollama model,
+`qwen2.5:3b-instruct`, but you can point them to different models by
+editing `tools/agent-service/litellm-config.yaml`.
 
-Set:
+For example, to use a faster model for `fast` and a larger model for
+`reasoning`:
 
-- `AGENT_SERVICE_CUSTOMIZATION_PROVIDER=local` — switches the
-  flavor-customization provider. Defaults to `claude` if unset (no
-  behavior change if you don't set this).
-- `LOCAL_LLM_BASE_URL` — the base URL of your local server, **including
-  any API-version path segment it needs**. Ollama's OpenAI-compatible
-  routes live under `/v1`, so its base URL is `http://<host>:11434/v1`
-  — this module always POSTs to `${LOCAL_LLM_BASE_URL}/chat/completions`.
-  Required when the provider is `local`.
-- `LOCAL_LLM_MODEL` — the model name as your local server knows it, e.g.
-  `qwen2.5:3b-instruct`. Must support tool/function calling — this
-  module always requests a forced tool call, the same way the `claude`
-  path does. Required when the provider is `local`.
-- `LOCAL_LLM_API_KEY` — optional bearer token. Most local
-  OpenAI-compatible servers, including Ollama, don't require auth; set
-  this only if yours does.
-- `LOCAL_LLM_TIMEOUT_MS` — optional request timeout in milliseconds,
-  default `300000` (5 minutes). Local inference on modest hardware is
-  genuinely slow and variable — flavor-customization requests during
-  testing against `qwen2.5:3b-instruct` on a modest 6-core CPU under real
-  memory pressure ranged from about 2 minutes up to **over 6 minutes**
-  for one full trap name+description generation, i.e. sometimes _past_
-  the 5-minute default. This is a real, accepted tradeoff for running
-  without Anthropic, not a bug: flavor customization already never
-  blocks anything synchronously (see "Troubleshooting" below) — a room
-  or trap keeps its template content until the (slow) call finishes or
-  fails, then updates. If you see local-provider requests failing with a
-  timeout, raise `LOCAL_LLM_TIMEOUT_MS` rather than assume something is
-  broken. Don't expect anything close to Claude-speed responses; a
-  faster/larger local model or better hardware will help, but budget for
-  genuinely slow generation either way.
+```yaml
+model_list:
+  - model_name: fast
+    litellm_params:
+      model: ollama/dolphin-mixtral
+  - model_name: reasoning
+    litellm_params:
+      model: ollama/qwen2.5:32b-instruct-q5_k_m
+```
 
-### The `host.docker.internal` networking requirement
-
-**This is the single most likely thing to silently not work.** The
-agent service runs inside its own Docker container (this
-`docker-compose.yml`), separate from wherever you run your local model
-server (e.g. Ollama, itself often in its own container). Inside a
-container, `localhost` refers to the container itself, not the Docker
-host — so `LOCAL_LLM_BASE_URL=http://localhost:11434/v1` will silently
-fail to reach a host-run Ollama once this service is deployed via
-`docker compose`, even though the exact same URL works fine testing
-directly on the host (e.g. `node tools/agent-service/server.mjs` outside
-Docker, or a local `curl`).
-
-This `docker-compose.yml` already adds the fix
-(`extra_hosts: ["host.docker.internal:host-gateway"]` on the
-`agent-service` service) — the standard, portable (Linux/Mac/Windows)
-Docker Compose mechanism for letting a container reach a service running
-on its Docker host. With that in place, point `LOCAL_LLM_BASE_URL` at
-`http://host.docker.internal:11434/v1` (adjust the port for your local
-server) instead of `localhost`, and the agent-service container will
-reach a host-run Ollama correctly.
-
-If your local model server itself also runs in Docker (e.g. Ollama's own
-official image) on the same Docker host, `host.docker.internal` still
-works, because it resolves to the host's own network, not into another
-container — as long as that server's port is published to the host (as
-`ollama/ollama`'s default port mapping does).
-
-Quick way to run Ollama itself via Docker, for reference:
+After editing `litellm-config.yaml`, restart the litellm service to pick
+up the change (no code rebuild required, since it is a volume-mounted
+config file):
 
 ```bash
-docker run -d --name ollama -p 127.0.0.1:11434:11434 ollama/ollama
-docker exec ollama ollama pull qwen2.5:3b-instruct
+docker compose -f tools/agent-service/docker-compose.yml restart litellm
 ```
 
-Then set (in the repo-root `.env`, or the shell environment before
-`docker compose up`):
+Or, if the service isn't yet running, bring up the full stack (including
+litellm):
 
+```bash
+docker compose -f tools/agent-service/docker-compose.yml up -d
 ```
-AGENT_SERVICE_CUSTOMIZATION_PROVIDER=local
-LOCAL_LLM_BASE_URL=http://host.docker.internal:11434/v1
-LOCAL_LLM_MODEL=qwen2.5:3b-instruct
+
+The `COMBAT_REASONING_CANDIDATE_THRESHOLD` env var (default `8`) controls
+when the `reasoning` tier is requested: if a combat decision has 8 or more
+candidates, litellm routes to `reasoning`; fewer candidates use `fast`.
+
+## Migrating from older deployments
+
+If you deployed the agent-service before this change, your `.env` file
+likely contains environment variables that are no longer used:
+
+- `AGENT_SERVICE_CUSTOMIZATION_PROVIDER` — remove this from your `.env`.
+  Customizations now always go through litellm's flavor-model alias.
+- `LOCAL_LLM_BASE_URL`, `LOCAL_LLM_MODEL`, `LOCAL_LLM_API_KEY`,
+  `LOCAL_LLM_TIMEOUT_MS` — remove these. The local Ollama model is now
+  configured in `tools/agent-service/litellm-config.yaml` instead, and
+  `LITELLM_TIMEOUT_MS` replaces the old local timeout setting.
+- `ANTHROPIC_API_KEY` — remove this. The sidecar handles model access
+  (currently to a local model; point it at Claude or anything else by
+  editing `litellm-config.yaml`).
+
+If you had `PF2EDC_AGENT_PROVIDER=claude` explicitly set, change it to
+`PF2EDC_AGENT_PROVIDER=litellm` (the new default).
+
+The `litellm` service is now a required dependency. Bring up the full
+stack including it:
+
+```bash
+docker compose -f tools/agent-service/docker-compose.yml up -d
 ```
+
+Both `agent-service` and `litellm` must be running for the module to work.
 
 ## Self-hosting Laya (optional)
 
@@ -260,18 +252,15 @@ different surface than `/v1/predict`).
   ```
 
   Common causes: `AGENT_SERVICE_API_KEY` mismatch between Foundry's
-  module settings and the deployed service, a missing/invalid
-  `ANTHROPIC_API_KEY` (or `LAYA_API_KEY`/`LAYA_BASE_URL` if using the
-  Laya provider), or the service simply not being reachable from
-  Foundry's network (firewall, wrong host/port, reverse proxy
-  misconfigured). If the browser console shows a CORS or mixed-content
-  error, check `AGENT_SERVICE_ALLOWED_ORIGIN` and the HTTPS note above.
-  If `AGENT_SERVICE_CUSTOMIZATION_PROVIDER=local`, also check: a missing
-  `LOCAL_LLM_BASE_URL`/`LOCAL_LLM_MODEL` fails fast with a clear error in
-  the logs; `LOCAL_LLM_BASE_URL=http://localhost:...` will _not_ reach a
-  host-run server from inside the container — use
-  `http://host.docker.internal:...` instead (see "Using a local model
-  instead of Claude" above); and a timeout under `LOCAL_LLM_TIMEOUT_MS`
-  (default 5 minutes) on slow hardware just means the model hasn't
-  finished yet, not that something is broken — try a smaller model or a
-  longer timeout.
+  module settings and the deployed service, `LITELLM_BASE_URL` pointing to
+  an unreachable litellm instance (check the sidecar is running: `docker
+  compose -f tools/agent-service/docker-compose.yml ps`), missing or
+  misconfigured models in `tools/agent-service/litellm-config.yaml`, a
+  missing/invalid `LAYA_API_KEY`/`LAYA_BASE_URL` if using the Laya
+  provider, or the service simply not being reachable from Foundry's
+  network (firewall, wrong host/port, reverse proxy misconfigured). If the
+  browser console shows a CORS or mixed-content error, check
+  `AGENT_SERVICE_ALLOWED_ORIGIN` and the HTTPS note above. If requests
+  are timing out, check `LITELLM_TIMEOUT_MS` (default 5 minutes) — on slow
+  hardware or a slow model, the inference may just need more time. Check
+  the litellm logs as well: `docker compose -f tools/agent-service/docker-compose.yml logs litellm`.
