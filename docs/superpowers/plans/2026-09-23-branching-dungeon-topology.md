@@ -379,9 +379,14 @@ describe('attachHiddenPaths', () => {
   });
 
   it('is deterministic for the same seed', () => {
-    const graph = buildRoomGraph({ seed: 'beta', roomCount: 10 });
-    const a = attachHiddenPaths({ ...graph, seed: 'beta' });
-    const b = attachHiddenPaths({ ...graph, seed: 'beta' });
+    // #93 pre-flight fix (found during Task 3's redo): attachHiddenPaths
+    // mutates `rooms`/`edges` in place (splicing in detour rooms) — a
+    // single buildRoomGraph() call shallow-spread into two
+    // attachHiddenPaths() calls would hand the SECOND call an
+    // already-mutated graph from the first, making them incomparable.
+    // Build a fresh graph per call instead.
+    const a = attachHiddenPaths({ ...buildRoomGraph({ seed: 'beta', roomCount: 10 }), seed: 'beta' });
+    const b = attachHiddenPaths({ ...buildRoomGraph({ seed: 'beta', roomCount: 10 }), seed: 'beta' });
     expect([...a.hiddenRooms]).toEqual([...b.hiddenRooms]);
     expect(a.hiddenEdges).toEqual(b.hiddenEdges);
   });
@@ -2346,6 +2351,19 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
       revealedRoomId,
     });
   }
+  // #93 pre-flight fix (found during Task 9's review): the CURRENT code
+  // shows a GM hint (`RerunEncounterHint`) whenever the old `mutation`
+  // field was `'rerun_encounter'` — the aid_or_ambush ruin outcome's own
+  // signal to reroll the room's encounter. `mutation` is gone, but the
+  // SAME outcome still comes through as `effectKey === 'encounter'`
+  // (`dungeon-deck.mjs`'s only outcome template using that key — grep
+  // confirms it's unambiguous), so re-key the hint off that instead of
+  // silently dropping it. Left unaddressed, this specific ruin's "go
+  // reroll the fight" GM nudge would quietly stop firing forever.
+  if (effectKey === "encounter")
+    ui.notifications.warn(
+      game.i18n.localize("PF2EDC.Dungeon.RerunEncounterHint"),
+    );
   // #93: full pregeneration means every room the party can reach is
   // already built (Task 12's eager-build loop) and any hidden path this
   // outcome revealed was already merged into `state.edges` inside
