@@ -66,6 +66,7 @@
   "PF2EDC.Dungeon.ReadOnlyHint": "{host} is running this crawl — you're viewing read-only.",
   "PF2EDC.Dungeon.RequestFailedWarning": "That request couldn't be completed — check that a GM is connected.",
   "PF2EDC.Dungeon.RerunEncounterHint": "The ruin drawn here means an extra fight — click Run Encounter again once the party is through.",
+  "PF2EDC.Dungeon.RoomBuildFailedError": "Dungeon Crawl: failed to prepare the next room — see console for details.",
   "PF2EDC.Dungeon.RoomCountLabel": "Number of rooms (including the goal room)",
   "PF2EDC.Dungeon.SafeEntryHint": "A safe room — no encounter, trap or puzzle. The way onward is already open.",
   "PF2EDC.Dungeon.SafeRestHint": "A safe place to rest partway through the dungeon — no encounter, trap or puzzle. The way onward is already open.",
