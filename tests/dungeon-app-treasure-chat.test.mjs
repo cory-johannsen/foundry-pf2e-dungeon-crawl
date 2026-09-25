@@ -99,8 +99,8 @@ describe("grantTreasureReward (#88 chat log fix)", () => {
 
     await grantTreasureReward(api, {
       partyLevel: 5,
-      physicalSlot: 2,
-      roomCount: 8,
+      rank: 2,
+      maxRank: 7,
       isGoal: false,
     });
 
@@ -118,8 +118,8 @@ describe("grantTreasureReward (#88 chat log fix)", () => {
 
     await grantTreasureReward(api, {
       partyLevel: 5,
-      physicalSlot: 2,
-      roomCount: 8,
+      rank: 2,
+      maxRank: 7,
       isGoal: false,
     });
 
@@ -134,8 +134,8 @@ describe("grantTreasureReward (#88 chat log fix)", () => {
     // its one entry's name is exactly what drawTreasureItem will look up.
     const params = {
       partyLevel: 5,
-      physicalSlot: 2,
-      roomCount: 8,
+      rank: 2,
+      maxRank: 7,
       isGoal: false,
     };
     vi.spyOn(Math, "random").mockReturnValue(0.1);

@@ -10,12 +10,6 @@ import {
   recordPuzzleStageAttempt,
   roomsToEagerlyBuild,
   replaceRunState,
-  // commitEagerPhysicalSlots/roomsNeedingResync (and dungeon-scene.mjs's
-  // buildPopulateAndUnlockRoom below) are still referenced only by
-  // resolveCurrentRoom's already-unreachable mutation-resync/next-room
-  // block — Task 13 rewrites resolveCurrentRoom and drops them.
-  commitEagerPhysicalSlots,
-  roomsNeedingResync,
   clearPuzzleState,
   clearSkillChallengeState,
   clearNarrativeState,
@@ -48,7 +42,6 @@ import {
   undoRoomEntry,
   focusCameraOnRoom,
   teardownDungeonRun,
-  buildPopulateAndUnlockRoom,
   buildPopulateAndUnlockGraphNode,
   resizeSceneForLayout,
   unlockDoorsFromRoom,
@@ -140,228 +133,121 @@ function skillLabel(slug) {
 export async function resolveCurrentRoom(succeeded, { scene } = {}) {
   if (!scene) return;
   const setpieces = await loadDungeonSetpieces();
-  // Captured before markRoomOutcome advances currentIndex — both the XP
-  // grant below and applyRoomEffect's treasure-gp calc need the room that
-  // was just resolved, not whatever comes next.
+  // Captured before markRoomOutcome runs — both the XP grant below and
+  // applyRoomEffect's treasure-gp calc need the room that was just
+  // resolved, keyed by id now that state.rooms is a dict (#93).
   const preState = getRunState(scene.id);
-  const currentRoom = preState?.rooms[preState.currentIndex];
-  const physicalSlot = currentRoom
-    ? preState.physicalSlotByRoomId[currentRoom.id]
-    : null;
-  // #30/#32: a trap room grants XP on success here, whether or not a real
-  // hazard actor ended up spawned for it. This is the one place both the
-  // direct-GM and GM-less-relay resolution paths converge (dungeon-remote.mjs's
-  // own "resolveRoom" action calls this same function) — every other room
-  // kind grants its own XP before ever calling this (combat via
-  // resolveSlotCombat/resolveCombat, skill challenges/puzzles via
-  // recordSkillChallengeOutcome/recordPuzzleStageOutcome above — a puzzle
-  // room's XP is granted there, not here). Narrative and treasure grant no
-  // XP here either — neither has a pass/fail mechanic GM Core's non-combat
-  // XP guidance applies to.
+  const currentRoom = preState?.rooms[preState.currentRoomId];
+  // #93: the dungeonSlot flag's NAME is unchanged (dungeon-combat.mjs and
+  // its tests only ever compare it for equality — see Task 10's design
+  // note); its VALUE is now the room's own string id instead of an
+  // integer physical slot.
   if (succeeded && currentRoom?.kind === "trap") {
     const trapToken = scene.tokens.find(
       (t) =>
         t.getFlag(MODULE_ID, "trapHazard") &&
-        t.getFlag(MODULE_ID, "dungeonSlot") === physicalSlot,
+        t.getFlag(MODULE_ID, "dungeonSlot") === currentRoom.id,
     );
     const trapLevel = trapToken?.actor?.system?.details?.level?.value;
     const levelOffset =
       trapLevel != null ? trapLevel - (await makeFoundryApi().partyLevel()) : 0;
     await makeFoundryApi().grantPartyXp(xpFor(levelOffset));
   }
-  // #93/#156: markRoomOutcome no longer returns mutation/nextRoomId/
-  // nextPhysicalSlot at all (that whole sequence-splicing/physical-slot-
-  // assignment model is gone — every room is eagerly built up front now,
-  // see roomsToEagerlyBuild). They're destructured here anyway (always
-  // undefined) purely so the mutation-resync block and the `!nextRoomId`
-  // early-return below it stay syntactically intact rather than throwing a
-  // ReferenceError — both blocks are already permanently unreachable/no-op
-  // dead code as a result, left for a later task in this plan to remove
-  // outright alongside the rest of the one-room-ahead build path.
-  const { state, effectKey, mutation, nextRoomId, nextPhysicalSlot, revealedRoomId } =
-    await markRoomOutcome(
-      { sceneId: scene.id, succeeded },
-      {
-        // #32/#165: each kind draws from its own filtered pool, so a
-        // puzzle or trap room's own draw can never land on a skill_challenge
-        // or narrative entry (those never use setpieceId at all —
-        // skill_challenge picks its own template separately, and neither
-        // would populate anything if drawn here).
-        puzzleSetpieceIds: setpieces
-          .filter((s) => s.kind === "puzzle")
-          .map((s) => s.id),
-        trapSetpieceIds: setpieces
-          .filter((s) => s.kind === "trap")
-          .map((s) => s.id),
-        narrativeSetpieceIds: setpieces
-          .filter((s) => s.kind === "narrative")
-          .map((s) => s.id),
-        treasureSetpieceIds: setpieces
-          .filter((s) => s.kind === "treasure")
-          .map((s) => s.id),
-      },
-    );
+  const { state, effectKey, revealedRoomId } = await markRoomOutcome(
+    { sceneId: scene.id, succeeded },
+    {
+      puzzleSetpieceIds: setpieces
+        .filter((s) => s.kind === "puzzle")
+        .map((s) => s.id),
+      trapSetpieceIds: setpieces
+        .filter((s) => s.kind === "trap")
+        .map((s) => s.id),
+      narrativeSetpieceIds: setpieces
+        .filter((s) => s.kind === "narrative")
+        .map((s) => s.id),
+      treasureSetpieceIds: setpieces
+        .filter((s) => s.kind === "treasure")
+        .map((s) => s.id),
+    },
+  );
   if (currentRoom && effectKey) {
+    // #93 pre-flight fix (found during Task 9's review): Task 9's own
+    // `applyRoomEffect` addendum (its `reduced_travel_time`/
+    // `extra_travel_time` case, dungeon-app.mjs) reads `scene` and
+    // `revealedRoomId` off THIS call's params to call
+    // `unsealHiddenDoorFromRoom` — an earlier draft of this task dropped
+    // both here, which would have silently disconnected Task 9's unseal
+    // step (a hidden door revealed by outcome would never actually
+    // unlock in the scene, even though the data merge succeeded).
     await applyRoomEffect(effectKey, {
+      scene,
       seed: preState.seed,
       roomId: currentRoom.id,
-      physicalSlot,
-      roomCount: preState.rooms.length,
+      rank: preState.layoutPositionByRoomId[currentRoom.id].rank,
+      maxRank: preState.maxRank,
       isGoal: currentRoom.isGoal,
-      scene,
       revealedRoomId,
     });
   }
-  if (mutation === "rerun_encounter")
+  // #93 pre-flight fix (found during Task 9's review): the CURRENT code
+  // shows a GM hint (`RerunEncounterHint`) whenever the old `mutation`
+  // field was `'rerun_encounter'` — the aid_or_ambush ruin outcome's own
+  // signal to reroll the room's encounter. `mutation` is gone, but the
+  // SAME outcome still comes through as `effectKey === 'encounter'`
+  // (`dungeon-deck.mjs`'s only outcome template using that key — grep
+  // confirms it's unambiguous), so re-key the hint off that instead of
+  // silently dropping it. Left unaddressed, this specific ruin's "go
+  // reroll the fight" GM nudge would quietly stop firing forever.
+  if (effectKey === "encounter")
     ui.notifications.warn(
       game.i18n.localize("PF2EDC.Dungeon.RerunEncounterHint"),
     );
-  // #62: a GM-less-hosted run already eagerly built its whole sequence
-  // (startDungeonRun's own roomsToEagerlyBuild loop) — a Reward/Ruin
-  // sequence mutation (remove_next/insert_after) firing here shifts which
-  // logical room belongs at each already-built physical slot from this
-  // point on. Without reconciling that now, the party would walk into a
-  // physically-built slot showing the WRONG room's content (or, past the
-  // old tail, a slot with no content at all). A GM-hosted run
-  // (state.hostUserId null) never eagerly builds ahead — it has nothing to
-  // reconcile, and its existing one-room-ahead build below (the
-  // buildPopulateAndUnlockRoom(scene, state, nextRoom, nextPhysicalSlot)
-  // call past the `!nextRoomId` guard) already handles a mutation
-  // correctly today, unchanged.
-  // markRoomOutcome's own `nextPhysicalSlot` return value is computed from
-  // the PRE-mutation physicalSlotByRoomId via its plain reuse-or-allocate
-  // logic (see its own docblock) — it has no idea a GM-less run's eager
-  // build already occupies every slot by array index, and no idea
-  // roomsNeedingResync is about to renumber the shifted tail. For a
-  // remove_next mutation, nextRoomId's OLD slot entry still exists (from
-  // its own original eager build further down the sequence), so
-  // markRoomOutcome's `nextRoomId in physicalSlotByRoomId` reuse branch
-  // returns that STALE old slot, not its new one. For insert_after,
-  // nextRoomId is a brand-new room with no old entry, so markRoomOutcome
-  // falls to its `nextPhysicalSlot` running counter instead — a number
-  // from a completely different, non-eager numbering scheme, unrelated to
-  // roomsNeedingResync's array-index slot for it. Either way, blindly
-  // trusting the returned `nextPhysicalSlot` below would build/unlock the
-  // WRONG door. `resolvedNextPhysicalSlot` is corrected from the
-  // resync's own authoritative `toRebuild` list once computed just below;
-  // it stays as-is (correct, unchanged) for a GM-hosted run, which never
-  // eagerly builds ahead and so never hits this mismatch.
-  let resolvedNextPhysicalSlot = nextPhysicalSlot;
-  if (mutation && state.hostUserId) {
-    const { toRebuild, toOrphan } = roomsNeedingResync(
-      state,
-      preState.physicalSlotByRoomId,
-      state.currentIndex,
-    );
-    // The goal room's identity is unaffected by any mutation
-    // (applySequenceMutation never targets it — see the design doc), so
-    // this is the same room id whether read from the pre- or post-mutation
-    // rooms array. What changes is which physical slot it occupies (a
-    // fresh one, via toExtend below) — the OLD slot it used to occupy is
-    // what needs its outgoing wall retrofitted, identified by matching a
-    // toRebuild entry's own previousRoomId against this id.
-    const previousGoalRoomId = preState.rooms.find((r) => r.isGoal)?.id;
-    // Each toRebuild entry is a physical slot that now needs a DIFFERENT
-    // logical room's content than whatever it was eagerly built with
-    // before the mutation (an extended slot, per Task 5's own report,
-    // always also appears here — buildPopulateAndUnlockRoom's isSlotBuilt
-    // guard (Task 3) does a real build for it, same as any other slot that
-    // was never physically built at all). Teardown+rebuild happens one
-    // slot at a time, not the whole range up front, so a failure partway
-    // through leaves at most one slot mid-repair rather than every slot
-    // torn down with nothing rebuilt.
-    for (const { room, physicalSlot, previousRoomId } of toRebuild) {
-      // #62 Task 7: the room that used to occupy this slot was the goal —
-      // built with hasOutgoing:false and no frontier placeholder, so its
-      // one outgoing-face wall is a full solid enclosure wall nothing else
-      // can find or remove. A non-goal room is about to occupy this slot
-      // instead, so it needs a real outgoing connection: swap that stale
-      // wall for the same frontier-placeholder wall a non-goal room gets
-      // from its own original build, before any other teardown/rebuild
-      // below touches this slot.
-      if (previousRoomId === previousGoalRoomId) {
-        await openGoalRoomExit(scene, physicalSlot, state.seed);
+  // #93: full pregeneration means every room the party can reach is
+  // already built (Task 12's eager-build loop) in the common case, and
+  // any hidden path this outcome revealed was already merged into
+  // `state.edges` inside markRoomOutcome (Task 9's revealTravelTimeEffect)
+  // — resolving a room never rebuilds or reconciles physical slots. All
+  // that's normally left is unlocking the resolved room's own outgoing
+  // doors so the party can walk through them; the goal room has none.
+  //
+  // #93 pre-flight fix (found during Task 11's own review): the
+  // ensure-built loop below is the Review Focus item 1 safety net for
+  // the uncommon case where eager pregeneration failed for one of these
+  // children — NOT the normal path. A child room's own doors (both the
+  // progress-gate and reveal doors) only ever get created as part of
+  // THAT room's own build, in the same call that marks it built — so a
+  // door-open-time fallback (the original design) could never fire for a
+  // room that truly failed to build; this is the one place we already
+  // know which children are about to be unlockable, before any door
+  // needs to exist for the player to click. buildPopulateAndUnlockGraphNode
+  // is already idempotent (checks isSlotBuilt/isSlotPopulated internally),
+  // so calling it for an already-fully-built child costs nothing beyond
+  // that internal check — this is not a second build pass on the common
+  // path, same reasoning as Task 11's identical rest-room-branch loop.
+  if (currentRoom && !currentRoom.isGoal) {
+    const childIds = state.edges[currentRoom.id] ?? [];
+    const hiddenChildIds = state.hiddenEdges[currentRoom.id] ?? [];
+    for (const childId of [...childIds, ...hiddenChildIds]) {
+      const child = state.rooms[childId];
+      const { rank: childRank, col: childCol } = state.layoutPositionByRoomId[childId];
+      try {
+        await buildPopulateAndUnlockGraphNode(scene, state, child, {
+          rank: childRank,
+          col: childCol,
+          childIds: state.edges[childId] ?? [],
+          hiddenChildId: state.hiddenEdges[childId]?.[0] ?? null,
+          unlock: false,
+        });
+      } catch (err) {
+        console.error(`${MODULE_ID} | failed to build child room ${childId} before unlock`, err);
+        ui.notifications?.error(
+          game.i18n.localize("PF2EDC.Dungeon.RoomBuildFailedError"),
+        );
       }
-      // Foundry-side teardown of whatever's currently AT this slot (the
-      // stale room's tokens/actors) — clearSlotEncounter/clearSlotTrap key
-      // purely off the slot's own dungeonSlot flag, not room identity, so
-      // this is correct regardless of what kind the stale room was.
-      await clearSlotEncounter(scene, physicalSlot);
-      await clearSlotTrap(scene, physicalSlot);
-      // Reset whatever persisted content state the room being PLACED here
-      // already carries from its own original eager build (at a different
-      // physical slot) — a skill_challenge's DC is calibrated by
-      // depthBiasFor(physicalSlot), so reusing state generated for the
-      // old slot would leave it mis-calibrated for the new one; a trap's
-      // persisted name/description (ensureTrapState) would otherwise keep
-      // pointing at the just-deleted hazard actor once a fresh one spawns
-      // below. All five are no-ops when the room has nothing of that type
-      // to clear (Task 4; #89 added clearTreasureState to this same set),
-      // so calling every one unconditionally is safe and reads more
-      // clearly here than re-deriving which single type this room's kind
-      // implies.
-      await clearPuzzleState(scene.id, room.id);
-      await clearSkillChallengeState(scene.id, room.id);
-      await clearNarrativeState(scene.id, room.id);
-      await clearTrapState(scene.id, room.id);
-      await clearTreasureState(scene.id, room.id);
-      // unlock: false — this only re-establishes correct CONTENT at each
-      // shifted slot; door-unlock order is still governed by the normal
-      // resolution-order gate (the unchanged buildPopulateAndUnlockRoom
-      // call below unlocks the door to whatever's now genuinely next).
-      await buildPopulateAndUnlockRoom(scene, state, room, physicalSlot, {
-        unlock: false,
-      });
     }
-    // A slot that fell off the end of the (now-shorter) sequence entirely
-    // — remove_next only, since insert_after only ever grows the tail.
-    for (const orphanSlot of toOrphan) {
-      await clearSlotEncounter(scene, orphanSlot);
-      await clearSlotTrap(scene, orphanSlot);
-    }
-    if (toRebuild.length) {
-      await commitEagerPhysicalSlots(
-        scene.id,
-        toRebuild.map(({ room, physicalSlot }) => ({ room, physicalSlot })),
-      );
-    }
-    // toRebuild always starts at physicalSlot === state.currentIndex + 1
-    // (mutationBoundaryIndex + 1) for both remove_next (the removed room
-    // WAS that slot, so whatever now occupies it differs) and insert_after
-    // (the newly-inserted room IS that slot, brand new) — which is exactly
-    // nextRoomId's own array position, so this lookup always finds an
-    // entry whenever nextRoomId is non-null and mutation actually changed
-    // the sequence.
-    const nextRebuildEntry = toRebuild.find((r) => r.room.id === nextRoomId);
-    if (nextRebuildEntry)
-      resolvedNextPhysicalSlot = nextRebuildEntry.physicalSlot;
+    await unlockDoorsFromRoom(scene, currentRoom.id, childIds, hiddenChildIds);
   }
-  if (!nextRoomId) {
-    // #204: the goal room was just resolved — nothing more to build, but
-    // sweep any un-looted #172 corpse (or plain leftover NPC) before
-    // returning, since this was previously the one completion path with no
-    // cleanup trigger at all (teardownDungeonRun only ever fires on Abandon).
-    // #62 final review: markRoomOutcome also returns a null nextRoomId from
-    // several guards that are NOT genuine completion — its duplicate-resolve
-    // guard (#152, e.g. a double-click race), its no-outcome-slot guard, and
-    // its own already-completed guard. Gate on the returned state's actual
-    // `completed` flag (set true only in markRoomOutcome's real
-    // goal-room-resolved branch) rather than treating every null nextRoomId
-    // as "run done" — with every room now eagerly built (#62), sweeping on a
-    // false positive would wipe every pre-populated encounter and trap
-    // hazard across the whole dungeon, not just the one room the old
-    // one-room-ahead design could have lost.
-    if (state?.completed) await sweepCompletedDungeonScene(scene);
-    return;
-  }
-
-  const nextRoom = state.rooms.find((r) => r.id === nextRoomId);
-  await buildPopulateAndUnlockRoom(
-    scene,
-    state,
-    nextRoom,
-    resolvedNextPhysicalSlot,
-  );
+  if (state?.completed) await sweepCompletedDungeonScene(scene);
 }
 
 // A level well under the party's own, so a `friendly_aid` ally reads as a
@@ -387,12 +273,12 @@ const FRIENDLY_AID_LEVEL_OFFSET = -4;
  */
 export async function grantTreasureReward(
   api,
-  { partyLevel, physicalSlot, roomCount, isGoal },
+  { partyLevel, rank, maxRank, isGoal },
 ) {
   const gp = lootGpForTreasureRoom({
     partyLevel,
-    physicalSlot,
-    roomCount,
+    rank,
+    maxRank,
     isGoal,
   });
   await api.addCoins(game.actors.party.id, { gp });
@@ -409,8 +295,8 @@ export async function grantTreasureReward(
   });
   const tableName = treasureRoomItemTableName({
     partyLevel,
-    physicalSlot,
-    roomCount,
+    rank,
+    maxRank,
     isGoal,
     rng: Math.random,
   });
@@ -429,7 +315,7 @@ export async function grantTreasureReward(
 
 async function applyRoomEffect(
   effectKey,
-  { seed, roomId, physicalSlot, roomCount, isGoal, scene, revealedRoomId },
+  { scene, seed, roomId, rank, maxRank, isGoal, revealedRoomId },
 ) {
   const api = makeFoundryApi();
   const partyMembers = (game.actors?.party?.members ?? []).filter(
@@ -441,8 +327,8 @@ async function applyRoomEffect(
       const partyLevel = await api.partyLevel();
       await grantTreasureReward(api, {
         partyLevel,
-        physicalSlot,
-        roomCount,
+        rank,
+        maxRank,
         isGoal,
       });
       return;
@@ -773,20 +659,17 @@ export async function recordPuzzleStageOutcome(
 export async function claimTreasureFor(sceneId) {
   const scene = game.scenes.get(sceneId);
   const state = scene ? getRunState(sceneId) : null;
-  const currentRoom = state?.rooms[state.currentIndex];
-  const physicalSlot = currentRoom
-    ? state.physicalSlotByRoomId[currentRoom.id]
-    : null;
-  if (physicalSlot == null) return;
+  const currentRoom = state?.rooms[state.currentRoomId];
+  if (!currentRoom) return;
   if (game.actors.party) {
     const api = makeFoundryApi();
     const partyLevel = await api.partyLevel();
-    const roomCount = state.rooms.length;
+    const { rank } = state.layoutPositionByRoomId[currentRoom.id];
     const isGoal = currentRoom.isGoal;
     await grantTreasureReward(api, {
       partyLevel,
-      physicalSlot,
-      roomCount,
+      rank,
+      maxRank: state.maxRank,
       isGoal,
     });
   }
