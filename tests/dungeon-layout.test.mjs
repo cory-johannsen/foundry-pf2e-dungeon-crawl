@@ -443,12 +443,17 @@ describe('buildEdgeCorridor (multi-cell path)', () => {
   });
 
   it('produces one transitCells entry per intermediate cell when routing around an obstacle', () => {
+    // #174 fix round: toPos is at rank 3 (not 2) so the blocked cell
+    // ('1,0') sits short of toPos's own north-neighbor cell (rank 2,
+    // col 0), which findCorridorPath now requires to stay free/be the
+    // sole approach into toPos — see dungeon-layout.mjs's findCorridorPath
+    // canEnter guard.
     const fromRect = { gx: 300, gy: 0, gw: 12, gh: 12 };
-    const toRect = { gx: 300, gy: 26, gw: 12, gh: 12 }; // rank 2
-    const toSlot = { x1: 300, y1: 26, x2: 312, y2: 26 };
+    const toRect = { gx: 300, gy: 39, gw: 12, gh: 12 }; // rank 3
+    const toSlot = { x1: 300, y1: 39, x2: 312, y2: 39 };
     const occupiedCells = { '1,0': 'blocker' };
     const result = buildEdgeCorridor(
-      'seed1', 'a', 'b', fromRect, toRect, { rank: 0, col: 0 }, { rank: 2, col: 0 },
+      'seed1', 'a', 'b', fromRect, toRect, { rank: 0, col: 0 }, { rank: 3, col: 0 },
       'south', toSlot, occupiedCells,
     );
     expect(result.transitCells.length).toBeGreaterThan(0);
@@ -464,20 +469,24 @@ describe('buildEdgeCorridor (multi-cell path)', () => {
     // would make "already built, skip" and "needs its own new opening"
     // indistinguishable), because each edge's own edgeId salts the
     // crossing's offset independently (see transitCellCrossing, Task 3).
+    // #174 fix round: endpoints are at rank 3 (not 2) so the blocked
+    // cell ('1,0') sits short of toPos's own north-neighbor cell,
+    // consistent with findCorridorPath's canEnter guard (see the note
+    // in the test above).
     const fromRectA = { gx: 300, gy: 0, gw: 12, gh: 12 };
-    const toRectA = { gx: 300, gy: 26, gw: 12, gh: 12 };
-    const toSlotA = { x1: 300, y1: 26, x2: 312, y2: 26 };
+    const toRectA = { gx: 300, gy: 39, gw: 12, gh: 12 };
+    const toSlotA = { x1: 300, y1: 39, x2: 312, y2: 39 };
     const occupiedCells = { '1,0': 'blocker' };
     const resultA = buildEdgeCorridor(
-      'seed1', 'a', 'b', fromRectA, toRectA, { rank: 0, col: 0 }, { rank: 2, col: 0 },
+      'seed1', 'a', 'b', fromRectA, toRectA, { rank: 0, col: 0 }, { rank: 3, col: 0 },
       'south', toSlotA, occupiedCells,
     );
 
     const fromRectC = { gx: 300 + 13, gy: 0, gw: 12, gh: 12 };
-    const toRectC = { gx: 300 + 13, gy: 26, gw: 12, gh: 12 };
-    const toSlotC = { x1: 300 + 13, y1: 26, x2: 300 + 13 + 12, y2: 26 };
+    const toRectC = { gx: 300 + 13, gy: 39, gw: 12, gh: 12 };
+    const toSlotC = { x1: 300 + 13, y1: 39, x2: 300 + 13 + 12, y2: 39 };
     const resultC = buildEdgeCorridor(
-      'seed1', 'c', 'd', fromRectC, toRectC, { rank: 0, col: 1 }, { rank: 2, col: 1 },
+      'seed1', 'c', 'd', fromRectC, toRectC, { rank: 0, col: 1 }, { rank: 3, col: 1 },
       'south', toSlotC, occupiedCells,
     );
 
@@ -492,7 +501,7 @@ describe('buildEdgeCorridor (multi-cell path)', () => {
     // endpoints through col 0 too, with a DIFFERENT edgeId (fromRoomId/
     // toRoomId pair) than A's.
     const resultD = buildEdgeCorridor(
-      'seed1', 'e', 'f', fromRectA, toRectA, { rank: 0, col: 0 }, { rank: 2, col: 0 },
+      'seed1', 'e', 'f', fromRectA, toRectA, { rank: 0, col: 0 }, { rank: 3, col: 0 },
       'south', toSlotA, occupiedCells,
     );
     expect(resultD.transitCells).toHaveLength(resultA.transitCells.length);
@@ -552,14 +561,55 @@ describe('findCorridorPath', () => {
   });
 
   it('detours around a cell occupied by an unrelated room', () => {
+    // #174 fix round: the blocked cell must not be toPos's own
+    // north-neighbor, or the only available detour would need to enter
+    // toPos from a non-north side, which the fix below correctly
+    // forbids (see the two tests after this describe block). Using
+    // toPos at rank 3 keeps this test's original intent — a generic
+    // detour around an obstacle — compatible with that new rule: the
+    // blocked cell (rank 1) sits well short of toPos's own north
+    // neighbor (rank 2).
     const occupiedCells = { '1,0': 'blocker' };
     const path = findCorridorPath(
-      { rank: 0, col: 0 }, { rank: 2, col: 0 }, occupiedCells, { fromRoomId: 'a', toRoomId: 'b' },
+      { rank: 0, col: 0 }, { rank: 3, col: 0 }, occupiedCells, { fromRoomId: 'a', toRoomId: 'b' },
     );
     expect(path).not.toBeNull();
     expect(path).not.toContainEqual({ rank: 1, col: 0 });
     expect(path[0]).toEqual({ rank: 0, col: 0 });
-    expect(path[path.length - 1]).toEqual({ rank: 2, col: 0 });
+    expect(path[path.length - 1]).toEqual({ rank: 3, col: 0 });
+  });
+
+  // #174 fix-round addendum: a room's incoming connection always lands
+  // on its north face, and there is no margin to route through on any
+  // other side — so a path whose last hop into toPos arrives from the
+  // east, west, or south produces corridor geometry that cuts into the
+  // target room's own interior. findCorridorPath must never return such
+  // a path; it must treat toPos as reachable only from its own
+  // north-neighbor cell.
+  it('returns null when toPos\'s own north-neighbor cell is occupied, even though a longer lateral route into toPos would otherwise be free', () => {
+    // Same occupiedCells/endpoints the pre-fix BFS used to "detour"
+    // through: '1,0' is toPos's own north-neighbor here (toPos is
+    // {rank: 2, col: 0}), so blocking it removes the only permitted
+    // approach into toPos. A free lateral route into toPos still exists
+    // via column 1 (entering from the east) — the pre-fix code returned
+    // that path; the fixed code must not.
+    const occupiedCells = { '1,0': 'blocker' };
+    const path = findCorridorPath(
+      { rank: 0, col: 0 }, { rank: 2, col: 0 }, occupiedCells, { fromRoomId: 'a', toRoomId: 'b' },
+    );
+    expect(path).toBeNull();
+  });
+
+  it('still finds a detour that re-converges on toPos\'s own column when toPos\'s immediate north neighbor is free', () => {
+    // The obstacle blocks the direct route but sits short of toPos's
+    // own north-neighbor cell (rank 2, col 0), which stays free — so a
+    // path still exists, and it must approach toPos from the north.
+    const occupiedCells = { '1,0': 'blocker' };
+    const path = findCorridorPath(
+      { rank: 0, col: 0 }, { rank: 3, col: 0 }, occupiedCells, { fromRoomId: 'a', toRoomId: 'b' },
+    );
+    expect(path).not.toBeNull();
+    expect(path.slice(-2)).toEqual([{ rank: 2, col: 0 }, { rank: 3, col: 0 }]);
   });
 
   it('never treats the endpoints themselves as blocked, even though they are occupied by fromRoomId/toRoomId', () => {

@@ -732,6 +732,29 @@ export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, to
     const occupant = occupiedCells[key(pos)];
     return occupant != null && occupant !== fromRoomId && occupant !== toRoomId;
   };
+  // #174 fix round (found by Task 4's own review, not anticipated when
+  // this task was first written): a room's own incoming connection
+  // always lands on its north face (fixed since #93's Task 5 redesign),
+  // and entryPoint has no spare margin to route through on any other
+  // side (cellMarginWalls only ever seals east/south margin). A path
+  // that reaches toPos from anywhere but its own north-adjacent cell
+  // cannot be turned into corridor geometry without cutting into the
+  // target room's own interior -- confirmed to happen with certainty
+  // whenever toPos's own north neighbor is occupied by an unrelated
+  // room, forcing a same-column detour to approach from another side.
+  // Only toPos's own north neighbor may step into it; every other
+  // neighbor treats toPos as unreachable from itself, same as any other
+  // blocked cell. If that leaves no path at all, this correctly returns
+  // null and the caller falls back to the existing direct-line
+  // degradation (already an accepted, explicitly-designed imperfection
+  // for the "no free path" case) rather than a "successful" path this
+  // geometry cannot actually build without overlap.
+  const canEnter = (from, to) => {
+    if (to.rank === toPos.rank && to.col === toPos.col) {
+      return from.rank === toPos.rank - 1 && from.col === toPos.col;
+    }
+    return true;
+  };
 
   const goalKey = key(toPos);
   const queue = [fromPos];
@@ -760,6 +783,7 @@ export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, to
       const nextKey = key(next);
       if (cameFrom.has(nextKey)) continue;
       if (isBlocked(next)) continue;
+      if (!canEnter(current, next)) continue;
       cameFrom.set(nextKey, currentKey);
       queue.push(next);
     }
