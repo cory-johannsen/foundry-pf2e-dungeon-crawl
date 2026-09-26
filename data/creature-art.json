@@ -10422,5 +10422,21 @@
     "name": "Red Dracolisk",
     "level": 9,
     "art": "red-dracolisk.webp"
+  },
+  {
+    "id": "black_dracolisk",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "zzu3q9m4kJzgnNfl",
+    "name": "Black Dracolisk",
+    "level": 9,
+    "art": "black-dracolisk.webp"
+  },
+  {
+    "id": "alchemical_golem",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "Tpuqwt6Af29EMtqX",
+    "name": "Alchemical Golem",
+    "level": 9,
+    "art": "alchemical-golem.webp"
   }
 ]
