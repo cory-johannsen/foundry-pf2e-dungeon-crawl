@@ -9902,5 +9902,37 @@
     "name": "Vescavor Queen",
     "level": 9,
     "art": "vescavor-queen.webp"
+  },
+  {
+    "id": "khravgodon",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "H9P2QB311Qi5IwUo",
+    "name": "Khravgodon",
+    "level": 9,
+    "art": "khravgodon.webp"
+  },
+  {
+    "id": "phase_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "6QFK9rCUdHPlTKfv",
+    "name": "Phase Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "phase-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "war_wraith",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ZQ7lS9TYOFv07m1a",
+    "name": "War Wraith",
+    "level": 9,
+    "art": "war-wraith.webp"
+  },
+  {
+    "id": "zombie_dragon",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "fCsCDQAH23UOtECx",
+    "name": "Zombie Dragon",
+    "level": 9,
+    "art": "zombie-dragon.webp"
   }
 ]
