@@ -4902,11 +4902,25 @@ print(max(ring.mean(), bright * 2.5))
 /** Store at token size, not generation size. */
 function shrink(src, dest) {
   const py = join(root, '.venv/bin/python3');
+  // A clean raw attempt is fully opaque, so the lossy RGB path (small files —
+  // the whole reason this exists, see the size comment above) is a no-op
+  // loss for it either way. But a salvaged attempt has real transparency
+  // from make-bg-transparent.mjs worth keeping for Foundry's rendering
+  // instead of flattening it to a solid black square — detected here rather
+  // than threaded through as a parameter, so both call sites (ComfyUI and
+  // Gemini) get the fix automatically. `exact=True` matches
+  // make-bg-transparent.mjs's own care: lossless webp is otherwise free to
+  // repaint a (0,0,0,0) pixel's RGB.
   const script = `
 from PIL import Image
 import sys
-Image.open(sys.argv[1]).convert('RGB').resize((512, 512), Image.LANCZOS) \
-  .save(sys.argv[2], 'WEBP', quality=88, method=6)
+img = Image.open(sys.argv[1]).convert('RGBA')
+has_alpha = img.getchannel('A').getextrema()[0] < 255
+resized = img.resize((512, 512), Image.LANCZOS)
+if has_alpha:
+    resized.save(sys.argv[2], 'WEBP', lossless=True, method=6, exact=True)
+else:
+    resized.convert('RGB').save(sys.argv[2], 'WEBP', quality=88, method=6)
 `;
   try { execFileSync(py, ['-c', script, src, dest]); }
   catch { writeFileSync(dest, readFileSync(src)); }   // no Pillow: keep the png bytes
