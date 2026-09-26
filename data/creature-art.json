@@ -10286,5 +10286,13 @@
     "name": "Mithral Golem",
     "level": 16,
     "art": "mithral-golem.webp"
+  },
+  {
+    "id": "world_ender",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "Vp2PPBttJl1h8iZe",
+    "name": "World Ender",
+    "level": 16,
+    "art": "world-ender.webp"
   }
 ]
