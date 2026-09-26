@@ -10678,5 +10678,69 @@
     "name": "Mobogo",
     "level": 10,
     "art": "mobogo.webp"
+  },
+  {
+    "id": "movanic_deva",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "nSDXAfFOF2gEKmkM",
+    "name": "Movanic Deva",
+    "level": 10,
+    "art": "movanic-deva.webp"
+  },
+  {
+    "id": "nereid",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "FHnWzK7DsniqZWzG",
+    "name": "Nereid",
+    "level": 10,
+    "art": "nereid.webp"
+  },
+  {
+    "id": "nilith",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "D2Pe38jYbeBxUaxU",
+    "name": "Nilith",
+    "level": 10,
+    "art": "nilith.webp"
+  },
+  {
+    "id": "orc_veteran_master",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "A4XWtiK4iStEDAUu",
+    "name": "Orc Veteran Master",
+    "level": 10,
+    "art": "orc-veteran-master.webp"
+  },
+  {
+    "id": "phistophilus",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "3QyqHIuAXE3YVLUh",
+    "name": "Phistophilus",
+    "level": 10,
+    "art": "phistophilus.webp"
+  },
+  {
+    "id": "piscodaemon",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "nxR3nseHT01YmOQo",
+    "name": "Piscodaemon",
+    "level": 10,
+    "art": "piscodaemon.webp"
+  },
+  {
+    "id": "raja_krodha",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "PcBcC9HZBrM4gWu3",
+    "name": "Raja-Krodha",
+    "level": 10,
+    "art": "raja-krodha.webp"
+  },
+  {
+    "id": "rune_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "jCKBoIwRpT61zlL8",
+    "name": "Rune Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "rune-dragon-young-spellcaster.webp"
   }
 ]
