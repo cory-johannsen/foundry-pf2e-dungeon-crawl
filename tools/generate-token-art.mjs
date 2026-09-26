@@ -4915,6 +4915,47 @@ Image.open(sys.argv[1]).convert('RGB').resize((512, 512), Image.LANCZOS) \
 const CLEAN_THRESHOLD = 45;      // stay under the checker's 50
 const MAX_ATTEMPTS = 4;
 
+/**
+ * Try to key out a failed attempt's background instead of throwing the
+ * generation away outright. Many "background" failures are otherwise-good
+ * art on a flat, uniform off-black backdrop (grey, white, a solid color) —
+ * exactly what `make-bg-transparent.mjs`'s border-seeded flood-fill (plus
+ * its enclosed-island pass) is built to clear, as opposed to a full
+ * illustrated scene (moon, cityscape, water), which it can't help with.
+ *
+ * Root-caused on `black-dracolisk` (2026-09-26): SDXL lightens the
+ * background for subjects whose own prompt describes a predominantly dark
+ * palette, fighting the shared style prompt's explicit "black background"
+ * instruction — a legibility bias, not noise, so more rerolls don't fix it,
+ * but the flat-fill result it produces instead salvages cleanly.
+ *
+ * Operates on a backup so a salvage that doesn't actually help (or that the
+ * fraction-cleared safety gate rejects as too small/too large — a sign the
+ * flood-fill either found no real background or ate into the subject) never
+ * makes the kept image worse than the raw generation.
+ */
+function trySalvage(path, currentScore) {
+  const backup = readFileSync(path);
+  let parsed;
+  try {
+    const out = execFileSync('node', [join(root, 'tools/make-bg-transparent.mjs'), path], { encoding: 'utf8' });
+    const match = out.match(/\{.*\}/);
+    parsed = match && JSON.parse(match[0]);
+  } catch {
+    parsed = null;
+  }
+  if (!parsed || parsed.fraction < 0.10 || parsed.fraction > 0.90) {
+    writeFileSync(path, backup);
+    return null;
+  }
+  const salvagedScore = backgroundScore(path);
+  if (salvagedScore === null || currentScore !== null && salvagedScore >= currentScore) {
+    writeFileSync(path, backup);
+    return null;
+  }
+  return salvagedScore;
+}
+
 /** Same worktree-vs-main-checkout resolution as .env — see loadDotEnv(). */
 function resolveGeminiSystemPrompt() {
   const candidates = [join(root, 'gemini-system-prompt.txt')];
@@ -5022,9 +5063,19 @@ async function main() {
       const id = await enqueue(build(prompt, (base + attempt * 7919) % 2_000_000_000,
                                      `pf2edc-token-${s.id}`, negativeFor(s)));
       writeFileSync(dest, await fetchImage(await waitFor(id)));
-      const score = backgroundScore(dest);
+      let score = backgroundScore(dest);
       if (score === null) { console.log('(unmeasured) kept'); best = { score: 0 }; break; }
-      console.log(`background ${score.toFixed(0)}`);
+      if (score >= CLEAN_THRESHOLD) {
+        const salvaged = trySalvage(dest, score);
+        if (salvaged !== null) {
+          console.log(`background ${score.toFixed(0)} -> salvaged ${salvaged.toFixed(0)}`);
+          score = salvaged;
+        } else {
+          console.log(`background ${score.toFixed(0)}`);
+        }
+      } else {
+        console.log(`background ${score.toFixed(0)}`);
+      }
       if (!best || score < best.score) {
         best = { score, buf: null };
         writeFileSync(join(outDir, `.best-${s.file}.png`), readFileSync(dest));
