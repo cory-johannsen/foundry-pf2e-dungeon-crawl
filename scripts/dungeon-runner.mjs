@@ -5,15 +5,17 @@
  * draw-target.mjs's canvasRef/userRef, so this is testable against an
  * in-memory stub instead of live `game.settings`.
  *
- * `currentIndex` names the room the party is physically STANDING IN, not the
- * room most recently judged. Resolving a room (markRoomOutcome) never moves
- * it — it only decides what comes next and assigns that next room a physical
- * slot number so dungeon-scene.mjs knows what to build. Only the automatic
- * room-entry trigger (advanceToRoom) moves currentIndex, once the party has
- * actually walked there. Physical slots are handed out in the exact order
- * rooms are approached (a plain incrementing counter), never reassigned —
- * see dungeon-layout.mjs for why that needs no reindexing even when a Ruin
- * or Reward inserts or removes a room from the sequence.
+ * `currentRoomId` names the room the party is physically STANDING IN, not the
+ * room most recently judged (#93: `currentIndex` is no longer written or
+ * read anywhere — `state.rooms` is a dict keyed by room id for every run
+ * started via startDungeonRun). Resolving a room (markRoomOutcome)
+ * never moves it — it only decides the outcome effect and, for a hidden-path
+ * effect, reveals it (see markRoomOutcome's own docblock). Only the
+ * automatic room-entry trigger (advanceToRoom) moves currentRoomId, once the
+ * party has actually walked there. #93's eager pregeneration
+ * (roomsToEagerlyBuild) builds every room's physical geometry up front, at
+ * run start — there is no more per-room physical-slot assignment as the
+ * party progresses.
  */
 import { getGenerator } from "./generator-registry.mjs";
 import {
@@ -85,6 +87,20 @@ export function getRunState(
   return all[sceneId] ?? null;
 }
 
+/**
+ * Overwrite this scene's whole persisted run state (#93) — used once, by
+ * ui/dungeon-app.mjs's startDungeonRun, to replace createRun's legacy
+ * array-shaped state with the graph-shaped one (rooms dict, edges,
+ * layoutPositionByRoomId, ...) before any room is built.
+ */
+export async function replaceRunState(
+  sceneId,
+  state,
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  return persist(sceneId, state, settingsRef);
+}
+
 export async function createRun(
   {
     sceneId,
@@ -126,6 +142,11 @@ export async function createRun(
     physicalSlotByRoomId[rooms[1].id] = 1;
     nextPhysicalSlot = 2;
   }
+  // Build edges dict for graph navigation: each room maps to its children
+  const edges = {};
+  for (let i = 0; i < rooms.length; i += 1) {
+    edges[rooms[i].id] = i + 1 < rooms.length ? [rooms[i + 1].id] : [];
+  }
   const state = {
     seed: runSeed,
     createdAt: Date.now(),
@@ -133,6 +154,8 @@ export async function createRun(
     excludeTraits,
     rooms,
     currentIndex: 0,
+    currentRoomId: rooms[0].id,
+    edges,
     completed: false,
     history: [],
     physicalSlotByRoomId,
@@ -163,18 +186,25 @@ export async function createRun(
 }
 
 /**
- * Resolve the CURRENT room as succeeded or failed.
+ * Resolve the CURRENT room (`state.currentRoomId`) as succeeded or failed.
  *
- * Does NOT move currentIndex — see the file docblock. For the goal room this
- * just ends the run. For any other room it resolves the outcome slot, applies
- * any sequence mutation, and — if there's a room after it — assigns that next
- * room its physical slot number the first time it's ever reached (a plain
- * incrementing counter; `dungeon-deck.mjs`'s own mutation logic already
- * decides which logical room that is, this file doesn't need to know why).
+ * Does NOT move currentRoomId — see the file docblock; only advanceToRoom
+ * does that, once the party actually walks there. For the goal room this
+ * just ends the run. For any other room it resolves the outcome slot and,
+ * for a `reduced_travel_time`/`extra_travel_time` effect, reveals whatever
+ * hidden shortcut/detour path generation (#93's attachHiddenPaths) already
+ * attached to this room — merging it into the live `edges` and dropping it
+ * from `hiddenEdges` (see `revealTravelTimeEffect`, dungeon-deck.mjs). Every
+ * room in the graph is already built at scene-creation time (#93's eager
+ * pregeneration, roomsToEagerlyBuild) — this never builds, removes, or
+ * reassigns a room the way the old linear-sequence version of this function
+ * used to.
  *
- * Returns `nextRoomId`/`nextPhysicalSlot` (both null once there's nothing
- * left, i.e. the goal room was just resolved) so the caller knows what to
- * physically build next.
+ * Returns `revealedRoomId` (#156) — the target room id whose hidden door
+ * just became live, non-null only for a genuine reveal — so the caller
+ * (`ui/dungeon-app.mjs`'s `applyRoomEffect`) knows which scene door to
+ * unseal, without re-deriving it from `hiddenEdges`, which is already
+ * mutated by the time that runs.
  */
 export async function markRoomOutcome(
   { sceneId, succeeded },
@@ -188,18 +218,14 @@ export async function markRoomOutcome(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state || state.completed) {
-    return {
-      state,
-      effectKey: null,
-      mutation: null,
-      nextRoomId: null,
-      nextPhysicalSlot: null,
-    };
+    return { state, effectKey: null };
   }
 
-  const room = state.rooms[state.currentIndex];
-  // #152 investigation: resolving a room never moves currentIndex (see this
-  // file's own docblock) — only actually walking into the next one does, via
+  const room = Array.isArray(state.rooms)
+    ? state.rooms.find((r) => r.id === state.currentRoomId)
+    : state.rooms[state.currentRoomId];
+  // #152 investigation: resolving a room never moves currentRoomId (see
+  // this file's own docblock) — only actually walking into the next one does, via
   // advanceToRoom. That means the Succeed/Fail/Declare Victory/Declare Defeat
   // button stays live and pointed at the same "current" room for the entire
   // window between resolving it and the party physically opening the next
@@ -207,18 +233,12 @@ export async function markRoomOutcome(
   // (ui/dungeon-app.mjs's #onSucceed etc.). A double-click (or a slow click
   // registering twice before the first await resolves and re-renders) would
   // resolve the same room's outcome a second time — reapplying its reward/
-  // ruin mutation and re-running buildPopulateAndUnlockRoom for whatever
-  // comes next a second time (duplicate walls, a second set of monsters).
+  // ruin effect and re-running the ensure-built/unlock pass for whatever
+  // comes next a second time.
   // Guarded here, once, at the single place every resolution path funnels
   // through, rather than patching each caller's button individually.
   if (state.history.some((h) => h.roomId === room.id)) {
-    return {
-      state,
-      effectKey: null,
-      mutation: null,
-      nextRoomId: null,
-      nextPhysicalSlot: null,
-    };
+    return { state, effectKey: null };
   }
   // The entry (see buildRoomSequence) has no outcome slot and nothing to
   // resolve; its own transition happens automatically (createRun/
@@ -229,13 +249,7 @@ export async function markRoomOutcome(
   // it falls through below instead of returning here — see the `safe_rest`
   // branch just past this guard.
   if (!room.isGoal && room.outcomeSlotId == null && room.kind !== "safe_rest") {
-    return {
-      state,
-      effectKey: null,
-      mutation: null,
-      nextRoomId: null,
-      nextPhysicalSlot: null,
-    };
+    return { state, effectKey: null };
   }
 
   const base = {
@@ -253,66 +267,31 @@ export async function markRoomOutcome(
       history: [...state.history, { ...base, effectKey }],
     };
     await persist(sceneId, newState, settingsRef);
-    return {
-      state: newState,
-      effectKey,
-      mutation: null,
-      nextRoomId: null,
-      nextPhysicalSlot: null,
-    };
+    return { state: newState, effectKey };
   }
 
-  // A rest room has nothing to reward or ruin — just move the sequence along
-  // to whatever comes after it, same slot-assignment bookkeeping as any
-  // other room (ITEM-5), rather than running findOutcomeTemplate/
+  // A rest room has nothing to reward or ruin — just move on to whatever
+  // comes after it (ITEM-5), rather than running findOutcomeTemplate/
   // resolveRoomOutcome against its null outcomeSlotId.
-  const { effectKey, mutation } =
+  const { effectKey } =
     room.kind === "safe_rest"
-      ? { effectKey: "rest_room_passed", mutation: null }
+      ? { effectKey: "rest_room_passed" }
       : getGenerator().resolveRoomOutcome(getGenerator().findOutcomeTemplate(room.outcomeSlotId), succeeded);
-  const rooms =
-    mutation === "remove_next" || mutation === "insert_after"
-      ? getGenerator().applySequenceMutation(state.rooms, state.currentIndex, mutation, {
-          seed: state.seed,
-          puzzleSetpieceIds,
-          trapSetpieceIds,
-          narrativeSetpieceIds,
-          treasureSetpieceIds,
-        })
-      : state.rooms;
 
-  const nextRoomId = rooms[state.currentIndex + 1]?.id ?? null;
-  let physicalSlotByRoomId = state.physicalSlotByRoomId;
-  let nextPhysicalSlot = state.nextPhysicalSlot;
-  let assignedSlot = null;
-  if (nextRoomId) {
-    if (nextRoomId in physicalSlotByRoomId) {
-      assignedSlot = physicalSlotByRoomId[nextRoomId];
-    } else {
-      assignedSlot = nextPhysicalSlot;
-      physicalSlotByRoomId = {
-        ...physicalSlotByRoomId,
-        [nextRoomId]: assignedSlot,
-      };
-      nextPhysicalSlot += 1;
-    }
-  }
+  const { edges, hiddenEdges, revealedRoomId } = getGenerator().revealTravelTimeEffect(
+    { edges: state.edges, hiddenEdges: state.hiddenEdges ?? {} },
+    room.id,
+    effectKey,
+  );
 
   const newState = {
     ...state,
-    rooms,
-    physicalSlotByRoomId,
-    nextPhysicalSlot,
+    edges,
+    hiddenEdges,
     history: [...state.history, { ...base, effectKey }],
   };
   await persist(sceneId, newState, settingsRef);
-  return {
-    state: newState,
-    effectKey,
-    mutation,
-    nextRoomId,
-    nextPhysicalSlot: assignedSlot,
-  };
+  return { state: newState, effectKey, revealedRoomId };
 }
 
 /**
@@ -329,16 +308,16 @@ export async function advanceToRoom(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return { ok: false, state: null };
-  const expectedId = state.rooms[state.currentIndex + 1]?.id ?? null;
-  if (!expectedId || expectedId !== roomId) return { ok: false, state };
+  const children = state.edges[state.currentRoomId] ?? [];
+  if (!children.includes(roomId)) return { ok: false, state };
 
   const newState = {
     ...state,
-    currentIndex: state.currentIndex + 1,
+    currentRoomId: roomId,
     lastAutoEntry: {
       roomId,
-      fromIndex: state.currentIndex,
-      toIndex: state.currentIndex + 1,
+      fromRoomId: state.currentRoomId,
+      toRoomId: roomId,
       revealedTokenIds,
     },
   };
@@ -358,105 +337,38 @@ export function canUndoRoomEntry(state) {
 }
 
 /**
- * Every room #62's GM-less precalculation should build eagerly at run
- * start, as `{room, physicalSlot}` pairs in build order — every room in
- * the base sequence except room 0 (the entry, built separately by
- * startDungeonRun itself) and a combat-kind room at index 1, which keeps
- * the existing manual "Populate Next Room" deferral (ITEM-11) regardless
- * of host. A room's index into `state.rooms` is its physical slot here —
- * this only ever runs once, before any door has been opened or any slot
- * reassigned, so slot-per-index always holds at this point.
+ * Every room #93's full-graph pregeneration should build eagerly at run
+ * start, as `{room, buildOrder}` pairs in topological order (a room always
+ * appears after every one of its parents) — every room except the entry
+ * (built separately by startDungeonRun itself). Unconditional: applies to
+ * every run, GM-present or GM-less alike (no more hostUserId gate), and no
+ * longer special-cases a combat room at generation-order position 1 — the
+ * ITEM-11 manual deferral is removed, since per-door lazy building and the
+ * Accept/Reroll dialog it paced around are both gone.
  */
 export function roomsToEagerlyBuild(state) {
-  const result = [];
-  for (let i = 1; i < state.rooms.length; i += 1) {
-    const room = state.rooms[i];
-    if (i === 1 && room.kind === "combat") continue;
-    result.push({ room, physicalSlot: i });
+  const { rooms, layoutEdges } = state;
+  const order = [];
+  const visited = new Set(['room-entry']);
+  const indegree = {};
+  for (const id of Object.keys(rooms)) indegree[id] = 0;
+  for (const children of Object.values(layoutEdges)) {
+    for (const childId of children) indegree[childId] += 1;
   }
-  return result;
-}
-
-/**
- * What a GM-less-hosted run's already-eagerly-built physical slots need
- * after a Reward/Ruin sequence mutation (#62) — computed by comparing the
- * "natural" slot for each still-unplayed room (physicalSlot === its index
- * into the now-mutated state.rooms, the same invariant roomsToEagerlyBuild
- * used when it originally built everything) against what was actually
- * built there before the mutation. Geometry never needs to change (a pure
- * function of slot number, confirmed in the design doc) — only which
- * logical room's CONTENT occupies a slot does.
- */
-export function roomsNeedingResync(
-  state,
-  previousPhysicalSlotByRoomId,
-  mutationBoundaryIndex,
-) {
-  const previousRoomIdBySlot = {};
-  for (const [roomId, slot] of Object.entries(previousPhysicalSlotByRoomId)) {
-    previousRoomIdBySlot[slot] = roomId;
-  }
-
-  const toRebuild = [];
-  const usedSlots = new Set();
-  for (let i = mutationBoundaryIndex + 1; i < state.rooms.length; i += 1) {
-    const room = state.rooms[i];
-    const physicalSlot = i;
-    usedSlots.add(physicalSlot);
-    const previousRoomId = previousRoomIdBySlot[physicalSlot] ?? null;
-    if (previousRoomId !== room.id) {
-      toRebuild.push({ room, physicalSlot, previousRoomId });
+  const queue = (layoutEdges['room-entry'] ?? []).slice();
+  while (queue.length) {
+    const id = queue.shift();
+    if (visited.has(id)) continue;
+    // Only ready once every parent has already been queued/visited — a
+    // simple readiness re-check via indegree decrement per visit below.
+    visited.add(id);
+    order.push(rooms[id]);
+    for (const childId of layoutEdges[id] ?? []) {
+      indegree[childId] -= 1;
+      if (indegree[childId] <= 0 && !visited.has(childId)) queue.push(childId);
     }
   }
-
-  const maxPreviousSlot = Object.values(previousPhysicalSlotByRoomId).reduce(
-    (max, slot) => Math.max(max, slot),
-    -1,
-  );
-  const toOrphan = [];
-  for (
-    let slot = mutationBoundaryIndex + 1;
-    slot <= maxPreviousSlot;
-    slot += 1
-  ) {
-    if (previousRoomIdBySlot[slot] != null && !usedSlots.has(slot)) {
-      toOrphan.push(slot);
-    }
-  }
-
-  const toExtend = toRebuild
-    .filter(({ physicalSlot }) => physicalSlot > maxPreviousSlot)
-    .map(({ room, physicalSlot }) => ({ room, physicalSlot }));
-
-  return { toRebuild, toOrphan, toExtend };
-}
-
-/**
- * Persists the physical-slot assignments startDungeonRun's eager GM-less
- * build loop already made in memory (#62) — without this, the run's
- * tracked physicalSlotByRoomId/nextPhysicalSlot bookkeeping would never
- * learn those rooms were built, and markRoomOutcome's own reuse-or-allocate
- * logic (which already correctly handles "this room's slot may already be
- * assigned" for the lazy/mutation case) would reassign colliding slots via
- * its counter instead of reusing them. `eagerlyBuilt` is exactly what
- * roomsToEagerlyBuild(state) returned — {room, physicalSlot} pairs, any
- * order.
- */
-export async function commitEagerPhysicalSlots(
-  sceneId,
-  eagerlyBuilt,
-  { settingsRef = defaultSettingsRef() } = {},
-) {
-  const state = getRunState(sceneId, { settingsRef });
-  if (!state) return state;
-  const physicalSlotByRoomId = { ...state.physicalSlotByRoomId };
-  let nextPhysicalSlot = state.nextPhysicalSlot;
-  for (const { room, physicalSlot } of eagerlyBuilt) {
-    physicalSlotByRoomId[room.id] = physicalSlot;
-    nextPhysicalSlot = Math.max(nextPhysicalSlot, physicalSlot + 1);
-  }
-  const newState = { ...state, physicalSlotByRoomId, nextPhysicalSlot };
-  return persist(sceneId, newState, settingsRef);
+  return order.map((room, i) => ({ room, buildOrder: i }));
 }
 
 export async function undoLastRoomEntry(
@@ -470,7 +382,7 @@ export async function undoLastRoomEntry(
   const undone = state.lastAutoEntry;
   const newState = {
     ...state,
-    currentIndex: undone.fromIndex,
+    currentRoomId: undone.fromRoomId,
     lastAutoEntry: null,
   };
   await persist(sceneId, newState, settingsRef);
@@ -558,7 +470,7 @@ export async function ensureSkillChallenge(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || room.challenge) return state;
   const challenge = {
     ...initSkillChallengeState({
@@ -571,9 +483,7 @@ export async function ensureSkillChallenge(
     }),
     customization: { status: "pending" },
   };
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, challenge } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, challenge } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -596,11 +506,9 @@ export async function clearSkillChallengeState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || !room.challenge) return state;
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, challenge: null } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, challenge: null } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -624,7 +532,7 @@ export function getPendingSkillChallengeCustomization(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find(
+  const room = Object.values(state.rooms).find(
     (r) =>
       r.challenge?.customization?.status === "pending" && !r.challenge.resolved,
   );
@@ -661,7 +569,7 @@ export async function applySkillChallengeCustomization(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room?.challenge) return state;
   const challenge = {
     ...room.challenge,
@@ -672,9 +580,7 @@ export async function applySkillChallengeCustomization(
       : room.challenge.skillFlavor,
     customization: { status: "customized" },
   };
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, challenge } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, challenge } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -716,12 +622,10 @@ export async function recordSkillChallengeAttempt(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room?.challenge || room.challenge.resolved) return state;
   const challenge = applySkillChallengeAttempt(room.challenge, outcome);
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, challenge } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, challenge } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -763,7 +667,7 @@ export async function ensurePuzzleState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || room.puzzle) return state;
   const puzzle = {
     ...initPuzzleState({
@@ -775,7 +679,7 @@ export async function ensurePuzzleState(
     }),
     customization: { status: "pending" },
   };
-  const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, puzzle } : r));
+  const rooms = { ...state.rooms, [roomId]: { ...room, puzzle } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -797,11 +701,9 @@ export async function clearPuzzleState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || !room.puzzle) return state;
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, puzzle: null } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, puzzle: null } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -827,10 +729,10 @@ export async function ensureTrapState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || room.trap) return state;
   const trap = { name, description };
-  const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, trap } : r));
+  const rooms = { ...state.rooms, [roomId]: { ...room, trap } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -843,9 +745,10 @@ export async function ensureTrapState(
  * logical room occupies this physical slot) attaches fresh state instead of
  * finding the old room's `trap` still set and treating it as "already
  * attached." A no-op (no persist) if that room has no `trap` at all, the
- * same no-op shape `clearPuzzleState` itself uses. `dungeon-scene.mjs`'s
- * `clearSlotTrap` handles the Foundry-side hazard actor/token teardown;
- * this is the room-state-only counterpart the caller runs alongside it.
+ * same no-op shape `clearPuzzleState` itself uses. Room-state only — it
+ * never touches the Foundry-side hazard actor/token (dungeon-scene.mjs's
+ * old slot-scoped hazard teardown helper was deleted by #93 Task 15, having
+ * no remaining caller once runtime sequence mutation was retired).
  */
 export async function clearTrapState(
   sceneId,
@@ -854,11 +757,9 @@ export async function clearTrapState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || !room.trap) return state;
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, trap: null } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, trap: null } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -888,13 +789,13 @@ export async function applyTrapRoomState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room?.trap) return state;
   const trap = {
     name: name ?? room.trap.name,
     description: description ?? room.trap.description,
   };
-  const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, trap } : r));
+  const rooms = { ...state.rooms, [roomId]: { ...room, trap } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -917,10 +818,10 @@ export async function recordPuzzleStageAttempt(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room?.puzzle || room.puzzle.resolved) return state;
   const puzzle = applyPuzzleStageAttempt(room.puzzle, stageIndex, outcome);
-  const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, puzzle } : r));
+  const rooms = { ...state.rooms, [roomId]: { ...room, puzzle } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -942,7 +843,7 @@ export function getPendingPuzzleCustomization(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find(
+  const room = Object.values(state.rooms).find(
     (r) => r.puzzle?.customization?.status === "pending" && !r.puzzle.resolved,
   );
   if (!room) return null;
@@ -988,7 +889,7 @@ export async function applyPuzzleCustomization(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room?.puzzle) return state;
   const puzzle = {
     ...room.puzzle,
@@ -1000,7 +901,7 @@ export async function applyPuzzleCustomization(
       : room.puzzle.stageFlavor,
     customization: { status: "customized" },
   };
-  const rooms = state.rooms.map((r) => (r.id === roomId ? { ...r, puzzle } : r));
+  const rooms = { ...state.rooms, [roomId]: { ...room, puzzle } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -1028,7 +929,7 @@ export async function ensureNarrativeState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || room.narrative) return state;
   const narrative = {
     archetype: setpiece.archetype,
@@ -1041,9 +942,7 @@ export async function ensureNarrativeState(
     suggestedObjective: setpiece.suggestedObjective ?? null,
     customization: { status: "pending" },
   };
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, narrative } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, narrative } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -1066,11 +965,9 @@ export async function clearNarrativeState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || !room.narrative) return state;
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, narrative: null } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, narrative: null } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -1094,7 +991,7 @@ export function getPendingNarrativeCustomization(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find(
+  const room = Object.values(state.rooms).find(
     (r) =>
       r.narrative?.customization?.status === "pending" &&
       !state.history.some((h) => h.roomId === r.id),
@@ -1146,7 +1043,7 @@ export async function applyNarrativeCustomization(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room?.narrative) return state;
   const narrative = {
     ...room.narrative,
@@ -1159,9 +1056,7 @@ export async function applyNarrativeCustomization(
     suggestedObjective: suggestedObjective ?? room.narrative.suggestedObjective,
     customization: { status: "customized" },
   };
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, narrative } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, narrative } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -1189,16 +1084,14 @@ export async function ensureTreasureState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || room.treasure) return state;
   const treasure = {
     name: setpiece.name,
     summary: setpiece.summary,
     customization: { status: "pending" },
   };
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, treasure } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, treasure } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -1221,11 +1114,9 @@ export async function clearTreasureState(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room || !room.treasure) return state;
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, treasure: null } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, treasure: null } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;
@@ -1248,7 +1139,7 @@ export function getPendingTreasureCustomization(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find(
+  const room = Object.values(state.rooms).find(
     (r) =>
       r.treasure?.customization?.status === "pending" &&
       !state.history.some((h) => h.roomId === r.id),
@@ -1282,7 +1173,7 @@ export async function applyTreasureCustomization(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const room = state.rooms.find((r) => r.id === roomId);
+  const room = state.rooms[roomId];
   if (!room?.treasure) return state;
   const treasure = {
     ...room.treasure,
@@ -1290,9 +1181,7 @@ export async function applyTreasureCustomization(
     summary: summary ?? room.treasure.summary,
     customization: { status: "customized" },
   };
-  const rooms = state.rooms.map((r) =>
-    r.id === roomId ? { ...r, treasure } : r,
-  );
+  const rooms = { ...state.rooms, [roomId]: { ...room, treasure } };
   const newState = { ...state, rooms };
   await persist(sceneId, newState, settingsRef);
   return newState;

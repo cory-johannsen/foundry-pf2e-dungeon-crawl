@@ -15,7 +15,6 @@ import { isAuthorizedRequest } from "./dungeon-permissions.mjs";
 import {
   startDungeonRun,
   resolveCurrentRoom,
-  populateNextRoom,
   abandonDungeonRun,
   resolveCombatRoomOutcome,
   startCombatRecoveryFor,
@@ -45,7 +44,6 @@ const DUNGEON_ACTIONS = {
     resolveCurrentRoom(args.succeeded, {
       scene: game.scenes.get(args.sceneId),
     }),
-  populateNext: (args) => populateNextRoom(args.sceneId),
   undoRoomEntry: (args) => undoRoomEntry(args.sceneId),
   abandonRun: (args) => abandonDungeonRun(args.sceneId),
   declareOutcome: (args) =>

@@ -173,12 +173,18 @@ export async function toggleAgentControlled(combatant) {
   await combatant.setFlag(MODULE_ID, "agentControlled", !current);
 }
 
-export const startCombatForSlot = (scene, slot) =>
+// #93 pre-flight fix (Step 3d): renamed from startCombatForSlot/
+// getCombatForSlot — purely a name change, both are already generic
+// (scene, value) pass-throughs that never do arithmetic on the value, so
+// this is safe now that the value is a room id string instead of an
+// integer physicalSlot. The `dungeonSlot` flag NAME is unchanged (see
+// dungeon-scene.mjs's buildPopulateAndUnlockGraphNode).
+export const startCombatForRoom = (scene, slot) =>
   startCombat(scene, "dungeonSlot", slot);
 export const startCombatForEncounterId = (scene, encounterId) =>
   startCombat(scene, "encounterId", encounterId);
 
-export function getCombatForSlot(scene, slot) {
+export function getCombatForRoom(scene, slot) {
   return (
     game.combats.find(
       (c) =>
@@ -427,7 +433,7 @@ export async function resolveSlotCombat(
   outcome,
   api = makeFoundryApi(),
 ) {
-  const combat = getCombatForSlot(scene, slot);
+  const combat = getCombatForRoom(scene, slot);
   if (!combat) return;
   await resolveCombat(combat, outcome, api);
 }
