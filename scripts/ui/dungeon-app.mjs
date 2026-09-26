@@ -130,21 +130,6 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
   // resolved, keyed by id now that state.rooms is a dict (#93).
   const preState = getRunState(scene.id);
   const currentRoom = preState?.rooms[preState.currentRoomId];
-  // #93: the dungeonSlot flag's NAME is unchanged (dungeon-combat.mjs and
-  // its tests only ever compare it for equality — see Task 10's design
-  // note); its VALUE is now the room's own string id instead of an
-  // integer physical slot.
-  if (succeeded && currentRoom?.kind === "trap") {
-    const trapToken = scene.tokens.find(
-      (t) =>
-        t.getFlag(MODULE_ID, "trapHazard") &&
-        t.getFlag(MODULE_ID, "dungeonSlot") === currentRoom.id,
-    );
-    const trapLevel = trapToken?.actor?.system?.details?.level?.value;
-    const levelOffset =
-      trapLevel != null ? trapLevel - (await makeFoundryApi().partyLevel()) : 0;
-    await makeFoundryApi().grantPartyXp(xpFor(levelOffset));
-  }
   const { state, effectKey, revealedRoomId } = await markRoomOutcome(
     { sceneId: scene.id, succeeded },
     {
@@ -162,6 +147,29 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
         .map((s) => s.id),
     },
   );
+  // #93 post-merge fix (Task 15 item 7): the trap-XP grant runs AFTER
+  // markRoomOutcome and is gated on `effectKey`, the same way the
+  // ensure-built/unlock block below is (Task 13 fix round 1) — it used to
+  // run before markRoomOutcome was even called, so a double-click on a
+  // trap room (the #152 duplicate-resolve scenario, which markRoomOutcome
+  // rejects with effectKey: null) still double-granted XP. A pure
+  // reordering otherwise: `currentRoom` is captured from preState above,
+  // and the trapToken lookup doesn't depend on the resolution's outcome.
+  // #93: the dungeonSlot flag's NAME is unchanged (dungeon-combat.mjs and
+  // its tests only ever compare it for equality — see Task 10's design
+  // note); its VALUE is now the room's own string id instead of an
+  // integer physical slot.
+  if (succeeded && currentRoom?.kind === "trap" && effectKey) {
+    const trapToken = scene.tokens.find(
+      (t) =>
+        t.getFlag(MODULE_ID, "trapHazard") &&
+        t.getFlag(MODULE_ID, "dungeonSlot") === currentRoom.id,
+    );
+    const trapLevel = trapToken?.actor?.system?.details?.level?.value;
+    const levelOffset =
+      trapLevel != null ? trapLevel - (await makeFoundryApi().partyLevel()) : 0;
+    await makeFoundryApi().grantPartyXp(xpFor(levelOffset));
+  }
   if (currentRoom && effectKey) {
     // #93 pre-flight fix (found during Task 9's review): Task 9's own
     // `applyRoomEffect` addendum (its `reduced_travel_time`/
