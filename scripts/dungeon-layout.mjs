@@ -531,12 +531,27 @@ export function transitCellCrossing(seed, rank, col, entrySide, exitSide, edgeId
     // the opposite direction (entry->corner->exit instead of
     // exit->corner->entry).
     const corner = { x: entryPoint.x, y: exitPoint.y };
+
+    // #174 fix round 2 (found by review): the fixed-CORRIDOR_LEN dimension
+    // must extend INWARD from whichever point anchors it, not always in
+    // the positive direction — entryPoint.x sits at the cell's own FAR
+    // east edge exactly when entrySide is 'east' (SIDE_POINT.east uses
+    // `cell.gx + cell.gw`), so a segment extending its CORRIDOR_LEN width
+    // rightward from there overflows past this cell into the next
+    // column's cell. Same reasoning for exitPoint.y and 'south'
+    // (SIDE_POINT.south uses `cell.gy + cell.gh`). Every other anchor side
+    // sits at the cell's own near edge or an interior offset (bounded by
+    // doorOffsetAt's own maxOffset), where extending positively never
+    // leaves the cell.
+    const seg1X = entrySide === 'east' ? entryPoint.x - CORRIDOR_LEN : entryPoint.x;
+    const seg2Y = exitSide === 'south' ? exitPoint.y - CORRIDOR_LEN : exitPoint.y;
+
     corridorSegments.push({
-      gx: Math.min(entryPoint.x, corner.x), gy: Math.min(entryPoint.y, corner.y),
+      gx: seg1X, gy: Math.min(entryPoint.y, corner.y),
       gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(corner.y - entryPoint.y)),
     });
     corridorSegments.push({
-      gx: Math.min(corner.x, exitPoint.x), gy: Math.min(corner.y, exitPoint.y),
+      gx: Math.min(corner.x, exitPoint.x), gy: seg2Y,
       gw: Math.max(CORRIDOR_LEN, Math.abs(exitPoint.x - corner.x)), gh: CORRIDOR_LEN,
     });
   }

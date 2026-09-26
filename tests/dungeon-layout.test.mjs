@@ -635,4 +635,46 @@ describe('transitCellCrossing', () => {
     );
     expect(spansCornerToExit).toBe(true);
   });
+
+  // #174 fix round 2: the fixed-CORRIDOR_LEN dimension of each corner-case
+  // leg must extend INWARD from its anchor point, not always in the
+  // positive direction — entryPoint sits at the cell's own FAR edge
+  // exactly when entrySide/exitSide is 'east'/'south' (SIDE_POINT uses
+  // `cell.gx + cell.gw`/`cell.gy + cell.gh` for those sides), so extending
+  // positively from there overflows into the next cell. Of the 8 valid
+  // adjacent-side pairings, only 3 (east/north, east/south, west/south)
+  // ever exercise this — a single hand-picked pairing (north/east, used
+  // above) never hits it, which is exactly why the earlier fix round
+  // missed it. Sweep all 8 pairings, across several seeds/edgeIds, so no
+  // single pairing's own geometry can hide a regression again.
+  it('keeps every segment within cellBounds for all 8 adjacent-side pairings', () => {
+    const SIDES = ['north', 'south', 'east', 'west'];
+    const OPPOSITE = { north: 'south', south: 'north', east: 'west', west: 'east' };
+    const adjacentPairings = [];
+    for (const entrySide of SIDES) {
+      for (const exitSide of SIDES) {
+        if (entrySide !== exitSide && OPPOSITE[entrySide] !== exitSide) {
+          adjacentPairings.push([entrySide, exitSide]);
+        }
+      }
+    }
+    expect(adjacentPairings).toHaveLength(8);
+
+    const rank = 1;
+    const col = 1;
+    const cell = cellBounds(rank, col);
+    for (const [entrySide, exitSide] of adjacentPairings) {
+      for (let seedIndex = 0; seedIndex < 20; seedIndex += 1) {
+        const seed = `sweep-seed-${seedIndex}`;
+        const edgeId = `edge-${seedIndex}`;
+        const result = transitCellCrossing(seed, rank, col, entrySide, exitSide, edgeId);
+        for (const seg of result.corridorSegments) {
+          expect(seg.gx).toBeGreaterThanOrEqual(cell.gx);
+          expect(seg.gx + seg.gw).toBeLessThanOrEqual(cell.gx + cell.gw);
+          expect(seg.gy).toBeGreaterThanOrEqual(cell.gy);
+          expect(seg.gy + seg.gh).toBeLessThanOrEqual(cell.gy + cell.gh);
+        }
+      }
+    }
+  });
 });
