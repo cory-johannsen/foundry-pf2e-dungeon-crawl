@@ -9934,5 +9934,29 @@
     "name": "Zombie Dragon",
     "level": 9,
     "art": "zombie-dragon.webp"
+  },
+  {
+    "id": "green_dracolisk",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "GvjCh1Q6NEXnBHcD",
+    "name": "Green Dracolisk",
+    "level": 9,
+    "art": "green-dracolisk.webp"
+  },
+  {
+    "id": "iruxi_masked_mummer",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "cNXg1uiwM9Dafdko",
+    "name": "Iruxi Masked Mummer",
+    "level": 9,
+    "art": "iruxi-masked-mummer.webp"
+  },
+  {
+    "id": "marid",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "cuET2PHGcE7eL7DJ",
+    "name": "Marid",
+    "level": 9,
+    "art": "marid.webp"
   }
 ]
