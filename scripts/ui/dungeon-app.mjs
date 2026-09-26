@@ -467,7 +467,7 @@ export async function startDungeonRun({
     },
   );
 
-  const { rooms, edges } = getGenerator().buildRoomGraph({
+  const generated = getGenerator().buildRoomGraph({
     seed: state.seed,
     roomCount,
     puzzleSetpieceIds,
@@ -475,8 +475,25 @@ export async function startDungeonRun({
     narrativeSetpieceIds,
     treasureSetpieceIds,
   });
+  // #93 post-merge fix (Task 2 addendum, found by Task 15's final review):
+  // restore the mid-dungeon rest room BEFORE attachHiddenPaths runs — a
+  // hidden path must never be allowed to select the rest room as its own
+  // fromId (see the Task 3 addendum), so the rest room has to already
+  // exist in the graph by the time attachHiddenPaths does its own
+  // eligibility scan.
+  const { rooms, edges } = getGenerator().insertRestRoom({
+    rooms: generated.rooms,
+    edges: generated.edges,
+    seed: state.seed,
+    roomCount,
+  });
   const { hiddenRooms, hiddenEdges, layoutEdges, hiddenIncomingByRoomId } =
-    getGenerator().attachHiddenPaths({ rooms, edges, seed: state.seed });
+    getGenerator().attachHiddenPaths({
+      rooms, edges, seed: state.seed,
+      // #93 post-merge fix (Task 3 addendum): a revealed detour room needs
+      // real content the same way a main-graph room does.
+      puzzleSetpieceIds, trapSetpieceIds, narrativeSetpieceIds, treasureSetpieceIds,
+    });
   // #156: rank/col must come from layoutEdges (includes detour rooms), not
   // edges (visible-only) — computing over edges leaves every detour room's
   // rank/col undefined, since its only incoming connection is hidden.
