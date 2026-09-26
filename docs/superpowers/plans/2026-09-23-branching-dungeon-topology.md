@@ -335,6 +335,147 @@ git commit -m "feat: add buildRoomGraph with forced-merge single-entrance goal g
 
 ---
 
+### Task 2 addendum: restore the mid-dungeon rest room (ITEM-5), dropped by the graph rewrite
+
+**#93 post-merge fix (found by Task 15's final whole-branch review, live-simulation-verified against the real generator — 21,000 graphs, 0 rest rooms produced).** `buildRoomGraph` never creates a `safe_rest` room at all — a straight omission versus the old `buildRoomSequence`, which inserted one for `roomCount > MID_DUNGEON_REST_THRESHOLD` at the real room nearest the sequence's midpoint. Nothing in this plan ever said to remove the feature: Tasks 9, 11, and 13 all still carry (and, in Task 11's case, specifically fixed) `safe_rest` handling — `markRoomOutcome`'s `rest_room_passed` auto-resolve, `handleDungeonDoorOpened`'s rest-room branch, `UNCOUNTED_ROOM_KINDS`, `_prepareContext`'s `isSafeRest`. All of that code has been dead for every run built through the new generator since Task 12 shipped. Per product decision, the feature is restored rather than retired.
+
+**Files:**
+- Modify: `scripts/dungeon-deck.mjs`
+- Test: `tests/dungeon-deck.test.mjs`
+
+**Interfaces:**
+- Consumes: `buildRoomGraph`'s own output (`rooms`, `edges`) — this runs as a discrete post-processing pass over an already-complete graph, the same architectural relationship `attachHiddenPaths` already has to `buildRoomGraph`.
+- Produces: `insertRestRoom({ rooms, edges, seed, roomCount })` → `{ rooms, edges }` with a `room-rest` node spliced in (new export, `dungeon-deck.mjs`). Called from `startDungeonRun` between `buildRoomGraph` and `attachHiddenPaths` (see Task 12 addendum below) — hidden paths must never be allowed to select `room-rest` as a `fromId` (see the Task 3 addendum below), so the rest room must exist in the graph before `attachHiddenPaths` runs its own hidden-path-eligibility scan.
+
+- [ ] **Step 1: Write the failing test**
+
+```js
+import { buildRoomGraph, insertRestRoom, MID_DUNGEON_REST_THRESHOLD } from '../scripts/dungeon-deck.mjs';
+
+describe('insertRestRoom', () => {
+  it('adds no rest room at or below the threshold', () => {
+    const { rooms, edges } = buildRoomGraph({ seed: 's1', roomCount: MID_DUNGEON_REST_THRESHOLD });
+    const { rooms: rooms2 } = insertRestRoom({ rooms, edges, seed: 's1', roomCount: MID_DUNGEON_REST_THRESHOLD });
+    expect(Object.values(rooms2).some((r) => r.kind === 'safe_rest')).toBe(false);
+  });
+
+  it('adds exactly one safe_rest room above the threshold, with exactly one outgoing edge', () => {
+    const { rooms, edges } = buildRoomGraph({ seed: 's2', roomCount: 10 });
+    const { rooms: rooms2, edges: edges2 } = insertRestRoom({ rooms, edges, seed: 's2', roomCount: 10 });
+    const restRooms = Object.values(rooms2).filter((r) => r.kind === 'safe_rest');
+    expect(restRooms).toHaveLength(1);
+    expect(edges2[restRooms[0].id]).toHaveLength(1);
+  });
+
+  it('every real parent of the splice target is redirected through the rest room, and the target keeps the same total incoming count', () => {
+    const { rooms, edges } = buildRoomGraph({ seed: 's3', roomCount: 12 });
+    const { rooms: rooms2, edges: edges2 } = insertRestRoom({ rooms, edges, seed: 's3', roomCount: 12 });
+    const rest = Object.values(rooms2).find((r) => r.kind === 'safe_rest');
+    const target = rest && edges2[rest.id][0];
+    expect(target).toBeTruthy();
+    // Nothing else in the graph still points directly at target except room-rest.
+    const directParents = Object.entries(edges2).filter(([id, kids]) => id !== rest.id && kids.includes(target));
+    expect(directParents).toHaveLength(0);
+  });
+
+  it('never selects the goal or the entry as the splice target', () => {
+    for (let i = 0; i < 200; i += 1) {
+      const seed = `sweep-${i}`;
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount: 8 + (i % 6) });
+      const { rooms: rooms2, edges: edges2 } = insertRestRoom({ rooms, edges, seed, roomCount: 8 + (i % 6) });
+      const rest = Object.values(rooms2).find((r) => r.kind === 'safe_rest');
+      if (!rest) continue;
+      const target = edges2[rest.id][0];
+      expect(rooms2[target].isGoal).toBe(false);
+      expect(target).not.toBe('room-entry');
+    }
+  });
+});
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `npx vitest run tests/dungeon-deck.test.mjs -t insertRestRoom`
+Expected: FAIL (`insertRestRoom` is not exported yet)
+
+- [ ] **Step 3: Write minimal implementation**
+
+```js
+/**
+ * #93 post-merge fix (Task 15's final review): buildRoomGraph never
+ * creates a mid-dungeon rest room (ITEM-5) the way the old
+ * buildRoomSequence did — this restores it as a discrete post-processing
+ * pass, the same relationship attachHiddenPaths already has to
+ * buildRoomGraph's output, rather than complicating the forced-merge
+ * algorithm itself with rest-room placement.
+ *
+ * Picks the non-entry, non-goal room whose OWN generation-order salt
+ * (parsed straight from its `room-N` id) is closest to
+ * Math.floor((roomCount - 2) / 2) — the same "nearest the midpoint of the
+ * run" semantics buildRoomSequence's own restAfterIndex used for a linear
+ * chain. This generalizes cleanly to a branching graph because every
+ * non-entry, non-goal room's id still encodes its own generation-order
+ * index regardless of the graph's eventual shape — no need to reason
+ * about rank/column position or merge structure at all.
+ *
+ * Splices `room-rest` in as the new SOLE parent of the selected target:
+ * every room that currently points at the target is redirected to point
+ * at room-rest instead, and room-rest gets a single outgoing edge to the
+ * target. This works identically whether the target had one real parent
+ * (a normal room) or several (a merge room) — the target's own incoming
+ * face count only ever goes DOWN (to exactly 1, from room-rest), never up,
+ * so no room's exit-count budget is disturbed by this splice; only the
+ * target's edge, which changed to room-rest, is affected.
+ */
+export function insertRestRoom({ rooms, edges, seed, roomCount }) {
+  if (roomCount <= MID_DUNGEON_REST_THRESHOLD) return { rooms, edges };
+
+  const targetSalt = Math.floor((roomCount - 2) / 2);
+  let target = null;
+  let bestDistance = Infinity;
+  for (const room of Object.values(rooms)) {
+    if (room.id === 'room-entry' || room.isGoal) continue;
+    const match = /^room-(\d+)$/.exec(room.id);
+    if (!match) continue;
+    const distance = Math.abs(Number(match[1]) - targetSalt);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      target = room;
+    }
+  }
+  if (!target) return { rooms, edges }; // degenerate roomCount, nothing to splice before
+
+  const rest = {
+    id: 'room-rest', kind: 'safe_rest', isGoal: false, setpieceId: null, outcomeSlotId: null,
+    locationTag: locationTagAt(seed, 'rest'), artVariant: roomArtVariantAt(seed, 'rest'),
+  };
+  const newRooms = { ...rooms, [rest.id]: rest };
+  const newEdges = { ...edges, [rest.id]: [target.id] };
+  for (const [parentId, children] of Object.entries(edges)) {
+    if (children.includes(target.id)) {
+      newEdges[parentId] = children.map((id) => (id === target.id ? rest.id : id));
+    }
+  }
+  return { rooms: newRooms, edges: newEdges };
+}
+```
+
+**Note for the implementer:** `MID_DUNGEON_REST_THRESHOLD`, `locationTagAt`, `roomArtVariantAt` already exist in this same file (used by `buildRoomSequence`) — reference them as-is, do not redefine. This function does not touch `layoutEdges`/rank/column computation at all; it runs before those are computed (see the Task 12 addendum), so `computeRanks`/`computeColumns` see the spliced graph as just another valid DAG shape, no special-casing needed there.
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+Run: `npx vitest run tests/dungeon-deck.test.mjs -t insertRestRoom`
+Expected: PASS
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add scripts/dungeon-deck.mjs tests/dungeon-deck.test.mjs
+git commit -m "fix: restore the mid-dungeon rest room (ITEM-5), dropped by buildRoomGraph"
+```
+
+---
+
 ## Task 3: Hidden shortcut/detour generation
 
 **Files:**
@@ -562,6 +703,187 @@ Expected: PASS
 ```bash
 git add scripts/dungeon-deck.mjs tests/dungeon-deck.test.mjs
 git commit -m "feat: attach pregenerated hidden shortcuts/detours to branch edges"
+```
+
+---
+
+### Task 3 addendum: give detour rooms real content, and exclude the rest room from hidden-path eligibility
+
+**#93 post-merge fix (Critical, found by Task 15's final whole-branch review — confirmed by directly executing `markRoomOutcome` against a detour room).** `attachHiddenPaths` creates every detour room with `setpieceId: null, outcomeSlotId: null` hardcoded, regardless of its randomly-rolled `kind` (combat, treasure, skill_challenge, puzzle, narrative, trap — everything `roomKindAt` can return). `markRoomOutcome` (Task 9) returns early with `effectKey: null` and appends nothing to `state.history` for exactly this shape — `!room.isGoal && room.outcomeSlotId == null && room.kind !== 'safe_rest'` — so a revealed detour room can **never be resolved**: Succeed/Fail, Declare Victory/Defeat, and combat auto-resolve all silently no-op forever, `currentRoomResolved` never becomes true, and the detour's own onward door never unlocks (`resolveCurrentRoom`'s unlock block is gated on `effectKey`, Task 13's own fix round 1). The party is permanently stuck the moment they walk into a revealed detour room, with Undo as the only way out — and only if the GM thinks to use it. This is a regression versus the old `buildRoomSequence`'s `insert_after`, which always assigned a real `outcomeSlotId`, and it contradicts this plan's own spec (outcome slots assigned "exactly as today").
+
+Separately, the same review found a second, smaller gap this addendum also closes: nothing stops `attachHiddenPaths` from selecting the restored rest room (Task 2 addendum, `kind: 'safe_rest'`) as a hidden path's own `fromId`. A rest room's own outcome always resolves as the fixed `effectKey: 'rest_room_passed'` (`markRoomOutcome`'s `safe_rest` branch) — never `reduced_travel_time`/`extra_travel_time` — so a hidden path attached to a rest room could never be revealed by anything, permanently sealing off whatever it leads to. The exact same failure class as the detour bug above, just reached a different way; closed by excluding `safe_rest` from `fromId` eligibility rather than by giving it unreachable content.
+
+**Files:**
+- Modify: `scripts/dungeon-deck.mjs`
+- Test: `tests/dungeon-deck.test.mjs`
+
+**Interfaces:**
+- Consumes: `setpieceAt`/`outcomeSlotAt` (already exist in this file, used by `buildRoomGraph`'s own `makeRoom`), the four setpiece-id pools — `attachHiddenPaths`'s own signature gains `puzzleSetpieceIds`/`trapSetpieceIds`/`narrativeSetpieceIds`/`treasureSetpieceIds` (all defaulting to `[]`), threaded from its callers exactly the way Task 12's own treasure-setpiece fix already threads them into `buildRoomGraph` (see the Task 12 addendum below for the call-site update).
+- Produces: every detour room gets a real `outcomeSlotId` and, for a puzzle/trap/narrative/treasure kind, a real `setpieceId` — using DEDICATED occurrence counters and DEDICATED salt strings (`'detour-puzzle-setpiece-order'`, etc.), never sharing draws with `buildRoomGraph`'s own main-graph occurrence counters, so a detour room and a main-graph room can never be assigned the exact same setpiece from the same pool. `attachHiddenPaths`'s `fromId` eligibility gate also excludes `kind === 'safe_rest'`.
+
+- [ ] **Step 1: Write the failing test**
+
+```js
+import { buildRoomGraph, attachHiddenPaths, insertRestRoom } from '../scripts/dungeon-deck.mjs';
+
+describe('attachHiddenPaths detour content (#93 post-merge fix)', () => {
+  it('every detour room gets a non-null outcomeSlotId', () => {
+    for (let i = 0; i < 300; i += 1) {
+      const seed = `detour-content-${i}`;
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount: 10 });
+      const attached = attachHiddenPaths({ rooms, edges, seed });
+      for (const roomId of attached.hiddenRooms) {
+        const room = attached.rooms[roomId];
+        if (room.kind === 'safe_rest') continue; // never a detour kind, but guard anyway
+        expect(room.outcomeSlotId).not.toBeNull();
+      }
+    }
+  });
+
+  it('a puzzle/trap/narrative/treasure detour room gets a real setpieceId when pools are provided', () => {
+    const puzzleSetpieceIds = ['p1', 'p2'];
+    const trapSetpieceIds = ['t1', 't2'];
+    const narrativeSetpieceIds = ['n1', 'n2'];
+    const treasureSetpieceIds = ['tr1', 'tr2'];
+    let sawContentKind = false;
+    for (let i = 0; i < 300; i += 1) {
+      const seed = `detour-setpiece-${i}`;
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount: 10 });
+      const attached = attachHiddenPaths({
+        rooms, edges, seed,
+        puzzleSetpieceIds, trapSetpieceIds, narrativeSetpieceIds, treasureSetpieceIds,
+      });
+      for (const roomId of attached.hiddenRooms) {
+        const room = attached.rooms[roomId];
+        if (['puzzle', 'trap', 'narrative', 'treasure'].includes(room.kind)) {
+          sawContentKind = true;
+          expect(room.setpieceId).not.toBeNull();
+        }
+      }
+    }
+    expect(sawContentKind).toBe(true);
+  });
+
+  it('never selects the rest room as a hidden-path fromId', () => {
+    for (let i = 0; i < 300; i += 1) {
+      const seed = `rest-exclusion-${i}`;
+      const roomCount = 10;
+      const { rooms: baseRooms, edges: baseEdges } = buildRoomGraph({ seed, roomCount });
+      const { rooms, edges } = insertRestRoom({ rooms: baseRooms, edges: baseEdges, seed, roomCount });
+      const restRoom = Object.values(rooms).find((r) => r.kind === 'safe_rest');
+      if (!restRoom) continue;
+      const attached = attachHiddenPaths({ rooms, edges, seed });
+      expect(attached.hiddenEdges[restRoom.id]).toBeUndefined();
+    }
+  });
+});
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `npx vitest run tests/dungeon-deck.test.mjs -t "detour content"`
+Expected: FAIL (every detour still gets `outcomeSlotId: null`; the rest room isn't excluded yet)
+
+- [ ] **Step 3: Write minimal implementation**
+
+Replace `attachHiddenPaths`'s signature and its `wantsDetour` branch:
+
+```js
+export function attachHiddenPaths({
+  rooms, edges, seed,
+  puzzleSetpieceIds = [],
+  trapSetpieceIds = [],
+  narrativeSetpieceIds = [],
+  treasureSetpieceIds = [],
+}) {
+  const hiddenRooms = new Set();
+  const hiddenEdges = {};
+  const hiddenIncomingByRoomId = {};
+  const layoutEdges = Object.fromEntries(
+    Object.entries(edges).map(([id, children]) => [id, [...children]]),
+  );
+  let detourSalt = 0;
+  // #93 post-merge fix: dedicated occurrence counters, one per kind, never
+  // shared with buildRoomGraph's own main-graph counters — a detour room
+  // and a main-graph room drawing from the same pool must never collide
+  // on the exact same setpiece.
+  let detourPuzzleOccurrence = 0;
+  let detourTrapOccurrence = 0;
+  let detourNarrativeOccurrence = 0;
+  let detourTreasureOccurrence = 0;
+
+  for (const [fromId, children] of Object.entries(edges)) {
+    const fromRoom = rooms[fromId];
+    // #93 post-merge fix: exclude safe_rest — its own outcome always
+    // resolves as the fixed 'rest_room_passed' effectKey, never
+    // reduced_travel_time/extra_travel_time, so a hidden path attached to
+    // it could never be revealed by anything — the exact same
+    // permanently-sealed failure this addendum's detour-content fix
+    // closes, reached a different way.
+    if (!fromRoom || fromRoom.isGoal || fromId === 'room-entry' || fromRoom.kind === 'safe_rest') continue;
+    if (children.length === 0 || children.length > 2) continue; // no spare face
+
+    const r = splitmix32(seedFromString(`${seed}-hidden-${fromId}`))();
+    if (r >= HIDDEN_PATH_CHANCE) continue;
+
+    const toId = children[0];
+    const toRoom = rooms[toId];
+    if (!toRoom || toRoom.isGoal) continue;
+
+    const wantsDetour = splitmix32(seedFromString(`${seed}-hidden-kind-${fromId}`))() < 0.5;
+    if (wantsDetour) {
+      const kind = roomKindAt(seed, `detour-${detourSalt}`);
+      // #93 post-merge fix: real content, same per-kind assignment
+      // buildRoomGraph's own makeRoom already uses for main-graph rooms —
+      // dedicated 'detour-*-setpiece-order' salts and dedicated occurrence
+      // counters keep this pool draw independent of makeRoom's own.
+      const setpieceId =
+        kind === 'puzzle' ? setpieceAt(seed, detourPuzzleOccurrence++, puzzleSetpieceIds, 'detour-puzzle-setpiece-order')
+        : kind === 'trap' ? setpieceAt(seed, detourTrapOccurrence++, trapSetpieceIds, 'detour-trap-setpiece-order')
+        : kind === 'narrative' ? setpieceAt(seed, detourNarrativeOccurrence++, narrativeSetpieceIds, 'detour-narrative-setpiece-order')
+        : kind === 'treasure' ? setpieceAt(seed, detourTreasureOccurrence++, treasureSetpieceIds, 'detour-treasure-setpiece-order')
+        : null;
+      const outcomeSlot = outcomeSlotAt(seed, `detour-${detourSalt}`);
+      const detour = {
+        id: `room-detour-${detourSalt}`, kind,
+        isGoal: false, setpieceId, outcomeSlotId: outcomeSlot.id,
+        locationTag: locationTagAt(seed, `detour-${detourSalt}`),
+        artVariant: roomArtVariantAt(seed, `detour-${detourSalt}`)
+      };
+      detourSalt += 1;
+      rooms[detour.id] = detour;
+      edges[detour.id] = [toId];
+      layoutEdges[detour.id] = [toId];
+      hiddenRooms.add(detour.id);
+      hiddenEdges[fromId] = [detour.id];
+      layoutEdges[fromId] = [...children, detour.id];
+    } else {
+      // (shortcut branch unchanged — see the existing code)
+      const skipTarget = edges[toId]?.[0];
+      const skipTargetRoom = skipTarget ? rooms[skipTarget] : null;
+      if (!skipTarget || !skipTargetRoom || skipTargetRoom.isGoal) continue;
+      if ((edges[skipTarget]?.length ?? 0) > 2) continue;
+      hiddenEdges[fromId] = [skipTarget];
+      (hiddenIncomingByRoomId[skipTarget] ??= []).push(fromId);
+    }
+  }
+
+  return { rooms, edges, hiddenRooms, hiddenEdges, layoutEdges, hiddenIncomingByRoomId };
+}
+```
+
+**Note for the implementer:** `outcomeSlotAt(seed, index)` and `setpieceAt(seed, occurrenceIndex, setpieceIds, salt)` already exist in this file — the `index`/salt argument accepts a string (`buildRoomSequence`'s own calls already pass `i` as a number and detour rooms already pass string salts like `` `detour-${detourSalt}` `` for `locationTagAt`/`roomArtVariantAt`, so passing the same string to `outcomeSlotAt` is consistent with the existing convention, not a new pattern). The shortcut (`else`) branch is completely unchanged — only the `wantsDetour` branch and the function's own signature/top-of-function counters change.
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+Run: `npx vitest run tests/dungeon-deck.test.mjs -t "detour content"`
+Expected: PASS. Also re-run the full `attachHiddenPaths` describe block — its existing tests call `attachHiddenPaths({rooms, edges, seed})` without the four new params, which all default to `[]`, so `setpieceId` stays `null` for those calls (no pool to draw from) but `outcomeSlotId` is now always non-null regardless — confirm no existing test asserts `outcomeSlotId: null` for a detour room (if one does, it was pinning the bug this addendum fixes; update it to assert non-null instead).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add scripts/dungeon-deck.mjs tests/dungeon-deck.test.mjs
+git commit -m "fix: give detour rooms real outcome slots/setpieces, exclude rest room from hidden-path eligibility"
 ```
 
 ---
@@ -2422,15 +2744,33 @@ git commit -m "feat: resolve door-opens against a room's specific graph child, w
 In `scripts/ui/dungeon-app.mjs`'s `startDungeonRun` (around line 496-639): first change `const state = await createRun(...)` to `let state = await createRun(...)` (the code below reassigns `state`), then replace everything from the `createRun(...)` call's result through the end of the function:
 
 ```js
-  const { rooms, edges } = getGenerator().buildRoomGraph({
+  const generated = getGenerator().buildRoomGraph({
     seed: state.seed,
     roomCount,
     puzzleSetpieceIds,
     trapSetpieceIds,
     narrativeSetpieceIds,
+    treasureSetpieceIds,
+  });
+  // #93 post-merge fix (Task 2 addendum, found by Task 15's final review):
+  // restore the mid-dungeon rest room BEFORE attachHiddenPaths runs — a
+  // hidden path must never be allowed to select the rest room as its own
+  // fromId (see the Task 3 addendum), so the rest room has to already
+  // exist in the graph by the time attachHiddenPaths does its own
+  // eligibility scan.
+  const { rooms, edges } = getGenerator().insertRestRoom({
+    rooms: generated.rooms,
+    edges: generated.edges,
+    seed: state.seed,
+    roomCount,
   });
   const { hiddenRooms, hiddenEdges, layoutEdges, hiddenIncomingByRoomId } =
-    getGenerator().attachHiddenPaths({ rooms, edges, seed: state.seed });
+    getGenerator().attachHiddenPaths({
+      rooms, edges, seed: state.seed,
+      // #93 post-merge fix (Task 3 addendum): a revealed detour room needs
+      // real content the same way a main-graph room does.
+      puzzleSetpieceIds, trapSetpieceIds, narrativeSetpieceIds, treasureSetpieceIds,
+    });
   // #156: rank/col must come from layoutEdges (includes detour rooms), not
   // edges (visible-only) — computing over edges leaves every detour room's
   // rank/col undefined, since its only incoming connection is hidden.
