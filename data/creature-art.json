@@ -10742,5 +10742,61 @@
     "name": "Rune Dragon (Young, Spellcaster)",
     "level": 10,
     "art": "rune-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "ofalth",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "2jtRdYo9ey7osDUH",
+    "name": "Ofalth",
+    "level": 10,
+    "art": "ofalth.webp"
+  },
+  {
+    "id": "peluda",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "drtCZDDoESPSUqH7",
+    "name": "Peluda",
+    "level": 10,
+    "art": "peluda.webp"
+  },
+  {
+    "id": "raja_rakshasa",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "hOXpmWmXU8N3n4Bw",
+    "name": "Raja Rakshasa",
+    "level": 10,
+    "art": "raja-rakshasa.webp"
+  },
+  {
+    "id": "red_dragon_young",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "sUGKrcx7kbHkWnwG",
+    "name": "Red Dragon (Young)",
+    "level": 10,
+    "art": "red-dragon-young.webp"
+  },
+  {
+    "id": "rekhep",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "FWg5qHuwoa0JfEMR",
+    "name": "Rekhep",
+    "level": 10,
+    "art": "rekhep.webp"
+  },
+  {
+    "id": "rune_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "VVgAb1gaCZaKFRDj",
+    "name": "Rune Dragon (Young)",
+    "level": 10,
+    "art": "rune-dragon-young.webp"
+  },
+  {
+    "id": "red_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "oLdrCmarnzd62kA8",
+    "name": "Red Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "red-dragon-young-spellcaster.webp"
   }
 ]
