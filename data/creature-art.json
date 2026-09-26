@@ -10014,5 +10014,69 @@
     "name": "Witchfire",
     "level": 9,
     "art": "witchfire.webp"
+  },
+  {
+    "id": "blue_dracolisk",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "4x9trDSABU5dqq9w",
+    "name": "Blue Dracolisk",
+    "level": 9,
+    "art": "blue-dracolisk.webp"
+  },
+  {
+    "id": "clockwork_mage",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "wHtddmyDuL1l2E6I",
+    "name": "Clockwork Mage",
+    "level": 9,
+    "art": "clockwork-mage.webp"
+  },
+  {
+    "id": "efreeti",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "c0zqasudrwZU3fdw",
+    "name": "Efreeti",
+    "level": 9,
+    "art": "efreeti.webp"
+  },
+  {
+    "id": "mirage_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "tbqcZG0lOoUVhNfn",
+    "name": "Mirage Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "mirage-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "night_hag",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "WQy7HBUcgDLsfVJd",
+    "name": "Night Hag",
+    "level": 9,
+    "art": "night-hag.webp"
+  },
+  {
+    "id": "noxious_needler",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "eqHTr6Wj1JadHSa1",
+    "name": "Noxious Needler",
+    "level": 9,
+    "art": "noxious-needler.webp"
+  },
+  {
+    "id": "tyrannosaurus_skeleton",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "SpvzECYhPp7rKLA1",
+    "name": "Tyrannosaurus Skeleton",
+    "level": 9,
+    "art": "tyrannosaurus-skeleton.webp"
+  },
+  {
+    "id": "white_dracolisk",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "DM5js1XSiuiPAf3t",
+    "name": "White Dracolisk",
+    "level": 9,
+    "art": "white-dracolisk.webp"
   }
 ]
