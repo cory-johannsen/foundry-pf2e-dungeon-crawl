@@ -21,6 +21,54 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+/**
+ * The main checkout's root, distinct from `root` when this script runs from
+ * a git worktree — worktrees share history but not working-tree files, so a
+ * `.env` or `gemini-system-prompt.txt` living only in the main checkout
+ * (not copied into every worktree) still needs to resolve.
+ */
+function mainCheckoutRoot() {
+  try {
+    const commonDir = execFileSync(
+      'git', ['rev-parse', '--path-format=absolute', '--git-common-dir'],
+      { cwd: root, encoding: 'utf8' }
+    ).trim();
+    return dirname(commonDir);
+  } catch { return null; }
+}
+
+function parseDotEnv(text) {
+  const out = {};
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eq = trimmed.indexOf('=');
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let val = trimmed.slice(eq + 1).trim();
+    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+      val = val.slice(1, -1);
+    }
+    out[key] = val;
+  }
+  return out;
+}
+
+/** Loads .env from this worktree, then the main checkout, without a dotenv dependency. */
+function loadDotEnv() {
+  const candidates = [join(root, '.env')];
+  const mainRoot = mainCheckoutRoot();
+  if (mainRoot && mainRoot !== root) candidates.push(join(mainRoot, '.env'));
+  for (const p of candidates) {
+    if (!existsSync(p)) continue;
+    for (const [k, v] of Object.entries(parseDotEnv(readFileSync(p, 'utf8')))) {
+      if (!(k in process.env)) process.env[k] = v;
+    }
+  }
+}
+loadDotEnv();
+
 const OUT_DIR = join(root, 'assets/tokens');
 const BASE = (process.env.COMFYUI_BASE_URL || 'https://comfyui.johannsen.cloud').replace(/\/$/, '');
 const CHECKPOINT = process.env.COMFYUI_CHECKPOINT || 'sd_xl_base_1.0.safetensors';
@@ -4436,7 +4484,7 @@ export const MONSTER_ART = [
   { id: 'mithral-golem', file: 'mithral-golem', dir: 'assets/creature-art',
     prompt: "A huge humanoid golem of gleaming silvery dawnsilver, its fluid metallic surface rippling as though partway between liquid and solid, one fist reshaping into a jagged spiked point, graceful for its massive size." },
   { id: 'vilderavn', file: 'vilderavn', dir: 'assets/creature-art',
-    prompt: "A great raven with glossy black feathers and a wingspan reaching eight feet, sharp intelligent eyes, wings half-spread as if about to take flight from a gnarled branch, an unsettling cunning watchfulness in its gaze." },
+    prompt: "A great raven with glossy black feathers and a wingspan reaching eight feet, sharp intelligent eyes, wings half-spread as if about to take flight, an unsettling cunning watchfulness in its gaze, floating alone with nothing beneath it." },
   { id: 'world-ender', file: 'world-ender', dir: 'assets/creature-art',
     prompt: "A grim human zealot in dark apocalyptic-styled armor scrawled with ominous symbols, wild intense eyes fixed on some distant catastrophe, gripping a weapon of ruin with unwavering fanatical resolve." },
   { id: 'deimavigga', file: 'deimavigga', dir: 'assets/creature-art',
@@ -4867,10 +4915,63 @@ Image.open(sys.argv[1]).convert('RGB').resize((512, 512), Image.LANCZOS) \
 const CLEAN_THRESHOLD = 45;      // stay under the checker's 50
 const MAX_ATTEMPTS = 4;
 
+/** Same worktree-vs-main-checkout resolution as .env — see loadDotEnv(). */
+function resolveGeminiSystemPrompt() {
+  const candidates = [join(root, 'gemini-system-prompt.txt')];
+  const mainRoot = mainCheckoutRoot();
+  if (mainRoot && mainRoot !== root) candidates.push(join(mainRoot, 'gemini-system-prompt.txt'));
+  for (const p of candidates) {
+    if (existsSync(p)) return readFileSync(p, 'utf8').trim();
+  }
+  throw new Error(
+    `gemini-system-prompt.txt not found (looked in: ${candidates.join(', ')})`
+  );
+}
+
+/**
+ * Single paid call per subject — no reroll-and-keep-best-of-4 like the
+ * ComfyUI path, since each attempt here is billed. Gemini's hit rate on the
+ * manual workflow has been near-100% first-try, so a reroll loop would
+ * mostly just be spending money to confirm what one call already showed.
+ */
+async function geminiGenerateOne(subject, dest) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      'GEMINI_API_KEY not set — add it to .env (this worktree or the main checkout) to use --backend=gemini'
+    );
+  }
+  const systemPrompt = resolveGeminiSystemPrompt();
+  const model = process.env.GEMINI_IMAGE_MODEL || 'gemini-3.1-flash-lite-image';
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+    method: 'POST',
+    headers: { 'x-goog-api-key': apiKey, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model,
+      input: [{ type: 'text', text: `${systemPrompt}\n\n${promptFor(subject)}` }],
+      response_format: { type: 'image', mime_type: 'image/png', aspect_ratio: '1:1' }
+    })
+  });
+  if (!res.ok) throw new Error(`gemini request failed: ${res.status} ${await res.text()}`);
+  const body = await res.json();
+  const data = body.output_image?.data;
+  if (!data) throw new Error(`gemini response had no output_image: ${JSON.stringify(body).slice(0, 500)}`);
+  writeFileSync(dest, Buffer.from(data, 'base64'));
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const force = args.includes('--force');
   const reroll = parseInt(args.find((a) => a.startsWith('--reroll='))?.split('=')[1] ?? '0', 10);
+  const backend = args.find((a) => a.startsWith('--backend='))?.split('=')[1] ?? 'comfyui';
+  if (!['comfyui', 'gemini'].includes(backend)) {
+    throw new Error(`unknown --backend=${backend}; expected comfyui or gemini`);
+  }
+  if (backend === 'gemini' && !process.env.GEMINI_API_KEY) {
+    throw new Error(
+      'GEMINI_API_KEY not set — add it to .env (this worktree or the main checkout) to use --backend=gemini'
+    );
+  }
   const only = args.filter((a) => !a.startsWith('--'));
   const wanted = ALL.filter((s) => (!only.length || only.includes(s.id)));
   for (const s of wanted) {
@@ -4879,6 +4980,14 @@ async function main() {
     const dest = join(outDir, `${s.file}.png`);
     const final = join(outDir, `${s.file}.webp`);
     if (existsSync(final) && !force) { console.log(`${s.id.padEnd(10)} exists, skipping`); continue; }
+    if (backend === 'gemini') {
+      process.stdout.write(`${s.id.padEnd(10)} gemini… `);
+      await geminiGenerateOne(s, dest);
+      shrink(dest, final);
+      unlinkSync(dest);
+      console.log(`-> ${s.dir ?? 'assets/tokens'}/${s.file}.webp`);
+      continue;
+    }
     const prompt = promptFor(s);
     // The same prompt produces a plain background on some rolls and a lit
     // interior on others, so this rerolls rather than accepting the first
