@@ -4,7 +4,7 @@ import {
   roomSizeAt, doorOffsetAt, corridorTileVariant,
   computeRanks, computeColumns,
   roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, northDoorSlots, buildEdgeCorridor,
-  cellBounds, findCorridorPath, INITIAL_GX, cellMarginWalls,
+  cellBounds, findCorridorPath, INITIAL_GX, cellMarginWalls, transitCellCrossing,
 } from '../scripts/dungeon-layout.mjs';
 import { buildRoomGraph } from '../scripts/dungeon-deck.mjs';
 
@@ -561,5 +561,78 @@ describe('cellMarginWalls', () => {
         }
       }
     }
+  });
+});
+
+describe('transitCellCrossing', () => {
+  it('draws a single straight segment for a north-to-south (opposite sides) crossing', () => {
+    const result = transitCellCrossing('seed1', 1, 0, 'north', 'south', 'a->b');
+    expect(result.corridorSegments).toHaveLength(1);
+    expect(result.entryPoint.y).toBe(cellBounds(1, 0).gy);
+    expect(result.exitPoint.y).toBe(cellBounds(1, 0).gy + ROW_STRIDE);
+    // The straight segment never leaves this cell's own bounds.
+    const cell = cellBounds(1, 0);
+    for (const seg of result.corridorSegments) {
+      expect(seg.gx).toBeGreaterThanOrEqual(cell.gx);
+      expect(seg.gx + seg.gw).toBeLessThanOrEqual(cell.gx + cell.gw);
+      expect(seg.gy).toBeGreaterThanOrEqual(cell.gy);
+      expect(seg.gy + seg.gh).toBeLessThanOrEqual(cell.gy + cell.gh);
+    }
+  });
+
+  it('draws an L-shaped 2-segment path for a north-to-east (adjacent sides) crossing, staying inside the cell', () => {
+    const result = transitCellCrossing('seed1', 0, 0, 'north', 'east', 'a->b');
+    expect(result.corridorSegments.length).toBeGreaterThanOrEqual(1);
+    const cell = cellBounds(0, 0);
+    for (const seg of result.corridorSegments) {
+      expect(seg.gx).toBeGreaterThanOrEqual(cell.gx);
+      expect(seg.gx + seg.gw).toBeLessThanOrEqual(cell.gx + cell.gw);
+      expect(seg.gy).toBeGreaterThanOrEqual(cell.gy);
+      expect(seg.gy + seg.gh).toBeLessThanOrEqual(cell.gy + cell.gh);
+    }
+  });
+
+  it('is deterministic for a given seed, rank, col, and edgeId', () => {
+    const a = transitCellCrossing('seed1', 2, 1, 'west', 'east', 'x->y');
+    const b = transitCellCrossing('seed1', 2, 1, 'west', 'east', 'x->y');
+    expect(b).toEqual(a);
+  });
+
+  it('produces a different offset for a different edgeId crossing the same cell', () => {
+    const a = transitCellCrossing('seed1', 2, 1, 'west', 'east', 'x->y');
+    const b = transitCellCrossing('seed1', 2, 1, 'west', 'east', 'p->q');
+    expect(b.entryPoint).not.toEqual(a.entryPoint);
+  });
+
+  // The two containment checks above only bound each segment's own rect
+  // inside the cell — a segment that's individually in-bounds but too
+  // short to actually reach the corner (e.g. a fixed CORRIDOR_LEN-sized
+  // stub near entryPoint that never extends down to the corner's own y)
+  // would still pass them. This test instead checks the corner-turn path
+  // is actually CONTINUOUS: the first segment must span the full run from
+  // entryPoint to the corner, and the second must span the full run from
+  // the corner to exitPoint — not just sit somewhere inside the cell.
+  it('connects entryPoint to exitPoint through the corner, not just two disconnected stubs', () => {
+    const result = transitCellCrossing('seed1', 0, 0, 'north', 'east', 'a->b');
+    const { entryPoint, exitPoint } = result;
+    const corner = { x: entryPoint.x, y: exitPoint.y };
+
+    // entryPoint -> corner is vertical (shared x): some segment's y-range
+    // must fully cover [entryPoint.y, corner.y].
+    const lo1 = Math.min(entryPoint.y, corner.y);
+    const hi1 = Math.max(entryPoint.y, corner.y);
+    const spansEntryToCorner = result.corridorSegments.some(
+      (seg) => seg.gy <= lo1 && seg.gy + seg.gh >= hi1
+    );
+    expect(spansEntryToCorner).toBe(true);
+
+    // corner -> exitPoint is horizontal (shared y): some segment's x-range
+    // must fully cover [corner.x, exitPoint.x].
+    const lo2 = Math.min(corner.x, exitPoint.x);
+    const hi2 = Math.max(corner.x, exitPoint.x);
+    const spansCornerToExit = result.corridorSegments.some(
+      (seg) => seg.gx <= lo2 && seg.gx + seg.gw >= hi2
+    );
+    expect(spansCornerToExit).toBe(true);
   });
 });

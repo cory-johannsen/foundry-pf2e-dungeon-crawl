@@ -477,6 +477,73 @@ export function cellMarginWalls(rect, rank, col, { openSide = null, openOffset =
   return walls;
 }
 
+const SIDE_POINT = {
+  north: (cell, offset) => ({ x: cell.gx + offset, y: cell.gy }),
+  south: (cell, offset) => ({ x: cell.gx + offset, y: cell.gy + cell.gh }),
+  west: (cell, offset) => ({ x: cell.gx, y: cell.gy + offset }),
+  east: (cell, offset) => ({ x: cell.gx + cell.gw, y: cell.gy + offset }),
+};
+const SIDE_SPAN = { north: 'gw', south: 'gw', west: 'gh', east: 'gh' };
+const OPPOSITE_SIDE = { north: 'south', south: 'north', east: 'west', west: 'east' };
+
+/**
+ * Geometry for one EMPTY cell a corridor path crosses through — a
+ * pseudo-random point on entrySide to a pseudo-random point on exitSide
+ * (same seeded-offset convention as doorOffsetAt/buildEdgeCorridor),
+ * connected by a straight segment (opposite sides) or a single-corner
+ * L-shape (adjacent sides), always staying inside this one cell's own
+ * bounds. `edgeId` (e.g. `${fromRoomId}->${toRoomId}`) salts the offset
+ * so two different edges crossing the same cell get independently
+ * randomized entry/exit points, not identical ones.
+ *
+ * Straight-vs-turn is decided from entrySide/exitSide themselves
+ * (OPPOSITE_SIDE), not from whether the two seeded points happen to share
+ * a coordinate — entry and exit offsets are independently randomized, so
+ * even opposite sides (e.g. north/south, both offset along `gw`) will
+ * almost never land on the same x by chance.
+ */
+export function transitCellCrossing(seed, rank, col, entrySide, exitSide, edgeId) {
+  const cell = cellBounds(rank, col);
+  const entryOffset = doorOffsetAt(seed, `transit-${rank}-${col}-${entrySide}-${edgeId}`, 'incoming', cell[SIDE_SPAN[entrySide]]);
+  const exitOffset = doorOffsetAt(seed, `transit-${rank}-${col}-${exitSide}-${edgeId}`, 'outgoing', cell[SIDE_SPAN[exitSide]]);
+  const entryPoint = SIDE_POINT[entrySide](cell, entryOffset);
+  const exitPoint = SIDE_POINT[exitSide](cell, exitOffset);
+
+  const corridorSegments = [];
+  const plainWalls = [];
+
+  if (OPPOSITE_SIDE[entrySide] === exitSide) {
+    // Straight through (opposite sides) — one bounding-box segment from
+    // entry to exit directly, same shape buildEdgeCorridor's own
+    // same-column branch uses even when the two offsets don't align.
+    corridorSegments.push({
+      gx: Math.min(entryPoint.x, exitPoint.x),
+      gy: Math.min(entryPoint.y, exitPoint.y),
+      gw: Math.max(CORRIDOR_LEN, Math.abs(exitPoint.x - entryPoint.x)),
+      gh: Math.max(CORRIDOR_LEN, Math.abs(exitPoint.y - entryPoint.y)),
+    });
+  } else {
+    // Adjacent sides — one corner, inside this cell, at the entry point's
+    // own axis crossed with the exit point's own axis. entryPoint->corner
+    // shares an x (vertical leg: fixed gw, variable gh); corner->exitPoint
+    // shares a y (horizontal leg: variable gw, fixed gh) — mirroring
+    // buildEdgeCorridor's own corner-case segments exactly, just walked in
+    // the opposite direction (entry->corner->exit instead of
+    // exit->corner->entry).
+    const corner = { x: entryPoint.x, y: exitPoint.y };
+    corridorSegments.push({
+      gx: Math.min(entryPoint.x, corner.x), gy: Math.min(entryPoint.y, corner.y),
+      gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(corner.y - entryPoint.y)),
+    });
+    corridorSegments.push({
+      gx: Math.min(corner.x, exitPoint.x), gy: Math.min(corner.y, exitPoint.y),
+      gw: Math.max(CORRIDOR_LEN, Math.abs(exitPoint.x - corner.x)), gh: CORRIDOR_LEN,
+    });
+  }
+
+  return { entryPoint, exitPoint, plainWalls, corridorSegments };
+}
+
 /**
  * BFS shortest path of cells from fromPos to toPos over the rank/column
  * grid, treating any cell occupied by a room other than fromRoomId/
