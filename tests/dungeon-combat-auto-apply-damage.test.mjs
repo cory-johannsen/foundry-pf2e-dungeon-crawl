@@ -199,18 +199,20 @@ describe("handleManualStrikeDamage", () => {
     expect(target.applyDamageCalls).toHaveLength(0);
   });
 
-  it("sets defeated when damage reduces the target to 0 HP", async () => {
+  it("marks the target defeated via toggleDefeated (#152: the real Dead-condition path, not a hand-rolled update)", async () => {
     installFoundryStubs();
     const attacker = makeAttackerCombatant();
     const target = makeTargetCombatant({ hp: 0 });
-    const updateCalls = [];
-    target.update = async (changes) => updateCalls.push(changes);
+    let toggleDefeatedCalls = 0;
+    target.toggleDefeated = async () => {
+      toggleDefeatedCalls += 1;
+    };
     const combat = makeCombat({ combatants: [attacker, target] });
     game.combats.contents.push(combat);
 
     await handleManualStrikeDamage(makeMessage());
 
-    expect(updateCalls).toEqual([{ defeated: true }]);
+    expect(toggleDefeatedCalls).toBe(1);
   });
 
   it("ignores a message that isn't a damage-roll", async () => {

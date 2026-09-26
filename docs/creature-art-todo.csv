@@ -1,71 +1,21 @@
 level,rarity,pack,docId,name
 1,common,pf2e.pathfinder-monster-core-2,nLlS3MBFCO3DKwBX,Suli Dune Dancer
-9,common,pf2e.pathfinder-monster-core-2,t2IZHTaoFiZM3sxV,"Despair Dragon (Young, Spellcaster)"
-9,common,pf2e.pathfinder-monster-core,9qlccWxGFcQmgL3h,Doldrums Heap
-9,common,pf2e.pathfinder-monster-core,kLhBdqKOMHDGjdFz,Dragon Turtle
-9,common,pf2e.pathfinder-bestiary,SUpy8sleRwi2Egsq,Drakauthix
-9,common,pf2e.pathfinder-npc-core,Dd7E7pMKxPhrXaa8,Expedition Leader
-9,common,pf2e.pathfinder-monster-core,CAEdqhfZDfMLmEyS,Faydhaan
-9,common,pf2e.pathfinder-monster-core,MX2cLbODuo4gECPJ,Firewyrm
-9,common,pf2e.pathfinder-monster-core,893mp411SdYren3H,Frost Giant
-9,common,pf2e.pathfinder-bestiary-3,wv0hiJIGQjTU1pnO,Galvo
-9,common,pf2e.pathfinder-monster-core-2,ej7H1ft2CNCIsTMg,Garuda
-9,common,pf2e.pathfinder-bestiary-2,fVvRASaKa6SkQkYG,Giant Snapping Turtle
-9,common,pf2e.pathfinder-bestiary-2,32HHvah2Ji6FjJnM,Giant Squid
-9,common,pf2e.pathfinder-monster-core,15TyWlbDQWNjMKeL,Greater Hell Hound
-9,common,pf2e.pathfinder-monster-core-2,cEHRuzsGF73PVT3P,Hesperid
-9,common,pf2e.pathfinder-npc-core,deQ6Vg46CS6GTu7J,High Priest of Pharasma
-9,common,pf2e.pathfinder-npc-core,XmWD4T7LcpvNkq6b,Humanitarian Hermit
-9,common,pf2e.pathfinder-monster-core,oKaewcA4gu3fbSVP,Ifrit
-9,common,pf2e.pathfinder-monster-core,DEZNEMDhWXvv7BrT,Irnakurse
-9,common,pf2e.pathfinder-monster-core-2,VeCpLJCnBiHAwfCg,Jyoti
-9,common,pf2e.pathfinder-monster-core-2,H9P2QB311Qi5IwUo,Khravgodon
-9,common,pf2e.pathfinder-monster-core-2,c21HwKyf4IKgMfcv,Kithangian
-9,common,pf2e.pathfinder-monster-core,bb5Z4z4EHb5LbCLK,Leukodaemon
 9,common,pf2e.pathfinder-bestiary-2,ZBTqN3DNjdreXCu7,Mastodon
-9,common,pf2e.pathfinder-monster-core,8JbgbskxcU0EloJX,Mirage Dragon (Young)
-9,common,pf2e.pathfinder-monster-core,tbqcZG0lOoUVhNfn,"Mirage Dragon (Young, Spellcaster)"
-9,common,pf2e.pathfinder-bestiary,WQy7HBUcgDLsfVJd,Night Hag
 9,common,pf2e.pathfinder-monster-core,dY1wqHKN6PV4oJ07,Nuckelavee
-9,common,pf2e.pathfinder-bestiary-2,xjV0TmPNfKR7UcKu,Osyluth
-9,common,pf2e.pathfinder-monster-core-2,vDYawEVRlCxiIp5k,Pakalchi
-9,common,pf2e.pathfinder-monster-core-2,Akp3E1BEO0pTsTWY,Phase Dragon (Young)
-9,common,pf2e.pathfinder-monster-core-2,6QFK9rCUdHPlTKfv,"Phase Dragon (Young, Spellcaster)"
 9,common,pf2e.pathfinder-monster-core,S67oZ1mvVNz9FTUE,Roc
 9,common,pf2e.pathfinder-monster-core-2,SQVXMMEaEu9wun3Q,Shoki
 9,common,pf2e.pathfinder-monster-core,ToteDLIM7jCyHwDH,Stone Mauler
 9,common,pf2e.pathfinder-bestiary,LUtSo30fQWj7mrDn,Storm Lord
-9,common,pf2e.pathfinder-monster-core-2,lnaGhOB5LdNb7xB1,Tennin
 9,common,pf2e.pathfinder-bestiary,6UczvqBDlGNXcIlW,Tidal Master
-9,common,pf2e.pathfinder-bestiary-2,n1jTYFRCaqF1nQrf,Titan Centipede
 9,common,pf2e.pathfinder-npc-core,8LPVBXx8oIdXiNYQ,Traveling Priest of Desna
-9,common,pf2e.pathfinder-monster-core-2,SpvzECYhPp7rKLA1,Tyrannosaurus Skeleton
-9,common,pf2e.pathfinder-monster-core,mOr6eIUhNuggjCKH,Vescavor Queen
 9,common,pf2e.pathfinder-bestiary,4cPw8hZwW6uvyzvh,Vrock
-9,common,pf2e.pathfinder-monster-core-2,ZQ7lS9TYOFv07m1a,War Wraith
 9,common,pf2e.pathfinder-bestiary-2,9sUx2sV4E7Sy3vJT,Zelekhut
-9,common,pf2e.pathfinder-monster-core-2,fCsCDQAH23UOtECx,Zombie Dragon
 9,uncommon,pf2e.pathfinder-bestiary,Tpuqwt6Af29EMtqX,Alchemical Golem
 9,uncommon,pf2e.pathfinder-bestiary-2,zzu3q9m4kJzgnNfl,Black Dracolisk
-9,uncommon,pf2e.pathfinder-bestiary-2,4x9trDSABU5dqq9w,Blue Dracolisk
-9,uncommon,pf2e.pathfinder-monster-core-2,wHtddmyDuL1l2E6I,Clockwork Mage
-9,uncommon,pf2e.pathfinder-bestiary,c0zqasudrwZU3fdw,Efreeti
-9,uncommon,pf2e.pathfinder-bestiary-2,GvjCh1Q6NEXnBHcD,Green Dracolisk
-9,uncommon,pf2e.pathfinder-npc-core,cNXg1uiwM9Dafdko,Iruxi Masked Mummer
-9,uncommon,pf2e.pathfinder-bestiary,cuET2PHGcE7eL7DJ,Marid
 9,uncommon,pf2e.pathfinder-monster-core,9rXYGu7D3umIW1sv,Megalodon
 9,uncommon,pf2e.pathfinder-bestiary-3,CYzFHz8ZbU270z9N,Mokele-Mbembe
-9,uncommon,pf2e.pathfinder-monster-core,eqHTr6Wj1JadHSa1,Noxious Needler
 9,uncommon,pf2e.pathfinder-bestiary-2,kIzBE6VaHQbJ3kdx,Red Dracolisk
-9,uncommon,pf2e.pathfinder-bestiary-3,QWx9cIVUeP7dMOez,Roiling Incant (Evocation)
-9,uncommon,pf2e.pathfinder-bestiary-2,h4SZ3U9at7aT0ASv,Spirit Naga
 9,uncommon,pf2e.pathfinder-monster-core-2,m5RPM69TunmznsUq,Strix Aerialist
-9,uncommon,pf2e.pathfinder-monster-core-2,zGdsQWq6uHjE7TSx,Tikbalang
-9,uncommon,pf2e.pathfinder-bestiary-2,DM5js1XSiuiPAf3t,White Dracolisk
-9,uncommon,pf2e.pathfinder-bestiary-2,6xioRweZ0T4o4X9e,Witchfire
-9,rare,pf2e.pathfinder-bestiary-3,JHrINFX7a7fYhP4w,Gliminal
-9,rare,pf2e.pathfinder-npc-core,JfAyvn0mKWptD9xr,Mirror Seer
-9,rare,pf2e.pathfinder-monster-core,Ro49rEZwBLkkoEKE,Mummy Pharaoh
 9,rare,pf2e.pathfinder-monster-core,TZt3H39oxVdZRKs9,Vampire Mastermind
 9,rare,pf2e.pathfinder-bestiary-3,oE52gEbyrF4Dl3Go,Yithian
 10,common,pf2e.pathfinder-monster-core-2,Zaixy2G1NHnaYhEo,Adlet
@@ -418,49 +368,3 @@ level,rarity,pack,docId,name
 16,rare,pf2e.pathfinder-bestiary-3,epTO8fPDjyy2WhzD,Mithral Golem
 16,rare,pf2e.pathfinder-monster-core,NxLQHUMs57TktiZa,Vilderavn
 16,rare,pf2e.pathfinder-npc-core,Vp2PPBttJl1h8iZe,World Ender
-17,common,pf2e.pathfinder-monster-core-2,rxeSI37OvsSoXvYf,Deimavigga
-17,common,pf2e.pathfinder-npc-core,SlabO2qbzHYS3kA6,Eldritch Emeritus
-17,common,pf2e.pathfinder-monster-core-2,TOysExbCm3LNzrDl,Eseneth
-17,common,pf2e.pathfinder-monster-core,VGPtiSeeT7CYgWrv,Island Oni
-17,common,pf2e.pathfinder-monster-core-2,jDJ5XzsSAMDasITG,Kadamel
-17,common,pf2e.pathfinder-monster-core,z1TEwL0plpK4l2uf,Keketar
-17,common,pf2e.pathfinder-bestiary,ImueS9YFhV6sxqBP,Marilith
-17,common,pf2e.pathfinder-monster-core-2,kqbvkWsmrnlziWNp,Phasmadaemon
-17,common,pf2e.pathfinder-monster-core-2,PLHzkMMyajrodRUU,Vaspercham
-17,common,pf2e.pathfinder-monster-core-2,FlrIq6SquIYb9REJ,Ximtal
-17,uncommon,pf2e.pathfinder-monster-core,XKOQ3ll9TGNso0uB,Banshee
-17,uncommon,pf2e.pathfinder-monster-core,7ikLoTK1gQJ08YDR,Conspirator Dragon (Ancient)
-17,uncommon,pf2e.pathfinder-monster-core,C5o3vQKGHhGEsAuV,"Conspirator Dragon (Ancient, Spellcaster)"
-17,uncommon,pf2e.pathfinder-bestiary,B9KJUdZre51J3E3e,Copper Dragon (Ancient)
-17,uncommon,pf2e.pathfinder-bestiary,qGvK4f8Clc6dOwLU,"Copper Dragon (Ancient, Spellcaster)"
-17,uncommon,pf2e.pathfinder-monster-core-2,L0GbthgIX8icmRhF,Coral Dragon (Ancient)
-17,uncommon,pf2e.pathfinder-monster-core-2,Ec8MUOsVm84nDhaU,"Coral Dragon (Ancient, Spellcaster)"
-17,uncommon,pf2e.pathfinder-npc-core,iOAX2QVvgaBdGc0B,Grandmaster
-17,uncommon,pf2e.pathfinder-bestiary,0FGz2eXm0SB04sJW,Green Dragon (Ancient)
-17,uncommon,pf2e.pathfinder-bestiary,p2ECLKUzZ0GhFg22,"Green Dragon (Ancient, Spellcaster)"
-17,uncommon,pf2e.pathfinder-monster-core,DZoKH4IXR4zeNxoa,Horned Dragon (Ancient)
-17,uncommon,pf2e.pathfinder-monster-core,6uiRT0sNk6TMQ309,"Horned Dragon (Ancient, Spellcaster)"
-17,uncommon,pf2e.pathfinder-monster-core,Np5Z7RMQzvSNnH0h,Ice Linnorm
-17,uncommon,pf2e.pathfinder-bestiary-2,GBBVBEAsznP8A5gv,Leydroth
-17,uncommon,pf2e.pathfinder-monster-core-2,nBTJHNrjvCOu43SJ,Ninkonda
-17,uncommon,pf2e.pathfinder-monster-core-2,qF9hjssrMjHuVFYK,Radiant Warden
-17,uncommon,pf2e.pathfinder-monster-core-2,ahSJaAKNhPGcVOgr,Resurrection Dragon (Ancient)
-17,uncommon,pf2e.pathfinder-monster-core-2,CZc6eVvRcsVJgjBU,"Resurrection Dragon (Ancient, Spellcaster)"
-17,uncommon,pf2e.pathfinder-bestiary,RDFvGocLW0OuHmlC,Wendigo
-17,rare,pf2e.pathfinder-monster-core,fgZx6VJkVZ26GFyI,Bandersnatch
-17,rare,pf2e.pathfinder-bestiary-2,luPebMfNmwtOZcWR,Thrasfyr
-18,uncommon,pf2e.pathfinder-npc-core,ZlA2Cp5e62nE16gD,Enchanting Ritualist
-18,uncommon,pf2e.pathfinder-monster-core,bgKwwvO0uDGD7XsG,Kraken
-18,uncommon,pf2e.pathfinder-monster-core,uc61UL57ywxLy0q0,Mirage Dragon (Ancient)
-18,uncommon,pf2e.pathfinder-monster-core,heMHnYShW7TCJCJb,"Mirage Dragon (Ancient, Spellcaster)"
-18,uncommon,pf2e.pathfinder-monster-core-2,NrfzOgCuPadLmKwj,Phase Dragon (Ancient)
-18,uncommon,pf2e.pathfinder-monster-core-2,OEa6bKFqSc11OUl4,"Phase Dragon (Ancient, Spellcaster)"
-18,uncommon,pf2e.pathfinder-monster-core,zkl6planCbeCuAdS,Skulltaker
-18,uncommon,pf2e.pathfinder-monster-core,mEjCLVRt7iDiNZL6,Thulgant
-18,rare,pf2e.pathfinder-monster-core-2,w6MKljfQYYaCYsFR,Adamant Sentinel
-18,rare,pf2e.pathfinder-bestiary,keCgklXcy4HZgQIL,Adamantine Golem
-18,rare,pf2e.pathfinder-monster-core,KdW5UeZSqeTZZlo5,Aolaz
-18,rare,pf2e.pathfinder-bestiary-3,V9SxfxUgljJR9xx5,Hatred Siktempora
-18,rare,pf2e.pathfinder-monster-core,jh3XmHoFtcGYkdJm,Magma Worm
-18,rare,pf2e.pathfinder-monster-core-2,p4GHJGguGRp5ucHV,Shoggoth
-18,rare,pf2e.pathfinder-bestiary,ASc5sT2hU84tp1fx,Simurgh

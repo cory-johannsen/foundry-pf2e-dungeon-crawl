@@ -1,6 +1,6 @@
 /**
  * Laya adapter for agent-controlled combat decisions — a second provider
- * alongside Claude (`providers/claude.mjs`), same `decide()` interface. Laya
+ * alongside litellm (`providers/litellm.mjs`), same `decide()` interface. Laya
  * (ConvAI Innovations' open-weight, non-autoregressive decision model)
  * answers typed `choice`/`score`/`bool` questions about a state blob in a
  * single forward pass, returning calibrated probabilities instead of

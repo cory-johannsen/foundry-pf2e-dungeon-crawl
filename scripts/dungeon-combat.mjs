@@ -2174,24 +2174,34 @@ export async function pushTokenAway(combat, attacker, target, distanceSquares) {
  * this, combat can never auto-resolve once a strike (heuristic or
  * agent-controlled) reduces someone to 0 HP.
  *
- * For an NPC, setting `defeated` directly is sufficient — confirmed live to
- * be identical to what the GM's own Combat Tracker skull-toggle does, no
- * actor condition required, simpler and safer than fabricating a 'dead'
- * status ourselves. For a party member, PF2e's own `actor.increaseCondition
- * ('dying')` is the correct call: it's the system's real API and correctly
- * cascades Unconscious/Blinded/Prone/Off-Guard automatically (confirmed
- * live) — hand-rolling that cascade ourselves would risk getting real PF2e
- * rules wrong against an actual player's character. Called on every hit that
- * leaves HP at or below 0, not just the first — a party member already
- * dying who's hit again should have their dying value increase further, per
- * PF2e's own rules, not be skipped as "already handled."
+ * For an NPC, `Combatant#toggleDefeated()` — the real Foundry core method
+ * the GM's own Combat Tracker skull-toggle calls — is the correct call, not
+ * a hand-rolled `update({defeated: true})` (#152: that alone sets the
+ * bookkeeping flag `isDefeated`/`combatSideStatus` need, but leaves the
+ * token visually unmarked and never applies PF2e's actual Dead condition,
+ * so players looking at the map can't tell an NPC is down). Confirmed
+ * against Foundry/PF2e's own source rather than a live world this time:
+ * `Combatant#toggleDefeated()` itself calls
+ * `token.actor.toggleStatusEffect('dead', {overlay: true})`, and PF2e's
+ * `ActorPF2e#toggleStatusEffect` override routes any real condition slug
+ * (which `'dead'` is, per `CONFIG.specialStatusEffects.DEFEATED === 'dead'`)
+ * straight to `toggleCondition` — i.e. it applies the actual Dead condition
+ * item, the same as hand-toggling the skull icon. For a party member, PF2e's
+ * own `actor.increaseCondition('dying')` is the correct call: it's the
+ * system's real API and correctly cascades Unconscious/Blinded/Prone/
+ * Off-Guard automatically (confirmed live) — hand-rolling that cascade
+ * ourselves would risk getting real PF2e rules wrong against an actual
+ * player's character. Called on every hit that leaves HP at or below 0, not
+ * just the first — a party member already dying who's hit again should have
+ * their dying value increase further, per PF2e's own rules, not be skipped
+ * as "already handled."
  */
 async function applyDefeatIfReducedToZero(target) {
   if ((target.actor?.system?.attributes?.hp?.value ?? 1) > 0) return;
   if (target.actor?.type === "character") {
     await target.actor.increaseCondition("dying");
   } else if (!target.isDefeated) {
-    await target.update({ defeated: true });
+    await target.toggleDefeated();
     // #95: a party member going to 'dying' isn't death yet, per PF2e's own
     // rules (they can still be stabilized) — only an NPC actually defeated
     // here gets the death sound.

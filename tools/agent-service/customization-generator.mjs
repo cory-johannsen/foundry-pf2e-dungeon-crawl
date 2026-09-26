@@ -1,14 +1,8 @@
-import { request as httpRequest } from "node:http";
-import { request as httpsRequest } from "node:https";
+import { nodeFetch } from "./node-fetch.mjs";
 import { readEnvOrDotenv } from "./env.mjs";
+import { selectCustomizationTier } from "./tier-selection.mjs";
 
-const CLAUDE_MODEL = "claude-sonnet-5";
-// A locally-hosted, OpenAI-compatible chat-completions server is
-// meaningfully slower than Claude on modest hardware (confirmed: minutes,
-// not seconds, per-request on a modest CPU) so it gets a much longer
-// default budget than the Claude path's 30s. Still finite so a genuinely
-// stuck local server surfaces as a 502 instead of hanging forever.
-const LOCAL_TIMEOUT_DEFAULT_MS = 300000;
+const DEFAULT_TIMEOUT_MS = 300000;
 
 const SCHEMAS = {
   trap: {
@@ -92,191 +86,43 @@ function toolDescription(kind) {
   );
 }
 
-/** A minimal, dependency-free fetch-compatible client — the local
- * provider's default transport, used only when the caller doesn't inject
- * its own `fetchImpl` (e.g. in tests).
- *
- * This deliberately avoids Node's built-in global `fetch`: it's backed by
- * undici, which imposes its own internal `headersTimeout` (default
- * 300000ms) that is NOT governed by the `AbortSignal` passed to fetch() —
- * confirmed live against this module's own local-provider path: a
- * slow-but-legitimate Ollama response (minutes, not seconds, is normal
- * for local inference on modest hardware — the whole reason
- * LOCAL_LLM_TIMEOUT_MS defaults to five minutes) tripped undici's hidden
- * watchdog before our own configured timeout even fired, surfacing as a
- * confusing raw `TypeError: fetch failed` / `UND_ERR_HEADERS_TIMEOUT`
- * instead of a clean, documented abort. Raw node:http/node:https requests
- * have no such hidden ceiling, so `signal` (AbortSignal.timeout(...)) is
- * the only thing that can end this request early. */
-function nodeFetch(url, { method = "GET", headers = {}, body, signal } = {}) {
-  return new Promise((resolve, reject) => {
-    const target = new URL(url);
-    const transport = target.protocol === "https:" ? httpsRequest : httpRequest;
-    const req = transport(target, { method, headers }, (res) => {
-      const chunks = [];
-      res.on("data", (chunk) => chunks.push(chunk));
-      res.on("end", () => {
-        const text = Buffer.concat(chunks).toString("utf8");
-        resolve({
-          ok: res.statusCode >= 200 && res.statusCode < 300,
-          status: res.statusCode,
-          text: async () => text,
-          json: async () => JSON.parse(text),
-        });
-      });
-    });
-    req.on("error", (err) => {
-      if (signal?.aborted) {
-        reject(
-          new Error(
-            "customization-generator: local provider request timed out",
-          ),
-        );
-      } else {
-        reject(err);
-      }
-    });
-    if (signal) {
-      if (signal.aborted) {
-        req.destroy();
-        return;
-      }
-      signal.addEventListener("abort", () => req.destroy(), { once: true });
-    }
-    if (body) req.write(body);
-    req.end();
-  });
-}
-
 function userMessageContent(kind, context) {
   return `Write fitting flavor text for this ${kind.replace("_", " ")}, matching its mechanical context. Only fill fields that make sense for this entry.\n\n${JSON.stringify(context, null, 2)}`;
 }
 
-async function generateWithClaude(
-  kind,
-  context,
-  schema,
-  { apiKey, fetchImpl },
-) {
-  const res = await fetchImpl("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: CLAUDE_MODEL,
-      max_tokens: 4096,
-      tools: [
-        {
-          name: "customize",
-          description: toolDescription(kind),
-          input_schema: schema,
-        },
-      ],
-      tool_choice: { type: "tool", name: "customize" },
-      messages: [{ role: "user", content: userMessageContent(kind, context) }],
-    }),
-    // Fails a stuck upstream call promptly (surfacing as a 502) rather than
-    // hanging, so it can't block the other kinds queued behind it.
-    signal: AbortSignal.timeout(30000),
-  });
-
-  if (!res.ok) {
-    const errBody = await res.text();
-    throw new Error(
-      `customization-generator: API request failed (${res.status}): ${errBody}`,
-    );
-  }
-
-  const payload = await res.json();
-  const toolUse = payload.content?.find(
-    (c) => c.type === "tool_use" && c.name === "customize",
-  );
-  if (!toolUse)
-    throw new Error(
-      "customization-generator: no customize tool call in response",
-    );
-  return toolUse.input;
-}
-
-/** Talks to a self-hosted, OpenAI-compatible chat-completions endpoint
- * (e.g. Ollama) instead of Claude. `baseUrl` is expected to already
- * include any API-version path segment the server needs (e.g.
- * `http://host.docker.internal:11434/v1` for Ollama) — this function
- * always POSTs to `${baseUrl}/chat/completions`, matching Ollama's
- * documented OpenAI-compatibility route.
- *
- * Uses the OpenAI tool-call request/response shape, which differs from
- * Claude's: tools are `{type: "function", function: {name, description,
- * parameters}}` (not Claude's flat `{name, description, input_schema}`),
- * and the result arrives as a JSON *string* at
- * `choices[0].message.tool_calls[0].function.arguments` (Claude's
- * `content[].input` is already a parsed object). */
-async function generateWithLocal(
-  kind,
-  context,
-  schema,
-  { baseUrl, model, localApiKey, timeoutMs, fetchImpl },
-) {
-  if (!baseUrl)
-    throw new Error(
-      "customization-generator: LOCAL_LLM_BASE_URL is required when AGENT_SERVICE_CUSTOMIZATION_PROVIDER=local",
-    );
-  if (!model)
-    throw new Error(
-      "customization-generator: LOCAL_LLM_MODEL is required when AGENT_SERVICE_CUSTOMIZATION_PROVIDER=local",
-    );
-
+async function generateWithLiteLLM(kind, context, schema, { baseUrl, apiKey, timeoutMs, fetchImpl }) {
   const headers = { "Content-Type": "application/json" };
-  if (localApiKey) headers.Authorization = `Bearer ${localApiKey}`;
+  if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
 
   const res = await fetchImpl(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers,
     body: JSON.stringify({
-      model,
+      model: selectCustomizationTier(kind),
       messages: [{ role: "user", content: userMessageContent(kind, context) }],
       tools: [
         {
           type: "function",
-          function: {
-            name: "customize",
-            description: toolDescription(kind),
-            parameters: schema,
-          },
+          function: { name: "customize", description: toolDescription(kind), parameters: schema },
         },
       ],
       tool_choice: { type: "function", function: { name: "customize" } },
     }),
-    // Local inference is genuinely much slower than Claude's hosted API on
-    // modest hardware (confirmed: minutes, not seconds, per request) — this
-    // is an accepted tradeoff, not a bug to route around. Flavor
-    // customization never blocks synchronously on this call either way.
     signal: AbortSignal.timeout(timeoutMs),
   });
 
   if (!res.ok) {
     const errBody = await res.text();
-    throw new Error(
-      `customization-generator: local provider request failed (${res.status}): ${errBody}`,
-    );
+    throw new Error(`customization-generator: request failed (${res.status}): ${errBody}`);
   }
 
   const payload = await res.json();
-  const rawArguments =
-    payload.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-  if (!rawArguments)
-    throw new Error(
-      "customization-generator: no customize tool call in response",
-    );
+  const rawArguments = payload.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+  if (!rawArguments) throw new Error("customization-generator: no customize tool call in response");
   try {
     return JSON.parse(rawArguments);
   } catch (err) {
-    throw new Error(
-      `customization-generator: local provider returned invalid tool call arguments JSON: ${err.message}`,
-    );
+    throw new Error(`customization-generator: tool call arguments were not valid JSON: ${err.message}`);
   }
 }
 
@@ -286,51 +132,23 @@ async function generateWithLocal(
  * the five schemas is offered; the model can only fill fields real for
  * that kind.
  *
- * Provider selection is internal to this function, read the same way
- * resolveProvider() in providers/index.mjs reads PF2EDC_AGENT_PROVIDER:
- * AGENT_SERVICE_CUSTOMIZATION_PROVIDER, defaulting to "claude" so existing
- * Claude-key holders see no behavior change. "local" talks to a
- * self-hosted, OpenAI-compatible chat-completions endpoint instead —
- * this module still never goes through resolveProvider()/providers/
- * index.mjs itself, because Laya cannot generate free text and must
- * remain unreachable from this route under any configuration. */
+ * Always talks to the litellm sidecar over its OpenAI-compatible
+ * chat-completions route, with per-kind tier selection (see
+ * tier-selection.mjs) picking which model litellm routes to — this module
+ * still never goes through resolveProvider()/providers/index.mjs itself,
+ * because Laya cannot generate free text and must remain unreachable from
+ * this route under any configuration. */
 export async function generateCustomization(
   kind,
   context,
   {
-    apiKey = readEnvOrDotenv("ANTHROPIC_API_KEY"),
-    fetchImpl,
-    provider = readEnvOrDotenv("AGENT_SERVICE_CUSTOMIZATION_PROVIDER") ??
-      "claude",
-    baseUrl = readEnvOrDotenv("LOCAL_LLM_BASE_URL"),
-    model = readEnvOrDotenv("LOCAL_LLM_MODEL"),
-    localApiKey = readEnvOrDotenv("LOCAL_LLM_API_KEY"),
-    timeoutMs = Number(readEnvOrDotenv("LOCAL_LLM_TIMEOUT_MS")) ||
-      LOCAL_TIMEOUT_DEFAULT_MS,
+    baseUrl = readEnvOrDotenv("LITELLM_BASE_URL") ?? "http://litellm:4000/v1",
+    apiKey = readEnvOrDotenv("LITELLM_API_KEY"),
+    timeoutMs = Number(readEnvOrDotenv("LITELLM_TIMEOUT_MS")) || DEFAULT_TIMEOUT_MS,
+    fetchImpl = nodeFetch,
   } = {},
 ) {
   const schema = SCHEMAS[kind];
-  if (!schema)
-    throw new Error(`customization-generator: unknown kind "${kind}"`);
-
-  if (provider === "claude") {
-    return generateWithClaude(kind, context, schema, {
-      apiKey,
-      fetchImpl: fetchImpl ?? fetch,
-    });
-  }
-  if (provider === "local") {
-    return generateWithLocal(kind, context, schema, {
-      baseUrl,
-      model,
-      localApiKey,
-      timeoutMs,
-      // See nodeFetch()'s doc comment: global fetch's hidden headersTimeout
-      // makes it unsafe as this path's default transport.
-      fetchImpl: fetchImpl ?? nodeFetch,
-    });
-  }
-  throw new Error(
-    `customization-generator: unknown AGENT_SERVICE_CUSTOMIZATION_PROVIDER "${provider}" — options: claude, local`,
-  );
+  if (!schema) throw new Error(`customization-generator: unknown kind "${kind}"`);
+  return generateWithLiteLLM(kind, context, schema, { baseUrl, apiKey, timeoutMs, fetchImpl });
 }
