@@ -244,18 +244,114 @@ export function slotRowCol(slot) {
  * on toRoomId's north face (`toSlot`, from `northDoorSlots` — Task 5's
  * redesign means "incoming" is always north, but potentially one of
  * several slots when the target has more than one real parent or a
- * hidden extra). Generalizes the old linear-slot connection geometry (slot
- * to slot+1, always straight, deleted by #93 Task 15) to any two graph-positioned rects: same-column
- * rooms still get a single straight corridor; different-column rooms get
- * an L-shaped 2-segment corridor (first segment leaves fromRect on
- * exitFace, second segment approaches `toSlot`, joined by a single
- * corner).
+ * hidden extra). `fromPos`/`toPos` are the two rooms' own {rank, col}
+ * (#174 Task 4) — used to pathfind a route (`findCorridorPath`) around
+ * any `occupiedCells` blocking a direct or single-corner connection.
+ *
+ * When the resulting path is length <= 2 (already adjacent, or no path
+ * found so this falls back to a direct line), this is EXACTLY the
+ * pre-#174 geometry below, unchanged: same-column rooms still get a
+ * single straight corridor; different-column rooms get an L-shaped
+ * 2-segment corridor (first segment leaves fromRect on exitFace, second
+ * segment approaches `toSlot`, joined by a single corner) — generalizing
+ * the old linear-slot connection geometry (slot to slot+1, always
+ * straight, deleted by #93 Task 15) to any two graph-positioned rects.
+ *
+ * Otherwise (a longer path routing around an obstacle), a `transitCells`
+ * entry is built for every intermediate cell via `transitCellCrossing`
+ * (#174 Task 3), chained together and connected to fromRect/toRect by
+ * the same corner-connector shape the branch below already uses between
+ * its own exitPoint and entryPoint (`cornerConnector`, below).
  */
-export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, exitFace, toSlot) {
+export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells) {
+  const path = findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId });
   const slotWidth = toSlot.x2 - toSlot.x1;
   const outgoingOffset = doorOffsetAt(seed, `${fromRoomId}-${exitFace}`, 'outgoing', fromRect.gw);
   const incomingOffset = doorOffsetAt(seed, `${toRoomId}-north-${toSlot.x1}`, 'incoming', slotWidth);
 
+  if (path && path.length > 2) {
+    // Multi-cell path (#174): chain transitCellCrossing across every
+    // intermediate cell, then connect fromRect's own exit point to the
+    // first transit cell's entry point, and the last transit cell's exit
+    // point to toRect's own entry point, via the same corner-connector
+    // shape used below between exitPoint and entryPoint directly.
+    const edgeId = `${fromRoomId}->${toRoomId}`;
+    const transitCells = [];
+    for (let i = 1; i < path.length - 1; i += 1) {
+      const cell = path[i];
+      const entrySide = directionBetween(cell, path[i - 1]);
+      const exitSide = directionBetween(cell, path[i + 1]);
+      const crossing = transitCellCrossing(seed, cell.rank, cell.col, entrySide, exitSide, edgeId);
+      transitCells.push({ rank: cell.rank, col: cell.col, entrySide, exitSide, ...crossing });
+    }
+
+    const exitPoint = exitFace === 'east'
+      ? { x: fromRect.gx + fromRect.gw, y: fromRect.gy + fromRect.gh / 2 }
+      : exitFace === 'west'
+      ? { x: fromRect.gx, y: fromRect.gy + fromRect.gh / 2 }
+      : { x: fromRect.gx + fromRect.gw / 2, y: fromRect.gy + fromRect.gh };
+    const doorWall = exitFace === 'south'
+      ? { x1: exitPoint.x - DOOR_WIDTH / 2, y1: exitPoint.y, x2: exitPoint.x + DOOR_WIDTH / 2, y2: exitPoint.y }
+      : { x1: exitPoint.x, y1: exitPoint.y - DOOR_WIDTH / 2, x2: exitPoint.x, y2: exitPoint.y + DOOR_WIDTH / 2 };
+    const entryPoint = { x: toSlot.x1 + slotWidth / 2, y: toSlot.y1 };
+    const revealDoorWall = { x1: entryPoint.x - DOOR_WIDTH / 2, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH / 2, y2: entryPoint.y };
+
+    const firstCellPoint = transitCells[0].entryPoint;
+    const lastCellPoint = transitCells[transitCells.length - 1].exitPoint;
+    // #174 Task 4 deviation from the plan's own reference code: the plan
+    // connected exitPoint->firstCellPoint (and lastCellPoint->entryPoint)
+    // with a single bounding-box segment covering both the x AND y
+    // difference. Traced by hand for a south-exit/east-entry combination
+    // (fromRect at (300,0)-12x12, first transit cell to the WEST at
+    // rank 0 col -1): that produces a segment spanning x:[300,306],
+    // y:[0,12] — entirely inside fromRect's OWN footprint (which spans
+    // x:[300,312], y:[0,12]) whenever the transit cell's entry offset
+    // lands anywhere but the very bottom of its shared edge. That's a
+    // room/corridor overlap, not a corridor.
+    //
+    // Using the same corner-connector shape the path.length<=2 branch
+    // above already uses (one CORRIDOR_LEN-wide leg at the departure
+    // axis, one at the arrival axis) fixes the general case, but the leg
+    // anchored at the TRANSIT cell's own entry/exit point needs one more
+    // fix: transitCellCrossing's round-2 fix (Task 3) established that a
+    // point on a cell's 'east'/'south' side sits at that cell's FAR edge
+    // (SIDE_POINT uses cell.gx+gw / cell.gy+gh), so a CORRIDOR_LEN-wide
+    // leg extending forward from it overflows past that cell — here,
+    // into whatever's on the other side, which (unlike two transit cells
+    // side by side) can be fromRect/toRect's own flush west/north edge
+    // (rooms have no west/north margin — cellMarginWalls' own docblock).
+    // `cornerConnector`'s optional fromSide/toSide extends inward instead
+    // on the leg that needs it, exactly like Task 3's own fix.
+    //
+    // Known residual gap (task-4-report.md has the full trace): this only
+    // fully resolves the connector1 (fromRect -> firstCellPoint) case,
+    // where the DEPARTING leg can lean on fromRect's own exit-face margin
+    // (south/east) as a safe lane before the corrected leg turns toward
+    // the transit cell. connector2 (lastCellPoint -> entryPoint) has no
+    // such lane available — entryPoint is always on toRect's NORTH face,
+    // which (like west) has NO margin at all — so when the path's LAST
+    // hop approaches the target from anywhere but directly north, both
+    // legs can still cut through toRect's own footprint (transitCellCrossing's
+    // own randomized crossing offset has no awareness of a neighboring
+    // room's footprint on a flush side). Filed for a follow-up rather than
+    // solved here — a real fix needs either findCorridorPath (Task 1)
+    // preferring an endpoint's margined sides, or a margin-aware crossing
+    // point next to a room's own cell, both bigger than this task's scope.
+    const corridorSegments = [
+      ...cornerConnector(exitPoint, firstCellPoint, { toSide: transitCells[0].entrySide }),
+      ...cornerConnector(lastCellPoint, entryPoint, { fromSide: transitCells[transitCells.length - 1].exitSide }),
+    ];
+    const plainWalls = [
+      { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x - DOOR_WIDTH / 2, y2: entryPoint.y },
+      { x1: entryPoint.x + DOOR_WIDTH / 2, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
+    ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
+
+    return { doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells };
+  }
+
+  // Adjacent (path.length <= 2), or no path found so we fall back to a
+  // direct line (path == null) — UNCHANGED from before #174's Task 4,
+  // verbatim, just with transitCells: [] added.
   const sameColumn = fromRect.gx === toRect.gx;
   if (exitFace === 'south' && sameColumn) {
     const faceY = fromRect.gy + fromRect.gh;
@@ -298,7 +394,8 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
         { x1: toSlot.x1, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
         { x1: gapX1, y1: corridorEndY, x2: toSlot.x2, y2: corridorEndY }
       ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2),
-      corridorSegments: [{ gx: spanX0, gy: faceY, gw: spanX1 - spanX0, gh: corridorEndY - faceY }]
+      corridorSegments: [{ gx: spanX0, gy: faceY, gw: spanX1 - spanX0, gh: corridorEndY - faceY }],
+      transitCells: [],
     };
   }
 
@@ -337,8 +434,58 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     corridorSegments: [
       { gx: Math.min(exitPoint.x, corner.x), gy: Math.min(exitPoint.y, corner.y), gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - exitPoint.x)), gh: CORRIDOR_LEN },
       { gx: Math.min(corner.x, entryPoint.x), gy: Math.min(corner.y, entryPoint.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(entryPoint.y - corner.y)) }
-    ]
+    ],
+    transitCells: [],
   };
+}
+
+/** Which compass direction `from` a cell faces to reach an
+ * orthogonally-adjacent `to` cell — 'north' if to is one rank up, etc.
+ * (#174 Task 4 — used to label each transitCells entry's own
+ * entrySide/exitSide when chaining transitCellCrossing across a
+ * multi-cell findCorridorPath route.) */
+function directionBetween(from, to) {
+  if (to.rank < from.rank) return 'north';
+  if (to.rank > from.rank) return 'south';
+  if (to.col < from.col) return 'west';
+  return 'east';
+}
+
+/**
+ * Two CORRIDOR_LEN-wide segments joining `from` to `to` via a single
+ * right-angle corner at (to.x, from.y) — `from`'s own leg runs
+ * horizontal (fixed at from.y, variable x), `to`'s own leg runs vertical
+ * (fixed at to.x, variable y), terminating exactly at `to`. Same shape
+ * the path.length <= 2 branch above already uses between its own
+ * exitPoint and entryPoint (see the `corner` variable there); generalized
+ * here (#174 Task 4) for two arbitrary points — a fromRect/toRect
+ * endpoint plus a transit cell's own entryPoint/exitPoint — since a
+ * transit cell can be approached from any of its four sides, not just
+ * the fixed exit-face/north-face pairing the adjacent branch assumes.
+ *
+ * `fromSide`/`toSide` (optional) are the compass side of a CELL boundary
+ * that `from`/`to` sits on, when that point is a transit cell's own
+ * entryPoint/exitPoint (never passed for a real room's exitPoint/
+ * entryPoint, which always has margin/slack built in and never needs
+ * this correction — see the call sites). Only 'south' (for `fromSide`,
+ * affecting the from-anchored leg's fixed Y) or 'east' (for `toSide`,
+ * affecting the to-anchored leg's fixed X) matter: those are the two
+ * sides transitCellCrossing's SIDE_POINT places at a cell's FAR edge
+ * (cell.gy+gh / cell.gx+gw), so extending that leg's CORRIDOR_LEN
+ * thickness forward from there — the default, correct for every other
+ * side/for a real room's own margin-having anchors — overflows past that
+ * cell's own boundary. 'north'/'west' sit at a NEAR edge (cell.gy /
+ * cell.gx) where extending forward already stays inward, same as Task
+ * 3's own round-2 fix for transitCellCrossing's internal corner case.
+ */
+function cornerConnector(from, to, { fromSide, toSide } = {}) {
+  const corner = { x: to.x, y: from.y };
+  const leg1Gy = fromSide === 'south' ? from.y - CORRIDOR_LEN : Math.min(from.y, corner.y);
+  const leg2Gx = toSide === 'east' ? to.x - CORRIDOR_LEN : Math.min(corner.x, to.x);
+  return [
+    { gx: Math.min(from.x, corner.x), gy: leg1Gy, gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - from.x)), gh: CORRIDOR_LEN },
+    { gx: leg2Gx, gy: Math.min(corner.y, to.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(to.y - corner.y)) },
+  ];
 }
 
 /**

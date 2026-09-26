@@ -323,11 +323,23 @@ describe('computeColumns', () => {
 });
 
 describe('buildEdgeCorridor', () => {
+  // #174 Task 4: buildEdgeCorridor now pathfinds first (fromPos/toPos +
+  // occupiedCells), only falling into this pre-existing geometry when the
+  // resulting path is length <= 2. Every test below passes an adjacent
+  // fromPos/toPos pair with an empty occupiedCells so the path is always
+  // exactly 2 cells long regardless of the REAL rects' own rank/col (some
+  // of which are intentionally non-adjacent, e.g. the L-shaped case below)
+  // — that reproduces the exact pre-#174 behavior these tests pin, since
+  // the path.length <= 2 branch's own geometry depends only on
+  // fromRect/toRect/exitFace/toSlot, never on fromPos/toPos themselves.
+  const ADJACENT_FROM = { rank: 0, col: 0 };
+  const ADJACENT_TO = { rank: 1, col: 0 };
+
   it('same-column rooms (straight south connection) produce one corridor segment', () => {
     const from = roomRect('alpha', 'a', 0, 0);
     const to = roomRect('alpha', 'b', 1, 0);
     const toSlot = northDoorSlots(to, 1)[0];
-    const { corridorSegments } = buildEdgeCorridor('alpha', 'a', 'b', from, to, 'south', toSlot);
+    const { corridorSegments } = buildEdgeCorridor('alpha', 'a', 'b', from, to, ADJACENT_FROM, ADJACENT_TO, 'south', toSlot, {});
     expect(corridorSegments).toHaveLength(1);
   });
 
@@ -335,7 +347,7 @@ describe('buildEdgeCorridor', () => {
     const from = roomRect('alpha', 'a', 0, 0);
     const to = roomRect('alpha', 'b', 1, 2);
     const toSlot = northDoorSlots(to, 1)[0];
-    const { corridorSegments } = buildEdgeCorridor('alpha', 'a', 'b', from, to, 'south', toSlot);
+    const { corridorSegments } = buildEdgeCorridor('alpha', 'a', 'b', from, to, ADJACENT_FROM, ADJACENT_TO, 'south', toSlot, {});
     expect(corridorSegments).toHaveLength(2);
   });
 
@@ -343,7 +355,7 @@ describe('buildEdgeCorridor', () => {
     const from = roomRect('alpha', 'a', 0, 0);
     const to = roomRect('alpha', 'b', 1, 1);
     const toSlot = northDoorSlots(to, 1)[0];
-    const { doorWall, revealDoorWall } = buildEdgeCorridor('alpha', 'a', 'b', from, to, 'south', toSlot);
+    const { doorWall, revealDoorWall } = buildEdgeCorridor('alpha', 'a', 'b', from, to, ADJACENT_FROM, ADJACENT_TO, 'south', toSlot, {});
     expect(doorWall).toBeDefined();
     expect(revealDoorWall).toBeDefined();
   });
@@ -352,8 +364,8 @@ describe('buildEdgeCorridor', () => {
     const from = roomRect('alpha', 'a', 0, 0);
     const toSouth = roomRect('alpha', 'b', 1, 0);
     const toEast = roomRect('alpha', 'c', 0, 1);
-    const south = buildEdgeCorridor('alpha', 'a', 'b', from, toSouth, 'south', northDoorSlots(toSouth, 1)[0]);
-    const east = buildEdgeCorridor('alpha', 'a', 'c', from, toEast, 'east', northDoorSlots(toEast, 1)[0]);
+    const south = buildEdgeCorridor('alpha', 'a', 'b', from, toSouth, ADJACENT_FROM, ADJACENT_TO, 'south', northDoorSlots(toSouth, 1)[0], {});
+    const east = buildEdgeCorridor('alpha', 'a', 'c', from, toEast, ADJACENT_FROM, ADJACENT_TO, 'east', northDoorSlots(toEast, 1)[0], {});
     expect(south.doorWall).not.toEqual(east.doorWall);
   });
 
@@ -362,8 +374,8 @@ describe('buildEdgeCorridor', () => {
     const parentB = roomRect('alpha', 'b', 0, 1);
     const merge = roomRect('alpha', 'm', 1, 0);
     const slots = northDoorSlots(merge, 2);
-    const fromA = buildEdgeCorridor('alpha', 'a', 'm', parentA, merge, 'south', slots[0]);
-    const fromB = buildEdgeCorridor('alpha', 'b', 'm', parentB, merge, 'south', slots[1]);
+    const fromA = buildEdgeCorridor('alpha', 'a', 'm', parentA, merge, ADJACENT_FROM, ADJACENT_TO, 'south', slots[0], {});
+    const fromB = buildEdgeCorridor('alpha', 'b', 'm', parentB, merge, ADJACENT_FROM, ADJACENT_TO, 'south', slots[1], {});
     expect(fromA.revealDoorWall).not.toEqual(fromB.revealDoorWall);
     // The two doors must not overlap — slot 0's door stays left of slot 1's.
     expect(Math.max(fromA.revealDoorWall.x1, fromA.revealDoorWall.x2))
@@ -374,7 +386,7 @@ describe('buildEdgeCorridor', () => {
     const parentA = roomRect('alpha', 'a', 0, 0);
     const merge = roomRect('alpha', 'm', 1, 0); // same column as parentA -> sameColumn branch
     const slots = northDoorSlots(merge, 2);
-    const fromA = buildEdgeCorridor('alpha', 'a', 'm', parentA, merge, 'south', slots[0]);
+    const fromA = buildEdgeCorridor('alpha', 'a', 'm', parentA, merge, ADJACENT_FROM, ADJACENT_TO, 'south', slots[0], {});
     // Only the walls ON THE TARGET'S OWN north face (y === corridorEndY,
     // i.e. merge.gy) are bounded by the target's slot — a connection's
     // SOURCE-side walls (at faceY, closing off parentA's own south face)
@@ -397,7 +409,7 @@ describe('buildEdgeCorridor', () => {
     // the longest path can sit several ranks above the merge room).
     const to = roomRect('alpha', 'm', 3, 0);
     const toSlot = northDoorSlots(to, 1)[0];
-    const { revealDoorWall, corridorSegments } = buildEdgeCorridor('alpha', 'a', 'm', from, to, 'south', toSlot);
+    const { revealDoorWall, corridorSegments } = buildEdgeCorridor('alpha', 'a', 'm', from, to, ADJACENT_FROM, ADJACENT_TO, 'south', toSlot, {});
     expect(revealDoorWall.y1).toBe(to.gy);
     expect(corridorSegments[0].gy + corridorSegments[0].gh).toBe(to.gy);
   });
@@ -409,10 +421,107 @@ describe('buildEdgeCorridor', () => {
     const slots = northDoorSlots(merge, 4);
     for (let i = 0; i < slots.length; i += 1) {
       const from = i === 0 ? parentA : parentB; // exitFace/column irrelevant to this bug; same-column (i===0) is where it reproduces
-      const { revealDoorWall } = buildEdgeCorridor('alpha', from === parentA ? 'a' : 'b', 'm', from, merge, 'south', slots[i]);
+      const { revealDoorWall } = buildEdgeCorridor('alpha', from === parentA ? 'a' : 'b', 'm', from, merge, ADJACENT_FROM, ADJACENT_TO, 'south', slots[i], {});
       expect(Math.min(revealDoorWall.x1, revealDoorWall.x2)).toBeGreaterThanOrEqual(slots[i].x1);
       expect(Math.max(revealDoorWall.x1, revealDoorWall.x2)).toBeLessThanOrEqual(slots[i].x2);
     }
+  });
+});
+
+describe('buildEdgeCorridor (multi-cell path)', () => {
+  it('matches today\'s direct behavior when source and target are adjacent (no transit cells)', () => {
+    const fromRect = { gx: 300, gy: 0, gw: 12, gh: 12 };
+    const toRect = { gx: 300, gy: 13, gw: 12, gh: 12 };
+    const toSlot = { x1: 300, y1: 13, x2: 312, y2: 13 };
+    const result = buildEdgeCorridor(
+      'seed1', 'a', 'b', fromRect, toRect, { rank: 0, col: 0 }, { rank: 1, col: 0 },
+      'south', toSlot, {},
+    );
+    expect(result.transitCells).toEqual([]);
+    expect(result.doorWall).toBeDefined();
+    expect(result.revealDoorWall).toBeDefined();
+  });
+
+  it('produces one transitCells entry per intermediate cell when routing around an obstacle', () => {
+    const fromRect = { gx: 300, gy: 0, gw: 12, gh: 12 };
+    const toRect = { gx: 300, gy: 26, gw: 12, gh: 12 }; // rank 2
+    const toSlot = { x1: 300, y1: 26, x2: 312, y2: 26 };
+    const occupiedCells = { '1,0': 'blocker' };
+    const result = buildEdgeCorridor(
+      'seed1', 'a', 'b', fromRect, toRect, { rank: 0, col: 0 }, { rank: 2, col: 0 },
+      'south', toSlot, occupiedCells,
+    );
+    expect(result.transitCells.length).toBeGreaterThan(0);
+    expect(result.transitCells.every((c) => `${c.rank},${c.col}` !== '1,0')).toBe(true);
+  });
+
+  it('two different edges crossing the same intermediate cell get geometrically distinct, non-conflicting crossings (Review Focus)', () => {
+    // The actual wall-merging/idempotency check (skip vs. add-only-the-
+    // new-opening) is Foundry-glue code in dungeon-scene.mjs, verified
+    // live per Task 5's own manual checklist item (e) — this test pins
+    // the piece buildEdgeCorridor itself is responsible for: that two
+    // edges sharing a transit cell never get IDENTICAL geometry (which
+    // would make "already built, skip" and "needs its own new opening"
+    // indistinguishable), because each edge's own edgeId salts the
+    // crossing's offset independently (see transitCellCrossing, Task 3).
+    const fromRectA = { gx: 300, gy: 0, gw: 12, gh: 12 };
+    const toRectA = { gx: 300, gy: 26, gw: 12, gh: 12 };
+    const toSlotA = { x1: 300, y1: 26, x2: 312, y2: 26 };
+    const occupiedCells = { '1,0': 'blocker' };
+    const resultA = buildEdgeCorridor(
+      'seed1', 'a', 'b', fromRectA, toRectA, { rank: 0, col: 0 }, { rank: 2, col: 0 },
+      'south', toSlotA, occupiedCells,
+    );
+
+    const fromRectC = { gx: 300 + 13, gy: 0, gw: 12, gh: 12 };
+    const toRectC = { gx: 300 + 13, gy: 26, gw: 12, gh: 12 };
+    const toSlotC = { x1: 300 + 13, y1: 26, x2: 300 + 13 + 12, y2: 26 };
+    const resultC = buildEdgeCorridor(
+      'seed1', 'c', 'd', fromRectC, toRectC, { rank: 0, col: 1 }, { rank: 2, col: 1 },
+      'south', toSlotC, occupiedCells,
+    );
+
+    // Both detour through rank 1 (col 0 blocked, but A and C are in
+    // different columns so they don't actually share a cell here — this
+    // is the control case, confirming two INDEPENDENT edges each get
+    // their own transitCells at all).
+    expect(resultA.transitCells.length).toBeGreaterThan(0);
+    expect(resultC.transitCells.length).toBeGreaterThan(0);
+
+    // Now force both to cross the SAME cell (1,0) by routing C's own
+    // endpoints through col 0 too, with a DIFFERENT edgeId (fromRoomId/
+    // toRoomId pair) than A's.
+    const resultD = buildEdgeCorridor(
+      'seed1', 'e', 'f', fromRectA, toRectA, { rank: 0, col: 0 }, { rank: 2, col: 0 },
+      'south', toSlotA, occupiedCells,
+    );
+    expect(resultD.transitCells).toHaveLength(resultA.transitCells.length);
+    const sameCells = resultD.transitCells.every((c, i) =>
+      c.rank === resultA.transitCells[i].rank && c.col === resultA.transitCells[i].col,
+    );
+    expect(sameCells).toBe(true); // same cell(s) crossed...
+    const identicalGeometry = resultD.transitCells.every((c, i) =>
+      c.entryPoint.x === resultA.transitCells[i].entryPoint.x &&
+      c.entryPoint.y === resultA.transitCells[i].entryPoint.y,
+    );
+    expect(identicalGeometry).toBe(false); // ...but a distinct crossing point, since edgeId differs
+  });
+
+  it('falls back to a direct line when findCorridorPath finds no route', () => {
+    const fromRect = { gx: 300, gy: 0, gw: 12, gh: 12 };
+    const toRect = { gx: 300, gy: 26, gw: 12, gh: 12 };
+    const toSlot = { x1: 300, y1: 26, x2: 312, y2: 26 };
+    const occupiedCells = {
+      '1,0': 'x', '1,1': 'x', '1,-1': 'x', '1,2': 'x', '1,-2': 'x',
+      '0,1': 'x', '0,-1': 'x', '0,2': 'x', '0,-2': 'x',
+      '2,1': 'x', '2,-1': 'x', '2,2': 'x', '2,-2': 'x',
+    };
+    const result = buildEdgeCorridor(
+      'seed1', 'a', 'b', fromRect, toRect, { rank: 0, col: 0 }, { rank: 2, col: 0 },
+      'south', toSlot, occupiedCells,
+    );
+    expect(result.transitCells).toEqual([]);
+    expect(result.doorWall).toBeDefined();
   });
 });
 
