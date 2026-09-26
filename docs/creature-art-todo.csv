@@ -1,8 +1,6 @@
 level,rarity,pack,docId,name
 1,common,pf2e.pathfinder-monster-core-2,nLlS3MBFCO3DKwBX,Suli Dune Dancer
 9,common,pf2e.pathfinder-bestiary-2,ZBTqN3DNjdreXCu7,Mastodon
-9,common,pf2e.pathfinder-monster-core,tbqcZG0lOoUVhNfn,"Mirage Dragon (Young, Spellcaster)"
-9,common,pf2e.pathfinder-bestiary,WQy7HBUcgDLsfVJd,Night Hag
 9,common,pf2e.pathfinder-monster-core,dY1wqHKN6PV4oJ07,Nuckelavee
 9,common,pf2e.pathfinder-monster-core,S67oZ1mvVNz9FTUE,Roc
 9,common,pf2e.pathfinder-monster-core-2,SQVXMMEaEu9wun3Q,Shoki
@@ -10,20 +8,14 @@ level,rarity,pack,docId,name
 9,common,pf2e.pathfinder-bestiary,LUtSo30fQWj7mrDn,Storm Lord
 9,common,pf2e.pathfinder-bestiary,6UczvqBDlGNXcIlW,Tidal Master
 9,common,pf2e.pathfinder-npc-core,8LPVBXx8oIdXiNYQ,Traveling Priest of Desna
-9,common,pf2e.pathfinder-monster-core-2,SpvzECYhPp7rKLA1,Tyrannosaurus Skeleton
 9,common,pf2e.pathfinder-bestiary,4cPw8hZwW6uvyzvh,Vrock
 9,common,pf2e.pathfinder-bestiary-2,9sUx2sV4E7Sy3vJT,Zelekhut
 9,uncommon,pf2e.pathfinder-bestiary,Tpuqwt6Af29EMtqX,Alchemical Golem
 9,uncommon,pf2e.pathfinder-bestiary-2,zzu3q9m4kJzgnNfl,Black Dracolisk
-9,uncommon,pf2e.pathfinder-bestiary-2,4x9trDSABU5dqq9w,Blue Dracolisk
-9,uncommon,pf2e.pathfinder-monster-core-2,wHtddmyDuL1l2E6I,Clockwork Mage
-9,uncommon,pf2e.pathfinder-bestiary,c0zqasudrwZU3fdw,Efreeti
 9,uncommon,pf2e.pathfinder-monster-core,9rXYGu7D3umIW1sv,Megalodon
 9,uncommon,pf2e.pathfinder-bestiary-3,CYzFHz8ZbU270z9N,Mokele-Mbembe
-9,uncommon,pf2e.pathfinder-monster-core,eqHTr6Wj1JadHSa1,Noxious Needler
 9,uncommon,pf2e.pathfinder-bestiary-2,kIzBE6VaHQbJ3kdx,Red Dracolisk
 9,uncommon,pf2e.pathfinder-monster-core-2,m5RPM69TunmznsUq,Strix Aerialist
-9,uncommon,pf2e.pathfinder-bestiary-2,DM5js1XSiuiPAf3t,White Dracolisk
 9,rare,pf2e.pathfinder-monster-core,TZt3H39oxVdZRKs9,Vampire Mastermind
 9,rare,pf2e.pathfinder-bestiary-3,oE52gEbyrF4Dl3Go,Yithian
 10,common,pf2e.pathfinder-monster-core-2,Zaixy2G1NHnaYhEo,Adlet
