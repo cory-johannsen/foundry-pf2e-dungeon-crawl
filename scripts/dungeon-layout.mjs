@@ -421,3 +421,77 @@ export function computeColumns(edges, ranks, entryId) {
   visit(entryId);
   return columns;
 }
+
+/** Full grid-cell rect for (rank, col) — a room/corridor's allotted
+ * space, independent of the room's own actual size. Same origin roomRect
+ * uses: a room always anchors at its cell's own top-left corner, so a
+ * room's own rect and its cellBounds share the same gx/gy always. */
+export function cellBounds(rank, col) {
+  return {
+    gx: INITIAL_GX + col * COLUMN_STRIDE,
+    gy: rank * ROW_STRIDE,
+    gw: COLUMN_STRIDE,
+    gh: ROW_STRIDE,
+  };
+}
+
+/**
+ * BFS shortest path of cells from fromPos to toPos over the rank/column
+ * grid, treating any cell occupied by a room other than fromRoomId/
+ * toRoomId as blocked. Returns an ordered array of {rank, col} from
+ * fromPos to toPos inclusive (length 2 when already adjacent with
+ * nothing to route around), or null if no path exists within the search
+ * bounds — callers fall back to a direct line in that case (see
+ * buildEdgeCorridor), so returning null rather than throwing is
+ * deliberate. The search space is bounded to a small margin around the
+ * two endpoints' own bounding box (not the whole graph) — real dungeons
+ * never need a detour wider than a room or two, and an unbounded search
+ * risks wandering arbitrarily far in a degenerate all-blocked case.
+ */
+export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId }) {
+  const SEARCH_MARGIN = 2;
+  const key = (pos) => `${pos.rank},${pos.col}`;
+  const minRank = Math.max(0, Math.min(fromPos.rank, toPos.rank) - SEARCH_MARGIN);
+  const maxRank = Math.max(fromPos.rank, toPos.rank) + SEARCH_MARGIN;
+  const minCol = Math.min(fromPos.col, toPos.col) - SEARCH_MARGIN;
+  const maxCol = Math.max(fromPos.col, toPos.col) + SEARCH_MARGIN;
+  const inBounds = (pos) =>
+    pos.rank >= minRank && pos.rank <= maxRank && pos.col >= minCol && pos.col <= maxCol;
+  const isBlocked = (pos) => {
+    const occupant = occupiedCells[key(pos)];
+    return occupant != null && occupant !== fromRoomId && occupant !== toRoomId;
+  };
+
+  const goalKey = key(toPos);
+  const queue = [fromPos];
+  const cameFrom = new Map([[key(fromPos), null]]);
+  while (queue.length) {
+    const current = queue.shift();
+    const currentKey = key(current);
+    if (currentKey === goalKey) {
+      const path = [];
+      let step = currentKey;
+      while (step !== null) {
+        const [rank, col] = step.split(',').map(Number);
+        path.unshift({ rank, col });
+        step = cameFrom.get(step);
+      }
+      return path;
+    }
+    const neighbors = [
+      { rank: current.rank - 1, col: current.col },
+      { rank: current.rank + 1, col: current.col },
+      { rank: current.rank, col: current.col - 1 },
+      { rank: current.rank, col: current.col + 1 },
+    ];
+    for (const next of neighbors) {
+      if (!inBounds(next)) continue;
+      const nextKey = key(next);
+      if (cameFrom.has(nextKey)) continue;
+      if (isBlocked(next)) continue;
+      cameFrom.set(nextKey, currentKey);
+      queue.push(next);
+    }
+  }
+  return null;
+}

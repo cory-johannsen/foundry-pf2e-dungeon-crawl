@@ -4,6 +4,7 @@ import {
   roomSizeAt, doorOffsetAt, corridorTileVariant,
   computeRanks, computeColumns,
   roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, northDoorSlots, buildEdgeCorridor,
+  cellBounds, findCorridorPath, INITIAL_GX,
 } from '../scripts/dungeon-layout.mjs';
 import { buildRoomGraph } from '../scripts/dungeon-deck.mjs';
 
@@ -412,5 +413,66 @@ describe('buildEdgeCorridor', () => {
       expect(Math.min(revealDoorWall.x1, revealDoorWall.x2)).toBeGreaterThanOrEqual(slots[i].x1);
       expect(Math.max(revealDoorWall.x1, revealDoorWall.x2)).toBeLessThanOrEqual(slots[i].x2);
     }
+  });
+});
+
+describe('cellBounds', () => {
+  it('returns the full stride-sized cell at the same origin roomRect uses', () => {
+    expect(cellBounds(0, 0)).toEqual({ gx: INITIAL_GX, gy: 0, gw: COLUMN_STRIDE, gh: ROW_STRIDE });
+    expect(cellBounds(2, 3)).toEqual({
+      gx: INITIAL_GX + 3 * COLUMN_STRIDE, gy: 2 * ROW_STRIDE, gw: COLUMN_STRIDE, gh: ROW_STRIDE,
+    });
+  });
+});
+
+describe('findCorridorPath', () => {
+  it('returns a direct 2-cell path when adjacent and nothing blocks it', () => {
+    const path = findCorridorPath(
+      { rank: 0, col: 0 }, { rank: 1, col: 0 }, {}, { fromRoomId: 'a', toRoomId: 'b' },
+    );
+    expect(path).toEqual([{ rank: 0, col: 0 }, { rank: 1, col: 0 }]);
+  });
+
+  it('routes straight through empty cells when the endpoints are several ranks apart', () => {
+    const path = findCorridorPath(
+      { rank: 0, col: 0 }, { rank: 3, col: 0 }, {}, { fromRoomId: 'a', toRoomId: 'b' },
+    );
+    expect(path).toEqual([
+      { rank: 0, col: 0 }, { rank: 1, col: 0 }, { rank: 2, col: 0 }, { rank: 3, col: 0 },
+    ]);
+  });
+
+  it('detours around a cell occupied by an unrelated room', () => {
+    const occupiedCells = { '1,0': 'blocker' };
+    const path = findCorridorPath(
+      { rank: 0, col: 0 }, { rank: 2, col: 0 }, occupiedCells, { fromRoomId: 'a', toRoomId: 'b' },
+    );
+    expect(path).not.toBeNull();
+    expect(path).not.toContainEqual({ rank: 1, col: 0 });
+    expect(path[0]).toEqual({ rank: 0, col: 0 });
+    expect(path[path.length - 1]).toEqual({ rank: 2, col: 0 });
+  });
+
+  it('never treats the endpoints themselves as blocked, even though they are occupied by fromRoomId/toRoomId', () => {
+    const occupiedCells = { '0,0': 'a', '1,0': 'b' };
+    const path = findCorridorPath(
+      { rank: 0, col: 0 }, { rank: 1, col: 0 }, occupiedCells, { fromRoomId: 'a', toRoomId: 'b' },
+    );
+    expect(path).toEqual([{ rank: 0, col: 0 }, { rank: 1, col: 0 }]);
+  });
+
+  it('returns null when every route is blocked within the search bounds', () => {
+    const occupiedCells = { '1,0': 'x', '1,1': 'x', '1,-1': 'x', '0,1': 'x', '0,-1': 'x' };
+    const path = findCorridorPath(
+      { rank: 0, col: 0 }, { rank: 2, col: 0 }, occupiedCells, { fromRoomId: 'a', toRoomId: 'b' },
+    );
+    expect(path).toBeNull();
+  });
+
+  it('is deterministic — same inputs, same path, every call', () => {
+    const occupiedCells = { '1,0': 'blocker' };
+    const path1 = findCorridorPath({ rank: 0, col: 0 }, { rank: 2, col: 0 }, occupiedCells, { fromRoomId: 'a', toRoomId: 'b' });
+    const path2 = findCorridorPath({ rank: 0, col: 0 }, { rank: 2, col: 0 }, occupiedCells, { fromRoomId: 'a', toRoomId: 'b' });
+    expect(path2).toEqual(path1);
   });
 });
