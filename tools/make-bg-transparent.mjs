@@ -91,8 +91,30 @@ while q:
         if 0 <= nx < w and 0 <= ny < h:
             consider(nx, ny)
 
+# The BFS above only clears background connected to the border — a
+# background-colored patch fully enclosed by the subject's own silhouette
+# (e.g. between a dragon's legs) never gets a chance to join the queue, so
+# it survives the pass untouched. A second, tighter-threshold, non-BFS pass
+# catches those: any *remaining* opaque pixel close enough to the same
+# reference color is cleared regardless of adjacency to what was already
+# cleared. Tighter than the BFS threshold (2/3 of it) since this pass has
+# no adjacency-to-known-background evidence backing each pixel, only color
+# match, so it needs to be more conservative about false positives on the
+# subject's own similarly-colored pixels.
+island_threshold = max(10, threshold * 2 // 3)
+island_cleared = 0
+for y in range(h):
+    for x in range(w):
+        r, g, b, a = px[x, y]
+        if a == 0:
+            continue
+        if (abs(r-ref[0]) + abs(g-ref[1]) + abs(b-ref[2])) <= island_threshold * 3:
+            px[x, y] = (0, 0, 0, 0)
+            island_cleared += 1
+cleared += island_cleared
+
 im.save(path, 'WEBP', lossless=True, method=6, exact=True)
-print(f'{{"ref": {list(ref)}, "cleared": {cleared}, "total": {w*h}, "fraction": {cleared/(w*h):.3f}}}')
+print(f'{{"ref": {list(ref)}, "cleared": {cleared}, "island_cleared": {island_cleared}, "total": {w*h}, "fraction": {cleared/(w*h):.3f}}}')
 `;
 
 const out = execFileSync(PY, ['-c', script, path, String(threshold)], { encoding: 'utf8' });
