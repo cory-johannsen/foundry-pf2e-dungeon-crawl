@@ -489,14 +489,25 @@ export function buildRoomGraph({
  * buildRoomGraph's output, rather than complicating the forced-merge
  * algorithm itself with rest-room placement.
  *
- * Picks the non-entry, non-goal room whose generation-order position is
- * closest to Math.floor((roomCount - 2) / 2) — the same "nearest the
- * midpoint of the run" semantics buildRoomSequence's own restAfterIndex
- * used for a linear chain. Generation order is read from `rooms`' own key
- * insertion order (buildRoomGraph inserts each room exactly when it builds
- * it, and none of its ids are integer-like, so JS preserves that order),
- * NOT parsed from the id: buildRoomGraph's ids are path-shaped
- * ('room-room-entry-0', 'room-merge-6', ...), never a bare 'room-N'.
+ * #93 fix round 2 (found by Task 15's own review, empirically): the first
+ * version of this function picked its splice target by generation-order
+ * proximity to the midpoint alone, with no guarantee that target sat on
+ * every path from entry to goal — a 2000-graph sweep found the rest room
+ * on the party's real path only ~2.5% of the time. A target on some OTHER
+ * branch is invisible to a party that picks a different door, silently
+ * defeating the whole point of a checkpoint.
+ *
+ * Fixed by walking backward from the goal through its own unique-parent
+ * chain instead: while a room has EXACTLY one real parent, that parent is
+ * a true dominator of the goal — every path reaching the room used that
+ * one edge, so every path to the goal passed through the parent too,
+ * regardless of how much branching happens further back. The goal's own
+ * immediate parent is ALWAYS such a dominator, by the single-entrance-goal
+ * guarantee (Task 2's Global Constraint) — the walk's starting point. The
+ * walk extends further back (toward the entry) only as long as the chain
+ * of single-parent rooms continues; it stops at the first room with 2+
+ * real parents (a merge point — itself still a dominator, and the target
+ * in that case) or at a room whose sole parent is the entry.
  *
  * Splices `room-rest` in as the new SOLE parent of the selected target:
  * every room that currently points at the target is redirected to point
@@ -513,20 +524,22 @@ export function buildRoomGraph({
 export function insertRestRoom({ rooms, edges, seed, roomCount }) {
   if (roomCount <= MID_DUNGEON_REST_THRESHOLD) return { rooms, edges };
 
-  const targetPosition = Math.floor((roomCount - 2) / 2);
-  let target = null;
-  let bestDistance = Infinity;
-  let position = 0;
-  for (const room of Object.values(rooms)) {
-    if (room.id === 'room-entry' || room.isGoal) continue;
-    const distance = Math.abs(position - targetPosition);
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      target = room;
-    }
-    position += 1;
+  const goal = Object.values(rooms).find((r) => r.isGoal);
+  const goalParents = goal ? Object.keys(edges).filter((id) => edges[id].includes(goal.id)) : [];
+  // Defensive, not expected to trip: Task 2's own single-entrance-goal
+  // guarantee means goalParents.length is always exactly 1, and it's
+  // never 'room-entry' for any roomCount above MID_DUNGEON_REST_THRESHOLD
+  // (there's always at least one real room between them by then).
+  if (goalParents.length !== 1 || goalParents[0] === 'room-entry') return { rooms, edges };
+
+  let target = rooms[goalParents[0]];
+  let current = goalParents[0];
+  for (;;) {
+    const parents = Object.keys(edges).filter((id) => edges[id].includes(current));
+    if (parents.length !== 1 || parents[0] === 'room-entry') break;
+    current = parents[0];
+    target = rooms[current];
   }
-  if (!target) return { rooms, edges }; // degenerate graph, nothing to splice before
 
   const rest = {
     id: 'room-rest', kind: 'safe_rest', isGoal: false, setpieceId: null, outcomeSlotId: null,

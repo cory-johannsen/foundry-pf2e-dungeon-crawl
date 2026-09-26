@@ -828,12 +828,10 @@ describe('insertRestRoom', () => {
     }
   });
 
-  // Beyond the plan's own four tests: buildRoomGraph's real room ids are
-  // path-shaped ('room-room-entry-0', 'room-merge-6', ...), never a bare
-  // 'room-N', so a salt parsed from the id with /^room-(\d+)$/ would never
-  // match and silently produce zero rest rooms — which the plan's own
-  // "if (!rest) continue" sweep above would not catch. Pin that every graph
-  // above the threshold really gets exactly one.
+  // The "if (!rest) continue" sweep above would silently pass a version
+  // that never inserts a rest room at all (the plan's original id-regex
+  // target selection did exactly that). Pin that every graph above the
+  // threshold really gets exactly one.
   it('always inserts exactly one rest room above the threshold, across a seed/roomCount sweep', () => {
     for (let i = 0; i < 200; i += 1) {
       const seed = `always-${i}`;
@@ -842,6 +840,39 @@ describe('insertRestRoom', () => {
       const { rooms: rooms2 } = insertRestRoom({ rooms, edges, seed, roomCount });
       expect(Object.values(rooms2).filter((r) => r.kind === 'safe_rest')).toHaveLength(1);
     }
+  });
+
+  // #93 fix round 2 regression: the rest room must be a true dominator of
+  // the goal — on EVERY path from entry to goal, not just some. The first
+  // version (generation-order nearest-midpoint target) put it on the
+  // party's real path only ~2.5% of the time.
+  it('the rest room lies on every simple path from room-entry to the goal (roomCount 7-20, 560 graphs)', () => {
+    let checkedGraphs = 0;
+    let checkedPaths = 0;
+    for (let i = 0; i < 560; i += 1) {
+      const seed = `dominator-${i}`;
+      const roomCount = 7 + (i % 14);
+      const { rooms: baseRooms, edges: baseEdges } = buildRoomGraph({ seed, roomCount });
+      const { rooms, edges } = insertRestRoom({ rooms: baseRooms, edges: baseEdges, seed, roomCount });
+      if (!rooms['room-rest']) continue;
+      checkedGraphs += 1;
+      const goalId = Object.values(rooms).find((r) => r.isGoal).id;
+      const paths = [];
+      const walk = (id, path) => {
+        if (id === goalId) { paths.push(path); return; }
+        for (const next of edges[id] ?? []) {
+          if (!path.includes(next)) walk(next, [...path, next]);
+        }
+      };
+      walk('room-entry', ['room-entry']);
+      expect(paths.length).toBeGreaterThan(0);
+      for (const path of paths) {
+        expect(path).toContain('room-rest');
+        checkedPaths += 1;
+      }
+    }
+    expect(checkedGraphs).toBe(560); // every roomCount here is above the threshold
+    expect(checkedPaths).toBeGreaterThan(checkedGraphs); // real branching was exercised
   });
 
   it('does not mutate its input graph', () => {
