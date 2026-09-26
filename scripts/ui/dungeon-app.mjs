@@ -572,6 +572,12 @@ export async function startDungeonRun({
       await buildPopulateAndUnlockGraphNode(scene, state, room, opts);
     } catch (err) {
       console.error(`${MODULE_ID} | eager build failed for room "${room.id}"`, err);
+      // #93 post-merge fix (Task 15 item 6): every caught build failure —
+      // entry or child — surfaces to the GM, not just the console, same
+      // notification resolveCurrentRoom's own ensure-built loop already uses.
+      ui.notifications?.error(
+        game.i18n.localize("PF2EDC.Dungeon.RoomBuildFailedError"),
+      );
     }
   };
 
@@ -610,6 +616,19 @@ export async function startDungeonRun({
   // eventually cover). So the entry's own children get one best-effort
   // retry here, right before their doors unlock — the same idempotent
   // pattern, just inlined instead of deferred to a later resolution.
+  // #93 post-merge fix (Task 15 item 6): the entry room's OWN build gets
+  // the same one best-effort retry its children get below — before this,
+  // an entry build failure was only console-logged, with no retry at all,
+  // and the party would be placed into a room with no walls or doors.
+  if (!isSlotBuilt(scene, 'room-entry')) {
+    await buildRoomSafely(rooms['room-entry'], {
+      rank: entryRank,
+      col: entryCol,
+      childIds: edges['room-entry'] ?? [],
+      hiddenChildId: hiddenEdges['room-entry']?.[0] ?? null,
+      unlock: false,
+    });
+  }
   const entryChildIds = edges['room-entry'] ?? [];
   const entryHiddenChildIds = hiddenEdges['room-entry'] ?? [];
   for (const childId of [...entryChildIds, ...entryHiddenChildIds]) {

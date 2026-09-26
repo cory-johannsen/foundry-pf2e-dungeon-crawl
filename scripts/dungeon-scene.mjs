@@ -242,7 +242,20 @@ export async function buildRoomAtGraphNode(
 
   // One frontier placeholder per outgoing face — findable/superseded later
   // by whichever child builds next on that face.
+  //
+  // #93 post-merge fix (Task 15 item 6, found while tracing the entry-room
+  // retry by hand): skipped for a child that is ALREADY built — the same
+  // guard the old linear-slot builder had (#62). A placeholder is only ever
+  // superseded by its child's own build; a room built AFTER its child (any
+  // ensure-built retry: startDungeonRun's entry retry runs after the eager
+  // loop already built the entry's children, and resolveCurrentRoom's /
+  // the entry-children retry can hit a room whose own children built fine)
+  // would otherwise lay a full-face wall over the child's already-built
+  // door/corridor that nothing ever deletes, sealing that exit for good.
+  // Never fires on the normal eager path — roomsToEagerlyBuild is
+  // topological, so every parent builds before its children.
   for (let i = 0; i < childIds.length; i += 1) {
+    if (isSlotBuilt(scene, childIds[i])) continue;
     const face = exitFaceForIndex(i);
     const side = roomSidesForRect(rect)[face];
     walls.push(
@@ -255,7 +268,10 @@ export async function buildRoomAtGraphNode(
   // real frontier placeholder (superseded when the target room builds),
   // but flagged so the generic per-room-populated unlock step never
   // touches it.
-  if (hiddenChildId) {
+  // Same already-built guard as the real placeholders above: a hidden
+  // target that built first already carries its own sealed
+  // dungeonHiddenDoorForEdge gate/reveal doors for this edge.
+  if (hiddenChildId && !isSlotBuilt(scene, hiddenChildId)) {
     const face = exitFaceForIndex(hiddenFaceIndex);
     const side = roomSidesForRect(rect)[face];
     walls.push(
