@@ -10,6 +10,14 @@ const REQUIRED_METHODS = [
   'resolveRoomOutcome',
   'revealTravelTimeEffect',
   'generateEncounterRoster',
+  // #93 post-merge fix (Task 15 item 2): startDungeonRun's full-graph
+  // pregeneration calls these three through getGenerator() — required here
+  // so a third-party generator missing one fails at registration rather
+  // than throwing at run start. buildRoomSequence above stays required as
+  // long as createRun still calls it.
+  'buildRoomGraph',
+  'insertRestRoom',
+  'attachHiddenPaths',
 ];
 
 let current = null;
