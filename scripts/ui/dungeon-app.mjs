@@ -635,12 +635,12 @@ export async function startDungeonRun({
   await new Promise((r) => setTimeout(r, 400));
   focusCameraOnRoom(scene, 'room-entry', entryRank, entryCol, state.seed);
 
-  // #93 fix round 1: fire-and-forget, mirroring the old populateNextRoom
-  // call site's own "never delay room population or reveal" reasoning —
-  // full pregeneration means several rooms of the same customization kind
-  // can be pending at once now, which is why Step 3c below also fixes
-  // fulfillPendingCustomizations itself to drain every pending room per
-  // kind, not just the first.
+  // #93 fix round 1: fire-and-forget, mirroring the old (deleted) ITEM-11
+  // manual-population call site's own "never delay room population or
+  // reveal" reasoning — full pregeneration means several rooms of the same
+  // customization kind can be pending at once now, which is why
+  // fulfillPendingCustomizations (dungeon-customization-fulfillment.mjs)
+  // drains every pending room per kind, not just the first.
   fulfillPendingCustomizations(scene.id);
 }
 
@@ -811,8 +811,9 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // #109: gated on game.user.isGM, not just "some state exists" — a
     // read-only broadcast viewer's render must never delete the run entry
     // for everyone. This legacy-migration path only ever needs to run once,
-    // for a GM, since every run createRun produces today always carries
-    // physicalSlotByRoomId already.
+    // for a GM, since every run startDungeonRun persists today always
+    // carries layoutPositionByRoomId (see the #93 note below — the legacy
+    // physicalSlotByRoomId marker is no longer carried at all).
     // #93: a run created before this update has state.rooms as an array with
     // currentIndex/physicalSlotByRoomId — the old linear-sequence shape this
     // app no longer understands. Same "clear and let the GM start fresh"
@@ -1168,7 +1169,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     super._onRender(context, options);
     wireTraitPickerButtons(this.element, context.availableTraits ?? []);
     // Re-frame the current room on every render, not just on the one-shot
-    // automatic room-entry trigger — see focusCameraOnSlot's own docs for why
+    // automatic room-entry trigger — see focusCameraOnRoom's own docs for why
     // that trigger alone isn't reliable with a five-token party.
     if (context.currentRoomId != null && canvas?.scene?.id === context.sceneId) {
       focusCameraOnRoom(canvas.scene, context.currentRoomId, context.currentRoomRank, context.currentRoomCol, context.seed);

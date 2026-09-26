@@ -91,9 +91,9 @@ no local process a GM has to keep alive — via
 sites: `dungeon-combat.mjs`'s `runAgentDecisionLoop` (combat decisions, see
 above) and `scripts/dungeon-customization-fulfillment.mjs`'s
 `fulfillPendingCustomizations` (fire-and-forget trap/skill-challenge/
-puzzle/narrative flavor text, called from `ui/dungeon-app.mjs`'s
-`populateNextRoom` the moment a room's content becomes pending, rather than
-waiting on an interactive session to check in).
+puzzle/narrative flavor text, called fire-and-forget from `ui/dungeon-app.mjs`'s
+`startDungeonRun` once full pregeneration has built every room and left its
+content pending, rather than waiting on an interactive session to check in).
 
 **Puzzle / trap / skill-challenge / treasure mechanics**
 (`puzzle-mechanics.mjs`+`puzzle.mjs`,

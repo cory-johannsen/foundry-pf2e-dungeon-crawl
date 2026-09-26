@@ -440,10 +440,11 @@ export function isSlotPopulated(scene, slot) {
 }
 
 /**
- * Whether roomId's own walls/geometry have been built yet (used to tell a
- * first real combat room whose build is still deliberately deferred
- * (ITEM-11 reopening) apart from one that's merely unpopulated after a
- * cancelled Accept/Reroll).
+ * Whether roomId's own walls/geometry have been built yet — the idempotency
+ * check behind every ensure-built retry (startDungeonRun's entry/entry-
+ * children passes, resolveCurrentRoom's children pass, and
+ * buildPopulateAndUnlockGraphNode itself), so a room whose eager build
+ * failed is retried and an already-built one is skipped.
  *
  * #93 pre-flight fix, TWO rounds (both found by this task's own review — a
  * Critical the first pass introduced was caught by the SAME review's own
@@ -479,12 +480,13 @@ export function isSlotBuilt(scene, roomId) {
  * Generate a combat room's encounter inside slot's own footprint. Hidden by
  * default (the discovery beat) — room 0 is the one exception, since the
  * party starts there with no door to walk through, so Start calls this with
- * `hidden:false`. The GM still gets the existing Accept/Reroll preview —
- * nothing about that flow changes, it's just handed a target room instead of
- * "near a focus token." No theme dialog, though (ITEM-21): a dungeon run's
- * traits/excludeTraits are captured once at "Start Dungeon" and reused
- * unchanged for every room it populates (Start, Populate Next Room, combat
- * recovery all funnel through here), so re-asking for the same traits every
+ * `hidden:false`. The encounter is generated and spawned directly (the old
+ * Accept/Reroll preview was removed by #93) — it's just handed a target
+ * room instead of "near a focus token." No theme dialog, though (ITEM-21):
+ * a dungeon run's traits/excludeTraits are captured once at "Start Dungeon"
+ * and reused unchanged for every room it populates (eager pregeneration at
+ * Start, the resolution-time ensure-built retry, and combat recovery all
+ * funnel through here), so re-asking for the same traits every
  * time would just repeat a prompt the GM already answered. `seed` (ITEM-17)
  * is needed to know this room's own actual size, for the encounter's
  * spawn-placement area.
@@ -970,9 +972,10 @@ export async function buildPopulateAndUnlockGraphNode(
         seed: state.seed,
       });
     }
-    // Only unlock once monsters are actually in place — a cancelled theme
-    // dialog leaves the door locked rather than opening onto an empty room;
-    // the GM retries via the "Populate Next Room" button.
+    // Only unlock once monsters are actually in place — a failed population
+    // leaves the door locked rather than opening onto an empty room; the
+    // parent's resolution-time ensure-built retry (resolveCurrentRoom) or
+    // the tracker's combat-recovery button re-attempts it.
     if (unlock && isSlotPopulated(scene, room.id))
       await unlockDoorsFromRoom(scene, room.id, childIds, state.hiddenEdges[room.id] ?? []);
   } else {

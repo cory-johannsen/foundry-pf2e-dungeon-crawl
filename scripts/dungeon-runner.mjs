@@ -224,8 +224,8 @@ export async function markRoomOutcome(
   const room = Array.isArray(state.rooms)
     ? state.rooms.find((r) => r.id === state.currentRoomId)
     : state.rooms[state.currentRoomId];
-  // #152 investigation: resolving a room never moves currentIndex (see this
-  // file's own docblock) — only actually walking into the next one does, via
+  // #152 investigation: resolving a room never moves currentRoomId (see
+  // this file's own docblock) — only actually walking into the next one does, via
   // advanceToRoom. That means the Succeed/Fail/Declare Victory/Declare Defeat
   // button stays live and pointed at the same "current" room for the entire
   // window between resolving it and the party physically opening the next

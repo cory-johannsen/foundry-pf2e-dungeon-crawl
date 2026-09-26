@@ -177,7 +177,7 @@ export async function generateEncounter({
   // A dungeon room population already has final traits — captured once at
   // "Start Dungeon" and reused unchanged for every room (ITEM-1's own
   // design), not just a prefill suggestion — so it skips straight to
-  // dealing/previewing instead of asking for the same traits again (ITEM-21).
+  // dealing the encounter instead of asking for the same traits again (ITEM-21).
   // The standalone "PF2EDC: Generate Encounter" macro has no such prior
   // context, so it always shows the dialog (skipThemeDialog defaults false).
   const theme = skipThemeDialog
