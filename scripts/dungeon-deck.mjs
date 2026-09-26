@@ -36,6 +36,15 @@ export const ROOM_KIND_WEIGHTS = [
   { kind: 'treasure', weight: 2 }
 ];
 
+// Frequent branching, capped at 2 extra exits (3 total) — confirmed with
+// Cory during #93's design. Skewed toward 1-2 so most rooms still read as
+// a single path and full 3-way branches stay a genuine event.
+export const EXIT_COUNT_WEIGHTS = [
+  { count: 1, weight: 5 },
+  { count: 2, weight: 4 },
+  { count: 3, weight: 1 }
+];
+
 // Each slot pairs a Reward meaning (the challenge was handled well) with a
 // Ruin meaning (handled poorly), read off the SAME drawn slot — the book
 // never fixes a Reward/Ruin correspondence, so these pairings are a tunable,
@@ -85,9 +94,9 @@ export const MAX_DEPTH_BIAS = 2;
  * room actually built. The goal room always gets the max regardless of where
  * it lands (a short dungeon shouldn't have a soft final boss).
  */
-export function depthBiasFor({ physicalSlot, roomCount, isGoal }) {
+export function depthBiasFor({ rank, maxRank, isGoal }) {
   if (isGoal) return MAX_DEPTH_BIAS;
-  const fraction = physicalSlot / Math.max(1, roomCount - 1);
+  const fraction = rank / Math.max(1, maxRank);
   return Math.round(fraction * MAX_DEPTH_BIAS);
 }
 
@@ -102,8 +111,8 @@ export const TREASURE_GP_PER_LEVEL = 10;
  * MAX_DEPTH_BIAS/the goal room), the same depth-escalation signal combat
  * rooms already use for encounter difficulty.
  */
-export function lootGpForTreasureRoom({ partyLevel, physicalSlot, roomCount, isGoal }) {
-  const bias = depthBiasFor({ physicalSlot, roomCount, isGoal });
+export function lootGpForTreasureRoom({ partyLevel, rank, maxRank, isGoal }) {
+  const bias = depthBiasFor({ rank, maxRank, isGoal });
   return Math.round(partyLevel * TREASURE_GP_PER_LEVEL * (1 + bias / MAX_DEPTH_BIAS));
 }
 
@@ -125,8 +134,8 @@ export const TREASURE_ROOM_CATEGORY_WEIGHTS = [
  * lootGpForTreasureRoom's own gp figure as the price budget for a
  * 'valuable' category pick, so the two stay in sync.
  */
-export function treasureRoomItemTableName({ partyLevel, physicalSlot, roomCount, isGoal, rng }) {
-  const gp = lootGpForTreasureRoom({ partyLevel, physicalSlot, roomCount, isGoal });
+export function treasureRoomItemTableName({ partyLevel, rank, maxRank, isGoal, rng }) {
+  const gp = lootGpForTreasureRoom({ partyLevel, rank, maxRank, isGoal });
   const category = pickWeightedCategory(TREASURE_ROOM_CATEGORY_WEIGHTS, rng());
   return category === 'valuable'
     ? valuableTierForBudget(gp * ITEM_PRICE_BUDGET_FRACTION)
@@ -189,6 +198,11 @@ export function seededPick(seed, salt, items) {
 /** The room kind at a given absolute room index, deterministic per seed. */
 export function roomKindAt(seed, index) {
   return pickAt(seed, `kind-${index}`, ROOM_KIND_WEIGHTS).kind;
+}
+
+/** Deterministic per-room exit count (1-3), same seeded-per-salt pattern as roomKindAt. */
+export function exitCountAt(seed, roomId) {
+  return pickAt(seed, `exits-${roomId}`, EXIT_COUNT_WEIGHTS).count;
 }
 
 /** The outcome-slot template at a given absolute room index. */
@@ -351,4 +365,342 @@ export function applySequenceMutation(
     return [...rooms.slice(0, currentIndex + 1), newRoom, ...rooms.slice(currentIndex + 1)];
   }
   return rooms;
+}
+
+/**
+ * Build a fresh branching room graph (#93). Unlike buildRoomSequence, this
+ * has no single fixed "next room" — each non-goal, non-entry room rolls its
+ * own exit count (exitCountAt) and grows one child per exit. To guarantee
+ * the goal room ends up with exactly one incoming edge no matter how much
+ * branching happened, generation tracks "open tips" (leaf rooms still
+ * awaiting children) and forces merges — routing 2+ open tips into the SAME
+ * next room — once the remaining room budget can no longer afford to keep
+ * every tip open through to its own goal connection.
+ */
+export function buildRoomGraph({
+  seed,
+  roomCount,
+  puzzleSetpieceIds = [],
+  trapSetpieceIds = [],
+  narrativeSetpieceIds = [],
+  treasureSetpieceIds = [],
+}) {
+  if (!Number.isInteger(roomCount) || roomCount < 2) {
+    throw new Error('roomCount must be an integer of at least 2 (rooms plus a goal room)');
+  }
+
+  const rooms = {};
+  const edges = {};
+  let puzzleOccurrence = 0;
+  let trapOccurrence = 0;
+  let narrativeOccurrence = 0;
+  let treasureOccurrence = 0;
+  let built = 0; // non-entry, non-goal rooms built so far
+
+  const entry = {
+    id: 'room-entry', kind: 'safe_entry', isGoal: false, setpieceId: null, outcomeSlotId: null,
+    locationTag: locationTagAt(seed, 'entry'), artVariant: roomArtVariantAt(seed, 'entry')
+  };
+  rooms[entry.id] = entry;
+  edges[entry.id] = [];
+
+  function makeRoom(salt) {
+    const kind = roomKindAt(seed, salt);
+    const setpieceId =
+      kind === 'puzzle' ? setpieceAt(seed, puzzleOccurrence++, puzzleSetpieceIds, 'puzzle-setpiece-order')
+      : kind === 'trap' ? setpieceAt(seed, trapOccurrence++, trapSetpieceIds, 'trap-setpiece-order')
+      : kind === 'narrative' ? setpieceAt(seed, narrativeOccurrence++, narrativeSetpieceIds, 'narrative-setpiece-order')
+      : kind === 'treasure' ? setpieceAt(seed, treasureOccurrence++, treasureSetpieceIds, 'treasure-setpiece-order')
+      : null;
+    const outcomeSlot = outcomeSlotAt(seed, salt);
+    const room = {
+      id: `room-${salt}`, kind, isGoal: false, setpieceId, outcomeSlotId: outcomeSlot.id,
+      locationTag: locationTagAt(seed, salt), artVariant: roomArtVariantAt(seed, salt)
+    };
+    rooms[room.id] = room;
+    edges[room.id] = [];
+    return room;
+  }
+
+  // Open tips grow the graph breadth-first; each pop may add 1-3 children.
+  let tips = [entry.id];
+  while (built < roomCount - 1) {
+    // Forced merge: once every remaining tip would need its own room just
+    // to reach the goal, and the budget can't afford one room per tip PLUS
+    // the goal, collapse all open tips onto a single new shared room before
+    // continuing — this is what guarantees exactly one goal parent.
+    const remaining = roomCount - 1 - built;
+    if (tips.length > 1 && remaining <= tips.length) {
+      const merged = makeRoom(`merge-${built}`);
+      built += 1;
+      for (const tipId of tips) edges[tipId].push(merged.id);
+      tips = [merged.id];
+      continue;
+    }
+
+    const tipId = tips.shift();
+    // #93 pre-flight fix (Task 2 review found this empirically: capping
+    // exitCount only by total remaining budget lets a single tip's own
+    // branching alone consume the whole budget while OTHER already-open
+    // tips (still sitting in `tips` below) never get a chance to reach
+    // this loop's own merge check again — the loop then exits with every
+    // one of them wired straight to goal, violating "goal always has
+    // exactly one incoming edge" in ~22% of (seed, roomCount) pairs
+    // (confirmed by sweep: e.g. seed='seed-0', roomCount=3 -> 2 goal
+    // parents; seed='seed-1', roomCount=26 -> 4 goal parents). The fix:
+    // cap exitCount so that AFTER this tip's children are created, the
+    // loop's own invariant (remaining budget >= open tip count) still
+    // holds for every tip still waiting — otherTips is `tips.length`
+    // right after the shift above, i.e. every OTHER currently-open tip
+    // that isn't the one being processed right now.
+    const otherTips = tips.length;
+    const avail = roomCount - 1 - built;
+    const maxExitCount = Math.max(1, Math.floor((avail - otherTips) / 2));
+    const exitCount = Math.min(exitCountAt(seed, tipId), maxExitCount);
+    const nextTips = [];
+    for (let i = 0; i < Math.max(1, exitCount); i += 1) {
+      if (built >= roomCount - 1) break;
+      const child = makeRoom(`${tipId}-${i}`);
+      built += 1;
+      edges[tipId].push(child.id);
+      nextTips.push(child.id);
+    }
+    tips.push(...nextTips);
+  }
+
+  // Every remaining open tip becomes the goal's parent — force-merge to one
+  // if more than one tip is still open (mirrors the loop's own merge step).
+  const goal = {
+    id: 'room-goal', kind: 'combat', isGoal: true, setpieceId: null, outcomeSlotId: null,
+    locationTag: locationTagAt(seed, 'goal'), artVariant: roomArtVariantAt(seed, 'goal')
+  };
+  rooms[goal.id] = goal;
+  edges[goal.id] = [];
+  for (const tipId of tips) edges[tipId].push(goal.id);
+
+  return { rooms, edges };
+}
+
+/**
+ * #93 post-merge fix (Task 15's final review): buildRoomGraph never
+ * creates a mid-dungeon rest room (ITEM-5) the way the old
+ * buildRoomSequence did — this restores it as a discrete post-processing
+ * pass, the same relationship attachHiddenPaths already has to
+ * buildRoomGraph's output, rather than complicating the forced-merge
+ * algorithm itself with rest-room placement.
+ *
+ * #93 fix round 2 (found by Task 15's own review, empirically): the first
+ * version of this function picked its splice target by generation-order
+ * proximity to the midpoint alone, with no guarantee that target sat on
+ * every path from entry to goal — a 2000-graph sweep found the rest room
+ * on the party's real path only ~2.5% of the time. A target on some OTHER
+ * branch is invisible to a party that picks a different door, silently
+ * defeating the whole point of a checkpoint.
+ *
+ * Fixed by walking backward from the goal through its own unique-parent
+ * chain instead: while a room has EXACTLY one real parent, that parent is
+ * a true dominator of the goal — every path reaching the room used that
+ * one edge, so every path to the goal passed through the parent too,
+ * regardless of how much branching happens further back. The goal's own
+ * immediate parent is ALWAYS such a dominator, by the single-entrance-goal
+ * guarantee (Task 2's Global Constraint) — the walk's starting point. The
+ * walk extends further back (toward the entry) only as long as the chain
+ * of single-parent rooms continues; it stops at the first room with 2+
+ * real parents (a merge point — itself still a dominator, and the target
+ * in that case) or at a room whose sole parent is the entry.
+ *
+ * Splices `room-rest` in as the new SOLE parent of the selected target:
+ * every room that currently points at the target is redirected to point
+ * at room-rest instead, and room-rest gets a single outgoing edge to the
+ * target. This works identically whether the target had one real parent
+ * (a normal room) or several (a merge room) — the target's own incoming
+ * face count only ever goes DOWN (to exactly 1, from room-rest), never up,
+ * so no room's exit-count budget is disturbed by this splice.
+ *
+ * Pure — returns new `rooms`/`edges` objects, never mutates its inputs.
+ * Must run BEFORE attachHiddenPaths (which excludes the rest room from
+ * hidden-path eligibility) and before any rank/column computation.
+ */
+export function insertRestRoom({ rooms, edges, seed, roomCount }) {
+  if (roomCount <= MID_DUNGEON_REST_THRESHOLD) return { rooms, edges };
+
+  const goal = Object.values(rooms).find((r) => r.isGoal);
+  const goalParents = goal ? Object.keys(edges).filter((id) => edges[id].includes(goal.id)) : [];
+  // Defensive, not expected to trip: Task 2's own single-entrance-goal
+  // guarantee means goalParents.length is always exactly 1, and it's
+  // never 'room-entry' for any roomCount above MID_DUNGEON_REST_THRESHOLD
+  // (there's always at least one real room between them by then).
+  if (goalParents.length !== 1 || goalParents[0] === 'room-entry') return { rooms, edges };
+
+  let target = rooms[goalParents[0]];
+  let current = goalParents[0];
+  for (;;) {
+    const parents = Object.keys(edges).filter((id) => edges[id].includes(current));
+    if (parents.length !== 1 || parents[0] === 'room-entry') break;
+    current = parents[0];
+    target = rooms[current];
+  }
+
+  const rest = {
+    id: 'room-rest', kind: 'safe_rest', isGoal: false, setpieceId: null, outcomeSlotId: null,
+    locationTag: locationTagAt(seed, 'rest'), artVariant: roomArtVariantAt(seed, 'rest')
+  };
+  const newRooms = { ...rooms, [rest.id]: rest };
+  const newEdges = { ...edges, [rest.id]: [target.id] };
+  for (const [parentId, children] of Object.entries(edges)) {
+    if (children.includes(target.id)) {
+      newEdges[parentId] = children.map((id) => (id === target.id ? rest.id : id));
+    }
+  }
+  return { rooms: newRooms, edges: newEdges };
+}
+
+// Tunable — how often a branch edge gets an optional pregenerated hidden
+// extra (a shortcut past the next room, or a detour room spliced in front
+// of it). Neither counts against roomCount, same treatment as the
+// mid-dungeon rest room.
+export const HIDDEN_PATH_CHANCE = 0.2;
+
+/**
+ * Attach pregenerated-but-hidden shortcuts/detours to a graph's non-entry,
+ * non-goal rooms (#93 — replaces runtime insert_after/remove_next
+ * splicing; #156 — fixes the face-budget overflow and layout/build
+ * unreachability the original version of this function had). A shortcut
+ * edge skips the immediate next room on a branch; a detour room is spliced
+ * hidden between two already-adjacent rooms. At most ONE hidden extra per
+ * room, decided once per candidate room (not once per edge), and only
+ * when the room (and, for a shortcut, its target) has a spare outgoing
+ * face left after its real exits (`exitFaceForIndex` only has 3 slots:
+ * south/east/west).
+ *
+ * What's actually hidden is the INCOMING connection, in `hiddenEdges`, not
+ * a detour room's own outgoing edge: `edges[detour.id] = [toId]` (and
+ * `layoutEdges[detour.id]`) is a real entry in the live map — a detour
+ * room needs SOME recorded path onward, live, or it's a guaranteed dead
+ * end the moment it's revealed (caught by pre-flight review; do not
+ * remove that line believing it belongs in `hiddenEdges` instead — an
+ * earlier implementer made exactly this mistake). Normal traversal still
+ * never reaches `detour.id` regardless, since nothing in the live `edges`
+ * graph points INTO it until an outcome reveal adds that incoming edge —
+ * see dungeon-runner.mjs's revealTravelTimeEffect.
+ */
+export function attachHiddenPaths({
+  rooms, edges, seed,
+  puzzleSetpieceIds = [],
+  trapSetpieceIds = [],
+  narrativeSetpieceIds = [],
+  treasureSetpieceIds = [],
+}) {
+  const hiddenRooms = new Set();
+  const hiddenEdges = {};
+  const hiddenIncomingByRoomId = {};
+  const layoutEdges = Object.fromEntries(
+    Object.entries(edges).map(([id, children]) => [id, [...children]]),
+  );
+  let detourSalt = 0;
+  // #93 post-merge fix: dedicated occurrence counters, one per kind, never
+  // shared with buildRoomGraph's own main-graph counters — a detour room
+  // and a main-graph room drawing from the same pool must never collide
+  // on the exact same setpiece.
+  let detourPuzzleOccurrence = 0;
+  let detourTrapOccurrence = 0;
+  let detourNarrativeOccurrence = 0;
+  let detourTreasureOccurrence = 0;
+
+  for (const [fromId, children] of Object.entries(edges)) {
+    const fromRoom = rooms[fromId];
+    // #93 post-merge fix: exclude safe_rest — its own outcome always
+    // resolves as the fixed 'rest_room_passed' effectKey, never
+    // reduced_travel_time/extra_travel_time, so a hidden path attached to
+    // it could never be revealed by anything — permanently sealing off
+    // whatever it leads to.
+    if (!fromRoom || fromRoom.isGoal || fromId === 'room-entry' || fromRoom.kind === 'safe_rest') continue;
+    if (children.length === 0 || children.length > 2) continue; // no spare face
+
+    const r = splitmix32(seedFromString(`${seed}-hidden-${fromId}`))();
+    if (r >= HIDDEN_PATH_CHANCE) continue;
+
+    // Anchor on the room's first real child — deterministic, and this
+    // function only needs *a* nearby room to build a shortcut/detour off
+    // of, not a specific one.
+    const toId = children[0];
+    const toRoom = rooms[toId];
+    if (!toRoom || toRoom.isGoal) continue;
+
+    const wantsDetour = splitmix32(seedFromString(`${seed}-hidden-kind-${fromId}`))() < 0.5;
+    if (wantsDetour) {
+      const kind = roomKindAt(seed, `detour-${detourSalt}`);
+      // #93 post-merge fix: a detour room needs real content — with
+      // outcomeSlotId null, markRoomOutcome no-ops forever on it and the
+      // party is stuck the moment they walk in. Same per-kind assignment
+      // buildRoomGraph's own makeRoom uses, but with dedicated
+      // 'detour-*-setpiece-order' salts and dedicated occurrence counters
+      // so this pool draw stays independent of makeRoom's own.
+      const setpieceId =
+        kind === 'puzzle' ? setpieceAt(seed, detourPuzzleOccurrence++, puzzleSetpieceIds, 'detour-puzzle-setpiece-order')
+        : kind === 'trap' ? setpieceAt(seed, detourTrapOccurrence++, trapSetpieceIds, 'detour-trap-setpiece-order')
+        : kind === 'narrative' ? setpieceAt(seed, detourNarrativeOccurrence++, narrativeSetpieceIds, 'detour-narrative-setpiece-order')
+        : kind === 'treasure' ? setpieceAt(seed, detourTreasureOccurrence++, treasureSetpieceIds, 'detour-treasure-setpiece-order')
+        : null;
+      const outcomeSlot = outcomeSlotAt(seed, `detour-${detourSalt}`);
+      const detour = {
+        id: `room-detour-${detourSalt}`, kind,
+        isGoal: false, setpieceId, outcomeSlotId: outcomeSlot.id,
+        locationTag: locationTagAt(seed, `detour-${detourSalt}`),
+        artVariant: roomArtVariantAt(seed, `detour-${detourSalt}`)
+      };
+      detourSalt += 1;
+      rooms[detour.id] = detour;
+      edges[detour.id] = [toId];
+      layoutEdges[detour.id] = [toId];
+      hiddenRooms.add(detour.id);
+      hiddenEdges[fromId] = [detour.id];
+      layoutEdges[fromId] = [...children, detour.id];
+    } else {
+      // A shortcut needs a room beyond `toId` to skip TO — only attach one
+      // when `toId` itself has an onward edge to skip past, that target
+      // isn't the goal (pre-flight fix: a shortcut's target is ONE HOP
+      // PAST `toId` — `edges[toId][0]` — so `toRoom.isGoal` above does NOT
+      // already cover this; a room adjacent to goal could otherwise
+      // shortcut straight onto it), and the target has a spare incoming
+      // face left (own real exit count <= 2, since it already uses one
+      // face for its real incoming edge and needs one more for this
+      // shortcut's second incoming door).
+      const skipTarget = edges[toId]?.[0];
+      const skipTargetRoom = skipTarget ? rooms[skipTarget] : null;
+      if (!skipTarget || !skipTargetRoom || skipTargetRoom.isGoal) continue;
+      if ((edges[skipTarget]?.length ?? 0) > 2) continue;
+      hiddenEdges[fromId] = [skipTarget];
+      (hiddenIncomingByRoomId[skipTarget] ??= []).push(fromId);
+      // Shortcuts don't add a new node, so layoutEdges is untouched here —
+      // the target's rank/col already comes from its real parent.
+    }
+  }
+
+  return { rooms, edges, hiddenRooms, hiddenEdges, layoutEdges, hiddenIncomingByRoomId };
+}
+
+/**
+ * Resolve a reduced_travel_time/extra_travel_time outcome against a
+ * pregenerated graph (#93) — reveals whatever hidden shortcut/detour edge
+ * generation attached to `roomId` (attachHiddenPaths), if any. Never
+ * builds or removes a room; the target was already constructed at
+ * scene-creation time. A no-op if nothing was hidden there.
+ */
+// Data-only reveal — see #156, filed during #93 pre-flight review: no
+// door/room geometry is built for the revealed edge anywhere in this
+// plan yet. Deliberately deferred; do not block this task on it.
+export function revealTravelTimeEffect({ edges, hiddenEdges }, roomId, effectKey) {
+  if (effectKey !== 'reduced_travel_time' && effectKey !== 'extra_travel_time') {
+    return { edges, hiddenEdges, revealedRoomId: null };
+  }
+  const hidden = hiddenEdges[roomId];
+  if (!hidden?.length) return { edges, hiddenEdges, revealedRoomId: null };
+  const newHiddenEdges = { ...hiddenEdges };
+  delete newHiddenEdges[roomId];
+  return {
+    edges: { ...edges, [roomId]: [...(edges[roomId] ?? []), ...hidden] },
+    hiddenEdges: newHiddenEdges,
+    revealedRoomId: hidden[0], // attachHiddenPaths (#156) guarantees at most one hidden target per room
+  };
 }
