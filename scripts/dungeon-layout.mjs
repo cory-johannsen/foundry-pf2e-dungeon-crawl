@@ -707,6 +707,73 @@ export function transitCellCrossing(seed, rank, col, entrySide, exitSide, edgeId
 }
 
 /**
+ * Seals an EMPTY transit cell's outer boundary — all four compass sides,
+ * unlike `cellMarginWalls`' room case. A room always anchors at its own
+ * cell's top-left corner (`roomRect`), so its north/west edges always
+ * coincide with the cell's own north/west edges and only east/south can
+ * ever have margin (see `cellMarginWalls`' own docblock) — but a transit
+ * cell (#174 Task 3/4, `transitCellCrossing`) is empty space a corridor
+ * merely passes through, with no room and so no anchor corner: its own
+ * crossing's `entrySide`/`exitSide` can be ANY of the four sides, so all
+ * four of the cell's outer edges need sealing here, not just two.
+ *
+ * `openings` is `[{ side, point }]` — one entry per corridor crossing
+ * point that lands on this cell's boundary. Ordinarily 2 (this crossing's
+ * own `entryPoint`/`exitPoint`, from `transitCellCrossing`), but a SECOND
+ * edge crossing the SAME empty cell via a different entry/exit pair
+ * contributes its own 1-2 more (idempotency, see
+ * `buildPopulateAndUnlockGraphNode`'s own accumulation of prior
+ * openings) — multiple openings on the SAME side are supported (sorted,
+ * whatever's between two consecutive openings on one side stays a solid
+ * wall), the same "seal minus every declared gap" pattern
+ * `cellMarginWalls` uses for its own single opening, generalized here to
+ * N sides x N openings. `point` is reused directly from
+ * `transitCellCrossing`'s own `entryPoint`/`exitPoint` (an absolute grid
+ * coordinate already sitting exactly on that side) rather than
+ * re-derived, so every gap lines up exactly with its own crossing's
+ * randomized point, whatever it happened to be. A side with no opening
+ * at all gets one full-length wall, same as a room's fully-sealed
+ * margin side.
+ */
+export function transitCellContainmentWalls(rank, col, openings) {
+  const cell = cellBounds(rank, col);
+
+  const LINE = {
+    north: (from, to) => ({ dir: 'north', x1: cell.gx + from, y1: cell.gy, x2: cell.gx + to, y2: cell.gy }),
+    south: (from, to) => ({ dir: 'south', x1: cell.gx + from, y1: cell.gy + cell.gh, x2: cell.gx + to, y2: cell.gy + cell.gh }),
+    west: (from, to) => ({ dir: 'west', x1: cell.gx, y1: cell.gy + from, x2: cell.gx, y2: cell.gy + to }),
+    east: (from, to) => ({ dir: 'east', x1: cell.gx + cell.gw, y1: cell.gy + from, x2: cell.gx + cell.gw, y2: cell.gy + to }),
+  };
+  const SPAN = { north: cell.gw, south: cell.gw, east: cell.gh, west: cell.gh };
+
+  const offsetsBySide = { north: [], south: [], east: [], west: [] };
+  for (const { side, point } of openings) {
+    const offset = side === 'north' || side === 'south' ? point.x - cell.gx : point.y - cell.gy;
+    offsetsBySide[side].push(offset);
+  }
+
+  const walls = [];
+  for (const side of ['north', 'south', 'east', 'west']) {
+    const full = SPAN[side];
+    const along = LINE[side];
+    const offsets = offsetsBySide[side].slice().sort((a, b) => a - b);
+    if (offsets.length === 0) {
+      walls.push(along(0, full));
+      continue;
+    }
+    let cursor = 0;
+    for (const offset of offsets) {
+      const gapStart = offset;
+      const gapEnd = offset + CORRIDOR_LEN;
+      if (gapStart > cursor) walls.push(along(cursor, gapStart));
+      cursor = Math.max(cursor, gapEnd);
+    }
+    if (cursor < full) walls.push(along(cursor, full));
+  }
+  return walls;
+}
+
+/**
  * BFS shortest path of cells from fromPos to toPos over the rank/column
  * grid, treating any cell occupied by a room other than fromRoomId/
  * toRoomId as blocked. Returns an ordered array of {rank, col} from

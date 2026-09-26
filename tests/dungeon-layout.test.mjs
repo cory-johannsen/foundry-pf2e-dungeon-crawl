@@ -5,6 +5,7 @@ import {
   computeRanks, computeColumns,
   roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, northDoorSlots, buildEdgeCorridor,
   cellBounds, findCorridorPath, INITIAL_GX, cellMarginWalls, transitCellCrossing,
+  transitCellContainmentWalls, CORRIDOR_LEN,
 } from '../scripts/dungeon-layout.mjs';
 import { buildRoomGraph } from '../scripts/dungeon-deck.mjs';
 
@@ -719,6 +720,120 @@ describe('cellMarginWalls', () => {
           const openEnd = isOpenSide ? opening.openOffset + opening.openWidth : -1;
           expect(sideFullyAccountedFor(dir, cell, wallsOnSide, openStart, openEnd)).toBe(true);
         }
+      }
+    }
+  });
+});
+
+describe('transitCellContainmentWalls', () => {
+  it('seals all four sides solid when given no openings', () => {
+    const walls = transitCellContainmentWalls(1, 1, []);
+    const cell = cellBounds(1, 1);
+    expect(walls).toHaveLength(4);
+    for (const dir of ['north', 'south', 'east', 'west']) {
+      expect(walls.filter((w) => w.dir === dir)).toHaveLength(1);
+    }
+    const north = walls.find((w) => w.dir === 'north');
+    expect(north).toEqual({ dir: 'north', x1: cell.gx, y1: cell.gy, x2: cell.gx + cell.gw, y2: cell.gy });
+  });
+
+  it('leaves a gap on each side that has an opening, sealing the other two sides fully', () => {
+    const cell = cellBounds(0, 0);
+    const entryPoint = { x: cell.gx + 3, y: cell.gy }; // on the north side
+    const exitPoint = { x: cell.gx + cell.gw, y: cell.gy + 5 }; // on the east side
+    const walls = transitCellContainmentWalls(0, 0, [
+      { side: 'north', point: entryPoint },
+      { side: 'east', point: exitPoint },
+    ]);
+
+    // South and west have no opening — one full-length solid wall each.
+    expect(walls.filter((w) => w.dir === 'south')).toHaveLength(1);
+    expect(walls.filter((w) => w.dir === 'west')).toHaveLength(1);
+
+    // North and east each have a gap flanked by up to two solid segments,
+    // never spanning across the gap itself.
+    const northWalls = walls.filter((w) => w.dir === 'north');
+    for (const w of northWalls) {
+      expect(w.x2 <= entryPoint.x || w.x1 >= entryPoint.x + CORRIDOR_LEN).toBe(true);
+    }
+    const eastWalls = walls.filter((w) => w.dir === 'east');
+    for (const w of eastWalls) {
+      expect(w.y2 <= exitPoint.y || w.y1 >= exitPoint.y + CORRIDOR_LEN).toBe(true);
+    }
+  });
+
+  it('supports two independent openings on the same side (a second edge crossing via the same side)', () => {
+    const cell = cellBounds(2, 0);
+    const pointA = { x: cell.gx + 1, y: cell.gy };
+    const pointB = { x: cell.gx + 8, y: cell.gy };
+    const walls = transitCellContainmentWalls(2, 0, [
+      { side: 'north', point: pointA },
+      { side: 'north', point: pointB },
+    ]);
+    const northWalls = walls.filter((w) => w.dir === 'north');
+    // Three solid segments: before pointA, between pointA and pointB, after pointB.
+    expect(northWalls.length).toBe(3);
+    for (const w of northWalls) {
+      const overlapsA = w.x1 < pointA.x + CORRIDOR_LEN && w.x2 > pointA.x;
+      const overlapsB = w.x1 < pointB.x + CORRIDOR_LEN && w.x2 > pointB.x;
+      expect(overlapsA).toBe(false);
+      expect(overlapsB).toBe(false);
+    }
+  });
+
+  it('omits a flanking segment entirely when the gap reaches a cell corner', () => {
+    const cell = cellBounds(0, 0);
+    const entryPoint = { x: cell.gx, y: cell.gy }; // north side, at the very west corner
+    const walls = transitCellContainmentWalls(0, 0, [{ side: 'north', point: entryPoint }]);
+    const northWalls = walls.filter((w) => w.dir === 'north');
+    expect(northWalls.length).toBe(1); // only the segment from the gap's end to the cell's far corner
+  });
+
+  it('containment sweep: seals the full cell boundary except exactly at each declared opening', () => {
+    // Same methodology as cellMarginWalls' own containment sweep, but
+    // across all four sides and an arbitrary number of openings per side,
+    // since a transit cell has no anchor corner restricting it to two.
+    function sideFullyAccountedFor(dir, cell, wallsOnThatSide, openings) {
+      const full = dir === 'east' || dir === 'west' ? cell.gh : cell.gw;
+      const base = dir === 'east' || dir === 'west' ? cell.gy : cell.gx;
+      for (let unit = 0; unit < full; unit += 1) {
+        const inOpening = openings.some((o) => unit >= o && unit < o + CORRIDOR_LEN);
+        const covered = wallsOnThatSide.some((w) => {
+          const lo = (dir === 'east' || dir === 'west' ? w.y1 : w.x1) - base;
+          const hi = (dir === 'east' || dir === 'west' ? w.y2 : w.x2) - base;
+          return unit >= Math.min(lo, hi) && unit < Math.max(lo, hi);
+        });
+        if (inOpening === covered) return false;
+      }
+      return true;
+    }
+
+    const rank = 1;
+    const col = 2;
+    const cell = cellBounds(rank, col);
+    const combos = [
+      [],
+      [{ side: 'north', point: { x: cell.gx + 2, y: cell.gy } }],
+      [{ side: 'south', point: { x: cell.gx + 0, y: cell.gy + cell.gh } }],
+      [{ side: 'east', point: { x: cell.gx + cell.gw, y: cell.gy + 4 } }],
+      [{ side: 'west', point: { x: cell.gx, y: cell.gy + 6 } }],
+      [
+        { side: 'north', point: { x: cell.gx + 1, y: cell.gy } },
+        { side: 'south', point: { x: cell.gx + 9, y: cell.gy + cell.gh } },
+      ],
+      [
+        { side: 'north', point: { x: cell.gx + 1, y: cell.gy } },
+        { side: 'north', point: { x: cell.gx + 8, y: cell.gy } },
+      ],
+    ];
+    for (const openings of combos) {
+      const walls = transitCellContainmentWalls(rank, col, openings);
+      for (const dir of ['north', 'south', 'east', 'west']) {
+        const wallsOnSide = walls.filter((w) => w.dir === dir);
+        const openingsOnSide = openings
+          .filter((o) => o.side === dir)
+          .map((o) => (dir === 'east' || dir === 'west' ? o.point.y - cell.gy : o.point.x - cell.gx));
+        expect(sideFullyAccountedFor(dir, cell, wallsOnSide, openingsOnSide)).toBe(true);
       }
     }
   });
