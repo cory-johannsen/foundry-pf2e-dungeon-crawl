@@ -303,6 +303,7 @@ export async function buildRoomAtGraphNode(
     rank, col, childIds = [], incomingConnections = [],
     hiddenChildId = null,
     isGoal = false, locationTag = null, artVariant = 0, seed = "",
+    layoutPositionByRoomId = {},
   },
 ) {
   const rect = roomRect(seed, roomId, rank, col);
@@ -310,6 +311,14 @@ export async function buildRoomAtGraphNode(
   const realOutgoingFaces = isGoal ? [] : childIds.map((_, i) => exitFaceForIndex(i));
   const hiddenFaceIndex = childIds.length; // reserved right after the real children
   const outgoingFaces = hiddenChildId ? [...realOutgoingFaces, exitFaceForIndex(hiddenFaceIndex)] : realOutgoingFaces;
+  // #174 Task 5 fix round: which child each outgoing face actually
+  // connects to, so the margin-gap computation below can tell whether
+  // buildEdgeCorridor will use its offset-based or center-based exit
+  // point for THIS specific connection (see the margin-wall comment
+  // below for why that distinction matters).
+  const childIdByFace = {};
+  childIds.forEach((id, i) => { childIdByFace[exitFaceForIndex(i)] = id; });
+  if (hiddenChildId) childIdByFace[exitFaceForIndex(hiddenFaceIndex)] = hiddenChildId;
   // #93 pre-flight fix: incoming is ALWAYS north now (Task 5's redesign),
   // subdivided into one door slot per `incomingConnections` entry — never
   // a variable compass direction, and never overlapping with outgoingFaces
@@ -351,30 +360,42 @@ export async function buildRoomAtGraphNode(
   // without needing to touch cellMarginWalls' own already-tested
   // signature.
   //
-  // Known limitation (not solved here, flagged for follow-up): this
-  // offset-based gap position matches buildEdgeCorridor's own real exit
-  // point ONLY for a same-column south connection with no obstacle
-  // reroute (the one branch that actually uses this same doorOffsetAt
-  // formula for its own doorWall) — a different-column connection, an
-  // east-face connection, or an obstacle-routed (multi-cell) connection
-  // all use a CENTER-based exit point instead (buildEdgeCorridor's own
-  // "different column"/multi-cell branches), which this room-build-time
-  // computation has no way to know in advance without re-deriving
-  // occupiedCells/the target's own position and re-running
-  // findCorridorPath here too — a bigger change than this integration
-  // task's own scope. In practice this means a branching room's 2nd/3rd
-  // real child (very often NOT in the same column as its parent) can get
-  // a margin gap that doesn't line up with where its own corridor
-  // actually crosses the cell boundary. Recommended follow-up: check this
-  // specifically in Task 6's regression sweep (corridor-vs-margin-wall
-  // overlap, not just corridor-vs-room-footprint) and/or extend Task 7's
-  // manual checklist beyond its own south-face example to an east-face/
-  // different-column case.
+  // #174 Task 5 fix round (found during Task 5's own review): the
+  // doorOffsetAt-based gap above only matches buildEdgeCorridor's own
+  // real exit point for a same-column south connection that is also
+  // exactly one rank apart with no obstacle reroute — the ONE case
+  // where buildEdgeCorridor's own path.length<=2 branch fires and uses
+  // this same doorOffsetAt formula for its own doorWall. Every other
+  // case — an east-face connection (always), a same-column south
+  // connection more than one rank apart (findCorridorPath's BFS returns
+  // a path longer than 2 even with zero obstacles, so THIS is the
+  // common shape for a merge room several ranks below a parent, not a
+  // rare one), a different-column south connection, or any
+  // obstacle-routed (multi-cell) connection — has buildEdgeCorridor use
+  // a CENTER-based exit point instead (its "different column"/multi-cell
+  // branches share the identical center formula). Confirmed by review:
+  // this was a real, common-case misalignment (a wall built directly
+  // across the corridor's own real crossing point), not a rare edge
+  // case, so it's fixed here by replicating buildEdgeCorridor's own
+  // branch-selection rule rather than deferring to a later sweep.
   const marginFaces = outgoingFaces.filter((face) => face === "east" || face === "south");
   const marginWalls = [];
   const coveredMarginSides = new Set();
   for (const face of marginFaces) {
-    const offset = doorOffsetAt(seed, `${roomId}-${face}`, "outgoing", rect.gw);
+    let offset;
+    if (face === "south") {
+      const childId = childIdByFace.south;
+      const childPos = childId ? layoutPositionByRoomId[childId] : null;
+      const usesOffsetBasedExit = childPos && childPos.col === col && Math.abs(childPos.rank - rank) === 1;
+      offset = usesOffsetBasedExit
+        ? doorOffsetAt(seed, `${roomId}-${face}`, "outgoing", rect.gw)
+        : rect.gw / 2 - DOOR_WIDTH / 2;
+    } else {
+      // East never takes buildEdgeCorridor's offset-based branch (that
+      // branch requires exitFace === 'south' explicitly) — always
+      // center-based, regardless of the child's rank/column.
+      offset = rect.gh / 2 - DOOR_WIDTH / 2;
+    }
     const sideWalls = cellMarginWalls(rect, rank, col, { openSide: face, openOffset: offset, openWidth: DOOR_WIDTH });
     for (const side of sideWalls) if (side.dir === face) marginWalls.push(side);
     coveredMarginSides.add(face);
@@ -1051,6 +1072,7 @@ export async function buildPopulateAndUnlockGraphNode(
         rank, col, childIds, incomingConnections, hiddenChildId,
         isGoal: room.isGoal, locationTag: room.locationTag,
         artVariant: room.artVariant, seed: state.seed,
+        layoutPositionByRoomId: state.layoutPositionByRoomId,
       },
     );
 
