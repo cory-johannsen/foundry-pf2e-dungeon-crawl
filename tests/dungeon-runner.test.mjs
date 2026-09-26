@@ -6,7 +6,6 @@ import {
   undoLastRoomEntry,
   canUndoRoomEntry,
   roomsToEagerlyBuild,
-  commitEagerPhysicalSlots,
   abandonRun,
   getRunState,
   ensureSkillChallenge,
@@ -2322,60 +2321,4 @@ it('roomsToEagerlyBuild returns an empty array for a single-room (entry-only) du
     layoutEdges: { 'room-entry': [] },
   };
   expect(roomsToEagerlyBuild(state)).toEqual([]);
-});
-
-describe("commitEagerPhysicalSlots", () => {
-  it("merges eagerly-built slot assignments into physicalSlotByRoomId and advances nextPhysicalSlot past the highest committed slot", async () => {
-    const settingsRef = makeSettingsStub();
-    const created = await createRun(
-      { sceneId: "s1", roomCount: 5, traits: [], excludeTraits: [] },
-      { settingsRef },
-    );
-    const eagerlyBuilt = [
-      { room: created.rooms[2], buildOrder: 2 },
-      { room: created.rooms[3], buildOrder: 3 },
-      { room: created.rooms[4], buildOrder: 4 },
-    ];
-    const result = await commitEagerPhysicalSlots("s1", eagerlyBuilt, {
-      settingsRef,
-    });
-    expect(result.physicalSlotByRoomId[created.rooms[2].id]).toBe(2);
-    expect(result.physicalSlotByRoomId[created.rooms[3].id]).toBe(3);
-    expect(result.physicalSlotByRoomId[created.rooms[4].id]).toBe(4);
-    expect(result.nextPhysicalSlot).toBe(5);
-  });
-
-  it("does not regress nextPhysicalSlot when called a second time with the same or a lower slot", async () => {
-    const settingsRef = makeSettingsStub();
-    const created = await createRun(
-      { sceneId: "s2", roomCount: 3, traits: [], excludeTraits: [] },
-      { settingsRef },
-    );
-    await commitEagerPhysicalSlots(
-      "s2",
-      [{ room: created.rooms[2], buildOrder: 2 }],
-      { settingsRef },
-    );
-    const result = await commitEagerPhysicalSlots(
-      "s2",
-      [{ room: created.rooms[2], buildOrder: 2 }],
-      { settingsRef },
-    );
-    expect(result.nextPhysicalSlot).toBe(3);
-  });
-
-  it("does not touch state.rooms, state.currentIndex, or any other field", async () => {
-    const settingsRef = makeSettingsStub();
-    const created = await createRun(
-      { sceneId: "s3", roomCount: 3, traits: [], excludeTraits: [] },
-      { settingsRef },
-    );
-    const result = await commitEagerPhysicalSlots(
-      "s3",
-      [{ room: created.rooms[2], buildOrder: 2 }],
-      { settingsRef },
-    );
-    expect(result.rooms).toEqual(created.rooms);
-    expect(result.currentIndex).toBe(created.currentIndex);
-  });
 });

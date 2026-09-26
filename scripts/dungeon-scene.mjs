@@ -19,38 +19,17 @@
  * replaced, which needed `module.api` because a Region's `executeScript`
  * behavior runs in a more sandboxed context).
  */
-// #93 pre-flight fix (Step 3a) — this import block is a deliberate
-// SUPERSET of the plan's literal replacement list. The plan's Step 3a text
-// says to drop slotRect/buildConnectionGeometry/outgoingFaceWall/
-// connectionDirection/slotRowCol entirely, on the (stated) assumption that
-// dungeon-layout.mjs had already deleted them — but as of this task's own
-// landing they're all still exported (Task 5's report flagged exactly this:
-// "there was no indication that outgoingFaceWall's caller sites would be
-// handled elsewhere"), and this file's OWN focusCameraOnSlot/
-// placePartyInSlot/openGoalRoomExit — none of which this
-// task touches; Task 11's own brief explicitly says "do not replace or
-// delete [focusCameraOnSlot] — the two other call sites in
-// scripts/ui/dungeon-app.mjs ... still key off the old physical-slot
-// model" — still call them directly, and buildRoomAtSlot/
-// buildPopulateAndUnlockRoom (kept below for the same reason, see their own
-// docblocks) still need them too. Dropping these imports as the plan's
-// literal text suggests would leave those still-active functions throwing
-// ReferenceErrors, and would break scripts/ui/dungeon-app.mjs's own static
-// import of buildRoomAtSlot/buildPopulateAndUnlockRoom (exercised for real
-// by tests/dungeon-app-treasure-chat.test.mjs's dynamic import) if those
-// two were deleted outright instead of kept alongside their graph-node
-// replacements. slotRowCol alone is genuinely unused now (its only caller,
-// requiredDimensions, is deleted below per Step 3f) and is dropped, along
-// with ROOMS_PER_ROW/CORRIDOR_LEN as the plan intends.
+// #93 post-merge fix (Task 15 item 1): every old linear-slot builder (room
+// build, populate+unlock, door unlock, party placement, camera focus,
+// goal-exit retrofit, slot encounter/trap teardown) is deleted — every live
+// caller uses the graph-node functions below — and with them this file's
+// imports of the old slot-indexed layout geometry, deleted from
+// dungeon-layout.mjs in the same pass.
 import {
   ROOM_SIZE_LARGE,
   INITIAL_GX,
-  slotRect,
   roomEnclosureWalls,
-  buildConnectionGeometry,
   corridorTileVariant,
-  outgoingFaceWall,
-  connectionDirection,
   ROW_STRIDE,
   COLUMN_STRIDE,
   roomRect,
@@ -99,7 +78,7 @@ const CORRIDOR_ART_BY_VARIANT = {
   mid: `${ROOM_ART_DIR}/corridor-mid.webp`,
 };
 
-// A room's own light (ITEM-14) — see buildRoomAtSlot. Radii scale with the
+// A room's own light (ITEM-14) — see buildRoomAtGraphNode. Radii scale with the
 // room's own actual size (ITEM-17, rooms are no longer all the same size):
 // a room is `roomSizeSquares` squares across, so at this scene's 5ft/square
 // grid its half-diagonal (center to corner) is roomSizeSquares*5/sqrt(2) ft
@@ -173,194 +152,9 @@ export async function createDungeonScene() {
 }
 
 /**
- * Build ONE physical room at `slot`. Connects it to `slot - 1` (door starts
- * LOCKED) unless `slot === 0`. `isGoal` suppresses the outgoing side — the
- * goal room has nowhere further to lead; every other room gets a temporary
- * full-face placeholder wall there instead (ITEM-20) until the next room's
- * own build swaps it for the real door/opening geometry — see
- * outgoingFaceWall's docblock. `locationTag`/`artVariant` (from the room's
- * own data — see dungeon-deck.mjs) pick its background Tile. `seed` (the
- * run's own seed) drives the connecting door/opening's independently random
- * placement on each side (ITEM-9), *and* this room's own size (small or
- * large, ITEM-17) — deterministic per run, so it needs threading through
- * from the caller like `locationTag`/`artVariant`.
- *
- * #93 pre-flight fix: kept, UNMODIFIED in behavior, alongside its graph-node
- * replacement `buildRoomAtGraphNode` below, purely so
- * `scripts/ui/dungeon-app.mjs`'s own still-physical-slot-keyed call sites
- * (Tasks 12/13's job to migrate, not this task's — see this task's own
- * report) keep resolving; NOT wired into any new code path by this task.
- * `roomEnclosureWalls`'s signature already changed out from under this
- * function's own call below (Task 5) before this task landed, so this was
- * already non-functional at runtime if actually invoked — this task does
- * not attempt to fix that, only to avoid deleting the export name outright
- * (which would break `ui/dungeon-app.mjs`'s static import — exercised for
- * real by `tests/dungeon-app-treasure-chat.test.mjs`'s dynamic import of
- * that file). The `ensureSceneCovers` call this function used to open with
- * is gone too (Step 3f deletes it outright, superseded by
- * `resizeSceneForLayout`) — removed here rather than left dangling.
- */
-export async function buildRoomAtSlot(
-  scene,
-  slot,
-  { isGoal = false, locationTag = null, artVariant = 0, seed = "" } = {},
-) {
-  const walls = roomEnclosureWalls(seed, slot, { hasOutgoing: !isGoal }).map(
-    (side) =>
-      wallDoc(side, {
-        flags: {
-          [MODULE_ID]: {
-            dungeonEnclosureWallForSlot: slot,
-            dungeonEnclosureWallDirection: side.dir,
-          },
-        },
-      }),
-  );
-  const tiles = [];
-  let placeholderIds = [];
-
-  if (slot > 0) {
-    // Supersede slot - 1's own temporary frontier placeholder (ITEM-20,
-    // below) with the real, precisely-cut door/opening geometry this room's
-    // build now provides for that connection. Looked up now, but actually
-    // *deleted only after* the new walls are created below (#110) — doing
-    // it the other way around (delete, then a separate awaited create call
-    // afterward) left a real window, the round-trip time between those two
-    // calls, where slot - 1's whole face had zero walls at all. Foundry
-    // recomputes vision on every wall change, and fogExploration bakes
-    // whatever was visible into the explored fog permanently; a token near
-    // that boundary during the gap would get a real, if brief, unwalled
-    // sightline clear across the rest of the scene, staying revealed in
-    // the fog forever after even though the correct walls land moments
-    // later — the "grey," already-explored-looking leak #110 reported,
-    // rather than a live/current-vision leak (buildConnectionGeometry's
-    // own geometry was checked by hand for this exact connection and
-    // fully encloses the corridor with no gap, so the leak has to be a
-    // timing issue like this one rather than wrong geometry). Creating
-    // the real walls first means the placeholder and the real geometry
-    // briefly overlap (redundant, but both still sight-blocking) instead
-    // of a moment with neither.
-    placeholderIds = scene.walls
-      .filter(
-        (w) => w.getFlag(MODULE_ID, "dungeonFrontierWallForSlot") === slot - 1,
-      )
-      .map((w) => w.id);
-
-    const { doorWall, revealDoorWall, plainWalls, corridorRect } =
-      buildConnectionGeometry(slot - 1, seed);
-    walls.push(
-      wallDoc(doorWall, {
-        door: CONST.WALL_DOOR_TYPES.DOOR,
-        ds: CONST.WALL_DOOR_STATES.LOCKED,
-        flags: { [MODULE_ID]: { dungeonDoorToSlot: slot } },
-      }),
-    );
-    // Never locked — the first door is the progress gate. This one is just
-    // the "open it and see what's inside" trigger (handleDungeonDoorOpened),
-    // freely operable by players the moment they're through the first door.
-    walls.push(
-      wallDoc(revealDoorWall, {
-        door: CONST.WALL_DOOR_TYPES.DOOR,
-        ds: CONST.WALL_DOOR_STATES.CLOSED,
-        flags: { [MODULE_ID]: { dungeonRevealDoorForSlot: slot } },
-      }),
-    );
-    walls.push(...plainWalls.map((w) => wallDoc(w)));
-    // corridorRect is tiled once per grid square rather than stretching one
-    // image across it — corridor.webp is a small self-contained "box"
-    // texture that looks wrong scaled. A gallery longer than one tile
-    // (ITEM-9/13) uses the open-sided corridor-end/-mid variants instead of
-    // repeating the fully-walled box, so it reads as one continuous hallway
-    // rather than a stack of separate boxed alcoves (ITEM-12) — see
-    // corridorTileVariant's docblock for which tile/rotation goes where.
-    // Unlike the room-art Tile below, these can be rotated (ITEM-12), so
-    // they must NOT use anchorX/Y:0 — rotation pivots around the texture
-    // anchor, and an anchor pinned to the top-left corner spins a rotated
-    // tile out of its own grid cell into a neighboring one (confirmed live:
-    // a 180°-rotated tile with anchorX/Y:0 rendered one cell up-and-left of
-    // its declared position). Leaving anchorX/Y at Foundry's own default
-    // (center) and passing the cell's center, not its corner, matches how
-    // scene-divination.mjs already places its own rotated card Tiles.
-    const vertical = corridorRect.gh >= corridorRect.gw;
-    const length = vertical ? corridorRect.gh : corridorRect.gw;
-    for (let i = 0; i < length; i += 1) {
-      const dx = vertical ? 0 : i;
-      const dy = vertical ? i : 0;
-      const { variant, rotation } = corridorTileVariant(i, length, vertical);
-      tiles.push({
-        texture: { src: CORRIDOR_ART_BY_VARIANT[variant] },
-        x: toPixels(corridorRect.gx + dx) + toPixels(1) / 2,
-        y: toPixels(corridorRect.gy + dy) + toPixels(1) / 2,
-        width: toPixels(1),
-        height: toPixels(1),
-        rotation,
-      });
-    }
-  }
-
-  if (!isGoal && !isSlotBuilt(scene, slot + 1)) {
-    // Frontier placeholder (ITEM-20): this room has no outgoing connection
-    // built yet, so without a wall here it's open on that entire face
-    // until the next room is built — vision, light, and movement all leak
-    // straight across the rest of the scene's pre-sized canvas. Deleted
-    // and replaced by the real door/opening geometry above the moment
-    // that next room actually gets built. Skipped entirely if the next
-    // slot is ALREADY built (#62) — an eager GM-less build can build a
-    // higher-numbered slot before this one (e.g. a deferred combat room
-    // at slot 1 built after slot 2 already exists), in which case the
-    // real connection already exists and a placeholder here would
-    // immediately be stale, permanently overlaying a door that will never
-    // get superseded (nothing triggers supersede-on-next-build for an
-    // already-built next slot).
-    walls.push(
-      wallDoc(outgoingFaceWall(seed, slot), {
-        flags: { [MODULE_ID]: { dungeonFrontierWallForSlot: slot } },
-      }),
-    );
-  }
-
-  if (walls.length) await scene.createEmbeddedDocuments("Wall", walls);
-  if (placeholderIds.length)
-    await scene.deleteEmbeddedDocuments("Wall", placeholderIds);
-
-  const rect = slotRect(seed, slot);
-  tiles.push({
-    texture: {
-      src: roomArtPath({ locationTag, isGoal, artVariant }),
-      anchorX: 0,
-      anchorY: 0,
-    },
-    x: toPixels(rect.gx),
-    y: toPixels(rect.gy),
-    width: toPixels(rect.gw),
-    height: toPixels(rect.gh),
-  });
-  await scene.createEmbeddedDocuments("Tile", tiles);
-
-  // Every room's art paints lit torches in its corners, but painted torches
-  // aren't real Foundry light sources — nothing here ever placed an
-  // AmbientLight to match, so a party with no darkvision (rules-based vision
-  // gives a non-darkvision PC a vision radius of 0, confirmed live) couldn't
-  // actually see the room they were standing in (ITEM-14). One centered
-  // light per room, radius generous enough to reach every corner (scaled to
-  // this room's own actual size, ITEM-17 — see roomLightRadii) plus a bit of
-  // dim falloff into the connecting corridor, fixes that without needing
-  // per-room-art torch positions (inconsistent across variants — e.g.
-  // construct art has none at all).
-  const { bright, dim } = roomLightRadii(rect.gw);
-  await scene.createEmbeddedDocuments("AmbientLight", [
-    {
-      x: toPixels(rect.gx + rect.gw / 2),
-      y: toPixels(rect.gy + rect.gh / 2),
-      config: { dim, bright, color: ROOM_LIGHT_COLOR, alpha: ROOM_LIGHT_ALPHA },
-    },
-  ]);
-}
-
-/**
  * #93 — manual/live-verification checklist (no Foundry test harness exists
- * for this file, same existing boundary as buildRoomAtSlot/
- * buildConnectionGeometry always had). Run this against a real Foundry
+ * for this file, same existing boundary the old linear-slot room builder
+ * always had). Run this against a real Foundry
  * world once this function is actually wired into a caller (Task 12) —
  * nothing calls `buildRoomAtGraphNode`/`buildPopulateAndUnlockGraphNode`
  * yet, so this task's own live verification is deliberately DEFERRED to
@@ -484,14 +278,14 @@ export async function buildRoomAtGraphNode(
   // creation succeeds.
   if (walls.length) await scene.createEmbeddedDocuments("Wall", walls);
 
-  // This room's own floor-art Tile + AmbientLight — same as buildRoomAtSlot
-  // above (roomArtPath for the Tile texture at anchorX/Y:0 sized to `rect`,
+  // This room's own floor-art Tile + AmbientLight — same as the old
+  // linear-slot room builder (roomArtPath for the Tile texture at anchorX/Y:0 sized to `rect`,
   // then roomLightRadii(rect.gw) for one centered AmbientLight). Unlike the
   // CORRIDOR tiles (which depend on a parent and so belong in
   // buildPopulateAndUnlockGraphNode below, not here), this room's own
   // art/light never depended on the connecting door in the old code
-  // either — only the `rect` source changed (roomRect instead of
-  // slotRect).
+  // either — only the `rect` source changed (roomRect instead of the old
+  // linear-slot rect).
   //
   // #93 pre-flight fix (fix round 2 — found by this task's own re-review
   // of its own round-1 fix): flagged `dungeonRoomBuilt: roomId`. isSlotBuilt
@@ -537,49 +331,10 @@ export async function buildRoomAtGraphNode(
 }
 
 /**
- * Retrofits a slot originally built as the goal room (isGoal: true,
- * hasOutgoing: false, no frontier placeholder) into a normal room with a
- * real outgoing connection — needed when a sequence mutation (#62) shifts
- * the goal to a new slot and a non-goal room ends up occupying this one.
- * Finds and deletes the one enclosure wall on this slot's own connection
- * direction (flagged by buildRoomAtSlot's own wall creation above), then
- * creates the same frontier-placeholder wall a normal non-goal room gets
- * from the start (buildRoomAtSlot's `if (!isGoal)` block) — after this,
- * the existing, unmodified supersede-on-next-build logic in buildRoomAtSlot
- * (the `if (slot > 0)` block) already knows how to find and replace a
- * dungeonFrontierWallForSlot-flagged wall once the chain extends past it.
- */
-export async function openGoalRoomExit(scene, slot, seed) {
-  const dir = connectionDirection(slot);
-  const staleWallIds = scene.walls
-    .filter(
-      (w) =>
-        w.getFlag(MODULE_ID, "dungeonEnclosureWallForSlot") === slot &&
-        w.getFlag(MODULE_ID, "dungeonEnclosureWallDirection") === dir,
-    )
-    .map((w) => w.id);
-  if (!staleWallIds.length) return;
-  // Create-then-delete, not the other way around — same reasoning as the
-  // buildRoomAtSlot `if (slot > 0)` block's own placeholder-supersede
-  // comment: deleting the stale wall first would leave a real window with
-  // zero walls on this face at all, leaking vision/light/movement straight
-  // across the rest of the scene until the replacement lands.
-  await scene.createEmbeddedDocuments("Wall", [
-    wallDoc(outgoingFaceWall(seed, slot), {
-      flags: { [MODULE_ID]: { dungeonFrontierWallForSlot: slot } },
-    }),
-  ]);
-  await scene.deleteEmbeddedDocuments("Wall", staleWallIds);
-}
-
-/**
- * Centers this client's camera on slot's room, zoomed to actually fit it.
- * `createDungeonScene` pre-sizes the scene with headroom for the first two
- * rows of rooms so `buildRoomAtSlot` isn't resizing the canvas on every
- * single room — but that leaves the one room actually built looking tiny and
- * stuck in a corner of a mostly-empty canvas until something pans there,
- * since Foundry's default view on activation just centers on the whole
- * (oversized) scene.
+ * Centers this client's camera on roomId's room, zoomed to actually fit it
+ * — without this, Foundry's default view on activation just centers on the
+ * whole (pre-sized, mostly-empty) scene, leaving the one room the party is
+ * actually in looking tiny and stuck in a corner.
  *
  * The scale is fit to the actual viewport rather than a fixed 1 — a fixed
  * zoom can leave the room's far edge past the visible area on a smaller
@@ -589,34 +344,14 @@ export async function openGoalRoomExit(scene, slot, seed) {
  *
  * Called both by the automatic room-entry trigger (which only fires once,
  * for whichever single party token happens to trip it first — with five
- * party tokens crossing one door, the other four's own tokenEnter events
- * find `currentIndex` already advanced and bail out before ever reaching a
+ * party tokens crossing one door, the other four's own events find
+ * `currentRoomId` already advanced and bail out before ever reaching a
  * camera pan) and by the tracker UI's own render, so simply having the
  * tracker window open keeps the view honest regardless of whether that
- * one-shot trigger happened to fire this time. `seed` (ITEM-17) is needed to
- * know this room's own actual size.
+ * one-shot trigger happened to fire this time. `seed` (ITEM-17) is needed
+ * to know this room's own actual size; `rank`/`col` (#93) to know where it
+ * is, since a room's position is no longer derivable from an integer alone.
  */
-export function focusCameraOnSlot(scene, slot, seed) {
-  if (canvas?.scene?.id !== scene.id) return;
-  const rect = slotRect(seed, slot);
-  const roomPixelSize = Math.max(toPixels(rect.gw), toPixels(rect.gh));
-  const [screenWidth, screenHeight] = canvas.screenDimensions ?? [1000, 1000];
-  // Fit the room's footprint plus a 30% margin into whichever screen
-  // dimension is tighter, clamped so a huge or tiny monitor doesn't zoom to
-  // an unreasonable extreme.
-  const fitScale = Math.min(screenWidth, screenHeight) / (roomPixelSize * 1.3);
-  const scale = Math.min(1.5, Math.max(0.3, fitScale));
-  canvas.animatePan({
-    x: toPixels(rect.gx + rect.gw / 2),
-    y: toPixels(rect.gy + rect.gh / 2),
-    scale,
-    duration: 250,
-  });
-}
-
-/** Graph-aware twin of focusCameraOnSlot — same camera-fit math, keyed by
- * roomRect(seed, roomId, rank, col) instead of slotRect(seed, slot), since
- * a room's position is no longer derivable from an integer alone. */
 export function focusCameraOnRoom(scene, roomId, rank, col, seed) {
   if (canvas?.scene?.id !== scene.id) return;
   const rect = roomRect(seed, roomId, rank, col);
@@ -630,16 +365,6 @@ export function focusCameraOnRoom(scene, roomId, rank, col, seed) {
     scale,
     duration: 250,
   });
-}
-
-export async function unlockDoorToSlot(scene, slot) {
-  const wall = scene.walls.find(
-    (w) => w.getFlag(MODULE_ID, "dungeonDoorToSlot") === slot,
-  );
-  if (wall) {
-    await wall.update({ ds: CONST.WALL_DOOR_STATES.CLOSED });
-    playDoorSound("unlock");
-  }
 }
 
 /** Undo-only twin of unlockDoorsFromRoom: re-locks the progress-gate door
@@ -680,7 +405,7 @@ export async function relockDoorFromRoom(scene, fromRoomId, toRoomId) {
  * target's face both carry this prefix, per Task 10's addendum) and, per
  * wall, based on its `dungeonHiddenDoorRole` ('gate' vs 'reveal', Task 10):
  * - sets `ds: CONST.WALL_DOOR_STATES.CLOSED` (unlocked, same convention as
- *   `unlockDoorToSlot`) on both
+ *   `unlockDoorsFromRoom`) on both
  * - the 'gate' wall gets `dungeonDoorToRoomId` (matches a normal
  *   progress-gate door — not itself a reveal trigger)
  * - the 'reveal' wall gets `dungeonRevealDoorForSlot` (Task 11's actual
@@ -725,8 +450,8 @@ export function isSlotPopulated(scene, slot) {
  * re-check of its own fix):
  *
  * Round 1's problem: this used to check the OLD `dungeonDoorToSlot` flag,
- * which only the old, now-kept-only-for-backward-compat `buildRoomAtSlot`/
- * `buildConnectionGeometry` path ever wrote —
+ * which only the old linear-slot room builder (since deleted, #93 Task 15)
+ * ever wrote —
  * `buildRoomAtGraphNode`/`buildPopulateAndUnlockGraphNode` never write it,
  * so this always returned `false` for every graph-built room.
  *
@@ -797,7 +522,7 @@ export async function populateSlotEncounter(
 
 /**
  * Spawn a real trap-tagged hazard from `pf2e.hazards` inside slot's own
- * footprint (#135), for a `trap` room (#32; `buildPopulateAndUnlockRoom`'s
+ * footprint (#135), for a `trap` room (#32; `buildPopulateAndUnlockGraphNode`'s
  * own job to know that — this function doesn't care where
  * `partyLevel`/`levelOffsetBias` came from). Hidden, exactly like a combat
  * room's own monsters
@@ -888,50 +613,6 @@ export async function populateSlotTrap(
   }
 }
 
-/**
- * Teardown counterpart to `populateSlotEncounter` above (#62 mutation
- * reconciliation) — needed when a Reward/Ruin sequence mutation changes
- * which logical room an already-built physical slot corresponds to, so
- * that slot's stale content is removed before the new room's own content
- * populates it (otherwise the new room's tokens would just layer on top of
- * the old room's leftover tokens instead of replacing them). Deletes every
- * token flagged `getFlag(MODULE_ID, "dungeonSlot") === slot`, and (for any
- * non-party actor among them) that token's own Actor document too —
- * mirrors `sweepLooseNpcActors`'s own token+actor deletion shape exactly,
- * scoped to one slot instead of the whole scene. Guards against ever
- * deleting a real party member's Actor document (defensive: a party token
- * shouldn't carry a `dungeonSlot` flag in the first place, but this
- * doesn't assume that). A no-op if nothing is flagged for this slot.
- */
-export async function clearSlotEncounter(scene, slot) {
-  const tokens = scene.tokens.filter(
-    (t) => t.getFlag(MODULE_ID, "dungeonSlot") === slot,
-  );
-  if (!tokens.length) return;
-  const partyIds = partyActorIds();
-  const tokenIds = tokens.map((t) => t.id);
-  const actorIds = [
-    ...new Set(
-      tokens.map((t) => t.actor?.id).filter((id) => id && !partyIds.has(id)),
-    ),
-  ];
-  await scene.deleteEmbeddedDocuments("Token", tokenIds);
-  if (actorIds.length) await Actor.deleteDocuments(actorIds);
-}
-
-/**
- * Teardown counterpart to `populateSlotTrap` above — a trap's spawned
- * hazard token carries the same `dungeonSlot` flag a combat encounter's
- * tokens do (see `populateSlotTrap`'s own `extraFlags`), so the same
- * flag-scoped token+actor deletion `clearSlotEncounter` already does
- * applies unchanged here. Does not touch `roomId`'s persisted `trap` state
- * (`ensureTrapState`'s own field) — that's `dungeon-runner.mjs`'s
- * `clearTrapState`'s job; the caller runs both together.
- */
-export async function clearSlotTrap(scene, slot) {
-  await clearSlotEncounter(scene, slot);
-}
-
 /** Un-hides slot's tagged tokens (discovery). Returns the ids revealed. */
 export async function revealSlotTokens(scene, slot) {
   const tokens = scene.tokens.filter(
@@ -962,7 +643,7 @@ function partyActorIds() {
 
 /** An actor should only ever have one token in the world at a time (the party
  * moves as a unit between the dungeon and wherever they came from) — used by
- * both placePartyInSlot and teardownDungeonRun's return-trip placement. */
+ * both placePartyInRoom and teardownDungeonRun's return-trip placement. */
 async function removeActorTokensFromAllScenes(actorId) {
   for (const s of game.scenes) {
     const existing = s.tokens.filter((t) => t.actor?.id === actorId);
@@ -974,37 +655,9 @@ async function removeActorTokensFromAllScenes(actorId) {
   }
 }
 
-/** Start-of-run: place the party's tokens inside slot, removing any of their
- * tokens elsewhere in the world first. `seed` (ITEM-17) is needed to know
- * this room's own actual size. */
-export async function placePartyInSlot(scene, slot, partyMembers, seed) {
-  const rect = slotRect(seed, slot);
-  const occupied = [];
-  const createdIds = [];
-  for (const actor of partyMembers) {
-    await removeActorTokensFromAllScenes(actor.id);
-    const spot = freeSpotInRect({ occupied, rect, gw: 1, gh: 1 }) ?? {
-      gx: rect.gx,
-      gy: rect.gy,
-      gw: 1,
-      gh: 1,
-    };
-    occupied.push(spot);
-    const td = await actor.getTokenDocument({
-      x: toPixels(spot.gx),
-      y: toPixels(spot.gy),
-    });
-    const [created] = await scene.createEmbeddedDocuments("Token", [
-      td.toObject(),
-    ]);
-    createdIds.push(created.id);
-  }
-  return createdIds;
-}
-
 /** Start-of-run: place the party's tokens inside roomId, removing any of
- * their tokens elsewhere in the world first. Graph-aware twin of
- * placePartyInSlot, keyed by roomRect instead of slotRect. */
+ * their tokens elsewhere in the world first. `rank`/`col` (#93) position
+ * the room via roomRect; `seed` (ITEM-17) sizes it. */
 export async function placePartyInRoom(scene, roomId, rank, col, partyMembers, seed) {
   const rect = roomRect(seed, roomId, rank, col);
   const occupied = [];
@@ -1143,9 +796,8 @@ export async function teardownDungeonRun(
 }
 
 /** Move already-placed tokens into roomId — for undo, stepping the party
- * back. Graph-aware twin of moveTokensToSlot, keyed by roomRect(seed,
- * roomId, rank, col) instead of slotRect(seed, slot), since a room's
- * position is no longer derivable from an integer alone. */
+ * back. Keyed by roomRect(seed, roomId, rank, col), since a room's
+ * position is no longer derivable from an integer alone (#93). */
 export async function moveTokensToRoom(scene, tokenIds, roomId, rank, col, seed) {
   if (!tokenIds?.length) return;
   const rect = roomRect(seed, roomId, rank, col);
@@ -1158,177 +810,9 @@ export async function moveTokensToRoom(scene, tokenIds, roomId, rank, col, seed)
 }
 
 /**
- * Build+populate+unlock one room at its physical slot. Shared by
- * ui/dungeon-app.mjs's normal outcome-resolution path, its #onStart's
- * auto-advance past the safe entry room, and handleDungeonDoorOpened's own
- * auto-advance past a mid-dungeon rest room below — none of which have
- * anything to resolve, so nothing ever calls resolveCurrentRoom for them
- * (see dungeon-deck.mjs's buildRoomSequence). Lives here rather than in
- * ui/dungeon-app.mjs because handleDungeonDoorOpened needs it too, and this
- * file deliberately never imports from ui/dungeon-app.mjs (see this file's
- * own docblock).
- *
- * #93 pre-flight fix: kept, UNMODIFIED in behavior, alongside its graph-node
- * replacement `buildPopulateAndUnlockGraphNode` below — same reasoning as
- * `buildRoomAtSlot` above (still statically imported by
- * `scripts/ui/dungeon-app.mjs`'s own not-yet-migrated call sites; Tasks
- * 12/13's job, not this task's). It still calls `buildRoomAtSlot` (also
- * kept) and the now-signature-changed `populateSlotEncounter`/
- * `populateSlotTrap` without a `rect` (Step 3d) — already only reachable
- * through an already-broken `buildRoomAtSlot` call above it in this same
- * function, so this doesn't newly break anything that wasn't already
- * non-functional at runtime before this task landed.
- */
-export async function buildPopulateAndUnlockRoom(
-  scene,
-  state,
-  room,
-  physicalSlot,
-  { unlock = true } = {},
-) {
-  if (!isSlotBuilt(scene, physicalSlot)) {
-    await buildRoomAtSlot(scene, physicalSlot, {
-      isGoal: room.isGoal,
-      locationTag: room.locationTag,
-      artVariant: room.artVariant,
-      seed: state.seed,
-    });
-  }
-
-  if (room.kind === "combat") {
-    if (!isSlotPopulated(scene, physicalSlot)) {
-      await populateSlotEncounter(scene, physicalSlot, {
-        prefillTraits: state.traits,
-        prefillExcludeTraits: state.excludeTraits,
-        levelOffsetBias: depthBiasFor({
-          physicalSlot,
-          roomCount: state.rooms.length,
-          isGoal: room.isGoal,
-        }),
-        locationTag: room.locationTag,
-        seed: state.seed,
-      });
-    }
-    // Only unlock once monsters are actually in place — a cancelled theme
-    // dialog leaves the door locked rather than opening onto an empty room;
-    // the GM retries via the "Populate Next Room" button.
-    if (unlock && isSlotPopulated(scene, physicalSlot))
-      await unlockDoorToSlot(scene, physicalSlot);
-  } else {
-    // #109: a skill_challenge room's Victory Point state used to be
-    // lazily attached the first time DungeonApp rendered it — but a
-    // client logged in only to relay a GM-less host's requests never
-    // renders DungeonApp at all, so that write would never happen for
-    // such a run. Attaching it here instead means it's always done by
-    // whichever client is actually building the room (a GM directly, or
-    // the GM-side relay handler executing a routed request) — the same
-    // place trap/encounter population already happens for the room
-    // that's about to become current.
-    if (room.kind === "skill_challenge") {
-      const partyMembers = (game.actors?.party?.members ?? []).filter(
-        (m) => m.type === "character",
-      );
-      // #164: the template (if any) is selected once, here, at the same
-      // build-time this room's Victory Point state is first attached —
-      // ensureSkillChallenge itself is a no-op past that point, so this
-      // never re-rolls a template a later re-render/re-build might
-      // otherwise see rendered differently.
-      const setpieces = await loadDungeonSetpieces();
-      const template = selectSkillChallengeTemplate(
-        setpieces,
-        state.seed,
-        room.id,
-      );
-      await ensureSkillChallenge(scene.id, room.id, {
-        seed: state.seed,
-        locationTag: room.locationTag,
-        partySize: partyMembers.length,
-        depthBias: depthBiasFor({
-          physicalSlot,
-          roomCount: state.rooms.length,
-          isGoal: room.isGoal,
-        }),
-        template,
-      });
-    }
-    // #32: puzzle and trap are now decided up front as their own room kinds
-    // (dungeon-deck.mjs's ROOM_KIND_WEIGHTS/roomKindAt), so this dispatches
-    // directly on room.kind — no more resolving the setpiece just to find
-    // out which branch to take, the way the old combined 'puzzle_or_trap'
-    // kind required. A puzzle setpiece's own state is attached right here
-    // too (#109/#137) — it used to lazily attach itself the first time the
-    // room rendered in dungeon-app.mjs, the same pattern skill_challenge's
-    // own state used to use above before #109 moved it to this same
-    // build-time spot, for the same reason: a client only relaying a
-    // GM-less host's requests never renders DungeonApp at all. A trap room
-    // additionally gets a real, mechanically-functional hazard spawned from
-    // pf2e.hazards for #134's engine to run.
-    if (
-      room.kind === "trap" &&
-      room.setpieceId &&
-      !isSlotPopulated(scene, physicalSlot)
-    ) {
-      await populateSlotTrap(scene, physicalSlot, {
-        partyLevel: await makeFoundryApi().partyLevel(),
-        levelOffsetBias: depthBiasFor({
-          physicalSlot,
-          roomCount: state.rooms.length,
-          isGoal: room.isGoal,
-        }),
-        locationTag: room.locationTag,
-        seed: state.seed,
-        roomId: room.id,
-      });
-    } else if (room.kind === "puzzle" && room.setpieceId) {
-      const setpieces = await loadDungeonSetpieces();
-      const setpiece = setpieces.find((s) => s.id === room.setpieceId);
-      await ensurePuzzleState(scene.id, room.id, {
-        hintChecks: setpiece.hintChecks,
-        requiredSuccesses: setpiece.requiredSuccesses ?? null,
-        partyLevel: await makeFoundryApi().partyLevel(),
-        name: setpiece.name ?? null,
-        summary: setpiece.summary ?? null,
-      });
-    }
-    // #167: a narrative room's own selected content is attached here too
-    // (#165 gives it a setpieceId the same way a puzzle or trap room has
-    // always had one) — persisted as `room.narrative` rather than read straight
-    // off the raw setpiece (#165's original shape), so an external agent's
-    // later customization (ensureNarrativeState's own docblock explains
-    // why) has somewhere durable to land.
-    if (room.kind === "narrative" && room.setpieceId) {
-      const setpieces = await loadDungeonSetpieces();
-      const setpiece = setpieces.find((s) => s.id === room.setpieceId);
-      if (setpiece?.kind === "narrative" && isValidNarrativeTemplate(setpiece)) {
-        await ensureNarrativeState(scene.id, room.id, { setpiece });
-      }
-    }
-    // #89: a treasure room's own selected content is attached here too, the
-    // same build-time spot as puzzle/narrative above — treasure has no
-    // per-archetype mechanical shape to validate (unlike narrative's
-    // isValidNarrativeTemplate) since a treasure setpiece carries nothing
-    // but name/summary; any setpiece of this kind is usable as-is. This is
-    // the integration point that makes treasure participate correctly in
-    // #62's eager-build-for-GM-less-runs and mutation-reconciliation
-    // machinery the same way every other kind already does — without it, a
-    // GM-less run would never get a treasure room's flavor attached at all,
-    // and a mutation that relocates a treasure room wouldn't reconcile its
-    // content correctly either.
-    if (room.kind === "treasure" && room.setpieceId) {
-      const setpieces = await loadDungeonSetpieces();
-      const setpiece = setpieces.find((s) => s.id === room.setpieceId);
-      if (setpiece?.kind === "treasure") {
-        await ensureTreasureState(scene.id, room.id, { setpiece });
-      }
-    }
-    if (unlock) await unlockDoorToSlot(scene, physicalSlot);
-  }
-}
-
-/**
- * Build+populate+unlock one graph room (#93 replacement for
- * `buildPopulateAndUnlockRoom` above) — the function Tasks 11/12/13 actually
- * call. Walls (this room's own enclosure, plus every incoming connection's
+ * Build+populate+unlock one graph room (#93 replacement for the old
+ * linear-slot builder, since deleted) — the function Tasks 11/12/13
+ * actually call. Walls (this room's own enclosure, plus every incoming connection's
  * own geometry, real AND hidden) + content population + door unlock, all
  * keyed by `room.id` (string) everywhere the original used `physicalSlot`
  * (integer) as the `dungeonSlot` flag value and the `populateSlot*`/
@@ -1443,7 +927,7 @@ export async function buildPopulateAndUnlockGraphNode(
       }
       // Corridor floor tiles — one loop per corridorSegments entry (1 for a
       // straight edge, 2 for an L-shaped edge, Task 6), same per-tile
-      // variant/rotation logic buildRoomAtSlot's own single-corridorRect
+      // variant/rotation logic the old linear-slot builder's single-corridorRect
       // loop always used, just offset by each segment's own gx/gy instead
       // of a single shared corridorRect's.
       for (const segment of corridorSegments) {
@@ -1493,10 +977,10 @@ export async function buildPopulateAndUnlockGraphNode(
       await unlockDoorsFromRoom(scene, room.id, childIds, state.hiddenEdges[room.id] ?? []);
   } else {
     // Every other room.kind branch (skill_challenge / trap / puzzle /
-    // narrative / treasure) is UNCHANGED from buildPopulateAndUnlockRoom's
-    // own body above, with physicalSlot -> room.id/rank (as the
-    // populateSlotTrap/depthBiasFor argument respectively) and the final
-    // unlockDoorToSlot -> unlockDoorsFromRoom.
+    // narrative / treasure) is UNCHANGED from the old linear-slot
+    // builder's own body (deleted, #93 Task 15), with physicalSlot ->
+    // room.id/rank (as the populateSlotTrap/depthBiasFor argument
+    // respectively) and its final single-door unlock -> unlockDoorsFromRoom.
     if (room.kind === "skill_challenge") {
       const partyMembers = (game.actors?.party?.members ?? []).filter(
         (m) => m.type === "character",
@@ -1594,7 +1078,7 @@ export async function buildPopulateAndUnlockGraphNode(
 /** Unlocks every one of roomId's outgoing doors whose target is in childIds
  * but not in hiddenChildIds — #93: a graph room can have several exits, all
  * needing unlocking together once its own outcome resolves, unlike the old
- * single unlockDoorToSlot call. Each door was flagged dungeonDoorToRoomId
+ * linear-slot model's single one-door unlock. Each door was flagged dungeonDoorToRoomId
  * with its own target room id AND dungeonDoorFromRoomId with its own source
  * room id at build time (buildPopulateAndUnlockGraphNode above).
  *

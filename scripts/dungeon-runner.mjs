@@ -233,8 +233,8 @@ export async function markRoomOutcome(
   // (ui/dungeon-app.mjs's #onSucceed etc.). A double-click (or a slow click
   // registering twice before the first await resolves and re-renders) would
   // resolve the same room's outcome a second time — reapplying its reward/
-  // ruin mutation and re-running buildPopulateAndUnlockRoom for whatever
-  // comes next a second time (duplicate walls, a second set of monsters).
+  // ruin effect and re-running the ensure-built/unlock pass for whatever
+  // comes next a second time.
   // Guarded here, once, at the single place every resolution path funnels
   // through, rather than patching each caller's button individually.
   if (state.history.some((h) => h.roomId === room.id)) {
@@ -369,34 +369,6 @@ export function roomsToEagerlyBuild(state) {
     }
   }
   return order.map((room, i) => ({ room, buildOrder: i }));
-}
-
-/**
- * Persists the physical-slot assignments startDungeonRun's eager GM-less
- * build loop already made in memory (#62) — without this, the run's
- * tracked physicalSlotByRoomId/nextPhysicalSlot bookkeeping would never
- * learn those rooms were built, and markRoomOutcome's own reuse-or-allocate
- * logic (which already correctly handles "this room's slot may already be
- * assigned" for the lazy/mutation case) would reassign colliding slots via
- * its counter instead of reusing them. `eagerlyBuilt` is exactly what
- * roomsToEagerlyBuild(state) returned — {room, buildOrder} pairs, any
- * order.
- */
-export async function commitEagerPhysicalSlots(
-  sceneId,
-  eagerlyBuilt,
-  { settingsRef = defaultSettingsRef() } = {},
-) {
-  const state = getRunState(sceneId, { settingsRef });
-  if (!state) return state;
-  const physicalSlotByRoomId = { ...state.physicalSlotByRoomId };
-  let nextPhysicalSlot = state.nextPhysicalSlot;
-  for (const { room, buildOrder } of eagerlyBuilt) {
-    physicalSlotByRoomId[room.id] = buildOrder;
-    nextPhysicalSlot = Math.max(nextPhysicalSlot, buildOrder + 1);
-  }
-  const newState = { ...state, physicalSlotByRoomId, nextPhysicalSlot };
-  return persist(sceneId, newState, settingsRef);
 }
 
 export async function undoLastRoomEntry(
@@ -773,9 +745,10 @@ export async function ensureTrapState(
  * logical room occupies this physical slot) attaches fresh state instead of
  * finding the old room's `trap` still set and treating it as "already
  * attached." A no-op (no persist) if that room has no `trap` at all, the
- * same no-op shape `clearPuzzleState` itself uses. `dungeon-scene.mjs`'s
- * `clearSlotTrap` handles the Foundry-side hazard actor/token teardown;
- * this is the room-state-only counterpart the caller runs alongside it.
+ * same no-op shape `clearPuzzleState` itself uses. Room-state only — it
+ * never touches the Foundry-side hazard actor/token (dungeon-scene.mjs's
+ * old slot-scoped hazard teardown helper was deleted by #93 Task 15, having
+ * no remaining caller once runtime sequence mutation was retired).
  */
 export async function clearTrapState(
   sceneId,

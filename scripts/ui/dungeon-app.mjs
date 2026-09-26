@@ -597,8 +597,8 @@ export async function startDungeonRun({
       unlock: false,
     });
   }
-  // #93 pre-flight fix: commitEagerPhysicalSlots dropped entirely — it
-  // only ever maintained physicalSlotByRoomId/nextPhysicalSlot, both fully
+  // #93 pre-flight fix: the old eager physical-slot commit step is dropped
+  // entirely (deleted outright by Task 15) — it only ever maintained physicalSlotByRoomId/nextPhysicalSlot, both fully
   // retired by this task's own migration (Step 4/6 below read state.rooms
   // directly by id; nothing reads a "physical slot" anymore).
 
@@ -888,7 +888,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     // #162/#109: the challenge (including its #164 template, if any) is
     // attached at room-build time (dungeon-scene.mjs's
-    // buildPopulateAndUnlockRoom), not lazily on render — a client logged
+    // buildPopulateAndUnlockGraphNode), not lazily on render — a client logged
     // in only to relay a GM-less host's requests never renders DungeonApp
     // at all, so a render-time write would never happen for such a run.
     // This is a pure read of whatever's already persisted; #166's
@@ -926,7 +926,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // `resolved`, the same "only once resolved" gating
     // #onAttemptSkillChallenge already uses. The puzzle's own state is
     // attached at room-build time (dungeon-scene.mjs's
-    // buildPopulateAndUnlockRoom), not lazily here — this is a pure read
+    // buildPopulateAndUnlockGraphNode), not lazily here — this is a pure read
     // of whatever's already persisted, same reasoning as the
     // skill_challenge block above.
     const isPuzzleRoom = currentRoom?.kind === "puzzle" && !currentRoomResolved;
