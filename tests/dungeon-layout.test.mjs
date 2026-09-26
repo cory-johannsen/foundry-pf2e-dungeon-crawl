@@ -7,7 +7,7 @@ import {
   cellBounds, findCorridorPath, INITIAL_GX, cellMarginWalls, transitCellCrossing,
   transitCellContainmentWalls, CORRIDOR_LEN, outgoingMarginOffset,
 } from '../scripts/dungeon-layout.mjs';
-import { buildRoomGraph } from '../scripts/dungeon-deck.mjs';
+import { buildRoomGraph, attachHiddenPaths } from '../scripts/dungeon-deck.mjs';
 
 const SEED = 'seed-a';
 
@@ -1026,5 +1026,155 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
 
   it('aligns a different-column south connection (buildEdgeCorridor\'s center-based branch — multi-cell here, since a 1-rank/1-col move is Manhattan distance 2, but shares its exitPoint formula byte-for-byte with the different-column fallback branch)', () => {
     expectSouthAlignment({ rank: 0, col: 0 }, { rank: 1, col: 1 }, {});
+  });
+});
+
+function rectsOverlap(a, b) {
+  return a.gx < b.gx + b.gw && a.gx + a.gw > b.gx && a.gy < b.gy + b.gh && a.gy + a.gh > b.gy;
+}
+
+describe('corridor routing regression sweep (#174)', () => {
+  it('no corridor segment overlaps any room footprint other than its own endpoints, across a large seed/roomCount sweep', () => {
+    let totalEdges = 0;
+    let overlappingEdges = 0;
+    for (let i = 0; i < 500; i += 1) {
+      const seed = `sweep-${i}`;
+      const roomCount = 6 + (i % 15);
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+      const { layoutEdges } = attachHiddenPaths({ rooms, edges, seed });
+      const ranks = computeRanks(layoutEdges, 'room-entry');
+      const columns = computeColumns(layoutEdges, ranks, 'room-entry');
+      const positionByRoomId = Object.fromEntries(
+        Object.keys(rooms).map((id) => [id, { rank: ranks[id], col: columns[id] }]),
+      );
+      const occupiedCells = Object.fromEntries(
+        Object.entries(positionByRoomId).map(([id, pos]) => [`${pos.rank},${pos.col}`, id]),
+      );
+      // Keyed by room id, not object reference — roomRect is called fresh
+      // per edge below, so two calls for the same room id would otherwise
+      // produce distinct object instances a `!==` reference check could
+      // never actually exclude.
+      const rectById = Object.fromEntries(
+        Object.keys(rooms).map((id) => [id, roomRect(seed, id, positionByRoomId[id].rank, positionByRoomId[id].col)]),
+      );
+
+      for (const [fromId, children] of Object.entries(edges)) {
+        for (let idx = 0; idx < children.length; idx += 1) {
+          const toId = children[idx];
+          totalEdges += 1;
+          const fromRect = rectById[fromId];
+          const toRect = rectById[toId];
+          const toSlot = northDoorSlots(toRect, 1)[0];
+          const result = buildEdgeCorridor(
+            seed, fromId, toId, fromRect, toRect,
+            positionByRoomId[fromId], positionByRoomId[toId],
+            exitFaceForIndex(idx), toSlot, occupiedCells,
+          );
+          const allSegments = [
+            ...result.corridorSegments,
+            ...result.transitCells.flatMap((c) => c.corridorSegments),
+          ];
+          const hasOverlap = allSegments.some((seg) =>
+            Object.entries(rectById).some(
+              ([id, r]) => id !== fromId && id !== toId && rectsOverlap(seg, r),
+            ),
+          );
+          if (hasOverlap) overlappingEdges += 1;
+        }
+      }
+    }
+    expect(overlappingEdges).toBe(0);
+    expect(totalEdges).toBeGreaterThan(1000); // sanity: the sweep actually exercised real branching
+  });
+
+  // #174 Task 5's own margin-alignment bug (a room's cell-margin
+  // containment wall built directly across the real corridor's own
+  // crossing point) took 3 fix rounds to close correctly and had zero
+  // regression coverage until Task 5's own fix round added 5 hand-picked
+  // unit tests. This sweep provides the same broad, whole-pipeline proof
+  // for that bug that the test above provides for room-footprint
+  // overlap — real seeds, real branching, not just the handful of cases
+  // a person thought to write by hand.
+  it('every SMALL room\'s cell-margin gap coincides exactly with buildEdgeCorridor\'s real crossing point, across the same seed/roomCount sweep', () => {
+    let totalMarginedConnections = 0;
+    for (let i = 0; i < 500; i += 1) {
+      const seed = `sweep-${i}`;
+      const roomCount = 6 + (i % 15);
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+      const { layoutEdges } = attachHiddenPaths({ rooms, edges, seed });
+      const ranks = computeRanks(layoutEdges, 'room-entry');
+      const columns = computeColumns(layoutEdges, ranks, 'room-entry');
+      const positionByRoomId = Object.fromEntries(
+        Object.keys(rooms).map((id) => [id, { rank: ranks[id], col: columns[id] }]),
+      );
+      const occupiedCells = Object.fromEntries(
+        Object.entries(positionByRoomId).map(([id, pos]) => [`${pos.rank},${pos.col}`, id]),
+      );
+      const rectById = Object.fromEntries(
+        Object.keys(rooms).map((id) => [id, roomRect(seed, id, positionByRoomId[id].rank, positionByRoomId[id].col)]),
+      );
+
+      for (const [fromId, children] of Object.entries(edges)) {
+        for (let idx = 0; idx < children.length; idx += 1) {
+          const toId = children[idx];
+          const face = exitFaceForIndex(idx);
+          if (face !== 'south' && face !== 'east') continue;
+          const fromRect = rectById[fromId];
+          if (fromRect.gw !== ROOM_SIZE_SMALL) continue; // no margin for LARGE rooms — cellMarginWalls' own no-op
+          const toRect = rectById[toId];
+          const toSlot = northDoorSlots(toRect, 1)[0];
+          const { doorWall } = buildEdgeCorridor(
+            seed, fromId, toId, fromRect, toRect,
+            positionByRoomId[fromId], positionByRoomId[toId],
+            face, toSlot, occupiedCells,
+          );
+          const offset = outgoingMarginOffset(
+            seed, fromId, toId, face, fromRect,
+            positionByRoomId[fromId], positionByRoomId[toId], occupiedCells,
+          );
+          const marginWalls = cellMarginWalls(
+            fromRect, positionByRoomId[fromId].rank, positionByRoomId[fromId].col,
+            { openSide: face, openOffset: offset, openWidth: DOOR_WIDTH },
+          ).filter((w) => w.dir === face);
+          totalMarginedConnections += 1;
+          // South's gap runs along x; east's runs along y. #174 Task 6
+          // fix-round finding: cellMarginWalls does NOT always return 2
+          // segments sandwiching the gap (the brief's own reference code
+          // assumed it always would) — when the gap touches either end of
+          // the cell's own side (openOffset === 0, or openOffset +
+          // openWidth === the full side length), only the OTHER side's
+          // wall is built (sealSide's own `gapStart > 0` / `gapEnd < full`
+          // guards). openOffset === 0 is a routine, common value (e.g.
+          // doorOffsetAt's own seeded roll), not a rare edge case — a
+          // 500-seed sweep hit it 616/6192 times. Verified by direct
+          // instrumentation: production (outgoingMarginOffset/
+          // cellMarginWalls/buildEdgeCorridor) was byte-for-byte correct
+          // in every one of these 616 cases; only this test's own
+          // min(w2)/max(w1) extraction — which silently assumed
+          // `marginWalls.length === 2` — produced a nonsensical
+          // reversed-looking gap when length was actually 1. Fixed by
+          // deriving the gap from the room's own cell bounds instead of
+          // assuming a fixed wall count: the "before" wall (if present)
+          // always starts exactly at the cell's own edge and ends at the
+          // gap; the "after" wall (if present) always ends exactly at the
+          // cell's opposite edge and starts at the gap; whichever one is
+          // missing means the gap itself extends all the way to that
+          // cell edge.
+          const cell = cellBounds(positionByRoomId[fromId].rank, positionByRoomId[fromId].col);
+          const cellStart = face === 'south' ? cell.gx : cell.gy;
+          const cellEnd = face === 'south' ? cell.gx + cell.gw : cell.gy + cell.gh;
+          const beforeWall = marginWalls.find((w) => (face === 'south' ? w.x1 : w.y1) === cellStart);
+          const afterWall = marginWalls.find((w) => (face === 'south' ? w.x2 : w.y2) === cellEnd);
+          const gap0 = beforeWall ? (face === 'south' ? beforeWall.x2 : beforeWall.y2) : cellStart;
+          const gap1 = afterWall ? (face === 'south' ? afterWall.x1 : afterWall.y1) : cellEnd;
+          const [door0, door1] = face === 'south'
+            ? [doorWall.x1, doorWall.x2]
+            : [doorWall.y1, doorWall.y2];
+          expect(gap0).toBeCloseTo(door0, 9);
+          expect(gap1).toBeCloseTo(door1, 9);
+        }
+      }
+    }
+    expect(totalMarginedConnections).toBeGreaterThan(200); // sanity: real SMALL-room south/east connections were exercised
   });
 });
