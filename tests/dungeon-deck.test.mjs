@@ -3,6 +3,7 @@ import {
   buildRoomSequence,
   buildRoomGraph,
   attachHiddenPaths,
+  insertRestRoom,
   resolveRoomOutcome,
   applySequenceMutation,
   findOutcomeTemplate,
@@ -729,5 +730,75 @@ describe('revealTravelTimeEffect', () => {
     const state = { edges: { a: ['b'] }, hiddenEdges: { a: ['shortcut-target'] } };
     const result = revealTravelTimeEffect(state, 'a', 'treasure');
     expect(result).toEqual({ ...state, revealedRoomId: null });
+  });
+});
+
+describe('insertRestRoom', () => {
+  it('adds no rest room at or below the threshold', () => {
+    const { rooms, edges } = buildRoomGraph({ seed: 's1', roomCount: MID_DUNGEON_REST_THRESHOLD });
+    const { rooms: rooms2 } = insertRestRoom({ rooms, edges, seed: 's1', roomCount: MID_DUNGEON_REST_THRESHOLD });
+    expect(Object.values(rooms2).some((r) => r.kind === 'safe_rest')).toBe(false);
+  });
+
+  it('adds exactly one safe_rest room above the threshold, with exactly one outgoing edge', () => {
+    const { rooms, edges } = buildRoomGraph({ seed: 's2', roomCount: 10 });
+    const { rooms: rooms2, edges: edges2 } = insertRestRoom({ rooms, edges, seed: 's2', roomCount: 10 });
+    const restRooms = Object.values(rooms2).filter((r) => r.kind === 'safe_rest');
+    expect(restRooms).toHaveLength(1);
+    expect(edges2[restRooms[0].id]).toHaveLength(1);
+  });
+
+  it('every real parent of the splice target is redirected through the rest room, and the target keeps the same total incoming count', () => {
+    const { rooms, edges } = buildRoomGraph({ seed: 's3', roomCount: 12 });
+    const { rooms: rooms2, edges: edges2 } = insertRestRoom({ rooms, edges, seed: 's3', roomCount: 12 });
+    const rest = Object.values(rooms2).find((r) => r.kind === 'safe_rest');
+    const target = rest && edges2[rest.id][0];
+    expect(target).toBeTruthy();
+    // Nothing else in the graph still points directly at target except room-rest.
+    const directParents = Object.entries(edges2).filter(([id, kids]) => id !== rest.id && kids.includes(target));
+    expect(directParents).toHaveLength(0);
+  });
+
+  it('never selects the goal or the entry as the splice target', () => {
+    for (let i = 0; i < 200; i += 1) {
+      const seed = `sweep-${i}`;
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount: 8 + (i % 6) });
+      const { rooms: rooms2, edges: edges2 } = insertRestRoom({ rooms, edges, seed, roomCount: 8 + (i % 6) });
+      const rest = Object.values(rooms2).find((r) => r.kind === 'safe_rest');
+      if (!rest) continue;
+      const target = edges2[rest.id][0];
+      expect(rooms2[target].isGoal).toBe(false);
+      expect(target).not.toBe('room-entry');
+    }
+  });
+
+  // Beyond the plan's own four tests: buildRoomGraph's real room ids are
+  // path-shaped ('room-room-entry-0', 'room-merge-6', ...), never a bare
+  // 'room-N', so a salt parsed from the id with /^room-(\d+)$/ would never
+  // match and silently produce zero rest rooms — which the plan's own
+  // "if (!rest) continue" sweep above would not catch. Pin that every graph
+  // above the threshold really gets exactly one.
+  it('always inserts exactly one rest room above the threshold, across a seed/roomCount sweep', () => {
+    for (let i = 0; i < 200; i += 1) {
+      const seed = `always-${i}`;
+      const roomCount = MID_DUNGEON_REST_THRESHOLD + 1 + (i % 10);
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+      const { rooms: rooms2 } = insertRestRoom({ rooms, edges, seed, roomCount });
+      expect(Object.values(rooms2).filter((r) => r.kind === 'safe_rest')).toHaveLength(1);
+    }
+  });
+
+  it('does not mutate its input graph', () => {
+    const { rooms, edges } = buildRoomGraph({ seed: 's4', roomCount: 10 });
+    const before = JSON.stringify({ rooms, edges });
+    insertRestRoom({ rooms, edges, seed: 's4', roomCount: 10 });
+    expect(JSON.stringify({ rooms, edges })).toBe(before);
+  });
+
+  it('is deterministic for a given seed', () => {
+    const a = buildRoomGraph({ seed: 's5', roomCount: 11 });
+    const b = buildRoomGraph({ seed: 's5', roomCount: 11 });
+    expect(insertRestRoom({ ...a, seed: 's5', roomCount: 11 }))
+      .toEqual(insertRestRoom({ ...b, seed: 's5', roomCount: 11 }));
   });
 });

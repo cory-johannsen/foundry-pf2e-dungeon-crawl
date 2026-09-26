@@ -481,6 +481,67 @@ export function buildRoomGraph({
   return { rooms, edges };
 }
 
+/**
+ * #93 post-merge fix (Task 15's final review): buildRoomGraph never
+ * creates a mid-dungeon rest room (ITEM-5) the way the old
+ * buildRoomSequence did — this restores it as a discrete post-processing
+ * pass, the same relationship attachHiddenPaths already has to
+ * buildRoomGraph's output, rather than complicating the forced-merge
+ * algorithm itself with rest-room placement.
+ *
+ * Picks the non-entry, non-goal room whose generation-order position is
+ * closest to Math.floor((roomCount - 2) / 2) — the same "nearest the
+ * midpoint of the run" semantics buildRoomSequence's own restAfterIndex
+ * used for a linear chain. Generation order is read from `rooms`' own key
+ * insertion order (buildRoomGraph inserts each room exactly when it builds
+ * it, and none of its ids are integer-like, so JS preserves that order),
+ * NOT parsed from the id: buildRoomGraph's ids are path-shaped
+ * ('room-room-entry-0', 'room-merge-6', ...), never a bare 'room-N'.
+ *
+ * Splices `room-rest` in as the new SOLE parent of the selected target:
+ * every room that currently points at the target is redirected to point
+ * at room-rest instead, and room-rest gets a single outgoing edge to the
+ * target. This works identically whether the target had one real parent
+ * (a normal room) or several (a merge room) — the target's own incoming
+ * face count only ever goes DOWN (to exactly 1, from room-rest), never up,
+ * so no room's exit-count budget is disturbed by this splice.
+ *
+ * Pure — returns new `rooms`/`edges` objects, never mutates its inputs.
+ * Must run BEFORE attachHiddenPaths (which excludes the rest room from
+ * hidden-path eligibility) and before any rank/column computation.
+ */
+export function insertRestRoom({ rooms, edges, seed, roomCount }) {
+  if (roomCount <= MID_DUNGEON_REST_THRESHOLD) return { rooms, edges };
+
+  const targetPosition = Math.floor((roomCount - 2) / 2);
+  let target = null;
+  let bestDistance = Infinity;
+  let position = 0;
+  for (const room of Object.values(rooms)) {
+    if (room.id === 'room-entry' || room.isGoal) continue;
+    const distance = Math.abs(position - targetPosition);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      target = room;
+    }
+    position += 1;
+  }
+  if (!target) return { rooms, edges }; // degenerate graph, nothing to splice before
+
+  const rest = {
+    id: 'room-rest', kind: 'safe_rest', isGoal: false, setpieceId: null, outcomeSlotId: null,
+    locationTag: locationTagAt(seed, 'rest'), artVariant: roomArtVariantAt(seed, 'rest')
+  };
+  const newRooms = { ...rooms, [rest.id]: rest };
+  const newEdges = { ...edges, [rest.id]: [target.id] };
+  for (const [parentId, children] of Object.entries(edges)) {
+    if (children.includes(target.id)) {
+      newEdges[parentId] = children.map((id) => (id === target.id ? rest.id : id));
+    }
+  }
+  return { rooms: newRooms, edges: newEdges };
+}
+
 // Tunable — how often a branch edge gets an optional pregenerated hidden
 // extra (a shortcut past the next room, or a detour room spliced in front
 // of it). Neither counts against roomCount, same treatment as the
