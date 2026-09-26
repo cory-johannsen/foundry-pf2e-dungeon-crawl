@@ -208,7 +208,7 @@ export function findPath(
 /**
  * Builds the `isBlocked(a, b)` predicate `findPath` expects from a flat list
  * of axis-aligned wall segments in pixel space — the same `{x1, y1, x2, y2}`
- * shape `wallDoc`/`buildConnectionGeometry` (dungeon-scene.mjs,
+ * shape `wallDoc`/`buildEdgeCorridor` (dungeon-scene.mjs,
  * dungeon-layout.mjs) already produce. Every wall this generator ever
  * creates is axis-aligned (ITEM-13/17's geometry never emits a diagonal
  * segment), so a non-axis-aligned segment is ignored rather than mishandled.

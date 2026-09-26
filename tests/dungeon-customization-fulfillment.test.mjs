@@ -42,6 +42,11 @@ describe("fulfillPendingCustomizations", () => {
     game.settings.get.mockImplementation((_module, key) =>
       key === "agentServiceUrl" ? "https://agent.example" : "test-key",
     );
+    // #93 fix round 1: fulfillKind now loops until getPending() returns
+    // null, so every getter defaults to null (vi.clearAllMocks doesn't reset
+    // implementations — a previous test's pending value would otherwise
+    // leak) and each test's pending room is a *Once value.
+    getPendingTrapCustomization.mockReturnValue(null);
     getPendingSkillChallengeCustomization.mockResolvedValue(null);
     getPendingPuzzleCustomization.mockResolvedValue(null);
     getPendingNarrativeCustomization.mockResolvedValue(null);
@@ -49,7 +54,7 @@ describe("fulfillPendingCustomizations", () => {
   });
 
   it("fetches and applies a treasure customization when one is pending", async () => {
-    getPendingTreasureCustomization.mockReturnValue({
+    getPendingTreasureCustomization.mockReturnValueOnce({
       sceneId: "s1",
       roomId: "r1",
       locationTag: null,
@@ -61,6 +66,7 @@ describe("fulfillPendingCustomizations", () => {
 
     await fulfillPendingCustomizations("scene1");
 
+    expect(fetchFlavorCustomization).toHaveBeenCalledTimes(1);
     expect(fetchFlavorCustomization).toHaveBeenCalledWith({
       baseUrl: "https://agent.example",
       apiKey: "test-key",
@@ -74,7 +80,7 @@ describe("fulfillPendingCustomizations", () => {
   });
 
   it("fetches and applies a trap customization when one is pending", async () => {
-    getPendingTrapCustomization.mockReturnValue({
+    getPendingTrapCustomization.mockReturnValueOnce({
       actorId: "a1",
       trapLevel: 3,
       partyLevel: 2,
@@ -100,7 +106,7 @@ describe("fulfillPendingCustomizations", () => {
 
   it("does nothing when agentServiceUrl is not configured", async () => {
     game.settings.get.mockReturnValue("");
-    getPendingTrapCustomization.mockReturnValue({
+    getPendingTrapCustomization.mockReturnValueOnce({
       actorId: "a1",
       trapLevel: 1,
       partyLevel: 1,
@@ -109,10 +115,39 @@ describe("fulfillPendingCustomizations", () => {
     await fulfillPendingCustomizations("scene1");
 
     expect(fetchFlavorCustomization).not.toHaveBeenCalled();
+    // #93 fix round 1: stops after the first unapplied room rather than
+    // re-reading the same still-pending room up to the loop cap.
+    expect(getPendingTrapCustomization).toHaveBeenCalledTimes(1);
+  });
+
+  it("drains every pending room of a kind in one call (#93 full pregeneration)", async () => {
+    getPendingPuzzleCustomization
+      .mockResolvedValueOnce({ sceneId: "s1", roomId: "r1" })
+      .mockResolvedValueOnce({ sceneId: "s1", roomId: "r2" })
+      .mockResolvedValueOnce({ sceneId: "s1", roomId: "r3" });
+    fetchFlavorCustomization.mockImplementation(({ context }) =>
+      Promise.resolve({ name: `Puzzle ${context.roomId}` }),
+    );
+
+    await fulfillPendingCustomizations("scene1");
+
+    expect(applyPuzzleCustomization).toHaveBeenCalledTimes(3);
+    expect(applyPuzzleCustomization).toHaveBeenNthCalledWith(1, "s1", "r1", { name: "Puzzle r1" });
+    expect(applyPuzzleCustomization).toHaveBeenNthCalledWith(2, "s1", "r2", { name: "Puzzle r2" });
+    expect(applyPuzzleCustomization).toHaveBeenNthCalledWith(3, "s1", "r3", { name: "Puzzle r3" });
+  });
+
+  it("caps the per-kind loop if a pending room never clears", async () => {
+    getPendingNarrativeCustomization.mockResolvedValue({ sceneId: "s1", roomId: "stuck" });
+    fetchFlavorCustomization.mockResolvedValue({ name: "N" });
+
+    await fulfillPendingCustomizations("scene1");
+
+    expect(applyNarrativeCustomization).toHaveBeenCalledTimes(50);
   });
 
   it("does not throw and leaves the trap unapplied when the fetch fails", async () => {
-    getPendingTrapCustomization.mockReturnValue({
+    getPendingTrapCustomization.mockReturnValueOnce({
       actorId: "a1",
       trapLevel: 1,
       partyLevel: 1,
@@ -123,15 +158,17 @@ describe("fulfillPendingCustomizations", () => {
       fulfillPendingCustomizations("scene1"),
     ).resolves.toBeUndefined();
     expect(applyTrapCustomization).not.toHaveBeenCalled();
+    // Stops on the error rather than retrying in a tight loop.
+    expect(fetchFlavorCustomization).toHaveBeenCalledTimes(1);
   });
 
   it("handles multiple pending kinds independently in one call", async () => {
-    getPendingTrapCustomization.mockReturnValue({
+    getPendingTrapCustomization.mockReturnValueOnce({
       actorId: "a1",
       trapLevel: 1,
       partyLevel: 1,
     });
-    getPendingSkillChallengeCustomization.mockResolvedValue({
+    getPendingSkillChallengeCustomization.mockResolvedValueOnce({
       sceneId: "s1",
       roomId: "r1",
       specialtySkills: ["athletics"],
@@ -160,12 +197,12 @@ describe("fulfillPendingCustomizations", () => {
   });
 
   it("still fulfills a later kind when an earlier kind fails", async () => {
-    getPendingTrapCustomization.mockReturnValue({
+    getPendingTrapCustomization.mockReturnValueOnce({
       actorId: "a1",
       trapLevel: 1,
       partyLevel: 1,
     });
-    getPendingSkillChallengeCustomization.mockResolvedValue({
+    getPendingSkillChallengeCustomization.mockResolvedValueOnce({
       sceneId: "s1",
       roomId: "r1",
       specialtySkills: ["athletics"],

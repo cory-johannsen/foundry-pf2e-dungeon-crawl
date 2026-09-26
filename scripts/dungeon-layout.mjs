@@ -5,29 +5,19 @@
  * squares, the same separation scene-divination.mjs keeps between its
  * LAYOUT design space and layoutTransform()'s canvas space.
  *
- * Rooms are laid out boustrophedon (even rows run east, odd rows run west)
- * so a row's last room and the next row's first room always share a grid
- * column — the wrap between rows is a plain straight corridor, never a jog.
- * Physical slots are assigned lazily, one at a time, as the party actually
- * approaches each room (see dungeon-scene.mjs) — this file only answers
- * "given a slot number, where is it and how does it connect," with no idea
- * of when a slot gets built.
+ * Rooms are positioned by their graph rank/column (#93, roomRect) on a
+ * uniform grid of cells (ROW_STRIDE/COLUMN_STRIDE) — computeRanks/
+ * computeColumns below assign each room its cell; this file only answers
+ * "given a room's rank/col, where is it and how does it connect to its
+ * children," with no idea of when a room gets built.
  *
- * A connection's door lives on exactly ONE wall: the earlier room's
- * forward-facing side, at its own independently-randomized offset. The
- * later room's facing side isn't wall-less any more (ITEM-9) — it gets a
- * plain opening (no door object, always passable) at its *own* independently
- * random offset, so the two ends of a connection often don't line up. The
- * shared 1-square-wide gap between them is enclosed by each room's own
- * gapped wall plus two fixed caps — see buildConnectionGeometry's docblock.
+ * A connection runs from one of a room's own outgoing faces
+ * (south/east/west, exitFaceForIndex) to a door slot on its child's north
+ * face (northDoorSlots), each end at its own independently-randomized
+ * offset — see buildEdgeCorridor's docblock.
  *
  * Every room is square, either ROOM_SIZE_SMALL or ROOM_SIZE_LARGE on a side
- * (ITEM-17) — picked per slot, deterministically, by roomSizeAt. Positions
- * (slotRect) are therefore a *cumulative* walk from slot 0 up to the target
- * slot rather than a fixed `slot * stride` formula — see slotRect's own
- * docblock for why that's what actually keeps the boustrophedon wrap's
- * "shared column, never a jog" guarantee intact once rooms stop being a
- * uniform size.
+ * (ITEM-17) — picked per room, deterministically, by roomSizeAt.
  */
 import { splitmix32, seedFromString } from './prng.mjs';
 
@@ -43,7 +33,54 @@ export const ROOMS_PER_ROW = 5;
 export const CORRIDOR_LEN = 1;
 export const DOOR_WIDTH = 1;
 
-const OPPOSITE = { north: 'south', south: 'north', east: 'west', west: 'east' };
+// gx starts at INITIAL_GX, not 0 — a west-moving row can walk backward by up
+// to its own full width (confirmed live while implementing this: a 2-row
+// dungeon with an all-small east row followed by an all-large west row drove
+// gx to -6), and unlike gy (which only ever increases), nothing else bounds
+// gx from below. Worst realistic case, given the Start form's own 20-room
+// cap (at most 4 rows): each row's width is at most
+// `ROOMS_PER_ROW * ROOM_SIZE_LARGE + (ROOMS_PER_ROW - 1) * CORRIDOR_LEN` =
+// 64, so the most an odd (west-moving) row can ever drive gx down by, net of
+// whatever the row before it added, is on that order — INITIAL_GX is set
+// generously past that so gx stays positive (Foundry Tiles/Walls at a
+// negative coordinate would sit outside this module's own scene, which only
+// ever grows from an assumed (0,0) origin — see ensureSceneCovers) for any
+// dungeon this module can actually generate, including a mutation or two
+// (ITEM-9's Extra Travel Time) past the form's own cap.
+export const INITIAL_GX = 300;
+
+// Uniform grid cell strides — a deliberate simplification of a fully
+// variable-width tree layout (see the design spec): every column is wide
+// enough for the largest room, every rank tall enough for the tallest, so
+// no two rooms ever overlap regardless of their individual roomSizeAt
+// roll, and a room is still visually centered over its children via
+// computeColumns' own column averaging.
+export const ROW_STRIDE = ROOM_SIZE_LARGE + CORRIDOR_LEN;
+export const COLUMN_STRIDE = ROOM_SIZE_LARGE + CORRIDOR_LEN;
+
+/** A room's footprint, positioned by its graph rank/column instead of a linear slot. */
+export function roomRect(seed, roomId, rank, col) {
+  const size = roomSizeAt(seed, roomId);
+  return {
+    gx: INITIAL_GX + col * COLUMN_STRIDE,
+    gy: rank * ROW_STRIDE,
+    gw: size,
+    gh: size
+  };
+}
+
+/** Deterministic compass face for a room's Nth exit (0-2), always distinct. */
+export function exitFaceForIndex(index) {
+  return ['south', 'east', 'west'][index];
+}
+
+// Still used by Task 6's corridor routing to determine a straight
+// segment's opposite endpoint direction — unrelated to which face a
+// room's OWN incoming/outgoing connections land on (see below, #93
+// pre-flight fix: incoming and outgoing are now always on structurally
+// disjoint faces, north vs. south/east/west, never computed via OPPOSITE
+// of each other for a room's own enclosure).
+export const OPPOSITE = { north: 'south', south: 'north', east: 'west', west: 'east' };
 
 /**
  * Deterministic size (ROOM_SIZE_SMALL or ROOM_SIZE_LARGE) for a room at a
@@ -62,83 +99,52 @@ export function roomSizeAt(seed, slot) {
   return ROOM_SIZE_WEIGHTS[ROOM_SIZE_WEIGHTS.length - 1].size;
 }
 
-/** Row/column of a physical slot, boustrophedon — independent of room size,
- * since it only decides *order*, not position. */
-export function slotRowCol(slot) {
-  const row = Math.floor(slot / ROOMS_PER_ROW);
-  const posInRow = slot % ROOMS_PER_ROW;
-  const col = row % 2 === 0 ? posInRow : ROOMS_PER_ROW - 1 - posInRow;
-  return { row, col };
-}
-
-/** Compass direction from `slot` to `slot + 1`: 'east' | 'west' | 'south'. */
-export function connectionDirection(slot) {
-  const { row } = slotRowCol(slot);
-  const posInRow = slot % ROOMS_PER_ROW;
-  if (posInRow === ROOMS_PER_ROW - 1) return 'south';
-  return row % 2 === 0 ? 'east' : 'west';
+/**
+ * Every real parent of `roomId` in `layoutEdges`, in deterministic
+ * `Object.entries` order. Empty for the entry room. Usually length 1; a
+ * merge room (multiple tips forced together by Task 2's forced-merge
+ * algorithm — routine throughout the graph, not just the final goal) can
+ * be longer. `layoutEdges` (not bare `edges`) so a detour room's one real
+ * parent link — which only exists as a `layoutEdges` entry (#156) —
+ * resolves too; `layoutEdges` equals `edges` for every non-detour room,
+ * so every call site is safe to pass either.
+ */
+export function parentRoomIdsFor(layoutEdges, roomId) {
+  if (roomId === 'room-entry') return [];
+  const parents = [];
+  for (const [parentId, children] of Object.entries(layoutEdges)) {
+    if (children.includes(roomId)) parents.push(parentId);
+  }
+  return parents;
 }
 
 /**
- * The room's footprint in grid units (top-left + size) — a cumulative walk
- * from slot 0, not a fixed `slot * stride` formula, now that rooms can be
- * different sizes (ITEM-17). Two rules keep the boustrophedon wrap's "shared
- * column, never a jog" guarantee intact regardless of size:
- * - An east/west step moves along the *current* row: gy never changes (every
- *   room in a row shares its top edge — "top-aligned," not centered — so a
- *   large room in an otherwise-small row simply extends further down than
- *   its neighbours), and gx advances by the room being left behind's own
- *   width (east) or the room being entered's own width (west), plus
- *   CORRIDOR_LEN either way.
- * - A south step (the row wrap) carries gx forward completely unchanged —
- *   not recomputed from either room's width — which is exactly what
- *   guarantees the two wrap-connected rooms share a column no matter how
- *   different their sizes are. gy advances by the room being left behind's
- *   own height, plus CORRIDOR_LEN.
- *
- * Slot count in real dungeons is small (the Start form caps it at 20), so
- * this being an O(slot) walk rather than an O(1) formula is not worth
- * caching against.
- *
- * gx starts at INITIAL_GX, not 0 — a west-moving row can walk backward by up
- * to its own full width (confirmed live while implementing this: a 2-row
- * dungeon with an all-small east row followed by an all-large west row drove
- * gx to -6), and unlike gy (which only ever increases), nothing else bounds
- * gx from below. Worst realistic case, given the Start form's own 20-room
- * cap (at most 4 rows): each row's width is at most
- * `ROOMS_PER_ROW * ROOM_SIZE_LARGE + (ROOMS_PER_ROW - 1) * CORRIDOR_LEN` =
- * 64, so the most an odd (west-moving) row can ever drive gx down by, net of
- * whatever the row before it added, is on that order — INITIAL_GX is set
- * generously past that so gx stays positive (Foundry Tiles/Walls at a
- * negative coordinate would sit outside this module's own scene, which only
- * ever grows from an assumed (0,0) origin — see ensureSceneCovers) for any
- * dungeon this module can actually generate, including a mutation or two
- * (ITEM-9's Extra Travel Time) past the form's own cap.
+ * Every incoming connection `roomId` needs its own door for, in slot
+ * order — real parents first (`parentRoomIdsFor`, deterministic), then a
+ * shortcut's hidden extra incoming source if any (`hiddenIncomingByRoomId`,
+ * Task 3 — set only for a shortcut's target room; a detour room's one
+ * incoming is already counted via its real `layoutEdges` parent link
+ * above, never both). #93 pre-flight fix: this is the whole redesign in
+ * one function — every entry this returns gets its own door slot on the
+ * room's NORTH face (northDoorSlots, below), never a separate compass
+ * direction. That's what actually guarantees a merge room gets a door
+ * for EVERY real parent (previously only one was ever built, silently
+ * dead-ending every other branch) and that incoming can never collide
+ * with a room's own outgoing faces (south/east/west, always disjoint
+ * from north).
  */
-export const INITIAL_GX = 300;
-
-export function slotRect(seed, slot) {
-  let gx = INITIAL_GX;
-  let gy = 0;
-  let size = roomSizeAt(seed, 0);
-  for (let s = 0; s < slot; s += 1) {
-    const dir = connectionDirection(s);
-    const nextSize = roomSizeAt(seed, s + 1);
-    if (dir === 'east') {
-      gx += size + CORRIDOR_LEN;
-    } else if (dir === 'west') {
-      gx -= CORRIDOR_LEN + nextSize;
-    } else {
-      // 'south' — gx deliberately untouched, see docblock above.
-      gy += size + CORRIDOR_LEN;
-    }
-    size = nextSize;
-  }
-  return { gx, gy, gw: size, gh: size };
+export function incomingConnectionsFor(layoutEdges, roomId, hiddenIncomingByRoomId = {}) {
+  const real = parentRoomIdsFor(layoutEdges, roomId).map((sourceId) => ({ sourceId, hidden: false }));
+  const hidden = (hiddenIncomingByRoomId[roomId] ?? []).map((sourceId) => ({ sourceId, hidden: true }));
+  return [...real, ...hidden];
 }
 
-function roomSides(seed, slot) {
-  const { gx, gy, gw, gh } = slotRect(seed, slot);
+/** A room's own four wall segments, by compass side — exported (Task 10's
+ * own #93 pre-flight fix) so dungeon-scene.mjs can look up an individual
+ * outgoing face's segment directly (e.g. for a per-connection frontier
+ * placeholder) without needing a new wrapper here. */
+export function roomSidesForRect(rect) {
+  const { gx, gy, gw, gh } = rect;
   return {
     north: { x1: gx, y1: gy, x2: gx + gw, y2: gy },
     south: { x1: gx, y1: gy + gh, x2: gx + gw, y2: gy + gh },
@@ -148,38 +154,40 @@ function roomSides(seed, slot) {
 }
 
 /**
- * The room's own enclosing walls, as compass-labelled grid-unit segments,
- * excluding whichever side(s) face a connection. The incoming side (shared
- * with slot - 1) is derived and excluded automatically — its wall was
- * already drawn as slot - 1's outgoing connection geometry, so drawing it
- * again here would duplicate (and wrongly solidify) that boundary.
+ * Divides a room's north wall into `count` equal, contiguous, left-to-
+ * right door slots. Used for EVERY incoming connection — whether 1 for a
+ * normal room, N for a merge room, or a normal room's real parent plus a
+ * shortcut's extra hidden one (see `incomingConnectionsFor`, whose Nth
+ * entry corresponds to this function's Nth slot).
  */
-export function roomEnclosureWalls(seed, slot, { hasOutgoing }) {
-  const excluded = new Set();
-  if (slot > 0) excluded.add(OPPOSITE[connectionDirection(slot - 1)]);
-  if (hasOutgoing) excluded.add(connectionDirection(slot));
-
-  return Object.entries(roomSides(seed, slot))
-    .filter(([dir]) => !excluded.has(dir))
-    .map(([dir, c]) => ({ dir, ...c }));
+export function northDoorSlots(rect, count) {
+  const { gx, gy, gw } = rect;
+  const step = gw / count;
+  return Array.from({ length: count }, (_, i) => ({
+    x1: gx + i * step, y1: gy, x2: gx + (i + 1) * step, y2: gy,
+  }));
 }
 
 /**
- * The full, unsplit wall segment on slot's own outgoing-connection face
- * (ITEM-20) — a temporary placeholder dungeon-scene.mjs's buildRoomAtSlot
- * creates the instant a non-goal room is built, since roomEnclosureWalls
- * deliberately excludes this side (buildConnectionGeometry supplies the real,
- * precisely-cut door/opening geometry there, but only once the *next* room is
- * actually built). Without it, a room's outgoing face has zero wall segments
- * — and therefore blocks nothing — for however long the party sits in it
- * before the next room exists, leaking vision/light (and movement) straight
- * across the rest of the scene's pre-sized canvas. Superseded — deleted, not
- * merely covered — by buildConnectionGeometry's own plainWalls the moment
- * that next room's build step runs; see buildRoomAtSlot.
+ * A room's own enclosing walls (#93 generalization). South/east/west stay
+ * full-face, excluded per `outgoingFaces` (unchanged from before). North
+ * is either a single solid wall (`incomingCount === 0`, the entry room)
+ * or entirely excluded (`incomingCount > 0`) — its individual door slots
+ * are built separately by the caller via `northDoorSlots`, one per real
+ * connection-building step (needs the connecting room's rect, which this
+ * function doesn't have), not here. `rect` is the room's own already-
+ * computed `roomRect(...)` result — required, since rank/col (and so the
+ * rect) aren't derivable from `roomId` alone the way the old slot-indexed
+ * version could derive its own rect internally.
  */
-export function outgoingFaceWall(seed, slot) {
-  const dir = connectionDirection(slot);
-  return { dir, ...roomSides(seed, slot)[dir] };
+export function roomEnclosureWalls(seed, roomId, { incomingCount = 0, outgoingFaces = [] }, rect) {
+  const sides = roomSidesForRect(rect);
+  const walls = [];
+  for (const face of ['south', 'east', 'west']) {
+    if (!outgoingFaces.includes(face)) walls.push({ dir: face, ...sides[face] });
+  }
+  if (incomingCount === 0) walls.push({ dir: 'north', ...sides.north });
+  return walls;
 }
 
 /**
@@ -197,115 +205,140 @@ export function outgoingFaceWall(seed, slot) {
  */
 export function doorOffsetAt(seed, slot, role, roomSize) {
   const r = splitmix32(seedFromString(`${seed}-door-${role}-${slot}`))();
-  const maxOffset = roomSize - DOOR_WIDTH;
+  // #93 pre-flight fix (found during this task's own final review, a
+  // third independent pass, via a 13,860-configuration sweep): floored,
+  // not bare `roomSize - DOOR_WIDTH`. Every OLD caller always passed an
+  // integer roomSize (ROOM_SIZE_SMALL/ROOM_SIZE_LARGE), so this never
+  // mattered before — but buildEdgeCorridor (Task 6) is the first caller
+  // to pass a slotWidth (`toSlot.x2 - toSlot.x1`, from northDoorSlots),
+  // which is fractional whenever the incoming-door count doesn't evenly
+  // divide the room's width (e.g. ROOM_SIZE_SMALL = 6 split 4 ways ->
+  // slotWidth = 1.5). Unfloored, `Math.floor(r * (maxOffset + 1))` can
+  // round UP PAST a fractional maxOffset (e.g. maxOffset = 0.5 can still
+  // return 1), pushing a door outside its own slot into a sibling's —
+  // zero behavior change for every existing integer-roomSize call site,
+  // since Math.floor of an already-integer value is a no-op.
+  const maxOffset = Math.floor(roomSize - DOOR_WIDTH);
   return Math.floor(r * (maxOffset + 1));
 }
 
-/**
- * Door geometry connecting `slot` to `slot + 1`, each end at its own
- * independent offset (`doorOffsetAt`) so the two doors often don't line up.
- *
- * Both ends are real Foundry doors. `slot`'s side (`doorWall`) is the
- * progress gate — locked/unlocked by the GM as today. `slot + 1`'s side
- * (`revealDoorWall`) starts merely closed, never locked — players can always
- * open it once they're through the first door — and *opening* it is what
- * reveals the next room and advances the tracker (see
- * dungeon-scene.mjs's handleDungeonDoorOpened), replacing the earlier
- * walk-into-the-room-boundary trigger with a real "open the door and see
- * what's inside" beat.
- *
- * Both rooms' own *wall* segments (the room's actual perimeter, minus that
- * room's own one-square gap) still span their entire connecting face,
- * regardless of where the other side's gap sits — a room's wall is a room's
- * wall, and (ITEM-17) each room's own segments are built from that room's
- * *own* rect (`slotRect(seed, slot)` / `slotRect(seed, slot + 1)`), not a
- * shared one, since the two rooms can now be different sizes. But the shared
- * 1-square-wide gap *column* between the two faces is only as tall
- * (east/west) or wide (south) as it needs to be to connect the two doors:
- * two capping segments close it off at `min(doorY0, gapY0)` and
- * `max(doorY1, gapY1)` (transposed for south), not at either room's own
- * top/bottom or left/right edges (ITEM-13) — so two closely-offset doors get
- * a short connecting hallway and two far-apart doors get a longer one,
- * instead of every connection rendering as a fixed full-face gallery.
- * `corridorRect` matches that same trimmed span, tiled once per grid square
- * by dungeon-scene.mjs (corridor.webp is a small self-contained "box"
- * texture that looks wrong stretched, so repeating it beats scaling it).
- */
-export function buildConnectionGeometry(slot, seed) {
-  const dir = connectionDirection(slot);
-  const a = slotRect(seed, slot);
-  const b = slotRect(seed, slot + 1);
-  const outgoingOffset = doorOffsetAt(seed, slot, 'outgoing', a.gw);
-  const incomingOffset = doorOffsetAt(seed, slot + 1, 'incoming', b.gw);
-  const plainWalls = [];
-  let doorWall;
-  let revealDoorWall;
-  let corridorRect;
+// ============ Old slot-based helper ============
+// #93 post-merge fix (Task 15 item 1): the old linear-slot connection
+// geometry (slot rect walk, connection direction, outgoing-face
+// placeholder, slot-to-slot connection) is deleted. slotRowCol was only
+// ever called by that deleted code and now has no caller either — left in
+// place because Task 15's own dead-code list didn't name it; flagged for a
+// follow-up sweep.
 
-  if (dir === 'east' || dir === 'west') {
-    const faceX = dir === 'east' ? a.gx + a.gw : a.gx;
-    const corridorEndX = dir === 'east' ? faceX + CORRIDOR_LEN : faceX - CORRIDOR_LEN;
-    const doorY0 = a.gy + outgoingOffset;
-    const doorY1 = doorY0 + DOOR_WIDTH;
-    const gapY0 = b.gy + incomingOffset;
-    const gapY1 = gapY0 + DOOR_WIDTH;
-    // The gap column only needs to span between the two doors, not either
-    // room's full height (ITEM-13) — always within [min(a.gy,b.gy),
-    // max(a.gy+a.gh, b.gy+b.gh)] since both offsets are clamped to their own
-    // room's face. a.gy === b.gy always (same row, top-aligned — see
-    // slotRect), so this is really just [a.gy, max(a.gh, b.gh) + a.gy], but
-    // computed from the actual offsets rather than assumed.
-    const spanY0 = Math.min(doorY0, gapY0);
-    const spanY1 = Math.max(doorY1, gapY1);
-    doorWall = { x1: faceX, y1: doorY0, x2: faceX, y2: doorY1 };
-    revealDoorWall = { x1: corridorEndX, y1: gapY0, x2: corridorEndX, y2: gapY1 };
-    plainWalls.push(
-      { x1: faceX, y1: a.gy, x2: faceX, y2: doorY0 },
-      // Extended to spanY1, not just a.gy + a.gh (#34): when the two rooms
-      // differ in size (ITEM-17), the OTHER room's own offset can push the
-      // trimmed span past this room's own edge — stopping at this room's own
-      // edge in that case would leave the strip between that edge and the
-      // cap below completely unwalled, leaking straight past it.
-      { x1: faceX, y1: doorY1, x2: faceX, y2: Math.max(a.gy + a.gh, spanY1) },
-      { x1: corridorEndX, y1: b.gy, x2: corridorEndX, y2: gapY0 },
-      { x1: corridorEndX, y1: gapY1, x2: corridorEndX, y2: Math.max(b.gy + b.gh, spanY1) },
-      { x1: Math.min(faceX, corridorEndX), y1: spanY0, x2: Math.max(faceX, corridorEndX), y2: spanY0 },
-      { x1: Math.min(faceX, corridorEndX), y1: spanY1, x2: Math.max(faceX, corridorEndX), y2: spanY1 }
-    );
-    corridorRect = { gx: Math.min(faceX, corridorEndX), gy: spanY0, gw: CORRIDOR_LEN, gh: spanY1 - spanY0 };
-  } else {
-    // 'south'
-    const faceY = a.gy + a.gh;
-    const corridorEndY = faceY + CORRIDOR_LEN;
-    const doorX0 = a.gx + outgoingOffset;
+/** Row/column of a physical slot, boustrophedon — independent of room size,
+ * since it only decides *order*, not position. */
+export function slotRowCol(slot) {
+  const row = Math.floor(slot / ROOMS_PER_ROW);
+  const posInRow = slot % ROOMS_PER_ROW;
+  const col = row % 2 === 0 ? posInRow : ROOMS_PER_ROW - 1 - posInRow;
+  return { row, col };
+}
+
+/**
+ * Edge geometry connecting fromRoomId's exitFace to a specific door slot
+ * on toRoomId's north face (`toSlot`, from `northDoorSlots` — Task 5's
+ * redesign means "incoming" is always north, but potentially one of
+ * several slots when the target has more than one real parent or a
+ * hidden extra). Generalizes the old linear-slot connection geometry (slot
+ * to slot+1, always straight, deleted by #93 Task 15) to any two graph-positioned rects: same-column
+ * rooms still get a single straight corridor; different-column rooms get
+ * an L-shaped 2-segment corridor (first segment leaves fromRect on
+ * exitFace, second segment approaches `toSlot`, joined by a single
+ * corner).
+ */
+export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, exitFace, toSlot) {
+  const slotWidth = toSlot.x2 - toSlot.x1;
+  const outgoingOffset = doorOffsetAt(seed, `${fromRoomId}-${exitFace}`, 'outgoing', fromRect.gw);
+  const incomingOffset = doorOffsetAt(seed, `${toRoomId}-north-${toSlot.x1}`, 'incoming', slotWidth);
+
+  const sameColumn = fromRect.gx === toRect.gx;
+  if (exitFace === 'south' && sameColumn) {
+    const faceY = fromRect.gy + fromRect.gh;
+    // #93 pre-flight fix (found during Task 10's review): was
+    // `faceY + CORRIDOR_LEN`, which only reached the target's actual
+    // north edge when the source's room-size exactly filled one
+    // ROW_STRIDE gap AND the two rooms were exactly one rank apart. A
+    // merge room's rank is the MAX over all its real parents' ranks + 1
+    // (computeRanks, Task 4) — a parent not on the longest path can sit
+    // several ranks above the merge room, or roomSizeAt can roll a
+    // smaller-than-max size, either of which left the corridor short of
+    // the target (a door floating in empty space, not actually
+    // connected). Use the target's real position directly instead.
+    const corridorEndY = toRect.gy;
+    const doorX0 = fromRect.gx + outgoingOffset;
     const doorX1 = doorX0 + DOOR_WIDTH;
-    const gapX0 = b.gx + incomingOffset;
+    const gapX0 = toSlot.x1 + incomingOffset;
     const gapX1 = gapX0 + DOOR_WIDTH;
-    // Same trim as the east/west branch, along x instead of y (ITEM-13).
-    // a.gx === b.gx always (the wrap's own "shared column" guarantee — see
-    // slotRect), so this is really just [a.gx, max(a.gw, b.gw) + a.gx].
     const spanX0 = Math.min(doorX0, gapX0);
     const spanX1 = Math.max(doorX1, gapX1);
-    doorWall = { x1: doorX0, y1: faceY, x2: doorX1, y2: faceY };
-    revealDoorWall = { x1: gapX0, y1: corridorEndY, x2: gapX1, y2: corridorEndY };
-    plainWalls.push(
-      { x1: a.gx, y1: faceY, x2: doorX0, y2: faceY },
-      // Extended to spanX1, not just a.gx + a.gw (#34) — same reasoning as
-      // the east/west branch above, along x instead of y.
-      { x1: doorX1, y1: faceY, x2: Math.max(a.gx + a.gw, spanX1), y2: faceY },
-      { x1: b.gx, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
-      { x1: gapX1, y1: corridorEndY, x2: Math.max(b.gx + b.gw, spanX1), y2: corridorEndY },
-      { x1: spanX0, y1: Math.min(faceY, corridorEndY), x2: spanX0, y2: Math.max(faceY, corridorEndY) },
-      { x1: spanX1, y1: Math.min(faceY, corridorEndY), x2: spanX1, y2: Math.max(faceY, corridorEndY) }
-    );
-    corridorRect = { gx: spanX0, gy: Math.min(faceY, corridorEndY), gw: spanX1 - spanX0, gh: CORRIDOR_LEN };
+    return {
+      doorWall: { x1: doorX0, y1: faceY, x2: doorX1, y2: faceY },
+      revealDoorWall: { x1: gapX0, y1: corridorEndY, x2: gapX1, y2: corridorEndY },
+      plainWalls: [
+        { x1: fromRect.gx, y1: faceY, x2: doorX0, y2: faceY },
+        { x1: doorX1, y1: faceY, x2: Math.max(fromRect.gx + fromRect.gw, spanX1), y2: faceY },
+        // #93 pre-flight fix, round 2 (found during Task 6's own redo):
+        // capped strictly at `toSlot.x1`/`toSlot.x2` — NEVER `spanX1`.
+        // `spanX1` also folds in the SOURCE room's own door offset
+        // (`doorX1`, bounded by the SOURCE's full width, not the
+        // TARGET's narrower slot) — using it here (round 1's fix used
+        // `Math.max(toSlot.x2, spanX1)`, which picks whichever is
+        // LARGER) could still push this flanking wall past the slot
+        // boundary into a sibling connection's own territory whenever
+        // the source room is wider than one slot — routine for any
+        // merge room with 2+ real parents. `gapX0`/`gapX1` are already
+        // guaranteed within `[toSlot.x1, toSlot.x2]` (`incomingOffset`
+        // is bounded by `slotWidth`), so these two walls need no
+        // `Math.max`/`Math.min` at all — just the slot's own edges.
+        { x1: toSlot.x1, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
+        { x1: gapX1, y1: corridorEndY, x2: toSlot.x2, y2: corridorEndY }
+      ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2),
+      corridorSegments: [{ gx: spanX0, gy: faceY, gw: spanX1 - spanX0, gh: corridorEndY - faceY }]
+    };
   }
 
-  // A door/opening offset landing at either extreme (0 or its own room's max)
-  // leaves no room for the flanking segment on that side — drop the
-  // resulting zero-length segment rather than create a degenerate Wall.
-  const nonDegenerate = plainWalls.filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
-  return { doorWall, revealDoorWall, plainWalls: nonDegenerate, corridorRect };
+  // Different column (or a non-south exit face): a straight leg out of
+  // fromRect on exitFace, a corner, then a straight leg into `toSlot`.
+  // Simpler than the same-column case's precise two-door offset
+  // trimming — a candidate for a future refinement pass if a reviewer
+  // finds the corner geometry too blocky in practice.
+  const exitPoint = exitFace === 'east'
+    ? { x: fromRect.gx + fromRect.gw, y: fromRect.gy + fromRect.gh / 2 }
+    : exitFace === 'west'
+    ? { x: fromRect.gx, y: fromRect.gy + fromRect.gh / 2 }
+    : { x: fromRect.gx + fromRect.gw / 2, y: fromRect.gy + fromRect.gh };
+  const entryPoint = { x: toSlot.x1 + slotWidth / 2, y: toSlot.y1 };
+  const corner = { x: entryPoint.x, y: exitPoint.y };
+
+  const doorWall = exitFace === 'south'
+    ? { x1: exitPoint.x - DOOR_WIDTH / 2, y1: exitPoint.y, x2: exitPoint.x + DOOR_WIDTH / 2, y2: exitPoint.y }
+    : { x1: exitPoint.x, y1: exitPoint.y - DOOR_WIDTH / 2, x2: exitPoint.x, y2: exitPoint.y + DOOR_WIDTH / 2 };
+  const revealDoorWall = { x1: entryPoint.x - DOOR_WIDTH / 2, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH / 2, y2: entryPoint.y };
+
+  // #93 pre-flight fix: flank the door WITHIN this connection's own
+  // `toSlot` (was `plainWalls: []` — left the room's whole north face
+  // open beyond just the door itself, and left nothing to separate this
+  // slot from a sibling's). Mirrors the same-column branch's own
+  // slot-constrained plainWalls above.
+  const plainWalls = [
+    { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x - DOOR_WIDTH / 2, y2: entryPoint.y },
+    { x1: entryPoint.x + DOOR_WIDTH / 2, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
+  ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
+
+  return {
+    doorWall,
+    revealDoorWall,
+    plainWalls,
+    corridorSegments: [
+      { gx: Math.min(exitPoint.x, corner.x), gy: Math.min(exitPoint.y, corner.y), gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - exitPoint.x)), gh: CORRIDOR_LEN },
+      { gx: Math.min(corner.x, entryPoint.x), gy: Math.min(corner.y, entryPoint.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(entryPoint.y - corner.y)) }
+    ]
+  };
 }
 
 /**
@@ -331,4 +364,60 @@ export function corridorTileVariant(index, length, vertical) {
   if (index === 0) return { variant: 'end', rotation: vertical ? 0 : 270 };
   if (index === length - 1) return { variant: 'end', rotation: vertical ? 180 : 90 };
   return { variant: 'mid', rotation: vertical ? 0 : 90 };
+}
+
+/** Topological rank (longest path from entryId) for every room in edges. */
+export function computeRanks(edges, entryId) {
+  const ranks = { [entryId]: 0 };
+  // Kahn-style relaxation: repeatedly push rank = max(parent ranks) + 1
+  // until stable — simpler than a strict topo-sort given this graph's
+  // small size, and just as correct for a DAG.
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const [fromId, children] of Object.entries(edges)) {
+      if (!(fromId in ranks)) continue;
+      for (const childId of children) {
+        const candidate = ranks[fromId] + 1;
+        if (!(childId in ranks) || ranks[childId] < candidate) {
+          ranks[childId] = candidate;
+          changed = true;
+        }
+      }
+    }
+  }
+  return ranks;
+}
+
+/**
+ * Column index (integer, per-rank left-to-right order) via a single DFS
+ * pass from entryId — #93 pre-flight fix (see the note below the
+ * function for what the original bottom-up-width/top-down-centering
+ * design got wrong and why it was replaced). Every room is visited
+ * exactly once (first parent to reach it wins, matching the design's
+ * "merge rooms placed once, whichever parent reaches them first"
+ * intent); each NEW room claims the next unused column at its own rank
+ * via a monotonic per-rank counter, which is what actually guarantees
+ * two different rooms at the same rank can never collide on a column —
+ * `ranks` (pre-computed by computeRanks, already correctly reflecting a
+ * merge room's longest-path rank) is looked up directly, not re-derived
+ * from DFS depth, so a merge room still lands at its correct rank
+ * regardless of which parent's branch reaches it first.
+ */
+export function computeColumns(edges, ranks, entryId) {
+  const columns = {};
+  const nextColByRank = {};
+  const visited = new Set();
+
+  function visit(roomId) {
+    if (visited.has(roomId)) return;
+    visited.add(roomId);
+    const rank = ranks[roomId];
+    const col = nextColByRank[rank] ?? 0;
+    columns[roomId] = col;
+    nextColByRank[rank] = col + 1;
+    for (const childId of edges[roomId] ?? []) visit(childId);
+  }
+  visit(entryId);
+  return columns;
 }

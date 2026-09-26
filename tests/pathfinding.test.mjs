@@ -252,8 +252,8 @@ describe("blockedEdgesFromWalls", () => {
 
   it("end to end: a corridor with side walls keeps a path from cutting through them", () => {
     // A 1-row-tall, 5-column corridor from gx 0..5 at gy=1, walled top (y=100) and
-    // bottom (y=200) -- the same shape buildConnectionGeometry's capping segments
-    // produce for a real east/west connection.
+    // bottom (y=200) -- the same shape a real east/west corridor's capping
+    // segments produce.
     const walls = [
       { x1: 0, y1: 100, x2: 500, y2: 100 },
       { x1: 0, y1: 200, x2: 500, y2: 200 },
