@@ -9958,5 +9958,61 @@
     "name": "Marid",
     "level": 9,
     "art": "marid.webp"
+  },
+  {
+    "id": "gliminal",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "JHrINFX7a7fYhP4w",
+    "name": "Gliminal",
+    "level": 9,
+    "art": "gliminal.webp"
+  },
+  {
+    "id": "mirror_seer",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "JfAyvn0mKWptD9xr",
+    "name": "Mirror Seer",
+    "level": 9,
+    "art": "mirror-seer.webp"
+  },
+  {
+    "id": "mummy_pharaoh",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Ro49rEZwBLkkoEKE",
+    "name": "Mummy Pharaoh",
+    "level": 9,
+    "art": "mummy-pharaoh.webp"
+  },
+  {
+    "id": "roiling_incant_evocation",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "QWx9cIVUeP7dMOez",
+    "name": "Roiling Incant (Evocation)",
+    "level": 9,
+    "art": "roiling-incant-evocation.webp"
+  },
+  {
+    "id": "spirit_naga",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "h4SZ3U9at7aT0ASv",
+    "name": "Spirit Naga",
+    "level": 9,
+    "art": "spirit-naga.webp"
+  },
+  {
+    "id": "tikbalang",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "zGdsQWq6uHjE7TSx",
+    "name": "Tikbalang",
+    "level": 9,
+    "art": "tikbalang.webp"
+  },
+  {
+    "id": "witchfire",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "6xioRweZ0T4o4X9e",
+    "name": "Witchfire",
+    "level": 9,
+    "art": "witchfire.webp"
   }
 ]
