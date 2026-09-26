@@ -436,6 +436,48 @@ export function cellBounds(rank, col) {
 }
 
 /**
+ * Seals a room's grid-cell margin beyond its own rect — the space between
+ * a (possibly smaller) room and the full COLUMN_STRIDE x ROW_STRIDE cell
+ * it's allotted. A room always anchors at its cell's own top-left corner
+ * (roomRect), so its north and west edges always coincide with the
+ * cell's own north/west edges — only east and south can ever have
+ * margin, regardless of room size. The room's OWN east/south walls
+ * (roomEnclosureWalls, unchanged) already seal the room's interior from
+ * this margin whenever those faces aren't used for an outgoing
+ * connection; this function seals the OUTER edge of the margin (the
+ * cell's own east/south boundary), so the margin becomes fully enclosed
+ * dead space rather than open void — see the design's own reasoning for
+ * why only two walls are needed to close an L-shaped region.
+ */
+export function cellMarginWalls(rect, rank, col, { openSide = null, openOffset = 0, openWidth = 0 } = {}) {
+  const cell = cellBounds(rank, col);
+  const walls = [];
+
+  const sealSide = (dir, hasMargin, along) => {
+    if (!hasMargin) return;
+    if (openSide !== dir) {
+      walls.push(along(cell.gx, cell.gy, cell.gx + cell.gw, cell.gy + cell.gh));
+      return;
+    }
+    const gapStart = openOffset;
+    const gapEnd = openOffset + openWidth;
+    const full = dir === 'east' ? cell.gh : cell.gw;
+    if (gapStart > 0) walls.push(along(cell.gx, cell.gy, cell.gx + cell.gw, cell.gy + cell.gh, 0, gapStart));
+    if (gapEnd < full) walls.push(along(cell.gx, cell.gy, cell.gx + cell.gw, cell.gy + cell.gh, gapEnd, full));
+  };
+
+  const eastLine = (cgx, cgy, cgx2, cgy2, from = 0, to = cgy2 - cgy) =>
+    ({ dir: 'east', x1: cgx2, y1: cgy + from, x2: cgx2, y2: cgy + to });
+  const southLine = (cgx, cgy, cgx2, cgy2, from = 0, to = cgx2 - cgx) =>
+    ({ dir: 'south', x1: cgx + from, y1: cgy2, x2: cgx + to, y2: cgy2 });
+
+  sealSide('east', rect.gw < cell.gw && rect.gw === ROOM_SIZE_SMALL, eastLine);
+  sealSide('south', rect.gh < cell.gh && rect.gh === ROOM_SIZE_SMALL, southLine);
+
+  return walls;
+}
+
+/**
  * BFS shortest path of cells from fromPos to toPos over the rank/column
  * grid, treating any cell occupied by a room other than fromRoomId/
  * toRoomId as blocked. Returns an ordered array of {rank, col} from

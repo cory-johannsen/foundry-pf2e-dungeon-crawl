@@ -4,7 +4,7 @@ import {
   roomSizeAt, doorOffsetAt, corridorTileVariant,
   computeRanks, computeColumns,
   roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, northDoorSlots, buildEdgeCorridor,
-  cellBounds, findCorridorPath, INITIAL_GX,
+  cellBounds, findCorridorPath, INITIAL_GX, cellMarginWalls,
 } from '../scripts/dungeon-layout.mjs';
 import { buildRoomGraph } from '../scripts/dungeon-deck.mjs';
 
@@ -474,5 +474,92 @@ describe('findCorridorPath', () => {
     const path1 = findCorridorPath({ rank: 0, col: 0 }, { rank: 2, col: 0 }, occupiedCells, { fromRoomId: 'a', toRoomId: 'b' });
     const path2 = findCorridorPath({ rank: 0, col: 0 }, { rank: 2, col: 0 }, occupiedCells, { fromRoomId: 'a', toRoomId: 'b' });
     expect(path2).toEqual(path1);
+  });
+});
+
+describe('cellMarginWalls', () => {
+  it('produces no walls for a ROOM_SIZE_LARGE room (no margin on either side)', () => {
+    const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_LARGE, gh: ROOM_SIZE_LARGE };
+    expect(cellMarginWalls(rect, 0, 0)).toEqual([]);
+  });
+
+  it('seals both the east and south margin for a small room with no open connection', () => {
+    const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_SMALL, gh: ROOM_SIZE_SMALL };
+    const walls = cellMarginWalls(rect, 0, 0);
+    const east = walls.find((w) => w.dir === 'east');
+    const south = walls.find((w) => w.dir === 'south');
+    expect(east).toEqual({ dir: 'east', x1: 300 + COLUMN_STRIDE, y1: 0, x2: 300 + COLUMN_STRIDE, y2: ROW_STRIDE });
+    expect(south).toEqual({ dir: 'south', x1: 300, y1: ROW_STRIDE, x2: 300 + COLUMN_STRIDE, y2: ROW_STRIDE });
+  });
+
+  it('leaves a gap in the east margin wall where a connection crosses it', () => {
+    const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_SMALL, gh: ROOM_SIZE_SMALL };
+    const walls = cellMarginWalls(rect, 0, 0, { openSide: 'east', openOffset: 4, openWidth: 2 });
+    const eastWalls = walls.filter((w) => w.dir === 'east');
+    // Two remaining solid segments flanking the gap, never spanning across it.
+    expect(eastWalls.length).toBe(2);
+    for (const w of eastWalls) {
+      expect(w.y2 <= 4 || w.y1 >= 6).toBe(true);
+    }
+  });
+
+  it('omits a flanking segment entirely when the gap reaches a cell corner', () => {
+    const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_SMALL, gh: ROOM_SIZE_SMALL };
+    const walls = cellMarginWalls(rect, 0, 0, { openSide: 'south', openOffset: 0, openWidth: ROOM_SIZE_SMALL });
+    const southWalls = walls.filter((w) => w.dir === 'south');
+    expect(southWalls.length).toBe(1); // only the segment from the gap's end to the cell's far corner
+  });
+
+  it('containment sweep: cellMarginWalls seals the full cell boundary except exactly at the declared opening, across many size/connection combinations', () => {
+    // cellMarginWalls' own wall segments sit at the CELL's outer
+    // boundary — a different (further out) x/y position than
+    // roomEnclosureWalls' own room-rect walls whenever the room is
+    // smaller than its cell, so the two wall sets are parallel, not
+    // continuous, and are verified separately: roomEnclosureWalls' own
+    // no-gap invariant is already covered by its own existing tests
+    // (Task 5, #93); this sweep is cellMarginWalls' own equivalent,
+    // checked across the realistic size/opening combination space rather
+    // than the single hand-picked case each earlier test in this file
+    // already covers. (The full room+margin containment, as one
+    // continuous seal a token can't slip through, is verified live —
+    // Task 5's own manual checklist — since only a real built scene's
+    // wall documents share one true coordinate system to check for gaps
+    // in.)
+    function sideFullyAccountedFor(dir, cell, wallsOnThatSide, openStart, openEnd) {
+      const full = dir === 'east' ? cell.gh : cell.gw;
+      for (let unit = 0; unit < full; unit += 1) {
+        const inOpening = openStart >= 0 && unit >= openStart && unit < openEnd;
+        const covered = wallsOnThatSide.some((w) => {
+          const lo = dir === 'east' ? w.y1 - cell.gy : w.x1 - cell.gx;
+          const hi = dir === 'east' ? w.y2 - cell.gy : w.x2 - cell.gx;
+          return unit >= Math.min(lo, hi) && unit < Math.max(lo, hi);
+        });
+        if (inOpening === covered) return false; // open-but-walled, or closed-but-gapped — either is wrong
+      }
+      return true;
+    }
+
+    for (const roomSize of [ROOM_SIZE_SMALL]) {
+      for (const opening of [
+        {},
+        { openSide: 'east', openOffset: 2, openWidth: 2 },
+        { openSide: 'south', openOffset: 0, openWidth: 3 },
+      ]) {
+        const rank = 1;
+        const col = 1;
+        const rect = { gx: 300 + col * COLUMN_STRIDE, gy: rank * ROW_STRIDE, gw: roomSize, gh: roomSize };
+        const margin = cellMarginWalls(rect, rank, col, opening);
+        const cell = cellBounds(rank, col);
+        for (const dir of ['east', 'south']) {
+          const hasMargin = dir === 'east' ? roomSize < cell.gw : roomSize < cell.gh;
+          if (!hasMargin) continue; // only ROOM_SIZE_SMALL has significant margins to seal; ROOM_SIZE_LARGE is already covered by the no-walls-at-all test
+          const wallsOnSide = margin.filter((w) => w.dir === dir);
+          const isOpenSide = opening.openSide === dir;
+          const openStart = isOpenSide ? opening.openOffset : -1;
+          const openEnd = isOpenSide ? opening.openOffset + opening.openWidth : -1;
+          expect(sideFullyAccountedFor(dir, cell, wallsOnSide, openStart, openEnd)).toBe(true);
+        }
+      }
+    }
   });
 });
