@@ -10294,5 +10294,133 @@
     "name": "World Ender",
     "level": 16,
     "art": "world-ender.webp"
+  },
+  {
+    "id": "vrock",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "4cPw8hZwW6uvyzvh",
+    "name": "Vrock",
+    "level": 9,
+    "art": "vrock.webp"
+  },
+  {
+    "id": "zelekhut",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "9sUx2sV4E7Sy3vJT",
+    "name": "Zelekhut",
+    "level": 9,
+    "art": "zelekhut.webp"
+  },
+  {
+    "id": "mastodon",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "ZBTqN3DNjdreXCu7",
+    "name": "Mastodon",
+    "level": 9,
+    "art": "mastodon.webp"
+  },
+  {
+    "id": "megalodon",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "9rXYGu7D3umIW1sv",
+    "name": "Megalodon",
+    "level": 9,
+    "art": "megalodon.webp"
+  },
+  {
+    "id": "nuckelavee",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "dY1wqHKN6PV4oJ07",
+    "name": "Nuckelavee",
+    "level": 9,
+    "art": "nuckelavee.webp"
+  },
+  {
+    "id": "roc",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "S67oZ1mvVNz9FTUE",
+    "name": "Roc",
+    "level": 9,
+    "art": "roc.webp"
+  },
+  {
+    "id": "stone_mauler",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "ToteDLIM7jCyHwDH",
+    "name": "Stone Mauler",
+    "level": 9,
+    "art": "stone-mauler.webp"
+  },
+  {
+    "id": "storm_lord",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "LUtSo30fQWj7mrDn",
+    "name": "Storm Lord",
+    "level": 9,
+    "art": "storm-lord.webp"
+  },
+  {
+    "id": "strix_aerialist",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "m5RPM69TunmznsUq",
+    "name": "Strix Aerialist",
+    "level": 9,
+    "art": "strix-aerialist.webp"
+  },
+  {
+    "id": "tidal_master",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "6UczvqBDlGNXcIlW",
+    "name": "Tidal Master",
+    "level": 9,
+    "art": "tidal-master.webp"
+  },
+  {
+    "id": "traveling_priest_of_desna",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "8LPVBXx8oIdXiNYQ",
+    "name": "Traveling Priest of Desna",
+    "level": 9,
+    "art": "traveling-priest-of-desna.webp"
+  },
+  {
+    "id": "vampire_mastermind",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "TZt3H39oxVdZRKs9",
+    "name": "Vampire Mastermind",
+    "level": 9,
+    "art": "vampire-mastermind.webp"
+  },
+  {
+    "id": "mokele_mbembe",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "CYzFHz8ZbU270z9N",
+    "name": "Mokele-Mbembe",
+    "level": 9,
+    "art": "mokele-mbembe.webp"
+  },
+  {
+    "id": "yithian",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "oE52gEbyrF4Dl3Go",
+    "name": "Yithian",
+    "level": 9,
+    "art": "yithian.webp"
+  },
+  {
+    "id": "shoki",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "SQVXMMEaEu9wun3Q",
+    "name": "Shoki",
+    "level": 9,
+    "art": "shoki.webp"
+  },
+  {
+    "id": "red_dracolisk",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "kIzBE6VaHQbJ3kdx",
+    "name": "Red Dracolisk",
+    "level": 9,
+    "art": "red-dracolisk.webp"
   }
 ]
