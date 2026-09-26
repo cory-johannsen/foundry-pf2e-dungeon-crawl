@@ -4949,13 +4949,22 @@ async function geminiGenerateOne(subject, dest) {
     body: JSON.stringify({
       model,
       input: [{ type: 'text', text: `${systemPrompt}\n\n${promptFor(subject)}` }],
-      response_format: { type: 'image', mime_type: 'image/png', aspect_ratio: '1:1' }
+      response_format: { type: 'image', mime_type: 'image/jpeg', aspect_ratio: '1:1' }
     })
   });
   if (!res.ok) throw new Error(`gemini request failed: ${res.status} ${await res.text()}`);
   const body = await res.json();
-  const data = body.output_image?.data;
-  if (!data) throw new Error(`gemini response had no output_image: ${JSON.stringify(body).slice(0, 500)}`);
+  // The docs describe an SDK convenience property `interaction.output_image`
+  // that isn't a literal field in the raw REST response — the actual image
+  // lives in the last `model_output` step's content, confirmed against a
+  // real API response (2026-09-26).
+  let data;
+  for (const step of body.steps ?? []) {
+    for (const block of step.content ?? []) {
+      if (block.type === 'image' && block.data) data = block.data;
+    }
+  }
+  if (!data) throw new Error(`gemini response had no image data: ${JSON.stringify(body).slice(0, 500)}`);
   writeFileSync(dest, Buffer.from(data, 'base64'));
 }
 
