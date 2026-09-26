@@ -10438,5 +10438,69 @@
     "name": "Alchemical Golem",
     "level": 9,
     "art": "alchemical-golem.webp"
+  },
+  {
+    "id": "adlet",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Zaixy2G1NHnaYhEo",
+    "name": "Adlet",
+    "level": 10,
+    "art": "adlet.webp"
+  },
+  {
+    "id": "bebilith",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "vg3nE7p855SXkXbz",
+    "name": "Bebilith",
+    "level": 10,
+    "art": "bebilith.webp"
+  },
+  {
+    "id": "behemoth_hippopotamus",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "c8kb958djPh4wXj5",
+    "name": "Behemoth Hippopotamus",
+    "level": 10,
+    "art": "behemoth-hippopotamus.webp"
+  },
+  {
+    "id": "cinder_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "lnINJvSfYcw2YV0G",
+    "name": "Cinder Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "cinder-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "court_jester",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "xvZvI0oFFOTaBO6L",
+    "name": "Court Jester",
+    "level": 10,
+    "art": "court-jester.webp"
+  },
+  {
+    "id": "dezullon",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "jR4E2I2tmQ6sd5DR",
+    "name": "Dezullon",
+    "level": 10,
+    "art": "dezullon.webp"
+  },
+  {
+    "id": "einherji",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "jgTjzUA2nJKYY2Tu",
+    "name": "Einherji",
+    "level": 10,
+    "art": "einherji.webp"
+  },
+  {
+    "id": "exiled_revolutionary",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "oTKuWWYyWyfy599O",
+    "name": "Exiled Revolutionary",
+    "level": 10,
+    "art": "exiled-revolutionary.webp"
   }
 ]
