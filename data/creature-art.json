@@ -10078,5 +10078,213 @@
     "name": "White Dracolisk",
     "level": 9,
     "art": "white-dracolisk.webp"
+  },
+  {
+    "id": "vilderavn",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "NxLQHUMs57TktiZa",
+    "name": "Vilderavn",
+    "level": 16,
+    "art": "vilderavn.webp"
+  },
+  {
+    "id": "astradaemon",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "hSSe2FxlXKvjKsEw",
+    "name": "Astradaemon",
+    "level": 16,
+    "art": "astradaemon.webp"
+  },
+  {
+    "id": "cornugon",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "i8C4jqI3VdozylBL",
+    "name": "Cornugon",
+    "level": 16,
+    "art": "cornugon.webp"
+  },
+  {
+    "id": "shemhazian",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "3vkQLclK0z4LhAh7",
+    "name": "Shemhazian",
+    "level": 16,
+    "art": "shemhazian.webp"
+  },
+  {
+    "id": "sumbreiva",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "DHzm2QFsaGTGgReI",
+    "name": "Sumbreiva",
+    "level": 16,
+    "art": "sumbreiva.webp"
+  },
+  {
+    "id": "zaramuun",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "31kXa1P0LUl38jYG",
+    "name": "Zaramuun",
+    "level": 16,
+    "art": "zaramuun.webp"
+  },
+  {
+    "id": "zomok",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "Ge5Q5I7TTksf7QyN",
+    "name": "Zomok",
+    "level": 16,
+    "art": "zomok.webp"
+  },
+  {
+    "id": "black_dragon_ancient",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "Lvdykf6wfqzZBlZd",
+    "name": "Black Dragon (Ancient)",
+    "level": 16,
+    "art": "black-dragon-ancient.webp"
+  },
+  {
+    "id": "black_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "pYNMxg5z2nRFmkMM",
+    "name": "Black Dragon (Ancient, Spellcaster)",
+    "level": 16,
+    "art": "black-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "brass_dragon_ancient",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "bSjF2lCgchtp2ocS",
+    "name": "Brass Dragon (Ancient)",
+    "level": 16,
+    "art": "brass-dragon-ancient.webp"
+  },
+  {
+    "id": "brass_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "kbZ3t5HhHRJJ4AMn",
+    "name": "Brass Dragon (Ancient, Spellcaster)",
+    "level": 16,
+    "art": "brass-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "bythos",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "oLfyxHNz8IX06ZcU",
+    "name": "Bythos",
+    "level": 16,
+    "art": "bythos.webp"
+  },
+  {
+    "id": "fjord_linnorm",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "sY3VkazdyPiMgMj1",
+    "name": "Fjord Linnorm",
+    "level": 16,
+    "art": "fjord-linnorm.webp"
+  },
+  {
+    "id": "omen_dragon_ancient",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "QBu0tRV8nNIFKbLS",
+    "name": "Omen Dragon (Ancient)",
+    "level": 16,
+    "art": "omen-dragon-ancient.webp"
+  },
+  {
+    "id": "omen_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "2QFhhm6cGqqaVlyK",
+    "name": "Omen Dragon (Ancient, Spellcaster)",
+    "level": 16,
+    "art": "omen-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "planetar",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "cu6Bl5pFByrpinxd",
+    "name": "Planetar",
+    "level": 16,
+    "art": "planetar.webp"
+  },
+  {
+    "id": "rune_giant",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "YRyTBciVtCnO7J0Z",
+    "name": "Rune Giant",
+    "level": 16,
+    "art": "rune-giant.webp"
+  },
+  {
+    "id": "warsworn",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "llSpQyOTaylpqgnW",
+    "name": "Warsworn",
+    "level": 16,
+    "art": "warsworn.webp"
+  },
+  {
+    "id": "whisper_dragon_ancient",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "XOmx4kDjRW47dc9Z",
+    "name": "Whisper Dragon (Ancient)",
+    "level": 16,
+    "art": "whisper-dragon-ancient.webp"
+  },
+  {
+    "id": "whisper_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Ymk65Vujq2Y5US9r",
+    "name": "Whisper Dragon (Ancient, Spellcaster)",
+    "level": 16,
+    "art": "whisper-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "clockwork_dragon",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "44cDgnq0KY88X70E",
+    "name": "Clockwork Dragon",
+    "level": 16,
+    "art": "clockwork-dragon.webp"
+  },
+  {
+    "id": "elder_sphinx",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "oIM21UCyiabwwHfo",
+    "name": "Elder Sphinx",
+    "level": 16,
+    "art": "elder-sphinx.webp"
+  },
+  {
+    "id": "giylea",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "GmKNb1UIjAkTMDOt",
+    "name": "Giylea",
+    "level": 16,
+    "art": "giylea.webp"
+  },
+  {
+    "id": "lesser_death",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "WoICHri7raCYv1wU",
+    "name": "Lesser Death",
+    "level": 16,
+    "art": "lesser-death.webp"
+  },
+  {
+    "id": "love_siktempora",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "9PSCqGy7e2GDQpfU",
+    "name": "Love Siktempora",
+    "level": 16,
+    "art": "love-siktempora.webp"
+  },
+  {
+    "id": "mithral_golem",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "epTO8fPDjyy2WhzD",
+    "name": "Mithral Golem",
+    "level": 16,
+    "art": "mithral-golem.webp"
   }
 ]
