@@ -458,6 +458,8 @@ const SIDE_SPAN = { north: 'gw', south: 'gw', west: 'gh', east: 'gh' };
  * so two different edges crossing the same cell get independently
  * randomized entry/exit points, not identical ones.
  */
+const OPPOSITE_SIDE = { north: 'south', south: 'north', east: 'west', west: 'east' };
+
 export function transitCellCrossing(seed, rank, col, entrySide, exitSide, edgeId) {
   const cell = cellBounds(rank, col);
   const entryOffset = doorOffsetAt(seed, `transit-${rank}-${col}-${entrySide}-${edgeId}`, 'incoming', cell[SIDE_SPAN[entrySide]]);
@@ -468,7 +470,15 @@ export function transitCellCrossing(seed, rank, col, entrySide, exitSide, edgeId
   const corridorSegments = [];
   const plainWalls = [];
 
-  if (entryPoint.x === exitPoint.x || entryPoint.y === exitPoint.y) {
+  // #174 fix round 1 (found by this task's own review): straight-vs-turn
+  // MUST be decided from entrySide/exitSide directly, never from
+  // coincidental coordinate equality — entry/exit offsets are two
+  // INDEPENDENTLY seeded doorOffsetAt draws, so even genuinely-opposite
+  // sides essentially never produce equal coordinates by chance. An
+  // earlier draft of this function checked
+  // `entryPoint.x === exitPoint.x || entryPoint.y === exitPoint.y`,
+  // which made the straight branch almost unreachable.
+  if (OPPOSITE_SIDE[entrySide] === exitSide) {
     // Straight through — one segment, entry to exit directly.
     corridorSegments.push({
       gx: Math.min(entryPoint.x, exitPoint.x),
@@ -477,16 +487,45 @@ export function transitCellCrossing(seed, rank, col, entrySide, exitSide, edgeId
       gh: Math.max(CORRIDOR_LEN, Math.abs(exitPoint.y - entryPoint.y)),
     });
   } else {
-    // Adjacent sides — one corner, inside this cell, at the entry
-    // point's own axis crossed with the exit point's own axis.
+    // Adjacent sides — one corner, inside this cell. `corner` shares
+    // entryPoint's own x and exitPoint's own y BY CONSTRUCTION, which
+    // means segment 1 (entryPoint -> corner) is ALWAYS the vertical leg
+    // (constant x) and segment 2 (corner -> exitPoint) is ALWAYS the
+    // horizontal leg (constant y), regardless of which two sides are
+    // actually in play — #174 fix round 1 (found by this task's own
+    // review): an earlier draft assigned segment 1's `gw`/`gh` and
+    // segment 2's `gw`/`gh` as though the VARIABLE dimension could be
+    // either one, computing a `gw` that always evaluates to 0 for
+    // segment 1 and a `gh` that always evaluates to 0 for segment 2 —
+    // collapsing both legs into disconnected 1x1 stubs that never
+    // actually reach the corner.
     const corner = { x: entryPoint.x, y: exitPoint.y };
+
+    // #174 fix round 1 (found by this task's own review, a SECOND bug
+    // beyond the one above): the fixed-CORRIDOR_LEN dimension must
+    // extend INWARD from whichever point anchors it, not always in the
+    // same (positive) direction — entryPoint.x sits at the cell's own
+    // FAR east edge exactly when entrySide is 'east' (SIDE_POINT.east
+    // uses `cell.gx + cell.gw`), and extending the segment's width
+    // rightward from a far-edge point overflows past the cell entirely,
+    // into the next column's own cell. Same reasoning for exitPoint.y
+    // and 'south' (SIDE_POINT.south uses `cell.gy + cell.gh`). Every
+    // other side (west/north, or north/south/east/west used in the
+    // MIDDLE of a room's own face rather than as this leg's anchor) sits
+    // at the cell's own near edge or somewhere in the interior, where
+    // extending in the positive direction never leaves the cell (bounded
+    // by doorOffsetAt's own maxOffset, which never lets an offset run
+    // past `cell's own span - DOOR_WIDTH`).
+    const seg1X = entrySide === 'east' ? entryPoint.x - CORRIDOR_LEN : entryPoint.x;
+    const seg2Y = exitSide === 'south' ? exitPoint.y - CORRIDOR_LEN : exitPoint.y;
+
     corridorSegments.push({
-      gx: Math.min(entryPoint.x, corner.x), gy: Math.min(entryPoint.y, corner.y),
-      gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - entryPoint.x)), gh: CORRIDOR_LEN,
+      gx: seg1X, gy: Math.min(entryPoint.y, corner.y),
+      gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(corner.y - entryPoint.y)),
     });
     corridorSegments.push({
-      gx: Math.min(corner.x, exitPoint.x), gy: Math.min(corner.y, exitPoint.y),
-      gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(exitPoint.y - corner.y)),
+      gx: Math.min(corner.x, exitPoint.x), gy: seg2Y,
+      gw: Math.max(CORRIDOR_LEN, Math.abs(exitPoint.x - corner.x)), gh: CORRIDOR_LEN,
     });
   }
 
@@ -494,7 +533,7 @@ export function transitCellCrossing(seed, rank, col, entrySide, exitSide, edgeId
 }
 ```
 
-**Note for the implementer:** `doorOffsetAt`, `cellBounds` (Task 1), `CORRIDOR_LEN` already exist. `plainWalls` is intentionally returned empty here — the flanking walls containing the corridor strip within this cell, and the cell's own outer-boundary containment (this cell's four sides minus the entry/exit gaps), are Task 4/5's job once this cell's crossing is placed within the context of the room-graph's actual containment walls; this task only produces the corridor's own travel-path geometry. If your own TDD work on this task finds the straight-segment or corner-segment math needs adjusting to stay correctly inside the cell for every entry/exit side combination, fix it and add the missing test case — this is exactly the kind of spatial geometry that took multiple real fix rounds during #93's own equivalent work (Task 6), not a sign the plan is wrong.
+**Note for the implementer:** `doorOffsetAt`, `cellBounds` (Task 1), `CORRIDOR_LEN` already exist. `plainWalls` is intentionally returned empty here — the flanking walls containing the corridor strip within this cell, and the cell's own outer-boundary containment (this cell's four sides minus the entry/exit gaps), are Task 4/5's job once this cell's crossing is placed within the context of the room-graph's actual containment walls; this task only produces the corridor's own travel-path geometry. Add a test sweeping all 8 valid adjacent-side pairings (north/east, north/west, south/east, south/west, east/north, east/south, west/north, west/south) asserting every returned segment stays within `cellBounds(rank, col)` — the two bugs already documented above were each found by exactly one hand-picked pairing failing in a way the OTHER 7 pairings didn't expose; a full sweep is what actually closes this class of risk, not another single example.
 
 - [ ] **Step 4: Run tests to verify they pass**
 
