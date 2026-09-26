@@ -32,6 +32,7 @@ import {
   clearTreasureState,
   getPendingTreasureCustomization,
   applyTreasureCustomization,
+  replaceRunState,
 } from "../scripts/dungeon-runner.mjs";
 import { registerGenerator } from '../scripts/generator-registry.mjs';
 import { DefaultGenerator } from '../scripts/default-generator.mjs';
@@ -2321,4 +2322,41 @@ it('roomsToEagerlyBuild returns an empty array for a single-room (entry-only) du
     layoutEdges: { 'room-entry': [] },
   };
   expect(roomsToEagerlyBuild(state)).toEqual([]);
+});
+
+describe("replaceRunState", () => {
+  it("overwrites the target scene's whole run state (no merge with the old one) and returns the new state", async () => {
+    const settingsRef = makeSettingsStub({
+      s1: { seed: "old", rooms: [{ id: "room-entry" }], currentIndex: 0, physicalSlotByRoomId: { "room-entry": 0 } },
+    });
+    const next = {
+      seed: "new",
+      rooms: { "room-entry": { id: "room-entry" } },
+      edges: { "room-entry": [] },
+      currentRoomId: "room-entry",
+    };
+    const result = await replaceRunState("s1", next, { settingsRef });
+    expect(result).toBe(next);
+    const stored = getRunState("s1", { settingsRef });
+    expect(stored).toEqual(next);
+    // A full replace, not a shallow merge — legacy fields don't survive.
+    expect(stored).not.toHaveProperty("currentIndex");
+    expect(stored).not.toHaveProperty("physicalSlotByRoomId");
+  });
+
+  it("leaves every other scene's entry in the same settings object untouched", async () => {
+    const other = { seed: "other", rooms: { "room-entry": { id: "room-entry" } }, currentRoomId: "room-entry" };
+    const settingsRef = makeSettingsStub({ s1: { seed: "old" }, s2: other });
+    await replaceRunState("s1", { seed: "new" }, { settingsRef });
+    expect(getRunState("s2", { settingsRef })).toBe(other);
+    expect(Object.keys(settingsRef.get("pf2e-dungeon-crawl", "dungeonRuns")).sort()).toEqual(["s1", "s2"]);
+  });
+
+  it("creates the entry when the scene had no run state yet, without disturbing others", async () => {
+    const other = { seed: "other" };
+    const settingsRef = makeSettingsStub({ s2: other });
+    await replaceRunState("s1", { seed: "fresh" }, { settingsRef });
+    expect(getRunState("s1", { settingsRef })).toEqual({ seed: "fresh" });
+    expect(getRunState("s2", { settingsRef })).toBe(other);
+  });
 });
