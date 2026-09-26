@@ -1024,7 +1024,7 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
     expect(gapY1).toBeCloseTo(doorWall.y2, 9);
   });
 
-  it('aligns a different-column south connection (buildEdgeCorridor\'s center-based fallback branch)', () => {
+  it('aligns a different-column south connection (buildEdgeCorridor\'s center-based branch — multi-cell here, since a 1-rank/1-col move is Manhattan distance 2, but shares its exitPoint formula byte-for-byte with the different-column fallback branch)', () => {
     expectSouthAlignment({ rank: 0, col: 0 }, { rank: 1, col: 1 }, {});
   });
 });
