@@ -10670,5 +10670,13 @@
     "name": "Imentesh",
     "level": 10,
     "art": "imentesh.webp"
+  },
+  {
+    "id": "mobogo",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "TQtISRsI3FI2ddBR",
+    "name": "Mobogo",
+    "level": 10,
+    "art": "mobogo.webp"
   }
 ]
