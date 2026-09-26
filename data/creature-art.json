@@ -10526,5 +10526,37 @@
     "name": "Fire Giant",
     "level": 10,
     "art": "fire-giant.webp"
+  },
+  {
+    "id": "beast_eidolon",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "xMDUgVCByn9VA0zC",
+    "name": "Beast Eidolon",
+    "level": 10,
+    "art": "beast-eidolon.webp"
+  },
+  {
+    "id": "brontosaurus",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "wy8Ve0m3wbHMo1U1",
+    "name": "Brontosaurus",
+    "level": 10,
+    "art": "brontosaurus.webp"
+  },
+  {
+    "id": "empyreal_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "6IBevff4lJOFl539",
+    "name": "Empyreal Dragon (Young)",
+    "level": 10,
+    "art": "empyreal-dragon-young.webp"
+  },
+  {
+    "id": "empyreal_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "3wzvIQuxIaJU3JVO",
+    "name": "Empyreal Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "empyreal-dragon-young-spellcaster.webp"
   }
 ]
