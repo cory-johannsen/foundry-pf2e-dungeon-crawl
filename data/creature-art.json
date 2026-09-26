@@ -10558,5 +10558,77 @@
     "name": "Empyreal Dragon (Young, Spellcaster)",
     "level": 10,
     "art": "empyreal-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "fortune_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "qtwhQEehDrMoWusV",
+    "name": "Fortune Dragon (Young)",
+    "level": 10,
+    "art": "fortune-dragon-young.webp"
+  },
+  {
+    "id": "ghonhatine",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "xdIHvCBspeSXRL6A",
+    "name": "Ghonhatine",
+    "level": 10,
+    "art": "ghonhatine.webp"
+  },
+  {
+    "id": "fortune_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "BvYVgvlTcRbim4Xb",
+    "name": "Fortune Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "fortune-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "ghost_mage",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "LN7MXD38Zs2bDoW6",
+    "name": "Ghost Mage",
+    "level": 10,
+    "art": "ghost-mage.webp"
+  },
+  {
+    "id": "giant_flytrap",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "ka7bXO7HIfBxk8Gy",
+    "name": "Giant Flytrap",
+    "level": 10,
+    "art": "giant-flytrap.webp"
+  },
+  {
+    "id": "icewyrm",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "zEystWZ5lvDsnTqF",
+    "name": "Icewyrm",
+    "level": 10,
+    "art": "icewyrm.webp"
+  },
+  {
+    "id": "mage_knight",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "0cj7cQhgNnLxbUmR",
+    "name": "Mage Knight",
+    "level": 10,
+    "art": "mage-knight.webp"
+  },
+  {
+    "id": "mammoth",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "jkp7THTZMc0ivN8Y",
+    "name": "Mammoth",
+    "level": 10,
+    "art": "mammoth.webp"
+  },
+  {
+    "id": "melody_on_the_wind_b2",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "hvoIxruNUei1auQT",
+    "name": "Melody On The Wind",
+    "level": 10,
+    "art": "melody-on-the-wind-b2.webp"
   }
 ]
