@@ -561,20 +561,21 @@ describe('findCorridorPath', () => {
   });
 
   it('detours around a cell occupied by an unrelated room', () => {
-    // #174 fix round: the blocked cell must not be toPos's own
-    // north-neighbor, or the only available detour would need to enter
-    // toPos from a non-north side, which the fix below correctly
-    // forbids (see the two tests after this describe block). Using
-    // toPos at rank 3 keeps this test's original intent — a generic
-    // detour around an obstacle — compatible with that new rule: the
-    // blocked cell (rank 1) sits well short of toPos's own north
-    // neighbor (rank 2).
-    const occupiedCells = { '1,0': 'blocker' };
+    // #174 fix round: a single-cell obstacle directly under fromPos,
+    // well short of toPos's own north-neighbor, would produce a path
+    // identical in shape to the north-reconvergence test below it — so
+    // this uses a 3-wide barrier spanning columns -1..1 at rank 1
+    // instead, forcing a genuinely wider sideways detour (through
+    // column -2 or 2) to stay a distinct "generic BFS detour" check
+    // from the north-entry-specific tests after this describe block.
+    const occupiedCells = { '1,-1': 'blocker', '1,0': 'blocker', '1,1': 'blocker' };
     const path = findCorridorPath(
       { rank: 0, col: 0 }, { rank: 3, col: 0 }, occupiedCells, { fromRoomId: 'a', toRoomId: 'b' },
     );
     expect(path).not.toBeNull();
+    expect(path).not.toContainEqual({ rank: 1, col: -1 });
     expect(path).not.toContainEqual({ rank: 1, col: 0 });
+    expect(path).not.toContainEqual({ rank: 1, col: 1 });
     expect(path[0]).toEqual({ rank: 0, col: 0 });
     expect(path[path.length - 1]).toEqual({ rank: 3, col: 0 });
   });
