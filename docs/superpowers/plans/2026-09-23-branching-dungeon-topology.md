@@ -409,14 +409,28 @@ Expected: FAIL (`insertRestRoom` is not exported yet)
  * buildRoomGraph's output, rather than complicating the forced-merge
  * algorithm itself with rest-room placement.
  *
- * Picks the non-entry, non-goal room whose OWN generation-order salt
- * (parsed straight from its `room-N` id) is closest to
- * Math.floor((roomCount - 2) / 2) — the same "nearest the midpoint of the
- * run" semantics buildRoomSequence's own restAfterIndex used for a linear
- * chain. This generalizes cleanly to a branching graph because every
- * non-entry, non-goal room's id still encodes its own generation-order
- * index regardless of the graph's eventual shape — no need to reason
- * about rank/column position or merge structure at all.
+ * #93 fix round 2 (found by this task's own review, empirically — the
+ * ORIGINAL version of this function below picked its splice target by
+ * generation-order proximity to the midpoint alone, with no guarantee
+ * that target sat on every path from entry to goal. A 2000-graph sweep
+ * found the restored rest room was actually reachable on the party's
+ * real path only ~2.5% of the time — a target on some OTHER branch is
+ * invisible to a party that picks a different door, silently defeating
+ * the whole point of "restore the checkpoint." Fixed by walking backward
+ * from the goal through its own unique-parent chain instead: while a
+ * room has EXACTLY one real parent, that parent is a true dominator of
+ * the goal — every path reaching the room used that one edge, by
+ * definition, so every path to the goal necessarily passed through the
+ * parent too, regardless of how much branching happens further back
+ * (branches that already merged into a single-parent chain can never
+ * diverge again before the goal). The goal's own immediate parent is
+ * ALWAYS such a dominator on its own, by the single-entrance-goal
+ * guarantee (Task 2's Global Constraint) — this is the walk's starting
+ * point, not just its fallback. The walk extends further back (closer to
+ * the entry, better matching "nearest the midpoint") only as long as the
+ * chain of single-parent rooms continues; it stops at the first room
+ * with 2+ real parents (a merge point genuinely reachable via more than
+ * one branch) or at the entry itself.
  *
  * Splices `room-rest` in as the new SOLE parent of the selected target:
  * every room that currently points at the target is redirected to point
@@ -430,20 +444,22 @@ Expected: FAIL (`insertRestRoom` is not exported yet)
 export function insertRestRoom({ rooms, edges, seed, roomCount }) {
   if (roomCount <= MID_DUNGEON_REST_THRESHOLD) return { rooms, edges };
 
-  const targetSalt = Math.floor((roomCount - 2) / 2);
-  let target = null;
-  let bestDistance = Infinity;
-  for (const room of Object.values(rooms)) {
-    if (room.id === 'room-entry' || room.isGoal) continue;
-    const match = /^room-(\d+)$/.exec(room.id);
-    if (!match) continue;
-    const distance = Math.abs(Number(match[1]) - targetSalt);
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      target = room;
-    }
+  const goal = Object.values(rooms).find((r) => r.isGoal);
+  const goalParents = goal ? Object.keys(edges).filter((id) => edges[id].includes(goal.id)) : [];
+  // Defensive, not expected to trip: Task 2's own single-entrance-goal
+  // guarantee means goalParents.length is always exactly 1, and it's
+  // never 'room-entry' for any roomCount above MID_DUNGEON_REST_THRESHOLD
+  // (there's always at least one real room between them by then).
+  if (goalParents.length !== 1 || goalParents[0] === 'room-entry') return { rooms, edges };
+
+  let target = rooms[goalParents[0]];
+  let current = goalParents[0];
+  for (;;) {
+    const parents = Object.keys(edges).filter((id) => edges[id].includes(current));
+    if (parents.length !== 1 || parents[0] === 'room-entry') break;
+    current = parents[0];
+    target = rooms[current];
   }
-  if (!target) return { rooms, edges }; // degenerate roomCount, nothing to splice before
 
   const rest = {
     id: 'room-rest', kind: 'safe_rest', isGoal: false, setpieceId: null, outcomeSlotId: null,
@@ -460,7 +476,7 @@ export function insertRestRoom({ rooms, edges, seed, roomCount }) {
 }
 ```
 
-**Note for the implementer:** `MID_DUNGEON_REST_THRESHOLD`, `locationTagAt`, `roomArtVariantAt` already exist in this same file (used by `buildRoomSequence`) — reference them as-is, do not redefine. This function does not touch `layoutEdges`/rank/column computation at all; it runs before those are computed (see the Task 12 addendum), so `computeRanks`/`computeColumns` see the spliced graph as just another valid DAG shape, no special-casing needed there.
+**Note for the implementer:** `MID_DUNGEON_REST_THRESHOLD`, `locationTagAt`, `roomArtVariantAt` already exist in this same file (used by `buildRoomSequence`) — reference them as-is, do not redefine. This function does not touch `layoutEdges`/rank/column computation at all; it runs before those are computed (see the Task 12 addendum), so `computeRanks`/`computeColumns` see the spliced graph as just another valid DAG shape, no special-casing needed there. Add a regression test verifying the property the round-2 fix restores: over a large seed/roomCount sweep (roomCount 7-20, at least 500 seeds), for every graph that gets a rest room, walk EVERY simple path from `room-entry` to the goal in `edges` and confirm `room-rest` appears on all of them (not just some) — this is the exact property the original generation-order-based version silently violated ~97.5% of the time.
 
 - [ ] **Step 4: Run tests to verify they pass**
 
