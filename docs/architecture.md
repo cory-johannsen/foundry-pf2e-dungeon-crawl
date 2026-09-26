@@ -286,7 +286,6 @@ graph LR
   scripts_encounter_generator_mjs --> scripts_trait_picker_mjs
   scripts_encounter_generator_mjs --> scripts_dungeon_combat_mjs
   scripts_encounter_generator_mjs --> scripts_cover_items_mjs
-  scripts_encounter_generator_mjs --> scripts_dungeon_runner_mjs
   scripts_foundry_api_mjs --> scripts_placement_mjs
   scripts_foundry_api_mjs --> scripts_prng_mjs
   scripts_foundry_api_mjs --> scripts_cover_items_mjs
@@ -314,8 +313,8 @@ graph LR
   scripts_ui_dungeon_app_mjs --> scripts_data_loader_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_runner_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_permissions_mjs
-  scripts_ui_dungeon_app_mjs --> scripts_dungeon_remote_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_customization_fulfillment_mjs
+  scripts_ui_dungeon_app_mjs --> scripts_dungeon_remote_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_deck_mjs
   scripts_ui_dungeon_app_mjs --> scripts_foundry_api_mjs
   scripts_ui_dungeon_app_mjs --> scripts_encounter_roster_mjs
@@ -325,6 +324,8 @@ graph LR
   scripts_ui_dungeon_app_mjs --> scripts_trait_picker_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_scene_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_combat_mjs
+  scripts_ui_dungeon_app_mjs --> scripts_generator_registry_mjs
+  scripts_ui_dungeon_app_mjs --> scripts_dungeon_layout_mjs
   tools_agent_service_customization_generator_mjs --> tools_agent_service_node_fetch_mjs
   tools_agent_service_customization_generator_mjs --> tools_agent_service_env_mjs
   tools_agent_service_customization_generator_mjs --> tools_agent_service_tier_selection_mjs
