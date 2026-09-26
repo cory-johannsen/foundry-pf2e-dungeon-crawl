@@ -571,7 +571,13 @@ export const HIDDEN_PATH_CHANCE = 0.2;
  * graph points INTO it until an outcome reveal adds that incoming edge —
  * see dungeon-runner.mjs's revealTravelTimeEffect.
  */
-export function attachHiddenPaths({ rooms, edges, seed }) {
+export function attachHiddenPaths({
+  rooms, edges, seed,
+  puzzleSetpieceIds = [],
+  trapSetpieceIds = [],
+  narrativeSetpieceIds = [],
+  treasureSetpieceIds = [],
+}) {
   const hiddenRooms = new Set();
   const hiddenEdges = {};
   const hiddenIncomingByRoomId = {};
@@ -579,10 +585,23 @@ export function attachHiddenPaths({ rooms, edges, seed }) {
     Object.entries(edges).map(([id, children]) => [id, [...children]]),
   );
   let detourSalt = 0;
+  // #93 post-merge fix: dedicated occurrence counters, one per kind, never
+  // shared with buildRoomGraph's own main-graph counters — a detour room
+  // and a main-graph room drawing from the same pool must never collide
+  // on the exact same setpiece.
+  let detourPuzzleOccurrence = 0;
+  let detourTrapOccurrence = 0;
+  let detourNarrativeOccurrence = 0;
+  let detourTreasureOccurrence = 0;
 
   for (const [fromId, children] of Object.entries(edges)) {
     const fromRoom = rooms[fromId];
-    if (!fromRoom || fromRoom.isGoal || fromId === 'room-entry') continue;
+    // #93 post-merge fix: exclude safe_rest — its own outcome always
+    // resolves as the fixed 'rest_room_passed' effectKey, never
+    // reduced_travel_time/extra_travel_time, so a hidden path attached to
+    // it could never be revealed by anything — permanently sealing off
+    // whatever it leads to.
+    if (!fromRoom || fromRoom.isGoal || fromId === 'room-entry' || fromRoom.kind === 'safe_rest') continue;
     if (children.length === 0 || children.length > 2) continue; // no spare face
 
     const r = splitmix32(seedFromString(`${seed}-hidden-${fromId}`))();
@@ -597,9 +616,23 @@ export function attachHiddenPaths({ rooms, edges, seed }) {
 
     const wantsDetour = splitmix32(seedFromString(`${seed}-hidden-kind-${fromId}`))() < 0.5;
     if (wantsDetour) {
+      const kind = roomKindAt(seed, `detour-${detourSalt}`);
+      // #93 post-merge fix: a detour room needs real content — with
+      // outcomeSlotId null, markRoomOutcome no-ops forever on it and the
+      // party is stuck the moment they walk in. Same per-kind assignment
+      // buildRoomGraph's own makeRoom uses, but with dedicated
+      // 'detour-*-setpiece-order' salts and dedicated occurrence counters
+      // so this pool draw stays independent of makeRoom's own.
+      const setpieceId =
+        kind === 'puzzle' ? setpieceAt(seed, detourPuzzleOccurrence++, puzzleSetpieceIds, 'detour-puzzle-setpiece-order')
+        : kind === 'trap' ? setpieceAt(seed, detourTrapOccurrence++, trapSetpieceIds, 'detour-trap-setpiece-order')
+        : kind === 'narrative' ? setpieceAt(seed, detourNarrativeOccurrence++, narrativeSetpieceIds, 'detour-narrative-setpiece-order')
+        : kind === 'treasure' ? setpieceAt(seed, detourTreasureOccurrence++, treasureSetpieceIds, 'detour-treasure-setpiece-order')
+        : null;
+      const outcomeSlot = outcomeSlotAt(seed, `detour-${detourSalt}`);
       const detour = {
-        id: `room-detour-${detourSalt}`, kind: roomKindAt(seed, `detour-${detourSalt}`),
-        isGoal: false, setpieceId: null, outcomeSlotId: null,
+        id: `room-detour-${detourSalt}`, kind,
+        isGoal: false, setpieceId, outcomeSlotId: outcomeSlot.id,
         locationTag: locationTagAt(seed, `detour-${detourSalt}`),
         artVariant: roomArtVariantAt(seed, `detour-${detourSalt}`)
       };

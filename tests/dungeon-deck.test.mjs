@@ -706,6 +706,62 @@ describe('attachHiddenPaths', () => {
   });
 });
 
+describe('attachHiddenPaths detour content (#93 post-merge fix)', () => {
+  it('every detour room gets a non-null outcomeSlotId', () => {
+    let sawDetour = false;
+    for (let i = 0; i < 300; i += 1) {
+      const seed = `detour-content-${i}`;
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount: 10 });
+      const attached = attachHiddenPaths({ rooms, edges, seed });
+      for (const roomId of attached.hiddenRooms) {
+        sawDetour = true;
+        const room = attached.rooms[roomId];
+        if (room.kind === 'safe_rest') continue; // never a detour kind, but guard anyway
+        expect(room.outcomeSlotId).not.toBeNull();
+        expect(findOutcomeTemplate(room.outcomeSlotId)).not.toBeNull();
+      }
+    }
+    expect(sawDetour).toBe(true);
+  });
+
+  it('a puzzle/trap/narrative/treasure detour room gets a real setpieceId when pools are provided', () => {
+    const puzzleSetpieceIds = ['p1', 'p2'];
+    const trapSetpieceIds = ['t1', 't2'];
+    const narrativeSetpieceIds = ['n1', 'n2'];
+    const treasureSetpieceIds = ['tr1', 'tr2'];
+    let sawContentKind = false;
+    for (let i = 0; i < 300; i += 1) {
+      const seed = `detour-setpiece-${i}`;
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount: 10 });
+      const attached = attachHiddenPaths({
+        rooms, edges, seed,
+        puzzleSetpieceIds, trapSetpieceIds, narrativeSetpieceIds, treasureSetpieceIds,
+      });
+      for (const roomId of attached.hiddenRooms) {
+        const room = attached.rooms[roomId];
+        if (['puzzle', 'trap', 'narrative', 'treasure'].includes(room.kind)) {
+          sawContentKind = true;
+          expect(room.setpieceId).not.toBeNull();
+        }
+      }
+    }
+    expect(sawContentKind).toBe(true);
+  });
+
+  it('never selects the rest room as a hidden-path fromId', () => {
+    for (let i = 0; i < 300; i += 1) {
+      const seed = `rest-exclusion-${i}`;
+      const roomCount = 10;
+      const { rooms: baseRooms, edges: baseEdges } = buildRoomGraph({ seed, roomCount });
+      const { rooms, edges } = insertRestRoom({ rooms: baseRooms, edges: baseEdges, seed, roomCount });
+      const restRoom = Object.values(rooms).find((r) => r.kind === 'safe_rest');
+      if (!restRoom) continue;
+      const attached = attachHiddenPaths({ rooms, edges, seed });
+      expect(attached.hiddenEdges[restRoom.id]).toBeUndefined();
+    }
+  });
+});
+
 describe('revealTravelTimeEffect', () => {
   it('merges a room\'s hidden edge into the live edges and removes it from hiddenEdges', () => {
     const state = { edges: { a: ['b'] }, hiddenEdges: { a: ['shortcut-target'] } };
