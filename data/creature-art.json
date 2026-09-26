@@ -10502,5 +10502,29 @@
     "name": "Exiled Revolutionary",
     "level": 10,
     "art": "exiled-revolutionary.webp"
+  },
+  {
+    "id": "cinder_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "vj3LHkt40wGtJ3W1",
+    "name": "Cinder Dragon (Young)",
+    "level": 10,
+    "art": "cinder-dragon-young.webp"
+  },
+  {
+    "id": "feathered_bear",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "1BIrNW4L32e9fTFF",
+    "name": "Feathered Bear",
+    "level": 10,
+    "art": "feathered-bear.webp"
+  },
+  {
+    "id": "fire_giant",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "rEDhI2oI4TqTICN2",
+    "name": "Fire Giant",
+    "level": 10,
+    "art": "fire-giant.webp"
   }
 ]
