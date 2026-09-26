@@ -439,6 +439,46 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
   };
 }
 
+/**
+ * The `openOffset` a room's own cell-margin containment wall (Task 2's
+ * `cellMarginWalls`) must use for its outgoing connection on `exitFace`,
+ * so the gap it leaves lines up with wherever `buildEdgeCorridor` will
+ * actually route that same connection's real corridor (#174 Task 5's own
+ * fix round, amended after a re-review found the first pass incomplete).
+ *
+ * `buildEdgeCorridor` uses a doorOffsetAt-based exit point ONLY for a
+ * south-face connection where `fromPos.col === toPos.col` AND it takes
+ * its adjacent-or-no-path fallback branch (`!path || path.length <= 2`)
+ * — never just `path.length <= 2` alone, since a null path (no free
+ * route — e.g. the target's own north-neighbor cell is occupied,
+ * findCorridorPath's north-only-entry rule) falls back to the SAME
+ * offset-based branch as a directly-adjacent connection, and this is a
+ * routine shape for a merge room several ranks below a parent, not a
+ * rare corner. Every other case — east (always, since buildEdgeCorridor's
+ * offset branch requires exitFace === 'south' explicitly), a
+ * different-column south connection, or any connection whose path takes
+ * the multi-cell branch — uses buildEdgeCorridor's center-based exit
+ * point instead. This function re-derives exactly which branch
+ * buildEdgeCorridor will take (by calling the same `findCorridorPath` the
+ * caller already needs for `buildEdgeCorridor` itself) rather than
+ * approximating it, since the two must never independently drift.
+ */
+export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells) {
+  if (exitFace !== 'south') {
+    // East never takes buildEdgeCorridor's offset-based branch — always
+    // center-based, regardless of the child's rank/column.
+    return fromRect.gh / 2 - DOOR_WIDTH / 2;
+  }
+  const sameColumn = fromPos.col === toPos.col;
+  const path = sameColumn
+    ? findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId })
+    : null;
+  const usesOffsetBasedExit = sameColumn && (!path || path.length <= 2);
+  return usesOffsetBasedExit
+    ? doorOffsetAt(seed, `${fromRoomId}-${exitFace}`, 'outgoing', fromRect.gw)
+    : fromRect.gw / 2 - DOOR_WIDTH / 2;
+}
+
 /** Which compass direction `from` a cell faces to reach an
  * orthogonally-adjacent `to` cell — 'north' if to is one rank up, etc.
  * (#174 Task 4 — used to label each transitCells entry's own

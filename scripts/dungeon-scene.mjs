@@ -41,9 +41,8 @@ import {
   buildEdgeCorridor,
   cellMarginWalls,
   transitCellContainmentWalls,
-  doorOffsetAt,
   DOOR_WIDTH,
-  findCorridorPath,
+  outgoingMarginOffset,
 } from "./dungeon-layout.mjs";
 import { freeSpotInRect } from "./placement.mjs";
 import { generateEncounter } from "./encounter-generator.mjs";
@@ -342,13 +341,12 @@ export async function buildRoomAtGraphNode(
   // between a ROOM_SIZE_SMALL room and the full cell it's allotted — a
   // no-op for ROOM_SIZE_LARGE, cellMarginWalls' own docblock) so vision
   // and movement can never leak past the room into unbuilt void space.
-  // `openSide`/`openOffset`/`openWidth` come from the SAME
-  // exitFaceForIndex/doorOffsetAt values this room's own outgoing
-  // connection(s) use (`${roomId}-${face}`, 'outgoing', rect.gw — the
-  // exact formula buildEdgeCorridor itself calls when this room later
-  // acts as a connection's own `fromRoomId`) — never recomputed
-  // differently, so the gap this leaves always lines up with wherever a
-  // real corridor is actually decided to cross it.
+  // `openOffset` comes from `outgoingMarginOffset` (dungeon-layout.mjs),
+  // which re-derives exactly which of buildEdgeCorridor's own branches
+  // (offset-based vs. center-based exit point) will fire for THIS
+  // connection, rather than duplicating that branch logic here — the two
+  // needed two fix rounds to agree before being centralized in one place
+  // (see outgoingMarginOffset's own docblock for the full history).
   //
   // cellMarginWalls (Task 2) only ever accepts a SINGLE openSide at a
   // time — sufficient for a room with at most one of south/east actually
@@ -360,53 +358,16 @@ export async function buildRoomAtGraphNode(
   // correctly by that other side's own call instead) generalizes this
   // without needing to touch cellMarginWalls' own already-tested
   // signature.
-  //
-  // #174 Task 5 fix round (found during Task 5's own review, then
-  // amended after a re-review found the fix's first pass was still
-  // incomplete): the doorOffsetAt-based gap above only matches
-  // buildEdgeCorridor's own real exit point for a south connection where
-  // `sameColumn` is true AND buildEdgeCorridor takes its
-  // adjacent-or-no-path fallback branch — `!path || path.length <= 2`,
-  // NOT just `path.length <= 2` alone. The first fix-round pass checked
-  // only the rank gap (`=== 1`), which covers `path.length <= 2` but
-  // misses the `path === null` case: a same-column south connection more
-  // than one rank apart whose child's own north-neighbor cell is
-  // occupied by an unrelated room has findCorridorPath return null
-  // (findCorridorPath's own north-only-entry rule, #174 Task 1's fix
-  // round), and buildEdgeCorridor's fallback for a null path uses the
-  // SAME offset-based formula as a directly-adjacent connection — a
-  // same-column, multi-rank-apart merge connection is exactly the
-  // scenario where this matters, not a rare corner. Re-running
-  // findCorridorPath here (with the same occupiedCells the caller
-  // already derives for buildEdgeCorridor itself) is the only way to
-  // know which branch buildEdgeCorridor will actually take, short of
-  // duplicating its own path.length<=2/null check by hand and hoping it
-  // never drifts. An east-face connection is unaffected by any of this —
-  // buildEdgeCorridor's offset-based branch requires exitFace === 'south'
-  // explicitly, so east always uses the center-based formula regardless
-  // of path/rank/column.
   const marginFaces = outgoingFaces.filter((face) => face === "east" || face === "south");
   const marginWalls = [];
   const coveredMarginSides = new Set();
   for (const face of marginFaces) {
-    let offset;
-    if (face === "south") {
-      const childId = childIdByFace.south;
-      const childPos = childId ? layoutPositionByRoomId[childId] : null;
-      const sameColumn = childPos && childPos.col === col;
-      const path = sameColumn
-        ? findCorridorPath({ rank, col }, childPos, occupiedCells, { fromRoomId: roomId, toRoomId: childId })
-        : null;
-      const usesOffsetBasedExit = sameColumn && (!path || path.length <= 2);
-      offset = usesOffsetBasedExit
-        ? doorOffsetAt(seed, `${roomId}-${face}`, "outgoing", rect.gw)
-        : rect.gw / 2 - DOOR_WIDTH / 2;
-    } else {
-      // East never takes buildEdgeCorridor's offset-based branch (that
-      // branch requires exitFace === 'south' explicitly) — always
-      // center-based, regardless of the child's rank/column.
-      offset = rect.gh / 2 - DOOR_WIDTH / 2;
-    }
+    const childId = childIdByFace[face];
+    const childPos = childId ? layoutPositionByRoomId[childId] : null;
+    const offset = outgoingMarginOffset(
+      seed, roomId, childId, face, rect, { rank, col },
+      childPos ?? { rank: NaN, col: NaN }, occupiedCells,
+    );
     const sideWalls = cellMarginWalls(rect, rank, col, { openSide: face, openOffset: offset, openWidth: DOOR_WIDTH });
     for (const side of sideWalls) if (side.dir === face) marginWalls.push(side);
     coveredMarginSides.add(face);

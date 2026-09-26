@@ -5,7 +5,7 @@ import {
   computeRanks, computeColumns,
   roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, northDoorSlots, buildEdgeCorridor,
   cellBounds, findCorridorPath, INITIAL_GX, cellMarginWalls, transitCellCrossing,
-  transitCellContainmentWalls, CORRIDOR_LEN,
+  transitCellContainmentWalls, CORRIDOR_LEN, outgoingMarginOffset,
 } from '../scripts/dungeon-layout.mjs';
 import { buildRoomGraph } from '../scripts/dungeon-deck.mjs';
 
@@ -951,5 +951,80 @@ describe('transitCellCrossing', () => {
         }
       }
     }
+  });
+});
+
+describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
+  // Regression coverage for a bug class that bit twice before being
+  // caught: a room's cell-margin containment wall must leave its gap
+  // exactly where buildEdgeCorridor will actually route the real
+  // corridor, or the wall gets built directly across the corridor's own
+  // crossing point. Each case here computes both outgoingMarginOffset's
+  // result AND buildEdgeCorridor's own real doorWall for the identical
+  // inputs, and asserts they describe the same position — the actual
+  // invariant that matters, not just outgoingMarginOffset's return value
+  // in isolation.
+  const seed = 'margin-offset-alignment';
+  const smallRect = (rank, col) => {
+    const cell = cellBounds(rank, col);
+    return { gx: cell.gx, gy: cell.gy, gw: ROOM_SIZE_SMALL, gh: ROOM_SIZE_SMALL };
+  };
+
+  function expectSouthAlignment(fromPos, toPos, occupiedCells) {
+    const fromRect = smallRect(fromPos.rank, fromPos.col);
+    const toRect = smallRect(toPos.rank, toPos.col);
+    const offset = outgoingMarginOffset(seed, 'A', 'B', 'south', fromRect, fromPos, toPos, occupiedCells);
+    const toSlot = northDoorSlots(toRect, 1)[0];
+    const { doorWall } = buildEdgeCorridor(seed, 'A', 'B', fromRect, toRect, fromPos, toPos, 'south', toSlot, occupiedCells);
+    const marginWalls = cellMarginWalls(fromRect, fromPos.rank, fromPos.col, {
+      openSide: 'south', openOffset: offset, openWidth: DOOR_WIDTH,
+    }).filter((w) => w.dir === 'south');
+    // The margin wall's gap (the space between its two solid segments)
+    // must span exactly [doorWall.x1, doorWall.x2].
+    expect(marginWalls).toHaveLength(2);
+    const gapX0 = Math.min(...marginWalls.map((w) => w.x2));
+    const gapX1 = Math.max(...marginWalls.map((w) => w.x1));
+    expect(gapX0).toBeCloseTo(doorWall.x1, 9);
+    expect(gapX1).toBeCloseTo(doorWall.x2, 9);
+  }
+
+  it('aligns a same-column, one-rank-apart connection (buildEdgeCorridor\'s offset-based branch)', () => {
+    expectSouthAlignment({ rank: 0, col: 0 }, { rank: 1, col: 0 }, {});
+  });
+
+  it('aligns a same-column, multi-rank-apart connection with no obstacle (buildEdgeCorridor\'s multi-cell branch)', () => {
+    expectSouthAlignment({ rank: 0, col: 0 }, { rank: 3, col: 0 }, {});
+  });
+
+  it('aligns a same-column, multi-rank-apart connection whose target\'s north-neighbor is occupied (buildEdgeCorridor\'s null-path fallback branch)', () => {
+    // This is the exact scenario a re-review found the first fix-round
+    // pass missed: findCorridorPath returns null here (the target's own
+    // north-neighbor cell is blocked), and buildEdgeCorridor's fallback
+    // for a null path uses the SAME offset-based formula as a
+    // directly-adjacent connection — a rank-gap-only check gets this
+    // wrong.
+    expectSouthAlignment({ rank: 0, col: 0 }, { rank: 3, col: 0 }, { '2,0': 'blocker' });
+  });
+
+  it('aligns an east-face connection regardless of column (buildEdgeCorridor never uses the offset-based branch for east)', () => {
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 0, col: 1 };
+    const fromRect = smallRect(fromPos.rank, fromPos.col);
+    const toRect = smallRect(toPos.rank, toPos.col);
+    const offset = outgoingMarginOffset(seed, 'A', 'B', 'east', fromRect, fromPos, toPos, {});
+    const toSlot = northDoorSlots(toRect, 1)[0];
+    const { doorWall } = buildEdgeCorridor(seed, 'A', 'B', fromRect, toRect, fromPos, toPos, 'east', toSlot, {});
+    const marginWalls = cellMarginWalls(fromRect, fromPos.rank, fromPos.col, {
+      openSide: 'east', openOffset: offset, openWidth: DOOR_WIDTH,
+    }).filter((w) => w.dir === 'east');
+    expect(marginWalls).toHaveLength(2);
+    const gapY0 = Math.min(...marginWalls.map((w) => w.y2));
+    const gapY1 = Math.max(...marginWalls.map((w) => w.y1));
+    expect(gapY0).toBeCloseTo(doorWall.y1, 9);
+    expect(gapY1).toBeCloseTo(doorWall.y2, 9);
+  });
+
+  it('aligns a different-column south connection (buildEdgeCorridor\'s center-based fallback branch)', () => {
+    expectSouthAlignment({ rank: 0, col: 0 }, { rank: 1, col: 1 }, {});
   });
 });
