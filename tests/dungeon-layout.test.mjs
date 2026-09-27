@@ -3,7 +3,7 @@ import {
   ROOM_SIZE_SMALL, ROOM_SIZE_LARGE, DOOR_WIDTH,
   roomSizeAt, doorOffsetAt, corridorTileVariant,
   computeRanks, computeColumns,
-  roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, northDoorSlots, buildEdgeCorridor,
+  roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, northDoorSlots, buildEdgeCorridor, incomingFaceFor, doorSlotsForFace,
   cellBounds, findCorridorPath, INITIAL_GX, cellMarginWalls, transitCellCrossing,
   transitCellContainmentWalls, CORRIDOR_LEN, outgoingMarginOffset,
 } from '../scripts/dungeon-layout.mjs';
@@ -149,6 +149,72 @@ describe('northDoorSlots', () => {
   it('a single slot spans the whole north edge', () => {
     const rect = { gx: 0, gy: 0, gw: 4, gh: 4 };
     expect(northDoorSlots(rect, 1)).toEqual([{ x1: 0, y1: 0, x2: 4, y2: 0 }]);
+  });
+});
+
+describe('incomingFaceFor', () => {
+  it('returns north when the north-neighbor cell is empty', () => {
+    const positionByRoomId = { r: { rank: 1, col: 1 } };
+    expect(incomingFaceFor('r', positionByRoomId, {}, new Set())).toBe('north');
+  });
+
+  it('returns north when the north-neighbor cell is occupied only by a real parent', () => {
+    const positionByRoomId = { r: { rank: 1, col: 1 }, p: { rank: 0, col: 1 } };
+    const occupiedCells = { '0,1': 'p' };
+    expect(incomingFaceFor('r', positionByRoomId, occupiedCells, new Set(['p']))).toBe('north');
+  });
+
+  it('falls back to west when north is blocked by an unrelated room but west is free', () => {
+    const positionByRoomId = { r: { rank: 1, col: 1 }, blocker: { rank: 0, col: 1 } };
+    const occupiedCells = { '0,1': 'blocker' };
+    expect(incomingFaceFor('r', positionByRoomId, occupiedCells, new Set())).toBe('west');
+  });
+
+  it('falls back to west when north is blocked by an unrelated room, even if west is occupied by a legitimate parent', () => {
+    const positionByRoomId = { r: { rank: 1, col: 1 }, blocker: { rank: 0, col: 1 }, p: { rank: 1, col: 0 } };
+    const occupiedCells = { '0,1': 'blocker', '1,0': 'p' };
+    expect(incomingFaceFor('r', positionByRoomId, occupiedCells, new Set(['p']))).toBe('west');
+  });
+
+  it('returns north (the documented residual-case tiebreak) when both north and west are blocked by unrelated rooms', () => {
+    const positionByRoomId = { r: { rank: 1, col: 1 }, blockerN: { rank: 0, col: 1 }, blockerW: { rank: 1, col: 0 } };
+    const occupiedCells = { '0,1': 'blockerN', '1,0': 'blockerW' };
+    expect(incomingFaceFor('r', positionByRoomId, occupiedCells, new Set())).toBe('north');
+  });
+
+  it('correctly excludes multiple real parents for a merge room', () => {
+    // Both p1 (north-neighbor) and p2 (elsewhere entirely) are this
+    // room's own real parents — p1 sitting at the north-neighbor
+    // position must not count as blocking.
+    const positionByRoomId = { r: { rank: 2, col: 1 }, p1: { rank: 1, col: 1 }, p2: { rank: 0, col: 3 } };
+    const occupiedCells = { '1,1': 'p1', '0,3': 'p2' };
+    expect(incomingFaceFor('r', positionByRoomId, occupiedCells, new Set(['p1', 'p2']))).toBe('north');
+  });
+});
+
+describe('doorSlotsForFace', () => {
+  it('produces byte-identical output to the old northDoorSlots for face="north"', () => {
+    const rect = { gx: 300, gy: 26, gw: 12, gh: 12 };
+    expect(doorSlotsForFace(rect, 3, 'north')).toEqual([
+      { x1: 300, y1: 26, x2: 304, y2: 26 },
+      { x1: 304, y1: 26, x2: 308, y2: 26 },
+      { x1: 308, y1: 26, x2: 312, y2: 26 },
+    ]);
+  });
+
+  it('divides the west edge along height for face="west"', () => {
+    const rect = { gx: 300, gy: 26, gw: 12, gh: 12 };
+    expect(doorSlotsForFace(rect, 3, 'west')).toEqual([
+      { x1: 300, y1: 26, x2: 300, y2: 30 },
+      { x1: 300, y1: 30, x2: 300, y2: 34 },
+      { x1: 300, y1: 34, x2: 300, y2: 38 },
+    ]);
+  });
+
+  it('single slot spans the whole face, either orientation', () => {
+    const rect = { gx: 300, gy: 26, gw: 6, gh: 6 };
+    expect(doorSlotsForFace(rect, 1, 'north')).toEqual([{ x1: 300, y1: 26, x2: 306, y2: 26 }]);
+    expect(doorSlotsForFace(rect, 1, 'west')).toEqual([{ x1: 300, y1: 26, x2: 300, y2: 32 }]);
   });
 });
 

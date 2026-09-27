@@ -12,8 +12,8 @@
  * children," with no idea of when a room gets built.
  *
  * A connection runs from one of a room's own outgoing faces
- * (south/east/west, exitFaceForIndex) to a door slot on its child's north
- * face (northDoorSlots), each end at its own independently-randomized
+ * (south/east/west, exitFaceForIndex) to a door slot on its child's incoming
+ * face (doorSlotsForFace), each end at its own independently-randomized
  * offset — see buildEdgeCorridor's docblock.
  *
  * Every room is square, either ROOM_SIZE_SMALL or ROOM_SIZE_LARGE on a side
@@ -126,17 +126,85 @@ export function parentRoomIdsFor(layoutEdges, roomId) {
  * incoming is already counted via its real `layoutEdges` parent link
  * above, never both). #93 pre-flight fix: this is the whole redesign in
  * one function — every entry this returns gets its own door slot on the
- * room's NORTH face (northDoorSlots, below), never a separate compass
+ * room's incoming face (doorSlotsForFace, selected by incomingFaceFor), never a separate compass
  * direction. That's what actually guarantees a merge room gets a door
  * for EVERY real parent (previously only one was ever built, silently
  * dead-ending every other branch) and that incoming can never collide
  * with a room's own outgoing faces (south/east/west, always disjoint
- * from north).
+ * from the incoming face).
  */
 export function incomingConnectionsFor(layoutEdges, roomId, hiddenIncomingByRoomId = {}) {
   const real = parentRoomIdsFor(layoutEdges, roomId).map((sourceId) => ({ sourceId, hidden: false }));
   const hidden = (hiddenIncomingByRoomId[roomId] ?? []).map((sourceId) => ({ sourceId, hidden: true }));
   return [...real, ...hidden];
+}
+
+/**
+ * Which compass face `roomId` should receive its incoming connection(s)
+ * on — 'north' (today's only option, unchanged for the common case) or
+ * 'west' as a fallback, chosen once per room from the fully precomputed
+ * layout (every room's rank/col is already known before any room is
+ * built). `legitimateSourceIds` is the set of this room's own real
+ * parents (`parentRoomIdsFor`) plus its hidden detour source, if any —
+ * one of THOSE occupying a candidate neighbor cell is the normal,
+ * expected "parent directly above/beside" shape, not a blocker.
+ *
+ * North and west are the only two candidates because they're the only
+ * two structurally marginless faces (a room always anchors at its own
+ * cell's top-left corner, so north/west always coincide with the cell's
+ * own edges regardless of room size) — neither ever needs new
+ * margin-gap-coordination logic (`cellMarginWalls` stays scoped to
+ * east/south only, unchanged).
+ *
+ * Returns 'north' for the residual case where BOTH neighbors are
+ * occupied by an unrelated room (#196, not solved here) — the caller's
+ * existing "no free path" fallback already handles this gracefully.
+ */
+export function incomingFaceFor(roomId, positionByRoomId, occupiedCells, legitimateSourceIds) {
+  const pos = positionByRoomId[roomId];
+  // A room's own id is never the occupant of a NEIGHBOR cell (each cell
+  // holds at most one room, and a neighbor is by definition a different
+  // cell) — the only exclusions that matter are this room's own real
+  // parents/hidden source, which legitimately DO occupy an adjacent
+  // cell in the common "parent directly above/beside" case.
+  const isFreeOrLegitimate = (rank, col) => {
+    const occupant = occupiedCells[`${rank},${col}`];
+    return occupant == null || legitimateSourceIds.has(occupant);
+  };
+  if (isFreeOrLegitimate(pos.rank - 1, pos.col)) return 'north';
+  if (isFreeOrLegitimate(pos.rank, pos.col - 1)) return 'west';
+  return 'north';
+}
+
+/**
+ * Divides a room's incoming face into `count` equal, contiguous door
+ * slots, left-to-right (`face === 'north'`) or top-to-bottom
+ * (`face === 'west'`). Replaces the old `northDoorSlots` (single-face
+ * version) now that incoming can land on either of a room's two
+ * marginless faces (`incomingFaceFor`) — `face === 'north'` produces
+ * byte-identical output to the old function for the same inputs.
+ */
+export function doorSlotsForFace(rect, count, face) {
+  const { gx, gy, gw, gh } = rect;
+  if (face === 'west') {
+    const step = gh / count;
+    return Array.from({ length: count }, (_, i) => ({
+      x1: gx, y1: gy + i * step, x2: gx, y2: gy + (i + 1) * step,
+    }));
+  }
+  const step = gw / count;
+  return Array.from({ length: count }, (_, i) => ({
+    x1: gx + i * step, y1: gy, x2: gx + (i + 1) * step, y2: gy,
+  }));
+}
+
+/**
+ * Divides a room's north wall into `count` equal, contiguous, left-to-
+ * right door slots. Compatibility wrapper around doorSlotsForFace for
+ * the north face.
+ */
+export function northDoorSlots(rect, count) {
+  return doorSlotsForFace(rect, count, 'north');
 }
 
 /** A room's own four wall segments, by compass side — exported (Task 10's
@@ -151,21 +219,6 @@ export function roomSidesForRect(rect) {
     west: { x1: gx, y1: gy, x2: gx, y2: gy + gh },
     east: { x1: gx + gw, y1: gy, x2: gx + gw, y2: gy + gh }
   };
-}
-
-/**
- * Divides a room's north wall into `count` equal, contiguous, left-to-
- * right door slots. Used for EVERY incoming connection — whether 1 for a
- * normal room, N for a merge room, or a normal room's real parent plus a
- * shortcut's extra hidden one (see `incomingConnectionsFor`, whose Nth
- * entry corresponds to this function's Nth slot).
- */
-export function northDoorSlots(rect, count) {
-  const { gx, gy, gw } = rect;
-  const step = gw / count;
-  return Array.from({ length: count }, (_, i) => ({
-    x1: gx + i * step, y1: gy, x2: gx + (i + 1) * step, y2: gy,
-  }));
 }
 
 /**
@@ -241,8 +294,8 @@ export function slotRowCol(slot) {
 
 /**
  * Edge geometry connecting fromRoomId's exitFace to a specific door slot
- * on toRoomId's north face (`toSlot`, from `northDoorSlots` — Task 5's
- * redesign means "incoming" is always north, but potentially one of
+ * on toRoomId's incoming face (`toSlot`, from `doorSlotsForFace` — Task 5's
+ * redesign means "incoming" can be north or west per room, but potentially one of
  * several slots when the target has more than one real parent or a
  * hidden extra). `fromPos`/`toPos` are the two rooms' own {rank, col}
  * (#174 Task 4) — used to pathfind a route (`findCorridorPath`) around
