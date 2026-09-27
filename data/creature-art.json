@@ -11702,5 +11702,117 @@
     "name": "Frost Worm",
     "level": 12,
     "art": "frost-worm.webp"
+  },
+  {
+    "id": "resurrection_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "eTPzH6vTomEZy2UA",
+    "name": "Resurrection Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "resurrection-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "sea_serpent",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "PUPnGG406PanzIvL",
+    "name": "Sea Serpent",
+    "level": 12,
+    "art": "sea-serpent.webp"
+  },
+  {
+    "id": "shining_child",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "ePJcp2ADOjJYYQ5Q",
+    "name": "Shining Child",
+    "level": 12,
+    "art": "shining-child.webp"
+  },
+  {
+    "id": "taiga_giant",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "W1OXnXGF22uybovO",
+    "name": "Taiga Giant",
+    "level": 12,
+    "art": "taiga-giant.webp"
+  },
+  {
+    "id": "chernobue",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "18NInoyRLIrWE0nt",
+    "name": "Chernobue",
+    "level": 12,
+    "art": "chernobue.webp"
+  },
+  {
+    "id": "great_cyclops",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "6mdq7UV9gFXAEOpJ",
+    "name": "Great Cyclops",
+    "level": 12,
+    "art": "great-cyclops.webp"
+  },
+  {
+    "id": "peerless_duelist",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "J6qH183OPXKfZ8qS",
+    "name": "Peerless Duelist",
+    "level": 12,
+    "art": "peerless-duelist.webp"
+  },
+  {
+    "id": "deific_champion_of_iomedae",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "NZOqqzi4ThvJfpm8",
+    "name": "Deific Champion of Iomedae",
+    "level": 12,
+    "art": "deific-champion-of-iomedae.webp"
+  },
+  {
+    "id": "fossil_golem",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "zGtfiKku0td5E0VJ",
+    "name": "Fossil Golem",
+    "level": 12,
+    "art": "fossil-golem.webp"
+  },
+  {
+    "id": "grisantian_lion",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "K8oGb2B4KCgXGN9W",
+    "name": "Grisantian Lion",
+    "level": 12,
+    "art": "grisantian-lion.webp"
+  },
+  {
+    "id": "misery_siktempora",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "LTSZ3LD1L7ZthoD2",
+    "name": "Misery Siktempora",
+    "level": 12,
+    "art": "misery-siktempora.webp"
+  },
+  {
+    "id": "paleohemoth",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "wfZoM7RfFzkmK7hI",
+    "name": "Paleohemoth",
+    "level": 12,
+    "art": "paleohemoth.webp"
+  },
+  {
+    "id": "tidehawk",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "2L2iQ9X8tYPH2K9s",
+    "name": "Tidehawk",
+    "level": 12,
+    "art": "tidehawk.webp"
+  },
+  {
+    "id": "xiuh_coatl",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "gVgVKlSqg0crOQSl",
+    "name": "Xiuh Coatl",
+    "level": 12,
+    "art": "xiuh-coatl.webp"
   }
 ]
