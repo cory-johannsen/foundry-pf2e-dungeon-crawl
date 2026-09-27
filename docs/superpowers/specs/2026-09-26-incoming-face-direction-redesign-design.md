@@ -61,6 +61,14 @@ the door is" from "where the corridor can actually go."
 
 ## Non-goals
 
+**2026-09-27 update:** the ~7.9% residual this section describes as
+issue #196's own scope was later found, empirically, to be much larger
+(~31.6%) against the real pipeline — `computeColumns`' gapless packing
+meant west was rarely actually available. Superseded by
+`docs/superpowers/specs/2026-09-27-column-gap-packing-design.md`, which
+closes #196 by a different mechanism (guaranteeing west via a layout
+change, not routing around its absence).
+
 - Fully general incoming-on-any-of-4-faces routing. Considered
   (Approach B below) and rejected for now: it would require incoming
   connections on a marginable face (east/south) to get their own
