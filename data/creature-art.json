@@ -11286,5 +11286,141 @@
     "name": "Hippopotamus Topiary",
     "level": 11,
     "art": "hippopotamus-topiary.webp"
+  },
+  {
+    "id": "requiem_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "z0X1HFrLzAUMxtMT",
+    "name": "Requiem Dragon (Young)",
+    "level": 11,
+    "art": "requiem-dragon-young.webp"
+  },
+  {
+    "id": "requiem_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "SCIrzTfzJ9tCSLqL",
+    "name": "Requiem Dragon (Young, Spellcaster)",
+    "level": 11,
+    "art": "requiem-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "spinosaurus",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "cbcNwxJAur5r7sr5",
+    "name": "Spinosaurus",
+    "level": 11,
+    "art": "spinosaurus.webp"
+  },
+  {
+    "id": "spiral_centurion",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "5Gw0j1Qbh1uXUhkj",
+    "name": "Spiral Centurion",
+    "level": 11,
+    "art": "spiral-centurion.webp"
+  },
+  {
+    "id": "unrisen",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "n40ubwOuMGF7HHZ6",
+    "name": "Unrisen",
+    "level": 11,
+    "art": "unrisen.webp"
+  },
+  {
+    "id": "vigilia",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "9FaVwxdsH5w0e114",
+    "name": "Vigilia",
+    "level": 11,
+    "art": "vigilia.webp"
+  },
+  {
+    "id": "whisper_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "0CCsMvCrYxTCMYrh",
+    "name": "Whisper Dragon (Adult)",
+    "level": 11,
+    "art": "whisper-dragon-adult.webp"
+  },
+  {
+    "id": "whisper_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Qgc1WsHuup0b4Dey",
+    "name": "Whisper Dragon (Adult, Spellcaster)",
+    "level": 11,
+    "art": "whisper-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "gosreg",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "TwFcW5O5J1SdsYv3",
+    "name": "Gosreg",
+    "level": 11,
+    "art": "gosreg.webp"
+  },
+  {
+    "id": "harmona",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "Pnw71fJ41j6Wx62M",
+    "name": "Harmona",
+    "level": 11,
+    "art": "harmona.webp"
+  },
+  {
+    "id": "kongamato",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "6OxiStysMq65xKgS",
+    "name": "Kongamato",
+    "level": 11,
+    "art": "kongamato.webp"
+  },
+  {
+    "id": "seething_spirit",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "mK7FwVR1yyqeMlA4",
+    "name": "Seething Spirit",
+    "level": 11,
+    "art": "seething-spirit.webp"
+  },
+  {
+    "id": "stone_bulwark",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "6FW3MILVXOy6mMrY",
+    "name": "Stone Bulwark",
+    "level": 11,
+    "art": "stone-bulwark.webp"
+  },
+  {
+    "id": "stone_golem",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "Upf2fOZ6QgGG3seI",
+    "name": "Stone Golem",
+    "level": 11,
+    "art": "stone-golem.webp"
+  },
+  {
+    "id": "thunderbird",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "fpBJiCOoHDlefgpO",
+    "name": "Thunderbird",
+    "level": 11,
+    "art": "thunderbird.webp"
+  },
+  {
+    "id": "atrixyl",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "KxVSaTjRAUwTWeDX",
+    "name": "Atrixyl",
+    "level": 11,
+    "art": "atrixyl.webp"
+  },
+  {
+    "id": "brainchild",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "6WgGNVcmuwNlGDJP",
+    "name": "Brainchild",
+    "level": 11,
+    "art": "brainchild.webp"
   }
 ]
