@@ -11422,5 +11422,45 @@
     "name": "Brainchild",
     "level": 11,
     "art": "brainchild.webp"
+  },
+  {
+    "id": "raelis",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "U93WglNpPjOYk23q",
+    "name": "Raelis",
+    "level": 11,
+    "art": "raelis.webp"
+  },
+  {
+    "id": "spirit_binder",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "6OtvMTyXhxUdZI44",
+    "name": "Spirit Binder",
+    "level": 11,
+    "art": "spirit-binder.webp"
+  },
+  {
+    "id": "devourer",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "WKsogmP2X2F68Zdm",
+    "name": "Devourer",
+    "level": 11,
+    "art": "devourer.webp"
+  },
+  {
+    "id": "gongorinan",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "UQRvCkhkS1ChOzLE",
+    "name": "Gongorinan",
+    "level": 11,
+    "art": "gongorinan.webp"
+  },
+  {
+    "id": "isqulug",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "kElZCC1zMQVftoi9",
+    "name": "Isqulug",
+    "level": 11,
+    "art": "isqulug.webp"
   }
 ]
