@@ -11134,5 +11134,37 @@
     "name": "Garadasura",
     "level": 11,
     "art": "garadasura.webp"
+  },
+  {
+    "id": "cloud_giant",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Z5QezXy38ZHyt3O3",
+    "name": "Cloud Giant",
+    "level": 11,
+    "art": "cloud-giant.webp"
+  },
+  {
+    "id": "diabolic_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "sUqSb1cvpotAFf0K",
+    "name": "Diabolic Dragon (Young, Spellcaster)",
+    "level": 11,
+    "art": "diabolic-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "elemental_tsunami",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "R427CMT90S7fv7MY",
+    "name": "Elemental Tsunami",
+    "level": 11,
+    "art": "elemental-tsunami.webp"
+  },
+  {
+    "id": "elemental_avalanche",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Oq31fcKwH0EE9R89",
+    "name": "Elemental Avalanche",
+    "level": 11,
+    "art": "elemental-avalanche.webp"
   }
 ]
