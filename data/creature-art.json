@@ -12470,5 +12470,125 @@
     "name": "Doprillu",
     "level": 14,
     "art": "doprillu.webp"
+  },
+  {
+    "id": "rune_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "cYC9lQAUkGrUkn36",
+    "name": "Rune Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "rune-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "siegebreaker",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "yU434Ugr11tvU7TS",
+    "name": "Siegebreaker",
+    "level": 14,
+    "art": "siegebreaker.webp"
+  },
+  {
+    "id": "silver_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "tl1aGbwuPPUDKHbN",
+    "name": "Silver Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "silver-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "tabellia",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "H8Xq9hZP5bEEI3Hf",
+    "name": "Tabellia",
+    "level": 14,
+    "art": "tabellia.webp"
+  },
+  {
+    "id": "deep_one_elder",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "dZwcLmENWYSneook",
+    "name": "Deep One Elder",
+    "level": 14,
+    "art": "deep-one-elder.webp"
+  },
+  {
+    "id": "plague_giant",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "ZMrydoEfgGUAJGNI",
+    "name": "Plague Giant",
+    "level": 14,
+    "art": "plague-giant.webp"
+  },
+  {
+    "id": "red_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "JhQGNMlKARMx1n2D",
+    "name": "Red Dragon (Adult)",
+    "level": 14,
+    "art": "red-dragon-adult.webp"
+  },
+  {
+    "id": "red_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "pFmaszqtsA2yt7dv",
+    "name": "Red Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "red-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "rune_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "BV71Dm2SSAObPp0W",
+    "name": "Rune Dragon (Adult)",
+    "level": 14,
+    "art": "rune-dragon-adult.webp"
+  },
+  {
+    "id": "silver_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "v9eQFqibX6EYsmuX",
+    "name": "Silver Dragon (Adult)",
+    "level": 14,
+    "art": "silver-dragon-adult.webp"
+  },
+  {
+    "id": "trumpet_archon",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "B4TJHP0yX8SXHQ4x",
+    "name": "Trumpet Archon",
+    "level": 14,
+    "art": "trumpet-archon.webp"
+  },
+  {
+    "id": "augnagar",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "YKMvlKA1AZJlXtz9",
+    "name": "Augnagar",
+    "level": 14,
+    "art": "augnagar.webp"
+  },
+  {
+    "id": "crag_linnorm",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "JRBUBgJymEeEE4hm",
+    "name": "Crag Linnorm",
+    "level": 14,
+    "art": "crag-linnorm.webp"
+  },
+  {
+    "id": "sepid",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "XlFn2e6yj0mxHeq8",
+    "name": "Sepid",
+    "level": 14,
+    "art": "sepid.webp"
+  },
+  {
+    "id": "uthul",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "n1Mv0Q1MirfjBmfI",
+    "name": "Uthul",
+    "level": 14,
+    "art": "uthul.webp"
   }
 ]
