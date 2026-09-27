@@ -12238,5 +12238,117 @@
     "name": "Urglid",
     "level": 13,
     "art": "urglid.webp"
+  },
+  {
+    "id": "iron_golem",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "t4bHhZBBDUyVzEmf",
+    "name": "Iron Golem",
+    "level": 13,
+    "art": "iron-golem.webp"
+  },
+  {
+    "id": "vrykolakas_ancient",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "e0PXAtnDnJo4ggFX",
+    "name": "Vrykolakas Ancient",
+    "level": 13,
+    "art": "vrykolakas-ancient.webp"
+  },
+  {
+    "id": "amalgamite",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "xIT2yHlwILLc5hgw",
+    "name": "Amalgamite",
+    "level": 13,
+    "art": "amalgamite.webp"
+  },
+  {
+    "id": "living_rune_arcane",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "EMT6L7RarzkSiEOq",
+    "name": "Living Rune (Arcane)",
+    "level": 13,
+    "art": "living-rune-arcane.webp"
+  },
+  {
+    "id": "living_rune_divine",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "tvAlNMQluKDpfXMz",
+    "name": "Living Rune (Divine)",
+    "level": 13,
+    "art": "living-rune-divine.webp"
+  },
+  {
+    "id": "living_rune_occult",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "pCDp2hdim12wonW5",
+    "name": "Living Rune (Occult)",
+    "level": 13,
+    "art": "living-rune-occult.webp"
+  },
+  {
+    "id": "owb_prophet",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "4NXlXj2looUjPJY1",
+    "name": "Owb Prophet",
+    "level": 13,
+    "art": "owb-prophet.webp"
+  },
+  {
+    "id": "iron_warden",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "NqbaJG3tPG0NGJud",
+    "name": "Iron Warden",
+    "level": 13,
+    "art": "iron-warden.webp"
+  },
+  {
+    "id": "leng_spider",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "pxlZ8QbxMK6b3l5w",
+    "name": "Leng Spider",
+    "level": 13,
+    "art": "leng-spider.webp"
+  },
+  {
+    "id": "exscinder",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "T4qVNgJRyk1NRfQg",
+    "name": "Exscinder",
+    "level": 13,
+    "art": "exscinder.webp"
+  },
+  {
+    "id": "juggernaut",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "RT4du8iTXLoCgBnm",
+    "name": "Juggernaut",
+    "level": 13,
+    "art": "juggernaut.webp"
+  },
+  {
+    "id": "living_rune_primal",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "WfCLrFwwWSA7KRUu",
+    "name": "Living Rune (Primal)",
+    "level": 13,
+    "art": "living-rune-primal.webp"
+  },
+  {
+    "id": "froghemoth",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "RFCxaIS4OkacCpxD",
+    "name": "Froghemoth",
+    "level": 13,
+    "art": "froghemoth.webp"
+  },
+  {
+    "id": "jorogumo",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "u45PPktoMp5L2vf3",
+    "name": "Jorogumo",
+    "level": 13,
+    "art": "jorogumo.webp"
   }
 ]
