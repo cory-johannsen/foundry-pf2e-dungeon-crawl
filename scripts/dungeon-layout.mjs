@@ -69,9 +69,16 @@ export function roomRect(seed, roomId, rank, col) {
   };
 }
 
-/** Deterministic compass face for a room's Nth exit (0-2), always distinct. */
-export function exitFaceForIndex(index) {
-  return ['south', 'east', 'west'][index];
+const OUTGOING_CANDIDATES = {
+  north: ['south', 'east', 'west'], // byte-identical to today's literal array
+  west: ['south', 'east', 'north'],
+};
+
+/** Deterministic compass face for a room's Nth exit (0-2), always
+ * distinct from its own incoming face (`incomingFaceFor`) — 'north' by
+ * default, preserving every existing call site's exact behavior. */
+export function exitFaceForIndex(index, incomingFace = 'north') {
+  return OUTGOING_CANDIDATES[incomingFace][index];
 }
 
 // Still used by Task 6's corridor routing to determine a straight

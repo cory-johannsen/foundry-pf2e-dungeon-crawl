@@ -37,7 +37,7 @@ import {
   exitFaceForIndex,
   parentRoomIdsFor,
   incomingConnectionsFor,
-  northDoorSlots,
+  doorSlotsForFace,
   buildEdgeCorridor,
   cellMarginWalls,
   transitCellContainmentWalls,
@@ -304,21 +304,22 @@ export async function buildRoomAtGraphNode(
     hiddenChildId = null,
     isGoal = false, locationTag = null, artVariant = 0, seed = "",
     layoutPositionByRoomId = {}, occupiedCells = {},
+    incomingFace = 'north',
   },
 ) {
   const rect = roomRect(seed, roomId, rank, col);
 
-  const realOutgoingFaces = isGoal ? [] : childIds.map((_, i) => exitFaceForIndex(i));
+  const realOutgoingFaces = isGoal ? [] : childIds.map((_, i) => exitFaceForIndex(i, incomingFace));
   const hiddenFaceIndex = childIds.length; // reserved right after the real children
-  const outgoingFaces = hiddenChildId ? [...realOutgoingFaces, exitFaceForIndex(hiddenFaceIndex)] : realOutgoingFaces;
+  const outgoingFaces = hiddenChildId ? [...realOutgoingFaces, exitFaceForIndex(hiddenFaceIndex, incomingFace)] : realOutgoingFaces;
   // #174 Task 5 fix round: which child each outgoing face actually
   // connects to, so the margin-gap computation below can tell whether
   // buildEdgeCorridor will use its offset-based or center-based exit
   // point for THIS specific connection (see the margin-wall comment
   // below for why that distinction matters).
   const childIdByFace = {};
-  childIds.forEach((id, i) => { childIdByFace[exitFaceForIndex(i)] = id; });
-  if (hiddenChildId) childIdByFace[exitFaceForIndex(hiddenFaceIndex)] = hiddenChildId;
+  childIds.forEach((id, i) => { childIdByFace[exitFaceForIndex(i, incomingFace)] = id; });
+  if (hiddenChildId) childIdByFace[exitFaceForIndex(hiddenFaceIndex, incomingFace)] = hiddenChildId;
   // #93 pre-flight fix: incoming is ALWAYS north now (Task 5's redesign),
   // subdivided into one door slot per `incomingConnections` entry — never
   // a variable compass direction, and never overlapping with outgoingFaces
@@ -420,7 +421,7 @@ export async function buildRoomAtGraphNode(
   // topological, so every parent builds before its children.
   for (let i = 0; i < childIds.length; i += 1) {
     if (isSlotBuilt(scene, childIds[i])) continue;
-    const face = exitFaceForIndex(i);
+    const face = exitFaceForIndex(i, incomingFace);
     const side = roomSidesForRect(rect)[face];
     walls.push(
       wallDoc(side, {
@@ -436,7 +437,7 @@ export async function buildRoomAtGraphNode(
   // target that built first already carries its own sealed
   // dungeonHiddenDoorForEdge gate/reveal doors for this edge.
   if (hiddenChildId && !isSlotBuilt(scene, hiddenChildId)) {
-    const face = exitFaceForIndex(hiddenFaceIndex);
+    const face = exitFaceForIndex(hiddenFaceIndex, incomingFace);
     const side = roomSidesForRect(rect)[face];
     walls.push(
       wallDoc(side, {
@@ -1053,9 +1054,11 @@ export async function buildPopulateAndUnlockGraphNode(
     const tiles = [];
     const placeholderIdsToDelete = [];
     // One door per incoming connection, all on this room's own north face —
-    // northDoorSlots' Nth slot corresponds to incomingConnections' Nth
-    // entry (same order, same length).
-    const slots = incomingConnections.length ? northDoorSlots(rect, incomingConnections.length) : [];
+    // doorSlotsForFace's Nth slot corresponds to incomingConnections' Nth
+    // entry (same order, same length). Literal 'north' here: Task 6 wires
+    // this room's real `state.incomingFaceByRoomId` value through; until
+    // then every room's incoming face is north, unchanged from before.
+    const slots = incomingConnections.length ? doorSlotsForFace(rect, incomingConnections.length, 'north') : [];
     for (let i = 0; i < incomingConnections.length; i += 1) {
       const { sourceId, hidden } = incomingConnections[i];
       const toSlot = slots[i];
@@ -1069,9 +1072,10 @@ export async function buildPopulateAndUnlockGraphNode(
       // outgoing target is always reserved right after its real children
       // (exitFaceForIndex(sourceChildIds.length) — same convention
       // buildRoomAtGraphNode's own hiddenFaceIndex uses for itself).
+      const sourceIncomingFace = state.incomingFaceByRoomId?.[sourceId] ?? 'north'; // Task 6 populates incomingFaceByRoomId; default keeps this task's own tests passing standalone
       const exitFaceFromSource = hidden
-        ? exitFaceForIndex(sourceChildIds.length)
-        : exitFaceForIndex(sourceChildIds.indexOf(room.id));
+        ? exitFaceForIndex(sourceChildIds.length, sourceIncomingFace)
+        : exitFaceForIndex(sourceChildIds.indexOf(room.id), sourceIncomingFace);
       // #174 Task 4/5: sourcePos/{rank, col} let buildEdgeCorridor pathfind
       // (findCorridorPath) a route around any other room's own occupied
       // cell instead of assuming a direct/single-corner connection.

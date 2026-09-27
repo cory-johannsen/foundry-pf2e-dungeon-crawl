@@ -63,6 +63,24 @@ describe('exitFaceForIndex', () => {
     expect(exitFaceForIndex(1)).toBe('east');
     expect(exitFaceForIndex(2)).toBe('west');
   });
+
+  it('defaults to north-incoming behavior, byte-identical to before this change', () => {
+    expect(exitFaceForIndex(0)).toBe('south');
+    expect(exitFaceForIndex(1)).toBe('east');
+    expect(exitFaceForIndex(2)).toBe('west');
+  });
+
+  it('produces the same result when incomingFace is explicitly north', () => {
+    expect(exitFaceForIndex(0, 'north')).toBe('south');
+    expect(exitFaceForIndex(1, 'north')).toBe('east');
+    expect(exitFaceForIndex(2, 'north')).toBe('west');
+  });
+
+  it('excludes west and offers north instead when incomingFace is west', () => {
+    expect(exitFaceForIndex(0, 'west')).toBe('south');
+    expect(exitFaceForIndex(1, 'west')).toBe('east');
+    expect(exitFaceForIndex(2, 'west')).toBe('north');
+  });
 });
 
 describe('roomEnclosureWalls (multi-exit)', () => {
