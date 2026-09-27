@@ -518,12 +518,14 @@ export async function startDungeonRun({
   for (const [id, pos] of Object.entries(layoutPositionByRoomId)) {
     occupiedCellsForIncomingFace[`${pos.rank},${pos.col}`] = id;
   }
+  const legitimateSourceIdsByRoomId = {};
   const incomingFaceByRoomId = Object.fromEntries(
     Object.keys(rooms).map((id) => {
       const legitimateSourceIds = new Set([
         ...parentRoomIdsFor(layoutEdges, id),
         ...(hiddenIncomingByRoomId[id] ?? []),
       ]);
+      legitimateSourceIdsByRoomId[id] = Array.from(legitimateSourceIds);
       return [id, incomingFaceFor(id, layoutPositionByRoomId, occupiedCellsForIncomingFace, legitimateSourceIds)];
     }),
   );
@@ -547,6 +549,7 @@ export async function startDungeonRun({
     hiddenIncomingByRoomId,
     layoutPositionByRoomId,
     incomingFaceByRoomId,
+    legitimateSourceIdsByRoomId,
     maxRank,
     currentRoomId: 'room-entry',
     history: [],

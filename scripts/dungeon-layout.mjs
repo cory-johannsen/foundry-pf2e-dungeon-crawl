@@ -318,8 +318,8 @@ export function slotRowCol(slot) {
  * the same corner-connector shape the branch below already uses between
  * its own exitPoint and entryPoint (`cornerConnector`, below).
  */
-export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace = 'north') {
-  const path = findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace });
+export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace = 'north', legitimateSourceIds = []) {
+  const path = findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace, legitimateSourceIds });
   const slotSpan = incomingFace === 'west' ? (toSlot.y2 - toSlot.y1) : (toSlot.x2 - toSlot.x1);
   const outgoingOffset = doorOffsetAt(seed, `${fromRoomId}-${exitFace}`, 'outgoing', fromRect.gw);
   const incomingSeedKey = incomingFace === 'west' ? `${toRoomId}-west-${toSlot.y1}` : `${toRoomId}-north-${toSlot.x1}`;
@@ -594,7 +594,7 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
  * needs for `buildEdgeCorridor` itself) rather than approximating it,
  * since the two must never independently drift.
  */
-export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells, incomingFace = 'north') {
+export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells, incomingFace = 'north', legitimateSourceIds = []) {
   if (exitFace !== 'south' && exitFace !== 'east') {
     // West never takes buildEdgeCorridor's offset-based branch — always
     // center-based, regardless of the child's rank/column.
@@ -602,7 +602,7 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
   }
   const aligned = exitFace === 'south' ? fromPos.col === toPos.col : fromPos.rank === toPos.rank;
   const path = aligned
-    ? findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace })
+    ? findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace, legitimateSourceIds })
     : null;
   const usesOffsetBasedExit = aligned && (!path || path.length <= 2);
   // South's offset runs along the room's own width (gw); east's runs
@@ -965,7 +965,7 @@ export function transitCellContainmentWalls(rank, col, openings) {
  * never need a detour wider than a room or two, and an unbounded search
  * risks wandering arbitrarily far in a degenerate all-blocked case.
  */
-export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace = 'north' }) {
+export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace = 'north', legitimateSourceIds = [] }) {
   const SEARCH_MARGIN = 2;
   const key = (pos) => `${pos.rank},${pos.col}`;
   const minRank = Math.max(0, Math.min(fromPos.rank, toPos.rank) - SEARCH_MARGIN);
@@ -976,7 +976,8 @@ export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, to
     pos.rank >= minRank && pos.rank <= maxRank && pos.col >= minCol && pos.col <= maxCol;
   const isBlocked = (pos) => {
     const occupant = occupiedCells[key(pos)];
-    return occupant != null && occupant !== fromRoomId && occupant !== toRoomId;
+    if (occupant == null || occupant === fromRoomId || occupant === toRoomId) return false;
+    return !legitimateSourceIds.includes(occupant);
   };
   // Generalized from #174's own north-only-entry fix: a room's incoming
   // connection lands on whichever face incomingFaceFor chose for it
