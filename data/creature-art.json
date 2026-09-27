@@ -11558,5 +11558,21 @@
     "name": "Derghodaemon",
     "level": 12,
     "art": "derghodaemon.webp"
+  },
+  {
+    "id": "arboreal_archive",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "zs7dPbTetShR8T3D",
+    "name": "Arboreal Archive",
+    "level": 12,
+    "art": "arboreal-archive.webp"
+  },
+  {
+    "id": "black_belt",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "YnUDViAV0M2FMG3M",
+    "name": "Black Belt",
+    "level": 12,
+    "art": "black-belt.webp"
   }
 ]
