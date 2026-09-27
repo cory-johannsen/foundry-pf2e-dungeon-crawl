@@ -11166,5 +11166,93 @@
     "name": "Elemental Avalanche",
     "level": 11,
     "art": "elemental-avalanche.webp"
+  },
+  {
+    "id": "gold_dragon_young",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "DolNTN9s2p79N8Cy",
+    "name": "Gold Dragon (Young)",
+    "level": 11,
+    "art": "gold-dragon-young.webp"
+  },
+  {
+    "id": "gold_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "9xdl2PpfMEfJWhSO",
+    "name": "Gold Dragon (Young, Spellcaster)",
+    "level": 11,
+    "art": "gold-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "goliath_spider",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "eP4a0FAbus3tNTbc",
+    "name": "Goliath Spider",
+    "level": 11,
+    "art": "goliath-spider.webp"
+  },
+  {
+    "id": "hamatula",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "tCJEjNDUxyV1GzE3",
+    "name": "Hamatula",
+    "level": 11,
+    "art": "hamatula.webp"
+  },
+  {
+    "id": "hezrou",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "wqiFcGPARy8zmQfd",
+    "name": "Hezrou",
+    "level": 11,
+    "art": "hezrou.webp"
+  },
+  {
+    "id": "larabay",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "hfrQX3e691B8sgTR",
+    "name": "Larabay",
+    "level": 11,
+    "art": "larabay.webp"
+  },
+  {
+    "id": "maestro",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "1wk2fBlDuHLRYfJW",
+    "name": "Maestro",
+    "level": 11,
+    "art": "maestro.webp"
+  },
+  {
+    "id": "meladaemon",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "faZ3sXbvs51DFvrM",
+    "name": "Meladaemon",
+    "level": 11,
+    "art": "meladaemon.webp"
+  },
+  {
+    "id": "munagola",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "mbu0D45HPRNAwgEU",
+    "name": "Munagola",
+    "level": 11,
+    "art": "munagola.webp"
+  },
+  {
+    "id": "omen_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "awrILpXoGooQKEui",
+    "name": "Omen Dragon (Adult)",
+    "level": 11,
+    "art": "omen-dragon-adult.webp"
+  },
+  {
+    "id": "omen_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "XO3qw7XPkgRq4H6I",
+    "name": "Omen Dragon (Adult, Spellcaster)",
+    "level": 11,
+    "art": "omen-dragon-adult-spellcaster.webp"
   }
 ]
