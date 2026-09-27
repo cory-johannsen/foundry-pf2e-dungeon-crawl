@@ -12118,5 +12118,125 @@
     "name": "Iceberg Clam",
     "level": 13,
     "art": "iceberg-clam.webp"
+  },
+  {
+    "id": "shadow_giant",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "JSKZryHwf0Ggq8KR",
+    "name": "Shadow Giant",
+    "level": 13,
+    "art": "shadow-giant.webp"
+  },
+  {
+    "id": "skeletal_titan",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "XvauwoJvFf4VdWiA",
+    "name": "Skeletal Titan",
+    "level": 13,
+    "art": "skeletal-titan.webp"
+  },
+  {
+    "id": "snow_oni",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "CIQgNHkiUtBQR2NJ",
+    "name": "Snow Oni",
+    "level": 13,
+    "art": "snow-oni.webp"
+  },
+  {
+    "id": "storm_giant",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "B0QyZEjAXUG5TsJU",
+    "name": "Storm Giant",
+    "level": 13,
+    "art": "storm-giant.webp"
+  },
+  {
+    "id": "terra_carver",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "8pqeRFVTVc66iIVn",
+    "name": "Terra Carver",
+    "level": 13,
+    "art": "terra-carver.webp"
+  },
+  {
+    "id": "tree_singer",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "atFtrrjwkTiFm6hJ",
+    "name": "Tree Singer",
+    "level": 13,
+    "art": "tree-singer.webp"
+  },
+  {
+    "id": "vanyver",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "eLoVtQhKwPBUDSRr",
+    "name": "Vanyver",
+    "level": 13,
+    "art": "vanyver.webp"
+  },
+  {
+    "id": "venator",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "QkjZNv3kb7BErPHR",
+    "name": "Venator",
+    "level": 13,
+    "art": "venator.webp"
+  },
+  {
+    "id": "adachros",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "BZKNSyp1ATtn3JXj",
+    "name": "Adachros",
+    "level": 13,
+    "art": "adachros.webp"
+  },
+  {
+    "id": "tide_giant",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "9u9DrehHJk66ix5B",
+    "name": "Tide Giant",
+    "level": 13,
+    "art": "tide-giant.webp"
+  },
+  {
+    "id": "viper_vine",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "rEjKVZqLfEC5jdVV",
+    "name": "Viper Vine",
+    "level": 13,
+    "art": "viper-vine.webp"
+  },
+  {
+    "id": "dibrasgorth",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ZCoLuOCfhO3DAeSv",
+    "name": "Dibrasgorth",
+    "level": 13,
+    "art": "dibrasgorth.webp"
+  },
+  {
+    "id": "dryad_queen",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "gRy6Ci6zb1s4Nvy5",
+    "name": "Dryad Queen",
+    "level": 13,
+    "art": "dryad-queen.webp"
+  },
+  {
+    "id": "thanadaemon",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "YMiDUjk65e52z1mU",
+    "name": "Thanadaemon",
+    "level": 13,
+    "art": "thanadaemon.webp"
+  },
+  {
+    "id": "urglid",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ehDqHMxSAAqGONSc",
+    "name": "Urglid",
+    "level": 13,
+    "art": "urglid.webp"
   }
 ]
