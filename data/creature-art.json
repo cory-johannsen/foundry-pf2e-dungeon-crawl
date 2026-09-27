@@ -10878,5 +10878,45 @@
     "name": "Guardian Naga",
     "level": 10,
     "art": "guardian-naga.webp"
+  },
+  {
+    "id": "shield_archon",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "qkWkshBHyTbLP07b",
+    "name": "Shield Archon",
+    "level": 10,
+    "art": "shield-archon.webp"
+  },
+  {
+    "id": "troll_king",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "FwH05kDUlC8CwWTU",
+    "name": "Troll King",
+    "level": 10,
+    "art": "troll-king.webp"
+  },
+  {
+    "id": "troll_warleader",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "wJH5BXOWZYEyVB3y",
+    "name": "Troll Warleader",
+    "level": 10,
+    "art": "troll-warleader.webp"
+  },
+  {
+    "id": "tyrannosaurus",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "tpNP1UooPPHMyZye",
+    "name": "Tyrannosaurus",
+    "level": 10,
+    "art": "tyrannosaurus.webp"
+  },
+  {
+    "id": "warmonger",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "KJ4faFTpKHVhAqFR",
+    "name": "Warmonger",
+    "level": 10,
+    "art": "warmonger.webp"
   }
 ]
