@@ -116,6 +116,25 @@ describe('roomEnclosureWalls (multi-exit)', () => {
   });
 });
 
+describe('roomEnclosureWalls with incomingFace', () => {
+  const rect = { gx: 300, gy: 26, gw: 12, gh: 12 };
+
+  it('defaults to north, byte-identical to before this change', () => {
+    const walls = roomEnclosureWalls('seed1', 'r', { incomingCount: 1, outgoingFaces: ['south'] }, rect);
+    expect(walls.map((w) => w.dir).sort()).toEqual(['east', 'west']);
+  });
+
+  it('leaves the west face open (not north) when incomingFace is west', () => {
+    const walls = roomEnclosureWalls('seed1', 'r', { incomingCount: 1, incomingFace: 'west', outgoingFaces: ['south'] }, rect);
+    expect(walls.map((w) => w.dir).sort()).toEqual(['east', 'north']);
+  });
+
+  it('the entry room (incomingCount 0) still gets a solid wall on its own incoming face, even when that face is west', () => {
+    const walls = roomEnclosureWalls('seed1', 'r', { incomingCount: 0, incomingFace: 'west', outgoingFaces: ['south', 'east'] }, rect);
+    expect(walls.map((w) => w.dir).sort()).toEqual(['north', 'west']);
+  });
+});
+
 describe('parentRoomIdsFor', () => {
   it('returns every real parent for a merge room, in deterministic order', () => {
     const layoutEdges = { 'room-entry': ['a', 'b'], a: ['m'], b: ['m'], m: [] };

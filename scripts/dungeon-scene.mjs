@@ -326,7 +326,7 @@ export async function buildRoomAtGraphNode(
   // (which never includes north) regardless of how many incoming
   // connections this room has or which index it was among its own
   // parent's children.
-  const walls = roomEnclosureWalls(seed, roomId, { incomingCount: incomingConnections.length, outgoingFaces }, rect).map(
+  const walls = roomEnclosureWalls(seed, roomId, { incomingCount: incomingConnections.length, incomingFace, outgoingFaces }, rect).map(
     (side) =>
       wallDoc(side, {
         flags: {

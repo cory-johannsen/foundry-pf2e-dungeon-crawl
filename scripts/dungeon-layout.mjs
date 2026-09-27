@@ -231,13 +231,15 @@ export function roomSidesForRect(rect) {
  * rect) aren't derivable from `roomId` alone the way the old slot-indexed
  * version could derive its own rect internally.
  */
-export function roomEnclosureWalls(seed, roomId, { incomingCount = 0, outgoingFaces = [] }, rect) {
+export function roomEnclosureWalls(seed, roomId, { incomingCount = 0, incomingFace = 'north', outgoingFaces = [] }, rect) {
   const sides = roomSidesForRect(rect);
   const walls = [];
-  for (const face of ['south', 'east', 'west']) {
+  const ALL_FACES = ['north', 'south', 'east', 'west'];
+  for (const face of ALL_FACES) {
+    if (face === incomingFace) continue;
     if (!outgoingFaces.includes(face)) walls.push({ dir: face, ...sides[face] });
   }
-  if (incomingCount === 0) walls.push({ dir: 'north', ...sides.north });
+  if (incomingCount === 0) walls.push({ dir: incomingFace, ...sides[incomingFace] });
   return walls;
 }
 
