@@ -11878,5 +11878,125 @@
     "name": "Shuln",
     "level": 12,
     "art": "shuln.webp"
+  },
+  {
+    "id": "adamantine_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "hybmXlTxljL9L1dW",
+    "name": "Adamantine Dragon (Adult)",
+    "level": 13,
+    "art": "adamantine-dragon-adult.webp"
+  },
+  {
+    "id": "adamantine_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Bgfu9IQfK1DyaXmt",
+    "name": "Adamantine Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "adamantine-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "anguished_flame",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Iy3DchRS4K7yEBDT",
+    "name": "Anguished Flame",
+    "level": 13,
+    "art": "anguished-flame.webp"
+  },
+  {
+    "id": "blue_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "i3N3udPyTGVPLpoq",
+    "name": "Blue Dragon (Adult)",
+    "level": 13,
+    "art": "blue-dragon-adult.webp"
+  },
+  {
+    "id": "blue_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "Dp6dq9Jd0TanufdU",
+    "name": "Blue Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "blue-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "bronze_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "IMasNR02C74jy3cT",
+    "name": "Bronze Dragon (Adult)",
+    "level": 13,
+    "art": "bronze-dragon-adult.webp"
+  },
+  {
+    "id": "bronze_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "oj0vzfjflUc3xMBo",
+    "name": "Bronze Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "bronze-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "carnivorous_blob",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "d8ePlvZTcfKCa6Fm",
+    "name": "Carnivorous Blob",
+    "level": 13,
+    "art": "carnivorous-blob.webp"
+  },
+  {
+    "id": "cave_worm",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "vijBriZmbUJjbJNH",
+    "name": "Cave Worm",
+    "level": 13,
+    "art": "cave-worm.webp"
+  },
+  {
+    "id": "despair_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "aX8XLPYr0wNlDX4h",
+    "name": "Despair Dragon (Adult)",
+    "level": 13,
+    "art": "despair-dragon-adult.webp"
+  },
+  {
+    "id": "despair_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "rTpTB8NQbTxI2fPf",
+    "name": "Despair Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "despair-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "ambush_copse",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "mUZShqYE6yFl90P3",
+    "name": "Ambush Copse",
+    "level": 13,
+    "art": "ambush-copse.webp"
+  },
+  {
+    "id": "ayngavhaul",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "0Hng8SRW8VZVmZ67",
+    "name": "Ayngavhaul",
+    "level": 13,
+    "art": "ayngavhaul.webp"
+  },
+  {
+    "id": "animated_trebuchet",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "jaKVhw83CPKpW9UJ",
+    "name": "Animated Trebuchet",
+    "level": 13,
+    "art": "animated-trebuchet.webp"
+  },
+  {
+    "id": "assault_alloy",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "gCbqUxncPyprgyN5",
+    "name": "Assault Alloy",
+    "level": 13,
+    "art": "assault-alloy.webp"
   }
 ]
