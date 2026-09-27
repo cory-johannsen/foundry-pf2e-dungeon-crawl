@@ -198,15 +198,6 @@ export function doorSlotsForFace(rect, count, face) {
   }));
 }
 
-/**
- * Divides a room's north wall into `count` equal, contiguous, left-to-
- * right door slots. Compatibility wrapper around doorSlotsForFace for
- * the north face.
- */
-export function northDoorSlots(rect, count) {
-  return doorSlotsForFace(rect, count, 'north');
-}
-
 /** A room's own four wall segments, by compass side — exported (Task 10's
  * own #93 pre-flight fix) so dungeon-scene.mjs can look up an individual
  * outgoing face's segment directly (e.g. for a per-connection frontier
@@ -226,7 +217,7 @@ export function roomSidesForRect(rect) {
  * full-face, excluded per `outgoingFaces` (unchanged from before). North
  * is either a single solid wall (`incomingCount === 0`, the entry room)
  * or entirely excluded (`incomingCount > 0`) — its individual door slots
- * are built separately by the caller via `northDoorSlots`, one per real
+ * are built separately by the caller via `doorSlotsForFace`, one per real
  * connection-building step (needs the connecting room's rect, which this
  * function doesn't have), not here. `rect` is the room's own already-
  * computed `roomRect(...)` result — required, since rank/col (and so the

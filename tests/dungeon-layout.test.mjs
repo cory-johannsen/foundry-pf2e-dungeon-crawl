@@ -3,7 +3,7 @@ import {
   ROOM_SIZE_SMALL, ROOM_SIZE_LARGE, DOOR_WIDTH,
   roomSizeAt, doorOffsetAt, corridorTileVariant,
   computeRanks, computeColumns,
-  roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, northDoorSlots, buildEdgeCorridor, incomingFaceFor, doorSlotsForFace,
+  roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, buildEdgeCorridor, incomingFaceFor, doorSlotsForFace,
   cellBounds, findCorridorPath, INITIAL_GX, cellMarginWalls, transitCellCrossing,
   transitCellContainmentWalls, CORRIDOR_LEN, outgoingMarginOffset,
 } from '../scripts/dungeon-layout.mjs';
@@ -136,22 +136,6 @@ describe('incomingConnectionsFor', () => {
   });
 });
 
-describe('northDoorSlots', () => {
-  it('divides the north edge into count equal, contiguous, left-to-right slots', () => {
-    const rect = { gx: 0, gy: 0, gw: 4, gh: 4 };
-    const slots = northDoorSlots(rect, 2);
-    expect(slots).toEqual([
-      { x1: 0, y1: 0, x2: 2, y2: 0 },
-      { x1: 2, y1: 0, x2: 4, y2: 0 },
-    ]);
-  });
-
-  it('a single slot spans the whole north edge', () => {
-    const rect = { gx: 0, gy: 0, gw: 4, gh: 4 };
-    expect(northDoorSlots(rect, 1)).toEqual([{ x1: 0, y1: 0, x2: 4, y2: 0 }]);
-  });
-});
-
 describe('incomingFaceFor', () => {
   it('returns north when the north-neighbor cell is empty', () => {
     const positionByRoomId = { r: { rank: 1, col: 1 } };
@@ -193,7 +177,7 @@ describe('incomingFaceFor', () => {
 });
 
 describe('doorSlotsForFace', () => {
-  it('produces byte-identical output to the old northDoorSlots for face="north"', () => {
+  it('produces byte-identical output to the old doorSlotsForFace for face="north"', () => {
     const rect = { gx: 300, gy: 26, gw: 12, gh: 12 };
     expect(doorSlotsForFace(rect, 3, 'north')).toEqual([
       { x1: 300, y1: 26, x2: 304, y2: 26 },
@@ -405,7 +389,7 @@ describe('buildEdgeCorridor', () => {
   it('same-column rooms (straight south connection) produce one corridor segment', () => {
     const from = roomRect('alpha', 'a', 0, 0);
     const to = roomRect('alpha', 'b', 1, 0);
-    const toSlot = northDoorSlots(to, 1)[0];
+    const toSlot = doorSlotsForFace(to, 1, 'north')[0];
     const { corridorSegments } = buildEdgeCorridor('alpha', 'a', 'b', from, to, ADJACENT_FROM, ADJACENT_TO, 'south', toSlot, {});
     expect(corridorSegments).toHaveLength(1);
   });
@@ -413,7 +397,7 @@ describe('buildEdgeCorridor', () => {
   it('different-column rooms produce an L-shaped (2-segment) corridor', () => {
     const from = roomRect('alpha', 'a', 0, 0);
     const to = roomRect('alpha', 'b', 1, 2);
-    const toSlot = northDoorSlots(to, 1)[0];
+    const toSlot = doorSlotsForFace(to, 1, 'north')[0];
     const { corridorSegments } = buildEdgeCorridor('alpha', 'a', 'b', from, to, ADJACENT_FROM, ADJACENT_TO, 'south', toSlot, {});
     expect(corridorSegments).toHaveLength(2);
   });
@@ -421,7 +405,7 @@ describe('buildEdgeCorridor', () => {
   it('always returns a door wall and a reveal door wall', () => {
     const from = roomRect('alpha', 'a', 0, 0);
     const to = roomRect('alpha', 'b', 1, 1);
-    const toSlot = northDoorSlots(to, 1)[0];
+    const toSlot = doorSlotsForFace(to, 1, 'north')[0];
     const { doorWall, revealDoorWall } = buildEdgeCorridor('alpha', 'a', 'b', from, to, ADJACENT_FROM, ADJACENT_TO, 'south', toSlot, {});
     expect(doorWall).toBeDefined();
     expect(revealDoorWall).toBeDefined();
@@ -431,8 +415,8 @@ describe('buildEdgeCorridor', () => {
     const from = roomRect('alpha', 'a', 0, 0);
     const toSouth = roomRect('alpha', 'b', 1, 0);
     const toEast = roomRect('alpha', 'c', 0, 1);
-    const south = buildEdgeCorridor('alpha', 'a', 'b', from, toSouth, ADJACENT_FROM, ADJACENT_TO, 'south', northDoorSlots(toSouth, 1)[0], {});
-    const east = buildEdgeCorridor('alpha', 'a', 'c', from, toEast, ADJACENT_FROM, ADJACENT_TO, 'east', northDoorSlots(toEast, 1)[0], {});
+    const south = buildEdgeCorridor('alpha', 'a', 'b', from, toSouth, ADJACENT_FROM, ADJACENT_TO, 'south', doorSlotsForFace(toSouth, 1, 'north')[0], {});
+    const east = buildEdgeCorridor('alpha', 'a', 'c', from, toEast, ADJACENT_FROM, ADJACENT_TO, 'east', doorSlotsForFace(toEast, 1, 'north')[0], {});
     expect(south.doorWall).not.toEqual(east.doorWall);
   });
 
@@ -440,7 +424,7 @@ describe('buildEdgeCorridor', () => {
     const parentA = roomRect('alpha', 'a', 0, 0);
     const parentB = roomRect('alpha', 'b', 0, 1);
     const merge = roomRect('alpha', 'm', 1, 0);
-    const slots = northDoorSlots(merge, 2);
+    const slots = doorSlotsForFace(merge, 2, 'north');
     const fromA = buildEdgeCorridor('alpha', 'a', 'm', parentA, merge, ADJACENT_FROM, ADJACENT_TO, 'south', slots[0], {});
     const fromB = buildEdgeCorridor('alpha', 'b', 'm', parentB, merge, ADJACENT_FROM, ADJACENT_TO, 'south', slots[1], {});
     expect(fromA.revealDoorWall).not.toEqual(fromB.revealDoorWall);
@@ -452,7 +436,7 @@ describe('buildEdgeCorridor', () => {
   it('#93 pre-flight fix regression (Task 10 review) — a same-column connection\'s TARGET-side plainWalls never extend past its own slot into a sibling\'s (would otherwise wall off the sibling\'s door)', () => {
     const parentA = roomRect('alpha', 'a', 0, 0);
     const merge = roomRect('alpha', 'm', 1, 0); // same column as parentA -> sameColumn branch
-    const slots = northDoorSlots(merge, 2);
+    const slots = doorSlotsForFace(merge, 2, 'north');
     const fromA = buildEdgeCorridor('alpha', 'a', 'm', parentA, merge, ADJACENT_FROM, ADJACENT_TO, 'south', slots[0], {});
     // Only the walls ON THE TARGET'S OWN north face (y === corridorEndY,
     // i.e. merge.gy) are bounded by the target's slot — a connection's
@@ -475,7 +459,7 @@ describe('buildEdgeCorridor', () => {
     // (computeRanks takes the MAX over all parents + 1 — a parent not on
     // the longest path can sit several ranks above the merge room).
     const to = roomRect('alpha', 'm', 3, 0);
-    const toSlot = northDoorSlots(to, 1)[0];
+    const toSlot = doorSlotsForFace(to, 1, 'north')[0];
     const { revealDoorWall, corridorSegments } = buildEdgeCorridor('alpha', 'a', 'm', from, to, ADJACENT_FROM, ADJACENT_TO, 'south', toSlot, {});
     expect(revealDoorWall.y1).toBe(to.gy);
     expect(corridorSegments[0].gy + corridorSegments[0].gh).toBe(to.gy);
@@ -485,7 +469,7 @@ describe('buildEdgeCorridor', () => {
     const parentA = roomRect('alpha', 'a', 0, 0);
     const parentB = roomRect('alpha', 'b', 0, 1);
     const merge = roomRect('alpha', 'm', 1, 0); // ROOM_SIZE_SMALL = 6, split 4 ways below -> slotWidth = 1.5
-    const slots = northDoorSlots(merge, 4);
+    const slots = doorSlotsForFace(merge, 4, 'north');
     for (let i = 0; i < slots.length; i += 1) {
       const from = i === 0 ? parentA : parentB; // exitFace/column irrelevant to this bug; same-column (i===0) is where it reproduces
       const { revealDoorWall } = buildEdgeCorridor('alpha', from === parentA ? 'a' : 'b', 'm', from, merge, ADJACENT_FROM, ADJACENT_TO, 'south', slots[i], {});
@@ -1040,7 +1024,7 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
     const fromRect = smallRect(fromPos.rank, fromPos.col);
     const toRect = smallRect(toPos.rank, toPos.col);
     const offset = outgoingMarginOffset(seed, 'A', 'B', 'south', fromRect, fromPos, toPos, occupiedCells);
-    const toSlot = northDoorSlots(toRect, 1)[0];
+    const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
     const { doorWall } = buildEdgeCorridor(seed, 'A', 'B', fromRect, toRect, fromPos, toPos, 'south', toSlot, occupiedCells);
     const marginWalls = cellMarginWalls(fromRect, fromPos.rank, fromPos.col, {
       openSide: 'south', openOffset: offset, openWidth: DOOR_WIDTH,
@@ -1078,7 +1062,7 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
     const fromRect = smallRect(fromPos.rank, fromPos.col);
     const toRect = smallRect(toPos.rank, toPos.col);
     const offset = outgoingMarginOffset(seed, 'A', 'B', 'east', fromRect, fromPos, toPos, {});
-    const toSlot = northDoorSlots(toRect, 1)[0];
+    const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
     const { doorWall } = buildEdgeCorridor(seed, 'A', 'B', fromRect, toRect, fromPos, toPos, 'east', toSlot, {});
     const marginWalls = cellMarginWalls(fromRect, fromPos.rank, fromPos.col, {
       openSide: 'east', openOffset: offset, openWidth: DOOR_WIDTH,
@@ -1130,7 +1114,7 @@ describe('corridor routing regression sweep (#174)', () => {
           totalEdges += 1;
           const fromRect = rectById[fromId];
           const toRect = rectById[toId];
-          const toSlot = northDoorSlots(toRect, 1)[0];
+          const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
           const result = buildEdgeCorridor(
             seed, fromId, toId, fromRect, toRect,
             positionByRoomId[fromId], positionByRoomId[toId],
@@ -1188,7 +1172,7 @@ describe('corridor routing regression sweep (#174)', () => {
           const fromRect = rectById[fromId];
           if (fromRect.gw !== ROOM_SIZE_SMALL) continue; // no margin for LARGE rooms — cellMarginWalls' own no-op
           const toRect = rectById[toId];
-          const toSlot = northDoorSlots(toRect, 1)[0];
+          const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
           const { doorWall } = buildEdgeCorridor(
             seed, fromId, toId, fromRect, toRect,
             positionByRoomId[fromId], positionByRoomId[toId],
