@@ -619,6 +619,92 @@ describe('buildEdgeCorridor (multi-cell path)', () => {
     );
     expect(result.transitCells).toEqual([]);
     expect(result.doorWall).toBeDefined();
+    // #174 Task 5: this is fromRect.gx === toRect.gx (same column), so a
+    // null path now takes the exact same single-segment direct-line
+    // route as an adjacent (path.length <= 2) connection would -- the
+    // now-deleted trunkLaneCorridorSegments hack used to produce a
+    // 3-segment detour here instead. Hand-traced: fromRect's south face
+    // is at y=12, toRect's north face (toSlot.y1) is at y=26, so the one
+    // segment must span exactly that y-range.
+    expect(result.corridorSegments).toHaveLength(1);
+    expect(result.corridorSegments[0].gy).toBe(12);
+    expect(result.corridorSegments[0].gy + result.corridorSegments[0].gh).toBe(26);
+  });
+});
+
+describe('buildEdgeCorridor with a west-incoming target', () => {
+  const SMALL = ROOM_SIZE_SMALL;
+  const smallRect = (rank, col) => {
+    const cell = cellBounds(rank, col);
+    return { gx: cell.gx, gy: cell.gy, gw: SMALL, gh: SMALL };
+  };
+
+  it('same-rank, east-exit fast path: door offsets align, corridor is a single horizontal segment', () => {
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 0, col: 1 };
+    const fromRect = smallRect(0, 0);
+    const toRect = smallRect(0, 1);
+    const toSlot = doorSlotsForFace(toRect, 1, 'west');
+    const result = buildEdgeCorridor(
+      'seed1', 'a', 'b', fromRect, toRect, fromPos, toPos, 'east', toSlot[0], {}, 'west',
+    );
+    // doorWall sits on fromRect's own east face (a vertical segment)
+    expect(result.doorWall.x1).toBe(fromRect.gx + fromRect.gw);
+    expect(result.doorWall.x2).toBe(fromRect.gx + fromRect.gw);
+    expect(result.doorWall.y1).not.toBe(result.doorWall.y2); // a real vertical span, not degenerate
+    // revealDoorWall sits on toRect's own west face
+    expect(result.revealDoorWall.x1).toBe(toRect.gx);
+    expect(result.revealDoorWall.x2).toBe(toRect.gx);
+    // exactly one horizontal corridor segment spanning between the two rooms
+    expect(result.corridorSegments).toHaveLength(1);
+    const seg = result.corridorSegments[0];
+    expect(seg.gx).toBeCloseTo(fromRect.gx + fromRect.gw, 9);
+    expect(seg.gx + seg.gw).toBeCloseTo(toRect.gx, 9);
+  });
+
+  it('the corridor segment never overlaps either room\'s own footprint', () => {
+    for (let seedIndex = 0; seedIndex < 20; seedIndex += 1) {
+      const seed = `sweep-west-${seedIndex}`;
+      const fromPos = { rank: 0, col: 0 };
+      const toPos = { rank: 0, col: 1 };
+      const fromRect = smallRect(0, 0);
+      const toRect = smallRect(0, 1);
+      const toSlot = doorSlotsForFace(toRect, 1, 'west');
+      const { corridorSegments } = buildEdgeCorridor(seed, 'a', 'b', fromRect, toRect, fromPos, toPos, 'east', toSlot[0], {}, 'west');
+      for (const seg of corridorSegments) {
+        const overlapsFrom = seg.gx < fromRect.gx + fromRect.gw && seg.gx + seg.gw > fromRect.gx && seg.gy < fromRect.gy + fromRect.gh && seg.gy + seg.gh > fromRect.gy;
+        const overlapsTo = seg.gx < toRect.gx + toRect.gw && seg.gx + seg.gw > toRect.gx && seg.gy < toRect.gy + toRect.gh && seg.gy + seg.gh > toRect.gy;
+        expect(overlapsFrom).toBe(false);
+        expect(overlapsTo).toBe(false);
+      }
+    }
+  });
+
+  it('a null path (boxed in, both north and west neighbors occupied) falls back to the honest direct-line degradation, not a trunk-lane hack', () => {
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 2, col: 2 };
+    const fromRect = smallRect(0, 0);
+    const toRect = smallRect(2, 2);
+    const toSlot = doorSlotsForFace(toRect, 1, 'north');
+    // Block both toPos's north-neighbor (1,2) and west-neighbor (2,1).
+    const occupiedCells = { '1,2': 'blockerN', '2,1': 'blockerW' };
+    const result = buildEdgeCorridor('seed1', 'a', 'b', fromRect, toRect, fromPos, toPos, 'south', toSlot[0], occupiedCells, 'north');
+    // fromPos/toPos are different columns, so this hits the
+    // different-column/corner branch's own collapsed null-path handling
+    // -- its found-path shape is always exactly 2 segments (one leg per
+    // axis), never the old trunk-lane hack's 3-segment shape.
+    expect(result.corridorSegments).toHaveLength(2);
+  });
+
+  it('north-incoming behavior is byte-identical to before this change (regression guard)', () => {
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 1, col: 0 };
+    const fromRect = smallRect(0, 0);
+    const toRect = smallRect(1, 0);
+    const toSlot = doorSlotsForFace(toRect, 1, 'north');
+    const withDefault = buildEdgeCorridor('seed1', 'a', 'b', fromRect, toRect, fromPos, toPos, 'south', toSlot[0], {});
+    const withExplicitNorth = buildEdgeCorridor('seed1', 'a', 'b', fromRect, toRect, fromPos, toPos, 'south', toSlot[0], {}, 'north');
+    expect(withDefault).toEqual(withExplicitNorth);
   });
 });
 
@@ -1153,9 +1239,29 @@ function rectsOverlap(a, b) {
 }
 
 describe('corridor routing regression sweep (#174)', () => {
-  it('no corridor segment overlaps any room footprint other than its own endpoints, across a large seed/roomCount sweep', () => {
+  // #174 Task 5: this sweep was born (bdcd209) alongside trunkLaneCorridorSegments
+  // and originally asserted zero overlaps across EVERY edge, found-path or
+  // not — that hack routed even the boxed-in (`findCorridorPath` returns
+  // null) case through two "safe lanes" clear of every room. Task 5 removed
+  // that hack after a review found it unsound (100% broken for a west-exit
+  // connection, and roughly half its remaining cases were themselves
+  // bisected by a real containment wall) and reverted `buildEdgeCorridor`'s
+  // null-path case to the original, honest direct-line/corner fallback —
+  // the same one findCorridorPath's own docblock and Task 4's ruling always
+  // documented as a known limitation, not a hack that quietly failed just
+  // as often while claiming to be a fix. That fallback can still cut
+  // through an unrelated room's footprint when no real route exists, so
+  // this sweep now separates the two cases: a FOUND path (the actual
+  // routing algorithm did its job) must still produce zero overlaps —
+  // that's the real regression guard — while a null path's own overlap
+  // rate is tracked and reported, not asserted to zero, since it's an
+  // accepted, pre-existing limitation this task deliberately restored.
+  it('no corridor segment overlaps any room footprint other than its own endpoints, when findCorridorPath finds a real route, across a large seed/roomCount sweep', () => {
     let totalEdges = 0;
-    let overlappingEdges = 0;
+    let foundPathEdges = 0;
+    let overlappingFoundPathEdges = 0;
+    let nullPathEdges = 0;
+    let overlappingNullPathEdges = 0;
     for (let i = 0; i < 500; i += 1) {
       const seed = `sweep-${i}`;
       const roomCount = 6 + (i % 15);
@@ -1183,10 +1289,12 @@ describe('corridor routing regression sweep (#174)', () => {
           totalEdges += 1;
           const fromRect = rectById[fromId];
           const toRect = rectById[toId];
+          const fromPos = positionByRoomId[fromId];
+          const toPos = positionByRoomId[toId];
           const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
           const result = buildEdgeCorridor(
             seed, fromId, toId, fromRect, toRect,
-            positionByRoomId[fromId], positionByRoomId[toId],
+            fromPos, toPos,
             exitFaceForIndex(idx), toSlot, occupiedCells,
           );
           const allSegments = [
@@ -1198,12 +1306,26 @@ describe('corridor routing regression sweep (#174)', () => {
               ([id, r]) => id !== fromId && id !== toId && rectsOverlap(seg, r),
             ),
           );
-          if (hasOverlap) overlappingEdges += 1;
+          const path = findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId: fromId, toRoomId: toId });
+          if (path) {
+            foundPathEdges += 1;
+            if (hasOverlap) overlappingFoundPathEdges += 1;
+          } else {
+            nullPathEdges += 1;
+            if (hasOverlap) overlappingNullPathEdges += 1;
+          }
         }
       }
     }
-    expect(overlappingEdges).toBe(0);
+    expect(overlappingFoundPathEdges).toBe(0);
     expect(totalEdges).toBeGreaterThan(1000); // sanity: the sweep actually exercised real branching
+    expect(foundPathEdges).toBeGreaterThan(0); // sanity: the found-path case above wasn't vacuously true
+    // Not a pass/fail assertion — logged so a reviewer can see the accepted
+    // limitation's real size without the suite failing on it.
+    if (nullPathEdges > 0) {
+      // eslint-disable-next-line no-console
+      console.log(`[sweep] null-path edges: ${nullPathEdges}, overlapping: ${overlappingNullPathEdges}`);
+    }
   });
 
   // #174 Task 5's own margin-alignment bug (a room's cell-margin
