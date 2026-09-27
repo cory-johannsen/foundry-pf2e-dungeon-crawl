@@ -11046,5 +11046,93 @@
     "name": "Infernal Registrar",
     "level": 10,
     "art": "infernal-registrar.webp"
+  },
+  {
+    "id": "argorth",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "JMegWvgrPVElJYDW",
+    "name": "Argorth",
+    "level": 11,
+    "art": "argorth.webp"
+  },
+  {
+    "id": "ash_giant",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "dZEC0cMT0CvCOrl2",
+    "name": "Ash Giant",
+    "level": 11,
+    "art": "ash-giant.webp"
+  },
+  {
+    "id": "black_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "irrXrWxJ0LYSUCQB",
+    "name": "Black Dragon (Adult)",
+    "level": 11,
+    "art": "black-dragon-adult.webp"
+  },
+  {
+    "id": "black_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "AQwxOoYBwDUAwvfh",
+    "name": "Black Dragon (Adult, Spellcaster)",
+    "level": 11,
+    "art": "black-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "brass_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "JnOgG1xfWleFGNt9",
+    "name": "Brass Dragon (Adult)",
+    "level": 11,
+    "art": "brass-dragon-adult.webp"
+  },
+  {
+    "id": "brass_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "F99r7jcWX5YZB8xw",
+    "name": "Brass Dragon (Adult, Spellcaster)",
+    "level": 11,
+    "art": "brass-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "deadly_mantis",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "zQraVA7SUjd6qGNh",
+    "name": "Deadly Mantis",
+    "level": 11,
+    "art": "deadly-mantis.webp"
+  },
+  {
+    "id": "diabolic_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "ADjEac8U6pNoPq6J",
+    "name": "Diabolic Dragon (Young)",
+    "level": 11,
+    "art": "diabolic-dragon-young.webp"
+  },
+  {
+    "id": "elemental_hurricane",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "mx2Xpra7bRJP0GuX",
+    "name": "Elemental Hurricane",
+    "level": 11,
+    "art": "elemental-hurricane.webp"
+  },
+  {
+    "id": "elemental_inferno",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "yYicb7uJH4EaBO4v",
+    "name": "Elemental Inferno",
+    "level": 11,
+    "art": "elemental-inferno.webp"
+  },
+  {
+    "id": "garadasura",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "0pdv7wgjpnDsVIV1",
+    "name": "Garadasura",
+    "level": 11,
+    "art": "garadasura.webp"
   }
 ]
