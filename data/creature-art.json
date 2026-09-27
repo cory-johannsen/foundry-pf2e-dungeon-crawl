@@ -11262,5 +11262,29 @@
     "name": "Quoppopak",
     "level": 11,
     "art": "quoppopak.webp"
+  },
+  {
+    "id": "greater_nightmare",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "WG4Tk2k9Lm21CEQv",
+    "name": "Greater Nightmare",
+    "level": 11,
+    "art": "greater-nightmare.webp"
+  },
+  {
+    "id": "high_roller",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "VYO4XEO6mHw8bfS4",
+    "name": "High Roller",
+    "level": 11,
+    "art": "high-roller.webp"
+  },
+  {
+    "id": "hippopotamus_topiary",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ogW5nGL2kXGqVwzm",
+    "name": "Hippopotamus Topiary",
+    "level": 11,
+    "art": "hippopotamus-topiary.webp"
   }
 ]
