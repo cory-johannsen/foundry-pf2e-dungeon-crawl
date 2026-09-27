@@ -1259,7 +1259,7 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
     expectSouthAlignment({ rank: 0, col: 0 }, { rank: 3, col: 0 }, { '2,0': 'blocker' });
   });
 
-  it('aligns an east-face connection regardless of column (buildEdgeCorridor never uses the offset-based branch for east)', () => {
+  it('aligns an east-face, same-rank connection (buildEdgeCorridor\'s east/sameRank offset-based fast path, added in the incoming-face redesign)', () => {
     const fromPos = { rank: 0, col: 0 };
     const toPos = { rank: 0, col: 1 };
     const fromRect = smallRect(fromPos.rank, fromPos.col);
