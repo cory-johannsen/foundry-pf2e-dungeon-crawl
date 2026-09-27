@@ -11582,5 +11582,77 @@
     "name": "Coral Dragon (Adult)",
     "level": 12,
     "art": "coral-dragon-adult.webp"
+  },
+  {
+    "id": "ferrugon",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "CgDdoQ0pa0LI45NB",
+    "name": "Ferrugon",
+    "level": 12,
+    "art": "ferrugon.webp"
+  },
+  {
+    "id": "gimmerling",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "pH2yNe16EnoJ8R0i",
+    "name": "Gimmerling",
+    "level": 12,
+    "art": "gimmerling.webp"
+  },
+  {
+    "id": "gogiteth",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Iwk2qT4lVyrvoz3B",
+    "name": "Gogiteth",
+    "level": 12,
+    "art": "gogiteth.webp"
+  },
+  {
+    "id": "green_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "zXi6UhZ0mXWpKk4A",
+    "name": "Green Dragon (Adult)",
+    "level": 12,
+    "art": "green-dragon-adult.webp"
+  },
+  {
+    "id": "green_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "JKG3m8pFISF48Sfr",
+    "name": "Green Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "green-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "horned_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "ioi5L2CAM6q9aWKJ",
+    "name": "Horned Dragon (Adult)",
+    "level": 12,
+    "art": "horned-dragon-adult.webp"
+  },
+  {
+    "id": "horned_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "7jwIapHl80UbnIWr",
+    "name": "Horned Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "horned-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "japalisura",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "BPmotFI9EoIqSatr",
+    "name": "Japalisura",
+    "level": 12,
+    "art": "japalisura.webp"
+  },
+  {
+    "id": "omox",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "hvVFocY8r72XEaqQ",
+    "name": "Omox",
+    "level": 12,
+    "art": "omox.webp"
   }
 ]
