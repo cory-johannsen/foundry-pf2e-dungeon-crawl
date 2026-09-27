@@ -11254,5 +11254,13 @@
     "name": "Omen Dragon (Adult, Spellcaster)",
     "level": 11,
     "art": "omen-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "quoppopak",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "3u4toki9EeSRvcs2",
+    "name": "Quoppopak",
+    "level": 11,
+    "art": "quoppopak.webp"
   }
 ]
