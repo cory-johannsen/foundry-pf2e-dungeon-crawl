@@ -343,7 +343,211 @@ git commit -m "test: re-measure boxed-in rate after computeColumns' skip-by-2 st
 
 ---
 
-## Task 4: Live verification, final review, and close-out
+## Task 4: Fix `findCorridorPath`'s multi-parent exemption gap
+
+**Files:**
+- Modify: `scripts/dungeon-layout.mjs`, `scripts/ui/dungeon-app.mjs`, `scripts/dungeon-scene.mjs`
+- Test: `tests/dungeon-layout.test.mjs`
+
+**Why this task exists:** Task 3's own re-measurement found the boxed-in
+rate only dropped from ~32.2% to ~23.3%, not the near-0% Tasks 1-2
+predicted. Root-caused: `findCorridorPath`'s `isBlocked` check only
+exempts the *current edge's own* `fromRoomId`/`toRoomId` from blocking —
+not any of the target's *other* legitimate incoming sources. A merge
+room with 2+ real parents (routine in this generator — "forced-merge...
+not just the final goal") has all of its real parents sharing the SAME
+gate cell concept (one incoming face, subdivided into door slots, per
+`incomingFaceFor`'s own design) — but today, an edge from parent B
+routing into that merge room sees parent A (a legitimate co-parent
+occupying the gate cell) as an unrelated blocker, since `isBlocked` only
+know about B and the merge room itself, not A. This accounts for ~21.7
+of the ~23.3 percentage points measured in Task 3 — by far the dominant
+remaining cause, and a distinct, well-understood bug unrelated to column
+spacing.
+
+**Interfaces:**
+- Consumes: `parentRoomIdsFor` (existing), `hiddenIncomingByRoomId` (existing).
+- Produces: `findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace, legitimateSourceIds = [] })` — a new options-object member, a plain array (never a `Set` — `state` is persisted via `replaceRunState`, and this codebase's own established convention, e.g. `hiddenRooms: [...hiddenRooms]`, always spreads a Set to an array before it enters `state`). `buildEdgeCorridor(..., incomingFace, legitimateSourceIds = [])` and `outgoingMarginOffset(..., incomingFace, legitimateSourceIds = [])` both gain the same trailing parameter, passed through unchanged to their own internal `findCorridorPath` calls. `state.legitimateSourceIdsByRoomId` (`Map<roomId, roomId[]>`), precomputed once alongside `incomingFaceByRoomId`.
+
+- [ ] **Step 1: Write the failing tests**
+
+```js
+describe('findCorridorPath with legitimateSourceIds (merge-room multi-parent gate fix)', () => {
+  it('defaults to the old fromRoomId/toRoomId-only exemption when legitimateSourceIds is omitted, byte-identical to before this change', () => {
+    const occupiedCells = { '1,0': 'otherParent' };
+    const path = findCorridorPath(
+      { rank: 0, col: 0 }, { rank: 2, col: 0 }, occupiedCells,
+      { fromRoomId: 'parentB', toRoomId: 'merge' },
+    );
+    expect(path).toBeNull(); // 'otherParent' still blocks, unchanged from today
+  });
+
+  it('a co-parent legitimately occupying the target\'s own gate cell no longer blocks a DIFFERENT parent\'s own edge into the same merge room', () => {
+    // parentA sits directly north of the merge room (a completely normal
+    // shape -- one real parent per rank-adjacent cell); parentB's own
+    // edge into the SAME merge room must still be able to route in,
+    // since parentA is one of the merge room's own legitimate sources,
+    // not an unrelated blocker.
+    const occupiedCells = { '1,0': 'parentA' };
+    const path = findCorridorPath(
+      { rank: 0, col: 2 }, { rank: 2, col: 0 }, occupiedCells,
+      { fromRoomId: 'parentB', toRoomId: 'merge', legitimateSourceIds: ['parentA', 'parentB'] },
+    );
+    expect(path).not.toBeNull();
+    expect(path[path.length - 1]).toEqual({ rank: 2, col: 0 });
+  });
+
+  it('an UNRELATED room (not in legitimateSourceIds) at the same position still blocks, exactly as before', () => {
+    const occupiedCells = { '1,0': 'totallyUnrelatedRoom' };
+    const path = findCorridorPath(
+      { rank: 0, col: 2 }, { rank: 2, col: 0 }, occupiedCells,
+      { fromRoomId: 'parentB', toRoomId: 'merge', legitimateSourceIds: ['parentA', 'parentB'] },
+    );
+    expect(path).toBeNull();
+  });
+});
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `npx vitest run tests/dungeon-layout.test.mjs -t "legitimateSourceIds"`
+Expected: FAIL (test 2 — today's `isBlocked` has no concept of a third-party legitimate source)
+
+- [ ] **Step 3: Implement `findCorridorPath`'s exemption widening**
+
+```js
+  const isBlocked = (pos) => {
+    const occupant = occupiedCells[key(pos)];
+    if (occupant == null || occupant === fromRoomId || occupant === toRoomId) return false;
+    return !legitimateSourceIds.includes(occupant);
+  };
+```
+(replacing the existing single-line `isBlocked` body; `legitimateSourceIds` is destructured from the function's own options object with a `= []` default, added alongside the existing `incomingFace = 'north'` default in the function's own signature.)
+
+Thread it through `buildEdgeCorridor` (its own internal `findCorridorPath` call already passes `{ fromRoomId, toRoomId, incomingFace }` — add `legitimateSourceIds` to that same object) and `outgoingMarginOffset` (same change to its own internal call), both gaining `legitimateSourceIds = []` as a new trailing parameter on their own signatures, passed straight through with no other logic change.
+
+- [ ] **Step 4: Precompute `legitimateSourceIdsByRoomId` in `dungeon-app.mjs`**
+
+Extend the existing `incomingFaceByRoomId` precompute block (right after `layoutPositionByRoomId` is built) — it already constructs `legitimateSourceIds` as a local `Set` per room; also capture it as a plain array in a new map:
+
+```js
+  const legitimateSourceIdsByRoomId = {};
+  const incomingFaceByRoomId = Object.fromEntries(
+    Object.keys(rooms).map((id) => {
+      const legitimateSourceIds = new Set([
+        ...parentRoomIdsFor(layoutEdges, id),
+        ...(hiddenIncomingByRoomId[id] ?? []),
+      ]);
+      legitimateSourceIdsByRoomId[id] = Array.from(legitimateSourceIds);
+      return [id, incomingFaceFor(id, layoutPositionByRoomId, occupiedCellsForIncomingFace, legitimateSourceIds)];
+    }),
+  );
+```
+
+Add `legitimateSourceIdsByRoomId` to the `state = {...}` assembly, alongside `incomingFaceByRoomId`:
+
+```js
+  state = {
+    ...stateWithoutLegacyFields,
+    rooms,
+    edges,
+    layoutEdges,
+    hiddenRooms: [...hiddenRooms],
+    hiddenEdges,
+    hiddenIncomingByRoomId,
+    layoutPositionByRoomId,
+    incomingFaceByRoomId,
+    legitimateSourceIdsByRoomId,
+    maxRank,
+    currentRoomId: 'room-entry',
+    history: [],
+  };
+```
+
+- [ ] **Step 5: Wire the two `dungeon-scene.mjs` call sites**
+
+In `buildPopulateAndUnlockGraphNode`, where `incomingFace` is already looked up (`state.incomingFaceByRoomId[room.id] ?? 'north'`), add the equivalent lookup and pass it into the main `buildEdgeCorridor` call:
+
+```js
+  const legitimateSourceIds = state.legitimateSourceIdsByRoomId[room.id] ?? [];
+```
+```js
+      const { doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells } =
+        buildEdgeCorridor(state.seed, sourceId, room.id, sourceRect, rect, sourcePos, { rank, col }, exitFaceFromSource, toSlot, occupiedCells, incomingFace, legitimateSourceIds);
+```
+
+Thread `state.legitimateSourceIdsByRoomId` (the whole map) into `buildRoomAtGraphNode`'s own options, alongside `incomingFaceByRoomId`:
+
+```js
+        layoutPositionByRoomId: state.layoutPositionByRoomId,
+        occupiedCells, incomingFace,
+        incomingFaceByRoomId: state.incomingFaceByRoomId,
+        legitimateSourceIdsByRoomId: state.legitimateSourceIdsByRoomId,
+      },
+    );
+```
+
+`buildRoomAtGraphNode`'s own destructured options gains `legitimateSourceIdsByRoomId = {}` alongside `incomingFaceByRoomId = {}`. In its margin-wall loop, thread the CHILD's own legitimate sources (not the room's own) into `outgoingMarginOffset`:
+
+```js
+  for (const face of marginFaces) {
+    const childId = childIdByFace[face];
+    const childPos = childId ? layoutPositionByRoomId[childId] : null;
+    const childIncomingFace = childId ? (incomingFaceByRoomId?.[childId] ?? 'north') : 'north';
+    const childLegitimateSourceIds = childId ? (legitimateSourceIdsByRoomId?.[childId] ?? []) : [];
+    const offset = outgoingMarginOffset(
+      seed, roomId, childId, face, rect, { rank, col },
+      childPos ?? { rank: NaN, col: NaN }, occupiedCells, childIncomingFace, childLegitimateSourceIds,
+    );
+    const sideWalls = cellMarginWalls(rect, rank, col, { openSide: face, openOffset: offset, openWidth: DOOR_WIDTH });
+    for (const side of sideWalls) if (side.dir === face) marginWalls.push(side);
+    coveredMarginSides.add(face);
+  }
+```
+
+**Note for the implementer:** exactly like the `incomingFace`/`incomingFaceByRoomId` distinction Task 6 of the incoming-face redesign plan established, do not conflate `legitimateSourceIds` (whichever room's own sources are relevant at a given call — the room being built's own, for the main `buildEdgeCorridor` call; a specific child's own, for the margin loop's `outgoingMarginOffset` call) with each other.
+
+- [ ] **Step 6: Run tests to verify they pass**
+
+Run: `npx vitest run tests/dungeon-layout.test.mjs -t "legitimateSourceIds"`
+Expected: PASS
+
+- [ ] **Step 7: Re-run Task 3's own boxed-in-rate sweep and record the new measurement**
+
+Run: `npx vitest run tests/dungeon-layout.test.mjs -t "boxed-in rate"`
+
+Update the sweep's own body (`tests/dungeon-layout.test.mjs`) to thread `legitimateSourceIds` into its own `findCorridorPath` calls, matching how `buildEdgeCorridor`'s real callers now do — the sweep already computes `legitimateSourceIds` locally per room for its own `incomingFaceFor` calls; reuse that same array:
+
+```js
+          const path = findCorridorPath(
+            positionByRoomId[fromId], positionByRoomId[toId], occupiedCells,
+            {
+              fromRoomId: fromId, toRoomId: toId, incomingFace: incomingFaceByRoomId[toId],
+              legitimateSourceIds: Array.from(new Set([
+                ...parentRoomIdsFor(layoutEdges, toId),
+                ...(hiddenIncomingByRoomId[toId] ?? []),
+              ])),
+            },
+          );
+```
+
+Update the test's own threshold based on what this fix actually achieves — if the measured rate drops to at or near the ~1.5% column-0-west-lane-trap residual Task 3's own investigation already identified as the OTHER, smaller remaining cause, set the threshold accordingly (e.g. `<= 0.03`) with a comment citing the actual number, the same evidence-based approach Task 3 itself used. Do not target `<= 0.02` reflexively if the real number is different — report and set the threshold to match reality.
+
+- [ ] **Step 8: Run the full test suite**
+
+Run: `npx vitest run`
+Expected: PASS, no regressions.
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add scripts/dungeon-layout.mjs scripts/ui/dungeon-app.mjs scripts/dungeon-scene.mjs tests/dungeon-layout.test.mjs
+git commit -m "fix: findCorridorPath must exempt a target's own legitimate co-parents, not just the current edge's fromRoomId"
+```
+
+---
+
+## Task 5: Live verification, final review, and close-out
 
 **Files:** none (verification + process only)
 
