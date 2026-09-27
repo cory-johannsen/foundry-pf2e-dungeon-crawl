@@ -11462,5 +11462,101 @@
     "name": "Isqulug",
     "level": 11,
     "art": "isqulug.webp"
+  },
+  {
+    "id": "aeolaeka",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "6VOX4biqPtAE7y3g",
+    "name": "Aeolaeka",
+    "level": 12,
+    "art": "aeolaeka.webp"
+  },
+  {
+    "id": "akhana",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "085JMzkQqhNEWWWL",
+    "name": "Akhana",
+    "level": 12,
+    "art": "akhana.webp"
+  },
+  {
+    "id": "athach",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "CwrVQsRAeqlr1Vh0",
+    "name": "Athach",
+    "level": 12,
+    "art": "athach.webp"
+  },
+  {
+    "id": "catoblepas",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "RA2dkQJANNFjgdSt",
+    "name": "Catoblepas",
+    "level": 12,
+    "art": "catoblepas.webp"
+  },
+  {
+    "id": "cauthooj",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "1a5faH5CCtFfbQHO",
+    "name": "Cauthooj",
+    "level": 12,
+    "art": "cauthooj.webp"
+  },
+  {
+    "id": "conspirator_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "TGYELuImcTcuX0aH",
+    "name": "Conspirator Dragon (Adult)",
+    "level": 12,
+    "art": "conspirator-dragon-adult.webp"
+  },
+  {
+    "id": "conspirator_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "T0OAOkmk4xz0wvjJ",
+    "name": "Conspirator Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "conspirator-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "copper_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "Fzn4jHusVeyytgfx",
+    "name": "Copper Dragon (Adult)",
+    "level": 12,
+    "art": "copper-dragon-adult.webp"
+  },
+  {
+    "id": "copper_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "ouOt6d8xUFk8NhJ9",
+    "name": "Copper Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "copper-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "coral_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "3xe8mgv0NlHknfPj",
+    "name": "Coral Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "coral-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "crime_kingpin",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "mu8X8nr1HvSfdARc",
+    "name": "Crime Kingpin",
+    "level": 12,
+    "art": "crime-kingpin.webp"
+  },
+  {
+    "id": "derghodaemon",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "oKogG9AwUZ9iBsm3",
+    "name": "Derghodaemon",
+    "level": 12,
+    "art": "derghodaemon.webp"
   }
 ]
