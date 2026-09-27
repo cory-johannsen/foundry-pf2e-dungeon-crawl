@@ -10798,5 +10798,85 @@
     "name": "Red Dragon (Young, Spellcaster)",
     "level": 10,
     "art": "red-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "sacristan",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Tf1eWEQJmFEtcCps",
+    "name": "Sacristan",
+    "level": 10,
+    "art": "sacristan.webp"
+  },
+  {
+    "id": "silver_dragon_young",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "YPLZkAlOuaj3F3nZ",
+    "name": "Silver Dragon (Young)",
+    "level": 10,
+    "art": "silver-dragon-young.webp"
+  },
+  {
+    "id": "silver_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "dYbfZnB1ngiqPm4O",
+    "name": "Silver Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "silver-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "vrykolakas_master",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "j43O2vBu8eu2wC5z",
+    "name": "Vrykolakas Master",
+    "level": 10,
+    "art": "vrykolakas-master.webp"
+  },
+  {
+    "id": "white_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "024PqcF8yMRBrPuq",
+    "name": "White Dragon (Adult)",
+    "level": 10,
+    "art": "white-dragon-adult.webp"
+  },
+  {
+    "id": "white_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "MhEfUXkSfLtgpmfE",
+    "name": "White Dragon (Adult, Spellcaster)",
+    "level": 10,
+    "art": "white-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "zuishin",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "mPFQENrVt5xhML1T",
+    "name": "Zuishin",
+    "level": 10,
+    "art": "zuishin.webp"
+  },
+  {
+    "id": "clay_effigy",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "IuVoyT5lkzcWJ6sK",
+    "name": "Clay Effigy",
+    "level": 10,
+    "art": "clay-effigy.webp"
+  },
+  {
+    "id": "clay_golem",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "skz8n8N9GEQY2c90",
+    "name": "Clay Golem",
+    "level": 10,
+    "art": "clay-golem.webp"
+  },
+  {
+    "id": "guardian_naga",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "aq2H1lRALUNMEGRG",
+    "name": "Guardian Naga",
+    "level": 10,
+    "art": "guardian-naga.webp"
   }
 ]
