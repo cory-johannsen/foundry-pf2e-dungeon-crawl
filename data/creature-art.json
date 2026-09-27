@@ -11998,5 +11998,125 @@
     "name": "Assault Alloy",
     "level": 13,
     "art": "assault-alloy.webp"
+  },
+  {
+    "id": "elven_court_guard",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "1K6Zl3EGIRZvC3TO",
+    "name": "Elven Court Guard",
+    "level": 13,
+    "art": "elven-court-guard.webp"
+  },
+  {
+    "id": "gelugon",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "kNmRn3WfiWLsuwoe",
+    "name": "Gelugon",
+    "level": 13,
+    "art": "gelugon.webp"
+  },
+  {
+    "id": "hero_hunter",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "qsS9EAPMfav5mmzK",
+    "name": "Hero Hunter",
+    "level": 13,
+    "art": "hero-hunter.webp"
+  },
+  {
+    "id": "mirage_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "sK514S9XUfkNXcy8",
+    "name": "Mirage Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "mirage-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "phase_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "KMU6KpI33zcE6pfE",
+    "name": "Phase Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "phase-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "quai_dau_to",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Ao8hNYvOeo2HbJ5p",
+    "name": "Quai Dau To",
+    "level": 13,
+    "art": "quai-dau-to.webp"
+  },
+  {
+    "id": "destiny_tempest",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "NMQwjsdBYJEYvtgu",
+    "name": "Destiny Tempest",
+    "level": 13,
+    "art": "destiny-tempest.webp"
+  },
+  {
+    "id": "irlgaunt",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "FuvlS0DHfooobGiN",
+    "name": "Irlgaunt",
+    "level": 13,
+    "art": "irlgaunt.webp"
+  },
+  {
+    "id": "millindemalion",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "TmvTgG1M8nzC5Q0K",
+    "name": "Millindemalion",
+    "level": 13,
+    "art": "millindemalion.webp"
+  },
+  {
+    "id": "mirage_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Cq9Cg5dZ3I3cWXXR",
+    "name": "Mirage Dragon (Adult)",
+    "level": 13,
+    "art": "mirage-dragon-adult.webp"
+  },
+  {
+    "id": "phase_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "IpceyxBj5kTkmQWx",
+    "name": "Phase Dragon (Adult)",
+    "level": 13,
+    "art": "phase-dragon-adult.webp"
+  },
+  {
+    "id": "ghaele",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "Iw2QccAkRc5Vnfzj",
+    "name": "Ghaele",
+    "level": 13,
+    "art": "ghaele.webp"
+  },
+  {
+    "id": "globetrotting_scholar",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "gJBsgTZnZnImelP2",
+    "name": "Globetrotting Scholar",
+    "level": 13,
+    "art": "globetrotting-scholar.webp"
+  },
+  {
+    "id": "glabrezu",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "BRo0snV2sH6TFuh6",
+    "name": "Glabrezu",
+    "level": 13,
+    "art": "glabrezu.webp"
+  },
+  {
+    "id": "iceberg_clam",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "o5B1pNYv2hglQa6v",
+    "name": "Iceberg Clam",
+    "level": 13,
+    "art": "iceberg-clam.webp"
   }
 ]
