@@ -11694,5 +11694,13 @@
     "name": "Kokogiak",
     "level": 12,
     "art": "kokogiak.webp"
+  },
+  {
+    "id": "frost_worm",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "mpBOeFrbtx1wMrNn",
+    "name": "Frost Worm",
+    "level": 12,
+    "art": "frost-worm.webp"
   }
 ]
