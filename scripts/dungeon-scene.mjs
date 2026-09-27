@@ -229,6 +229,40 @@ async function buildTransitCellIfNeeded(scene, cell) {
   }
 }
 
+/**
+ * Proactively seals an empty buffer column (#174 follow-up:
+ * computeColumns' skip-by-2 stride leaves one beside every room) with a
+ * full 4-wall containment boundary, idempotently — using the exact same
+ * `dungeonTransitCellMarginForCell`/`dungeonTransitCellOpenings` flags
+ * `buildTransitCellIfNeeded` already reads and writes for a
+ * corridor-crossed transit cell, so the two compose correctly regardless
+ * of which runs first for a given cell:
+ *
+ * - Sealed here first, corridor crosses it later: `buildTransitCellIfNeeded`
+ *   reads this function's own `dungeonTransitCellOpenings: []` back as
+ *   `priorOpenings`, and rebuilds with its own entry/exit added — its
+ *   existing, already-shipped behavior for "a second edge crosses an
+ *   already-built transit cell," no special-casing needed.
+ * - A corridor crosses it first, this runs later: `alreadyBuilt` below
+ *   finds the crossing's own walls already tagged with this cell's key
+ *   and does nothing, never re-sealing over an opening a corridor needs.
+ */
+async function sealBufferCellIfUnbuilt(scene, rank, col) {
+  const cellKey = `${rank},${col}`;
+  const alreadyBuilt = scene.walls.some(
+    (w) => w.getFlag(MODULE_ID, "dungeonTransitCellMarginForCell") === cellKey,
+  );
+  if (alreadyBuilt) return;
+  const marginWalls = transitCellContainmentWalls(rank, col, []).map((side) =>
+    wallDoc(side, {
+      flags: {
+        [MODULE_ID]: { dungeonTransitCellMarginForCell: cellKey, dungeonTransitCellOpenings: [] },
+      },
+    }),
+  );
+  await scene.createEmbeddedDocuments("Wall", marginWalls);
+}
+
 // #93 pre-flight fix (Step 3f): requiredDimensions/ensureSceneCovers
 // (the old per-room, slot-indexed canvas-growth pair) are deleted —
 // superseded by resizeSceneForLayout below, called ONCE by Task 12 right
@@ -464,6 +498,17 @@ export async function buildRoomAtGraphNode(
   // to delete, each list only once ITS OWN matching connection-wall
   // creation succeeds.
   if (walls.length) await scene.createEmbeddedDocuments("Wall", walls);
+
+  // #174 follow-up: seal this room's own same-rank buffer-column
+  // neighbors (computeColumns' skip-by-2 stride guarantees col-1/col+1
+  // are never another real room) — idempotent, so it's safe to call
+  // from whichever of a buffer column's two neighboring rooms happens
+  // to be built first.
+  for (const neighborCol of [col - 1, col + 1]) {
+    if (occupiedCells[`${rank},${neighborCol}`] == null) {
+      await sealBufferCellIfUnbuilt(scene, rank, neighborCol);
+    }
+  }
 
   // This room's own floor-art Tile + AmbientLight — same as the old
   // linear-slot room builder (roomArtPath for the Tile texture at anchorX/Y:0 sized to `rect`,
