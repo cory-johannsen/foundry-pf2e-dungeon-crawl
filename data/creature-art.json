@@ -10918,5 +10918,61 @@
     "name": "Warmonger",
     "level": 10,
     "art": "warmonger.webp"
+  },
+  {
+    "id": "leng_ghoul",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "SjvmOu8v9haaZE1p",
+    "name": "Leng Ghoul",
+    "level": 10,
+    "art": "leng-ghoul.webp"
+  },
+  {
+    "id": "moon_hag",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "5oHZRcwDl7jhLOT5",
+    "name": "Moon Hag",
+    "level": 10,
+    "art": "moon-hag.webp"
+  },
+  {
+    "id": "nymolus",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "hgtWYKMzyCGPAeLx",
+    "name": "Nymolus",
+    "level": 10,
+    "art": "nymolus.webp"
+  },
+  {
+    "id": "soul_skelm",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "O8iynsWnjObQ8TJl",
+    "name": "Soul Skelm",
+    "level": 10,
+    "art": "soul-skelm.webp"
+  },
+  {
+    "id": "vicharamuni",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "LRboVCCVODz00d5B",
+    "name": "Vicharamuni",
+    "level": 10,
+    "art": "vicharamuni.webp"
+  },
+  {
+    "id": "champion_automaton",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "8bis5VcFFHugSfK0",
+    "name": "Champion Automaton",
+    "level": 10,
+    "art": "champion-automaton.webp"
+  },
+  {
+    "id": "quintessivore",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "qnFiUNUyH0zuG6hj",
+    "name": "Quintessivore",
+    "level": 10,
+    "art": "quintessivore.webp"
   }
 ]
