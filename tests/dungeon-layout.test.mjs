@@ -1467,3 +1467,33 @@ describe('corridor routing regression sweep (#174)', () => {
     expect(totalMarginedConnections).toBeGreaterThan(200); // sanity: real SMALL-room south/east connections were exercised
   });
 });
+
+describe('incomingFaceByRoomId derivation over a real generated graph', () => {
+  it('produces a valid face for every room, and at least one west case across a wide sweep', () => {
+    let sawWest = false;
+    for (let i = 0; i < 200; i += 1) {
+      const seed = `incoming-face-sweep-${i}`;
+      const roomCount = 6 + (i % 15);
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+      const { layoutEdges, hiddenIncomingByRoomId } = attachHiddenPaths({ rooms, edges, seed });
+      const ranks = computeRanks(layoutEdges, 'room-entry');
+      const columns = computeColumns(layoutEdges, ranks, 'room-entry');
+      const positionByRoomId = Object.fromEntries(
+        Object.keys(rooms).map((id) => [id, { rank: ranks[id], col: columns[id] }]),
+      );
+      const occupiedCells = Object.fromEntries(
+        Object.entries(positionByRoomId).map(([id, pos]) => [`${pos.rank},${pos.col}`, id]),
+      );
+      for (const id of Object.keys(rooms)) {
+        const legitimateSourceIds = new Set([
+          ...parentRoomIdsFor(layoutEdges, id),
+          ...(hiddenIncomingByRoomId[id] ?? []),
+        ]);
+        const face = incomingFaceFor(id, positionByRoomId, occupiedCells, legitimateSourceIds);
+        expect(['north', 'west']).toContain(face);
+        if (face === 'west') sawWest = true;
+      }
+    }
+    expect(sawWest).toBe(true); // sanity: the sweep actually exercised the new fallback, not just the unchanged default
+  });
+});
