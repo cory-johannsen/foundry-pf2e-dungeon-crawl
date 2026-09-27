@@ -12350,5 +12350,125 @@
     "name": "Jorogumo",
     "level": 13,
     "art": "jorogumo.webp"
+  },
+  {
+    "id": "cinder_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "jHD1bsWWmcUa2e7H",
+    "name": "Cinder Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "cinder-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "empyreal_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "i6gxQwKAPhOQZPgs",
+    "name": "Empyreal Dragon (Adult)",
+    "level": 14,
+    "art": "empyreal-dragon-adult.webp"
+  },
+  {
+    "id": "empyreal_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "c5RzWCW3KsMqvO4h",
+    "name": "Empyreal Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "empyreal-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "fortune_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "TdhUDXvkKBctIpH8",
+    "name": "Fortune Dragon (Adult)",
+    "level": 14,
+    "art": "fortune-dragon-adult.webp"
+  },
+  {
+    "id": "fortune_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "ED9YZQYMGHuN5l8E",
+    "name": "Fortune Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "fortune-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "gylou",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "s492qJ4psEb4FXuy",
+    "name": "Gylou",
+    "level": 14,
+    "art": "gylou.webp"
+  },
+  {
+    "id": "nalfeshnee",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "YUZF9WhDmfzma3dE",
+    "name": "Nalfeshnee",
+    "level": 14,
+    "art": "nalfeshnee.webp"
+  },
+  {
+    "id": "nikaramsa",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "HEgGta4uVmwdkw3E",
+    "name": "Nikaramsa",
+    "level": 14,
+    "art": "nikaramsa.webp"
+  },
+  {
+    "id": "ozthoom",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "EG8jLZfIfTwA0b5g",
+    "name": "Ozthoom",
+    "level": 14,
+    "art": "ozthoom.webp"
+  },
+  {
+    "id": "ozthoom_shadow_double",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "wNa8UPQqSepdxscG",
+    "name": "Ozthoom Shadow Double",
+    "level": 14,
+    "art": "ozthoom-shadow-double.webp"
+  },
+  {
+    "id": "caldera_oni",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Wlupxz7dmKb6BYcr",
+    "name": "Caldera Oni",
+    "level": 14,
+    "art": "caldera-oni.webp"
+  },
+  {
+    "id": "cinder_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "plgIbSqjCRc7JFFF",
+    "name": "Cinder Dragon (Adult)",
+    "level": 14,
+    "art": "cinder-dragon-adult.webp"
+  },
+  {
+    "id": "grikkitog",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "702acAJ1OPRBjcni",
+    "name": "Grikkitog",
+    "level": 14,
+    "art": "grikkitog.webp"
+  },
+  {
+    "id": "peri",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "Lqm3acjjbLKuRUCf",
+    "name": "Peri",
+    "level": 14,
+    "art": "peri.webp"
+  },
+  {
+    "id": "doprillu",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "LwpPOXWeDY2KkL9l",
+    "name": "Doprillu",
+    "level": 14,
+    "art": "doprillu.webp"
   }
 ]
