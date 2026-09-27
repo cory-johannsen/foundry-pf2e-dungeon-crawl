@@ -408,6 +408,41 @@ describe('computeColumns', () => {
       }
     }
   });
+
+  it('assigns columns via a skip-by-2 stride: every room\'s own column is even, and same-rank rooms differ by exactly 2 in visit order (#174 follow-up: guarantees a genuinely empty west-neighbor column for every room, not just the first in its rank)', () => {
+    const edges = { 'room-entry': ['a', 'b', 'c'], a: [], b: [], c: [] };
+    const ranks = computeRanks(edges, 'room-entry');
+    const cols = computeColumns(edges, ranks, 'room-entry');
+    expect(cols['room-entry']).toBe(0);
+    expect(cols.a).toBe(0);
+    expect(cols.b).toBe(2);
+    expect(cols.c).toBe(4);
+    for (const id of Object.keys(edges)) expect(cols[id] % 2).toBe(0);
+  });
+
+  it('every same-rank room\'s immediate column neighbors (col-1, col+1) are guaranteed never occupied by another room in the same rank, across a wide sweep', () => {
+    for (let n = 0; n < 40; n += 1) {
+      const seed = `layout-${n}`;
+      for (const roomCount of [3, 4, 6, 8, 12, 16, 24]) {
+        const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+        const ranks = computeRanks(edges, 'room-entry');
+        const cols = computeColumns(edges, ranks, 'room-entry');
+        const usedByRank = {};
+        for (const roomId of Object.keys(rooms)) {
+          const key = ranks[roomId];
+          usedByRank[key] ??= new Set();
+          usedByRank[key].add(cols[roomId]);
+        }
+        for (const roomId of Object.keys(rooms)) {
+          const key = ranks[roomId];
+          const col = cols[roomId];
+          expect(usedByRank[key].has(col - 1)).toBe(false);
+          expect(usedByRank[key].has(col + 1)).toBe(false);
+        }
+      }
+    }
+  });
+
 });
 
 describe('buildEdgeCorridor', () => {

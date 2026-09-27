@@ -53,8 +53,10 @@ export const INITIAL_GX = 300;
 // variable-width tree layout (see the design spec): every column is wide
 // enough for the largest room, every rank tall enough for the tallest, so
 // no two rooms ever overlap regardless of their individual roomSizeAt
-// roll, and a room is still visually centered over its children via
-// computeColumns' own column averaging.
+// roll. computeColumns assigns columns via a skip-by-2 counter (#174
+// follow-up), leaving a permanent empty buffer column beside every real
+// room for routing/incoming-face use, sealed by sealBufferCellIfUnbuilt
+// (dungeon-scene.mjs).
 export const ROW_STRIDE = ROOM_SIZE_LARGE + CORRIDOR_LEN;
 export const COLUMN_STRIDE = ROOM_SIZE_LARGE + CORRIDOR_LEN;
 
@@ -711,19 +713,22 @@ export function computeRanks(edges, entryId) {
 }
 
 /**
- * Column index (integer, per-rank left-to-right order) via a single DFS
- * pass from entryId — #93 pre-flight fix (see the note below the
- * function for what the original bottom-up-width/top-down-centering
+ * Column index (integer, per-rank left-to-right order, always even) via
+ * a single DFS pass from entryId — #93 pre-flight fix (see the note
+ * below the function for what the original bottom-up-width/top-down-centering
  * design got wrong and why it was replaced). Every room is visited
  * exactly once (first parent to reach it wins, matching the design's
  * "merge rooms placed once, whichever parent reaches them first"
- * intent); each NEW room claims the next unused column at its own rank
- * via a monotonic per-rank counter, which is what actually guarantees
- * two different rooms at the same rank can never collide on a column —
- * `ranks` (pre-computed by computeRanks, already correctly reflecting a
- * merge room's longest-path rank) is looked up directly, not re-derived
- * from DFS depth, so a merge room still lands at its correct rank
- * regardless of which parent's branch reaches it first.
+ * intent); each NEW room claims the next unused EVEN column at its own
+ * rank via a monotonic per-rank counter stepping by 2 (#174 follow-up —
+ * previously stepped by 1), which guarantees two different rooms at the
+ * same rank can never collide on a column AND leaves the odd column
+ * immediately to every room's own west side permanently empty — a
+ * genuinely free routing/incoming-face lane, not just a side effect of
+ * visit order. `ranks` (pre-computed by computeRanks, already correctly
+ * reflecting a merge room's longest-path rank) is looked up directly,
+ * not re-derived from DFS depth, so a merge room still lands at its
+ * correct rank regardless of which parent's branch reaches it first.
  */
 export function computeColumns(edges, ranks, entryId) {
   const columns = {};
@@ -736,7 +741,7 @@ export function computeColumns(edges, ranks, entryId) {
     const rank = ranks[roomId];
     const col = nextColByRank[rank] ?? 0;
     columns[roomId] = col;
-    nextColByRank[rank] = col + 1;
+    nextColByRank[rank] = col + 2;
     for (const childId of edges[roomId] ?? []) visit(childId);
   }
   visit(entryId);
