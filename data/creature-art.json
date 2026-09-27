@@ -12774,5 +12774,125 @@
     "name": "Grand Inquisitor",
     "level": 15,
     "art": "grand-inquisitor.webp"
+  },
+  {
+    "id": "quelaunt_b1",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "x26dyZZZRvZpzK2X",
+    "name": "Quelaunt",
+    "level": 15,
+    "art": "quelaunt-b1.webp"
+  },
+  {
+    "id": "sykever",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "cWlkWTHhSUtF50ED",
+    "name": "Sykever",
+    "level": 15,
+    "art": "sykever.webp"
+  },
+  {
+    "id": "zhuraita",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "I6BGEp29hsl6ihbx",
+    "name": "Zhuraita",
+    "level": 15,
+    "art": "zhuraita.webp"
+  },
+  {
+    "id": "dybbuk",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "IrssIkWkW6fsbHJL",
+    "name": "Dybbuk",
+    "level": 15,
+    "art": "dybbuk.webp"
+  },
+  {
+    "id": "graveknight_champion",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "qStWCL0wtOuQlqVy",
+    "name": "Graveknight Champion",
+    "level": 15,
+    "art": "graveknight-champion.webp"
+  },
+  {
+    "id": "quelaunt_mc",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "G5OY8UMEOrbycZZc",
+    "name": "Quelaunt",
+    "level": 15,
+    "art": "quelaunt-mc.webp"
+  },
+  {
+    "id": "requiem_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "maz62hCQDR9ZktsA",
+    "name": "Requiem Dragon (Adult)",
+    "level": 15,
+    "art": "requiem-dragon-adult.webp"
+  },
+  {
+    "id": "requiem_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "XjDWSgWiplmByK3r",
+    "name": "Requiem Dragon (Adult, Spellcaster)",
+    "level": 15,
+    "art": "requiem-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "seraptis",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "sPFQOP6asxC8Ga0O",
+    "name": "Seraptis",
+    "level": 15,
+    "art": "seraptis.webp"
+  },
+  {
+    "id": "sramana",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "vvzW7VPmUNSTLNzv",
+    "name": "Sramana",
+    "level": 15,
+    "art": "sramana.webp"
+  },
+  {
+    "id": "totum_font",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Wx3R6sU7c2v8x1mC",
+    "name": "Totum Font",
+    "level": 15,
+    "art": "totum-font.webp"
+  },
+  {
+    "id": "peerless_healer",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "02hCP1sCfUXXjW5B",
+    "name": "Peerless Healer",
+    "level": 15,
+    "art": "peerless-healer.webp"
+  },
+  {
+    "id": "sordesdaemon",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "4yd4WNkSclwnNvJL",
+    "name": "Sordesdaemon",
+    "level": 15,
+    "art": "sordesdaemon.webp"
+  },
+  {
+    "id": "wemmuth",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "jW55DX3sJU2uTNrM",
+    "name": "Wemmuth",
+    "level": 15,
+    "art": "wemmuth.webp"
+  },
+  {
+    "id": "hyakume",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "y8bxt4vLmHHy1Xys",
+    "name": "Hyakume",
+    "level": 15,
+    "art": "hyakume.webp"
   }
 ]
