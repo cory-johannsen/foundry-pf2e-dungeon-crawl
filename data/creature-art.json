@@ -10974,5 +10974,77 @@
     "name": "Quintessivore",
     "level": 10,
     "art": "quintessivore.webp"
+  },
+  {
+    "id": "nosferatu_malefactor",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "rchfzUI2MVOVp56K",
+    "name": "Nosferatu Malefactor",
+    "level": 10,
+    "art": "nosferatu-malefactor.webp"
+  },
+  {
+    "id": "quetz_coatl",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "zeK0ii5YaynhtQi0",
+    "name": "Quetz Coatl",
+    "level": 10,
+    "art": "quetz-coatl.webp"
+  },
+  {
+    "id": "roper",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "ZXbr1ke1vF0ZFKY3",
+    "name": "Roper",
+    "level": 10,
+    "art": "roper.webp"
+  },
+  {
+    "id": "swordkeeper",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "L10I8M22nLRERxY8",
+    "name": "Swordkeeper",
+    "level": 10,
+    "art": "swordkeeper.webp"
+  },
+  {
+    "id": "water_orm",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ZdQfNuQQjytFzuyd",
+    "name": "Water Orm",
+    "level": 10,
+    "art": "water-orm.webp"
+  },
+  {
+    "id": "nyogoth",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "TzdLLC68qlgrn91m",
+    "name": "Nyogoth",
+    "level": 10,
+    "art": "nyogoth.webp"
+  },
+  {
+    "id": "chyzaedu",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "RCsFDD6nqNUX0gIa",
+    "name": "Chyzaedu",
+    "level": 10,
+    "art": "chyzaedu.webp"
+  },
+  {
+    "id": "etioling_blightmage",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "nnI7oj1BcetLUTYo",
+    "name": "Etioling Blightmage",
+    "level": 10,
+    "art": "etioling-blightmage.webp"
+  },
+  {
+    "id": "infernal_registrar",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "4iIpjKl1KThYRTgK",
+    "name": "Infernal Registrar",
+    "level": 10,
+    "art": "infernal-registrar.webp"
   }
 ]
