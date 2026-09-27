@@ -11574,5 +11574,13 @@
     "name": "Black Belt",
     "level": 12,
     "art": "black-belt.webp"
+  },
+  {
+    "id": "coral_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "5upnh1nfYmbEjAGK",
+    "name": "Coral Dragon (Adult)",
+    "level": 12,
+    "art": "coral-dragon-adult.webp"
   }
 ]
