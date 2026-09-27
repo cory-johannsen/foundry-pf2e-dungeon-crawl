@@ -11654,5 +11654,45 @@
     "name": "Omox",
     "level": 12,
     "art": "omox.webp"
+  },
+  {
+    "id": "girtablilu_seer",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "KerIcyz9XOTkZUdF",
+    "name": "Girtablilu Seer",
+    "level": 12,
+    "art": "girtablilu-seer.webp"
+  },
+  {
+    "id": "interlocutor",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "2qAd4TmEu5wexX7U",
+    "name": "Interlocutor",
+    "level": 12,
+    "art": "interlocutor.webp"
+  },
+  {
+    "id": "kolyarut",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "PgBsMyjMITjQnCs8",
+    "name": "Kolyarut",
+    "level": 12,
+    "art": "kolyarut.webp"
+  },
+  {
+    "id": "monadic_deva",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "EXeR2HC4xsvHcf6K",
+    "name": "Monadic Deva",
+    "level": 12,
+    "art": "monadic-deva.webp"
+  },
+  {
+    "id": "kokogiak",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "cmzlnTgWcJjnISAK",
+    "name": "Kokogiak",
+    "level": 12,
+    "art": "kokogiak.webp"
   }
 ]
