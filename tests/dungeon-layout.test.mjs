@@ -662,6 +662,54 @@ describe('buildEdgeCorridor with a west-incoming target', () => {
     expect(seg.gx + seg.gw).toBeCloseTo(toRect.gx, 9);
   });
 
+  // Regression coverage for a bug found by review after this task's own
+  // brief only made `entryPoint` face-aware: `revealDoorWall`/`plainWalls`
+  // in the corner and multi-cell branches were left computing a
+  // horizontal wall unconditionally, even for a west toSlot (a vertical
+  // line) -- producing a door/flanking-wall shape perpendicular to the
+  // room's actual west face instead of running along it.
+  function expectVerticalDoorGeometry(result, toSlot) {
+    expect(result.revealDoorWall.x1).toBe(toSlot.x1);
+    expect(result.revealDoorWall.x2).toBe(toSlot.x1);
+    expect(result.revealDoorWall.y1).not.toBe(result.revealDoorWall.y2);
+    for (const wall of result.plainWalls) {
+      expect(wall.x1).toBe(toSlot.x1);
+      expect(wall.x2).toBe(toSlot.x1);
+      expect(wall.y1).toBeGreaterThanOrEqual(toSlot.y1);
+      expect(wall.y2).toBeLessThanOrEqual(toSlot.y2);
+    }
+  }
+
+  it('corner branch (different rank AND column, null path): reveal door and flanking walls run vertically along the west face', () => {
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 2, col: 2 };
+    const fromRect = smallRect(0, 0);
+    const toRect = smallRect(2, 2);
+    const toSlot = doorSlotsForFace(toRect, 1, 'west')[0];
+    // Boxed in: both north- and west-neighbor of toPos occupied.
+    const occupiedCells = { '1,2': 'blockerN', '2,1': 'blockerW' };
+    const result = buildEdgeCorridor(
+      'seed1', 'a', 'b', fromRect, toRect, fromPos, toPos, 'south', toSlot, occupiedCells, 'west',
+    );
+    expectVerticalDoorGeometry(result, toSlot);
+  });
+
+  it('multi-cell branch (obstacle-routed path): reveal door and flanking walls run vertically along the west face', () => {
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 0, col: 3 };
+    const fromRect = smallRect(0, 0);
+    const toRect = smallRect(0, 3);
+    const toSlot = doorSlotsForFace(toRect, 1, 'west')[0];
+    // Block the direct row so the path must detour (multi-cell branch),
+    // while keeping toPos's own west-neighbor free.
+    const occupiedCells = { '1,1': 'blocker', '1,2': 'blocker' };
+    const result = buildEdgeCorridor(
+      'seed1', 'a', 'b', fromRect, toRect, fromPos, toPos, 'east', toSlot, occupiedCells, 'west',
+    );
+    expect(result.transitCells.length).toBeGreaterThan(0); // sanity: this really is the multi-cell branch
+    expectVerticalDoorGeometry(result, toSlot);
+  });
+
   it('the corridor segment never overlaps either room\'s own footprint', () => {
     for (let seedIndex = 0; seedIndex < 20; seedIndex += 1) {
       const seed = `sweep-west-${seedIndex}`;

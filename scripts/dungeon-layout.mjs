@@ -350,7 +350,15 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     const entryPoint = incomingFace === 'west'
       ? { x: toSlot.x1, y: toSlot.y1 + slotSpan / 2 }
       : { x: toSlot.x1 + slotSpan / 2, y: toSlot.y1 };
-    const revealDoorWall = { x1: entryPoint.x - DOOR_WIDTH / 2, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH / 2, y2: entryPoint.y };
+    // Face-aware, mirroring entryPoint's own conditional above: a west
+    // toSlot is a VERTICAL line (x1===x2===toRect.gx, doorSlotsForFace's
+    // own west shape), so its reveal door and flanking walls must run
+    // vertically too -- the unconditional horizontal formula here was a
+    // gap in this task's own brief (entryPoint was made face-aware, this
+    // wasn't), found by a later review's own hand-tracing.
+    const revealDoorWall = incomingFace === 'west'
+      ? { x1: entryPoint.x, y1: entryPoint.y - DOOR_WIDTH / 2, x2: entryPoint.x, y2: entryPoint.y + DOOR_WIDTH / 2 }
+      : { x1: entryPoint.x - DOOR_WIDTH / 2, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH / 2, y2: entryPoint.y };
 
     const firstCellPoint = transitCells[0].entryPoint;
     const lastCellPoint = transitCells[transitCells.length - 1].exitPoint;
@@ -397,10 +405,16 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       ...cornerConnector(exitPoint, firstCellPoint, { toSide: transitCells[0].entrySide }),
       ...cornerConnector(lastCellPoint, entryPoint, { fromSide: transitCells[transitCells.length - 1].exitSide }),
     ];
-    const plainWalls = [
-      { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x - DOOR_WIDTH / 2, y2: entryPoint.y },
-      { x1: entryPoint.x + DOOR_WIDTH / 2, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
-    ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
+    const plainWalls = (incomingFace === 'west'
+      ? [
+          { x1: entryPoint.x, y1: toSlot.y1, x2: entryPoint.x, y2: entryPoint.y - DOOR_WIDTH / 2 },
+          { x1: entryPoint.x, y1: entryPoint.y + DOOR_WIDTH / 2, x2: entryPoint.x, y2: toSlot.y2 },
+        ]
+      : [
+          { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x - DOOR_WIDTH / 2, y2: entryPoint.y },
+          { x1: entryPoint.x + DOOR_WIDTH / 2, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
+        ]
+    ).filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
 
     return { doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells };
   }
@@ -522,12 +536,24 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
   const doorWall = exitFace === 'south'
     ? { x1: exitPoint.x - DOOR_WIDTH / 2, y1: exitPoint.y, x2: exitPoint.x + DOOR_WIDTH / 2, y2: exitPoint.y }
     : { x1: exitPoint.x, y1: exitPoint.y - DOOR_WIDTH / 2, x2: exitPoint.x, y2: exitPoint.y + DOOR_WIDTH / 2 };
-  const revealDoorWall = { x1: entryPoint.x - DOOR_WIDTH / 2, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH / 2, y2: entryPoint.y };
+  // Face-aware, mirroring entryPoint's own conditional above -- same fix
+  // as the multi-cell branch's own revealDoorWall/plainWalls (see its
+  // comment for why: a west toSlot is a vertical line, so its reveal
+  // door and flanking walls must run vertically too).
+  const revealDoorWall = incomingFace === 'west'
+    ? { x1: entryPoint.x, y1: entryPoint.y - DOOR_WIDTH / 2, x2: entryPoint.x, y2: entryPoint.y + DOOR_WIDTH / 2 }
+    : { x1: entryPoint.x - DOOR_WIDTH / 2, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH / 2, y2: entryPoint.y };
 
-  const plainWalls = [
-    { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x - DOOR_WIDTH / 2, y2: entryPoint.y },
-    { x1: entryPoint.x + DOOR_WIDTH / 2, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
-  ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
+  const plainWalls = (incomingFace === 'west'
+    ? [
+        { x1: entryPoint.x, y1: toSlot.y1, x2: entryPoint.x, y2: entryPoint.y - DOOR_WIDTH / 2 },
+        { x1: entryPoint.x, y1: entryPoint.y + DOOR_WIDTH / 2, x2: entryPoint.x, y2: toSlot.y2 },
+      ]
+    : [
+        { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x - DOOR_WIDTH / 2, y2: entryPoint.y },
+        { x1: entryPoint.x + DOOR_WIDTH / 2, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
+      ]
+  ).filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
 
   return {
     doorWall,
