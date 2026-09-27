@@ -11814,5 +11814,69 @@
     "name": "Xiuh Coatl",
     "level": 12,
     "art": "xiuh-coatl.webp"
+  },
+  {
+    "id": "resurrection_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "v4GX8cUuuA7IyFpl",
+    "name": "Resurrection Dragon (Adult)",
+    "level": 12,
+    "art": "resurrection-dragon-adult.webp"
+  },
+  {
+    "id": "rusalka",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "tHXV7mD747K60656",
+    "name": "Rusalka",
+    "level": 12,
+    "art": "rusalka.webp"
+  },
+  {
+    "id": "tomb_giant",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "XbaIHmvgqjLChTKq",
+    "name": "Tomb Giant",
+    "level": 12,
+    "art": "tomb-giant.webp"
+  },
+  {
+    "id": "valkyrie",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "PC6i1eCbQgWBvi7U",
+    "name": "Valkyrie",
+    "level": 12,
+    "art": "valkyrie.webp"
+  },
+  {
+    "id": "calikang",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "FP2JGgFA3NmnXf1o",
+    "name": "Calikang",
+    "level": 12,
+    "art": "calikang.webp"
+  },
+  {
+    "id": "lich",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "smItqlbr0iuDJ8nL",
+    "name": "Lich",
+    "level": 12,
+    "art": "lich.webp"
+  },
+  {
+    "id": "betobeto_san",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "440q9qZ4A7fDNQJQ",
+    "name": "Betobeto-San",
+    "level": 12,
+    "art": "betobeto-san.webp"
+  },
+  {
+    "id": "shuln",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "xz2NZqSG5YVl17dc",
+    "name": "Shuln",
+    "level": 12,
+    "art": "shuln.webp"
   }
 ]
