@@ -725,6 +725,38 @@ describe('findCorridorPath', () => {
   });
 });
 
+describe('findCorridorPath with incomingFace', () => {
+  it('defaults to north-only entry, byte-identical to before this change', () => {
+    const occupiedCells = { '1,0': 'blocker' };
+    const path = findCorridorPath({ rank: 0, col: 0 }, { rank: 2, col: 0 }, occupiedCells, { fromRoomId: 'a', toRoomId: 'b' });
+    expect(path).toBeNull(); // north-neighbor (1,0) is the blocker
+  });
+
+  it('allows entry from the west-neighbor when incomingFace is west, even though north is blocked', () => {
+    // toPos {rank:2,col:2}; north-neighbor (1,2) is blocked, west-neighbor (2,1) is free.
+    const occupiedCells = { '1,2': 'blocker' };
+    const path = findCorridorPath(
+      { rank: 0, col: 0 }, { rank: 2, col: 2 }, occupiedCells,
+      { fromRoomId: 'a', toRoomId: 'b', incomingFace: 'west' },
+    );
+    expect(path).not.toBeNull();
+    expect(path[path.length - 1]).toEqual({ rank: 2, col: 2 });
+    expect(path[path.length - 2]).toEqual({ rank: 2, col: 1 }); // must enter from the west-neighbor
+  });
+
+  it('still rejects a north approach when incomingFace is west (the target only accepts its own declared face)', () => {
+    // toPos {rank:1,col:1}; its west-neighbor (1,0) is blocked, but its
+    // north-neighbor (0,1) is free -- must NOT silently accept north
+    // just because it's open, since incomingFace says west.
+    const occupiedCells = { '1,0': 'blocker' };
+    const path = findCorridorPath(
+      { rank: 0, col: 1 }, { rank: 1, col: 1 }, occupiedCells,
+      { fromRoomId: 'a', toRoomId: 'b', incomingFace: 'west' },
+    );
+    expect(path).toBeNull();
+  });
+});
+
 describe('cellMarginWalls', () => {
   it('produces no walls for a ROOM_SIZE_LARGE room (no margin on either side)', () => {
     const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_LARGE, gh: ROOM_SIZE_LARGE };

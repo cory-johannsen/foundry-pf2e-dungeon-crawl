@@ -620,7 +620,7 @@ function trunkLaneCorridorSegments(fromX, fromY, toX, fromRect, toRect) {
  * caller already needs for `buildEdgeCorridor` itself) rather than
  * approximating it, since the two must never independently drift.
  */
-export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells) {
+export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells, incomingFace = 'north') {
   if (exitFace !== 'south') {
     // East never takes buildEdgeCorridor's offset-based branch — always
     // center-based, regardless of the child's rank/column.
@@ -628,7 +628,7 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
   }
   const sameColumn = fromPos.col === toPos.col;
   const path = sameColumn
-    ? findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId })
+    ? findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace })
     : null;
   const usesOffsetBasedExit = sameColumn && (!path || path.length <= 2);
   return usesOffsetBasedExit
@@ -983,7 +983,7 @@ export function transitCellContainmentWalls(rank, col, openings) {
  * never need a detour wider than a room or two, and an unbounded search
  * risks wandering arbitrarily far in a degenerate all-blocked case.
  */
-export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId }) {
+export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace = 'north' }) {
   const SEARCH_MARGIN = 2;
   const key = (pos) => `${pos.rank},${pos.col}`;
   const minRank = Math.max(0, Math.min(fromPos.rank, toPos.rank) - SEARCH_MARGIN);
@@ -996,26 +996,17 @@ export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, to
     const occupant = occupiedCells[key(pos)];
     return occupant != null && occupant !== fromRoomId && occupant !== toRoomId;
   };
-  // #174 fix round (found by Task 4's own review, not anticipated when
-  // this task was first written): a room's own incoming connection
-  // always lands on its north face (fixed since #93's Task 5 redesign),
-  // and entryPoint has no spare margin to route through on any other
-  // side (cellMarginWalls only ever seals east/south margin). A path
-  // that reaches toPos from anywhere but its own north-adjacent cell
-  // cannot be turned into corridor geometry without cutting into the
-  // target room's own interior -- confirmed to happen with certainty
-  // whenever toPos's own north neighbor is occupied by an unrelated
-  // room, forcing a same-column detour to approach from another side.
-  // Only toPos's own north neighbor may step into it; every other
-  // neighbor treats toPos as unreachable from itself, same as any other
-  // blocked cell. If that leaves no path at all, this correctly returns
-  // null and the caller falls back to the existing direct-line
-  // degradation (already an accepted, explicitly-designed imperfection
-  // for the "no free path" case) rather than a "successful" path this
-  // geometry cannot actually build without overlap.
+  // Generalized from #174's own north-only-entry fix: a room's incoming
+  // connection lands on whichever face incomingFaceFor chose for it
+  // (north or west, both structurally marginless) -- only that ONE
+  // neighbor cell may step into the target; every other neighbor treats
+  // it as unreachable, same as any blocked cell.
+  const incomingNeighbor = incomingFace === 'west'
+    ? { rank: toPos.rank, col: toPos.col - 1 }
+    : { rank: toPos.rank - 1, col: toPos.col };
   const canEnter = (from, to) => {
     if (to.rank === toPos.rank && to.col === toPos.col) {
-      return from.rank === toPos.rank - 1 && from.col === toPos.col;
+      return from.rank === incomingNeighbor.rank && from.col === incomingNeighbor.col;
     }
     return true;
   };
