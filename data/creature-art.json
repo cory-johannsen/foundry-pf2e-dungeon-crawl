@@ -12654,5 +12654,125 @@
     "name": "Vidileth",
     "level": 14,
     "art": "vidileth.webp"
+  },
+  {
+    "id": "suli_dune_dancer",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "nLlS3MBFCO3DKwBX",
+    "name": "Suli Dune Dancer",
+    "level": 1,
+    "art": "suli-dune-dancer.webp"
+  },
+  {
+    "id": "diabolic_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "CPzquDOPnlHyIoVF",
+    "name": "Diabolic Dragon (Adult)",
+    "level": 15,
+    "art": "diabolic-dragon-adult.webp"
+  },
+  {
+    "id": "gold_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "NgCKGq28Qvt6ZOSr",
+    "name": "Gold Dragon (Adult, Spellcaster)",
+    "level": 15,
+    "art": "gold-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "marrmora",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "yaDZ0N6t8vOxbqLy",
+    "name": "Marrmora",
+    "level": 15,
+    "art": "marrmora.webp"
+  },
+  {
+    "id": "marut",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "tu31BdhnxNknt7kK",
+    "name": "Marut",
+    "level": 15,
+    "art": "marut.webp"
+  },
+  {
+    "id": "mukradi",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "IGzoFGlVbkit8hnH",
+    "name": "Mukradi",
+    "level": 15,
+    "art": "mukradi.webp"
+  },
+  {
+    "id": "okenevem",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "2P9Kz3QD0tg6Tled",
+    "name": "Okenevem",
+    "level": 15,
+    "art": "okenevem.webp"
+  },
+  {
+    "id": "animated_colossus",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "G0BuqHfjITO4ZLi3",
+    "name": "Animated Colossus",
+    "level": 15,
+    "art": "animated-colossus.webp"
+  },
+  {
+    "id": "benthic_worm",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "v7LH85fl189pXMsR",
+    "name": "Benthic Worm",
+    "level": 15,
+    "art": "benthic-worm.webp"
+  },
+  {
+    "id": "diabolic_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "hXl3HV5uuCD1KJjU",
+    "name": "Diabolic Dragon (Adult, Spellcaster)",
+    "level": 15,
+    "art": "diabolic-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "gold_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "aAiuQvMGPN9QXwKY",
+    "name": "Gold Dragon (Adult)",
+    "level": 15,
+    "art": "gold-dragon-adult.webp"
+  },
+  {
+    "id": "morrigna",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "z9jEyLrsoBMmh9qg",
+    "name": "Morrigna",
+    "level": 15,
+    "art": "morrigna.webp"
+  },
+  {
+    "id": "berberoka",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "CNbPWUHtLgNIeft5",
+    "name": "Berberoka",
+    "level": 15,
+    "art": "berberoka.webp"
+  },
+  {
+    "id": "black_scorpion",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "O9LzsedLTUVFtOix",
+    "name": "Black Scorpion",
+    "level": 15,
+    "art": "black-scorpion.webp"
+  },
+  {
+    "id": "grand_inquisitor",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "FHVUrSWouQtE208v",
+    "name": "Grand Inquisitor",
+    "level": 15,
+    "art": "grand-inquisitor.webp"
   }
 ]
