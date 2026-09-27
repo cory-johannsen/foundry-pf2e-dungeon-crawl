@@ -12590,5 +12590,69 @@
     "name": "Uthul",
     "level": 14,
     "art": "uthul.webp"
+  },
+  {
+    "id": "graveknight_warmaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "EH61wr2iEKooAzgQ",
+    "name": "Graveknight Warmaster",
+    "level": 14,
+    "art": "graveknight-warmaster.webp"
+  },
+  {
+    "id": "curse_monger",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "lqlrpoxzBoBH6Hw8",
+    "name": "Curse Monger",
+    "level": 14,
+    "art": "curse-monger.webp"
+  },
+  {
+    "id": "kuchisake_onna",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "LjpOnADaKe9ormfL",
+    "name": "Kuchisake-Onna",
+    "level": 14,
+    "art": "kuchisake-onna.webp"
+  },
+  {
+    "id": "ravener_husk",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "OK7Gl2rBDDBvICvh",
+    "name": "Ravener Husk",
+    "level": 14,
+    "art": "ravener-husk.webp"
+  },
+  {
+    "id": "triumph_siktempora",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "fHczwj1B8ULKRSJk",
+    "name": "Triumph Siktempora",
+    "level": 14,
+    "art": "triumph-siktempora.webp"
+  },
+  {
+    "id": "dramofir",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "Wu6vmegKwR4bgLse",
+    "name": "Dramofir",
+    "level": 14,
+    "art": "dramofir.webp"
+  },
+  {
+    "id": "mezlan",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "Pvuvyd4RKVyiVWlJ",
+    "name": "Mezlan",
+    "level": 14,
+    "art": "mezlan.webp"
+  },
+  {
+    "id": "vidileth",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "VDm2XhfNwhgiJOxD",
+    "name": "Vidileth",
+    "level": 14,
+    "art": "vidileth.webp"
   }
 ]
