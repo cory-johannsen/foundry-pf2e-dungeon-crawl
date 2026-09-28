@@ -689,6 +689,24 @@ function cornerConnector(from, to, { fromSide, toSide } = {}) {
 }
 
 /**
+ * A point on `cell`'s own `side` boundary that shares `anchor`'s
+ * axis-coordinate along that side — north/south share `x`, east/west
+ * share `y`. The other coordinate is always `cell`'s own boundary line,
+ * never `anchor`'s (#225): `anchor` is typically a point on a NEIGHBORING
+ * cell's own boundary, or a room's real door, not necessarily on `cell`
+ * itself. Used by `buildEdgeCorridor`'s multi-cell chain (Task 3) to derive
+ * each transit cell's forced entry/exit point from its neighbor's, so two
+ * pieces that share a physical boundary always agree on where they cross
+ * it, by construction rather than by coincidence.
+ */
+export function projectOntoSide(cell, side, anchor) {
+  if (side === 'north') return { x: anchor.x, y: cell.gy };
+  if (side === 'south') return { x: anchor.x, y: cell.gy + cell.gh };
+  if (side === 'west') return { x: cell.gx, y: anchor.y };
+  return { x: cell.gx + cell.gw, y: anchor.y }; // east
+}
+
+/**
  * Which corridor art tile — and what rotation — belongs at `index` (0-based)
  * of a `length`-tile gallery (ITEM-12). `corridor.webp` is a fully-walled 1x1
  * box, correct on its own only for a single-tile gallery (`length <= 1`,

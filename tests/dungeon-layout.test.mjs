@@ -4,7 +4,7 @@ import {
   roomSizeAt, doorOffsetAt, corridorTileVariant,
   computeRanks, computeColumns,
   roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, buildEdgeCorridor, incomingFaceFor, doorSlotsForFace,
-  cellBounds, findCorridorPath, INITIAL_GX, cellMarginWalls, transitCellCrossing,
+  cellBounds, projectOntoSide, findCorridorPath, INITIAL_GX, cellMarginWalls, transitCellCrossing,
   transitCellContainmentWalls, CORRIDOR_LEN, outgoingMarginOffset,
 } from '../scripts/dungeon-layout.mjs';
 import { buildRoomGraph, attachHiddenPaths } from '../scripts/dungeon-deck.mjs';
@@ -804,6 +804,39 @@ describe('cellBounds', () => {
     expect(cellBounds(2, 3)).toEqual({
       gx: INITIAL_GX + 3 * COLUMN_STRIDE, gy: 2 * ROW_STRIDE, gw: COLUMN_STRIDE, gh: ROW_STRIDE,
     });
+  });
+});
+
+describe('projectOntoSide', () => {
+  const cell = cellBounds(1, 2); // gx: INITIAL_GX + 26, gy: 13, gw: 13, gh: 13
+
+  it('north: shares the anchor\'s x, sits on the cell\'s own north edge', () => {
+    expect(projectOntoSide(cell, 'north', { x: cell.gx + 5, y: 999 }))
+      .toEqual({ x: cell.gx + 5, y: cell.gy });
+  });
+
+  it('south: shares the anchor\'s x, sits on the cell\'s own south edge', () => {
+    expect(projectOntoSide(cell, 'south', { x: cell.gx + 5, y: 999 }))
+      .toEqual({ x: cell.gx + 5, y: cell.gy + cell.gh });
+  });
+
+  it('west: shares the anchor\'s y, sits on the cell\'s own west edge', () => {
+    expect(projectOntoSide(cell, 'west', { x: 999, y: cell.gy + 5 }))
+      .toEqual({ x: cell.gx, y: cell.gy + 5 });
+  });
+
+  it('east: shares the anchor\'s y, sits on the cell\'s own east edge', () => {
+    expect(projectOntoSide(cell, 'east', { x: 999, y: cell.gy + 5 }))
+      .toEqual({ x: cell.gx + cell.gw, y: cell.gy + 5 });
+  });
+
+  it('is pure — never mutates the cell or anchor it was given', () => {
+    const cellCopy = { ...cell };
+    const anchor = { x: cell.gx + 5, y: cell.gy + 5 };
+    const anchorCopy = { ...anchor };
+    projectOntoSide(cell, 'east', anchor);
+    expect(cell).toEqual(cellCopy);
+    expect(anchor).toEqual(anchorCopy);
   });
 });
 
