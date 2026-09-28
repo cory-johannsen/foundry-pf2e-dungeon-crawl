@@ -870,12 +870,17 @@ const OPPOSITE_SIDE = { north: 'south', south: 'north', east: 'west', west: 'eas
  * even opposite sides (e.g. north/south, both offset along `gw`) will
  * almost never land on the same x by chance.
  */
-export function transitCellCrossing(seed, rank, col, entrySide, exitSide, edgeId) {
+export function transitCellCrossing(seed, rank, col, entrySide, exitSide, edgeId, { forcedEntryPoint, forcedExitPoint } = {}) {
   const cell = cellBounds(rank, col);
-  const entryOffset = doorOffsetAt(seed, `transit-${rank}-${col}-${entrySide}-${edgeId}`, 'incoming', cell[SIDE_SPAN[entrySide]]);
-  const exitOffset = doorOffsetAt(seed, `transit-${rank}-${col}-${exitSide}-${edgeId}`, 'outgoing', cell[SIDE_SPAN[exitSide]]);
-  const entryPoint = SIDE_POINT[entrySide](cell, entryOffset);
-  const exitPoint = SIDE_POINT[exitSide](cell, exitOffset);
+  // #225: a forced point (from buildEdgeCorridor's chain, Task 3) is used
+  // verbatim in place of this cell's own independently-seeded offset —
+  // the whole fix for "two pieces sharing a boundary don't agree on where
+  // they cross it." Omitting both (every pre-#225 call site) falls
+  // through to the exact original seeded behavior.
+  const entryPoint = forcedEntryPoint
+    ?? SIDE_POINT[entrySide](cell, doorOffsetAt(seed, `transit-${rank}-${col}-${entrySide}-${edgeId}`, 'incoming', cell[SIDE_SPAN[entrySide]]));
+  const exitPoint = forcedExitPoint
+    ?? SIDE_POINT[exitSide](cell, doorOffsetAt(seed, `transit-${rank}-${col}-${exitSide}-${edgeId}`, 'outgoing', cell[SIDE_SPAN[exitSide]]));
 
   const corridorSegments = [];
   const plainWalls = [];

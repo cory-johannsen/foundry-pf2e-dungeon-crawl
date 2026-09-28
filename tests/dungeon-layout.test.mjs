@@ -1280,6 +1280,49 @@ describe('transitCellCrossing', () => {
       }
     }
   });
+
+  it('uses a forced entry point verbatim instead of the seeded offset', () => {
+    const forcedEntryPoint = { x: 12345, y: 67 };
+    const result = transitCellCrossing('seed1', 1, 0, 'north', 'south', 'a->b', { forcedEntryPoint });
+    expect(result.entryPoint).toEqual(forcedEntryPoint);
+  });
+
+  it('uses a forced exit point verbatim instead of the seeded offset', () => {
+    const forcedExitPoint = { x: 999, y: 111 };
+    const result = transitCellCrossing('seed1', 1, 0, 'north', 'south', 'a->b', { forcedExitPoint });
+    expect(result.exitPoint).toEqual(forcedExitPoint);
+  });
+
+  it('forces entry and exit independently — one forced, the other still seeded', () => {
+    const forcedEntryPoint = { x: 12345, y: 67 };
+    const withForcedEntry = transitCellCrossing('seed1', 1, 0, 'north', 'south', 'a->b', { forcedEntryPoint });
+    const seededOnly = transitCellCrossing('seed1', 1, 0, 'north', 'south', 'a->b');
+    expect(withForcedEntry.entryPoint).toEqual(forcedEntryPoint);
+    expect(withForcedEntry.exitPoint).toEqual(seededOnly.exitPoint); // exit still seeded, unaffected
+  });
+
+  it('omitting the options object is byte-identical to every pre-#225 call (regression guard)', () => {
+    const withoutOptions = transitCellCrossing('seed1', 2, 1, 'west', 'east', 'x->y');
+    const withEmptyOptions = transitCellCrossing('seed1', 2, 1, 'west', 'east', 'x->y', {});
+    expect(withEmptyOptions).toEqual(withoutOptions);
+  });
+
+  it('a forced point still produces valid, in-bounds corridorSegments (corner case)', () => {
+    // Adjacent sides (north/east) with entry forced onto the cell's own
+    // north edge — the free axis (exit) is still seeded, and the
+    // resulting corner geometry must stay inside the cell, same
+    // containment guarantee as the fully-seeded case.
+    const cell = cellBounds(0, 0);
+    const forcedEntryPoint = { x: cell.gx + 3, y: cell.gy };
+    const result = transitCellCrossing('seed1', 0, 0, 'north', 'east', 'a->b', { forcedEntryPoint });
+    expect(result.entryPoint).toEqual(forcedEntryPoint);
+    for (const seg of result.corridorSegments) {
+      expect(seg.gx).toBeGreaterThanOrEqual(cell.gx);
+      expect(seg.gx + seg.gw).toBeLessThanOrEqual(cell.gx + cell.gw);
+      expect(seg.gy).toBeGreaterThanOrEqual(cell.gy);
+      expect(seg.gy + seg.gh).toBeLessThanOrEqual(cell.gy + cell.gh);
+    }
+  });
 });
 
 describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
