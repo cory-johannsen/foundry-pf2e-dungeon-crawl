@@ -10294,5 +10294,2741 @@
     "name": "World Ender",
     "level": 16,
     "art": "world-ender.webp"
+  },
+  {
+    "id": "vrock",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "4cPw8hZwW6uvyzvh",
+    "name": "Vrock",
+    "level": 9,
+    "art": "vrock.webp"
+  },
+  {
+    "id": "zelekhut",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "9sUx2sV4E7Sy3vJT",
+    "name": "Zelekhut",
+    "level": 9,
+    "art": "zelekhut.webp"
+  },
+  {
+    "id": "mastodon",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "ZBTqN3DNjdreXCu7",
+    "name": "Mastodon",
+    "level": 9,
+    "art": "mastodon.webp"
+  },
+  {
+    "id": "megalodon",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "9rXYGu7D3umIW1sv",
+    "name": "Megalodon",
+    "level": 9,
+    "art": "megalodon.webp"
+  },
+  {
+    "id": "nuckelavee",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "dY1wqHKN6PV4oJ07",
+    "name": "Nuckelavee",
+    "level": 9,
+    "art": "nuckelavee.webp"
+  },
+  {
+    "id": "roc",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "S67oZ1mvVNz9FTUE",
+    "name": "Roc",
+    "level": 9,
+    "art": "roc.webp"
+  },
+  {
+    "id": "stone_mauler",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "ToteDLIM7jCyHwDH",
+    "name": "Stone Mauler",
+    "level": 9,
+    "art": "stone-mauler.webp"
+  },
+  {
+    "id": "storm_lord",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "LUtSo30fQWj7mrDn",
+    "name": "Storm Lord",
+    "level": 9,
+    "art": "storm-lord.webp"
+  },
+  {
+    "id": "strix_aerialist",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "m5RPM69TunmznsUq",
+    "name": "Strix Aerialist",
+    "level": 9,
+    "art": "strix-aerialist.webp"
+  },
+  {
+    "id": "tidal_master",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "6UczvqBDlGNXcIlW",
+    "name": "Tidal Master",
+    "level": 9,
+    "art": "tidal-master.webp"
+  },
+  {
+    "id": "traveling_priest_of_desna",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "8LPVBXx8oIdXiNYQ",
+    "name": "Traveling Priest of Desna",
+    "level": 9,
+    "art": "traveling-priest-of-desna.webp"
+  },
+  {
+    "id": "vampire_mastermind",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "TZt3H39oxVdZRKs9",
+    "name": "Vampire Mastermind",
+    "level": 9,
+    "art": "vampire-mastermind.webp"
+  },
+  {
+    "id": "mokele_mbembe",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "CYzFHz8ZbU270z9N",
+    "name": "Mokele-Mbembe",
+    "level": 9,
+    "art": "mokele-mbembe.webp"
+  },
+  {
+    "id": "yithian",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "oE52gEbyrF4Dl3Go",
+    "name": "Yithian",
+    "level": 9,
+    "art": "yithian.webp"
+  },
+  {
+    "id": "shoki",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "SQVXMMEaEu9wun3Q",
+    "name": "Shoki",
+    "level": 9,
+    "art": "shoki.webp"
+  },
+  {
+    "id": "red_dracolisk",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "kIzBE6VaHQbJ3kdx",
+    "name": "Red Dracolisk",
+    "level": 9,
+    "art": "red-dracolisk.webp"
+  },
+  {
+    "id": "black_dracolisk",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "zzu3q9m4kJzgnNfl",
+    "name": "Black Dracolisk",
+    "level": 9,
+    "art": "black-dracolisk.webp"
+  },
+  {
+    "id": "alchemical_golem",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "Tpuqwt6Af29EMtqX",
+    "name": "Alchemical Golem",
+    "level": 9,
+    "art": "alchemical-golem.webp"
+  },
+  {
+    "id": "adlet",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Zaixy2G1NHnaYhEo",
+    "name": "Adlet",
+    "level": 10,
+    "art": "adlet.webp"
+  },
+  {
+    "id": "bebilith",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "vg3nE7p855SXkXbz",
+    "name": "Bebilith",
+    "level": 10,
+    "art": "bebilith.webp"
+  },
+  {
+    "id": "behemoth_hippopotamus",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "c8kb958djPh4wXj5",
+    "name": "Behemoth Hippopotamus",
+    "level": 10,
+    "art": "behemoth-hippopotamus.webp"
+  },
+  {
+    "id": "cinder_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "lnINJvSfYcw2YV0G",
+    "name": "Cinder Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "cinder-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "court_jester",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "xvZvI0oFFOTaBO6L",
+    "name": "Court Jester",
+    "level": 10,
+    "art": "court-jester.webp"
+  },
+  {
+    "id": "dezullon",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "jR4E2I2tmQ6sd5DR",
+    "name": "Dezullon",
+    "level": 10,
+    "art": "dezullon.webp"
+  },
+  {
+    "id": "einherji",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "jgTjzUA2nJKYY2Tu",
+    "name": "Einherji",
+    "level": 10,
+    "art": "einherji.webp"
+  },
+  {
+    "id": "exiled_revolutionary",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "oTKuWWYyWyfy599O",
+    "name": "Exiled Revolutionary",
+    "level": 10,
+    "art": "exiled-revolutionary.webp"
+  },
+  {
+    "id": "cinder_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "vj3LHkt40wGtJ3W1",
+    "name": "Cinder Dragon (Young)",
+    "level": 10,
+    "art": "cinder-dragon-young.webp"
+  },
+  {
+    "id": "feathered_bear",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "1BIrNW4L32e9fTFF",
+    "name": "Feathered Bear",
+    "level": 10,
+    "art": "feathered-bear.webp"
+  },
+  {
+    "id": "fire_giant",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "rEDhI2oI4TqTICN2",
+    "name": "Fire Giant",
+    "level": 10,
+    "art": "fire-giant.webp"
+  },
+  {
+    "id": "beast_eidolon",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "xMDUgVCByn9VA0zC",
+    "name": "Beast Eidolon",
+    "level": 10,
+    "art": "beast-eidolon.webp"
+  },
+  {
+    "id": "brontosaurus",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "wy8Ve0m3wbHMo1U1",
+    "name": "Brontosaurus",
+    "level": 10,
+    "art": "brontosaurus.webp"
+  },
+  {
+    "id": "empyreal_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "6IBevff4lJOFl539",
+    "name": "Empyreal Dragon (Young)",
+    "level": 10,
+    "art": "empyreal-dragon-young.webp"
+  },
+  {
+    "id": "empyreal_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "3wzvIQuxIaJU3JVO",
+    "name": "Empyreal Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "empyreal-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "fortune_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "qtwhQEehDrMoWusV",
+    "name": "Fortune Dragon (Young)",
+    "level": 10,
+    "art": "fortune-dragon-young.webp"
+  },
+  {
+    "id": "ghonhatine",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "xdIHvCBspeSXRL6A",
+    "name": "Ghonhatine",
+    "level": 10,
+    "art": "ghonhatine.webp"
+  },
+  {
+    "id": "fortune_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "BvYVgvlTcRbim4Xb",
+    "name": "Fortune Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "fortune-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "ghost_mage",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "LN7MXD38Zs2bDoW6",
+    "name": "Ghost Mage",
+    "level": 10,
+    "art": "ghost-mage.webp"
+  },
+  {
+    "id": "giant_flytrap",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "ka7bXO7HIfBxk8Gy",
+    "name": "Giant Flytrap",
+    "level": 10,
+    "art": "giant-flytrap.webp"
+  },
+  {
+    "id": "icewyrm",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "zEystWZ5lvDsnTqF",
+    "name": "Icewyrm",
+    "level": 10,
+    "art": "icewyrm.webp"
+  },
+  {
+    "id": "mage_knight",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "0cj7cQhgNnLxbUmR",
+    "name": "Mage Knight",
+    "level": 10,
+    "art": "mage-knight.webp"
+  },
+  {
+    "id": "mammoth",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "jkp7THTZMc0ivN8Y",
+    "name": "Mammoth",
+    "level": 10,
+    "art": "mammoth.webp"
+  },
+  {
+    "id": "melody_on_the_wind_b2",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "hvoIxruNUei1auQT",
+    "name": "Melody On The Wind",
+    "level": 10,
+    "art": "melody-on-the-wind-b2.webp"
+  },
+  {
+    "id": "god_caller",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "ADbAoVOiHrRFYtkW",
+    "name": "God Caller",
+    "level": 10,
+    "art": "god-caller.webp"
+  },
+  {
+    "id": "graveknight",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "MCgSMT680ic6kr5k",
+    "name": "Graveknight",
+    "level": 10,
+    "art": "graveknight.webp"
+  },
+  {
+    "id": "gug",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "QLyDRZPvMsYGZEeN",
+    "name": "Gug",
+    "level": 10,
+    "art": "gug.webp"
+  },
+  {
+    "id": "melody_on_the_wind_mc2",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "OsBQYnlQxDgVNxWp",
+    "name": "Melody on the Wind",
+    "level": 10,
+    "art": "melody-on-the-wind-mc2.webp"
+  },
+  {
+    "id": "imentesh",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "GiQhtWnKBE90D3Lr",
+    "name": "Imentesh",
+    "level": 10,
+    "art": "imentesh.webp"
+  },
+  {
+    "id": "mobogo",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "TQtISRsI3FI2ddBR",
+    "name": "Mobogo",
+    "level": 10,
+    "art": "mobogo.webp"
+  },
+  {
+    "id": "movanic_deva",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "nSDXAfFOF2gEKmkM",
+    "name": "Movanic Deva",
+    "level": 10,
+    "art": "movanic-deva.webp"
+  },
+  {
+    "id": "nereid",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "FHnWzK7DsniqZWzG",
+    "name": "Nereid",
+    "level": 10,
+    "art": "nereid.webp"
+  },
+  {
+    "id": "nilith",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "D2Pe38jYbeBxUaxU",
+    "name": "Nilith",
+    "level": 10,
+    "art": "nilith.webp"
+  },
+  {
+    "id": "orc_veteran_master",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "A4XWtiK4iStEDAUu",
+    "name": "Orc Veteran Master",
+    "level": 10,
+    "art": "orc-veteran-master.webp"
+  },
+  {
+    "id": "phistophilus",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "3QyqHIuAXE3YVLUh",
+    "name": "Phistophilus",
+    "level": 10,
+    "art": "phistophilus.webp"
+  },
+  {
+    "id": "piscodaemon",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "nxR3nseHT01YmOQo",
+    "name": "Piscodaemon",
+    "level": 10,
+    "art": "piscodaemon.webp"
+  },
+  {
+    "id": "raja_krodha",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "PcBcC9HZBrM4gWu3",
+    "name": "Raja-Krodha",
+    "level": 10,
+    "art": "raja-krodha.webp"
+  },
+  {
+    "id": "rune_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "jCKBoIwRpT61zlL8",
+    "name": "Rune Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "rune-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "ofalth",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "2jtRdYo9ey7osDUH",
+    "name": "Ofalth",
+    "level": 10,
+    "art": "ofalth.webp"
+  },
+  {
+    "id": "peluda",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "drtCZDDoESPSUqH7",
+    "name": "Peluda",
+    "level": 10,
+    "art": "peluda.webp"
+  },
+  {
+    "id": "raja_rakshasa",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "hOXpmWmXU8N3n4Bw",
+    "name": "Raja Rakshasa",
+    "level": 10,
+    "art": "raja-rakshasa.webp"
+  },
+  {
+    "id": "red_dragon_young",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "sUGKrcx7kbHkWnwG",
+    "name": "Red Dragon (Young)",
+    "level": 10,
+    "art": "red-dragon-young.webp"
+  },
+  {
+    "id": "rekhep",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "FWg5qHuwoa0JfEMR",
+    "name": "Rekhep",
+    "level": 10,
+    "art": "rekhep.webp"
+  },
+  {
+    "id": "rune_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "VVgAb1gaCZaKFRDj",
+    "name": "Rune Dragon (Young)",
+    "level": 10,
+    "art": "rune-dragon-young.webp"
+  },
+  {
+    "id": "red_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "oLdrCmarnzd62kA8",
+    "name": "Red Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "red-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "sacristan",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Tf1eWEQJmFEtcCps",
+    "name": "Sacristan",
+    "level": 10,
+    "art": "sacristan.webp"
+  },
+  {
+    "id": "silver_dragon_young",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "YPLZkAlOuaj3F3nZ",
+    "name": "Silver Dragon (Young)",
+    "level": 10,
+    "art": "silver-dragon-young.webp"
+  },
+  {
+    "id": "silver_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "dYbfZnB1ngiqPm4O",
+    "name": "Silver Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "silver-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "vrykolakas_master",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "j43O2vBu8eu2wC5z",
+    "name": "Vrykolakas Master",
+    "level": 10,
+    "art": "vrykolakas-master.webp"
+  },
+  {
+    "id": "white_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "024PqcF8yMRBrPuq",
+    "name": "White Dragon (Adult)",
+    "level": 10,
+    "art": "white-dragon-adult.webp"
+  },
+  {
+    "id": "white_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "MhEfUXkSfLtgpmfE",
+    "name": "White Dragon (Adult, Spellcaster)",
+    "level": 10,
+    "art": "white-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "zuishin",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "mPFQENrVt5xhML1T",
+    "name": "Zuishin",
+    "level": 10,
+    "art": "zuishin.webp"
+  },
+  {
+    "id": "clay_effigy",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "IuVoyT5lkzcWJ6sK",
+    "name": "Clay Effigy",
+    "level": 10,
+    "art": "clay-effigy.webp"
+  },
+  {
+    "id": "clay_golem",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "skz8n8N9GEQY2c90",
+    "name": "Clay Golem",
+    "level": 10,
+    "art": "clay-golem.webp"
+  },
+  {
+    "id": "guardian_naga",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "aq2H1lRALUNMEGRG",
+    "name": "Guardian Naga",
+    "level": 10,
+    "art": "guardian-naga.webp"
+  },
+  {
+    "id": "shield_archon",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "qkWkshBHyTbLP07b",
+    "name": "Shield Archon",
+    "level": 10,
+    "art": "shield-archon.webp"
+  },
+  {
+    "id": "troll_king",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "FwH05kDUlC8CwWTU",
+    "name": "Troll King",
+    "level": 10,
+    "art": "troll-king.webp"
+  },
+  {
+    "id": "troll_warleader",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "wJH5BXOWZYEyVB3y",
+    "name": "Troll Warleader",
+    "level": 10,
+    "art": "troll-warleader.webp"
+  },
+  {
+    "id": "tyrannosaurus",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "tpNP1UooPPHMyZye",
+    "name": "Tyrannosaurus",
+    "level": 10,
+    "art": "tyrannosaurus.webp"
+  },
+  {
+    "id": "warmonger",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "KJ4faFTpKHVhAqFR",
+    "name": "Warmonger",
+    "level": 10,
+    "art": "warmonger.webp"
+  },
+  {
+    "id": "leng_ghoul",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "SjvmOu8v9haaZE1p",
+    "name": "Leng Ghoul",
+    "level": 10,
+    "art": "leng-ghoul.webp"
+  },
+  {
+    "id": "moon_hag",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "5oHZRcwDl7jhLOT5",
+    "name": "Moon Hag",
+    "level": 10,
+    "art": "moon-hag.webp"
+  },
+  {
+    "id": "nymolus",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "hgtWYKMzyCGPAeLx",
+    "name": "Nymolus",
+    "level": 10,
+    "art": "nymolus.webp"
+  },
+  {
+    "id": "soul_skelm",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "O8iynsWnjObQ8TJl",
+    "name": "Soul Skelm",
+    "level": 10,
+    "art": "soul-skelm.webp"
+  },
+  {
+    "id": "vicharamuni",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "LRboVCCVODz00d5B",
+    "name": "Vicharamuni",
+    "level": 10,
+    "art": "vicharamuni.webp"
+  },
+  {
+    "id": "champion_automaton",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "8bis5VcFFHugSfK0",
+    "name": "Champion Automaton",
+    "level": 10,
+    "art": "champion-automaton.webp"
+  },
+  {
+    "id": "quintessivore",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "qnFiUNUyH0zuG6hj",
+    "name": "Quintessivore",
+    "level": 10,
+    "art": "quintessivore.webp"
+  },
+  {
+    "id": "nosferatu_malefactor",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "rchfzUI2MVOVp56K",
+    "name": "Nosferatu Malefactor",
+    "level": 10,
+    "art": "nosferatu-malefactor.webp"
+  },
+  {
+    "id": "quetz_coatl",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "zeK0ii5YaynhtQi0",
+    "name": "Quetz Coatl",
+    "level": 10,
+    "art": "quetz-coatl.webp"
+  },
+  {
+    "id": "roper",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "ZXbr1ke1vF0ZFKY3",
+    "name": "Roper",
+    "level": 10,
+    "art": "roper.webp"
+  },
+  {
+    "id": "swordkeeper",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "L10I8M22nLRERxY8",
+    "name": "Swordkeeper",
+    "level": 10,
+    "art": "swordkeeper.webp"
+  },
+  {
+    "id": "water_orm",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ZdQfNuQQjytFzuyd",
+    "name": "Water Orm",
+    "level": 10,
+    "art": "water-orm.webp"
+  },
+  {
+    "id": "nyogoth",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "TzdLLC68qlgrn91m",
+    "name": "Nyogoth",
+    "level": 10,
+    "art": "nyogoth.webp"
+  },
+  {
+    "id": "chyzaedu",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "RCsFDD6nqNUX0gIa",
+    "name": "Chyzaedu",
+    "level": 10,
+    "art": "chyzaedu.webp"
+  },
+  {
+    "id": "etioling_blightmage",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "nnI7oj1BcetLUTYo",
+    "name": "Etioling Blightmage",
+    "level": 10,
+    "art": "etioling-blightmage.webp"
+  },
+  {
+    "id": "infernal_registrar",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "4iIpjKl1KThYRTgK",
+    "name": "Infernal Registrar",
+    "level": 10,
+    "art": "infernal-registrar.webp"
+  },
+  {
+    "id": "argorth",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "JMegWvgrPVElJYDW",
+    "name": "Argorth",
+    "level": 11,
+    "art": "argorth.webp"
+  },
+  {
+    "id": "ash_giant",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "dZEC0cMT0CvCOrl2",
+    "name": "Ash Giant",
+    "level": 11,
+    "art": "ash-giant.webp"
+  },
+  {
+    "id": "black_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "irrXrWxJ0LYSUCQB",
+    "name": "Black Dragon (Adult)",
+    "level": 11,
+    "art": "black-dragon-adult.webp"
+  },
+  {
+    "id": "black_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "AQwxOoYBwDUAwvfh",
+    "name": "Black Dragon (Adult, Spellcaster)",
+    "level": 11,
+    "art": "black-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "brass_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "JnOgG1xfWleFGNt9",
+    "name": "Brass Dragon (Adult)",
+    "level": 11,
+    "art": "brass-dragon-adult.webp"
+  },
+  {
+    "id": "brass_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "F99r7jcWX5YZB8xw",
+    "name": "Brass Dragon (Adult, Spellcaster)",
+    "level": 11,
+    "art": "brass-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "deadly_mantis",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "zQraVA7SUjd6qGNh",
+    "name": "Deadly Mantis",
+    "level": 11,
+    "art": "deadly-mantis.webp"
+  },
+  {
+    "id": "diabolic_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "ADjEac8U6pNoPq6J",
+    "name": "Diabolic Dragon (Young)",
+    "level": 11,
+    "art": "diabolic-dragon-young.webp"
+  },
+  {
+    "id": "elemental_hurricane",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "mx2Xpra7bRJP0GuX",
+    "name": "Elemental Hurricane",
+    "level": 11,
+    "art": "elemental-hurricane.webp"
+  },
+  {
+    "id": "elemental_inferno",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "yYicb7uJH4EaBO4v",
+    "name": "Elemental Inferno",
+    "level": 11,
+    "art": "elemental-inferno.webp"
+  },
+  {
+    "id": "garadasura",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "0pdv7wgjpnDsVIV1",
+    "name": "Garadasura",
+    "level": 11,
+    "art": "garadasura.webp"
+  },
+  {
+    "id": "cloud_giant",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Z5QezXy38ZHyt3O3",
+    "name": "Cloud Giant",
+    "level": 11,
+    "art": "cloud-giant.webp"
+  },
+  {
+    "id": "diabolic_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "sUqSb1cvpotAFf0K",
+    "name": "Diabolic Dragon (Young, Spellcaster)",
+    "level": 11,
+    "art": "diabolic-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "elemental_tsunami",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "R427CMT90S7fv7MY",
+    "name": "Elemental Tsunami",
+    "level": 11,
+    "art": "elemental-tsunami.webp"
+  },
+  {
+    "id": "elemental_avalanche",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Oq31fcKwH0EE9R89",
+    "name": "Elemental Avalanche",
+    "level": 11,
+    "art": "elemental-avalanche.webp"
+  },
+  {
+    "id": "gold_dragon_young",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "DolNTN9s2p79N8Cy",
+    "name": "Gold Dragon (Young)",
+    "level": 11,
+    "art": "gold-dragon-young.webp"
+  },
+  {
+    "id": "gold_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "9xdl2PpfMEfJWhSO",
+    "name": "Gold Dragon (Young, Spellcaster)",
+    "level": 11,
+    "art": "gold-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "goliath_spider",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "eP4a0FAbus3tNTbc",
+    "name": "Goliath Spider",
+    "level": 11,
+    "art": "goliath-spider.webp"
+  },
+  {
+    "id": "hamatula",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "tCJEjNDUxyV1GzE3",
+    "name": "Hamatula",
+    "level": 11,
+    "art": "hamatula.webp"
+  },
+  {
+    "id": "hezrou",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "wqiFcGPARy8zmQfd",
+    "name": "Hezrou",
+    "level": 11,
+    "art": "hezrou.webp"
+  },
+  {
+    "id": "larabay",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "hfrQX3e691B8sgTR",
+    "name": "Larabay",
+    "level": 11,
+    "art": "larabay.webp"
+  },
+  {
+    "id": "maestro",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "1wk2fBlDuHLRYfJW",
+    "name": "Maestro",
+    "level": 11,
+    "art": "maestro.webp"
+  },
+  {
+    "id": "meladaemon",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "faZ3sXbvs51DFvrM",
+    "name": "Meladaemon",
+    "level": 11,
+    "art": "meladaemon.webp"
+  },
+  {
+    "id": "munagola",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "mbu0D45HPRNAwgEU",
+    "name": "Munagola",
+    "level": 11,
+    "art": "munagola.webp"
+  },
+  {
+    "id": "omen_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "awrILpXoGooQKEui",
+    "name": "Omen Dragon (Adult)",
+    "level": 11,
+    "art": "omen-dragon-adult.webp"
+  },
+  {
+    "id": "omen_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "XO3qw7XPkgRq4H6I",
+    "name": "Omen Dragon (Adult, Spellcaster)",
+    "level": 11,
+    "art": "omen-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "quoppopak",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "3u4toki9EeSRvcs2",
+    "name": "Quoppopak",
+    "level": 11,
+    "art": "quoppopak.webp"
+  },
+  {
+    "id": "greater_nightmare",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "WG4Tk2k9Lm21CEQv",
+    "name": "Greater Nightmare",
+    "level": 11,
+    "art": "greater-nightmare.webp"
+  },
+  {
+    "id": "high_roller",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "VYO4XEO6mHw8bfS4",
+    "name": "High Roller",
+    "level": 11,
+    "art": "high-roller.webp"
+  },
+  {
+    "id": "hippopotamus_topiary",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ogW5nGL2kXGqVwzm",
+    "name": "Hippopotamus Topiary",
+    "level": 11,
+    "art": "hippopotamus-topiary.webp"
+  },
+  {
+    "id": "requiem_dragon_young",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "z0X1HFrLzAUMxtMT",
+    "name": "Requiem Dragon (Young)",
+    "level": 11,
+    "art": "requiem-dragon-young.webp"
+  },
+  {
+    "id": "requiem_dragon_young_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "SCIrzTfzJ9tCSLqL",
+    "name": "Requiem Dragon (Young, Spellcaster)",
+    "level": 11,
+    "art": "requiem-dragon-young-spellcaster.webp"
+  },
+  {
+    "id": "spinosaurus",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "cbcNwxJAur5r7sr5",
+    "name": "Spinosaurus",
+    "level": 11,
+    "art": "spinosaurus.webp"
+  },
+  {
+    "id": "spiral_centurion",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "5Gw0j1Qbh1uXUhkj",
+    "name": "Spiral Centurion",
+    "level": 11,
+    "art": "spiral-centurion.webp"
+  },
+  {
+    "id": "unrisen",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "n40ubwOuMGF7HHZ6",
+    "name": "Unrisen",
+    "level": 11,
+    "art": "unrisen.webp"
+  },
+  {
+    "id": "vigilia",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "9FaVwxdsH5w0e114",
+    "name": "Vigilia",
+    "level": 11,
+    "art": "vigilia.webp"
+  },
+  {
+    "id": "whisper_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "0CCsMvCrYxTCMYrh",
+    "name": "Whisper Dragon (Adult)",
+    "level": 11,
+    "art": "whisper-dragon-adult.webp"
+  },
+  {
+    "id": "whisper_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Qgc1WsHuup0b4Dey",
+    "name": "Whisper Dragon (Adult, Spellcaster)",
+    "level": 11,
+    "art": "whisper-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "gosreg",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "TwFcW5O5J1SdsYv3",
+    "name": "Gosreg",
+    "level": 11,
+    "art": "gosreg.webp"
+  },
+  {
+    "id": "harmona",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "Pnw71fJ41j6Wx62M",
+    "name": "Harmona",
+    "level": 11,
+    "art": "harmona.webp"
+  },
+  {
+    "id": "kongamato",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "6OxiStysMq65xKgS",
+    "name": "Kongamato",
+    "level": 11,
+    "art": "kongamato.webp"
+  },
+  {
+    "id": "seething_spirit",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "mK7FwVR1yyqeMlA4",
+    "name": "Seething Spirit",
+    "level": 11,
+    "art": "seething-spirit.webp"
+  },
+  {
+    "id": "stone_bulwark",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "6FW3MILVXOy6mMrY",
+    "name": "Stone Bulwark",
+    "level": 11,
+    "art": "stone-bulwark.webp"
+  },
+  {
+    "id": "stone_golem",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "Upf2fOZ6QgGG3seI",
+    "name": "Stone Golem",
+    "level": 11,
+    "art": "stone-golem.webp"
+  },
+  {
+    "id": "thunderbird",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "fpBJiCOoHDlefgpO",
+    "name": "Thunderbird",
+    "level": 11,
+    "art": "thunderbird.webp"
+  },
+  {
+    "id": "atrixyl",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "KxVSaTjRAUwTWeDX",
+    "name": "Atrixyl",
+    "level": 11,
+    "art": "atrixyl.webp"
+  },
+  {
+    "id": "brainchild",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "6WgGNVcmuwNlGDJP",
+    "name": "Brainchild",
+    "level": 11,
+    "art": "brainchild.webp"
+  },
+  {
+    "id": "raelis",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "U93WglNpPjOYk23q",
+    "name": "Raelis",
+    "level": 11,
+    "art": "raelis.webp"
+  },
+  {
+    "id": "spirit_binder",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "6OtvMTyXhxUdZI44",
+    "name": "Spirit Binder",
+    "level": 11,
+    "art": "spirit-binder.webp"
+  },
+  {
+    "id": "devourer",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "WKsogmP2X2F68Zdm",
+    "name": "Devourer",
+    "level": 11,
+    "art": "devourer.webp"
+  },
+  {
+    "id": "gongorinan",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "UQRvCkhkS1ChOzLE",
+    "name": "Gongorinan",
+    "level": 11,
+    "art": "gongorinan.webp"
+  },
+  {
+    "id": "isqulug",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "kElZCC1zMQVftoi9",
+    "name": "Isqulug",
+    "level": 11,
+    "art": "isqulug.webp"
+  },
+  {
+    "id": "aeolaeka",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "6VOX4biqPtAE7y3g",
+    "name": "Aeolaeka",
+    "level": 12,
+    "art": "aeolaeka.webp"
+  },
+  {
+    "id": "akhana",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "085JMzkQqhNEWWWL",
+    "name": "Akhana",
+    "level": 12,
+    "art": "akhana.webp"
+  },
+  {
+    "id": "athach",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "CwrVQsRAeqlr1Vh0",
+    "name": "Athach",
+    "level": 12,
+    "art": "athach.webp"
+  },
+  {
+    "id": "catoblepas",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "RA2dkQJANNFjgdSt",
+    "name": "Catoblepas",
+    "level": 12,
+    "art": "catoblepas.webp"
+  },
+  {
+    "id": "cauthooj",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "1a5faH5CCtFfbQHO",
+    "name": "Cauthooj",
+    "level": 12,
+    "art": "cauthooj.webp"
+  },
+  {
+    "id": "conspirator_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "TGYELuImcTcuX0aH",
+    "name": "Conspirator Dragon (Adult)",
+    "level": 12,
+    "art": "conspirator-dragon-adult.webp"
+  },
+  {
+    "id": "conspirator_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "T0OAOkmk4xz0wvjJ",
+    "name": "Conspirator Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "conspirator-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "copper_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "Fzn4jHusVeyytgfx",
+    "name": "Copper Dragon (Adult)",
+    "level": 12,
+    "art": "copper-dragon-adult.webp"
+  },
+  {
+    "id": "copper_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "ouOt6d8xUFk8NhJ9",
+    "name": "Copper Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "copper-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "coral_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "3xe8mgv0NlHknfPj",
+    "name": "Coral Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "coral-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "crime_kingpin",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "mu8X8nr1HvSfdARc",
+    "name": "Crime Kingpin",
+    "level": 12,
+    "art": "crime-kingpin.webp"
+  },
+  {
+    "id": "derghodaemon",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "oKogG9AwUZ9iBsm3",
+    "name": "Derghodaemon",
+    "level": 12,
+    "art": "derghodaemon.webp"
+  },
+  {
+    "id": "arboreal_archive",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "zs7dPbTetShR8T3D",
+    "name": "Arboreal Archive",
+    "level": 12,
+    "art": "arboreal-archive.webp"
+  },
+  {
+    "id": "black_belt",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "YnUDViAV0M2FMG3M",
+    "name": "Black Belt",
+    "level": 12,
+    "art": "black-belt.webp"
+  },
+  {
+    "id": "coral_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "5upnh1nfYmbEjAGK",
+    "name": "Coral Dragon (Adult)",
+    "level": 12,
+    "art": "coral-dragon-adult.webp"
+  },
+  {
+    "id": "ferrugon",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "CgDdoQ0pa0LI45NB",
+    "name": "Ferrugon",
+    "level": 12,
+    "art": "ferrugon.webp"
+  },
+  {
+    "id": "gimmerling",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "pH2yNe16EnoJ8R0i",
+    "name": "Gimmerling",
+    "level": 12,
+    "art": "gimmerling.webp"
+  },
+  {
+    "id": "gogiteth",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Iwk2qT4lVyrvoz3B",
+    "name": "Gogiteth",
+    "level": 12,
+    "art": "gogiteth.webp"
+  },
+  {
+    "id": "green_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "zXi6UhZ0mXWpKk4A",
+    "name": "Green Dragon (Adult)",
+    "level": 12,
+    "art": "green-dragon-adult.webp"
+  },
+  {
+    "id": "green_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "JKG3m8pFISF48Sfr",
+    "name": "Green Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "green-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "horned_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "ioi5L2CAM6q9aWKJ",
+    "name": "Horned Dragon (Adult)",
+    "level": 12,
+    "art": "horned-dragon-adult.webp"
+  },
+  {
+    "id": "horned_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "7jwIapHl80UbnIWr",
+    "name": "Horned Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "horned-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "japalisura",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "BPmotFI9EoIqSatr",
+    "name": "Japalisura",
+    "level": 12,
+    "art": "japalisura.webp"
+  },
+  {
+    "id": "omox",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "hvVFocY8r72XEaqQ",
+    "name": "Omox",
+    "level": 12,
+    "art": "omox.webp"
+  },
+  {
+    "id": "girtablilu_seer",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "KerIcyz9XOTkZUdF",
+    "name": "Girtablilu Seer",
+    "level": 12,
+    "art": "girtablilu-seer.webp"
+  },
+  {
+    "id": "interlocutor",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "2qAd4TmEu5wexX7U",
+    "name": "Interlocutor",
+    "level": 12,
+    "art": "interlocutor.webp"
+  },
+  {
+    "id": "kolyarut",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "PgBsMyjMITjQnCs8",
+    "name": "Kolyarut",
+    "level": 12,
+    "art": "kolyarut.webp"
+  },
+  {
+    "id": "monadic_deva",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "EXeR2HC4xsvHcf6K",
+    "name": "Monadic Deva",
+    "level": 12,
+    "art": "monadic-deva.webp"
+  },
+  {
+    "id": "kokogiak",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "cmzlnTgWcJjnISAK",
+    "name": "Kokogiak",
+    "level": 12,
+    "art": "kokogiak.webp"
+  },
+  {
+    "id": "frost_worm",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "mpBOeFrbtx1wMrNn",
+    "name": "Frost Worm",
+    "level": 12,
+    "art": "frost-worm.webp"
+  },
+  {
+    "id": "resurrection_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "eTPzH6vTomEZy2UA",
+    "name": "Resurrection Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "resurrection-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "sea_serpent",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "PUPnGG406PanzIvL",
+    "name": "Sea Serpent",
+    "level": 12,
+    "art": "sea-serpent.webp"
+  },
+  {
+    "id": "shining_child",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "ePJcp2ADOjJYYQ5Q",
+    "name": "Shining Child",
+    "level": 12,
+    "art": "shining-child.webp"
+  },
+  {
+    "id": "taiga_giant",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "W1OXnXGF22uybovO",
+    "name": "Taiga Giant",
+    "level": 12,
+    "art": "taiga-giant.webp"
+  },
+  {
+    "id": "chernobue",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "18NInoyRLIrWE0nt",
+    "name": "Chernobue",
+    "level": 12,
+    "art": "chernobue.webp"
+  },
+  {
+    "id": "great_cyclops",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "6mdq7UV9gFXAEOpJ",
+    "name": "Great Cyclops",
+    "level": 12,
+    "art": "great-cyclops.webp"
+  },
+  {
+    "id": "peerless_duelist",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "J6qH183OPXKfZ8qS",
+    "name": "Peerless Duelist",
+    "level": 12,
+    "art": "peerless-duelist.webp"
+  },
+  {
+    "id": "deific_champion_of_iomedae",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "NZOqqzi4ThvJfpm8",
+    "name": "Deific Champion of Iomedae",
+    "level": 12,
+    "art": "deific-champion-of-iomedae.webp"
+  },
+  {
+    "id": "fossil_golem",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "zGtfiKku0td5E0VJ",
+    "name": "Fossil Golem",
+    "level": 12,
+    "art": "fossil-golem.webp"
+  },
+  {
+    "id": "grisantian_lion",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "K8oGb2B4KCgXGN9W",
+    "name": "Grisantian Lion",
+    "level": 12,
+    "art": "grisantian-lion.webp"
+  },
+  {
+    "id": "misery_siktempora",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "LTSZ3LD1L7ZthoD2",
+    "name": "Misery Siktempora",
+    "level": 12,
+    "art": "misery-siktempora.webp"
+  },
+  {
+    "id": "paleohemoth",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "wfZoM7RfFzkmK7hI",
+    "name": "Paleohemoth",
+    "level": 12,
+    "art": "paleohemoth.webp"
+  },
+  {
+    "id": "tidehawk",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "2L2iQ9X8tYPH2K9s",
+    "name": "Tidehawk",
+    "level": 12,
+    "art": "tidehawk.webp"
+  },
+  {
+    "id": "xiuh_coatl",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "gVgVKlSqg0crOQSl",
+    "name": "Xiuh Coatl",
+    "level": 12,
+    "art": "xiuh-coatl.webp"
+  },
+  {
+    "id": "resurrection_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "v4GX8cUuuA7IyFpl",
+    "name": "Resurrection Dragon (Adult)",
+    "level": 12,
+    "art": "resurrection-dragon-adult.webp"
+  },
+  {
+    "id": "rusalka",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "tHXV7mD747K60656",
+    "name": "Rusalka",
+    "level": 12,
+    "art": "rusalka.webp"
+  },
+  {
+    "id": "tomb_giant",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "XbaIHmvgqjLChTKq",
+    "name": "Tomb Giant",
+    "level": 12,
+    "art": "tomb-giant.webp"
+  },
+  {
+    "id": "valkyrie",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "PC6i1eCbQgWBvi7U",
+    "name": "Valkyrie",
+    "level": 12,
+    "art": "valkyrie.webp"
+  },
+  {
+    "id": "calikang",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "FP2JGgFA3NmnXf1o",
+    "name": "Calikang",
+    "level": 12,
+    "art": "calikang.webp"
+  },
+  {
+    "id": "lich",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "smItqlbr0iuDJ8nL",
+    "name": "Lich",
+    "level": 12,
+    "art": "lich.webp"
+  },
+  {
+    "id": "betobeto_san",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "440q9qZ4A7fDNQJQ",
+    "name": "Betobeto-San",
+    "level": 12,
+    "art": "betobeto-san.webp"
+  },
+  {
+    "id": "shuln",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "xz2NZqSG5YVl17dc",
+    "name": "Shuln",
+    "level": 12,
+    "art": "shuln.webp"
+  },
+  {
+    "id": "adamantine_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "hybmXlTxljL9L1dW",
+    "name": "Adamantine Dragon (Adult)",
+    "level": 13,
+    "art": "adamantine-dragon-adult.webp"
+  },
+  {
+    "id": "adamantine_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Bgfu9IQfK1DyaXmt",
+    "name": "Adamantine Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "adamantine-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "anguished_flame",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Iy3DchRS4K7yEBDT",
+    "name": "Anguished Flame",
+    "level": 13,
+    "art": "anguished-flame.webp"
+  },
+  {
+    "id": "blue_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "i3N3udPyTGVPLpoq",
+    "name": "Blue Dragon (Adult)",
+    "level": 13,
+    "art": "blue-dragon-adult.webp"
+  },
+  {
+    "id": "blue_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "Dp6dq9Jd0TanufdU",
+    "name": "Blue Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "blue-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "bronze_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "IMasNR02C74jy3cT",
+    "name": "Bronze Dragon (Adult)",
+    "level": 13,
+    "art": "bronze-dragon-adult.webp"
+  },
+  {
+    "id": "bronze_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "oj0vzfjflUc3xMBo",
+    "name": "Bronze Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "bronze-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "carnivorous_blob",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "d8ePlvZTcfKCa6Fm",
+    "name": "Carnivorous Blob",
+    "level": 13,
+    "art": "carnivorous-blob.webp"
+  },
+  {
+    "id": "cave_worm",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "vijBriZmbUJjbJNH",
+    "name": "Cave Worm",
+    "level": 13,
+    "art": "cave-worm.webp"
+  },
+  {
+    "id": "despair_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "aX8XLPYr0wNlDX4h",
+    "name": "Despair Dragon (Adult)",
+    "level": 13,
+    "art": "despair-dragon-adult.webp"
+  },
+  {
+    "id": "despair_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "rTpTB8NQbTxI2fPf",
+    "name": "Despair Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "despair-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "ambush_copse",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "mUZShqYE6yFl90P3",
+    "name": "Ambush Copse",
+    "level": 13,
+    "art": "ambush-copse.webp"
+  },
+  {
+    "id": "ayngavhaul",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "0Hng8SRW8VZVmZ67",
+    "name": "Ayngavhaul",
+    "level": 13,
+    "art": "ayngavhaul.webp"
+  },
+  {
+    "id": "animated_trebuchet",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "jaKVhw83CPKpW9UJ",
+    "name": "Animated Trebuchet",
+    "level": 13,
+    "art": "animated-trebuchet.webp"
+  },
+  {
+    "id": "assault_alloy",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "gCbqUxncPyprgyN5",
+    "name": "Assault Alloy",
+    "level": 13,
+    "art": "assault-alloy.webp"
+  },
+  {
+    "id": "elven_court_guard",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "1K6Zl3EGIRZvC3TO",
+    "name": "Elven Court Guard",
+    "level": 13,
+    "art": "elven-court-guard.webp"
+  },
+  {
+    "id": "gelugon",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "kNmRn3WfiWLsuwoe",
+    "name": "Gelugon",
+    "level": 13,
+    "art": "gelugon.webp"
+  },
+  {
+    "id": "hero_hunter",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "qsS9EAPMfav5mmzK",
+    "name": "Hero Hunter",
+    "level": 13,
+    "art": "hero-hunter.webp"
+  },
+  {
+    "id": "mirage_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "sK514S9XUfkNXcy8",
+    "name": "Mirage Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "mirage-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "phase_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "KMU6KpI33zcE6pfE",
+    "name": "Phase Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "phase-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "quai_dau_to",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Ao8hNYvOeo2HbJ5p",
+    "name": "Quai Dau To",
+    "level": 13,
+    "art": "quai-dau-to.webp"
+  },
+  {
+    "id": "destiny_tempest",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "NMQwjsdBYJEYvtgu",
+    "name": "Destiny Tempest",
+    "level": 13,
+    "art": "destiny-tempest.webp"
+  },
+  {
+    "id": "irlgaunt",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "FuvlS0DHfooobGiN",
+    "name": "Irlgaunt",
+    "level": 13,
+    "art": "irlgaunt.webp"
+  },
+  {
+    "id": "millindemalion",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "TmvTgG1M8nzC5Q0K",
+    "name": "Millindemalion",
+    "level": 13,
+    "art": "millindemalion.webp"
+  },
+  {
+    "id": "mirage_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Cq9Cg5dZ3I3cWXXR",
+    "name": "Mirage Dragon (Adult)",
+    "level": 13,
+    "art": "mirage-dragon-adult.webp"
+  },
+  {
+    "id": "phase_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "IpceyxBj5kTkmQWx",
+    "name": "Phase Dragon (Adult)",
+    "level": 13,
+    "art": "phase-dragon-adult.webp"
+  },
+  {
+    "id": "ghaele",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "Iw2QccAkRc5Vnfzj",
+    "name": "Ghaele",
+    "level": 13,
+    "art": "ghaele.webp"
+  },
+  {
+    "id": "globetrotting_scholar",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "gJBsgTZnZnImelP2",
+    "name": "Globetrotting Scholar",
+    "level": 13,
+    "art": "globetrotting-scholar.webp"
+  },
+  {
+    "id": "glabrezu",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "BRo0snV2sH6TFuh6",
+    "name": "Glabrezu",
+    "level": 13,
+    "art": "glabrezu.webp"
+  },
+  {
+    "id": "iceberg_clam",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "o5B1pNYv2hglQa6v",
+    "name": "Iceberg Clam",
+    "level": 13,
+    "art": "iceberg-clam.webp"
+  },
+  {
+    "id": "shadow_giant",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "JSKZryHwf0Ggq8KR",
+    "name": "Shadow Giant",
+    "level": 13,
+    "art": "shadow-giant.webp"
+  },
+  {
+    "id": "skeletal_titan",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "XvauwoJvFf4VdWiA",
+    "name": "Skeletal Titan",
+    "level": 13,
+    "art": "skeletal-titan.webp"
+  },
+  {
+    "id": "snow_oni",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "CIQgNHkiUtBQR2NJ",
+    "name": "Snow Oni",
+    "level": 13,
+    "art": "snow-oni.webp"
+  },
+  {
+    "id": "storm_giant",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "B0QyZEjAXUG5TsJU",
+    "name": "Storm Giant",
+    "level": 13,
+    "art": "storm-giant.webp"
+  },
+  {
+    "id": "terra_carver",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "8pqeRFVTVc66iIVn",
+    "name": "Terra Carver",
+    "level": 13,
+    "art": "terra-carver.webp"
+  },
+  {
+    "id": "tree_singer",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "atFtrrjwkTiFm6hJ",
+    "name": "Tree Singer",
+    "level": 13,
+    "art": "tree-singer.webp"
+  },
+  {
+    "id": "vanyver",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "eLoVtQhKwPBUDSRr",
+    "name": "Vanyver",
+    "level": 13,
+    "art": "vanyver.webp"
+  },
+  {
+    "id": "venator",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "QkjZNv3kb7BErPHR",
+    "name": "Venator",
+    "level": 13,
+    "art": "venator.webp"
+  },
+  {
+    "id": "adachros",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "BZKNSyp1ATtn3JXj",
+    "name": "Adachros",
+    "level": 13,
+    "art": "adachros.webp"
+  },
+  {
+    "id": "tide_giant",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "9u9DrehHJk66ix5B",
+    "name": "Tide Giant",
+    "level": 13,
+    "art": "tide-giant.webp"
+  },
+  {
+    "id": "viper_vine",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "rEjKVZqLfEC5jdVV",
+    "name": "Viper Vine",
+    "level": 13,
+    "art": "viper-vine.webp"
+  },
+  {
+    "id": "dibrasgorth",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ZCoLuOCfhO3DAeSv",
+    "name": "Dibrasgorth",
+    "level": 13,
+    "art": "dibrasgorth.webp"
+  },
+  {
+    "id": "dryad_queen",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "gRy6Ci6zb1s4Nvy5",
+    "name": "Dryad Queen",
+    "level": 13,
+    "art": "dryad-queen.webp"
+  },
+  {
+    "id": "thanadaemon",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "YMiDUjk65e52z1mU",
+    "name": "Thanadaemon",
+    "level": 13,
+    "art": "thanadaemon.webp"
+  },
+  {
+    "id": "urglid",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "ehDqHMxSAAqGONSc",
+    "name": "Urglid",
+    "level": 13,
+    "art": "urglid.webp"
+  },
+  {
+    "id": "iron_golem",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "t4bHhZBBDUyVzEmf",
+    "name": "Iron Golem",
+    "level": 13,
+    "art": "iron-golem.webp"
+  },
+  {
+    "id": "vrykolakas_ancient",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "e0PXAtnDnJo4ggFX",
+    "name": "Vrykolakas Ancient",
+    "level": 13,
+    "art": "vrykolakas-ancient.webp"
+  },
+  {
+    "id": "amalgamite",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "xIT2yHlwILLc5hgw",
+    "name": "Amalgamite",
+    "level": 13,
+    "art": "amalgamite.webp"
+  },
+  {
+    "id": "living_rune_arcane",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "EMT6L7RarzkSiEOq",
+    "name": "Living Rune (Arcane)",
+    "level": 13,
+    "art": "living-rune-arcane.webp"
+  },
+  {
+    "id": "living_rune_divine",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "tvAlNMQluKDpfXMz",
+    "name": "Living Rune (Divine)",
+    "level": 13,
+    "art": "living-rune-divine.webp"
+  },
+  {
+    "id": "living_rune_occult",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "pCDp2hdim12wonW5",
+    "name": "Living Rune (Occult)",
+    "level": 13,
+    "art": "living-rune-occult.webp"
+  },
+  {
+    "id": "owb_prophet",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "4NXlXj2looUjPJY1",
+    "name": "Owb Prophet",
+    "level": 13,
+    "art": "owb-prophet.webp"
+  },
+  {
+    "id": "iron_warden",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "NqbaJG3tPG0NGJud",
+    "name": "Iron Warden",
+    "level": 13,
+    "art": "iron-warden.webp"
+  },
+  {
+    "id": "leng_spider",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "pxlZ8QbxMK6b3l5w",
+    "name": "Leng Spider",
+    "level": 13,
+    "art": "leng-spider.webp"
+  },
+  {
+    "id": "exscinder",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "T4qVNgJRyk1NRfQg",
+    "name": "Exscinder",
+    "level": 13,
+    "art": "exscinder.webp"
+  },
+  {
+    "id": "juggernaut",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "RT4du8iTXLoCgBnm",
+    "name": "Juggernaut",
+    "level": 13,
+    "art": "juggernaut.webp"
+  },
+  {
+    "id": "living_rune_primal",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "WfCLrFwwWSA7KRUu",
+    "name": "Living Rune (Primal)",
+    "level": 13,
+    "art": "living-rune-primal.webp"
+  },
+  {
+    "id": "froghemoth",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "RFCxaIS4OkacCpxD",
+    "name": "Froghemoth",
+    "level": 13,
+    "art": "froghemoth.webp"
+  },
+  {
+    "id": "jorogumo",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "u45PPktoMp5L2vf3",
+    "name": "Jorogumo",
+    "level": 13,
+    "art": "jorogumo.webp"
+  },
+  {
+    "id": "cinder_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "jHD1bsWWmcUa2e7H",
+    "name": "Cinder Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "cinder-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "empyreal_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "i6gxQwKAPhOQZPgs",
+    "name": "Empyreal Dragon (Adult)",
+    "level": 14,
+    "art": "empyreal-dragon-adult.webp"
+  },
+  {
+    "id": "empyreal_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "c5RzWCW3KsMqvO4h",
+    "name": "Empyreal Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "empyreal-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "fortune_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "TdhUDXvkKBctIpH8",
+    "name": "Fortune Dragon (Adult)",
+    "level": 14,
+    "art": "fortune-dragon-adult.webp"
+  },
+  {
+    "id": "fortune_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "ED9YZQYMGHuN5l8E",
+    "name": "Fortune Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "fortune-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "gylou",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "s492qJ4psEb4FXuy",
+    "name": "Gylou",
+    "level": 14,
+    "art": "gylou.webp"
+  },
+  {
+    "id": "nalfeshnee",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "YUZF9WhDmfzma3dE",
+    "name": "Nalfeshnee",
+    "level": 14,
+    "art": "nalfeshnee.webp"
+  },
+  {
+    "id": "nikaramsa",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "HEgGta4uVmwdkw3E",
+    "name": "Nikaramsa",
+    "level": 14,
+    "art": "nikaramsa.webp"
+  },
+  {
+    "id": "ozthoom",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "EG8jLZfIfTwA0b5g",
+    "name": "Ozthoom",
+    "level": 14,
+    "art": "ozthoom.webp"
+  },
+  {
+    "id": "ozthoom_shadow_double",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "wNa8UPQqSepdxscG",
+    "name": "Ozthoom Shadow Double",
+    "level": 14,
+    "art": "ozthoom-shadow-double.webp"
+  },
+  {
+    "id": "caldera_oni",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "Wlupxz7dmKb6BYcr",
+    "name": "Caldera Oni",
+    "level": 14,
+    "art": "caldera-oni.webp"
+  },
+  {
+    "id": "cinder_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "plgIbSqjCRc7JFFF",
+    "name": "Cinder Dragon (Adult)",
+    "level": 14,
+    "art": "cinder-dragon-adult.webp"
+  },
+  {
+    "id": "grikkitog",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "702acAJ1OPRBjcni",
+    "name": "Grikkitog",
+    "level": 14,
+    "art": "grikkitog.webp"
+  },
+  {
+    "id": "peri",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "Lqm3acjjbLKuRUCf",
+    "name": "Peri",
+    "level": 14,
+    "art": "peri.webp"
+  },
+  {
+    "id": "doprillu",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "LwpPOXWeDY2KkL9l",
+    "name": "Doprillu",
+    "level": 14,
+    "art": "doprillu.webp"
+  },
+  {
+    "id": "rune_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "cYC9lQAUkGrUkn36",
+    "name": "Rune Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "rune-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "siegebreaker",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "yU434Ugr11tvU7TS",
+    "name": "Siegebreaker",
+    "level": 14,
+    "art": "siegebreaker.webp"
+  },
+  {
+    "id": "silver_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "tl1aGbwuPPUDKHbN",
+    "name": "Silver Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "silver-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "tabellia",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "H8Xq9hZP5bEEI3Hf",
+    "name": "Tabellia",
+    "level": 14,
+    "art": "tabellia.webp"
+  },
+  {
+    "id": "deep_one_elder",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "dZwcLmENWYSneook",
+    "name": "Deep One Elder",
+    "level": 14,
+    "art": "deep-one-elder.webp"
+  },
+  {
+    "id": "plague_giant",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "ZMrydoEfgGUAJGNI",
+    "name": "Plague Giant",
+    "level": 14,
+    "art": "plague-giant.webp"
+  },
+  {
+    "id": "red_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "JhQGNMlKARMx1n2D",
+    "name": "Red Dragon (Adult)",
+    "level": 14,
+    "art": "red-dragon-adult.webp"
+  },
+  {
+    "id": "red_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "pFmaszqtsA2yt7dv",
+    "name": "Red Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "red-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "rune_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "BV71Dm2SSAObPp0W",
+    "name": "Rune Dragon (Adult)",
+    "level": 14,
+    "art": "rune-dragon-adult.webp"
+  },
+  {
+    "id": "silver_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "v9eQFqibX6EYsmuX",
+    "name": "Silver Dragon (Adult)",
+    "level": 14,
+    "art": "silver-dragon-adult.webp"
+  },
+  {
+    "id": "trumpet_archon",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "B4TJHP0yX8SXHQ4x",
+    "name": "Trumpet Archon",
+    "level": 14,
+    "art": "trumpet-archon.webp"
+  },
+  {
+    "id": "augnagar",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "YKMvlKA1AZJlXtz9",
+    "name": "Augnagar",
+    "level": 14,
+    "art": "augnagar.webp"
+  },
+  {
+    "id": "crag_linnorm",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "JRBUBgJymEeEE4hm",
+    "name": "Crag Linnorm",
+    "level": 14,
+    "art": "crag-linnorm.webp"
+  },
+  {
+    "id": "sepid",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "XlFn2e6yj0mxHeq8",
+    "name": "Sepid",
+    "level": 14,
+    "art": "sepid.webp"
+  },
+  {
+    "id": "uthul",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "n1Mv0Q1MirfjBmfI",
+    "name": "Uthul",
+    "level": 14,
+    "art": "uthul.webp"
+  },
+  {
+    "id": "graveknight_warmaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "EH61wr2iEKooAzgQ",
+    "name": "Graveknight Warmaster",
+    "level": 14,
+    "art": "graveknight-warmaster.webp"
+  },
+  {
+    "id": "curse_monger",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "lqlrpoxzBoBH6Hw8",
+    "name": "Curse Monger",
+    "level": 14,
+    "art": "curse-monger.webp"
+  },
+  {
+    "id": "kuchisake_onna",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "LjpOnADaKe9ormfL",
+    "name": "Kuchisake-Onna",
+    "level": 14,
+    "art": "kuchisake-onna.webp"
+  },
+  {
+    "id": "ravener_husk",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "OK7Gl2rBDDBvICvh",
+    "name": "Ravener Husk",
+    "level": 14,
+    "art": "ravener-husk.webp"
+  },
+  {
+    "id": "triumph_siktempora",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "fHczwj1B8ULKRSJk",
+    "name": "Triumph Siktempora",
+    "level": 14,
+    "art": "triumph-siktempora.webp"
+  },
+  {
+    "id": "dramofir",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "Wu6vmegKwR4bgLse",
+    "name": "Dramofir",
+    "level": 14,
+    "art": "dramofir.webp"
+  },
+  {
+    "id": "mezlan",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "Pvuvyd4RKVyiVWlJ",
+    "name": "Mezlan",
+    "level": 14,
+    "art": "mezlan.webp"
+  },
+  {
+    "id": "vidileth",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "VDm2XhfNwhgiJOxD",
+    "name": "Vidileth",
+    "level": 14,
+    "art": "vidileth.webp"
+  },
+  {
+    "id": "suli_dune_dancer",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "nLlS3MBFCO3DKwBX",
+    "name": "Suli Dune Dancer",
+    "level": 1,
+    "art": "suli-dune-dancer.webp"
+  },
+  {
+    "id": "diabolic_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "CPzquDOPnlHyIoVF",
+    "name": "Diabolic Dragon (Adult)",
+    "level": 15,
+    "art": "diabolic-dragon-adult.webp"
+  },
+  {
+    "id": "gold_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "NgCKGq28Qvt6ZOSr",
+    "name": "Gold Dragon (Adult, Spellcaster)",
+    "level": 15,
+    "art": "gold-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "marrmora",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "yaDZ0N6t8vOxbqLy",
+    "name": "Marrmora",
+    "level": 15,
+    "art": "marrmora.webp"
+  },
+  {
+    "id": "marut",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "tu31BdhnxNknt7kK",
+    "name": "Marut",
+    "level": 15,
+    "art": "marut.webp"
+  },
+  {
+    "id": "mukradi",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "IGzoFGlVbkit8hnH",
+    "name": "Mukradi",
+    "level": 15,
+    "art": "mukradi.webp"
+  },
+  {
+    "id": "okenevem",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "2P9Kz3QD0tg6Tled",
+    "name": "Okenevem",
+    "level": 15,
+    "art": "okenevem.webp"
+  },
+  {
+    "id": "animated_colossus",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "G0BuqHfjITO4ZLi3",
+    "name": "Animated Colossus",
+    "level": 15,
+    "art": "animated-colossus.webp"
+  },
+  {
+    "id": "benthic_worm",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "v7LH85fl189pXMsR",
+    "name": "Benthic Worm",
+    "level": 15,
+    "art": "benthic-worm.webp"
+  },
+  {
+    "id": "diabolic_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "hXl3HV5uuCD1KJjU",
+    "name": "Diabolic Dragon (Adult, Spellcaster)",
+    "level": 15,
+    "art": "diabolic-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "gold_dragon_adult",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "aAiuQvMGPN9QXwKY",
+    "name": "Gold Dragon (Adult)",
+    "level": 15,
+    "art": "gold-dragon-adult.webp"
+  },
+  {
+    "id": "morrigna",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "z9jEyLrsoBMmh9qg",
+    "name": "Morrigna",
+    "level": 15,
+    "art": "morrigna.webp"
+  },
+  {
+    "id": "berberoka",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "CNbPWUHtLgNIeft5",
+    "name": "Berberoka",
+    "level": 15,
+    "art": "berberoka.webp"
+  },
+  {
+    "id": "black_scorpion",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "O9LzsedLTUVFtOix",
+    "name": "Black Scorpion",
+    "level": 15,
+    "art": "black-scorpion.webp"
+  },
+  {
+    "id": "grand_inquisitor",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "FHVUrSWouQtE208v",
+    "name": "Grand Inquisitor",
+    "level": 15,
+    "art": "grand-inquisitor.webp"
+  },
+  {
+    "id": "quelaunt_b1",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "x26dyZZZRvZpzK2X",
+    "name": "Quelaunt",
+    "level": 15,
+    "art": "quelaunt-b1.webp"
+  },
+  {
+    "id": "sykever",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "cWlkWTHhSUtF50ED",
+    "name": "Sykever",
+    "level": 15,
+    "art": "sykever.webp"
+  },
+  {
+    "id": "zhuraita",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "I6BGEp29hsl6ihbx",
+    "name": "Zhuraita",
+    "level": 15,
+    "art": "zhuraita.webp"
+  },
+  {
+    "id": "dybbuk",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "IrssIkWkW6fsbHJL",
+    "name": "Dybbuk",
+    "level": 15,
+    "art": "dybbuk.webp"
+  },
+  {
+    "id": "graveknight_champion",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "qStWCL0wtOuQlqVy",
+    "name": "Graveknight Champion",
+    "level": 15,
+    "art": "graveknight-champion.webp"
+  },
+  {
+    "id": "quelaunt_mc",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "G5OY8UMEOrbycZZc",
+    "name": "Quelaunt",
+    "level": 15,
+    "art": "quelaunt-mc.webp"
+  },
+  {
+    "id": "requiem_dragon_adult",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "maz62hCQDR9ZktsA",
+    "name": "Requiem Dragon (Adult)",
+    "level": 15,
+    "art": "requiem-dragon-adult.webp"
+  },
+  {
+    "id": "requiem_dragon_adult_spellcaster",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "XjDWSgWiplmByK3r",
+    "name": "Requiem Dragon (Adult, Spellcaster)",
+    "level": 15,
+    "art": "requiem-dragon-adult-spellcaster.webp"
+  },
+  {
+    "id": "seraptis",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "sPFQOP6asxC8Ga0O",
+    "name": "Seraptis",
+    "level": 15,
+    "art": "seraptis.webp"
+  },
+  {
+    "id": "sramana",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "vvzW7VPmUNSTLNzv",
+    "name": "Sramana",
+    "level": 15,
+    "art": "sramana.webp"
+  },
+  {
+    "id": "totum_font",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "Wx3R6sU7c2v8x1mC",
+    "name": "Totum Font",
+    "level": 15,
+    "art": "totum-font.webp"
+  },
+  {
+    "id": "peerless_healer",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "02hCP1sCfUXXjW5B",
+    "name": "Peerless Healer",
+    "level": 15,
+    "art": "peerless-healer.webp"
+  },
+  {
+    "id": "sordesdaemon",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "4yd4WNkSclwnNvJL",
+    "name": "Sordesdaemon",
+    "level": 15,
+    "art": "sordesdaemon.webp"
+  },
+  {
+    "id": "wemmuth",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "jW55DX3sJU2uTNrM",
+    "name": "Wemmuth",
+    "level": 15,
+    "art": "wemmuth.webp"
+  },
+  {
+    "id": "hyakume",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "y8bxt4vLmHHy1Xys",
+    "name": "Hyakume",
+    "level": 15,
+    "art": "hyakume.webp"
+  },
+  {
+    "id": "neothelid",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "wxBQsGLdti2xcGVT",
+    "name": "Neothelid",
+    "level": 15,
+    "art": "neothelid.webp"
+  },
+  {
+    "id": "white_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "OqCiTKXZu7EWmAI0",
+    "name": "White Dragon (Ancient, Spellcaster)",
+    "level": 15,
+    "art": "white-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "deific_vessel_of_urgathoa",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "L9GYpgZrtvRcjsrS",
+    "name": "Deific Vessel of Urgathoa",
+    "level": 15,
+    "art": "deific-vessel-of-urgathoa.webp"
+  },
+  {
+    "id": "demilich",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "S35DifoycBwkxaGq",
+    "name": "Demilich",
+    "level": 15,
+    "art": "demilich.webp"
+  },
+  {
+    "id": "flamboyant_thief",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "dkUu1Ua71kWcZBMd",
+    "name": "Flamboyant Thief",
+    "level": 15,
+    "art": "flamboyant-thief.webp"
+  },
+  {
+    "id": "nosferatu_overlord",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "pMNBNo8VMAJdlhN3",
+    "name": "Nosferatu Overlord",
+    "level": 15,
+    "art": "nosferatu-overlord.webp"
+  },
+  {
+    "id": "phoenix",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "mQJL411e9Iz8dJoh",
+    "name": "Phoenix",
+    "level": 15,
+    "art": "phoenix.webp"
+  },
+  {
+    "id": "lampad_queen",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "15EHktvYa21dENni",
+    "name": "Lampad Queen",
+    "level": 15,
+    "art": "lampad-queen.webp"
+  },
+  {
+    "id": "nemhaith",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "d5UfBtz09fOXKSmr",
+    "name": "Nemhaith",
+    "level": 15,
+    "art": "nemhaith.webp"
+  },
+  {
+    "id": "popobawa",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "AybyC0n2CWNbXAbK",
+    "name": "Popobawa",
+    "level": 15,
+    "art": "popobawa.webp"
+  },
+  {
+    "id": "umonlee",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "4Y8UO8NloCoPxJ1E",
+    "name": "Umonlee",
+    "level": 15,
+    "art": "umonlee.webp"
+  },
+  {
+    "id": "white_dragon_ancient",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "mXkMSlj3LldzKxB9",
+    "name": "White Dragon (Ancient)",
+    "level": 15,
+    "art": "white-dragon-ancient.webp"
+  },
+  {
+    "id": "tolokand",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "kuh9DOsFXybRZRlj",
+    "name": "Tolokand",
+    "level": 15,
+    "art": "tolokand.webp"
+  },
+  {
+    "id": "shoal_linnorm",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "nipVBTEgG6itWJSW",
+    "name": "Shoal Linnorm",
+    "level": 15,
+    "art": "shoal-linnorm.webp"
+  },
+  {
+    "id": "sakugami",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "nxR5CHiRDv6efOl4",
+    "name": "Sakugami",
+    "level": 15,
+    "art": "sakugami.webp"
+  },
+  {
+    "id": "jotund_troll",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "4Ay3tf49upoyaJrg",
+    "name": "Jotund Troll",
+    "level": 15,
+    "art": "jotund-troll.webp"
+  },
+  {
+    "id": "toshigami",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "BMHkCVNiEbnmUVft",
+    "name": "Toshigami",
+    "level": 15,
+    "art": "toshigami.webp"
   }
 ]
