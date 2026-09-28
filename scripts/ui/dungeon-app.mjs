@@ -49,7 +49,7 @@ import {
   unpauseIfGmLessRun,
 } from "../dungeon-combat.mjs";
 import { getGenerator } from "../generator-registry.mjs";
-import { computeRanks, computeColumns } from "../dungeon-layout.mjs";
+import { computeRanks, computeColumns, parentRoomIdsFor, incomingFaceFor } from "../dungeon-layout.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -510,6 +510,23 @@ export async function startDungeonRun({
   const layoutPositionByRoomId = Object.fromEntries(
     Object.keys(rooms).map((id) => [id, { rank: ranks[id], col: columns[id] }]),
   );
+  // #174 follow-up (incoming-face redesign): choose each room's incoming
+  // face once, from the fully precomputed layout, before any room's
+  // walls are built -- same "full pregeneration" pattern
+  // layoutPositionByRoomId itself already uses.
+  const occupiedCellsForIncomingFace = {};
+  for (const [id, pos] of Object.entries(layoutPositionByRoomId)) {
+    occupiedCellsForIncomingFace[`${pos.rank},${pos.col}`] = id;
+  }
+  const incomingFaceByRoomId = Object.fromEntries(
+    Object.keys(rooms).map((id) => {
+      const legitimateSourceIds = new Set([
+        ...parentRoomIdsFor(layoutEdges, id),
+        ...(hiddenIncomingByRoomId[id] ?? []),
+      ]);
+      return [id, incomingFaceFor(id, layoutPositionByRoomId, occupiedCellsForIncomingFace, legitimateSourceIds)];
+    }),
+  );
   const maxRank = Math.max(...Object.values(ranks));
   const maxCol = Math.max(...Object.values(columns));
 
@@ -529,6 +546,7 @@ export async function startDungeonRun({
     hiddenEdges,
     hiddenIncomingByRoomId,
     layoutPositionByRoomId,
+    incomingFaceByRoomId,
     maxRank,
     currentRoomId: 'room-entry',
     history: [],

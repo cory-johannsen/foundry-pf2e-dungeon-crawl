@@ -12,8 +12,8 @@
  * children," with no idea of when a room gets built.
  *
  * A connection runs from one of a room's own outgoing faces
- * (south/east/west, exitFaceForIndex) to a door slot on its child's north
- * face (northDoorSlots), each end at its own independently-randomized
+ * (south/east/west, exitFaceForIndex) to a door slot on its child's incoming
+ * face (doorSlotsForFace), each end at its own independently-randomized
  * offset — see buildEdgeCorridor's docblock.
  *
  * Every room is square, either ROOM_SIZE_SMALL or ROOM_SIZE_LARGE on a side
@@ -53,8 +53,10 @@ export const INITIAL_GX = 300;
 // variable-width tree layout (see the design spec): every column is wide
 // enough for the largest room, every rank tall enough for the tallest, so
 // no two rooms ever overlap regardless of their individual roomSizeAt
-// roll, and a room is still visually centered over its children via
-// computeColumns' own column averaging.
+// roll. computeColumns assigns columns via a skip-by-2 counter (#174
+// follow-up), leaving a permanent empty buffer column beside every real
+// room for routing/incoming-face use, sealed by sealBufferCellIfUnbuilt
+// (dungeon-scene.mjs).
 export const ROW_STRIDE = ROOM_SIZE_LARGE + CORRIDOR_LEN;
 export const COLUMN_STRIDE = ROOM_SIZE_LARGE + CORRIDOR_LEN;
 
@@ -69,9 +71,16 @@ export function roomRect(seed, roomId, rank, col) {
   };
 }
 
-/** Deterministic compass face for a room's Nth exit (0-2), always distinct. */
-export function exitFaceForIndex(index) {
-  return ['south', 'east', 'west'][index];
+const OUTGOING_CANDIDATES = {
+  north: ['south', 'east', 'west'], // byte-identical to today's literal array
+  west: ['south', 'east', 'north'],
+};
+
+/** Deterministic compass face for a room's Nth exit (0-2), always
+ * distinct from its own incoming face (`incomingFaceFor`) — 'north' by
+ * default, preserving every existing call site's exact behavior. */
+export function exitFaceForIndex(index, incomingFace = 'north') {
+  return OUTGOING_CANDIDATES[incomingFace][index];
 }
 
 // Still used by Task 6's corridor routing to determine a straight
@@ -126,17 +135,100 @@ export function parentRoomIdsFor(layoutEdges, roomId) {
  * incoming is already counted via its real `layoutEdges` parent link
  * above, never both). #93 pre-flight fix: this is the whole redesign in
  * one function — every entry this returns gets its own door slot on the
- * room's NORTH face (northDoorSlots, below), never a separate compass
+ * room's incoming face (doorSlotsForFace, selected by incomingFaceFor), never a separate compass
  * direction. That's what actually guarantees a merge room gets a door
  * for EVERY real parent (previously only one was ever built, silently
  * dead-ending every other branch) and that incoming can never collide
  * with a room's own outgoing faces (south/east/west, always disjoint
- * from north).
+ * from the incoming face).
  */
 export function incomingConnectionsFor(layoutEdges, roomId, hiddenIncomingByRoomId = {}) {
   const real = parentRoomIdsFor(layoutEdges, roomId).map((sourceId) => ({ sourceId, hidden: false }));
   const hidden = (hiddenIncomingByRoomId[roomId] ?? []).map((sourceId) => ({ sourceId, hidden: true }));
   return [...real, ...hidden];
+}
+
+/**
+ * Which compass face `roomId` should receive its incoming connection(s)
+ * on — 'north' (today's only option, unchanged for the common case) or
+ * 'west' as a fallback, chosen once per room from the fully precomputed
+ * layout (every room's rank/col is already known before any room is
+ * built). `legitimateSourceIds` is the set of this room's own real
+ * parents (`parentRoomIdsFor`) plus its hidden detour source, if any —
+ * one of THOSE occupying a candidate neighbor cell is the normal,
+ * expected "parent directly above/beside" shape, not a blocker.
+ *
+ * North and west are the only two candidates because they're the only
+ * two structurally marginless faces (a room always anchors at its own
+ * cell's top-left corner, so north/west always coincide with the cell's
+ * own edges regardless of room size) — neither ever needs new
+ * margin-gap-coordination logic (`cellMarginWalls` stays scoped to
+ * east/south only, unchanged).
+ *
+ * Returns 'north' for the residual case where BOTH neighbors are
+ * occupied by an unrelated room (#196, not solved here) — the caller's
+ * existing "no free path" fallback already handles this gracefully.
+ */
+export function incomingFaceFor(roomId, positionByRoomId, occupiedCells, legitimateSourceIds) {
+  const pos = positionByRoomId[roomId];
+  // A room's own id is never the occupant of a NEIGHBOR cell (each cell
+  // holds at most one room, and a neighbor is by definition a different
+  // cell) — the only exclusions that matter are this room's own real
+  // parents/hidden source, which legitimately DO occupy an adjacent
+  // cell in the common "parent directly above/beside" case.
+  //
+  // #174 follow-up: a same-plan attempt to also require a legitimate
+  // occupant be the room's SOLE source (so a merge room with 2+ sources
+  // wouldn't treat a co-parent's own cell as an available gate) was
+  // reverted. It was architecturally motivated -- routing a DIFFERENT
+  // source's edge through a co-parent's own real room is genuinely
+  // unsound (findCorridorPath's own isBlocked fix for that stays
+  // reverted too, see its own docblock) -- but this plan's own final
+  // whole-branch review found the multi-cell/transit-cell machinery
+  // this "fix" pushed more connections into is itself broken in the
+  // large majority of cases (consecutive transit cells' own crossing
+  // offsets don't line up on a shared border; a second edge converging
+  // on an already-crossed cell with the same entry/exit side pair is
+  // silently dropped instead of adding its own opening; transit-cell
+  // exit offsets aren't pinned to the actual door position they're
+  // supposed to reach). Net effect measured: it converted ~1083
+  // previously-direct, known-good connections into detours, of which
+  // ~89% ended up with their own target door covered by a wall — a
+  // worse outcome than the merge-room gate conflict it was meant to
+  // fix. Reverted back to the original rule (any legitimate source is
+  // an available gate, regardless of source count) until the
+  // multi-cell/transit-cell geometry itself is fixed — tracked as a
+  // separate, ongoing investigation (filed as issue #225), not attempted
+  // here.
+  const isFreeOrLegitimate = (rank, col) => {
+    const occupant = occupiedCells[`${rank},${col}`];
+    return occupant == null || legitimateSourceIds.has(occupant);
+  };
+  if (isFreeOrLegitimate(pos.rank - 1, pos.col)) return 'north';
+  if (isFreeOrLegitimate(pos.rank, pos.col - 1)) return 'west';
+  return 'north';
+}
+
+/**
+ * Divides a room's incoming face into `count` equal, contiguous door
+ * slots, left-to-right (`face === 'north'`) or top-to-bottom
+ * (`face === 'west'`). Replaces the old `northDoorSlots` (single-face
+ * version) now that incoming can land on either of a room's two
+ * marginless faces (`incomingFaceFor`) — `face === 'north'` produces
+ * byte-identical output to the old function for the same inputs.
+ */
+export function doorSlotsForFace(rect, count, face) {
+  const { gx, gy, gw, gh } = rect;
+  if (face === 'west') {
+    const step = gh / count;
+    return Array.from({ length: count }, (_, i) => ({
+      x1: gx, y1: gy + i * step, x2: gx, y2: gy + (i + 1) * step,
+    }));
+  }
+  const step = gw / count;
+  return Array.from({ length: count }, (_, i) => ({
+    x1: gx + i * step, y1: gy, x2: gx + (i + 1) * step, y2: gy,
+  }));
 }
 
 /** A room's own four wall segments, by compass side — exported (Task 10's
@@ -154,39 +246,26 @@ export function roomSidesForRect(rect) {
 }
 
 /**
- * Divides a room's north wall into `count` equal, contiguous, left-to-
- * right door slots. Used for EVERY incoming connection — whether 1 for a
- * normal room, N for a merge room, or a normal room's real parent plus a
- * shortcut's extra hidden one (see `incomingConnectionsFor`, whose Nth
- * entry corresponds to this function's Nth slot).
- */
-export function northDoorSlots(rect, count) {
-  const { gx, gy, gw } = rect;
-  const step = gw / count;
-  return Array.from({ length: count }, (_, i) => ({
-    x1: gx + i * step, y1: gy, x2: gx + (i + 1) * step, y2: gy,
-  }));
-}
-
-/**
  * A room's own enclosing walls (#93 generalization). South/east/west stay
  * full-face, excluded per `outgoingFaces` (unchanged from before). North
  * is either a single solid wall (`incomingCount === 0`, the entry room)
  * or entirely excluded (`incomingCount > 0`) — its individual door slots
- * are built separately by the caller via `northDoorSlots`, one per real
+ * are built separately by the caller via `doorSlotsForFace`, one per real
  * connection-building step (needs the connecting room's rect, which this
  * function doesn't have), not here. `rect` is the room's own already-
  * computed `roomRect(...)` result — required, since rank/col (and so the
  * rect) aren't derivable from `roomId` alone the way the old slot-indexed
  * version could derive its own rect internally.
  */
-export function roomEnclosureWalls(seed, roomId, { incomingCount = 0, outgoingFaces = [] }, rect) {
+export function roomEnclosureWalls(seed, roomId, { incomingCount = 0, incomingFace = 'north', outgoingFaces = [] }, rect) {
   const sides = roomSidesForRect(rect);
   const walls = [];
-  for (const face of ['south', 'east', 'west']) {
+  const ALL_FACES = ['north', 'south', 'east', 'west'];
+  for (const face of ALL_FACES) {
+    if (face === incomingFace) continue;
     if (!outgoingFaces.includes(face)) walls.push({ dir: face, ...sides[face] });
   }
-  if (incomingCount === 0) walls.push({ dir: 'north', ...sides.north });
+  if (incomingCount === 0) walls.push({ dir: incomingFace, ...sides[incomingFace] });
   return walls;
 }
 
@@ -241,21 +320,142 @@ export function slotRowCol(slot) {
 
 /**
  * Edge geometry connecting fromRoomId's exitFace to a specific door slot
- * on toRoomId's north face (`toSlot`, from `northDoorSlots` — Task 5's
- * redesign means "incoming" is always north, but potentially one of
+ * on toRoomId's incoming face (`toSlot`, from `doorSlotsForFace` — Task 5's
+ * redesign means "incoming" can be north or west per room, but potentially one of
  * several slots when the target has more than one real parent or a
- * hidden extra). Generalizes the old linear-slot connection geometry (slot
- * to slot+1, always straight, deleted by #93 Task 15) to any two graph-positioned rects: same-column
- * rooms still get a single straight corridor; different-column rooms get
- * an L-shaped 2-segment corridor (first segment leaves fromRect on
- * exitFace, second segment approaches `toSlot`, joined by a single
- * corner).
+ * hidden extra). `fromPos`/`toPos` are the two rooms' own {rank, col}
+ * (#174 Task 4) — used to pathfind a route (`findCorridorPath`) around
+ * any `occupiedCells` blocking a direct or single-corner connection.
+ *
+ * When the resulting path is length <= 2 (already adjacent, or no path
+ * found so this falls back to a direct line), this is EXACTLY the
+ * pre-#174 geometry below, unchanged: same-column rooms still get a
+ * single straight corridor; different-column rooms get an L-shaped
+ * 2-segment corridor (first segment leaves fromRect on exitFace, second
+ * segment approaches `toSlot`, joined by a single corner) — generalizing
+ * the old linear-slot connection geometry (slot to slot+1, always
+ * straight, deleted by #93 Task 15) to any two graph-positioned rects.
+ *
+ * Otherwise (a longer path routing around an obstacle), a `transitCells`
+ * entry is built for every intermediate cell via `transitCellCrossing`
+ * (#174 Task 3), chained together and connected to fromRect/toRect by
+ * the same corner-connector shape the branch below already uses between
+ * its own exitPoint and entryPoint (`cornerConnector`, below).
  */
-export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, exitFace, toSlot) {
-  const slotWidth = toSlot.x2 - toSlot.x1;
+export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace = 'north') {
+  const path = findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace });
+  const slotSpan = incomingFace === 'west' ? (toSlot.y2 - toSlot.y1) : (toSlot.x2 - toSlot.x1);
   const outgoingOffset = doorOffsetAt(seed, `${fromRoomId}-${exitFace}`, 'outgoing', fromRect.gw);
-  const incomingOffset = doorOffsetAt(seed, `${toRoomId}-north-${toSlot.x1}`, 'incoming', slotWidth);
+  const incomingSeedKey = incomingFace === 'west' ? `${toRoomId}-west-${toSlot.y1}` : `${toRoomId}-north-${toSlot.x1}`;
+  const incomingOffset = doorOffsetAt(seed, incomingSeedKey, 'incoming', slotSpan);
 
+  if (path && path.length > 2) {
+    // Multi-cell path (#174): chain transitCellCrossing across every
+    // intermediate cell, then connect fromRect's own exit point to the
+    // first transit cell's entry point, and the last transit cell's exit
+    // point to toRect's own entry point, via the same corner-connector
+    // shape used below between exitPoint and entryPoint directly.
+    const edgeId = `${fromRoomId}->${toRoomId}`;
+    const transitCells = [];
+    for (let i = 1; i < path.length - 1; i += 1) {
+      const cell = path[i];
+      const entrySide = directionBetween(cell, path[i - 1]);
+      const exitSide = directionBetween(cell, path[i + 1]);
+      const crossing = transitCellCrossing(seed, cell.rank, cell.col, entrySide, exitSide, edgeId);
+      transitCells.push({ rank: cell.rank, col: cell.col, entrySide, exitSide, ...crossing });
+    }
+
+    const exitPoint = exitFace === 'east'
+      ? { x: fromRect.gx + fromRect.gw, y: fromRect.gy + fromRect.gh / 2 }
+      : exitFace === 'west'
+      ? { x: fromRect.gx, y: fromRect.gy + fromRect.gh / 2 }
+      : { x: fromRect.gx + fromRect.gw / 2, y: fromRect.gy + fromRect.gh };
+    const doorWall = exitFace === 'south'
+      ? { x1: exitPoint.x - DOOR_WIDTH / 2, y1: exitPoint.y, x2: exitPoint.x + DOOR_WIDTH / 2, y2: exitPoint.y }
+      : { x1: exitPoint.x, y1: exitPoint.y - DOOR_WIDTH / 2, x2: exitPoint.x, y2: exitPoint.y + DOOR_WIDTH / 2 };
+    const entryPoint = incomingFace === 'west'
+      ? { x: toSlot.x1, y: toSlot.y1 + slotSpan / 2 }
+      : { x: toSlot.x1 + slotSpan / 2, y: toSlot.y1 };
+    // Face-aware, mirroring entryPoint's own conditional above: a west
+    // toSlot is a VERTICAL line (x1===x2===toRect.gx, doorSlotsForFace's
+    // own west shape), so its reveal door and flanking walls must run
+    // vertically too -- the unconditional horizontal formula here was a
+    // gap in this task's own brief (entryPoint was made face-aware, this
+    // wasn't), found by a later review's own hand-tracing.
+    const revealDoorWall = incomingFace === 'west'
+      ? { x1: entryPoint.x, y1: entryPoint.y - DOOR_WIDTH / 2, x2: entryPoint.x, y2: entryPoint.y + DOOR_WIDTH / 2 }
+      : { x1: entryPoint.x - DOOR_WIDTH / 2, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH / 2, y2: entryPoint.y };
+
+    const firstCellPoint = transitCells[0].entryPoint;
+    const lastCellPoint = transitCells[transitCells.length - 1].exitPoint;
+    // #174 Task 4 deviation from the plan's own reference code: the plan
+    // connected exitPoint->firstCellPoint (and lastCellPoint->entryPoint)
+    // with a single bounding-box segment covering both the x AND y
+    // difference. Traced by hand for a south-exit/east-entry combination
+    // (fromRect at (300,0)-12x12, first transit cell to the WEST at
+    // rank 0 col -1): that produces a segment spanning x:[300,306],
+    // y:[0,12] — entirely inside fromRect's OWN footprint (which spans
+    // x:[300,312], y:[0,12]) whenever the transit cell's entry offset
+    // lands anywhere but the very bottom of its shared edge. That's a
+    // room/corridor overlap, not a corridor.
+    //
+    // Using the same corner-connector shape the path.length<=2 branch
+    // above already uses (one CORRIDOR_LEN-wide leg at the departure
+    // axis, one at the arrival axis) fixes the general case, but the leg
+    // anchored at the TRANSIT cell's own entry/exit point needs one more
+    // fix: transitCellCrossing's round-2 fix (Task 3) established that a
+    // point on a cell's 'east'/'south' side sits at that cell's FAR edge
+    // (SIDE_POINT uses cell.gx+gw / cell.gy+gh), so a CORRIDOR_LEN-wide
+    // leg extending forward from it overflows past that cell — here,
+    // into whatever's on the other side, which (unlike two transit cells
+    // side by side) can be fromRect/toRect's own flush west/north edge
+    // (rooms have no west/north margin — cellMarginWalls' own docblock).
+    // `cornerConnector`'s optional fromSide/toSide extends inward instead
+    // on the leg that needs it, exactly like Task 3's own fix.
+    //
+    // Known residual gap (task-4-report.md has the full trace): this only
+    // fully resolves the connector1 (fromRect -> firstCellPoint) case,
+    // where the DEPARTING leg can lean on fromRect's own exit-face margin
+    // (south/east) as a safe lane before the corrected leg turns toward
+    // the transit cell. connector2 (lastCellPoint -> entryPoint) has no
+    // such lane available — entryPoint is always on toRect's NORTH face,
+    // which (like west) has NO margin at all — so when the path's LAST
+    // hop approaches the target from anywhere but directly north, both
+    // legs can still cut through toRect's own footprint (transitCellCrossing's
+    // own randomized crossing offset has no awareness of a neighboring
+    // room's footprint on a flush side). Filed for a follow-up rather than
+    // solved here — a real fix needs either findCorridorPath (Task 1)
+    // preferring an endpoint's margined sides, or a margin-aware crossing
+    // point next to a room's own cell, both bigger than this task's scope.
+    const corridorSegments = [
+      ...cornerConnector(exitPoint, firstCellPoint, { toSide: transitCells[0].entrySide }),
+      ...cornerConnector(lastCellPoint, entryPoint, { fromSide: transitCells[transitCells.length - 1].exitSide }),
+    ];
+    const plainWalls = (incomingFace === 'west'
+      ? [
+          { x1: entryPoint.x, y1: toSlot.y1, x2: entryPoint.x, y2: entryPoint.y - DOOR_WIDTH / 2 },
+          { x1: entryPoint.x, y1: entryPoint.y + DOOR_WIDTH / 2, x2: entryPoint.x, y2: toSlot.y2 },
+        ]
+      : [
+          { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x - DOOR_WIDTH / 2, y2: entryPoint.y },
+          { x1: entryPoint.x + DOOR_WIDTH / 2, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
+        ]
+    ).filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
+
+    return { doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells };
+  }
+
+  // Adjacent (path.length <= 2), or no path found so we fall back to a
+  // direct line (path == null) — UNCHANGED from before #174's Task 4,
+  // verbatim, just with transitCells: [] added. #174 Task 5 reverts the
+  // `!path` sub-case back to this same direct-line/corner shape: Task 6's
+  // own trunkLaneCorridorSegments detour (previously here) was found
+  // unsound by a later review (100% broken for west-exit connections,
+  // and roughly half its remaining cases were bisected by a real
+  // containment wall) — the honest direct-line fallback below, though it
+  // can still cut through an occupied cell in the boxed-in case, is a
+  // known, documented limitation rather than a hack that silently draws
+  // through walls just as often.
   const sameColumn = fromRect.gx === toRect.gx;
   if (exitFace === 'south' && sameColumn) {
     const faceY = fromRect.gy + fromRect.gh;
@@ -276,59 +476,110 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     const gapX1 = gapX0 + DOOR_WIDTH;
     const spanX0 = Math.min(doorX0, gapX0);
     const spanX1 = Math.max(doorX1, gapX1);
+    const plainWalls = [
+      { x1: fromRect.gx, y1: faceY, x2: doorX0, y2: faceY },
+      { x1: doorX1, y1: faceY, x2: Math.max(fromRect.gx + fromRect.gw, spanX1), y2: faceY },
+      // #93 pre-flight fix, round 2 (found during Task 6's own redo):
+      // capped strictly at `toSlot.x1`/`toSlot.x2` — NEVER `spanX1`.
+      // `spanX1` also folds in the SOURCE room's own door offset
+      // (`doorX1`, bounded by the SOURCE's full width, not the
+      // TARGET's narrower slot) — using it here (round 1's fix used
+      // `Math.max(toSlot.x2, spanX1)`, which picks whichever is
+      // LARGER) could still push this flanking wall past the slot
+      // boundary into a sibling connection's own territory whenever
+      // the source room is wider than one slot — routine for any
+      // merge room with 2+ real parents. `gapX0`/`gapX1` are already
+      // guaranteed within `[toSlot.x1, toSlot.x2]` (`incomingOffset`
+      // is bounded by `slotSpan`), so these two walls need no
+      // `Math.max`/`Math.min` at all — just the slot's own edges.
+      { x1: toSlot.x1, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
+      { x1: gapX1, y1: corridorEndY, x2: toSlot.x2, y2: corridorEndY }
+    ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
+    const doorWall = { x1: doorX0, y1: faceY, x2: doorX1, y2: faceY };
+    const revealDoorWall = { x1: gapX0, y1: corridorEndY, x2: gapX1, y2: corridorEndY };
+
+    // #174 Task 5: a null path and a length<=2 path now produce identical
+    // geometry — the distinction only mattered when `!path` took the
+    // (now-deleted) trunk-lane detour.
     return {
-      doorWall: { x1: doorX0, y1: faceY, x2: doorX1, y2: faceY },
-      revealDoorWall: { x1: gapX0, y1: corridorEndY, x2: gapX1, y2: corridorEndY },
-      plainWalls: [
-        { x1: fromRect.gx, y1: faceY, x2: doorX0, y2: faceY },
-        { x1: doorX1, y1: faceY, x2: Math.max(fromRect.gx + fromRect.gw, spanX1), y2: faceY },
-        // #93 pre-flight fix, round 2 (found during Task 6's own redo):
-        // capped strictly at `toSlot.x1`/`toSlot.x2` — NEVER `spanX1`.
-        // `spanX1` also folds in the SOURCE room's own door offset
-        // (`doorX1`, bounded by the SOURCE's full width, not the
-        // TARGET's narrower slot) — using it here (round 1's fix used
-        // `Math.max(toSlot.x2, spanX1)`, which picks whichever is
-        // LARGER) could still push this flanking wall past the slot
-        // boundary into a sibling connection's own territory whenever
-        // the source room is wider than one slot — routine for any
-        // merge room with 2+ real parents. `gapX0`/`gapX1` are already
-        // guaranteed within `[toSlot.x1, toSlot.x2]` (`incomingOffset`
-        // is bounded by `slotWidth`), so these two walls need no
-        // `Math.max`/`Math.min` at all — just the slot's own edges.
-        { x1: toSlot.x1, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
-        { x1: gapX1, y1: corridorEndY, x2: toSlot.x2, y2: corridorEndY }
-      ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2),
-      corridorSegments: [{ gx: spanX0, gy: faceY, gw: spanX1 - spanX0, gh: corridorEndY - faceY }]
+      doorWall, revealDoorWall, plainWalls,
+      corridorSegments: [{ gx: spanX0, gy: faceY, gw: spanX1 - spanX0, gh: corridorEndY - faceY }],
+      transitCells: [],
     };
   }
 
-  // Different column (or a non-south exit face): a straight leg out of
-  // fromRect on exitFace, a corner, then a straight leg into `toSlot`.
-  // Simpler than the same-column case's precise two-door offset
-  // trimming — a candidate for a future refinement pass if a reviewer
-  // finds the corner geometry too blocky in practice.
+  const sameRank = fromRect.gy === toRect.gy;
+  if (exitFace === 'east' && sameRank) {
+    const faceX = fromRect.gx + fromRect.gw;
+    const corridorEndX = toRect.gx;
+    const doorY0 = fromRect.gy + outgoingOffset;
+    const doorY1 = doorY0 + DOOR_WIDTH;
+    const gapY0 = toSlot.y1 + incomingOffset;
+    const gapY1 = gapY0 + DOOR_WIDTH;
+    const spanY0 = Math.min(doorY0, gapY0);
+    const spanY1 = Math.max(doorY1, gapY1);
+    const plainWalls = [
+      { x1: faceX, y1: fromRect.gy, x2: faceX, y2: doorY0 },
+      { x1: faceX, y1: doorY1, x2: faceX, y2: Math.max(fromRect.gy + fromRect.gh, spanY1) },
+      { x1: corridorEndX, y1: toSlot.y1, x2: corridorEndX, y2: gapY0 },
+      { x1: corridorEndX, y1: gapY1, x2: corridorEndX, y2: toSlot.y2 },
+    ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
+    // A null path (boxed in, both north and west neighbors occupied,
+    // #196) and a found path.length<=2 now draw the exact same direct
+    // line -- the distinction only mattered back when a null path took
+    // the (now-deleted) trunkLaneCorridorSegments detour instead.
+    return {
+      doorWall: { x1: faceX, y1: doorY0, x2: faceX, y2: doorY1 },
+      revealDoorWall: { x1: corridorEndX, y1: gapY0, x2: corridorEndX, y2: gapY1 },
+      plainWalls,
+      corridorSegments: [{ gx: faceX, gy: spanY0, gw: corridorEndX - faceX, gh: spanY1 - spanY0 }],
+      transitCells: [],
+    };
+  }
+
+  // Different column (or a non-south, non-east-fast-path exit face): a
+  // straight leg out of fromRect on exitFace, a corner, then a straight
+  // leg into `toSlot`. Simpler than the same-column case's precise
+  // two-door offset trimming — a candidate for a future refinement pass
+  // if a reviewer finds the corner geometry too blocky in practice.
+  //
+  // #174 Task 5: a null path and a found path.length<=2 now take this
+  // same corner-based route unconditionally — the (now-deleted)
+  // trunkLaneCorridorSegments detour this branch used to take for a null
+  // path was found unsound by a later review (100% broken for west-exit
+  // connections, ~half its remaining cases bisected by a real
+  // containment wall).
   const exitPoint = exitFace === 'east'
     ? { x: fromRect.gx + fromRect.gw, y: fromRect.gy + fromRect.gh / 2 }
     : exitFace === 'west'
     ? { x: fromRect.gx, y: fromRect.gy + fromRect.gh / 2 }
     : { x: fromRect.gx + fromRect.gw / 2, y: fromRect.gy + fromRect.gh };
-  const entryPoint = { x: toSlot.x1 + slotWidth / 2, y: toSlot.y1 };
+  const entryPoint = incomingFace === 'west'
+    ? { x: toSlot.x1, y: toSlot.y1 + slotSpan / 2 }
+    : { x: toSlot.x1 + slotSpan / 2, y: toSlot.y1 };
   const corner = { x: entryPoint.x, y: exitPoint.y };
 
   const doorWall = exitFace === 'south'
     ? { x1: exitPoint.x - DOOR_WIDTH / 2, y1: exitPoint.y, x2: exitPoint.x + DOOR_WIDTH / 2, y2: exitPoint.y }
     : { x1: exitPoint.x, y1: exitPoint.y - DOOR_WIDTH / 2, x2: exitPoint.x, y2: exitPoint.y + DOOR_WIDTH / 2 };
-  const revealDoorWall = { x1: entryPoint.x - DOOR_WIDTH / 2, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH / 2, y2: entryPoint.y };
+  // Face-aware, mirroring entryPoint's own conditional above -- same fix
+  // as the multi-cell branch's own revealDoorWall/plainWalls (see its
+  // comment for why: a west toSlot is a vertical line, so its reveal
+  // door and flanking walls must run vertically too).
+  const revealDoorWall = incomingFace === 'west'
+    ? { x1: entryPoint.x, y1: entryPoint.y - DOOR_WIDTH / 2, x2: entryPoint.x, y2: entryPoint.y + DOOR_WIDTH / 2 }
+    : { x1: entryPoint.x - DOOR_WIDTH / 2, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH / 2, y2: entryPoint.y };
 
-  // #93 pre-flight fix: flank the door WITHIN this connection's own
-  // `toSlot` (was `plainWalls: []` — left the room's whole north face
-  // open beyond just the door itself, and left nothing to separate this
-  // slot from a sibling's). Mirrors the same-column branch's own
-  // slot-constrained plainWalls above.
-  const plainWalls = [
-    { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x - DOOR_WIDTH / 2, y2: entryPoint.y },
-    { x1: entryPoint.x + DOOR_WIDTH / 2, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
-  ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
+  const plainWalls = (incomingFace === 'west'
+    ? [
+        { x1: entryPoint.x, y1: toSlot.y1, x2: entryPoint.x, y2: entryPoint.y - DOOR_WIDTH / 2 },
+        { x1: entryPoint.x, y1: entryPoint.y + DOOR_WIDTH / 2, x2: entryPoint.x, y2: toSlot.y2 },
+      ]
+    : [
+        { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x - DOOR_WIDTH / 2, y2: entryPoint.y },
+        { x1: entryPoint.x + DOOR_WIDTH / 2, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
+      ]
+  ).filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
 
   return {
     doorWall,
@@ -337,8 +588,104 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     corridorSegments: [
       { gx: Math.min(exitPoint.x, corner.x), gy: Math.min(exitPoint.y, corner.y), gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - exitPoint.x)), gh: CORRIDOR_LEN },
       { gx: Math.min(corner.x, entryPoint.x), gy: Math.min(corner.y, entryPoint.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(entryPoint.y - corner.y)) }
-    ]
+    ],
+    transitCells: [],
   };
+}
+
+/**
+ * The `openOffset` a room's own cell-margin containment wall (Task 2's
+ * `cellMarginWalls`) must use for its outgoing connection on `exitFace`,
+ * so the gap it leaves lines up with wherever `buildEdgeCorridor` will
+ * actually route that same connection's real corridor (#174 Task 5's own
+ * fix round, amended after a re-review found the first pass incomplete).
+ *
+ * `buildEdgeCorridor` uses a doorOffsetAt-based exit point for a
+ * south-face connection where `fromPos.col === toPos.col`, or an
+ * east-face connection where `fromPos.rank === toPos.rank` (#174 Task 5's
+ * own same-rank/east-exit fast path) — in either case ONLY when it takes
+ * its adjacent-or-no-path fallback branch (`!path || path.length <= 2`)
+ * — never just `path.length <= 2` alone, since a null path (no free
+ * route — e.g. the target's own north-neighbor cell is occupied,
+ * findCorridorPath's north-only-entry rule) falls back to the SAME
+ * offset-based branch as a directly-adjacent connection, and this is a
+ * routine shape for a merge room several ranks below a parent, not a
+ * rare corner. Every other case — a different-column south connection, a
+ * different-rank east connection, or any connection whose path takes the
+ * multi-cell branch — uses buildEdgeCorridor's center-based exit point
+ * instead. This function re-derives exactly which branch buildEdgeCorridor
+ * will take (by calling the same `findCorridorPath` the caller already
+ * needs for `buildEdgeCorridor` itself) rather than approximating it,
+ * since the two must never independently drift.
+ */
+export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells, incomingFace = 'north') {
+  if (exitFace !== 'south' && exitFace !== 'east') {
+    // West never takes buildEdgeCorridor's offset-based branch — always
+    // center-based, regardless of the child's rank/column.
+    return fromRect.gh / 2 - DOOR_WIDTH / 2;
+  }
+  const aligned = exitFace === 'south' ? fromPos.col === toPos.col : fromPos.rank === toPos.rank;
+  const path = aligned
+    ? findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace })
+    : null;
+  const usesOffsetBasedExit = aligned && (!path || path.length <= 2);
+  // South's offset runs along the room's own width (gw); east's runs
+  // along its own height (gh) — buildEdgeCorridor's own `outgoingOffset`
+  // and center-based fallback make the identical face-based choice (see
+  // its own doorX0/doorY0 computations).
+  const faceSpan = exitFace === 'south' ? fromRect.gw : fromRect.gh;
+  return usesOffsetBasedExit
+    ? doorOffsetAt(seed, `${fromRoomId}-${exitFace}`, 'outgoing', faceSpan)
+    : faceSpan / 2 - DOOR_WIDTH / 2;
+}
+
+/** Which compass direction `from` a cell faces to reach an
+ * orthogonally-adjacent `to` cell — 'north' if to is one rank up, etc.
+ * (#174 Task 4 — used to label each transitCells entry's own
+ * entrySide/exitSide when chaining transitCellCrossing across a
+ * multi-cell findCorridorPath route.) */
+function directionBetween(from, to) {
+  if (to.rank < from.rank) return 'north';
+  if (to.rank > from.rank) return 'south';
+  if (to.col < from.col) return 'west';
+  return 'east';
+}
+
+/**
+ * Two CORRIDOR_LEN-wide segments joining `from` to `to` via a single
+ * right-angle corner at (to.x, from.y) — `from`'s own leg runs
+ * horizontal (fixed at from.y, variable x), `to`'s own leg runs vertical
+ * (fixed at to.x, variable y), terminating exactly at `to`. Same shape
+ * the path.length <= 2 branch above already uses between its own
+ * exitPoint and entryPoint (see the `corner` variable there); generalized
+ * here (#174 Task 4) for two arbitrary points — a fromRect/toRect
+ * endpoint plus a transit cell's own entryPoint/exitPoint — since a
+ * transit cell can be approached from any of its four sides, not just
+ * the fixed exit-face/north-face pairing the adjacent branch assumes.
+ *
+ * `fromSide`/`toSide` (optional) are the compass side of a CELL boundary
+ * that `from`/`to` sits on, when that point is a transit cell's own
+ * entryPoint/exitPoint (never passed for a real room's exitPoint/
+ * entryPoint, which always has margin/slack built in and never needs
+ * this correction — see the call sites). Only 'south' (for `fromSide`,
+ * affecting the from-anchored leg's fixed Y) or 'east' (for `toSide`,
+ * affecting the to-anchored leg's fixed X) matter: those are the two
+ * sides transitCellCrossing's SIDE_POINT places at a cell's FAR edge
+ * (cell.gy+gh / cell.gx+gw), so extending that leg's CORRIDOR_LEN
+ * thickness forward from there — the default, correct for every other
+ * side/for a real room's own margin-having anchors — overflows past that
+ * cell's own boundary. 'north'/'west' sit at a NEAR edge (cell.gy /
+ * cell.gx) where extending forward already stays inward, same as Task
+ * 3's own round-2 fix for transitCellCrossing's internal corner case.
+ */
+function cornerConnector(from, to, { fromSide, toSide } = {}) {
+  const corner = { x: to.x, y: from.y };
+  const leg1Gy = fromSide === 'south' ? from.y - CORRIDOR_LEN : Math.min(from.y, corner.y);
+  const leg2Gx = toSide === 'east' ? to.x - CORRIDOR_LEN : Math.min(corner.x, to.x);
+  return [
+    { gx: Math.min(from.x, corner.x), gy: leg1Gy, gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - from.x)), gh: CORRIDOR_LEN },
+    { gx: leg2Gx, gy: Math.min(corner.y, to.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(to.y - corner.y)) },
+  ];
 }
 
 /**
@@ -390,19 +737,22 @@ export function computeRanks(edges, entryId) {
 }
 
 /**
- * Column index (integer, per-rank left-to-right order) via a single DFS
- * pass from entryId — #93 pre-flight fix (see the note below the
- * function for what the original bottom-up-width/top-down-centering
+ * Column index (integer, per-rank left-to-right order, always even) via
+ * a single DFS pass from entryId — #93 pre-flight fix (see the note
+ * below the function for what the original bottom-up-width/top-down-centering
  * design got wrong and why it was replaced). Every room is visited
  * exactly once (first parent to reach it wins, matching the design's
  * "merge rooms placed once, whichever parent reaches them first"
- * intent); each NEW room claims the next unused column at its own rank
- * via a monotonic per-rank counter, which is what actually guarantees
- * two different rooms at the same rank can never collide on a column —
- * `ranks` (pre-computed by computeRanks, already correctly reflecting a
- * merge room's longest-path rank) is looked up directly, not re-derived
- * from DFS depth, so a merge room still lands at its correct rank
- * regardless of which parent's branch reaches it first.
+ * intent); each NEW room claims the next unused EVEN column at its own
+ * rank via a monotonic per-rank counter stepping by 2 (#174 follow-up —
+ * previously stepped by 1), which guarantees two different rooms at the
+ * same rank can never collide on a column AND leaves the odd column
+ * immediately to every room's own west side permanently empty — a
+ * genuinely free routing/incoming-face lane, not just a side effect of
+ * visit order. `ranks` (pre-computed by computeRanks, already correctly
+ * reflecting a merge room's longest-path rank) is looked up directly,
+ * not re-derived from DFS depth, so a merge room still lands at its
+ * correct rank regardless of which parent's branch reaches it first.
  */
 export function computeColumns(edges, ranks, entryId) {
   const columns = {};
@@ -415,9 +765,304 @@ export function computeColumns(edges, ranks, entryId) {
     const rank = ranks[roomId];
     const col = nextColByRank[rank] ?? 0;
     columns[roomId] = col;
-    nextColByRank[rank] = col + 1;
+    nextColByRank[rank] = col + 2;
     for (const childId of edges[roomId] ?? []) visit(childId);
   }
   visit(entryId);
   return columns;
+}
+
+/** Full grid-cell rect for (rank, col) — a room/corridor's allotted
+ * space, independent of the room's own actual size. Same origin roomRect
+ * uses: a room always anchors at its cell's own top-left corner, so a
+ * room's own rect and its cellBounds share the same gx/gy always. */
+export function cellBounds(rank, col) {
+  return {
+    gx: INITIAL_GX + col * COLUMN_STRIDE,
+    gy: rank * ROW_STRIDE,
+    gw: COLUMN_STRIDE,
+    gh: ROW_STRIDE,
+  };
+}
+
+/**
+ * Seals a room's grid-cell margin beyond its own rect — the space between
+ * a (possibly smaller) room and the full COLUMN_STRIDE x ROW_STRIDE cell
+ * it's allotted. A room always anchors at its cell's own top-left corner
+ * (roomRect), so its north and west edges always coincide with the
+ * cell's own north/west edges — only east and south can ever have
+ * margin, regardless of room size. The room's OWN east/south walls
+ * (roomEnclosureWalls, unchanged) already seal the room's interior from
+ * this margin whenever those faces aren't used for an outgoing
+ * connection; this function seals the OUTER edge of the margin (the
+ * cell's own east/south boundary), so the margin becomes fully enclosed
+ * dead space rather than open void — see the design's own reasoning for
+ * why only two walls are needed to close an L-shaped region.
+ */
+export function cellMarginWalls(rect, rank, col, { openSide = null, openOffset = 0, openWidth = 0 } = {}) {
+  const cell = cellBounds(rank, col);
+  const walls = [];
+
+  const sealSide = (dir, hasMargin, along) => {
+    if (!hasMargin) return;
+    if (openSide !== dir) {
+      walls.push(along(cell.gx, cell.gy, cell.gx + cell.gw, cell.gy + cell.gh));
+      return;
+    }
+    const gapStart = openOffset;
+    const gapEnd = openOffset + openWidth;
+    const full = dir === 'east' ? cell.gh : cell.gw;
+    if (gapStart > 0) walls.push(along(cell.gx, cell.gy, cell.gx + cell.gw, cell.gy + cell.gh, 0, gapStart));
+    if (gapEnd < full) walls.push(along(cell.gx, cell.gy, cell.gx + cell.gw, cell.gy + cell.gh, gapEnd, full));
+  };
+
+  const eastLine = (cgx, cgy, cgx2, cgy2, from = 0, to = cgy2 - cgy) =>
+    ({ dir: 'east', x1: cgx2, y1: cgy + from, x2: cgx2, y2: cgy + to });
+  const southLine = (cgx, cgy, cgx2, cgy2, from = 0, to = cgx2 - cgx) =>
+    ({ dir: 'south', x1: cgx + from, y1: cgy2, x2: cgx + to, y2: cgy2 });
+
+  sealSide('east', rect.gw < cell.gw && rect.gw === ROOM_SIZE_SMALL, eastLine);
+  sealSide('south', rect.gh < cell.gh && rect.gh === ROOM_SIZE_SMALL, southLine);
+
+  return walls;
+}
+
+const SIDE_POINT = {
+  north: (cell, offset) => ({ x: cell.gx + offset, y: cell.gy }),
+  south: (cell, offset) => ({ x: cell.gx + offset, y: cell.gy + cell.gh }),
+  west: (cell, offset) => ({ x: cell.gx, y: cell.gy + offset }),
+  east: (cell, offset) => ({ x: cell.gx + cell.gw, y: cell.gy + offset }),
+};
+const SIDE_SPAN = { north: 'gw', south: 'gw', west: 'gh', east: 'gh' };
+const OPPOSITE_SIDE = { north: 'south', south: 'north', east: 'west', west: 'east' };
+
+/**
+ * Geometry for one EMPTY cell a corridor path crosses through — a
+ * pseudo-random point on entrySide to a pseudo-random point on exitSide
+ * (same seeded-offset convention as doorOffsetAt/buildEdgeCorridor),
+ * connected by a straight segment (opposite sides) or a single-corner
+ * L-shape (adjacent sides), always staying inside this one cell's own
+ * bounds. `edgeId` (e.g. `${fromRoomId}->${toRoomId}`) salts the offset
+ * so two different edges crossing the same cell get independently
+ * randomized entry/exit points, not identical ones.
+ *
+ * Straight-vs-turn is decided from entrySide/exitSide themselves
+ * (OPPOSITE_SIDE), not from whether the two seeded points happen to share
+ * a coordinate — entry and exit offsets are independently randomized, so
+ * even opposite sides (e.g. north/south, both offset along `gw`) will
+ * almost never land on the same x by chance.
+ */
+export function transitCellCrossing(seed, rank, col, entrySide, exitSide, edgeId) {
+  const cell = cellBounds(rank, col);
+  const entryOffset = doorOffsetAt(seed, `transit-${rank}-${col}-${entrySide}-${edgeId}`, 'incoming', cell[SIDE_SPAN[entrySide]]);
+  const exitOffset = doorOffsetAt(seed, `transit-${rank}-${col}-${exitSide}-${edgeId}`, 'outgoing', cell[SIDE_SPAN[exitSide]]);
+  const entryPoint = SIDE_POINT[entrySide](cell, entryOffset);
+  const exitPoint = SIDE_POINT[exitSide](cell, exitOffset);
+
+  const corridorSegments = [];
+  const plainWalls = [];
+
+  if (OPPOSITE_SIDE[entrySide] === exitSide) {
+    // Straight through (opposite sides) — one bounding-box segment from
+    // entry to exit directly, same shape buildEdgeCorridor's own
+    // same-column branch uses even when the two offsets don't align.
+    corridorSegments.push({
+      gx: Math.min(entryPoint.x, exitPoint.x),
+      gy: Math.min(entryPoint.y, exitPoint.y),
+      gw: Math.max(CORRIDOR_LEN, Math.abs(exitPoint.x - entryPoint.x)),
+      gh: Math.max(CORRIDOR_LEN, Math.abs(exitPoint.y - entryPoint.y)),
+    });
+  } else {
+    // Adjacent sides — one corner, inside this cell, at the entry point's
+    // own axis crossed with the exit point's own axis. entryPoint->corner
+    // shares an x (vertical leg: fixed gw, variable gh); corner->exitPoint
+    // shares a y (horizontal leg: variable gw, fixed gh) — mirroring
+    // buildEdgeCorridor's own corner-case segments exactly, just walked in
+    // the opposite direction (entry->corner->exit instead of
+    // exit->corner->entry).
+    const corner = { x: entryPoint.x, y: exitPoint.y };
+
+    // #174 fix round 2 (found by review): the fixed-CORRIDOR_LEN dimension
+    // must extend INWARD from whichever point anchors it, not always in
+    // the positive direction — entryPoint.x sits at the cell's own FAR
+    // east edge exactly when entrySide is 'east' (SIDE_POINT.east uses
+    // `cell.gx + cell.gw`), so a segment extending its CORRIDOR_LEN width
+    // rightward from there overflows past this cell into the next
+    // column's cell. Same reasoning for exitPoint.y and 'south'
+    // (SIDE_POINT.south uses `cell.gy + cell.gh`). Every other anchor side
+    // sits at the cell's own near edge or an interior offset (bounded by
+    // doorOffsetAt's own maxOffset), where extending positively never
+    // leaves the cell.
+    const seg1X = entrySide === 'east' ? entryPoint.x - CORRIDOR_LEN : entryPoint.x;
+    const seg2Y = exitSide === 'south' ? exitPoint.y - CORRIDOR_LEN : exitPoint.y;
+
+    corridorSegments.push({
+      gx: seg1X, gy: Math.min(entryPoint.y, corner.y),
+      gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(corner.y - entryPoint.y)),
+    });
+    corridorSegments.push({
+      gx: Math.min(corner.x, exitPoint.x), gy: seg2Y,
+      gw: Math.max(CORRIDOR_LEN, Math.abs(exitPoint.x - corner.x)), gh: CORRIDOR_LEN,
+    });
+  }
+
+  return { entryPoint, exitPoint, plainWalls, corridorSegments };
+}
+
+/**
+ * Seals an EMPTY transit cell's outer boundary — all four compass sides,
+ * unlike `cellMarginWalls`' room case. A room always anchors at its own
+ * cell's top-left corner (`roomRect`), so its north/west edges always
+ * coincide with the cell's own north/west edges and only east/south can
+ * ever have margin (see `cellMarginWalls`' own docblock) — but a transit
+ * cell (#174 Task 3/4, `transitCellCrossing`) is empty space a corridor
+ * merely passes through, with no room and so no anchor corner: its own
+ * crossing's `entrySide`/`exitSide` can be ANY of the four sides, so all
+ * four of the cell's outer edges need sealing here, not just two.
+ *
+ * `openings` is `[{ side, point }]` — one entry per corridor crossing
+ * point that lands on this cell's boundary. Ordinarily 2 (this crossing's
+ * own `entryPoint`/`exitPoint`, from `transitCellCrossing`), but a SECOND
+ * edge crossing the SAME empty cell via a different entry/exit pair
+ * contributes its own 1-2 more (idempotency, see
+ * `buildPopulateAndUnlockGraphNode`'s own accumulation of prior
+ * openings) — multiple openings on the SAME side are supported (sorted,
+ * whatever's between two consecutive openings on one side stays a solid
+ * wall), the same "seal minus every declared gap" pattern
+ * `cellMarginWalls` uses for its own single opening, generalized here to
+ * N sides x N openings. `point` is reused directly from
+ * `transitCellCrossing`'s own `entryPoint`/`exitPoint` (an absolute grid
+ * coordinate already sitting exactly on that side) rather than
+ * re-derived, so every gap lines up exactly with its own crossing's
+ * randomized point, whatever it happened to be. A side with no opening
+ * at all gets one full-length wall, same as a room's fully-sealed
+ * margin side.
+ */
+export function transitCellContainmentWalls(rank, col, openings) {
+  const cell = cellBounds(rank, col);
+
+  const LINE = {
+    north: (from, to) => ({ dir: 'north', x1: cell.gx + from, y1: cell.gy, x2: cell.gx + to, y2: cell.gy }),
+    south: (from, to) => ({ dir: 'south', x1: cell.gx + from, y1: cell.gy + cell.gh, x2: cell.gx + to, y2: cell.gy + cell.gh }),
+    west: (from, to) => ({ dir: 'west', x1: cell.gx, y1: cell.gy + from, x2: cell.gx, y2: cell.gy + to }),
+    east: (from, to) => ({ dir: 'east', x1: cell.gx + cell.gw, y1: cell.gy + from, x2: cell.gx + cell.gw, y2: cell.gy + to }),
+  };
+  const SPAN = { north: cell.gw, south: cell.gw, east: cell.gh, west: cell.gh };
+
+  const offsetsBySide = { north: [], south: [], east: [], west: [] };
+  for (const { side, point } of openings) {
+    const offset = side === 'north' || side === 'south' ? point.x - cell.gx : point.y - cell.gy;
+    offsetsBySide[side].push(offset);
+  }
+
+  const walls = [];
+  for (const side of ['north', 'south', 'east', 'west']) {
+    const full = SPAN[side];
+    const along = LINE[side];
+    const offsets = offsetsBySide[side].slice().sort((a, b) => a - b);
+    if (offsets.length === 0) {
+      walls.push(along(0, full));
+      continue;
+    }
+    let cursor = 0;
+    for (const offset of offsets) {
+      const gapStart = offset;
+      const gapEnd = offset + CORRIDOR_LEN;
+      if (gapStart > cursor) walls.push(along(cursor, gapStart));
+      cursor = Math.max(cursor, gapEnd);
+    }
+    if (cursor < full) walls.push(along(cursor, full));
+  }
+  return walls;
+}
+
+/**
+ * BFS shortest path of cells from fromPos to toPos over the rank/column
+ * grid, treating any cell occupied by a room other than fromRoomId/
+ * toRoomId as blocked. Returns an ordered array of {rank, col} from
+ * fromPos to toPos inclusive (length 2 when already adjacent with
+ * nothing to route around), or null if no path exists within the search
+ * bounds — callers fall back to a direct line in that case (see
+ * buildEdgeCorridor), so returning null rather than throwing is
+ * deliberate. The search space is bounded to a small margin around the
+ * two endpoints' own bounding box (not the whole graph) — real dungeons
+ * never need a detour wider than a room or two, and an unbounded search
+ * risks wandering arbitrarily far in a degenerate all-blocked case.
+ */
+export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace = 'north' }) {
+  const SEARCH_MARGIN = 2;
+  const key = (pos) => `${pos.rank},${pos.col}`;
+  const minRank = Math.max(0, Math.min(fromPos.rank, toPos.rank) - SEARCH_MARGIN);
+  const maxRank = Math.max(fromPos.rank, toPos.rank) + SEARCH_MARGIN;
+  const minCol = Math.min(fromPos.col, toPos.col) - SEARCH_MARGIN;
+  const maxCol = Math.max(fromPos.col, toPos.col) + SEARCH_MARGIN;
+  const inBounds = (pos) =>
+    pos.rank >= minRank && pos.rank <= maxRank && pos.col >= minCol && pos.col <= maxCol;
+  // #174 follow-up: a broader legitimateSourceIds exemption was tried
+  // here (so a co-parent legitimately sitting at a merge room's own gate
+  // cell wouldn't block a DIFFERENT parent's own edge) and reverted --
+  // this plan's own final whole-branch review found it unsound (C1):
+  // exempting a co-parent HERE let a path route straight through that
+  // co-parent's own real room as if it were empty transit space, which
+  // then got walled like a transit cell, potentially sealing the
+  // co-parent's own door. A follow-up attempt moved the fix into
+  // incomingFaceFor instead, but that was ALSO reverted (see its own
+  // docblock) once found net-negative given the current state of the
+  // multi-cell/transit-cell machinery. Both fixes are deferred until
+  // that machinery itself is fixed -- so occupiedCells CAN still
+  // legitimately contain a co-parent at a real entry point today; when it
+  // does, this function correctly returns null (the existing, honest
+  // "no free path" degradation), same as before either fix was tried.
+  const isBlocked = (pos) => {
+    const occupant = occupiedCells[key(pos)];
+    return occupant != null && occupant !== fromRoomId && occupant !== toRoomId;
+  };
+  // Generalized from #174's own north-only-entry fix: a room's incoming
+  // connection lands on whichever face incomingFaceFor chose for it
+  // (north or west, both structurally marginless) -- only that ONE
+  // neighbor cell may step into the target; every other neighbor treats
+  // it as unreachable, same as any blocked cell.
+  const incomingNeighbor = incomingFace === 'west'
+    ? { rank: toPos.rank, col: toPos.col - 1 }
+    : { rank: toPos.rank - 1, col: toPos.col };
+  const canEnter = (from, to) => {
+    if (to.rank === toPos.rank && to.col === toPos.col) {
+      return from.rank === incomingNeighbor.rank && from.col === incomingNeighbor.col;
+    }
+    return true;
+  };
+
+  const goalKey = key(toPos);
+  const queue = [fromPos];
+  const cameFrom = new Map([[key(fromPos), null]]);
+  while (queue.length) {
+    const current = queue.shift();
+    const currentKey = key(current);
+    if (currentKey === goalKey) {
+      const path = [];
+      let step = currentKey;
+      while (step !== null) {
+        const [rank, col] = step.split(',').map(Number);
+        path.unshift({ rank, col });
+        step = cameFrom.get(step);
+      }
+      return path;
+    }
+    const neighbors = [
+      { rank: current.rank - 1, col: current.col },
+      { rank: current.rank + 1, col: current.col },
+      { rank: current.rank, col: current.col - 1 },
+      { rank: current.rank, col: current.col + 1 },
+    ];
+    for (const next of neighbors) {
+      if (!inBounds(next)) continue;
+      const nextKey = key(next);
+      if (cameFrom.has(nextKey)) continue;
+      if (isBlocked(next)) continue;
+      if (!canEnter(current, next)) continue;
+      cameFrom.set(nextKey, currentKey);
+      queue.push(next);
+    }
+  }
+  return null;
 }

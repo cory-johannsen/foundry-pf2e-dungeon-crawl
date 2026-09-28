@@ -37,8 +37,12 @@ import {
   exitFaceForIndex,
   parentRoomIdsFor,
   incomingConnectionsFor,
-  northDoorSlots,
+  doorSlotsForFace,
   buildEdgeCorridor,
+  cellMarginWalls,
+  transitCellContainmentWalls,
+  DOOR_WIDTH,
+  outgoingMarginOffset,
 } from "./dungeon-layout.mjs";
 import { freeSpotInRect } from "./placement.mjs";
 import { generateEncounter } from "./encounter-generator.mjs";
@@ -122,6 +126,143 @@ function wallDoc(
   };
 }
 
+/** Corridor floor Tile data for every 1x1 square in `segments` (a
+ * `buildEdgeCorridor`/`transitCellCrossing` `corridorSegments` array) —
+ * shared by a connection's own corridor and a #174 Task 5 transit cell's
+ * own crossing, both of which lay tile-per-grid-square the same way the
+ * old linear-slot builder's single corridorRect loop always did. */
+function corridorTilesForSegments(segments) {
+  const tiles = [];
+  for (const segment of segments) {
+    const vertical = segment.gh >= segment.gw;
+    const length = vertical ? segment.gh : segment.gw;
+    for (let ti = 0; ti < length; ti += 1) {
+      const dx = vertical ? 0 : ti;
+      const dy = vertical ? ti : 0;
+      const { variant, rotation } = corridorTileVariant(ti, length, vertical);
+      tiles.push({
+        texture: { src: CORRIDOR_ART_BY_VARIANT[variant] },
+        x: toPixels(segment.gx + dx) + toPixels(1) / 2,
+        y: toPixels(segment.gy + dy) + toPixels(1) / 2,
+        width: toPixels(1),
+        height: toPixels(1),
+        rotation,
+      });
+    }
+  }
+  return tiles;
+}
+
+/**
+ * Builds (idempotently) one intermediate, empty cell's own corridor floor
+ * tiles and outer-boundary containment for a multi-cell corridor path
+ * (#174 Tasks 1/3/4's findCorridorPath/transitCellCrossing/
+ * buildEdgeCorridor) — a cell no room is ever built at, so nothing else
+ * in this file ever touches it. Two different edges can route through
+ * the SAME empty cell via DIFFERENT entry/exit side pairs; each needs its
+ * own opening, not a skipped or duplicated cell (design spec's own
+ * "Error handling" section, and Task 5's brief Step 1 checklist item e).
+ *
+ * Idempotency for this EXACT entry/exit pair is checked against this
+ * crossing's own corridor floor TILE, not its containment walls —
+ * mirroring buildRoomAtGraphNode's own `dungeonRoomBuilt` convention (a
+ * document created once and never rebuilt is a stable "already built"
+ * marker). The containment WALLS can't double as that marker themselves:
+ * unlike a room's own floor tile, they DO get superseded below whenever a
+ * later, different-pair crossing of the SAME cell needs to open a side
+ * this crossing left solid — a marker living only on those walls would
+ * vanish the moment a second crossing rebuilds them, making an idempotent
+ * re-run of the FIRST crossing think it still needs building again.
+ */
+async function buildTransitCellIfNeeded(scene, cell) {
+  const marker = `${cell.rank},${cell.col}:${cell.entrySide}-${cell.exitSide}`;
+  const alreadyBuilt = scene.tiles.some(
+    (t) => t.getFlag(MODULE_ID, "dungeonTransitCellCrossing") === marker,
+  );
+  if (alreadyBuilt) return;
+
+  const tiles = corridorTilesForSegments(cell.corridorSegments).map((t) => ({
+    ...t,
+    flags: { [MODULE_ID]: { dungeonTransitCellCrossing: marker } },
+  }));
+
+  // This cell's outer-boundary containment accumulates across every edge
+  // that ever crosses it: a second, different-pair crossing needs its own
+  // opening added to whichever sides the FIRST crossing left solid, not a
+  // fresh 2-opening seal that silently re-solidifies the first crossing's
+  // own gap. `dungeonTransitCellOpenings` (stored on this cell's own
+  // margin walls, keyed by `dungeonTransitCellMarginForCell`) is the
+  // running list this rebuild reads back and appends to.
+  const cellKey = `${cell.rank},${cell.col}`;
+  const existingMarginWalls = scene.walls.filter(
+    (w) => w.getFlag(MODULE_ID, "dungeonTransitCellMarginForCell") === cellKey,
+  );
+  const priorOpenings = existingMarginWalls.length
+    ? (existingMarginWalls[0].getFlag(MODULE_ID, "dungeonTransitCellOpenings") ?? [])
+    : [];
+  const openings = [
+    ...priorOpenings,
+    { side: cell.entrySide, point: cell.entryPoint },
+    { side: cell.exitSide, point: cell.exitPoint },
+  ];
+  const marginWalls = transitCellContainmentWalls(cell.rank, cell.col, openings).map((side) =>
+    wallDoc(side, {
+      flags: {
+        [MODULE_ID]: {
+          dungeonTransitCellMarginForCell: cellKey,
+          dungeonTransitCellOpenings: openings,
+        },
+      },
+    }),
+  );
+  const plainWalls = (cell.plainWalls ?? []).map((w) => wallDoc(w));
+
+  // #110 ordering: create this crossing's own tiles and the new
+  // (superseding) containment walls before deleting whichever earlier
+  // containment walls this rebuild replaces — never the reverse, so
+  // there's never a frame where this cell's boundary is neither the old
+  // seal nor the new one.
+  await scene.createEmbeddedDocuments("Wall", [...marginWalls, ...plainWalls]);
+  if (tiles.length) await scene.createEmbeddedDocuments("Tile", tiles);
+  if (existingMarginWalls.length) {
+    await scene.deleteEmbeddedDocuments("Wall", existingMarginWalls.map((w) => w.id));
+  }
+}
+
+/**
+ * Proactively seals an empty buffer column (#174 follow-up:
+ * computeColumns' skip-by-2 stride leaves one beside every room) with a
+ * full 4-wall containment boundary, idempotently — using the exact same
+ * `dungeonTransitCellMarginForCell`/`dungeonTransitCellOpenings` flags
+ * `buildTransitCellIfNeeded` already reads and writes for a
+ * corridor-crossed transit cell, so the two compose correctly regardless
+ * of which runs first for a given cell:
+ *
+ * - Sealed here first, corridor crosses it later: `buildTransitCellIfNeeded`
+ *   reads this function's own `dungeonTransitCellOpenings: []` back as
+ *   `priorOpenings`, and rebuilds with its own entry/exit added — its
+ *   existing, already-shipped behavior for "a second edge crosses an
+ *   already-built transit cell," no special-casing needed.
+ * - A corridor crosses it first, this runs later: `alreadyBuilt` below
+ *   finds the crossing's own walls already tagged with this cell's key
+ *   and does nothing, never re-sealing over an opening a corridor needs.
+ */
+async function sealBufferCellIfUnbuilt(scene, rank, col) {
+  const cellKey = `${rank},${col}`;
+  const alreadyBuilt = scene.walls.some(
+    (w) => w.getFlag(MODULE_ID, "dungeonTransitCellMarginForCell") === cellKey,
+  );
+  if (alreadyBuilt) return;
+  const marginWalls = transitCellContainmentWalls(rank, col, []).map((side) =>
+    wallDoc(side, {
+      flags: {
+        [MODULE_ID]: { dungeonTransitCellMarginForCell: cellKey, dungeonTransitCellOpenings: [] },
+      },
+    }),
+  );
+  await scene.createEmbeddedDocuments("Wall", marginWalls);
+}
+
 // #93 pre-flight fix (Step 3f): requiredDimensions/ensureSceneCovers
 // (the old per-room, slot-indexed canvas-growth pair) are deleted —
 // superseded by resizeSceneForLayout below, called ONCE by Task 12 right
@@ -196,20 +337,30 @@ export async function buildRoomAtGraphNode(
     rank, col, childIds = [], incomingConnections = [],
     hiddenChildId = null,
     isGoal = false, locationTag = null, artVariant = 0, seed = "",
+    layoutPositionByRoomId = {}, occupiedCells = {},
+    incomingFace = 'north', incomingFaceByRoomId = {},
   },
 ) {
   const rect = roomRect(seed, roomId, rank, col);
 
-  const realOutgoingFaces = isGoal ? [] : childIds.map((_, i) => exitFaceForIndex(i));
+  const realOutgoingFaces = isGoal ? [] : childIds.map((_, i) => exitFaceForIndex(i, incomingFace));
   const hiddenFaceIndex = childIds.length; // reserved right after the real children
-  const outgoingFaces = hiddenChildId ? [...realOutgoingFaces, exitFaceForIndex(hiddenFaceIndex)] : realOutgoingFaces;
+  const outgoingFaces = hiddenChildId ? [...realOutgoingFaces, exitFaceForIndex(hiddenFaceIndex, incomingFace)] : realOutgoingFaces;
+  // #174 Task 5 fix round: which child each outgoing face actually
+  // connects to, so the margin-gap computation below can tell whether
+  // buildEdgeCorridor will use its offset-based or center-based exit
+  // point for THIS specific connection (see the margin-wall comment
+  // below for why that distinction matters).
+  const childIdByFace = {};
+  childIds.forEach((id, i) => { childIdByFace[exitFaceForIndex(i, incomingFace)] = id; });
+  if (hiddenChildId) childIdByFace[exitFaceForIndex(hiddenFaceIndex, incomingFace)] = hiddenChildId;
   // #93 pre-flight fix: incoming is ALWAYS north now (Task 5's redesign),
   // subdivided into one door slot per `incomingConnections` entry — never
   // a variable compass direction, and never overlapping with outgoingFaces
   // (which never includes north) regardless of how many incoming
   // connections this room has or which index it was among its own
   // parent's children.
-  const walls = roomEnclosureWalls(seed, roomId, { incomingCount: incomingConnections.length, outgoingFaces }, rect).map(
+  const walls = roomEnclosureWalls(seed, roomId, { incomingCount: incomingConnections.length, incomingFace, outgoingFaces }, rect).map(
     (side) =>
       wallDoc(side, {
         flags: {
@@ -219,6 +370,60 @@ export async function buildRoomAtGraphNode(
           },
         },
       }),
+  );
+
+  // #174 Task 5: seal this room's own grid-cell margin (the dead space
+  // between a ROOM_SIZE_SMALL room and the full cell it's allotted — a
+  // no-op for ROOM_SIZE_LARGE, cellMarginWalls' own docblock) so vision
+  // and movement can never leak past the room into unbuilt void space.
+  // `openOffset` comes from `outgoingMarginOffset` (dungeon-layout.mjs),
+  // which re-derives exactly which of buildEdgeCorridor's own branches
+  // (offset-based vs. center-based exit point) will fire for THIS
+  // connection, rather than duplicating that branch logic here — the two
+  // needed two fix rounds to agree before being centralized in one place
+  // (see outgoingMarginOffset's own docblock for the full history).
+  //
+  // cellMarginWalls (Task 2) only ever accepts a SINGLE openSide at a
+  // time — sufficient for a room with at most one of south/east actually
+  // outgoing, but a room can have BOTH as real outgoing faces at once
+  // (branching factor 2: south is exitFaceForIndex(0), east is
+  // exitFaceForIndex(1)). Calling it once per margin-having outgoing
+  // face and keeping only THAT call's own matching-side walls (its
+  // other side, computed as if fully sealed, is discarded and handled
+  // correctly by that other side's own call instead) generalizes this
+  // without needing to touch cellMarginWalls' own already-tested
+  // signature.
+  const marginFaces = outgoingFaces.filter((face) => face === "east" || face === "south");
+  const marginWalls = [];
+  const coveredMarginSides = new Set();
+  for (const face of marginFaces) {
+    const childId = childIdByFace[face];
+    const childPos = childId ? layoutPositionByRoomId[childId] : null;
+    // #174 Task 6: the CHILD's own incoming face, not this room's — this
+    // must match wherever buildEdgeCorridor will actually land the
+    // connection at the far end (see this task's own "Note for the
+    // implementer" in the brief). This room's own incomingFace has no
+    // bearing on which face its children receive their connections on.
+    const childIncomingFace = childId ? (incomingFaceByRoomId?.[childId] ?? 'north') : 'north';
+    const offset = outgoingMarginOffset(
+      seed, roomId, childId, face, rect, { rank, col },
+      childPos ?? { rank: NaN, col: NaN }, occupiedCells, childIncomingFace,
+    );
+    const sideWalls = cellMarginWalls(rect, rank, col, { openSide: face, openOffset: offset, openWidth: DOOR_WIDTH });
+    for (const side of sideWalls) if (side.dir === face) marginWalls.push(side);
+    coveredMarginSides.add(face);
+  }
+  if (coveredMarginSides.size < 2) {
+    for (const side of cellMarginWalls(rect, rank, col)) {
+      if (!coveredMarginSides.has(side.dir)) marginWalls.push(side);
+    }
+  }
+  walls.push(
+    ...marginWalls.map((side) =>
+      wallDoc(side, {
+        flags: { [MODULE_ID]: { dungeonCellMarginWallForRoom: roomId } },
+      }),
+    ),
   );
 
   // Supersede EACH incoming connection's own frontier placeholder (built
@@ -256,7 +461,7 @@ export async function buildRoomAtGraphNode(
   // topological, so every parent builds before its children.
   for (let i = 0; i < childIds.length; i += 1) {
     if (isSlotBuilt(scene, childIds[i])) continue;
-    const face = exitFaceForIndex(i);
+    const face = exitFaceForIndex(i, incomingFace);
     const side = roomSidesForRect(rect)[face];
     walls.push(
       wallDoc(side, {
@@ -272,7 +477,7 @@ export async function buildRoomAtGraphNode(
   // target that built first already carries its own sealed
   // dungeonHiddenDoorForEdge gate/reveal doors for this edge.
   if (hiddenChildId && !isSlotBuilt(scene, hiddenChildId)) {
-    const face = exitFaceForIndex(hiddenFaceIndex);
+    const face = exitFaceForIndex(hiddenFaceIndex, incomingFace);
     const side = roomSidesForRect(rect)[face];
     walls.push(
       wallDoc(side, {
@@ -293,6 +498,17 @@ export async function buildRoomAtGraphNode(
   // to delete, each list only once ITS OWN matching connection-wall
   // creation succeeds.
   if (walls.length) await scene.createEmbeddedDocuments("Wall", walls);
+
+  // #174 follow-up: seal this room's own same-rank buffer-column
+  // neighbors (computeColumns' skip-by-2 stride guarantees col-1/col+1
+  // are never another real room) — idempotent, so it's safe to call
+  // from whichever of a buffer column's two neighboring rooms happens
+  // to be built first.
+  for (const neighborCol of [col - 1, col + 1]) {
+    if (occupiedCells[`${rank},${neighborCol}`] == null) {
+      await sealBufferCellIfUnbuilt(scene, rank, neighborCol);
+    }
+  }
 
   // This room's own floor-art Tile + AmbientLight — same as the old
   // linear-slot room builder (roomArtPath for the Tile texture at anchorX/Y:0 sized to `rect`,
@@ -846,6 +1062,25 @@ export async function buildPopulateAndUnlockGraphNode(
   const alreadyBuilt = isSlotBuilt(scene, room.id);
   const rect = roomRect(state.seed, room.id, rank, col);
 
+  // #174 Task 5: every room's own {rank, col}, inverted from
+  // state.layoutPositionByRoomId (populated once for the whole graph
+  // ahead of any room build — full pregeneration, Task 12) into
+  // "rank,col" -> roomId. Passed to buildEdgeCorridor below so
+  // findCorridorPath can treat any OTHER room's cell as blocked when
+  // routing this room's own incoming connections around it.
+  const occupiedCells = {};
+  for (const [otherRoomId, pos] of Object.entries(state.layoutPositionByRoomId)) {
+    occupiedCells[`${pos.rank},${pos.col}`] = otherRoomId;
+  }
+  // #174 Task 6: this room's own real incoming face, precomputed once for
+  // the whole graph (dungeon-app.mjs) — the `?? 'north'` fallback only
+  // matters for a room this task's own precompute step somehow missed.
+  // #174 follow-up: optional chaining here (not just the `?? 'north'`
+  // fallback) matters for a run whose own state was persisted before
+  // this field existed — reading a property off `undefined` would throw
+  // instead of falling back, leaving the party's room-build stuck.
+  const incomingFace = state.incomingFaceByRoomId?.[room.id] ?? 'north';
+
   // #93 pre-flight fix (merge-door redesign): every real parent this room
   // has (usually 1, more for a merge room), plus a shortcut's hidden extra
   // incoming source if any. A detour room's one real parent link (found via
@@ -869,16 +1104,20 @@ export async function buildPopulateAndUnlockGraphNode(
         rank, col, childIds, incomingConnections, hiddenChildId,
         isGoal: room.isGoal, locationTag: room.locationTag,
         artVariant: room.artVariant, seed: state.seed,
+        layoutPositionByRoomId: state.layoutPositionByRoomId,
+        occupiedCells, incomingFace,
+        incomingFaceByRoomId: state.incomingFaceByRoomId,
       },
     );
 
     const connectionWalls = [];
     const tiles = [];
     const placeholderIdsToDelete = [];
-    // One door per incoming connection, all on this room's own north face —
-    // northDoorSlots' Nth slot corresponds to incomingConnections' Nth
-    // entry (same order, same length).
-    const slots = incomingConnections.length ? northDoorSlots(rect, incomingConnections.length) : [];
+    // One door per incoming connection, all on this room's own incoming
+    // face (usually north, sometimes west — #174 Task 6) — doorSlotsForFace's
+    // Nth slot corresponds to incomingConnections' Nth entry (same order,
+    // same length).
+    const slots = incomingConnections.length ? doorSlotsForFace(rect, incomingConnections.length, incomingFace) : [];
     for (let i = 0; i < incomingConnections.length; i += 1) {
       const { sourceId, hidden } = incomingConnections[i];
       const toSlot = slots[i];
@@ -892,11 +1131,15 @@ export async function buildPopulateAndUnlockGraphNode(
       // outgoing target is always reserved right after its real children
       // (exitFaceForIndex(sourceChildIds.length) — same convention
       // buildRoomAtGraphNode's own hiddenFaceIndex uses for itself).
+      const sourceIncomingFace = state.incomingFaceByRoomId?.[sourceId] ?? 'north'; // #174 Task 6: incomingFaceByRoomId is now real, non-empty data; the fallback only covers a state predating this precompute step
       const exitFaceFromSource = hidden
-        ? exitFaceForIndex(sourceChildIds.length)
-        : exitFaceForIndex(sourceChildIds.indexOf(room.id));
-      const { doorWall, revealDoorWall, plainWalls, corridorSegments } =
-        buildEdgeCorridor(state.seed, sourceId, room.id, sourceRect, rect, exitFaceFromSource, toSlot);
+        ? exitFaceForIndex(sourceChildIds.length, sourceIncomingFace)
+        : exitFaceForIndex(sourceChildIds.indexOf(room.id), sourceIncomingFace);
+      // #174 Task 4/5: sourcePos/{rank, col} let buildEdgeCorridor pathfind
+      // (findCorridorPath) a route around any other room's own occupied
+      // cell instead of assuming a direct/single-corner connection.
+      const { doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells } =
+        buildEdgeCorridor(state.seed, sourceId, room.id, sourceRect, rect, sourcePos, { rank, col }, exitFaceFromSource, toSlot, occupiedCells, incomingFace);
       if (hidden) {
         // #156: sealed until Task 9's reveal step explicitly promotes it
         // (both doorWall and revealDoorWall share the SAME
@@ -943,29 +1186,26 @@ export async function buildPopulateAndUnlockGraphNode(
           ...plainWalls.map((w) => wallDoc(w)),
         );
       }
-      // Corridor floor tiles — one loop per corridorSegments entry (1 for a
+      // Corridor floor tiles — one per corridorSegments entry (1 for a
       // straight edge, 2 for an L-shaped edge, Task 6), same per-tile
       // variant/rotation logic the old linear-slot builder's single-corridorRect
       // loop always used, just offset by each segment's own gx/gy instead
       // of a single shared corridorRect's.
-      for (const segment of corridorSegments) {
-        const vertical = segment.gh >= segment.gw;
-        const length = vertical ? segment.gh : segment.gw;
-        for (let ti = 0; ti < length; ti += 1) {
-          const dx = vertical ? 0 : ti;
-          const dy = vertical ? ti : 0;
-          const { variant, rotation } = corridorTileVariant(ti, length, vertical);
-          tiles.push({
-            texture: { src: CORRIDOR_ART_BY_VARIANT[variant] },
-            x: toPixels(segment.gx + dx) + toPixels(1) / 2,
-            y: toPixels(segment.gy + dy) + toPixels(1) / 2,
-            width: toPixels(1),
-            height: toPixels(1),
-            rotation,
-          });
-        }
-      }
+      tiles.push(...corridorTilesForSegments(corridorSegments));
       placeholderIdsToDelete.push(...placeholderIdsByConnection[i]);
+
+      // #174 Task 4/5: every intermediate, empty cell this connection's
+      // own path routes through (obstacle detour only — empty for a
+      // direct/single-corner connection, today's common case) gets its
+      // own corridor floor + outer-boundary containment, built here
+      // rather than batched with this room's own connectionWalls/tiles
+      // above, since each cell needs to read the scene's CURRENT wall/tile
+      // state (for its own idempotency check and to accumulate openings
+      // across possibly-multiple crossing edges) before deciding what to
+      // create.
+      for (const cell of transitCells) {
+        await buildTransitCellIfNeeded(scene, cell);
+      }
     }
 
     // #110 ordering: create every connection's geometry (and this room's
