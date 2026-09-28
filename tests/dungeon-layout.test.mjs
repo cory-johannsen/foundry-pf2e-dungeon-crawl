@@ -1768,6 +1768,112 @@ describe('corridor routing regression sweep (#174)', () => {
     // separate, ongoing investigation, not solved here.
     expect(nullPathEdges / totalEdges).toBeLessThanOrEqual(0.27);
   });
+
+  // #225: every earlier sweep in this describe block only ever checked a
+  // PROXY for buildability — a found path, or a corridor segment not
+  // overlapping a room's footprint. Neither catches "a wall's own gap
+  // sits at a different position than where the corridor actually
+  // crosses that same physical boundary" — the real defect #225 fixed.
+  // This sweep checks the actual invariant: for every multi-cell
+  // connection produced by the real generation pipeline, the source's
+  // real door, the target's real door, and every consecutive pair of
+  // transit cells' shared borders all coincide EXACTLY (not just
+  // "overlap") with where buildEdgeCorridor's own chain says the corridor
+  // crosses them.
+  it('every multi-cell corridor\'s crossing points are chained exactly — target door, source door, and every consecutive transit-cell border, across a large seed/roomCount sweep', () => {
+    let totalMultiCellEdges = 0;
+    for (let i = 0; i < 500; i += 1) {
+      const seed = `sweep-${i}`;
+      const roomCount = 6 + (i % 15);
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+      const { layoutEdges } = attachHiddenPaths({ rooms, edges, seed });
+      const ranks = computeRanks(layoutEdges, 'room-entry');
+      const columns = computeColumns(layoutEdges, ranks, 'room-entry');
+      const positionByRoomId = Object.fromEntries(
+        Object.keys(rooms).map((id) => [id, { rank: ranks[id], col: columns[id] }]),
+      );
+      const occupiedCells = Object.fromEntries(
+        Object.entries(positionByRoomId).map(([id, pos]) => [`${pos.rank},${pos.col}`, id]),
+      );
+      const rectById = Object.fromEntries(
+        Object.keys(rooms).map((id) => [id, roomRect(seed, id, positionByRoomId[id].rank, positionByRoomId[id].col)]),
+      );
+
+      for (const [fromId, children] of Object.entries(edges)) {
+        for (let idx = 0; idx < children.length; idx += 1) {
+          const toId = children[idx];
+          const fromRect = rectById[fromId];
+          const toRect = rectById[toId];
+          const fromPos = positionByRoomId[fromId];
+          const toPos = positionByRoomId[toId];
+          const face = exitFaceForIndex(idx);
+          const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
+          const result = buildEdgeCorridor(
+            seed, fromId, toId, fromRect, toRect, fromPos, toPos,
+            face, toSlot, occupiedCells,
+          );
+          if (result.transitCells.length === 0) continue; // only multi-cell connections are in scope here
+          totalMultiCellEdges += 1;
+
+          // (a) source's own real door, recovered from doorWall's own
+          // center. Only the axis matching the first transit cell's own
+          // entrySide is FORCED to this value — north/south entrySide
+          // forces x (the corridor descended/ascended straight into the
+          // cell, so x carries over); east/west entrySide forces y. The
+          // OTHER axis is legitimately the transit cell's own fixed
+          // boundary coordinate, not the room's door coordinate: the
+          // room's south/east face always sits inside a margin gap
+          // (ROOM_SIZE_SMALL/LARGE are both < ROW_STRIDE/COLUMN_STRIDE),
+          // so when the BFS path's first hop heads sideways instead of
+          // straight out the room's own exit face, the connector's OTHER
+          // leg bridges that perpendicular distance instead — asserting
+          // both axes unconditionally here would be wrong, not a real
+          // defect (confirmed by hand-derivation during this plan's own
+          // design; see Task 3's straight-descent test for the case where
+          // both axes DO coincide, by construction, when entrySide directly
+          // opposes exitFace).
+          const sourceDoorX = (result.doorWall.x1 + result.doorWall.x2) / 2;
+          const sourceDoorY = (result.doorWall.y1 + result.doorWall.y2) / 2;
+          const firstEntrySide = result.transitCells[0].entrySide;
+          if (firstEntrySide === 'north' || firstEntrySide === 'south') {
+            expect(result.transitCells[0].entryPoint.x).toBeCloseTo(sourceDoorX, 9);
+          } else {
+            expect(result.transitCells[0].entryPoint.y).toBeCloseTo(sourceDoorY, 9);
+          }
+
+          // (b) target's own real door, recovered from revealDoorWall's
+          // own center — unlike the source side, BOTH axes always
+          // coincide here unconditionally: a room always anchors flush at
+          // its own cell's north/west corner (no margin on those two
+          // sides), and findCorridorPath's canEnter constraint always
+          // makes the LAST transit cell exactly the target's own
+          // incoming-neighbor cell — so the shared boundary line's other
+          // coordinate is always exactly the room's own cell edge too,
+          // not just the forced axis.
+          const targetDoorX = (result.revealDoorWall.x1 + result.revealDoorWall.x2) / 2;
+          const targetDoorY = (result.revealDoorWall.y1 + result.revealDoorWall.y2) / 2;
+          const lastCell = result.transitCells[result.transitCells.length - 1];
+          expect(lastCell.exitPoint.x).toBeCloseTo(targetDoorX, 9);
+          expect(lastCell.exitPoint.y).toBeCloseTo(targetDoorY, 9);
+
+          // (c): every consecutive pair of transit cells' shared border —
+          // one cell's exit must exactly equal the next cell's entry.
+          for (let ci = 0; ci < result.transitCells.length - 1; ci += 1) {
+            expect(result.transitCells[ci].exitPoint).toEqual(result.transitCells[ci + 1].entryPoint);
+          }
+
+          // (d): edgeId survives onto every transitCells entry, unchanged
+          // — this is what lets two edges crossing the same cell (#225
+          // bug #3) each get their own opening, per Task 4's marker fix.
+          const expectedEdgeId = `${fromId}->${toId}`;
+          for (const cell of result.transitCells) {
+            expect(cell.edgeId).toBe(expectedEdgeId);
+          }
+        }
+      }
+    }
+    expect(totalMultiCellEdges).toBeGreaterThan(50); // sanity: real multi-cell corridors were actually exercised
+  });
 });
 
 describe('incomingFaceByRoomId derivation over a real generated graph', () => {
