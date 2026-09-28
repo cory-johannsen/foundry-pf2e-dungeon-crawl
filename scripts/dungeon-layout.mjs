@@ -356,15 +356,6 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // point to toRect's own entry point, via the same corner-connector
     // shape used below between exitPoint and entryPoint directly.
     const edgeId = `${fromRoomId}->${toRoomId}`;
-    const transitCells = [];
-    for (let i = 1; i < path.length - 1; i += 1) {
-      const cell = path[i];
-      const entrySide = directionBetween(cell, path[i - 1]);
-      const exitSide = directionBetween(cell, path[i + 1]);
-      const crossing = transitCellCrossing(seed, cell.rank, cell.col, entrySide, exitSide, edgeId);
-      transitCells.push({ rank: cell.rank, col: cell.col, entrySide, exitSide, ...crossing });
-    }
-
     const exitPoint = exitFace === 'east'
       ? { x: fromRect.gx + fromRect.gw, y: fromRect.gy + fromRect.gh / 2 }
       : exitFace === 'west'
@@ -385,6 +376,33 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     const revealDoorWall = incomingFace === 'west'
       ? { x1: entryPoint.x, y1: entryPoint.y - DOOR_WIDTH / 2, x2: entryPoint.x, y2: entryPoint.y + DOOR_WIDTH / 2 }
       : { x1: entryPoint.x - DOOR_WIDTH / 2, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH / 2, y2: entryPoint.y };
+
+    // #225: chain every intermediate cell's crossing point to its
+    // neighbor's, anchored at the two real room doors just computed above
+    // (exitPoint/entryPoint) — the fix for "two pieces sharing a physical
+    // boundary don't agree on where they cross it" (see the design spec's
+    // own Problem section for the three-symptom repro this closes). The
+    // first cell's entry is forced from the SOURCE room's own door; the
+    // last cell's exit is forced from the TARGET room's own door; every
+    // interior cell's exit becomes the NEXT cell's forced entry, never
+    // independently reseeded. A cell's own free perpendicular axis (when
+    // entry/exit are adjacent, not opposite, sides) is still seeded via
+    // doorOffsetAt inside transitCellCrossing, unchanged — only the FORCED
+    // axis stops being random.
+    const transitCells = [];
+    let chainAnchor = exitPoint;
+    for (let i = 1; i < path.length - 1; i += 1) {
+      const cell = path[i];
+      const cellRect = cellBounds(cell.rank, cell.col);
+      const entrySide = directionBetween(cell, path[i - 1]);
+      const exitSide = directionBetween(cell, path[i + 1]);
+      const isLast = i === path.length - 2;
+      const forcedEntryPoint = projectOntoSide(cellRect, entrySide, chainAnchor);
+      const forcedExitPoint = isLast ? projectOntoSide(cellRect, exitSide, entryPoint) : undefined;
+      const crossing = transitCellCrossing(seed, cell.rank, cell.col, entrySide, exitSide, edgeId, { forcedEntryPoint, forcedExitPoint });
+      transitCells.push({ rank: cell.rank, col: cell.col, entrySide, exitSide, edgeId, ...crossing });
+      chainAnchor = crossing.exitPoint;
+    }
 
     const firstCellPoint = transitCells[0].entryPoint;
     const lastCellPoint = transitCells[transitCells.length - 1].exitPoint;

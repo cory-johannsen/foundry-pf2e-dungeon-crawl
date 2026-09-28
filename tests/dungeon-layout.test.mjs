@@ -672,6 +672,86 @@ describe('buildEdgeCorridor (multi-cell path)', () => {
     expect(result.corridorSegments[0].gy).toBe(12);
     expect(result.corridorSegments[0].gy + result.corridorSegments[0].gh).toBe(26);
   });
+
+  it('chains every crossing point end-to-end: entry/exit points align exactly across every boundary in a straight multi-cell corridor', () => {
+    // Straight same-column descent, no obstacle needed — findCorridorPath
+    // still returns a multi-cell path (rank 0 to rank 3 with nothing
+    // blocking is 4 cells, 2 of them transit cells) since it always
+    // routes cell-by-cell, not room-to-room. Kept deliberately straight
+    // (entrySide/exitSide always 'north'/'south' here) so every forced
+    // point shares the same axis (x) as the room doors' own — see the
+    // Review Focus note on why a SIDEWAYS first hop needs its own,
+    // axis-aware check instead (Task 5's whole-pipeline sweep covers that
+    // general case).
+    const fromRect = { gx: 300, gy: 0, gw: 12, gh: 12 };
+    const toRect = { gx: 300, gy: 39, gw: 12, gh: 12 }; // rank 3
+    const toSlot = { x1: 300, y1: 39, x2: 312, y2: 39 };
+    const result = buildEdgeCorridor(
+      'seed1', 'a', 'b', fromRect, toRect, { rank: 0, col: 0 }, { rank: 3, col: 0 },
+      'south', toSlot, {},
+    );
+    expect(result.transitCells).toHaveLength(2); // ranks 1 and 2
+    expect(result.transitCells.every((c) => c.entrySide === 'north' && c.exitSide === 'south')).toBe(true);
+
+    // Source's real door (recoverable from doorWall's own center — same
+    // convention the existing corner-branch tests use) aligns exactly
+    // with the first cell's entry point.
+    const sourceDoorX = (result.doorWall.x1 + result.doorWall.x2) / 2;
+    expect(result.transitCells[0].entryPoint.x).toBeCloseTo(sourceDoorX, 9);
+
+    // Target's real door (recoverable from revealDoorWall's own center)
+    // aligns exactly with the last cell's exit point.
+    const targetDoorX = (result.revealDoorWall.x1 + result.revealDoorWall.x2) / 2;
+    const lastCell = result.transitCells[result.transitCells.length - 1];
+    expect(lastCell.exitPoint.x).toBeCloseTo(targetDoorX, 9);
+
+    // The shared border between the two transit cells coincides exactly —
+    // no more independently-seeded mismatch (#225 bug #2).
+    expect(result.transitCells[0].exitPoint).toEqual(result.transitCells[1].entryPoint);
+  });
+
+  it('every transitCells entry carries the edge\'s own id, unchanged, for buildTransitCellIfNeeded\'s marker (#225 bug #3)', () => {
+    const fromRect = { gx: 300, gy: 0, gw: 12, gh: 12 };
+    const toRect = { gx: 300, gy: 39, gw: 12, gh: 12 };
+    const toSlot = { x1: 300, y1: 39, x2: 312, y2: 39 };
+    const occupiedCells = { '1,0': 'blocker' };
+    const result = buildEdgeCorridor(
+      'seed1', 'source-room', 'target-room', fromRect, toRect, { rank: 0, col: 0 }, { rank: 3, col: 0 },
+      'south', toSlot, occupiedCells,
+    );
+    expect(result.transitCells.length).toBeGreaterThan(0);
+    for (const cell of result.transitCells) {
+      expect(cell.edgeId).toBe('source-room->target-room');
+    }
+  });
+
+  it('a single-intermediate-cell path forces BOTH entry and exit from the two real room doors — no seeded randomness at all', () => {
+    // rank 0 -> rank 2, nothing blocked: findCorridorPath returns exactly
+    // one intermediate cell (rank 1), so the loop's only iteration has
+    // isLast === true from its very first step.
+    const fromRect = { gx: 300, gy: 0, gw: 12, gh: 12 };
+    const toRect = { gx: 300, gy: 26, gw: 12, gh: 12 }; // rank 2
+    const toSlot = { x1: 300, y1: 26, x2: 312, y2: 26 };
+    // Force the multi-cell branch even though this is a same-column,
+    // south-exit connection, by blocking the same-column fast path isn't
+    // possible directly -- instead use an east exit with a mismatched
+    // column so the different-column path always goes multi-cell once an
+    // obstacle forces a 3-cell route. Simplest reliable trigger: block
+    // nothing and rely on same-column/south fast path NOT firing because
+    // toPos is 2 ranks away with a real intermediate cell in between.
+    // findCorridorPath still returns path.length === 3 here (adjacent
+    // ranks 0,1,2), which is > 2, so buildEdgeCorridor takes the
+    // multi-cell branch even with zero obstacles.
+    const result = buildEdgeCorridor(
+      'seed1', 'a', 'b', fromRect, toRect, { rank: 0, col: 0 }, { rank: 2, col: 0 },
+      'south', toSlot, {},
+    );
+    expect(result.transitCells).toHaveLength(1);
+    const sourceDoorX = (result.doorWall.x1 + result.doorWall.x2) / 2;
+    const targetDoorX = (result.revealDoorWall.x1 + result.revealDoorWall.x2) / 2;
+    expect(result.transitCells[0].entryPoint.x).toBeCloseTo(sourceDoorX, 9);
+    expect(result.transitCells[0].exitPoint.x).toBeCloseTo(targetDoorX, 9);
+  });
 });
 
 describe('buildEdgeCorridor with a west-incoming target', () => {
