@@ -173,31 +173,38 @@ export function incomingFaceFor(roomId, positionByRoomId, occupiedCells, legitim
   const pos = positionByRoomId[roomId];
   // A room's own id is never the occupant of a NEIGHBOR cell (each cell
   // holds at most one room, and a neighbor is by definition a different
-  // cell) — the only exclusion that matters is this room's own SOLE
-  // legitimate source (a single real parent, or a single hidden
-  // source), which legitimately DOES occupy an adjacent cell in the
-  // common "parent directly above/beside" case.
+  // cell) — the only exclusions that matter are this room's own real
+  // parents/hidden source, which legitimately DO occupy an adjacent
+  // cell in the common "parent directly above/beside" case.
   //
-  // #174 follow-up (found by this plan's own final whole-branch review,
-  // C1): a merge room with 2+ legitimate sources CANNOT treat a
-  // co-parent's occupancy of its gate cell as available — a route from
-  // a DIFFERENT source into this same room would otherwise have to pass
-  // THROUGH that co-parent's own real room (not empty transit space),
-  // producing containment walls on top of that co-parent's own door.
-  // The multi-source-sharing trick (several edges converging on one
-  // SHARED, genuinely empty transit cell, each adding its own opening)
-  // only works when the shared cell truly has no room in it — it cannot
-  // extend to a cell that's occupied by one of the very sources that
-  // needs to share it. So a legitimate occupant only counts as
-  // "available" when it is this room's ONLY legitimate source (no other
-  // source will ever need to independently reach the same gate).
-  const isAvailable = (rank, col) => {
+  // #174 follow-up: a same-plan attempt to also require a legitimate
+  // occupant be the room's SOLE source (so a merge room with 2+ sources
+  // wouldn't treat a co-parent's own cell as an available gate) was
+  // reverted. It was architecturally motivated -- routing a DIFFERENT
+  // source's edge through a co-parent's own real room is genuinely
+  // unsound (findCorridorPath's own isBlocked fix for that stays
+  // reverted too, see its own docblock) -- but this plan's own final
+  // whole-branch review found the multi-cell/transit-cell machinery
+  // this "fix" pushed more connections into is itself broken in the
+  // large majority of cases (consecutive transit cells' own crossing
+  // offsets don't line up on a shared border; a second edge converging
+  // on an already-crossed cell with the same entry/exit side pair is
+  // silently dropped instead of adding its own opening; transit-cell
+  // exit offsets aren't pinned to the actual door position they're
+  // supposed to reach). Net effect measured: it converted ~1083
+  // previously-direct, known-good connections into detours, of which
+  // ~89% ended up with their own target door covered by a wall — a
+  // worse outcome than the merge-room gate conflict it was meant to
+  // fix. Reverted back to the original rule (any legitimate source is
+  // an available gate, regardless of source count) until the
+  // multi-cell/transit-cell geometry itself is fixed — tracked as a
+  // separate, ongoing investigation, not attempted here.
+  const isFreeOrLegitimate = (rank, col) => {
     const occupant = occupiedCells[`${rank},${col}`];
-    if (occupant == null) return true;
-    return legitimateSourceIds.size === 1 && legitimateSourceIds.has(occupant);
+    return occupant == null || legitimateSourceIds.has(occupant);
   };
-  if (isAvailable(pos.rank - 1, pos.col)) return 'north';
-  if (isAvailable(pos.rank, pos.col - 1)) return 'west';
+  if (isFreeOrLegitimate(pos.rank - 1, pos.col)) return 'north';
+  if (isFreeOrLegitimate(pos.rank, pos.col - 1)) return 'west';
   return 'north';
 }
 
@@ -990,16 +997,21 @@ export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, to
   const maxCol = Math.max(fromPos.col, toPos.col) + SEARCH_MARGIN;
   const inBounds = (pos) =>
     pos.rank >= minRank && pos.rank <= maxRank && pos.col >= minCol && pos.col <= maxCol;
-  // #174 follow-up: reverted from a broader legitimateSourceIds exemption
-  // (found unsound by this plan's own final whole-branch review, C1) --
+  // #174 follow-up: a broader legitimateSourceIds exemption was tried
+  // here (so a co-parent legitimately sitting at a merge room's own gate
+  // cell wouldn't block a DIFFERENT parent's own edge) and reverted --
+  // this plan's own final whole-branch review found it unsound (C1):
   // exempting a co-parent HERE let a path route straight through that
   // co-parent's own real room as if it were empty transit space, which
   // then got walled like a transit cell, potentially sealing the
-  // co-parent's own door. The actual fix belongs in incomingFaceFor
-  // (above), which now refuses to treat a shared gate cell as available
-  // at all when 2+ sources would need to independently reach it -- so by
-  // the time this function runs, occupiedCells never legitimately
-  // contains anything but fromRoomId/toRoomId at a real entry point.
+  // co-parent's own door. A follow-up attempt moved the fix into
+  // incomingFaceFor instead, but that was ALSO reverted (see its own
+  // docblock) once found net-negative given the current state of the
+  // multi-cell/transit-cell machinery. Both fixes are deferred until
+  // that machinery itself is fixed -- so occupiedCells CAN still
+  // legitimately contain a co-parent at a real entry point today; when it
+  // does, this function correctly returns null (the existing, honest
+  // "no free path" degradation), same as before either fix was tried.
   const isBlocked = (pos) => {
     const occupant = occupiedCells[key(pos)];
     return occupant != null && occupant !== fromRoomId && occupant !== toRoomId;

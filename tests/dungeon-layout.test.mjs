@@ -179,7 +179,7 @@ describe('incomingFaceFor', () => {
     expect(incomingFaceFor('r', positionByRoomId, {}, new Set())).toBe('north');
   });
 
-  it('returns north when the north-neighbor cell is occupied only by a real parent, and that parent is the room\'s ONLY legitimate source', () => {
+  it('returns north when the north-neighbor cell is occupied only by a real parent', () => {
     const positionByRoomId = { r: { rank: 1, col: 1 }, p: { rank: 0, col: 1 } };
     const occupiedCells = { '0,1': 'p' };
     expect(incomingFaceFor('r', positionByRoomId, occupiedCells, new Set(['p']))).toBe('north');
@@ -203,15 +203,19 @@ describe('incomingFaceFor', () => {
     expect(incomingFaceFor('r', positionByRoomId, occupiedCells, new Set())).toBe('north');
   });
 
-  it('a merge room with 2+ real parents CANNOT treat a co-parent occupying its own gate cell as available — falls to west instead (found by this plan\'s own final whole-branch review, C1: a different parent\'s own edge would otherwise have to route THROUGH the co-parent\'s real room, not shared empty transit space)', () => {
+  it('correctly excludes multiple real parents for a merge room', () => {
+    // Both p1 (north-neighbor) and p2 (elsewhere entirely) are this
+    // room's own real parents — p1 sitting at the north-neighbor
+    // position must not count as blocking.
+    //
+    // #174 follow-up: a same-plan attempt to require a legitimate
+    // occupant be the room's SOLE source (so this specific case would
+    // fall to west instead) was reverted — see incomingFaceFor's own
+    // docblock for why (the multi-cell/transit-cell machinery that
+    // "fix" pushed more connections into was found net-negative given
+    // its own current, separately-tracked geometry bugs).
     const positionByRoomId = { r: { rank: 2, col: 1 }, p1: { rank: 1, col: 1 }, p2: { rank: 0, col: 3 } };
     const occupiedCells = { '1,1': 'p1', '0,3': 'p2' };
-    expect(incomingFaceFor('r', positionByRoomId, occupiedCells, new Set(['p1', 'p2']))).toBe('west');
-  });
-
-  it('a merge room with 2+ real parents still falls back to north (the residual tiebreak) when BOTH neighbors are occupied by co-parents — no available face exists either way', () => {
-    const positionByRoomId = { r: { rank: 2, col: 1 }, p1: { rank: 1, col: 1 }, p2: { rank: 2, col: 0 } };
-    const occupiedCells = { '1,1': 'p1', '2,0': 'p2' };
     expect(incomingFaceFor('r', positionByRoomId, occupiedCells, new Set(['p1', 'p2']))).toBe('north');
   });
 });
@@ -1505,46 +1509,57 @@ describe('corridor routing regression sweep (#174)', () => {
     expect(totalMarginedConnections).toBeGreaterThan(200); // sanity: real SMALL-room south/east connections were exercised
   });
 
-  // 2026-09-27 investigation note, twice-revised: computeColumns' skip-by-2
-  // stride (#174 follow-up) DOES guarantee every room a genuinely free west
-  // lane — incomingFaceFor's own legitimacy-exclusion never misfires
-  // against a buffer column (buffer columns are odd and are never written
-  // into occupiedCells at all, confirmed directly).
+  // 2026-09-27 investigation note, three times revised: computeColumns'
+  // skip-by-2 stride (#174 follow-up) DOES guarantee every room a
+  // genuinely free west lane — incomingFaceFor's own legitimacy-exclusion
+  // never misfires against a buffer column (buffer columns are odd and are
+  // never written into occupiedCells at all, confirmed directly). This
+  // alone is a real, measured improvement over the ~32% pre-#174 baseline.
   //
-  // A first attempt at the merge-room multi-parent gate conflict (widening
-  // findCorridorPath's own isBlocked to exempt a target's full
-  // legitimateSourceIds, everywhere in the search, not just at the gate)
-  // was found UNSOUND by this plan's own final whole-branch review (C1):
-  // it let a path route straight THROUGH a co-parent's own real room as if
-  // it were empty shared transit space, and buildTransitCellIfNeeded then
-  // built full containment walls on top of that co-parent's own cell —
-  // potentially sealing the co-parent's own door. A "found" path is not
-  // the same thing as a buildable one; this metric alone (null vs.
-  // non-null) cannot tell the difference, which is why C1 slipped past
-  // this test's own earlier form.
+  // Two further attempts at the SEPARATE merge-room multi-parent gate
+  // conflict were both tried and both reverted:
   //
-  // The corrected fix lives in `incomingFaceFor` itself: a legitimate
-  // occupant at the gate cell is only treated as available when it is the
-  // room's SOLE legitimate source (`legitimateSourceIds.size === 1`) — the
-  // multi-source-sharing trick (several edges converging on one SHARED,
-  // genuinely empty transit cell, each adding its own opening) only works
-  // when that shared cell has no room in it at all; it cannot extend to a
-  // cell occupied by one of the very sources that needs to share it. A
-  // merge room whose gate cell is held by ONE of 2+ real parents now
-  // correctly falls to west instead, letting every parent (including the
-  // one that used to occupy the gate) route in via genuinely empty cells.
-  // findCorridorPath's own `isBlocked` is reverted to the original,
-  // narrow fromRoomId/toRoomId-only exemption — by the time it runs,
-  // occupiedCells never legitimately contains anything else at a real
-  // entry point.
+  // 1. Widening findCorridorPath's own isBlocked to exempt a target's full
+  //    legitimateSourceIds, everywhere in the search, not just at the
+  //    gate — found UNSOUND by this plan's own final whole-branch review
+  //    (C1): it let a path route straight THROUGH a co-parent's own real
+  //    room as if it were empty shared transit space, and
+  //    buildTransitCellIfNeeded then built full containment walls on top
+  //    of that co-parent's own cell, potentially sealing its own door.
+  // 2. A narrower fix in incomingFaceFor itself (only treat a legitimate
+  //    occupant as available when it's the room's SOLE source, otherwise
+  //    fall to west) — architecturally sound in isolation, but a SECOND
+  //    round of the same final whole-branch review found it NET NEGATIVE
+  //    given the current state of the multi-cell/transit-cell machinery:
+  //    it converted ~1083 previously-direct, known-good connections into
+  //    detours, and ~89% of those ended up with their own target door
+  //    covered by a wall — trading a smaller, honest problem (some merge
+  //    rooms stay null-path) for a larger, silent one (many "found"
+  //    corridors are actually unbuildable). That same review also found
+  //    two previously-unnamed defects in the multi-cell machinery itself:
+  //    consecutive transit cells' own crossing offsets don't reliably
+  //    line up on their shared border, and a second edge converging on an
+  //    already-crossed cell with the SAME entry/exit side pair is
+  //    silently dropped instead of adding its own opening. Both are
+  //    pre-existing (not introduced by this plan) but load-bearing for
+  //    why pushing MORE connections through this machinery backfired.
   //
-  // This sweep also now enumerates every room's REAL incoming connections
-  // via `incomingConnectionsFor` (real parents + hidden/detour sources),
-  // matching what `buildPopulateAndUnlockGraphNode` actually builds —
-  // the previous form only iterated `edges` (visible connections), missing
-  // hidden ones entirely (a gap this plan's own final review also found,
-  // C2).
-  it('the boxed-in rate (null findCorridorPath), measured against every real incoming connection including hidden/detour ones, stays low now that incomingFaceFor refuses to share a gate cell across 2+ legitimate sources', () => {
+  // Both attempts are reverted. incomingFaceFor is back to its original
+  // rule (any legitimate source is an available gate, regardless of
+  // count) and findCorridorPath's isBlocked is back to its original,
+  // narrow fromRoomId/toRoomId-only exemption. The merge-room gate-sharing
+  // problem, and the deeper multi-cell/transit-cell geometry bugs above
+  // (tracked together as "C3" in this plan's own history), remain OPEN —
+  // fixing them properly needs its own investigation and design, not a
+  // patch applied under time pressure.
+  //
+  // This sweep enumerates every room's REAL incoming connections via
+  // `incomingConnectionsFor` (real parents + hidden/detour sources),
+  // matching what `buildPopulateAndUnlockGraphNode` actually builds — an
+  // earlier form of this test only iterated `edges` (visible connections),
+  // missing hidden ones entirely (a gap this plan's own final review also
+  // found, C2) and letting attempt 1 above go undetected.
+  it('the boxed-in rate (null findCorridorPath), measured against every real incoming connection including hidden/detour ones, is meaningfully better than the ~32% pre-#174 baseline thanks to computeColumns\' skip-by-2 stride alone — the separate merge-room gate-sharing problem remains open, not attempted here', () => {
     let totalEdges = 0;
     let nullPathEdges = 0;
     for (let i = 0; i < 500; i += 1) {
@@ -1582,19 +1597,19 @@ describe('corridor routing regression sweep (#174)', () => {
       }
     }
     expect(totalEdges).toBeGreaterThan(1000);
-    // Real, honest measured rate: 0.1877 (fully deterministic across this
-    // sweep's fixed seeds). This is NOT the ~0.92% previously reported —
-    // that number came from the now-reverted, unsound isBlocked widening
-    // (C1) and never should have been trusted as a success metric. This
-    // corrected fix trades away that false improvement for a genuine one:
-    // meaningfully better than the ~32% pre-#174 baseline, close to the
-    // ~23.3% honestly measured before Task 4's original (unsound) attempt.
-    // Closing this further is now understood to require either a bigger
-    // fix (margin-aware cross-room routing) or resolving C3 (the transit-
-    // cell door-covering issue) first, since many "found" paths in this
-    // remaining residual may themselves be geometrically unbuildable —
-    // tracked as a separate, ongoing investigation, not solved here.
-    expect(nullPathEdges / totalEdges).toBeLessThanOrEqual(0.19);
+    // Real, honest measured rate with BOTH merge-room-gate attempts
+    // reverted: 0.2610 (fully deterministic across this sweep's fixed
+    // seeds) — a genuine ~6 point improvement over the ~32.2% pre-#174
+    // baseline, entirely attributable to computeColumns' skip-by-2 stride
+    // (Tasks 1-2 of this plan). Neither the 0.92% nor the 18.77% numbers
+    // this test previously reported should be trusted — see the
+    // investigation note above for why both of the attempts that produced
+    // them were reverted. Closing this further requires fixing the
+    // multi-cell/transit-cell machinery itself (C3, plus the two sibling
+    // defects the final whole-branch review found) BEFORE attempting any
+    // fix that routes more connections through it — tracked as a
+    // separate, ongoing investigation, not solved here.
+    expect(nullPathEdges / totalEdges).toBeLessThanOrEqual(0.27);
   });
 });
 
