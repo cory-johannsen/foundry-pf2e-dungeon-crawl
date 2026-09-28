@@ -1549,8 +1549,9 @@ describe('corridor routing regression sweep (#174)', () => {
   // count) and findCorridorPath's isBlocked is back to its original,
   // narrow fromRoomId/toRoomId-only exemption. The merge-room gate-sharing
   // problem, and the deeper multi-cell/transit-cell geometry bugs above
-  // (tracked together as "C3" in this plan's own history), remain OPEN —
-  // fixing them properly needs its own investigation and design, not a
+  // (tracked together as "C3" in this plan's own history, filed as its
+  // own issue: #225), remain OPEN — fixing them properly needs its own
+  // investigation and design, not a
   // patch applied under time pressure.
   //
   // This sweep enumerates every room's REAL incoming connections via

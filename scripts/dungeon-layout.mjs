@@ -198,7 +198,8 @@ export function incomingFaceFor(roomId, positionByRoomId, occupiedCells, legitim
   // fix. Reverted back to the original rule (any legitimate source is
   // an available gate, regardless of source count) until the
   // multi-cell/transit-cell geometry itself is fixed — tracked as a
-  // separate, ongoing investigation, not attempted here.
+  // separate, ongoing investigation (filed as issue #225), not attempted
+  // here.
   const isFreeOrLegitimate = (rank, col) => {
     const occupant = occupiedCells[`${rank},${col}`];
     return occupant == null || legitimateSourceIds.has(occupant);
