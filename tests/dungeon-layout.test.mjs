@@ -695,15 +695,20 @@ describe('buildEdgeCorridor (multi-cell path)', () => {
 
     // Source's real door (recoverable from doorWall's own center — same
     // convention the existing corner-branch tests use) aligns exactly
-    // with the first cell's entry point.
+    // with the first cell's entry point — offset by DOOR_WIDTH/2, since
+    // doorWall/revealDoorWall are gap-CENTER (matching the room's own
+    // door), while a transit cell's own entryPoint/exitPoint are
+    // gap-START (matching transitCellContainmentWalls — see #225 C1's
+    // fix in buildEdgeCorridor for the full reasoning).
     const sourceDoorX = (result.doorWall.x1 + result.doorWall.x2) / 2;
-    expect(result.transitCells[0].entryPoint.x).toBeCloseTo(sourceDoorX, 9);
+    expect(result.transitCells[0].entryPoint.x).toBeCloseTo(sourceDoorX - DOOR_WIDTH / 2, 9);
 
     // Target's real door (recoverable from revealDoorWall's own center)
-    // aligns exactly with the last cell's exit point.
+    // aligns exactly with the last cell's exit point, same center->start
+    // offset.
     const targetDoorX = (result.revealDoorWall.x1 + result.revealDoorWall.x2) / 2;
     const lastCell = result.transitCells[result.transitCells.length - 1];
-    expect(lastCell.exitPoint.x).toBeCloseTo(targetDoorX, 9);
+    expect(lastCell.exitPoint.x).toBeCloseTo(targetDoorX - DOOR_WIDTH / 2, 9);
 
     // The shared border between the two transit cells coincides exactly —
     // no more independently-seeded mismatch (#225 bug #2).
@@ -732,25 +737,23 @@ describe('buildEdgeCorridor (multi-cell path)', () => {
     const fromRect = { gx: 300, gy: 0, gw: 12, gh: 12 };
     const toRect = { gx: 300, gy: 26, gw: 12, gh: 12 }; // rank 2
     const toSlot = { x1: 300, y1: 26, x2: 312, y2: 26 };
-    // Force the multi-cell branch even though this is a same-column,
-    // south-exit connection, by blocking the same-column fast path isn't
-    // possible directly -- instead use an east exit with a mismatched
-    // column so the different-column path always goes multi-cell once an
-    // obstacle forces a 3-cell route. Simplest reliable trigger: block
-    // nothing and rely on same-column/south fast path NOT firing because
-    // toPos is 2 ranks away with a real intermediate cell in between.
-    // findCorridorPath still returns path.length === 3 here (adjacent
-    // ranks 0,1,2), which is > 2, so buildEdgeCorridor takes the
-    // multi-cell branch even with zero obstacles.
+    // buildEdgeCorridor checks `path.length > 2` before it ever looks at
+    // exitFace/sameColumn, so a same-column, south-exit connection still
+    // takes the multi-cell branch here: findCorridorPath returns the
+    // 3-cell path [rank 0, rank 1, rank 2] even with nothing blocked,
+    // which is > 2.
     const result = buildEdgeCorridor(
       'seed1', 'a', 'b', fromRect, toRect, { rank: 0, col: 0 }, { rank: 2, col: 0 },
       'south', toSlot, {},
     );
     expect(result.transitCells).toHaveLength(1);
+    // doorWall/revealDoorWall are gap-CENTER; entryPoint/exitPoint are
+    // gap-START (see the previous test's comment, and #225 C1's fix in
+    // buildEdgeCorridor).
     const sourceDoorX = (result.doorWall.x1 + result.doorWall.x2) / 2;
     const targetDoorX = (result.revealDoorWall.x1 + result.revealDoorWall.x2) / 2;
-    expect(result.transitCells[0].entryPoint.x).toBeCloseTo(sourceDoorX, 9);
-    expect(result.transitCells[0].exitPoint.x).toBeCloseTo(targetDoorX, 9);
+    expect(result.transitCells[0].entryPoint.x).toBeCloseTo(sourceDoorX - DOOR_WIDTH / 2, 9);
+    expect(result.transitCells[0].exitPoint.x).toBeCloseTo(targetDoorX - DOOR_WIDTH / 2, 9);
   });
 });
 
@@ -1769,19 +1772,27 @@ describe('corridor routing regression sweep (#174)', () => {
     expect(nullPathEdges / totalEdges).toBeLessThanOrEqual(0.27);
   });
 
-  // #225: every earlier sweep in this describe block only ever checked a
-  // PROXY for buildability — a found path, or a corridor segment not
-  // overlapping a room's footprint. Neither catches "a wall's own gap
-  // sits at a different position than where the corridor actually
-  // crosses that same physical boundary" — the real defect #225 fixed.
-  // This sweep checks the actual invariant: for every multi-cell
-  // connection produced by the real generation pipeline, the source's
-  // real door, the target's real door, and every consecutive pair of
-  // transit cells' shared borders all coincide EXACTLY (not just
-  // "overlap") with where buildEdgeCorridor's own chain says the corridor
-  // crosses them.
-  it('every multi-cell corridor\'s crossing points are chained exactly — target door, source door, and every consecutive transit-cell border, across a large seed/roomCount sweep', () => {
+  // #225 fix-round rework: the original version of this sweep checked that
+  // computed crossing POINTS were equal to the door's own center — exactly
+  // the proxy metric this whole plan exists to replace (a point can
+  // "coincide" while the actual passable opening it anchors is only half
+  // as wide as the door, which is precisely the C1 bug this fix round
+  // found and fixed — see buildEdgeCorridor's chainStartAnchor/
+  // chainEndAnchor comment). This sweep now builds the ACTUAL wall
+  // geometry `buildTransitCellIfNeeded` would build for the last transit
+  // cell's own crossing and asserts the REAL passable gap — not just a
+  // point — matches the target door's own real interval exactly.
+  it('every multi-cell corridor is actually buildable at its target door: the last transit cell\'s real containment-wall gap has the full DOOR_WIDTH, exactly where the target door sits, across a large seed/roomCount sweep (#225)', () => {
     let totalMultiCellEdges = 0;
+    // Informational only (#225 I2 finding, not asserted here): when the
+    // BFS path's first hop leaves the source room through a side that
+    // ISN'T that edge's own exit face, the connector can cross the source
+    // room's own sealed cell-margin wall, or a wall whose gap belongs to
+    // a different sibling connection — a real, pre-existing (confirmed on
+    // main too, not a regression introduced by this plan) defect that is
+    // out of scope for #225 and worth its own follow-up issue. Counted
+    // here only to track the affected population's size over time.
+    let sourceSidewaysFirstHopEdges = 0;
     for (let i = 0; i < 500; i += 1) {
       const seed = `sweep-${i}`;
       const roomCount = 6 + (i % 15);
@@ -1815,46 +1826,60 @@ describe('corridor routing regression sweep (#174)', () => {
           if (result.transitCells.length === 0) continue; // only multi-cell connections are in scope here
           totalMultiCellEdges += 1;
 
-          // (a) source's own real door, recovered from doorWall's own
-          // center. Only the axis matching the first transit cell's own
-          // entrySide is FORCED to this value — north/south entrySide
-          // forces x (the corridor descended/ascended straight into the
-          // cell, so x carries over); east/west entrySide forces y. The
-          // OTHER axis is legitimately the transit cell's own fixed
-          // boundary coordinate, not the room's door coordinate: the
-          // room's south/east face always sits inside a margin gap
-          // (ROOM_SIZE_SMALL/LARGE are both < ROW_STRIDE/COLUMN_STRIDE),
-          // so when the BFS path's first hop heads sideways instead of
-          // straight out the room's own exit face, the connector's OTHER
-          // leg bridges that perpendicular distance instead — asserting
-          // both axes unconditionally here would be wrong, not a real
-          // defect (confirmed by hand-derivation during this plan's own
-          // design; see Task 3's straight-descent test for the case where
-          // both axes DO coincide, by construction, when entrySide directly
-          // opposes exitFace).
-          const sourceDoorX = (result.doorWall.x1 + result.doorWall.x2) / 2;
-          const sourceDoorY = (result.doorWall.y1 + result.doorWall.y2) / 2;
-          const firstEntrySide = result.transitCells[0].entrySide;
-          if (firstEntrySide === 'north' || firstEntrySide === 'south') {
-            expect(result.transitCells[0].entryPoint.x).toBeCloseTo(sourceDoorX, 9);
-          } else {
-            expect(result.transitCells[0].entryPoint.y).toBeCloseTo(sourceDoorY, 9);
-          }
-
-          // (b) target's own real door, recovered from revealDoorWall's
-          // own center — unlike the source side, BOTH axes always
-          // coincide here unconditionally: a room always anchors flush at
-          // its own cell's north/west corner (no margin on those two
-          // sides), and findCorridorPath's canEnter constraint always
-          // makes the LAST transit cell exactly the target's own
-          // incoming-neighbor cell — so the shared boundary line's other
-          // coordinate is always exactly the room's own cell edge too,
-          // not just the forced axis.
-          const targetDoorX = (result.revealDoorWall.x1 + result.revealDoorWall.x2) / 2;
-          const targetDoorY = (result.revealDoorWall.y1 + result.revealDoorWall.y2) / 2;
+          // --- TARGET side (PRIMARY assertion): build the last transit
+          // cell's own real containment walls for a first-time crossing of
+          // this cell (matching what buildTransitCellIfNeeded actually
+          // builds — a single opening, this crossing's own exitSide/
+          // exitPoint) and derive the gap it actually leaves on that line,
+          // the same before/after-wall technique the margin sweep above
+          // uses (cellMarginWalls doesn't always return exactly 2 sandwich
+          // walls; neither does transitCellContainmentWalls).
           const lastCell = result.transitCells[result.transitCells.length - 1];
-          expect(lastCell.exitPoint.x).toBeCloseTo(targetDoorX, 9);
-          expect(lastCell.exitPoint.y).toBeCloseTo(targetDoorY, 9);
+          const lastCellBounds = cellBounds(lastCell.rank, lastCell.col);
+          const lastCellWalls = transitCellContainmentWalls(
+            lastCell.rank, lastCell.col,
+            [{ side: lastCell.exitSide, point: lastCell.exitPoint }],
+          ).filter((w) => w.dir === lastCell.exitSide);
+          const horizontal = lastCell.exitSide === 'north' || lastCell.exitSide === 'south';
+          const cellStart = horizontal ? lastCellBounds.gx : lastCellBounds.gy;
+          const cellEnd = horizontal ? lastCellBounds.gx + lastCellBounds.gw : lastCellBounds.gy + lastCellBounds.gh;
+          const beforeWall = lastCellWalls.find((w) => (horizontal ? w.x1 : w.y1) === cellStart);
+          const afterWall = lastCellWalls.find((w) => (horizontal ? w.x2 : w.y2) === cellEnd);
+          const gapStart = beforeWall ? (horizontal ? beforeWall.x2 : beforeWall.y2) : cellStart;
+          const gapEnd = afterWall ? (horizontal ? afterWall.x1 : afterWall.y1) : cellEnd;
+          const [doorStart, doorEnd] = horizontal
+            ? [result.revealDoorWall.x1, result.revealDoorWall.x2]
+            : [result.revealDoorWall.y1, result.revealDoorWall.y2];
+          // The real invariant the design spec asked for: DOOR_WIDTH of
+          // passable width exists, exactly where the door is — not just
+          // that some point coincides.
+          expect(gapStart).toBeCloseTo(doorStart, 9);
+          expect(gapEnd).toBeCloseTo(doorEnd, 9);
+          expect(gapEnd - gapStart).toBeCloseTo(DOOR_WIDTH, 9);
+
+          // --- SOURCE side (informational, see sourceSidewaysFirstHopEdges
+          // above): only track whether this edge's first hop left the
+          // source through its own real exit face (the well-understood,
+          // known-good case) or sideways (the #225 I2 population).
+          const firstEntrySide = result.transitCells[0].entrySide;
+          const straightOutOfSource =
+            (face === 'south' && firstEntrySide === 'north') ||
+            (face === 'east' && firstEntrySide === 'west') ||
+            (face === 'west' && firstEntrySide === 'east');
+          if (!straightOutOfSource) {
+            sourceSidewaysFirstHopEdges += 1;
+          } else {
+            // Straight out of the room's own exit face: door and first
+            // transit cell entry share the forced axis exactly (center ->
+            // gap-start, same conversion as the target side above).
+            const sourceDoorX = (result.doorWall.x1 + result.doorWall.x2) / 2;
+            const sourceDoorY = (result.doorWall.y1 + result.doorWall.y2) / 2;
+            if (firstEntrySide === 'north' || firstEntrySide === 'south') {
+              expect(result.transitCells[0].entryPoint.x).toBeCloseTo(sourceDoorX - DOOR_WIDTH / 2, 9);
+            } else {
+              expect(result.transitCells[0].entryPoint.y).toBeCloseTo(sourceDoorY - DOOR_WIDTH / 2, 9);
+            }
+          }
 
           // (c): every consecutive pair of transit cells' shared border —
           // one cell's exit must exactly equal the next cell's entry.
@@ -1873,6 +1898,71 @@ describe('corridor routing regression sweep (#174)', () => {
       }
     }
     expect(totalMultiCellEdges).toBeGreaterThan(50); // sanity: real multi-cell corridors were actually exercised
+    if (sourceSidewaysFirstHopEdges > 0) {
+      // eslint-disable-next-line no-console
+      console.log(`[sweep] source-sideways-first-hop edges (#225 I2, pre-existing, out of scope): ${sourceSidewaysFirstHopEdges}/${totalMultiCellEdges}`);
+    }
+  });
+
+  // #225 I3: a bent (multi-axis) multi-cell corridor — one whose transit
+  // cells turn a genuine corner somewhere in the MIDDLE of the chain, not
+  // just descend straight — with real wall/tile geometry, asserting the
+  // last transit cell's own containment wall leaves the full DOOR_WIDTH
+  // exactly where the target door sits (same technique as the sweep's
+  // target-side check above). Blocking the source room's own straight-
+  // south neighbor cell forces findCorridorPath to detour sideways first,
+  // producing two interior corner cells (west/south, then north/east)
+  // before the path straightens out to enter the target from the north —
+  // a genuine mix of north/south and east/west legs, not a single-axis
+  // descent.
+  it('an obstacle-routed multi-cell corridor with interior corner turns still leaves the target door\'s full real width open (#225 I3)', () => {
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 2, col: 2 };
+    const occupiedCells = { '1,0': 'blocker' };
+    const fromRect = { gx: cellBounds(0, 0).gx, gy: cellBounds(0, 0).gy, gw: ROOM_SIZE_LARGE, gh: ROOM_SIZE_LARGE };
+    const toRect = { gx: cellBounds(2, 2).gx, gy: cellBounds(2, 2).gy, gw: ROOM_SIZE_LARGE, gh: ROOM_SIZE_LARGE };
+    const toSlot = { x1: toRect.gx, y1: toRect.gy, x2: toRect.gx + ROOM_SIZE_LARGE, y2: toRect.gy };
+    const result = buildEdgeCorridor(
+      'seed1', 'a', 'b', fromRect, toRect, fromPos, toPos, 'south', toSlot, occupiedCells,
+    );
+
+    // Confirm this is a genuinely bent path: at least one interior transit
+    // cell turns a corner (entrySide/exitSide on ADJACENT, not opposite,
+    // sides) — not merely a straight descent.
+    expect(result.transitCells.length).toBeGreaterThanOrEqual(2);
+    const hasInteriorCorner = result.transitCells.some((c) => {
+      const opposite = { north: 'south', south: 'north', east: 'west', west: 'east' };
+      return opposite[c.entrySide] !== c.exitSide;
+    });
+    expect(hasInteriorCorner).toBe(true);
+    // And a genuine mix of both axes across the chain (not e.g. every leg
+    // just happening to be north/south).
+    const sides = new Set(result.transitCells.flatMap((c) => [c.entrySide, c.exitSide]));
+    expect(sides.has('east') || sides.has('west')).toBe(true);
+    expect(sides.has('north') || sides.has('south')).toBe(true);
+
+    const lastCell = result.transitCells[result.transitCells.length - 1];
+    const lastCellBounds = cellBounds(lastCell.rank, lastCell.col);
+    const lastCellWalls = transitCellContainmentWalls(
+      lastCell.rank, lastCell.col,
+      [{ side: lastCell.exitSide, point: lastCell.exitPoint }],
+    ).filter((w) => w.dir === lastCell.exitSide);
+    const horizontal = lastCell.exitSide === 'north' || lastCell.exitSide === 'south';
+    const cellStart = horizontal ? lastCellBounds.gx : lastCellBounds.gy;
+    const cellEnd = horizontal ? lastCellBounds.gx + lastCellBounds.gw : lastCellBounds.gy + lastCellBounds.gh;
+    const beforeWall = lastCellWalls.find((w) => (horizontal ? w.x1 : w.y1) === cellStart);
+    const afterWall = lastCellWalls.find((w) => (horizontal ? w.x2 : w.y2) === cellEnd);
+    const gapStart = beforeWall ? (horizontal ? beforeWall.x2 : beforeWall.y2) : cellStart;
+    const gapEnd = afterWall ? (horizontal ? afterWall.x1 : afterWall.y1) : cellEnd;
+    const [doorStart, doorEnd] = horizontal
+      ? [result.revealDoorWall.x1, result.revealDoorWall.x2]
+      : [result.revealDoorWall.y1, result.revealDoorWall.y2];
+
+    // No wall covers the door: the real passable gap is exactly the door's
+    // own real interval, full DOOR_WIDTH wide.
+    expect(gapStart).toBeCloseTo(doorStart, 9);
+    expect(gapEnd).toBeCloseTo(doorEnd, 9);
+    expect(gapEnd - gapStart).toBeCloseTo(DOOR_WIDTH, 9);
   });
 });
 

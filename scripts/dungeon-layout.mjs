@@ -389,8 +389,21 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // entry/exit are adjacent, not opposite, sides) is still seeded via
     // doorOffsetAt inside transitCellCrossing, unchanged — only the FORCED
     // axis stops being random.
+    // Chain values use gap-START semantics (matching transitCellContainmentWalls
+    // and every other doorOffsetAt-based offset in this file), but exitPoint/
+    // entryPoint are gap-CENTER semantics (matching doorWall/revealDoorWall,
+    // which stay computed from the unshifted originals above, unchanged) — #225
+    // fix-round finding: convert center -> start exactly once, here, at the two
+    // places a room's own real door enters the chain. Center minus half-width
+    // equals the interval's start regardless of which axis a given entrySide/
+    // exitSide ends up actually using (the other axis is discarded by
+    // projectOntoSide), so shifting both x and y unconditionally is correct and
+    // harmless.
+    const chainStartAnchor = { x: exitPoint.x - DOOR_WIDTH / 2, y: exitPoint.y - DOOR_WIDTH / 2 };
+    const chainEndAnchor = { x: entryPoint.x - DOOR_WIDTH / 2, y: entryPoint.y - DOOR_WIDTH / 2 };
+
     const transitCells = [];
-    let chainAnchor = exitPoint;
+    let chainAnchor = chainStartAnchor;
     for (let i = 1; i < path.length - 1; i += 1) {
       const cell = path[i];
       const cellRect = cellBounds(cell.rank, cell.col);
@@ -398,7 +411,17 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       const exitSide = directionBetween(cell, path[i + 1]);
       const isLast = i === path.length - 2;
       const forcedEntryPoint = projectOntoSide(cellRect, entrySide, chainAnchor);
-      const forcedExitPoint = isLast ? projectOntoSide(cellRect, exitSide, entryPoint) : undefined;
+      // #225 I1: a non-last, non-corner (entry/exit on OPPOSITE sides)
+      // "straight through" cell shares the same forced axis on both its
+      // entry and exit — it has no free perpendicular axis at all, so its
+      // exit must be forced too, not independently reseeded. Only a
+      // genuine corner cell (entry/exit on ADJACENT sides) still has a
+      // free axis left to randomize.
+      const forcedExitPoint = isLast
+        ? projectOntoSide(cellRect, exitSide, chainEndAnchor)
+        : OPPOSITE_SIDE[entrySide] === exitSide
+        ? projectOntoSide(cellRect, exitSide, forcedEntryPoint)
+        : undefined;
       const crossing = transitCellCrossing(seed, cell.rank, cell.col, entrySide, exitSide, edgeId, { forcedEntryPoint, forcedExitPoint });
       transitCells.push({ rank: cell.rank, col: cell.col, entrySide, exitSide, edgeId, ...crossing });
       chainAnchor = crossing.exitPoint;
