@@ -339,7 +339,6 @@ export async function buildRoomAtGraphNode(
     isGoal = false, locationTag = null, artVariant = 0, seed = "",
     layoutPositionByRoomId = {}, occupiedCells = {},
     incomingFace = 'north', incomingFaceByRoomId = {},
-    legitimateSourceIdsByRoomId = {},
   },
 ) {
   const rect = roomRect(seed, roomId, rank, col);
@@ -406,10 +405,9 @@ export async function buildRoomAtGraphNode(
     // implementer" in the brief). This room's own incomingFace has no
     // bearing on which face its children receive their connections on.
     const childIncomingFace = childId ? (incomingFaceByRoomId?.[childId] ?? 'north') : 'north';
-    const childLegitimateSourceIds = childId ? (legitimateSourceIdsByRoomId?.[childId] ?? []) : [];
     const offset = outgoingMarginOffset(
       seed, roomId, childId, face, rect, { rank, col },
-      childPos ?? { rank: NaN, col: NaN }, occupiedCells, childIncomingFace, childLegitimateSourceIds,
+      childPos ?? { rank: NaN, col: NaN }, occupiedCells, childIncomingFace,
     );
     const sideWalls = cellMarginWalls(rect, rank, col, { openSide: face, openOffset: offset, openWidth: DOOR_WIDTH });
     for (const side of sideWalls) if (side.dir === face) marginWalls.push(side);
@@ -1077,12 +1075,11 @@ export async function buildPopulateAndUnlockGraphNode(
   // #174 Task 6: this room's own real incoming face, precomputed once for
   // the whole graph (dungeon-app.mjs) — the `?? 'north'` fallback only
   // matters for a room this task's own precompute step somehow missed.
-  const incomingFace = state.incomingFaceByRoomId[room.id] ?? 'north';
-  // #174 Task 4: this room's own real parents + hidden incoming source,
-  // precomputed once for the whole graph alongside incomingFaceByRoomId —
-  // exempts a legitimate co-parent occupying this room's own gate cell
-  // from blocking a DIFFERENT parent's own edge into this same room.
-  const legitimateSourceIds = state.legitimateSourceIdsByRoomId[room.id] ?? [];
+  // #174 follow-up: optional chaining here (not just the `?? 'north'`
+  // fallback) matters for a run whose own state was persisted before
+  // this field existed — reading a property off `undefined` would throw
+  // instead of falling back, leaving the party's room-build stuck.
+  const incomingFace = state.incomingFaceByRoomId?.[room.id] ?? 'north';
 
   // #93 pre-flight fix (merge-door redesign): every real parent this room
   // has (usually 1, more for a merge room), plus a shortcut's hidden extra
@@ -1110,7 +1107,6 @@ export async function buildPopulateAndUnlockGraphNode(
         layoutPositionByRoomId: state.layoutPositionByRoomId,
         occupiedCells, incomingFace,
         incomingFaceByRoomId: state.incomingFaceByRoomId,
-        legitimateSourceIdsByRoomId: state.legitimateSourceIdsByRoomId,
       },
     );
 
@@ -1143,7 +1139,7 @@ export async function buildPopulateAndUnlockGraphNode(
       // (findCorridorPath) a route around any other room's own occupied
       // cell instead of assuming a direct/single-corner connection.
       const { doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells } =
-        buildEdgeCorridor(state.seed, sourceId, room.id, sourceRect, rect, sourcePos, { rank, col }, exitFaceFromSource, toSlot, occupiedCells, incomingFace, legitimateSourceIds);
+        buildEdgeCorridor(state.seed, sourceId, room.id, sourceRect, rect, sourcePos, { rank, col }, exitFaceFromSource, toSlot, occupiedCells, incomingFace);
       if (hidden) {
         // #156: sealed until Task 9's reveal step explicitly promotes it
         // (both doorWall and revealDoorWall share the SAME

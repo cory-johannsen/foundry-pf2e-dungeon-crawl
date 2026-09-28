@@ -173,15 +173,31 @@ export function incomingFaceFor(roomId, positionByRoomId, occupiedCells, legitim
   const pos = positionByRoomId[roomId];
   // A room's own id is never the occupant of a NEIGHBOR cell (each cell
   // holds at most one room, and a neighbor is by definition a different
-  // cell) — the only exclusions that matter are this room's own real
-  // parents/hidden source, which legitimately DO occupy an adjacent
-  // cell in the common "parent directly above/beside" case.
-  const isFreeOrLegitimate = (rank, col) => {
+  // cell) — the only exclusion that matters is this room's own SOLE
+  // legitimate source (a single real parent, or a single hidden
+  // source), which legitimately DOES occupy an adjacent cell in the
+  // common "parent directly above/beside" case.
+  //
+  // #174 follow-up (found by this plan's own final whole-branch review,
+  // C1): a merge room with 2+ legitimate sources CANNOT treat a
+  // co-parent's occupancy of its gate cell as available — a route from
+  // a DIFFERENT source into this same room would otherwise have to pass
+  // THROUGH that co-parent's own real room (not empty transit space),
+  // producing containment walls on top of that co-parent's own door.
+  // The multi-source-sharing trick (several edges converging on one
+  // SHARED, genuinely empty transit cell, each adding its own opening)
+  // only works when the shared cell truly has no room in it — it cannot
+  // extend to a cell that's occupied by one of the very sources that
+  // needs to share it. So a legitimate occupant only counts as
+  // "available" when it is this room's ONLY legitimate source (no other
+  // source will ever need to independently reach the same gate).
+  const isAvailable = (rank, col) => {
     const occupant = occupiedCells[`${rank},${col}`];
-    return occupant == null || legitimateSourceIds.has(occupant);
+    if (occupant == null) return true;
+    return legitimateSourceIds.size === 1 && legitimateSourceIds.has(occupant);
   };
-  if (isFreeOrLegitimate(pos.rank - 1, pos.col)) return 'north';
-  if (isFreeOrLegitimate(pos.rank, pos.col - 1)) return 'west';
+  if (isAvailable(pos.rank - 1, pos.col)) return 'north';
+  if (isAvailable(pos.rank, pos.col - 1)) return 'west';
   return 'north';
 }
 
@@ -318,8 +334,8 @@ export function slotRowCol(slot) {
  * the same corner-connector shape the branch below already uses between
  * its own exitPoint and entryPoint (`cornerConnector`, below).
  */
-export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace = 'north', legitimateSourceIds = []) {
-  const path = findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace, legitimateSourceIds });
+export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace = 'north') {
+  const path = findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace });
   const slotSpan = incomingFace === 'west' ? (toSlot.y2 - toSlot.y1) : (toSlot.x2 - toSlot.x1);
   const outgoingOffset = doorOffsetAt(seed, `${fromRoomId}-${exitFace}`, 'outgoing', fromRect.gw);
   const incomingSeedKey = incomingFace === 'west' ? `${toRoomId}-west-${toSlot.y1}` : `${toRoomId}-north-${toSlot.x1}`;
@@ -594,7 +610,7 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
  * needs for `buildEdgeCorridor` itself) rather than approximating it,
  * since the two must never independently drift.
  */
-export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells, incomingFace = 'north', legitimateSourceIds = []) {
+export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells, incomingFace = 'north') {
   if (exitFace !== 'south' && exitFace !== 'east') {
     // West never takes buildEdgeCorridor's offset-based branch — always
     // center-based, regardless of the child's rank/column.
@@ -602,7 +618,7 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
   }
   const aligned = exitFace === 'south' ? fromPos.col === toPos.col : fromPos.rank === toPos.rank;
   const path = aligned
-    ? findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace, legitimateSourceIds })
+    ? findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace })
     : null;
   const usesOffsetBasedExit = aligned && (!path || path.length <= 2);
   // South's offset runs along the room's own width (gw); east's runs
@@ -965,7 +981,7 @@ export function transitCellContainmentWalls(rank, col, openings) {
  * never need a detour wider than a room or two, and an unbounded search
  * risks wandering arbitrarily far in a degenerate all-blocked case.
  */
-export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace = 'north', legitimateSourceIds = [] }) {
+export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace = 'north' }) {
   const SEARCH_MARGIN = 2;
   const key = (pos) => `${pos.rank},${pos.col}`;
   const minRank = Math.max(0, Math.min(fromPos.rank, toPos.rank) - SEARCH_MARGIN);
@@ -974,10 +990,19 @@ export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, to
   const maxCol = Math.max(fromPos.col, toPos.col) + SEARCH_MARGIN;
   const inBounds = (pos) =>
     pos.rank >= minRank && pos.rank <= maxRank && pos.col >= minCol && pos.col <= maxCol;
+  // #174 follow-up: reverted from a broader legitimateSourceIds exemption
+  // (found unsound by this plan's own final whole-branch review, C1) --
+  // exempting a co-parent HERE let a path route straight through that
+  // co-parent's own real room as if it were empty transit space, which
+  // then got walled like a transit cell, potentially sealing the
+  // co-parent's own door. The actual fix belongs in incomingFaceFor
+  // (above), which now refuses to treat a shared gate cell as available
+  // at all when 2+ sources would need to independently reach it -- so by
+  // the time this function runs, occupiedCells never legitimately
+  // contains anything but fromRoomId/toRoomId at a real entry point.
   const isBlocked = (pos) => {
     const occupant = occupiedCells[key(pos)];
-    if (occupant == null || occupant === fromRoomId || occupant === toRoomId) return false;
-    return !legitimateSourceIds.includes(occupant);
+    return occupant != null && occupant !== fromRoomId && occupant !== toRoomId;
   };
   // Generalized from #174's own north-only-entry fix: a room's incoming
   // connection lands on whichever face incomingFaceFor chose for it
