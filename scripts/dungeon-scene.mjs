@@ -163,6 +163,13 @@ function corridorTilesForSegments(segments) {
  * own opening, not a skipped or duplicated cell (design spec's own
  * "Error handling" section, and Task 5's brief Step 1 checklist item e).
  *
+ * #225 fix: the marker used to omit the edge's own id, so a SECOND edge
+ * crossing the same cell with the SAME entry/exit side pair (routine
+ * whenever multiple sources converge on one gate face from the same
+ * general direction) was silently treated as "already built" and never
+ * got its own tiles or opening — this is what `cell.edgeId` in the marker
+ * below fixes.
+ *
  * Idempotency for this EXACT entry/exit pair is checked against this
  * crossing's own corridor floor TILE, not its containment walls —
  * mirroring buildRoomAtGraphNode's own `dungeonRoomBuilt` convention (a
@@ -175,7 +182,7 @@ function corridorTilesForSegments(segments) {
  * re-run of the FIRST crossing think it still needs building again.
  */
 async function buildTransitCellIfNeeded(scene, cell) {
-  const marker = `${cell.rank},${cell.col}:${cell.entrySide}-${cell.exitSide}`;
+  const marker = `${cell.rank},${cell.col}:${cell.entrySide}-${cell.exitSide}:${cell.edgeId}`;
   const alreadyBuilt = scene.tiles.some(
     (t) => t.getFlag(MODULE_ID, "dungeonTransitCellCrossing") === marker,
   );
@@ -329,6 +336,15 @@ export async function createDungeonScene() {
  *     is always north, outgoing is always south/east/west, by
  *     construction — confirm live that this is what's actually built, not
  *     just assumed).
+ * (j) [#225] a multi-cell corridor's target door is never covered by the
+ *     final transit cell's own containment wall — the wall's gap and the
+ *     room's own real door line up exactly, on a room reached by a
+ *     genuinely obstacle-routed (not adjacent) connection.
+ * (k) [#225] two different edges that route through the same empty
+ *     transit cell (same rank/col, same entry/exit side pair) each get
+ *     their own corridor floor tiles and their own opening in that
+ *     cell's containment wall — neither edge's crossing silently
+ *     disappears.
  */
 export async function buildRoomAtGraphNode(
   scene,
