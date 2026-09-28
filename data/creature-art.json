@@ -12894,5 +12894,141 @@
     "name": "Hyakume",
     "level": 15,
     "art": "hyakume.webp"
+  },
+  {
+    "id": "neothelid",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "wxBQsGLdti2xcGVT",
+    "name": "Neothelid",
+    "level": 15,
+    "art": "neothelid.webp"
+  },
+  {
+    "id": "white_dragon_ancient_spellcaster",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "OqCiTKXZu7EWmAI0",
+    "name": "White Dragon (Ancient, Spellcaster)",
+    "level": 15,
+    "art": "white-dragon-ancient-spellcaster.webp"
+  },
+  {
+    "id": "deific_vessel_of_urgathoa",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "L9GYpgZrtvRcjsrS",
+    "name": "Deific Vessel of Urgathoa",
+    "level": 15,
+    "art": "deific-vessel-of-urgathoa.webp"
+  },
+  {
+    "id": "demilich",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "S35DifoycBwkxaGq",
+    "name": "Demilich",
+    "level": 15,
+    "art": "demilich.webp"
+  },
+  {
+    "id": "flamboyant_thief",
+    "pack": "pf2e.pathfinder-npc-core",
+    "docId": "dkUu1Ua71kWcZBMd",
+    "name": "Flamboyant Thief",
+    "level": 15,
+    "art": "flamboyant-thief.webp"
+  },
+  {
+    "id": "nosferatu_overlord",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "pMNBNo8VMAJdlhN3",
+    "name": "Nosferatu Overlord",
+    "level": 15,
+    "art": "nosferatu-overlord.webp"
+  },
+  {
+    "id": "phoenix",
+    "pack": "pf2e.pathfinder-monster-core",
+    "docId": "mQJL411e9Iz8dJoh",
+    "name": "Phoenix",
+    "level": 15,
+    "art": "phoenix.webp"
+  },
+  {
+    "id": "lampad_queen",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "15EHktvYa21dENni",
+    "name": "Lampad Queen",
+    "level": 15,
+    "art": "lampad-queen.webp"
+  },
+  {
+    "id": "nemhaith",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "d5UfBtz09fOXKSmr",
+    "name": "Nemhaith",
+    "level": 15,
+    "art": "nemhaith.webp"
+  },
+  {
+    "id": "popobawa",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "AybyC0n2CWNbXAbK",
+    "name": "Popobawa",
+    "level": 15,
+    "art": "popobawa.webp"
+  },
+  {
+    "id": "umonlee",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "4Y8UO8NloCoPxJ1E",
+    "name": "Umonlee",
+    "level": 15,
+    "art": "umonlee.webp"
+  },
+  {
+    "id": "white_dragon_ancient",
+    "pack": "pf2e.pathfinder-bestiary",
+    "docId": "mXkMSlj3LldzKxB9",
+    "name": "White Dragon (Ancient)",
+    "level": 15,
+    "art": "white-dragon-ancient.webp"
+  },
+  {
+    "id": "tolokand",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "kuh9DOsFXybRZRlj",
+    "name": "Tolokand",
+    "level": 15,
+    "art": "tolokand.webp"
+  },
+  {
+    "id": "shoal_linnorm",
+    "pack": "pf2e.pathfinder-bestiary-2",
+    "docId": "nipVBTEgG6itWJSW",
+    "name": "Shoal Linnorm",
+    "level": 15,
+    "art": "shoal-linnorm.webp"
+  },
+  {
+    "id": "sakugami",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "nxR5CHiRDv6efOl4",
+    "name": "Sakugami",
+    "level": 15,
+    "art": "sakugami.webp"
+  },
+  {
+    "id": "jotund_troll",
+    "pack": "pf2e.pathfinder-monster-core-2",
+    "docId": "4Ay3tf49upoyaJrg",
+    "name": "Jotund Troll",
+    "level": 15,
+    "art": "jotund-troll.webp"
+  },
+  {
+    "id": "toshigami",
+    "pack": "pf2e.pathfinder-bestiary-3",
+    "docId": "BMHkCVNiEbnmUVft",
+    "name": "Toshigami",
+    "level": 15,
+    "art": "toshigami.webp"
   }
 ]
