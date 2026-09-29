@@ -13630,5 +13630,125 @@
     "name": "Solar Ibis",
     "level": 7,
     "art": "solar-ibis-lob.webp"
+  },
+  {
+    "id": "yeongno_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Mu3obsMXZ0OYlQpo",
+    "name": "Yeongno",
+    "level": 7,
+    "art": "yeongno-lob.webp"
+  },
+  {
+    "id": "barrage_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "v5g6FS64zJWswM35",
+    "name": "Barrage Dragon (Young)",
+    "level": 8,
+    "art": "barrage-dragon-young-lob.webp"
+  },
+  {
+    "id": "barrage_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "kePF9RmoYVIhTkv9",
+    "name": "Barrage Dragon (Young, Spellcaster)",
+    "level": 8,
+    "art": "barrage-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "bibliodaemon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "kfxdeVTJONSMfJbG",
+    "name": "Bibliodaemon",
+    "level": 8,
+    "art": "bibliodaemon-lob.webp"
+  },
+  {
+    "id": "brine_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9D9woSv4rl4brb50",
+    "name": "Brine Dragon (Young, Spellcaster)",
+    "level": 8,
+    "art": "brine-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "krampus_celebrant_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "K7hgO9SEBai2jwYj",
+    "name": "Krampus Celebrant",
+    "level": 8,
+    "art": "krampus-celebrant-lob.webp"
+  },
+  {
+    "id": "spellscar_fext_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "AIQMB0ysHNeodKG4",
+    "name": "Spellscar Fext",
+    "level": 7,
+    "art": "spellscar-fext-lob.webp"
+  },
+  {
+    "id": "ulgrem_axaan_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "jInkcz2UYdaCzsBU",
+    "name": "Ulgrem-Axaan",
+    "level": 7,
+    "art": "ulgrem-axaan-lob.webp"
+  },
+  {
+    "id": "underworld_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "dr20tOnX7F7sIXF9",
+    "name": "Underworld Dragon (Young)",
+    "level": 7,
+    "art": "underworld-dragon-young-lob.webp"
+  },
+  {
+    "id": "underworld_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ked8eClr3mWdIZoJ",
+    "name": "Underworld Dragon (Young, Spellcaster)",
+    "level": 7,
+    "art": "underworld-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "young_linnorm_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "OLgKekTU0LOYwoxd",
+    "name": "Young Linnorm",
+    "level": 7,
+    "art": "young-linnorm-lob.webp"
+  },
+  {
+    "id": "brine_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "RZfELtgsk80bDuLi",
+    "name": "Brine Dragon (Young)",
+    "level": 8,
+    "art": "brine-dragon-young-lob.webp"
+  },
+  {
+    "id": "fleshforged_conformer_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "K2AOcLMDOVNbgPXp",
+    "name": "Fleshforged Conformer",
+    "level": 8,
+    "art": "fleshforged-conformer-lob.webp"
+  },
+  {
+    "id": "k_nonna_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "XSWDwaLEyshEKSZE",
+    "name": "K'nonna",
+    "level": 8,
+    "art": "k-nonna-lob.webp"
+  },
+  {
+    "id": "manananggal_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "GP61YtH3RvicMTkf",
+    "name": "Manananggal",
+    "level": 8,
+    "art": "manananggal-lob.webp"
   }
 ]
