@@ -6,6 +6,7 @@ import {
   roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, buildEdgeCorridor, incomingFaceFor, doorSlotsForFace,
   cellBounds, projectOntoSide, findCorridorPath, INITIAL_GX, cellMarginWalls, transitCellCrossing,
   transitCellContainmentWalls, CORRIDOR_LEN, outgoingMarginOffset, pendingForeignMarginOpenings,
+  marginBandApproach,
 } from '../scripts/dungeon-layout.mjs';
 import { buildRoomGraph, attachHiddenPaths } from '../scripts/dungeon-deck.mjs';
 
@@ -1217,6 +1218,29 @@ describe('buildEdgeCorridor — #297 dogleg around a blocking intermediate room'
     expect(result.corridorSegments).toEqual([
       { gx: 308, gy: 12, gw: 1, gh: 14 },
     ]);
+  });
+});
+
+describe('marginBandApproach — #297 Round 2 extraction', () => {
+  it("produces the turn geometry Round 1's own south-branch dogleg already computes for its own laneX0 target", () => {
+    // Pinned values taken verbatim from the "activates due to #230/#231
+    // span-widening" test above (search 'dogleg-miss-seed-2'): faceY=12,
+    // doorX0=308, doorX1=309, occupantEastEdge=306 -- so laneX0=306,
+    // laneWidth=DOOR_WIDTH=1 -- and that test's own result.corridorSegments[0]
+    // ({ gx: 306, gy: 12, gw: 3, gh: 1 }) is exactly this helper's own
+    // turnSegment for the same inputs, confirming these literals are real,
+    // already-verified pinned values, not re-derived ones.
+    const doorX0 = 308;
+    const doorX1 = 309;
+    const faceY = 12;
+    const laneX0 = 306;
+    const laneWidth = DOOR_WIDTH;
+    const result = marginBandApproach(doorX0, doorX1, faceY, laneX0, laneWidth);
+    expect(result.turnGx).toBe(Math.min(doorX0, laneX0));
+    expect(result.turnGx2).toBe(Math.max(doorX1, laneX0 + laneWidth));
+    expect(result.turnBottom).toBe(faceY + DOOR_WIDTH);
+    expect(result.turnSegment).toEqual({ gx: result.turnGx, gy: faceY, gw: result.turnGx2 - result.turnGx, gh: DOOR_WIDTH });
+    expect(result.turnWalls.length).toBeGreaterThan(0);
   });
 });
 
