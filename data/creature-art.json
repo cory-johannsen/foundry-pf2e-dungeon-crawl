@@ -13030,5 +13030,125 @@
     "name": "Toshigami",
     "level": 15,
     "art": "toshigami.webp"
+  },
+  {
+    "id": "vulture_rat_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "yRhCsQsoz1Uqvkmk",
+    "name": "Vulture Rat",
+    "level": -1,
+    "art": "vulture-rat-lob.webp"
+  },
+  {
+    "id": "animated_kite_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "fXlmbjtV3spZlmGS",
+    "name": "Animated Kite",
+    "level": 0,
+    "art": "animated-kite-lob.webp"
+  },
+  {
+    "id": "pygmy_kaava_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "EyGpKm5MkHepWuNM",
+    "name": "Pygmy Kaava",
+    "level": 0,
+    "art": "pygmy-kaava-lob.webp"
+  },
+  {
+    "id": "whalesteed_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "MQBH5svYUyhd3RsK",
+    "name": "Whalesteed",
+    "level": 0,
+    "art": "whalesteed-lob.webp"
+  },
+  {
+    "id": "charau_ka_warrior_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "TfEGDGqUk3LpokZZ",
+    "name": "Charau-ka Warrior",
+    "level": 1,
+    "art": "charau-ka-warrior-lob.webp"
+  },
+  {
+    "id": "coral_capuchin_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Vt28ucE0FUJYl1fD",
+    "name": "Coral Capuchin",
+    "level": 1,
+    "art": "coral-capuchin-lob.webp"
+  },
+  {
+    "id": "hopping_head_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mu36UlW90zHYuzww",
+    "name": "Hopping Head",
+    "level": 1,
+    "art": "hopping-head-lob.webp"
+  },
+  {
+    "id": "pearl_dragonet_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mySHYRhpjCRzAysj",
+    "name": "Pearl Dragonet",
+    "level": 1,
+    "art": "pearl-dragonet-lob.webp"
+  },
+  {
+    "id": "sarkorian_wolf_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "FMGyuNpkxMRR1Jrw",
+    "name": "Sarkorian Wolf",
+    "level": 1,
+    "art": "sarkorian-wolf-lob.webp"
+  },
+  {
+    "id": "skinskitter_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "LVY9JAhTnBC2SeqZ",
+    "name": "Skinskitter",
+    "level": 1,
+    "art": "skinskitter-lob.webp"
+  },
+  {
+    "id": "biloko_warrior_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "rayMMWNm61ivtxuU",
+    "name": "Biloko Warrior",
+    "level": 1,
+    "art": "biloko-warrior-lob.webp"
+  },
+  {
+    "id": "kaava_stalker_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "rMby02NQRHNrDcTj",
+    "name": "Kaava Stalker",
+    "level": 1,
+    "art": "kaava-stalker-lob.webp"
+  },
+  {
+    "id": "anadi_hunter_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "aXXvrcggR8EQJOdm",
+    "name": "Anadi Hunter",
+    "level": 2,
+    "art": "anadi-hunter-lob.webp"
+  },
+  {
+    "id": "inkdrop_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "B65InLN9TZjlascU",
+    "name": "Inkdrop",
+    "level": -1,
+    "art": "inkdrop-lob.webp"
+  },
+  {
+    "id": "baccali_alpaca_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mpT2AbFjoyDBDN5l",
+    "name": "Baccali Alpaca",
+    "level": 0,
+    "art": "baccali-alpaca-lob.webp"
   }
 ]

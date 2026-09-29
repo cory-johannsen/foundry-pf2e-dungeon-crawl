@@ -13,11 +13,8 @@
         "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
         "pack": {
           "type": "string",
-          "enum": [
-            "pf2e.pathfinder-monster-core", "pf2e.pathfinder-monster-core-2",
-            "pf2e.pathfinder-bestiary", "pf2e.pathfinder-bestiary-2", "pf2e.pathfinder-bestiary-3",
-            "pf2e.pathfinder-npc-core", "pf2e.npc-gallery"
-          ]
+          "pattern": "^pf2e\\.[a-z0-9-]+$",
+          "description": "Any pf2e Actor compendium collection id; the 7 core packs plus the adventure/bestiary packs from #229."
         },
         "docId": { "type": "string", "minLength": 1 },
         "name": { "type": "string", "minLength": 1 },
