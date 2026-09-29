@@ -3190,6 +3190,63 @@ describe('pendingForeignMarginOpenings — #297', () => {
   });
 });
 
+describe('pendingForeignMarginOpenings — #297 Round 2: real slot resolution', () => {
+  it('resolves the REAL per-connection slot for a multi-parent target, not slot 0 of an assumed single-connection room', () => {
+    // A merge room with TWO real parents: shortcutSourceId (index 0, the
+    // edge whose own dogleg blocks through the SAME room this test
+    // targets) and blockerRoomId (index 1, its own direct adjacent edge).
+    // The merge room's own incoming face is 'north' with 2 real
+    // connections, so doorSlotsForFace(targetRect, 2, 'north') produces
+    // TWO half-width slots -- genuinely different from the single
+    // full-width slot the OLD, buggy call (doorSlotsForFace(targetRect, 1,
+    // 'north')[0]) would have used. This difference is what makes the
+    // test actually pin the fix, not just happen to pass under both the
+    // old and new code.
+    const seed = 'dogleg-repro-seed-0'; // reuse Round 1's own pinned seed
+    const blockerRoomId = 'blocker-room'; // this test's own room being queried -- the co-parent AND the blocker, per Round 2's own detection
+    const shortcutSourceId = 'from-room';
+    const mergeRoomId = 'to-room';
+    const layoutPositionByRoomId = {
+      [shortcutSourceId]: { rank: 0, col: 0 },
+      [blockerRoomId]: { rank: 1, col: 0 },
+      [mergeRoomId]: { rank: 2, col: 0 },
+    };
+    // blockerRoomId is ALSO a real parent of mergeRoomId here (a second,
+    // independent edge, unrelated to shortcutSourceId's own edge) --
+    // giving mergeRoomId 2 real incoming connections.
+    const layoutEdges = {
+      [shortcutSourceId]: [mergeRoomId, blockerRoomId],
+      [blockerRoomId]: [mergeRoomId],
+    };
+    const edges = layoutEdges; // no detour rooms in this scenario
+    const occupiedCells = { '0,0': shortcutSourceId, '1,0': blockerRoomId, '2,0': mergeRoomId };
+    const incomingFaceByRoomId = { [mergeRoomId]: 'north', [blockerRoomId]: 'north' };
+
+    const openings = pendingForeignMarginOpenings(
+      seed, blockerRoomId, 1, 0, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
+      layoutEdges, {},
+    );
+
+    // Cross-check: the REAL slot for shortcutSourceId's own edge into
+    // mergeRoomId is index 0 of a 2-connection doorSlotsForFace call --
+    // parentRoomIdsFor iterates Object.entries(layoutEdges) in insertion
+    // order, and shortcutSourceId ('from-room') is this object literal's
+    // own first key, so it's this target's own first real parent
+    // (verified directly: `node -e` printing Object.entries(layoutEdges)
+    // for this exact literal gives `from-room` before `blocker-room`).
+    // blockerRoomId occupies index 1.
+    const mergeRect = roomRect(seed, mergeRoomId, 2, 0);
+    const realSlots = doorSlotsForFace(mergeRect, 2, 'north');
+    const realSlotForShortcut = realSlots[0];
+    const { foreignOpening } = buildEdgeCorridor(
+      seed, shortcutSourceId, mergeRoomId, roomRect(seed, shortcutSourceId, 0, 0), mergeRect,
+      { rank: 0, col: 0 }, { rank: 2, col: 0 }, 'south', realSlotForShortcut, occupiedCells, 'north',
+    );
+    expect(foreignOpening).not.toBeNull();
+    expect(openings.south).toEqual([{ offset: foreignOpening.offset, width: foreignOpening.width }]);
+  });
+});
+
 describe('#297 regression: exact live repro (issue #297, seed 1790705053246-4vdgop9m7i5\'s own edge shape)', () => {
   it('the merge room\'s second-parent edge routes around the blocking room instead of crossing its footprint, full pipeline', () => {
     const seed = 'dogleg-repro-seed-0';

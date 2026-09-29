@@ -1200,8 +1200,24 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
  * fully known before ANY room is built -- no persisted registry, no
  * retroactive wall-patching needed (see this feature's own spec for the
  * full reasoning and the two wrong designs it replaced).
+ *
+ * Round 2 (#297) fix: each candidate edge's own target door slot is now
+ * resolved via `incomingConnectionsFor(layoutEdges ?? edges, childId,
+ * hiddenIncomingByRoomId)` -- the SAME per-connection slot
+ * `buildPopulateAndUnlockGraphNode`'s own incoming-connections loop
+ * assigns that target room when it's actually built -- rather than always
+ * assuming the target has exactly one incoming connection
+ * (`doorSlotsForFace(targetRect, 1, targetIncomingFace)[0]`). A merge
+ * room with 2+ real parents gets a narrower, correctly-indexed slot per
+ * edge instead of every edge sharing one assumed full-width slot; a
+ * single-connection target still resolves to that same slot 0 as before
+ * (strict generalization). `layoutEdges`/`hiddenIncomingByRoomId` are
+ * optional trailing params so this stays a pure scan callable with just
+ * `edges` when no detour/hidden-path data is available (`layoutEdges ??
+ * edges` falls back to `edges` itself, which equals `layoutEdges` for
+ * every non-detour room).
  */
-export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells) {
+export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells, layoutEdges, hiddenIncomingByRoomId = {}) {
   const result = { east: [], south: [] };
   for (const [sourceId, childIds] of Object.entries(edges)) {
     const sourcePos = layoutPositionByRoomId[sourceId];
@@ -1222,7 +1238,17 @@ export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, lay
       const sourceRect = roomRect(seed, sourceId, sourcePos.rank, sourcePos.col);
       const targetRect = roomRect(seed, childId, targetPos.rank, targetPos.col);
       const targetIncomingFace = incomingFaceByRoomId?.[childId] ?? 'north';
-      const toSlot = doorSlotsForFace(targetRect, 1, targetIncomingFace)[0];
+      const targetConnections = incomingConnectionsFor(layoutEdges ?? edges, childId, hiddenIncomingByRoomId);
+      const slotIndex = targetConnections.findIndex((c) => !c.hidden && c.sourceId === sourceId);
+      // A real parent not found among its own target's real connections
+      // would be a graph-consistency bug elsewhere (childIds and
+      // parentRoomIdsFor disagreeing) -- fall back to a single full-width
+      // slot rather than crash, matching this function's own existing
+      // defensive style (the `if (!sourcePos) continue`/`if (!targetPos)
+      // return` guards just above).
+      const toSlot = slotIndex >= 0
+        ? doorSlotsForFace(targetRect, targetConnections.length, targetIncomingFace)[slotIndex]
+        : doorSlotsForFace(targetRect, 1, targetIncomingFace)[0];
       const { foreignOpening } = buildEdgeCorridor(
         seed, sourceId, childId, sourceRect, targetRect, sourcePos, targetPos,
         exitFace, toSlot, occupiedCells, targetIncomingFace,

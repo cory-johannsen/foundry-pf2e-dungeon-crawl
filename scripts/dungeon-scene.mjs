@@ -356,7 +356,7 @@ export async function buildRoomAtGraphNode(
     isGoal = false, locationTag = null, artVariant = 0, seed = "",
     layoutPositionByRoomId = {}, occupiedCells = {},
     incomingFace = 'north', incomingFaceByRoomId = {},
-    edges = {},
+    edges = {}, layoutEdges, hiddenIncomingByRoomId = {},
   },
 ) {
   const rect = roomRect(seed, roomId, rank, col);
@@ -426,6 +426,7 @@ export async function buildRoomAtGraphNode(
   const marginFaces = outgoingFaces.filter((face) => face === "east" || face === "south");
   const foreignOpenings = pendingForeignMarginOpenings(
     seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
+    layoutEdges, hiddenIncomingByRoomId,
   );
   const openingsBySide = { east: [...foreignOpenings.east], south: [...foreignOpenings.south] };
   for (const face of marginFaces) {
@@ -1136,6 +1137,8 @@ export async function buildPopulateAndUnlockGraphNode(
         occupiedCells, incomingFace,
         incomingFaceByRoomId: state.incomingFaceByRoomId,
         edges: state.edges,
+        layoutEdges: state.layoutEdges,
+        hiddenIncomingByRoomId: state.hiddenIncomingByRoomId,
       },
     );
 
