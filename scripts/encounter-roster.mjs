@@ -15,6 +15,19 @@ const MONSTER_CORE_PACKS = [
   "pf2e.pathfinder-monster-core-2",
 ];
 
+// The core bestiaries (Monster Core, Bestiary 1-3, NPC Core, NPC Gallery).
+// Everything else matching CREATURE_PACK_PATTERN (adventure, Lost Omens, PFS)
+// is the "boss pool": a dungeon's final room draws its boss from there, and
+// ordinary rooms only fall back to it when nothing general fits.
+const GENERAL_PACKS = [
+  ...MONSTER_CORE_PACKS,
+  "pf2e.pathfinder-bestiary",
+  "pf2e.pathfinder-bestiary-2",
+  "pf2e.pathfinder-bestiary-3",
+  "pf2e.pathfinder-npc-core",
+  "pf2e.npc-gallery",
+];
+
 // Troops and swarms are large by virtue of being many, which breaks "one
 // slot = one creature/group" — excluded unconditionally, per the pf2e-data
 // skill's guidance, regardless of what the GM's theme traits ask for.
@@ -96,23 +109,31 @@ async function pickCreature({
   rng,
   levelOffsetBias = 0,
   requireTrait = null,
+  boss = false,
 }) {
   const minLevel = partyLevel + levelOffset + levelOffsetBias - LEVEL_TOLERANCE;
   const maxLevel = partyLevel + levelOffset + levelOffsetBias + LEVEL_TOLERANCE;
   const excludeAll = [
     ...new Set([...(excludeTraits ?? []), ...MANDATORY_EXCLUDE]),
   ];
-  const look = (packs, useTraits) =>
+  const look = (packs, useTraits, excludePacks = []) =>
     api.findCreatures({
       minLevel,
       maxLevel,
       traits: useTraits ? traits : [],
       excludeTraits: excludeAll,
       packs,
+      excludePacks,
       requireTrait,
     });
 
-  let pool = await look(MONSTER_CORE_PACKS, true);
+  let pool = [];
+  if (boss) {
+    pool = await look(null, true, GENERAL_PACKS);
+    if (!pool.length) pool = await look(null, false, GENERAL_PACKS);
+  }
+  if (!pool.length) pool = await look(MONSTER_CORE_PACKS, true);
+  if (!pool.length) pool = await look(GENERAL_PACKS, true);
   if (!pool.length) pool = await look(null, true);
   if (!pool.length) pool = await look(null, false);
   if (!pool.length) return null;
@@ -166,6 +187,7 @@ export async function resolveEncounterRoster({
   levelOffsetBias = 0,
   requireTrait = null,
   partySize = null,
+  isBoss = false,
 }) {
   const warnings = [];
   const groupChoice = new Map();
@@ -175,7 +197,7 @@ export async function resolveEncounterRoster({
   const wouldExceedCap = (contribution) =>
     severeCap != null && approxXp > 0 && approxXp + contribution > severeCap;
 
-  const pick = (levelOffset) =>
+  const pick = (levelOffset, boss = false) =>
     pickCreature({
       api,
       partyLevel,
@@ -185,16 +207,17 @@ export async function resolveEncounterRoster({
       rng,
       levelOffsetBias,
       requireTrait,
+      boss,
     });
 
-  async function choiceFor(slot) {
+  async function choiceFor(slot, boss) {
     if (slot.group) {
       if (groupChoice.has(slot.group)) return groupChoice.get(slot.group);
-      const chosen = await pick(slot.levelOffset);
+      const chosen = await pick(slot.levelOffset, boss);
       groupChoice.set(slot.group, chosen);
       return chosen;
     }
-    return pick(slot.levelOffset);
+    return pick(slot.levelOffset, boss);
   }
 
   const foes = [];
@@ -205,7 +228,10 @@ export async function resolveEncounterRoster({
       cappedCount += 1;
       continue;
     }
-    const chosen = await choiceFor(slot);
+    const chosen = await choiceFor(
+      slot,
+      isBoss && resolved.foes.indexOf(slot) === 0,
+    );
     if (!chosen) {
       warnings.push(
         `No creature found for a level ${partyLevel + slot.levelOffset + levelOffsetBias} slot — place one yourself.`,
