@@ -1477,11 +1477,11 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
   function expectSouthAlignment(fromPos, toPos, occupiedCells) {
     const fromRect = smallRect(fromPos.rank, fromPos.col);
     const toRect = smallRect(toPos.rank, toPos.col);
-    const offset = outgoingMarginOffset(seed, 'A', 'B', 'south', fromRect, fromPos, toPos, occupiedCells);
+    const { offset, width } = outgoingMarginOffset(seed, 'A', 'B', 'south', fromRect, fromPos, toPos, occupiedCells);
     const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
     const { doorWall } = buildEdgeCorridor(seed, 'A', 'B', fromRect, toRect, fromPos, toPos, 'south', toSlot, occupiedCells);
     const marginWalls = cellMarginWalls(fromRect, fromPos.rank, fromPos.col, {
-      openSide: 'south', openOffset: offset, openWidth: DOOR_WIDTH,
+      openSide: 'south', openOffset: offset, openWidth: width,
     }).filter((w) => w.dir === 'south');
     // The margin wall's gap (the space between its two solid segments)
     // must span exactly [doorWall.x1, doorWall.x2].
@@ -1515,11 +1515,19 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
     const toPos = { rank: 0, col: 1 };
     const fromRect = smallRect(fromPos.rank, fromPos.col);
     const toRect = smallRect(toPos.rank, toPos.col);
-    const offset = outgoingMarginOffset(seed, 'A', 'B', 'east', fromRect, fromPos, toPos, {});
-    const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
-    const { doorWall } = buildEdgeCorridor(seed, 'A', 'B', fromRect, toRect, fromPos, toPos, 'east', toSlot, {});
+    // #288's own review round: an east exit into a same-rank target only
+    // reaches this fast path at all when the target's OWN incoming face
+    // is 'west' (findCorridorPath only ever allows entry from a target's
+    // own declared incomingFace's neighbor cell) — omitting incomingFace
+    // here (defaulting to 'north') made findCorridorPath return null for
+    // this direct east-west pair, which the OLD outgoingMarginOffset
+    // never noticed (it never actually built geometry to find out); the
+    // NEW one does, since it now calls buildEdgeCorridor for real.
+    const { offset, width } = outgoingMarginOffset(seed, 'A', 'B', 'east', fromRect, fromPos, toPos, {}, 'west');
+    const toSlot = doorSlotsForFace(toRect, 1, 'west')[0];
+    const { doorWall } = buildEdgeCorridor(seed, 'A', 'B', fromRect, toRect, fromPos, toPos, 'east', toSlot, {}, 'west');
     const marginWalls = cellMarginWalls(fromRect, fromPos.rank, fromPos.col, {
-      openSide: 'east', openOffset: offset, openWidth: DOOR_WIDTH,
+      openSide: 'east', openOffset: offset, openWidth: width,
     }).filter((w) => w.dir === 'east');
     expect(marginWalls).toHaveLength(2);
     const gapY0 = Math.min(...marginWalls.map((w) => w.y2));
@@ -1554,8 +1562,8 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
     const toPos = { rank: 1, col: 0 };
     const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
     const result = buildEdgeCorridor(seed, 'room-entry', 'room-room-entry-0', fromRect, toRect, fromPos, toPos, 'south', toSlot, {});
-    const offset = outgoingMarginOffset(seed, 'room-entry', 'room-room-entry-0', 'south', fromRect, fromPos, toPos, {}, 'north');
-    const marginWalls = cellMarginWalls(fromRect, 0, 0, { openSide: 'south', openOffset: offset, openWidth: DOOR_WIDTH })
+    const { offset, width } = outgoingMarginOffset(seed, 'room-entry', 'room-room-entry-0', 'south', fromRect, fromPos, toPos, {}, 'north');
+    const marginWalls = cellMarginWalls(fromRect, 0, 0, { openSide: 'south', openOffset: offset, openWidth: width })
       .filter((w) => w.dir === 'south');
     // The margin wall's own gap (space between its solid segments) must
     // fully contain the target's own real door interval.
@@ -1576,36 +1584,50 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
   // offset to clamp — reintroducing a (smaller) version of the same gap.
   // This test doesn't assert the residual away; it pins the clamped
   // shape so a future fix attempt has a concrete case to work from.
-  it('a narrower target slot (merge room, multiple incoming connections) can still clamp the derived offset, leaving a residual gap (#230, documented limitation)', () => {
-    const seed = 'margin-offset-clamp-residual';
+  it('a narrower target slot (merge room, multiple incoming connections) can still clamp the derived offset, leaving a residual gap (#230/#288, documented limitation)', () => {
+    // #288's own review round: outgoingMarginOffset now derives its own
+    // gap by calling buildEdgeCorridor with an ASSUMED single, full-width
+    // incoming slot (correct for a real single-incoming-connection target
+    // — the common case, and #288's own fix for that case). A merge
+    // target's REAL slot (one of several, narrower than the assumed
+    // full-width one) is a separate story — outgoingMarginOffset has no
+    // way to know about it, so this scenario's own real toRect must be
+    // derived the SAME way outgoingMarginOffset derives it internally
+    // (roomRect(seed, toRoomId, ...)), not hand-constructed, or the two
+    // would silently disagree for a reason this test doesn't intend to
+    // exercise. `clamp-seed-1` is confirmed (by direct roomSizeAt check)
+    // to roll a LARGE 'merge-target', matching this scenario's own intent
+    // (a merge room, split into narrower slots than the source's face).
+    const seed = 'clamp-seed-1';
     const fromRect = { gx: 300, gy: 0, gw: 6, gh: 6 };
-    // A LARGE target room split into 3 narrow incoming slots (4 units
-    // each) — narrower than the source's own 6-unit face, so a source
-    // door offset near the source's own far edge won't fit the slot
-    // this connection lands on.
-    const toRect = { gx: 300, gy: 13, gw: 12, gh: 12 };
-    const toSlot = doorSlotsForFace(toRect, 3, 'north')[2]; // the slot farthest from the source's own column origin
     const fromPos = { rank: 0, col: 0 };
     const toPos = { rank: 1, col: 0 };
+    const toRect = roomRect(seed, 'merge-target', toPos.rank, toPos.col);
+    expect(toRect.gw).toBe(ROOM_SIZE_LARGE); // sanity: this seed really does roll LARGE
+    // 3 narrow incoming slots (4 units each) — narrower than the source's
+    // own 6-unit face, so a source door offset near the source's own far
+    // edge won't fit the slot this connection lands on.
+    const toSlot = doorSlotsForFace(toRect, 3, 'north')[2]; // the slot farthest from the source's own column origin
     const result = buildEdgeCorridor(seed, 'merge-source', 'merge-target', fromRect, toRect, fromPos, toPos, 'south', toSlot, {});
-    const offset = outgoingMarginOffset(seed, 'merge-source', 'merge-target', 'south', fromRect, fromPos, toPos, {}, 'north');
-    const marginWalls = cellMarginWalls(fromRect, 0, 0, { openSide: 'south', openOffset: offset, openWidth: DOOR_WIDTH })
+    const { offset, width } = outgoingMarginOffset(seed, 'merge-source', 'merge-target', 'south', fromRect, fromPos, toPos, {}, 'north');
+    const marginWalls = cellMarginWalls(fromRect, 0, 0, { openSide: 'south', openOffset: offset, openWidth: width })
       .filter((w) => w.dir === 'south');
     const gapStart = Math.min(...marginWalls.map((w) => w.x2));
     const gapEnd = Math.max(...marginWalls.map((w) => w.x1));
-    // This scenario forces the clamp deterministically: the source's own
-    // door offset (bounded by its own 6-unit face, so doorX0 <= 305)
-    // never reaches this slot's own bounds (toSlot.x1 = 308), so gapX0
-    // always clamps up to 308 — pulling the target's real door
-    // (revealDoorWall = [308,309]) away from the source's own unclamped
-    // margin gap ([303,304], matching doorWall exactly, byte-for-byte
-    // reproduced below) — and the target's door lands entirely inside
-    // the margin wall's SECOND solid segment ([304,313]), fully blocked.
+    // Hand-traced and confirmed via a standalone script (not assumed):
+    // outgoingMarginOffset's own ASSUMED full-width slot ([300,312], the
+    // whole 12-wide target face) never needs to clamp against the
+    // source's own doorX0=302, so it returns offset=2 (absolute 302),
+    // width=DOOR_WIDTH=1 — its own margin gap is exactly [302,303],
+    // matching doorWall.x1/x2 (still correct for the source's OWN real
+    // door). But the REAL corridor (built with the REAL, narrower 3rd
+    // slot) has its target's own real door at revealDoorWall=[308,309]
+    // — outside outgoingMarginOffset's own assumed gap entirely, falling
+    // inside the margin wall's own second solid segment ([303,313]).
     // `covers` is true only when the margin's own OPEN gap fully
-    // contains the target's real door (i.e. NOT blocked) — verified by
-    // hand-tracing the actual numbers this scenario produces, not
-    // assumed: pinned here as `false` (blocked), per #230's own
-    // documented, un-fixed residual for a merge room's narrower slot.
+    // contains the target's real door (i.e. NOT blocked) — pinned here
+    // as `false` (still blocked): #288 does not solve the merge-room
+    // residual, same documented scope as #230's own version of this test.
     const covers = gapStart <= result.revealDoorWall.x1 + 1e-9 && gapEnd >= result.revealDoorWall.x2 - 1e-9;
     expect(covers).toBe(false);
   });
@@ -1713,7 +1735,7 @@ describe('corridor routing regression sweep (#174)', () => {
   // for that bug that the test above provides for room-footprint
   // overlap — real seeds, real branching, not just the handful of cases
   // a person thought to write by hand.
-  it('every SMALL room\'s cell-margin gap coincides exactly with buildEdgeCorridor\'s real crossing point, across the same seed/roomCount sweep', () => {
+  it('every room\'s (SMALL or LARGE) cell-margin gap fully contains buildEdgeCorridor\'s real crossing point at the source\'s own door, across the same seed/roomCount sweep', () => {
     let totalMarginedConnections = 0;
     for (let i = 0; i < 500; i += 1) {
       const seed = `sweep-${i}`;
@@ -1738,7 +1760,9 @@ describe('corridor routing regression sweep (#174)', () => {
           const face = exitFaceForIndex(idx);
           if (face !== 'south' && face !== 'east') continue;
           const fromRect = rectById[fromId];
-          if (fromRect.gw !== ROOM_SIZE_SMALL) continue; // no margin for LARGE rooms — cellMarginWalls' own no-op
+          // #288: LARGE rooms have a real margin now too (ROW_STRIDE/
+          // COLUMN_STRIDE = ROOM_SIZE_LARGE + CORRIDOR_LEN) — swept for
+          // both sizes.
           const toRect = rectById[toId];
           const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
           const { doorWall } = buildEdgeCorridor(
@@ -1746,13 +1770,13 @@ describe('corridor routing regression sweep (#174)', () => {
             positionByRoomId[fromId], positionByRoomId[toId],
             face, toSlot, occupiedCells,
           );
-          const offset = outgoingMarginOffset(
+          const { offset, width } = outgoingMarginOffset(
             seed, fromId, toId, face, fromRect,
             positionByRoomId[fromId], positionByRoomId[toId], occupiedCells,
           );
           const marginWalls = cellMarginWalls(
             fromRect, positionByRoomId[fromId].rank, positionByRoomId[fromId].col,
-            { openSide: face, openOffset: offset, openWidth: DOOR_WIDTH },
+            { openSide: face, openOffset: offset, openWidth: width },
           ).filter((w) => w.dir === face);
           totalMarginedConnections += 1;
           // South's gap runs along x; east's runs along y. #174 Task 6
@@ -1788,12 +1812,19 @@ describe('corridor routing regression sweep (#174)', () => {
           const [door0, door1] = face === 'south'
             ? [doorWall.x1, doorWall.x2]
             : [doorWall.y1, doorWall.y2];
-          expect(gap0).toBeCloseTo(door0, 9);
-          expect(gap1).toBeCloseTo(door1, 9);
+          // #288: the margin gap must CONTAIN the source's own door — no
+          // longer necessarily equal it exactly. When the corridor's own
+          // real span is wider than DOOR_WIDTH (the source's and the
+          // target's own offsets differ, #230), the margin correctly
+          // widens to cover the whole span, not just the source's own
+          // narrower door — exact equality only holds in the (still
+          // common) unclamped case.
+          expect(gap0).toBeLessThanOrEqual(door0 + 1e-9);
+          expect(gap1).toBeGreaterThanOrEqual(door1 - 1e-9);
         }
       }
     }
-    expect(totalMarginedConnections).toBeGreaterThan(200); // sanity: real SMALL-room south/east connections were exercised
+    expect(totalMarginedConnections).toBeGreaterThan(200); // sanity: real south/east connections (both sizes, #288) were exercised
   });
 
   // #230: the sweep above only ever checks the margin gap against
@@ -1836,7 +1867,11 @@ describe('corridor routing regression sweep (#174)', () => {
           const face = exitFaceForIndex(idx);
           if (face !== 'south' && face !== 'east') continue;
           const fromRect = rectById[fromId];
-          if (fromRect.gw !== ROOM_SIZE_SMALL) continue; // no margin for LARGE rooms
+          // #288: swept for both source sizes now — LARGE rooms have a
+          // real margin too, and #288's own review round found the
+          // naive fix (sealing it without also widening the gap) newly
+          // BLOCKED a real fraction of LARGE-source doors; this sweep
+          // (with the skip removed) is what would have caught that.
           const toRect = rectById[toId];
           // Only the FAST PATH (buildEdgeCorridor's own same-column/
           // same-rank offset-based branch, the one #230 actually fixed)
@@ -1864,13 +1899,13 @@ describe('corridor routing regression sweep (#174)', () => {
             positionByRoomId[fromId], positionByRoomId[toId],
             face, toSlot, occupiedCells,
           );
-          const offset = outgoingMarginOffset(
+          const { offset, width } = outgoingMarginOffset(
             seed, fromId, toId, face, fromRect,
             positionByRoomId[fromId], positionByRoomId[toId], occupiedCells,
           );
           const marginWalls = cellMarginWalls(
             fromRect, positionByRoomId[fromId].rank, positionByRoomId[fromId].col,
-            { openSide: face, openOffset: offset, openWidth: DOOR_WIDTH },
+            { openSide: face, openOffset: offset, openWidth: width },
           ).filter((w) => w.dir === face);
           const cell = cellBounds(positionByRoomId[fromId].rank, positionByRoomId[fromId].col);
           const cellStart = face === 'south' ? cell.gx : cell.gy;

@@ -686,7 +686,8 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
  * `cellMarginWalls`) must use for its outgoing connection on `exitFace`,
  * so the gap it leaves lines up with wherever `buildEdgeCorridor` will
  * actually route that same connection's real corridor (#174 Task 5's own
- * fix round, amended after a re-review found the first pass incomplete).
+ * fix round, amended after a re-review found the first pass incomplete;
+ * #288's own review round widened the return shape — see below).
  *
  * `buildEdgeCorridor` uses a doorOffsetAt-based exit point for a
  * south-face connection where `fromPos.col === toPos.col`, or an
@@ -705,12 +706,31 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
  * will take (by calling the same `findCorridorPath` the caller already
  * needs for `buildEdgeCorridor` itself) rather than approximating it,
  * since the two must never independently drift.
+ *
+ * Returns `{offset, width}`, not a bare offset (#288's own review round):
+ * `buildEdgeCorridor`'s offset-based branch can draw a corridor floor
+ * WIDER than DOOR_WIDTH — the union of the source's own door offset and
+ * the target's own (#230-clamped) incoming offset, whenever those two
+ * differ. A margin wall (`cellMarginWalls`) opened only DOOR_WIDTH wide,
+ * at the source's own offset alone, left the REST of that wider real
+ * floor — up to and including the target's own entire door, once a
+ * LARGE room's own margin started being sealed at all (#288) — covered
+ * by solid wall. Rather than re-deriving the target's own offset here
+ * too (duplicating buildEdgeCorridor's own clamp logic, and risking a
+ * third independent place these could drift apart), this calls
+ * `buildEdgeCorridor` directly with an assumed single, full-width
+ * incoming slot — exactly right for the common case (a target with
+ * exactly one incoming connection, where that assumption IS the real
+ * slot) — and reads back its own actual `corridorSegments[0]`, the real
+ * span the corridor floor will occupy. A merge target's own narrower,
+ * per-connection slot (this assumption doesn't know about) is a
+ * separate, already-tracked residual — #231 — not solved here.
  */
 export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells, incomingFace = 'north') {
   if (exitFace !== 'south' && exitFace !== 'east') {
     // West never takes buildEdgeCorridor's offset-based branch — always
     // center-based, regardless of the child's rank/column.
-    return fromRect.gh / 2 - DOOR_WIDTH / 2;
+    return { offset: fromRect.gh / 2 - DOOR_WIDTH / 2, width: DOOR_WIDTH };
   }
   const aligned = exitFace === 'south' ? fromPos.col === toPos.col : fromPos.rank === toPos.rank;
   const path = aligned
@@ -722,9 +742,18 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
   // and center-based fallback make the identical face-based choice (see
   // its own doorX0/doorY0 computations).
   const faceSpan = exitFace === 'south' ? fromRect.gw : fromRect.gh;
-  return usesOffsetBasedExit
-    ? doorOffsetAt(seed, `${fromRoomId}-${exitFace}`, 'outgoing', faceSpan)
-    : faceSpan / 2 - DOOR_WIDTH / 2;
+  if (!usesOffsetBasedExit) {
+    return { offset: faceSpan / 2 - DOOR_WIDTH / 2, width: DOOR_WIDTH };
+  }
+  const toRect = roomRect(seed, toRoomId, toPos.rank, toPos.col);
+  const toSlot = doorSlotsForFace(toRect, 1, incomingFace)[0];
+  const { corridorSegments } = buildEdgeCorridor(
+    seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace,
+  );
+  const seg = corridorSegments[0];
+  return exitFace === 'south'
+    ? { offset: seg.gx - fromRect.gx, width: seg.gw }
+    : { offset: seg.gy - fromRect.gy, width: seg.gh };
 }
 
 /** Which compass direction `from` a cell faces to reach an
@@ -916,7 +945,7 @@ export function cellBounds(rank, col) {
  * gap — confirmed live, a player could see past a LARGE room's own real
  * wall into whatever lay beyond, and walk through the open margin
  * around a still-LOCKED gate door entirely. `rect.gw < cell.gw` (already
- * computed a line above, just not used for this decision) is the
+ * computed inline in the old condition, just not used on its own) is the
  * correct, size-agnostic test: does this room's own rect actually fall
  * short of its cell's full span, regardless of which named size it is.
  */

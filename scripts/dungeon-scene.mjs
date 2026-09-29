@@ -423,11 +423,15 @@ export async function buildRoomAtGraphNode(
     // implementer" in the brief). This room's own incomingFace has no
     // bearing on which face its children receive their connections on.
     const childIncomingFace = childId ? (incomingFaceByRoomId?.[childId] ?? 'north') : 'north';
-    const offset = outgoingMarginOffset(
+    const { offset, width } = outgoingMarginOffset(
       seed, roomId, childId, face, rect, { rank, col },
       childPos ?? { rank: NaN, col: NaN }, occupiedCells, childIncomingFace,
     );
-    const sideWalls = cellMarginWalls(rect, rank, col, { openSide: face, openOffset: offset, openWidth: DOOR_WIDTH });
+    // #288: openWidth is no longer always DOOR_WIDTH — outgoingMarginOffset's
+    // own return now carries the real corridor floor's width, which can be
+    // wider than DOOR_WIDTH when the source's and target's own door offsets
+    // differ (see its own docblock).
+    const sideWalls = cellMarginWalls(rect, rank, col, { openSide: face, openOffset: offset, openWidth: width });
     for (const side of sideWalls) if (side.dir === face) marginWalls.push(side);
     coveredMarginSides.add(face);
   }
