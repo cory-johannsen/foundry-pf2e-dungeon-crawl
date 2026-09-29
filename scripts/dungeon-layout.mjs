@@ -483,7 +483,7 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
         ]
     ).filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
 
-    return { doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells };
+    return { doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells, foreignOpening: null };
   }
 
   // Adjacent (path.length <= 2), or no path found so we fall back to a
@@ -550,10 +550,63 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // fix touched or measured (see #232). Neither "closes #230" nor
     // "closes #288" means every door-coverage defect in this file is
     // gone.
-    const gapX0 = Math.min(Math.max(doorX0, toSlot.x1), toSlot.x2 - DOOR_WIDTH);
+    // #297: exactly one intermediate cell exists between source and
+    // target when they're 2 ranks apart in the same column on a null
+    // path -- if that cell holds a real room (not this edge's own
+    // source/target) whose own footprint the fixed doorX0 column would
+    // cross, reroute through that room's own east margin instead of
+    // straight through it. A larger rank gap always has more than one
+    // intermediate cell and is left on the pre-existing direct-line
+    // fallback unconditionally (#297's own documented scope limit).
+    let dogleg = null;
+    let foreignOpening = null;
+    if (!path && toPos.rank === fromPos.rank + 2) {
+      const blockRank = fromPos.rank + 1;
+      const blockCol = fromPos.col;
+      const occupantId = occupiedCells[`${blockRank},${blockCol}`];
+      if (occupantId != null && occupantId !== fromRoomId && occupantId !== toRoomId) {
+        const blockCell = cellBounds(blockRank, blockCol);
+        const occupantRect = roomRect(seed, occupantId, blockRank, blockCol);
+        // occupantRect.gx === blockCell.gx === fromRect.gx always (NW
+        // anchor, same column) -- the occupant's own footprint spans
+        // exactly [blockCell.gx, blockCell.gx + occupantRect.gw].
+        const occupantEastEdge = occupantRect.gx + occupantRect.gw;
+        if (doorX0 < occupantEastEdge) {
+          // The turn MUST happen while still inside the SOURCE's own
+          // margin band (faceY..blockCell.gy), never inside the blocking
+          // cell itself -- a room's floor starts immediately at its own
+          // cell's NW corner (no margin above/left of it), so there is no
+          // y-range inside the blocking cell where turning wouldn't
+          // overlap that room's own floor. The source's own margin is
+          // always >= DOOR_WIDTH deep (the same margin invariant
+          // cellMarginWalls relies on), so a DOOR_WIDTH-tall turn always
+          // fits there even for a LARGE source room.
+          const laneX0 = occupantEastEdge;
+          const laneX1 = laneX0 + DOOR_WIDTH;
+          const turnGx = Math.min(doorX0, laneX0);
+          const turnGx2 = Math.max(doorX1, laneX1);
+          const turnBottom = faceY + DOOR_WIDTH;
+          dogleg = { laneX0, laneX1, turnGx, turnGx2, turnBottom, blockCell };
+          foreignOpening = {
+            roomId: occupantId,
+            side: 'east',
+            offset: laneX0 - blockCell.gx,
+            width: DOOR_WIDTH,
+          };
+        }
+      }
+    }
+    // #297: when a dogleg is active, the corridor's real approach to the
+    // target is from the lane's own x, not the original (now-abandoned)
+    // doorX0 -- the target's own gap must track wherever the corridor
+    // actually lands, the same "two things must agree on a shared
+    // boundary" requirement #230 already established for the non-dogleg
+    // case.
+    const targetFacingX0 = dogleg ? dogleg.laneX0 : doorX0;
+    const gapX0 = Math.min(Math.max(targetFacingX0, toSlot.x1), toSlot.x2 - DOOR_WIDTH);
     const gapX1 = gapX0 + DOOR_WIDTH;
-    const spanX0 = Math.min(doorX0, gapX0);
-    const spanX1 = Math.max(doorX1, gapX1);
+    const spanX0 = dogleg ? dogleg.turnGx : Math.min(doorX0, gapX0);
+    const spanX1 = dogleg ? dogleg.turnGx2 : Math.max(doorX1, gapX1);
     // #294 fix round: the new side walls below must never reach past the
     // SOURCE's own cell boundary — see their own comment for why. Equals
     // corridorEndY exactly in the found-path (adjacent) case; strictly
@@ -614,8 +667,27 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       // live-reported leak stays fixed), and in the null-path case the
       // side walls now stop at the source's own margin, never reaching
       // into cells this function has no business drawing walls through.
-      { x1: spanX0, y1: faceY, x2: spanX0, y2: sideWallEndY },
-      { x1: spanX1, y1: faceY, x2: spanX1, y2: sideWallEndY },
+      ...(dogleg
+        ? [
+            // Cap the turn strip's own south edge except where the lane
+            // continues down through it -- same "seal everything except
+            // the declared opening" shape as the rest of this file's own
+            // containment walls.
+            { x1: dogleg.turnGx, y1: dogleg.turnBottom, x2: dogleg.laneX0, y2: dogleg.turnBottom },
+            { x1: dogleg.laneX1, y1: dogleg.turnBottom, x2: dogleg.turnGx2, y2: dogleg.turnBottom },
+            // Contain the lane's own sides for its full remaining run,
+            // through the rest of the source's own margin AND the entire
+            // blocking cell (corridorEndY, not sideWallEndY -- #297's own
+            // dogleg is specifically the case #294 left uncontained,
+            // scoped exactly to the lane's own real floor, not a wider
+            // guess).
+            { x1: dogleg.laneX0, y1: dogleg.turnBottom, x2: dogleg.laneX0, y2: corridorEndY },
+            { x1: dogleg.laneX1, y1: dogleg.turnBottom, x2: dogleg.laneX1, y2: corridorEndY },
+          ]
+        : [
+            { x1: spanX0, y1: faceY, x2: spanX0, y2: sideWallEndY },
+            { x1: spanX1, y1: faceY, x2: spanX1, y2: sideWallEndY },
+          ]),
     ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
     const doorWall = { x1: doorX0, y1: faceY, x2: doorX1, y2: faceY };
     const revealDoorWall = { x1: gapX0, y1: corridorEndY, x2: gapX1, y2: corridorEndY };
@@ -625,8 +697,14 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // (now-deleted) trunk-lane detour.
     return {
       doorWall, revealDoorWall, plainWalls,
-      corridorSegments: [{ gx: spanX0, gy: faceY, gw: spanX1 - spanX0, gh: corridorEndY - faceY }],
+      corridorSegments: dogleg
+        ? [
+            { gx: dogleg.turnGx, gy: faceY, gw: dogleg.turnGx2 - dogleg.turnGx, gh: DOOR_WIDTH },
+            { gx: dogleg.laneX0, gy: dogleg.turnBottom, gw: DOOR_WIDTH, gh: corridorEndY - dogleg.turnBottom },
+          ]
+        : [{ gx: spanX0, gy: faceY, gw: spanX1 - spanX0, gh: corridorEndY - faceY }],
       transitCells: [],
+      foreignOpening,
     };
   }
 
@@ -735,6 +813,7 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       { gx: Math.min(corner.x, entryPoint.x), gy: Math.min(corner.y, entryPoint.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(entryPoint.y - corner.y)) }
     ],
     transitCells: [],
+    foreignOpening: null,
   };
 }
 
