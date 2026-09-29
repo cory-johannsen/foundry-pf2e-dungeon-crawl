@@ -1543,16 +1543,21 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
       .filter((w) => w.dir === 'south');
     const gapStart = Math.min(...marginWalls.map((w) => w.x2));
     const gapEnd = Math.max(...marginWalls.map((w) => w.x1));
-    // The clamp keeps the derived offset within the SOURCE's own slot on
-    // this specific case only when the source's own door happens to fall
-    // within the target's narrow slot; this test documents whichever
-    // shape the current clamp actually produces rather than assuming a
-    // specific outcome, so a future change to the clamp gets a concrete,
-    // honest diff instead of a silently-changing assertion.
+    // This scenario forces the clamp deterministically: the source's own
+    // door offset (bounded by its own 6-unit face, so doorX0 <= 305)
+    // never reaches this slot's own bounds (toSlot.x1 = 308), so gapX0
+    // always clamps up to 308 — pulling the target's real door
+    // (revealDoorWall = [308,309]) away from the source's own unclamped
+    // margin gap ([303,304], matching doorWall exactly, byte-for-byte
+    // reproduced below) — and the target's door lands entirely inside
+    // the margin wall's SECOND solid segment ([304,313]), fully blocked.
+    // `covers` is true only when the margin's own OPEN gap fully
+    // contains the target's real door (i.e. NOT blocked) — verified by
+    // hand-tracing the actual numbers this scenario produces, not
+    // assumed: pinned here as `false` (blocked), per #230's own
+    // documented, un-fixed residual for a merge room's narrower slot.
     const covers = gapStart <= result.revealDoorWall.x1 + 1e-9 && gapEnd >= result.revealDoorWall.x2 - 1e-9;
-    // eslint-disable-next-line no-console
-    console.log(`[#230 residual] narrow-slot case covers target door: ${covers}`);
-    expect(typeof covers).toBe('boolean'); // sanity: the scenario itself runs without throwing
+    expect(covers).toBe(false);
   });
 });
 
@@ -1753,10 +1758,11 @@ describe('corridor routing regression sweep (#174)', () => {
   // `incomingConnectionsFor`/`doorSlotsForFace` machinery every other
   // slot-count-aware sweep in this file already uses (not just a
   // single-slot toy scenario).
-  it('the source room\'s own margin-wall gap never covers the target\'s own real door, across the same seed/roomCount sweep, for a single-incoming-connection target (#230)', () => {
+  it('the source room\'s own margin-wall gap never covers the target\'s own real door, across the same seed/roomCount sweep, for a single-incoming-connection target — and the measured, un-fixed residual for a multi-slot (merge room) target stays within its own tracked ceiling (#230)', () => {
     let totalChecked = 0;
     let coveredCount = 0;
-    let multiSlotSkipped = 0;
+    let multiSlotChecked = 0;
+    let multiSlotCoveredCount = 0;
     for (let i = 0; i < 500; i += 1) {
       const seed = `sweep-${i}`;
       const roomCount = 6 + (i % 15);
@@ -1794,8 +1800,15 @@ describe('corridor routing regression sweep (#174)', () => {
           const aligned = face === 'south' ? fromRect.gx === toRect.gx : fromRect.gy === toRect.gy;
           if (!aligned) continue;
           const incoming = incomingConnectionsFor(layoutEdges, toId, hiddenIncomingByRoomId);
-          if (incoming.length !== 1) { multiSlotSkipped += 1; continue; } // #230's own documented clamp residual, tracked separately
-          const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
+          const slotIndex = incoming.findIndex((c) => c.sourceId === fromId);
+          if (slotIndex === -1) continue; // shouldn't happen for a real edge, but never index -1 into doorSlotsForFace
+          // A merge room's own multi-slot target is #230's own documented,
+          // un-fixed residual (the clamp can still land the derived offset
+          // away from where the source's own margin gap sits) — checked
+          // and tracked with its own real ceiling below, never silently
+          // skipped, so a regression there is still caught even though
+          // it isn't asserted to zero.
+          const toSlot = doorSlotsForFace(toRect, incoming.length, 'north')[slotIndex];
           const { revealDoorWall } = buildEdgeCorridor(
             seed, fromId, toId, fromRect, toRect,
             positionByRoomId[fromId], positionByRoomId[toId],
@@ -1809,7 +1822,6 @@ describe('corridor routing regression sweep (#174)', () => {
             fromRect, positionByRoomId[fromId].rank, positionByRoomId[fromId].col,
             { openSide: face, openOffset: offset, openWidth: DOOR_WIDTH },
           ).filter((w) => w.dir === face);
-          totalChecked += 1;
           const cell = cellBounds(positionByRoomId[fromId].rank, positionByRoomId[fromId].col);
           const cellStart = face === 'south' ? cell.gx : cell.gy;
           const cellEnd = face === 'south' ? cell.gx + cell.gw : cell.gy + cell.gh;
@@ -1827,13 +1839,27 @@ describe('corridor routing regression sweep (#174)', () => {
           const [door0, door1] = doorIsVertical
             ? [revealDoorWall.y1, revealDoorWall.y2]
             : [revealDoorWall.x1, revealDoorWall.x2];
-          if (gap0 > door0 + 1e-9 || gap1 < door1 - 1e-9) coveredCount += 1;
+          const covered = gap0 > door0 + 1e-9 || gap1 < door1 - 1e-9;
+          if (incoming.length === 1) {
+            totalChecked += 1;
+            if (covered) coveredCount += 1;
+          } else {
+            multiSlotChecked += 1;
+            if (covered) multiSlotCoveredCount += 1;
+          }
         }
       }
     }
     expect(totalChecked).toBeGreaterThan(200); // sanity: real single-incoming-slot connections were exercised
-    expect(multiSlotSkipped).toBeGreaterThan(0); // sanity: the merge-room residual case exists in this sweep too, just tracked separately
-    expect(coveredCount).toBe(0);
+    expect(multiSlotChecked).toBeGreaterThan(0); // sanity: the merge-room residual case exists in this sweep too
+    expect(coveredCount).toBe(0); // #230's fix: fully closes the single-incoming-slot case
+    // #230's own documented, un-fixed residual for a merge room's narrower
+    // slot — tracked with a real ceiling (not just logged) so a future
+    // regression here is still caught, even though a full fix (passing the
+    // target's own toSlot into outgoingMarginOffset) is tracked separately.
+    // eslint-disable-next-line no-console
+    console.log(`[#230 residual] multi-slot (merge room) coverage: ${multiSlotCoveredCount}/${multiSlotChecked}`);
+    expect(multiSlotCoveredCount / multiSlotChecked).toBeLessThanOrEqual(0.75);
   });
 
   // 2026-09-27 investigation note, three times revised: computeColumns'
