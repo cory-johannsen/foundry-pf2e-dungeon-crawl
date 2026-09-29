@@ -502,51 +502,72 @@ export function buildRideAlongCorridorSouth(candidateNaive, candidateDoorSlot, c
   const coParentSeg = coParentResult.corridorSegments[0];
   const laneX0 = coParentSeg.gx;
   const laneWidth = coParentSeg.gw;
+  // The co-parent's own revealDoorWall sits exactly at the TARGET's own
+  // face (the same convention every non-dogleg corridor in this file
+  // already uses: `corridorEndY = toRect.gy`) -- reading it back here
+  // means this function never re-derives the target's own position
+  // independently.
+  const corridorEndY = coParentResult.revealDoorWall.y1;
 
   const { turnSegment, turnWalls, turnBottom } = marginBandApproach(doorX0, doorX1, faceY, laneX0, laneWidth);
 
-  // The shared stretch: everything from turnBottom down to the co-parent's
-  // own corridor's start. If turnBottom already equals the co-parent's own
-  // corridor's own gy (a LARGE source room, minimal margin), there is no
-  // gap to bridge and the turn segment's own bottom edge IS the co-parent's
-  // own corridor's own top edge -- no additional connecting segment
-  // needed. Otherwise, one plain box connects them, at the co-parent's
-  // own lane x (already converged-to by the turn above).
-  const bridgeSegments = turnBottom < coParentSeg.gy
-    ? [{ gx: laneX0, gy: turnBottom, gw: laneWidth, gh: coParentSeg.gy - turnBottom }]
+  // The branch (the lateral jog to the candidate's OWN door) occupies the
+  // LAST DOOR_WIDTH-deep strip before the target's own face -- mirroring
+  // how turn 1 occupies the FIRST DOOR_WIDTH-deep strip after the
+  // source's own face. Every corridor segment in this file has its own
+  // far edge land exactly on corridorEndY (see any non-dogleg branch's
+  // own `corridorSegments`), so the branch's own `gy` must be
+  // `corridorEndY - DOOR_WIDTH`, never `corridorEndY` itself -- a segment
+  // AT `corridorEndY` would sit one unit INSIDE the target room's own
+  // footprint, not in the corridor.
+  const branchTop = corridorEndY - DOOR_WIDTH;
+
+  // The bridge: a straight run, at the lane's own x (already converged-to
+  // by turn 1 above), from turnBottom down to the branch's own top —
+  // NOT down to the co-parent's own corridor's start (`coParentSeg.gy`,
+  // which describes the CO-PARENT's own source's own margin depth, an
+  // unrelated value). If turn 1's own bottom already reaches branchTop
+  // (only possible in a degenerate, very-short-cell edge case; never
+  // observed in this scope's own rank+2 geometry, where there are always
+  // several units between them), there is nothing to bridge.
+  const bridgeSegments = turnBottom < branchTop
+    ? [{ gx: laneX0, gy: turnBottom, gw: laneWidth, gh: branchTop - turnBottom }]
     : [];
-  const bridgeWalls = turnBottom < coParentSeg.gy
+  const bridgeWalls = turnBottom < branchTop
     ? [
-        { x1: laneX0, y1: turnBottom, x2: laneX0, y2: coParentSeg.gy },
-        { x1: laneX0 + laneWidth, y1: turnBottom, x2: laneX0 + laneWidth, y2: coParentSeg.gy },
+        { x1: laneX0, y1: turnBottom, x2: laneX0, y2: branchTop },
+        { x1: laneX0 + laneWidth, y1: turnBottom, x2: laneX0 + laneWidth, y2: branchTop },
       ]
     : [];
 
-  // The branch near the target: the co-parent's own corridor ends at ITS
-  // OWN door (coParentResult.revealDoorWall); the candidate needs its OWN
-  // separate door (candidateDoorSlot). One short horizontal jog at the
-  // shared corridorEndY, from the co-parent's own arrival x to the
-  // candidate's own door x -- same shape marginBandApproach already
-  // builds for the SOURCE side, reused here for the TARGET side by
-  // calling it with the roles reversed (the "door" here is the
-  // candidate's own target-facing gap, not a source room's real door).
-  const corridorEndY = coParentResult.revealDoorWall.y1;
-  const candidateGapX0 = Math.min(
-    Math.max(laneX0, candidateDoorSlot.x1),
-    candidateDoorSlot.x2 - (candidateDoorSlot.x2 - candidateDoorSlot.x1 >= DOOR_WIDTH ? DOOR_WIDTH : 0),
-  );
+  // The candidate's own door gap, clamped into its OWN slot -- same
+  // formula every other branch in this file already uses
+  // (`Math.min(Math.max(x, slot.x1), slot.x2 - DOOR_WIDTH)`); every real
+  // slot `doorSlotsForFace` produces is always >= DOOR_WIDTH wide, so no
+  // extra guard is needed here.
+  const candidateGapX0 = Math.min(Math.max(laneX0, candidateDoorSlot.x1), candidateDoorSlot.x2 - DOOR_WIDTH);
   const candidateGapX1 = candidateGapX0 + DOOR_WIDTH;
   const branchGx0 = Math.min(laneX0, candidateGapX0);
   const branchGx1 = Math.max(laneX0 + laneWidth, candidateGapX1);
-  const branchSegment = { gx: branchGx0, gy: corridorEndY, gw: branchGx1 - branchGx0, gh: DOOR_WIDTH };
+  const branchSegment = { gx: branchGx0, gy: branchTop, gw: branchGx1 - branchGx0, gh: DOOR_WIDTH };
   const branchWalls = [
-    { x1: branchGx0, y1: corridorEndY, x2: laneX0, y2: corridorEndY },
-    { x1: laneX0 + laneWidth, y1: corridorEndY, x2: branchGx1, y2: corridorEndY },
-    { x1: branchGx0, y1: corridorEndY, x2: branchGx0, y2: corridorEndY + DOOR_WIDTH },
-    { x1: branchGx1, y1: corridorEndY, x2: branchGx1, y2: corridorEndY + DOOR_WIDTH },
+    // Cap the branch's own top edge except where the lane continues down into it.
+    { x1: branchGx0, y1: branchTop, x2: laneX0, y2: branchTop },
+    { x1: laneX0 + laneWidth, y1: branchTop, x2: branchGx1, y2: branchTop },
+    // Contain the branch's own left/right sides for its own depth (down
+    // to corridorEndY, its own far edge — the target's own door is the
+    // only opening left uncovered, per the "seal everything except the
+    // declared opening" discipline every other wall in this file uses).
+    { x1: branchGx0, y1: branchTop, x2: branchGx0, y2: corridorEndY },
+    { x1: branchGx1, y1: branchTop, x2: branchGx1, y2: corridorEndY },
   ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
 
-  const revealDoorWall = { x1: candidateGapX0, y1: corridorEndY + DOOR_WIDTH, x2: candidateGapX1, y2: corridorEndY + DOOR_WIDTH };
+  // The candidate's own reveal door sits at corridorEndY itself (the
+  // target's own face), same as the co-parent's own and every other
+  // corridor's own revealDoorWall in this file — NOT corridorEndY +
+  // DOOR_WIDTH, which would place it one unit past the target's own face,
+  // inside the target room.
+  const revealDoorWall = { x1: candidateGapX0, y1: corridorEndY, x2: candidateGapX1, y2: corridorEndY };
 
   return {
     doorWall,
@@ -562,7 +583,7 @@ export function buildRideAlongCorridorSouth(candidateNaive, candidateDoorSlot, c
 }
 ```
 
-**This is the most geometrically intricate function in this plan.** If your own test from Step 1 fails in a way that suggests the branch segment's own y-position, or the bridge's own presence/absence logic, doesn't match what the real pinned scenario needs, trust your own hand-trace of the real numbers over this step's own literal code — flag the discrepancy clearly in your report rather than silently adjusting values until the test passes.
+**This is the most geometrically intricate function in this plan** — and this exact code already had one real bug caught and fixed during this plan's own preparation (the branch segment originally landed one unit inside the target room's own footprint, and the bridge referenced the wrong boundary). If your own test from Step 1 still fails in a way that suggests something else doesn't match the real pinned scenario, trust your own hand-trace of the real numbers over this step's own literal code — flag the discrepancy clearly in your report rather than silently adjusting values until the test passes.
 
 - [ ] **Step 4: Run test to verify it passes**
 
