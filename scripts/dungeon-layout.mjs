@@ -601,20 +601,13 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
           // lane sideways to the real door before crossing into the
           // target's cell.
           const legTop = corridorEndY - DOOR_WIDTH;
-          dogleg = { laneX0, laneX1, turnGx, turnGx2, turnBottom, legTop };
-          foreignOpening = {
-            roomId: occupantId,
-            // Review round 1 fix: the lane travels vertically through the
-            // blocking room's own EAST margin band but never actually
-            // crosses that room's own east wall -- it stays inside the
-            // cell throughout. It crosses the blocking room's own SOUTH
-            // wall (via the turn-2 jog above) to continue into the
-            // target's cell below, so the opening this creates is on the
-            // blocking room's SOUTH side, not its east.
-            side: 'south',
-            offset: laneX0 - blockCell.gx,
-            width: DOOR_WIDTH,
-          };
+          // occupantId/blockCell carried on `dogleg` itself -- `foreignOpening`
+          // can't be built here anymore (review round 2 fix: it needs
+          // gapX0/gapX1, computed below, which depend on `dogleg.laneX0`, so
+          // building it before gapX0 exists would mean re-deriving values
+          // that must actually agree with gapX0 -- see `foreignOpening`'s
+          // own assignment below).
+          dogleg = { laneX0, laneX1, turnGx, turnGx2, turnBottom, legTop, occupantId, blockCell };
         }
       }
     }
@@ -629,6 +622,33 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     const gapX1 = gapX0 + DOOR_WIDTH;
     const spanX0 = dogleg ? dogleg.turnGx : Math.min(doorX0, gapX0);
     const spanX1 = dogleg ? dogleg.turnGx2 : Math.max(doorX1, gapX1);
+    // Review round 2 fix: `foreignOpening` must describe the SAME x-range
+    // turn 2's own real floor spans (`Math.min(laneX0,gapX0)` ..
+    // `Math.max(laneX1,gapX1)`), computed from the SAME gapX0/gapX1 the
+    // containment walls below use -- not the narrower `[laneX0,laneX1)`
+    // lane width round 1 used. A future task feeds this straight into
+    // cellMarginWalls to open the blocking room's own south wall; an
+    // under-width opening there would wall off exactly the part of turn 2
+    // that reaches the real door -- the same "the margin gap must match
+    // the real floor's own width" defect #288/outgoingMarginOffset already
+    // fixed once for the SOURCE room's own margin, one level removed here
+    // for the BLOCKING room's.
+    if (dogleg) {
+      const openingX0 = Math.min(dogleg.laneX0, gapX0);
+      const openingX1 = Math.max(dogleg.laneX1, gapX1);
+      foreignOpening = {
+        roomId: dogleg.occupantId,
+        // The lane travels vertically through the blocking room's own
+        // EAST margin band but never actually crosses that room's own
+        // east wall -- it stays inside the cell throughout. It crosses
+        // the blocking room's own SOUTH wall (via the turn-2 jog) to
+        // continue into the target's cell below, so the opening this
+        // creates is on the blocking room's SOUTH side, not its east.
+        side: 'south',
+        offset: openingX0 - dogleg.blockCell.gx,
+        width: openingX1 - openingX0,
+      };
+    }
     // Review round 1 fix: turn 2 (the jog inside the blocker's own south
     // margin, see `legTop` above) can reach wider than `toSlot`'s own
     // bounds whenever `laneX0`/`laneX1` sit outside the target's slot --
@@ -701,6 +721,22 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       // into cells this function has no business drawing walls through.
       ...(dogleg
         ? [
+            // Self-review finding (round 2, discovered via the explicit
+            // "every corridor floor tile walled on all four sides except
+            // the door" hand-verification): turn 1's own left/right sides
+            // (`turnGx`/`turnGx2`, spanning `faceY..turnBottom`) had NO
+            // containment at all -- neither `cellMarginWalls` (only ever
+            // draws 2 lines, along a CELL's own OUTER east/south
+            // boundary, never an interior x) nor `roomEnclosureWalls`
+            // (only the room's own rect edges, at `faceY` itself, not
+            // south of it) covers this. This is the exact same margin-
+            // band-lateral-walk defect #294 already fixed once for the
+            // non-dogleg case's own `spanX0`/`spanX1` walls (which run
+            // this identical `faceY..sideWallEndY` depth) -- turn 1 is
+            // that same region for the dogleg case and needs the same
+            // containment.
+            { x1: dogleg.turnGx, y1: faceY, x2: dogleg.turnGx, y2: dogleg.turnBottom },
+            { x1: dogleg.turnGx2, y1: faceY, x2: dogleg.turnGx2, y2: dogleg.turnBottom },
             // Cap the turn strip's own south edge except where the lane
             // continues down through it -- same "seal everything except
             // the declared opening" shape as the rest of this file's own
@@ -723,12 +759,26 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
             // declared opening" shape as the pair above. Turn 2's own
             // south edge (at corridorEndY) is sealed by the two
             // `targetCapX0`/`targetCapX1` walls earlier in this array,
-            // except at the real door (gapX0..gapX1); turn 2's own east/
-            // west open ends lead only into the source room's own margin
-            // band (via turnGx/turnGx2's own containment above) or the
-            // blocking room's own floor edge, never open space.
+            // except at the real door (gapX0..gapX1).
             { x1: Math.min(dogleg.laneX0, gapX0), y1: dogleg.legTop, x2: dogleg.laneX0, y2: dogleg.legTop },
             { x1: dogleg.laneX1, y1: dogleg.legTop, x2: Math.max(dogleg.laneX1, gapX1), y2: dogleg.legTop },
+            // Review round 2 fix: turn 2's own floor is WIDER than the
+            // lane (it spans `[min(laneX0,gapX0), max(laneX1,gapX1))`,
+            // not just `[laneX0,laneX1)`) whenever `gapX0 !== laneX0` or
+            // `gapX1 !== laneX1` -- the common case, exactly the condition
+            // turn 2 exists to handle. The lane's own side walls above
+            // only run `turnBottom..legTop`, so turn 2's own sides (the
+            // part of its floor that extends past the lane, from `legTop`
+            // down to `corridorEndY`) were left completely unwalled --
+            // a token could walk laterally off the corridor into the
+            // blocking room's own open south-margin band. These two
+            // walls seal turn 2's own real left/right edges for its own
+            // depth (`legTop..corridorEndY`), the same "contain the
+            // floor's own real edges, not a narrower guess" shape as the
+            // lane's own side walls above and the non-dogleg span walls
+            // below.
+            { x1: Math.min(dogleg.laneX0, gapX0), y1: dogleg.legTop, x2: Math.min(dogleg.laneX0, gapX0), y2: corridorEndY },
+            { x1: Math.max(dogleg.laneX1, gapX1), y1: dogleg.legTop, x2: Math.max(dogleg.laneX1, gapX1), y2: corridorEndY },
           ]
         : [
             { x1: spanX0, y1: faceY, x2: spanX0, y2: sideWallEndY },

@@ -778,7 +778,12 @@ describe('buildEdgeCorridor (multi-cell path)', () => {
       { gx: 312, gy: 13, gw: 1, gh: 12 },
       { gx: 311, gy: 25, gw: 2, gh: 1 },
     ]);
-    expect(result.foreignOpening).toEqual({ roomId: 'x', side: 'south', offset: 12, width: DOOR_WIDTH });
+    // Review round 2 fix: foreignOpening now describes turn 2's own REAL
+    // (wider) floor width -- [311,313) -- not the narrower lane width
+    // round 1 used, so a future gap opened from this in the blocking
+    // room's own south wall doesn't wall off part of turn 2's own real
+    // floor. offset is relative to the blocking cell's own gx (300).
+    expect(result.foreignOpening).toEqual({ roomId: 'x', side: 'south', offset: 11, width: 2 });
     // The real property #297 exists to guarantee: neither segment overlaps
     // room 'x''s own rolled footprint at (1,0).
     const xRect = roomRect('seed1', 'x', 1, 0);
@@ -793,6 +798,14 @@ describe('buildEdgeCorridor (multi-cell path)', () => {
     const lastSeg = result.corridorSegments[result.corridorSegments.length - 1];
     expect(lastSeg.gx).toBeLessThanOrEqual(result.revealDoorWall.x1);
     expect(lastSeg.gx + lastSeg.gw).toBeGreaterThanOrEqual(result.revealDoorWall.x2);
+    // Review round 2 fix: pin the RELATIONSHIP, not just point values --
+    // foreignOpening's own x-range (relative to the blocking cell) must
+    // equal turn 2's own floor segment's x-range exactly, so a future
+    // regression in either place (the wall opening or the floor) is
+    // caught here even if the other one is edited without this test.
+    const blockerCellForA = cellBounds(1, 0);
+    expect(blockerCellForA.gx + result.foreignOpening.offset).toBe(lastSeg.gx);
+    expect(blockerCellForA.gx + result.foreignOpening.offset + result.foreignOpening.width).toBe(lastSeg.gx + lastSeg.gw);
   });
 
   it('chains every crossing point end-to-end: entry/exit points align exactly across every boundary in a straight multi-cell corridor', () => {
@@ -1042,7 +1055,6 @@ describe('buildEdgeCorridor — #297 dogleg around a blocking intermediate room'
     );
 
     const blockerRect = roomRect(seed, blockerRoomId, 1, 0);
-    const blockerRight = blockerRect.gx + blockerRect.gw;
 
     // The real property, not a proxy: no corridor floor segment overlaps
     // the blocker's own rect at all.
@@ -1063,17 +1075,21 @@ describe('buildEdgeCorridor — #297 dogleg around a blocking intermediate room'
     // the target's cell below, so the opening is on the blocker's south
     // side.
     expect(result.foreignOpening.side).toBe('south');
-    // The foreign opening's own offset must describe a gap that starts at
-    // (or past) the blocker's own east edge, within the blocker's cell.
-    const blockerCell = cellBounds(1, 0);
-    expect(blockerCell.gx + result.foreignOpening.offset).toBeGreaterThanOrEqual(blockerRight);
-    expect(result.foreignOpening.width).toBe(DOOR_WIDTH);
     // Review round 1 fix: the corridor must actually REACH the target's
     // real door, not just avoid the blocker -- the last (turn 2) segment's
     // own x-range must cover revealDoorWall's own x-range.
     const lastSeg = result.corridorSegments[result.corridorSegments.length - 1];
     expect(lastSeg.gx).toBeLessThanOrEqual(result.revealDoorWall.x1);
     expect(lastSeg.gx + lastSeg.gw).toBeGreaterThanOrEqual(result.revealDoorWall.x2);
+    // Review round 2 fix: foreignOpening now describes turn 2's own real
+    // (potentially wider-than-DOOR_WIDTH) floor width, not the narrower
+    // lane width round 1 used -- pin the RELATIONSHIP (not just point
+    // values) between foreignOpening's own x-range (relative to the
+    // blocking cell) and turn 2's own floor segment's x-range, so a
+    // future regression in either place is caught here.
+    const blockerCell = cellBounds(1, 0);
+    expect(blockerCell.gx + result.foreignOpening.offset).toBe(lastSeg.gx);
+    expect(blockerCell.gx + result.foreignOpening.offset + result.foreignOpening.width).toBe(lastSeg.gx + lastSeg.gw);
   });
 
   it('does not activate when a real blocker exists but its footprint misses the fixed door column', () => {
