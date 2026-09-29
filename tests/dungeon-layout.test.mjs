@@ -2885,6 +2885,127 @@ describe('corridor routing regression sweep (#174)', () => {
     expect(gapEnd).toBeCloseTo(doorEnd, 9);
     expect(gapEnd - gapStart).toBeCloseTo(DOOR_WIDTH, 9);
   });
+
+  // #297: the real, downstream property this whole fix exists to
+  // guarantee -- not the proxy metrics (side walls sealed, foreignOpening
+  // non-null, etc.) the dedicated unit tests already pin, but the actual
+  // corridor geometry: does any corridor segment for any real edge, across
+  // a real generated graph, land on top of any OTHER room's own footprint.
+  // Same seed/roomCount corpus and full pipeline (buildRoomGraph ->
+  // attachHiddenPaths -> computeRanks -> computeColumns) as the #294 sweep
+  // above, and the same real-slot resolution via incomingConnectionsFor/
+  // doorSlotsForFace (a merge room's real slot index, not always 0) --
+  // only the per-edge check differs: EVERY corridor segment (a dogleg's
+  // own 3-segment output included, not skipped the way the #294 sweep's
+  // own `corridorSegments.length !== 1` guard does), for EVERY real edge
+  // (not just the south/same-column and east/same-rank fast path), checked
+  // against every OTHER room's own rect.
+  it('no corridor segment overlaps any OTHER room\'s own footprint, across the same full-pipeline seed/roomCount sweep -- the real property #297\'s dogleg fix exists to guarantee, measured separately for the single-intermediate-blocking-cell case this plan covers (#297)', () => {
+    let totalEdges = 0;
+    let overlappingEdges = 0;
+    // "Dogleg-eligible": exactly the shape buildEdgeCorridor's own #297
+    // condition checks (`toPos.rank === fromPos.rank + 2` on the south
+    // fast path, `toPos.col === fromPos.col + 2` on the east fast path) --
+    // the single-intermediate-blocking-cell case this plan's own spec
+    // requires a zero overlap rate for.
+    let doglegEligibleEdges = 0;
+    let doglegEligibleOverlaps = 0;
+    for (let i = 0; i < 500; i += 1) {
+      const seed = `sweep-${i}`;
+      const roomCount = 6 + (i % 15);
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+      const { layoutEdges, hiddenIncomingByRoomId } = attachHiddenPaths({ rooms, edges, seed });
+      const ranks = computeRanks(layoutEdges, 'room-entry');
+      const columns = computeColumns(layoutEdges, ranks, 'room-entry');
+      const positionByRoomId = Object.fromEntries(
+        Object.keys(rooms).map((id) => [id, { rank: ranks[id], col: columns[id] }]),
+      );
+      const occupiedCells = Object.fromEntries(
+        Object.entries(positionByRoomId).map(([id, pos]) => [`${pos.rank},${pos.col}`, id]),
+      );
+      const rectById = Object.fromEntries(
+        Object.keys(rooms).map((id) => [id, roomRect(seed, id, positionByRoomId[id].rank, positionByRoomId[id].col)]),
+      );
+
+      for (const [fromId, children] of Object.entries(edges)) {
+        for (let idx = 0; idx < children.length; idx += 1) {
+          const toId = children[idx];
+          const face = exitFaceForIndex(idx);
+          const fromRect = rectById[fromId];
+          const toRect = rectById[toId];
+          const fromPos = positionByRoomId[fromId];
+          const toPos = positionByRoomId[toId];
+          const incoming = incomingConnectionsFor(layoutEdges, toId, hiddenIncomingByRoomId);
+          const slotIndex = incoming.findIndex((c) => c.sourceId === fromId);
+          if (slotIndex === -1) continue;
+          const toSlot = doorSlotsForFace(toRect, incoming.length, 'north')[slotIndex];
+          const { corridorSegments, transitCells } = buildEdgeCorridor(
+            seed, fromId, toId, fromRect, toRect, fromPos, toPos,
+            face, toSlot, occupiedCells,
+          );
+          const allSegments = [
+            ...corridorSegments,
+            ...transitCells.flatMap((c) => c.corridorSegments),
+          ];
+          const overlaps = allSegments.some((seg) =>
+            Object.entries(rectById).some(
+              ([id, r]) => id !== fromId && id !== toId && rectsOverlap(seg, r),
+            ),
+          );
+          totalEdges += 1;
+          if (overlaps) overlappingEdges += 1;
+
+          const doglegEligible = (face === 'south' && toPos.col === fromPos.col && toPos.rank === fromPos.rank + 2)
+            || (face === 'east' && toPos.rank === fromPos.rank && toPos.col === fromPos.col + 2);
+          if (doglegEligible) {
+            doglegEligibleEdges += 1;
+            if (overlaps) doglegEligibleOverlaps += 1;
+          }
+        }
+      }
+    }
+    expect(totalEdges).toBeGreaterThan(1000); // sanity: the sweep actually exercised real branching
+    expect(doglegEligibleEdges).toBeGreaterThan(0); // sanity: the dogleg-eligible shape actually occurs in this corpus
+    const overallRate = totalEdges > 0 ? overlappingEdges / totalEdges : 0;
+    const doglegRate = doglegEligibleEdges > 0 ? doglegEligibleOverlaps / doglegEligibleEdges : 0;
+    // eslint-disable-next-line no-console
+    console.log(`[sweep] #297 footprint overlap: ${overlappingEdges}/${totalEdges} edges overall (${(overallRate * 100).toFixed(2)}%); dogleg-eligible (rank+2/col+2, single intermediate blocking cell): ${doglegEligibleOverlaps}/${doglegEligibleEdges} (${(doglegRate * 100).toFixed(2)}%)`);
+    // The real success criterion for THIS plan's own scope: zero overlap
+    // for the single-intermediate-blocking-cell case the dogleg fix
+    // covers. A nonzero rate elsewhere (e.g. a longer, unrelated null-path
+    // fallback -- #174's own already-documented, accepted limitation) is
+    // deliberately NOT asserted here, same "track it, don't paper over it"
+    // split the #174 sweep above already established for that case.
+    //
+    // Task 5 finding (measured, not explained away): this assertion
+    // currently FAILS at a rate of 40/455 (~8.79%) across this same
+    // 500-seed corpus. Root-caused via direct instrumentation (not
+    // guessed): in every one of the 40 failing edges (a) the TARGET has
+    // more than one real incoming connection (a genuine merge room), and
+    // (b) the SOURCE's own raw doorX0/doorY0 does NOT cross the blocking
+    // room's footprint -- i.e. buildEdgeCorridor's own dogleg trigger
+    // (`doorX0 < occupantEastEdge` / `doorY0 < occupantSouthEdge`)
+    // correctly evaluates "no dogleg needed" by its own documented rule
+    // every single time. The overlap is introduced AFTER that decision,
+    // by the pre-existing #230 fix's own gap-widening (spanX0 = min(doorX0,
+    // gapX0) / spanX1 = max(doorX1, gapX1)): when the merge room's own
+    // slot is clamped far enough from the source's doorX0 (#230's own
+    // "known, MEASURED residual" comment above this branch, #231's
+    // tracked ceiling), the WIDENED span can reach back across the
+    // blocking room's footprint even though the original, narrower doorX0
+    // never did -- a case this plan's dogleg condition was never written
+    // to check (it only ever compares the pre-widening doorX0/doorY0).
+    // Not a regression in Tasks 1-4's own dogleg implementation (it does
+    // exactly what its own documented condition says), but a real,
+    // previously-unmeasured interaction between #297's dogleg and #230/
+    // #231's own already-tracked merge-room residual, newly visible only
+    // because this sweep is the first to check the dogleg-eligible shape's
+    // FINAL corridor geometry against every OTHER room, not just the
+    // blocking room the dogleg condition itself already knows about.
+    // Left failing deliberately per this task's own brief: softening this
+    // assertion would hide the finding instead of reporting it.
+    expect(doglegEligibleOverlaps).toBe(0);
+  });
 });
 
 describe('incomingFaceByRoomId derivation over a real generated graph', () => {
@@ -2971,5 +3092,88 @@ describe('pendingForeignMarginOpenings — #297', () => {
     );
     expect(openings.east).toEqual([]);
     expect(openings.south).toEqual([]);
+  });
+});
+
+describe('#297 regression: exact live repro (issue #297, seed 1790705053246-4vdgop9m7i5\'s own edge shape)', () => {
+  it('the merge room\'s second-parent edge routes around the blocking room instead of crossing its footprint, full pipeline', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const sourceId = 'from-room';
+    const blockerRoomId = 'blocker-room';
+    const mergeRoomId = 'to-room';
+    const sourcePos = { rank: 1, col: 0 };
+    const blockerPos = { rank: 2, col: 0 };
+    const mergePos = { rank: 3, col: 0 };
+    const layoutPositionByRoomId = {
+      [sourceId]: sourcePos,
+      [blockerRoomId]: blockerPos,
+      [mergeRoomId]: mergePos,
+    };
+    // Confirmed live graph order: index 0 = merge room (south exit),
+    // index 1 = blocking room (east exit) -- see this brief's own note
+    // above for why index order matters here.
+    const edges = { [sourceId]: [mergeRoomId, blockerRoomId] };
+    const occupiedCells = {
+      '1,0': sourceId,
+      '2,0': blockerRoomId,
+      '3,0': mergeRoomId,
+    };
+    const incomingFaceByRoomId = { [mergeRoomId]: 'north', [blockerRoomId]: 'north' };
+
+    const sourceRect = roomRect(seed, sourceId, sourcePos.rank, sourcePos.col);
+    const mergeRect = roomRect(seed, mergeRoomId, mergePos.rank, mergePos.col);
+    const blockerRect = roomRect(seed, blockerRoomId, blockerPos.rank, blockerPos.col);
+    const toSlot = doorSlotsForFace(mergeRect, 1, 'north')[0];
+
+    // The real edge that crosses the blocking room's own cell: source's
+    // south exit (index 0) to the merge room, 2 ranks down, same column --
+    // exactly buildEdgeCorridor's own null-path fast-path fallback.
+    const { corridorSegments, foreignOpening } = buildEdgeCorridor(
+      seed, sourceId, mergeRoomId, sourceRect, mergeRect, sourcePos, mergePos,
+      'south', toSlot, occupiedCells, 'north',
+    );
+
+    // The real property (this issue's own root cause): no corridor floor
+    // segment overlaps the blocking room's own rect.
+    for (const seg of corridorSegments) {
+      const overlapsX = seg.gx < blockerRect.gx + blockerRect.gw && seg.gx + seg.gw > blockerRect.gx;
+      const overlapsY = seg.gy < blockerRect.gy + blockerRect.gh && seg.gy + seg.gh > blockerRect.gy;
+      expect(overlapsX && overlapsY).toBe(false);
+    }
+    expect(foreignOpening).not.toBeNull();
+    expect(foreignOpening.roomId).toBe(blockerRoomId);
+    expect(foreignOpening.side).toBe('south');
+
+    // Full pipeline: the blocking room's own pendingForeignMarginOpenings
+    // scan (run as if building the BLOCKING room itself) must find this
+    // exact opening, and cellMarginWalls must actually seal the blocking
+    // room's own margin with it present -- not just that buildEdgeCorridor
+    // reports it in isolation.
+    const openings = pendingForeignMarginOpenings(
+      seed, blockerRoomId, blockerPos.rank, blockerPos.col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
+    );
+    expect(openings.south).toEqual([{ offset: foreignOpening.offset, width: foreignOpening.width }]);
+    expect(openings.east).toEqual([]);
+
+    const marginWalls = cellMarginWalls(blockerRect, blockerPos.rank, blockerPos.col, {
+      south: openings.south,
+      east: openings.east,
+    });
+    // The blocking room's own south margin must have a REAL gap at the
+    // foreign opening's own position -- not a single, unbroken wall that
+    // would seal the dogleg's own crossing shut. Check the midpoint of the
+    // opening's own x-range: no south wall segment may cover it.
+    const blockCell = cellBounds(blockerPos.rank, blockerPos.col);
+    const gapMidX = blockCell.gx + foreignOpening.offset + foreignOpening.width / 2;
+    const southWalls = marginWalls.filter((w) => w.dir === 'south');
+    const gapMidCovered = southWalls.some(
+      (w) => Math.min(w.x1, w.x2) < gapMidX && Math.max(w.x1, w.x2) > gapMidX,
+    );
+    expect(gapMidCovered).toBe(false);
+    // And the wall actually got split (more than a single unbroken
+    // full-width segment) -- confirms cellMarginWalls really acted on the
+    // opening, not that it happened to produce a wall that just doesn't
+    // reach the midpoint for some other reason.
+    expect(southWalls.length).toBeGreaterThan(1);
   });
 });
