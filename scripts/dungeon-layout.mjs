@@ -904,6 +904,21 @@ export function cellBounds(rank, col) {
  * cell's own east/south boundary), so the margin becomes fully enclosed
  * dead space rather than open void — see the design's own reasoning for
  * why only two walls are needed to close an L-shaped region.
+ *
+ * #288 fix: `hasMargin` used to require `rect.gw === ROOM_SIZE_SMALL`
+ * (or `gh`), silently treating a ROOM_SIZE_LARGE room as having zero
+ * margin. That was never true once ROW_STRIDE/COLUMN_STRIDE became
+ * `ROOM_SIZE_LARGE + CORRIDOR_LEN` (#174's own skip-by-2 follow-up) — a
+ * LARGE room still has a real `CORRIDOR_LEN`-wide margin on its own
+ * south/east sides, exactly like a SMALL room's wider one, just
+ * narrower. The `=== ROOM_SIZE_SMALL` check left every LARGE room's own
+ * margin completely unsealed: no wall at all, not just a misaligned
+ * gap — confirmed live, a player could see past a LARGE room's own real
+ * wall into whatever lay beyond, and walk through the open margin
+ * around a still-LOCKED gate door entirely. `rect.gw < cell.gw` (already
+ * computed a line above, just not used for this decision) is the
+ * correct, size-agnostic test: does this room's own rect actually fall
+ * short of its cell's full span, regardless of which named size it is.
  */
 export function cellMarginWalls(rect, rank, col, { openSide = null, openOffset = 0, openWidth = 0 } = {}) {
   const cell = cellBounds(rank, col);
@@ -927,8 +942,8 @@ export function cellMarginWalls(rect, rank, col, { openSide = null, openOffset =
   const southLine = (cgx, cgy, cgx2, cgy2, from = 0, to = cgx2 - cgx) =>
     ({ dir: 'south', x1: cgx + from, y1: cgy2, x2: cgx + to, y2: cgy2 });
 
-  sealSide('east', rect.gw < cell.gw && rect.gw === ROOM_SIZE_SMALL, eastLine);
-  sealSide('south', rect.gh < cell.gh && rect.gh === ROOM_SIZE_SMALL, southLine);
+  sealSide('east', rect.gw < cell.gw, eastLine);
+  sealSide('south', rect.gh < cell.gh, southLine);
 
   return walls;
 }

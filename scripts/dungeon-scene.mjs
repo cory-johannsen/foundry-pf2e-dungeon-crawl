@@ -389,8 +389,10 @@ export async function buildRoomAtGraphNode(
   );
 
   // #174 Task 5: seal this room's own grid-cell margin (the dead space
-  // between a ROOM_SIZE_SMALL room and the full cell it's allotted — a
-  // no-op for ROOM_SIZE_LARGE, cellMarginWalls' own docblock) so vision
+  // between a room's own rect and the full cell it's allotted — a real,
+  // CORRIDOR_LEN-wide margin for EVERY room size, including
+  // ROOM_SIZE_LARGE; #288 fixed cellMarginWalls' own condition, which
+  // used to silently treat a LARGE room as having none at all) so vision
   // and movement can never leak past the room into unbuilt void space.
   // `openOffset` comes from `outgoingMarginOffset` (dungeon-layout.mjs),
   // which re-derives exactly which of buildEdgeCorridor's own branches

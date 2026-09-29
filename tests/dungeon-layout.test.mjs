@@ -1050,9 +1050,30 @@ describe('findCorridorPath with incomingFace', () => {
 });
 
 describe('cellMarginWalls', () => {
-  it('produces no walls for a ROOM_SIZE_LARGE room (no margin on either side)', () => {
+  // #288: a ROOM_SIZE_LARGE room is NOT flush with its own cell —
+  // ROW_STRIDE/COLUMN_STRIDE = ROOM_SIZE_LARGE + CORRIDOR_LEN, so a
+  // LARGE room has a real, CORRIDOR_LEN-wide margin on its own
+  // south/east sides too, exactly like a SMALL room's wider one. This
+  // used to be silently skipped (the bug: no wall at all, not just a
+  // misaligned gap) — a player could see and walk straight through it.
+  it('seals both the east and south margin for a ROOM_SIZE_LARGE room, one CORRIDOR_LEN wide, with no open connection', () => {
     const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_LARGE, gh: ROOM_SIZE_LARGE };
-    expect(cellMarginWalls(rect, 0, 0)).toEqual([]);
+    const walls = cellMarginWalls(rect, 0, 0);
+    const east = walls.find((w) => w.dir === 'east');
+    const south = walls.find((w) => w.dir === 'south');
+    expect(east).toEqual({ dir: 'east', x1: 300 + COLUMN_STRIDE, y1: 0, x2: 300 + COLUMN_STRIDE, y2: ROW_STRIDE });
+    expect(south).toEqual({ dir: 'south', x1: 300, y1: ROW_STRIDE, x2: 300 + COLUMN_STRIDE, y2: ROW_STRIDE });
+    expect(COLUMN_STRIDE - ROOM_SIZE_LARGE).toBe(CORRIDOR_LEN); // sanity: the margin really is CORRIDOR_LEN wide, not zero
+  });
+
+  it('leaves a gap in a ROOM_SIZE_LARGE room\'s own south margin where a connection crosses it', () => {
+    const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_LARGE, gh: ROOM_SIZE_LARGE };
+    const walls = cellMarginWalls(rect, 0, 0, { openSide: 'south', openOffset: 6, openWidth: DOOR_WIDTH });
+    const southWalls = walls.filter((w) => w.dir === 'south');
+    expect(southWalls.length).toBe(2); // two segments flanking a 1-unit gap inside a 1-unit-wide margin
+    for (const w of southWalls) {
+      expect(w.x2 <= 306 || w.x1 >= 307).toBe(true);
+    }
   });
 
   it('seals both the east and south margin for a small room with no open connection', () => {
@@ -1111,11 +1132,13 @@ describe('cellMarginWalls', () => {
       return true;
     }
 
-    for (const roomSize of [ROOM_SIZE_SMALL]) {
+    // #288: ROOM_SIZE_LARGE swept too — it has its own real,
+    // CORRIDOR_LEN-wide margin now, not "no margin at all."
+    for (const roomSize of [ROOM_SIZE_SMALL, ROOM_SIZE_LARGE]) {
       for (const opening of [
         {},
-        { openSide: 'east', openOffset: 2, openWidth: 2 },
-        { openSide: 'south', openOffset: 0, openWidth: 3 },
+        { openSide: 'east', openOffset: 2, openWidth: roomSize === ROOM_SIZE_LARGE ? DOOR_WIDTH : 2 },
+        { openSide: 'south', openOffset: 0, openWidth: roomSize === ROOM_SIZE_LARGE ? DOOR_WIDTH : 3 },
       ]) {
         const rank = 1;
         const col = 1;
@@ -1124,7 +1147,7 @@ describe('cellMarginWalls', () => {
         const cell = cellBounds(rank, col);
         for (const dir of ['east', 'south']) {
           const hasMargin = dir === 'east' ? roomSize < cell.gw : roomSize < cell.gh;
-          if (!hasMargin) continue; // only ROOM_SIZE_SMALL has significant margins to seal; ROOM_SIZE_LARGE is already covered by the no-walls-at-all test
+          expect(hasMargin).toBe(true); // sanity: both sizes have a real margin post-#288 (LARGE: CORRIDOR_LEN wide)
           const wallsOnSide = margin.filter((w) => w.dir === dir);
           const isOpenSide = opening.openSide === dir;
           const openStart = isOpenSide ? opening.openOffset : -1;
@@ -1133,6 +1156,33 @@ describe('cellMarginWalls', () => {
         }
       }
     }
+  });
+
+  // #288: every ROOM_SIZE_LARGE room in a REAL generated dungeon now
+  // gets a real east+south margin seal — the whole-pipeline proof this
+  // bug class's other fixes (#225, #230) established: real seeds, real
+  // room placement, not just a single hand-picked rect.
+  it('every ROOM_SIZE_LARGE room in a real generated dungeon gets a non-empty east and south margin seal, across a large seed/roomCount sweep', () => {
+    let totalLargeRooms = 0;
+    for (let i = 0; i < 500; i += 1) {
+      const seed = `sweep-${i}`;
+      const roomCount = 6 + (i % 15);
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+      const { layoutEdges } = attachHiddenPaths({ rooms, edges, seed });
+      const ranks = computeRanks(layoutEdges, 'room-entry');
+      const columns = computeColumns(layoutEdges, ranks, 'room-entry');
+      for (const roomId of Object.keys(rooms)) {
+        const rank = ranks[roomId];
+        const col = columns[roomId];
+        const rect = roomRect(seed, roomId, rank, col);
+        if (rect.gw !== ROOM_SIZE_LARGE) continue;
+        totalLargeRooms += 1;
+        const walls = cellMarginWalls(rect, rank, col);
+        expect(walls.some((w) => w.dir === 'east')).toBe(true);
+        expect(walls.some((w) => w.dir === 'south')).toBe(true);
+      }
+    }
+    expect(totalLargeRooms).toBeGreaterThan(200); // sanity: real LARGE rooms were actually exercised
   });
 });
 
