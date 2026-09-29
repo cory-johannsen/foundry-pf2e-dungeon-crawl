@@ -556,6 +556,57 @@ describe('buildEdgeCorridor', () => {
       expect(Math.max(revealDoorWall.x1, revealDoorWall.x2)).toBeLessThanOrEqual(slots[i].x2);
     }
   });
+
+  // #294: plainWalls used to be exactly 2 segments (both horizontal caps,
+  // at the source's own face and the target's own face) for the
+  // same-column fast path — nothing closed the SIDES of the margin band
+  // in between, so a token standing between the two faces could walk
+  // laterally anywhere in the room's own width, not just the corridor's
+  // own real span. Confirmed live: a player could see and walk into that
+  // space, correctly narrow floor tile notwithstanding.
+  it('the same-column fast path seals both sides of the corridor\'s own depth, not just its two horizontal caps (#294)', () => {
+    const from = roomRect('alpha', 'a', 0, 0);
+    const to = roomRect('alpha', 'b', 1, 0);
+    const toSlot = doorSlotsForFace(to, 1, 'north')[0];
+    const { plainWalls, corridorSegments } = buildEdgeCorridor('alpha', 'a', 'b', from, to, ADJACENT_FROM, ADJACENT_TO, 'south', toSlot, {});
+    const seg = corridorSegments[0];
+    const spanX0 = seg.gx;
+    const spanX1 = seg.gx + seg.gw;
+    const faceY = seg.gy;
+    const corridorEndY = seg.gy + seg.gh;
+    // A vertical wall at each of the corridor's own real edges, spanning
+    // its own full depth (not just a partial segment).
+    const westSide = plainWalls.find((w) => w.x1 === spanX0 && w.x2 === spanX0);
+    const eastSide = plainWalls.find((w) => w.x1 === spanX1 && w.x2 === spanX1);
+    expect(westSide).toBeDefined();
+    expect(eastSide).toBeDefined();
+    expect(Math.min(westSide.y1, westSide.y2)).toBe(faceY);
+    expect(Math.max(westSide.y1, westSide.y2)).toBe(corridorEndY);
+    expect(Math.min(eastSide.y1, eastSide.y2)).toBe(faceY);
+    expect(Math.max(eastSide.y1, eastSide.y2)).toBe(corridorEndY);
+  });
+
+  it('the same-rank fast path seals both sides of the corridor\'s own depth too, mirrored onto the x-axis (#294)', () => {
+    const from = roomRect('alpha', 'a', 0, 0);
+    const to = roomRect('alpha', 'b', 0, 1);
+    const toSlot = doorSlotsForFace(to, 1, 'west')[0];
+    const { plainWalls, corridorSegments } = buildEdgeCorridor(
+      'alpha', 'a', 'b', from, to, ADJACENT_FROM, { rank: 0, col: 1 }, 'east', toSlot, {}, 'west',
+    );
+    const seg = corridorSegments[0];
+    const spanY0 = seg.gy;
+    const spanY1 = seg.gy + seg.gh;
+    const faceX = seg.gx;
+    const corridorEndX = seg.gx + seg.gw;
+    const northSide = plainWalls.find((w) => w.y1 === spanY0 && w.y2 === spanY0);
+    const southSide = plainWalls.find((w) => w.y1 === spanY1 && w.y2 === spanY1);
+    expect(northSide).toBeDefined();
+    expect(southSide).toBeDefined();
+    expect(Math.min(northSide.x1, northSide.x2)).toBe(faceX);
+    expect(Math.max(northSide.x1, northSide.x2)).toBe(corridorEndX);
+    expect(Math.min(southSide.x1, southSide.x2)).toBe(faceX);
+    expect(Math.max(southSide.x1, southSide.x2)).toBe(corridorEndX);
+  });
 });
 
 describe('buildEdgeCorridor (multi-cell path)', () => {
@@ -1979,6 +2030,80 @@ describe('corridor routing regression sweep (#174)', () => {
     // eslint-disable-next-line no-console
     console.log(`[#230/#288 residual] multi-slot (merge room), LARGE source coverage: ${multiSlotLargeCoveredCount}/${multiSlotLargeChecked}`);
     expect(multiSlotLargeCoveredCount / multiSlotLargeChecked).toBeLessThanOrEqual(0.85);
+  });
+
+  // #294: every fast-path connection's own corridor floor must be sealed
+  // on BOTH sides (not just capped top/bottom), across a real generated
+  // graph — not just the two hand-picked cases the unit tests above pin.
+  it('every same-column/same-rank fast-path corridor is sealed on both sides of its own depth, not just its two horizontal/vertical caps, across the same seed/roomCount sweep (#294)', () => {
+    let totalChecked = 0;
+    let unsealedCount = 0;
+    for (let i = 0; i < 500; i += 1) {
+      const seed = `sweep-${i}`;
+      const roomCount = 6 + (i % 15);
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+      const { layoutEdges, hiddenIncomingByRoomId } = attachHiddenPaths({ rooms, edges, seed });
+      const ranks = computeRanks(layoutEdges, 'room-entry');
+      const columns = computeColumns(layoutEdges, ranks, 'room-entry');
+      const positionByRoomId = Object.fromEntries(
+        Object.keys(rooms).map((id) => [id, { rank: ranks[id], col: columns[id] }]),
+      );
+      const occupiedCells = Object.fromEntries(
+        Object.entries(positionByRoomId).map(([id, pos]) => [`${pos.rank},${pos.col}`, id]),
+      );
+      const rectById = Object.fromEntries(
+        Object.keys(rooms).map((id) => [id, roomRect(seed, id, positionByRoomId[id].rank, positionByRoomId[id].col)]),
+      );
+
+      for (const [fromId, children] of Object.entries(edges)) {
+        for (let idx = 0; idx < children.length; idx += 1) {
+          const toId = children[idx];
+          const face = exitFaceForIndex(idx);
+          if (face !== 'south' && face !== 'east') continue;
+          const fromRect = rectById[fromId];
+          const toRect = rectById[toId];
+          const aligned = face === 'south' ? fromRect.gx === toRect.gx : fromRect.gy === toRect.gy;
+          if (!aligned) continue;
+          const incoming = incomingConnectionsFor(layoutEdges, toId, hiddenIncomingByRoomId);
+          const slotIndex = incoming.findIndex((c) => c.sourceId === fromId);
+          if (slotIndex === -1) continue;
+          const toSlot = doorSlotsForFace(toRect, incoming.length, 'north')[slotIndex];
+          const { plainWalls, corridorSegments } = buildEdgeCorridor(
+            seed, fromId, toId, fromRect, toRect,
+            positionByRoomId[fromId], positionByRoomId[toId],
+            face, toSlot, occupiedCells,
+          );
+          // Only the fast path itself produces exactly one corridorSegments
+          // entry shaped like a straight-through span — a multi-cell or
+          // corner path (which can still reach here if findCorridorPath's
+          // own aligned check passes but the path is actually null/blocked
+          // differently) is out of THIS fix's own scope (#294's issue body
+          // notes the corner/multi-cell branch separately).
+          if (corridorSegments.length !== 1) continue;
+          const seg = corridorSegments[0];
+          totalChecked += 1;
+          if (face === 'south') {
+            const spanX0 = seg.gx, spanX1 = seg.gx + seg.gw;
+            const faceY = seg.gy, corridorEndY = seg.gy + seg.gh;
+            const westSide = plainWalls.find((w) => w.x1 === spanX0 && w.x2 === spanX0
+              && Math.min(w.y1, w.y2) <= faceY + 1e-9 && Math.max(w.y1, w.y2) >= corridorEndY - 1e-9);
+            const eastSide = plainWalls.find((w) => w.x1 === spanX1 && w.x2 === spanX1
+              && Math.min(w.y1, w.y2) <= faceY + 1e-9 && Math.max(w.y1, w.y2) >= corridorEndY - 1e-9);
+            if (!westSide || !eastSide) unsealedCount += 1;
+          } else {
+            const spanY0 = seg.gy, spanY1 = seg.gy + seg.gh;
+            const faceX = seg.gx, corridorEndX = seg.gx + seg.gw;
+            const northSide = plainWalls.find((w) => w.y1 === spanY0 && w.y2 === spanY0
+              && Math.min(w.x1, w.x2) <= faceX + 1e-9 && Math.max(w.x1, w.x2) >= corridorEndX - 1e-9);
+            const southSide = plainWalls.find((w) => w.y1 === spanY1 && w.y2 === spanY1
+              && Math.min(w.x1, w.x2) <= faceX + 1e-9 && Math.max(w.x1, w.x2) >= corridorEndX - 1e-9);
+            if (!northSide || !southSide) unsealedCount += 1;
+          }
+        }
+      }
+    }
+    expect(totalChecked).toBeGreaterThan(200); // sanity: real fast-path connections were exercised
+    expect(unsealedCount).toBe(0);
   });
 
   // 2026-09-27 investigation note, three times revised: computeColumns'

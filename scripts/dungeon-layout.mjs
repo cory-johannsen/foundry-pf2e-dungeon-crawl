@@ -571,7 +571,25 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       // so these two walls need no `Math.max`/`Math.min` at all — just
       // the slot's own edges.
       { x1: toSlot.x1, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
-      { x1: gapX1, y1: corridorEndY, x2: toSlot.x2, y2: corridorEndY }
+      { x1: gapX1, y1: corridorEndY, x2: toSlot.x2, y2: corridorEndY },
+      // #294 fix: the two walls above only ever cap the corridor's own
+      // depth HORIZONTALLY (at the source's own face and the target's
+      // own face) — nothing previously closed its SIDES. A token
+      // standing anywhere between faceY and corridorEndY could walk
+      // laterally to any x within the room's own margin band, not just
+      // the actual [spanX0,spanX1] floor — confirmed live: seeing and
+      // walking into space beside a correctly-narrow corridor tile.
+      // These two VERTICAL walls, at the corridor floor's own real
+      // edges (spanX0/spanX1 — the ACTUAL floor width, which can still
+      // be wider than DOOR_WIDTH in the #231 clamped-merge-room
+      // residual case; using doorX0/doorX1 here instead would wall over
+      // part of that real floor, reintroducing a #230-style defect),
+      // running its own depth, seal the rest of the margin band on both
+      // sides — same "seal everything except the declared opening"
+      // philosophy transitCellContainmentWalls already uses for a
+      // transit cell.
+      { x1: spanX0, y1: faceY, x2: spanX0, y2: corridorEndY },
+      { x1: spanX1, y1: faceY, x2: spanX1, y2: corridorEndY },
     ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
     const doorWall = { x1: doorX0, y1: faceY, x2: doorX1, y2: faceY };
     const revealDoorWall = { x1: gapX0, y1: corridorEndY, x2: gapX1, y2: corridorEndY };
@@ -612,6 +630,13 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       { x1: faceX, y1: doorY1, x2: faceX, y2: Math.max(fromRect.gy + fromRect.gh, spanY1) },
       { x1: corridorEndX, y1: toSlot.y1, x2: corridorEndX, y2: gapY0 },
       { x1: corridorEndX, y1: gapY1, x2: corridorEndX, y2: toSlot.y2 },
+      // #294 fix: same missing-side-walls defect as the south/sameColumn
+      // branch above, mirrored onto the x-axis — see its own comment for
+      // the full reasoning. These two HORIZONTAL walls, at the corridor
+      // floor's own real edges (spanY0/spanY1), seal the rest of the
+      // margin band above and below the corridor's own path.
+      { x1: faceX, y1: spanY0, x2: corridorEndX, y2: spanY0 },
+      { x1: faceX, y1: spanY1, x2: corridorEndX, y2: spanY1 },
     ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
     // A null path (boxed in, both north and west neighbors occupied,
     // #196) and a found path.length<=2 now draw the exact same direct
