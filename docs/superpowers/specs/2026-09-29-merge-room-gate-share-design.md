@@ -81,7 +81,12 @@ This design covers exactly the reported failure mode:
 - The `exitFace === 'south' && sameColumn` and `exitFace === 'east' &&
   sameRank` fast-path branches of `buildEdgeCorridor`, in their null-path
   (`!path`) case only.
-- Exactly **one** intermediate blocking cell between `fromPos` and `toPos`.
+- Exactly **one** intermediate blocking cell between `fromPos` and `toPos`
+  — concretely, `toPos.rank === fromPos.rank + 2` (south path) or
+  `toPos.col === fromPos.col + 2` (east path). A larger rank/column gap
+  always has more than one intermediate cell and falls to the residual
+  below, unconditionally — this design never inspects more than the single
+  cell immediately after the source's own cell.
 
 **Explicitly out of scope, left as documented residuals** (same pattern as
 #231/#232):
@@ -160,6 +165,43 @@ coordinate):
    `dungeon-scene.mjs`'s call into the blocking room's own
    `cellMarginWalls`, the same way `outgoingMarginOffset` already threads a
    room's own corridor span into its own margin-wall call today.
+
+### Build-order handling (added after spec approval — see below)
+
+Rooms in this module are built lazily, on demand, as the party reaches
+them (`buildPopulateAndUnlockGraphNode`'s `alreadyBuilt` check in
+`dungeon-scene.mjs`) — not in a single upfront pass. A room's own incoming
+edges (including a dogleg-needing edge) are built when *that room* is
+built, using whichever other rooms already exist in `occupiedCells` at
+that moment. The blocking room can therefore be built **either before or
+after** the merge room whose second-parent edge doglegs through it — and
+the live-reported repro is specifically the harder order: the blocking
+room (`room-room-room-entry-0-1`) had already been visited and built
+before the party reached the merge room via its detour path, which is
+when the dogleg-needing edge actually gets processed.
+
+This was not captured in the design's first pass and materially changes
+scope. Two orderings, both required:
+
+1. **Blocking room not yet built.** A pending-openings registry, keyed by
+   blocking room id, persisted the same way other per-run layout state is
+   persisted (`game.settings.get('pf2e-dungeon-crawl', 'dungeonRuns')`).
+   `buildRoomAtGraphNode` consults it for its own room id when building its
+   own margin walls, the same way it already consults `outgoingMarginOffset`
+   for its own outgoing connection's opening.
+2. **Blocking room already built.** Retroactively patch the room's already-
+   placed margin wall in the live scene: locate its existing
+   `dungeonCellMarginWallForRoom`-flagged wall(s) on the relevant side,
+   delete them, and recreate them with the added opening (its own existing
+   opening, if any, preserved via the same generalized `cellMarginWalls`
+   call from case 1 — recomputed, not hand-merged).
+
+Both cases must produce the exact same wall geometry a fresh build would
+have produced had the two rooms been built in the other order — i.e. this
+is not two different code paths with two different notions of "correct,"
+it's one geometry computation (the generalized `cellMarginWalls` call)
+invoked from two different triggers (a room's own build step, or a
+foreign edge's build step reaching back to patch an already-built room).
 
 ### Non-goals
 
