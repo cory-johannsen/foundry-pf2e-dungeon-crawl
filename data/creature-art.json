@@ -13150,5 +13150,125 @@
     "name": "Baccali Alpaca",
     "level": 0,
     "art": "baccali-alpaca-lob.webp"
+  },
+  {
+    "id": "animated_bamboo_figurine_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "8AANjQtU703ghIsR",
+    "name": "Animated Bamboo Figurine",
+    "level": 2,
+    "art": "animated-bamboo-figurine-lob.webp"
+  },
+  {
+    "id": "azarketi_sailor_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "5Rqh2dBxGU8Jwf56",
+    "name": "Azarketi Sailor",
+    "level": 2,
+    "art": "azarketi-sailor-lob.webp"
+  },
+  {
+    "id": "giant_orchid_mantis_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "XzCBhm6im8iS1UFd",
+    "name": "Giant Orchid Mantis",
+    "level": 2,
+    "art": "giant-orchid-mantis-lob.webp"
+  },
+  {
+    "id": "ratajin_mastermind_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "xl2UxOFVSDGqaVS5",
+    "name": "Ratajin Mastermind",
+    "level": 2,
+    "art": "ratajin-mastermind-lob.webp"
+  },
+  {
+    "id": "walcofinde_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "0vbjFotLwkIoPy2m",
+    "name": "Walcofinde",
+    "level": 2,
+    "art": "walcofinde-lob.webp"
+  },
+  {
+    "id": "animated_wine_vessel_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "0J8xJV4NXaphEWgM",
+    "name": "Animated Wine Vessel",
+    "level": 3,
+    "art": "animated-wine-vessel-lob.webp"
+  },
+  {
+    "id": "charau_ka_acolyte_of_angazhan_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "BxChohV8FBiyAnEc",
+    "name": "Charau-ka Acolyte of Angazhan",
+    "level": 3,
+    "art": "charau-ka-acolyte-of-angazhan-lob.webp"
+  },
+  {
+    "id": "jiidon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "n9LLGRKgPI8fDRBk",
+    "name": "Jiidon",
+    "level": 3,
+    "art": "jiidon-lob.webp"
+  },
+  {
+    "id": "kasesh_stone_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "UgGyHJ39EHztCV5m",
+    "name": "Kasesh (Stone)",
+    "level": 3,
+    "art": "kasesh-stone-lob.webp"
+  },
+  {
+    "id": "ugvashi_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "JmGKKXdAxUkJtdTm",
+    "name": "Ugvashi",
+    "level": 3,
+    "art": "ugvashi-lob.webp"
+  },
+  {
+    "id": "ulgrem_lurann_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "JX7k6wFmZLqNjK0k",
+    "name": "Ulgrem-Lurann",
+    "level": 3,
+    "art": "ulgrem-lurann-lob.webp"
+  },
+  {
+    "id": "augdunar_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "cWHQmwUkLYBlFOGX",
+    "name": "Augdunar",
+    "level": 2,
+    "art": "augdunar-lob.webp"
+  },
+  {
+    "id": "lunar_consort_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "bBBZRMEN18PViaXR",
+    "name": "Lunar Consort",
+    "level": 2,
+    "art": "lunar-consort-lob.webp"
+  },
+  {
+    "id": "spring_heeled_jack_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "EXyfhhX9GLOnK1uZ",
+    "name": "Spring-Heeled Jack",
+    "level": 3,
+    "art": "spring-heeled-jack-lob.webp"
+  },
+  {
+    "id": "tidepool_dragonet_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "YN3SDVktHbuQdn6o",
+    "name": "Tidepool Dragonet",
+    "level": 3,
+    "art": "tidepool-dragonet-lob.webp"
   }
 ]
