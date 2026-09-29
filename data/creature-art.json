@@ -13510,5 +13510,125 @@
     "name": "Melfesh Monster",
     "level": 6,
     "art": "melfesh-monster-lob.webp"
+  },
+  {
+    "id": "rime_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "nnld8aGlpyPGbGW6",
+    "name": "Rime Dragon (Young, Spellcaster)",
+    "level": 6,
+    "art": "rime-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "silt_frog_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9pMcZNYTRVaNCFUl",
+    "name": "Silt Frog",
+    "level": 6,
+    "art": "silt-frog-lob.webp"
+  },
+  {
+    "id": "stone_sister_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "1SIx3wcRvplbfwk3",
+    "name": "Stone Sister",
+    "level": 6,
+    "art": "stone-sister-lob.webp"
+  },
+  {
+    "id": "bog_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9awSYGr3sWrYJc41",
+    "name": "Bog Dragon (Young)",
+    "level": 7,
+    "art": "bog-dragon-young-lob.webp"
+  },
+  {
+    "id": "crystal_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "jXZ4X62UPPM9AV37",
+    "name": "Crystal Dragon (Young, Spellcaster)",
+    "level": 7,
+    "art": "crystal-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "eloko_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "rVnJUXPgAPCeW1tS",
+    "name": "Eloko",
+    "level": 7,
+    "art": "eloko-lob.webp"
+  },
+  {
+    "id": "imugi_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "6bACPcPqi8syNcVg",
+    "name": "Imugi",
+    "level": 7,
+    "art": "imugi-lob.webp"
+  },
+  {
+    "id": "pagulin_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "fQvTnIpC2Wq1U32z",
+    "name": "Pagulin",
+    "level": 7,
+    "art": "pagulin-lob.webp"
+  },
+  {
+    "id": "spawn_of_kothogaz_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "CgNC8uWPrJbGDklJ",
+    "name": "Spawn Of Kothogaz",
+    "level": 6,
+    "art": "spawn-of-kothogaz-lob.webp"
+  },
+  {
+    "id": "wailing_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "PiOJ1mCKSoCLr67f",
+    "name": "Wailing Dragon (Young)",
+    "level": 6,
+    "art": "wailing-dragon-young-lob.webp"
+  },
+  {
+    "id": "wailing_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ca1QJ5iNOE2WtTUf",
+    "name": "Wailing Dragon (Young, Spellcaster)",
+    "level": 6,
+    "art": "wailing-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "bog_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "MYYdOcitelR9ngpD",
+    "name": "Bog Dragon (Young, Spellcaster)",
+    "level": 7,
+    "art": "bog-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "crystal_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "EwVHGcwPT3fJloRK",
+    "name": "Crystal Dragon (Young)",
+    "level": 7,
+    "art": "crystal-dragon-young-lob.webp"
+  },
+  {
+    "id": "crystal_xorn_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "AaUp9pQgUvInrapp",
+    "name": "Crystal Xorn",
+    "level": 7,
+    "art": "crystal-xorn-lob.webp"
+  },
+  {
+    "id": "solar_ibis_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "RVVSRRYAhQ3dVK2h",
+    "name": "Solar Ibis",
+    "level": 7,
+    "art": "solar-ibis-lob.webp"
   }
 ]
