@@ -389,8 +389,10 @@ export async function buildRoomAtGraphNode(
   );
 
   // #174 Task 5: seal this room's own grid-cell margin (the dead space
-  // between a ROOM_SIZE_SMALL room and the full cell it's allotted — a
-  // no-op for ROOM_SIZE_LARGE, cellMarginWalls' own docblock) so vision
+  // between a room's own rect and the full cell it's allotted — a real,
+  // CORRIDOR_LEN-wide margin for EVERY room size, including
+  // ROOM_SIZE_LARGE; #288 fixed cellMarginWalls' own condition, which
+  // used to silently treat a LARGE room as having none at all) so vision
   // and movement can never leak past the room into unbuilt void space.
   // `openOffset` comes from `outgoingMarginOffset` (dungeon-layout.mjs),
   // which re-derives exactly which of buildEdgeCorridor's own branches
@@ -421,11 +423,15 @@ export async function buildRoomAtGraphNode(
     // implementer" in the brief). This room's own incomingFace has no
     // bearing on which face its children receive their connections on.
     const childIncomingFace = childId ? (incomingFaceByRoomId?.[childId] ?? 'north') : 'north';
-    const offset = outgoingMarginOffset(
+    const { offset, width } = outgoingMarginOffset(
       seed, roomId, childId, face, rect, { rank, col },
       childPos ?? { rank: NaN, col: NaN }, occupiedCells, childIncomingFace,
     );
-    const sideWalls = cellMarginWalls(rect, rank, col, { openSide: face, openOffset: offset, openWidth: DOOR_WIDTH });
+    // #288: openWidth is no longer always DOOR_WIDTH — outgoingMarginOffset's
+    // own return now carries the real corridor floor's width, which can be
+    // wider than DOOR_WIDTH when the source's and target's own door offsets
+    // differ (see its own docblock).
+    const sideWalls = cellMarginWalls(rect, rank, col, { openSide: face, openOffset: offset, openWidth: width });
     for (const side of sideWalls) if (side.dir === face) marginWalls.push(side);
     coveredMarginSides.add(face);
   }

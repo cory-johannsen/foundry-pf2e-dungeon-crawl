@@ -520,35 +520,36 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // seeded offsets almost never coincide, and the corridor's own floor
     // (spanX0..spanX1 below) is drawn wide enough to bridge whatever gap
     // that leaves — but `outgoingMarginOffset` (below in this same file;
-    // called by dungeon-scene.mjs's own `cellMarginWalls` to seal the
-    // SOURCE room's own cell margin) only ever opens a DOOR_WIDTH-wide
-    // gap at doorX0, with no visibility into a separately-seeded target
-    // offset. Left unaligned, that margin wall silently covers whatever
-    // part of the real corridor floor (up to and including the target's
-    // own entire door) falls outside its own narrow gap — confirmed live:
-    // 33% of doors in a fresh 18-room dungeon were partially or fully
-    // blocked this way. Deriving gapX0 from doorX0 collapses
+    // called by dungeon-scene.mjs's own `cellMarginWalls` to seal a
+    // room's own cell margin, both SOURCE south/east margin here and, per
+    // #288, a LARGE room's own real margin too) needs to open a gap wide
+    // enough to cover that same real floor, not just a fixed DOOR_WIDTH
+    // at doorX0 — #288's own review round found and fixed this: it now
+    // calls buildEdgeCorridor itself (with an assumed single, full-width
+    // incoming slot) and reads back the REAL span, rather than
+    // re-deriving just doorX0 — see outgoingMarginOffset's own docblock.
+    // Deriving gapX0 from doorX0 collapses
     // spanX0===spanX1-DOOR_WIDTH===doorX0 in the common case (single
     // incoming connection, target slot at least as wide as the source's
-    // face), so outgoingMarginOffset's own already-correct gap
-    // computation (same doorX0) lines up exactly, with no changes needed
-    // there.
+    // face), which is exactly the case outgoingMarginOffset's own assumed
+    // slot matches precisely.
     //
-    // Known, MEASURED residual (not solved here): a review of this fix
-    // found the live/system-wide door-coverage rate only drops from
-    // ~25.9% to ~12.8% (not to 0%), because #230 only ever targeted THIS
-    // one mechanism. Two more, separate mechanisms remain, both entirely
-    // untouched by this change: (a) the clamped case just described,
+    // Known, MEASURED residual (not solved here): a review of the
+    // original #230 fix found the live/system-wide door-coverage rate
+    // only dropped from ~25.9% to ~12.8% (not to 0%), because #230 only
+    // ever targeted the single-incoming-connection case. Two more,
+    // separate mechanisms remain: (a) the clamped case just described,
     // when a merge room's own slot is narrower than where the source's
-    // door offset lands (still ~65% covered for that specific case,
-    // tracked by this file's own test sweep, not asserted to zero); and
-    // (b) the corner/multi-cell branch's OWN door coverage from a
-    // completely different cause (other rooms' own margin walls, and
-    // neighbouring-slot walls) — a bug class this fix never touched or
-    // measured at all. Both are tracked as their own follow-up issues,
-    // filed once this fix's own PR closed #230 — see that issue's final
-    // comment for links, rather than assuming "closes #230" means every
-    // door-coverage defect in this file is gone.
+    // door offset lands (measured ~62% covered for a SMALL source, ~67%
+    // for a LARGE source — #288 sealed a LARGE room's own margin at all,
+    // which made this same residual apply there too; tracked by this
+    // file's own test sweep, split by source size, neither asserted to
+    // zero — see #231); and (b) the corner/multi-cell branch's OWN door
+    // coverage from a completely different cause (other rooms' own
+    // margin walls, and neighbouring-slot walls) — a bug class neither
+    // fix touched or measured (see #232). Neither "closes #230" nor
+    // "closes #288" means every door-coverage defect in this file is
+    // gone.
     const gapX0 = Math.min(Math.max(doorX0, toSlot.x1), toSlot.x2 - DOOR_WIDTH);
     const gapX1 = gapX0 + DOOR_WIDTH;
     const spanX0 = Math.min(doorX0, gapX0);
@@ -686,7 +687,8 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
  * `cellMarginWalls`) must use for its outgoing connection on `exitFace`,
  * so the gap it leaves lines up with wherever `buildEdgeCorridor` will
  * actually route that same connection's real corridor (#174 Task 5's own
- * fix round, amended after a re-review found the first pass incomplete).
+ * fix round, amended after a re-review found the first pass incomplete;
+ * #288's own review round widened the return shape — see below).
  *
  * `buildEdgeCorridor` uses a doorOffsetAt-based exit point for a
  * south-face connection where `fromPos.col === toPos.col`, or an
@@ -705,12 +707,31 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
  * will take (by calling the same `findCorridorPath` the caller already
  * needs for `buildEdgeCorridor` itself) rather than approximating it,
  * since the two must never independently drift.
+ *
+ * Returns `{offset, width}`, not a bare offset (#288's own review round):
+ * `buildEdgeCorridor`'s offset-based branch can draw a corridor floor
+ * WIDER than DOOR_WIDTH — the union of the source's own door offset and
+ * the target's own (#230-clamped) incoming offset, whenever those two
+ * differ. A margin wall (`cellMarginWalls`) opened only DOOR_WIDTH wide,
+ * at the source's own offset alone, left the REST of that wider real
+ * floor — up to and including the target's own entire door, once a
+ * LARGE room's own margin started being sealed at all (#288) — covered
+ * by solid wall. Rather than re-deriving the target's own offset here
+ * too (duplicating buildEdgeCorridor's own clamp logic, and risking a
+ * third independent place these could drift apart), this calls
+ * `buildEdgeCorridor` directly with an assumed single, full-width
+ * incoming slot — exactly right for the common case (a target with
+ * exactly one incoming connection, where that assumption IS the real
+ * slot) — and reads back its own actual `corridorSegments[0]`, the real
+ * span the corridor floor will occupy. A merge target's own narrower,
+ * per-connection slot (this assumption doesn't know about) is a
+ * separate, already-tracked residual — #231 — not solved here.
  */
 export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells, incomingFace = 'north') {
   if (exitFace !== 'south' && exitFace !== 'east') {
     // West never takes buildEdgeCorridor's offset-based branch — always
     // center-based, regardless of the child's rank/column.
-    return fromRect.gh / 2 - DOOR_WIDTH / 2;
+    return { offset: fromRect.gh / 2 - DOOR_WIDTH / 2, width: DOOR_WIDTH };
   }
   const aligned = exitFace === 'south' ? fromPos.col === toPos.col : fromPos.rank === toPos.rank;
   const path = aligned
@@ -722,9 +743,18 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
   // and center-based fallback make the identical face-based choice (see
   // its own doorX0/doorY0 computations).
   const faceSpan = exitFace === 'south' ? fromRect.gw : fromRect.gh;
-  return usesOffsetBasedExit
-    ? doorOffsetAt(seed, `${fromRoomId}-${exitFace}`, 'outgoing', faceSpan)
-    : faceSpan / 2 - DOOR_WIDTH / 2;
+  if (!usesOffsetBasedExit) {
+    return { offset: faceSpan / 2 - DOOR_WIDTH / 2, width: DOOR_WIDTH };
+  }
+  const toRect = roomRect(seed, toRoomId, toPos.rank, toPos.col);
+  const toSlot = doorSlotsForFace(toRect, 1, incomingFace)[0];
+  const { corridorSegments } = buildEdgeCorridor(
+    seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace,
+  );
+  const seg = corridorSegments[0];
+  return exitFace === 'south'
+    ? { offset: seg.gx - fromRect.gx, width: seg.gw }
+    : { offset: seg.gy - fromRect.gy, width: seg.gh };
 }
 
 /** Which compass direction `from` a cell faces to reach an
@@ -904,6 +934,21 @@ export function cellBounds(rank, col) {
  * cell's own east/south boundary), so the margin becomes fully enclosed
  * dead space rather than open void — see the design's own reasoning for
  * why only two walls are needed to close an L-shaped region.
+ *
+ * #288 fix: `hasMargin` used to require `rect.gw === ROOM_SIZE_SMALL`
+ * (or `gh`), silently treating a ROOM_SIZE_LARGE room as having zero
+ * margin. That was never true once ROW_STRIDE/COLUMN_STRIDE became
+ * `ROOM_SIZE_LARGE + CORRIDOR_LEN` (#174's own skip-by-2 follow-up) — a
+ * LARGE room still has a real `CORRIDOR_LEN`-wide margin on its own
+ * south/east sides, exactly like a SMALL room's wider one, just
+ * narrower. The `=== ROOM_SIZE_SMALL` check left every LARGE room's own
+ * margin completely unsealed: no wall at all, not just a misaligned
+ * gap — confirmed live, a player could see past a LARGE room's own real
+ * wall into whatever lay beyond, and walk through the open margin
+ * around a still-LOCKED gate door entirely. `rect.gw < cell.gw` (already
+ * computed inline in the old condition, just not used on its own) is the
+ * correct, size-agnostic test: does this room's own rect actually fall
+ * short of its cell's full span, regardless of which named size it is.
  */
 export function cellMarginWalls(rect, rank, col, { openSide = null, openOffset = 0, openWidth = 0 } = {}) {
   const cell = cellBounds(rank, col);
@@ -927,8 +972,8 @@ export function cellMarginWalls(rect, rank, col, { openSide = null, openOffset =
   const southLine = (cgx, cgy, cgx2, cgy2, from = 0, to = cgx2 - cgx) =>
     ({ dir: 'south', x1: cgx + from, y1: cgy2, x2: cgx + to, y2: cgy2 });
 
-  sealSide('east', rect.gw < cell.gw && rect.gw === ROOM_SIZE_SMALL, eastLine);
-  sealSide('south', rect.gh < cell.gh && rect.gh === ROOM_SIZE_SMALL, southLine);
+  sealSide('east', rect.gw < cell.gw, eastLine);
+  sealSide('south', rect.gh < cell.gh, southLine);
 
   return walls;
 }
