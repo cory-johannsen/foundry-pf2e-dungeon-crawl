@@ -1149,6 +1149,129 @@ describe('buildEdgeCorridor — #297 dogleg around a blocking intermediate room'
   });
 });
 
+describe('buildEdgeCorridor — #297 dogleg around a blocking intermediate room, mirrored onto the same-rank (east) fast path', () => {
+  // Exact mirror of the south/sameColumn dogleg tests above, axes swapped
+  // per the task-3 brief's own table (doorX0->doorY0, faceY->faceX,
+  // corridorEndY->corridorEndX, etc.). `toSlot`/`incomingFace` here are
+  // 'west', NOT 'north' -- a 'north' toSlot is a degenerate (single-y-value)
+  // horizontal line on this branch, which only makes sense as the TARGET
+  // face for a south-exit connection; an east-exit connection's physically
+  // sensible target face is its own west face (a vertical slot spanning y),
+  // the same pairing `outgoingMarginOffset`'s own test (above, "aligns an
+  // east-face, same-rank connection") and this file's own pre-existing
+  // "same-rank, east-exit fast path" test already establish.
+  const seed = 'dogleg-east-from-room-e-0';
+
+  // doorOffsetAt is deterministic per (seed, slot, role, roomSize) -- for
+  // THIS seed/fromRoomId/exitFace combination it's a fixed value. Found
+  // (per Step 1a) by looping 'dogleg-east-from-room-e-' + i and checking
+  // roomSizeAt/doorOffsetAt/roomRect directly until the real outgoingOffset
+  // it produces at 'from-room-e-east' already landed inside a 6-wide
+  // (ROOM_SIZE_SMALL) blocker's own footprint -- no runtime search needed
+  // here. Found on i=0: fromSize=12 (LARGE), blockerSize=6 (SMALL),
+  // doorY0=0, blocker spans [0,6) -- 0 lands inside.
+  it('routes around a blocking room instead of crossing its footprint', () => {
+    const fromRoomId = 'from-room-e';
+    const toRoomId = 'to-room-e';
+    const blockerRoomId = 'blocker-room-e';
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 0, col: 2 };
+    const fromRect = roomRect(seed, fromRoomId, fromPos.rank, fromPos.col);
+    const toRect = roomRect(seed, toRoomId, toPos.rank, toPos.col);
+    const occupiedCells = {
+      '0,0': fromRoomId,
+      '0,1': blockerRoomId,
+      '0,2': toRoomId,
+    };
+    const toSlot = doorSlotsForFace(toRect, 1, 'west')[0];
+
+    const result = buildEdgeCorridor(
+      seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos,
+      'east', toSlot, occupiedCells, 'west',
+    );
+
+    const blockerRect = roomRect(seed, blockerRoomId, 0, 1);
+
+    // The real property, not a proxy: no corridor floor segment overlaps
+    // the blocker's own rect at all.
+    for (const seg of result.corridorSegments) {
+      const overlapsX = seg.gx < blockerRect.gx + blockerRect.gw && seg.gx + seg.gw > blockerRect.gx;
+      const overlapsY = seg.gy < blockerRect.gy + blockerRect.gh && seg.gy + seg.gh > blockerRect.gy;
+      expect(overlapsX && overlapsY).toBe(false);
+    }
+
+    // A dogleg was actually exercised for this scenario (the whole point
+    // of the test) -- if this ever fails, the seed no longer produces a
+    // doorY0 inside the blocker's footprint and must be re-chosen.
+    expect(result.foreignOpening).not.toBeNull();
+    expect(result.foreignOpening.roomId).toBe(blockerRoomId);
+    // The lane travels horizontally through the blocker's own SOUTH
+    // margin but never crosses that room's own south wall -- it crosses
+    // the blocker's own EAST wall (turn 2) to reach the target's cell,
+    // so the opening is on the blocker's east side (the exact mirror of
+    // the south branch's own 'south' side).
+    expect(result.foreignOpening.side).toBe('east');
+    // The corridor must actually REACH the target's real door, not just
+    // avoid the blocker -- the last (turn 2) segment's own y-range must
+    // cover revealDoorWall's own y-range.
+    const lastSeg = result.corridorSegments[result.corridorSegments.length - 1];
+    expect(lastSeg.gy).toBeLessThanOrEqual(result.revealDoorWall.y1);
+    expect(lastSeg.gy + lastSeg.gh).toBeGreaterThanOrEqual(result.revealDoorWall.y2);
+    // Relationship pin (mirrors the south branch's own round-2 fix):
+    // foreignOpening's own y-range must equal the LAST segment's own
+    // y-range exactly, not merely overlap it -- both are the same turn-2
+    // crossing, computed from the same values.
+    const blockerCell = cellBounds(0, 1);
+    expect(blockerCell.gy + result.foreignOpening.offset).toBe(lastSeg.gy);
+    expect(blockerCell.gy + result.foreignOpening.offset + result.foreignOpening.width).toBe(lastSeg.gy + lastSeg.gh);
+  });
+
+  it('does not activate when a real blocker exists but doorY0 already sits past its own footprint', () => {
+    // Same seed-search process as above (Step 1a), this time searching
+    // for doorY0 landing AT OR PAST the blocker's own south edge instead
+    // of inside it, so the dogleg condition (`doorY0 < occupantSouthEdge`)
+    // is false and the output must be byte-identical to this file's
+    // pre-#297 single-box shape. Found: fromSize=12, blockerSize=6,
+    // doorY0=7, blocker spans [0,6) -- 7 sits past it.
+    const missSeed = 'dogleg-east-from-room-e2-1';
+    const fromRoomId = 'from-room-e2';
+    const toRoomId = 'to-room-e2';
+    const blockerRoomId = 'blocker-room-e2';
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 0, col: 2 };
+    const fromRect = roomRect(missSeed, fromRoomId, fromPos.rank, fromPos.col);
+    const toRect = roomRect(missSeed, toRoomId, toPos.rank, toPos.col);
+    const occupiedCells = {
+      '0,0': fromRoomId,
+      '0,1': blockerRoomId,
+      '0,2': toRoomId,
+    };
+    const toSlot = doorSlotsForFace(toRect, 1, 'west')[0];
+
+    const result = buildEdgeCorridor(
+      missSeed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos,
+      'east', toSlot, occupiedCells, 'west',
+    );
+
+    // Confirm the scenario is real: doorY0 (derived independently here,
+    // the same way buildEdgeCorridor computes it internally) sits at or
+    // past the blocker's own south edge -- '0,1' in occupiedCells above
+    // is a genuine blocker room, not an empty cell.
+    const blockerRect = roomRect(missSeed, blockerRoomId, 0, 1);
+    const outgoingOffset = doorOffsetAt(missSeed, `${fromRoomId}-east`, 'outgoing', fromRect.gw);
+    const doorY0 = fromRect.gy + outgoingOffset;
+    expect(doorY0).toBeGreaterThanOrEqual(blockerRect.gy + blockerRect.gh);
+
+    // Byte-identical to the pre-#297 single-box shape: no dogleg, no
+    // third segment, no foreignOpening.
+    expect(result.foreignOpening).toBeNull();
+    expect(result.corridorSegments).toHaveLength(1);
+    expect(result.corridorSegments).toEqual([
+      { gx: 312, gy: 7, gw: 14, gh: 1 },
+    ]);
+  });
+});
+
 describe('cellBounds', () => {
   it('returns the full stride-sized cell at the same origin roomRect uses', () => {
     expect(cellBounds(0, 0)).toEqual({ gx: INITIAL_GX, gy: 0, gw: COLUMN_STRIDE, gh: ROW_STRIDE });
