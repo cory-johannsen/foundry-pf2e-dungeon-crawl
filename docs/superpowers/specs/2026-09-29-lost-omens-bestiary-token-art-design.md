@@ -29,4 +29,4 @@ Design (cross-cutting, tracked as its own issue and listed under #229's pipeline
 - Non-boss rooms: Monster Core first, then non-boss-pool packs, boss pool only as a last resort so an empty result is still never worse than today.
 - Open detail: whether the boss room's other slots (minions) stay Monster Core (recommended: only the first foe slot is the boss).
 
-This issue (#252) then only ships art; it depends on that change for the boss-room behavior.
+This issue (#252) only ships art. Boss-room behavior shipped as #289 (PR #290, v0.50.0).
