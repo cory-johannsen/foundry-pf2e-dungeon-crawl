@@ -44,6 +44,8 @@ import {
   DOOR_WIDTH,
   outgoingMarginOffset,
   pendingForeignMarginOpenings,
+  findPriorityCollision,
+  assignDoorSlotsWithPriority,
 } from "./dungeon-layout.mjs";
 import { freeSpotInRect } from "./placement.mjs";
 import { generateEncounter } from "./encounter-generator.mjs";
@@ -1149,7 +1151,16 @@ export async function buildPopulateAndUnlockGraphNode(
     // face (usually north, sometimes west — #174 Task 6) — doorSlotsForFace's
     // Nth slot corresponds to incomingConnections' Nth entry (same order,
     // same length).
-    const slots = incomingConnections.length ? doorSlotsForFace(rect, incomingConnections.length, incomingFace) : [];
+    // #297 Round 2: assign door slots with priority for a colliding
+    // connection, so Round 1's own already-proven dogleg never needs to
+    // widen toward a co-parent's own slot -- see this room's own spec
+    // ("Round 2 correction: slot priority") for the full reasoning. Every
+    // OTHER connection's own slot, and Round 1's own buildEdgeCorridor call
+    // below (unchanged), are completely unaffected.
+    const priorityCollision = findPriorityCollision(
+      state.seed, room.id, rank, col, incomingConnections, state.layoutPositionByRoomId, occupiedCells,
+    );
+    const slots = assignDoorSlotsWithPriority(state.seed, rect, incomingConnections, incomingFace, priorityCollision);
     for (let i = 0; i < incomingConnections.length; i += 1) {
       const { sourceId, hidden } = incomingConnections[i];
       const toSlot = slots[i];

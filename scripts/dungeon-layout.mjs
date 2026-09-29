@@ -1206,6 +1206,91 @@ export function findCoParentCollision(candidateForeignOpening, incomingConnectio
 }
 
 /**
+ * #297 Round 2 (revised after the "ride-along" design in this file's own
+ * earlier docblocks was found geometrically unsound): detects whether ANY
+ * of `roomId`'s own real incoming connections is blocked, on its own
+ * null-path fast-path fallback (Round 1's own dogleg trigger condition --
+ * 2 ranks/columns apart, same column/row), by a cell occupied by ANOTHER
+ * of `roomId`'s own real parents. Unlike the abandoned ride-along design,
+ * this needs NO `buildEdgeCorridor` call -- the detection is purely
+ * geometric (room positions, `occupiedCells`), so it can run BEFORE any
+ * connection's own door slot or corridor is built, in a single pass.
+ *
+ * Reuses `findCoParentCollision` (unchanged, already merged) to confirm
+ * the blocking room is genuinely one of `roomId`'s own real parents, by
+ * passing it a synthetic `{roomId: blockerId}` -- that function only ever
+ * reads `.roomId` off its own first argument, so this is a legitimate
+ * reuse of its own already-tested hidden-connection guard, not a hack.
+ *
+ * Returns the FIRST such collision found (scope: exactly one, per this
+ * feature's own spec) or `null`.
+ */
+export function findPriorityCollision(seed, roomId, rank, col, incomingConnections, layoutPositionByRoomId, occupiedCells) {
+  for (let i = 0; i < incomingConnections.length; i += 1) {
+    const { sourceId, hidden } = incomingConnections[i];
+    if (hidden) continue;
+    const sourcePos = layoutPositionByRoomId[sourceId];
+    if (!sourcePos) continue;
+    let blockerId = null;
+    let axis = null;
+    let blockRank = null;
+    let blockCol = null;
+    if (sourcePos.col === col && rank === sourcePos.rank + 2) {
+      blockRank = sourcePos.rank + 1;
+      blockCol = col;
+      blockerId = occupiedCells[`${blockRank},${blockCol}`];
+      axis = 'south';
+    } else if (sourcePos.rank === rank && col === sourcePos.col + 2) {
+      blockRank = rank;
+      blockCol = sourcePos.col + 1;
+      blockerId = occupiedCells[`${blockRank},${blockCol}`];
+      axis = 'east';
+    }
+    if (blockerId == null || blockerId === sourceId || blockerId === roomId) continue;
+    if (findCoParentCollision({ roomId: blockerId }, incomingConnections) < 0) continue;
+    return { collidingIndex: i, axis, blockerId, blockRank, blockCol };
+  }
+  return null;
+}
+
+/**
+ * #297 Round 2: the real per-connection slot list (`doorSlotsForFace`'s
+ * own output, unchanged), with the colliding connection's own entry
+ * (per `findPriorityCollision`) reassigned to whichever slot already
+ * contains -- or sits nearest east/south of, when the blocking room's
+ * own margin edge falls past every slot (the documented residual: a
+ * LARGE blocker with a SMALL target) -- the blocking room's own far
+ * margin edge. Every other connection keeps its own original relative
+ * order across the remaining slots. When `collision` is `null`, returns
+ * `doorSlotsForFace`'s own direct output, byte-identical to today.
+ */
+export function assignDoorSlotsWithPriority(seed, rect, incomingConnections, incomingFace, collision) {
+  const slots = incomingConnections.length
+    ? doorSlotsForFace(rect, incomingConnections.length, incomingFace)
+    : [];
+  if (!collision) return slots;
+  const blockerRect = roomRect(seed, collision.blockerId, collision.blockRank, collision.blockCol);
+  const edgeCoord = collision.axis === 'south'
+    ? blockerRect.gx + blockerRect.gw
+    : blockerRect.gy + blockerRect.gh;
+  let priorityIndex = slots.findIndex((s) => {
+    const end = collision.axis === 'south' ? s.x2 : s.y2;
+    return edgeCoord < end;
+  });
+  if (priorityIndex < 0) priorityIndex = slots.length - 1;
+  const remaining = slots.filter((_, idx) => idx !== priorityIndex);
+  const assignment = new Array(incomingConnections.length);
+  assignment[collision.collidingIndex] = slots[priorityIndex];
+  let r = 0;
+  for (let i = 0; i < incomingConnections.length; i += 1) {
+    if (i === collision.collidingIndex) continue;
+    assignment[i] = remaining[r];
+    r += 1;
+  }
+  return assignment;
+}
+
+/**
  * Every foreign margin opening `roomId`'s own `cellMarginWalls` call must
  * leave, for OTHER edges whose #297 dogleg routes through this room's own
  * margin band. A pure scan over the whole graph's real edges (`edges`,

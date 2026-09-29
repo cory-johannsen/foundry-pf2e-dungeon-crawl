@@ -6,7 +6,7 @@ import {
   roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, buildEdgeCorridor, incomingFaceFor, doorSlotsForFace,
   cellBounds, projectOntoSide, findCorridorPath, INITIAL_GX, cellMarginWalls, transitCellCrossing,
   transitCellContainmentWalls, CORRIDOR_LEN, outgoingMarginOffset, pendingForeignMarginOpenings,
-  marginBandApproach, findCoParentCollision,
+  marginBandApproach, findCoParentCollision, findPriorityCollision, assignDoorSlotsWithPriority,
 } from '../scripts/dungeon-layout.mjs';
 import { buildRoomGraph, attachHiddenPaths } from '../scripts/dungeon-deck.mjs';
 
@@ -3358,5 +3358,102 @@ describe('findCoParentCollision — #297 Round 2', () => {
     ];
     const foreignOpening = { roomId: 'detour-room', side: 'south', offset: 5, width: 2 };
     expect(findCoParentCollision(foreignOpening, incomingConnections)).toBe(-1);
+  });
+});
+
+describe('findPriorityCollision — #297 Round 2 (slot priority)', () => {
+  it('finds the priority collision for the pinned dogleg scenario', () => {
+    const seed = 'dogleg-repro-seed-0'; // reuses Task 2's own pinned seed/graph
+    const shortcutSourceId = 'from-room';
+    const blockerRoomId = 'blocker-room';
+    const mergeRoomId = 'to-room';
+    const layoutPositionByRoomId = {
+      [shortcutSourceId]: { rank: 0, col: 0 },
+      [blockerRoomId]: { rank: 1, col: 0 },
+      [mergeRoomId]: { rank: 2, col: 0 },
+    };
+    const occupiedCells = { '0,0': shortcutSourceId, '1,0': blockerRoomId, '2,0': mergeRoomId };
+    // Real parent order for mergeRoomId matches Object.entries(layoutEdges)'s
+    // own insertion order from Task 2's own pinned scenario: shortcutSourceId
+    // first (index 0), blockerRoomId second (index 1) -- verified via
+    // `node -e` in Task 2's own report, reused here directly.
+    const incomingConnections = [
+      { sourceId: shortcutSourceId, hidden: false },
+      { sourceId: blockerRoomId, hidden: false },
+    ];
+    const collision = findPriorityCollision(
+      seed, mergeRoomId, 2, 0, incomingConnections, layoutPositionByRoomId, occupiedCells,
+    );
+    expect(collision).not.toBeNull();
+    expect(collision.collidingIndex).toBe(0);
+    expect(collision.axis).toBe('south');
+    expect(collision.blockerId).toBe(blockerRoomId);
+    expect(collision.blockRank).toBe(1);
+    expect(collision.blockCol).toBe(0);
+  });
+
+  it('returns null when the intermediate cell is unoccupied (no dogleg needed at all)', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const layoutPositionByRoomId = { a: { rank: 0, col: 0 }, b: { rank: 2, col: 0 } };
+    const occupiedCells = { '0,0': 'a', '2,0': 'b' };
+    const incomingConnections = [{ sourceId: 'a', hidden: false }];
+    expect(findPriorityCollision(seed, 'b', 2, 0, incomingConnections, layoutPositionByRoomId, occupiedCells)).toBeNull();
+  });
+
+  it('returns null when the intermediate occupant is NOT one of this target\'s own real parents (Round 1\'s own unrelated-blocker case)', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const layoutPositionByRoomId = { a: { rank: 0, col: 0 }, unrelated: { rank: 1, col: 0 }, b: { rank: 2, col: 0 } };
+    const occupiedCells = { '0,0': 'a', '1,0': 'unrelated', '2,0': 'b' };
+    // 'unrelated' is not in incomingConnections at all -- not a parent of 'b'.
+    const incomingConnections = [{ sourceId: 'a', hidden: false }];
+    expect(findPriorityCollision(seed, 'b', 2, 0, incomingConnections, layoutPositionByRoomId, occupiedCells)).toBeNull();
+  });
+
+  it('ignores a HIDDEN connection as the colliding edge (Review Focus item 5)', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const layoutPositionByRoomId = { hiddenSource: { rank: 0, col: 0 }, blocker: { rank: 1, col: 0 }, target: { rank: 2, col: 0 } };
+    const occupiedCells = { '0,0': 'hiddenSource', '1,0': 'blocker', '2,0': 'target' };
+    const incomingConnections = [
+      { sourceId: 'hiddenSource', hidden: true },
+      { sourceId: 'blocker', hidden: false },
+    ];
+    expect(findPriorityCollision(seed, 'target', 2, 0, incomingConnections, layoutPositionByRoomId, occupiedCells)).toBeNull();
+  });
+});
+
+describe('assignDoorSlotsWithPriority — #297 Round 2', () => {
+  it('assigns the colliding connection the slot nearest the blocker\'s own east edge, for the pinned scenario', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const mergeRect = roomRect(seed, 'to-room', 2, 0);
+    const incomingConnections = [
+      { sourceId: 'from-room', hidden: false },
+      { sourceId: 'blocker-room', hidden: false },
+    ];
+    const collision = { collidingIndex: 0, axis: 'south', blockerId: 'blocker-room', blockRank: 1, blockCol: 0 };
+    const slots = assignDoorSlotsWithPriority(seed, mergeRect, incomingConnections, 'north', collision);
+    const blockerRect = roomRect(seed, 'blocker-room', 1, 0);
+    const edgeX = blockerRect.gx + blockerRect.gw;
+    // The colliding connection's own slot must contain, or lie entirely
+    // east of, the blocker's own east edge -- the real property, not a
+    // hardcoded expectation, so this test still pins the fix if the
+    // pinned seed's own room sizes ever change.
+    expect(slots[0].x1).toBeGreaterThanOrEqual(Math.min(edgeX, mergeRect.gx));
+    expect(slots[0].x1 <= edgeX && slots[0].x2 >= edgeX || slots[0].x1 >= edgeX).toBe(true);
+    // The co-parent's own slot must lie entirely at-or-west of the
+    // blocker's own east edge (never reaching into the dogleg's own lane).
+    expect(slots[1].x2).toBeLessThanOrEqual(edgeX);
+    // Every connection still gets exactly one, distinct slot (Review Focus
+    // item 2) -- no duplication, no dropped connection.
+    expect(slots).toHaveLength(2);
+    expect(slots[0]).not.toEqual(slots[1]);
+  });
+
+  it('returns list-order slots, unchanged, when there is no collision (Review Focus item 4)', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const rect = roomRect(seed, 'to-room', 2, 0);
+    const incomingConnections = [{ sourceId: 'a', hidden: false }, { sourceId: 'b', hidden: false }];
+    const plain = doorSlotsForFace(rect, 2, 'north');
+    const result = assignDoorSlotsWithPriority(seed, rect, incomingConnections, 'north', null);
+    expect(result).toEqual(plain);
   });
 });

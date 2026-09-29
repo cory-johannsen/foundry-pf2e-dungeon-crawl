@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { buildRoomAtGraphNode } from '../scripts/dungeon-scene.mjs';
+import { buildRoomAtGraphNode, buildPopulateAndUnlockGraphNode } from '../scripts/dungeon-scene.mjs';
 import {
   pendingForeignMarginOpenings, cellMarginWalls, roomRect,
+  buildEdgeCorridor, doorSlotsForFace, findPriorityCollision, assignDoorSlotsWithPriority,
 } from '../scripts/dungeon-layout.mjs';
 
 const MODULE_ID = 'pf2e-dungeon-crawl'; // matches dungeon-scene.mjs's own private MODULE_ID constant
@@ -126,5 +127,219 @@ describe('buildRoomAtGraphNode — #297 pending foreign margin openings', () => 
     // The east side carries none of this foreign opening: fully sealed by
     // a single, unbroken wall spanning the whole cell height.
     expect(eastMarginWalls.length).toBe(1);
+  });
+});
+
+describe('buildPopulateAndUnlockGraphNode — #297 Round 2 (slot priority)', () => {
+  it("assigns the colliding co-parent connection a door that doesn't overlap or get covered by the other's walls, for the pinned collision scenario", async () => {
+    installFoundryStubs();
+    // Same pinned dogleg-repro scenario as tests/dungeon-layout.test.mjs's
+    // own findPriorityCollision/assignDoorSlotsWithPriority describe
+    // blocks: from-room (rank 0) and blocker-room (rank 1) are BOTH real
+    // parents of to-room (rank 2, same column) -- from-room's own
+    // connection routes through blocker-room's own cell (a dogleg), and
+    // blocker-room turns out to be to-room's own co-parent (the #297
+    // Round 2 collision this task's own slot-priority fix targets).
+    const seed = 'dogleg-repro-seed-0';
+    const fromRoomId = 'from-room';
+    const blockerRoomId = 'blocker-room';
+    const mergeRoomId = 'to-room';
+    const layoutPositionByRoomId = {
+      [fromRoomId]: { rank: 0, col: 0 },
+      [blockerRoomId]: { rank: 1, col: 0 },
+      [mergeRoomId]: { rank: 2, col: 0 },
+    };
+    // Object.entries insertion order matters here: from-room first (index
+    // 0, the colliding connection), blocker-room second (index 1, the
+    // co-parent) -- same order Task 2's own pinned scenario established.
+    const layoutEdges = { [fromRoomId]: [mergeRoomId], [blockerRoomId]: [mergeRoomId] };
+    const occupiedCells = { '0,0': fromRoomId, '1,0': blockerRoomId, '2,0': mergeRoomId };
+    const incomingFaceByRoomId = { [fromRoomId]: 'north', [blockerRoomId]: 'north', [mergeRoomId]: 'north' };
+    const state = {
+      seed,
+      layoutPositionByRoomId,
+      incomingFaceByRoomId,
+      hiddenRooms: [],
+      edges: layoutEdges,
+      layoutEdges,
+      hiddenIncomingByRoomId: {},
+      hiddenEdges: {},
+    };
+    const room = {
+      id: mergeRoomId, kind: 'narrative', isGoal: false,
+      locationTag: null, artVariant: 0, setpieceId: null,
+    };
+
+    const scene = makeFakeScene();
+    await buildPopulateAndUnlockGraphNode(scene, state, room, {
+      rank: 2, col: 0, childIds: [], unlock: false,
+    });
+
+    // Both connections' own real doors exist, with distinct
+    // dungeonDoorFromRoomId flags (Review Focus item 2 -- no dropped or
+    // duplicated connection).
+    const doorWalls = scene.walls.filter((w) => w.getFlag(MODULE_ID, 'dungeonDoorToRoomId') === mergeRoomId);
+    expect(doorWalls).toHaveLength(2);
+    const doorFromIds = doorWalls.map((w) => w.getFlag(MODULE_ID, 'dungeonDoorFromRoomId')).sort();
+    expect(doorFromIds).toEqual([blockerRoomId, fromRoomId].sort());
+
+    const revealWalls = scene.walls.filter((w) => w.getFlag(MODULE_ID, 'dungeonRevealDoorForSlot') === mergeRoomId);
+    expect(revealWalls).toHaveLength(2);
+    const revealFor = (sourceId) => revealWalls.find((w) => w.getFlag(MODULE_ID, 'dungeonDoorFromRoomId') === sourceId);
+    const fromReveal = revealFor(fromRoomId);
+    const blockerReveal = revealFor(blockerRoomId);
+    expect(fromReveal).toBeDefined();
+    expect(blockerReveal).toBeDefined();
+    // Every connection's own door is genuinely distinct (Review Focus item
+    // 2 -- no duplicated slot).
+    expect(fromReveal.c).not.toEqual(blockerReveal.c);
+
+    // Cross-check against the pure functions this task adds (already
+    // independently unit-tested in tests/dungeon-layout.test.mjs) rather
+    // than a second, independently hardcoded copy of the expected
+    // coordinates -- this file's own established pattern.
+    const incomingConnections = [
+      { sourceId: fromRoomId, hidden: false },
+      { sourceId: blockerRoomId, hidden: false },
+    ];
+    const rect = roomRect(seed, mergeRoomId, 2, 0);
+    const priorityCollision = findPriorityCollision(
+      seed, mergeRoomId, 2, 0, incomingConnections, layoutPositionByRoomId, occupiedCells,
+    );
+    expect(priorityCollision).not.toBeNull();
+    expect(priorityCollision.collidingIndex).toBe(0);
+    const slots = assignDoorSlotsWithPriority(seed, rect, incomingConnections, 'north', priorityCollision);
+
+    const fromRect = roomRect(seed, fromRoomId, 0, 0);
+    const blockerRect = roomRect(seed, blockerRoomId, 1, 0);
+    const fromCorridor = buildEdgeCorridor(
+      seed, fromRoomId, mergeRoomId, fromRect, rect, { rank: 0, col: 0 }, { rank: 2, col: 0 },
+      'south', slots[0], occupiedCells, 'north',
+    );
+    const blockerCorridor = buildEdgeCorridor(
+      seed, blockerRoomId, mergeRoomId, blockerRect, rect, { rank: 1, col: 0 }, { rank: 2, col: 0 },
+      'south', slots[1], occupiedCells, 'north',
+    );
+
+    // The scene's own actual doors match what the pure functions predict
+    // -- confirms the wiring (state.layoutPositionByRoomId/occupiedCells
+    // threading) is correct, not just that the pure functions themselves
+    // are.
+    const toWallCoords = (w) => [toPixels(w.x1), toPixels(w.y1), toPixels(w.x2), toPixels(w.y2)];
+    expect(fromReveal.c).toEqual(toWallCoords(fromCorridor.revealDoorWall));
+    expect(blockerReveal.c).toEqual(toWallCoords(blockerCorridor.revealDoorWall));
+
+    // The real property Round 1's own final review found violated: neither
+    // connection's own revealDoorWall (its real door) is covered by the
+    // OTHER connection's own plainWalls (the target-side plain segments a
+    // dogleg-adjacent slot might otherwise widen into). Checked on the
+    // target's own shared north face only (y1 === rect.gy), the only face
+    // where the two connections' own geometry could ever collide.
+    const targetFaceY = rect.gy;
+    const coveredBy = (doorWall, otherPlainWalls) => otherPlainWalls
+      .filter((w) => w.y1 === targetFaceY && w.y2 === targetFaceY)
+      .some((w) => {
+        const wx1 = Math.min(w.x1, w.x2);
+        const wx2 = Math.max(w.x1, w.x2);
+        const dx1 = Math.min(doorWall.x1, doorWall.x2);
+        const dx2 = Math.max(doorWall.x1, doorWall.x2);
+        // Overlap, not just containment -- any shared span at all would
+        // mean the door is (partially or fully) sealed by a plain wall.
+        return wx1 < dx2 && wx2 > dx1;
+      });
+    expect(coveredBy(fromCorridor.revealDoorWall, blockerCorridor.plainWalls)).toBe(false);
+    expect(coveredBy(blockerCorridor.revealDoorWall, fromCorridor.plainWalls)).toBe(false);
+  });
+
+  it('produces Wall/Tile output identical to doorSlotsForFace\'s own direct output for a non-colliding two-parent merge room (Review Focus item 4 -- the common case is unaffected)', async () => {
+    installFoundryStubs();
+    const seed = 'dogleg-repro-seed-0';
+    const parentAId = 'room-a';
+    const parentBId = 'room-b';
+    const mergeRoomId = 'room-m';
+    // Both parents directly adjacent (rank diff 1) to the merge room --
+    // Round 1's own dogleg trigger (2 ranks/cols apart, same column/row)
+    // never fires for either, so findPriorityCollision must return null
+    // and assignDoorSlotsWithPriority must fall through to
+    // doorSlotsForFace's own direct output, unchanged.
+    const layoutPositionByRoomId = {
+      [parentAId]: { rank: 0, col: 0 },
+      [parentBId]: { rank: 0, col: 1 },
+      [mergeRoomId]: { rank: 1, col: 0 },
+    };
+    const layoutEdges = { [parentAId]: [mergeRoomId], [parentBId]: [mergeRoomId] };
+    const occupiedCells = { '0,0': parentAId, '0,1': parentBId, '1,0': mergeRoomId };
+    const incomingFaceByRoomId = { [parentAId]: 'north', [parentBId]: 'north', [mergeRoomId]: 'north' };
+    const state = {
+      seed,
+      layoutPositionByRoomId,
+      incomingFaceByRoomId,
+      hiddenRooms: [],
+      edges: layoutEdges,
+      layoutEdges,
+      hiddenIncomingByRoomId: {},
+      hiddenEdges: {},
+    };
+    const room = {
+      id: mergeRoomId, kind: 'narrative', isGoal: false,
+      locationTag: null, artVariant: 0, setpieceId: null,
+    };
+
+    const scene = makeFakeScene();
+    await buildPopulateAndUnlockGraphNode(scene, state, room, {
+      rank: 1, col: 0, childIds: [], unlock: false,
+    });
+
+    const incomingConnections = [
+      { sourceId: parentAId, hidden: false },
+      { sourceId: parentBId, hidden: false },
+    ];
+    const rect = roomRect(seed, mergeRoomId, 1, 0);
+    const priorityCollision = findPriorityCollision(
+      seed, mergeRoomId, 1, 0, incomingConnections, layoutPositionByRoomId, occupiedCells,
+    );
+    expect(priorityCollision).toBeNull();
+    const plainSlots = doorSlotsForFace(rect, 2, 'north');
+    const prioritySlots = assignDoorSlotsWithPriority(seed, rect, incomingConnections, 'north', priorityCollision);
+    expect(prioritySlots).toEqual(plainSlots);
+
+    const parentARect = roomRect(seed, parentAId, 0, 0);
+    const parentBRect = roomRect(seed, parentBId, 0, 1);
+    const expectedFromA = buildEdgeCorridor(
+      seed, parentAId, mergeRoomId, parentARect, rect, { rank: 0, col: 0 }, { rank: 1, col: 0 },
+      'south', plainSlots[0], occupiedCells, 'north',
+    );
+    const expectedFromB = buildEdgeCorridor(
+      seed, parentBId, mergeRoomId, parentBRect, rect, { rank: 0, col: 1 }, { rank: 1, col: 0 },
+      'south', plainSlots[1], occupiedCells, 'north',
+    );
+
+    const toWallCoords = (w) => [toPixels(w.x1), toPixels(w.y1), toPixels(w.x2), toPixels(w.y2)];
+    const revealWalls = scene.walls.filter((w) => w.getFlag(MODULE_ID, 'dungeonRevealDoorForSlot') === mergeRoomId);
+    expect(revealWalls).toHaveLength(2);
+    const actualFromA = revealWalls.find((w) => w.getFlag(MODULE_ID, 'dungeonDoorFromRoomId') === parentAId);
+    const actualFromB = revealWalls.find((w) => w.getFlag(MODULE_ID, 'dungeonDoorFromRoomId') === parentBId);
+    expect(actualFromA.c).toEqual(toWallCoords(expectedFromA.revealDoorWall));
+    expect(actualFromB.c).toEqual(toWallCoords(expectedFromB.revealDoorWall));
+
+    // Tile count matches what the two independently-computed corridors'
+    // own segments would produce, plus exactly one for the room's own
+    // floor-art tile (buildRoomAtGraphNode's own `dungeonRoomBuilt`
+    // marker) -- confirms the wiring change didn't alter how many corridor
+    // floor tiles get laid for the common case. Mirrors
+    // corridorTilesForSegments' own per-segment length rule
+    // (dungeon-scene.mjs, private): one tile per grid square along
+    // whichever axis the segment runs (vertical when gh >= gw), counted
+    // with ti < length (fractional lengths truncate, matching the real
+    // for-loop's own behavior).
+    const segmentTileCount = (seg) => {
+      const length = seg.gh >= seg.gw ? seg.gh : seg.gw;
+      let count = 0;
+      for (let ti = 0; ti < length; ti += 1) count += 1;
+      return count;
+    };
+    const expectedTileCount = 1 + [...expectedFromA.corridorSegments, ...expectedFromB.corridorSegments]
+      .reduce((sum, seg) => sum + segmentTileCount(seg), 0);
+    expect(scene.tiles.length).toBe(expectedTileCount);
   });
 });
