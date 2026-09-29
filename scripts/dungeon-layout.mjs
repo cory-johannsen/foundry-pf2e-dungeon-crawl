@@ -1097,6 +1097,65 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
     : { offset: seg.gy - fromRect.gy, width: seg.gh };
 }
 
+/**
+ * Every foreign margin opening `roomId`'s own `cellMarginWalls` call must
+ * leave, for OTHER edges whose #297 dogleg routes through this room's own
+ * margin band. A pure scan over the whole graph's real edges (`edges`,
+ * never `layoutEdges` -- a hidden/detour edge's own routing is a separate,
+ * untouched mechanism per this feature's own documented scope), calling
+ * the SAME `buildEdgeCorridor` every real edge already goes through
+ * (`buildPopulateAndUnlockGraphNode`'s own incoming-connections loop) and
+ * reading back its `foreignOpening` field -- never re-deriving the
+ * dogleg's own geometry separately, the same "call the real function,
+ * don't approximate" precedent `outgoingMarginOffset` already set. Note
+ * this function never hardcodes `DOOR_WIDTH` or a specific `side` value --
+ * it passes through whatever `buildEdgeCorridor` computed, so it stays
+ * correct even though Task 2's own review rounds widened `foreignOpening`'s
+ * real meaning (real crossing width, potentially > DOOR_WIDTH; the side
+ * the corridor actually CROSSES, not the margin band the lane merely sits
+ * in) after this function's own design was first written.
+ *
+ * Correct regardless of build order: this module performs eager,
+ * full-graph pregeneration (`roomsToEagerlyBuild`), so every input here
+ * (`edges`, `layoutPositionByRoomId`, `incomingFaceByRoomId`) is already
+ * fully known before ANY room is built -- no persisted registry, no
+ * retroactive wall-patching needed (see this feature's own spec for the
+ * full reasoning and the two wrong designs it replaced).
+ */
+export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells) {
+  const result = { east: [], south: [] };
+  for (const [sourceId, childIds] of Object.entries(edges)) {
+    const sourcePos = layoutPositionByRoomId[sourceId];
+    if (!sourcePos) continue;
+    const sourceIncomingFace = incomingFaceByRoomId?.[sourceId] ?? 'north';
+    childIds.forEach((childId, index) => {
+      const targetPos = layoutPositionByRoomId[childId];
+      if (!targetPos) return;
+      const exitFace = exitFaceForIndex(index, sourceIncomingFace);
+      const sameColumnTwoDown = exitFace === 'south' && sourcePos.col === targetPos.col && targetPos.rank === sourcePos.rank + 2;
+      const sameRankTwoOver = exitFace === 'east' && sourcePos.rank === targetPos.rank && targetPos.col === sourcePos.col + 2;
+      if (!sameColumnTwoDown && !sameRankTwoOver) return;
+      // Only worth calling buildEdgeCorridor (real work) when THIS room is
+      // actually the blocking cell for this candidate edge.
+      const blockRank = sameColumnTwoDown ? sourcePos.rank + 1 : sourcePos.rank;
+      const blockCol = sameColumnTwoDown ? sourcePos.col : sourcePos.col + 1;
+      if (blockRank !== rank || blockCol !== col) return;
+      const sourceRect = roomRect(seed, sourceId, sourcePos.rank, sourcePos.col);
+      const targetRect = roomRect(seed, childId, targetPos.rank, targetPos.col);
+      const targetIncomingFace = incomingFaceByRoomId?.[childId] ?? 'north';
+      const toSlot = doorSlotsForFace(targetRect, 1, targetIncomingFace)[0];
+      const { foreignOpening } = buildEdgeCorridor(
+        seed, sourceId, childId, sourceRect, targetRect, sourcePos, targetPos,
+        exitFace, toSlot, occupiedCells, targetIncomingFace,
+      );
+      if (foreignOpening && foreignOpening.roomId === roomId) {
+        result[foreignOpening.side].push({ offset: foreignOpening.offset, width: foreignOpening.width });
+      }
+    });
+  }
+  return result;
+}
+
 /** Which compass direction `from` a cell faces to reach an
  * orthogonally-adjacent `to` cell — 'north' if to is one rank up, etc.
  * (#174 Task 4 — used to label each transitCells entry's own

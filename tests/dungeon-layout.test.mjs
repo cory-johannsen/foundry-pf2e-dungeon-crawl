@@ -5,7 +5,7 @@ import {
   computeRanks, computeColumns,
   roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, buildEdgeCorridor, incomingFaceFor, doorSlotsForFace,
   cellBounds, projectOntoSide, findCorridorPath, INITIAL_GX, cellMarginWalls, transitCellCrossing,
-  transitCellContainmentWalls, CORRIDOR_LEN, outgoingMarginOffset,
+  transitCellContainmentWalls, CORRIDOR_LEN, outgoingMarginOffset, pendingForeignMarginOpenings,
 } from '../scripts/dungeon-layout.mjs';
 import { buildRoomGraph, attachHiddenPaths } from '../scripts/dungeon-deck.mjs';
 
@@ -2914,5 +2914,62 @@ describe('incomingFaceByRoomId derivation over a real generated graph', () => {
       }
     }
     expect(sawWest).toBe(true); // sanity: the sweep actually exercised the new fallback, not just the unchanged default
+  });
+});
+
+describe('pendingForeignMarginOpenings — #297', () => {
+  it('finds a foreign opening for the blocking room in a dogleg scenario', () => {
+    const seed = 'dogleg-repro-seed-0'; // same concrete seed Task 2 pinned (tests/dungeon-layout.test.mjs's own dogleg describe block)
+    const fromRoomId = 'from-room';
+    const toRoomId = 'to-room';
+    const blockerRoomId = 'blocker-room';
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 2, col: 0 };
+    const layoutPositionByRoomId = {
+      [fromRoomId]: fromPos,
+      [blockerRoomId]: { rank: 1, col: 0 },
+      [toRoomId]: toPos,
+    };
+    // Index 0 = toRoomId (the merge/shortcut room, gets exitFaceForIndex(0)='south'
+    // -- confirmed live repro order), index 1 = blockerRoomId.
+    const edges = { [fromRoomId]: [toRoomId, blockerRoomId] };
+    const occupiedCells = { '0,0': fromRoomId, '1,0': blockerRoomId, '2,0': toRoomId };
+    const incomingFaceByRoomId = { [toRoomId]: 'north', [blockerRoomId]: 'north' };
+
+    const openings = pendingForeignMarginOpenings(
+      seed, blockerRoomId, 1, 0, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
+    );
+
+    // Cross-check against the SAME buildEdgeCorridor call this function
+    // internally makes for this edge, rather than a second, independently
+    // hardcoded expected value -- this file's own recurring "two things
+    // must agree on a shared boundary" lesson applies here too, one level
+    // up from Task 2's own fix.
+    const fromRect = roomRect(seed, fromRoomId, fromPos.rank, fromPos.col);
+    const toRect = roomRect(seed, toRoomId, toPos.rank, toPos.col);
+    const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
+    const { foreignOpening } = buildEdgeCorridor(
+      seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos,
+      'south', toSlot, occupiedCells, 'north',
+    );
+    expect(foreignOpening).not.toBeNull();
+    expect(foreignOpening.side).toBe('south');
+    expect(openings.south).toEqual([{ offset: foreignOpening.offset, width: foreignOpening.width }]);
+    expect(openings.east).toEqual([]);
+  });
+
+  it('finds no foreign opening for a room with no blocking role', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const layoutPositionByRoomId = {
+      'a': { rank: 0, col: 0 },
+      'b': { rank: 1, col: 0 },
+    };
+    const edges = { a: ['b'] };
+    const occupiedCells = { '0,0': 'a', '1,0': 'b' };
+    const openings = pendingForeignMarginOpenings(
+      seed, 'b', 1, 0, edges, layoutPositionByRoomId, { b: 'north' }, occupiedCells,
+    );
+    expect(openings.east).toEqual([]);
+    expect(openings.south).toEqual([]);
   });
 });
