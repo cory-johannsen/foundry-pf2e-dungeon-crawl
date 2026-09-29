@@ -321,20 +321,23 @@ export function slotRowCol(slot) {
 }
 
 /**
- * The "turn 1" jog shared by every #297 dogleg (Round 1) and every #297
- * Round 2 ride-along corridor: a short floor segment confined to the
- * SOURCE room's own margin band (never the blocking cell itself -- see
- * Round 1's own spec section for why: a room's floor starts immediately
- * at its own cell's NW corner, so there is no y-range inside the blocking
- * cell where turning wouldn't overlap that room's own floor), jogging
- * from the source's own real door (doorX0..doorX1 at faceY) sideways to
- * wherever the corridor needs to continue (targetLaneX0..+targetLaneWidth).
- * Round 1's own dogleg used this to land at a blocking room's own margin
- * edge; Round 2's own ride-along corridor (Task 4/5) uses the exact same
- * shape to land on a co-parent's own real corridor position instead --
- * extracted here (Round 2 Task 1) so both call one shared, single-source-
- * of-truth implementation instead of two independently-maintained copies
- * of the same jog math.
+ * The "turn 1" jog every #297 dogleg (Round 1) uses: a short floor
+ * segment confined to the SOURCE room's own margin band (never the
+ * blocking cell itself -- see Round 1's own spec section for why: a
+ * room's floor starts immediately at its own cell's NW corner, so there
+ * is no y-range inside the blocking cell where turning wouldn't overlap
+ * that room's own floor), jogging from the source's own real door
+ * (doorX0..doorX1 at faceY) sideways to wherever the corridor needs to
+ * continue (targetLaneX0..+targetLaneWidth) -- the blocking room's own
+ * margin edge. Extracted here (Round 2 Task 1) purely to give Round 1's
+ * own already-proven dogleg logic a single, readable implementation
+ * instead of inline duplication across the south/east branches. (An
+ * earlier Round 2 design planned a second caller here -- a "ride-along"
+ * corridor landing on a co-parent's own corridor position instead of the
+ * blocker's own margin edge -- but that design was found geometrically
+ * unsound during its own implementation and replaced with slot-priority
+ * assignment, which needs no corridor-geometry helper at all. This
+ * function has exactly one caller.)
  */
 export function marginBandApproach(doorX0, doorX1, faceY, targetLaneX0, targetLaneWidth) {
   const turnGx = Math.min(doorX0, targetLaneX0);
@@ -651,9 +654,8 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
           const laneX1 = laneX0 + DOOR_WIDTH;
           // #297 Round 2 Task 1: turn 1's own geometry (turnGx/turnGx2/
           // turnBottom) plus its own containment walls, extracted into
-          // `marginBandApproach` (see its own docblock) so Round 2's own
-          // ride-along corridor (Task 4/5) can reuse the exact same jog
-          // math instead of a second, independently-maintained copy.
+          // `marginBandApproach` (see its own docblock) purely for
+          // readability -- this dogleg is the function's only caller.
           const { turnGx, turnGx2, turnBottom, turnSegment: turn1Segment, turnWalls: turn1Walls } =
             marginBandApproach(doorX0, doorX1, faceY, laneX0, DOOR_WIDTH);
           // Review round 1 fix: the lane's own vertical run can't reach
@@ -1181,21 +1183,20 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
  * #297 Round 1 dogleg trigger) points at ANOTHER of the same target
  * room's own real parents -- the #297 Round 2 collision this file's own
  * spec calls out: the blocking room turns out to be the target's own
- * co-parent, whose own corridor already occupies the space Round 1's own
- * dogleg would draw new geometry through. Returns that co-parent's own
- * index in `incomingConnections` (so the caller can look up its own
- * already-computed pass-1 result), or -1 for "no collision, use the
- * candidate's own geometry unchanged" -- covers both "no dogleg at all"
- * and "dogleg fired, but the blocker is genuinely unrelated" (Round 1's
- * own original, still-valid case).
+ * co-parent. Returns that co-parent's own index in `incomingConnections`,
+ * or -1 for "no collision" -- covers both "no dogleg at all" and "dogleg
+ * fired, but the blocker is genuinely unrelated" (Round 1's own original,
+ * still-valid case). Reused by `findPriorityCollision` (Round 2 Task 4,
+ * slot-priority design) with a synthetic `{roomId: blockerId}` argument,
+ * to confirm a blocking room is genuinely one of the target's own real
+ * parents before granting it slot priority.
  *
- * A HIDDEN connection's own sourceId is never treated as a co-parent to
- * ride along, even if it happens to match `roomId` -- its own corridor
- * may not be safely reusable (its own door stays sealed/unrevealed until
- * a later game-state event, not simply "already built"), and the whole
- * point of Round 1's own dungeonHiddenDoorForEdge/dungeonDoorFromRoomId
- * split is that a hidden connection's own geometry is handled by a
- * completely separate mechanism this file does not touch.
+ * A HIDDEN connection's own sourceId never matches, even if it happens to
+ * equal `roomId` -- a hidden connection's own door stays sealed/
+ * unrevealed until a later game-state event, and the whole point of
+ * Round 1's own dungeonHiddenDoorForEdge/dungeonDoorFromRoomId split is
+ * that a hidden connection's own geometry is handled by a completely
+ * separate mechanism this file does not touch.
  */
 export function findCoParentCollision(candidateForeignOpening, incomingConnections) {
   if (!candidateForeignOpening) return -1;

@@ -2,30 +2,31 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Fix the connectivity regression the Round 1 final review found: when a merge room's second-parent edge's own null-path dogleg (Round 1, already merged) is blocked by a room that turns out to be the target's own co-parent, stop drawing new dogleg geometry through the co-parent's own corridor space — instead reuse that co-parent's own already-built corridor for the shared stretch and branch to a separate door only at the very end.
+**Goal:** Fix the connectivity regression the Round 1 final review found: when a merge room's second-parent edge's own null-path dogleg (Round 1, already merged) is blocked by a room that turns out to be the target's own co-parent, prevent the collision *by construction* — assign door slots so the colliding connection lands on whichever slot already sits closest to the blocking room's own margin edge, so Round 1's existing dogleg never needs to widen toward the co-parent's own slot, and the co-parent's own corridor never needs to reach into the dogleg's own lane.
 
-**Architecture:** `buildPopulateAndUnlockGraphNode`'s incoming-connections loop splits into two passes: pass 1 computes every connection's own candidate corridor exactly as today (unchanged `buildEdgeCorridor` call, including Round 1's own dogleg); pass 2 detects a co-parent collision (a candidate's own `foreignOpening.roomId` matching another real parent's own `sourceId` in the same room's incoming-connections list) and, when found, replaces that candidate's geometry with a "ride-along" corridor: a short approach segment (reusing a helper extracted from Round 1's own dogleg turn-1 construction) that converges on the co-parent's own real corridor position instead of an arbitrary margin edge, followed by the co-parent's own corridor segments/walls reused verbatim, followed by one short new branch segment to the candidate's own separate door.
+**Architecture:** (Revised 2026-09-29 — the original "ride-along" architecture in this section was abandoned after Task 4's own implementation found it geometrically unsound; see the spec's own "Round 2 correction" section for the full defect trace.) `buildPopulateAndUnlockGraphNode`'s incoming-connections loop stays a **single pass** (no restructuring needed — this is simpler than the abandoned design, not just different). Before assigning door slots, a pure detection function scans the target room's own real incoming connections for a priority collision (Round 1's own dogleg-trigger condition — 2 ranks/columns apart, same column/row, occupied intermediate cell — where the occupant is *also* one of this room's own other real parents, reusing the already-merged `findCoParentCollision` to confirm the match). If found, the colliding connection is assigned whichever door slot contains (or sits nearest east-of, for the residual case) the blocking room's own far margin edge; every other connection gets the remaining slots, in their own original order. Round 1's own `buildEdgeCorridor` call is **completely unchanged** — it just receives a different `toSlot` for the colliding connection than list order alone would have given it.
 
 **Tech Stack:** Vanilla JS (ESM), Vitest, Foundry VTT v13/v14 module (`pf2e-dungeon-crawl`).
 
-**Spec:** `docs/superpowers/specs/2026-09-29-merge-room-gate-share-design.md` (the "Round 2: co-parent collision" section, and its amended Testing/Success criteria — Round 1's own sections above it describe the already-merged dogleg, kept unmodified except for the Task 1 refactor below).
+**Spec:** `docs/superpowers/specs/2026-09-29-merge-room-gate-share-design.md` (the "Round 2 correction: slot priority" section, and its amended Testing/Success criteria — Round 1's own sections above it describe the already-merged dogleg, kept fully unmodified; the original, now-superseded "ride-along" sections are kept in the spec as the historical record of why that design doesn't work).
 
 ## Global Constraints
 
-- Round 1's own dogleg logic in `buildEdgeCorridor` (south/east branches, `scripts/dungeon-layout.mjs`) keeps its exact behavior for the genuinely-unrelated-blocker case. Task 1's refactor must be behavior-preserving (verified by the existing Round 1 test suite staying green, byte-identical output) — it extracts shared code, it does not change what that code computes.
+- Round 1's own dogleg logic in `buildEdgeCorridor` (south/east branches, `scripts/dungeon-layout.mjs`) is **not modified by any task in this revised plan** — every connection's own corridor is still built by the exact same, already-reviewed function call; only *which slot* gets passed to it changes for the colliding connection. Task 1's refactor (already merged) must stay behavior-preserving — no task in this plan touches it further.
 - **Every task's own tests must use a graph where the relevant room has 2+ real incoming connections**, with slots resolved via `incomingConnectionsFor` + `doorSlotsForFace(rect, incomingConnections.length, face)[i]` — never a hand-built single-slot `doorSlotsForFace(rect, 1, face)[0]`. This is the single most important lesson from Round 1's own final review: every Round 1 test used a single-connection graph, which is exactly the configuration that hid all three of that review's Critical findings. A task whose own tests use a single-connection graph has not actually exercised this plan's own subject matter.
-- Doors and flags are unchanged: `dungeonDoorToRoomId`/`dungeonDoorFromRoomId` (or `dungeonHiddenDoorForEdge` for a hidden connection), `unlockDoorsFromRoom`, `handleDungeonDoorOpened` all keep working exactly as today. Only a colliding connection's own *corridor geometry* changes.
-- The co-parent is always exactly one rank/column below the blocking cell relative to the second-parent's own source (`toPos.rank === fromPos.rank + 2` south / `toPos.col === fromPos.col + 2` east, Round 1's own scoped detection) — meaning the co-parent's own edge to the SAME target is necessarily rank+1/col+1 apart (directly adjacent). The co-parent's own corridor is therefore expected to take `buildEdgeCorridor`'s simple adjacent (`path.length <= 2`) branch, not a dogleg itself — verify this as an explicit assertion in Task 4/5's own tests, not an unchecked assumption.
-- Scope: exactly one co-parent colliding with exactly one second-parent edge. Three-or-more real parents colliding at the same cell, and a co-parent whose own connection also needs Round 1's dogleg, are explicitly out of scope — leave undetected (falls through to Round 1's own existing, already-broken-for-this-case behavior) and document as residuals in the final task's own commit message, per this file's own established "measure and document" pattern.
+- Doors and flags are unchanged: `dungeonDoorToRoomId`/`dungeonDoorFromRoomId` (or `dungeonHiddenDoorForEdge` for a hidden connection), `unlockDoorsFromRoom`, `handleDungeonDoorOpened` all keep working exactly as today. Only *which slot index* a connection's own door lands on changes for the colliding case — never which flags it carries.
+- The co-parent is always exactly one rank/column below the blocking cell relative to the second-parent's own source (`toPos.rank === fromPos.rank + 2` south / `toPos.col === fromPos.col + 2` east, Round 1's own scoped detection) — meaning the co-parent's own edge to the SAME target is necessarily rank+1/col+1 apart (directly adjacent). The co-parent's own corridor is therefore expected to take `buildEdgeCorridor`'s simple adjacent (`path.length <= 2`) branch, not a dogleg itself — verify this as an explicit assertion in the new task's own tests, not an unchecked assumption.
+- Scope: exactly one co-parent colliding with exactly one second-parent edge. Three-or-more real parents colliding at the same cell, a co-parent whose own connection also needs Round 1's dogleg, and the documented residual (blocking room `LARGE`, target room `SMALL` — the blocking room's own margin edge falls past the target's own face entirely, so no slot assignment can contain it) are explicitly out of scope for elimination — measured and documented, not silently left uncovered, per this file's own established "measure and document" pattern.
 - Version bump: this branch is currently at `0.51.0`. Check `origin/main`'s own current version before the final bump (same recovery Round 1's own Task 6 used) — bump past it, minor bump (architecture-level change).
 
 ## Review Focus
 
-1. **The ride-along corridor's own approach segment must actually converge on the co-parent's real corridor position**, not an approximation — a test asserting "no overlap with the co-parent's rect" is not enough; the specific point of convergence (where the approach segment's own floor meets the co-parent's own floor) must be verified to actually align, both in the target's own overlap axis and in the perpendicular axis, or the two floors won't visually/functionally connect (this is exactly Round 1's own Critical-1 shape — a "connectivity" bug that a "no overlap" test alone doesn't catch).
-2. **The branch segment near the target must not re-seal the co-parent's own door** — the entire point of this redesign is that the co-parent's own door stays open; a test must assert the co-parent's own `revealDoorWall` is not collinear with or covered by any wall the candidate's own branch segment introduces.
-3. **`pendingForeignMarginOpenings`'s slot-count fix must be tested against a real multi-parent target**, not just a single-connection scenario that happens to also pass with the wrong assumption (count=1 and count=2-with-index-0 can coincidentally agree for some geometries) — the test must use a scenario where the real slot and the assumed slot-0-of-1 genuinely differ, so the fix is actually pinned.
-4. **The two-pass restructuring must not change behavior for the overwhelmingly common case** (a room with exactly one real incoming connection, or two real connections that don't collide) — a test asserting byte-identical wall/tile output to Round 1's own single-pass behavior for a non-colliding multi-parent room is needed, not just for the colliding case.
-5. **Hidden connections must not be mistaken for co-parents.** A hidden connection's own `sourceId` (a shortcut's hidden extra, or a detour's own real parent link marked hidden) must never be treated as a "co-parent to ride along" — only a REAL (non-hidden) parent's own corridor is safe to reuse, since a hidden connection's own door stays sealed/unrevealed and its corridor may not even be built yet in the order this plan's own detection runs. A test with a hidden connection present alongside a real one, where the hidden one happens to be positioned at what would otherwise look like a blocking cell, must confirm it's correctly ignored by the detection logic.
+1. **The priority slot assignment must actually contain (or sit immediately east/south of) the blocking room's own real margin edge**, not an approximation — a test asserting only "no overlap with the co-parent's rect" is not enough; the specific slot boundary relationship to `occupantEastEdge`/`occupantSouthEdge` must be verified numerically (this is exactly Round 1's own Critical-1/2 shape — a geometric-alignment bug a coarse test wouldn't catch).
+2. **The co-parent's own connection must still get a valid, independent slot** — reassigning the colliding connection's own slot must not leave the co-parent without one, duplicate a slot between two connections, or change the *total number* of slots assigned (still exactly `incomingConnections.length`, still exactly one per connection).
+3. **`pendingForeignMarginOpenings`'s slot-count fix (Task 2, already merged) is unaffected by this rework** — confirm no task in this plan needs to touch it further; its own job (foreign margin openings for the *unrelated-blocker* dogleg case) is orthogonal to slot-priority, which only affects the *target* room's own slot assignment, not any *blocking* room's own margin walls.
+4. **The single-pass detection must not change behavior for the overwhelmingly common case** (a room with exactly one real incoming connection, or two-plus real connections that don't collide) — a test asserting byte-identical slot assignment (and therefore byte-identical wall/tile output) to today's list-order assignment for a non-colliding multi-parent room is needed, not just for the colliding case.
+5. **Hidden connections must not be mistaken for co-parents, and must never receive slot-priority treatment.** A hidden connection's own `sourceId` (a shortcut's hidden extra, or a detour's own real parent link marked hidden) must never be treated as a priority collision, in either direction (as the blocker, or as the colliding connection) — reuse `findCoParentCollision`'s own already-tested hidden-connection guard rather than re-deriving it. A test with a hidden connection present alongside two real ones, where the hidden one happens to be positioned at what would otherwise look like a blocking cell, must confirm it's correctly ignored.
+6. **The documented residual (blocking room `LARGE`, target room `SMALL`) must be measured, not assumed.** The sweep task must report its own real rate for this specific size combination, separately from the overall collision rate — a silent "close enough" is not acceptable per this file's own established discipline.
 
 ---
 
@@ -37,7 +38,7 @@
 
 **Interfaces:**
 - Consumes: nothing new — this task only reorganizes existing code.
-- Produces: a new exported pure function, `marginBandApproach(doorX0, doorX1, faceY, targetLaneX0, targetLaneWidth)` (south-axis version — see Step 3 for the exact signature and the east-axis mirror, `marginBandApproachY`), returning `{ turnGx, turnGx2, turnBottom, turnSegment, turnWalls }` where `turnSegment` is the turn-1 floor box and `turnWalls` is the array of containment walls for that turn (the caps at `turnBottom`, mirroring what Round 1's own dogleg already builds). Round 1's own dogleg logic in `buildEdgeCorridor` calls this new function instead of duplicating the jog math inline; Task 4/5's own new ride-along function also calls it, with a different `targetLaneX0`.
+- Produces: a new exported pure function, `marginBandApproach(doorX0, doorX1, faceY, targetLaneX0, targetLaneWidth)` (south-axis version — see Step 3 for the exact signature and the east-axis mirror, `marginBandApproachY`), returning `{ turnGx, turnGx2, turnBottom, turnSegment, turnWalls }` where `turnSegment` is the turn-1 floor box and `turnWalls` is the array of containment walls for that turn (the caps at `turnBottom`, mirroring what Round 1's own dogleg already builds). Round 1's own dogleg logic in `buildEdgeCorridor` calls this new function instead of duplicating the jog math inline. (Note, added 2026-09-29: the original plan for this task also expected a Round 2 "ride-along" function to call `marginBandApproach` with a different `targetLaneX0` — that design was abandoned during Task 4's own implementation and replaced with slot-priority assignment, which needs no corridor-geometry helper at all. This extraction is still worth doing on its own merits — Round 1's own dogleg logic reads more clearly as an extracted function — and is unaffected by that later change.)
 
 - [ ] **Step 1: Read the current south-branch dogleg code in full**
 
@@ -374,439 +375,320 @@ git commit -m "feat(#297): detect when a dogleg's own blocker is the target's ow
 
 ---
 
-### Task 4: Ride-along corridor geometry (south branch)
+### Task 4: Slot-priority collision detection and assignment
 
 **Files:**
-- Modify: `scripts/dungeon-layout.mjs` (new exported function, placed near `buildEdgeCorridor`)
-- Test: `tests/dungeon-layout.test.mjs`
+- Modify: `scripts/dungeon-layout.mjs` (two new exported functions, placed near `findCoParentCollision`)
+- Modify: `scripts/dungeon-scene.mjs` (`buildPopulateAndUnlockGraphNode`'s own single line building `slots` — currently ~line 1149, confirm via `grep -n "const slots = incomingConnections.length"`)
+- Test: `tests/dungeon-layout.test.mjs`, `tests/dungeon-scene.test.mjs`
 
 **Interfaces:**
-- Consumes: `marginBandApproach` (Task 1), the same `{doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells, foreignOpening}` shape `buildEdgeCorridor` already returns (for both the candidate's own naive pass-1 result and the co-parent's own pass-1 result).
-- Produces: `buildRideAlongCorridorSouth(candidateNaive, candidateDoorSlot, coParentResult)` — a new exported pure function returning the SAME `{doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells}` shape, to be used in place of `candidateNaive` when Task 3's own `findCoParentCollision` finds a match. `candidateNaive` is the colliding connection's own pass-1 `buildEdgeCorridor` result (its `doorWall` — the real, unmovable source door — is reused verbatim; its own dogleg-specific fields are discarded). `candidateDoorSlot` is the colliding connection's own `toSlot` (its OWN separate door slot into the target, from `doorSlotsForFace`, unrelated to the co-parent's own slot). `coParentResult` is the co-parent's own pass-1 `buildEdgeCorridor` result (its `corridorSegments`/`plainWalls` are reused verbatim for the shared stretch; its own `doorWall`/`revealDoorWall` are NOT reused — the candidate needs its own separate door).
+- Consumes: `findCoParentCollision` (already merged, Task 3) — reused verbatim (not re-derived) to confirm a blocking room is genuinely one of the target's own real parents.
+- Produces: `findPriorityCollision(seed, roomId, rank, col, incomingConnections, layoutPositionByRoomId, occupiedCells)` → `{ collidingIndex, axis, blockerId, blockRank, blockCol } | null` (pure, no `buildEdgeCorridor` call — this is what makes single-pass detection possible, unlike the abandoned ride-along design). `assignDoorSlotsWithPriority(seed, rect, incomingConnections, incomingFace, collision)` → the same shape `doorSlotsForFace(rect, incomingConnections.length, incomingFace)` already returns (an array, one slot per connection, same order as `incomingConnections`), but with the colliding connection's own entry reassigned per the collision (or unchanged, byte-identical to `doorSlotsForFace`'s own direct output, when `collision` is `null`).
 
-- [ ] **Step 1: Write the failing test**
-
-This test needs a concrete scenario where a real seed produces: (a) a shortcut edge whose own naive dogleg is blocked by a co-parent, and (b) that co-parent's own edge to the same target is a simple adjacent (non-dogleg) corridor. Reuse Task 2's own pinned scenario (seed `dogleg-repro-seed-0`, `shortcutSourceId='from-room'` at rank 0, `blockerRoomId='blocker-room'` at rank 1 (co-parent), `mergeRoomId='to-room'` at rank 2) — Task 2's own test already established `blockerRoomId` is a real parent of `mergeRoomId` and that `shortcutSourceId`'s own edge triggers a Round 1 dogleg blocked by `blockerRoomId`.
+- [ ] **Step 1: Write the failing tests for `findPriorityCollision`**
 
 ```js
-describe('buildRideAlongCorridorSouth — #297 Round 2', () => {
-  it('reuses the co-parent\'s own corridor and reaches its own separate door, without covering the co-parent\'s own door', () => {
-    const seed = 'dogleg-repro-seed-0';
+describe('findPriorityCollision — #297 Round 2 (slot priority)', () => {
+  it('finds the priority collision for the pinned dogleg scenario', () => {
+    const seed = 'dogleg-repro-seed-0'; // reuses Task 2's own pinned seed/graph
     const shortcutSourceId = 'from-room';
     const blockerRoomId = 'blocker-room';
     const mergeRoomId = 'to-room';
-    const shortcutPos = { rank: 0, col: 0 };
-    const blockerPos = { rank: 1, col: 0 };
-    const mergePos = { rank: 2, col: 0 };
-    const layoutEdges = {
-      [shortcutSourceId]: [mergeRoomId, blockerRoomId],
-      [blockerRoomId]: [mergeRoomId],
+    const layoutPositionByRoomId = {
+      [shortcutSourceId]: { rank: 0, col: 0 },
+      [blockerRoomId]: { rank: 1, col: 0 },
+      [mergeRoomId]: { rank: 2, col: 0 },
     };
     const occupiedCells = { '0,0': shortcutSourceId, '1,0': blockerRoomId, '2,0': mergeRoomId };
-    const mergeRect = roomRect(seed, mergeRoomId, mergePos.rank, mergePos.col);
-    const realSlots = doorSlotsForFace(mergeRect, 2, 'north');
-    // Real parent order matches Object.entries(layoutEdges)'s own
-    // insertion order — shortcutSourceId ('from-room') is this literal's
-    // first key (verified via `node -e` printing Object.entries for this
-    // exact object), so it's mergeRoomId's own first real parent (index
-    // 0); blockerRoomId is index 1.
-    const shortcutSlot = realSlots[0];
-    const coParentSlot = realSlots[1];
-
-    const shortcutRect = roomRect(seed, shortcutSourceId, shortcutPos.rank, shortcutPos.col);
-    const blockerRect = roomRect(seed, blockerRoomId, blockerPos.rank, blockerPos.col);
-
-    const coParentResult = buildEdgeCorridor(
-      seed, blockerRoomId, mergeRoomId, blockerRect, mergeRect, blockerPos, mergePos,
-      'south', coParentSlot, occupiedCells, 'north',
+    // Real parent order for mergeRoomId matches Object.entries(layoutEdges)'s
+    // own insertion order from Task 2's own pinned scenario: shortcutSourceId
+    // first (index 0), blockerRoomId second (index 1) -- verified via
+    // `node -e` in Task 2's own report, reused here directly.
+    const incomingConnections = [
+      { sourceId: shortcutSourceId, hidden: false },
+      { sourceId: blockerRoomId, hidden: false },
+    ];
+    const collision = findPriorityCollision(
+      seed, mergeRoomId, 2, 0, incomingConnections, layoutPositionByRoomId, occupiedCells,
     );
-    // Invariant (Global Constraints): the co-parent is always directly
-    // adjacent to the target, so its own corridor must NOT itself be a
-    // dogleg.
-    expect(coParentResult.foreignOpening).toBeNull();
-    expect(coParentResult.corridorSegments).toHaveLength(1);
+    expect(collision).not.toBeNull();
+    expect(collision.collidingIndex).toBe(0);
+    expect(collision.axis).toBe('south');
+    expect(collision.blockerId).toBe(blockerRoomId);
+    expect(collision.blockRank).toBe(1);
+    expect(collision.blockCol).toBe(0);
+  });
 
-    const candidateNaive = buildEdgeCorridor(
-      seed, shortcutSourceId, mergeRoomId, shortcutRect, mergeRect, shortcutPos, mergePos,
-      'south', shortcutSlot, occupiedCells, 'north',
-    );
-    expect(candidateNaive.foreignOpening).not.toBeNull();
-    expect(candidateNaive.foreignOpening.roomId).toBe(blockerRoomId);
+  it('returns null when the intermediate cell is unoccupied (no dogleg needed at all)', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const layoutPositionByRoomId = { a: { rank: 0, col: 0 }, b: { rank: 2, col: 0 } };
+    const occupiedCells = { '0,0': 'a', '2,0': 'b' };
+    const incomingConnections = [{ sourceId: 'a', hidden: false }];
+    expect(findPriorityCollision(seed, 'b', 2, 0, incomingConnections, layoutPositionByRoomId, occupiedCells)).toBeNull();
+  });
 
-    const result = buildRideAlongCorridorSouth(candidateNaive, shortcutSlot, coParentResult);
+  it('returns null when the intermediate occupant is NOT one of this target\'s own real parents (Round 1\'s own unrelated-blocker case)', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const layoutPositionByRoomId = { a: { rank: 0, col: 0 }, unrelated: { rank: 1, col: 0 }, b: { rank: 2, col: 0 } };
+    const occupiedCells = { '0,0': 'a', '1,0': 'unrelated', '2,0': 'b' };
+    // 'unrelated' is not in incomingConnections at all -- not a parent of 'b'.
+    const incomingConnections = [{ sourceId: 'a', hidden: false }];
+    expect(findPriorityCollision(seed, 'b', 2, 0, incomingConnections, layoutPositionByRoomId, occupiedCells)).toBeNull();
+  });
 
-    // No segment overlaps the blocking (co-parent) room's own footprint --
-    // Round 1's own core property, still required.
-    for (const seg of result.corridorSegments) {
-      const overlapsX = seg.gx < blockerRect.gx + blockerRect.gw && seg.gx + seg.gw > blockerRect.gx;
-      const overlapsY = seg.gy < blockerRect.gy + blockerRect.gh && seg.gy + seg.gh > blockerRect.gy;
-      expect(overlapsX && overlapsY).toBe(false);
-    }
-    // Connectivity (Review Focus item 1): the result's own final segment
-    // must reach its own revealDoorWall.
-    const lastSeg = result.corridorSegments[result.corridorSegments.length - 1];
-    expect(lastSeg.gx).toBeLessThanOrEqual(result.revealDoorWall.x1);
-    expect(lastSeg.gx + lastSeg.gw).toBeGreaterThanOrEqual(result.revealDoorWall.x2);
-    // The candidate's own door is its OWN slot, not the co-parent's.
-    expect(result.revealDoorWall.x1).toBeGreaterThanOrEqual(shortcutSlot.x1);
-    expect(result.revealDoorWall.x2).toBeLessThanOrEqual(shortcutSlot.x2);
-    // Review Focus item 2: the co-parent's own door must stay uncovered --
-    // no wall in `result.plainWalls` may be collinear with (same y, and
-    // an x-range that intersects) the co-parent's own revealDoorWall.
-    const coParentDoor = coParentResult.revealDoorWall;
-    const collides = result.plainWalls.some(
-      (w) => w.y1 === w.y2 && w.y1 === coParentDoor.y1
-        && Math.min(w.x1, w.x2) < coParentDoor.x2 && Math.max(w.x1, w.x2) > coParentDoor.x1,
-    );
-    expect(collides).toBe(false);
+  it('ignores a HIDDEN connection as the colliding edge (Review Focus item 5)', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const layoutPositionByRoomId = { hiddenSource: { rank: 0, col: 0 }, blocker: { rank: 1, col: 0 }, target: { rank: 2, col: 0 } };
+    const occupiedCells = { '0,0': 'hiddenSource', '1,0': 'blocker', '2,0': 'target' };
+    const incomingConnections = [
+      { sourceId: 'hiddenSource', hidden: true },
+      { sourceId: 'blocker', hidden: false },
+    ];
+    expect(findPriorityCollision(seed, 'target', 2, 0, incomingConnections, layoutPositionByRoomId, occupiedCells)).toBeNull();
   });
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [ ] **Step 2: Run tests to verify they fail**
 
-Run: `npx vitest run tests/dungeon-layout.test.mjs -t "buildRideAlongCorridorSouth"`
+Run: `npx vitest run tests/dungeon-layout.test.mjs -t "findPriorityCollision"`
 Expected: FAIL — function doesn't exist.
 
-- [ ] **Step 3: Implement**
+- [ ] **Step 3: Implement `findPriorityCollision`**
 
 ```js
 /**
- * #297 Round 2: replaces a colliding connection's own naive dogleg
- * (Round 1) with a corridor that rides along its own co-parent's ALREADY
- * -BUILT corridor for the shared stretch, instead of drawing new geometry
- * through the same space -- the co-parent's own corridor, already
- * independently reviewed and verified sound in isolation, already
- * occupies and contains that space correctly, so there is no second,
- * independent geometry computation for the shared span that could
- * disagree with the first (this file's own recurring "two things must
- * agree" lesson, resolved here by NOT computing a second thing at all).
+ * #297 Round 2 (revised after the "ride-along" design in this file's own
+ * earlier docblocks was found geometrically unsound): detects whether ANY
+ * of `roomId`'s own real incoming connections is blocked, on its own
+ * null-path fast-path fallback (Round 1's own dogleg trigger condition --
+ * 2 ranks/columns apart, same column/row), by a cell occupied by ANOTHER
+ * of `roomId`'s own real parents. Unlike the abandoned ride-along design,
+ * this needs NO `buildEdgeCorridor` call -- the detection is purely
+ * geometric (room positions, `occupiedCells`), so it can run BEFORE any
+ * connection's own door slot or corridor is built, in a single pass.
  *
- * `candidateNaive` is the colliding connection's own pass-1
- * `buildEdgeCorridor` result -- only its own real, unmovable `doorWall`
- * (the source's own door, seeded independently of any of this) is reused;
- * everything else about its own naive dogleg geometry is discarded.
- * `coParentResult` is the co-parent's own pass-1 result, assumed (per
- * this plan's own Global Constraints) to be a simple adjacent corridor,
- * i.e. `coParentResult.corridorSegments.length === 1` and
- * `coParentResult.foreignOpening === null` -- NOT verified defensively
- * here (a violated invariant is a residual per this plan's own documented
- * scope, not a runtime error condition this function needs to handle).
+ * Reuses `findCoParentCollision` (unchanged, already merged) to confirm
+ * the blocking room is genuinely one of `roomId`'s own real parents, by
+ * passing it a synthetic `{roomId: blockerId}` -- that function only ever
+ * reads `.roomId` off its own first argument, so this is a legitimate
+ * reuse of its own already-tested hidden-connection guard, not a hack.
+ *
+ * Returns the FIRST such collision found (scope: exactly one, per this
+ * feature's own spec) or `null`.
  */
-export function buildRideAlongCorridorSouth(candidateNaive, candidateDoorSlot, coParentResult) {
-  const doorWall = candidateNaive.doorWall;
-  const doorX0 = doorWall.x1;
-  const doorX1 = doorWall.x2;
-  const faceY = doorWall.y1;
-
-  const coParentSeg = coParentResult.corridorSegments[0];
-  const laneX0 = coParentSeg.gx;
-  const laneWidth = coParentSeg.gw;
-  // The co-parent's own revealDoorWall sits exactly at the TARGET's own
-  // face (the same convention every non-dogleg corridor in this file
-  // already uses: `corridorEndY = toRect.gy`) -- reading it back here
-  // means this function never re-derives the target's own position
-  // independently.
-  const corridorEndY = coParentResult.revealDoorWall.y1;
-
-  const { turnSegment, turnWalls, turnBottom } = marginBandApproach(doorX0, doorX1, faceY, laneX0, laneWidth);
-
-  // The branch (the lateral jog to the candidate's OWN door) occupies the
-  // LAST DOOR_WIDTH-deep strip before the target's own face -- mirroring
-  // how turn 1 occupies the FIRST DOOR_WIDTH-deep strip after the
-  // source's own face. Every corridor segment in this file has its own
-  // far edge land exactly on corridorEndY (see any non-dogleg branch's
-  // own `corridorSegments`), so the branch's own `gy` must be
-  // `corridorEndY - DOOR_WIDTH`, never `corridorEndY` itself -- a segment
-  // AT `corridorEndY` would sit one unit INSIDE the target room's own
-  // footprint, not in the corridor.
-  const branchTop = corridorEndY - DOOR_WIDTH;
-
-  // The bridge: a straight run, at the lane's own x (already converged-to
-  // by turn 1 above), from turnBottom down to the branch's own top —
-  // NOT down to the co-parent's own corridor's start (`coParentSeg.gy`,
-  // which describes the CO-PARENT's own source's own margin depth, an
-  // unrelated value). If turn 1's own bottom already reaches branchTop
-  // (only possible in a degenerate, very-short-cell edge case; never
-  // observed in this scope's own rank+2 geometry, where there are always
-  // several units between them), there is nothing to bridge.
-  const bridgeSegments = turnBottom < branchTop
-    ? [{ gx: laneX0, gy: turnBottom, gw: laneWidth, gh: branchTop - turnBottom }]
-    : [];
-  const bridgeWalls = turnBottom < branchTop
-    ? [
-        { x1: laneX0, y1: turnBottom, x2: laneX0, y2: branchTop },
-        { x1: laneX0 + laneWidth, y1: turnBottom, x2: laneX0 + laneWidth, y2: branchTop },
-      ]
-    : [];
-
-  // The candidate's own door gap, clamped into its OWN slot -- same
-  // formula every other branch in this file already uses
-  // (`Math.min(Math.max(x, slot.x1), slot.x2 - DOOR_WIDTH)`); every real
-  // slot `doorSlotsForFace` produces is always >= DOOR_WIDTH wide, so no
-  // extra guard is needed here.
-  const candidateGapX0 = Math.min(Math.max(laneX0, candidateDoorSlot.x1), candidateDoorSlot.x2 - DOOR_WIDTH);
-  const candidateGapX1 = candidateGapX0 + DOOR_WIDTH;
-  const branchGx0 = Math.min(laneX0, candidateGapX0);
-  const branchGx1 = Math.max(laneX0 + laneWidth, candidateGapX1);
-  const branchSegment = { gx: branchGx0, gy: branchTop, gw: branchGx1 - branchGx0, gh: DOOR_WIDTH };
-  const branchWalls = [
-    // Cap the branch's own top edge except where the lane continues down into it.
-    { x1: branchGx0, y1: branchTop, x2: laneX0, y2: branchTop },
-    { x1: laneX0 + laneWidth, y1: branchTop, x2: branchGx1, y2: branchTop },
-    // Contain the branch's own left/right sides for its own depth (down
-    // to corridorEndY, its own far edge — the target's own door is the
-    // only opening left uncovered, per the "seal everything except the
-    // declared opening" discipline every other wall in this file uses).
-    { x1: branchGx0, y1: branchTop, x2: branchGx0, y2: corridorEndY },
-    { x1: branchGx1, y1: branchTop, x2: branchGx1, y2: corridorEndY },
-  ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
-
-  // The candidate's own reveal door sits at corridorEndY itself (the
-  // target's own face), same as the co-parent's own and every other
-  // corridor's own revealDoorWall in this file — NOT corridorEndY +
-  // DOOR_WIDTH, which would place it one unit past the target's own face,
-  // inside the target room.
-  const revealDoorWall = { x1: candidateGapX0, y1: corridorEndY, x2: candidateGapX1, y2: corridorEndY };
-
-  return {
-    doorWall,
-    revealDoorWall,
-    // The co-parent's own doorWall/revealDoorWall/plainWalls are NOT
-    // included here -- they belong to the co-parent's OWN connection,
-    // already committed separately by pass 2's own loop; this function
-    // returns only what the CANDIDATE's own connection newly needs.
-    plainWalls: [...turnWalls, ...bridgeWalls, ...branchWalls],
-    corridorSegments: [turnSegment, ...bridgeSegments, branchSegment],
-    transitCells: [],
-  };
+export function findPriorityCollision(seed, roomId, rank, col, incomingConnections, layoutPositionByRoomId, occupiedCells) {
+  for (let i = 0; i < incomingConnections.length; i += 1) {
+    const { sourceId, hidden } = incomingConnections[i];
+    if (hidden) continue;
+    const sourcePos = layoutPositionByRoomId[sourceId];
+    if (!sourcePos) continue;
+    let blockerId = null;
+    let axis = null;
+    let blockRank = null;
+    let blockCol = null;
+    if (sourcePos.col === col && rank === sourcePos.rank + 2) {
+      blockRank = sourcePos.rank + 1;
+      blockCol = col;
+      blockerId = occupiedCells[`${blockRank},${blockCol}`];
+      axis = 'south';
+    } else if (sourcePos.rank === rank && col === sourcePos.col + 2) {
+      blockRank = rank;
+      blockCol = sourcePos.col + 1;
+      blockerId = occupiedCells[`${blockRank},${blockCol}`];
+      axis = 'east';
+    }
+    if (blockerId == null || blockerId === sourceId || blockerId === roomId) continue;
+    if (findCoParentCollision({ roomId: blockerId }, incomingConnections) < 0) continue;
+    return { collidingIndex: i, axis, blockerId, blockRank, blockCol };
+  }
+  return null;
 }
 ```
 
-**This is the most geometrically intricate function in this plan** — and this exact code already had one real bug caught and fixed during this plan's own preparation (the branch segment originally landed one unit inside the target room's own footprint, and the bridge referenced the wrong boundary). If your own test from Step 1 still fails in a way that suggests something else doesn't match the real pinned scenario, trust your own hand-trace of the real numbers over this step's own literal code — flag the discrepancy clearly in your report rather than silently adjusting values until the test passes.
+- [ ] **Step 4: Run tests to verify they pass**
 
-- [ ] **Step 4: Run test to verify it passes**
-
-Run: `npx vitest run tests/dungeon-layout.test.mjs -t "buildRideAlongCorridorSouth"`
+Run: `npx vitest run tests/dungeon-layout.test.mjs -t "findPriorityCollision"`
 Expected: PASS.
 
-- [ ] **Step 5: Self-verify full containment before moving on**
-
-Write a throwaway script (delete after use) enumerating every segment in `result.corridorSegments` and every wall in `result.plainWalls` (plus `doorWall`/`revealDoorWall`) for this task's own pinned scenario, confirming every floor-segment edge not shared with an adjacent segment or a door opening has a matching wall. This is the exact check that took Round 1's own south-branch dogleg two review rounds to get right (a dead-end corridor, then two separate containment leaks) — do this yourself before requesting review, not after.
-
-- [ ] **Step 6: Run the full suite**
-
-Run: `npx vitest run`
-Expected: PASS.
-
-- [ ] **Step 7: Commit**
-
-```bash
-git add scripts/dungeon-layout.mjs tests/dungeon-layout.test.mjs
-git commit -m "feat(#297): ride-along corridor for a co-parent collision (south branch)"
-```
-
----
-
-### Task 5: Mirror the ride-along corridor for the east branch
-
-**Files:**
-- Modify: `scripts/dungeon-layout.mjs`
-- Test: `tests/dungeon-layout.test.mjs`
-
-**Interfaces:**
-- Consumes: `marginBandApproachY` (Task 1).
-- Produces: `buildRideAlongCorridorEast(candidateNaive, candidateDoorSlot, coParentResult)` — the exact axis-swap mirror of Task 4's own `buildRideAlongCorridorSouth`, following the same X↔Y swap table Round 1's own Task 3 (`docs/superpowers/plans/2026-09-29-merge-room-gate-share.md`, if still present, or the SDD ledger's own record of it) already established for the south/east dogleg mirror: `doorX0/X1 → doorY0/Y1`, `faceY → faceX`, `corridorEndY → corridorEndX`, `gx/gw → gy/gh` and vice versa.
-
-- [ ] **Step 1: Read Task 4's own final committed code in full first**
-
-This task's own correctness depends entirely on faithfully mirroring Task 4's ACTUAL code (read it fresh from the file, not from this plan's own Task 4 text, in case Task 4's own review rounds changed it), the same discipline Round 1's own Task 3 used when mirroring Round 1's own Task 2.
-
-- [ ] **Step 2: Write the failing test**
-
-Mirror Task 4's own test, transposed onto columns/rows (source at `{rank:0,col:0}`, co-parent/blocker at `{rank:0,col:1}`, merge target at `{rank:0,col:2}`, `exitFace: 'east'`), using a concrete seed found via Task 2's own Step 1a-style process (a throwaway seed-search script, not committed) if `dogleg-repro-seed-0` doesn't happen to also produce an east-branch collision — check first before assuming a new seed is needed.
-
-- [ ] **Step 3: Run test to verify it fails**
-
-Run: `npx vitest run tests/dungeon-layout.test.mjs -t "buildRideAlongCorridorEast"`
-Expected: FAIL.
-
-- [ ] **Step 4: Implement `buildRideAlongCorridorEast`**
-
-Mirror Task 4's own `buildRideAlongCorridorSouth` exactly, swapping X/Y axes throughout (matching `marginBandApproachY`'s own already-established mirror in Task 1). If Task 4's own final code (after its own review rounds) differs from this plan's own Task 4 text, mirror the ACTUAL code, not this plan's text.
-
-- [ ] **Step 5: Run test to verify it passes, self-verify containment (same discipline as Task 4's own Step 5), run the full suite**
-
-Run: `npx vitest run tests/dungeon-layout.test.mjs -t "buildRideAlongCorridorEast"`
-Expected: PASS.
-
-Run: `npx vitest run`
-Expected: PASS.
-
-- [ ] **Step 6: Commit**
-
-```bash
-git add scripts/dungeon-layout.mjs tests/dungeon-layout.test.mjs
-git commit -m "feat(#297): mirror the ride-along corridor onto the east branch"
-```
-
----
-
-### Task 6: Two-pass restructuring of `buildPopulateAndUnlockGraphNode`
-
-**Files:**
-- Modify: `scripts/dungeon-scene.mjs` (`buildPopulateAndUnlockGraphNode`'s own incoming-connections loop, currently ~lines 1142-1238 — confirm via `grep -n "export async function buildPopulateAndUnlockGraphNode"`)
-- Test: `tests/dungeon-scene.test.mjs`
-
-**Interfaces:**
-- Consumes: `findCoParentCollision` (Task 3), `buildRideAlongCorridorSouth`/`buildRideAlongCorridorEast` (Task 4/5).
-- Produces: no new exports — this task only restructures `buildPopulateAndUnlockGraphNode`'s own internal loop. Its own external behavior (what Foundry documents get created, in what order relative to placeholder deletion) is unchanged for every non-colliding case.
-
-- [ ] **Step 1: Read the current loop in full**
-
-Read `buildPopulateAndUnlockGraphNode`'s own incoming-connections loop (the `for (let i = 0; i < incomingConnections.length; i += 1)` block) in full, including how `sourceRect`/`exitFaceFromSource`/`toSlot` are derived per connection and how `connectionWalls`/`tiles`/`placeholderIdsToDelete` accumulate before being committed after the loop.
-
-- [ ] **Step 2: Write the failing test for the non-colliding case (Review Focus item 4)**
-
-Add to `tests/dungeon-scene.test.mjs` (follow the existing `buildRoomAtGraphNode`-level test's own scaffolding pattern in that file, per Round 1's own Task 4 precedent): a test building a room with 2 real, non-colliding incoming connections (e.g. two direct, adjacent parents, no dogleg involved at all), asserting the resulting Wall/Tile documents are IDENTICAL (same count, same flags, same geometry) to what a single-pass build would produce — pin this by comparing against `buildEdgeCorridor`'s own direct output for each connection, not against a second copy of `buildPopulateAndUnlockGraphNode` itself.
-
-- [ ] **Step 3: Write the failing test for the colliding case**
-
-A second test in the same file, this time with the co-parent-collision scenario (reuse Task 4's own pinned seed/graph shape), building the MERGE ROOM itself through `buildPopulateAndUnlockGraphNode` end-to-end, and asserting: both connections' own doors exist and are independently unlockable (distinct `dungeonDoorFromRoomId` flags); the colliding connection's own Wall/Tile documents match what `buildRideAlongCorridorSouth` (Task 4) would produce standalone, not what its own naive `buildEdgeCorridor` call would have produced.
-
-- [ ] **Step 4: Run tests to verify they fail**
-
-Run: `npx vitest run tests/dungeon-scene.test.mjs -t "buildPopulateAndUnlockGraphNode"`
-Expected: FAIL (the restructuring hasn't happened yet, so the colliding case still produces Round 1's own broken dogleg).
-
-- [ ] **Step 5: Restructure the loop into two passes**
-
-Replace the single-pass loop with:
+- [ ] **Step 5: Write the failing tests for `assignDoorSlotsWithPriority`**
 
 ```js
-    // #297 Round 2: pass 1 computes every connection's own candidate
-    // corridor (unchanged buildEdgeCorridor call, including Round 1's own
-    // dogleg) without committing anything yet -- list order doesn't
-    // guarantee a co-parent is processed before a connection that needs
-    // to ride along it, so every candidate must be known before any of
-    // them are resolved.
-    const slots = incomingConnections.length ? doorSlotsForFace(rect, incomingConnections.length, incomingFace) : [];
-    const candidates = incomingConnections.map(({ sourceId, hidden }, i) => {
-      const toSlot = slots[i];
-      const sourcePos = state.layoutPositionByRoomId[sourceId];
-      const sourceRect = roomRect(state.seed, sourceId, sourcePos.rank, sourcePos.col);
-      const sourceChildIds = state.edges[sourceId] ?? [];
-      const sourceIncomingFace = state.incomingFaceByRoomId?.[sourceId] ?? 'north';
-      const exitFaceFromSource = hidden
-        ? exitFaceForIndex(sourceChildIds.length, sourceIncomingFace)
-        : exitFaceForIndex(sourceChildIds.indexOf(room.id), sourceIncomingFace);
-      const naive = buildEdgeCorridor(state.seed, sourceId, room.id, sourceRect, rect, sourcePos, { rank, col }, exitFaceFromSource, toSlot, occupiedCells, incomingFace);
-      return { sourceId, hidden, toSlot, exitFaceFromSource, naive };
-    });
+describe('assignDoorSlotsWithPriority — #297 Round 2', () => {
+  it('assigns the colliding connection the slot nearest the blocker\'s own east edge, for the pinned scenario', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const mergeRect = roomRect(seed, 'to-room', 2, 0);
+    const incomingConnections = [
+      { sourceId: 'from-room', hidden: false },
+      { sourceId: 'blocker-room', hidden: false },
+    ];
+    const collision = { collidingIndex: 0, axis: 'south', blockerId: 'blocker-room', blockRank: 1, blockCol: 0 };
+    const slots = assignDoorSlotsWithPriority(seed, mergeRect, incomingConnections, 'north', collision);
+    const blockerRect = roomRect(seed, 'blocker-room', 1, 0);
+    const edgeX = blockerRect.gx + blockerRect.gw;
+    // The colliding connection's own slot must contain, or lie entirely
+    // east of, the blocker's own east edge -- the real property, not a
+    // hardcoded expectation, so this test still pins the fix if the
+    // pinned seed's own room sizes ever change.
+    expect(slots[0].x1).toBeGreaterThanOrEqual(Math.min(edgeX, mergeRect.gx));
+    expect(slots[0].x1 <= edgeX && slots[0].x2 >= edgeX || slots[0].x1 >= edgeX).toBe(true);
+    // The co-parent's own slot must lie entirely at-or-west of the
+    // blocker's own east edge (never reaching into the dogleg's own lane).
+    expect(slots[1].x2).toBeLessThanOrEqual(edgeX);
+    // Every connection still gets exactly one, distinct slot (Review Focus
+    // item 2) -- no duplication, no dropped connection.
+    expect(slots).toHaveLength(2);
+    expect(slots[0]).not.toEqual(slots[1]);
+  });
 
-    const connectionWalls = [];
-    const tiles = [];
-    const placeholderIdsToDelete = [];
-    for (let i = 0; i < candidates.length; i += 1) {
-      const { sourceId, hidden, toSlot, naive } = candidates[i];
-      // #297 Round 2: a colliding connection's own naive dogleg is
-      // replaced with a corridor riding along its own co-parent's ALREADY
-      // -COMPUTED (pass 1, above) corridor -- see this room's own spec
-      // (docs/superpowers/specs/2026-09-29-merge-room-gate-share-design.md,
-      // "Round 2") for the full reasoning. A non-colliding connection's
-      // own geometry is completely unchanged from Round 1.
-      const coParentIndex = findCoParentCollision(naive.foreignOpening, incomingConnections);
-      let doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells;
-      if (coParentIndex >= 0) {
-        const coParentResult = candidates[coParentIndex].naive;
-        // Dispatch on the collision's OWN foreignOpening.side, not on this
-        // room's own incomingFace or exit-face index -- side describes
-        // which wall the BLOCKING room's own margin the corridor actually
-        // crosses, which is exactly which axis (south-branch vs.
-        // east-branch) the ORIGINAL Round 1 dogleg fired on for THIS
-        // specific connection. Confirmed against Round 1's own final,
-        // twice-reviewed convention: the south branch's own dogleg
-        // produces `side: 'south'` (the lane sits in the blocker's east
-        // margin but crosses its south wall); the east branch's own
-        // mirror produces `side: 'east'` (lane in the blocker's south
-        // margin, crosses its east wall) -- see either branch's own
-        // `foreignOpening` assignment in scripts/dungeon-layout.mjs for
-        // the current, authoritative values if this ever needs
-        // reconfirming.
-        const rideAlong = naive.foreignOpening.side === 'south'
-          ? buildRideAlongCorridorSouth(naive, toSlot, coParentResult)
-          : buildRideAlongCorridorEast(naive, toSlot, coParentResult);
-        ({ doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells } = rideAlong);
-      } else {
-        ({ doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells } = naive);
-      }
-      // ... unchanged from here: the same hidden/real wallDoc construction,
-      // tiles.push(...corridorTilesForSegments(corridorSegments)),
-      // placeholderIdsToDelete.push(...placeholderIdsByConnection[i]), and
-      // the transitCells loop, exactly as the pre-Round-2 code already has
-      // them -- only the SOURCE of doorWall/revealDoorWall/plainWalls/
-      // corridorSegments/transitCells changed, not what's done with them.
-    }
+  it('returns list-order slots, unchanged, when there is no collision (Review Focus item 4)', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const rect = roomRect(seed, 'to-room', 2, 0);
+    const incomingConnections = [{ sourceId: 'a', hidden: false }, { sourceId: 'b', hidden: false }];
+    const plain = doorSlotsForFace(rect, 2, 'north');
+    const result = assignDoorSlotsWithPriority(seed, rect, incomingConnections, 'north', null);
+    expect(result).toEqual(plain);
+  });
+});
 ```
 
-Before using this dispatch condition, confirm `foreignOpening.side`'s exact values against the CURRENT code (`grep -n "side: '" scripts/dungeon-layout.mjs`) — this plan's own Task 4/5 build on Round 1's already-established convention and should not change it, but verify rather than assume.
+- [ ] **Step 6: Run tests to verify they fail**
 
-- [ ] **Step 6: Run tests to verify they pass**
+Run: `npx vitest run tests/dungeon-layout.test.mjs -t "assignDoorSlotsWithPriority"`
+Expected: FAIL — function doesn't exist.
+
+- [ ] **Step 7: Implement `assignDoorSlotsWithPriority`**
+
+```js
+/**
+ * #297 Round 2: the real per-connection slot list (`doorSlotsForFace`'s
+ * own output, unchanged), with the colliding connection's own entry
+ * (per `findPriorityCollision`) reassigned to whichever slot already
+ * contains -- or sits nearest east/south of, when the blocking room's
+ * own margin edge falls past every slot (the documented residual: a
+ * LARGE blocker with a SMALL target) -- the blocking room's own far
+ * margin edge. Every other connection keeps its own original relative
+ * order across the remaining slots. When `collision` is `null`, returns
+ * `doorSlotsForFace`'s own direct output, byte-identical to today.
+ */
+export function assignDoorSlotsWithPriority(seed, rect, incomingConnections, incomingFace, collision) {
+  const slots = incomingConnections.length
+    ? doorSlotsForFace(rect, incomingConnections.length, incomingFace)
+    : [];
+  if (!collision) return slots;
+  const blockerRect = roomRect(seed, collision.blockerId, collision.blockRank, collision.blockCol);
+  const edgeCoord = collision.axis === 'south'
+    ? blockerRect.gx + blockerRect.gw
+    : blockerRect.gy + blockerRect.gh;
+  let priorityIndex = slots.findIndex((s) => {
+    const end = collision.axis === 'south' ? s.x2 : s.y2;
+    return edgeCoord < end;
+  });
+  if (priorityIndex < 0) priorityIndex = slots.length - 1;
+  const remaining = slots.filter((_, idx) => idx !== priorityIndex);
+  const assignment = new Array(incomingConnections.length);
+  assignment[collision.collidingIndex] = slots[priorityIndex];
+  let r = 0;
+  for (let i = 0; i < incomingConnections.length; i += 1) {
+    if (i === collision.collidingIndex) continue;
+    assignment[i] = remaining[r];
+    r += 1;
+  }
+  return assignment;
+}
+```
+
+- [ ] **Step 8: Run tests to verify they pass**
+
+Run: `npx vitest run tests/dungeon-layout.test.mjs -t "assignDoorSlotsWithPriority"`
+Expected: PASS.
+
+- [ ] **Step 9: Wire into `buildPopulateAndUnlockGraphNode`**
+
+Read `buildPopulateAndUnlockGraphNode` (`scripts/dungeon-scene.mjs`) in full first, to confirm the exact current line. Replace the single existing line:
+
+```js
+const slots = incomingConnections.length ? doorSlotsForFace(rect, incomingConnections.length, incomingFace) : [];
+```
+
+with:
+
+```js
+// #297 Round 2: assign door slots with priority for a colliding
+// connection, so Round 1's own already-proven dogleg never needs to
+// widen toward a co-parent's own slot -- see this room's own spec
+// ("Round 2 correction: slot priority") for the full reasoning. Every
+// OTHER connection's own slot, and Round 1's own buildEdgeCorridor call
+// below (unchanged), are completely unaffected.
+const priorityCollision = findPriorityCollision(
+  state.seed, room.id, rank, col, incomingConnections, state.layoutPositionByRoomId, occupiedCells,
+);
+const slots = assignDoorSlotsWithPriority(state.seed, rect, incomingConnections, incomingFace, priorityCollision);
+```
+
+**Nothing else in the loop changes** — every line below this (deriving `sourceRect`/`exitFaceFromSource`, calling `buildEdgeCorridor(..., toSlot, ...)`, building `wallDoc`s, pushing tiles) stays exactly as it is today, since `slots[i]` is still what `toSlot` reads from — only *which* slot object sits at which index changed.
+
+- [ ] **Step 10: Write the scene-level end-to-end test**
+
+Add to `tests/dungeon-scene.test.mjs` (follow the existing `buildRoomAtGraphNode`-level test's own scaffolding pattern in that file, per Round 1's own Task 4 precedent — read it first): a test building the merge room itself through `buildPopulateAndUnlockGraphNode`, using the pinned collision scenario (`dogleg-repro-seed-0`, `from-room`/`blocker-room`/`to-room`), asserting: both connections' own doors exist with distinct `dungeonDoorFromRoomId` flags; neither connection's own `dungeonRevealDoorForSlot` wall is covered by the other's `plainWalls` (the real property Round 1's own final review found violated); and a second, non-colliding 2-parent scenario produces Wall/Tile output identical to calling `doorSlotsForFace` directly (Review Focus item 4 — the common case must be provably unaffected).
+
+- [ ] **Step 11: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-scene.test.mjs -t "buildPopulateAndUnlockGraphNode"`
 Expected: PASS.
 
-- [ ] **Step 7: Run the full suite**
+- [ ] **Step 12: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 13: Commit**
 
 ```bash
-git add scripts/dungeon-scene.mjs tests/dungeon-scene.test.mjs
-git commit -m "feat(#297): two-pass connection building, resolving co-parent collisions before committing any connection's geometry"
+git add scripts/dungeon-layout.mjs scripts/dungeon-scene.mjs tests/dungeon-layout.test.mjs tests/dungeon-scene.test.mjs
+git commit -m "feat(#297): slot-priority collision detection and assignment, replacing the abandoned ride-along design"
 ```
 
 ---
 
-### Task 7: Regression test for the live repro (real graph) + system-wide sweep with real slots
+### Task 5: Regression test for the live repro (real graph) + system-wide sweep with real slots, residual measured
 
 **Files:**
 - Modify: `tests/dungeon-layout.test.mjs`
 
 **Interfaces:**
-- Consumes: everything from Tasks 1-6.
+- Consumes: everything from Tasks 1-4.
 - Produces: nothing new consumed by later tasks.
 
 - [ ] **Step 1: Write the dedicated regression test using the REAL live graph shape**
 
-Unlike Round 1's own Task 5 (which used a single-connection graph and therefore never actually exercised the co-parent case at all, despite the live repro's own real merge room genuinely having 2 real parents), this test must reconstruct the live-reported seed's own FULL real graph: source `room-room-entry-0` (rank 1, col 0) with children `[room-room-room-entry-0-0 (merge room, rank 3), room-room-room-entry-0-1 (blocker, rank 2)]`, AND the merge room's own second real parent, `room-detour-0`. Since the merge room's real co-parent (`room-detour-0`, at position `(2,2)` per this session's own earlier live investigation) is NOT the blocker (`room-room-room-entry-0-1`) in the ORIGINAL live report — construct this test to confirm Round 1's own dogleg (still kept, unmodified) still correctly handles this exact original scenario (an unrelated blocker, not a co-parent), AND construct a SEPARATE regression scenario (using Task 4's own already-pinned `dogleg-repro-seed-0`/`from-room`/`blocker-room`/`to-room` graph, which IS the co-parent-collision shape) confirming Round 2's own ride-along mechanism handles that case. Both scenarios are real #297 shapes; neither alone is the "whole" regression suite.
+Unlike Round 1's own Task 5 (which used a single-connection graph and therefore never actually exercised the co-parent case at all, despite the live repro's own real merge room genuinely having 2 real parents), this test must reconstruct the live-reported seed's own FULL real graph: source `room-room-entry-0` (rank 1, col 0) with children `[room-room-room-entry-0-0 (merge room, rank 3), room-room-room-entry-0-1 (blocker, rank 2)]`, AND the merge room's own second real parent, `room-detour-0`. Since the merge room's real co-parent (`room-detour-0`, at position `(2,2)` per this session's own earlier live investigation) is NOT the blocker (`room-room-room-entry-0-1`) in the ORIGINAL live report — construct this test to confirm Round 1's own dogleg (still kept, unmodified) still correctly handles this exact original scenario (an unrelated blocker, not a co-parent — `findPriorityCollision` must return `null` for it, since `room-room-room-entry-0-1` is not one of the merge room's own real parents). Construct a SEPARATE regression scenario (Task 4's own already-pinned `dogleg-repro-seed-0`/`from-room`/`blocker-room`/`to-room` graph, the actual co-parent-collision shape) confirming the slot-priority mechanism resolves it: both connections' own doors exist, neither's own walls collide with the other's, and the colliding connection still uses Round 1's own unmodified dogleg geometry (only its own target slot differs from a naive `doorSlotsForFace` assignment). Both scenarios are real #297 shapes; neither alone is the "whole" regression suite.
 
 - [ ] **Step 2: Run both to verify they pass**
 
 Run: `npx vitest run tests/dungeon-layout.test.mjs -t "#297"`
 Expected: PASS.
 
-- [ ] **Step 3: Write the system-wide sweep with real per-connection slots**
+- [ ] **Step 3: Write the system-wide sweep with real per-connection slots, measuring the LARGE-blocker/SMALL-target residual explicitly**
 
-Reuse Round 1's own #297 sweep harness (`tests/dungeon-layout.test.mjs`, search for it) but rebuild its own graph/slot construction to use `incomingConnectionsFor` + real `doorSlotsForFace(rect, connections.length, face)[i]` throughout (not the single-slot assumption the final review found hidden every Round 1 defect). Assert, across the corpus: zero corridor/footprint overlap (Round 1's own property, unchanged) AND zero cross-connection wall collisions (no connection's own `plainWalls` collinear with another connection's own `doorWall`/`revealDoorWall` into the same target). Report both rates via `console.log`, matching this file's own established convention.
+Reuse Round 1's own #297 sweep harness (`tests/dungeon-layout.test.mjs`, search for it) but rebuild its own graph/slot construction to use `incomingConnectionsFor` + `assignDoorSlotsWithPriority` (Task 4) throughout (not the single-slot assumption the final review found hidden every Round 1 defect, and not plain `doorSlotsForFace` either — the sweep must exercise the real priority-assignment path). Assert, across the corpus: zero corridor/footprint overlap (Round 1's own property, unchanged) AND zero cross-connection wall collisions (no connection's own `plainWalls` collinear with another connection's own `doorWall`/`revealDoorWall` into the same target) for every case where the blocking room's own width is `<=` the target room's own width. Separately count and report, via `console.log`, the rate of the documented residual (blocking room LARGE, target room SMALL — where `assignDoorSlotsWithPriority`'s own `priorityIndex` fallback to `slots.length - 1` cannot fully contain the blocker's own margin edge within a single slot): do not assert this residual is zero, measure it and print it, matching this file's own established convention of reporting real rates rather than assuming them away.
 
 - [ ] **Step 4: Run the full suite**
 
 Run: `npx vitest run`
-Expected: PASS. Note both measured rates in the commit message. If either rate is non-zero for the specific collision case this plan covers, do not soften the assertion — report it honestly and treat it as DONE_WITH_CONCERNS, the same discipline Round 1's own Task 5 used when it found the original 8.79% regression.
+Expected: PASS. Note both measured rates (collision-resolved rate for `<=`-width cases, and the LARGE/SMALL residual rate) in the commit message. If the residual rate is non-zero, that is expected and documented in the spec — do not soften the assertion to hide it; if the `<=`-width case shows ANY non-zero overlap/collision rate, treat it as DONE_WITH_CONCERNS, the same discipline Round 1's own Task 5 used when it found the original 8.79% regression.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add tests/dungeon-layout.test.mjs
-git commit -m "test(#297): regression test for the live repro's real graph + system-wide sweep with real per-connection slots"
+git commit -m "test(#297): regression test for the live repro's real graph + system-wide sweep with slot priority, residual measured"
 ```
 
 ---
 
-### Task 8: Version bump
+### Task 6: Version bump
 
 **Files:**
 - Modify: `module.json`
@@ -817,7 +699,7 @@ Run: `git fetch origin main` then check `git show origin/main:module.json | grep
 
 - [ ] **Step 2: Bump `module.json`**
 
-Change `"version": "0.51.0"` to `"version": "0.52.0"` (or higher, per Step 1) — a minor bump, since this is an architecture-level change (a new cross-connection corridor-sharing mechanism), not a routine fix.
+Change `"version": "0.51.0"` to `"version": "0.52.0"` (or higher, per Step 1) — a minor bump, since this is an architecture-level change (a new cross-connection door-slot-priority mechanism), not a routine fix.
 
 - [ ] **Step 3: Commit**
 
