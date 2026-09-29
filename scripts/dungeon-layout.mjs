@@ -554,6 +554,11 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     const gapX1 = gapX0 + DOOR_WIDTH;
     const spanX0 = Math.min(doorX0, gapX0);
     const spanX1 = Math.max(doorX1, gapX1);
+    // #294 fix round: the new side walls below must never reach past the
+    // SOURCE's own cell boundary — see their own comment for why. Equals
+    // corridorEndY exactly in the found-path (adjacent) case; strictly
+    // less than it in the null-path (boxed-in) case.
+    const sideWallEndY = Math.min(corridorEndY, cellBounds(fromPos.rank, fromPos.col).gy + ROW_STRIDE);
     const plainWalls = [
       { x1: fromRect.gx, y1: faceY, x2: doorX0, y2: faceY },
       { x1: doorX1, y1: faceY, x2: Math.max(fromRect.gx + fromRect.gw, spanX1), y2: faceY },
@@ -571,7 +576,46 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       // so these two walls need no `Math.max`/`Math.min` at all — just
       // the slot's own edges.
       { x1: toSlot.x1, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
-      { x1: gapX1, y1: corridorEndY, x2: toSlot.x2, y2: corridorEndY }
+      { x1: gapX1, y1: corridorEndY, x2: toSlot.x2, y2: corridorEndY },
+      // #294 fix: the two walls above only ever cap the corridor's own
+      // depth HORIZONTALLY (at the source's own face and the target's
+      // own face) — nothing previously closed its SIDES. A token
+      // standing anywhere between faceY and corridorEndY could walk
+      // laterally to any x within the room's own margin band, not just
+      // the actual [spanX0,spanX1] floor — confirmed live: seeing and
+      // walking into space beside a correctly-narrow corridor tile.
+      // These two VERTICAL walls, at the corridor floor's own real
+      // edges (spanX0/spanX1 — the ACTUAL floor width, which can still
+      // be wider than DOOR_WIDTH in the #231 clamped-merge-room
+      // residual case; using doorX0/doorX1 here instead would wall over
+      // part of that real floor, reintroducing a #230-style defect),
+      // running its own depth, seal the rest of the margin band on both
+      // sides — same "seal everything except the declared opening"
+      // philosophy transitCellContainmentWalls already uses for a
+      // transit cell.
+      //
+      // #294 fix round: clipped at `sideWallEndY`, NOT `corridorEndY`
+      // directly — a review found the unclipped version was the #288
+      // first-draft pattern all over again. This fast path also fires
+      // for a NULL path (`!path`, boxed in — #93/#174's own documented,
+      // accepted "direct line can cut through an occupied cell"
+      // limitation), where `corridorEndY = toRect.gy` can sit several
+      // ROW_STRIDEs below the source when the target is multiple ranks
+      // away — the unclipped side walls ran that FULL distance,
+      // slicing through whatever occupied the cells in between
+      // (routine: a revealed hidden-detour room sitting directly north
+      // of the target is EXACTLY what forces the null path in the first
+      // place). Measured: 57% of generated dungeons had at least one
+      // room sliced, breaking 179 previously-working connections.
+      // Clipping to the SOURCE's own cell boundary — the same span
+      // `cellMarginWalls` already seals for this room — fixes it: in
+      // the adjacent (found-path) case `corridorEndY` already equals
+      // this same boundary exactly (no behavior change there, the
+      // live-reported leak stays fixed), and in the null-path case the
+      // side walls now stop at the source's own margin, never reaching
+      // into cells this function has no business drawing walls through.
+      { x1: spanX0, y1: faceY, x2: spanX0, y2: sideWallEndY },
+      { x1: spanX1, y1: faceY, x2: spanX1, y2: sideWallEndY },
     ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
     const doorWall = { x1: doorX0, y1: faceY, x2: doorX1, y2: faceY };
     const revealDoorWall = { x1: gapX0, y1: corridorEndY, x2: gapX1, y2: corridorEndY };
@@ -607,11 +651,23 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     const gapY1 = gapY0 + DOOR_WIDTH;
     const spanY0 = Math.min(doorY0, gapY0);
     const spanY1 = Math.max(doorY1, gapY1);
+    // #294 fix round: mirror of the south branch's own sideWallEndY —
+    // never reach past the SOURCE's own cell boundary. See its own
+    // comment (in the south branch above) for the full reasoning.
+    const sideWallEndX = Math.min(corridorEndX, cellBounds(fromPos.rank, fromPos.col).gx + COLUMN_STRIDE);
     const plainWalls = [
       { x1: faceX, y1: fromRect.gy, x2: faceX, y2: doorY0 },
       { x1: faceX, y1: doorY1, x2: faceX, y2: Math.max(fromRect.gy + fromRect.gh, spanY1) },
       { x1: corridorEndX, y1: toSlot.y1, x2: corridorEndX, y2: gapY0 },
       { x1: corridorEndX, y1: gapY1, x2: corridorEndX, y2: toSlot.y2 },
+      // #294 fix: same missing-side-walls defect as the south/sameColumn
+      // branch above, mirrored onto the x-axis — see its own comment for
+      // the full reasoning. These two HORIZONTAL walls, at the corridor
+      // floor's own real edges (spanY0/spanY1), seal the rest of the
+      // margin band above and below the corridor's own path — clipped to
+      // sideWallEndX for the same null-path reason as the south branch.
+      { x1: faceX, y1: spanY0, x2: sideWallEndX, y2: spanY0 },
+      { x1: faceX, y1: spanY1, x2: sideWallEndX, y2: spanY1 },
     ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
     // A null path (boxed in, both north and west neighbors occupied,
     // #196) and a found path.length<=2 now draw the exact same direct

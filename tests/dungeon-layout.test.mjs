@@ -556,6 +556,102 @@ describe('buildEdgeCorridor', () => {
       expect(Math.max(revealDoorWall.x1, revealDoorWall.x2)).toBeLessThanOrEqual(slots[i].x2);
     }
   });
+
+  // #294: plainWalls used to be exactly 2 segments (both horizontal caps,
+  // at the source's own face and the target's own face) for the
+  // same-column fast path — nothing closed the SIDES of the margin band
+  // in between, so a token standing between the two faces could walk
+  // laterally anywhere in the room's own width, not just the corridor's
+  // own real span. Confirmed live: a player could see and walk into that
+  // space, correctly narrow floor tile notwithstanding.
+  it('the same-column fast path seals both sides of the corridor\'s own depth, not just its two horizontal caps (#294)', () => {
+    const from = roomRect('alpha', 'a', 0, 0);
+    const to = roomRect('alpha', 'b', 1, 0);
+    const toSlot = doorSlotsForFace(to, 1, 'north')[0];
+    const { plainWalls, corridorSegments } = buildEdgeCorridor('alpha', 'a', 'b', from, to, ADJACENT_FROM, ADJACENT_TO, 'south', toSlot, {});
+    const seg = corridorSegments[0];
+    const spanX0 = seg.gx;
+    const spanX1 = seg.gx + seg.gw;
+    const faceY = seg.gy;
+    const corridorEndY = seg.gy + seg.gh;
+    // A vertical wall at each of the corridor's own real edges, spanning
+    // its own full depth (not just a partial segment).
+    const westSide = plainWalls.find((w) => w.x1 === spanX0 && w.x2 === spanX0);
+    const eastSide = plainWalls.find((w) => w.x1 === spanX1 && w.x2 === spanX1);
+    expect(westSide).toBeDefined();
+    expect(eastSide).toBeDefined();
+    expect(Math.min(westSide.y1, westSide.y2)).toBe(faceY);
+    expect(Math.max(westSide.y1, westSide.y2)).toBe(corridorEndY);
+    expect(Math.min(eastSide.y1, eastSide.y2)).toBe(faceY);
+    expect(Math.max(eastSide.y1, eastSide.y2)).toBe(corridorEndY);
+  });
+
+  it('the same-rank fast path seals both sides of the corridor\'s own depth too, mirrored onto the x-axis (#294)', () => {
+    const from = roomRect('alpha', 'a', 0, 0);
+    const to = roomRect('alpha', 'b', 0, 1);
+    const toSlot = doorSlotsForFace(to, 1, 'west')[0];
+    const { plainWalls, corridorSegments } = buildEdgeCorridor(
+      'alpha', 'a', 'b', from, to, ADJACENT_FROM, { rank: 0, col: 1 }, 'east', toSlot, {}, 'west',
+    );
+    const seg = corridorSegments[0];
+    const spanY0 = seg.gy;
+    const spanY1 = seg.gy + seg.gh;
+    const faceX = seg.gx;
+    const corridorEndX = seg.gx + seg.gw;
+    const northSide = plainWalls.find((w) => w.y1 === spanY0 && w.y2 === spanY0);
+    const southSide = plainWalls.find((w) => w.y1 === spanY1 && w.y2 === spanY1);
+    expect(northSide).toBeDefined();
+    expect(southSide).toBeDefined();
+    expect(Math.min(northSide.x1, northSide.x2)).toBe(faceX);
+    expect(Math.max(northSide.x1, northSide.x2)).toBe(corridorEndX);
+    expect(Math.min(southSide.x1, southSide.x2)).toBe(faceX);
+    expect(Math.max(southSide.x1, southSide.x2)).toBe(corridorEndX);
+  });
+
+  // #294 fix round: the two tests above both use a single-slot target,
+  // where spanX0 === doorX0 exactly — they don't exercise the reason
+  // span (not door) was deliberately chosen. This one does: `clamp-seed-1`
+  // (the same seed #230/#288's own clamp-residual test already
+  // established) rolls a LARGE, multi-slot merge target whose 3rd slot is
+  // narrower than the source's own face, forcing the #230 clamp — the
+  // corridor floor ends up WIDER than DOOR_WIDTH, and the side walls must
+  // bound that real (wider) floor, not the narrower door.
+  it('a wide (clamped merge-room) corridor still gets its side walls at the REAL floor edges, not the narrower door edges (#294, #231 residual)', () => {
+    const seed = 'clamp-seed-1';
+    const fromRect = { gx: 300, gy: 0, gw: 6, gh: 6 };
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 1, col: 0 };
+    const toRect = roomRect(seed, 'merge-target', toPos.rank, toPos.col);
+    expect(toRect.gw).toBe(ROOM_SIZE_LARGE); // sanity: this seed really does roll LARGE
+    const toSlot = doorSlotsForFace(toRect, 3, 'north')[2];
+    const { plainWalls, corridorSegments, doorWall } = buildEdgeCorridor(
+      seed, 'merge-source', 'merge-target', fromRect, toRect, fromPos, toPos, 'south', toSlot, {},
+    );
+    const seg = corridorSegments[0];
+    expect(seg.gw).toBeGreaterThan(DOOR_WIDTH); // sanity: this really is the wide-corridor case
+    const spanX0 = seg.gx, spanX1 = seg.gx + seg.gw;
+    const doorX0 = doorWall.x1, doorX1 = doorWall.x2;
+    // The whole point of this scenario: the clamp (#230) pulls the
+    // target's own gap away from the source's door on (at least) one
+    // side, so the real floor span genuinely differs from the door's own
+    // narrower width on that side — don't assume which side, just require
+    // at least one to actually differ (both being equal would mean this
+    // scenario failed to exercise the wide-corridor case at all).
+    expect(spanX0 !== doorX0 || spanX1 !== doorX1).toBe(true);
+    const westSide = plainWalls.find((w) => w.x1 === spanX0 && w.x2 === spanX0);
+    const eastSide = plainWalls.find((w) => w.x1 === spanX1 && w.x2 === spanX1);
+    expect(westSide).toBeDefined();
+    expect(eastSide).toBeDefined();
+    // And, just as importantly, on whichever side actually differs, NO
+    // side wall sits at the narrower door edge instead — that would wall
+    // over part of the real floor.
+    if (spanX0 !== doorX0) {
+      expect(plainWalls.find((w) => w.x1 === doorX0 && w.x2 === doorX0 && w.y1 !== w.y2)).toBeUndefined();
+    }
+    if (spanX1 !== doorX1) {
+      expect(plainWalls.find((w) => w.x1 === doorX1 && w.x2 === doorX1 && w.y1 !== w.y2)).toBeUndefined();
+    }
+  });
 });
 
 describe('buildEdgeCorridor (multi-cell path)', () => {
@@ -1979,6 +2075,172 @@ describe('corridor routing regression sweep (#174)', () => {
     // eslint-disable-next-line no-console
     console.log(`[#230/#288 residual] multi-slot (merge room), LARGE source coverage: ${multiSlotLargeCoveredCount}/${multiSlotLargeChecked}`);
     expect(multiSlotLargeCoveredCount / multiSlotLargeChecked).toBeLessThanOrEqual(0.85);
+  });
+
+  // #294: every fast-path connection's own corridor floor must be sealed
+  // on BOTH sides (not just capped top/bottom), across a real generated
+  // graph — not just the two hand-picked cases the unit tests above pin.
+  it('every same-column/same-rank fast-path corridor is sealed on both sides of its own SOURCE-cell depth (never further — a review round found the unclipped version sliced other rooms in the null-path case), across the same seed/roomCount sweep (#294)', () => {
+    let totalChecked = 0;
+    let unsealedCount = 0;
+    let slicedRoomCount = 0;
+    for (let i = 0; i < 500; i += 1) {
+      const seed = `sweep-${i}`;
+      const roomCount = 6 + (i % 15);
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+      const { layoutEdges, hiddenIncomingByRoomId } = attachHiddenPaths({ rooms, edges, seed });
+      const ranks = computeRanks(layoutEdges, 'room-entry');
+      const columns = computeColumns(layoutEdges, ranks, 'room-entry');
+      const positionByRoomId = Object.fromEntries(
+        Object.keys(rooms).map((id) => [id, { rank: ranks[id], col: columns[id] }]),
+      );
+      const occupiedCells = Object.fromEntries(
+        Object.entries(positionByRoomId).map(([id, pos]) => [`${pos.rank},${pos.col}`, id]),
+      );
+      const rectById = Object.fromEntries(
+        Object.keys(rooms).map((id) => [id, roomRect(seed, id, positionByRoomId[id].rank, positionByRoomId[id].col)]),
+      );
+
+      for (const [fromId, children] of Object.entries(edges)) {
+        for (let idx = 0; idx < children.length; idx += 1) {
+          const toId = children[idx];
+          const face = exitFaceForIndex(idx);
+          if (face !== 'south' && face !== 'east') continue;
+          const fromRect = rectById[fromId];
+          const toRect = rectById[toId];
+          const aligned = face === 'south' ? fromRect.gx === toRect.gx : fromRect.gy === toRect.gy;
+          if (!aligned) continue;
+          const incoming = incomingConnectionsFor(layoutEdges, toId, hiddenIncomingByRoomId);
+          const slotIndex = incoming.findIndex((c) => c.sourceId === fromId);
+          if (slotIndex === -1) continue;
+          const toSlot = doorSlotsForFace(toRect, incoming.length, 'north')[slotIndex];
+          const fromPos = positionByRoomId[fromId];
+          const { plainWalls, corridorSegments } = buildEdgeCorridor(
+            seed, fromId, toId, fromRect, toRect,
+            fromPos, positionByRoomId[toId],
+            face, toSlot, occupiedCells,
+          );
+          // Only the fast path itself produces exactly one corridorSegments
+          // entry shaped like a straight-through span — a multi-cell or
+          // corner path (which can still reach here if findCorridorPath's
+          // own aligned check passes but the path is actually null/blocked
+          // differently) is out of THIS fix's own scope (#294's issue body
+          // notes the corner/multi-cell branch separately).
+          if (corridorSegments.length !== 1) continue;
+          const seg = corridorSegments[0];
+          totalChecked += 1;
+          const sourceCell = cellBounds(fromPos.rank, fromPos.col);
+          if (face === 'south') {
+            const spanX0 = seg.gx, spanX1 = seg.gx + seg.gw;
+            const faceY = seg.gy, corridorEndY = seg.gy + seg.gh;
+            // #294 fix round: the CORRECT invariant is "reaches the
+            // SOURCE's own cell boundary" — not necessarily corridorEndY,
+            // which can be several ranks away in the null-path (boxed-in)
+            // case. Reaching further than the source's own cell would be
+            // the exact regression the fix round closed.
+            const expectedEndY = Math.min(corridorEndY, sourceCell.gy + ROW_STRIDE);
+            const westSide = plainWalls.find((w) => w.x1 === spanX0 && w.x2 === spanX0
+              && Math.min(w.y1, w.y2) <= faceY + 1e-9 && Math.max(w.y1, w.y2) >= expectedEndY - 1e-9
+              && Math.max(w.y1, w.y2) <= expectedEndY + 1e-9);
+            const eastSide = plainWalls.find((w) => w.x1 === spanX1 && w.x2 === spanX1
+              && Math.min(w.y1, w.y2) <= faceY + 1e-9 && Math.max(w.y1, w.y2) >= expectedEndY - 1e-9
+              && Math.max(w.y1, w.y2) <= expectedEndY + 1e-9);
+            if (!westSide || !eastSide) unsealedCount += 1;
+          } else {
+            const spanY0 = seg.gy, spanY1 = seg.gy + seg.gh;
+            const faceX = seg.gx, corridorEndX = seg.gx + seg.gw;
+            const expectedEndX = Math.min(corridorEndX, sourceCell.gx + COLUMN_STRIDE);
+            const northSide = plainWalls.find((w) => w.y1 === spanY0 && w.y2 === spanY0
+              && Math.min(w.x1, w.x2) <= faceX + 1e-9 && Math.max(w.x1, w.x2) >= expectedEndX - 1e-9
+              && Math.max(w.x1, w.x2) <= expectedEndX + 1e-9);
+            const southSide = plainWalls.find((w) => w.y1 === spanY1 && w.y2 === spanY1
+              && Math.min(w.x1, w.x2) <= faceX + 1e-9 && Math.max(w.x1, w.x2) >= expectedEndX - 1e-9
+              && Math.max(w.x1, w.x2) <= expectedEndX + 1e-9);
+            if (!northSide || !southSide) unsealedCount += 1;
+          }
+          // The room-slicing regression check: none of this edge's own
+          // plainWalls may cross through the INTERIOR of any OTHER real
+          // room's rect (the exact failure mode the fix round's own
+          // review found — a side wall running the full, unclipped
+          // distance to a far-away target sliced through whatever
+          // occupied the cells in between, most often a revealed hidden
+          // detour room).
+          for (const w of plainWalls) {
+            for (const [otherId, otherRect] of Object.entries(rectById)) {
+              if (otherId === fromId || otherId === toId) continue;
+              const wx0 = Math.min(w.x1, w.x2), wx1 = Math.max(w.x1, w.x2);
+              const wy0 = Math.min(w.y1, w.y2), wy1 = Math.max(w.y1, w.y2);
+              const crossesInterior = wx1 > otherRect.gx && wx0 < otherRect.gx + otherRect.gw
+                && wy1 > otherRect.gy && wy0 < otherRect.gy + otherRect.gh;
+              if (crossesInterior) { slicedRoomCount += 1; break; }
+            }
+          }
+        }
+      }
+    }
+    expect(totalChecked).toBeGreaterThan(200); // sanity: real fast-path connections were exercised
+    expect(unsealedCount).toBe(0);
+    expect(slicedRoomCount).toBe(0);
+  });
+
+  // #294 fix round: pins the exact detour-room regression a review found
+  // in the FIRST version of this fix — a parent (P) whose direct route to
+  // its own real child (C) is blocked by a detour room (Dt) sitting
+  // directly between them still takes the fast path (a null path, #93/
+  // #174's own accepted direct-line fallback), and the FIRST version's
+  // unclipped side walls ran the full P-to-C distance, slicing straight
+  // through Dt and cutting its own separate, WORKING Dt->C corridor in
+  // half. Seed `sweep-12` reproduces this exact shape.
+  it('a detour room sitting directly between a blocked parent and its own real child does not get sliced by the parent\'s own (null-path) fast-path side walls (#294 fix round)', () => {
+    const seed = 'sweep-12';
+    const roomCount = 6 + (12 % 15);
+    const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+    const { layoutEdges, hiddenIncomingByRoomId } = attachHiddenPaths({ rooms, edges, seed });
+    const ranks = computeRanks(layoutEdges, 'room-entry');
+    const columns = computeColumns(layoutEdges, ranks, 'room-entry');
+    const positionByRoomId = Object.fromEntries(
+      Object.keys(rooms).map((id) => [id, { rank: ranks[id], col: columns[id] }]),
+    );
+    const occupiedCells = Object.fromEntries(
+      Object.entries(positionByRoomId).map(([id, pos]) => [`${pos.rank},${pos.col}`, id]),
+    );
+    const rectById = Object.fromEntries(
+      Object.keys(rooms).map((id) => [id, roomRect(seed, id, positionByRoomId[id].rank, positionByRoomId[id].col)]),
+    );
+    let checkedAtLeastOne = false;
+    for (const [fromId, children] of Object.entries(edges)) {
+      for (let idx = 0; idx < children.length; idx += 1) {
+        const toId = children[idx];
+        const face = exitFaceForIndex(idx);
+        if (face !== 'south') continue;
+        const fromRect = rectById[fromId];
+        const toRect = rectById[toId];
+        if (fromRect.gx !== toRect.gx) continue;
+        const path = findCorridorPath(
+          positionByRoomId[fromId], positionByRoomId[toId], occupiedCells,
+          { fromRoomId: fromId, toRoomId: toId },
+        );
+        if (path) continue; // only the null-path (boxed-in) case is at risk here
+        const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
+        const { plainWalls } = buildEdgeCorridor(
+          seed, fromId, toId, fromRect, toRect,
+          positionByRoomId[fromId], positionByRoomId[toId],
+          face, toSlot, occupiedCells,
+        );
+        for (const w of plainWalls) {
+          for (const [otherId, otherRect] of Object.entries(rectById)) {
+            if (otherId === fromId || otherId === toId) continue;
+            const wx0 = Math.min(w.x1, w.x2), wx1 = Math.max(w.x1, w.x2);
+            const wy0 = Math.min(w.y1, w.y2), wy1 = Math.max(w.y1, w.y2);
+            const crossesInterior = wx1 > otherRect.gx && wx0 < otherRect.gx + otherRect.gw
+              && wy1 > otherRect.gy && wy0 < otherRect.gy + otherRect.gh;
+            expect(crossesInterior).toBe(false);
+          }
+        }
+        checkedAtLeastOne = true;
+      }
+    }
+    expect(checkedAtLeastOne).toBe(true); // sanity: seed sweep-12 really does reproduce a null-path same-column edge
   });
 
   // 2026-09-27 investigation note, three times revised: computeColumns'
