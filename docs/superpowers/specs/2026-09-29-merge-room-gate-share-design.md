@@ -166,42 +166,33 @@ coordinate):
    `cellMarginWalls`, the same way `outgoingMarginOffset` already threads a
    room's own corridor span into its own margin-wall call today.
 
-### Build-order handling (added after spec approval — see below)
+### Build-order handling (corrected after spec approval — see below)
 
-Rooms in this module are built lazily, on demand, as the party reaches
-them (`buildPopulateAndUnlockGraphNode`'s `alreadyBuilt` check in
-`dungeon-scene.mjs`) — not in a single upfront pass. A room's own incoming
-edges (including a dogleg-needing edge) are built when *that room* is
-built, using whichever other rooms already exist in `occupiedCells` at
-that moment. The blocking room can therefore be built **either before or
-after** the merge room whose second-parent edge doglegs through it — and
-the live-reported repro is specifically the harder order: the blocking
-room (`room-room-room-entry-0-1`) had already been visited and built
-before the party reached the merge room via its detour path, which is
-when the dogleg-needing edge actually gets processed.
+An earlier revision of this section assumed rooms are built lazily as the
+party progresses, and specified a pending-openings registry plus
+retroactive Foundry wall-patching to handle "the blocking room was already
+built." That assumption was wrong: re-reading `dungeon-runner.mjs`'s
+`roomsToEagerlyBuild` and `dungeon-app.mjs`'s `startDungeonRun` loop, this
+module performs **eager, full-graph pregeneration** — every room is built
+in one topologically-ordered loop, over the *complete, already-known*
+`state.layoutEdges`, before the party can enter the scene at all. There is
+no per-room building as the party advances; the only other build path
+(`resolveCurrentRoom`'s "ensure-built" check) is a failure-retry safety
+net for a room the eager loop's own try/catch swallowed an error for, not
+a routine ordering path.
 
-This was not captured in the design's first pass and materially changes
-scope. Two orderings, both required:
-
-1. **Blocking room not yet built.** A pending-openings registry, keyed by
-   blocking room id, persisted the same way other per-run layout state is
-   persisted (`game.settings.get('pf2e-dungeon-crawl', 'dungeonRuns')`).
-   `buildRoomAtGraphNode` consults it for its own room id when building its
-   own margin walls, the same way it already consults `outgoingMarginOffset`
-   for its own outgoing connection's opening.
-2. **Blocking room already built.** Retroactively patch the room's already-
-   placed margin wall in the live scene: locate its existing
-   `dungeonCellMarginWallForRoom`-flagged wall(s) on the relevant side,
-   delete them, and recreate them with the added opening (its own existing
-   opening, if any, preserved via the same generalized `cellMarginWalls`
-   call from case 1 — recomputed, not hand-merged).
-
-Both cases must produce the exact same wall geometry a fresh build would
-have produced had the two rooms been built in the other order — i.e. this
-is not two different code paths with two different notions of "correct,"
-it's one geometry computation (the generalized `cellMarginWalls` call)
-invoked from two different triggers (a room's own build step, or a
-foreign edge's build step reaching back to patch an already-built room).
+Because the whole graph is known before any room's walls are created,
+there is no room-build-ordering hazard to design around, and no scene
+Wall-document patching is needed. The correct mechanism is simpler than
+either registry design considered before: a **pure, stateless check**,
+embedded in `buildRoomAtGraphNode` (or a helper it calls), that scans
+`state.edges` fresh on every call — the same way that function already
+builds `occupiedCells` fresh from `state.layoutPositionByRoomId` on every
+call — to determine whether any *other* edge's dogleg needs to open a
+foreign gap in *this* room's own margin. It is correct on first build for
+every room, whether built eagerly or (in the rare failure-retry case)
+lazily, because it is recomputed identically each time rather than reading
+back some earlier snapshot.
 
 ### Non-goals
 
