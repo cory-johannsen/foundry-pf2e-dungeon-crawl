@@ -574,7 +574,21 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
         // anchor, same column) -- the occupant's own footprint spans
         // exactly [blockCell.gx, blockCell.gx + occupantRect.gw].
         const occupantEastEdge = occupantRect.gx + occupantRect.gw;
-        if (doorX0 < occupantEastEdge) {
+        // #297 fix round 3: doorX0 alone isn't the only way the corridor's real
+        // floor can reach into the blocker's footprint -- #230/#231's own
+        // gap-widening (spanX0/spanX1, widened when the target is a merge room
+        // with a narrower clamped slot than the source's face) can stretch the
+        // NON-dogleg span back across the blocker even when doorX0 itself sits
+        // outside it (measured: 40/455, 8.79%, in the closing system-wide
+        // sweep). Compute the SAME provisional gap/span the non-dogleg branch
+        // would actually produce, and trigger on THAT overlapping the blocker's
+        // footprint, not just doorX0 in isolation.
+        const provisionalGapX0 = Math.min(Math.max(doorX0, toSlot.x1), toSlot.x2 - DOOR_WIDTH);
+        const provisionalGapX1 = provisionalGapX0 + DOOR_WIDTH;
+        const provisionalSpanX0 = Math.min(doorX0, provisionalGapX0);
+        const provisionalSpanX1 = Math.max(doorX1, provisionalGapX1);
+        const spanOverlapsBlocker = provisionalSpanX0 < occupantEastEdge && provisionalSpanX1 > occupantRect.gx;
+        if (spanOverlapsBlocker) {
           // The turn MUST happen while still inside the SOURCE's own
           // margin band (faceY..blockCell.gy), never inside the blocking
           // cell itself -- a room's floor starts immediately at its own
@@ -846,7 +860,21 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
         // anchor, same rank) -- the occupant's own footprint spans
         // exactly [blockCell.gy, blockCell.gy + occupantRect.gh].
         const occupantSouthEdge = occupantRect.gy + occupantRect.gh;
-        if (doorY0 < occupantSouthEdge) {
+        // #297 fix round 3: mirror of the south branch's own fix -- doorY0
+        // alone isn't the only way the corridor's real floor can reach into
+        // the blocker's footprint; #230/#231's own gap-widening (spanY0/
+        // spanY1, widened when the target is a merge room with a narrower
+        // clamped slot than the source's face) can stretch the NON-dogleg
+        // span back across the blocker even when doorY0 itself sits outside
+        // it. Compute the SAME provisional gap/span the non-dogleg branch
+        // would actually produce, and trigger on THAT overlapping the
+        // blocker's footprint, not just doorY0 in isolation.
+        const provisionalGapY0 = Math.min(Math.max(doorY0, toSlot.y1), toSlot.y2 - DOOR_WIDTH);
+        const provisionalGapY1 = provisionalGapY0 + DOOR_WIDTH;
+        const provisionalSpanY0 = Math.min(doorY0, provisionalGapY0);
+        const provisionalSpanY1 = Math.max(doorY1, provisionalGapY1);
+        const spanOverlapsBlocker = provisionalSpanY0 < occupantSouthEdge && provisionalSpanY1 > occupantRect.gy;
+        if (spanOverlapsBlocker) {
           // The turn MUST happen while still inside the SOURCE's own
           // margin band (faceX..blockCell.gx), never inside the blocking
           // cell itself -- same margin invariant as the south branch's

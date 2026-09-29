@@ -1092,21 +1092,23 @@ describe('buildEdgeCorridor — #297 dogleg around a blocking intermediate room'
     expect(blockerCell.gx + result.foreignOpening.offset + result.foreignOpening.width).toBe(lastSeg.gx + lastSeg.gw);
   });
 
-  it('does not activate when a real blocker exists but its footprint misses the fixed door column', () => {
-    // Review round 1 fix: the original version of this test used an EMPTY
-    // intermediate cell, which only exercises findCorridorPath's own
-    // found-path branch (the multi-cell branch, returned before this
-    // task's own null-path fallback is ever reached) -- it never actually
-    // proved anything about the dogleg condition itself. This version
-    // uses a REAL blocker room at rank 1, boxed in on every side (same
-    // occupiedCells shape as the 'falls back to a direct line' test
-    // above) so findCorridorPath returns null and this task's own
-    // null-path fallback fires -- but with a seed/room pairing (found the
-    // same way as Step 1a, this time searching for doorX0 landing AT OR
-    // PAST the blocker's own east edge instead of inside it) where the
-    // blocker's own footprint does NOT contain doorX0, so the dogleg
-    // condition (`doorX0 < occupantEastEdge`) is false and the output
-    // must be byte-identical to this file's pre-#297 single-box shape.
+  it('activates due to #230/#231 span-widening even when the raw door offset alone would miss the blocker', () => {
+    // Review round 3 fix (Task 5's own closing system-wide sweep measured
+    // 40/455, 8.79%, dogleg-eligible overlap across a 500-seed corpus):
+    // this exact seed/room combination is the "does not activate" test's
+    // OWN original scenario from round 1/2 -- doorX0=308 sits safely past
+    // the blocker's own east edge (306), so the OLD trigger
+    // (`doorX0 < occupantEastEdge`) correctly declined. But the TARGET
+    // here is SMALL (gw=6) while the toSlot is a single-incoming, full-
+    // width slot clamped to that narrow 6-wide face -- #230's own
+    // pre-existing gap-widening (`gapX0`/`spanX0`/`spanX1`) then clamps
+    // gapX0 down to 305 and widens the final span back to [305,309],
+    // which DOES cross the blocker's [300,306] footprint. The widened-
+    // trigger fix (`spanOverlapsBlocker`, checking the SAME provisional
+    // span the non-dogleg branch would actually produce) now correctly
+    // catches this and reroutes -- this test pins that regression
+    // directly, since round 1/2's own narrower trigger silently produced
+    // an overlapping corridor for this exact scenario.
     const missSeed = 'dogleg-miss-seed-2';
     const fromRoomId = 'from-room-2';
     const toRoomId = 'to-room-2';
@@ -1128,23 +1130,92 @@ describe('buildEdgeCorridor — #297 dogleg around a blocking intermediate room'
       'south', toSlot, occupiedCells, 'north',
     );
 
-    // Confirm the scenario is real: doorX0 (derived independently here,
-    // the same way buildEdgeCorridor computes it internally) sits at or
-    // past the blocker's own east edge (verified via node: fromSize=LARGE,
-    // blockerSize=SMALL, doorX0=308, blockerRect={gx:300,gw:6} so
-    // blockerEast=306 <= 308) -- '1,0' in occupiedCells above is a genuine
-    // blocker room, not an empty cell.
+    // Confirm the scenario is real: doorX0 alone sits past the blocker's
+    // own east edge (the OLD trigger's own check), yet the dogleg still
+    // activates (the round-3 fix's whole point).
     const blockerRect = roomRect(missSeed, blockerRoomId, 1, 0);
     const outgoingOffset = doorOffsetAt(missSeed, `${fromRoomId}-south`, 'outgoing', fromRect.gw);
     const doorX0 = fromRect.gx + outgoingOffset;
     expect(doorX0).toBeGreaterThanOrEqual(blockerRect.gx + blockerRect.gw);
+    expect(result.foreignOpening).not.toBeNull();
+
+    // The real property: no corridor floor segment overlaps the blocker's
+    // own rect.
+    for (const seg of result.corridorSegments) {
+      const overlapsX = seg.gx < blockerRect.gx + blockerRect.gw && seg.gx + seg.gw > blockerRect.gx;
+      const overlapsY = seg.gy < blockerRect.gy + blockerRect.gh && seg.gy + seg.gh > blockerRect.gy;
+      expect(overlapsX && overlapsY).toBe(false);
+    }
+    // Connectivity: the last (turn 2) segment must actually reach the
+    // real door.
+    const lastSeg = result.corridorSegments[result.corridorSegments.length - 1];
+    expect(lastSeg.gx).toBeLessThanOrEqual(result.revealDoorWall.x1);
+    expect(lastSeg.gx + lastSeg.gw).toBeGreaterThanOrEqual(result.revealDoorWall.x2);
+    // Hand-traced exact geometry (faceY=12, doorX0=308, doorX1=309,
+    // occupantEastEdge=306 -- so laneX0=306, laneX1=307; toSlot clamps
+    // gapX0 to 305, gapX1=306; turn 2 spans [min(306,305), max(307,306))
+    // = [305,307)).
+    expect(result.corridorSegments).toEqual([
+      { gx: 306, gy: 12, gw: 3, gh: 1 },
+      { gx: 306, gy: 13, gw: 1, gh: 12 },
+      { gx: 305, gy: 25, gw: 2, gh: 1 },
+    ]);
+    expect(result.foreignOpening).toEqual({ roomId: blockerRoomId, side: 'south', offset: 5, width: 2 });
+  });
+
+  it('does not activate when a real blocker exists but neither the raw door offset nor the widened span reaches its footprint', () => {
+    // Review round 3 fix: this test used to use `dogleg-miss-seed-2`
+    // (checking only that doorX0 missed the blocker), but that scenario
+    // turned out to ALSO exercise the round-3 gap (#230's own span-
+    // widening reaching back into the blocker even though doorX0 alone
+    // didn't) -- see the test above, which now correctly pins that as an
+    // ACTIVATING case. A genuine "does not activate" test needs a
+    // scenario where the WIDENED span also misses the blocker, not just
+    // doorX0 alone -- found via the same seed-search method as Step 1a
+    // and the round-3 fix's own provisional-span formula, this time using
+    // a LARGE (gw=12) target so its toSlot spans the target's full face
+    // (a single incoming connection, no #230 clamping at all) and
+    // doorX0/doorX1 land safely past the blocker's own east edge with no
+    // widening effect possible.
+    const missSeed = 'dogleg-clean-miss-seed-27';
+    const fromRoomId = 'from-room-2';
+    const toRoomId = 'to-room-2';
+    const blockerRoomId = 'blocker-room-2';
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 2, col: 0 };
+    const fromRect = roomRect(missSeed, fromRoomId, fromPos.rank, fromPos.col);
+    const toRect = roomRect(missSeed, toRoomId, toPos.rank, toPos.col);
+    const occupiedCells = {
+      '0,0': fromRoomId, '2,0': toRoomId,
+      '1,0': blockerRoomId, '1,1': 'y', '1,-1': 'y', '1,2': 'y', '1,-2': 'y',
+      '0,1': 'y', '0,-1': 'y', '0,2': 'y', '0,-2': 'y',
+      '2,1': 'y', '2,-1': 'y', '2,2': 'y', '2,-2': 'y',
+    };
+    const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
+
+    const result = buildEdgeCorridor(
+      missSeed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos,
+      'south', toSlot, occupiedCells, 'north',
+    );
+
+    // Confirm the scenario is real: doorX0 sits past the blocker's own
+    // east edge, AND (since the target is LARGE, matching the source's
+    // own full face width) the target's own slot is never narrower than
+    // the source's face, so #230's own clamp never widens the span back
+    // toward the blocker either -- '1,0' in occupiedCells above is a
+    // genuine blocker room, not an empty cell.
+    const blockerRect = roomRect(missSeed, blockerRoomId, 1, 0);
+    const outgoingOffset = doorOffsetAt(missSeed, `${fromRoomId}-south`, 'outgoing', fromRect.gw);
+    const doorX0 = fromRect.gx + outgoingOffset;
+    expect(doorX0).toBeGreaterThanOrEqual(blockerRect.gx + blockerRect.gw);
+    expect(toRect.gw).toBe(fromRect.gw);
 
     // Byte-identical to the pre-#297 single-box shape: no dogleg, no
     // third segment, no foreignOpening.
     expect(result.foreignOpening).toBeNull();
     expect(result.corridorSegments).toHaveLength(1);
     expect(result.corridorSegments).toEqual([
-      { gx: 305, gy: 12, gw: 4, gh: 14 },
+      { gx: 308, gy: 12, gw: 1, gh: 14 },
     ]);
   });
 });
