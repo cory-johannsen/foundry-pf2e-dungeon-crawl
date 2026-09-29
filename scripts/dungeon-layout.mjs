@@ -520,35 +520,36 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // seeded offsets almost never coincide, and the corridor's own floor
     // (spanX0..spanX1 below) is drawn wide enough to bridge whatever gap
     // that leaves — but `outgoingMarginOffset` (below in this same file;
-    // called by dungeon-scene.mjs's own `cellMarginWalls` to seal the
-    // SOURCE room's own cell margin) only ever opens a DOOR_WIDTH-wide
-    // gap at doorX0, with no visibility into a separately-seeded target
-    // offset. Left unaligned, that margin wall silently covers whatever
-    // part of the real corridor floor (up to and including the target's
-    // own entire door) falls outside its own narrow gap — confirmed live:
-    // 33% of doors in a fresh 18-room dungeon were partially or fully
-    // blocked this way. Deriving gapX0 from doorX0 collapses
+    // called by dungeon-scene.mjs's own `cellMarginWalls` to seal a
+    // room's own cell margin, both SOURCE south/east margin here and, per
+    // #288, a LARGE room's own real margin too) needs to open a gap wide
+    // enough to cover that same real floor, not just a fixed DOOR_WIDTH
+    // at doorX0 — #288's own review round found and fixed this: it now
+    // calls buildEdgeCorridor itself (with an assumed single, full-width
+    // incoming slot) and reads back the REAL span, rather than
+    // re-deriving just doorX0 — see outgoingMarginOffset's own docblock.
+    // Deriving gapX0 from doorX0 collapses
     // spanX0===spanX1-DOOR_WIDTH===doorX0 in the common case (single
     // incoming connection, target slot at least as wide as the source's
-    // face), so outgoingMarginOffset's own already-correct gap
-    // computation (same doorX0) lines up exactly, with no changes needed
-    // there.
+    // face), which is exactly the case outgoingMarginOffset's own assumed
+    // slot matches precisely.
     //
-    // Known, MEASURED residual (not solved here): a review of this fix
-    // found the live/system-wide door-coverage rate only drops from
-    // ~25.9% to ~12.8% (not to 0%), because #230 only ever targeted THIS
-    // one mechanism. Two more, separate mechanisms remain, both entirely
-    // untouched by this change: (a) the clamped case just described,
+    // Known, MEASURED residual (not solved here): a review of the
+    // original #230 fix found the live/system-wide door-coverage rate
+    // only dropped from ~25.9% to ~12.8% (not to 0%), because #230 only
+    // ever targeted the single-incoming-connection case. Two more,
+    // separate mechanisms remain: (a) the clamped case just described,
     // when a merge room's own slot is narrower than where the source's
-    // door offset lands (still ~65% covered for that specific case,
-    // tracked by this file's own test sweep, not asserted to zero); and
-    // (b) the corner/multi-cell branch's OWN door coverage from a
-    // completely different cause (other rooms' own margin walls, and
-    // neighbouring-slot walls) — a bug class this fix never touched or
-    // measured at all. Both are tracked as their own follow-up issues,
-    // filed once this fix's own PR closed #230 — see that issue's final
-    // comment for links, rather than assuming "closes #230" means every
-    // door-coverage defect in this file is gone.
+    // door offset lands (measured ~62% covered for a SMALL source, ~67%
+    // for a LARGE source — #288 sealed a LARGE room's own margin at all,
+    // which made this same residual apply there too; tracked by this
+    // file's own test sweep, split by source size, neither asserted to
+    // zero — see #231); and (b) the corner/multi-cell branch's OWN door
+    // coverage from a completely different cause (other rooms' own
+    // margin walls, and neighbouring-slot walls) — a bug class neither
+    // fix touched or measured (see #232). Neither "closes #230" nor
+    // "closes #288" means every door-coverage defect in this file is
+    // gone.
     const gapX0 = Math.min(Math.max(doorX0, toSlot.x1), toSlot.x2 - DOOR_WIDTH);
     const gapX1 = gapX0 + DOOR_WIDTH;
     const spanX0 = Math.min(doorX0, gapX0);

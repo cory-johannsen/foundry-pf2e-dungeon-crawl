@@ -1477,6 +1477,12 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
   function expectSouthAlignment(fromPos, toPos, occupiedCells) {
     const fromRect = smallRect(fromPos.rank, fromPos.col);
     const toRect = smallRect(toPos.rank, toPos.col);
+    // outgoingMarginOffset now derives its own toRect internally via
+    // roomRect(seed, 'B', toPos.rank, toPos.col) — this hand-built
+    // toRect must actually match that, or this test would silently stop
+    // exercising what it claims to (#288's own review round found this
+    // exact class of drift already, in a different test).
+    expect(toRect).toEqual(roomRect(seed, 'B', toPos.rank, toPos.col));
     const { offset, width } = outgoingMarginOffset(seed, 'A', 'B', 'south', fromRect, fromPos, toPos, occupiedCells);
     const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
     const { doorWall } = buildEdgeCorridor(seed, 'A', 'B', fromRect, toRect, fromPos, toPos, 'south', toSlot, occupiedCells);
@@ -1515,14 +1521,22 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
     const toPos = { rank: 0, col: 1 };
     const fromRect = smallRect(fromPos.rank, fromPos.col);
     const toRect = smallRect(toPos.rank, toPos.col);
-    // #288's own review round: an east exit into a same-rank target only
-    // reaches this fast path at all when the target's OWN incoming face
-    // is 'west' (findCorridorPath only ever allows entry from a target's
-    // own declared incomingFace's neighbor cell) — omitting incomingFace
-    // here (defaulting to 'north') made findCorridorPath return null for
-    // this direct east-west pair, which the OLD outgoingMarginOffset
-    // never noticed (it never actually built geometry to find out); the
-    // NEW one does, since it now calls buildEdgeCorridor for real.
+    expect(toRect).toEqual(roomRect(seed, 'B', toPos.rank, toPos.col)); // same drift guard as expectSouthAlignment
+    // #288's own review round: this test used to omit incomingFace
+    // entirely (defaulting to 'north') while exiting 'east' — a null vs.
+    // length<=2 path both reach this SAME fast path (usesOffsetBasedExit
+    // is `aligned && (!path || path.length<=2)`), so path itself was
+    // never the problem. The real bug: outgoingMarginOffset's NEW code
+    // internally builds an ASSUMED toSlot via
+    // `doorSlotsForFace(toRect,1,incomingFace)` — with the omitted
+    // 'north' default, that's a HORIZONTAL slot (y1===y2), but an
+    // 'east'-exit fast path clamps along Y — producing a degenerate,
+    // out-of-bounds `gapY0 = -1`. The OLD outgoingMarginOffset never
+    // built real geometry, so this mismatch was invisible; the NEW one
+    // does. Passing the coherent, matching `incomingFace: 'west'`
+    // (a VERTICAL slot, the axis an east-exit fast path actually clamps
+    // along) fixes it, and is also the physically sensible choice for a
+    // same-rank east-west pair.
     const { offset, width } = outgoingMarginOffset(seed, 'A', 'B', 'east', fromRect, fromPos, toPos, {}, 'west');
     const toSlot = doorSlotsForFace(toRect, 1, 'west')[0];
     const { doorWall } = buildEdgeCorridor(seed, 'A', 'B', fromRect, toRect, fromPos, toPos, 'east', toSlot, {}, 'west');
@@ -1842,8 +1856,15 @@ describe('corridor routing regression sweep (#174)', () => {
   it('the source room\'s own margin-wall gap never covers the target\'s own real door, across the same seed/roomCount sweep, for a single-incoming-connection target — and the measured, un-fixed residual for a multi-slot (merge room) target stays within its own tracked ceiling (#230)', () => {
     let totalChecked = 0;
     let coveredCount = 0;
+    // #288's own review round: a blended multi-slot ceiling hid a
+    // LARGE-source-specific rate (76.8%) that would have failed a
+    // tighter bound on its own, blended down by SMALL's own lower rate
+    // (61.9%) — split by source size so neither population can regress
+    // unseen inside the other's own slack.
     let multiSlotChecked = 0;
     let multiSlotCoveredCount = 0;
+    let multiSlotLargeChecked = 0;
+    let multiSlotLargeCoveredCount = 0;
     for (let i = 0; i < 500; i += 1) {
       const seed = `sweep-${i}`;
       const roomCount = 6 + (i % 15);
@@ -1928,6 +1949,9 @@ describe('corridor routing regression sweep (#174)', () => {
           if (incoming.length === 1) {
             totalChecked += 1;
             if (covered) coveredCount += 1;
+          } else if (fromRect.gw === ROOM_SIZE_LARGE) {
+            multiSlotLargeChecked += 1;
+            if (covered) multiSlotLargeCoveredCount += 1;
           } else {
             multiSlotChecked += 1;
             if (covered) multiSlotCoveredCount += 1;
@@ -1943,8 +1967,18 @@ describe('corridor routing regression sweep (#174)', () => {
     // regression here is still caught, even though a full fix (passing the
     // target's own toSlot into outgoingMarginOffset) is tracked separately.
     // eslint-disable-next-line no-console
-    console.log(`[#230 residual] multi-slot (merge room) coverage: ${multiSlotCoveredCount}/${multiSlotChecked}`);
+    console.log(`[#230 residual] multi-slot (merge room), SMALL source coverage: ${multiSlotCoveredCount}/${multiSlotChecked}`);
     expect(multiSlotCoveredCount / multiSlotChecked).toBeLessThanOrEqual(0.75);
+    // #288: a SECOND, newly-real population of this same residual — a
+    // LARGE source into a merge target — didn't exist on main at all
+    // (no margin wall there yet), so there is no earlier baseline this
+    // ceiling improves on; it exists purely to catch a FUTURE regression
+    // in this already-known-imperfect case, not to claim improvement.
+    // See #231's own updated scope.
+    expect(multiSlotLargeChecked).toBeGreaterThan(0); // sanity
+    // eslint-disable-next-line no-console
+    console.log(`[#230/#288 residual] multi-slot (merge room), LARGE source coverage: ${multiSlotLargeCoveredCount}/${multiSlotLargeChecked}`);
+    expect(multiSlotLargeCoveredCount / multiSlotLargeChecked).toBeLessThanOrEqual(0.85);
   });
 
   // 2026-09-27 investigation note, three times revised: computeColumns'
