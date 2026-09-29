@@ -228,7 +228,7 @@ describe('pendingForeignMarginOpenings — #297 Round 2: real slot resolution', 
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run tests/dungeon-layout.test.mjs -t "real slot resolution"`
-Expected: FAIL — the current code uses `doorSlotsForFace(targetRect, 1, targetIncomingFace)[0]` (a full-width slot) instead of the real half-width `realSlots[1]`, so `foreignOpening`'s own `offset`/`width` won't match.
+Expected: FAIL — the current code uses `doorSlotsForFace(targetRect, 1, targetIncomingFace)[0]` (a full-width slot) instead of the real half-width `realSlots[0]`, so `foreignOpening`'s own `offset`/`width` won't match.
 
 - [ ] **Step 3: Fix `pendingForeignMarginOpenings`**
 
