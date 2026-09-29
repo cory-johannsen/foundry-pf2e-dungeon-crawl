@@ -13,8 +13,10 @@
  *
  * A connection runs from one of a room's own outgoing faces
  * (south/east/west, exitFaceForIndex) to a door slot on its child's incoming
- * face (doorSlotsForFace), each end at its own independently-randomized
- * offset — see buildEdgeCorridor's docblock.
+ * face (doorSlotsForFace). The multi-cell/corner branches still seed each
+ * end independently; the same-column/same-rank fast path derives the
+ * child's own end from the parent's (#230) — see buildEdgeCorridor's
+ * docblock.
  *
  * Every room is square, either ROOM_SIZE_SMALL or ROOM_SIZE_LARGE on a side
  * (ITEM-17) — picked per room, deterministically, by roomSizeAt.
@@ -346,8 +348,6 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
   const path = findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace });
   const slotSpan = incomingFace === 'west' ? (toSlot.y2 - toSlot.y1) : (toSlot.x2 - toSlot.x1);
   const outgoingOffset = doorOffsetAt(seed, `${fromRoomId}-${exitFace}`, 'outgoing', fromRect.gw);
-  const incomingSeedKey = incomingFace === 'west' ? `${toRoomId}-west-${toSlot.y1}` : `${toRoomId}-north-${toSlot.x1}`;
-  const incomingOffset = doorOffsetAt(seed, incomingSeedKey, 'incoming', slotSpan);
 
   if (path && path.length > 2) {
     // Multi-cell path (#174): chain transitCellCrossing across every
@@ -513,7 +513,43 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     const corridorEndY = toRect.gy;
     const doorX0 = fromRect.gx + outgoingOffset;
     const doorX1 = doorX0 + DOOR_WIDTH;
-    const gapX0 = toSlot.x1 + incomingOffset;
+    // #230 fix: derive the target's own gap from the SOURCE's already-
+    // committed door offset (doorX0) instead of independently seeding it
+    // — clamped to the target's own slot bounds, since a merge room's own
+    // slot can be narrower than the source's full face. Two independently
+    // seeded offsets almost never coincide, and the corridor's own floor
+    // (spanX0..spanX1 below) is drawn wide enough to bridge whatever gap
+    // that leaves — but `outgoingMarginOffset` (below in this same file;
+    // called by dungeon-scene.mjs's own `cellMarginWalls` to seal the
+    // SOURCE room's own cell margin) only ever opens a DOOR_WIDTH-wide
+    // gap at doorX0, with no visibility into a separately-seeded target
+    // offset. Left unaligned, that margin wall silently covers whatever
+    // part of the real corridor floor (up to and including the target's
+    // own entire door) falls outside its own narrow gap — confirmed live:
+    // 33% of doors in a fresh 18-room dungeon were partially or fully
+    // blocked this way. Deriving gapX0 from doorX0 collapses
+    // spanX0===spanX1-DOOR_WIDTH===doorX0 in the common case (single
+    // incoming connection, target slot at least as wide as the source's
+    // face), so outgoingMarginOffset's own already-correct gap
+    // computation (same doorX0) lines up exactly, with no changes needed
+    // there.
+    //
+    // Known, MEASURED residual (not solved here): a review of this fix
+    // found the live/system-wide door-coverage rate only drops from
+    // ~25.9% to ~12.8% (not to 0%), because #230 only ever targeted THIS
+    // one mechanism. Two more, separate mechanisms remain, both entirely
+    // untouched by this change: (a) the clamped case just described,
+    // when a merge room's own slot is narrower than where the source's
+    // door offset lands (still ~65% covered for that specific case,
+    // tracked by this file's own test sweep, not asserted to zero); and
+    // (b) the corner/multi-cell branch's OWN door coverage from a
+    // completely different cause (other rooms' own margin walls, and
+    // neighbouring-slot walls) — a bug class this fix never touched or
+    // measured at all. Both are tracked as their own follow-up issues,
+    // filed once this fix's own PR closed #230 — see that issue's final
+    // comment for links, rather than assuming "closes #230" means every
+    // door-coverage defect in this file is gone.
+    const gapX0 = Math.min(Math.max(doorX0, toSlot.x1), toSlot.x2 - DOOR_WIDTH);
     const gapX1 = gapX0 + DOOR_WIDTH;
     const spanX0 = Math.min(doorX0, gapX0);
     const spanX1 = Math.max(doorX1, gapX1);
@@ -530,9 +566,9 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       // boundary into a sibling connection's own territory whenever
       // the source room is wider than one slot — routine for any
       // merge room with 2+ real parents. `gapX0`/`gapX1` are already
-      // guaranteed within `[toSlot.x1, toSlot.x2]` (`incomingOffset`
-      // is bounded by `slotSpan`), so these two walls need no
-      // `Math.max`/`Math.min` at all — just the slot's own edges.
+      // guaranteed within `[toSlot.x1, toSlot.x2]` (#230's own clamp),
+      // so these two walls need no `Math.max`/`Math.min` at all — just
+      // the slot's own edges.
       { x1: toSlot.x1, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
       { x1: gapX1, y1: corridorEndY, x2: toSlot.x2, y2: corridorEndY }
     ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
@@ -549,13 +585,24 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     };
   }
 
+  // #230 review note: computeRanks/computeColumns always place a real
+  // child at least one rank below its own parent (Task 4's ranking
+  // walk), so an east-exit connection to a same-RANK target — the only
+  // way this branch fires — doesn't occur in this generator's own
+  // current output; a 500-seed sweep found zero real cases. Kept (not
+  // deleted) for symmetry with the south/sameColumn branch above and in
+  // case a future graph shape reaches it; the fix below is still exact
+  // for whichever `incomingFace` this connection actually uses.
   const sameRank = fromRect.gy === toRect.gy;
   if (exitFace === 'east' && sameRank) {
     const faceX = fromRect.gx + fromRect.gw;
     const corridorEndX = toRect.gx;
     const doorY0 = fromRect.gy + outgoingOffset;
     const doorY1 = doorY0 + DOOR_WIDTH;
-    const gapY0 = toSlot.y1 + incomingOffset;
+    // #230 fix: same derivation as the south-exit/same-column branch
+    // above, mirrored onto the y-axis — see its own comment for the full
+    // reasoning.
+    const gapY0 = Math.min(Math.max(doorY0, toSlot.y1), toSlot.y2 - DOOR_WIDTH);
     const gapY1 = gapY0 + DOOR_WIDTH;
     const spanY0 = Math.min(doorY0, gapY0);
     const spanY1 = Math.max(doorY1, gapY1);
