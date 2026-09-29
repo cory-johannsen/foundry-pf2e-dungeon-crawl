@@ -13390,5 +13390,125 @@
     "name": "Flotsam Terror",
     "level": 4,
     "art": "flotsam-terror-lob.webp"
+  },
+  {
+    "id": "goldpebble_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "yD6d0C9wWQRPOq4T",
+    "name": "Goldpebble",
+    "level": 5,
+    "art": "goldpebble-lob.webp"
+  },
+  {
+    "id": "shui_gui_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "k5f4vITTc7mclQzH",
+    "name": "Shui Gui",
+    "level": 5,
+    "art": "shui-gui-lob.webp"
+  },
+  {
+    "id": "anadi_elder_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "bo3BDHT7P1IK7oLp",
+    "name": "Anadi Elder",
+    "level": 6,
+    "art": "anadi-elder-lob.webp"
+  },
+  {
+    "id": "asanbosam_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "As0M3PvmrR2055pk",
+    "name": "Asanbosam",
+    "level": 6,
+    "art": "asanbosam-lob.webp"
+  },
+  {
+    "id": "ethereal_sailor_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "F8AzuPOCcveWasza",
+    "name": "Ethereal Sailor",
+    "level": 6,
+    "art": "ethereal-sailor-lob.webp"
+  },
+  {
+    "id": "imperfect_automaton_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "N3OJ0wxik4wEgTg7",
+    "name": "Imperfect Automaton",
+    "level": 6,
+    "art": "imperfect-automaton-lob.webp"
+  },
+  {
+    "id": "rime_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "tnyD87evLcAWqMf9",
+    "name": "Rime Dragon (Young)",
+    "level": 6,
+    "art": "rime-dragon-young-lob.webp"
+  },
+  {
+    "id": "aurosrath_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "JBqs1ubClFxHETSa",
+    "name": "Aurosrath",
+    "level": 5,
+    "art": "aurosrath-lob.webp"
+  },
+  {
+    "id": "irriseni_owlbear_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Oefb1ZCYp2DolpZr",
+    "name": "Irriseni Owlbear",
+    "level": 5,
+    "art": "irriseni-owlbear-lob.webp"
+  },
+  {
+    "id": "karina_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "hbvxQn0T0m4WoAmZ",
+    "name": "Karina",
+    "level": 5,
+    "art": "karina-lob.webp"
+  },
+  {
+    "id": "rompo_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "8K5v5q9Y01hcSNug",
+    "name": "Rompo",
+    "level": 5,
+    "art": "rompo-lob.webp"
+  },
+  {
+    "id": "temteki_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7a57dwK5XrV78ajM",
+    "name": "Temteki",
+    "level": 5,
+    "art": "temteki-lob.webp"
+  },
+  {
+    "id": "charau_ka_butcher_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "QUyqY6JiZNkEyTnd",
+    "name": "Charau-ka Butcher",
+    "level": 6,
+    "art": "charau-ka-butcher-lob.webp"
+  },
+  {
+    "id": "lamp_blighter_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9DeZiBTu0jJNLyN3",
+    "name": "Lamp Blighter",
+    "level": 6,
+    "art": "lamp-blighter-lob.webp"
+  },
+  {
+    "id": "melfesh_monster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "G1jYZOjA3E3BqrIM",
+    "name": "Melfesh Monster",
+    "level": 6,
+    "art": "melfesh-monster-lob.webp"
   }
 ]
