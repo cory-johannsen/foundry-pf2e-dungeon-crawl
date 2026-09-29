@@ -12,6 +12,8 @@ function makeStubApi(pool) {
       calls.push(opts);
       return pool.filter((c) => {
         const traits = c.traits ?? [];
+        if (opts.packs && !opts.packs.includes(c.pack)) return false;
+        if ((opts.excludePacks ?? []).includes(c.pack)) return false;
         if (opts.minLevel != null && c.level < opts.minLevel) return false;
         if (opts.maxLevel != null && c.level > opts.maxLevel) return false;
         if ((opts.excludeTraits ?? []).some((t) => traits.includes(t)))
@@ -90,8 +92,10 @@ describe("resolveEncounterRoster", () => {
     expect(roster.foes).toHaveLength(2);
     expect(roster.foes[0].id).toBe("g");
     expect(roster.foes[1].id).toBe("g");
-    // Only one bestiary query for the whole group, not one per slot.
-    expect(api.calls).toHaveLength(1);
+    // One pick for the whole group, not one per slot: the ladder walks
+    // Monster Core, then the general packs, then all packs (where "p" is
+    // found) — 3 queries total, not 3 per slot.
+    expect(api.calls).toHaveLength(3);
   });
 
   it("expands countsAs into a higher count on a single foe entry", async () => {
@@ -297,9 +301,10 @@ describe("requireTrait (per-location restriction)", () => {
     });
     expect(roster.foes).toHaveLength(1);
     expect(roster.foes[0].id).toBe("g");
-    // Two failed attempts (Monster-Core-first, then full packs, both still
-    // requiring 'dragon') before the loosened final attempt succeeds.
-    expect(api.calls).toHaveLength(3);
+    // Three failed attempts (Monster-Core-first, then the general packs, then
+    // all packs, each still requiring 'dragon') before the loosened final
+    // attempt succeeds.
+    expect(api.calls).toHaveLength(4);
     expect(api.calls.at(-1).traits).toEqual([]);
     expect(api.calls.at(-1).requireTrait).toBe("undead");
   });
@@ -471,5 +476,55 @@ describe("resolveEncounterRoster — #144 severity cap", () => {
     });
     expect(partyOf5.foes).toHaveLength(3);
     expect(partyOf6.foes).toHaveLength(4);
+  });
+});
+
+describe("boss room pool", () => {
+  const CORE = "pf2e.pathfinder-monster-core";
+  const BESTIARY = "pf2e.pathfinder-bestiary";
+  const LOST = "pf2e.lost-omens-bestiary";
+  const m = { pack: CORE, id: "m", name: "M", level: 5, traits: [] };
+  const v = { pack: LOST, id: "v", name: "V", level: 5, traits: [] };
+  const b = { pack: BESTIARY, id: "b", name: "B", level: 5, traits: [] };
+  const one = { foes: [{ id: "s1", kind: "creature", levelOffset: 0 }] };
+  const run = (pool, resolved, isBoss) =>
+    resolveEncounterRoster({
+      resolved,
+      api: makeStubApi(pool),
+      partyLevel: 5,
+      rng: () => 0,
+      isBoss,
+    });
+
+  it("draws a boss room's creature from the non-general packs", async () => {
+    const roster = await run([m, v], one, true);
+    expect(roster.foes[0].id).toBe("v");
+  });
+
+  it("falls back to the normal ladder when no boss-pool creature fits", async () => {
+    const roster = await run([m], one, true);
+    expect(roster.foes[0].id).toBe("m");
+  });
+
+  it("keeps ordinary rooms on general packs, boss pool as last resort", async () => {
+    expect((await run([m, v], one, false)).foes[0].id).toBe("m");
+    expect((await run([v], one, false)).foes[0].id).toBe("v");
+  });
+
+  it("prefers the general packs over the boss pool for ordinary rooms", async () => {
+    const roster = await run([b, v], one, false);
+    expect(roster.foes[0].id).toBe("b");
+  });
+
+  it("marks only the first foe slot as boss", async () => {
+    const two = {
+      foes: [
+        { id: "s1", kind: "creature", levelOffset: 0 },
+        { id: "s2", kind: "creature", levelOffset: 0 },
+      ],
+    };
+    const roster = await run([m, v], two, true);
+    expect(roster.foes[0].id).toBe("v");
+    expect(roster.foes[1].id).toBe("m");
   });
 });

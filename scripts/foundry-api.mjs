@@ -253,6 +253,7 @@ export function makeFoundryApi(sceneRef = null) {
       speaksLanguage = false,
       packs = null,
       requireTrait = null,
+      excludePacks = [],
     } = {}) {
       packs ??= game.packs
         .filter(
@@ -260,10 +261,12 @@ export function makeFoundryApi(sceneRef = null) {
             p.documentName === "Actor" &&
             CREATURE_PACK_PATTERN.test(p.collection),
         )
+        .filter((p) => !excludePacks.includes(p.collection))
         .map((p) => p.collection);
       const found = [];
       const re = namePattern ? new RegExp(namePattern, "i") : null;
       for (const id of packs) {
+        if (excludePacks.includes(id)) continue;
         const pack = game.packs.get(id);
         if (!pack) continue;
         const index = await pack.getIndex({
