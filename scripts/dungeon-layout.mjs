@@ -1006,21 +1006,40 @@ export function cellBounds(rank, col) {
  * correct, size-agnostic test: does this room's own rect actually fall
  * short of its cell's full span, regardless of which named size it is.
  */
-export function cellMarginWalls(rect, rank, col, { openSide = null, openOffset = 0, openWidth = 0 } = {}) {
+/**
+ * Seals a room's grid-cell margin beyond its own rect (see original
+ * docblock above this function, unchanged — the L-shaped-margin
+ * reasoning, the #288 `rect.gw < cell.gw` fix, all still apply).
+ *
+ * #297: generalized from a single `{openSide, openOffset, openWidth}` to
+ * `openingsBySide` (`{ east?: [{offset, width}], south?: [{offset, width}]
+ * }`), so a side can carry the room's OWN outgoing gap and an independent
+ * FOREIGN pass-through gap (another edge's dogleg routed through this
+ * room's own margin) at once — needed because a foreign dogleg's lane can
+ * land on the same side as this room's own outgoing connection. Every
+ * existing call site passing a single opening is expressible as a
+ * one-element array on that side; this function's own test suite pins
+ * that the single-opening case produces byte-identical output to the old
+ * single-opening signature (see this task's own review focus).
+ */
+export function cellMarginWalls(rect, rank, col, openingsBySide = {}) {
   const cell = cellBounds(rank, col);
   const walls = [];
 
   const sealSide = (dir, hasMargin, along) => {
     if (!hasMargin) return;
-    if (openSide !== dir) {
-      walls.push(along(cell.gx, cell.gy, cell.gx + cell.gw, cell.gy + cell.gh));
-      return;
-    }
-    const gapStart = openOffset;
-    const gapEnd = openOffset + openWidth;
+    const openings = (openingsBySide[dir] ?? [])
+      .slice()
+      .sort((a, b) => a.offset - b.offset);
     const full = dir === 'east' ? cell.gh : cell.gw;
-    if (gapStart > 0) walls.push(along(cell.gx, cell.gy, cell.gx + cell.gw, cell.gy + cell.gh, 0, gapStart));
-    if (gapEnd < full) walls.push(along(cell.gx, cell.gy, cell.gx + cell.gw, cell.gy + cell.gh, gapEnd, full));
+    let cursor = 0;
+    for (const { offset, width } of openings) {
+      const gapStart = offset;
+      const gapEnd = offset + width;
+      if (gapStart > cursor) walls.push(along(cell.gx, cell.gy, cell.gx + cell.gw, cell.gy + cell.gh, cursor, gapStart));
+      cursor = Math.max(cursor, gapEnd);
+    }
+    if (cursor < full) walls.push(along(cell.gx, cell.gy, cell.gx + cell.gw, cell.gy + cell.gh, cursor, full));
   };
 
   const eastLine = (cgx, cgy, cgx2, cgy2, from = 0, to = cgy2 - cgy) =>

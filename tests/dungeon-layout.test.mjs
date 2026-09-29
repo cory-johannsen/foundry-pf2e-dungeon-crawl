@@ -1154,7 +1154,7 @@ describe('cellMarginWalls', () => {
   // misaligned gap) — a player could see and walk straight through it.
   it('seals both the east and south margin for a ROOM_SIZE_LARGE room, one CORRIDOR_LEN wide, with no open connection', () => {
     const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_LARGE, gh: ROOM_SIZE_LARGE };
-    const walls = cellMarginWalls(rect, 0, 0);
+    const walls = cellMarginWalls(rect, 0, 0, {});
     const east = walls.find((w) => w.dir === 'east');
     const south = walls.find((w) => w.dir === 'south');
     expect(east).toEqual({ dir: 'east', x1: 300 + COLUMN_STRIDE, y1: 0, x2: 300 + COLUMN_STRIDE, y2: ROW_STRIDE });
@@ -1164,7 +1164,7 @@ describe('cellMarginWalls', () => {
 
   it('leaves a gap in a ROOM_SIZE_LARGE room\'s own south margin where a connection crosses it', () => {
     const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_LARGE, gh: ROOM_SIZE_LARGE };
-    const walls = cellMarginWalls(rect, 0, 0, { openSide: 'south', openOffset: 6, openWidth: DOOR_WIDTH });
+    const walls = cellMarginWalls(rect, 0, 0, { south: [{ offset: 6, width: DOOR_WIDTH }] });
     const southWalls = walls.filter((w) => w.dir === 'south');
     expect(southWalls.length).toBe(2); // two segments flanking a 1-unit gap inside a 1-unit-wide margin
     for (const w of southWalls) {
@@ -1174,7 +1174,7 @@ describe('cellMarginWalls', () => {
 
   it('seals both the east and south margin for a small room with no open connection', () => {
     const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_SMALL, gh: ROOM_SIZE_SMALL };
-    const walls = cellMarginWalls(rect, 0, 0);
+    const walls = cellMarginWalls(rect, 0, 0, {});
     const east = walls.find((w) => w.dir === 'east');
     const south = walls.find((w) => w.dir === 'south');
     expect(east).toEqual({ dir: 'east', x1: 300 + COLUMN_STRIDE, y1: 0, x2: 300 + COLUMN_STRIDE, y2: ROW_STRIDE });
@@ -1183,7 +1183,7 @@ describe('cellMarginWalls', () => {
 
   it('leaves a gap in the east margin wall where a connection crosses it', () => {
     const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_SMALL, gh: ROOM_SIZE_SMALL };
-    const walls = cellMarginWalls(rect, 0, 0, { openSide: 'east', openOffset: 4, openWidth: 2 });
+    const walls = cellMarginWalls(rect, 0, 0, { east: [{ offset: 4, width: 2 }] });
     const eastWalls = walls.filter((w) => w.dir === 'east');
     // Two remaining solid segments flanking the gap, never spanning across it.
     expect(eastWalls.length).toBe(2);
@@ -1194,7 +1194,7 @@ describe('cellMarginWalls', () => {
 
   it('omits a flanking segment entirely when the gap reaches a cell corner', () => {
     const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_SMALL, gh: ROOM_SIZE_SMALL };
-    const walls = cellMarginWalls(rect, 0, 0, { openSide: 'south', openOffset: 0, openWidth: ROOM_SIZE_SMALL });
+    const walls = cellMarginWalls(rect, 0, 0, { south: [{ offset: 0, width: ROOM_SIZE_SMALL }] });
     const southWalls = walls.filter((w) => w.dir === 'south');
     expect(southWalls.length).toBe(1); // only the segment from the gap's end to the cell's far corner
   });
@@ -1233,8 +1233,8 @@ describe('cellMarginWalls', () => {
     for (const roomSize of [ROOM_SIZE_SMALL, ROOM_SIZE_LARGE]) {
       for (const opening of [
         {},
-        { openSide: 'east', openOffset: 2, openWidth: roomSize === ROOM_SIZE_LARGE ? DOOR_WIDTH : 2 },
-        { openSide: 'south', openOffset: 0, openWidth: roomSize === ROOM_SIZE_LARGE ? DOOR_WIDTH : 3 },
+        { east: [{ offset: 2, width: roomSize === ROOM_SIZE_LARGE ? DOOR_WIDTH : 2 }] },
+        { south: [{ offset: 0, width: roomSize === ROOM_SIZE_LARGE ? DOOR_WIDTH : 3 }] },
       ]) {
         const rank = 1;
         const col = 1;
@@ -1245,9 +1245,9 @@ describe('cellMarginWalls', () => {
           const hasMargin = dir === 'east' ? roomSize < cell.gw : roomSize < cell.gh;
           expect(hasMargin).toBe(true); // sanity: both sizes have a real margin post-#288 (LARGE: CORRIDOR_LEN wide)
           const wallsOnSide = margin.filter((w) => w.dir === dir);
-          const isOpenSide = opening.openSide === dir;
-          const openStart = isOpenSide ? opening.openOffset : -1;
-          const openEnd = isOpenSide ? opening.openOffset + opening.openWidth : -1;
+          const openings = opening[dir] ?? [];
+          const openStart = openings.length > 0 ? openings[0].offset : -1;
+          const openEnd = openings.length > 0 ? openings[0].offset + openings[0].width : -1;
           expect(sideFullyAccountedFor(dir, cell, wallsOnSide, openStart, openEnd)).toBe(true);
         }
       }
@@ -1273,12 +1273,63 @@ describe('cellMarginWalls', () => {
         const rect = roomRect(seed, roomId, rank, col);
         if (rect.gw !== ROOM_SIZE_LARGE) continue;
         totalLargeRooms += 1;
-        const walls = cellMarginWalls(rect, rank, col);
+        const walls = cellMarginWalls(rect, rank, col, {});
         expect(walls.some((w) => w.dir === 'east')).toBe(true);
         expect(walls.some((w) => w.dir === 'south')).toBe(true);
       }
     }
     expect(totalLargeRooms).toBeGreaterThan(200); // sanity: real LARGE rooms were actually exercised
+  });
+});
+
+describe('cellMarginWalls — multiple openings per side', () => {
+  it('seals a side with two non-overlapping openings into three segments', () => {
+    const rect = { gx: 300, gy: 0, gw: 6, gh: 6 };
+    const walls = cellMarginWalls(rect, 0, 0, {
+      east: [{ offset: 1, width: 1 }, { offset: 4, width: 1 }],
+    });
+    const eastWalls = walls.filter((w) => w.dir === 'east').sort((a, b) => a.y1 - b.y1);
+    // cell is (300,0)-(313,13); rect is 6x6, so east margin runs y:[0,13] at x:313.
+    // Two 1-wide gaps at y=1 and y=4 split the east side into three segments:
+    // [0,1], [2,4], [5,13].
+    expect(eastWalls).toEqual([
+      { dir: 'east', x1: 313, y1: 0, x2: 313, y2: 1 },
+      { dir: 'east', x1: 313, y1: 2, x2: 313, y2: 4 },
+      { dir: 'east', x1: 313, y1: 5, x2: 313, y2: 13 },
+    ]);
+  });
+
+  it('with a single opening, matches the old single-opening call exactly', () => {
+    const rect = { gx: 300, gy: 0, gw: 6, gh: 6 };
+    const oldStyle = cellMarginWalls(rect, 0, 0, { east: [{ offset: 2, width: 1 }] });
+    // Same result whether expressed as the old openSide/openOffset/openWidth
+    // shape or the new list-of-one shape — this pins the generalization as
+    // a strict superset, not a behavior change, for the common case.
+    expect(oldStyle).toEqual([
+      { dir: 'east', x1: 313, y1: 0, x2: 313, y2: 2 },
+      { dir: 'east', x1: 313, y1: 3, x2: 313, y2: 13 },
+      { dir: 'south', x1: 300, y1: 13, x2: 313, y2: 13 },
+    ]);
+  });
+
+  it('with no openings on a margin-having side, seals it fully (unchanged behavior)', () => {
+    const rect = { gx: 300, gy: 0, gw: 6, gh: 6 };
+    const walls = cellMarginWalls(rect, 0, 0, {});
+    expect(walls).toEqual([
+      { dir: 'east', x1: 313, y1: 0, x2: 313, y2: 13 },
+      { dir: 'south', x1: 300, y1: 13, x2: 313, y2: 13 },
+    ]);
+  });
+
+  it('a LARGE room (no margin on a side) ignores openings for that side', () => {
+    const rect = { gx: 300, gy: 0, gw: 12, gh: 12 };
+    const walls = cellMarginWalls(rect, 0, 0, { east: [{ offset: 0, width: 1 }] });
+    // gw === cell.gw (13? no -- LARGE=12, cell=13, margin=1, so east DOES
+    // have margin here) -- use gw===cell.gw case instead: a room exactly
+    // filling the cell has no margin on that side at all.
+    const fullRect = { gx: 300, gy: 0, gw: 13, gh: 13 };
+    const noMarginWalls = cellMarginWalls(fullRect, 0, 0, { east: [{ offset: 0, width: 1 }] });
+    expect(noMarginWalls.filter((w) => w.dir === 'east')).toEqual([]);
   });
 });
 
@@ -1583,7 +1634,7 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
     const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
     const { doorWall } = buildEdgeCorridor(seed, 'A', 'B', fromRect, toRect, fromPos, toPos, 'south', toSlot, occupiedCells);
     const marginWalls = cellMarginWalls(fromRect, fromPos.rank, fromPos.col, {
-      openSide: 'south', openOffset: offset, openWidth: width,
+      south: [{ offset, width }],
     }).filter((w) => w.dir === 'south');
     // The margin wall's gap (the space between its two solid segments)
     // must span exactly [doorWall.x1, doorWall.x2].
@@ -1637,7 +1688,7 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
     const toSlot = doorSlotsForFace(toRect, 1, 'west')[0];
     const { doorWall } = buildEdgeCorridor(seed, 'A', 'B', fromRect, toRect, fromPos, toPos, 'east', toSlot, {}, 'west');
     const marginWalls = cellMarginWalls(fromRect, fromPos.rank, fromPos.col, {
-      openSide: 'east', openOffset: offset, openWidth: width,
+      east: [{ offset, width }],
     }).filter((w) => w.dir === 'east');
     expect(marginWalls).toHaveLength(2);
     const gapY0 = Math.min(...marginWalls.map((w) => w.y2));
@@ -1673,7 +1724,7 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
     const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
     const result = buildEdgeCorridor(seed, 'room-entry', 'room-room-entry-0', fromRect, toRect, fromPos, toPos, 'south', toSlot, {});
     const { offset, width } = outgoingMarginOffset(seed, 'room-entry', 'room-room-entry-0', 'south', fromRect, fromPos, toPos, {}, 'north');
-    const marginWalls = cellMarginWalls(fromRect, 0, 0, { openSide: 'south', openOffset: offset, openWidth: width })
+    const marginWalls = cellMarginWalls(fromRect, 0, 0, { south: [{ offset, width }] })
       .filter((w) => w.dir === 'south');
     // The margin wall's own gap (space between its solid segments) must
     // fully contain the target's own real door interval.
@@ -1720,7 +1771,7 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
     const toSlot = doorSlotsForFace(toRect, 3, 'north')[2]; // the slot farthest from the source's own column origin
     const result = buildEdgeCorridor(seed, 'merge-source', 'merge-target', fromRect, toRect, fromPos, toPos, 'south', toSlot, {});
     const { offset, width } = outgoingMarginOffset(seed, 'merge-source', 'merge-target', 'south', fromRect, fromPos, toPos, {}, 'north');
-    const marginWalls = cellMarginWalls(fromRect, 0, 0, { openSide: 'south', openOffset: offset, openWidth: width })
+    const marginWalls = cellMarginWalls(fromRect, 0, 0, { south: [{ offset, width }] })
       .filter((w) => w.dir === 'south');
     const gapStart = Math.min(...marginWalls.map((w) => w.x2));
     const gapEnd = Math.max(...marginWalls.map((w) => w.x1));
@@ -1886,7 +1937,7 @@ describe('corridor routing regression sweep (#174)', () => {
           );
           const marginWalls = cellMarginWalls(
             fromRect, positionByRoomId[fromId].rank, positionByRoomId[fromId].col,
-            { openSide: face, openOffset: offset, openWidth: width },
+            { [face]: [{ offset, width }] },
           ).filter((w) => w.dir === face);
           totalMarginedConnections += 1;
           // South's gap runs along x; east's runs along y. #174 Task 6
@@ -2022,7 +2073,7 @@ describe('corridor routing regression sweep (#174)', () => {
           );
           const marginWalls = cellMarginWalls(
             fromRect, positionByRoomId[fromId].rank, positionByRoomId[fromId].col,
-            { openSide: face, openOffset: offset, openWidth: width },
+            { [face]: [{ offset, width }] },
           ).filter((w) => w.dir === face);
           const cell = cellBounds(positionByRoomId[fromId].rank, positionByRoomId[fromId].col);
           const cellStart = face === 'south' ? cell.gx : cell.gy;
