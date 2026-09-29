@@ -153,6 +153,7 @@ export async function generateEncounter({
   locationTag = null,
   skipThemeDialog = false,
   scene: sceneOverride = null,
+  isBoss = false,
 } = {}) {
   const scene = sceneOverride ?? canvas?.scene;
   if (!scene) {
@@ -200,6 +201,7 @@ export async function generateEncounter({
     levelOffsetBias,
     requireTrait: locationTag,
     partySize,
+    isBoss,
   });
 
   await postEncounterChatCard(api, roster);
