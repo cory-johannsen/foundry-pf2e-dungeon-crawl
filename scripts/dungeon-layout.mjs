@@ -554,10 +554,13 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // target when they're 2 ranks apart in the same column on a null
     // path -- if that cell holds a real room (not this edge's own
     // source/target) whose own footprint the fixed doorX0 column would
-    // cross, reroute through that room's own east margin instead of
-    // straight through it. A larger rank gap always has more than one
-    // intermediate cell and is left on the pre-existing direct-line
-    // fallback unconditionally (#297's own documented scope limit).
+    // cross, reroute through that room's own east margin (a vertical
+    // "lane"), then jog sideways again through that same room's own south
+    // margin (turn 2 -- see `legTop` below) to reach wherever the
+    // target's real door lands, instead of cutting straight through the
+    // room. A larger rank gap always has more than one intermediate cell
+    // and is left on the pre-existing direct-line fallback unconditionally
+    // (#297's own documented scope limit).
     let dogleg = null;
     let foreignOpening = null;
     if (!path && toPos.rank === fromPos.rank + 2) {
@@ -586,10 +589,29 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
           const turnGx = Math.min(doorX0, laneX0);
           const turnGx2 = Math.max(doorX1, laneX1);
           const turnBottom = faceY + DOOR_WIDTH;
-          dogleg = { laneX0, laneX1, turnGx, turnGx2, turnBottom, blockCell };
+          // Review round 1 fix: the lane's own vertical run can't reach
+          // all the way to corridorEndY and stop -- that leaves it
+          // sealed off from wherever the target's real door (gapX0/gapX1
+          // below) actually lands, whenever the lane's own x doesn't
+          // happen to coincide with the door (measured: 84% of dogleg
+          // activations in a 2,000-seed sweep, including this file's own
+          // dogleg-repro-seed-0 test). A second turn, inside the
+          // BLOCKING room's own south margin band (>= DOOR_WIDTH deep,
+          // same invariant as every other margin in this file), jogs the
+          // lane sideways to the real door before crossing into the
+          // target's cell.
+          const legTop = corridorEndY - DOOR_WIDTH;
+          dogleg = { laneX0, laneX1, turnGx, turnGx2, turnBottom, legTop };
           foreignOpening = {
             roomId: occupantId,
-            side: 'east',
+            // Review round 1 fix: the lane travels vertically through the
+            // blocking room's own EAST margin band but never actually
+            // crosses that room's own east wall -- it stays inside the
+            // cell throughout. It crosses the blocking room's own SOUTH
+            // wall (via the turn-2 jog above) to continue into the
+            // target's cell below, so the opening this creates is on the
+            // blocking room's SOUTH side, not its east.
+            side: 'south',
             offset: laneX0 - blockCell.gx,
             width: DOOR_WIDTH,
           };
@@ -607,6 +629,14 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     const gapX1 = gapX0 + DOOR_WIDTH;
     const spanX0 = dogleg ? dogleg.turnGx : Math.min(doorX0, gapX0);
     const spanX1 = dogleg ? dogleg.turnGx2 : Math.max(doorX1, gapX1);
+    // Review round 1 fix: turn 2 (the jog inside the blocker's own south
+    // margin, see `legTop` above) can reach wider than `toSlot`'s own
+    // bounds whenever `laneX0`/`laneX1` sit outside the target's slot --
+    // exactly the case the turn exists to handle. The target-face capping
+    // walls below must widen to seal turn 2's own full reach, not just
+    // `toSlot`'s bounds, or its own outer edge stays open past the wall.
+    const targetCapX0 = dogleg ? Math.min(toSlot.x1, dogleg.laneX0, gapX0) : toSlot.x1;
+    const targetCapX1 = dogleg ? Math.max(toSlot.x2, dogleg.laneX1, gapX1) : toSlot.x2;
     // #294 fix round: the new side walls below must never reach past the
     // SOURCE's own cell boundary — see their own comment for why. Equals
     // corridorEndY exactly in the found-path (adjacent) case; strictly
@@ -627,9 +657,11 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       // merge room with 2+ real parents. `gapX0`/`gapX1` are already
       // guaranteed within `[toSlot.x1, toSlot.x2]` (#230's own clamp),
       // so these two walls need no `Math.max`/`Math.min` at all — just
-      // the slot's own edges.
-      { x1: toSlot.x1, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
-      { x1: gapX1, y1: corridorEndY, x2: toSlot.x2, y2: corridorEndY },
+      // the slot's own edges (`targetCapX0`/`targetCapX1`, which equal
+      // `toSlot.x1`/`toSlot.x2` outside a dogleg — see their own comment
+      // above for the dogleg-widened case).
+      { x1: targetCapX0, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
+      { x1: gapX1, y1: corridorEndY, x2: targetCapX1, y2: corridorEndY },
       // #294 fix: the two walls above only ever cap the corridor's own
       // depth HORIZONTALLY (at the source's own face and the target's
       // own face) — nothing previously closed its SIDES. A token
@@ -675,14 +707,28 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
             // containment walls.
             { x1: dogleg.turnGx, y1: dogleg.turnBottom, x2: dogleg.laneX0, y2: dogleg.turnBottom },
             { x1: dogleg.laneX1, y1: dogleg.turnBottom, x2: dogleg.turnGx2, y2: dogleg.turnBottom },
-            // Contain the lane's own sides for its full remaining run,
-            // through the rest of the source's own margin AND the entire
-            // blocking cell (corridorEndY, not sideWallEndY -- #297's own
-            // dogleg is specifically the case #294 left uncontained,
-            // scoped exactly to the lane's own real floor, not a wider
-            // guess).
-            { x1: dogleg.laneX0, y1: dogleg.turnBottom, x2: dogleg.laneX0, y2: corridorEndY },
-            { x1: dogleg.laneX1, y1: dogleg.turnBottom, x2: dogleg.laneX1, y2: corridorEndY },
+            // Contain the lane's own sides for its own remaining run,
+            // through the rest of the source's own margin AND into the
+            // blocking cell -- but only down to `legTop`, not
+            // `corridorEndY`: below `legTop` the lane bends sideways into
+            // turn 2 (below), so a wall running the lane's own x all the
+            // way to `corridorEndY` would wall the lane off from that
+            // turn instead of just containing it (review round 1 fix —
+            // this was the dead-end bug: the original single-turn dogleg
+            // never anticipated a SECOND turn sharing the same band).
+            { x1: dogleg.laneX0, y1: dogleg.turnBottom, x2: dogleg.laneX0, y2: dogleg.legTop },
+            { x1: dogleg.laneX1, y1: dogleg.turnBottom, x2: dogleg.laneX1, y2: dogleg.legTop },
+            // Cap turn 2's own top edge (at legTop) except where the lane
+            // continues down into it -- same "seal everything except the
+            // declared opening" shape as the pair above. Turn 2's own
+            // south edge (at corridorEndY) is sealed by the two
+            // `targetCapX0`/`targetCapX1` walls earlier in this array,
+            // except at the real door (gapX0..gapX1); turn 2's own east/
+            // west open ends lead only into the source room's own margin
+            // band (via turnGx/turnGx2's own containment above) or the
+            // blocking room's own floor edge, never open space.
+            { x1: Math.min(dogleg.laneX0, gapX0), y1: dogleg.legTop, x2: dogleg.laneX0, y2: dogleg.legTop },
+            { x1: dogleg.laneX1, y1: dogleg.legTop, x2: Math.max(dogleg.laneX1, gapX1), y2: dogleg.legTop },
           ]
         : [
             { x1: spanX0, y1: faceY, x2: spanX0, y2: sideWallEndY },
@@ -700,7 +746,13 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       corridorSegments: dogleg
         ? [
             { gx: dogleg.turnGx, gy: faceY, gw: dogleg.turnGx2 - dogleg.turnGx, gh: DOOR_WIDTH },
-            { gx: dogleg.laneX0, gy: dogleg.turnBottom, gw: DOOR_WIDTH, gh: corridorEndY - dogleg.turnBottom },
+            { gx: dogleg.laneX0, gy: dogleg.turnBottom, gw: DOOR_WIDTH, gh: dogleg.legTop - dogleg.turnBottom },
+            {
+              gx: Math.min(dogleg.laneX0, gapX0),
+              gy: dogleg.legTop,
+              gw: Math.max(dogleg.laneX1, gapX1) - Math.min(dogleg.laneX0, gapX0),
+              gh: DOOR_WIDTH,
+            },
           ]
         : [{ gx: spanX0, gy: faceY, gw: spanX1 - spanX0, gh: corridorEndY - faceY }],
       transitCells: [],
