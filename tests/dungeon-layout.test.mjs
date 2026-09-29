@@ -6,7 +6,7 @@ import {
   roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, buildEdgeCorridor, incomingFaceFor, doorSlotsForFace,
   cellBounds, projectOntoSide, findCorridorPath, INITIAL_GX, cellMarginWalls, transitCellCrossing,
   transitCellContainmentWalls, CORRIDOR_LEN, outgoingMarginOffset, pendingForeignMarginOpenings,
-  marginBandApproach,
+  marginBandApproach, findCoParentCollision,
 } from '../scripts/dungeon-layout.mjs';
 import { buildRoomGraph, attachHiddenPaths } from '../scripts/dungeon-deck.mjs';
 
@@ -3327,5 +3327,36 @@ describe('#297 regression: exact live repro (issue #297, seed 1790705053246-4vdg
     // opening, not that it happened to produce a wall that just doesn't
     // reach the midpoint for some other reason.
     expect(southWalls.length).toBeGreaterThan(1);
+  });
+});
+
+describe('findCoParentCollision — #297 Round 2', () => {
+  it('finds the matching real connection index when the blocker is a co-parent', () => {
+    const incomingConnections = [
+      { sourceId: 'blocker-room', hidden: false },
+      { sourceId: 'from-room', hidden: false },
+    ];
+    const foreignOpening = { roomId: 'blocker-room', side: 'south', offset: 5, width: 2 };
+    expect(findCoParentCollision(foreignOpening, incomingConnections)).toBe(0);
+  });
+
+  it('returns -1 when there is no blocker', () => {
+    const incomingConnections = [{ sourceId: 'from-room', hidden: false }];
+    expect(findCoParentCollision(null, incomingConnections)).toBe(-1);
+  });
+
+  it('returns -1 when the blocker is unrelated to this target (Round 1\'s own unrelated-blocker case)', () => {
+    const incomingConnections = [{ sourceId: 'from-room', hidden: false }];
+    const foreignOpening = { roomId: 'some-unrelated-room', side: 'south', offset: 5, width: 2 };
+    expect(findCoParentCollision(foreignOpening, incomingConnections)).toBe(-1);
+  });
+
+  it('returns -1 when the matching connection is HIDDEN, not a real co-parent (Review Focus item 5)', () => {
+    const incomingConnections = [
+      { sourceId: 'detour-room', hidden: true },
+      { sourceId: 'from-room', hidden: false },
+    ];
+    const foreignOpening = { roomId: 'detour-room', side: 'south', offset: 5, width: 2 };
+    expect(findCoParentCollision(foreignOpening, incomingConnections)).toBe(-1);
   });
 });

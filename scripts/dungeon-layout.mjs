@@ -1177,6 +1177,34 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
 }
 
 /**
+ * Whether a connection's own candidate corridor's `foreignOpening` (a
+ * #297 Round 1 dogleg trigger) points at ANOTHER of the same target
+ * room's own real parents -- the #297 Round 2 collision this file's own
+ * spec calls out: the blocking room turns out to be the target's own
+ * co-parent, whose own corridor already occupies the space Round 1's own
+ * dogleg would draw new geometry through. Returns that co-parent's own
+ * index in `incomingConnections` (so the caller can look up its own
+ * already-computed pass-1 result), or -1 for "no collision, use the
+ * candidate's own geometry unchanged" -- covers both "no dogleg at all"
+ * and "dogleg fired, but the blocker is genuinely unrelated" (Round 1's
+ * own original, still-valid case).
+ *
+ * A HIDDEN connection's own sourceId is never treated as a co-parent to
+ * ride along, even if it happens to match `roomId` -- its own corridor
+ * may not be safely reusable (its own door stays sealed/unrevealed until
+ * a later game-state event, not simply "already built"), and the whole
+ * point of Round 1's own dungeonHiddenDoorForEdge/dungeonDoorFromRoomId
+ * split is that a hidden connection's own geometry is handled by a
+ * completely separate mechanism this file does not touch.
+ */
+export function findCoParentCollision(candidateForeignOpening, incomingConnections) {
+  if (!candidateForeignOpening) return -1;
+  return incomingConnections.findIndex(
+    (c) => !c.hidden && c.sourceId === candidateForeignOpening.roomId,
+  );
+}
+
+/**
  * Every foreign margin opening `roomId`'s own `cellMarginWalls` call must
  * leave, for OTHER edges whose #297 dogleg routes through this room's own
  * margin band. A pure scan over the whole graph's real edges (`edges`,
