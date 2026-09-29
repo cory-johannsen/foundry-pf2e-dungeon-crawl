@@ -13270,5 +13270,125 @@
     "name": "Tidepool Dragonet",
     "level": 3,
     "art": "tidepool-dragonet-lob.webp"
+  },
+  {
+    "id": "anadi_sage_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "IWk8dWUf4Q4D8iww",
+    "name": "Anadi Sage",
+    "level": 4,
+    "art": "anadi-sage-lob.webp"
+  },
+  {
+    "id": "biloko_veteran_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "rrJqsVeBKizuyqRY",
+    "name": "Biloko Veteran",
+    "level": 4,
+    "art": "biloko-veteran-lob.webp"
+  },
+  {
+    "id": "charming_scoundrel_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "EMl8hARVJk8SNVyW",
+    "name": "Charming Scoundrel",
+    "level": 4,
+    "art": "charming-scoundrel-lob.webp"
+  },
+  {
+    "id": "draft_lizard_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "AbaAJaz8p6sSsaqy",
+    "name": "Draft Lizard",
+    "level": 4,
+    "art": "draft-lizard-lob.webp"
+  },
+  {
+    "id": "gau_cho_rong_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "KcwFM5tI2R4jDalx",
+    "name": "Gau Cho Rong",
+    "level": 4,
+    "art": "gau-cho-rong-lob.webp"
+  },
+  {
+    "id": "graul_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "IGoJDxjMiADXa1bm",
+    "name": "Graul",
+    "level": 4,
+    "art": "graul-lob.webp"
+  },
+  {
+    "id": "gutaki_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "WEBwqj2hocAzx09L",
+    "name": "Gutaki",
+    "level": 4,
+    "art": "gutaki-lob.webp"
+  },
+  {
+    "id": "hellknight_armiger_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "UuPPceVcGk1RwSbB",
+    "name": "Hellknight Armiger",
+    "level": 4,
+    "art": "hellknight-armiger-lob.webp"
+  },
+  {
+    "id": "kashrishi_evaluator_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "fGZeQOarR6Im7Lnk",
+    "name": "Kashrishi Evaluator",
+    "level": 4,
+    "art": "kashrishi-evaluator-lob.webp"
+  },
+  {
+    "id": "rain_scribe_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "2SBKFCog4JY3WrOW",
+    "name": "Rain-Scribe",
+    "level": 4,
+    "art": "rain-scribe-lob.webp"
+  },
+  {
+    "id": "shroudwing_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "hqcLqrv4W6QBSgAa",
+    "name": "Shroudwing",
+    "level": 4,
+    "art": "shroudwing-lob.webp"
+  },
+  {
+    "id": "virtuous_defender_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "bc1jeTvmzKeYGVw9",
+    "name": "Virtuous Defender",
+    "level": 4,
+    "art": "virtuous-defender-lob.webp"
+  },
+  {
+    "id": "changeling_hellknight_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "95IcOUvxABvj5lvo",
+    "name": "Changeling Hellknight",
+    "level": 4,
+    "art": "changeling-hellknight-lob.webp"
+  },
+  {
+    "id": "pathfinder_field_agent_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "VkG5yl9xcmziwpQD",
+    "name": "Pathfinder Field Agent",
+    "level": 4,
+    "art": "pathfinder-field-agent-lob.webp"
+  },
+  {
+    "id": "flotsam_terror_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "hvVtk1sj7OfC9V70",
+    "name": "Flotsam Terror",
+    "level": 4,
+    "art": "flotsam-terror-lob.webp"
   }
 ]

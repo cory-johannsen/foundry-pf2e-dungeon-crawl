@@ -4958,6 +4958,51 @@ export const MONSTER_ART = [
   { id: 'ulgrem-lurann-lob', file: 'ulgrem-lurann-lob', dir: 'assets/creature-art',
     prompt: 'A hulking amphibious beast with slick blue-green scaled hide, a broad frog-like mouth of jagged teeth, webbed clawed hands, small dull yellow eyes, hunched heavy shoulders, dripping wet',
     avoid: 'cute, cartoon, water, swamp scenery, human' },
+  { id: 'anadi-sage-lob', file: 'anadi-sage-lob', dir: 'assets/creature-art',
+    prompt: "An anadi sage in natural spider-kin form, slender humanoid torso with four arms and a spider's abdomen behind, multiple dark eyes, chitinous plating in mottled brown and bone, one hand raised with a soft glowing green magical light, holding a gnarled staff, calm wise posture",
+    avoid: 'human in costume, spiderweb background, forest, nudity' },
+  { id: 'biloko-veteran-lob', file: 'biloko-veteran-lob', dir: 'assets/creature-art',
+    prompt: 'A veteran biloko fey with a crocodile-like snout of iron-sharp teeth, gnarled dark bark-like skin covered in old scars, small hunched body, wearing a necklace of trophy teeth, gripping a notched spear, fierce cunning stare',
+    avoid: 'cute, elf, trees, forest background, jungle scenery, horns' },
+  { id: 'changeling-hellknight-lob', file: 'changeling-hellknight-lob', dir: 'assets/creature-art',
+    prompt: 'A changeling Hellknight in dark spiked black-iron plate armor with a faceless visored helm pushed back, pale grey skin and hag-touched sharp features, one crimson-and-black tabard with a stern sigil, gripping a longsword, disciplined lawful stance',
+    avoid: 'cartoon, nudity, castle scenery, fire, demon, white cloak on ground, white background patches, ground, floor' },
+  { id: 'charming-scoundrel-lob', file: 'charming-scoundrel-lob', dir: 'assets/creature-art',
+    prompt: 'A handsome gnome rogue with an enormous swooping bright red coiffure, flashy layered costume with a plumed hat, gold buttons and a billowing cravat, a rapier in one hand and a cocky wink, dramatic pose',
+    avoid: 'cartoon, child, dwarf, scenery, nudity' },
+  { id: 'draft-lizard-lob', file: 'draft-lizard-lob', dir: 'assets/creature-art',
+    prompt: 'A stout hauling lizard with checkered gold and white scales, a broad powerful back fitted with a leather load harness, thick short legs, strong wide jaws, calm heavy stance',
+    avoid: 'cute, dragon, dinosaur wings, rider, scenery, cave background' },
+  { id: 'flotsam-terror-lob', file: 'flotsam-terror-lob', dir: 'assets/creature-art',
+    prompt: "A single towering humanoid-shaped undead monster assembled from splintered driftwood planks, snapped beams and knotted rope, wrapped in dripping seaweed, pale drowned faces pressed into its chest, long arms of waterlogged hands, a ghostly green glow in its hollow eye sockets, standing upright like a creature",
+    avoid: 'ship, boat, hull, mast, sails, sailing ship, wreck scene, ocean, sea, water, waves, green background, green mist, fog, swamp, beach, sky, horizon, scenery, water surface, reflection' },
+  { id: 'gau-cho-rong-lob', file: 'gau-cho-rong-lob', dir: 'assets/creature-art',
+    prompt: 'A lean predatory beast with a long low body, patchy dark coat and exposed ribs, long clawed forelimbs, a narrow snarling muzzle with too many teeth, pale burning eyes, stalking crouch',
+    avoid: 'cute, dog, wolf, pet, scenery' },
+  { id: 'graul-lob', file: 'graul-lob', dir: 'assets/creature-art',
+    prompt: 'A graul, a pale blind cave ambush predator, hairless grey-white skin stretched over a wiry frame, long thin limbs with hooked claws, a blank eyeless face with a wide sensing mouth of needle teeth, crouched waiting to pounce',
+    avoid: 'cute, humanoid clothing, cave scenery, stalactites, rocks' },
+  { id: 'gutaki-lob', file: 'gutaki-lob', dir: 'assets/creature-art',
+    prompt: 'A gutaki, a large aquatic cephalopod with a deep reddish-purple mantle, fearsome ice-blue eyes, and a ring of thick barbed tentacles, cruelly hooked suckers, coiled menacingly',
+    avoid: 'cute, kraken ship, water, ocean scenery, bubbles, fish' },
+  { id: 'hellknight-armiger-lob', file: 'hellknight-armiger-lob', dir: 'assets/creature-art',
+    prompt: 'A dwarf woman Hellknight armiger in heavy spiked iron plate armor, open-faced helm, braided beard-less stern face, a black-and-red order sigil on her breastplate, wielding a heavy spiked flail, braced disciplined stance',
+    avoid: 'cartoon, nudity, castle scenery, fire' },
+  { id: 'kashrishi-evaluator-lob', file: 'kashrishi-evaluator-lob', dir: 'assets/creature-art',
+    prompt: 'A kashrishi evaluator, a calm robed humanoid with faceted crystalline growths along the shoulders, cheeks and forehead, a softly glowing psychic third-eye mark on the brow, hands folded, appraising gaze, flowing dark and silver robes',
+    avoid: 'cartoon, mage tower, scenery, gems piles, nudity' },
+  { id: 'pathfinder-field-agent-lob', file: 'pathfinder-field-agent-lob', dir: 'assets/creature-art',
+    prompt: 'A half-elf woman Pathfinder field agent in practical travel gear, a worn leather jacket, satchel and coiled rope, a short rapier at her hip, a bedroll strapped to her back, alert confident look, slightly pointed ears',
+    avoid: 'cartoon, nudity, maps scenery, ruins background, cliff, rocks, sky, cream background, hills, glowing magic, ground' },
+  { id: 'rain-scribe-lob', file: 'rain-scribe-lob', dir: 'assets/creature-art',
+    prompt: 'A sharp-eyed half-elf rain-scribe in weather-beaten green and brown travel gear that blends with the wilds, a hood partly raised, holding an elaborately carved walking staff with leaf motifs, a small satchel of scrolls at her side',
+    avoid: 'cartoon, nudity, rain scenery, forest background, storm' },
+  { id: 'shroudwing-lob', file: 'shroudwing-lob', dir: 'assets/creature-art',
+    prompt: 'A shroudwing, a thick-bodied long-legged black bird standing four to five feet tall with a huge eight-foot spread of black wings half opened, clouded milky white eyes, and a hooked obsidian bill, menacing stalking pose',
+    avoid: 'cute, crow, parrot, feathers scattered, sky, tree, scenery' },
+  { id: 'virtuous-defender-lob', file: 'virtuous-defender-lob', dir: 'assets/creature-art',
+    prompt: 'A tall grim-faced Lastwall knight, a virtuous defender in well-worn dented plate armor, a mighty tower shield with a faded white and silver sigil, a longsword lowered ready, calm resolute stance, a tattered surcoat',
+    avoid: 'cartoon, nudity, castle scenery, fire, demon' },
 ];
 
 /**
@@ -5108,7 +5153,7 @@ else:
 }
 
 const CLEAN_THRESHOLD = 45;      // stay under the checker's 50
-const MAX_ATTEMPTS = 4;
+const MAX_ATTEMPTS = 3;   // 1 try + 2 retries via ComfyUI, then defer to --backend=gemini (owner rule, 2026-09-29)
 
 /**
  * Try to key out a failed attempt's background instead of throwing the
