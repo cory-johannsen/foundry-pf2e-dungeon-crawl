@@ -209,3 +209,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 14,rime-dragon-ancient-spellcaster,"Rime Dragon (Ancient, Spellcaster)",15,dragon,accept,,gemini,gemini-first
 14,somnalu,Somnalu,15,beast,flag,wrong_subject;cropped,gemini,
 14,sovereign-dragon-adult,Sovereign Dragon (Adult),15,dragon,accept,,gemini,gemini-first
+15,sovereign-dragon-adult-spellcaster,"Sovereign Dragon (Adult, Spellcaster)",15,dragon,accept,,gemini,gemini-first
+15,time-dragon-adult,Time Dragon (Adult),15,dragon,accept,,gemini,gemini-first
+15,time-dragon-adult-spellcaster,"Time Dragon (Adult, Spellcaster)",15,dragon,accept,,gemini,gemini-first
+15,umbral-dragon-adult,Umbral Dragon (Adult),15,dragon,accept,,gemini,gemini-first
+15,umbral-dragon-adult-spellcaster,"Umbral Dragon (Adult, Spellcaster)",15,dragon,accept,,gemini,gemini-first
+15,vizier-dragon-adult,Vizier Dragon (Adult),15,dragon,accept,,gemini,gemini-first
+15,vizier-dragon-adult-spellcaster,"Vizier Dragon (Adult, Spellcaster)",15,dragon,flag,bg_patch,gemini,gemini-first
+15,wailing-dragon-ancient,Wailing Dragon (Ancient),15,dragon,accept,,gemini,gemini-first
+15,wailing-dragon-ancient-spellcaster,"Wailing Dragon (Ancient, Spellcaster)",15,dragon,accept,,gemini,gemini-first
+15,bog-dragon-ancient,Bog Dragon (Ancient),16,dragon,accept,,gemini,gemini-first
+15,bog-dragon-ancient-spellcaster,"Bog Dragon (Ancient, Spellcaster)",16,dragon,accept,,gemini,gemini-first
+15,corbayrant,Corbayrant,16,beast,flag,bg_patch,gemini,
+15,crystal-dragon-ancient,Crystal Dragon (Ancient),16,dragon,accept,,gemini,gemini-first
+15,crystal-dragon-ancient-spellcaster,"Crystal Dragon (Ancient, Spellcaster)",16,dragon,accept,,gemini,gemini-first
+15,grogrisant,Grogrisant,16,beast,flag,wrong_details;cropped,gemini,
