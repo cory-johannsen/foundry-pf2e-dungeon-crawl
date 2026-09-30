@@ -428,3 +428,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 29,wight-commander,Wight Commander,12,undead,accept,,gemini,gemini-first
 29,gashadokuro,Gashadokuro,13,undead,accept,,gemini,gemini-first
 29,mummy-prophet-of-set,Mummy Prophet Of Set,13,undead,accept,,gemini,gemini-first
+30,silent-stalker,Silent Stalker,13,undead,accept,,gemini,gemini-first
+30,death-coach,Death Coach,14,undead,accept,,gemini,gemini-first
+30,minister-of-tumult,Minister Of Tumult,14,undead,accept,,gemini,gemini-first
+30,obrousian,Obrousian,14,undead,accept,,gemini,gemini-first
+30,tormented-burning,Tormented (Burning),14,undead,accept,,gemini,gemini-first
+30,tormented-crushing,Tormented (Crushing),14,undead,accept,,gemini,gemini-first
+30,tormented-dislocation,Tormented (Dislocation),14,undead,accept,,gemini,gemini-first
+30,tormented-drowning,Tormented (Drowning),14,undead,accept,,gemini,gemini-first
+30,tormented-impalement,Tormented (Impalement),14,undead,accept,,gemini,gemini-first
+30,tormented-starvation,Tormented (Starvation),14,undead,accept,,gemini,gemini-first
+30,gallowdead,Gallowdead,15,undead,accept,,gemini,gemini-first
+30,hollow-serpent,Hollow Serpent,15,undead,flag,wrong_details,gemini,gemini-first
+30,horde-lich,Horde Lich,15,undead,accept,,gemini,gemini-first
+30,ecorche,Ecorche,16,undead,accept,,gemini,gemini-first
+30,pale-sovereign,Pale Sovereign,16,undead,accept,,gemini,gemini-first
