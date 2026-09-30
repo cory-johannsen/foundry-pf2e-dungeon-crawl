@@ -1,0 +1,91 @@
+chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
+1,vulture-rat,Vulture Rat,-1,beast,accept,,comfyui,
+1,animated-kite,Animated Kite,0,construct,accept,,comfyui,
+1,pygmy-kaava,Pygmy Kaava,0,beast,accept,,comfyui,
+1,whalesteed,Whalesteed,0,hybrid,accept,,comfyui,
+1,charau-ka-warrior,Charau-ka Warrior,1,humanoid,accept,,comfyui,
+1,coral-capuchin,Coral Capuchin,1,beast,accept,,comfyui,
+1,hopping-head,Hopping Head,1,construct,accept,,comfyui,
+1,pearl-dragonet,Pearl Dragonet,1,dragon,accept,,comfyui,
+1,sarkorian-wolf,Sarkorian Wolf,1,beast,accept,,comfyui,
+1,skinskitter,Skinskitter,1,aberration,accept,,comfyui,
+1,biloko-warrior,Biloko Warrior,1,fey,flag,scenery_backdrop,comfyui,yellow forest backdrop
+1,kaava-stalker,Kaava Stalker,1,humanoid,flag,scenery_backdrop,comfyui,green forest backdrop
+1,anadi-hunter,Anadi Hunter,2,humanoid,flag,scenery_backdrop,comfyui,green backdrop
+1,inkdrop,Inkdrop,-1,aberration,flag,wrong_subject,gemini,"insect, then bird from ComfyUI; Gemini + transparency key-out"
+1,baccali-alpaca,Baccali Alpaca,0,beast,flag,scenery_backdrop;salvage_damage,comfyui,flowers; then pale fur eaten by salvage; fixed with brown coat on round 3
+2,animated-bamboo-figurine,Animated Bamboo Figurine,2,construct,accept,,comfyui,
+2,azarketi-sailor,Azarketi Sailor,2,humanoid,accept,,comfyui,
+2,giant-orchid-mantis,Giant Orchid Mantis,2,beast,accept,,comfyui,
+2,ratajin-mastermind,Ratajin Mastermind,2,humanoid,accept,,comfyui,
+2,walcofinde,Walcofinde,2,undead,accept,,comfyui,
+2,animated-wine-vessel,Animated Wine Vessel,3,construct,accept,,comfyui,
+2,charau-ka-acolyte-of-angazhan,Charau-ka Acolyte of Angazhan,3,humanoid,accept,,comfyui,
+2,jiidon,Jiidon,3,beast,accept,,comfyui,
+2,kasesh-stone,Kasesh (Stone),3,elemental,accept,,comfyui,
+2,ugvashi,Ugvashi,3,beast,accept,,comfyui,
+2,ulgrem-lurann,Ulgrem-Lurann,3,beast,flag,wrong_subject,gemini,frog written without a description; found later to be an ice-crystal crocodilian
+2,augdunar,Augdunar,2,beast,flag,bg_patch,comfyui,grey ground rectangle
+2,lunar-consort,Lunar Consort,2,undead,flag,halo_or_disc,comfyui,white moon disc
+2,spring-heeled-jack,Spring-Heeled Jack,3,fey,flag,scenery_backdrop,comfyui,red/yellow moon and trees
+2,tidepool-dragonet,Tidepool Dragonet,3,dragon,flag,cropped,comfyui,chameleon head close-up instead of eel-like body
+3,anadi-sage,Anadi Sage,4,humanoid,accept,,comfyui,
+3,biloko-veteran,Biloko Veteran,4,fey,accept,,comfyui,
+3,charming-scoundrel,Charming Scoundrel,4,humanoid,accept,,comfyui,
+3,draft-lizard,Draft Lizard,4,beast,accept,,comfyui,
+3,gau-cho-rong,Gau Cho Rong,4,beast,accept,,comfyui,
+3,graul,Graul,4,aberration,accept,,comfyui,
+3,gutaki,Gutaki,4,aberration,accept,,comfyui,
+3,hellknight-armiger,Hellknight Armiger,4,humanoid,accept,,comfyui,
+3,kashrishi-evaluator,Kashrishi Evaluator,4,humanoid,accept,,comfyui,
+3,rain-scribe,Rain-Scribe,4,humanoid,accept,,comfyui,
+3,shroudwing,Shroudwing,4,beast,accept,,comfyui,
+3,virtuous-defender,Virtuous Defender,4,humanoid,accept,,comfyui,
+3,changeling-hellknight,Changeling Hellknight,4,humanoid,flag,bg_patch,comfyui,white patch lower left
+3,pathfinder-field-agent,Pathfinder Field Agent,4,humanoid,flag,scenery_backdrop,comfyui,cliff/sky remnants
+3,flotsam-terror,Flotsam Terror,4,undead,flag,scenery_backdrop;wrong_subject,gemini,"whole ship + sea, 3 ComfyUI rounds"
+4,goldpebble,Goldpebble,5,beast,accept,,comfyui,
+4,shui-gui,Shui Gui,5,undead,accept,,comfyui,
+4,anadi-elder,Anadi Elder,6,humanoid,accept,,comfyui,
+4,asanbosam,Asanbosam,6,humanoid,accept,,comfyui,
+4,ethereal-sailor,Ethereal Sailor,6,undead,accept,,comfyui,
+4,imperfect-automaton,Imperfect Automaton,6,construct,accept,,comfyui,
+4,rime-dragon-young,Rime Dragon (Young),6,dragon,accept,,comfyui,
+4,aurosrath,Aurosrath,5,undead,flag,scenery_backdrop,gemini,wall candelabras
+4,irriseni-owlbear,Irriseni Owlbear,5,hybrid,flag,hybrid_anatomy;wrong_subject,gemini,"owl only, no bear body"
+4,karina,Karina,5,hybrid,flag,halo_or_disc,gemini,white splatter halo
+4,rompo,Rompo,5,hybrid,flag,hybrid_anatomy;wrong_details,gemini,koala face in a suit
+4,temteki,Temteki,5,elemental,flag,scenery_backdrop;wrong_subject,gemini,dark tree with colour wedges
+4,charau-ka-butcher,Charau-ka Butcher,6,humanoid,flag,scenery_backdrop,gemini,yellow burst behind head
+4,lamp-blighter,Lamp Blighter,6,fey,flag,halo_or_disc,gemini,cream halo blob
+4,melfesh-monster,Melfesh Monster,6,aberration,flag,scenery_backdrop;bg_score_high,gemini,smoke clouds; checker 70
+5,rime-dragon-young-spellcaster,"Rime Dragon (Young, Spellcaster)",6,dragon,accept,,comfyui,
+5,silt-frog,Silt Frog,6,beast,accept,,comfyui,
+5,stone-sister,Stone Sister,6,undead,accept,,comfyui,
+5,bog-dragon-young,Bog Dragon (Young),7,dragon,accept,,comfyui,
+5,crystal-dragon-young-spellcaster,"Crystal Dragon (Young, Spellcaster)",7,dragon,accept,,comfyui,
+5,eloko,Eloko,7,fey,accept,,comfyui,
+5,imugi,Imugi,7,dragon,accept,,comfyui,
+5,pagulin,Pagulin,7,beast,accept,,comfyui,
+5,spawn-of-kothogaz,Spawn Of Kothogaz,6,aberration,flag,scenery_backdrop;cropped,gemini,"red wedge, cut at right edge"
+5,wailing-dragon-young,Wailing Dragon (Young),6,dragon,flag,cropped,gemini,head and neck only
+5,wailing-dragon-young-spellcaster,"Wailing Dragon (Young, Spellcaster)",6,dragon,flag,halo_or_disc;bg_patch,gemini,black disc + rock ledge
+5,bog-dragon-young-spellcaster,"Bog Dragon (Young, Spellcaster)",7,dragon,flag,scenery_backdrop,gemini,green radial glow
+5,crystal-dragon-young,Crystal Dragon (Young),7,dragon,flag,cropped,gemini,head and neck only
+5,crystal-xorn,Crystal Xorn,7,elemental,flag,halo_or_disc;wrong_subject,gemini,black disc; mask-like face
+5,solar-ibis,Solar Ibis,7,beast,flag,wrong_subject;scenery_backdrop,gemini,dark bird on yellow burst
+6,yeongno,Yeongno,7,humanoid,accept,,comfyui,
+6,barrage-dragon-young,Barrage Dragon (Young),8,dragon,accept,,comfyui,
+6,barrage-dragon-young-spellcaster,"Barrage Dragon (Young, Spellcaster)",8,dragon,accept,,comfyui,
+6,bibliodaemon,Bibliodaemon,8,humanoid,accept,,comfyui,
+6,brine-dragon-young-spellcaster,"Brine Dragon (Young, Spellcaster)",8,dragon,accept,,comfyui,
+6,krampus-celebrant,Krampus Celebrant,8,humanoid,accept,,comfyui,
+6,spellscar-fext,Spellscar Fext,7,undead,flag,scenery_backdrop;wrong_subject,gemini,flames; skeleton not warped flesh
+6,ulgrem-axaan,Ulgrem-Axaan,7,undead,flag,cropped;bg_score_high,gemini,"head/neck, checker 59"
+6,underworld-dragon-young,Underworld Dragon (Young),7,dragon,flag,cropped;scenery_backdrop,gemini,"head only, flame backdrop"
+6,underworld-dragon-young-spellcaster,"Underworld Dragon (Young, Spellcaster)",7,dragon,flag,cropped,gemini,head only
+6,young-linnorm,Young Linnorm,7,dragon,flag,wrong_details;scenery_backdrop,gemini,wings + 4 legs on a wingless linnorm; green rectangle
+6,brine-dragon-young,Brine Dragon (Young),8,dragon,flag,cropped;bg_patch;bg_score_high,gemini,"head/neck, ground patch, checker 59"
+6,fleshforged-conformer,Fleshforged Conformer,8,construct,flag,wrong_subject;cropped;bg_patch,gemini,skull with wires; white corners
+6,k-nonna,K'nonna,8,hybrid,flag,wrong_subject;hybrid_anatomy,gemini,"full goblin-like humanoid, not a half-human"
+6,manananggal,Manananggal,8,hybrid,flag,wrong_subject;hybrid_anatomy,gemini,"winged dragon with legs, not a torso"
