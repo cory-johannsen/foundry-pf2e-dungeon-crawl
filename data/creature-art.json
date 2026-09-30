@@ -16342,5 +16342,125 @@
     "name": "Prowler Wight",
     "level": 9,
     "art": "prowler-wight-lob.webp"
+  },
+  {
+    "id": "gholdako_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "bckYmdaq03CUDdc5",
+    "name": "Gholdako",
+    "level": 10,
+    "art": "gholdako-lob.webp"
+  },
+  {
+    "id": "iroran_mummy_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "tb2nr2ycARadI3Pg",
+    "name": "Iroran Mummy",
+    "level": 10,
+    "art": "iroran-mummy-lob.webp"
+  },
+  {
+    "id": "pale_stranger_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "GcHzyaMYK5QeKUyM",
+    "name": "Pale Stranger",
+    "level": 10,
+    "art": "pale-stranger-lob.webp"
+  },
+  {
+    "id": "sluagh_reaper_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "uURI8Netd0ytD9vc",
+    "name": "Sluagh Reaper",
+    "level": 10,
+    "art": "sluagh-reaper-lob.webp"
+  },
+  {
+    "id": "bhuta_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "j777BjOqZff6S1v9",
+    "name": "Bhuta",
+    "level": 11,
+    "art": "bhuta-lob.webp"
+  },
+  {
+    "id": "corpseroot_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "Y2Fiu9T1xwSBPVTV",
+    "name": "Corpseroot",
+    "level": 11,
+    "art": "corpseroot-lob.webp"
+  },
+  {
+    "id": "provincial_jiang_shi_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "ZSrMFLrb5CzFH5WX",
+    "name": "Provincial Jiang-shi",
+    "level": 11,
+    "art": "provincial-jiang-shi-lob.webp"
+  },
+  {
+    "id": "vetalarana_manipulator_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "Nzf3AfA46cBiWCwN",
+    "name": "Vetalarana Manipulator",
+    "level": 11,
+    "art": "vetalarana-manipulator-lob.webp"
+  },
+  {
+    "id": "zombie_mammoth_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "TipfHGlT5ctn1JV0",
+    "name": "Zombie Mammoth",
+    "level": 11,
+    "art": "zombie-mammoth-lob.webp"
+  },
+  {
+    "id": "llorona_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "uqY9TkQTO5n9rCLZ",
+    "name": "Llorona",
+    "level": 12,
+    "art": "llorona-lob.webp"
+  },
+  {
+    "id": "onryo_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "mL4l2kwPPSMKwzQo",
+    "name": "Onryo",
+    "level": 12,
+    "art": "onryo-lob.webp"
+  },
+  {
+    "id": "relictner_eroder_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "cEJh8SY1YDULyhI9",
+    "name": "Relictner Eroder",
+    "level": 12,
+    "art": "relictner-eroder-lob.webp"
+  },
+  {
+    "id": "wight_commander_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "kY8MSttryLjbI5wN",
+    "name": "Wight Commander",
+    "level": 12,
+    "art": "wight-commander-lob.webp"
+  },
+  {
+    "id": "gashadokuro_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "XrSjNpkJkBO6ysRG",
+    "name": "Gashadokuro",
+    "level": 13,
+    "art": "gashadokuro-lob.webp"
+  },
+  {
+    "id": "mummy_prophet_of_set_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "8qB0gj8salw8746I",
+    "name": "Mummy Prophet Of Set",
+    "level": 13,
+    "art": "mummy-prophet-of-set-lob.webp"
   }
 ]

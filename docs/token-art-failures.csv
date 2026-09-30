@@ -413,3 +413,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 28,geist,Geist,9,undead,accept,,gemini,gemini-first
 28,grappling-spirit,Grappling Spirit,9,undead,accept,,gemini,gemini-first
 28,prowler-wight,Prowler Wight,9,undead,flag,bg_patch,gemini,gemini-first
+29,gholdako,Gholdako,10,undead,accept,,gemini,gemini-first
+29,iroran-mummy,Iroran Mummy,10,undead,accept,,gemini,gemini-first
+29,pale-stranger,Pale Stranger,10,undead,accept,,gemini,gemini-first
+29,sluagh-reaper,Sluagh Reaper,10,undead,accept,,gemini,gemini-first
+29,bhuta,Bhuta,11,undead,accept,,gemini,gemini-first
+29,corpseroot,Corpseroot,11,undead,accept,,gemini,gemini-first
+29,provincial-jiang-shi,Provincial Jiang-shi,11,undead,accept,,gemini,gemini-first
+29,vetalarana-manipulator,Vetalarana Manipulator,11,undead,accept,,gemini,gemini-first
+29,zombie-mammoth,Zombie Mammoth,11,undead,accept,,gemini,gemini-first
+29,llorona,Llorona,12,undead,accept,,gemini,gemini-first
+29,onryo,Onryo,12,undead,accept,,gemini,gemini-first
+29,relictner-eroder,Relictner Eroder,12,undead,accept,,gemini,gemini-first
+29,wight-commander,Wight Commander,12,undead,accept,,gemini,gemini-first
+29,gashadokuro,Gashadokuro,13,undead,accept,,gemini,gemini-first
+29,mummy-prophet-of-set,Mummy Prophet Of Set,13,undead,accept,,gemini,gemini-first
