@@ -3691,7 +3691,7 @@ describe('assignDoorSlotsWithPriority — #297 Round 2', () => {
 
 });
 
-describe('findPriorityCollision — #297 Round 2 fix (final-review finding D, 2026-09-29)', () => {
+describe('findPriorityCollision — #297 Round 2 fix (final-review finding D, corrected 2026-09-29)', () => {
   it('does not grant priority when the corridor\'s own real span never overlaps the blocker\'s footprint, even though the intermediate cell is occupied by a real co-parent (real seed sweep-461, room-merge-14)', () => {
     const seed = 'sweep-461';
     const toId = 'room-merge-14';
@@ -3701,10 +3701,16 @@ describe('findPriorityCollision — #297 Round 2 fix (final-review finding D, 20
     // own source and the target -- Round 1's own dogleg TRIGGER condition
     // (occupied intermediate cell, real co-parent) is satisfied, but the
     // corridor's own actual provisional span (derived from the source's
-    // real door offset and its own plain slot) never reaches the blocker's
-    // footprint, so Round 1's own dogleg would never actually fire for
-    // this edge. Verified by direct instrumentation against the pinned
-    // seed (search script, not committed): `spanOverlapsBlocker` is false.
+    // real door offset) never reaches the blocker's footprint, so Round
+    // 1's own dogleg would never actually fire for this edge. Verified by
+    // direct instrumentation against the pinned seed (search script, not
+    // committed): `spanOverlapsBlocker` is false. NOTE: in this specific
+    // fixture the colliding connection's own list index already happens
+    // to equal `priorityIndexForEdge`'s own result, so this test alone
+    // does NOT distinguish the plain-slot check (the first, broken version
+    // of this fix) from the priority-slot check (the corrected version) --
+    // see the second test below for that distinction, added after an
+    // independent re-review caught the first version using the wrong slot.
     const incomingConnections = [
       { sourceId: 'room-room-merge-11-0', hidden: false },
       { sourceId: 'room-room-merge-11-1', hidden: false },
@@ -3727,6 +3733,39 @@ describe('findPriorityCollision — #297 Round 2 fix (final-review finding D, 20
     // returned a non-null collision here, granting the colliding
     // connection slot priority for a corridor that was never actually
     // going to dogleg at all.
+    expect(collision).toBeNull();
+  });
+
+  it('checks the span against the slot the connection would ACTUALLY receive if granted priority, not its own plain list-order slot (real seed sweep-9)', () => {
+    // This is the exact case an independent re-review caught the first
+    // version of the finding-D fix missing: the colliding connection's own
+    // PLAIN slot (list-order index 0, x=326..332) DOES overlap the
+    // blocker's footprint (the old, broken check's own verdict -- would
+    // have incorrectly granted priority), but the slot it would actually
+    // be assigned if priority WERE granted (priorityIndexForEdge's own
+    // result, index 1, x=332..338) does NOT overlap. The first fix
+    // attempt used the plain slot and got this wrong; it fixed only 1 of
+    // 11 real cases (the one where plain and priority slots coincidentally
+    // matched) and left the other 10, including this one, broken.
+    const seed = 'sweep-9';
+    const toId = 'room-room-room-room-room-room-entry-0-0-0-1-0';
+    const toPos = { rank: 7, col: 2 };
+    const incomingConnections = [
+      { sourceId: 'room-room-room-room-room-entry-0-0-0-1', hidden: false },
+      { sourceId: 'room-detour-1', hidden: false },
+    ];
+    const layoutPositionByRoomId = {
+      'room-room-room-room-room-entry-0-0-0-1': { rank: 5, col: 2 },
+      'room-detour-1': { rank: 6, col: 2 },
+    };
+    const occupiedCells = {
+      '5,2': 'room-room-room-room-room-entry-0-0-0-1',
+      '6,2': 'room-detour-1',
+      '7,2': toId,
+    };
+    const collision = findPriorityCollision(
+      seed, toId, toPos.rank, toPos.col, incomingConnections, layoutPositionByRoomId, occupiedCells, 'north',
+    );
     expect(collision).toBeNull();
   });
 });

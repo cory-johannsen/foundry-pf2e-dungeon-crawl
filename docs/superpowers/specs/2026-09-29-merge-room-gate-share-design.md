@@ -15,9 +15,13 @@ correction" under "Round 2 correction: slot priority," below, for the
 real, flood-fill-measured numbers and findings A-D. Two of those findings
 (B, D) were fixed the same day, in the same round, after the user chose a
 scoped one-more-fix-round over accepting the door-line proxy's own
-(materially wrong) numbers or stopping outright. Findings A and C remain
-open, accepted residuals (tracked in #309) — Round 2 is a real,
-substantial improvement over `main`, not a complete fix.
+(materially wrong) numbers or stopping outright. The first attempt at
+fixing D was itself independently re-reviewed and found to have the same
+"independently-computed positions" defect it was meant to close (checked
+the wrong slot, fixing only 1 of 11 real cases) — corrected the same day
+by extracting a single shared helper both functions now use. Findings A
+and C remain open, accepted residuals (tracked in #309) — Round 2 is a
+real, substantial improvement over `main`, not a complete fix.
 
 ## Problem
 
@@ -444,27 +448,47 @@ distinct findings, all variants of this codebase's recurring
   untouched — fixing it requires fixing both `pendingForeignMarginOpenings`
   and `outgoingMarginOffset`'s own `#231` interaction together, a
   materially larger change than this round's own scope.
-- **Finding D (FIXED 2026-09-29):** `findPriorityCollision` re-derived
-  Round 1's own dogleg trigger incompletely — an occupied, real-co-parent
-  intermediate cell is *necessary* but not *sufficient* for the dogleg to
-  actually fire; the trigger also requires `findCorridorPath` to have
-  failed (`!path`) and the corridor's own provisional span to actually
-  overlap the blocker's footprint (`spanOverlapsBlocker`, the same
+- **Finding D (FIXED 2026-09-29, corrected same day):** `findPriorityCollision`
+  re-derived Round 1's own dogleg trigger incompletely — an occupied,
+  real-co-parent intermediate cell is *necessary* but not *sufficient* for
+  the dogleg to actually fire; the trigger also requires `findCorridorPath`
+  to have failed (`!path`) and the corridor's own provisional span to
+  actually overlap the blocker's footprint (`spanOverlapsBlocker`, the same
   `#230`/`#231` gap-widening check). Skipping both granted slot priority
   in 11 real cases where the colliding corridor was never going to dogleg
-  at all. Fixed by reusing the exact same primitives Round 1's own trigger
-  already uses (`findCorridorPath`, `doorOffsetAt`, plain arithmetic) —
-  never `buildEdgeCorridor` itself, so detection stays a single pass.
+  at all. **The first fix attempt computed the span using the connection's
+  own PLAIN (list-order) slot instead of the slot it would actually
+  receive if granted priority** — the exact same "independently-computed
+  positions" shape this fix was written to close, reintroduced by the fix
+  itself. An independent re-review (dispatched specifically to verify this
+  fix, given this codebase's own history with self-verification blind
+  spots) caught it by hand-tracing a case where the two slots differ: the
+  first attempt fixed only 1 of 11 cases (the one where they coincidentally
+  matched). Corrected by extracting `priorityIndexForEdge` as the single
+  shared source of truth for "which slot would this connection receive if
+  granted priority," used by both `findPriorityCollision`'s own span check
+  and `assignDoorSlotsWithPriority`'s own assignment — the two can no
+  longer independently disagree. All 11 real cases are resolved by the
+  corrected version.
 
-**Real numbers after the B+D fix** (independently re-measured with the
-same flood-fill methodology, 500-seed corpus): non-residual colliding
-seals dropped from 61/297 to 41/296 (≈13.9%, largely finding A's own
-remaining, unfixed footprint); non-residual co-parent seals dropped from
-10/297 to 3/296 (≈1.0%). The residual case (LARGE blocker/SMALL target)
-is untouched by this fix, as expected — 54/84 for both colliding and
-co-parent, unchanged. Findings A and C remain open, accepted residuals
-per the user's own explicit decision (2026-09-29) not to pursue a third
-round on #297 beyond this one, concrete, well-scoped fix.
+**Real numbers after the corrected B+D fix** (independently re-measured
+with a corrected flood-fill methodology, 500-seed corpus — an earlier
+draft of this same checker had its own blind spot too, omitting the
+blocker/co-parent's own margin walls from the co-parent's own obstacle
+set, undercounting co-parent seals; fixed and reconciled against the
+final review's own independently-built checker before trusting these
+numbers): non-residual colliding seals dropped from 61/297 to **32/286**
+(≈11.2%) — now consisting ENTIRELY of finding A's own remaining, unfixed
+footprint, with zero unexplained residual from D; non-residual co-parent
+seals dropped from 10/297 to **5/286** (≈1.7%). The residual case (LARGE
+blocker/SMALL target) is untouched by this fix, as expected — 54/84 for
+both colliding and co-parent, unchanged, and the total collision count
+itself dropped from 381 to 370 (10 fewer cases now correctly recognized
+as never needing priority at all, per the corrected D fix). Finding A
+remains open, an accepted residual; finding C remains open, deliberately
+untouched (see above) — per the user's own explicit decision (2026-09-29)
+not to pursue a third round on #297 beyond this one, concrete, well-scoped
+fix.
 
 **Mechanism, concretely (updated for the B+D fix):** before assigning
 door slots for a target room's own incoming connections, scan for a
@@ -604,17 +628,21 @@ exact construction that hid all three Round 1 defects.
   that its own final review found violated in 374-375 of 380 cases is
   *substantially, not completely*, improved by Round 2. Ground truth
   (independent flood-fill connectivity check, 500-seed corpus, before vs.
-  after Round 2's own B+D fix, out of 380-381 real co-parent collisions):
+  after Round 2's own B+D fix — note the real collision count itself drops
+  from 381 to 370 after the corrected D fix, since 10 more cases are now
+  correctly recognized as never needing priority at all):
 
-  | | Colliding sealed | Co-parent sealed |
-  |---|---|---|
-  | `main` | 242 | 92 |
-  | Round 1 + Task 2 (the regression) | 370 | 346 |
-  | Round 2 (pre B+D fix) | 115 (54 residual + 61 non-residual) | 64 (54 residual + 10) |
-  | Round 2 (post B+D fix) | 95 (54 residual + 41 non-residual) | 57 (54 residual + 3) |
+  | | Colliding sealed | Co-parent sealed | / total collisions |
+  |---|---|---|---|
+  | `main` | 242 | 92 | 381 |
+  | Round 1 + Task 2 (the regression) | 370 | 346 | 381 |
+  | Round 2 (pre B+D fix) | 115 (54 residual + 61 non-residual) | 64 (54 residual + 10) | 381 |
+  | Round 2 (post corrected B+D fix) | 86 (54 residual + 32 non-residual) | 59 (54 residual + 5) | 370 |
 
-  Findings A and C (see above) remain open, unfixed, accepted residuals —
-  a real 0%-non-residual-seal outcome was not achieved and is not claimed.
+  Every remaining non-residual colliding seal is now finding A's own
+  footprint, with zero unexplained residual left from B or D. Finding A
+  remains open, an unfixed, accepted residual — a real 0%-non-residual-seal
+  outcome was not achieved and is not claimed.
 - System-wide sweep (`tests/dungeon-layout.test.mjs`): zero corridor/
   room-footprint overlaps, AND a tracked-ceiling rate on its own door-line
   proxy metric (not a completeness guarantee — see Testing, above, for why

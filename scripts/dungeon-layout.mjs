@@ -1206,6 +1206,35 @@ export function findCoParentCollision(candidateForeignOpening, incomingConnectio
 }
 
 /**
+ * #297 Round 2: the slot index a colliding connection would land on if
+ * granted priority -- whichever slot already contains, or sits nearest
+ * east/south of, the blocking room's own far margin edge (the documented
+ * residual: a LARGE blocker with a SMALL target falls back to the LAST
+ * slot, since the edge falls past every slot's own far end). Extracted
+ * (2026-09-29, fixing final-review finding D properly -- see below) as
+ * the SINGLE shared source of truth for this index, used by BOTH
+ * `findPriorityCollision` (to check the span this connection would
+ * actually receive if granted priority) and `assignDoorSlotsWithPriority`
+ * (to actually grant it) -- two separately-hand-copied computations of
+ * this same index is exactly the "independently-computed positions,
+ * nothing forces agreement" shape this file keeps re-discovering the hard
+ * way (#230/#231, the abandoned ride-along design, and this very
+ * function's own first version, which computed the span using the
+ * connection's PLAIN list-order slot instead of the slot it would
+ * actually be assigned, catching 1 of 11 real cases instead of all 11 --
+ * see the SDD ledger's own review entry for the full trace).
+ */
+function priorityIndexForEdge(slots, axis, blockerRect) {
+  let priorityIndex = slots.findIndex((s) => {
+    const edgeCoord = axis === 'south' ? blockerRect.gx + blockerRect.gw : blockerRect.gy + blockerRect.gh;
+    const end = axis === 'south' ? s.x2 : s.y2;
+    return edgeCoord < end;
+  });
+  if (priorityIndex < 0) priorityIndex = slots.length - 1;
+  return priorityIndex;
+}
+
+/**
  * #297 Round 2 (revised after the "ride-along" design in this file's own
  * earlier docblocks was found geometrically unsound): detects whether ANY
  * of `roomId`'s own real incoming connections is blocked, on its own
@@ -1224,21 +1253,30 @@ export function findCoParentCollision(candidateForeignOpening, incomingConnectio
  * reads `.roomId` off its own first argument, so this is a legitimate
  * reuse of its own already-tested hidden-connection guard, not a hack.
  *
- * #297 Round 2 fix (final-review finding D, 2026-09-29): an occupied,
- * real-co-parent intermediate cell is NECESSARY but not SUFFICIENT for
- * Round 1's own dogleg to actually fire -- its own trigger
- * (`buildEdgeCorridor`'s south/east fast-path branches) additionally
- * requires `findCorridorPath` to have failed (`!path`) AND the
- * corridor's own provisional span (from the source's real door offset and
- * this connection's own PLAIN, pre-priority slot) to actually overlap the
- * blocker's footprint (`spanOverlapsBlocker`, the same #230/#231
- * gap-widening check Round 1's own trigger uses). The pre-fix version of
- * this function skipped both, granting slot priority in cases where the
- * colliding corridor was never actually going to dogleg at all --
- * measured by the final review at 11 real cases. `incomingFace` is now a
- * required parameter (the target room's own real incoming face) so the
- * PLAIN slot check below matches what `buildEdgeCorridor` will actually
- * receive, not a hardcoded assumption.
+ * #297 Round 2 fix (final-review finding D, 2026-09-29; corrected the same
+ * day after an independent re-review caught the first version of this fix
+ * checking the wrong slot): an occupied, real-co-parent intermediate cell
+ * is NECESSARY but not SUFFICIENT for Round 1's own dogleg to actually
+ * fire -- its own trigger (`buildEdgeCorridor`'s south/east fast-path
+ * branches) additionally requires `findCorridorPath` to have failed
+ * (`!path`) AND the corridor's own provisional span to actually overlap
+ * the blocker's footprint (`spanOverlapsBlocker`, the same #230/#231
+ * gap-widening check Round 1's own trigger uses) -- computed using the
+ * slot this connection would ACTUALLY receive if granted priority
+ * (`priorityIndexForEdge`, shared with `assignDoorSlotsWithPriority`), not
+ * its own plain list-order slot. The first version of this fix used the
+ * plain slot, which only coincidentally matches the priority slot when a
+ * connection's own list index already equals `priorityIndexForEdge`'s own
+ * result -- true for exactly 1 of the 11 real cases the final review
+ * measured, so that version fixed 1 case and left 10 broken (an
+ * independent re-review, dispatched specifically to verify this fix,
+ * caught it by hand-tracing a case where the two slots differ). The
+ * pre-fix version of this function (before either attempt) skipped both
+ * checks entirely, granting slot priority in all 11 cases where the
+ * colliding corridor was never actually going to dogleg at all.
+ * `incomingFace` is a required parameter (the target room's own real
+ * incoming face) so `doorSlotsForFace` below matches what
+ * `buildEdgeCorridor` will actually receive.
  *
  * Returns the FIRST such collision found (scope: exactly one, per this
  * feature's own spec) or `null`.
@@ -1246,6 +1284,9 @@ export function findCoParentCollision(candidateForeignOpening, incomingConnectio
 export function findPriorityCollision(seed, roomId, rank, col, incomingConnections, layoutPositionByRoomId, occupiedCells, incomingFace) {
   const targetRect = roomRect(seed, roomId, rank, col);
   const targetPos = { rank, col };
+  const slots = incomingConnections.length
+    ? doorSlotsForFace(targetRect, incomingConnections.length, incomingFace)
+    : [];
   for (let i = 0; i < incomingConnections.length; i += 1) {
     const { sourceId, hidden } = incomingConnections[i];
     if (hidden) continue;
@@ -1274,14 +1315,14 @@ export function findPriorityCollision(seed, roomId, rank, col, incomingConnectio
 
     const sourceRect = roomRect(seed, sourceId, sourcePos.rank, sourcePos.col);
     const blockerRect = roomRect(seed, blockerId, blockRank, blockCol);
-    const plainSlot = doorSlotsForFace(targetRect, incomingConnections.length, incomingFace)[i];
+    const prioritySlot = slots[priorityIndexForEdge(slots, axis, blockerRect)];
     const outgoingOffset = doorOffsetAt(seed, `${sourceId}-${axis}`, 'outgoing', sourceRect.gw);
     let spanOverlapsBlocker;
     if (axis === 'south') {
       const doorX0 = sourceRect.gx + outgoingOffset;
       const doorX1 = doorX0 + DOOR_WIDTH;
       const occupantEastEdge = blockerRect.gx + blockerRect.gw;
-      const provisionalGapX0 = Math.min(Math.max(doorX0, plainSlot.x1), plainSlot.x2 - DOOR_WIDTH);
+      const provisionalGapX0 = Math.min(Math.max(doorX0, prioritySlot.x1), prioritySlot.x2 - DOOR_WIDTH);
       const provisionalGapX1 = provisionalGapX0 + DOOR_WIDTH;
       const provisionalSpanX0 = Math.min(doorX0, provisionalGapX0);
       const provisionalSpanX1 = Math.max(doorX1, provisionalGapX1);
@@ -1290,7 +1331,7 @@ export function findPriorityCollision(seed, roomId, rank, col, incomingConnectio
       const doorY0 = sourceRect.gy + outgoingOffset;
       const doorY1 = doorY0 + DOOR_WIDTH;
       const occupantSouthEdge = blockerRect.gy + blockerRect.gh;
-      const provisionalGapY0 = Math.min(Math.max(doorY0, plainSlot.y1), plainSlot.y2 - DOOR_WIDTH);
+      const provisionalGapY0 = Math.min(Math.max(doorY0, prioritySlot.y1), prioritySlot.y2 - DOOR_WIDTH);
       const provisionalGapY1 = provisionalGapY0 + DOOR_WIDTH;
       const provisionalSpanY0 = Math.min(doorY0, provisionalGapY0);
       const provisionalSpanY1 = Math.max(doorY1, provisionalGapY1);
@@ -1347,14 +1388,7 @@ export function assignDoorSlotsWithPriority(seed, rect, incomingConnections, inc
     : [];
   if (!collision) return slots;
   const blockerRect = roomRect(seed, collision.blockerId, collision.blockRank, collision.blockCol);
-  const edgeCoord = collision.axis === 'south'
-    ? blockerRect.gx + blockerRect.gw
-    : blockerRect.gy + blockerRect.gh;
-  let priorityIndex = slots.findIndex((s) => {
-    const end = collision.axis === 'south' ? s.x2 : s.y2;
-    return edgeCoord < end;
-  });
-  if (priorityIndex < 0) priorityIndex = slots.length - 1;
+  const priorityIndex = priorityIndexForEdge(slots, collision.axis, blockerRect);
 
   const coParentIndex = incomingConnections.findIndex((c) => c.sourceId === collision.blockerId);
   const pinCoParentSlotIndex = coParentIndex >= 0 && priorityIndex > 0 ? priorityIndex - 1 : null;
