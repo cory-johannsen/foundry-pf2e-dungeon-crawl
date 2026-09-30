@@ -17678,5 +17678,189 @@
     "name": "Sunscale Serpent",
     "level": 14,
     "art": "sunscale-serpent-lob.webp"
+  },
+  {
+    "id": "alicorn_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "SZNhJnoo03foGnhb",
+    "name": "Alicorn",
+    "level": 15,
+    "art": "alicorn-lob.webp"
+  },
+  {
+    "id": "blooming_guardian_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "N3JcyxJZ05tGXZbf",
+    "name": "Blooming Guardian",
+    "level": 15,
+    "art": "blooming-guardian-lob.webp"
+  },
+  {
+    "id": "rumindrol_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "69M6tmEL26zl8vpY",
+    "name": "Rumindrol",
+    "level": 15,
+    "art": "rumindrol-lob.webp"
+  },
+  {
+    "id": "prismhydra_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "FUnnTzkARhfNi5cP",
+    "name": "Prismhydra",
+    "level": 16,
+    "art": "prismhydra-lob.webp"
+  },
+  {
+    "id": "titanosaur_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "6RFHl13b3MZE1vlo",
+    "name": "Titanosaur",
+    "level": 16,
+    "art": "titanosaur-lob.webp"
+  },
+  {
+    "id": "thruneosaurus_rex_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "NlG7uRoG4hPE5ink",
+    "name": "Thruneosaurus Rex",
+    "level": 17,
+    "art": "thruneosaurus-rex-lob.webp"
+  },
+  {
+    "id": "barded_manticore_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "BTVLegvy1IhceQFf",
+    "name": "Barded Manticore",
+    "level": 18,
+    "art": "barded-manticore-lob.webp"
+  },
+  {
+    "id": "mocking_chorus_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "7peOc9dbnQuIx2AP",
+    "name": "Mocking Chorus",
+    "level": 18,
+    "art": "mocking-chorus-lob.webp"
+  },
+  {
+    "id": "warden_of_caverns_and_burrows_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "NYRk2xqxid0lfNka",
+    "name": "Warden of Caverns and Burrows",
+    "level": 22,
+    "art": "warden-of-caverns-and-burrows-lob.webp"
+  },
+  {
+    "id": "warden_of_forests_and_meadows_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "Z5c8wJajbyEMNhEB",
+    "name": "Warden of Forests and Meadows",
+    "level": 22,
+    "art": "warden-of-forests-and-meadows-lob.webp"
+  },
+  {
+    "id": "warden_of_oceans_and_rivers_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "ApQvWxwCc5vtDvFD",
+    "name": "Warden of Oceans and Rivers",
+    "level": 22,
+    "art": "warden-of-oceans-and-rivers-lob.webp"
+  },
+  {
+    "id": "warden_of_peaks_and_skies_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "nQ6g5UbZFirINZoB",
+    "name": "Warden of Peaks and Skies",
+    "level": 22,
+    "art": "warden-of-peaks-and-skies-lob.webp"
+  },
+  {
+    "id": "mythic_griffon_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "z9AJIIWfoZqmXHdJ",
+    "name": "Mythic Griffon",
+    "level": 4,
+    "art": "mythic-griffon-lob.webp"
+  },
+  {
+    "id": "sublime_breath_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "Om9ruhbwPNISjwDr",
+    "name": "Sublime Breath",
+    "level": 6,
+    "art": "sublime-breath-lob.webp"
+  },
+  {
+    "id": "mythic_ogre_boss_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "F9HHYowsSs0CLMX0",
+    "name": "Mythic Ogre Boss",
+    "level": 7,
+    "art": "mythic-ogre-boss-lob.webp"
+  },
+  {
+    "id": "immortal_trickster_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "H2RSvVckwPdFCAYY",
+    "name": "Immortal Trickster",
+    "level": 11,
+    "art": "immortal-trickster-lob.webp"
+  },
+  {
+    "id": "mythic_gogiteth_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "AQw3uql8ovK4NPPi",
+    "name": "Mythic Gogiteth",
+    "level": 12,
+    "art": "mythic-gogiteth-lob.webp"
+  },
+  {
+    "id": "mythic_lich_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "Roj3l7HjnV0kFq9a",
+    "name": "Mythic Lich",
+    "level": 12,
+    "art": "mythic-lich-lob.webp"
+  },
+  {
+    "id": "weaver_of_webs_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "otEC0HMg4whUaLAD",
+    "name": "Weaver of Webs",
+    "level": 15,
+    "art": "weaver-of-webs-lob.webp"
+  },
+  {
+    "id": "vulot_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "FpM4xd45aBf7wsqH",
+    "name": "Vulot",
+    "level": 21,
+    "art": "vulot-lob.webp"
+  },
+  {
+    "id": "agyra_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "yQIro3136G7EUgLQ",
+    "name": "Agyra",
+    "level": 23,
+    "art": "agyra-lob.webp"
+  },
+  {
+    "id": "verex_that_was_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "qPFA9IM6QjnSuagx",
+    "name": "Verex-That-Was",
+    "level": 24,
+    "art": "verex-that-was-lob.webp"
+  },
+  {
+    "id": "oliphaunt_of_jandelay_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "fH8t5uKyFA4UuZqp",
+    "name": "Oliphaunt of Jandelay",
+    "level": 25,
+    "art": "oliphaunt-of-jandelay-lob.webp"
   }
 ]
