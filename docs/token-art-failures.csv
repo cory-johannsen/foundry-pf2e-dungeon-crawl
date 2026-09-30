@@ -254,3 +254,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 17,sky-dragon-ancient-spellcaster,"Sky Dragon (Ancient, Spellcaster)",18,dragon,accept,,gemini,gemini-first
 17,stormcrown-dragon-ancient,Stormcrown Dragon (Ancient),18,dragon,accept,,gemini,gemini-first
 17,stormcrown-dragon-ancient-spellcaster,"Stormcrown Dragon (Ancient, Spellcaster)",18,dragon,accept,,gemini,gemini-first
+18,taljjae,Taljjae,18,beast,flag,scenery_backdrop;wrong_details,gemini,
+18,taljjae-the-beast,Taljjae (The Beast),18,beast,accept,,comfyui,
+18,taljjae-the-general,Taljjae (The General),18,beast,flag,scenery_backdrop;wrong_details,gemini,
+18,taljjae-the-grandmother,Taljjae (The Grandmother),18,beast,flag,wrong_details;bg_patch,gemini,
+18,taljjae-the-hermit,Taljjae (The Hermit),18,beast,accept,,comfyui,
+18,taljjae-the-hero,Taljjae (The Hero),18,beast,accept,,comfyui,
+18,taljjae-the-nobleman,Taljjae (The Nobleman),18,beast,accept,,comfyui,
+18,taljjae-the-wanderer,Taljjae (The Wanderer),18,beast,accept,,comfyui,
+18,vorpal-dragon-ancient,Vorpal Dragon (Ancient),18,dragon,accept,,gemini,gemini-first
+18,vorpal-dragon-ancient-spellcaster,"Vorpal Dragon (Ancient, Spellcaster)",18,dragon,accept,,gemini,gemini-first
+18,wailing-archdragon,Wailing Archdragon,18,dragon,accept,,gemini,gemini-first
+18,wailing-archdragon-spellcaster,Wailing Archdragon (Spellcaster),18,dragon,accept,,gemini,gemini-first
+18,bog-archdragon,Bog Archdragon,19,dragon,accept,,gemini,gemini-first
+18,bog-archdragon-spellcaster,Bog Archdragon (Spellcaster),19,dragon,accept,,gemini,gemini-first
+18,cloud-dragon-ancient,Cloud Dragon (Ancient),19,dragon,accept,,gemini,gemini-first
