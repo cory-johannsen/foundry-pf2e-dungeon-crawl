@@ -565,3 +565,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 39,concert-frog,Concert Frog,8,beast,flag,nudity_or_clothing;cropped,gemini,
 39,mammoth-land-star,Mammoth Land Star,8,beast,flag,wrong_subject,gemini,
 39,giant-tardigrade,Giant Tardigrade,9,beast,flag,decorative_frame,gemini,
+40,stargut-hydra,Stargut Hydra,9,hybrid,accept,,comfyui,gemini-first
+40,desert-manticore,Desert Manticore,12,hybrid,accept,,comfyui,gemini-first
+40,greater-chimera,Greater Chimera,13,hybrid,accept,,comfyui,gemini-first
+40,ascendant-griffon,Ascendant Griffon,11,hybrid,flag,bg_patch,comfyui,gemini-first
+40,lightning-turtle,Lightning Turtle,12,beast,flag,bg_patch,comfyui,gemini-first
+40,soniphak,Soniphak,9,beast,accept,,comfyui,
+40,chaos-falcon,Chaos Falcon,10,beast,accept,,comfyui,
+40,tyrafdir,Tyrafdir,11,beast,accept,,comfyui,
+40,plated-python,Plated Python,12,beast,accept,,comfyui,
+40,sky-fisher,Sky Fisher,11,beast,flag,scenery_backdrop,comfyui,
+40,therizinosaurus,Therizinosaurus,9,beast,flag,decorative_frame;monochrome_line_art,gemini,
+40,helicoprion,Helicoprion,10,beast,flag,halo_or_disc;monochrome_line_art;wrong_details,gemini,
+40,pale-horse,Pale Horse,11,beast,flag,monochrome_line_art;cropped,gemini,
+40,royal-basilisk,Royal Basilisk,13,beast,flag,bg_patch;cropped;wrong_details,gemini,
+40,sunscale-serpent,Sunscale Serpent,14,beast,flag,bg_patch,gemini,
