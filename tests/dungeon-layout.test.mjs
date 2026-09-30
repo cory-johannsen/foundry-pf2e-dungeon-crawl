@@ -2055,18 +2055,88 @@ describe('transitCellCrossing', () => {
     }
   });
 
-  it('flanks an L-shaped crossing with two walls per segment (four total), each matching its own segment\'s own bounds', () => {
-    const result = transitCellCrossing('seed1', 0, 0, 'north', 'east', 'a->b');
-    expect(result.corridorSegments).toHaveLength(2);
-    expect(result.plainWalls).toHaveLength(4);
-    for (const seg of result.corridorSegments) {
-      const isVertical = seg.gh > seg.gw;
-      const matching = result.plainWalls.filter((w) =>
-        isVertical
-          ? w.x1 === w.x2 && Math.min(w.y1, w.y2) === seg.gy && Math.max(w.y1, w.y2) === seg.gy + seg.gh
-          : w.y1 === w.y2 && Math.min(w.x1, w.x2) === seg.gx && Math.max(w.x1, w.x2) === seg.gx + seg.gw,
-      );
-      expect(matching).toHaveLength(2);
+  // #355 follow-up: live-reported after that fix shipped -- a player got
+  // stuck at what looked like a dead end where a corridor actually turns.
+  // Two distinct bugs were found chasing this, both caught by the same
+  // BFS reachability check below:
+  // 1. Flanking seg1 and seg2 independently put a wall right across the
+  //    corner cell the two segments share, sealing the turn shut instead
+  //    of containing the passage (confirmed live: an unflagged wall
+  //    directly overlapped a door opening transitCellContainmentWalls had
+  //    correctly left open).
+  // 2. A pre-existing (not introduced by #355), previously-invisible gap
+  //    in seg1/seg2's own geometry: for certain entrySide/exitSide
+  //    combinations (confirmed live: entrySide 'north' + exitSide
+  //    'west'), NEITHER segment's own cell range actually reached the
+  //    corner cell at all -- a real gap in the floor tiles too, not just
+  //    the walls, invisible before because nothing ever tested cell-level
+  //    connectivity this way.
+  // This is the actual regression guard for both -- a direct BFS walk
+  // through the corridor's own cells, blocked only by the returned
+  // plainWalls, independent of the implementation's own internal
+  // cell/flanking logic (re-deriving corridor occupancy from
+  // corridorSegments here, not reusing any private helper).
+  function corridorCellSet(segments) {
+    const cells = new Set();
+    for (const { gx, gy, gw, gh } of segments) {
+      if (gh > gw) {
+        for (let y = gy; y < gy + gh; y += 1) cells.add(`${gx},${y}`);
+      } else {
+        for (let x = gx; x < gx + gw; x += 1) cells.add(`${x},${gy}`);
+      }
+    }
+    return cells;
+  }
+  function wallsBlockEdge(plainWalls, a, b) {
+    // The shared edge between two orthogonally-adjacent unit cells.
+    const x1 = Math.max(a.gx, b.gx);
+    const y1 = Math.max(a.gy, b.gy);
+    const x2 = a.gx === b.gx ? x1 + 1 : x1;
+    const y2 = a.gy === b.gy ? y1 + 1 : y1;
+    return plainWalls.some(
+      (w) =>
+        (Math.min(w.x1, w.x2) === Math.min(x1, x2) &&
+          Math.max(w.x1, w.x2) === Math.max(x1, x2) &&
+          Math.min(w.y1, w.y2) === Math.min(y1, y2) &&
+          Math.max(w.y1, w.y2) === Math.max(y1, y2)),
+    );
+  }
+  function reachable(plainWalls, cellSet, fromKey, toKey) {
+    const seen = new Set([fromKey]);
+    const queue = [fromKey];
+    while (queue.length) {
+      const key = queue.shift();
+      if (key === toKey) return true;
+      const [gx, gy] = key.split(',').map(Number);
+      for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
+        const next = { gx: gx + dx, gy: gy + dy };
+        const nextKey = `${next.gx},${next.gy}`;
+        if (!cellSet.has(nextKey) || seen.has(nextKey)) continue;
+        if (wallsBlockEdge(plainWalls, { gx, gy }, next)) continue;
+        seen.add(nextKey);
+        queue.push(nextKey);
+      }
+    }
+    return false;
+  }
+
+  it('keeps the corridor passable through every corner turn (#355 regression)', () => {
+    const SIDES = ['north', 'south', 'east', 'west'];
+    const OPPOSITE = { north: 'south', south: 'north', east: 'west', west: 'east' };
+    for (const entrySide of SIDES) {
+      for (const exitSide of SIDES) {
+        if (entrySide === exitSide || OPPOSITE[entrySide] === exitSide) continue;
+        const result = transitCellCrossing('seed1', 0, 0, entrySide, exitSide, `${entrySide}->${exitSide}`);
+        const cellSet = corridorCellSet(result.corridorSegments);
+        // Any cell from seg1 (the entry leg) to any cell from seg2 (the
+        // exit leg) -- the two segments must stay connected through the
+        // corner they share, regardless of exactly which cell each one's
+        // own entryPoint/exitPoint maps to.
+        const [seg1, seg2] = result.corridorSegments;
+        const fromKey = [...corridorCellSet([seg1])][0];
+        const toKey = [...corridorCellSet([seg2])][0];
+        expect(reachable(result.plainWalls, cellSet, fromKey, toKey)).toBe(true);
+      }
     }
   });
 
