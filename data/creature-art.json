@@ -13750,5 +13750,125 @@
     "name": "Manananggal",
     "level": 8,
     "art": "manananggal-lob.webp"
+  },
+  {
+    "id": "mocking_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "rc2BbhcVloC7MG58",
+    "name": "Mocking Dragon (Young)",
+    "level": 8,
+    "art": "mocking-dragon-young-lob.webp"
+  },
+  {
+    "id": "sea_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "uizTKvo2VEZX62ZQ",
+    "name": "Sea Dragon (Young)",
+    "level": 8,
+    "art": "sea-dragon-young-lob.webp"
+  },
+  {
+    "id": "coral_juggernaut_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "LIW4SiPSJptMfg8H",
+    "name": "Coral Juggernaut",
+    "level": 9,
+    "art": "coral-juggernaut-lob.webp"
+  },
+  {
+    "id": "five_color_orchid_mantis_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "2hQmiIASF1pvbWhX",
+    "name": "Five-Color Orchid Mantis",
+    "level": 9,
+    "art": "five-color-orchid-mantis-lob.webp"
+  },
+  {
+    "id": "kallas_devil_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "zE2ykzHZKNS3Rnc3",
+    "name": "Kallas Devil",
+    "level": 9,
+    "art": "kallas-devil-lob.webp"
+  },
+  {
+    "id": "magma_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "aTXEJ6cMnh9LgnyE",
+    "name": "Magma Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "magma-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "mutant_gnoll_hulk_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "lhr2fjewILo4nyUZ",
+    "name": "Mutant Gnoll Hulk",
+    "level": 9,
+    "art": "mutant-gnoll-hulk-lob.webp"
+  },
+  {
+    "id": "mocking_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "wXFiZs2AzMFSjuhQ",
+    "name": "Mocking Dragon (Young, Spellcaster)",
+    "level": 8,
+    "art": "mocking-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "pixiu_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7RTjMCDWQVc6MKNI",
+    "name": "Pixiu",
+    "level": 8,
+    "art": "pixiu-lob.webp"
+  },
+  {
+    "id": "sea_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "PoL0b0ro9SES3N3t",
+    "name": "Sea Dragon (Young, Spellcaster)",
+    "level": 8,
+    "art": "sea-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "executor_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "LYONUjVe1PQNvg62",
+    "name": "Executor Dragon (Young)",
+    "level": 9,
+    "art": "executor-dragon-young-lob.webp"
+  },
+  {
+    "id": "executor_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "1jOAKYSysCAbVP98",
+    "name": "Executor Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "executor-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "magma_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "R0IEWkfzEuGAJXJ8",
+    "name": "Magma Dragon (Young)",
+    "level": 9,
+    "art": "magma-dragon-young-lob.webp"
+  },
+  {
+    "id": "mamlambo_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "j0t62tXPYhBzCLUO",
+    "name": "Mamlambo",
+    "level": 9,
+    "art": "mamlambo-lob.webp"
+  },
+  {
+    "id": "sage_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "uHpMy1o93H70XhiI",
+    "name": "Sage Dragon (Young)",
+    "level": 9,
+    "art": "sage-dragon-young-lob.webp"
   }
 ]

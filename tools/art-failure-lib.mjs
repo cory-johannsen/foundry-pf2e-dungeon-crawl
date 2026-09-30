@@ -10,6 +10,7 @@
 
 export const TAGS = {
   scenery_backdrop: 'coloured backdrop, scene, props or effects (flames, smoke, ship, sea) behind the subject',
+  decorative_frame: 'ornate border / picture-frame / corner ornaments drawn around the subject',
   halo_or_disc: 'circle/halo/disc/splatter shape behind the subject',
   bg_patch: 'opaque leftover patch (ground rectangle, white corner, ledge) the salvage did not remove',
   cropped: 'subject cut off by the frame, or only a head/bust shown when the whole creature was asked for',

@@ -89,3 +89,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 6,fleshforged-conformer,Fleshforged Conformer,8,construct,flag,wrong_subject;cropped;bg_patch,gemini,skull with wires; white corners
 6,k-nonna,K'nonna,8,hybrid,flag,wrong_subject;hybrid_anatomy,gemini,"full goblin-like humanoid, not a half-human"
 6,manananggal,Manananggal,8,hybrid,flag,wrong_subject;hybrid_anatomy,gemini,"winged dragon with legs, not a torso"
+7,mocking-dragon-young,Mocking Dragon (Young),8,dragon,accept,,comfyui,
+7,mocking-dragon-young-spellcaster,"Mocking Dragon (Young, Spellcaster)",8,dragon,flag,cropped,gemini,
+7,pixiu,Pixiu,8,hybrid,flag,decorative_frame,gemini,
+7,sea-dragon-young,Sea Dragon (Young),8,dragon,accept,,comfyui,
+7,sea-dragon-young-spellcaster,"Sea Dragon (Young, Spellcaster)",8,dragon,flag,scenery_backdrop;bg_score_high,gemini,
+7,coral-juggernaut,Coral Juggernaut,9,construct,accept,,comfyui,
+7,executor-dragon-young,Executor Dragon (Young),9,dragon,flag,decorative_frame;bg_score_high,gemini,
+7,executor-dragon-young-spellcaster,"Executor Dragon (Young, Spellcaster)",9,dragon,flag,bg_patch,gemini,
+7,five-color-orchid-mantis,Five-Color Orchid Mantis,9,beast,accept,,comfyui,
+7,kallas-devil,Kallas Devil,9,hybrid,accept,,comfyui,
+7,magma-dragon-young,Magma Dragon (Young),9,dragon,flag,scenery_backdrop,gemini,
+7,magma-dragon-young-spellcaster,"Magma Dragon (Young, Spellcaster)",9,dragon,accept,,comfyui,
+7,mamlambo,Mamlambo,9,hybrid,flag,cropped;hybrid_anatomy,gemini,
+7,mutant-gnoll-hulk,Mutant Gnoll Hulk,9,beast,accept,,comfyui,
+7,sage-dragon-young,Sage Dragon (Young),9,dragon,flag,decorative_frame;bg_score_high,gemini,
