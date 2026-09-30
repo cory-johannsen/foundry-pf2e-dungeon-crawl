@@ -329,3 +329,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 22,vorpal-archdragon,Vorpal Archdragon,21,dragon,accept,,gemini,gemini-first
 22,vorpal-archdragon-spellcaster,Vorpal Archdragon (Spellcaster),21,dragon,accept,,gemini,gemini-first
 22,cinder-archdragon,Cinder Archdragon,22,dragon,accept,,gemini,gemini-first
+23,cinder-archdragon-spellcaster,Cinder Archdragon (Spellcaster),22,dragon,accept,,gemini,gemini-first
+23,cloud-archdragon,Cloud Archdragon,22,dragon,accept,,gemini,gemini-first
+23,cloud-archdragon-spellcaster,Cloud Archdragon (Spellcaster),22,dragon,accept,,gemini,gemini-first
+23,delight-archdragon,Delight Archdragon,22,dragon,accept,,gemini,gemini-first
+23,delight-archdragon-spellcaster,Delight Archdragon (Spellcaster),22,dragon,accept,,gemini,gemini-first
+23,despair-archdragon,Despair Archdragon,22,dragon,accept,,gemini,gemini-first
+23,despair-archdragon-spellcaster,Despair Archdragon (Spellcaster),22,dragon,accept,,gemini,gemini-first
+23,forest-archdragon,Forest Archdragon,22,dragon,accept,,gemini,gemini-first
+23,forest-archdragon-spellcaster,Forest Archdragon (Spellcaster),22,dragon,accept,,gemini,gemini-first
+23,mirage-archdragon,Mirage Archdragon,22,dragon,accept,,gemini,gemini-first
+23,mirage-archdragon-spellcaster,Mirage Archdragon (Spellcaster),22,dragon,accept,,gemini,gemini-first
+23,oath-archdragon,Oath Archdragon,22,dragon,accept,,gemini,gemini-first
+23,oath-archdragon-spellcaster,Oath Archdragon (Spellcaster),22,dragon,accept,,gemini,gemini-first
+23,phase-archdragon,Phase Archdragon,22,dragon,accept,,gemini,gemini-first
+23,phase-archdragon-spellcaster,Phase Archdragon (Spellcaster),22,dragon,accept,,gemini,gemini-first

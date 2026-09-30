@@ -15670,5 +15670,125 @@
     "name": "Kothogaz, Dance Of Disharmony",
     "level": 21,
     "art": "kothogaz-dance-of-disharmony-lob.webp"
+  },
+  {
+    "id": "cinder_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "cg5rBJCChmdFDpd1",
+    "name": "Cinder Archdragon (Spellcaster)",
+    "level": 22,
+    "art": "cinder-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "cloud_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "HJ7WibzPwKQMqgeF",
+    "name": "Cloud Archdragon",
+    "level": 22,
+    "art": "cloud-archdragon-lob.webp"
+  },
+  {
+    "id": "cloud_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ci4Cbw3Mqq8lgeUq",
+    "name": "Cloud Archdragon (Spellcaster)",
+    "level": 22,
+    "art": "cloud-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "delight_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "J0cbBxB3w9XYfanM",
+    "name": "Delight Archdragon",
+    "level": 22,
+    "art": "delight-archdragon-lob.webp"
+  },
+  {
+    "id": "delight_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Ebi03WLtvn2eTt3u",
+    "name": "Delight Archdragon (Spellcaster)",
+    "level": 22,
+    "art": "delight-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "despair_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "n73ZDMFaAHD5y4KO",
+    "name": "Despair Archdragon",
+    "level": 22,
+    "art": "despair-archdragon-lob.webp"
+  },
+  {
+    "id": "despair_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "wuI92F4wa4mgeZQA",
+    "name": "Despair Archdragon (Spellcaster)",
+    "level": 22,
+    "art": "despair-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "forest_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "YGglOiy65KG7EX2z",
+    "name": "Forest Archdragon",
+    "level": 22,
+    "art": "forest-archdragon-lob.webp"
+  },
+  {
+    "id": "forest_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "5UUWSspQyk1kA1Rh",
+    "name": "Forest Archdragon (Spellcaster)",
+    "level": 22,
+    "art": "forest-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "mirage_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "XEYOSJvOm91JnQg2",
+    "name": "Mirage Archdragon",
+    "level": 22,
+    "art": "mirage-archdragon-lob.webp"
+  },
+  {
+    "id": "mirage_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "zJc4vUjNq6SvUlax",
+    "name": "Mirage Archdragon (Spellcaster)",
+    "level": 22,
+    "art": "mirage-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "oath_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Qq49apE3HQlBbLPn",
+    "name": "Oath Archdragon",
+    "level": 22,
+    "art": "oath-archdragon-lob.webp"
+  },
+  {
+    "id": "oath_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ycIgpWAACBPtg1zV",
+    "name": "Oath Archdragon (Spellcaster)",
+    "level": 22,
+    "art": "oath-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "phase_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "QOj4HnGuAPC4viLr",
+    "name": "Phase Archdragon",
+    "level": 22,
+    "art": "phase-archdragon-lob.webp"
+  },
+  {
+    "id": "phase_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "L0olDEaCquOy9aL6",
+    "name": "Phase Archdragon (Spellcaster)",
+    "level": 22,
+    "art": "phase-archdragon-spellcaster-lob.webp"
   }
 ]
