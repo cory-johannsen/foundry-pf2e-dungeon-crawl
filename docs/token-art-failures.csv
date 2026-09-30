@@ -603,3 +603,17 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 42,sublime-breath,Sublime Breath,6,beast,flag,cropped;wrong_details,comfyui,
 42,immortal-trickster,Immortal Trickster,11,beast,flag,monochrome_line_art;cropped,gemini,
 42,verex-that-was,Verex-That-Was,24,beast,flag,bg_patch;dark_palette_bg_lightened,gemini,
+43,angry-fox,Angry Fox,-1,beast,flag,cropped,comfyui,
+43,osprey,Osprey,-1,beast,flag,cropped,comfyui,
+43,bandit-disciple,Bandit Disciple (1-2),-1,beast,accept,,comfyui,
+43,giant-shrew,Giant Shrew,-1,beast,accept,,comfyui,
+43,glass-river-midge,Glass River Midge,-1,beast,accept,,comfyui,
+43,groetus-s-chosen,Groetus's Chosen (1-2),-1,beast,accept,,comfyui,
+43,hogweed-leshy,Hogweed Leshy (1-2),-1,beast,accept,,comfyui,
+43,house-cat,House Cat,-1,beast,accept,,comfyui,
+43,human-bandit,Human Bandit (PFS 1-06),-1,beast,accept,,comfyui,
+43,guardian-statue,Lesser Guardian Statue,-1,beast,accept,,comfyui,
+43,mercenary,Mercenary,-1,beast,accept,,comfyui,
+43,flaming-skull-skeleton-guard,Flaming Skull Skeleton Guard,-1,undead,accept,,gemini,gemini-first
+43,goblin-skeleton,Goblin Skeleton,-1,undead,accept,,gemini,gemini-first
+43,mummy-shambler,Mummy Shambler,-1,undead,accept,,gemini,gemini-first

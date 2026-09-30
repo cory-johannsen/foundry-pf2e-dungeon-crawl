@@ -17862,5 +17862,613 @@
     "name": "Oliphaunt of Jandelay",
     "level": 25,
     "art": "oliphaunt-of-jandelay-lob.webp"
+  },
+  {
+    "id": "boggard_swampseer_pfs_1_24_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "zJhgmaI99nePKSaY",
+    "name": "Boggard Swampseer (PFS 1-24)",
+    "level": 3,
+    "art": "boggard-swampseer.webp"
+  },
+  {
+    "id": "elite_boggard_swampseer_pfs_1_24_animal_staff_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "D2Bc4GbmiuW29310",
+    "name": "Elite Boggard Swampseer (PFS 1-24, Animal Staff)",
+    "level": 3,
+    "art": "boggard-swampseer.webp"
+  },
+  {
+    "id": "elite_boggard_swampseer_pfs_1_24_staff_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "1LM0AUYkZcsbtETs",
+    "name": "Elite Boggard Swampseer (PFS 1-24, Staff)",
+    "level": 3,
+    "art": "boggard-swampseer.webp"
+  },
+  {
+    "id": "immature_giant_gecko_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "20DJMDdNk0zLzaZZ",
+    "name": "Immature Giant Gecko",
+    "level": 0,
+    "art": "giant-gecko.webp"
+  },
+  {
+    "id": "annis_hag_1_06_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "26SFLzXVXqX7aEUD",
+    "name": "Annis Hag (1-06)",
+    "level": 6,
+    "art": "annis-hag.webp"
+  },
+  {
+    "id": "cairn_wight_pfs_1_20_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "2HEhlngODb1KfSwE",
+    "name": "Cairn Wight (PFS 1-20)",
+    "level": 3,
+    "art": "cairn-wight.webp"
+  },
+  {
+    "id": "kobold_scout_1_14_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "lhSKgDzZm8FZknvG",
+    "name": "Kobold Scout (1-14)",
+    "level": 1,
+    "art": "kobold-scout.webp"
+  },
+  {
+    "id": "kobold_scout_pfs_1_11_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "5ss5AIhNdmoreHcd",
+    "name": "Kobold Scout (PFS 1-11)",
+    "level": 1,
+    "art": "kobold-scout.webp"
+  },
+  {
+    "id": "charlatan_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "6RnFVhsi5XImLuuF",
+    "name": "Charlatan",
+    "level": 3,
+    "art": "charlatan.webp"
+  },
+  {
+    "id": "weak_zephyr_hawk_pfs_1_24_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "81H7cwCK8TBi6dnv",
+    "name": "Weak Zephyr Hawk (PFS 1-24)",
+    "level": 2,
+    "art": "zephyr-hawk.webp"
+  },
+  {
+    "id": "witchwyrd_pfs_1_21_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "8ndVAfhYn9kROK3R",
+    "name": "Witchwyrd (PFS 1-21)",
+    "level": 6,
+    "art": "witchwyrd.webp"
+  },
+  {
+    "id": "eerie_skeletal_giant_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "v8Spc0ALJdX8WUi4",
+    "name": "Eerie Skeletal Giant",
+    "level": 3,
+    "art": "skeletal-giant.webp"
+  },
+  {
+    "id": "elite_skeletal_giant_pfs_1_18_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "D8CPosS1fj2ZRBv0",
+    "name": "Elite Skeletal Giant (PFS 1-18)",
+    "level": 4,
+    "art": "skeletal-giant.webp"
+  },
+  {
+    "id": "elderly_giant_tarantula_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "D9Ogfbn0ooPAqa9X",
+    "name": "Elderly Giant Tarantula",
+    "level": 3,
+    "art": "giant-tarantula.webp"
+  },
+  {
+    "id": "goblin_warrior_pfs_1_01_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "Et2jn8eZ1nQStapE",
+    "name": "Goblin Warrior (PFS 1-01)",
+    "level": -1,
+    "art": "goblin-warrior.webp"
+  },
+  {
+    "id": "mitflit_pfs_1_02_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "FcqRRAWeUzV89Z2s",
+    "name": "Mitflit (PFS 1-02)",
+    "level": -1,
+    "art": "mitflit.webp"
+  },
+  {
+    "id": "weak_arboreal_warden_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "Gsqdd6TysPcSd64h",
+    "name": "Weak Arboreal Warden",
+    "level": 3,
+    "art": "arboreal-warden.webp"
+  },
+  {
+    "id": "ruffian_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "anjyGCh5n1fj2kn3",
+    "name": "Ruffian",
+    "level": 2,
+    "art": "ruffian.webp"
+  },
+  {
+    "id": "ruffian_q11_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "I4Vcd1ce8ltK8OqJ",
+    "name": "Ruffian (Q11)",
+    "level": 2,
+    "art": "ruffian.webp"
+  },
+  {
+    "id": "reefclaw_pfs_1_12_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "JF257wpwvWWjCsN7",
+    "name": "Reefclaw (PFS 1-12)",
+    "level": 1,
+    "art": "reefclaw.webp"
+  },
+  {
+    "id": "great_white_shark_pfs_1_12_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "LAo7jI8NvMfuDbek",
+    "name": "Great White Shark (PFS 1-12)",
+    "level": 4,
+    "art": "great-white-shark.webp"
+  },
+  {
+    "id": "lion_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "LOTsEiTCiONfJl3s",
+    "name": "Lion",
+    "level": 3,
+    "art": "lion.webp"
+  },
+  {
+    "id": "guard_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "MJtndSx73zEx8702",
+    "name": "Guard",
+    "level": -1,
+    "art": "guard.webp"
+  },
+  {
+    "id": "guard_pfs_1_17_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "UlBksr4oy0gT3b3g",
+    "name": "Guard (PFS 1-17)",
+    "level": 1,
+    "art": "guard.webp"
+  },
+  {
+    "id": "weak_green_hag_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "NZvXkQHfXM2XS50I",
+    "name": "Weak Green Hag",
+    "level": 4,
+    "art": "green-hag.webp"
+  },
+  {
+    "id": "biloko_veteran_1_16_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "O6YxMaRh6tRGnnbl",
+    "name": "Biloko Veteran (1-16)",
+    "level": 4,
+    "art": "biloko-veteran-lob.webp"
+  },
+  {
+    "id": "dilapidated_alchemical_golem_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "pWJUeb0LfCXFSYpE",
+    "name": "Dilapidated Alchemical Golem",
+    "level": 3,
+    "art": "alchemical-golem.webp"
+  },
+  {
+    "id": "damaged_alchemical_golem_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "OtYNhDlyXrVWxeiS",
+    "name": "Damaged Alchemical Golem",
+    "level": 5,
+    "art": "alchemical-golem.webp"
+  },
+  {
+    "id": "giant_centipede_pfs_1_03_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "Qeu2rsI1J5nohgm7",
+    "name": "Giant Centipede (PFS 1-03)",
+    "level": -1,
+    "art": "giant-centipede.webp"
+  },
+  {
+    "id": "ravenous_giant_centipede_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "mjD8kNTb8IC5FBNA",
+    "name": "Ravenous Giant Centipede",
+    "level": 1,
+    "art": "giant-centipede.webp"
+  },
+  {
+    "id": "weak_ceustodaemon_pfs_1_01_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "UjVrEU4MTBH2eZOq",
+    "name": "Weak Ceustodaemon (PFS 1-01)",
+    "level": 5,
+    "art": "ceustodaemon.webp"
+  },
+  {
+    "id": "young_sea_serpent_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "wCZcZnEHskvccWJE",
+    "name": "Young Sea Serpent",
+    "level": 1,
+    "art": "sea-serpent.webp"
+  },
+  {
+    "id": "adolescent_sea_serpent_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "WdmbEmvLzPciM7au",
+    "name": "Adolescent Sea Serpent",
+    "level": 3,
+    "art": "sea-serpent.webp"
+  },
+  {
+    "id": "dehydrated_krooth_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "XVoGQC0ret7XiGZD",
+    "name": "Dehydrated Krooth",
+    "level": 6,
+    "art": "krooth.webp"
+  },
+  {
+    "id": "dryad_1_16_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "bfTmy4404MFMykxH",
+    "name": "Dryad (1-16)",
+    "level": 3,
+    "art": "dryad.webp"
+  },
+  {
+    "id": "zombie_brute_pfs_1_18_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "xKanh4M6QEF39bvd",
+    "name": "Zombie Brute (PFS 1-18)",
+    "level": 2,
+    "art": "zombie-brute.webp"
+  },
+  {
+    "id": "unkillable_zombie_brute_pfs_1_01_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "bjugOjcHcBHgWTeZ",
+    "name": "Unkillable Zombie Brute (PFS 1-01)",
+    "level": 3,
+    "art": "zombie-brute.webp"
+  },
+  {
+    "id": "unkillable_zombie_brute_pfs_1_13_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "fG2rxzrSiMS01Xqe",
+    "name": "Unkillable Zombie Brute (PFS 1-13)",
+    "level": 3,
+    "art": "zombie-brute.webp"
+  },
+  {
+    "id": "injured_sewer_ooze_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "cG7wNXEp67uWgwfB",
+    "name": "Injured Sewer Ooze",
+    "level": 0,
+    "art": "sewer-ooze.webp"
+  },
+  {
+    "id": "elite_sewer_ooze_q9_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "tuuajdgozH7Tueiv",
+    "name": "Elite Sewer Ooze (Q9)",
+    "level": 2,
+    "art": "sewer-ooze.webp"
+  },
+  {
+    "id": "ogre_glutton_pfs_1_05_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "cnmrSCuK8FuiBA7J",
+    "name": "Ogre Glutton (PFS 1-05)",
+    "level": 4,
+    "art": "ogre-glutton.webp"
+  },
+  {
+    "id": "kobold_warrior_1_14_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "i4PIffSaQO2ry5nb",
+    "name": "Kobold Warrior (1-14)",
+    "level": -1,
+    "art": "kobold-warrior.webp"
+  },
+  {
+    "id": "kobold_warrior_pfs_1_11_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "dSA9TMhvF4yw20c7",
+    "name": "Kobold Warrior (PFS 1-11)",
+    "level": -1,
+    "art": "kobold-warrior.webp"
+  },
+  {
+    "id": "weak_soulbound_homunculus_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "jMjK6j16K1NC2BdC",
+    "name": "Weak Soulbound Homunculus",
+    "level": -1,
+    "art": "soulbound-homunculus.webp"
+  },
+  {
+    "id": "biloko_warrior_1_16_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "ocdy8RFkw10tCUuY",
+    "name": "Biloko Warrior (1-16)",
+    "level": 1,
+    "art": "biloko-warrior-lob.webp"
+  },
+  {
+    "id": "zombie_shambler_pfs_1_03_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "pG7P9AxqzcsCjikh",
+    "name": "Zombie Shambler (PFS 1-03)",
+    "level": -1,
+    "art": "zombie-shambler.webp"
+  },
+  {
+    "id": "boggard_warrior_pfs_1_09_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "pJck5AXRMWcAequ5",
+    "name": "Boggard Warrior (PFS 1-09)",
+    "level": 2,
+    "art": "boggard-warrior.webp"
+  },
+  {
+    "id": "palace_guard_pfs_1_17_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "rJ9IdtFmjnqtN02o",
+    "name": "Palace Guard (PFS 1-17)",
+    "level": 3,
+    "art": "palace-guard.webp"
+  },
+  {
+    "id": "flesh_golem_pfs_1_25_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "u2TGKzPfGniZLL14",
+    "name": "Flesh Golem (PFS 1-25)",
+    "level": 8,
+    "art": "flesh-golem.webp"
+  },
+  {
+    "id": "jinkin_pfs_1_17_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "ul23A9ZfCMCUwADK",
+    "name": "Jinkin (PFS 1-17)",
+    "level": 1,
+    "art": "jinkin.webp"
+  },
+  {
+    "id": "elite_ghast_pfs_1_07_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "ut2cLLH0tvJV2ewg",
+    "name": "Elite Ghast (PFS 1-07)",
+    "level": 3,
+    "art": "ghast.webp"
+  },
+  {
+    "id": "leopard_1_14_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "vtSVLCmJvef8980U",
+    "name": "Leopard (1-14)",
+    "level": 2,
+    "art": "leopard.webp"
+  },
+  {
+    "id": "injured_weak_otyugh_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "vve98ekdPx8nJbF1",
+    "name": "Injured Weak Otyugh",
+    "level": 2,
+    "art": "otyugh.webp"
+  },
+  {
+    "id": "skeletal_mage_wcttt_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "wctTtNkLjyMeCCi2",
+    "name": "Skeletal Mage",
+    "level": 5,
+    "art": "skeletal-mage-lob.webp"
+  },
+  {
+    "id": "guardian_statue_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "06T3st7Hyx2O4E3v",
+    "name": "Lesser Guardian Statue",
+    "level": -1,
+    "art": "guardian-statue-lob.webp"
+  },
+  {
+    "id": "giant_shrew_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "U6mEWRAurIbSgtnF",
+    "name": "Giant Shrew",
+    "level": -1,
+    "art": "giant-shrew-lob.webp"
+  },
+  {
+    "id": "tough_giant_shrew_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "0TEnslG0jaLrbf58",
+    "name": "Tough Giant Shrew",
+    "level": 1,
+    "art": "giant-shrew-lob.webp"
+  },
+  {
+    "id": "house_cat_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "24UI02EJVRSO6KZx",
+    "name": "House Cat",
+    "level": -1,
+    "art": "house-cat-lob.webp"
+  },
+  {
+    "id": "groetus_s_chosen_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "ksClnBrkXAhoq4Di",
+    "name": "Groetus's Chosen (1-2)",
+    "level": -1,
+    "art": "groetus-s-chosen-lob.webp"
+  },
+  {
+    "id": "groetus_s_chosen_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "8hdL1UOQZ1WPb6v7",
+    "name": "Groetus's Chosen (3-4)",
+    "level": 1,
+    "art": "groetus-s-chosen-lob.webp"
+  },
+  {
+    "id": "goblin_skeleton_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "9ZqTtwmViROBjYZf",
+    "name": "Goblin Skeleton",
+    "level": -1,
+    "art": "goblin-skeleton-lob.webp"
+  },
+  {
+    "id": "angry_fox_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "9f5t3nOOqhNykqhj",
+    "name": "Angry Fox",
+    "level": -1,
+    "art": "angry-fox-lob.webp"
+  },
+  {
+    "id": "osprey_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "EKwisoYBBn9femPg",
+    "name": "Osprey",
+    "level": -1,
+    "art": "osprey-lob.webp"
+  },
+  {
+    "id": "mercenary_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "dbEMEKNFWOIQw4BQ",
+    "name": "Mercenary",
+    "level": -1,
+    "art": "mercenary-lob.webp"
+  },
+  {
+    "id": "experienced_mercenary_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "Eccdm7gQHoppXFU5",
+    "name": "Experienced Mercenary",
+    "level": 1,
+    "art": "mercenary-lob.webp"
+  },
+  {
+    "id": "hogweed_leshy_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "FG0Cc949yZ8opW8I",
+    "name": "Hogweed Leshy (1-2)",
+    "level": -1,
+    "art": "hogweed-leshy-lob.webp"
+  },
+  {
+    "id": "hogweed_leshy_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "RzLRzsHVjaPBKCkh",
+    "name": "Hogweed Leshy (3-4)",
+    "level": 1,
+    "art": "hogweed-leshy-lob.webp"
+  },
+  {
+    "id": "human_bandit_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "Gs2zYE86QGrDzCrv",
+    "name": "Human Bandit (PFS 1-06)",
+    "level": -1,
+    "art": "human-bandit-lob.webp"
+  },
+  {
+    "id": "human_bandit_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "aWiBgV5B9sIO7UtN",
+    "name": "Human Bandit (3-4)",
+    "level": 1,
+    "art": "human-bandit-lob.webp"
+  },
+  {
+    "id": "human_bandit_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "mWzScgUiWAGEb0RE",
+    "name": "Human Bandit (5-6)",
+    "level": 3,
+    "art": "human-bandit-lob.webp"
+  },
+  {
+    "id": "glass_river_midge_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "I3jGuCG3qL5ua7yE",
+    "name": "Glass River Midge",
+    "level": -1,
+    "art": "glass-river-midge-lob.webp"
+  },
+  {
+    "id": "elite_glass_river_midge_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "xu1dm0KnEHx5vySR",
+    "name": "Elite Glass River Midge",
+    "level": 1,
+    "art": "glass-river-midge-lob.webp"
+  },
+  {
+    "id": "bandit_disciple_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "S50loNsuTigldGll",
+    "name": "Bandit Disciple (1-2)",
+    "level": -1,
+    "art": "bandit-disciple-lob.webp"
+  },
+  {
+    "id": "bandit_disciple_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "jJd7Sa8DB7uBOn93",
+    "name": "Bandit Disciple (3-4)",
+    "level": 2,
+    "art": "bandit-disciple-lob.webp"
+  },
+  {
+    "id": "mummy_shambler_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "jkGd8nN4hnNLGS2D",
+    "name": "Mummy Shambler",
+    "level": -1,
+    "art": "mummy-shambler-lob.webp"
+  },
+  {
+    "id": "flaming_skull_skeleton_guard_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "uedXIip0UPHJ4Egt",
+    "name": "Flaming Skull Skeleton Guard",
+    "level": -1,
+    "art": "flaming-skull-skeleton-guard-lob.webp"
   }
 ]
