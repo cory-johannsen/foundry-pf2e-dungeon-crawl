@@ -62,8 +62,15 @@ machinery — no new storage mechanism.
 - **Initialization**: at run start, `marchingOrder` is set to a copy of
   `aiControlledActorIds` in its current (arbitrary) order — no forced setup
   step before a run can begin.
-- **Reconciliation**: `aiControlledActorIds` can change mid-run (a player
-  goes offline/online). Rather than trying to keep the stored
+- **Reconciliation**: `aiControlledActorIds` is designed to be able to
+  change mid-run (a player going offline/online) — though as of this
+  writing `dungeon-runner.mjs` only ever computes it once, in `createRun`
+  (final review, 2026-09-30: confirmed by grep, no other writer exists
+  today), so this reconciliation currently only matters for a run whose
+  stored state predates this feature and therefore has no `marchingOrder`
+  field at all. It's kept as designed rather than trimmed to today's
+  reality, since it's what makes an old run self-heal for free and costs
+  nothing to run every cycle. Rather than trying to keep the stored
   `marchingOrder` perfectly in sync at every write site, `moveFollowersToward`
   computes the *effective* order fresh each cycle: filter the stored
   `marchingOrder` down to actors still present in the current

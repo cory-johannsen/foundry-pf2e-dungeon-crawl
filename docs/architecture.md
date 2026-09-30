@@ -127,7 +127,12 @@ moves AI-controlled party members toward the leader's token between
 fights. The pure half computes a single step of pathfinding-aware
 movement; the glue half hooks `updateToken`/`updateWall` and, since #65,
 falls back to the GM-less relay above when the client reacting to the
-hook isn't itself GM-privileged but is the run's own host.
+hook isn't itself GM-privileged but is the run's own host. Since #181,
+each follower's own target is whoever is immediately ahead of it in the
+run's `marchingOrder` (`dungeon-runner.mjs`'s `effectiveMarchingOrder`),
+not always the leader directly — this chain-following is what lets
+followers queue single-file through a corridor too narrow for more than
+one of them to be near the leader at once.
 
 **Run state & UI** (`dungeon-runner.mjs`, `module.mjs`,
 `scripts/ui/dungeon-app.mjs`, `world-macros.mjs`) — `dungeon-runner.mjs`

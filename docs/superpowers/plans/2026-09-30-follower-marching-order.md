@@ -756,6 +756,7 @@ No automated test covers Foundry UI rendering in this codebase — verify live i
 4. As a DIFFERENT connected client that is neither the host nor GM, confirm the section is absent.
 5. On a run where `hostUserId` is null (a normal GM-hosted run), confirm the section is absent even for the GM (Review Focus item: `isGmLessRun` gate).
 6. Walk the leader through a narrow corridor with 3+ AI-controlled followers in a deliberately chosen order; confirm they queue up in that order — the actual feature payoff, the same scenario Task 2's automated test already covers at the pure-logic level, now confirmed end-to-end live.
+7. Final-review finding (#365): with the party mid-transit through a 1-wide corridor, click an up/down arrow to reorder two followers. `findFollowMove`'s pathfinding is token-occupancy-blind (pre-existing, not introduced by this feature — see `dungeon-follow.mjs`'s chain-following comment), so this can briefly send a follower's path through another token's square, including the leader's. Confirm this is the worst observed symptom (a follower settles back into correct order within a cycle or two) and not something worse (a crash, a permanently stuck follower, or a follower leaving the corridor's bounds).
 
 - [ ] **Step 7: Bump the module version**
 

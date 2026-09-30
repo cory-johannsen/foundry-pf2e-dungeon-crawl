@@ -72,6 +72,39 @@ function computeAiControlledActorIds(partyOwnershipRef) {
   return result;
 }
 
+/** The marching order to actually use for a follow-move cycle (#181) — the
+ * run's own stored `marchingOrder`, reconciled against its CURRENT
+ * `aiControlledActorIds` so a stale/out-of-sync stored value (or a run
+ * created before this field existed) can never drop a follower or crash:
+ * every actor still AI-controlled keeps its relative position from the
+ * stored order; any AI-controlled actor missing from the stored order
+ * (never explicitly ordered yet) is appended at the end, lowest priority.
+ * Pure function, no Foundry globals — `run` is whatever getRunState
+ * returns, or null. */
+export function effectiveMarchingOrder(run) {
+  const aiIds = run?.aiControlledActorIds ?? [];
+  const stored = run?.marchingOrder ?? [];
+  const aiSet = new Set(aiIds);
+  // Final-review finding (#181): dedupe while filtering, not just filter --
+  // a stale/corrupted stored marchingOrder with a repeated id (e.g. from a
+  // manual settings edit) must self-heal to one entry per actor, or a
+  // follower gets processed twice per cycle and setMarchingOrder's own
+  // permutation check then rejects every reorder built from this list.
+  const seen = new Set();
+  const reconciled = stored.filter((id) => {
+    if (!aiSet.has(id) || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+  for (const id of aiIds) {
+    if (!seen.has(id)) {
+      seen.add(id);
+      reconciled.push(id);
+    }
+  }
+  return reconciled;
+}
+
 async function persist(sceneId, state, settingsRef) {
   const all = settingsRef.get(MODULE_ID, "dungeonRuns") ?? {};
   await settingsRef.set(MODULE_ID, "dungeonRuns", { ...all, [sceneId]: state });
@@ -147,6 +180,7 @@ export async function createRun(
   for (let i = 0; i < rooms.length; i += 1) {
     edges[rooms[i].id] = i + 1 < rooms.length ? [rooms[i + 1].id] : [];
   }
+  const aiControlledActorIds = computeAiControlledActorIds(partyOwnershipRef);
   const state = {
     seed: runSeed,
     createdAt: Date.now(),
@@ -180,7 +214,12 @@ export async function createRun(
     // #20: party actor ids whose owning player isn't logged in at run
     // start — see dungeon-combat.mjs (combat turns) and dungeon-follow.mjs
     // (exploration following) for what reads this.
-    aiControlledActorIds: computeAiControlledActorIds(partyOwnershipRef),
+    aiControlledActorIds,
+    // #181: the priority/queue order AI-controlled followers use for
+    // follow-the-leader chain-following (dungeon-follow.mjs) — starts as
+    // a copy of aiControlledActorIds; setMarchingOrder is the only other
+    // writer.
+    marchingOrder: [...aiControlledActorIds],
   };
   return persist(sceneId, state, settingsRef);
 }
@@ -603,6 +642,37 @@ export async function setObjective(
   if (!state) return null;
   const trimmed = objective?.trim();
   const newState = { ...state, objective: trimmed ? trimmed : null };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/**
+ * Sets this run's own marching-order priority sequence for its
+ * AI-controlled followers (#181) — `orderedActorIds` must be exactly a
+ * permutation of the run's CURRENT `aiControlledActorIds` (same actors,
+ * no duplicates, nothing missing); throws otherwise so a caller bug
+ * surfaces immediately instead of silently corrupting run state. A no-op
+ * (returns null) if the scene has no run.
+ */
+export async function setMarchingOrder(
+  sceneId,
+  orderedActorIds,
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const current = new Set(state.aiControlledActorIds ?? []);
+  const given = new Set(orderedActorIds);
+  const isValidPermutation =
+    orderedActorIds.length === current.size &&
+    given.size === orderedActorIds.length &&
+    [...current].every((id) => given.has(id));
+  if (!isValidPermutation) {
+    throw new Error(
+      "pf2e-dungeon-crawl | setMarchingOrder: orderedActorIds must be exactly a permutation of the run's current aiControlledActorIds",
+    );
+  }
+  const newState = { ...state, marchingOrder: [...orderedActorIds] };
   await persist(sceneId, newState, settingsRef);
   return newState;
 }

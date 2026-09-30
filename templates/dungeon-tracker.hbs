@@ -27,6 +27,35 @@
           }}</p>
       {{/if}}
 
+      {{#if isGmLessRun}}
+        {{#if interactive}}
+          {{#if marchingOrder.length}}
+          <div class="pf2edc-dungeon__marching-order">
+            <h3>{{localize "PF2EDC.Dungeon.MarchingOrder.Title"}}</h3>
+            <ol>
+              {{#each marchingOrder}}
+                <li>
+                  {{this.name}}
+                  <button
+                    type="button"
+                    data-action="moveMarchingOrderUp"
+                    data-actor-id="{{this.actorId}}"
+                    {{#if this.isFirst}}disabled{{/if}}
+                  >&uarr;</button>
+                  <button
+                    type="button"
+                    data-action="moveMarchingOrderDown"
+                    data-actor-id="{{this.actorId}}"
+                    {{#if this.isLast}}disabled{{/if}}
+                  >&darr;</button>
+                </li>
+              {{/each}}
+            </ol>
+          </div>
+          {{/if}}
+        {{/if}}
+      {{/if}}
+
       {{#if currentRoom}}
         <div class="pf2edc-dungeon__room">
           {{#if currentRoom.isGoal}}

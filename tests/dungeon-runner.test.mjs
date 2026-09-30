@@ -33,6 +33,8 @@ import {
   getPendingTreasureCustomization,
   applyTreasureCustomization,
   replaceRunState,
+  effectiveMarchingOrder,
+  setMarchingOrder,
 } from "../scripts/dungeon-runner.mjs";
 import { registerGenerator } from '../scripts/generator-registry.mjs';
 import { DefaultGenerator } from '../scripts/default-generator.mjs';
@@ -260,6 +262,92 @@ describe("createRun / aiControlledActorIds (#20)", () => {
       { settingsRef, partyOwnershipRef },
     );
     expect(state.aiControlledActorIds).not.toContain("actor-1");
+  });
+
+  it("initializes marchingOrder as a copy of aiControlledActorIds, in the same order (#181)", async () => {
+    const settingsRef = makeSettingsStub();
+    // Reuse this describe block's own existing makePartyOwnershipStub fixture
+    // (whatever it already uses to produce >=2 offline-owned actors) —
+    // do not introduce a second, differently-shaped stub.
+    const partyOwnershipRef = makePartyOwnershipStub({
+      actors: [
+        { id: "actor-1", ownership: { "gm-1": 3, "user-1": 3 } },
+        { id: "actor-2", ownership: { "gm-1": 3, "user-2": 3 } },
+      ],
+      activeUserIds: new Set(),
+      gmUserIds: new Set(["gm-1"]),
+    });
+    await createRun(
+      { sceneId: "scene-1", roomCount: 6 },
+      { settingsRef, partyOwnershipRef },
+    );
+    const state = getRunState("scene-1", { settingsRef });
+    expect(state.marchingOrder).toEqual(state.aiControlledActorIds);
+  });
+});
+
+describe("effectiveMarchingOrder (#181)", () => {
+  it("returns the stored marchingOrder verbatim when it already matches aiControlledActorIds", () => {
+    const run = {
+      aiControlledActorIds: ["a", "b", "c"],
+      marchingOrder: ["b", "a", "c"],
+    };
+    expect(effectiveMarchingOrder(run)).toEqual(["b", "a", "c"]);
+  });
+
+  it("appends an AI-controlled actor missing from the stored order, at the end", () => {
+    const run = {
+      aiControlledActorIds: ["a", "b", "c"],
+      marchingOrder: ["b", "a"],
+    };
+    expect(effectiveMarchingOrder(run)).toEqual(["b", "a", "c"]);
+  });
+
+  it("drops a stored entry no longer in aiControlledActorIds", () => {
+    const run = {
+      aiControlledActorIds: ["a", "c"],
+      marchingOrder: ["b", "a", "c"],
+    };
+    expect(effectiveMarchingOrder(run)).toEqual(["a", "c"]);
+  });
+
+  it("returns an empty array for a null run", () => {
+    expect(effectiveMarchingOrder(null)).toEqual([]);
+  });
+
+  it("returns an empty array when the run has no AI-controlled actors at all", () => {
+    const run = { aiControlledActorIds: [], marchingOrder: [] };
+    expect(effectiveMarchingOrder(run)).toEqual([]);
+  });
+
+  it("returns aiControlledActorIds verbatim when marchingOrder is missing entirely (a pre-#181 run)", () => {
+    const run = { aiControlledActorIds: ["a", "b"] };
+    expect(effectiveMarchingOrder(run)).toEqual(["a", "b"]);
+  });
+
+  // Final-review finding (#181): a stored marchingOrder with a duplicate
+  // id (only reachable via a manual/corrupted settings edit, since
+  // setMarchingOrder itself rejects duplicates) must still self-heal to
+  // one entry per actor -- otherwise a follower gets processed twice per
+  // cycle, and setMarchingOrder's own permutation check then rejects
+  // every reorder built from the corrupted list.
+  it("drops a duplicate id from a corrupted stored marchingOrder", () => {
+    const run = {
+      aiControlledActorIds: ["a", "b"],
+      marchingOrder: ["a", "a", "b"],
+    };
+    expect(effectiveMarchingOrder(run)).toEqual(["a", "b"]);
+  });
+
+  // Scoped re-review finding: the first dedupe pass only closed the gap
+  // for a duplicate in the STORED marchingOrder -- a duplicate in
+  // aiControlledActorIds itself (unreachable today, since createRun's own
+  // computeAiControlledActorIds shouldn't produce one, but not something
+  // this function should rely on to stay correct) survived the append
+  // loop uncaught. Same self-healing guarantee, closed for both sources.
+  it("drops a duplicate id that appears in aiControlledActorIds itself", () => {
+    const run = { aiControlledActorIds: ["a", "a", "b"], marchingOrder: [] };
+    expect(effectiveMarchingOrder(run)).toEqual(["a", "b"]);
   });
 });
 
@@ -1287,6 +1375,64 @@ describe("setObjective", () => {
     const settingsRef = makeSettingsStub();
     const result = await setObjective("nope", "Anything", { settingsRef });
     expect(result).toBeNull();
+  });
+});
+
+describe("setMarchingOrder (#181)", () => {
+  async function seedRunWithThreeFollowers(settingsRef) {
+    await createRun(
+      { sceneId: "scene-1", roomCount: 6 },
+      {
+        settingsRef,
+        partyOwnershipRef: {
+          partyActors: () => [
+            { id: "actor-a", ownership: { "user-a": 3 } },
+            { id: "actor-b", ownership: { "user-b": 3 } },
+            { id: "actor-c", ownership: { "user-c": 3 } },
+          ],
+          isUserActive: () => false,
+          isUserGm: () => false,
+        },
+      },
+    );
+  }
+
+  it("persists a valid reordering", async () => {
+    const settingsRef = makeSettingsStub();
+    await seedRunWithThreeFollowers(settingsRef);
+    await setMarchingOrder("scene-1", ["actor-c", "actor-a", "actor-b"], { settingsRef });
+    const state = getRunState("scene-1", { settingsRef });
+    expect(state.marchingOrder).toEqual(["actor-c", "actor-a", "actor-b"]);
+  });
+
+  it("returns null for a scene with no run", async () => {
+    const settingsRef = makeSettingsStub();
+    const result = await setMarchingOrder("nothing-here", ["a"], { settingsRef });
+    expect(result).toBeNull();
+  });
+
+  it("throws when given a list that's missing an actor", async () => {
+    const settingsRef = makeSettingsStub();
+    await seedRunWithThreeFollowers(settingsRef);
+    await expect(
+      setMarchingOrder("scene-1", ["actor-a", "actor-b"], { settingsRef }),
+    ).rejects.toThrow();
+  });
+
+  it("throws when given a list with a duplicate", async () => {
+    const settingsRef = makeSettingsStub();
+    await seedRunWithThreeFollowers(settingsRef);
+    await expect(
+      setMarchingOrder("scene-1", ["actor-a", "actor-a", "actor-b"], { settingsRef }),
+    ).rejects.toThrow();
+  });
+
+  it("throws when given a list with an unknown actor id", async () => {
+    const settingsRef = makeSettingsStub();
+    await seedRunWithThreeFollowers(settingsRef);
+    await expect(
+      setMarchingOrder("scene-1", ["actor-a", "actor-b", "actor-nonexistent"], { settingsRef }),
+    ).rejects.toThrow();
   });
 });
 
