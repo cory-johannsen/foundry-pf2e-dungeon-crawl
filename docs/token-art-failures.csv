@@ -383,3 +383,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 26,deathless-acolyte-of-urgathoa,Deathless Acolyte Of Urgathoa,3,undead,accept,,gemini,gemini-first
 26,fiddling-bones,Fiddling Bones,3,undead,accept,,gemini,gemini-first
 26,zombie-owlbear,Zombie Owlbear,3,hybrid,flag,hybrid_anatomy;cropped,gemini,gemini-first
+27,harlo-krant,Harlo Krant,4,undead,accept,,gemini,gemini-first
+27,ichor-slinger,Ichor Slinger,4,undead,accept,,gemini,gemini-first
+27,jitterbone-contortionist,Jitterbone Contortionist,4,undead,accept,,gemini,gemini-first
+27,zombie-lord,Zombie Lord,4,undead,flag,bg_patch,gemini,gemini-first
+27,bone-croupier,Bone Croupier,5,undead,accept,,gemini,gemini-first
+27,ghul,Ghul,5,undead,accept,,gemini,gemini-first
+27,iruxi-ossature,Iruxi Ossature,5,undead,accept,,gemini,gemini-first
+27,priest-of-kabriri,Priest Of Kabriri,5,undead,accept,,gemini,gemini-first
+27,skeletal-mage,Skeletal Mage,5,undead,accept,,gemini,gemini-first
+27,taunting-skull,Taunting Skull,5,undead,accept,,gemini,gemini-first
+27,withered,Withered,5,undead,accept,,gemini,gemini-first
+27,faithless-ecclesiarch,Faithless Ecclesiarch,6,undead,accept,,gemini,gemini-first
+27,little-man-in-the-woods,Little Man In The Woods,6,undead,accept,,gemini,gemini-first
+27,deathless-hierophant-of-urgathoa,Deathless Hierophant Of Urgathoa,7,undead,accept,,gemini,gemini-first
+27,excorion,Excorion,7,undead,accept,,gemini,gemini-first
