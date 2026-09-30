@@ -28,7 +28,7 @@ export const BACKENDS = ['comfyui', 'gemini'];
 
 // Ordered: first match wins. Name is the creature's display name, lowercased.
 const KIND_RULES = [
-  ['hybrid', /owlbear|\bnue\b|goluo|grootslang|scylla|karina|rompo|manananggal|k'?-?nonna|pixiu|whalesteed|mamlambo|kallas|centaur|chimera|harpy|sphinx/],
+  ['hybrid', /owlbear|\bnue\b|goluo|grootslang|scylla|great flood|karina|rompo|manananggal|k'?-?nonna|pixiu|whalesteed|mamlambo|kallas|centaur|chimera|harpy|sphinx/],
   ['dragon', /dragon|linnorm|imugi|wyrm/],
   ['undead', /walcofinde|flotsam|shui[- ]gui|stone sister|aurosrath|spellscar|ulgrem-axaan|lunar consort|ethereal|ghost|zombie|skeleton|wight|vampire/],
   ['construct', /animated|hopping head|automaton|conformer|golem|clockwork|juggernaut/],

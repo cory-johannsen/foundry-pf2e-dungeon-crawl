@@ -284,3 +284,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 19,wish-dragon-ancient,Wish Dragon (Ancient),19,dragon,accept,,gemini,gemini-first
 19,wish-dragon-ancient-spellcaster,"Wish Dragon (Ancient, Spellcaster)",19,dragon,accept,,gemini,gemini-first
 19,barrage-archdragon,Barrage Archdragon,20,dragon,accept,,gemini,gemini-first
+20,barrage-archdragon-spellcaster,Barrage Archdragon (Spellcaster),20,dragon,accept,,gemini,gemini-first
+20,brine-archdragon,Brine Archdragon,20,dragon,accept,,gemini,gemini-first
+20,brine-archdragon-spellcaster,Brine Archdragon (Spellcaster),20,dragon,accept,,gemini,gemini-first
+20,conspirator-archdragon,Conspirator Archdragon,20,dragon,accept,,gemini,gemini-first
+20,conspirator-archdragon-spellcaster,Conspirator Archdragon (Spellcaster),20,dragon,accept,,gemini,gemini-first
+20,mocking-archdragon,Mocking Archdragon,20,dragon,accept,,gemini,gemini-first
+20,mocking-archdragon-spellcaster,Mocking Archdragon (Spellcaster),20,dragon,accept,,gemini,gemini-first
+20,omen-archdragon,Omen Archdragon,20,dragon,accept,,gemini,gemini-first
+20,omen-archdragon-spellcaster,Omen Archdragon (Spellcaster),20,dragon,accept,,gemini,gemini-first
+20,quantium-golem,Quantium Golem,20,construct,flag,bg_patch;wrong_details,gemini,
+20,sea-archdragon,Sea Archdragon,20,dragon,accept,,gemini,gemini-first
+20,sea-archdragon-spellcaster,Sea Archdragon (Spellcaster),20,dragon,accept,,gemini,gemini-first
+20,sovereign-dragon-ancient,Sovereign Dragon (Ancient),20,dragon,accept,,gemini,gemini-first
+20,sovereign-dragon-ancient-spellcaster,"Sovereign Dragon (Ancient, Spellcaster)",20,dragon,accept,,gemini,gemini-first
+20,the-great-flood,The Great Flood,20,hybrid,accept,,gemini,gemini-first
