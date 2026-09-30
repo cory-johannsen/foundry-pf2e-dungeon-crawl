@@ -338,6 +338,17 @@ describe("effectiveMarchingOrder (#181)", () => {
     };
     expect(effectiveMarchingOrder(run)).toEqual(["a", "b"]);
   });
+
+  // Scoped re-review finding: the first dedupe pass only closed the gap
+  // for a duplicate in the STORED marchingOrder -- a duplicate in
+  // aiControlledActorIds itself (unreachable today, since createRun's own
+  // computeAiControlledActorIds shouldn't produce one, but not something
+  // this function should rely on to stay correct) survived the append
+  // loop uncaught. Same self-healing guarantee, closed for both sources.
+  it("drops a duplicate id that appears in aiControlledActorIds itself", () => {
+    const run = { aiControlledActorIds: ["a", "a", "b"], marchingOrder: [] };
+    expect(effectiveMarchingOrder(run)).toEqual(["a", "b"]);
+  });
 });
 
 describe("findActiveHostedRun", () => {

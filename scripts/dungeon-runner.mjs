@@ -97,7 +97,10 @@ export function effectiveMarchingOrder(run) {
     return true;
   });
   for (const id of aiIds) {
-    if (!seen.has(id)) reconciled.push(id);
+    if (!seen.has(id)) {
+      seen.add(id);
+      reconciled.push(id);
+    }
   }
   return reconciled;
 }
