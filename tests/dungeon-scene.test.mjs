@@ -343,3 +343,85 @@ describe('buildPopulateAndUnlockGraphNode — #297 Round 2 (slot priority)', () 
     expect(scene.tiles.length).toBe(expectedTileCount);
   });
 });
+
+describe('buildPopulateAndUnlockGraphNode — corridor floor tile grid alignment (#324)', () => {
+  it('places every corridor floor tile flush with its own grid cell, not offset by half a cell', async () => {
+    installFoundryStubs();
+    const seed = 'dogleg-repro-seed-0';
+    const fromRoomId = 'tile-align-from';
+    const toRoomId = 'tile-align-to';
+    const layoutPositionByRoomId = {
+      [fromRoomId]: { rank: 0, col: 0 },
+      [toRoomId]: { rank: 1, col: 0 },
+    };
+    const layoutEdges = { [fromRoomId]: [toRoomId] };
+    const occupiedCells = { '0,0': fromRoomId, '1,0': toRoomId };
+    const incomingFaceByRoomId = { [fromRoomId]: 'north', [toRoomId]: 'north' };
+    const state = {
+      seed,
+      layoutPositionByRoomId,
+      incomingFaceByRoomId,
+      hiddenRooms: [],
+      edges: layoutEdges,
+      layoutEdges,
+      hiddenIncomingByRoomId: {},
+      hiddenEdges: {},
+    };
+    const room = {
+      id: toRoomId, kind: 'narrative', isGoal: false,
+      locationTag: null, artVariant: 0, setpieceId: null,
+    };
+
+    const scene = makeFakeScene();
+    await buildPopulateAndUnlockGraphNode(scene, state, room, {
+      rank: 1, col: 0, childIds: [], unlock: false,
+    });
+
+    // Cross-check against the pure buildEdgeCorridor's own corridorSegments
+    // -- never a second, independently hardcoded expected value.
+    const fromRect = roomRect(seed, fromRoomId, 0, 0);
+    const toRect = roomRect(seed, toRoomId, 1, 0);
+    const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
+    const expected = buildEdgeCorridor(
+      seed, fromRoomId, toRoomId, fromRect, toRect, { rank: 0, col: 0 }, { rank: 1, col: 0 },
+      'south', toSlot, occupiedCells, 'north',
+    );
+    expect(expected.corridorSegments.length).toBeGreaterThan(0);
+
+    // Every corridor floor tile (excluding the target room's own single
+    // floor-art tile, flagged dungeonRoomBuilt) must have its own top-left
+    // corner exactly on a grid line -- no added half-cell offset.
+    const corridorTiles = scene.tiles.filter((t) => !t.getFlag(MODULE_ID, 'dungeonRoomBuilt'));
+    expect(corridorTiles.length).toBeGreaterThan(0);
+
+    const expectedPositions = [];
+    for (const seg of expected.corridorSegments) {
+      const vertical = seg.gh >= seg.gw;
+      const length = vertical ? seg.gh : seg.gw;
+      for (let ti = 0; ti < length; ti += 1) {
+        const dx = vertical ? 0 : ti;
+        const dy = vertical ? ti : 0;
+        expectedPositions.push({ x: toPixels(seg.gx + dx), y: toPixels(seg.gy + dy) });
+      }
+    }
+    expect(corridorTiles.length).toBe(expectedPositions.length);
+
+    const byXY = (a, b) => a.x - b.x || a.y - b.y;
+    const actualPositions = corridorTiles.map((t) => ({ x: t.x, y: t.y })).sort(byXY);
+    const sortedExpected = [...expectedPositions].sort(byXY);
+    // The real bug this test pins (#324): the shipped code added an extra
+    // toPixels(1)/2 to both x and y, so every actual position would be off
+    // by exactly (50, 50) before the fix.
+    expect(actualPositions).toEqual(sortedExpected);
+
+    // Every tile is exactly one grid cell, and lands flush with the grid
+    // (its own top-left is an exact grid-line multiple) -- confirms this
+    // isn't a coincidental match on gx/gy alone.
+    for (const t of corridorTiles) {
+      expect(t.x % GRID_SIZE).toBe(0);
+      expect(t.y % GRID_SIZE).toBe(0);
+      expect(t.width).toBe(GRID_SIZE);
+      expect(t.height).toBe(GRID_SIZE);
+    }
+  });
+});

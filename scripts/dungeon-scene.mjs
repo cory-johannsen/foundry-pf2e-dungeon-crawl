@@ -145,8 +145,14 @@ function corridorTilesForSegments(segments) {
       const { variant, rotation } = corridorTileVariant(ti, length, vertical);
       tiles.push({
         texture: { src: CORRIDOR_ART_BY_VARIANT[variant] },
-        x: toPixels(segment.gx + dx) + toPixels(1) / 2,
-        y: toPixels(segment.gy + dy) + toPixels(1) / 2,
+        // #324: a Tile document's x/y is its own top-left corner (same
+        // convention every other pixel coordinate in this file uses, e.g.
+        // wallDoc's own toPixels(x1)/toPixels(y1) above, with no added
+        // offset) -- this used to add an extra toPixels(1)/2 (half a grid
+        // cell) here, shifting every corridor floor tile so it straddled
+        // two grid cells instead of filling one.
+        x: toPixels(segment.gx + dx),
+        y: toPixels(segment.gy + dy),
         width: toPixels(1),
         height: toPixels(1),
         rotation,
