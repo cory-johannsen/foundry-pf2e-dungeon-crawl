@@ -389,8 +389,10 @@ describe('buildPopulateAndUnlockGraphNode — corridor floor tile grid alignment
     expect(expected.corridorSegments.length).toBeGreaterThan(0);
 
     // Every corridor floor tile (excluding the target room's own single
-    // floor-art tile, flagged dungeonRoomBuilt) must have its own top-left
-    // corner exactly on a grid line -- no added half-cell offset.
+    // floor-art tile, flagged dungeonRoomBuilt) must have its own CENTER
+    // -- not top-left corner -- exactly half a cell off a grid line (see
+    // the sixth-finding comment below for why this tile type is
+    // center-anchored, unlike every other pixel coordinate in this file).
     const corridorTiles = scene.tiles.filter((t) => !t.getFlag(MODULE_ID, 'dungeonRoomBuilt'));
     expect(corridorTiles.length).toBeGreaterThan(0);
 
@@ -401,7 +403,10 @@ describe('buildPopulateAndUnlockGraphNode — corridor floor tile grid alignment
       for (let ti = 0; ti < length; ti += 1) {
         const dx = vertical ? 0 : ti;
         const dy = vertical ? ti : 0;
-        expectedPositions.push({ x: toPixels(seg.gx + dx), y: toPixels(seg.gy + dy) });
+        expectedPositions.push({
+          x: toPixels(seg.gx + dx) + GRID_SIZE / 2,
+          y: toPixels(seg.gy + dy) + GRID_SIZE / 2,
+        });
       }
     }
     expect(corridorTiles.length).toBe(expectedPositions.length);
@@ -414,22 +419,25 @@ describe('buildPopulateAndUnlockGraphNode — corridor floor tile grid alignment
     // by exactly (50, 50) before the fix.
     expect(actualPositions).toEqual(sortedExpected);
 
-    // Every tile is exactly one grid cell, and lands flush with the grid
-    // (its own top-left is an exact grid-line multiple) -- confirms this
-    // isn't a coincidental match on gx/gy alone.
+    // Every tile is exactly one grid cell, and its own CENTER lands
+    // exactly half a cell off a grid line (i.e. its own top-left, x-50/
+    // y-50, is flush with the grid) -- confirms this isn't a coincidental
+    // match on gx/gy alone.
     for (const t of corridorTiles) {
-      expect(t.x % GRID_SIZE).toBe(0);
-      expect(t.y % GRID_SIZE).toBe(0);
+      expect((t.x - GRID_SIZE / 2) % GRID_SIZE).toBe(0);
+      expect((t.y - GRID_SIZE / 2) % GRID_SIZE).toBe(0);
       expect(t.width).toBe(GRID_SIZE);
       expect(t.height).toBe(GRID_SIZE);
-      // #324 (fifth finding): a correct x/y/width/height only places the
-      // tile's own BOUNDING BOX on the grid -- Foundry's own Tile texture
-      // still defaults to center anchor (0.5, 0.5), not top-left, so the
-      // RENDERED art was drawn 50px off from that box until this was set
-      // explicitly. Room floor art (buildRoomAtGraphNode) already did this;
-      // corridor tiles never did.
-      expect(t.texture.anchorX).toBe(0);
-      expect(t.texture.anchorY).toBe(0);
+      // #324 (sixth finding): a top-left (0/0) anchor -- correct for a
+      // NEVER-rotated tile like room floor art -- rotates a corridor
+      // tile's art around its own CORNER instead of its center (Foundry
+      // ties rotation pivot to texture anchor), swinging rotated tiles
+      // outside their own bounding box. Every corridor tile rotates, so
+      // it needs center anchor (0.5/0.5) + a center-of-cell x/y instead,
+      // which keeps any multiple-of-90-degree rotation inside the same
+      // square bounding box with no per-angle compensation.
+      expect(t.texture.anchorX).toBe(0.5);
+      expect(t.texture.anchorY).toBe(0.5);
     }
   });
 
@@ -491,13 +499,14 @@ describe('buildPopulateAndUnlockGraphNode — corridor floor tile grid alignment
 
     // Every corridor floor tile -- both the room-side connector segments
     // and every transit cell's own crossing -- must land flush on the
-    // grid, exactly as the single-cell case already requires.
+    // grid (center half a cell off a grid line), exactly as the
+    // single-cell case already requires.
     for (const t of corridorTiles) {
-      expect(t.x % GRID_SIZE).toBe(0);
-      expect(t.y % GRID_SIZE).toBe(0);
-      // #324 (fifth finding) -- see the single-cell test's own comment above.
-      expect(t.texture.anchorX).toBe(0);
-      expect(t.texture.anchorY).toBe(0);
+      expect((t.x - GRID_SIZE / 2) % GRID_SIZE).toBe(0);
+      expect((t.y - GRID_SIZE / 2) % GRID_SIZE).toBe(0);
+      // #324 (sixth finding) -- see the single-cell test's own comment above.
+      expect(t.texture.anchorX).toBe(0.5);
+      expect(t.texture.anchorY).toBe(0.5);
     }
   });
 });
