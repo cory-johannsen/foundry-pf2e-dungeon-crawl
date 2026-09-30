@@ -64,6 +64,14 @@ import {
 import { fetchCombatDecision } from "./agent-service-client.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
+// #141: every position this module ever writes is already grid-exact, but
+// Foundry's default animated slide can be interrupted by the NEXT position
+// write before it finishes, which bakes the interrupted slide's own
+// fractional, off-grid position in as the new starting point instead of
+// cleanly jumping -- the actual, live-confirmed source of the long-reported
+// off-grid drift. An instant jump has nothing to interrupt. Mirrors
+// dungeon-follow.mjs's own NO_ANIMATE.
+const NO_ANIMATE = { animation: { duration: 0 } };
 
 /** Ids of the actual party characters — this module's own definition of
  * "a real party member," used instead of Foundry's `hasPlayerOwner` wherever
@@ -1836,7 +1844,7 @@ async function snapTokenToGrid(token, gridSize) {
   const snappedX = cell.gx * gridSize;
   const snappedY = cell.gy * gridSize;
   if (token.x !== snappedX || token.y !== snappedY) {
-    await token.update({ x: snappedX, y: snappedY });
+    await token.update({ x: snappedX, y: snappedY }, NO_ANIMATE);
   }
 }
 
@@ -2109,7 +2117,10 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
     moverFootprint,
   );
   if (!waypoint) return "blocked";
-  await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize });
+  await me.update(
+    { x: waypoint.gx * gridSize, y: waypoint.gy * gridSize },
+    NO_ANIMATE,
+  );
   await offerReactiveStrikesAgainst(combat, combatant);
   return "moved";
 }
@@ -2159,10 +2170,13 @@ export async function pushTokenAway(combat, attacker, target, distanceSquares) {
     moverFootprint,
   );
   if (!waypoint) return;
-  await target.token.update({
-    x: waypoint.gx * gridSize,
-    y: waypoint.gy * gridSize,
-  });
+  await target.token.update(
+    {
+      x: waypoint.gx * gridSize,
+      y: waypoint.gy * gridSize,
+    },
+    NO_ANIMATE,
+  );
 }
 
 /**
@@ -3285,7 +3299,10 @@ export async function strideByPosture(combat, combatant, posture, target) {
     moverFootprint,
   );
   if (!waypoint) return "blocked";
-  await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize });
+  await me.update(
+    { x: waypoint.gx * gridSize, y: waypoint.gy * gridSize },
+    NO_ANIMATE,
+  );
   await offerReactiveStrikesAgainst(combat, combatant);
   return "moved";
 }
