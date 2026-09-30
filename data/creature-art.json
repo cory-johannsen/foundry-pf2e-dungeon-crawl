@@ -15430,5 +15430,125 @@
     "name": "Quantium Golem",
     "level": 20,
     "art": "quantium-golem-lob.webp"
+  },
+  {
+    "id": "time_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "W8NKXp3oYF7YnACo",
+    "name": "Time Dragon (Ancient)",
+    "level": 20,
+    "art": "time-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "time_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "SafUSmFfdQRmAyLi",
+    "name": "Time Dragon (Ancient, Spellcaster)",
+    "level": 20,
+    "art": "time-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "umbral_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "UHsHUlFmXMZ6XN9l",
+    "name": "Umbral Dragon (Ancient)",
+    "level": 20,
+    "art": "umbral-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "umbral_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "DDtdh1SP5PFNm73S",
+    "name": "Umbral Dragon (Ancient, Spellcaster)",
+    "level": 20,
+    "art": "umbral-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "vizier_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "CO5W7JfxNGLb5TuA",
+    "name": "Vizier Dragon (Ancient)",
+    "level": 20,
+    "art": "vizier-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "vizier_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "TkDmEfnb9clyitcv",
+    "name": "Vizier Dragon (Ancient, Spellcaster)",
+    "level": 20,
+    "art": "vizier-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "whisper_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "sz88fUfYconicTiA",
+    "name": "Whisper Archdragon",
+    "level": 20,
+    "art": "whisper-archdragon-lob.webp"
+  },
+  {
+    "id": "whisper_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7qAP2PorASrlpDGC",
+    "name": "Whisper Archdragon (Spellcaster)",
+    "level": 20,
+    "art": "whisper-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "adamantine_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "t2FgPxukbje8sWEh",
+    "name": "Adamantine Archdragon",
+    "level": 21,
+    "art": "adamantine-archdragon-lob.webp"
+  },
+  {
+    "id": "adamantine_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "IG23I5XqPXeICaOH",
+    "name": "Adamantine Archdragon (Spellcaster)",
+    "level": 21,
+    "art": "adamantine-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "coral_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "8MpHBQCZNO2nVBc8",
+    "name": "Coral Archdragon",
+    "level": 21,
+    "art": "coral-archdragon-lob.webp"
+  },
+  {
+    "id": "coral_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ComRvfM28ZdvIjR2",
+    "name": "Coral Archdragon (Spellcaster)",
+    "level": 21,
+    "art": "coral-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "executor_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "SPSJBTVSUzH5lf5a",
+    "name": "Executor Archdragon",
+    "level": 21,
+    "art": "executor-archdragon-lob.webp"
+  },
+  {
+    "id": "executor_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "4Mmg7MFdNbhdq1DT",
+    "name": "Executor Archdragon (Spellcaster)",
+    "level": 21,
+    "art": "executor-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "benthic_reaver_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "1MxubcO4SB8PwmKT",
+    "name": "Benthic Reaver",
+    "level": 21,
+    "art": "benthic-reaver-lob.webp"
   }
 ]
