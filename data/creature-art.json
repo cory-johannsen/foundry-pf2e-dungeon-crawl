@@ -14230,5 +14230,125 @@
     "name": "Somnalu Oculus",
     "level": 11,
     "art": "somnalu-oculus-lob.webp"
+  },
+  {
+    "id": "tempest_sun_mage_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "M2Vi2mkwMZv1ZRka",
+    "name": "Tempest-Sun Mage",
+    "level": 11,
+    "art": "tempest-sun-mage-lob.webp"
+  },
+  {
+    "id": "time_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "wfv5PSZ6fETEzxVO",
+    "name": "Time Dragon (Young)",
+    "level": 11,
+    "art": "time-dragon-young-lob.webp"
+  },
+  {
+    "id": "time_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "aAmil47M9m8R9rr7",
+    "name": "Time Dragon (Young, Spellcaster)",
+    "level": 11,
+    "art": "time-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "umbral_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "h1SmS5Y4Sg0v4cD1",
+    "name": "Umbral Dragon (Young)",
+    "level": 11,
+    "art": "umbral-dragon-young-lob.webp"
+  },
+  {
+    "id": "umbral_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "wr4R6PfEfFkZjm2P",
+    "name": "Umbral Dragon (Young, Spellcaster)",
+    "level": 11,
+    "art": "umbral-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "underworld_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "QbKEJtqThE5q9XCl",
+    "name": "Underworld Dragon (Adult)",
+    "level": 11,
+    "art": "underworld-dragon-adult-lob.webp"
+  },
+  {
+    "id": "underworld_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "L4a9tb4s7FmwWi6J",
+    "name": "Underworld Dragon (Adult, Spellcaster)",
+    "level": 11,
+    "art": "underworld-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "vizier_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "1w3NeBlBnaYmK0J0",
+    "name": "Vizier Dragon (Young)",
+    "level": 11,
+    "art": "vizier-dragon-young-lob.webp"
+  },
+  {
+    "id": "vizier_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7wjy0l0sjSrV4D5S",
+    "name": "Vizier Dragon (Young, Spellcaster)",
+    "level": 11,
+    "art": "vizier-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "barrage_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7mbjjmHgbDNxXR6T",
+    "name": "Barrage Dragon (Adult)",
+    "level": 12,
+    "art": "barrage-dragon-adult-lob.webp"
+  },
+  {
+    "id": "barrage_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9u6v6WW2mJzPeoNW",
+    "name": "Barrage Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "barrage-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "brine_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "La2xTgWEI75mXxCy",
+    "name": "Brine Dragon (Adult)",
+    "level": 12,
+    "art": "brine-dragon-adult-lob.webp"
+  },
+  {
+    "id": "ulistul_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "XCW1WzJqwGUS1cGi",
+    "name": "Ulistul",
+    "level": 11,
+    "art": "ulistul-lob.webp"
+  },
+  {
+    "id": "veteran_reclaimer_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "hxyImo4ts3O0BrAY",
+    "name": "Veteran Reclaimer",
+    "level": 11,
+    "art": "veteran-reclaimer-lob.webp"
+  },
+  {
+    "id": "aso_berang_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "zrx1qjf1WbSYllvz",
+    "name": "Aso Berang",
+    "level": 12,
+    "art": "aso-berang-lob.webp"
   }
 ]

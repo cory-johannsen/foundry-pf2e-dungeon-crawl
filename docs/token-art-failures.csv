@@ -149,3 +149,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 10,somnalu-oculus,Somnalu Oculus,11,beast,flag,wrong_subject,gemini,
 10,sovereign-dragon-young,Sovereign Dragon (Young),11,dragon,accept,,gemini,gemini-first
 10,sovereign-dragon-young-spellcaster,"Sovereign Dragon (Young, Spellcaster)",11,dragon,accept,,gemini,gemini-first
+11,tempest-sun-mage,Tempest-Sun Mage,11,beast,flag,bg_patch,gemini,gemini-first
+11,time-dragon-young,Time Dragon (Young),11,dragon,accept,,gemini,gemini-first
+11,time-dragon-young-spellcaster,"Time Dragon (Young, Spellcaster)",11,dragon,accept,,gemini,gemini-first
+11,ulistul,Ulistul,11,beast,accept,,comfyui,
+11,umbral-dragon-young,Umbral Dragon (Young),11,dragon,accept,,gemini,gemini-first
+11,umbral-dragon-young-spellcaster,"Umbral Dragon (Young, Spellcaster)",11,dragon,accept,,gemini,gemini-first
+11,underworld-dragon-adult,Underworld Dragon (Adult),11,dragon,accept,,gemini,gemini-first
+11,underworld-dragon-adult-spellcaster,"Underworld Dragon (Adult, Spellcaster)",11,dragon,accept,,gemini,gemini-first
+11,veteran-reclaimer,Veteran Reclaimer,11,beast,accept,,comfyui,
+11,vizier-dragon-young,Vizier Dragon (Young),11,dragon,accept,,gemini,gemini-first
+11,vizier-dragon-young-spellcaster,"Vizier Dragon (Young, Spellcaster)",11,dragon,accept,,gemini,gemini-first
+11,aso-berang,Aso Berang,12,beast,flag,cropped;scenery_backdrop;hybrid_anatomy,gemini,
+11,barrage-dragon-adult,Barrage Dragon (Adult),12,dragon,accept,,gemini,gemini-first
+11,barrage-dragon-adult-spellcaster,"Barrage Dragon (Adult, Spellcaster)",12,dragon,accept,,gemini,gemini-first
+11,brine-dragon-adult,Brine Dragon (Adult),12,dragon,accept,,gemini,gemini-first
