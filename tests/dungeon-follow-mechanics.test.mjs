@@ -55,7 +55,13 @@ describe("findFollowMove", () => {
     expect(result).toEqual({ status: "move", to: { gx: 4, gy: 6 } });
   });
 
-  it("returns no-route when every adjacent cell is occupied", () => {
+  // #87 (third round): the leader's own immediate 8-neighborhood being
+  // fully occupied used to mean "no-route" outright, even with plenty of
+  // free, reachable floor one ring farther out — exactly the corner/
+  // capacity-crowding bug live sessions confirmed (more AI-controlled
+  // followers than the leader's own immediate neighborhood has room for).
+  // freeCellsNear now expands to ring 2 automatically in that case.
+  it("expands to ring 2 when every cell in the leader's own immediate 8-neighborhood is occupied", () => {
     const occupied = [
       { gx: 4, gy: 4, gw: 1, gh: 1 },
       { gx: 4, gy: 5, gw: 1, gh: 1 },
@@ -66,6 +72,30 @@ describe("findFollowMove", () => {
       { gx: 6, gy: 5, gw: 1, gh: 1 },
       { gx: 6, gy: 6, gw: 1, gh: 1 },
     ];
+    const result = findFollowMove(
+      { gx: 0, gy: 0 },
+      { gx: 5, gy: 5 },
+      occupied,
+      noWalls(),
+      null,
+    );
+    expect(result.status).toBe("move");
+    // Ring 2 around (5,5): chebyshev distance exactly 2.
+    expect(
+      Math.max(Math.abs(result.to.gx - 5), Math.abs(result.to.gy - 5)),
+    ).toBe(2);
+  });
+
+  it("returns no-route when every cell within the search radius is occupied", () => {
+    const occupied = [];
+    for (let r = 1; r <= 10; r += 1) {
+      for (let dx = -r; dx <= r; dx += 1) {
+        for (let dy = -r; dy <= r; dy += 1) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+          occupied.push({ gx: 5 + dx, gy: 5 + dy, gw: 1, gh: 1 });
+        }
+      }
+    }
     const result = findFollowMove(
       { gx: 0, gy: 0 },
       { gx: 5, gy: 5 },
