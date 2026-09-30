@@ -13990,5 +13990,125 @@
     "name": "Delight Dragon (Young, Spellcaster)",
     "level": 10,
     "art": "delight-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "forest_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "gfAU2eApv4qSuawU",
+    "name": "Forest Dragon (Young)",
+    "level": 10,
+    "art": "forest-dragon-young-lob.webp"
+  },
+  {
+    "id": "forest_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "WLTTW463KWOamgCE",
+    "name": "Forest Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "forest-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "mosquito_witch_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "KdOwmclPVpcTSPjF",
+    "name": "Mosquito Witch",
+    "level": 10,
+    "art": "mosquito-witch-lob.webp"
+  },
+  {
+    "id": "mosquito_witch_the_legion_leech_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "FhgZOBWNMa5t7pYV",
+    "name": "Mosquito Witch (The Legion Leech)",
+    "level": 10,
+    "art": "mosquito-witch-the-legion-leech-lob.webp"
+  },
+  {
+    "id": "oath_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "6K4chQTwgPmgCbP2",
+    "name": "Oath Dragon (Young)",
+    "level": 10,
+    "art": "oath-dragon-young-lob.webp"
+  },
+  {
+    "id": "rime_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "YdR6e9b5oxuBmD2Z",
+    "name": "Rime Dragon (Adult)",
+    "level": 10,
+    "art": "rime-dragon-adult-lob.webp"
+  },
+  {
+    "id": "wish_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "uTtDneaOJvrgZq7z",
+    "name": "Wish Dragon (Young)",
+    "level": 10,
+    "art": "wish-dragon-young-lob.webp"
+  },
+  {
+    "id": "mosquito_witch_the_hemoprophet_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ns6fmJ8469hzBOtM",
+    "name": "Mosquito Witch (The Hemoprophet)",
+    "level": 10,
+    "art": "mosquito-witch-the-hemoprophet-lob.webp"
+  },
+  {
+    "id": "mosquito_witch_the_swarm_seer_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mE9MQ0hnRmlR9m94",
+    "name": "Mosquito Witch (The Swarm Seer)",
+    "level": 10,
+    "art": "mosquito-witch-the-swarm-seer-lob.webp"
+  },
+  {
+    "id": "oath_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "JWf2vU4btXbxrHhI",
+    "name": "Oath Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "oath-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "rime_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "WWBJ0oRAXguXDmyB",
+    "name": "Rime Dragon (Adult, Spellcaster)",
+    "level": 10,
+    "art": "rime-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "spectral_devil_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "10srqxC7QZy0dq2g",
+    "name": "Spectral Devil",
+    "level": 10,
+    "art": "spectral-devil-lob.webp"
+  },
+  {
+    "id": "vorvorak_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "pdlOJpeKtLDMKjJY",
+    "name": "Vorvorak",
+    "level": 10,
+    "art": "vorvorak-lob.webp"
+  },
+  {
+    "id": "wailing_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "aUnu52gTabyzeTUJ",
+    "name": "Wailing Dragon (Adult)",
+    "level": 10,
+    "art": "wailing-dragon-adult-lob.webp"
+  },
+  {
+    "id": "wailing_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mzKV1i5en8f1nbfO",
+    "name": "Wailing Dragon (Adult, Spellcaster)",
+    "level": 10,
+    "art": "wailing-dragon-adult-spellcaster-lob.webp"
   }
 ]
