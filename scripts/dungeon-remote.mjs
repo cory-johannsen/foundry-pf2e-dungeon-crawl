@@ -10,7 +10,7 @@
  * discriminated by `type`.
  */
 import { SOCKET } from "./player-choice.mjs";
-import { getRunState, findActiveHostedRun } from "./dungeon-runner.mjs";
+import { getRunState, findActiveHostedRun, setMarchingOrder } from "./dungeon-runner.mjs";
 import { isAuthorizedRequest } from "./dungeon-permissions.mjs";
 import {
   startDungeonRun,
@@ -69,6 +69,9 @@ const DUNGEON_ACTIONS = {
   followMove: (args) => runFollowMoveNow(args.sceneId),
   // #141: same #65 pattern, for resnapDriftedTokens's own self-heal write.
   resnapToken: (args) => resnapTokenNow(args.sceneId, args.tokenId),
+  // #181: a non-GM host reordering their own AI-controlled followers.
+  setMarchingOrder: (args) =>
+    setMarchingOrder(args.sceneId, args.orderedActorIds),
 };
 
 /**

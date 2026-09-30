@@ -49,6 +49,7 @@
   "PF2EDC.Dungeon.Kind.skill_challenge": "Skill Challenge",
   "PF2EDC.Dungeon.Kind.trap": "Trap",
   "PF2EDC.Dungeon.Kind.treasure": "Treasure",
+  "PF2EDC.Dungeon.MarchingOrder.Title": "Marching Order",
   "PF2EDC.Dungeon.Narrative.ContinueButton": "Continue",
   "PF2EDC.Dungeon.Narrative.ObjectiveLabel": "Set a new objective (optional)",
   "PF2EDC.Dungeon.Narrative.ObjectivePlaceholder": "What direction does this give the party?",
