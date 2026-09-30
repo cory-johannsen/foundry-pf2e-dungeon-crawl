@@ -885,7 +885,10 @@ describe("resnapTokenNow (#141)", () => {
     const promise = resnapTokenNow(SCENE_ID, "t-stuck-animating");
     // animationContexts is deliberately never cleared -- simulates the
     // defensive cap's own fallback path, not the normal settle path.
-    await vi.advanceTimersByTimeAsync(3100);
+    // RESNAP_MAX_WAIT_MS (final review, 2026-09-30: bumped from 3000 to
+    // 10000 -- generous above even a long single-jump move, not a guess
+    // at typical slide duration).
+    await vi.advanceTimersByTimeAsync(10100);
     await promise;
 
     expect(token.update).toHaveBeenCalledTimes(1);
@@ -893,6 +896,16 @@ describe("resnapTokenNow (#141)", () => {
     vi.useRealTimers();
   });
 
+  // Final review (2026-09-30): the original version of this test used
+  // makeToken's default synchronous `update` mock, which happened to
+  // serialize the two calls' own decisions by luck of setTimeout's FIFO
+  // callback order (the first call's write lands before the second call
+  // re-checks), so it passed even with the reentrancy guard deleted --
+  // confirmed by mutation testing. Gating `token.update` on an
+  // externally-released promise breaks that accidental serialization:
+  // without the guard, BOTH calls would independently decide "not yet
+  // aligned" and both call update() before either write lands, which is
+  // exactly the race the guard exists to prevent.
   it("does not start a second correction for a token that already has one pending (#87)", async () => {
     vi.useFakeTimers();
     const animationContexts = new Map([["move", {}]]);
@@ -903,6 +916,14 @@ describe("resnapTokenNow (#141)", () => {
       actorId: "some-actor",
       animationContexts,
     });
+    let releaseUpdate;
+    const updateGate = new Promise((resolve) => {
+      releaseUpdate = resolve;
+    });
+    token.update = vi.fn(async (changes) => {
+      await updateGate;
+      Object.assign(token, changes);
+    });
     const scene = makeScene({ tokens: [token] });
     installFoundryStubs();
     game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
@@ -912,10 +933,34 @@ describe("resnapTokenNow (#141)", () => {
 
     animationContexts.clear();
     await vi.advanceTimersByTimeAsync(100);
+    releaseUpdate();
     await Promise.all([first, second]);
 
     expect(token.update).toHaveBeenCalledTimes(1);
     vi.useRealTimers();
+  });
+
+  it("releases its guard once a correction finishes, so a later call for the same token id can still run (#87)", async () => {
+    installFoundryStubs();
+    game.scenes = { get: () => undefined };
+
+    // First call: token doesn't exist yet -- the early return is inside
+    // the try/finally, so it must still release the guard.
+    await resnapTokenNow(SCENE_ID, "t-guard-release");
+
+    const token = makeToken({
+      id: "t-guard-release",
+      x: 5.49 * GRID,
+      y: 3.49 * GRID,
+      actorId: "some-actor",
+    });
+    const scene = makeScene({ tokens: [token] });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    await resnapTokenNow(SCENE_ID, "t-guard-release");
+
+    expect(token.update).toHaveBeenCalledTimes(1);
+    expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
   });
 
   it("corrects two different animating tokens independently, not serialized by each other (#87)", async () => {
