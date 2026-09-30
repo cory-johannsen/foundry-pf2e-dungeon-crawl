@@ -269,3 +269,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 18,bog-archdragon,Bog Archdragon,19,dragon,accept,,gemini,gemini-first
 18,bog-archdragon-spellcaster,Bog Archdragon (Spellcaster),19,dragon,accept,,gemini,gemini-first
 18,cloud-dragon-ancient,Cloud Dragon (Ancient),19,dragon,accept,,gemini,gemini-first
+19,cloud-dragon-ancient-spellcaster,"Cloud Dragon (Ancient, Spellcaster)",19,dragon,accept,,gemini,gemini-first
+19,crystal-archdragon,Crystal Archdragon,19,dragon,accept,,gemini,gemini-first
+19,crystal-archdragon-spellcaster,Crystal Archdragon (Spellcaster),19,dragon,accept,,gemini,gemini-first
+19,delight-dragon-ancient,Delight Dragon (Ancient),19,dragon,accept,,gemini,gemini-first
+19,delight-dragon-ancient-spellcaster,"Delight Dragon (Ancient, Spellcaster)",19,dragon,accept,,gemini,gemini-first
+19,desert-s-howl,Desert's Howl,19,beast,flag,monochrome_line_art;cropped,gemini,
+19,forest-dragon-ancient,Forest Dragon (Ancient),19,dragon,accept,,gemini,gemini-first
+19,forest-dragon-ancient-spellcaster,"Forest Dragon (Ancient, Spellcaster)",19,dragon,accept,,gemini,gemini-first
+19,oath-dragon-ancient,Oath Dragon (Ancient),19,dragon,accept,,gemini,gemini-first
+19,oath-dragon-ancient-spellcaster,"Oath Dragon (Ancient, Spellcaster)",19,dragon,accept,,gemini,gemini-first
+19,underworld-archdragon,Underworld Archdragon,19,dragon,accept,,gemini,gemini-first
+19,underworld-archdragon-spellcaster,Underworld Archdragon (Spellcaster),19,dragon,accept,,gemini,gemini-first
+19,wish-dragon-ancient,Wish Dragon (Ancient),19,dragon,accept,,gemini,gemini-first
+19,wish-dragon-ancient-spellcaster,"Wish Dragon (Ancient, Spellcaster)",19,dragon,accept,,gemini,gemini-first
+19,barrage-archdragon,Barrage Archdragon,20,dragon,accept,,gemini,gemini-first

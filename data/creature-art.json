@@ -15190,5 +15190,125 @@
     "name": "Taljjae (The Grandmother)",
     "level": 18,
     "art": "taljjae-the-grandmother-lob.webp"
+  },
+  {
+    "id": "cloud_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9VOsTzaJmSzJEDnL",
+    "name": "Cloud Dragon (Ancient, Spellcaster)",
+    "level": 19,
+    "art": "cloud-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "crystal_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "XlCcdbjgOv1ONPw7",
+    "name": "Crystal Archdragon",
+    "level": 19,
+    "art": "crystal-archdragon-lob.webp"
+  },
+  {
+    "id": "crystal_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "zAH2pAo6YRGkQrdY",
+    "name": "Crystal Archdragon (Spellcaster)",
+    "level": 19,
+    "art": "crystal-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "delight_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "yDSfaKCRmG35kvel",
+    "name": "Delight Dragon (Ancient)",
+    "level": 19,
+    "art": "delight-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "delight_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "L4NYZoaxiIfEBiqG",
+    "name": "Delight Dragon (Ancient, Spellcaster)",
+    "level": 19,
+    "art": "delight-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "forest_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "c0xJ6vt0CncmExKl",
+    "name": "Forest Dragon (Ancient)",
+    "level": 19,
+    "art": "forest-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "forest_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "DfpQvOOkqdEbUnyC",
+    "name": "Forest Dragon (Ancient, Spellcaster)",
+    "level": 19,
+    "art": "forest-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "oath_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Jj1jy7fA2Dl0MT3w",
+    "name": "Oath Dragon (Ancient)",
+    "level": 19,
+    "art": "oath-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "oath_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "UXx886cUGrj2UXix",
+    "name": "Oath Dragon (Ancient, Spellcaster)",
+    "level": 19,
+    "art": "oath-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "underworld_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "KNIERp5VGv97HBTN",
+    "name": "Underworld Archdragon",
+    "level": 19,
+    "art": "underworld-archdragon-lob.webp"
+  },
+  {
+    "id": "underworld_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "aDOyh30fmXFrh2xN",
+    "name": "Underworld Archdragon (Spellcaster)",
+    "level": 19,
+    "art": "underworld-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "wish_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "KUK73LAL7jEGGPTf",
+    "name": "Wish Dragon (Ancient)",
+    "level": 19,
+    "art": "wish-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "wish_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "esikQeRaET8wAc9w",
+    "name": "Wish Dragon (Ancient, Spellcaster)",
+    "level": 19,
+    "art": "wish-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "barrage_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "1CPPuXtSg9jHtb3S",
+    "name": "Barrage Archdragon",
+    "level": 20,
+    "art": "barrage-archdragon-lob.webp"
+  },
+  {
+    "id": "desert_s_howl_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Bi6bi9Ko5x9OJfDT",
+    "name": "Desert's Howl",
+    "level": 19,
+    "art": "desert-s-howl-lob.webp"
   }
 ]
