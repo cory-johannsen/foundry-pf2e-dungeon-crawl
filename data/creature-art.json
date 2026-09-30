@@ -15550,5 +15550,125 @@
     "name": "Benthic Reaver",
     "level": 21,
     "art": "benthic-reaver-lob.webp"
+  },
+  {
+    "id": "horned_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "vydTtFNr739r7KBC",
+    "name": "Horned Archdragon",
+    "level": 21,
+    "art": "horned-archdragon-lob.webp"
+  },
+  {
+    "id": "horned_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "3LUhu4IzxsHwD1kT",
+    "name": "Horned Archdragon (Spellcaster)",
+    "level": 21,
+    "art": "horned-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "magma_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "CRgrrRHvCbI83ZFz",
+    "name": "Magma Archdragon",
+    "level": 21,
+    "art": "magma-archdragon-lob.webp"
+  },
+  {
+    "id": "magma_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "34t48adpGuEM9lIn",
+    "name": "Magma Archdragon (Spellcaster)",
+    "level": 21,
+    "art": "magma-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "sage_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "YFLrhFoffOGh7CfK",
+    "name": "Sage Archdragon",
+    "level": 21,
+    "art": "sage-archdragon-lob.webp"
+  },
+  {
+    "id": "sage_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "uL2VFQgfuOlBLOwO",
+    "name": "Sage Archdragon (Spellcaster)",
+    "level": 21,
+    "art": "sage-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "sky_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "EJACvM31pQgDNQY3",
+    "name": "Sky Archdragon",
+    "level": 21,
+    "art": "sky-archdragon-lob.webp"
+  },
+  {
+    "id": "sky_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "pnI6eoQ3pP3M7k3N",
+    "name": "Sky Archdragon (Spellcaster)",
+    "level": 21,
+    "art": "sky-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "stormcrown_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Yj1WiNHrtwI09LqX",
+    "name": "Stormcrown Archdragon",
+    "level": 21,
+    "art": "stormcrown-archdragon-lob.webp"
+  },
+  {
+    "id": "stormcrown_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "rswTPb2SP7oth7Ch",
+    "name": "Stormcrown Archdragon (Spellcaster)",
+    "level": 21,
+    "art": "stormcrown-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "vorpal_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "NL8UxKaRh7IJgv4J",
+    "name": "Vorpal Archdragon",
+    "level": 21,
+    "art": "vorpal-archdragon-lob.webp"
+  },
+  {
+    "id": "vorpal_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "fYYvZE5qMank2b1z",
+    "name": "Vorpal Archdragon (Spellcaster)",
+    "level": 21,
+    "art": "vorpal-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "cinder_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "O65PlKiIRpj50sXu",
+    "name": "Cinder Archdragon",
+    "level": 22,
+    "art": "cinder-archdragon-lob.webp"
+  },
+  {
+    "id": "krampus_the_horned_miser_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "kdkmTLlqzOYVxb50",
+    "name": "Krampus (The Horned Miser)",
+    "level": 21,
+    "art": "krampus-the-horned-miser-lob.webp"
+  },
+  {
+    "id": "kothogaz_dance_of_disharmony_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "RqdL0YzNF1dG163i",
+    "name": "Kothogaz, Dance Of Disharmony",
+    "level": 21,
+    "art": "kothogaz-dance-of-disharmony-lob.webp"
   }
 ]

@@ -314,3 +314,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 21,coral-archdragon-spellcaster,Coral Archdragon (Spellcaster),21,dragon,accept,,gemini,gemini-first
 21,executor-archdragon,Executor Archdragon,21,dragon,accept,,gemini,gemini-first
 21,executor-archdragon-spellcaster,Executor Archdragon (Spellcaster),21,dragon,accept,,gemini,gemini-first
+22,horned-archdragon,Horned Archdragon,21,dragon,accept,,gemini,gemini-first
+22,horned-archdragon-spellcaster,Horned Archdragon (Spellcaster),21,dragon,accept,,gemini,gemini-first
+22,kothogaz-dance-of-disharmony,"Kothogaz, Dance Of Disharmony",21,beast,flag,cropped;wrong_details,gemini,
+22,krampus-the-horned-miser,Krampus (The Horned Miser),21,beast,accept,,comfyui,
+22,magma-archdragon,Magma Archdragon,21,dragon,accept,,gemini,gemini-first
+22,magma-archdragon-spellcaster,Magma Archdragon (Spellcaster),21,dragon,flag,bg_patch,gemini,gemini-first
+22,sage-archdragon,Sage Archdragon,21,dragon,accept,,gemini,gemini-first
+22,sage-archdragon-spellcaster,Sage Archdragon (Spellcaster),21,dragon,accept,,gemini,gemini-first
+22,sky-archdragon,Sky Archdragon,21,dragon,accept,,gemini,gemini-first
+22,sky-archdragon-spellcaster,Sky Archdragon (Spellcaster),21,dragon,accept,,gemini,gemini-first
+22,stormcrown-archdragon,Stormcrown Archdragon,21,dragon,accept,,gemini,gemini-first
+22,stormcrown-archdragon-spellcaster,Stormcrown Archdragon (Spellcaster),21,dragon,accept,,gemini,gemini-first
+22,vorpal-archdragon,Vorpal Archdragon,21,dragon,accept,,gemini,gemini-first
+22,vorpal-archdragon-spellcaster,Vorpal Archdragon (Spellcaster),21,dragon,accept,,gemini,gemini-first
+22,cinder-archdragon,Cinder Archdragon,22,dragon,accept,,gemini,gemini-first
