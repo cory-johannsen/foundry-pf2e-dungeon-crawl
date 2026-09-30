@@ -462,3 +462,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 32,gennayn,Gennayn,2,elemental,accept,,gemini,gemini-first
 32,mercurial,Mercurial,2,elemental,accept,,gemini,gemini-first
 32,moss-sloth,Moss Sloth,2,elemental,accept,,gemini,gemini-first
+33,olobigonde,Olobigonde,2,elemental,accept,,gemini,gemini-first
+33,cullitox,Cullitox,3,elemental,accept,,gemini,gemini-first
+33,kinzaruk,Kinzaruk,3,elemental,accept,,gemini,gemini-first
+33,lomori-sprout,Lomori Sprout,3,elemental,accept,,gemini,gemini-first
+33,nursery-crawler,Nursery Crawler,3,elemental,accept,,gemini,gemini-first
+33,munsahir-gatecrasher,Munsahir Gatecrasher,4,elemental,accept,,gemini,gemini-first
+33,quickiron-plasm,Quickiron Plasm,4,elemental,accept,,gemini,gemini-first
+33,whipping-willow,Whipping Willow,4,elemental,accept,,gemini,gemini-first
+33,comozant-wyrd,Comozant Wyrd,5,elemental,accept,,gemini,gemini-first
+33,living-grove,Living Grove,5,elemental,accept,,gemini,gemini-first
+33,munsahir-trooper,Munsahir Trooper,5,elemental,accept,,gemini,gemini-first
+33,murajau,Murajau,5,elemental,flag,cropped;wrong_details,gemini,gemini-first
+33,ore-louse,Ore Louse,5,elemental,accept,,gemini,gemini-first
+33,rakkatak,Rakkatak,5,elemental,accept,,gemini,gemini-first
+33,rust-scarab,Rust Scarab,5,elemental,accept,,gemini,gemini-first
