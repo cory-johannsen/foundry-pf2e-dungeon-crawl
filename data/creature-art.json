@@ -14710,5 +14710,125 @@
     "name": "Somnalu",
     "level": 15,
     "art": "somnalu-lob.webp"
+  },
+  {
+    "id": "sovereign_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ehYT62H6Uc36Tjjm",
+    "name": "Sovereign Dragon (Adult, Spellcaster)",
+    "level": 15,
+    "art": "sovereign-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "time_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "jEc2J8hy0Z33XKhk",
+    "name": "Time Dragon (Adult)",
+    "level": 15,
+    "art": "time-dragon-adult-lob.webp"
+  },
+  {
+    "id": "time_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "fXqXN5dkm33a6AW0",
+    "name": "Time Dragon (Adult, Spellcaster)",
+    "level": 15,
+    "art": "time-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "umbral_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "JB9SWlruqX9nKhIO",
+    "name": "Umbral Dragon (Adult)",
+    "level": 15,
+    "art": "umbral-dragon-adult-lob.webp"
+  },
+  {
+    "id": "umbral_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "1QteIiv5ZqGtWQDb",
+    "name": "Umbral Dragon (Adult, Spellcaster)",
+    "level": 15,
+    "art": "umbral-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "vizier_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "4bsj12VgzkAajw5T",
+    "name": "Vizier Dragon (Adult)",
+    "level": 15,
+    "art": "vizier-dragon-adult-lob.webp"
+  },
+  {
+    "id": "vizier_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7q1w3xtocBK6C4HK",
+    "name": "Vizier Dragon (Adult, Spellcaster)",
+    "level": 15,
+    "art": "vizier-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "wailing_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "xEdeUVwxzAMPncWl",
+    "name": "Wailing Dragon (Ancient)",
+    "level": 15,
+    "art": "wailing-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "wailing_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "yyvGcuEMihpjJQgW",
+    "name": "Wailing Dragon (Ancient, Spellcaster)",
+    "level": 15,
+    "art": "wailing-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "bog_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "j14cQKcgUGMWGY7P",
+    "name": "Bog Dragon (Ancient)",
+    "level": 16,
+    "art": "bog-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "bog_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ZakuvOFPXzPIwmZI",
+    "name": "Bog Dragon (Ancient, Spellcaster)",
+    "level": 16,
+    "art": "bog-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "crystal_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "PrIiJRB0lRwD9SZw",
+    "name": "Crystal Dragon (Ancient)",
+    "level": 16,
+    "art": "crystal-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "crystal_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "zW7S98WUbpwBF6ih",
+    "name": "Crystal Dragon (Ancient, Spellcaster)",
+    "level": 16,
+    "art": "crystal-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "corbayrant_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "TRmzCBwEeJFqiQ3D",
+    "name": "Corbayrant",
+    "level": 16,
+    "art": "corbayrant-lob.webp"
+  },
+  {
+    "id": "grogrisant_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "O4gEaG5vzkLFl7J1",
+    "name": "Grogrisant",
+    "level": 16,
+    "art": "grogrisant-lob.webp"
   }
 ]
