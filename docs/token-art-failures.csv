@@ -77,16 +77,16 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 6,yeongno,Yeongno,7,humanoid,accept,,comfyui,
 6,barrage-dragon-young,Barrage Dragon (Young),8,dragon,accept,,comfyui,
 6,barrage-dragon-young-spellcaster,"Barrage Dragon (Young, Spellcaster)",8,dragon,accept,,comfyui,
-6,bibliodaemon,Bibliodaemon,8,humanoid,accept,,comfyui,
+6,bibliodaemon,Bibliodaemon,8,humanoid,flag,wrong_subject,gemini,"redone #332 (four-armed weasel, not a scholar)"
 6,brine-dragon-young-spellcaster,"Brine Dragon (Young, Spellcaster)",8,dragon,accept,,comfyui,
 6,krampus-celebrant,Krampus Celebrant,8,humanoid,accept,,comfyui,
-6,spellscar-fext,Spellscar Fext,7,undead,flag,scenery_backdrop;wrong_subject,gemini,flames; skeleton not warped flesh
+6,spellscar-fext,Spellscar Fext,7,undead,flag,scenery_backdrop;wrong_subject,gemini,flames; skeleton not warped flesh; redone #332 (long arms ending in tendril clusters)
 6,ulgrem-axaan,Ulgrem-Axaan,7,undead,flag,cropped;bg_score_high,gemini,"head/neck, checker 59"
 6,underworld-dragon-young,Underworld Dragon (Young),7,dragon,flag,cropped;scenery_backdrop,gemini,"head only, flame backdrop"
 6,underworld-dragon-young-spellcaster,"Underworld Dragon (Young, Spellcaster)",7,dragon,flag,cropped,gemini,head only
 6,young-linnorm,Young Linnorm,7,dragon,flag,wrong_details;scenery_backdrop,gemini,wings + 4 legs on a wingless linnorm; green rectangle
 6,brine-dragon-young,Brine Dragon (Young),8,dragon,flag,cropped;bg_patch;bg_score_high,gemini,"head/neck, ground patch, checker 59"
-6,fleshforged-conformer,Fleshforged Conformer,8,construct,flag,wrong_subject;cropped;bg_patch,gemini,skull with wires; white corners
+6,fleshforged-conformer,Fleshforged Conformer,8,construct,flag,wrong_subject;cropped;bg_patch,gemini,"skull with wires; white corners; redone #332 (blocky skeleton with cartilage/muscle, not a golem)"
 6,k-nonna,K'nonna,8,hybrid,flag,wrong_subject;hybrid_anatomy,gemini,"full goblin-like humanoid, not a half-human"
 6,manananggal,Manananggal,8,hybrid,flag,wrong_subject;hybrid_anatomy,gemini,"winged dragon with legs, not a torso"
 7,mocking-dragon-young,Mocking Dragon (Young),8,dragon,accept,,comfyui,
@@ -171,7 +171,7 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 12,peng,Peng,12,beast,accept,,comfyui,
 12,sea-dragon-adult,Sea Dragon (Adult),12,dragon,accept,,gemini,gemini-first
 12,sea-dragon-adult-spellcaster,"Sea Dragon (Adult, Spellcaster)",12,dragon,accept,,gemini,gemini-first
-12,dedalon,Dedalon,13,beast,accept,,comfyui,
+12,dedalon,Dedalon,13,beast,flag,wrong_subject,gemini,"redone #332 (prompt was a guess; book says dried/ropy, shrunken head)"
 12,executor-dragon-adult,Executor Dragon (Adult),13,dragon,accept,,gemini,gemini-first
 12,executor-dragon-adult-spellcaster,"Executor Dragon (Adult, Spellcaster)",13,dragon,accept,,gemini,gemini-first
 12,magma-dragon-adult,Magma Dragon (Adult),13,dragon,accept,,gemini,gemini-first
