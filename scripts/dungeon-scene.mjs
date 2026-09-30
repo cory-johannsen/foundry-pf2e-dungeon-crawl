@@ -162,7 +162,15 @@ function corridorTilesForSegments(segments) {
       const dy = vertical ? ti : 0;
       const { variant, rotation } = corridorTileVariant(ti, length, vertical);
       tiles.push({
-        texture: { src: CORRIDOR_ART_BY_VARIANT[variant] },
+        // anchorX/anchorY: 0 -- Foundry's own Tile texture default is
+        // center-anchored (0.5, 0.5), not top-left. Room floor art (above,
+        // roomArtPath's own Tile) has always set this explicitly; this one
+        // never did, so every corridor tile's RENDERED art was centered on
+        // its own (x,y) instead of drawn from it -- a half-tile (50px)
+        // visual offset from an otherwise pixel-perfect Tile document,
+        // invisible to every data-level check (x/y/width/height were
+        // always correct) and only visible on screen (#324, fifth finding).
+        texture: { src: CORRIDOR_ART_BY_VARIANT[variant], anchorX: 0, anchorY: 0 },
         // A Tile document's x/y is its own top-left corner (same
         // convention every other pixel coordinate in this file uses, e.g.
         // wallDoc's own toPixels(x1)/toPixels(y1) above, with no added
