@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import {
-  TAGS, csvEscape, geminiFirstCandidates, kindOf, parseCsv, parseLog, parseSpec, routeFor, rowToCsv, tagCounts, tally, variantOf,
+  CONCEPT_GROUPS, TAGS, conceptEnrichment, csvEscape, geminiFirstCandidates, kindOf, normName, parseCsv, parseLog, parseSpec, routeFor, rowToCsv, tagCounts, tally, variantOf,
 } from '../tools/art-failure-lib.mjs';
 
 describe('kindOf / variantOf', () => {
@@ -85,5 +85,34 @@ describe('docs/token-art-failures.csv', () => {
       expect(['comfyui', 'gemini']).toContain(r.final_backend);
       expect(r.first_pass === 'flag').toBe(r.failure_tags !== '');
     }
+  });
+});
+
+describe('history enrichment', () => {
+  it('normalises names the same way for population and failures', () => {
+    expect(normName("K'nonna (Young, Spellcaster)")).toBe('k-nonna-young-spellcaster');
+  });
+  it('reports a lower-bound flag rate per name-word group, highest first', () => {
+    const pop = [
+      { name: 'Storm Lord' }, { name: 'Thunder Drake' }, { name: 'Cloud Giant' }, { name: 'Silt Frog' },
+    ];
+    const flagged = new Set([normName('Storm Lord'), normName('Cloud Giant')]);
+    const out = conceptEnrichment(pop, flagged, { storm_air: CONCEPT_GROUPS.storm_air });
+    expect(out).toEqual([{ group: 'storm_air', pop: 3, flagged: 2, lowerBoundRate: 67 }]);
+  });
+  it('knows the history-derived tags', () => {
+    for (const t of ['monochrome_line_art', 'dark_palette_bg_lightened', 'nudity_or_clothing']) expect(Object.keys(TAGS)).toContain(t);
+  });
+});
+
+describe('data/token-art-routing.json', () => {
+  const rules = JSON.parse(readFileSync(new URL('../data/token-art-routing.json', import.meta.url), 'utf8'));
+  it('routes storm/sky concepts, hybrids and young dragons to gemini, ordinary creatures to comfyui', () => {
+    expect(routeFor('Stormcrown Dragon (Young, Spellcaster)', rules).backend).toBe('gemini');
+    expect(routeFor('Cloud Dragon (Young)', rules).backend).toBe('gemini');
+    expect(routeFor('Pixiu', rules).backend).toBe('gemini');
+    expect(routeFor('Sea Dragon (Young)', rules).backend).toBe('gemini');
+    expect(routeFor('Silt Frog', rules).backend).toBe('comfyui');
+    expect(routeFor('Vorpal Dragon (Young, Spellcaster)', rules).backend).toBe('comfyui');
   });
 });

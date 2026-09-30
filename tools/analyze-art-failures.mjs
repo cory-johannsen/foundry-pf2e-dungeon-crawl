@@ -12,9 +12,27 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { TAGS, geminiFirstCandidates, parseLog, routeFor, tagCounts, tally, variantOf } from './art-failure-lib.mjs';
+import { TAGS, conceptEnrichment, geminiFirstCandidates, normName, parseLog, routeFor, tagCounts, tally, variantOf } from './art-failure-lib.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+if (process.argv[2] === '--history') {
+  const art = JSON.parse(readFileSync(join(root, 'data/creature-art.json'), 'utf8')).filter((e) => !e.id.endsWith('_lob'));
+  const pop = new Map(art.map((e) => [normName(e.name), e]));
+  const hist = parseLog(readFileSync(join(root, 'docs/token-art-history/creatures.csv'), 'utf8'))
+    .filter((r) => ['redo', 'deferred', 'gemini_after_failure', 'prompt_fixed'].includes(r.event));
+  const flagged = new Set();
+  for (const r of hist) {
+    let k = normName(r.slug_or_name);
+    if (!pop.has(k)) k = k.replace(/-(mc2?|b[123]?|npc)$/, '');
+    if (pop.has(k)) flagged.add(k);
+  }
+  console.log(`History: ${flagged.size} of ${pop.size} older creatures have a recovered failure event (${Math.round((100 * flagged.size) / pop.size)}%, a LOWER bound; stated first-pass flag rate where known is ~47%).`);
+  console.log('\nName-group over-representation (lower bound on true flag rate; failures only, so no per-kind true rates):');
+  for (const g of conceptEnrichment([...pop.values()], flagged)) {
+    console.log(`  ${g.group.padEnd(12)} ${String(g.flagged).padStart(3)}/${String(g.pop).padEnd(4)} >= ${g.lowerBoundRate}%`);
+  }
+  process.exit(0);
+}
 const rows = parseLog(readFileSync(join(root, 'docs/token-art-failures.csv'), 'utf8'));
 const rules = JSON.parse(readFileSync(join(root, 'data/token-art-routing.json'), 'utf8'));
 const args = process.argv.slice(2);

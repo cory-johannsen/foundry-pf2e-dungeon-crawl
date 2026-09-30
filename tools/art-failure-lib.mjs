@@ -18,6 +18,9 @@ export const TAGS = {
   hybrid_anatomy: 'multi-species composite the model cannot compose (owl+bear, half a human, torso+wings)',
   wrong_details: 'right subject, wrong specifics (wings on a wingless creature, clothing on a beast)',
   salvage_damage: 'background salvage ate the subject (pale fur turned transparent)',
+  monochrome_line_art: 'uncoloured woodcut/engraving/line-art style instead of the full-colour illustration',
+  dark_palette_bg_lightened: 'dark-palette subject made SDXL lighten the background to grey/white',
+  nudity_or_clothing: 'unwanted nudity, or missing clothing the prompt asked for',
   bg_score_high: 'checker background score >= 50 after all attempts',
 };
 
@@ -138,4 +141,41 @@ export function routeFor(name, rules) {
   const v = `${kind}/${variantOf(name)}`;
   if ((rules.kindVariants ?? []).includes(v)) return { backend: 'gemini', why: `kind/variant "${v}"` };
   return { backend: 'comfyui', why: 'no rule matched' };
+}
+
+/**
+ * Name-word groups the history singled out (scenery-implying concepts, dark
+ * palettes, ...). Used by conceptEnrichment to see which are over-represented
+ * among recovered failures.
+ */
+export const CONCEPT_GROUPS = {
+  fire: /fire|flame|magma|lava|ember|inferno|burning|blaze|cinder|salamander|phoenix|efreet/,
+  storm_air: /storm|thunder|lightning|cloud|wind|tempest|tsunami|gale|djinni|djinn/,
+  water: /water|ocean|tide|tidal|wave|marine|shark|kraken|coral|river|lake|swamp|bog|marsh|serpent|leviathan/,
+  ice: /\bice\b|frost|rime|snow|glacier|winter|yeti/,
+  dark: /shadow|black|night|dark|void|umbral|wraith|nuckelavee|\broc\b|vampire|shade|reaper/,
+  young: /young/,
+  dragon: /dragon|drake|wyrm/,
+  giant_troll: /troll|ogre|giant/,
+  construct: /golem|animated|automaton|doll|clockwork/,
+};
+
+export const normName = (s) => String(s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+/**
+ * population: [{name}], flaggedNames: Set of normName()s. Returns per-group
+ * {group, pop, flagged, lowerBoundRate} — a LOWER bound on the true rate because
+ * history names only some failures.
+ */
+export function conceptEnrichment(population, flaggedNames, groups = CONCEPT_GROUPS) {
+  return Object.entries(groups).map(([group, re]) => {
+    let pop = 0, flagged = 0;
+    for (const e of population) {
+      if (re.test(String(e.name).toLowerCase())) {
+        pop += 1;
+        if (flaggedNames.has(normName(e.name))) flagged += 1;
+      }
+    }
+    return { group, pop, flagged, lowerBoundRate: pct(flagged, pop) };
+  }).sort((a, b) => b.lowerBoundRate - a.lowerBoundRate);
 }

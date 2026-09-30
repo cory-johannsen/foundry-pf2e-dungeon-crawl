@@ -13870,5 +13870,125 @@
     "name": "Sage Dragon (Young)",
     "level": 9,
     "art": "sage-dragon-young-lob.webp"
+  },
+  {
+    "id": "sage_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "T5QQBFUB3vZ2W90d",
+    "name": "Sage Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "sage-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "sky_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "WYLwQl6vyfoe7FdV",
+    "name": "Sky Dragon (Young)",
+    "level": 9,
+    "art": "sky-dragon-young-lob.webp"
+  },
+  {
+    "id": "stone_giant_monk_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "401MnHX5aO21P2Y8",
+    "name": "Stone Giant Monk",
+    "level": 9,
+    "art": "stone-giant-monk-lob.webp"
+  },
+  {
+    "id": "stormcrown_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "oNW5UMevagzXlhf7",
+    "name": "Stormcrown Dragon (Young)",
+    "level": 9,
+    "art": "stormcrown-dragon-young-lob.webp"
+  },
+  {
+    "id": "stormcrown_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "G8SJadHan9OctTZq",
+    "name": "Stormcrown Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "stormcrown-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "vorpal_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "rWtjekpxQuHTsC8E",
+    "name": "Vorpal Dragon (Young)",
+    "level": 9,
+    "art": "vorpal-dragon-young-lob.webp"
+  },
+  {
+    "id": "cloud_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "WqZ25wiUIuDAu8xT",
+    "name": "Cloud Dragon (Young)",
+    "level": 10,
+    "art": "cloud-dragon-young-lob.webp"
+  },
+  {
+    "id": "cursed_king_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "4DQotKcUZebLfeeL",
+    "name": "Cursed King",
+    "level": 10,
+    "art": "cursed-king-lob.webp"
+  },
+  {
+    "id": "delight_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Yn2L7I8oa6uNMszw",
+    "name": "Delight Dragon (Young)",
+    "level": 10,
+    "art": "delight-dragon-young-lob.webp"
+  },
+  {
+    "id": "failed_prophet_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "37kLxtNV11aIPPja",
+    "name": "Failed Prophet",
+    "level": 10,
+    "art": "failed-prophet-lob.webp"
+  },
+  {
+    "id": "sky_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "FkzvfxxgLdEwqtx3",
+    "name": "Sky Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "sky-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "vorpal_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "cu6jRg7L9eSRyltx",
+    "name": "Vorpal Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "vorpal-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "aoyin_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Lhcwzt64Do7afrbF",
+    "name": "Aoyin",
+    "level": 10,
+    "art": "aoyin-lob.webp"
+  },
+  {
+    "id": "cloud_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "tWSiwS6vQif9808l",
+    "name": "Cloud Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "cloud-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "delight_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "AbTiDtSTPI29bdHr",
+    "name": "Delight Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "delight-dragon-young-spellcaster-lob.webp"
   }
 ]
