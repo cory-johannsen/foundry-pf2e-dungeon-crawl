@@ -162,23 +162,30 @@ function corridorTilesForSegments(segments) {
       const dy = vertical ? ti : 0;
       const { variant, rotation } = corridorTileVariant(ti, length, vertical);
       tiles.push({
-        // anchorX/anchorY: 0 -- Foundry's own Tile texture default is
-        // center-anchored (0.5, 0.5), not top-left. Room floor art (above,
-        // roomArtPath's own Tile) has always set this explicitly; this one
-        // never did, so every corridor tile's RENDERED art was centered on
-        // its own (x,y) instead of drawn from it -- a half-tile (50px)
-        // visual offset from an otherwise pixel-perfect Tile document,
-        // invisible to every data-level check (x/y/width/height were
-        // always correct) and only visible on screen (#324, fifth finding).
-        texture: { src: CORRIDOR_ART_BY_VARIANT[variant], anchorX: 0, anchorY: 0 },
-        // A Tile document's x/y is its own top-left corner (same
-        // convention every other pixel coordinate in this file uses, e.g.
-        // wallDoc's own toPixels(x1)/toPixels(y1) above, with no added
-        // offset) -- this used to add an extra toPixels(1)/2 (half a grid
-        // cell) here, shifting every corridor floor tile so it straddled
-        // two grid cells instead of filling one (fixed, #327).
-        x: toPixels(baseGx + dx),
-        y: toPixels(baseGy + dy),
+        // anchorX/anchorY: 0.5 (center) -- NOT top-left. Room floor art
+        // (above, roomArtPath's own Tile) uses anchor 0/0 + top-left x/y,
+        // which works because it never rotates. Every corridor tile DOES
+        // rotate (0/90/180/270, see corridorTileVariant) -- and Foundry
+        // ties a Tile's rotation pivot directly to its own texture anchor
+        // (confirmed live against Tile.LNWFJbnzjltfbwor: mesh.pivot exactly
+        // equals mesh.anchor in local pixel space). A 0/0 anchor rotates
+        // the art around its own CORNER, swinging a rotated tile's visible
+        // content outside its own bounding box -- this was tried first and
+        // broke every non-90-degree-symmetric rotation (#324, sixth
+        // finding; anchor 0/0 alone was only ever correct for rotation 0).
+        // Center anchor + a center-of-cell x/y sidesteps this entirely: a
+        // SQUARE tile (every corridor tile is 1x1) rotated about its own
+        // center by any multiple of 90 degrees re-covers the exact same
+        // bounding box, so no rotation-angle-specific compensation is ever
+        // needed.
+        texture: { src: CORRIDOR_ART_BY_VARIANT[variant], anchorX: 0.5, anchorY: 0.5 },
+        // x/y is this tile's own CENTER (toPixels(baseGx+dx) is its
+        // top-left grid line; + half a cell lands on its center) -- not
+        // its top-left corner, unlike every other pixel coordinate in this
+        // file (e.g. wallDoc's own toPixels(x1)/toPixels(y1) above), because
+        // this tile's anchor is center, not top-left (see above).
+        x: toPixels(baseGx + dx) + toPixels(1) / 2,
+        y: toPixels(baseGy + dy) + toPixels(1) / 2,
         width: toPixels(1),
         height: toPixels(1),
         rotation,
