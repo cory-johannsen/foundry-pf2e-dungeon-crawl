@@ -16734,5 +16734,125 @@
     "name": "Moss Sloth",
     "level": 2,
     "art": "moss-sloth-lob.webp"
+  },
+  {
+    "id": "olobigonde_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "xorqWffvwJFUFuON",
+    "name": "Olobigonde",
+    "level": 2,
+    "art": "olobigonde-lob.webp"
+  },
+  {
+    "id": "cullitox_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "jKSirpKNicffmRpW",
+    "name": "Cullitox",
+    "level": 3,
+    "art": "cullitox-lob.webp"
+  },
+  {
+    "id": "kinzaruk_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "OX25euLqeBR07Ul7",
+    "name": "Kinzaruk",
+    "level": 3,
+    "art": "kinzaruk-lob.webp"
+  },
+  {
+    "id": "lomori_sprout_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "XvFyRUv2BxgjKm77",
+    "name": "Lomori Sprout",
+    "level": 3,
+    "art": "lomori-sprout-lob.webp"
+  },
+  {
+    "id": "nursery_crawler_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "bzMyAFhSQ1mfTNx9",
+    "name": "Nursery Crawler",
+    "level": 3,
+    "art": "nursery-crawler-lob.webp"
+  },
+  {
+    "id": "munsahir_gatecrasher_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "h6oWKFSqpXHnOg5h",
+    "name": "Munsahir Gatecrasher",
+    "level": 4,
+    "art": "munsahir-gatecrasher-lob.webp"
+  },
+  {
+    "id": "quickiron_plasm_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "d0InnF6QVgDIG4j3",
+    "name": "Quickiron Plasm",
+    "level": 4,
+    "art": "quickiron-plasm-lob.webp"
+  },
+  {
+    "id": "whipping_willow_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "oT99a9W6HcU0WsU2",
+    "name": "Whipping Willow",
+    "level": 4,
+    "art": "whipping-willow-lob.webp"
+  },
+  {
+    "id": "comozant_wyrd_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "7qRWMhYwrTHv58VG",
+    "name": "Comozant Wyrd",
+    "level": 5,
+    "art": "comozant-wyrd-lob.webp"
+  },
+  {
+    "id": "living_grove_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "WrGYN6jtEfv7k1pV",
+    "name": "Living Grove",
+    "level": 5,
+    "art": "living-grove-lob.webp"
+  },
+  {
+    "id": "munsahir_trooper_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "Vv9ffFM1qiTdIEsy",
+    "name": "Munsahir Trooper",
+    "level": 5,
+    "art": "munsahir-trooper-lob.webp"
+  },
+  {
+    "id": "murajau_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "Rv14qdCi4cTEBXJ4",
+    "name": "Murajau",
+    "level": 5,
+    "art": "murajau-lob.webp"
+  },
+  {
+    "id": "ore_louse_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "rmno91OxFdAJX5ap",
+    "name": "Ore Louse",
+    "level": 5,
+    "art": "ore-louse-lob.webp"
+  },
+  {
+    "id": "rakkatak_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "m2WdV4XJ3r70mnJX",
+    "name": "Rakkatak",
+    "level": 5,
+    "art": "rakkatak-lob.webp"
+  },
+  {
+    "id": "rust_scarab_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "ytvGscCgKbOCn0dB",
+    "name": "Rust Scarab",
+    "level": 5,
+    "art": "rust-scarab-lob.webp"
   }
 ]
