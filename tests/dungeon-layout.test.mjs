@@ -2995,16 +2995,15 @@ describe('corridor routing regression sweep (#174)', () => {
   // own `corridorSegments.length !== 1` guard does), for EVERY real edge
   // (not just the south/same-column and east/same-rank fast path), checked
   // against every OTHER room's own rect.
-  it('no corridor segment overlaps any OTHER room\'s own footprint, across the same full-pipeline seed/roomCount sweep -- the real property #297\'s dogleg fix exists to guarantee, measured separately for the single-intermediate-blocking-cell case this plan covers (#297)', () => {
+  it('no corridor segment overlaps any OTHER room\'s own footprint, across the same full-pipeline seed/roomCount sweep -- the real property #297\'s dogleg fix exists to guarantee, measured separately for the single-intermediate-blocking-cell case this plan covers (#297), using the REAL priority-aware slot assignment (Round 2)', () => {
     let totalEdges = 0;
     let overlappingEdges = 0;
-    // "Dogleg-eligible": exactly the shape buildEdgeCorridor's own #297
-    // condition checks (`toPos.rank === fromPos.rank + 2` on the south
-    // fast path, `toPos.col === fromPos.col + 2` on the east fast path) --
-    // the single-intermediate-blocking-cell case this plan's own spec
-    // requires a zero overlap rate for.
     let doglegEligibleEdges = 0;
     let doglegEligibleOverlaps = 0;
+    let priorityCollisions = 0;
+    let nonResidualWallCollisions = 0;
+    let residualWallCollisions = 0;
+    let residualEdges = 0;
     for (let i = 0; i < 500; i += 1) {
       const seed = `sweep-${i}`;
       const roomCount = 6 + (i % 15);
@@ -3033,8 +3032,15 @@ describe('corridor routing regression sweep (#174)', () => {
           const incoming = incomingConnectionsFor(layoutEdges, toId, hiddenIncomingByRoomId);
           const slotIndex = incoming.findIndex((c) => c.sourceId === fromId);
           if (slotIndex === -1) continue;
-          const toSlot = doorSlotsForFace(toRect, incoming.length, 'north')[slotIndex];
-          const { corridorSegments, transitCells } = buildEdgeCorridor(
+          // #297 Round 2: real production slot resolution (this is what
+          // buildPopulateAndUnlockGraphNode actually calls now), not the
+          // plain list-order doorSlotsForFace this sweep used pre-Round-2.
+          const collision = findPriorityCollision(
+            seed, toId, toPos.rank, toPos.col, incoming, positionByRoomId, occupiedCells,
+          );
+          const slots = assignDoorSlotsWithPriority(seed, toRect, incoming, 'north', collision);
+          const toSlot = slots[slotIndex];
+          const { corridorSegments, transitCells, plainWalls, doorWall, revealDoorWall } = buildEdgeCorridor(
             seed, fromId, toId, fromRect, toRect, fromPos, toPos,
             face, toSlot, occupiedCells,
           );
@@ -3056,6 +3062,50 @@ describe('corridor routing regression sweep (#174)', () => {
             doglegEligibleEdges += 1;
             if (overlaps) doglegEligibleOverlaps += 1;
           }
+
+          // #297 Round 2: whenever THIS edge is the colliding connection,
+          // measure the real cross-connection property against its own
+          // co-parent's own corridor, and separately track the documented
+          // LARGE-blocker/SMALL-target residual (Review Focus item 6) --
+          // reported, not assumed zero.
+          if (collision && incoming[collision.collidingIndex].sourceId === fromId) {
+            priorityCollisions += 1;
+            const blockerRect = rectById[collision.blockerId];
+            const isResidual = collision.axis === 'south'
+              ? (blockerRect.gw === ROOM_SIZE_LARGE && toRect.gw === ROOM_SIZE_SMALL)
+              : (blockerRect.gh === ROOM_SIZE_LARGE && toRect.gh === ROOM_SIZE_SMALL);
+            if (isResidual) residualEdges += 1;
+
+            const coParentId = collision.blockerId;
+            const coParentChildren = edges[coParentId] ?? [];
+            const coParentIdx = coParentChildren.indexOf(toId);
+            if (coParentIdx !== -1) {
+              const coParentFace = exitFaceForIndex(coParentIdx);
+              const coParentSlotIndex = incoming.findIndex((c) => c.sourceId === coParentId);
+              const coParentSlot = slots[coParentSlotIndex];
+              const coParentResult = buildEdgeCorridor(
+                seed, coParentId, toId, rectById[coParentId], toRect, positionByRoomId[coParentId], toPos,
+                coParentFace, coParentSlot, occupiedCells,
+              );
+              const wallCoversDoor = (walls, door) => walls.some(
+                (w) => w.y1 === w.y2 && door.y1 === door.y2 && w.y1 === door.y1
+                  && Math.min(w.x1, w.x2) < Math.max(door.x1, door.x2)
+                  && Math.max(w.x1, w.x2) > Math.min(door.x1, door.x2),
+              ) || walls.some(
+                (w) => w.x1 === w.x2 && door.x1 === door.x2 && w.x1 === door.x1
+                  && Math.min(w.y1, w.y2) < Math.max(door.y1, door.y2)
+                  && Math.max(w.y1, w.y2) > Math.min(door.y1, door.y2),
+              );
+              const collides = wallCoversDoor(plainWalls, coParentResult.revealDoorWall)
+                || wallCoversDoor(coParentResult.plainWalls, revealDoorWall)
+                || wallCoversDoor(plainWalls, coParentResult.doorWall)
+                || wallCoversDoor(coParentResult.plainWalls, doorWall);
+              if (collides) {
+                if (isResidual) residualWallCollisions += 1;
+                else nonResidualWallCollisions += 1;
+              }
+            }
+          }
         }
       }
     }
@@ -3065,40 +3115,17 @@ describe('corridor routing regression sweep (#174)', () => {
     const doglegRate = doglegEligibleEdges > 0 ? doglegEligibleOverlaps / doglegEligibleEdges : 0;
     // eslint-disable-next-line no-console
     console.log(`[sweep] #297 footprint overlap: ${overlappingEdges}/${totalEdges} edges overall (${(overallRate * 100).toFixed(2)}%); dogleg-eligible (rank+2/col+2, single intermediate blocking cell): ${doglegEligibleOverlaps}/${doglegEligibleEdges} (${(doglegRate * 100).toFixed(2)}%)`);
-    // The real success criterion for THIS plan's own scope: zero overlap
-    // for the single-intermediate-blocking-cell case the dogleg fix
-    // covers. A nonzero rate elsewhere (e.g. a longer, unrelated null-path
-    // fallback -- #174's own already-documented, accepted limitation) is
-    // deliberately NOT asserted here, same "track it, don't paper over it"
-    // split the #174 sweep above already established for that case.
-    //
-    // Task 5 finding (measured, not explained away): this assertion
-    // currently FAILS at a rate of 40/455 (~8.79%) across this same
-    // 500-seed corpus. Root-caused via direct instrumentation (not
-    // guessed): in every one of the 40 failing edges (a) the TARGET has
-    // more than one real incoming connection (a genuine merge room), and
-    // (b) the SOURCE's own raw doorX0/doorY0 does NOT cross the blocking
-    // room's footprint -- i.e. buildEdgeCorridor's own dogleg trigger
-    // (`doorX0 < occupantEastEdge` / `doorY0 < occupantSouthEdge`)
-    // correctly evaluates "no dogleg needed" by its own documented rule
-    // every single time. The overlap is introduced AFTER that decision,
-    // by the pre-existing #230 fix's own gap-widening (spanX0 = min(doorX0,
-    // gapX0) / spanX1 = max(doorX1, gapX1)): when the merge room's own
-    // slot is clamped far enough from the source's doorX0 (#230's own
-    // "known, MEASURED residual" comment above this branch, #231's
-    // tracked ceiling), the WIDENED span can reach back across the
-    // blocking room's footprint even though the original, narrower doorX0
-    // never did -- a case this plan's dogleg condition was never written
-    // to check (it only ever compares the pre-widening doorX0/doorY0).
-    // Not a regression in Tasks 1-4's own dogleg implementation (it does
-    // exactly what its own documented condition says), but a real,
-    // previously-unmeasured interaction between #297's dogleg and #230/
-    // #231's own already-tracked merge-room residual, newly visible only
-    // because this sweep is the first to check the dogleg-eligible shape's
-    // FINAL corridor geometry against every OTHER room, not just the
-    // blocking room the dogleg condition itself already knows about.
-    // Left failing deliberately per this task's own brief: softening this
-    // assertion would hide the finding instead of reporting it.
+    expect(priorityCollisions).toBeGreaterThan(0); // sanity: the corpus actually produced a real co-parent collision
+    const residualRate = priorityCollisions > 0 ? residualEdges / priorityCollisions : 0;
+    // eslint-disable-next-line no-console
+    console.log(`[sweep] #297 Round 2 slot priority: ${priorityCollisions} real co-parent collisions found; ${nonResidualWallCollisions} had a cross-connection wall collision OUTSIDE the documented residual; documented LARGE-blocker/SMALL-target residual: ${residualEdges}/${priorityCollisions} (${(residualRate * 100).toFixed(2)}%), of which ${residualWallCollisions} actually manifested as a wall collision`);
+    // The real success criterion for THIS plan's own scope: zero
+    // cross-connection wall collisions for every collision OUTSIDE the
+    // documented, explicitly out-of-scope residual. The residual itself is
+    // measured and reported above, not asserted to be zero -- softening
+    // this would hide the finding instead of reporting it, the same
+    // discipline this file's own #174/#297 sweeps already established.
+    expect(nonResidualWallCollisions).toBe(0);
     expect(doglegEligibleOverlaps).toBe(0);
   });
 });
@@ -3327,6 +3354,143 @@ describe('#297 regression: exact live repro (issue #297, seed 1790705053246-4vdg
     // opening, not that it happened to produce a wall that just doesn't
     // reach the midpoint for some other reason.
     expect(southWalls.length).toBeGreaterThan(1);
+  });
+});
+
+describe('#297 Round 2 regression: co-parent correctly distinguished from an unrelated blocker in the original live-reported graph', () => {
+  it('findPriorityCollision returns null when the blocker is genuinely unrelated to the target\'s real co-parent', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const sourceId = 'room-room-entry-0';
+    const blockerRoomId = 'room-room-room-entry-0-1';
+    const mergeRoomId = 'room-room-room-entry-0-0';
+    const coParentId = 'room-detour-0';
+    const sourcePos = { rank: 1, col: 0 };
+    const blockerPos = { rank: 2, col: 0 };
+    const mergePos = { rank: 3, col: 0 };
+    const coParentPos = { rank: 2, col: 2 };
+    const layoutPositionByRoomId = {
+      [sourceId]: sourcePos,
+      [blockerRoomId]: blockerPos,
+      [mergeRoomId]: mergePos,
+      [coParentId]: coParentPos,
+    };
+    // Real graph shape from the original live report (#297's own issue
+    // body, and this spec's own "Confirmed live" section): the merge
+    // room's real parents are sourceId and coParentId -- blockerRoomId is
+    // an unrelated sibling that merely happens to occupy the intermediate
+    // cell sourceId's own south-exit edge crosses.
+    const layoutEdges = {
+      [sourceId]: [mergeRoomId, blockerRoomId],
+      [coParentId]: [mergeRoomId],
+    };
+    const occupiedCells = {
+      '1,0': sourceId,
+      '2,0': blockerRoomId,
+      '3,0': mergeRoomId,
+      '2,2': coParentId,
+    };
+    const incomingConnections = incomingConnectionsFor(layoutEdges, mergeRoomId, {});
+    expect(incomingConnections).toEqual([
+      { sourceId, hidden: false },
+      { sourceId: coParentId, hidden: false },
+    ]);
+    const collision = findPriorityCollision(
+      seed, mergeRoomId, mergePos.rank, mergePos.col, incomingConnections, layoutPositionByRoomId, occupiedCells,
+    );
+    // The critical assertion: blockerRoomId occupies the intermediate cell
+    // (Round 1's own dogleg trigger fires), but it is NOT one of the merge
+    // room's own real parents -- findCoParentCollision (reused inside
+    // findPriorityCollision) must correctly reject it, so Round 1's own
+    // unmodified dogleg is used exactly as it always has been for this
+    // exact originally-reported shape.
+    expect(collision).toBeNull();
+  });
+});
+
+describe('#297 Round 2 regression: slot priority resolves the real co-parent collision without touching Round 1\'s own dogleg geometry', () => {
+  it('the colliding connection\'s own corridor uses the exact same dogleg shape as a naive slot assignment, only its own final target-approach gap differs, and the co-parent\'s own corridor is unaffected', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const shortcutSourceId = 'from-room';
+    const blockerRoomId = 'blocker-room';
+    const mergeRoomId = 'to-room';
+    const shortcutPos = { rank: 0, col: 0 };
+    const blockerPos = { rank: 1, col: 0 };
+    const mergePos = { rank: 2, col: 0 };
+    const layoutPositionByRoomId = {
+      [shortcutSourceId]: shortcutPos,
+      [blockerRoomId]: blockerPos,
+      [mergeRoomId]: mergePos,
+    };
+    const occupiedCells = { '0,0': shortcutSourceId, '1,0': blockerRoomId, '2,0': mergeRoomId };
+    const incomingConnections = [
+      { sourceId: shortcutSourceId, hidden: false },
+      { sourceId: blockerRoomId, hidden: false },
+    ];
+    const shortcutRect = roomRect(seed, shortcutSourceId, shortcutPos.rank, shortcutPos.col);
+    const blockerRect = roomRect(seed, blockerRoomId, blockerPos.rank, blockerPos.col);
+    const mergeRect = roomRect(seed, mergeRoomId, mergePos.rank, mergePos.col);
+
+    const collision = findPriorityCollision(
+      seed, mergeRoomId, mergePos.rank, mergePos.col, incomingConnections, layoutPositionByRoomId, occupiedCells,
+    );
+    expect(collision).not.toBeNull();
+
+    const naiveSlots = doorSlotsForFace(mergeRect, 2, 'north');
+    const prioritySlots = assignDoorSlotsWithPriority(seed, mergeRect, incomingConnections, 'north', collision);
+
+    const naiveResult = buildEdgeCorridor(
+      seed, shortcutSourceId, mergeRoomId, shortcutRect, mergeRect, shortcutPos, mergePos,
+      'south', naiveSlots[0], occupiedCells, 'north',
+    );
+    const priorityResult = buildEdgeCorridor(
+      seed, shortcutSourceId, mergeRoomId, shortcutRect, mergeRect, shortcutPos, mergePos,
+      'south', prioritySlots[0], occupiedCells, 'north',
+    );
+
+    // Round 1's own dogleg logic is completely untouched: same trigger,
+    // same turn/lane/turn-2 SHAPE (segment count, and every segment's own
+    // width/height except the final one), only the FINAL branch segment's
+    // own x-range (which encodes the target gap position) may differ
+    // between the naive and priority slot. `foreignOpening`'s own
+    // roomId/side are unaffected by which slot is used, but its own
+    // offset/width are NOT asserted equal here: per buildEdgeCorridor's
+    // own "Review round 2 fix" comment, that range is deliberately derived
+    // from gapX0/gapX1 (the same final target-approach gap this comment
+    // already calls out as allowed to differ), so asserting it byte-equal
+    // would contradict the very shape invariant this test is checking --
+    // confirmed by direct invocation against this exact fixture: naive
+    // gives {offset:2,width:5}, priority gives {offset:5,width:2} (same
+    // combined span, different split), both real slot assignments.
+    expect(priorityResult.foreignOpening.roomId).toEqual(naiveResult.foreignOpening.roomId);
+    expect(priorityResult.foreignOpening.side).toEqual(naiveResult.foreignOpening.side);
+    expect(priorityResult.corridorSegments).toHaveLength(naiveResult.corridorSegments.length);
+    for (let i = 0; i < naiveResult.corridorSegments.length - 1; i += 1) {
+      expect(priorityResult.corridorSegments[i]).toEqual(naiveResult.corridorSegments[i]);
+    }
+    // The source's own door is real and unmovable -- unaffected by which
+    // TARGET slot is used.
+    expect(priorityResult.doorWall).toEqual(naiveResult.doorWall);
+
+    // Now the real cross-connection property: build the co-parent's own
+    // corridor with ITS OWN priority slot, and confirm neither connection's
+    // own revealDoorWall is covered by the other's plainWalls -- the exact
+    // shape Round 1's own final review found violated.
+    const coParentResult = buildEdgeCorridor(
+      seed, blockerRoomId, mergeRoomId, blockerRect, mergeRect, blockerPos, mergePos,
+      'south', prioritySlots[1], occupiedCells, 'north',
+    );
+    const wallCoversDoor = (walls, door) => walls.some(
+      (w) => w.y1 === w.y2 && door.y1 === door.y2 && w.y1 === door.y1
+        && Math.min(w.x1, w.x2) < Math.max(door.x1, door.x2)
+        && Math.max(w.x1, w.x2) > Math.min(door.x1, door.x2),
+    );
+    expect(wallCoversDoor(priorityResult.plainWalls, coParentResult.revealDoorWall)).toBe(false);
+    expect(wallCoversDoor(coParentResult.plainWalls, priorityResult.revealDoorWall)).toBe(false);
+    // And the co-parent's own corridor takes the simple adjacent branch,
+    // not a dogleg -- the Global Constraints invariant this plan requires
+    // verifying, not assuming.
+    expect(coParentResult.foreignOpening).toBeNull();
+    expect(coParentResult.corridorSegments).toHaveLength(1);
   });
 });
 
