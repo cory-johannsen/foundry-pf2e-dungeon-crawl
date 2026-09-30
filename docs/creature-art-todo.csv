@@ -1,6 +1,4 @@
 level,rarity,pack,docId,name
--1,common,pf2e.pfs-season-1-bestiary,02MIBcyPwCEmh8lA,Wounded Orc Brute
-0,common,pf2e.pfs-season-1-bestiary,0DudqNVGfXC39umi,Reefclaw Spawn
 1,common,pf2e.pfs-season-1-bestiary,1JVuJXe27PLyUVwf,Farmer Drystan's Scarecrow (1-2)
 2,common,pf2e.pfs-season-1-bestiary,1MXO3xJS50lENkHL,Meleeka Sanvara (1-2)
 7,common,pf2e.pfs-season-1-bestiary,1Yb78i4YajKrsens,Nevashi (7-8)
@@ -8,7 +6,6 @@ level,rarity,pack,docId,name
 2,common,pf2e.pfs-season-1-bestiary,1lfSUWK706fFrvhT,Bandit Lieutenant
 4,common,pf2e.pfs-season-1-bestiary,2fUyhm29ugKzkIdS,Kobold Dragon Spellweaver
 5,common,pf2e.pfs-season-1-bestiary,3MSKMI7ehLTC1bqw,Webhekiz (5-6)
-3,common,pf2e.pfs-season-1-bestiary,3fctnHmcLQM3KrZj,Greater Shadow Wisp
 4,common,pf2e.pfs-season-1-bestiary,4MXoQZUrmGeuySrp,Meleeka Sanvara (3-4)
 1,common,pf2e.pfs-season-1-bestiary,4QEU9t2vYef8QfZQ,Loyal Giant Fox
 3,common,pf2e.pfs-season-1-bestiary,54m8L1izUMDi02O9,Harsus (3-4)
@@ -25,13 +22,11 @@ level,rarity,pack,docId,name
 3,common,pf2e.pfs-season-1-bestiary,8axdoIyHw2WK9anh,Ptiro Valner (3-4)
 5,common,pf2e.pfs-season-1-bestiary,8q3pSr4OLkcIDMIH,Barralbus (3-4)
 4,common,pf2e.pfs-season-1-bestiary,8y0d3FLVkqbObMLM,Veteran Guard Captain
-0,common,pf2e.pfs-season-1-bestiary,9KauvSo8zxsaBWRc,Animal Companion (Wolf) (3-4)
 1,common,pf2e.pfs-season-1-bestiary,9dnyyDG4MCkL3zkn,Zombie Riding Horse
 2,common,pf2e.pfs-season-1-bestiary,AFQU2tJl09ykBkwY,Thorned Cocoon (3-4)
 2,common,pf2e.pfs-season-1-bestiary,AKNY8155nYQ1WsmG,Skeletal Mount
 6,common,pf2e.pfs-season-1-bestiary,AbFKkDIHUwx2EnR5,Dorobu (3-4)
 3,common,pf2e.pfs-season-1-bestiary,BVgoWV3U3kHHAMg9,Neidre Fliavazzana (3-4)
--1,common,pf2e.pfs-season-1-bestiary,BY9A7Isy3YWqUyyg,Zombie Charger
 3,common,pf2e.pfs-season-1-bestiary,CPDWLOHl0ODbMplt,Dorobu (1-2)
 2,common,pf2e.pfs-season-1-bestiary,DsEg9sT7jCcsuEDI,Ogre
 3,common,pf2e.pfs-season-1-bestiary,E17afWSsCBGM8Gnq,"Nalla, Rebel Leader (3-4)"
@@ -48,8 +43,6 @@ level,rarity,pack,docId,name
 2,common,pf2e.pfs-season-1-bestiary,IcbDCGnefdowfQE0,Skeleton Captain
 1,common,pf2e.pfs-season-1-bestiary,JDjwID3HZJqytPFP,Pine Brute
 3,common,pf2e.pfs-season-1-bestiary,JEwMnYFfyxr5i6Dy,Fleshforge Dreg (Roots)
-1,common,pf2e.pfs-season-1-bestiary,JSZGXyG3cItFmG9N,Elite Waterworks Rebel
-2,common,pf2e.pfs-season-1-bestiary,Jfm63bPimFxf3u1T,Halfling Druid (3-4)
 1,common,pf2e.pfs-season-1-bestiary,K6JYKFI9HLFWf12d,Guard Captain
 3,common,pf2e.pfs-season-1-bestiary,KR3t3QnVESdhkYr2,Barralbus (1-2)
 1,common,pf2e.pfs-season-1-bestiary,KcLEkekZZw9uI88I,Toxic Snapjaw (3-4)
@@ -59,7 +52,6 @@ level,rarity,pack,docId,name
 7,common,pf2e.pfs-season-1-bestiary,LMyYMgdcJqQPgGiY,Iloise (7-8)
 8,common,pf2e.pfs-season-1-bestiary,MOPGJAQUS4Aop7Mm,Doctor Velshun (7-8)
 1,common,pf2e.pfs-season-1-bestiary,MOX8VzhEBVMkOpzr,Crowd Agitator
--1,common,pf2e.pfs-season-1-bestiary,N6zflwcAIP2wewRI,Skeleton Soldier
 3,common,pf2e.pfs-season-1-bestiary,NQgsuMnXXABeebuS,Prefect (Electrowhip) (3-4)
 3,common,pf2e.pfs-season-1-bestiary,NTPKBjuubDmuSJTN,Vicious Vulpine
 5,common,pf2e.pfs-season-1-bestiary,NUFsxlmHqk4LeYlq,Greater Metallic Sod Hound
@@ -76,7 +68,6 @@ level,rarity,pack,docId,name
 6,common,pf2e.pfs-season-1-bestiary,QYTRwhdkSWZKRtlj,Synthetic Khismar (5-6)
 5,common,pf2e.pfs-season-1-bestiary,QZVLjVPLl0PNo2K3,Fleshforge Prototype (Leaping Charge)
 7,common,pf2e.pfs-season-1-bestiary,QtDH32oEVWpFmlCi,Lelzeshin (Tier 5-6)
--1,common,pf2e.pfs-season-1-bestiary,QxlguPRUm3rDPhjF,Waterworks Rebel
 5,common,pf2e.pfs-season-1-bestiary,R8D2GrilngQIb1eI,Fleshforge Prototype (Reach)
 1,common,pf2e.pfs-season-1-bestiary,RS04fRQEWzk2aZOx,Desert Wind
 3,common,pf2e.pfs-season-1-bestiary,RUXPx9VPJCmuD1V8,Mr. Chitters (5-6)
@@ -91,7 +82,6 @@ level,rarity,pack,docId,name
 4,common,pf2e.pfs-season-1-bestiary,UyJUEp0asfGDBvYa,Elite Prefect (Fist) (3-4)
 3,common,pf2e.pfs-season-1-bestiary,WlJ8fVMV7gXNQ9eR,Fleshforge Dreg (Leaping Charge)
 2,common,pf2e.pfs-season-1-bestiary,X6xVydw9XznvvFC2,Mirrored Lelzeshin (Tier 3-4)
--1,common,pf2e.pfs-season-1-bestiary,XiGTud90i1WkJYz2,Offended Gambler
 2,common,pf2e.pfs-season-1-bestiary,YtR25uDQSkKQMoaW,Reast Mycer (1-2)
 0,common,pf2e.pfs-season-1-bestiary,ZMGXiRuVZ8r7hQVe,Bandit Scout
 5,common,pf2e.pfs-season-1-bestiary,ZpowNcW774gt8XjS,Nashaxian The Angered
@@ -101,12 +91,10 @@ level,rarity,pack,docId,name
 3,common,pf2e.pfs-season-1-bestiary,bDKozdvVEElVQywQ,Fleshforge Dreg (Acid Spit)
 8,common,pf2e.pfs-season-1-bestiary,bM27sjs9yA3rX4DA,The Ascendant (5-6)
 3,common,pf2e.pfs-season-1-bestiary,cuTgbvAxDEkT4XhZ,Fleshforge Dreg (Shield)
-0,common,pf2e.pfs-season-1-bestiary,czYt4Yp6ZeGnzyV6,Animal Companion (Wolf) (1-2)
 2,common,pf2e.pfs-season-1-bestiary,dOSeTKHADNhJ1bhz,Kobold Dragon Mage (1-14)
 5,common,pf2e.pfs-season-1-bestiary,dtXiSNcy7bM4UITo,Paravaax (3-4)
 0,common,pf2e.pfs-season-1-bestiary,eBOY53WFYYksLmiH,Dockhand Cultist
 5,common,pf2e.pfs-season-1-bestiary,eR68t20AU5lPKALJ,Voidworm Ouroboros
-0,common,pf2e.pfs-season-1-bestiary,eWlUE6xrNLGMcfMX,Halfling Druid (1-2)
 3,common,pf2e.pfs-season-1-bestiary,f9NDRa2grZrqnTIs,Webhekiz (3-4)
 2,common,pf2e.pfs-season-1-bestiary,f9jyVOOKEvRkvIY4,'Zombie' Flesh Golem (3-4)
 1,common,pf2e.pfs-season-1-bestiary,fK69SijSGN3bOgSE,Plum Leshy (3-4)
@@ -130,7 +118,6 @@ level,rarity,pack,docId,name
 1,common,pf2e.pfs-season-1-bestiary,mIz8CjpB8uxf6M9f,Cinder Wolf (1-2)
 1,common,pf2e.pfs-season-1-bestiary,mTXgvQ7zhA8VNVeG,Orc Alchemist
 3,common,pf2e.pfs-season-1-bestiary,mUWCqhhcmEHsSjKo,Blue Streak Mage (5-6)
-0,common,pf2e.pfs-season-1-bestiary,mjW1q98gMnEmZJKt,Shadow Wisp
 2,common,pf2e.pfs-season-1-bestiary,nmNVx7cAqeurlbeu,Hungry Blade Apprentice
 2,common,pf2e.pfs-season-1-bestiary,oEHGUzWB0IH26h7y,Mummy Brute
 5,common,pf2e.pfs-season-1-bestiary,oHbuqmMgS8PutzMZ,Blue Streak Mage (7-8)
@@ -164,9 +151,7 @@ level,rarity,pack,docId,name
 1,common,pf2e.pfs-season-1-bestiary,xFeeszDfh4RISbib,Gwibble (1-2)
 3,common,pf2e.pfs-season-1-bestiary,xHbU1j5KpscKk6q8,Marcon Tinol (3-4)
 1,common,pf2e.pfs-season-1-bestiary,xIWdGhSA6Z7CQKBY,Marcon Tinol (1-2)
--1,common,pf2e.pfs-season-1-bestiary,xbpF7O68n876hD3B,Storm Acolyte
 4,common,pf2e.pfs-season-1-bestiary,yAZBjwCVDGbdT4Sb,Mirrored Lelzeshin (Tier 5-6)
--1,common,pf2e.pfs-season-1-bestiary,ySXw00WW2LJoDhZ6,Crowd Leader
 3,common,pf2e.pfs-season-1-bestiary,yn7x4Me1YrPuXFZf,Keff The Lion (1-2)
 2,common,pf2e.pfs-season-1-bestiary,z8Bp3EtiJhA3nNrY,Flaming Skull Skeletal Champion
 4,common,pf2e.pfs-season-1-bestiary,zAOgSgAqMLCrIvTl,Blue Streak Ambushers (5-6)

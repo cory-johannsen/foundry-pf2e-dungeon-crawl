@@ -18470,5 +18470,133 @@
     "name": "Flaming Skull Skeleton Guard",
     "level": -1,
     "art": "flaming-skull-skeleton-guard-lob.webp"
+  },
+  {
+    "id": "young_warg_lob",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "lXJQ19sQs3srqD1F",
+    "name": "Young Warg",
+    "level": 0,
+    "art": "warg.webp"
+  },
+  {
+    "id": "orc_brute_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "02MIBcyPwCEmh8lA",
+    "name": "Wounded Orc Brute",
+    "level": -1,
+    "art": "orc-brute-lob.webp"
+  },
+  {
+    "id": "reefclaw_spawn_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "0DudqNVGfXC39umi",
+    "name": "Reefclaw Spawn",
+    "level": 0,
+    "art": "reefclaw-spawn-lob.webp"
+  },
+  {
+    "id": "shadow_wisp_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "mjW1q98gMnEmZJKt",
+    "name": "Shadow Wisp",
+    "level": 0,
+    "art": "shadow-wisp-lob.webp"
+  },
+  {
+    "id": "greater_shadow_wisp_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "3fctnHmcLQM3KrZj",
+    "name": "Greater Shadow Wisp",
+    "level": 3,
+    "art": "shadow-wisp-lob.webp"
+  },
+  {
+    "id": "animal_companion_wolf_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "czYt4Yp6ZeGnzyV6",
+    "name": "Animal Companion (Wolf) (1-2)",
+    "level": 0,
+    "art": "animal-companion-wolf-lob.webp"
+  },
+  {
+    "id": "animal_companion_wolf_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "9KauvSo8zxsaBWRc",
+    "name": "Animal Companion (Wolf) (3-4)",
+    "level": 0,
+    "art": "animal-companion-wolf-lob.webp"
+  },
+  {
+    "id": "zombie_charger_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "BY9A7Isy3YWqUyyg",
+    "name": "Zombie Charger",
+    "level": -1,
+    "art": "zombie-charger-lob.webp"
+  },
+  {
+    "id": "waterworks_rebel_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "QxlguPRUm3rDPhjF",
+    "name": "Waterworks Rebel",
+    "level": -1,
+    "art": "waterworks-rebel-lob.webp"
+  },
+  {
+    "id": "elite_waterworks_rebel_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "JSZGXyG3cItFmG9N",
+    "name": "Elite Waterworks Rebel",
+    "level": 1,
+    "art": "waterworks-rebel-lob.webp"
+  },
+  {
+    "id": "halfling_druid_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "eWlUE6xrNLGMcfMX",
+    "name": "Halfling Druid (1-2)",
+    "level": 0,
+    "art": "halfling-druid-lob.webp"
+  },
+  {
+    "id": "halfling_druid_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "Jfm63bPimFxf3u1T",
+    "name": "Halfling Druid (3-4)",
+    "level": 2,
+    "art": "halfling-druid-lob.webp"
+  },
+  {
+    "id": "skeleton_soldier_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "N6zflwcAIP2wewRI",
+    "name": "Skeleton Soldier",
+    "level": -1,
+    "art": "skeleton-soldier-lob.webp"
+  },
+  {
+    "id": "offended_gambler_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "XiGTud90i1WkJYz2",
+    "name": "Offended Gambler",
+    "level": -1,
+    "art": "offended-gambler-lob.webp"
+  },
+  {
+    "id": "storm_acolyte_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "xbpF7O68n876hD3B",
+    "name": "Storm Acolyte",
+    "level": -1,
+    "art": "storm-acolyte-lob.webp"
+  },
+  {
+    "id": "crowd_leader_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "ySXw00WW2LJoDhZ6",
+    "name": "Crowd Leader",
+    "level": -1,
+    "art": "crowd-leader-lob.webp"
   }
 ]

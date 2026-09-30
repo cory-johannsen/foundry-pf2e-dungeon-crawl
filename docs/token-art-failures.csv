@@ -617,3 +617,14 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 43,flaming-skull-skeleton-guard,Flaming Skull Skeleton Guard,-1,undead,accept,,gemini,gemini-first
 43,goblin-skeleton,Goblin Skeleton,-1,undead,accept,,gemini,gemini-first
 43,mummy-shambler,Mummy Shambler,-1,undead,accept,,gemini,gemini-first
+44,skeleton-soldier,Skeleton Soldier,-1,undead,accept,,gemini,gemini-first
+44,storm-acolyte,Storm Acolyte,-1,humanoid,accept,,gemini,gemini-first
+44,zombie-charger,Zombie Charger,-1,undead,accept,,gemini,gemini-first
+44,shadow-wisp,Shadow Wisp,0,elemental,accept,,gemini,gemini-first
+44,crowd-leader,Crowd Leader,-1,beast,flag,scenery_backdrop;cropped,gemini,
+44,offended-gambler,Offended Gambler,-1,beast,flag,scenery_backdrop;cropped,gemini,
+44,animal-companion-wolf,Animal Companion (Wolf) (1-2),0,beast,accept,,comfyui,
+44,halfling-druid,Halfling Druid (1-2),0,beast,accept,,comfyui,
+44,reefclaw-spawn,Reefclaw Spawn,0,beast,accept,,comfyui,
+44,waterworks-rebel,Waterworks Rebel,-1,beast,flag,bg_patch;nudity_or_clothing,comfyui,
+44,orc-brute,Wounded Orc Brute,-1,beast,flag,salvage_damage;cropped,comfyui,
