@@ -16854,5 +16854,125 @@
     "name": "Rust Scarab",
     "level": 5,
     "art": "rust-scarab-lob.webp"
+  },
+  {
+    "id": "carved_beast_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "P3UcyuiqqYPzAwwF",
+    "name": "Carved Beast",
+    "level": 6,
+    "art": "carved-beast-lob.webp"
+  },
+  {
+    "id": "kizidhar_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "QkD7kUl6KvUvPAYA",
+    "name": "Kizidhar",
+    "level": 6,
+    "art": "kizidhar-lob.webp"
+  },
+  {
+    "id": "living_lodestone_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "CKRqlCHgvZp9YL5s",
+    "name": "Living Lodestone",
+    "level": 6,
+    "art": "living-lodestone-lob.webp"
+  },
+  {
+    "id": "pine_pangolin_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "6teMPgUKnYc1YIIx",
+    "name": "Pine Pangolin",
+    "level": 7,
+    "art": "pine-pangolin-lob.webp"
+  },
+  {
+    "id": "skymetal_striker_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "XyU6fPkQJjS1VFTb",
+    "name": "Skymetal Striker",
+    "level": 7,
+    "art": "skymetal-striker-lob.webp"
+  },
+  {
+    "id": "tantriog_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "JR7VT7ObQRaBtUlk",
+    "name": "Tantriog",
+    "level": 7,
+    "art": "tantriog-lob.webp"
+  },
+  {
+    "id": "coldmire_pond_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "EXiLRXbweiiMbTNk",
+    "name": "Coldmire Pond",
+    "level": 8,
+    "art": "coldmire-pond-lob.webp"
+  },
+  {
+    "id": "snapdrake_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "NhmmvWicMmhXuKJo",
+    "name": "Snapdrake",
+    "level": 8,
+    "art": "snapdrake-lob.webp"
+  },
+  {
+    "id": "veiled_current_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "qdVEmjf6e98KPzyK",
+    "name": "Veiled Current",
+    "level": 8,
+    "art": "veiled-current-lob.webp"
+  },
+  {
+    "id": "zuhra_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "Mw0sQmrSf9hao5mF",
+    "name": "Zuhra",
+    "level": 8,
+    "art": "zuhra-lob.webp"
+  },
+  {
+    "id": "jann_shuyookh_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "RObxZM2z4P6ZW3hN",
+    "name": "Jann Shuyookh",
+    "level": 9,
+    "art": "jann-shuyookh-lob.webp"
+  },
+  {
+    "id": "nightwood_guardian_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "IBfXxdi8ja4095km",
+    "name": "Nightwood Guardian",
+    "level": 9,
+    "art": "nightwood-guardian-lob.webp"
+  },
+  {
+    "id": "painted_stag_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "ikcWmhEdL5G0s9T4",
+    "name": "Painted Stag",
+    "level": 9,
+    "art": "painted-stag-lob.webp"
+  },
+  {
+    "id": "abysium_horror_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "YTTKgBLXSIna2KNO",
+    "name": "Abysium Horror",
+    "level": 10,
+    "art": "abysium-horror-lob.webp"
+  },
+  {
+    "id": "asp_of_grief_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "IPKzI7XwILuDc21S",
+    "name": "Asp of Grief",
+    "level": 10,
+    "art": "asp-of-grief-lob.webp"
   }
 ]
