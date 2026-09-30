@@ -39,6 +39,25 @@ const FOLLOW_DEBOUNCE_MS = 250;
 // everywhere this constant was used, pending a fix that doesn't trigger
 // the Foundry-core bug (see #361).
 
+// #87: resnapTokenNow must never read a token's position while Foundry's
+// own animated slide is still interpolating it -- confirmed live
+// (2026-09-30, v14.368) that a still-fractional, mid-flight position can
+// get rounded back to the token's STARTING cell, silently cancelling a
+// legitimate, still-in-progress move. RESNAP_POLL_MS is a starting value
+// verified against this session's own live capture (the redundant-write
+// storm converged within ~150ms). RESNAP_MAX_WAIT_MS is a defensive cap,
+// not a guess at typical slide duration -- it only matters if a token
+// never stops reporting "animating" (a genuine anomaly, not a real
+// slide taking a while), so it's set generously above even an unusually
+// long single-jump move (final review, 2026-09-30: Foundry scales slide
+// duration with distance at roughly 6 grid squares/second by default, so
+// even a 30-square combat stride -- well beyond a realistic single
+// dungeon-combat.mjs stepToward/strideByPosture jump -- finishes in ~5s).
+// Tune during live verification if needed, not treated as final here.
+const RESNAP_POLL_MS = 100;
+const RESNAP_MAX_WAIT_MS = 10000;
+const resnapInFlight = new Set(); // tokenIds with a correction already pending
+
 const pendingByScene = new Map(); // sceneId -> setTimeout handle
 const warnedNoLeaderForScene = new Set();
 const inFlightScenes = new Set();
@@ -325,6 +344,37 @@ export function followLeaderOnDoorOpened(wallDoc, changes) {
   }
 }
 
+const warnedNoTokenObjectForToken = new Set();
+
+/** Whether `token` is currently mid-flight of Foundry's own animated
+ * slide -- confirmed live (2026-09-30, v14.368) that
+ * `token.object.animationContexts` is a real Map, non-empty while
+ * animating and empty once settled. Not in Foundry's public API docs, so
+ * treated as a confirmed-live-but-undocumented signal, the same category
+ * as this module's existing reliance on `_movement.method`/`waypoints`
+ * (`isPositionChange`, above). Optional-chains to `undefined` if
+ * `token.object` doesn't exist (an older Foundry version, a system
+ * override, or a token not yet rendered on canvas) -- treated the same
+ * as "not animating," a deliberate graceful degradation to the
+ * immediate-correction behavior this function had before #87, rather
+ * than a new failure mode. Logs once per token id when this degradation
+ * happens (final review, 2026-09-30: on a client without this token
+ * rendered -- e.g. the Agent-GM account, or a GM viewing a different
+ * scene -- this fix silently never engages there, which is worth being
+ * able to tell apart from "fixed" during live verification). */
+function isAnimating(token) {
+  if (!token.object) {
+    if (!warnedNoTokenObjectForToken.has(token.id)) {
+      warnedNoTokenObjectForToken.add(token.id);
+      console.debug(
+        `${MODULE_ID} | dungeon-follow: token.object unavailable for ${token.id} on this client -- resnapTokenNow can't detect in-flight animation here and falls back to immediate correction (#87).`,
+      );
+    }
+    return false;
+  }
+  return (token.object.animationContexts?.size ?? 0) > 0;
+}
+
 /** Snaps `tokenId` on `sceneId` back to the grid if it's currently off-grid
  * — the actual correction `dungeon-remote.mjs`'s relayed `resnapToken`
  * action runs on whichever client executes it (always genuinely
@@ -335,14 +385,37 @@ export function followLeaderOnDoorOpened(wallDoc, changes) {
  * dictate. A no-op if the scene/token can't be found or is already
  * grid-aligned. */
 export async function resnapTokenNow(sceneId, tokenId) {
-  const scene = game.scenes.get(sceneId);
-  const token = scene?.tokens.find((t) => t.id === tokenId);
-  if (!token) return;
-  const gridSize = scene.grid?.size ?? 100;
-  const snappedX = Math.round(token.x / gridSize) * gridSize;
-  const snappedY = Math.round(token.y / gridSize) * gridSize;
-  if (token.x !== snappedX || token.y !== snappedY) {
-    await token.update({ x: snappedX, y: snappedY });
+  // #87: a second call for a token that already has a correction pending
+  // must not start a parallel poll loop -- the live capture that found
+  // this bug showed 6+ overlapping resnap attempts for the same token
+  // within ~150ms (both the GM-direct and relayed paths reacting
+  // independently), despite this function's own prior doc comment
+  // claiming no guard was needed.
+  if (resnapInFlight.has(tokenId)) return;
+  resnapInFlight.add(tokenId);
+  try {
+    const deadline = Date.now() + RESNAP_MAX_WAIT_MS;
+    let scene = game.scenes.get(sceneId);
+    let token = scene?.tokens.find((t) => t.id === tokenId);
+    if (!token) return;
+    while (isAnimating(token) && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, RESNAP_POLL_MS));
+      scene = game.scenes.get(sceneId);
+      token = scene?.tokens.find((t) => t.id === tokenId);
+      if (!token) return;
+    }
+    // The loop's own exit check (isAnimating false, or deadline passed)
+    // and this read/decision happen in the same synchronous continuation
+    // -- no `await` between them -- so a new move starting in that exact
+    // gap can't get judged against a stale reading.
+    const gridSize = scene.grid?.size ?? 100;
+    const snappedX = Math.round(token.x / gridSize) * gridSize;
+    const snappedY = Math.round(token.y / gridSize) * gridSize;
+    if (token.x !== snappedX || token.y !== snappedY) {
+      await token.update({ x: snappedX, y: snappedY });
+    }
+  } finally {
+    resnapInFlight.delete(tokenId);
   }
 }
 
@@ -365,9 +438,13 @@ export async function resnapTokenNow(sceneId, tokenId) {
  * `snapTokenToGrid`/`waypoint.gx * gridSize` throughout) is already
  * grid-exact by construction, so a real combat step is never mistaken
  * for drift. Same GM-direct vs. host-relay split as `followLeaderIfDue`
- * (#65). Self-limiting: the correction write is itself a real
- * `updateToken` event, but it's already grid-aligned, so this no-ops on
- * it — no separate debounce or reentrancy guard needed.
+ * (#65). The correction write is itself a real `updateToken` event, but
+ * it's already grid-aligned by the time it lands, so it doesn't
+ * re-trigger this function's own correction logic. (#87, 2026-09-30:
+ * this hook's actual writes go through `resnapTokenNow`, which now
+ * does need its own poll-before-correct and reentrancy guard -- a prior
+ * version of this comment claimed neither was necessary; live evidence
+ * disproved that.)
  *
  * Known limitation (tracked as a follow-up, not fixed here): this snaps
  * to the *nearest* grid cell, which isn't necessarily the cell this
