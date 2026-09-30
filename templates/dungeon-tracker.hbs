@@ -32,22 +32,24 @@
           {{#if marchingOrder.length}}
           <div class="pf2edc-dungeon__marching-order">
             <h3>{{localize "PF2EDC.Dungeon.MarchingOrder.Title"}}</h3>
-            <ol>
+            <ol class="pf2edc-dungeon__marching-order-list">
               {{#each marchingOrder}}
-                <li>
-                  {{this.name}}
-                  <button
-                    type="button"
-                    data-action="moveMarchingOrderUp"
-                    data-actor-id="{{this.actorId}}"
-                    {{#if this.isFirst}}disabled{{/if}}
-                  >&uarr;</button>
-                  <button
-                    type="button"
-                    data-action="moveMarchingOrderDown"
-                    data-actor-id="{{this.actorId}}"
-                    {{#if this.isLast}}disabled{{/if}}
-                  >&darr;</button>
+                <li class="pf2edc-dungeon__marching-order-row">
+                  <span class="pf2edc-dungeon__marching-order-name">{{this.name}}</span>
+                  <span class="pf2edc-dungeon__marching-order-controls">
+                    <button
+                      type="button"
+                      data-action="moveMarchingOrderUp"
+                      data-actor-id="{{this.actorId}}"
+                      {{#if this.isFirst}}disabled{{/if}}
+                    >&uarr;</button>
+                    <button
+                      type="button"
+                      data-action="moveMarchingOrderDown"
+                      data-actor-id="{{this.actorId}}"
+                      {{#if this.isLast}}disabled{{/if}}
+                    >&darr;</button>
+                  </span>
                 </li>
               {{/each}}
             </ol>
