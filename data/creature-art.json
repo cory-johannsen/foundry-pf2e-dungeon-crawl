@@ -15310,5 +15310,125 @@
     "name": "Desert's Howl",
     "level": 19,
     "art": "desert-s-howl-lob.webp"
+  },
+  {
+    "id": "barrage_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "qbOqhhrN29wtFhuO",
+    "name": "Barrage Archdragon (Spellcaster)",
+    "level": 20,
+    "art": "barrage-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "brine_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "GS0xs8kgKrwHEX3u",
+    "name": "Brine Archdragon",
+    "level": 20,
+    "art": "brine-archdragon-lob.webp"
+  },
+  {
+    "id": "brine_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "RjzdEGPJK7oSgoOr",
+    "name": "Brine Archdragon (Spellcaster)",
+    "level": 20,
+    "art": "brine-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "conspirator_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ieufQcGDhIR1DVti",
+    "name": "Conspirator Archdragon",
+    "level": 20,
+    "art": "conspirator-archdragon-lob.webp"
+  },
+  {
+    "id": "conspirator_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "E4qscYn7U3jHoCia",
+    "name": "Conspirator Archdragon (Spellcaster)",
+    "level": 20,
+    "art": "conspirator-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "mocking_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "wvSovDtrb9JSXlQp",
+    "name": "Mocking Archdragon",
+    "level": 20,
+    "art": "mocking-archdragon-lob.webp"
+  },
+  {
+    "id": "mocking_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9nlzGyizQI7E5fwg",
+    "name": "Mocking Archdragon (Spellcaster)",
+    "level": 20,
+    "art": "mocking-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "omen_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "XAj9Idlo5XnRzEm3",
+    "name": "Omen Archdragon",
+    "level": 20,
+    "art": "omen-archdragon-lob.webp"
+  },
+  {
+    "id": "omen_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "C0ZTnGjASP3PehPX",
+    "name": "Omen Archdragon (Spellcaster)",
+    "level": 20,
+    "art": "omen-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "sea_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "KZi4BkWZhGXR3lt3",
+    "name": "Sea Archdragon",
+    "level": 20,
+    "art": "sea-archdragon-lob.webp"
+  },
+  {
+    "id": "sea_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "NMts9B5OMPHNJ3jg",
+    "name": "Sea Archdragon (Spellcaster)",
+    "level": 20,
+    "art": "sea-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "sovereign_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Hu89cqmPhPuuMf82",
+    "name": "Sovereign Dragon (Ancient)",
+    "level": 20,
+    "art": "sovereign-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "sovereign_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "aobRRpvbF7mi9Agk",
+    "name": "Sovereign Dragon (Ancient, Spellcaster)",
+    "level": 20,
+    "art": "sovereign-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "the_great_flood_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "3utPtrLWLyNO1hxt",
+    "name": "The Great Flood",
+    "level": 20,
+    "art": "the-great-flood-lob.webp"
+  },
+  {
+    "id": "quantium_golem_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "gZ2qX5vbWg7otMVT",
+    "name": "Quantium Golem",
+    "level": 20,
+    "art": "quantium-golem-lob.webp"
   }
 ]
