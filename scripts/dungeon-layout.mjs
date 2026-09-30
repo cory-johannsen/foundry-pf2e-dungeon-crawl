@@ -436,6 +436,39 @@ function clampDoorStart(lo, hi, ideal) {
   return Math.min(Math.max(Math.round(ideal), Math.ceil(lo)), Math.floor(hi - DOOR_WIDTH));
 }
 
+/**
+ * #324 (fourth finding, live-reported: "I should not be able to see the
+ * hallway through the wall, the door is closed"): the multi-cell and
+ * corner-case branches of `buildEdgeCorridor` only ever built containment
+ * walls flanking the TARGET's own entry point -- nothing capped the
+ * SOURCE room's own remaining exit face outside its own narrow
+ * `doorWall`. Whether that door is open, closed, or locked is irrelevant
+ * when the rest of that same wall-face has no Wall document there at
+ * all: a token (or a line of sight) can simply go around the door
+ * through the unwalled remainder of the source room's own face. This is
+ * the exact same "seal everything except the declared opening"
+ * containment the offset-based fast path's own `plainWalls` already
+ * builds for the source side (see its own `#294` fix, two segments
+ * capping `[fromRect's own far edge, doorX0)` and
+ * `(doorX1, fromRect's own OTHER far edge]`) -- extended here to the two
+ * branches that never had it. Mirrors `exitPoint`'s own already-computed,
+ * now-grid-aligned door span (`[exitPoint, exitPoint + DOOR_WIDTH)`)
+ * directly, so it can never independently disagree with `doorWall`'s own
+ * position.
+ */
+function sourceFaceCapWalls(fromRect, exitFace, exitPoint) {
+  return (exitFace === 'south'
+    ? [
+        { x1: fromRect.gx, y1: exitPoint.y, x2: exitPoint.x, y2: exitPoint.y },
+        { x1: exitPoint.x + DOOR_WIDTH, y1: exitPoint.y, x2: fromRect.gx + fromRect.gw, y2: exitPoint.y },
+      ]
+    : [
+        { x1: exitPoint.x, y1: fromRect.gy, x2: exitPoint.x, y2: exitPoint.y },
+        { x1: exitPoint.x, y1: exitPoint.y + DOOR_WIDTH, x2: exitPoint.x, y2: fromRect.gy + fromRect.gh },
+      ]
+  ).filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
+}
+
 export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace = 'north') {
   const path = findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace });
   const slotSpan = incomingFace === 'west' ? (toSlot.y2 - toSlot.y1) : (toSlot.x2 - toSlot.x1);
@@ -578,16 +611,19 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       ...cornerConnector(exitPoint, firstCellPoint, { toSide: transitCells[0].entrySide }),
       ...cornerConnector(lastCellPoint, entryPoint, { fromSide: transitCells[transitCells.length - 1].exitSide }),
     ];
-    const plainWalls = (incomingFace === 'west'
-      ? [
-          { x1: entryPoint.x, y1: toSlot.y1, x2: entryPoint.x, y2: entryPoint.y },
-          { x1: entryPoint.x, y1: entryPoint.y + DOOR_WIDTH, x2: entryPoint.x, y2: toSlot.y2 },
-        ]
-      : [
-          { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x, y2: entryPoint.y },
-          { x1: entryPoint.x + DOOR_WIDTH, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
-        ]
-    ).filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
+    const plainWalls = [
+      ...sourceFaceCapWalls(fromRect, exitFace, exitPoint),
+      ...(incomingFace === 'west'
+        ? [
+            { x1: entryPoint.x, y1: toSlot.y1, x2: entryPoint.x, y2: entryPoint.y },
+            { x1: entryPoint.x, y1: entryPoint.y + DOOR_WIDTH, x2: entryPoint.x, y2: toSlot.y2 },
+          ]
+        : [
+            { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x, y2: entryPoint.y },
+            { x1: entryPoint.x + DOOR_WIDTH, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
+          ]
+      ),
+    ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
 
     return { doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells, foreignOpening: null };
   }
@@ -1145,16 +1181,19 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     ? { x1: entryPoint.x, y1: entryPoint.y, x2: entryPoint.x, y2: entryPoint.y + DOOR_WIDTH }
     : { x1: entryPoint.x, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH, y2: entryPoint.y };
 
-  const plainWalls = (incomingFace === 'west'
-    ? [
-        { x1: entryPoint.x, y1: toSlot.y1, x2: entryPoint.x, y2: entryPoint.y },
-        { x1: entryPoint.x, y1: entryPoint.y + DOOR_WIDTH, x2: entryPoint.x, y2: toSlot.y2 },
-      ]
-    : [
-        { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x, y2: entryPoint.y },
-        { x1: entryPoint.x + DOOR_WIDTH, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
-      ]
-  ).filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
+  const plainWalls = [
+    ...sourceFaceCapWalls(fromRect, exitFace, exitPoint),
+    ...(incomingFace === 'west'
+      ? [
+          { x1: entryPoint.x, y1: toSlot.y1, x2: entryPoint.x, y2: entryPoint.y },
+          { x1: entryPoint.x, y1: entryPoint.y + DOOR_WIDTH, x2: entryPoint.x, y2: toSlot.y2 },
+        ]
+      : [
+          { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x, y2: entryPoint.y },
+          { x1: entryPoint.x + DOOR_WIDTH, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
+        ]
+    ),
+  ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
 
   return {
     doorWall,

@@ -608,6 +608,58 @@ describe('buildEdgeCorridor', () => {
     }
   });
 
+  it('#324: the SOURCE room\'s own remaining exit face is fully contained, not just the target\'s -- a closed door must not leave the rest of that wall open to walk/see around (multi-cell branch)', () => {
+    const fromRect = { gx: 300, gy: 0, gw: 12, gh: 12 };
+    const toRect = { gx: 300, gy: 39, gw: 12, gh: 12 };
+    const toSlot = { x1: 300, y1: 39, x2: 312, y2: 39 };
+    const { doorWall, plainWalls, transitCells } = buildEdgeCorridor(
+      'seed1', 'a', 'b', fromRect, toRect, { rank: 0, col: 0 }, { rank: 3, col: 0 },
+      'south', toSlot, {},
+    );
+    expect(transitCells.length).toBeGreaterThan(0); // sanity: really the multi-cell branch
+    // The source's own south face (y = fromRect.gy + fromRect.gh) must be
+    // fully covered: the door itself, plus a plain wall on EITHER side
+    // reaching all the way to the room's own west/east edges -- nowhere
+    // for a token or a line of sight to slip past the door through an
+    // unwalled remainder of the same face.
+    const faceY = fromRect.gy + fromRect.gh;
+    const sourceFaceWalls = plainWalls.filter((w) => w.y1 === faceY && w.y2 === faceY);
+    const doorLo = Math.min(doorWall.x1, doorWall.x2);
+    const doorHi = Math.max(doorWall.x1, doorWall.x2);
+    const leftCap = sourceFaceWalls.find((w) => Math.max(w.x1, w.x2) === doorLo);
+    const rightCap = sourceFaceWalls.find((w) => Math.min(w.x1, w.x2) === doorHi);
+    expect(leftCap).toBeDefined();
+    expect(Math.min(leftCap.x1, leftCap.x2)).toBe(fromRect.gx);
+    expect(rightCap).toBeDefined();
+    expect(Math.max(rightCap.x1, rightCap.x2)).toBe(fromRect.gx + fromRect.gw);
+  });
+
+  it('#324: the SOURCE room\'s own remaining exit face is fully contained in the corner-case branch too', () => {
+    const fromRect = { gx: 300, gy: 0, gw: 6, gh: 6 };
+    const toRect = { gx: 313, gy: 6, gw: 6, gh: 6 };
+    const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
+    // Boxed in (same shape the existing "corner branch" describe block
+    // above already uses): both north- and west-neighbor of toPos
+    // occupied, so findCorridorPath returns null and this genuinely takes
+    // the corner-case fallback, not the multi-cell branch.
+    const occupiedCells = { '0,1': 'blockerN', '1,0': 'blockerW' };
+    const { doorWall, plainWalls, transitCells } = buildEdgeCorridor(
+      'seed1', 'a', 'b', fromRect, toRect, { rank: 0, col: 0 }, { rank: 1, col: 1 },
+      'south', toSlot, occupiedCells,
+    );
+    expect(transitCells).toHaveLength(0); // sanity: really the corner-case branch, not multi-cell
+    const faceY = fromRect.gy + fromRect.gh;
+    const sourceFaceWalls = plainWalls.filter((w) => w.y1 === faceY && w.y2 === faceY);
+    const doorLo = Math.min(doorWall.x1, doorWall.x2);
+    const doorHi = Math.max(doorWall.x1, doorWall.x2);
+    const leftCap = sourceFaceWalls.find((w) => Math.max(w.x1, w.x2) === doorLo);
+    const rightCap = sourceFaceWalls.find((w) => Math.min(w.x1, w.x2) === doorHi);
+    expect(leftCap).toBeDefined();
+    expect(Math.min(leftCap.x1, leftCap.x2)).toBe(fromRect.gx);
+    expect(rightCap).toBeDefined();
+    expect(Math.max(rightCap.x1, rightCap.x2)).toBe(fromRect.gx + fromRect.gw);
+  });
+
   // #294: plainWalls used to be exactly 2 segments (both horizontal caps,
   // at the source's own face and the target's own face) for the
   // same-column fast path — nothing closed the SIDES of the margin band
@@ -983,9 +1035,13 @@ describe('buildEdgeCorridor with a west-incoming target', () => {
     expect(result.revealDoorWall.x1).toBe(toSlot.x1);
     expect(result.revealDoorWall.x2).toBe(toSlot.x1);
     expect(result.revealDoorWall.y1).not.toBe(result.revealDoorWall.y2);
-    for (const wall of result.plainWalls) {
-      expect(wall.x1).toBe(toSlot.x1);
-      expect(wall.x2).toBe(toSlot.x1);
+    // #324: plainWalls now also includes the SOURCE room's own face-cap
+    // walls (sourceFaceCapWalls) -- filter to the TARGET-side flanking
+    // walls only (the ones this helper's own name is actually about),
+    // identified by sitting on the target's own west face (x === toSlot.x1).
+    const targetSideWalls = result.plainWalls.filter((w) => w.x1 === toSlot.x1 && w.x2 === toSlot.x1);
+    expect(targetSideWalls.length).toBeGreaterThan(0); // sanity: the target-side walls this test is actually about exist
+    for (const wall of targetSideWalls) {
       expect(wall.y1).toBeGreaterThanOrEqual(toSlot.y1);
       expect(wall.y2).toBeLessThanOrEqual(toSlot.y2);
     }
