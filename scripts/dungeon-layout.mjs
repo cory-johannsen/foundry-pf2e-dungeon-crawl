@@ -1924,16 +1924,42 @@ export function transitCellCrossing(seed, rank, col, entrySide, exitSide, edgeId
   const corridorSegments = [];
   const plainWalls = [];
 
+  // #353 follow-up: `transitCellContainmentWalls` (called separately by
+  // buildTransitCellIfNeeded) only seals this CELL's own outer boundary —
+  // nothing here ever separated the corridor's own 1-unit-wide passage
+  // from the REST of this same cell's open interior (the dead space this
+  // crossing's own floor tiles never cover). A token standing in the
+  // passage had unobstructed sight clear across that interior, all the
+  // way to the cell's own real outer walls — confirmed live, the same
+  // "raw scene background visible" symptom #353 fixed at a room's own
+  // margin strip, this time inside a transit cell's own body. Every
+  // corridor segment below is a `CORRIDOR_LEN`-wide strip; flank its own
+  // two long sides to seal the passage from the cell's own interior,
+  // mirroring #354's "cap both sides of a declared gap" pattern.
+  const flankSegment = ({ gx, gy, gw, gh }) => {
+    if (gh <= gw) {
+      // Wider than tall: a horizontal strip, flanked north/south.
+      plainWalls.push({ x1: gx, y1: gy, x2: gx + gw, y2: gy });
+      plainWalls.push({ x1: gx, y1: gy + gh, x2: gx + gw, y2: gy + gh });
+    } else {
+      // Taller than wide: a vertical strip, flanked west/east.
+      plainWalls.push({ x1: gx, y1: gy, x2: gx, y2: gy + gh });
+      plainWalls.push({ x1: gx + gw, y1: gy, x2: gx + gw, y2: gy + gh });
+    }
+  };
+
   if (OPPOSITE_SIDE[entrySide] === exitSide) {
     // Straight through (opposite sides) — one bounding-box segment from
     // entry to exit directly, same shape buildEdgeCorridor's own
     // same-column branch uses even when the two offsets don't align.
-    corridorSegments.push({
+    const segment = {
       gx: Math.min(entryPoint.x, exitPoint.x),
       gy: Math.min(entryPoint.y, exitPoint.y),
       gw: Math.max(CORRIDOR_LEN, Math.abs(exitPoint.x - entryPoint.x)),
       gh: Math.max(CORRIDOR_LEN, Math.abs(exitPoint.y - entryPoint.y)),
-    });
+    };
+    corridorSegments.push(segment);
+    flankSegment(segment);
   } else {
     // Adjacent sides — one corner, inside this cell, at the entry point's
     // own axis crossed with the exit point's own axis. entryPoint->corner
@@ -1958,14 +1984,17 @@ export function transitCellCrossing(seed, rank, col, entrySide, exitSide, edgeId
     const seg1X = entrySide === 'east' ? entryPoint.x - CORRIDOR_LEN : entryPoint.x;
     const seg2Y = exitSide === 'south' ? exitPoint.y - CORRIDOR_LEN : exitPoint.y;
 
-    corridorSegments.push({
+    const seg1 = {
       gx: seg1X, gy: Math.min(entryPoint.y, corner.y),
       gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(corner.y - entryPoint.y)),
-    });
-    corridorSegments.push({
+    };
+    const seg2 = {
       gx: Math.min(corner.x, exitPoint.x), gy: seg2Y,
       gw: Math.max(CORRIDOR_LEN, Math.abs(exitPoint.x - corner.x)), gh: CORRIDOR_LEN,
-    });
+    };
+    corridorSegments.push(seg1, seg2);
+    flankSegment(seg1);
+    flankSegment(seg2);
   }
 
   return { entryPoint, exitPoint, plainWalls, corridorSegments };
