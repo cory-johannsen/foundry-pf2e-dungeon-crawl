@@ -396,6 +396,46 @@ export function marginBandApproachY(doorY0, doorY1, faceX, targetLaneY0, targetL
  * the same corner-connector shape the branch below already uses between
  * its own exitPoint and entryPoint (`cornerConnector`, below).
  */
+/**
+ * #324: a DOOR_WIDTH-wide door's own START coordinate, grid-cell-aligned
+ * (a whole integer) AND clamped to stay entirely within `[lo, hi]` (a
+ * target's own real door slot, which can itself have fractional bounds --
+ * `doorSlotsForFace` divides a room's own face into N equal slots, and
+ * N doesn't always evenly divide the room's own width). `ideal` is the
+ * door's own un-clamped, may-be-fractional preferred position (typically
+ * a slot's own center, shifted to gap-START semantics already). Rounding
+ * `ideal` to the nearest integer, then clamping into the slot's own
+ * INTEGER-safe sub-range (`ceil(lo)` .. `floor(hi) - DOOR_WIDTH`),
+ * guarantees the door both fits its own assigned slot (never spilling
+ * into a sibling connection's own slot -- the exact shape #297's own
+ * Critical-1/2 findings were about) AND occupies exactly one whole grid
+ * cell (never straddling two -- this file's own newest finding, #324).
+ * Mirrors the `Math.min(Math.max(x, slot.x1), slot.x2 - DOOR_WIDTH)` clamp
+ * this file's own offset-based fast path already uses, generalized with
+ * rounding for a fractional slot.
+ *
+ * Degenerate case: when the slot itself is narrower than DOOR_WIDTH
+ * (possible whenever a room's own incoming-connection count exceeds its
+ * own width -- e.g. 7 connections on a SMALL, 6-wide room gives a
+ * 0.857-wide slot), no integer position can keep a DOOR_WIDTH-wide door
+ * entirely inside it -- `ceil(lo)` and `floor(hi - DOOR_WIDTH)` invert
+ * (`minStart > maxStart`). Grid alignment (this file's own newest,
+ * non-negotiable rule) takes priority over full slot containment here;
+ * `Math.min(Math.max(x, minStart), maxStart)` naturally falls through to
+ * `maxStart` in that case regardless of `x` (a plain consequence of
+ * Math.min/Math.max composition, not a special-cased branch) -- measured
+ * against a symmetric (slot-centered) fallback alternative and found to
+ * produce FEWER real cross-connection collisions in the #297 sweep (see
+ * that sweep's own updated ceiling comment), so kept as the deliberate
+ * choice rather than "more principled-looking." Documented as a residual
+ * (#231/#232 already track slot-boundary encroachment as an existing,
+ * real, measured defect class -- this is the same class, now
+ * grid-aligned instead of fractional, not a new failure mode).
+ */
+function clampDoorStart(lo, hi, ideal) {
+  return Math.min(Math.max(Math.round(ideal), Math.ceil(lo)), Math.floor(hi - DOOR_WIDTH));
+}
+
 export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace = 'north') {
   const path = findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace });
   const slotSpan = incomingFace === 'west' ? (toSlot.y2 - toSlot.y1) : (toSlot.x2 - toSlot.x1);
@@ -408,17 +448,29 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // point to toRect's own entry point, via the same corner-connector
     // shape used below between exitPoint and entryPoint directly.
     const edgeId = `${fromRoomId}->${toRoomId}`;
+    // #324 (third finding): a room's own exact geometric center always
+    // lands exactly ON a grid line (room sizes are even), so a DOOR_WIDTH
+    // -wide door centered there -- the old `± DOOR_WIDTH / 2` construction
+    // below used to do -- straddles two cells (half in each), never fits
+    // in one. Subtracting a FULL `DOOR_WIDTH` (not half) here instead
+    // gives `exitPoint`/`entryPoint` "gap-START" semantics directly (the
+    // door's own span is exactly `[point, point + DOOR_WIDTH)`, always one
+    // whole cell, ending flush on the room's own true center line) --
+    // matching the "gap-START, not gap-CENTER" semantics the chain anchor
+    // conversion just below already used internally; extending it to the
+    // room's own real door too means that conversion is no longer needed
+    // as a separate step (see chainStartAnchor/chainEndAnchor below).
     const exitPoint = exitFace === 'east'
-      ? { x: fromRect.gx + fromRect.gw, y: fromRect.gy + fromRect.gh / 2 }
+      ? { x: fromRect.gx + fromRect.gw, y: fromRect.gy + fromRect.gh / 2 - DOOR_WIDTH }
       : exitFace === 'west'
-      ? { x: fromRect.gx, y: fromRect.gy + fromRect.gh / 2 }
-      : { x: fromRect.gx + fromRect.gw / 2, y: fromRect.gy + fromRect.gh };
+      ? { x: fromRect.gx, y: fromRect.gy + fromRect.gh / 2 - DOOR_WIDTH }
+      : { x: fromRect.gx + fromRect.gw / 2 - DOOR_WIDTH, y: fromRect.gy + fromRect.gh };
     const doorWall = exitFace === 'south'
-      ? { x1: exitPoint.x - DOOR_WIDTH / 2, y1: exitPoint.y, x2: exitPoint.x + DOOR_WIDTH / 2, y2: exitPoint.y }
-      : { x1: exitPoint.x, y1: exitPoint.y - DOOR_WIDTH / 2, x2: exitPoint.x, y2: exitPoint.y + DOOR_WIDTH / 2 };
+      ? { x1: exitPoint.x, y1: exitPoint.y, x2: exitPoint.x + DOOR_WIDTH, y2: exitPoint.y }
+      : { x1: exitPoint.x, y1: exitPoint.y, x2: exitPoint.x, y2: exitPoint.y + DOOR_WIDTH };
     const entryPoint = incomingFace === 'west'
-      ? { x: toSlot.x1, y: toSlot.y1 + slotSpan / 2 }
-      : { x: toSlot.x1 + slotSpan / 2, y: toSlot.y1 };
+      ? { x: toSlot.x1, y: clampDoorStart(toSlot.y1, toSlot.y2, toSlot.y1 + slotSpan / 2 - DOOR_WIDTH) }
+      : { x: clampDoorStart(toSlot.x1, toSlot.x2, toSlot.x1 + slotSpan / 2 - DOOR_WIDTH), y: toSlot.y1 };
     // Face-aware, mirroring entryPoint's own conditional above: a west
     // toSlot is a VERTICAL line (x1===x2===toRect.gx, doorSlotsForFace's
     // own west shape), so its reveal door and flanking walls must run
@@ -426,8 +478,8 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // gap in this task's own brief (entryPoint was made face-aware, this
     // wasn't), found by a later review's own hand-tracing.
     const revealDoorWall = incomingFace === 'west'
-      ? { x1: entryPoint.x, y1: entryPoint.y - DOOR_WIDTH / 2, x2: entryPoint.x, y2: entryPoint.y + DOOR_WIDTH / 2 }
-      : { x1: entryPoint.x - DOOR_WIDTH / 2, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH / 2, y2: entryPoint.y };
+      ? { x1: entryPoint.x, y1: entryPoint.y, x2: entryPoint.x, y2: entryPoint.y + DOOR_WIDTH }
+      : { x1: entryPoint.x, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH, y2: entryPoint.y };
 
     // #225: chain every intermediate cell's crossing point to its
     // neighbor's, anchored at the two real room doors just computed above
@@ -442,17 +494,19 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // doorOffsetAt inside transitCellCrossing, unchanged — only the FORCED
     // axis stops being random.
     // Chain values use gap-START semantics (matching transitCellContainmentWalls
-    // and every other doorOffsetAt-based offset in this file), but exitPoint/
-    // entryPoint are gap-CENTER semantics (matching doorWall/revealDoorWall,
-    // which stay computed from the unshifted originals above, unchanged) — #225
-    // fix-round finding: convert center -> start exactly once, here, at the two
-    // places a room's own real door enters the chain. Center minus half-width
-    // equals the interval's start regardless of which axis a given entrySide/
-    // exitSide ends up actually using (the other axis is discarded by
-    // projectOntoSide), so shifting both x and y unconditionally is correct and
-    // harmless.
-    const chainStartAnchor = { x: exitPoint.x - DOOR_WIDTH / 2, y: exitPoint.y - DOOR_WIDTH / 2 };
-    const chainEndAnchor = { x: entryPoint.x - DOOR_WIDTH / 2, y: entryPoint.y - DOOR_WIDTH / 2 };
+    // and every other doorOffsetAt-based offset in this file) — #324's own
+    // fix made exitPoint/entryPoint gap-START too (see their own docblock
+    // above), so no further center->start conversion is needed here; the
+    // chain anchors are simply the room's own real door positions,
+    // directly. (Historical note: this used to subtract a second,
+    // independent DOOR_WIDTH/2 here on top of exitPoint/entryPoint's own
+    // then-gap-CENTER value — since half of DOOR_WIDTH=1 is 0.5, that
+    // conversion produced a fractional anchor whenever the room's own true
+    // center (always grid-line-aligned) was an integer, which is always —
+    // #324's own root cause for both the door itself and every tile/wall
+    // derived from this chain. Fixed at the source instead of patched here.)
+    const chainStartAnchor = exitPoint;
+    const chainEndAnchor = entryPoint;
 
     const transitCells = [];
     let chainAnchor = chainStartAnchor;
@@ -526,12 +580,12 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     ];
     const plainWalls = (incomingFace === 'west'
       ? [
-          { x1: entryPoint.x, y1: toSlot.y1, x2: entryPoint.x, y2: entryPoint.y - DOOR_WIDTH / 2 },
-          { x1: entryPoint.x, y1: entryPoint.y + DOOR_WIDTH / 2, x2: entryPoint.x, y2: toSlot.y2 },
+          { x1: entryPoint.x, y1: toSlot.y1, x2: entryPoint.x, y2: entryPoint.y },
+          { x1: entryPoint.x, y1: entryPoint.y + DOOR_WIDTH, x2: entryPoint.x, y2: toSlot.y2 },
         ]
       : [
-          { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x - DOOR_WIDTH / 2, y2: entryPoint.y },
-          { x1: entryPoint.x + DOOR_WIDTH / 2, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
+          { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x, y2: entryPoint.y },
+          { x1: entryPoint.x + DOOR_WIDTH, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
         ]
     ).filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
 
@@ -687,7 +741,12 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // boundary" requirement #230 already established for the non-dogleg
     // case.
     const targetFacingX0 = dogleg ? dogleg.laneX0 : doorX0;
-    const gapX0 = Math.min(Math.max(targetFacingX0, toSlot.x1), toSlot.x2 - DOOR_WIDTH);
+    // #324: clampDoorStart (not a bare clamp) so a fractional toSlot bound
+    // (a merge room's own face split an odd number of ways) can't produce
+    // a fractional, grid-straddling gap -- same fix as buildEdgeCorridor's
+    // own multi-cell/corner-case entryPoint, applied here to this fast
+    // path's own already-established clamp (#230's own fix, pre-existing).
+    const gapX0 = clampDoorStart(toSlot.x1, toSlot.x2, targetFacingX0);
     const gapX1 = gapX0 + DOOR_WIDTH;
     const spanX0 = dogleg ? dogleg.turnGx : Math.min(doorX0, gapX0);
     const spanX1 = dogleg ? dogleg.turnGx2 : Math.max(doorX1, gapX1);
@@ -954,7 +1013,8 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // #230 fix: same derivation as the south-exit/same-column branch
     // above, mirrored onto the y-axis — see its own comment for the full
     // reasoning.
-    const gapY0 = Math.min(Math.max(targetFacingY0, toSlot.y1), toSlot.y2 - DOOR_WIDTH);
+    // #324: clampDoorStart, mirror of the south branch's own fix above.
+    const gapY0 = clampDoorStart(toSlot.y1, toSlot.y2, targetFacingY0);
     const gapY1 = gapY0 + DOOR_WIDTH;
     const spanY0 = dogleg ? dogleg.turnGy : Math.min(doorY0, gapY0);
     const spanY1 = dogleg ? dogleg.turnGy2 : Math.max(doorY1, gapY1);
@@ -1058,35 +1118,41 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
   // path was found unsound by a later review (100% broken for west-exit
   // connections, ~half its remaining cases bisected by a real
   // containment wall).
+  // #324 (third finding): same fix as the multi-cell branch above -- a
+  // room's own exact center always lands exactly on a grid line, so
+  // subtract a FULL DOOR_WIDTH (not half) to give exitPoint/entryPoint
+  // gap-START semantics directly, keeping the door's own span
+  // `[point, point + DOOR_WIDTH)` inside one whole cell instead of
+  // straddling two.
   const exitPoint = exitFace === 'east'
-    ? { x: fromRect.gx + fromRect.gw, y: fromRect.gy + fromRect.gh / 2 }
+    ? { x: fromRect.gx + fromRect.gw, y: fromRect.gy + fromRect.gh / 2 - DOOR_WIDTH }
     : exitFace === 'west'
-    ? { x: fromRect.gx, y: fromRect.gy + fromRect.gh / 2 }
-    : { x: fromRect.gx + fromRect.gw / 2, y: fromRect.gy + fromRect.gh };
+    ? { x: fromRect.gx, y: fromRect.gy + fromRect.gh / 2 - DOOR_WIDTH }
+    : { x: fromRect.gx + fromRect.gw / 2 - DOOR_WIDTH, y: fromRect.gy + fromRect.gh };
   const entryPoint = incomingFace === 'west'
-    ? { x: toSlot.x1, y: toSlot.y1 + slotSpan / 2 }
-    : { x: toSlot.x1 + slotSpan / 2, y: toSlot.y1 };
+    ? { x: toSlot.x1, y: clampDoorStart(toSlot.y1, toSlot.y2, toSlot.y1 + slotSpan / 2 - DOOR_WIDTH) }
+    : { x: clampDoorStart(toSlot.x1, toSlot.x2, toSlot.x1 + slotSpan / 2 - DOOR_WIDTH), y: toSlot.y1 };
   const corner = { x: entryPoint.x, y: exitPoint.y };
 
   const doorWall = exitFace === 'south'
-    ? { x1: exitPoint.x - DOOR_WIDTH / 2, y1: exitPoint.y, x2: exitPoint.x + DOOR_WIDTH / 2, y2: exitPoint.y }
-    : { x1: exitPoint.x, y1: exitPoint.y - DOOR_WIDTH / 2, x2: exitPoint.x, y2: exitPoint.y + DOOR_WIDTH / 2 };
+    ? { x1: exitPoint.x, y1: exitPoint.y, x2: exitPoint.x + DOOR_WIDTH, y2: exitPoint.y }
+    : { x1: exitPoint.x, y1: exitPoint.y, x2: exitPoint.x, y2: exitPoint.y + DOOR_WIDTH };
   // Face-aware, mirroring entryPoint's own conditional above -- same fix
   // as the multi-cell branch's own revealDoorWall/plainWalls (see its
   // comment for why: a west toSlot is a vertical line, so its reveal
   // door and flanking walls must run vertically too).
   const revealDoorWall = incomingFace === 'west'
-    ? { x1: entryPoint.x, y1: entryPoint.y - DOOR_WIDTH / 2, x2: entryPoint.x, y2: entryPoint.y + DOOR_WIDTH / 2 }
-    : { x1: entryPoint.x - DOOR_WIDTH / 2, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH / 2, y2: entryPoint.y };
+    ? { x1: entryPoint.x, y1: entryPoint.y, x2: entryPoint.x, y2: entryPoint.y + DOOR_WIDTH }
+    : { x1: entryPoint.x, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH, y2: entryPoint.y };
 
   const plainWalls = (incomingFace === 'west'
     ? [
-        { x1: entryPoint.x, y1: toSlot.y1, x2: entryPoint.x, y2: entryPoint.y - DOOR_WIDTH / 2 },
-        { x1: entryPoint.x, y1: entryPoint.y + DOOR_WIDTH / 2, x2: entryPoint.x, y2: toSlot.y2 },
+        { x1: entryPoint.x, y1: toSlot.y1, x2: entryPoint.x, y2: entryPoint.y },
+        { x1: entryPoint.x, y1: entryPoint.y + DOOR_WIDTH, x2: entryPoint.x, y2: toSlot.y2 },
       ]
     : [
-        { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x - DOOR_WIDTH / 2, y2: entryPoint.y },
-        { x1: entryPoint.x + DOOR_WIDTH / 2, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
+        { x1: toSlot.x1, y1: entryPoint.y, x2: entryPoint.x, y2: entryPoint.y },
+        { x1: entryPoint.x + DOOR_WIDTH, y1: entryPoint.y, x2: toSlot.x2, y2: entryPoint.y },
       ]
   ).filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
 
@@ -1151,8 +1217,10 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
 export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells, incomingFace = 'north') {
   if (exitFace !== 'south' && exitFace !== 'east') {
     // West never takes buildEdgeCorridor's offset-based branch — always
-    // center-based, regardless of the child's rank/column.
-    return { offset: fromRect.gh / 2 - DOOR_WIDTH / 2, width: DOOR_WIDTH };
+    // center-based, regardless of the child's rank/column. #324: matches
+    // buildEdgeCorridor's own exitPoint gap-START fix (full DOOR_WIDTH,
+    // not half) -- these two must never independently drift.
+    return { offset: fromRect.gh / 2 - DOOR_WIDTH, width: DOOR_WIDTH };
   }
   const aligned = exitFace === 'south' ? fromPos.col === toPos.col : fromPos.rank === toPos.rank;
   const path = aligned
@@ -1165,7 +1233,10 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
   // its own doorX0/doorY0 computations).
   const faceSpan = exitFace === 'south' ? fromRect.gw : fromRect.gh;
   if (!usesOffsetBasedExit) {
-    return { offset: faceSpan / 2 - DOOR_WIDTH / 2, width: DOOR_WIDTH };
+    // #324: matches buildEdgeCorridor's own exitPoint gap-START fix in
+    // both its multi-cell and corner-case branches (full DOOR_WIDTH, not
+    // half) -- these must never independently drift.
+    return { offset: faceSpan / 2 - DOOR_WIDTH, width: DOOR_WIDTH };
   }
   const toRect = roomRect(seed, toRoomId, toPos.rank, toPos.col);
   const toSlot = doorSlotsForFace(toRect, 1, incomingFace)[0];
