@@ -580,3 +580,15 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 40,pale-horse,Pale Horse,11,beast,flag,monochrome_line_art;cropped,gemini,
 40,royal-basilisk,Royal Basilisk,13,beast,flag,bg_patch;cropped;wrong_details,gemini,
 40,sunscale-serpent,Sunscale Serpent,14,beast,flag,bg_patch,gemini,
+41,alicorn,Alicorn,15,hybrid,accept,,comfyui,gemini-first
+41,prismhydra,Prismhydra,16,hybrid,accept,,comfyui,gemini-first
+41,barded-manticore,Barded Manticore,18,hybrid,accept,,comfyui,gemini-first
+41,mocking-chorus,Mocking Chorus,18,hybrid,accept,,comfyui,gemini-first
+41,blooming-guardian,Blooming Guardian,15,beast,flag,halo_or_disc,comfyui,
+41,rumindrol,Rumindrol,15,beast,flag,cropped;wrong_details,comfyui,
+41,titanosaur,Titanosaur,16,beast,flag,cropped;wrong_details,comfyui,
+41,thruneosaurus-rex,Thruneosaurus Rex,17,beast,flag,cropped;bg_patch,gemini,
+41,warden-of-caverns-and-burrows,Warden of Caverns and Burrows,22,beast,accept,,comfyui,
+41,warden-of-forests-and-meadows,Warden of Forests and Meadows,22,beast,accept,,comfyui,
+41,warden-of-oceans-and-rivers,Warden of Oceans and Rivers,22,beast,accept,,comfyui,
+41,warden-of-peaks-and-skies,Warden of Peaks and Skies,22,beast,accept,,comfyui,
