@@ -1844,6 +1844,43 @@ export function cellMarginWalls(rect, rank, col, openingsBySide = {}) {
   sealSide('east', rect.gw < cell.gw, eastLine);
   sealSide('south', rect.gh < cell.gh, southLine);
 
+  // #353: `sealSide` above only closes the margin's own OUTER edge (the
+  // cell's own east/south boundary) -- it leaves every declared opening's
+  // own PASSAGE across the margin strip (from the room's own real wall,
+  // where the door already caps it, out to the cell's outer boundary)
+  // uncapped on its perpendicular sides. A corridor crossing that strip
+  // had nothing stopping sight from leaking into the rest of the margin
+  // above/below (for an east opening) or left/right (for a south one) --
+  // confirmed live, a long corridor exiting a room's east face showed
+  // Foundry's raw scene background through the unsealed margin the whole
+  // width of the strip. Every opening on a side needs its own pair of
+  // caps spanning exactly that strip, the same "cap both sides of a
+  // declared gap" pattern sourceFaceCapWalls already uses at the room's
+  // own wall -- this is that same passage, continued out to the cell's
+  // own far edge.
+  const passageCaps = (dir, hasMargin, nearEdge) => {
+    if (!hasMargin) return [];
+    const openings = openingsBySide[dir] ?? [];
+    const caps = [];
+    for (const { offset, width } of openings) {
+      if (dir === 'east') {
+        const y1 = cell.gy + offset;
+        const y2 = cell.gy + offset + width;
+        caps.push({ x1: nearEdge, y1, x2: cell.gx + cell.gw, y2: y1 });
+        caps.push({ x1: nearEdge, y1: y2, x2: cell.gx + cell.gw, y2 });
+      } else {
+        const x1 = cell.gx + offset;
+        const x2 = cell.gx + offset + width;
+        caps.push({ x1, y1: nearEdge, x2: x1, y2: cell.gy + cell.gh });
+        caps.push({ x1: x2, y1: nearEdge, x2, y2: cell.gy + cell.gh });
+      }
+    }
+    return caps;
+  };
+
+  walls.push(...passageCaps('east', rect.gw < cell.gw, rect.gx + rect.gw));
+  walls.push(...passageCaps('south', rect.gh < cell.gh, rect.gy + rect.gh));
+
   return walls;
 }
 

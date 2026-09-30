@@ -1776,6 +1776,50 @@ describe('cellMarginWalls', () => {
     }
     expect(totalLargeRooms).toBeGreaterThan(200); // sanity: real LARGE rooms were actually exercised
   });
+
+  // #353: sealSide's own east/south wall only closes the margin's OUTER
+  // edge (the cell's own boundary) -- an opening's own PASSAGE across the
+  // margin strip (from the room's real wall out to that outer edge) had
+  // nothing capping its perpendicular sides, leaking sight the whole
+  // width of the strip. These pin the new passage-cap walls directly.
+  it('caps both perpendicular sides of an east opening\'s own passage across the margin strip', () => {
+    const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_SMALL, gh: ROOM_SIZE_SMALL };
+    const cell = cellBounds(0, 0);
+    const walls = cellMarginWalls(rect, 0, 0, { east: [{ offset: 2, width: DOOR_WIDTH }] });
+    const caps = walls.filter((w) => w.dir === undefined);
+    expect(caps.length).toBe(2);
+    const nearEdge = rect.gx + rect.gw;
+    const farEdge = cell.gx + cell.gw;
+    expect(caps).toContainEqual({ x1: nearEdge, y1: 2, x2: farEdge, y2: 2 });
+    expect(caps).toContainEqual({ x1: nearEdge, y1: 3, x2: farEdge, y2: 3 });
+  });
+
+  it('caps both perpendicular sides of a south opening\'s own passage across the margin strip', () => {
+    const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_SMALL, gh: ROOM_SIZE_SMALL };
+    const cell = cellBounds(0, 0);
+    const walls = cellMarginWalls(rect, 0, 0, { south: [{ offset: 1, width: DOOR_WIDTH }] });
+    const caps = walls.filter((w) => w.dir === undefined);
+    expect(caps.length).toBe(2);
+    const nearEdge = rect.gy + rect.gh;
+    const farEdge = cell.gy + cell.gh;
+    expect(caps).toContainEqual({ x1: 301, y1: nearEdge, x2: 301, y2: farEdge });
+    expect(caps).toContainEqual({ x1: 302, y1: nearEdge, x2: 302, y2: farEdge });
+  });
+
+  it('adds no passage caps when a side has no openings', () => {
+    const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_SMALL, gh: ROOM_SIZE_SMALL };
+    const walls = cellMarginWalls(rect, 0, 0, {});
+    expect(walls.filter((w) => w.dir === undefined).length).toBe(0);
+  });
+
+  it('caps every opening on a side independently when there are two (own connection + a foreign dogleg)', () => {
+    const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_SMALL, gh: ROOM_SIZE_SMALL };
+    const walls = cellMarginWalls(rect, 0, 0, {
+      east: [{ offset: 1, width: DOOR_WIDTH }, { offset: 4, width: DOOR_WIDTH }],
+    });
+    const caps = walls.filter((w) => w.dir === undefined);
+    expect(caps.length).toBe(4); // 2 openings x 2 caps each
+  });
 });
 
 describe('cellMarginWalls — multiple openings per side', () => {
@@ -1795,16 +1839,20 @@ describe('cellMarginWalls — multiple openings per side', () => {
     ]);
   });
 
-  it('with a single opening, matches the old single-opening call exactly', () => {
+  it('with a single opening, matches the old single-opening call exactly (plus #353\'s own passage caps)', () => {
     const rect = { gx: 300, gy: 0, gw: 6, gh: 6 };
     const oldStyle = cellMarginWalls(rect, 0, 0, { east: [{ offset: 2, width: 1 }] });
-    // Same result whether expressed as the old openSide/openOffset/openWidth
-    // shape or the new list-of-one shape — this pins the generalization as
-    // a strict superset, not a behavior change, for the common case.
+    // Same outer-boundary seal whether expressed as the old openSide/
+    // openOffset/openWidth shape or the new list-of-one shape — the
+    // generalization is a strict superset of THAT part, not a behavior
+    // change. #353 added two more (dir-less) passage-cap walls on top,
+    // capping the opening's own crossing of the margin strip itself.
     expect(oldStyle).toEqual([
       { dir: 'east', x1: 313, y1: 0, x2: 313, y2: 2 },
       { dir: 'east', x1: 313, y1: 3, x2: 313, y2: 13 },
       { dir: 'south', x1: 300, y1: 13, x2: 313, y2: 13 },
+      { x1: 306, y1: 2, x2: 313, y2: 2 },
+      { x1: 306, y1: 3, x2: 313, y2: 3 },
     ]);
   });
 
