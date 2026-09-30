@@ -17558,5 +17558,125 @@
     "name": "Giant Tardigrade",
     "level": 9,
     "art": "giant-tardigrade-lob.webp"
+  },
+  {
+    "id": "soniphak_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "bu6iSeOO5ho0IIRS",
+    "name": "Soniphak",
+    "level": 9,
+    "art": "soniphak-lob.webp"
+  },
+  {
+    "id": "stargut_hydra_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "4UWIFQn7WLOMoKEY",
+    "name": "Stargut Hydra",
+    "level": 9,
+    "art": "stargut-hydra-lob.webp"
+  },
+  {
+    "id": "therizinosaurus_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "oEsLvPz5woEJ4Z3p",
+    "name": "Therizinosaurus",
+    "level": 9,
+    "art": "therizinosaurus-lob.webp"
+  },
+  {
+    "id": "chaos_falcon_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "DijQ9ujoBeVZBdNB",
+    "name": "Chaos Falcon",
+    "level": 10,
+    "art": "chaos-falcon-lob.webp"
+  },
+  {
+    "id": "helicoprion_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "INzhFMFeyJDlIdFR",
+    "name": "Helicoprion",
+    "level": 10,
+    "art": "helicoprion-lob.webp"
+  },
+  {
+    "id": "ascendant_griffon_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "oAqmIVN0ddsni8D5",
+    "name": "Ascendant Griffon",
+    "level": 11,
+    "art": "ascendant-griffon-lob.webp"
+  },
+  {
+    "id": "pale_horse_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "X28Cx35MnV8icCSH",
+    "name": "Pale Horse",
+    "level": 11,
+    "art": "pale-horse-lob.webp"
+  },
+  {
+    "id": "sky_fisher_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "DiU1sOTZHKbSQoKD",
+    "name": "Sky Fisher",
+    "level": 11,
+    "art": "sky-fisher-lob.webp"
+  },
+  {
+    "id": "tyrafdir_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "VV19NGsVwqxL3X54",
+    "name": "Tyrafdir",
+    "level": 11,
+    "art": "tyrafdir-lob.webp"
+  },
+  {
+    "id": "desert_manticore_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "g3q76dFQYfSiCY00",
+    "name": "Desert Manticore",
+    "level": 12,
+    "art": "desert-manticore-lob.webp"
+  },
+  {
+    "id": "lightning_turtle_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "y4Sh40MIaLp0JH7q",
+    "name": "Lightning Turtle",
+    "level": 12,
+    "art": "lightning-turtle-lob.webp"
+  },
+  {
+    "id": "plated_python_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "iTEmT3ld9s0w0luF",
+    "name": "Plated Python",
+    "level": 12,
+    "art": "plated-python-lob.webp"
+  },
+  {
+    "id": "greater_chimera_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "KmsvxZWttwkkhbNO",
+    "name": "Greater Chimera",
+    "level": 13,
+    "art": "greater-chimera-lob.webp"
+  },
+  {
+    "id": "royal_basilisk_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "kuweiMAfqrigtGj1",
+    "name": "Royal Basilisk",
+    "level": 13,
+    "art": "royal-basilisk-lob.webp"
+  },
+  {
+    "id": "sunscale_serpent_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "PPk05PmGPKCB9X7v",
+    "name": "Sunscale Serpent",
+    "level": 14,
+    "art": "sunscale-serpent-lob.webp"
   }
 ]
