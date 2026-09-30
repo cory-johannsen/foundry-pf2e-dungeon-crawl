@@ -28,7 +28,7 @@ export const BACKENDS = ['comfyui', 'gemini'];
 
 // Ordered: first match wins. Name is the creature's display name, lowercased.
 const KIND_RULES = [
-  ['hybrid', /owlbear|\bnue\b|goluo|grootslang|scylla|great flood|karina|rompo|manananggal|k'?-?nonna|pixiu|whalesteed|mamlambo|kallas|centaur|chimera|harpy|sphinx/],
+  ['hybrid', /owlbear|\bnue\b|goluo|grootslang|scylla|great flood|karina|rompo|manananggal|k'?-?nonna|pixiu|whalesteed|mamlambo|kallas|centaur|chimera|harpy|sphinx|manticore|griffon|hydra|alicorn|karkadann|were(?:moose|shark)|mocking chorus|stony bat/],
   ['dragon', /dragon|linnorm|imugi|wyrm/],
   ['undead', /walcofinde|flotsam|shui[- ]gui|stone sister|aurosrath|spellscar|ulgrem-axaan|lunar consort|ethereal|ghost|zombie|skeleton|skeletal|wight|vampire|mummy|mummified|lich|ghoul|ghul|lacedon|geist|wraith|jiang-shi|tormented|ecorche|excorion|shredskin|gnasher|onryo|llorona|bhuta|sluagh|gallowdead|fiddling bones|withered|combusted|raw nerve|taunting skull|scorned hound|predatory rabbit|hollow serpent|corpseroot|death coach|obrousian|pale stranger|pale sovereign|cadaverous|little man in the woods|gashadokuro|silent stalker|siabrae|fluxwraith|polong|waldgeist|daqqanoenyent|gholdako|ossature|child of urgathoa|deathless|fallen champion|faithless|grappling spirit|relictner|ichor slinger|jitterbone|bone croupier|harlo krant|priest of kabriri|husk|vetalarana|minister of tumult|shadern immolator/],
   ['construct', /animated|hopping head|automaton|conformer|golem|clockwork|juggernaut/],

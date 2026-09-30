@@ -520,3 +520,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 36,eural-the-east-wind,"Eural, The East Wind",18,elemental,accept,,gemini,gemini-first
 36,zephyr-the-west-wind,"Zephyr, The West Wind",18,elemental,accept,,gemini,gemini-first
 36,vault-builder,Vault Builder,23,elemental,accept,,gemini,gemini-first
+37,hardhead-mole,Hardhead Mole,0,beast,accept,,gemini,gemini-first
+37,stonefish,Stonefish,0,beast,accept,,gemini,gemini-first
+37,magnetic-gecko,Magnetic Gecko,1,beast,accept,,gemini,gemini-first
+37,troodon,Troodon,1,beast,accept,,gemini,gemini-first
+37,harbor-seal,Harbor Seal,2,beast,accept,,gemini,gemini-first
+37,protoceratops,Protoceratops,2,beast,accept,,gemini,gemini-first
+37,shotalashu,Shotalashu,2,beast,accept,,gemini,gemini-first
+37,stony-goat,Stony Goat,2,beast,accept,,gemini,gemini-first
+37,crying-cicada,Crying Cicada,3,beast,accept,,gemini,gemini-first
+37,flynkett,Flynkett,3,beast,accept,,gemini,gemini-first
+37,rift-chameleon,Rift Chameleon,3,beast,accept,,gemini,gemini-first
+37,stony-bat,Stony Bat,3,hybrid,accept,,gemini,gemini-first
+37,swordfish,Swordfish,3,beast,accept,,gemini,gemini-first
+37,weremoose,Weremoose,3,hybrid,accept,,gemini,gemini-first
+37,almiraj,Almiraj,4,beast,accept,,gemini,gemini-first
