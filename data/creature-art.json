@@ -17438,5 +17438,125 @@
     "name": "Taldan Cave Squirrel",
     "level": 5,
     "art": "taldan-cave-squirrel-lob.webp"
+  },
+  {
+    "id": "drthak_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "bFRTPIDVo2tmmj9w",
+    "name": "Drthak",
+    "level": 6,
+    "art": "drthak-lob.webp"
+  },
+  {
+    "id": "magnegor_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "2RkNeHGvkSWJmgCz",
+    "name": "Magnegor",
+    "level": 6,
+    "art": "magnegor-lob.webp"
+  },
+  {
+    "id": "majungasaurus_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "McgVEJXOdaKXIejY",
+    "name": "Majungasaurus",
+    "level": 6,
+    "art": "majungasaurus-lob.webp"
+  },
+  {
+    "id": "virtuosic_lyrebird_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "jqlOMCrrDW07KFB0",
+    "name": "Virtuosic Lyrebird",
+    "level": 6,
+    "art": "virtuosic-lyrebird-lob.webp"
+  },
+  {
+    "id": "apothecary_bee_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "ooT4XgMteGVulk1U",
+    "name": "Apothecary Bee",
+    "level": 7,
+    "art": "apothecary-bee-lob.webp"
+  },
+  {
+    "id": "carnotaurus_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "7ABYJlJgL1iwCiIP",
+    "name": "Carnotaurus",
+    "level": 7,
+    "art": "carnotaurus-lob.webp"
+  },
+  {
+    "id": "giant_coppermouth_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "kGqR8nFoGHB3iccK",
+    "name": "Giant Coppermouth",
+    "level": 7,
+    "art": "giant-coppermouth-lob.webp"
+  },
+  {
+    "id": "karkadann_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "Xbvfyzs384giolF2",
+    "name": "Karkadann",
+    "level": 7,
+    "art": "karkadann-lob.webp"
+  },
+  {
+    "id": "mirror_wolf_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "8DoyRTIl2TM4cDDI",
+    "name": "Mirror Wolf",
+    "level": 7,
+    "art": "mirror-wolf-lob.webp"
+  },
+  {
+    "id": "mist_bear_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "TMYd4qao23PYSnOT",
+    "name": "Mist Bear",
+    "level": 7,
+    "art": "mist-bear-lob.webp"
+  },
+  {
+    "id": "concert_frog_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "bH0T5d1uXWVRCvbo",
+    "name": "Concert Frog",
+    "level": 8,
+    "art": "concert-frog-lob.webp"
+  },
+  {
+    "id": "decapod_dinghy_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "f0Xp9Z8UH2cRlvOT",
+    "name": "Decapod Dinghy",
+    "level": 8,
+    "art": "decapod-dinghy-lob.webp"
+  },
+  {
+    "id": "hexmoth_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "fursHtUvfJ7gkmky",
+    "name": "Hexmoth",
+    "level": 8,
+    "art": "hexmoth-lob.webp"
+  },
+  {
+    "id": "mammoth_land_star_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "vimDrfh4L7QJnmne",
+    "name": "Mammoth Land Star",
+    "level": 8,
+    "art": "mammoth-land-star-lob.webp"
+  },
+  {
+    "id": "giant_tardigrade_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "K7v1B9PG2wag1Diz",
+    "name": "Giant Tardigrade",
+    "level": 9,
+    "art": "giant-tardigrade-lob.webp"
   }
 ]
