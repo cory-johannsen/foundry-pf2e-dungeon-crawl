@@ -105,6 +105,21 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
     // single-file through a corridor too narrow for more than one of them
     // to be "near the leader" at once, instead of every follower
     // independently failing to path past whoever's already closest.
+    //
+    // Known limitation (#181 final review, tracked as a follow-up, not
+    // fixed here): findFollowMove's own findPath call is wall-aware but
+    // token-occupancy-blind (a pre-existing property of pathfinding.mjs,
+    // not introduced by chain-following itself). Reordering the marching
+    // order WHILE the party is mid-transit through a corridor can
+    // therefore have a follower's computed path cut straight through
+    // another token's square -- including the leader's -- landing it
+    // briefly on the far side. This was unreachable before this feature's
+    // reorder UI existed, since nothing previously gave a player a reason
+    // to retarget mid-corridor. Fixing it properly means making
+    // findFollowMove/findPath occupancy-aware generally, which is a wider
+    // change than marching order's own scope (it would affect every
+    // follow/pathfinding call site, not just this one) -- filed as #365
+    // rather than expanding this branch.
     let referenceCell = leaderCell;
     for (const actorId of aiControlledIds) {
       const token = scene.tokens.find((t) => t.actor?.id === actorId);
@@ -150,7 +165,7 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
         if (myFootprint) occupied.push(myFootprint);
         if (result.status === "no-route") {
           console.warn(
-            `${MODULE_ID} | dungeon-follow: no route for actor ${actorId} to reach the leader.`,
+            `${MODULE_ID} | dungeon-follow: no route for actor ${actorId} to reach its marching-order target.`,
           );
         }
         // #181: this follower didn't move — the next one in the chain

@@ -324,6 +324,20 @@ describe("effectiveMarchingOrder (#181)", () => {
     const run = { aiControlledActorIds: ["a", "b"] };
     expect(effectiveMarchingOrder(run)).toEqual(["a", "b"]);
   });
+
+  // Final-review finding (#181): a stored marchingOrder with a duplicate
+  // id (only reachable via a manual/corrupted settings edit, since
+  // setMarchingOrder itself rejects duplicates) must still self-heal to
+  // one entry per actor -- otherwise a follower gets processed twice per
+  // cycle, and setMarchingOrder's own permutation check then rejects
+  // every reorder built from the corrupted list.
+  it("drops a duplicate id from a corrupted stored marchingOrder", () => {
+    const run = {
+      aiControlledActorIds: ["a", "b"],
+      marchingOrder: ["a", "a", "b"],
+    };
+    expect(effectiveMarchingOrder(run)).toEqual(["a", "b"]);
+  });
 });
 
 describe("findActiveHostedRun", () => {

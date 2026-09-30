@@ -29,6 +29,7 @@
 
       {{#if isGmLessRun}}
         {{#if interactive}}
+          {{#if marchingOrder.length}}
           <div class="pf2edc-dungeon__marching-order">
             <h3>{{localize "PF2EDC.Dungeon.MarchingOrder.Title"}}</h3>
             <ol>
@@ -51,6 +52,7 @@
               {{/each}}
             </ol>
           </div>
+          {{/if}}
         {{/if}}
       {{/if}}
 

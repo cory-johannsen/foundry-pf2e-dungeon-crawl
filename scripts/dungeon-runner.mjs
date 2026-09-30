@@ -85,10 +85,19 @@ export function effectiveMarchingOrder(run) {
   const aiIds = run?.aiControlledActorIds ?? [];
   const stored = run?.marchingOrder ?? [];
   const aiSet = new Set(aiIds);
-  const reconciled = stored.filter((id) => aiSet.has(id));
-  const reconciledSet = new Set(reconciled);
+  // Final-review finding (#181): dedupe while filtering, not just filter --
+  // a stale/corrupted stored marchingOrder with a repeated id (e.g. from a
+  // manual settings edit) must self-heal to one entry per actor, or a
+  // follower gets processed twice per cycle and setMarchingOrder's own
+  // permutation check then rejects every reorder built from this list.
+  const seen = new Set();
+  const reconciled = stored.filter((id) => {
+    if (!aiSet.has(id) || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
   for (const id of aiIds) {
-    if (!reconciledSet.has(id)) reconciled.push(id);
+    if (!seen.has(id)) reconciled.push(id);
   }
   return reconciled;
 }
