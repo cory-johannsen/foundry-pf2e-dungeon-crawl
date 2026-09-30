@@ -139,20 +139,38 @@ function corridorTilesForSegments(segments) {
   for (const segment of segments) {
     const vertical = segment.gh >= segment.gw;
     const length = vertical ? segment.gh : segment.gw;
+    // #324 (second finding, the multi-cell/transit-cell path): a
+    // multi-cell corridor's own room-door anchor is deliberately
+    // fractional (buildEdgeCorridor's own chainStartAnchor/chainEndAnchor,
+    // "center minus half door-width" -- correct for wall/door LINE
+    // geometry, which tolerates any fractional endpoint fine). Floor the
+    // segment's own start ONCE here, before laying out its own tiles, so
+    // every tile in this segment lands on a single whole grid cell instead
+    // of straddling two -- the same single-cell approximation wall
+    // geometry never needed (a fractional wall endpoint renders exactly
+    // where it says; a discrete 1x1 tile needs one whole cell to occupy).
+    // Flooring only the segment's own base, not each tile's own dx/dy
+    // offset, keeps every tile in a segment consistently adjacent (no
+    // gaps/overlaps) and keeps this scoped to tile placement only --
+    // corridorSegments is never read for wall/door geometry (that comes
+    // from doorWall/revealDoorWall/plainWalls, entirely separate fields on
+    // buildEdgeCorridor's own return value), so this cannot affect them.
+    const baseGx = Math.floor(segment.gx);
+    const baseGy = Math.floor(segment.gy);
     for (let ti = 0; ti < length; ti += 1) {
       const dx = vertical ? 0 : ti;
       const dy = vertical ? ti : 0;
       const { variant, rotation } = corridorTileVariant(ti, length, vertical);
       tiles.push({
         texture: { src: CORRIDOR_ART_BY_VARIANT[variant] },
-        // #324: a Tile document's x/y is its own top-left corner (same
+        // A Tile document's x/y is its own top-left corner (same
         // convention every other pixel coordinate in this file uses, e.g.
         // wallDoc's own toPixels(x1)/toPixels(y1) above, with no added
         // offset) -- this used to add an extra toPixels(1)/2 (half a grid
         // cell) here, shifting every corridor floor tile so it straddled
-        // two grid cells instead of filling one.
-        x: toPixels(segment.gx + dx),
-        y: toPixels(segment.gy + dy),
+        // two grid cells instead of filling one (fixed, #327).
+        x: toPixels(baseGx + dx),
+        y: toPixels(baseGy + dy),
         width: toPixels(1),
         height: toPixels(1),
         rotation,

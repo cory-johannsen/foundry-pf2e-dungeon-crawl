@@ -424,4 +424,69 @@ describe('buildPopulateAndUnlockGraphNode — corridor floor tile grid alignment
       expect(t.height).toBe(GRID_SIZE);
     }
   });
+
+  it('also grid-aligns a MULTI-CELL corridor\'s own floor tiles (transit cells and their room-side connectors) -- distinct from the single-cell case #327 already fixed', async () => {
+    installFoundryStubs();
+    // Straight same-column descent, rank 0 -> rank 3, nothing blocking --
+    // findCorridorPath still returns a multi-cell path (routes cell-by-cell,
+    // not room-to-room: ranks 1 and 2 become real transit cells), same
+    // fixture shape as dungeon-layout.test.mjs's own "chains every crossing
+    // point end-to-end" test. This is the branch #327 did NOT touch: the
+    // multi-cell chain's own room-door anchor is genuinely, deliberately
+    // fractional (buildEdgeCorridor's own chainStartAnchor/chainEndAnchor,
+    // "center minus half door-width") -- correct for wall/door line
+    // geometry, but wrong when the SAME coordinate is reused to place a
+    // discrete 1x1 floor tile.
+    const seed = 'dogleg-repro-seed-0';
+    const fromRoomId = 'multicell-tile-align-from';
+    const toRoomId = 'multicell-tile-align-to';
+    const layoutPositionByRoomId = {
+      [fromRoomId]: { rank: 0, col: 0 },
+      [toRoomId]: { rank: 3, col: 0 },
+    };
+    const layoutEdges = { [fromRoomId]: [toRoomId] };
+    const occupiedCells = { '0,0': fromRoomId, '3,0': toRoomId };
+    const incomingFaceByRoomId = { [fromRoomId]: 'north', [toRoomId]: 'north' };
+    const state = {
+      seed,
+      layoutPositionByRoomId,
+      incomingFaceByRoomId,
+      hiddenRooms: [],
+      edges: layoutEdges,
+      layoutEdges,
+      hiddenIncomingByRoomId: {},
+      hiddenEdges: {},
+    };
+    const room = {
+      id: toRoomId, kind: 'narrative', isGoal: false,
+      locationTag: null, artVariant: 0, setpieceId: null,
+    };
+
+    const scene = makeFakeScene();
+    await buildPopulateAndUnlockGraphNode(scene, state, room, {
+      rank: 3, col: 0, childIds: [], unlock: false,
+    });
+
+    // Cross-check against the pure buildEdgeCorridor's own output -- never
+    // a second, independently hardcoded expected value.
+    const fromRect = roomRect(seed, fromRoomId, 0, 0);
+    const toRect = roomRect(seed, toRoomId, 3, 0);
+    const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
+    const expected = buildEdgeCorridor(
+      seed, fromRoomId, toRoomId, fromRect, toRect, { rank: 0, col: 0 }, { rank: 3, col: 0 },
+      'south', toSlot, occupiedCells, 'north',
+    );
+    expect(expected.transitCells.length).toBeGreaterThan(0); // sanity: really the multi-cell branch
+
+    const corridorTiles = scene.tiles.filter((t) => !t.getFlag(MODULE_ID, 'dungeonRoomBuilt'));
+    expect(corridorTiles.length).toBeGreaterThan(0);
+
+    // Every corridor floor tile -- both the room-side connector segments
+    // and every transit cell's own crossing -- must land flush on the
+    // grid, exactly as the single-cell case already requires.
+    for (const t of corridorTiles) {
+      expect(t.x % GRID_SIZE).toBe(0);
+      expect(t.y % GRID_SIZE).toBe(0);
+    }
+  });
 });
