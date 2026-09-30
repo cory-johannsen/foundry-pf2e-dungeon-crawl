@@ -14470,5 +14470,125 @@
     "name": "Kuworsys",
     "level": 12,
     "art": "kuworsys-lob.webp"
+  },
+  {
+    "id": "sky_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "hyfAioJMfO52gVP2",
+    "name": "Sky Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "sky-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "stormcrown_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "oVC1yci3BUqDVNep",
+    "name": "Stormcrown Dragon (Adult)",
+    "level": 13,
+    "art": "stormcrown-dragon-adult-lob.webp"
+  },
+  {
+    "id": "stormcrown_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "CyP7GlQ1YQdghroI",
+    "name": "Stormcrown Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "stormcrown-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "vorpal_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "JYQd5M92eRnXEO3B",
+    "name": "Vorpal Dragon (Adult)",
+    "level": 13,
+    "art": "vorpal-dragon-adult-lob.webp"
+  },
+  {
+    "id": "vorpal_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mWk8zhD3lRuOZEjK",
+    "name": "Vorpal Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "vorpal-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "cloud_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "HtaWKsUKKwW6CaLG",
+    "name": "Cloud Dragon (Adult)",
+    "level": 14,
+    "art": "cloud-dragon-adult-lob.webp"
+  },
+  {
+    "id": "cloud_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "x201RIxHMApEZVlN",
+    "name": "Cloud Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "cloud-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "delight_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "dticIaShaqZdgUKW",
+    "name": "Delight Dragon (Adult)",
+    "level": 14,
+    "art": "delight-dragon-adult-lob.webp"
+  },
+  {
+    "id": "delight_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "SIW1AJXDMtFLgqfo",
+    "name": "Delight Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "delight-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "forest_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "S1ZWBUItiQKCsoSr",
+    "name": "Forest Dragon (Adult)",
+    "level": 14,
+    "art": "forest-dragon-adult-lob.webp"
+  },
+  {
+    "id": "forest_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "3l13v1lJj5If8wQn",
+    "name": "Forest Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "forest-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "bul_gae_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "374PRwbW4i4Xw1Fe",
+    "name": "Bul-Gae",
+    "level": 14,
+    "art": "bul-gae-lob.webp"
+  },
+  {
+    "id": "tehialai_thief_of_ships_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "C87bRxKDTuJXGkPG",
+    "name": "Tehialai-Thief-of-Ships",
+    "level": 13,
+    "art": "tehialai-thief-of-ships-lob.webp"
+  },
+  {
+    "id": "torn_quartet_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "olc4TteO0olHUkCi",
+    "name": "Torn Quartet",
+    "level": 13,
+    "art": "torn-quartet-lob.webp"
+  },
+  {
+    "id": "ainamuuren_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "VCC4nw6EXvqwgmCp",
+    "name": "Ainamuuren",
+    "level": 14,
+    "art": "ainamuuren-lob.webp"
   }
 ]

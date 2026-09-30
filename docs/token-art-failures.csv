@@ -179,3 +179,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 12,sage-dragon-adult,Sage Dragon (Adult),13,dragon,flag,bg_patch,gemini,gemini-first
 12,sage-dragon-adult-spellcaster,"Sage Dragon (Adult, Spellcaster)",13,dragon,accept,,gemini,gemini-first
 12,sky-dragon-adult,Sky Dragon (Adult),13,dragon,accept,,gemini,gemini-first
+13,sky-dragon-adult-spellcaster,"Sky Dragon (Adult, Spellcaster)",13,dragon,accept,,gemini,gemini-first
+13,stormcrown-dragon-adult,Stormcrown Dragon (Adult),13,dragon,flag,bg_patch,gemini,gemini-first
+13,stormcrown-dragon-adult-spellcaster,"Stormcrown Dragon (Adult, Spellcaster)",13,dragon,accept,,gemini,gemini-first
+13,tehialai-thief-of-ships,Tehialai-Thief-of-Ships,13,beast,flag,wrong_subject;scenery_backdrop,gemini,
+13,torn-quartet,Torn Quartet,13,beast,flag,wrong_subject,gemini,
+13,vorpal-dragon-adult,Vorpal Dragon (Adult),13,dragon,accept,,gemini,gemini-first
+13,vorpal-dragon-adult-spellcaster,"Vorpal Dragon (Adult, Spellcaster)",13,dragon,accept,,gemini,gemini-first
+13,ainamuuren,Ainamuuren,14,beast,flag,wrong_details,gemini,
+13,bul-gae,Bul-Gae,14,beast,accept,,comfyui,
+13,cloud-dragon-adult,Cloud Dragon (Adult),14,dragon,accept,,gemini,gemini-first
+13,cloud-dragon-adult-spellcaster,"Cloud Dragon (Adult, Spellcaster)",14,dragon,accept,,gemini,gemini-first
+13,delight-dragon-adult,Delight Dragon (Adult),14,dragon,accept,,gemini,gemini-first
+13,delight-dragon-adult-spellcaster,"Delight Dragon (Adult, Spellcaster)",14,dragon,accept,,gemini,gemini-first
+13,forest-dragon-adult,Forest Dragon (Adult),14,dragon,accept,,gemini,gemini-first
+13,forest-dragon-adult-spellcaster,"Forest Dragon (Adult, Spellcaster)",14,dragon,accept,,gemini,gemini-first
