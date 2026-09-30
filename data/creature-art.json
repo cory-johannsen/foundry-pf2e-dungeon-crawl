@@ -13030,5 +13030,2045 @@
     "name": "Toshigami",
     "level": 15,
     "art": "toshigami.webp"
+  },
+  {
+    "id": "vulture_rat_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "yRhCsQsoz1Uqvkmk",
+    "name": "Vulture Rat",
+    "level": -1,
+    "art": "vulture-rat-lob.webp"
+  },
+  {
+    "id": "animated_kite_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "fXlmbjtV3spZlmGS",
+    "name": "Animated Kite",
+    "level": 0,
+    "art": "animated-kite-lob.webp"
+  },
+  {
+    "id": "pygmy_kaava_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "EyGpKm5MkHepWuNM",
+    "name": "Pygmy Kaava",
+    "level": 0,
+    "art": "pygmy-kaava-lob.webp"
+  },
+  {
+    "id": "whalesteed_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "MQBH5svYUyhd3RsK",
+    "name": "Whalesteed",
+    "level": 0,
+    "art": "whalesteed-lob.webp"
+  },
+  {
+    "id": "charau_ka_warrior_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "TfEGDGqUk3LpokZZ",
+    "name": "Charau-ka Warrior",
+    "level": 1,
+    "art": "charau-ka-warrior-lob.webp"
+  },
+  {
+    "id": "coral_capuchin_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Vt28ucE0FUJYl1fD",
+    "name": "Coral Capuchin",
+    "level": 1,
+    "art": "coral-capuchin-lob.webp"
+  },
+  {
+    "id": "hopping_head_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mu36UlW90zHYuzww",
+    "name": "Hopping Head",
+    "level": 1,
+    "art": "hopping-head-lob.webp"
+  },
+  {
+    "id": "pearl_dragonet_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mySHYRhpjCRzAysj",
+    "name": "Pearl Dragonet",
+    "level": 1,
+    "art": "pearl-dragonet-lob.webp"
+  },
+  {
+    "id": "sarkorian_wolf_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "FMGyuNpkxMRR1Jrw",
+    "name": "Sarkorian Wolf",
+    "level": 1,
+    "art": "sarkorian-wolf-lob.webp"
+  },
+  {
+    "id": "skinskitter_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "LVY9JAhTnBC2SeqZ",
+    "name": "Skinskitter",
+    "level": 1,
+    "art": "skinskitter-lob.webp"
+  },
+  {
+    "id": "biloko_warrior_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "rayMMWNm61ivtxuU",
+    "name": "Biloko Warrior",
+    "level": 1,
+    "art": "biloko-warrior-lob.webp"
+  },
+  {
+    "id": "kaava_stalker_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "rMby02NQRHNrDcTj",
+    "name": "Kaava Stalker",
+    "level": 1,
+    "art": "kaava-stalker-lob.webp"
+  },
+  {
+    "id": "anadi_hunter_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "aXXvrcggR8EQJOdm",
+    "name": "Anadi Hunter",
+    "level": 2,
+    "art": "anadi-hunter-lob.webp"
+  },
+  {
+    "id": "inkdrop_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "B65InLN9TZjlascU",
+    "name": "Inkdrop",
+    "level": -1,
+    "art": "inkdrop-lob.webp"
+  },
+  {
+    "id": "baccali_alpaca_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mpT2AbFjoyDBDN5l",
+    "name": "Baccali Alpaca",
+    "level": 0,
+    "art": "baccali-alpaca-lob.webp"
+  },
+  {
+    "id": "animated_bamboo_figurine_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "8AANjQtU703ghIsR",
+    "name": "Animated Bamboo Figurine",
+    "level": 2,
+    "art": "animated-bamboo-figurine-lob.webp"
+  },
+  {
+    "id": "azarketi_sailor_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "5Rqh2dBxGU8Jwf56",
+    "name": "Azarketi Sailor",
+    "level": 2,
+    "art": "azarketi-sailor-lob.webp"
+  },
+  {
+    "id": "giant_orchid_mantis_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "XzCBhm6im8iS1UFd",
+    "name": "Giant Orchid Mantis",
+    "level": 2,
+    "art": "giant-orchid-mantis-lob.webp"
+  },
+  {
+    "id": "ratajin_mastermind_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "xl2UxOFVSDGqaVS5",
+    "name": "Ratajin Mastermind",
+    "level": 2,
+    "art": "ratajin-mastermind-lob.webp"
+  },
+  {
+    "id": "walcofinde_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "0vbjFotLwkIoPy2m",
+    "name": "Walcofinde",
+    "level": 2,
+    "art": "walcofinde-lob.webp"
+  },
+  {
+    "id": "animated_wine_vessel_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "0J8xJV4NXaphEWgM",
+    "name": "Animated Wine Vessel",
+    "level": 3,
+    "art": "animated-wine-vessel-lob.webp"
+  },
+  {
+    "id": "charau_ka_acolyte_of_angazhan_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "BxChohV8FBiyAnEc",
+    "name": "Charau-ka Acolyte of Angazhan",
+    "level": 3,
+    "art": "charau-ka-acolyte-of-angazhan-lob.webp"
+  },
+  {
+    "id": "jiidon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "n9LLGRKgPI8fDRBk",
+    "name": "Jiidon",
+    "level": 3,
+    "art": "jiidon-lob.webp"
+  },
+  {
+    "id": "kasesh_stone_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "UgGyHJ39EHztCV5m",
+    "name": "Kasesh (Stone)",
+    "level": 3,
+    "art": "kasesh-stone-lob.webp"
+  },
+  {
+    "id": "ugvashi_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "JmGKKXdAxUkJtdTm",
+    "name": "Ugvashi",
+    "level": 3,
+    "art": "ugvashi-lob.webp"
+  },
+  {
+    "id": "ulgrem_lurann_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "JX7k6wFmZLqNjK0k",
+    "name": "Ulgrem-Lurann",
+    "level": 3,
+    "art": "ulgrem-lurann-lob.webp"
+  },
+  {
+    "id": "augdunar_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "cWHQmwUkLYBlFOGX",
+    "name": "Augdunar",
+    "level": 2,
+    "art": "augdunar-lob.webp"
+  },
+  {
+    "id": "lunar_consort_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "bBBZRMEN18PViaXR",
+    "name": "Lunar Consort",
+    "level": 2,
+    "art": "lunar-consort-lob.webp"
+  },
+  {
+    "id": "spring_heeled_jack_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "EXyfhhX9GLOnK1uZ",
+    "name": "Spring-Heeled Jack",
+    "level": 3,
+    "art": "spring-heeled-jack-lob.webp"
+  },
+  {
+    "id": "tidepool_dragonet_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "YN3SDVktHbuQdn6o",
+    "name": "Tidepool Dragonet",
+    "level": 3,
+    "art": "tidepool-dragonet-lob.webp"
+  },
+  {
+    "id": "anadi_sage_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "IWk8dWUf4Q4D8iww",
+    "name": "Anadi Sage",
+    "level": 4,
+    "art": "anadi-sage-lob.webp"
+  },
+  {
+    "id": "biloko_veteran_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "rrJqsVeBKizuyqRY",
+    "name": "Biloko Veteran",
+    "level": 4,
+    "art": "biloko-veteran-lob.webp"
+  },
+  {
+    "id": "charming_scoundrel_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "EMl8hARVJk8SNVyW",
+    "name": "Charming Scoundrel",
+    "level": 4,
+    "art": "charming-scoundrel-lob.webp"
+  },
+  {
+    "id": "draft_lizard_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "AbaAJaz8p6sSsaqy",
+    "name": "Draft Lizard",
+    "level": 4,
+    "art": "draft-lizard-lob.webp"
+  },
+  {
+    "id": "gau_cho_rong_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "KcwFM5tI2R4jDalx",
+    "name": "Gau Cho Rong",
+    "level": 4,
+    "art": "gau-cho-rong-lob.webp"
+  },
+  {
+    "id": "graul_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "IGoJDxjMiADXa1bm",
+    "name": "Graul",
+    "level": 4,
+    "art": "graul-lob.webp"
+  },
+  {
+    "id": "gutaki_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "WEBwqj2hocAzx09L",
+    "name": "Gutaki",
+    "level": 4,
+    "art": "gutaki-lob.webp"
+  },
+  {
+    "id": "hellknight_armiger_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "UuPPceVcGk1RwSbB",
+    "name": "Hellknight Armiger",
+    "level": 4,
+    "art": "hellknight-armiger-lob.webp"
+  },
+  {
+    "id": "kashrishi_evaluator_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "fGZeQOarR6Im7Lnk",
+    "name": "Kashrishi Evaluator",
+    "level": 4,
+    "art": "kashrishi-evaluator-lob.webp"
+  },
+  {
+    "id": "rain_scribe_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "2SBKFCog4JY3WrOW",
+    "name": "Rain-Scribe",
+    "level": 4,
+    "art": "rain-scribe-lob.webp"
+  },
+  {
+    "id": "shroudwing_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "hqcLqrv4W6QBSgAa",
+    "name": "Shroudwing",
+    "level": 4,
+    "art": "shroudwing-lob.webp"
+  },
+  {
+    "id": "virtuous_defender_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "bc1jeTvmzKeYGVw9",
+    "name": "Virtuous Defender",
+    "level": 4,
+    "art": "virtuous-defender-lob.webp"
+  },
+  {
+    "id": "changeling_hellknight_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "95IcOUvxABvj5lvo",
+    "name": "Changeling Hellknight",
+    "level": 4,
+    "art": "changeling-hellknight-lob.webp"
+  },
+  {
+    "id": "pathfinder_field_agent_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "VkG5yl9xcmziwpQD",
+    "name": "Pathfinder Field Agent",
+    "level": 4,
+    "art": "pathfinder-field-agent-lob.webp"
+  },
+  {
+    "id": "flotsam_terror_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "hvVtk1sj7OfC9V70",
+    "name": "Flotsam Terror",
+    "level": 4,
+    "art": "flotsam-terror-lob.webp"
+  },
+  {
+    "id": "goldpebble_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "yD6d0C9wWQRPOq4T",
+    "name": "Goldpebble",
+    "level": 5,
+    "art": "goldpebble-lob.webp"
+  },
+  {
+    "id": "shui_gui_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "k5f4vITTc7mclQzH",
+    "name": "Shui Gui",
+    "level": 5,
+    "art": "shui-gui-lob.webp"
+  },
+  {
+    "id": "anadi_elder_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "bo3BDHT7P1IK7oLp",
+    "name": "Anadi Elder",
+    "level": 6,
+    "art": "anadi-elder-lob.webp"
+  },
+  {
+    "id": "asanbosam_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "As0M3PvmrR2055pk",
+    "name": "Asanbosam",
+    "level": 6,
+    "art": "asanbosam-lob.webp"
+  },
+  {
+    "id": "ethereal_sailor_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "F8AzuPOCcveWasza",
+    "name": "Ethereal Sailor",
+    "level": 6,
+    "art": "ethereal-sailor-lob.webp"
+  },
+  {
+    "id": "imperfect_automaton_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "N3OJ0wxik4wEgTg7",
+    "name": "Imperfect Automaton",
+    "level": 6,
+    "art": "imperfect-automaton-lob.webp"
+  },
+  {
+    "id": "rime_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "tnyD87evLcAWqMf9",
+    "name": "Rime Dragon (Young)",
+    "level": 6,
+    "art": "rime-dragon-young-lob.webp"
+  },
+  {
+    "id": "aurosrath_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "JBqs1ubClFxHETSa",
+    "name": "Aurosrath",
+    "level": 5,
+    "art": "aurosrath-lob.webp"
+  },
+  {
+    "id": "irriseni_owlbear_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Oefb1ZCYp2DolpZr",
+    "name": "Irriseni Owlbear",
+    "level": 5,
+    "art": "irriseni-owlbear-lob.webp"
+  },
+  {
+    "id": "karina_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "hbvxQn0T0m4WoAmZ",
+    "name": "Karina",
+    "level": 5,
+    "art": "karina-lob.webp"
+  },
+  {
+    "id": "rompo_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "8K5v5q9Y01hcSNug",
+    "name": "Rompo",
+    "level": 5,
+    "art": "rompo-lob.webp"
+  },
+  {
+    "id": "temteki_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7a57dwK5XrV78ajM",
+    "name": "Temteki",
+    "level": 5,
+    "art": "temteki-lob.webp"
+  },
+  {
+    "id": "charau_ka_butcher_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "QUyqY6JiZNkEyTnd",
+    "name": "Charau-ka Butcher",
+    "level": 6,
+    "art": "charau-ka-butcher-lob.webp"
+  },
+  {
+    "id": "lamp_blighter_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9DeZiBTu0jJNLyN3",
+    "name": "Lamp Blighter",
+    "level": 6,
+    "art": "lamp-blighter-lob.webp"
+  },
+  {
+    "id": "melfesh_monster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "G1jYZOjA3E3BqrIM",
+    "name": "Melfesh Monster",
+    "level": 6,
+    "art": "melfesh-monster-lob.webp"
+  },
+  {
+    "id": "rime_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "nnld8aGlpyPGbGW6",
+    "name": "Rime Dragon (Young, Spellcaster)",
+    "level": 6,
+    "art": "rime-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "silt_frog_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9pMcZNYTRVaNCFUl",
+    "name": "Silt Frog",
+    "level": 6,
+    "art": "silt-frog-lob.webp"
+  },
+  {
+    "id": "stone_sister_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "1SIx3wcRvplbfwk3",
+    "name": "Stone Sister",
+    "level": 6,
+    "art": "stone-sister-lob.webp"
+  },
+  {
+    "id": "bog_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9awSYGr3sWrYJc41",
+    "name": "Bog Dragon (Young)",
+    "level": 7,
+    "art": "bog-dragon-young-lob.webp"
+  },
+  {
+    "id": "crystal_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "jXZ4X62UPPM9AV37",
+    "name": "Crystal Dragon (Young, Spellcaster)",
+    "level": 7,
+    "art": "crystal-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "eloko_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "rVnJUXPgAPCeW1tS",
+    "name": "Eloko",
+    "level": 7,
+    "art": "eloko-lob.webp"
+  },
+  {
+    "id": "imugi_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "6bACPcPqi8syNcVg",
+    "name": "Imugi",
+    "level": 7,
+    "art": "imugi-lob.webp"
+  },
+  {
+    "id": "pagulin_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "fQvTnIpC2Wq1U32z",
+    "name": "Pagulin",
+    "level": 7,
+    "art": "pagulin-lob.webp"
+  },
+  {
+    "id": "spawn_of_kothogaz_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "CgNC8uWPrJbGDklJ",
+    "name": "Spawn Of Kothogaz",
+    "level": 6,
+    "art": "spawn-of-kothogaz-lob.webp"
+  },
+  {
+    "id": "wailing_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "PiOJ1mCKSoCLr67f",
+    "name": "Wailing Dragon (Young)",
+    "level": 6,
+    "art": "wailing-dragon-young-lob.webp"
+  },
+  {
+    "id": "wailing_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ca1QJ5iNOE2WtTUf",
+    "name": "Wailing Dragon (Young, Spellcaster)",
+    "level": 6,
+    "art": "wailing-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "bog_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "MYYdOcitelR9ngpD",
+    "name": "Bog Dragon (Young, Spellcaster)",
+    "level": 7,
+    "art": "bog-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "crystal_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "EwVHGcwPT3fJloRK",
+    "name": "Crystal Dragon (Young)",
+    "level": 7,
+    "art": "crystal-dragon-young-lob.webp"
+  },
+  {
+    "id": "crystal_xorn_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "AaUp9pQgUvInrapp",
+    "name": "Crystal Xorn",
+    "level": 7,
+    "art": "crystal-xorn-lob.webp"
+  },
+  {
+    "id": "solar_ibis_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "RVVSRRYAhQ3dVK2h",
+    "name": "Solar Ibis",
+    "level": 7,
+    "art": "solar-ibis-lob.webp"
+  },
+  {
+    "id": "yeongno_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Mu3obsMXZ0OYlQpo",
+    "name": "Yeongno",
+    "level": 7,
+    "art": "yeongno-lob.webp"
+  },
+  {
+    "id": "barrage_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "v5g6FS64zJWswM35",
+    "name": "Barrage Dragon (Young)",
+    "level": 8,
+    "art": "barrage-dragon-young-lob.webp"
+  },
+  {
+    "id": "barrage_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "kePF9RmoYVIhTkv9",
+    "name": "Barrage Dragon (Young, Spellcaster)",
+    "level": 8,
+    "art": "barrage-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "bibliodaemon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "kfxdeVTJONSMfJbG",
+    "name": "Bibliodaemon",
+    "level": 8,
+    "art": "bibliodaemon-lob.webp"
+  },
+  {
+    "id": "brine_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9D9woSv4rl4brb50",
+    "name": "Brine Dragon (Young, Spellcaster)",
+    "level": 8,
+    "art": "brine-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "krampus_celebrant_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "K7hgO9SEBai2jwYj",
+    "name": "Krampus Celebrant",
+    "level": 8,
+    "art": "krampus-celebrant-lob.webp"
+  },
+  {
+    "id": "spellscar_fext_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "AIQMB0ysHNeodKG4",
+    "name": "Spellscar Fext",
+    "level": 7,
+    "art": "spellscar-fext-lob.webp"
+  },
+  {
+    "id": "ulgrem_axaan_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "jInkcz2UYdaCzsBU",
+    "name": "Ulgrem-Axaan",
+    "level": 7,
+    "art": "ulgrem-axaan-lob.webp"
+  },
+  {
+    "id": "underworld_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "dr20tOnX7F7sIXF9",
+    "name": "Underworld Dragon (Young)",
+    "level": 7,
+    "art": "underworld-dragon-young-lob.webp"
+  },
+  {
+    "id": "underworld_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ked8eClr3mWdIZoJ",
+    "name": "Underworld Dragon (Young, Spellcaster)",
+    "level": 7,
+    "art": "underworld-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "young_linnorm_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "OLgKekTU0LOYwoxd",
+    "name": "Young Linnorm",
+    "level": 7,
+    "art": "young-linnorm-lob.webp"
+  },
+  {
+    "id": "brine_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "RZfELtgsk80bDuLi",
+    "name": "Brine Dragon (Young)",
+    "level": 8,
+    "art": "brine-dragon-young-lob.webp"
+  },
+  {
+    "id": "fleshforged_conformer_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "K2AOcLMDOVNbgPXp",
+    "name": "Fleshforged Conformer",
+    "level": 8,
+    "art": "fleshforged-conformer-lob.webp"
+  },
+  {
+    "id": "k_nonna_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "XSWDwaLEyshEKSZE",
+    "name": "K'nonna",
+    "level": 8,
+    "art": "k-nonna-lob.webp"
+  },
+  {
+    "id": "manananggal_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "GP61YtH3RvicMTkf",
+    "name": "Manananggal",
+    "level": 8,
+    "art": "manananggal-lob.webp"
+  },
+  {
+    "id": "mocking_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "rc2BbhcVloC7MG58",
+    "name": "Mocking Dragon (Young)",
+    "level": 8,
+    "art": "mocking-dragon-young-lob.webp"
+  },
+  {
+    "id": "sea_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "uizTKvo2VEZX62ZQ",
+    "name": "Sea Dragon (Young)",
+    "level": 8,
+    "art": "sea-dragon-young-lob.webp"
+  },
+  {
+    "id": "coral_juggernaut_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "LIW4SiPSJptMfg8H",
+    "name": "Coral Juggernaut",
+    "level": 9,
+    "art": "coral-juggernaut-lob.webp"
+  },
+  {
+    "id": "five_color_orchid_mantis_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "2hQmiIASF1pvbWhX",
+    "name": "Five-Color Orchid Mantis",
+    "level": 9,
+    "art": "five-color-orchid-mantis-lob.webp"
+  },
+  {
+    "id": "kallas_devil_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "zE2ykzHZKNS3Rnc3",
+    "name": "Kallas Devil",
+    "level": 9,
+    "art": "kallas-devil-lob.webp"
+  },
+  {
+    "id": "magma_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "aTXEJ6cMnh9LgnyE",
+    "name": "Magma Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "magma-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "mutant_gnoll_hulk_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "lhr2fjewILo4nyUZ",
+    "name": "Mutant Gnoll Hulk",
+    "level": 9,
+    "art": "mutant-gnoll-hulk-lob.webp"
+  },
+  {
+    "id": "mocking_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "wXFiZs2AzMFSjuhQ",
+    "name": "Mocking Dragon (Young, Spellcaster)",
+    "level": 8,
+    "art": "mocking-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "pixiu_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7RTjMCDWQVc6MKNI",
+    "name": "Pixiu",
+    "level": 8,
+    "art": "pixiu-lob.webp"
+  },
+  {
+    "id": "sea_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "PoL0b0ro9SES3N3t",
+    "name": "Sea Dragon (Young, Spellcaster)",
+    "level": 8,
+    "art": "sea-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "executor_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "LYONUjVe1PQNvg62",
+    "name": "Executor Dragon (Young)",
+    "level": 9,
+    "art": "executor-dragon-young-lob.webp"
+  },
+  {
+    "id": "executor_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "1jOAKYSysCAbVP98",
+    "name": "Executor Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "executor-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "magma_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "R0IEWkfzEuGAJXJ8",
+    "name": "Magma Dragon (Young)",
+    "level": 9,
+    "art": "magma-dragon-young-lob.webp"
+  },
+  {
+    "id": "mamlambo_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "j0t62tXPYhBzCLUO",
+    "name": "Mamlambo",
+    "level": 9,
+    "art": "mamlambo-lob.webp"
+  },
+  {
+    "id": "sage_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "uHpMy1o93H70XhiI",
+    "name": "Sage Dragon (Young)",
+    "level": 9,
+    "art": "sage-dragon-young-lob.webp"
+  },
+  {
+    "id": "sage_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "T5QQBFUB3vZ2W90d",
+    "name": "Sage Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "sage-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "sky_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "WYLwQl6vyfoe7FdV",
+    "name": "Sky Dragon (Young)",
+    "level": 9,
+    "art": "sky-dragon-young-lob.webp"
+  },
+  {
+    "id": "stone_giant_monk_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "401MnHX5aO21P2Y8",
+    "name": "Stone Giant Monk",
+    "level": 9,
+    "art": "stone-giant-monk-lob.webp"
+  },
+  {
+    "id": "stormcrown_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "oNW5UMevagzXlhf7",
+    "name": "Stormcrown Dragon (Young)",
+    "level": 9,
+    "art": "stormcrown-dragon-young-lob.webp"
+  },
+  {
+    "id": "stormcrown_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "G8SJadHan9OctTZq",
+    "name": "Stormcrown Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "stormcrown-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "vorpal_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "rWtjekpxQuHTsC8E",
+    "name": "Vorpal Dragon (Young)",
+    "level": 9,
+    "art": "vorpal-dragon-young-lob.webp"
+  },
+  {
+    "id": "cloud_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "WqZ25wiUIuDAu8xT",
+    "name": "Cloud Dragon (Young)",
+    "level": 10,
+    "art": "cloud-dragon-young-lob.webp"
+  },
+  {
+    "id": "cursed_king_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "4DQotKcUZebLfeeL",
+    "name": "Cursed King",
+    "level": 10,
+    "art": "cursed-king-lob.webp"
+  },
+  {
+    "id": "delight_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Yn2L7I8oa6uNMszw",
+    "name": "Delight Dragon (Young)",
+    "level": 10,
+    "art": "delight-dragon-young-lob.webp"
+  },
+  {
+    "id": "failed_prophet_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "37kLxtNV11aIPPja",
+    "name": "Failed Prophet",
+    "level": 10,
+    "art": "failed-prophet-lob.webp"
+  },
+  {
+    "id": "sky_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "FkzvfxxgLdEwqtx3",
+    "name": "Sky Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "sky-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "vorpal_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "cu6jRg7L9eSRyltx",
+    "name": "Vorpal Dragon (Young, Spellcaster)",
+    "level": 9,
+    "art": "vorpal-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "aoyin_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Lhcwzt64Do7afrbF",
+    "name": "Aoyin",
+    "level": 10,
+    "art": "aoyin-lob.webp"
+  },
+  {
+    "id": "cloud_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "tWSiwS6vQif9808l",
+    "name": "Cloud Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "cloud-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "delight_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "AbTiDtSTPI29bdHr",
+    "name": "Delight Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "delight-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "forest_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "gfAU2eApv4qSuawU",
+    "name": "Forest Dragon (Young)",
+    "level": 10,
+    "art": "forest-dragon-young-lob.webp"
+  },
+  {
+    "id": "forest_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "WLTTW463KWOamgCE",
+    "name": "Forest Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "forest-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "mosquito_witch_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "KdOwmclPVpcTSPjF",
+    "name": "Mosquito Witch",
+    "level": 10,
+    "art": "mosquito-witch-lob.webp"
+  },
+  {
+    "id": "mosquito_witch_the_legion_leech_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "FhgZOBWNMa5t7pYV",
+    "name": "Mosquito Witch (The Legion Leech)",
+    "level": 10,
+    "art": "mosquito-witch-the-legion-leech-lob.webp"
+  },
+  {
+    "id": "oath_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "6K4chQTwgPmgCbP2",
+    "name": "Oath Dragon (Young)",
+    "level": 10,
+    "art": "oath-dragon-young-lob.webp"
+  },
+  {
+    "id": "rime_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "YdR6e9b5oxuBmD2Z",
+    "name": "Rime Dragon (Adult)",
+    "level": 10,
+    "art": "rime-dragon-adult-lob.webp"
+  },
+  {
+    "id": "wish_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "uTtDneaOJvrgZq7z",
+    "name": "Wish Dragon (Young)",
+    "level": 10,
+    "art": "wish-dragon-young-lob.webp"
+  },
+  {
+    "id": "mosquito_witch_the_hemoprophet_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ns6fmJ8469hzBOtM",
+    "name": "Mosquito Witch (The Hemoprophet)",
+    "level": 10,
+    "art": "mosquito-witch-the-hemoprophet-lob.webp"
+  },
+  {
+    "id": "mosquito_witch_the_swarm_seer_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mE9MQ0hnRmlR9m94",
+    "name": "Mosquito Witch (The Swarm Seer)",
+    "level": 10,
+    "art": "mosquito-witch-the-swarm-seer-lob.webp"
+  },
+  {
+    "id": "oath_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "JWf2vU4btXbxrHhI",
+    "name": "Oath Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "oath-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "rime_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "WWBJ0oRAXguXDmyB",
+    "name": "Rime Dragon (Adult, Spellcaster)",
+    "level": 10,
+    "art": "rime-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "spectral_devil_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "10srqxC7QZy0dq2g",
+    "name": "Spectral Devil",
+    "level": 10,
+    "art": "spectral-devil-lob.webp"
+  },
+  {
+    "id": "vorvorak_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "pdlOJpeKtLDMKjJY",
+    "name": "Vorvorak",
+    "level": 10,
+    "art": "vorvorak-lob.webp"
+  },
+  {
+    "id": "wailing_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "aUnu52gTabyzeTUJ",
+    "name": "Wailing Dragon (Adult)",
+    "level": 10,
+    "art": "wailing-dragon-adult-lob.webp"
+  },
+  {
+    "id": "wailing_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mzKV1i5en8f1nbfO",
+    "name": "Wailing Dragon (Adult, Spellcaster)",
+    "level": 10,
+    "art": "wailing-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "wish_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "QMk8VTuuca2dMmw8",
+    "name": "Wish Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "wish-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "zinba_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "rBlu1EsygXwCkOvd",
+    "name": "Zinba",
+    "level": 10,
+    "art": "zinba-lob.webp"
+  },
+  {
+    "id": "bog_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "SnzEkz4VOVXnyeAQ",
+    "name": "Bog Dragon (Adult, Spellcaster)",
+    "level": 11,
+    "art": "bog-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "crystal_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Xf0zy0ni79Pnbojj",
+    "name": "Crystal Dragon (Adult, Spellcaster)",
+    "level": 11,
+    "art": "crystal-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "hellknight_paravicar_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mJxgYD8TQg1W2oXC",
+    "name": "Hellknight Paravicar",
+    "level": 11,
+    "art": "hellknight-paravicar-lob.webp"
+  },
+  {
+    "id": "nue_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9jvXTVcMNTx3kGfU",
+    "name": "Nue",
+    "level": 11,
+    "art": "nue-lob.webp"
+  },
+  {
+    "id": "pathfinder_venture_captain_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "o4XTf77fEEoFVTdA",
+    "name": "Pathfinder Venture-Captain",
+    "level": 11,
+    "art": "pathfinder-venture-captain-lob.webp"
+  },
+  {
+    "id": "pelagiadaemon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "wjsj4hWL1m1Fwegp",
+    "name": "Pelagiadaemon",
+    "level": 11,
+    "art": "pelagiadaemon-lob.webp"
+  },
+  {
+    "id": "sovereign_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "yKxTaTrjBWCk7lPq",
+    "name": "Sovereign Dragon (Young)",
+    "level": 11,
+    "art": "sovereign-dragon-young-lob.webp"
+  },
+  {
+    "id": "sovereign_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "cxCqulLN9wT5Mqfi",
+    "name": "Sovereign Dragon (Young, Spellcaster)",
+    "level": 11,
+    "art": "sovereign-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "bog_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "I1oOJkeMEtucwABL",
+    "name": "Bog Dragon (Adult)",
+    "level": 11,
+    "art": "bog-dragon-adult-lob.webp"
+  },
+  {
+    "id": "crystal_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "wFcWMrjNtnfSKOYm",
+    "name": "Crystal Dragon (Adult)",
+    "level": 11,
+    "art": "crystal-dragon-adult-lob.webp"
+  },
+  {
+    "id": "howling_spawn_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "qcdNzMiO3XxPHLPJ",
+    "name": "Howling Spawn",
+    "level": 11,
+    "art": "howling-spawn-lob.webp"
+  },
+  {
+    "id": "privateer_captain_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "48bZvtRcd7T6FmA7",
+    "name": "Privateer Captain",
+    "level": 11,
+    "art": "privateer-captain-lob.webp"
+  },
+  {
+    "id": "somnalu_oculus_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "hLyLnBn7lEFstUG2",
+    "name": "Somnalu Oculus",
+    "level": 11,
+    "art": "somnalu-oculus-lob.webp"
+  },
+  {
+    "id": "tempest_sun_mage_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "M2Vi2mkwMZv1ZRka",
+    "name": "Tempest-Sun Mage",
+    "level": 11,
+    "art": "tempest-sun-mage-lob.webp"
+  },
+  {
+    "id": "time_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "wfv5PSZ6fETEzxVO",
+    "name": "Time Dragon (Young)",
+    "level": 11,
+    "art": "time-dragon-young-lob.webp"
+  },
+  {
+    "id": "time_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "aAmil47M9m8R9rr7",
+    "name": "Time Dragon (Young, Spellcaster)",
+    "level": 11,
+    "art": "time-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "umbral_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "h1SmS5Y4Sg0v4cD1",
+    "name": "Umbral Dragon (Young)",
+    "level": 11,
+    "art": "umbral-dragon-young-lob.webp"
+  },
+  {
+    "id": "umbral_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "wr4R6PfEfFkZjm2P",
+    "name": "Umbral Dragon (Young, Spellcaster)",
+    "level": 11,
+    "art": "umbral-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "underworld_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "QbKEJtqThE5q9XCl",
+    "name": "Underworld Dragon (Adult)",
+    "level": 11,
+    "art": "underworld-dragon-adult-lob.webp"
+  },
+  {
+    "id": "underworld_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "L4a9tb4s7FmwWi6J",
+    "name": "Underworld Dragon (Adult, Spellcaster)",
+    "level": 11,
+    "art": "underworld-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "vizier_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "1w3NeBlBnaYmK0J0",
+    "name": "Vizier Dragon (Young)",
+    "level": 11,
+    "art": "vizier-dragon-young-lob.webp"
+  },
+  {
+    "id": "vizier_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7wjy0l0sjSrV4D5S",
+    "name": "Vizier Dragon (Young, Spellcaster)",
+    "level": 11,
+    "art": "vizier-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "barrage_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7mbjjmHgbDNxXR6T",
+    "name": "Barrage Dragon (Adult)",
+    "level": 12,
+    "art": "barrage-dragon-adult-lob.webp"
+  },
+  {
+    "id": "barrage_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9u6v6WW2mJzPeoNW",
+    "name": "Barrage Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "barrage-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "brine_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "La2xTgWEI75mXxCy",
+    "name": "Brine Dragon (Adult)",
+    "level": 12,
+    "art": "brine-dragon-adult-lob.webp"
+  },
+  {
+    "id": "ulistul_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "XCW1WzJqwGUS1cGi",
+    "name": "Ulistul",
+    "level": 11,
+    "art": "ulistul-lob.webp"
+  },
+  {
+    "id": "veteran_reclaimer_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "hxyImo4ts3O0BrAY",
+    "name": "Veteran Reclaimer",
+    "level": 11,
+    "art": "veteran-reclaimer-lob.webp"
+  },
+  {
+    "id": "aso_berang_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "zrx1qjf1WbSYllvz",
+    "name": "Aso Berang",
+    "level": 12,
+    "art": "aso-berang-lob.webp"
+  },
+  {
+    "id": "brine_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7q6gHmLkKu3gAoxW",
+    "name": "Brine Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "brine-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "mocking_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "3sbe5lTQfIZkPquh",
+    "name": "Mocking Dragon (Adult)",
+    "level": 12,
+    "art": "mocking-dragon-adult-lob.webp"
+  },
+  {
+    "id": "mocking_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "u8PpzOhWk02TnymJ",
+    "name": "Mocking Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "mocking-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "sea_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "syPyp7ZI9ygqMl5J",
+    "name": "Sea Dragon (Adult)",
+    "level": 12,
+    "art": "sea-dragon-adult-lob.webp"
+  },
+  {
+    "id": "sea_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Q2RKuEDXFh2uezrF",
+    "name": "Sea Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "sea-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "executor_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "kzV42aOEEXGE96zx",
+    "name": "Executor Dragon (Adult)",
+    "level": 13,
+    "art": "executor-dragon-adult-lob.webp"
+  },
+  {
+    "id": "executor_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "R25ksc1yCPMiqqRH",
+    "name": "Executor Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "executor-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "magma_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "wc3uAlMMFQhlmTT9",
+    "name": "Magma Dragon (Adult)",
+    "level": 13,
+    "art": "magma-dragon-adult-lob.webp"
+  },
+  {
+    "id": "magma_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ypt7NUTKYTMyf21k",
+    "name": "Magma Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "magma-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "sage_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "MwslnfsCT7u4TiuV",
+    "name": "Sage Dragon (Adult)",
+    "level": 13,
+    "art": "sage-dragon-adult-lob.webp"
+  },
+  {
+    "id": "sage_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "fD89oelp0upiE6WF",
+    "name": "Sage Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "sage-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "sky_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "D7YQwzLCMFSnYOxd",
+    "name": "Sky Dragon (Adult)",
+    "level": 13,
+    "art": "sky-dragon-adult-lob.webp"
+  },
+  {
+    "id": "peng_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "0yF82Lo495lKarLS",
+    "name": "Peng",
+    "level": 12,
+    "art": "peng-lob.webp"
+  },
+  {
+    "id": "dedalon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Rv00aMx8DbRcDAEj",
+    "name": "Dedalon",
+    "level": 13,
+    "art": "dedalon-lob.webp"
+  },
+  {
+    "id": "kuworsys_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "OF0fZDjNapydddM1",
+    "name": "Kuworsys",
+    "level": 12,
+    "art": "kuworsys-lob.webp"
+  },
+  {
+    "id": "sky_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "hyfAioJMfO52gVP2",
+    "name": "Sky Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "sky-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "stormcrown_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "oVC1yci3BUqDVNep",
+    "name": "Stormcrown Dragon (Adult)",
+    "level": 13,
+    "art": "stormcrown-dragon-adult-lob.webp"
+  },
+  {
+    "id": "stormcrown_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "CyP7GlQ1YQdghroI",
+    "name": "Stormcrown Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "stormcrown-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "vorpal_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "JYQd5M92eRnXEO3B",
+    "name": "Vorpal Dragon (Adult)",
+    "level": 13,
+    "art": "vorpal-dragon-adult-lob.webp"
+  },
+  {
+    "id": "vorpal_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mWk8zhD3lRuOZEjK",
+    "name": "Vorpal Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "vorpal-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "cloud_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "HtaWKsUKKwW6CaLG",
+    "name": "Cloud Dragon (Adult)",
+    "level": 14,
+    "art": "cloud-dragon-adult-lob.webp"
+  },
+  {
+    "id": "cloud_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "x201RIxHMApEZVlN",
+    "name": "Cloud Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "cloud-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "delight_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "dticIaShaqZdgUKW",
+    "name": "Delight Dragon (Adult)",
+    "level": 14,
+    "art": "delight-dragon-adult-lob.webp"
+  },
+  {
+    "id": "delight_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "SIW1AJXDMtFLgqfo",
+    "name": "Delight Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "delight-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "forest_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "S1ZWBUItiQKCsoSr",
+    "name": "Forest Dragon (Adult)",
+    "level": 14,
+    "art": "forest-dragon-adult-lob.webp"
+  },
+  {
+    "id": "forest_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "3l13v1lJj5If8wQn",
+    "name": "Forest Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "forest-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "bul_gae_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "374PRwbW4i4Xw1Fe",
+    "name": "Bul-Gae",
+    "level": 14,
+    "art": "bul-gae-lob.webp"
+  },
+  {
+    "id": "tehialai_thief_of_ships_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "C87bRxKDTuJXGkPG",
+    "name": "Tehialai-Thief-of-Ships",
+    "level": 13,
+    "art": "tehialai-thief-of-ships-lob.webp"
+  },
+  {
+    "id": "torn_quartet_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "olc4TteO0olHUkCi",
+    "name": "Torn Quartet",
+    "level": 13,
+    "art": "torn-quartet-lob.webp"
+  },
+  {
+    "id": "ainamuuren_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "VCC4nw6EXvqwgmCp",
+    "name": "Ainamuuren",
+    "level": 14,
+    "art": "ainamuuren-lob.webp"
+  },
+  {
+    "id": "oath_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "uEFJO70QbqWtSWBy",
+    "name": "Oath Dragon (Adult)",
+    "level": 14,
+    "art": "oath-dragon-adult-lob.webp"
+  },
+  {
+    "id": "oath_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "2N2f6ENAUP8ep1oC",
+    "name": "Oath Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "oath-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "si_goluo_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ld3hMGWfeUT7enNf",
+    "name": "Si\u00e9 Goluo",
+    "level": 14,
+    "art": "si-goluo-lob.webp"
+  },
+  {
+    "id": "wish_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "6IXJqhdCC8zyQrQm",
+    "name": "Wish Dragon (Adult)",
+    "level": 14,
+    "art": "wish-dragon-adult-lob.webp"
+  },
+  {
+    "id": "wish_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "6TxkmwPPRPtmZtGn",
+    "name": "Wish Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "wish-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "rime_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "SceqM5LUypPfLmvh",
+    "name": "Rime Dragon (Ancient)",
+    "level": 15,
+    "art": "rime-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "rime_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "4WykWOJPwTKtbM55",
+    "name": "Rime Dragon (Ancient, Spellcaster)",
+    "level": 15,
+    "art": "rime-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "sovereign_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "NgxX7OjbK40eRFde",
+    "name": "Sovereign Dragon (Adult)",
+    "level": 15,
+    "art": "sovereign-dragon-adult-lob.webp"
+  },
+  {
+    "id": "kun_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "DkQWhW0CelytSWAV",
+    "name": "Kun",
+    "level": 14,
+    "art": "kun-lob.webp"
+  },
+  {
+    "id": "gunpowder_ooze_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "qbfMDAa3RXvwyG7k",
+    "name": "Gunpowder Ooze",
+    "level": 14,
+    "art": "gunpowder-ooze-lob.webp"
+  },
+  {
+    "id": "ijhyeojin_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "6v2HzHeT1mNLaqg9",
+    "name": "Ijhyeojin",
+    "level": 14,
+    "art": "ijhyeojin-lob.webp"
+  },
+  {
+    "id": "joseung_saja_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7ZSjqT2yiJB5OKgk",
+    "name": "Joseung Saja",
+    "level": 14,
+    "art": "joseung-saja-lob.webp"
+  },
+  {
+    "id": "clockwork_cannoneer_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "qmw82W0WhPkn9UTW",
+    "name": "Clockwork Cannoneer",
+    "level": 15,
+    "art": "clockwork-cannoneer-lob.webp"
+  },
+  {
+    "id": "grand_defender_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "6X4zL4GSS9aUcP9f",
+    "name": "Grand Defender",
+    "level": 15,
+    "art": "grand-defender-lob.webp"
+  },
+  {
+    "id": "somnalu_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "KLxdUFCvZ7HkAP1E",
+    "name": "Somnalu",
+    "level": 15,
+    "art": "somnalu-lob.webp"
+  },
+  {
+    "id": "sovereign_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ehYT62H6Uc36Tjjm",
+    "name": "Sovereign Dragon (Adult, Spellcaster)",
+    "level": 15,
+    "art": "sovereign-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "time_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "jEc2J8hy0Z33XKhk",
+    "name": "Time Dragon (Adult)",
+    "level": 15,
+    "art": "time-dragon-adult-lob.webp"
+  },
+  {
+    "id": "time_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "fXqXN5dkm33a6AW0",
+    "name": "Time Dragon (Adult, Spellcaster)",
+    "level": 15,
+    "art": "time-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "umbral_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "JB9SWlruqX9nKhIO",
+    "name": "Umbral Dragon (Adult)",
+    "level": 15,
+    "art": "umbral-dragon-adult-lob.webp"
+  },
+  {
+    "id": "umbral_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "1QteIiv5ZqGtWQDb",
+    "name": "Umbral Dragon (Adult, Spellcaster)",
+    "level": 15,
+    "art": "umbral-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "vizier_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "4bsj12VgzkAajw5T",
+    "name": "Vizier Dragon (Adult)",
+    "level": 15,
+    "art": "vizier-dragon-adult-lob.webp"
+  },
+  {
+    "id": "vizier_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7q1w3xtocBK6C4HK",
+    "name": "Vizier Dragon (Adult, Spellcaster)",
+    "level": 15,
+    "art": "vizier-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "wailing_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "xEdeUVwxzAMPncWl",
+    "name": "Wailing Dragon (Ancient)",
+    "level": 15,
+    "art": "wailing-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "wailing_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "yyvGcuEMihpjJQgW",
+    "name": "Wailing Dragon (Ancient, Spellcaster)",
+    "level": 15,
+    "art": "wailing-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "bog_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "j14cQKcgUGMWGY7P",
+    "name": "Bog Dragon (Ancient)",
+    "level": 16,
+    "art": "bog-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "bog_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ZakuvOFPXzPIwmZI",
+    "name": "Bog Dragon (Ancient, Spellcaster)",
+    "level": 16,
+    "art": "bog-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "crystal_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "PrIiJRB0lRwD9SZw",
+    "name": "Crystal Dragon (Ancient)",
+    "level": 16,
+    "art": "crystal-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "crystal_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "zW7S98WUbpwBF6ih",
+    "name": "Crystal Dragon (Ancient, Spellcaster)",
+    "level": 16,
+    "art": "crystal-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "corbayrant_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "TRmzCBwEeJFqiQ3D",
+    "name": "Corbayrant",
+    "level": 16,
+    "art": "corbayrant-lob.webp"
+  },
+  {
+    "id": "grogrisant_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "O4gEaG5vzkLFl7J1",
+    "name": "Grogrisant",
+    "level": 16,
+    "art": "grogrisant-lob.webp"
+  },
+  {
+    "id": "grootslang_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "NvyAvzxxfb8XEQr2",
+    "name": "Grootslang",
+    "level": 16,
+    "art": "grootslang-lob.webp"
+  },
+  {
+    "id": "scylla_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "qgshcvL8lu24Bxjq",
+    "name": "Scylla",
+    "level": 16,
+    "art": "scylla-lob.webp"
+  },
+  {
+    "id": "underworld_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "jqcAeid4jcx9Lrjc",
+    "name": "Underworld Dragon (Ancient)",
+    "level": 16,
+    "art": "underworld-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "underworld_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "cdvuNbNQ1sPCjG9S",
+    "name": "Underworld Dragon (Ancient, Spellcaster)",
+    "level": 16,
+    "art": "underworld-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "barrage_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "DDHWqs85wxelvkg5",
+    "name": "Barrage Dragon (Ancient)",
+    "level": 17,
+    "art": "barrage-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "barrage_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "T2HLLrHCxnBrtXly",
+    "name": "Barrage Dragon (Ancient, Spellcaster)",
+    "level": 17,
+    "art": "barrage-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "brine_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "fyWOC6EGIhB3kjRN",
+    "name": "Brine Dragon (Ancient)",
+    "level": 17,
+    "art": "brine-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "brine_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "PZlEThIJ3lWXEKMa",
+    "name": "Brine Dragon (Ancient, Spellcaster)",
+    "level": 17,
+    "art": "brine-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "mocking_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "DSxF9af8K2xWvTbn",
+    "name": "Mocking Dragon (Ancient)",
+    "level": 17,
+    "art": "mocking-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "mocking_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "HpJhZGoGl9AnQMwY",
+    "name": "Mocking Dragon (Ancient, Spellcaster)",
+    "level": 17,
+    "art": "mocking-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "sea_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9DwBxIoHnUShWw1Q",
+    "name": "Sea Dragon (Ancient)",
+    "level": 17,
+    "art": "sea-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "sea_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Ypq6e5ndTZind4TK",
+    "name": "Sea Dragon (Ancient, Spellcaster)",
+    "level": 17,
+    "art": "sea-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "wyrmwraith_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mkhoMY6pFClaARVg",
+    "name": "Wyrmwraith",
+    "level": 17,
+    "art": "wyrmwraith-lob.webp"
+  },
+  {
+    "id": "maliadi_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "x2udXsqiLZachJHY",
+    "name": "Maliadi",
+    "level": 17,
+    "art": "maliadi-lob.webp"
+  },
+  {
+    "id": "cuetzmonquali_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "LK3SgIKJqqo4Q4NQ",
+    "name": "Cuetzmonquali",
+    "level": 17,
+    "art": "cuetzmonquali-lob.webp"
+  },
+  {
+    "id": "executor_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "m5jgzb7JyWOjnmpQ",
+    "name": "Executor Dragon (Ancient)",
+    "level": 18,
+    "art": "executor-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "executor_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "aZlQ7bCTAopncJUR",
+    "name": "Executor Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "executor-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "magma_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7QxDDSEmJaohqaXh",
+    "name": "Magma Dragon (Ancient)",
+    "level": 18,
+    "art": "magma-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "magma_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "HdIr8upCJBgIdnyj",
+    "name": "Magma Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "magma-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "rime_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "fyS8hbgG2bahSIDp",
+    "name": "Rime Archdragon",
+    "level": 18,
+    "art": "rime-archdragon-lob.webp"
+  },
+  {
+    "id": "rime_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "S94oj09Yjwbcilmo",
+    "name": "Rime Archdragon (Spellcaster)",
+    "level": 18,
+    "art": "rime-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "sage_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "EHKQzIzw5eyUoGwQ",
+    "name": "Sage Dragon (Ancient)",
+    "level": 18,
+    "art": "sage-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "sage_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "QXpygXJRkbhaaOMP",
+    "name": "Sage Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "sage-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "sky_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "LFOjID9xGMPd7BIl",
+    "name": "Sky Dragon (Ancient)",
+    "level": 18,
+    "art": "sky-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "sky_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "DvTyMt09Dw9JKYaD",
+    "name": "Sky Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "sky-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "stormcrown_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "J4Q5ocIVBGsCi7nV",
+    "name": "Stormcrown Dragon (Ancient)",
+    "level": 18,
+    "art": "stormcrown-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "stormcrown_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "cLp70PB4aM8N80dg",
+    "name": "Stormcrown Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "stormcrown-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "caterpillar_carriage_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "AKYrUoUmunt46Vy8",
+    "name": "Caterpillar Carriage",
+    "level": 18,
+    "art": "caterpillar-carriage-lob.webp"
+  },
+  {
+    "id": "bone_ship_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "iD32uhsjUGLvC2q6",
+    "name": "Bone Ship",
+    "level": 18,
+    "art": "bone-ship-lob.webp"
+  },
+  {
+    "id": "fleshforged_dreadnought_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "KTabPRN489yjTvek",
+    "name": "Fleshforged Dreadnought",
+    "level": 18,
+    "art": "fleshforged-dreadnought-lob.webp"
   }
 ]

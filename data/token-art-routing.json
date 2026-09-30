@@ -1,0 +1,17 @@
+{
+  "_comment": "Names/kinds routed to the Gemini backend FIRST (skip ComfyUI). Derived from docs/token-art-failures.csv (ComfyUI-first rows only) and docs/token-art-history/ via tools/analyze-art-failures.mjs [--history]; extend only when a group has n>=4 and a first-pass flag rate >=60%, or is a documented systematic failure. Adopted: hybrid (7/9), dragon (25/41, incl. young 8/13 and spellcaster 13/21), owlbear, storm/sky concepts (history). Watch: fey (3/5). Gemini-first: 13/14 accepted on the first try (nue, a hybrid, needed a retry).",
+  "keywords": [
+    "owlbear",
+    "storm",
+    "thunder",
+    "lightning",
+    "cloud",
+    "tempest",
+    "tsunami"
+  ],
+  "kinds": [
+    "hybrid",
+    "dragon"
+  ],
+  "kindVariants": []
+}

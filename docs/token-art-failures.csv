@@ -1,0 +1,256 @@
+chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
+1,vulture-rat,Vulture Rat,-1,beast,accept,,comfyui,
+1,animated-kite,Animated Kite,0,construct,accept,,comfyui,
+1,pygmy-kaava,Pygmy Kaava,0,beast,accept,,comfyui,
+1,whalesteed,Whalesteed,0,hybrid,accept,,comfyui,
+1,charau-ka-warrior,Charau-ka Warrior,1,humanoid,accept,,comfyui,
+1,coral-capuchin,Coral Capuchin,1,beast,accept,,comfyui,
+1,hopping-head,Hopping Head,1,construct,accept,,comfyui,
+1,pearl-dragonet,Pearl Dragonet,1,dragon,accept,,comfyui,
+1,sarkorian-wolf,Sarkorian Wolf,1,beast,accept,,comfyui,
+1,skinskitter,Skinskitter,1,aberration,accept,,comfyui,
+1,biloko-warrior,Biloko Warrior,1,fey,flag,scenery_backdrop,comfyui,yellow forest backdrop
+1,kaava-stalker,Kaava Stalker,1,humanoid,flag,scenery_backdrop,comfyui,green forest backdrop
+1,anadi-hunter,Anadi Hunter,2,humanoid,flag,scenery_backdrop,comfyui,green backdrop
+1,inkdrop,Inkdrop,-1,aberration,flag,wrong_subject,gemini,"insect, then bird from ComfyUI; Gemini + transparency key-out"
+1,baccali-alpaca,Baccali Alpaca,0,beast,flag,scenery_backdrop;salvage_damage,comfyui,flowers; then pale fur eaten by salvage; fixed with brown coat on round 3
+2,animated-bamboo-figurine,Animated Bamboo Figurine,2,construct,accept,,comfyui,
+2,azarketi-sailor,Azarketi Sailor,2,humanoid,accept,,comfyui,
+2,giant-orchid-mantis,Giant Orchid Mantis,2,beast,accept,,comfyui,
+2,ratajin-mastermind,Ratajin Mastermind,2,humanoid,accept,,comfyui,
+2,walcofinde,Walcofinde,2,undead,accept,,comfyui,
+2,animated-wine-vessel,Animated Wine Vessel,3,construct,accept,,comfyui,
+2,charau-ka-acolyte-of-angazhan,Charau-ka Acolyte of Angazhan,3,humanoid,accept,,comfyui,
+2,jiidon,Jiidon,3,beast,accept,,comfyui,
+2,kasesh-stone,Kasesh (Stone),3,elemental,accept,,comfyui,
+2,ugvashi,Ugvashi,3,beast,accept,,comfyui,
+2,ulgrem-lurann,Ulgrem-Lurann,3,beast,flag,wrong_subject,gemini,frog written without a description; found later to be an ice-crystal crocodilian
+2,augdunar,Augdunar,2,beast,flag,bg_patch,comfyui,grey ground rectangle
+2,lunar-consort,Lunar Consort,2,undead,flag,halo_or_disc,comfyui,white moon disc
+2,spring-heeled-jack,Spring-Heeled Jack,3,fey,flag,scenery_backdrop,comfyui,red/yellow moon and trees
+2,tidepool-dragonet,Tidepool Dragonet,3,dragon,flag,cropped,comfyui,chameleon head close-up instead of eel-like body
+3,anadi-sage,Anadi Sage,4,humanoid,accept,,comfyui,
+3,biloko-veteran,Biloko Veteran,4,fey,accept,,comfyui,
+3,charming-scoundrel,Charming Scoundrel,4,humanoid,accept,,comfyui,
+3,draft-lizard,Draft Lizard,4,beast,accept,,comfyui,
+3,gau-cho-rong,Gau Cho Rong,4,beast,accept,,comfyui,
+3,graul,Graul,4,aberration,accept,,comfyui,
+3,gutaki,Gutaki,4,aberration,accept,,comfyui,
+3,hellknight-armiger,Hellknight Armiger,4,humanoid,accept,,comfyui,
+3,kashrishi-evaluator,Kashrishi Evaluator,4,humanoid,accept,,comfyui,
+3,rain-scribe,Rain-Scribe,4,humanoid,accept,,comfyui,
+3,shroudwing,Shroudwing,4,beast,accept,,comfyui,
+3,virtuous-defender,Virtuous Defender,4,humanoid,accept,,comfyui,
+3,changeling-hellknight,Changeling Hellknight,4,humanoid,flag,bg_patch,comfyui,white patch lower left
+3,pathfinder-field-agent,Pathfinder Field Agent,4,humanoid,flag,scenery_backdrop,comfyui,cliff/sky remnants
+3,flotsam-terror,Flotsam Terror,4,undead,flag,scenery_backdrop;wrong_subject,gemini,"whole ship + sea, 3 ComfyUI rounds"
+4,goldpebble,Goldpebble,5,beast,accept,,comfyui,
+4,shui-gui,Shui Gui,5,undead,accept,,comfyui,
+4,anadi-elder,Anadi Elder,6,humanoid,accept,,comfyui,
+4,asanbosam,Asanbosam,6,humanoid,accept,,comfyui,
+4,ethereal-sailor,Ethereal Sailor,6,undead,accept,,comfyui,
+4,imperfect-automaton,Imperfect Automaton,6,construct,accept,,comfyui,
+4,rime-dragon-young,Rime Dragon (Young),6,dragon,accept,,comfyui,
+4,aurosrath,Aurosrath,5,undead,flag,scenery_backdrop,gemini,wall candelabras
+4,irriseni-owlbear,Irriseni Owlbear,5,hybrid,flag,hybrid_anatomy;wrong_subject,gemini,"owl only, no bear body"
+4,karina,Karina,5,hybrid,flag,halo_or_disc,gemini,white splatter halo
+4,rompo,Rompo,5,hybrid,flag,hybrid_anatomy;wrong_details,gemini,koala face in a suit
+4,temteki,Temteki,5,elemental,flag,scenery_backdrop;wrong_subject,gemini,dark tree with colour wedges
+4,charau-ka-butcher,Charau-ka Butcher,6,humanoid,flag,scenery_backdrop,gemini,yellow burst behind head
+4,lamp-blighter,Lamp Blighter,6,fey,flag,halo_or_disc,gemini,cream halo blob
+4,melfesh-monster,Melfesh Monster,6,aberration,flag,scenery_backdrop;bg_score_high,gemini,smoke clouds; checker 70
+5,rime-dragon-young-spellcaster,"Rime Dragon (Young, Spellcaster)",6,dragon,accept,,comfyui,
+5,silt-frog,Silt Frog,6,beast,accept,,comfyui,
+5,stone-sister,Stone Sister,6,undead,accept,,comfyui,
+5,bog-dragon-young,Bog Dragon (Young),7,dragon,accept,,comfyui,
+5,crystal-dragon-young-spellcaster,"Crystal Dragon (Young, Spellcaster)",7,dragon,accept,,comfyui,
+5,eloko,Eloko,7,fey,accept,,comfyui,
+5,imugi,Imugi,7,dragon,accept,,comfyui,
+5,pagulin,Pagulin,7,beast,accept,,comfyui,
+5,spawn-of-kothogaz,Spawn Of Kothogaz,6,aberration,flag,scenery_backdrop;cropped,gemini,"red wedge, cut at right edge"
+5,wailing-dragon-young,Wailing Dragon (Young),6,dragon,flag,cropped,gemini,head and neck only
+5,wailing-dragon-young-spellcaster,"Wailing Dragon (Young, Spellcaster)",6,dragon,flag,halo_or_disc;bg_patch,gemini,black disc + rock ledge
+5,bog-dragon-young-spellcaster,"Bog Dragon (Young, Spellcaster)",7,dragon,flag,scenery_backdrop,gemini,green radial glow
+5,crystal-dragon-young,Crystal Dragon (Young),7,dragon,flag,cropped,gemini,head and neck only
+5,crystal-xorn,Crystal Xorn,7,elemental,flag,halo_or_disc;wrong_subject,gemini,black disc; mask-like face
+5,solar-ibis,Solar Ibis,7,beast,flag,wrong_subject;scenery_backdrop,gemini,dark bird on yellow burst
+6,yeongno,Yeongno,7,humanoid,accept,,comfyui,
+6,barrage-dragon-young,Barrage Dragon (Young),8,dragon,accept,,comfyui,
+6,barrage-dragon-young-spellcaster,"Barrage Dragon (Young, Spellcaster)",8,dragon,accept,,comfyui,
+6,bibliodaemon,Bibliodaemon,8,humanoid,accept,,comfyui,
+6,brine-dragon-young-spellcaster,"Brine Dragon (Young, Spellcaster)",8,dragon,accept,,comfyui,
+6,krampus-celebrant,Krampus Celebrant,8,humanoid,accept,,comfyui,
+6,spellscar-fext,Spellscar Fext,7,undead,flag,scenery_backdrop;wrong_subject,gemini,flames; skeleton not warped flesh
+6,ulgrem-axaan,Ulgrem-Axaan,7,undead,flag,cropped;bg_score_high,gemini,"head/neck, checker 59"
+6,underworld-dragon-young,Underworld Dragon (Young),7,dragon,flag,cropped;scenery_backdrop,gemini,"head only, flame backdrop"
+6,underworld-dragon-young-spellcaster,"Underworld Dragon (Young, Spellcaster)",7,dragon,flag,cropped,gemini,head only
+6,young-linnorm,Young Linnorm,7,dragon,flag,wrong_details;scenery_backdrop,gemini,wings + 4 legs on a wingless linnorm; green rectangle
+6,brine-dragon-young,Brine Dragon (Young),8,dragon,flag,cropped;bg_patch;bg_score_high,gemini,"head/neck, ground patch, checker 59"
+6,fleshforged-conformer,Fleshforged Conformer,8,construct,flag,wrong_subject;cropped;bg_patch,gemini,skull with wires; white corners
+6,k-nonna,K'nonna,8,hybrid,flag,wrong_subject;hybrid_anatomy,gemini,"full goblin-like humanoid, not a half-human"
+6,manananggal,Manananggal,8,hybrid,flag,wrong_subject;hybrid_anatomy,gemini,"winged dragon with legs, not a torso"
+7,mocking-dragon-young,Mocking Dragon (Young),8,dragon,accept,,comfyui,
+7,mocking-dragon-young-spellcaster,"Mocking Dragon (Young, Spellcaster)",8,dragon,flag,cropped,gemini,
+7,pixiu,Pixiu,8,hybrid,flag,decorative_frame,gemini,
+7,sea-dragon-young,Sea Dragon (Young),8,dragon,accept,,comfyui,
+7,sea-dragon-young-spellcaster,"Sea Dragon (Young, Spellcaster)",8,dragon,flag,scenery_backdrop;bg_score_high,gemini,
+7,coral-juggernaut,Coral Juggernaut,9,construct,accept,,comfyui,
+7,executor-dragon-young,Executor Dragon (Young),9,dragon,flag,decorative_frame;bg_score_high,gemini,
+7,executor-dragon-young-spellcaster,"Executor Dragon (Young, Spellcaster)",9,dragon,flag,bg_patch,gemini,
+7,five-color-orchid-mantis,Five-Color Orchid Mantis,9,beast,accept,,comfyui,
+7,kallas-devil,Kallas Devil,9,hybrid,accept,,comfyui,
+7,magma-dragon-young,Magma Dragon (Young),9,dragon,flag,scenery_backdrop,gemini,
+7,magma-dragon-young-spellcaster,"Magma Dragon (Young, Spellcaster)",9,dragon,accept,,comfyui,
+7,mamlambo,Mamlambo,9,hybrid,flag,cropped;hybrid_anatomy,gemini,
+7,mutant-gnoll-hulk,Mutant Gnoll Hulk,9,beast,accept,,comfyui,
+7,sage-dragon-young,Sage Dragon (Young),9,dragon,flag,decorative_frame;bg_score_high,gemini,
+8,sky-dragon-young,Sky Dragon (Young),9,dragon,accept,,gemini,
+8,stormcrown-dragon-young,Stormcrown Dragon (Young),9,dragon,accept,,gemini,
+8,vorpal-dragon-young,Vorpal Dragon (Young),9,dragon,accept,,gemini,
+8,cloud-dragon-young,Cloud Dragon (Young),10,dragon,accept,,gemini,
+8,delight-dragon-young,Delight Dragon (Young),10,dragon,accept,,gemini,
+8,sage-dragon-young-spellcaster,"Sage Dragon (Young, Spellcaster)",9,dragon,accept,,comfyui,
+8,sky-dragon-young-spellcaster,"Sky Dragon (Young, Spellcaster)",9,dragon,flag,decorative_frame,gemini,
+8,stone-giant-monk,Stone Giant Monk,9,beast,accept,,comfyui,
+8,stormcrown-dragon-young-spellcaster,"Stormcrown Dragon (Young, Spellcaster)",9,dragon,accept,,comfyui,
+8,vorpal-dragon-young-spellcaster,"Vorpal Dragon (Young, Spellcaster)",9,dragon,flag,cropped,gemini,
+8,aoyin,Aoyin,10,beast,flag,cropped;wrong_details,gemini,
+8,cloud-dragon-young-spellcaster,"Cloud Dragon (Young, Spellcaster)",10,dragon,flag,scenery_backdrop;cropped;wrong_details,gemini,
+8,cursed-king,Cursed King,10,beast,accept,,comfyui,
+8,delight-dragon-young-spellcaster,"Delight Dragon (Young, Spellcaster)",10,dragon,flag,cropped,gemini,
+8,failed-prophet,Failed Prophet,10,beast,accept,,comfyui,
+9,forest-dragon-young,Forest Dragon (Young),10,dragon,accept,,gemini,
+9,oath-dragon-young,Oath Dragon (Young),10,dragon,accept,,gemini,
+9,wish-dragon-young,Wish Dragon (Young),10,dragon,accept,,gemini,
+9,forest-dragon-young-spellcaster,"Forest Dragon (Young, Spellcaster)",10,dragon,accept,,comfyui,
+9,mosquito-witch,Mosquito Witch,10,beast,accept,,comfyui,
+9,mosquito-witch-the-hemoprophet,Mosquito Witch (The Hemoprophet),10,beast,flag,halo_or_disc,gemini,
+9,mosquito-witch-the-legion-leech,Mosquito Witch (The Legion Leech),10,beast,accept,,comfyui,
+9,mosquito-witch-the-swarm-seer,Mosquito Witch (The Swarm Seer),10,beast,flag,monochrome_line_art,gemini,
+9,oath-dragon-young-spellcaster,"Oath Dragon (Young, Spellcaster)",10,dragon,flag,cropped;scenery_backdrop,gemini,
+9,rime-dragon-adult,Rime Dragon (Adult),10,dragon,accept,,comfyui,
+9,rime-dragon-adult-spellcaster,"Rime Dragon (Adult, Spellcaster)",10,dragon,flag,cropped;bg_score_high,gemini,
+9,spectral-devil,Spectral Devil,10,beast,flag,hybrid_anatomy;wrong_details,gemini,
+9,vorvorak,Vorvorak,10,beast,flag,monochrome_line_art;cropped,gemini,
+9,wailing-dragon-adult,Wailing Dragon (Adult),10,dragon,flag,cropped,gemini,
+9,wailing-dragon-adult-spellcaster,"Wailing Dragon (Adult, Spellcaster)",10,dragon,flag,cropped,gemini,
+10,wish-dragon-young-spellcaster,"Wish Dragon (Young, Spellcaster)",10,dragon,accept,,gemini,gemini-first
+10,zinba,Zinba,10,beast,accept,,comfyui,
+10,bog-dragon-adult,Bog Dragon (Adult),11,dragon,flag,scenery_backdrop,gemini,
+10,bog-dragon-adult-spellcaster,"Bog Dragon (Adult, Spellcaster)",11,dragon,accept,,gemini,gemini-first
+10,crystal-dragon-adult,Crystal Dragon (Adult),11,dragon,flag,scenery_backdrop,gemini,
+10,crystal-dragon-adult-spellcaster,"Crystal Dragon (Adult, Spellcaster)",11,dragon,accept,,gemini,gemini-first
+10,hellknight-paravicar,Hellknight Paravicar,11,humanoid,accept,,comfyui,
+10,howling-spawn,Howling Spawn,11,beast,flag,cropped;scenery_backdrop,gemini,
+10,nue,Nue,11,hybrid,flag,hybrid_anatomy;wrong_details,gemini,gemini-first
+10,pathfinder-venture-captain,Pathfinder Venture-Captain,11,beast,accept,,comfyui,
+10,pelagiadaemon,Pelagiadaemon,11,beast,accept,,comfyui,
+10,privateer-captain,Privateer Captain,11,beast,flag,scenery_backdrop,gemini,
+10,somnalu-oculus,Somnalu Oculus,11,beast,flag,wrong_subject,gemini,
+10,sovereign-dragon-young,Sovereign Dragon (Young),11,dragon,accept,,gemini,gemini-first
+10,sovereign-dragon-young-spellcaster,"Sovereign Dragon (Young, Spellcaster)",11,dragon,accept,,gemini,gemini-first
+11,tempest-sun-mage,Tempest-Sun Mage,11,beast,flag,bg_patch,gemini,gemini-first
+11,time-dragon-young,Time Dragon (Young),11,dragon,accept,,gemini,gemini-first
+11,time-dragon-young-spellcaster,"Time Dragon (Young, Spellcaster)",11,dragon,accept,,gemini,gemini-first
+11,ulistul,Ulistul,11,beast,accept,,comfyui,
+11,umbral-dragon-young,Umbral Dragon (Young),11,dragon,accept,,gemini,gemini-first
+11,umbral-dragon-young-spellcaster,"Umbral Dragon (Young, Spellcaster)",11,dragon,accept,,gemini,gemini-first
+11,underworld-dragon-adult,Underworld Dragon (Adult),11,dragon,accept,,gemini,gemini-first
+11,underworld-dragon-adult-spellcaster,"Underworld Dragon (Adult, Spellcaster)",11,dragon,accept,,gemini,gemini-first
+11,veteran-reclaimer,Veteran Reclaimer,11,beast,accept,,comfyui,
+11,vizier-dragon-young,Vizier Dragon (Young),11,dragon,accept,,gemini,gemini-first
+11,vizier-dragon-young-spellcaster,"Vizier Dragon (Young, Spellcaster)",11,dragon,accept,,gemini,gemini-first
+11,aso-berang,Aso Berang,12,beast,flag,cropped;scenery_backdrop;hybrid_anatomy,gemini,
+11,barrage-dragon-adult,Barrage Dragon (Adult),12,dragon,accept,,gemini,gemini-first
+11,barrage-dragon-adult-spellcaster,"Barrage Dragon (Adult, Spellcaster)",12,dragon,accept,,gemini,gemini-first
+11,brine-dragon-adult,Brine Dragon (Adult),12,dragon,accept,,gemini,gemini-first
+12,brine-dragon-adult-spellcaster,"Brine Dragon (Adult, Spellcaster)",12,dragon,accept,,gemini,gemini-first
+12,kuworsys,Kuworsys,12,beast,flag,halo_or_disc,gemini,
+12,mocking-dragon-adult,Mocking Dragon (Adult),12,dragon,accept,,gemini,gemini-first
+12,mocking-dragon-adult-spellcaster,"Mocking Dragon (Adult, Spellcaster)",12,dragon,accept,,gemini,gemini-first
+12,peng,Peng,12,beast,accept,,comfyui,
+12,sea-dragon-adult,Sea Dragon (Adult),12,dragon,accept,,gemini,gemini-first
+12,sea-dragon-adult-spellcaster,"Sea Dragon (Adult, Spellcaster)",12,dragon,accept,,gemini,gemini-first
+12,dedalon,Dedalon,13,beast,accept,,comfyui,
+12,executor-dragon-adult,Executor Dragon (Adult),13,dragon,accept,,gemini,gemini-first
+12,executor-dragon-adult-spellcaster,"Executor Dragon (Adult, Spellcaster)",13,dragon,accept,,gemini,gemini-first
+12,magma-dragon-adult,Magma Dragon (Adult),13,dragon,accept,,gemini,gemini-first
+12,magma-dragon-adult-spellcaster,"Magma Dragon (Adult, Spellcaster)",13,dragon,accept,,gemini,gemini-first
+12,sage-dragon-adult,Sage Dragon (Adult),13,dragon,flag,bg_patch,gemini,gemini-first
+12,sage-dragon-adult-spellcaster,"Sage Dragon (Adult, Spellcaster)",13,dragon,accept,,gemini,gemini-first
+12,sky-dragon-adult,Sky Dragon (Adult),13,dragon,accept,,gemini,gemini-first
+13,sky-dragon-adult-spellcaster,"Sky Dragon (Adult, Spellcaster)",13,dragon,accept,,gemini,gemini-first
+13,stormcrown-dragon-adult,Stormcrown Dragon (Adult),13,dragon,flag,bg_patch,gemini,gemini-first
+13,stormcrown-dragon-adult-spellcaster,"Stormcrown Dragon (Adult, Spellcaster)",13,dragon,accept,,gemini,gemini-first
+13,tehialai-thief-of-ships,Tehialai-Thief-of-Ships,13,beast,flag,wrong_subject;scenery_backdrop,gemini,
+13,torn-quartet,Torn Quartet,13,beast,flag,wrong_subject,gemini,
+13,vorpal-dragon-adult,Vorpal Dragon (Adult),13,dragon,accept,,gemini,gemini-first
+13,vorpal-dragon-adult-spellcaster,"Vorpal Dragon (Adult, Spellcaster)",13,dragon,accept,,gemini,gemini-first
+13,ainamuuren,Ainamuuren,14,beast,flag,wrong_details,gemini,
+13,bul-gae,Bul-Gae,14,beast,accept,,comfyui,
+13,cloud-dragon-adult,Cloud Dragon (Adult),14,dragon,accept,,gemini,gemini-first
+13,cloud-dragon-adult-spellcaster,"Cloud Dragon (Adult, Spellcaster)",14,dragon,accept,,gemini,gemini-first
+13,delight-dragon-adult,Delight Dragon (Adult),14,dragon,accept,,gemini,gemini-first
+13,delight-dragon-adult-spellcaster,"Delight Dragon (Adult, Spellcaster)",14,dragon,accept,,gemini,gemini-first
+13,forest-dragon-adult,Forest Dragon (Adult),14,dragon,accept,,gemini,gemini-first
+13,forest-dragon-adult-spellcaster,"Forest Dragon (Adult, Spellcaster)",14,dragon,accept,,gemini,gemini-first
+14,gunpowder-ooze,Gunpowder Ooze,14,beast,flag,wrong_subject;scenery_backdrop,gemini,
+14,ijhyeojin,Ijhyeojin,14,beast,flag,monochrome_line_art;cropped,gemini,
+14,joseung-saja,Joseung Saja,14,beast,flag,halo_or_disc;scenery_backdrop,gemini,
+14,kun,Kun,14,beast,accept,,comfyui,
+14,oath-dragon-adult,Oath Dragon (Adult),14,dragon,accept,,gemini,gemini-first
+14,oath-dragon-adult-spellcaster,"Oath Dragon (Adult, Spellcaster)",14,dragon,accept,,gemini,gemini-first
+14,si-goluo,Sié Goluo,14,hybrid,accept,,gemini,gemini-first
+14,wish-dragon-adult,Wish Dragon (Adult),14,dragon,accept,,gemini,gemini-first
+14,wish-dragon-adult-spellcaster,"Wish Dragon (Adult, Spellcaster)",14,dragon,accept,,gemini,gemini-first
+14,clockwork-cannoneer,Clockwork Cannoneer,15,construct,flag,wrong_details;bg_patch,gemini,
+14,grand-defender,Grand Defender,15,humanoid,flag,scenery_backdrop,gemini,
+14,rime-dragon-ancient,Rime Dragon (Ancient),15,dragon,accept,,gemini,gemini-first
+14,rime-dragon-ancient-spellcaster,"Rime Dragon (Ancient, Spellcaster)",15,dragon,accept,,gemini,gemini-first
+14,somnalu,Somnalu,15,beast,flag,wrong_subject;cropped,gemini,
+14,sovereign-dragon-adult,Sovereign Dragon (Adult),15,dragon,accept,,gemini,gemini-first
+15,sovereign-dragon-adult-spellcaster,"Sovereign Dragon (Adult, Spellcaster)",15,dragon,accept,,gemini,gemini-first
+15,time-dragon-adult,Time Dragon (Adult),15,dragon,accept,,gemini,gemini-first
+15,time-dragon-adult-spellcaster,"Time Dragon (Adult, Spellcaster)",15,dragon,accept,,gemini,gemini-first
+15,umbral-dragon-adult,Umbral Dragon (Adult),15,dragon,accept,,gemini,gemini-first
+15,umbral-dragon-adult-spellcaster,"Umbral Dragon (Adult, Spellcaster)",15,dragon,accept,,gemini,gemini-first
+15,vizier-dragon-adult,Vizier Dragon (Adult),15,dragon,accept,,gemini,gemini-first
+15,vizier-dragon-adult-spellcaster,"Vizier Dragon (Adult, Spellcaster)",15,dragon,flag,bg_patch,gemini,gemini-first
+15,wailing-dragon-ancient,Wailing Dragon (Ancient),15,dragon,accept,,gemini,gemini-first
+15,wailing-dragon-ancient-spellcaster,"Wailing Dragon (Ancient, Spellcaster)",15,dragon,accept,,gemini,gemini-first
+15,bog-dragon-ancient,Bog Dragon (Ancient),16,dragon,accept,,gemini,gemini-first
+15,bog-dragon-ancient-spellcaster,"Bog Dragon (Ancient, Spellcaster)",16,dragon,accept,,gemini,gemini-first
+15,corbayrant,Corbayrant,16,beast,flag,bg_patch,gemini,
+15,crystal-dragon-ancient,Crystal Dragon (Ancient),16,dragon,accept,,gemini,gemini-first
+15,crystal-dragon-ancient-spellcaster,"Crystal Dragon (Ancient, Spellcaster)",16,dragon,accept,,gemini,gemini-first
+15,grogrisant,Grogrisant,16,beast,flag,wrong_details;cropped,gemini,
+16,grootslang,Grootslang,16,hybrid,accept,,gemini,gemini-first
+16,scylla,Scylla,16,hybrid,accept,,gemini,gemini-first
+16,underworld-dragon-ancient,Underworld Dragon (Ancient),16,dragon,accept,,gemini,gemini-first
+16,underworld-dragon-ancient-spellcaster,"Underworld Dragon (Ancient, Spellcaster)",16,dragon,accept,,gemini,gemini-first
+16,barrage-dragon-ancient,Barrage Dragon (Ancient),17,dragon,accept,,gemini,gemini-first
+16,barrage-dragon-ancient-spellcaster,"Barrage Dragon (Ancient, Spellcaster)",17,dragon,accept,,gemini,gemini-first
+16,brine-dragon-ancient,Brine Dragon (Ancient),17,dragon,accept,,gemini,gemini-first
+16,brine-dragon-ancient-spellcaster,"Brine Dragon (Ancient, Spellcaster)",17,dragon,accept,,gemini,gemini-first
+16,cuetzmonquali,Cuetzmonquali,17,beast,flag,cropped,gemini,
+16,maliadi,Maliadi,17,beast,accept,,comfyui,
+16,mocking-dragon-ancient,Mocking Dragon (Ancient),17,dragon,accept,,gemini,gemini-first
+16,mocking-dragon-ancient-spellcaster,"Mocking Dragon (Ancient, Spellcaster)",17,dragon,accept,,gemini,gemini-first
+16,sea-dragon-ancient,Sea Dragon (Ancient),17,dragon,accept,,gemini,gemini-first
+16,sea-dragon-ancient-spellcaster,"Sea Dragon (Ancient, Spellcaster)",17,dragon,accept,,gemini,gemini-first
+16,wyrmwraith,Wyrmwraith,17,dragon,accept,,gemini,gemini-first
+17,bone-ship,Bone Ship,18,beast,flag,monochrome_line_art;scenery_backdrop;wrong_details,gemini,
+17,caterpillar-carriage,Caterpillar Carriage,18,beast,accept,,comfyui,
+17,executor-dragon-ancient,Executor Dragon (Ancient),18,dragon,accept,,gemini,gemini-first
+17,executor-dragon-ancient-spellcaster,"Executor Dragon (Ancient, Spellcaster)",18,dragon,accept,,gemini,gemini-first
+17,fleshforged-dreadnought,Fleshforged Dreadnought,18,beast,flag,bg_patch;wrong_details,gemini,
+17,magma-dragon-ancient,Magma Dragon (Ancient),18,dragon,accept,,gemini,gemini-first
+17,magma-dragon-ancient-spellcaster,"Magma Dragon (Ancient, Spellcaster)",18,dragon,accept,,gemini,gemini-first
+17,rime-archdragon,Rime Archdragon,18,dragon,accept,,gemini,gemini-first
+17,rime-archdragon-spellcaster,Rime Archdragon (Spellcaster),18,dragon,accept,,gemini,gemini-first
+17,sage-dragon-ancient,Sage Dragon (Ancient),18,dragon,accept,,gemini,gemini-first
+17,sage-dragon-ancient-spellcaster,"Sage Dragon (Ancient, Spellcaster)",18,dragon,accept,,gemini,gemini-first
+17,sky-dragon-ancient,Sky Dragon (Ancient),18,dragon,accept,,gemini,gemini-first
+17,sky-dragon-ancient-spellcaster,"Sky Dragon (Ancient, Spellcaster)",18,dragon,accept,,gemini,gemini-first
+17,stormcrown-dragon-ancient,Stormcrown Dragon (Ancient),18,dragon,accept,,gemini,gemini-first
+17,stormcrown-dragon-ancient-spellcaster,"Stormcrown Dragon (Ancient, Spellcaster)",18,dragon,accept,,gemini,gemini-first
