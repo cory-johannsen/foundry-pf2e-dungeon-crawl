@@ -17774,5 +17774,93 @@
     "name": "Warden of Peaks and Skies",
     "level": 22,
     "art": "warden-of-peaks-and-skies-lob.webp"
+  },
+  {
+    "id": "mythic_griffon_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "z9AJIIWfoZqmXHdJ",
+    "name": "Mythic Griffon",
+    "level": 4,
+    "art": "mythic-griffon-lob.webp"
+  },
+  {
+    "id": "sublime_breath_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "Om9ruhbwPNISjwDr",
+    "name": "Sublime Breath",
+    "level": 6,
+    "art": "sublime-breath-lob.webp"
+  },
+  {
+    "id": "mythic_ogre_boss_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "F9HHYowsSs0CLMX0",
+    "name": "Mythic Ogre Boss",
+    "level": 7,
+    "art": "mythic-ogre-boss-lob.webp"
+  },
+  {
+    "id": "immortal_trickster_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "H2RSvVckwPdFCAYY",
+    "name": "Immortal Trickster",
+    "level": 11,
+    "art": "immortal-trickster-lob.webp"
+  },
+  {
+    "id": "mythic_gogiteth_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "AQw3uql8ovK4NPPi",
+    "name": "Mythic Gogiteth",
+    "level": 12,
+    "art": "mythic-gogiteth-lob.webp"
+  },
+  {
+    "id": "mythic_lich_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "Roj3l7HjnV0kFq9a",
+    "name": "Mythic Lich",
+    "level": 12,
+    "art": "mythic-lich-lob.webp"
+  },
+  {
+    "id": "weaver_of_webs_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "otEC0HMg4whUaLAD",
+    "name": "Weaver of Webs",
+    "level": 15,
+    "art": "weaver-of-webs-lob.webp"
+  },
+  {
+    "id": "vulot_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "FpM4xd45aBf7wsqH",
+    "name": "Vulot",
+    "level": 21,
+    "art": "vulot-lob.webp"
+  },
+  {
+    "id": "agyra_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "yQIro3136G7EUgLQ",
+    "name": "Agyra",
+    "level": 23,
+    "art": "agyra-lob.webp"
+  },
+  {
+    "id": "verex_that_was_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "qPFA9IM6QjnSuagx",
+    "name": "Verex-That-Was",
+    "level": 24,
+    "art": "verex-that-was-lob.webp"
+  },
+  {
+    "id": "oliphaunt_of_jandelay_lob",
+    "pack": "pf2e.war-of-immortals-bestiary",
+    "docId": "fH8t5uKyFA4UuZqp",
+    "name": "Oliphaunt of Jandelay",
+    "level": 25,
+    "art": "oliphaunt-of-jandelay-lob.webp"
   }
 ]
