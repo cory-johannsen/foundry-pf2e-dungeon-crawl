@@ -224,3 +224,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 15,crystal-dragon-ancient,Crystal Dragon (Ancient),16,dragon,accept,,gemini,gemini-first
 15,crystal-dragon-ancient-spellcaster,"Crystal Dragon (Ancient, Spellcaster)",16,dragon,accept,,gemini,gemini-first
 15,grogrisant,Grogrisant,16,beast,flag,wrong_details;cropped,gemini,
+16,grootslang,Grootslang,16,hybrid,accept,,gemini,gemini-first
+16,scylla,Scylla,16,hybrid,accept,,gemini,gemini-first
+16,underworld-dragon-ancient,Underworld Dragon (Ancient),16,dragon,accept,,gemini,gemini-first
+16,underworld-dragon-ancient-spellcaster,"Underworld Dragon (Ancient, Spellcaster)",16,dragon,accept,,gemini,gemini-first
+16,barrage-dragon-ancient,Barrage Dragon (Ancient),17,dragon,accept,,gemini,gemini-first
+16,barrage-dragon-ancient-spellcaster,"Barrage Dragon (Ancient, Spellcaster)",17,dragon,accept,,gemini,gemini-first
+16,brine-dragon-ancient,Brine Dragon (Ancient),17,dragon,accept,,gemini,gemini-first
+16,brine-dragon-ancient-spellcaster,"Brine Dragon (Ancient, Spellcaster)",17,dragon,accept,,gemini,gemini-first
+16,cuetzmonquali,Cuetzmonquali,17,beast,flag,cropped,gemini,
+16,maliadi,Maliadi,17,beast,accept,,comfyui,
+16,mocking-dragon-ancient,Mocking Dragon (Ancient),17,dragon,accept,,gemini,gemini-first
+16,mocking-dragon-ancient-spellcaster,"Mocking Dragon (Ancient, Spellcaster)",17,dragon,accept,,gemini,gemini-first
+16,sea-dragon-ancient,Sea Dragon (Ancient),17,dragon,accept,,gemini,gemini-first
+16,sea-dragon-ancient-spellcaster,"Sea Dragon (Ancient, Spellcaster)",17,dragon,accept,,gemini,gemini-first
+16,wyrmwraith,Wyrmwraith,17,dragon,accept,,gemini,gemini-first

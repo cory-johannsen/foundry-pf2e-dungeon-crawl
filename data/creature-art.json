@@ -14830,5 +14830,125 @@
     "name": "Grogrisant",
     "level": 16,
     "art": "grogrisant-lob.webp"
+  },
+  {
+    "id": "grootslang_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "NvyAvzxxfb8XEQr2",
+    "name": "Grootslang",
+    "level": 16,
+    "art": "grootslang-lob.webp"
+  },
+  {
+    "id": "scylla_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "qgshcvL8lu24Bxjq",
+    "name": "Scylla",
+    "level": 16,
+    "art": "scylla-lob.webp"
+  },
+  {
+    "id": "underworld_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "jqcAeid4jcx9Lrjc",
+    "name": "Underworld Dragon (Ancient)",
+    "level": 16,
+    "art": "underworld-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "underworld_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "cdvuNbNQ1sPCjG9S",
+    "name": "Underworld Dragon (Ancient, Spellcaster)",
+    "level": 16,
+    "art": "underworld-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "barrage_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "DDHWqs85wxelvkg5",
+    "name": "Barrage Dragon (Ancient)",
+    "level": 17,
+    "art": "barrage-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "barrage_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "T2HLLrHCxnBrtXly",
+    "name": "Barrage Dragon (Ancient, Spellcaster)",
+    "level": 17,
+    "art": "barrage-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "brine_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "fyWOC6EGIhB3kjRN",
+    "name": "Brine Dragon (Ancient)",
+    "level": 17,
+    "art": "brine-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "brine_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "PZlEThIJ3lWXEKMa",
+    "name": "Brine Dragon (Ancient, Spellcaster)",
+    "level": 17,
+    "art": "brine-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "mocking_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "DSxF9af8K2xWvTbn",
+    "name": "Mocking Dragon (Ancient)",
+    "level": 17,
+    "art": "mocking-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "mocking_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "HpJhZGoGl9AnQMwY",
+    "name": "Mocking Dragon (Ancient, Spellcaster)",
+    "level": 17,
+    "art": "mocking-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "sea_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9DwBxIoHnUShWw1Q",
+    "name": "Sea Dragon (Ancient)",
+    "level": 17,
+    "art": "sea-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "sea_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Ypq6e5ndTZind4TK",
+    "name": "Sea Dragon (Ancient, Spellcaster)",
+    "level": 17,
+    "art": "sea-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "wyrmwraith_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mkhoMY6pFClaARVg",
+    "name": "Wyrmwraith",
+    "level": 17,
+    "art": "wyrmwraith-lob.webp"
+  },
+  {
+    "id": "maliadi_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "x2udXsqiLZachJHY",
+    "name": "Maliadi",
+    "level": 17,
+    "art": "maliadi-lob.webp"
+  },
+  {
+    "id": "cuetzmonquali_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "LK3SgIKJqqo4Q4NQ",
+    "name": "Cuetzmonquali",
+    "level": 17,
+    "art": "cuetzmonquali-lob.webp"
   }
 ]
