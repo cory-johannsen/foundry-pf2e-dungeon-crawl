@@ -683,6 +683,103 @@ describe("moveFollowersToward footprint-awareness (#140)", () => {
   });
 });
 
+describe("moveFollowersToward chain-following (#181)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // The actual live-reproduced bug this fixes: in a 1-wide corridor, every
+  // follower searching for a cell "near the leader" can only ever find one
+  // reachable candidate (whoever's already closest occupies the only
+  // passage cell) — the rest jitter in place forever. Chain-following
+  // fixes this by having each follower target whoever is immediately
+  // ahead of it in marching order instead of the leader directly, so they
+  // naturally queue up single-file.
+  it("queues followers single-file through a 1-wide corridor, in marching order", async () => {
+    vi.useFakeTimers();
+    const leader = makeToken({
+      id: "t-leader",
+      x: 0,
+      y: 10 * GRID,
+      actorId: LEADER_ACTOR_ID,
+    });
+    const followerA = makeToken({ id: "t-a", x: 0, y: 0, actorId: "actor-a" });
+    const followerB = makeToken({ id: "t-b", x: 0, y: 0, actorId: "actor-b" });
+    const followerC = makeToken({ id: "t-c", x: 0, y: 0, actorId: "actor-c" });
+    const scene = makeScene({ tokens: [leader, followerA, followerB, followerC] });
+    // Force single-file movement: block every edge that isn't strictly
+    // along column gx=0. The default scene (7x3 grid cells) is also too
+    // short for this test's coordinates (leader at gy=10) -- widen it so
+    // the whole column is in bounds.
+    scene.height = 11 * GRID;
+    // Two long parallel walls flanking column gx=0 (boundary columns 0 and
+    // 1, per blockedEdgesFromWalls' `boundary = max(a.gx, b.gx)` -- the
+    // wall's own pixel x must be an exact grid-column multiple, not a
+    // half-grid offset, or blockedEdgesFromWalls silently ignores it via
+    // its `Number.isInteger(col)` guard), spanning the whole way from
+    // gy=-1 to gy=11 so every row transition down the corridor is blocked.
+    scene.walls.contents = [
+      { move: 20, door: 0, c: [0, -GRID, 0, 11 * GRID] },
+      { move: 20, door: 0, c: [GRID, -GRID, GRID, 11 * GRID] },
+    ];
+    globalThis.CONST = {
+      WALL_MOVEMENT_TYPES: { NONE: 0, NORMAL: 20 },
+      WALL_DOOR_TYPES: { NONE: 0, DOOR: 1, SECRET: 2 },
+      WALL_DOOR_STATES: { CLOSED: 0, OPEN: 1, LOCKED: 2 },
+    };
+
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: ["actor-a", "actor-b", "actor-c"],
+          marchingOrder: ["actor-a", "actor-b", "actor-c"],
+        },
+      },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    // Several follow-cycles, mirroring a real leader advancing repeatedly.
+    // Marching order is checked after EVERY cycle, not just the final one:
+    // pre-fix, every follower independently retargets the leader's own tiny
+    // (single-cell) neighborhood each cycle, which doesn't just stall B and
+    // C -- it makes their relative order genuinely OSCILLATE cycle to cycle
+    // (live-confirmed while writing this test: pre-fix this exact scenario
+    // produces a stable 3-cycle-period swap between B and C, landing on the
+    // WRONG order roughly a third of the time), so asserting only the final
+    // cycle's snapshot could pass or fail depending on how many cycles
+    // happen to run. Checking every cycle catches the very first violation
+    // regardless of cycle count.
+    for (let i = 0; i < 6; i += 1) {
+      runFollowMoveNow(SCENE_ID);
+      await vi.advanceTimersByTimeAsync(300);
+      expect(followerA.y).toBeGreaterThanOrEqual(followerB.y);
+      expect(followerB.y).toBeGreaterThanOrEqual(followerC.y);
+    }
+
+    // All three made real progress toward the leader (not stuck at y=0).
+    expect(followerA.y).toBeGreaterThan(0);
+    expect(followerB.y).toBeGreaterThan(0);
+    expect(followerC.y).toBeGreaterThan(0);
+  });
+
+  // Review Focus: zero AI-controlled followers must not crash.
+  it("does nothing when there are no AI-controlled followers", async () => {
+    vi.useFakeTimers();
+    const leader = makeToken({ id: "t-leader", x: 0, y: 0, actorId: LEADER_ACTOR_ID });
+    const scene = makeScene({ tokens: [leader] });
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: { hostUserId: HOST_USER_ID, aiControlledActorIds: [], marchingOrder: [] },
+      },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    expect(() => runFollowMoveNow(SCENE_ID)).not.toThrow();
+    await vi.advanceTimersByTimeAsync(300);
+  });
+});
+
 describe("resnapTokenNow (#141)", () => {
   it("snaps an off-grid token back to the nearest grid cell", () => {
     const token = makeToken({

@@ -11,7 +11,7 @@
  * previously there was no fallback at all, so follow-movement silently
  * never ran whenever no GM-privileged client happened to be connected).
  */
-import { getRunState } from "./dungeon-runner.mjs";
+import { getRunState, effectiveMarchingOrder } from "./dungeon-runner.mjs";
 import { requestDungeonAction } from "./dungeon-remote.mjs";
 import { blockedEdgesFromWalls } from "./pathfinding.mjs";
 import { footprint } from "./placement.mjs";
@@ -97,6 +97,15 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
     const leaderCell = tokenCell(leaderToken, gridSize);
     const occupied = scene.tokens.map((t) => footprint(t, gridSize));
 
+    // #181: chain-following — the first follower in marching order
+    // targets the leader, exactly as before; every follower after it
+    // targets whoever is immediately ahead of it in the order, using that
+    // predecessor's CURRENT cell (updated below after each iteration) —
+    // not the leader directly. This is what actually lets followers queue
+    // single-file through a corridor too narrow for more than one of them
+    // to be "near the leader" at once, instead of every follower
+    // independently failing to path past whoever's already closest.
+    let referenceCell = leaderCell;
     for (const actorId of aiControlledIds) {
       const token = scene.tokens.find((t) => t.actor?.id === actorId);
       if (!token) continue;
@@ -131,7 +140,7 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
         myIndex !== -1 ? occupied.splice(myIndex, 1)[0] : null;
       const result = findFollowMove(
         fromCell,
-        leaderCell,
+        referenceCell,
         occupied,
         isBlocked,
         bounds,
@@ -144,6 +153,9 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
             `${MODULE_ID} | dungeon-follow: no route for actor ${actorId} to reach the leader.`,
           );
         }
+        // #181: this follower didn't move — the next one in the chain
+        // still targets wherever it currently is.
+        referenceCell = fromCell;
         continue;
       }
       occupied.push({
@@ -156,6 +168,7 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
         x: result.to.gx * gridSize,
         y: result.to.gy * gridSize,
       });
+      referenceCell = result.to;
     }
   } finally {
     inFlightScenes.delete(scene.id);
@@ -197,7 +210,7 @@ export function runFollowMoveNow(sceneId) {
   const scene = game.scenes.get(sceneId);
   if (!scene) return;
   const run = getRunState(sceneId);
-  const aiControlledIds = run?.aiControlledActorIds ?? [];
+  const aiControlledIds = effectiveMarchingOrder(run);
   if (!aiControlledIds.length) return;
   const leaderToken = resolveLeaderToken(scene, run.hostUserId);
   if (!leaderToken) return;
@@ -242,7 +255,7 @@ export function followLeaderIfDue(tokenDoc, changes) {
   if (hasActiveCombat(scene)) return;
 
   const run = getRunState(scene.id);
-  const aiControlledIds = run?.aiControlledActorIds ?? [];
+  const aiControlledIds = effectiveMarchingOrder(run);
   if (!aiControlledIds.length) return;
 
   const leaderToken = resolveLeaderToken(scene, run.hostUserId);
@@ -282,7 +295,7 @@ export function followLeaderOnDoorOpened(wallDoc, changes) {
   if (hasActiveCombat(scene)) return;
 
   const run = getRunState(scene.id);
-  const aiControlledIds = run?.aiControlledActorIds ?? [];
+  const aiControlledIds = effectiveMarchingOrder(run);
   if (!aiControlledIds.length) return;
 
   const leaderToken = resolveLeaderToken(scene, run.hostUserId);
