@@ -23,6 +23,18 @@ import {
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 const FOLLOW_DEBOUNCE_MS = 250;
+// #141: every position this module ever writes is already grid-exact, but
+// Foundry's default animated slide (~277ms) can be interrupted by the NEXT
+// one of these calls before it finishes (moveFollowersToward fires once per
+// discrete leader step, and walking through a door is several steps in
+// quick succession) -- Foundry bakes in whatever fractional point the
+// interrupted slide had reached as the new starting position, rather than
+// cleanly jumping, which is what actually produced the long-reported
+// off-grid drift (live-confirmed via a preUpdateToken capture: every
+// destination this module ever wrote was grid-exact; only the animated
+// transition between them could land off-grid). An instant jump has
+// nothing to interrupt.
+const NO_ANIMATE = { animation: { duration: 0 } };
 
 const pendingByScene = new Map(); // sceneId -> setTimeout handle
 const warnedNoLeaderForScene = new Set();
@@ -93,7 +105,7 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
       const snappedX = Math.round(token.x / gridSize) * gridSize;
       const snappedY = Math.round(token.y / gridSize) * gridSize;
       if (token.x !== snappedX || token.y !== snappedY) {
-        await token.update({ x: snappedX, y: snappedY });
+        await token.update({ x: snappedX, y: snappedY }, NO_ANIMATE);
       }
       const moverFootprint = footprint(token, gridSize);
       const fromCell = tokenCell(token, gridSize);
@@ -137,10 +149,13 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
         gw: moverFootprint.gw,
         gh: moverFootprint.gh,
       });
-      await token.update({
-        x: result.to.gx * gridSize,
-        y: result.to.gy * gridSize,
-      });
+      await token.update(
+        {
+          x: result.to.gx * gridSize,
+          y: result.to.gy * gridSize,
+        },
+        NO_ANIMATE,
+      );
     }
   } finally {
     inFlightScenes.delete(scene.id);
@@ -299,7 +314,7 @@ export async function resnapTokenNow(sceneId, tokenId) {
   const snappedX = Math.round(token.x / gridSize) * gridSize;
   const snappedY = Math.round(token.y / gridSize) * gridSize;
   if (token.x !== snappedX || token.y !== snappedY) {
-    await token.update({ x: snappedX, y: snappedY });
+    await token.update({ x: snappedX, y: snappedY }, NO_ANIMATE);
   }
 }
 
