@@ -359,3 +359,12 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 24,rune-archdragon-spellcaster,Rune Archdragon (Spellcaster),23,dragon,accept,,gemini,gemini-first
 24,sovereign-archdragon,Sovereign Archdragon,23,dragon,accept,,gemini,gemini-first
 24,sovereign-archdragon-spellcaster,Sovereign Archdragon (Spellcaster),23,dragon,accept,,gemini,gemini-first
+25,time-archdragon,Time Archdragon,23,dragon,accept,,gemini,gemini-first
+25,time-archdragon-spellcaster,Time Archdragon (Spellcaster),23,dragon,accept,,gemini,gemini-first
+25,umbral-archdragon,Umbral Archdragon,23,dragon,accept,,gemini,gemini-first
+25,umbral-archdragon-spellcaster,Umbral Archdragon (Spellcaster),23,dragon,accept,,gemini,gemini-first
+25,vizier-archdragon,Vizier Archdragon,23,dragon,accept,,gemini,gemini-first
+25,vizier-archdragon-spellcaster,Vizier Archdragon (Spellcaster),23,dragon,accept,,gemini,gemini-first
+25,requiem-archdragon,Requiem Archdragon,24,dragon,accept,,gemini,gemini-first
+25,requiem-archdragon-spellcaster,Requiem Archdragon (Spellcaster),24,dragon,accept,,gemini,gemini-first
+25,fafnheir,Fafnheir,24,beast,flag,wrong_details,gemini,

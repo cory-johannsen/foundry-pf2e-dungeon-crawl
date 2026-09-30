@@ -15910,5 +15910,77 @@
     "name": "Sovereign Archdragon (Spellcaster)",
     "level": 23,
     "art": "sovereign-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "time_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "OWI2qrDvTu8S4BfE",
+    "name": "Time Archdragon",
+    "level": 23,
+    "art": "time-archdragon-lob.webp"
+  },
+  {
+    "id": "time_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9XM9f6ukMdzRi0vi",
+    "name": "Time Archdragon (Spellcaster)",
+    "level": 23,
+    "art": "time-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "umbral_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "gj4q9rWuaqU0gbKN",
+    "name": "Umbral Archdragon",
+    "level": 23,
+    "art": "umbral-archdragon-lob.webp"
+  },
+  {
+    "id": "umbral_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "COJhuElXkubZlbsE",
+    "name": "Umbral Archdragon (Spellcaster)",
+    "level": 23,
+    "art": "umbral-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "vizier_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "R3dMt31HvAdXPE8p",
+    "name": "Vizier Archdragon",
+    "level": 23,
+    "art": "vizier-archdragon-lob.webp"
+  },
+  {
+    "id": "vizier_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "FeMXYhbMkMouzBWX",
+    "name": "Vizier Archdragon (Spellcaster)",
+    "level": 23,
+    "art": "vizier-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "requiem_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "bkLR4mKyBUWNqJKJ",
+    "name": "Requiem Archdragon",
+    "level": 24,
+    "art": "requiem-archdragon-lob.webp"
+  },
+  {
+    "id": "requiem_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7WvOIrKPhd5A0w5X",
+    "name": "Requiem Archdragon (Spellcaster)",
+    "level": 24,
+    "art": "requiem-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "fafnheir_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "WdnuPiAoRFaymR8R",
+    "name": "Fafnheir",
+    "level": 24,
+    "art": "fafnheir-lob.webp"
   }
 ]

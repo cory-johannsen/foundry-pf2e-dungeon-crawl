@@ -5973,8 +5973,8 @@ export const MONSTER_ART = [
     prompt: 'An elder wyrmwraith, the wraith of an ancient dragon: a vast translucent spectral dragon of pale grey-blue mist with ragged tattered wing membranes, hollow glowing eye sockets, visible ghostly bones beneath its fading flesh, a spectral maw with wisps trailing off into vapor, immense and menacing, dragon-shaped, the whole creature fully visible from head to tail within the frame, not cropped',
     avoid: 'cute, cartoon, living dragon, skeleton dragon only, solid scales, cave, tomb, scenery, background, dark clouds, ornate border, decorative frame, white background, white patch' },
   { id: 'fafnheir-lob', file: 'fafnheir-lob', dir: 'assets/creature-art',
-    prompt: 'Fafnheir, the fabled Father of Linnorms: a colossal sixty-foot wingless dragon-like linnorm with a long heavy serpentine body, exactly two strong clawed forelegs and no hind legs and no wings, ancient scarred armor-thick scales in dark green and bronze with rusted-iron sheen, a massive horned head with a huge fanged maw and small cold ancient eyes, coiled and rearing, the whole creature fully visible from head to tail within the frame, not cropped',
-    avoid: 'wings, wing membranes, four legs, western dragon, dark green background, scenery, cropped, close-up, head only, cute, white background, white patch' },
+    prompt: 'Fafnheir, the fabled Father of Linnorms, drawn as a LINNORM (a wingless serpentine dragon): a colossal sixty-foot creature with a long heavy snake-like body, ONLY TWO strong clawed FORELEGS near the front and NO hind legs at all, ABSOLUTELY NO WINGS anywhere on the body, ancient scarred armor-thick scales in dark green and bronze with a rusted-iron sheen, a massive horned head with a huge fanged maw and small cold ancient eyes, coiled and rearing up on its forelegs, the whole creature visible within the frame, not cropped',
+    avoid: 'wings, wing, bat wings, wing membranes, four legs, hind legs, walking dragon, dinosaur, wings, wing membranes, four legs, western dragon, dark green background, scenery, cropped, close-up, head only, cute, white background, white patch' },
 ];
 
 /**
