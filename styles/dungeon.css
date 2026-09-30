@@ -8,6 +8,11 @@
 .pf2edc-dungeon__history { max-height: 220px; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.3rem; }
 .pf2edc-dungeon__history-entry { display: flex; gap: 0.5rem; font-size: 0.85em; padding: 0.15rem 0; }
 .pf2edc-dungeon__history-outcome { font-weight: 600; min-width: 5em; }
+.pf2edc-dungeon__marching-order-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+.pf2edc-dungeon__marching-order-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.pf2edc-dungeon__marching-order-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf2edc-dungeon__marching-order-controls { display: flex; gap: 0.2rem; flex: 0 0 auto; }
+.pf2edc-dungeon__marching-order-controls button { width: 1.8em; height: 1.8em; padding: 0; line-height: 1; }
 
 /* ----- Trait picker (encounter theme + dungeon-start forms) ----- */
 .pf2edc-trait-field { display: flex; align-items: center; gap: 0.5rem; }
