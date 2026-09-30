@@ -14350,5 +14350,125 @@
     "name": "Aso Berang",
     "level": 12,
     "art": "aso-berang-lob.webp"
+  },
+  {
+    "id": "brine_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7q6gHmLkKu3gAoxW",
+    "name": "Brine Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "brine-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "mocking_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "3sbe5lTQfIZkPquh",
+    "name": "Mocking Dragon (Adult)",
+    "level": 12,
+    "art": "mocking-dragon-adult-lob.webp"
+  },
+  {
+    "id": "mocking_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "u8PpzOhWk02TnymJ",
+    "name": "Mocking Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "mocking-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "sea_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "syPyp7ZI9ygqMl5J",
+    "name": "Sea Dragon (Adult)",
+    "level": 12,
+    "art": "sea-dragon-adult-lob.webp"
+  },
+  {
+    "id": "sea_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Q2RKuEDXFh2uezrF",
+    "name": "Sea Dragon (Adult, Spellcaster)",
+    "level": 12,
+    "art": "sea-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "executor_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "kzV42aOEEXGE96zx",
+    "name": "Executor Dragon (Adult)",
+    "level": 13,
+    "art": "executor-dragon-adult-lob.webp"
+  },
+  {
+    "id": "executor_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "R25ksc1yCPMiqqRH",
+    "name": "Executor Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "executor-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "magma_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "wc3uAlMMFQhlmTT9",
+    "name": "Magma Dragon (Adult)",
+    "level": 13,
+    "art": "magma-dragon-adult-lob.webp"
+  },
+  {
+    "id": "magma_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ypt7NUTKYTMyf21k",
+    "name": "Magma Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "magma-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "sage_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "MwslnfsCT7u4TiuV",
+    "name": "Sage Dragon (Adult)",
+    "level": 13,
+    "art": "sage-dragon-adult-lob.webp"
+  },
+  {
+    "id": "sage_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "fD89oelp0upiE6WF",
+    "name": "Sage Dragon (Adult, Spellcaster)",
+    "level": 13,
+    "art": "sage-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "sky_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "D7YQwzLCMFSnYOxd",
+    "name": "Sky Dragon (Adult)",
+    "level": 13,
+    "art": "sky-dragon-adult-lob.webp"
+  },
+  {
+    "id": "peng_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "0yF82Lo495lKarLS",
+    "name": "Peng",
+    "level": 12,
+    "art": "peng-lob.webp"
+  },
+  {
+    "id": "dedalon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Rv00aMx8DbRcDAEj",
+    "name": "Dedalon",
+    "level": 13,
+    "art": "dedalon-lob.webp"
+  },
+  {
+    "id": "kuworsys_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "OF0fZDjNapydddM1",
+    "name": "Kuworsys",
+    "level": 12,
+    "art": "kuworsys-lob.webp"
   }
 ]
