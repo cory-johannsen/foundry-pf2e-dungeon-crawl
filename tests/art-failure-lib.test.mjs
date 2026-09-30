@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import {
-  CONCEPT_GROUPS, TAGS, conceptEnrichment, csvEscape, geminiFirstCandidates, kindOf, normName, parseCsv, parseLog, parseSpec, routeFor, rowToCsv, tagCounts, tally, variantOf,
+  CONCEPT_GROUPS, TAGS, comfyRows, conceptEnrichment, csvEscape, geminiFirstCandidates, isGeminiFirst, kindOf, normName, parseCsv, parseLog, parseSpec, routeFor, rowToCsv, tagCounts, tally, variantOf,
 } from '../tools/art-failure-lib.mjs';
 
 describe('kindOf / variantOf', () => {
@@ -113,6 +113,36 @@ describe('data/token-art-routing.json', () => {
     expect(routeFor('Pixiu', rules).backend).toBe('gemini');
     expect(routeFor('Sea Dragon (Young)', rules).backend).toBe('gemini');
     expect(routeFor('Silt Frog', rules).backend).toBe('comfyui');
-    expect(routeFor('Vorpal Dragon (Young, Spellcaster)', rules).backend).toBe('comfyui');
+    expect(routeFor('Vorpal Dragon (Young, Spellcaster)', rules).backend).toBe('gemini');
+    expect(routeFor('Rime Dragon (Adult, Spellcaster)', rules).backend).toBe('gemini');
+    expect(routeFor('Rime Dragon (Adult)', rules).backend).toBe('gemini');
+  });
+});
+
+describe('Gemini-first rows are excluded from ComfyUI flag rates', () => {
+  const rows = [
+    { name: 'Sea Dragon (Young)', kind: 'dragon', first_pass: 'flag', failure_tags: 'cropped', final_backend: 'gemini' },
+    { name: 'Bog Dragon (Young)', kind: 'dragon', first_pass: 'flag', failure_tags: 'cropped', final_backend: 'gemini' },
+    { name: 'Sky Dragon (Young)', kind: 'dragon', first_pass: 'accept', failure_tags: '', final_backend: 'gemini' },
+    { name: 'Cloud Dragon (Young)', kind: 'dragon', first_pass: 'accept', failure_tags: '', final_backend: 'gemini' },
+    { name: 'Wish Dragon (Young)', kind: 'dragon', first_pass: 'accept', failure_tags: '', final_backend: 'comfyui' },
+    { name: 'Oath Dragon (Young)', kind: 'dragon', first_pass: 'flag', failure_tags: 'cropped', final_backend: 'gemini' },
+    { name: 'Rime Dragon (Young)', kind: 'dragon', first_pass: 'flag', failure_tags: 'cropped', final_backend: 'gemini' },
+  ];
+  it('identifies routed rows and drops them', () => {
+    expect(rows.filter(isGeminiFirst).map((r) => r.name)).toEqual(['Sky Dragon (Young)', 'Cloud Dragon (Young)']);
+    expect(comfyRows(rows)).toHaveLength(5);
+  });
+  it('keeps a routed group qualifying instead of letting its rate collapse', () => {
+    const c = geminiFirstCandidates(rows, { minN: 4, minRate: 60 });
+    expect(c.find((x) => x.by === 'kind+variant' && x.key === 'dragon/young')).toMatchObject({ n: 5, flagged: 4, rate: 80 });
+  });
+  it('treats a note starting gemini-first as routed even when it needed a retry', () => {
+    const r = { name: 'Nue', kind: 'hybrid', first_pass: 'flag', failure_tags: 'cropped', final_backend: 'gemini', note: 'gemini-first' };
+    expect(isGeminiFirst(r)).toBe(true);
+    expect(comfyRows([r])).toEqual([]);
+  });
+  it('classifies nue as a hybrid', () => {
+    expect(kindOf('Nue')).toBe('hybrid');
   });
 });

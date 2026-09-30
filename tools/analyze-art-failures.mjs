@@ -12,7 +12,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { TAGS, conceptEnrichment, geminiFirstCandidates, normName, parseLog, routeFor, tagCounts, tally, variantOf } from './art-failure-lib.mjs';
+import { TAGS, comfyRows, conceptEnrichment, geminiFirstCandidates, isGeminiFirst, normName, parseLog, routeFor, tagCounts, tally, variantOf } from './art-failure-lib.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 if (process.argv[2] === '--history') {
@@ -53,13 +53,16 @@ const table = (title, ts) => {
   }
 };
 
+const gf = rows.filter(isGeminiFirst);
 const flagged = rows.filter((r) => r.first_pass === 'flag');
+const comfy = comfyRows(rows);
 console.log(`${rows.length} creatures logged, ${flagged.length} flagged on first pass (${Math.round((100 * flagged.length) / rows.length)}%)`);
+console.log(`ComfyUI-first: ${comfy.length} creatures, ${flagged.length} flagged (${Math.round((100 * flagged.length) / comfy.length)}%). Gemini-first (routed): ${gf.length} creatures, ${gf.filter((r) => r.first_pass === 'accept').length} accepted on the first try.`);
 console.log(`final backend: ${rows.filter((r) => r.final_backend === 'gemini').length} gemini, ${rows.filter((r) => r.final_backend === 'comfyui').length} comfyui`);
-table('By chunk', tally(rows, (r) => `chunk ${r.chunk}`).sort((a, b) => Number(a.key.split(' ')[1]) - Number(b.key.split(' ')[1])));
-table('By kind', tally(rows, (r) => r.kind));
-table('By variant', tally(rows, (r) => variantOf(r.name)));
-table('By kind/variant (n>=3)', tally(rows, (r) => `${r.kind}/${variantOf(r.name)}`).filter((t) => t.n >= 3));
+table('By chunk', tally(comfy, (r) => `chunk ${r.chunk}`).sort((a, b) => Number(a.key.split(' ')[1]) - Number(b.key.split(' ')[1])));
+table('By kind (ComfyUI-first rows)', tally(comfy, (r) => r.kind));
+table('By variant (ComfyUI-first rows)', tally(comfy, (r) => variantOf(r.name)));
+table('By kind/variant (ComfyUI-first rows, n>=3)', tally(comfy, (r) => `${r.kind}/${variantOf(r.name)}`).filter((t) => t.n >= 3));
 console.log('\nFailure tags (a creature can carry several):');
 for (const [t, n] of tagCounts(flagged)) console.log(`  ${String(n).padStart(3)}  ${t.padEnd(18)} ${TAGS[t] ?? ''}`);
 console.log('\nGemini-first candidates (n>=4, first-pass flag rate >=60%):');

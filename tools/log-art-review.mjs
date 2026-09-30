@@ -2,7 +2,7 @@
 /**
  * Append review results to docs/token-art-failures.csv.
  *
- *   node tools/log-art-review.mjs --chunk 7 \
+ *   node tools/log-art-review.mjs --chunk 7 [--gemini-first slugA,slugB] \
  *     mocking-dragon-young=accept \
  *     sea-dragon-young=flag:cropped,bg_patch>gemini
  *
@@ -10,7 +10,8 @@
  * `-lob` suffix is optional). Name and level come from data/creature-art.json,
  * so accepted creatures must already be wired; log flagged ones after their
  * final image is wired too, so the row records the backend that succeeded.
- * `>gemini` = final backend (default comfyui). Tags: see TAGS in art-failure-lib.mjs.
+ * `--gemini-first` marks creatures routed Gemini-first (excluded from ComfyUI flag rates even if
+ * they needed a Gemini retry). `>gemini` = final backend (default comfyui). Tags: see TAGS in art-failure-lib.mjs.
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -21,6 +22,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const LOG = join(root, 'docs/token-art-failures.csv');
 
 const args = process.argv.slice(2);
+const gi = args.indexOf('--gemini-first');
+const geminiFirst = new Set(gi >= 0 ? args.splice(gi, 2)[1].split(',').map((x) => x.replace(/-lob$/, '')) : []);
 const ci = args.indexOf('--chunk');
 const chunk = ci >= 0 ? args.splice(ci, 2)[1] : null;
 if (!chunk || !args.length) {
@@ -40,7 +43,7 @@ for (const spec of args) {
   if (!e) throw new Error(`${slug}: not in data/creature-art.json (wire it first)`);
   out += `${rowToCsv({
     chunk, slug, name: e.name, level: e.level, kind: kindOf(e.name),
-    first_pass: s.first_pass, failure_tags: s.tags.join(';'), final_backend: s.backend, note: '',
+    first_pass: s.first_pass, failure_tags: s.tags.join(';'), final_backend: s.backend, note: geminiFirst.has(slug) ? 'gemini-first' : '',
   })}\n`;
   have.add(slug);
 }

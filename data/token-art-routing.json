@@ -1,5 +1,5 @@
 {
-  "_comment": "Names/kinds routed to the Gemini backend FIRST (skip ComfyUI). Derived from docs/token-art-failures.csv (Lost Omens log) and docs/token-art-history/ via tools/analyze-art-failures.mjs [--history]; extend only when a group has n>=4 and a first-pass flag rate >=60% (log) or is a documented systematic failure (history). Adopted: hybrid (7/9), owlbear, dragon/young (8/13), storm/sky concepts (history: >=5/13 named failures and a documented 30-40% ComfyUI hit rate vs ~90% Gemini). Watch, not adopted: fey (3/5), dark-palette names (>=17/77), fire (>=4/31).",
+  "_comment": "Names/kinds routed to the Gemini backend FIRST (skip ComfyUI). Derived from docs/token-art-failures.csv (ComfyUI-first rows only) and docs/token-art-history/ via tools/analyze-art-failures.mjs [--history]; extend only when a group has n>=4 and a first-pass flag rate >=60%, or is a documented systematic failure. Adopted: hybrid (7/9), dragon (25/41, incl. young 8/13 and spellcaster 13/21), owlbear, storm/sky concepts (history). Watch: fey (3/5). Gemini-first: 13/14 accepted on the first try (nue, a hybrid, needed a retry).",
   "keywords": [
     "owlbear",
     "storm",
@@ -10,9 +10,8 @@
     "tsunami"
   ],
   "kinds": [
-    "hybrid"
+    "hybrid",
+    "dragon"
   ],
-  "kindVariants": [
-    "dragon/young"
-  ]
+  "kindVariants": []
 }
