@@ -1948,6 +1948,76 @@ export function transitCellCrossing(seed, rank, col, entrySide, exitSide, edgeId
     }
   };
 
+  // #355 follow-up (regression this same fix introduced, live-reported: a
+  // player stuck at what looked like a dead end where a corridor actually
+  // turns): flankSegment above is only correct for a SINGLE, isolated
+  // strip. The L-shaped (corner) case below has TWO segments that overlap
+  // at the corner's own CORRIDOR_LEN x CORRIDOR_LEN cell -- flanking each
+  // independently put a wall right across that shared cell (whichever
+  // segment's own flank happened to run along the direction the OTHER
+  // segment approaches from), sealing the turn itself instead of
+  // containing the passage. Confirmed live: an unflagged wall at the
+  // transit-cell boundary directly overlapped the declared door opening
+  // transitCellContainmentWalls had correctly left open.
+  //
+  // Fixed with a cell-based perimeter instead of per-segment flanking:
+  // decompose both segments into their own CORRIDOR_LEN-wide unit cells,
+  // union them into one set, then wall only the edges where a cell's own
+  // neighbor (in that direction) ISN'T also in the set. The corner cell
+  // belongs to both segments, so its edge facing the other segment always
+  // has an occupied neighbor there and never gets walled -- the turn
+  // stays open by construction, not by case-by-case direction reasoning.
+  const segmentCells = ({ gx, gy, gw, gh }) => {
+    const cells = [];
+    if (gh > gw) {
+      for (let y = gy; y < gy + gh; y += CORRIDOR_LEN) cells.push({ gx, gy: y });
+    } else {
+      for (let x = gx; x < gx + gw; x += CORRIDOR_LEN) cells.push({ gx: x, gy });
+    }
+    return cells;
+  };
+  // A cell's own exposed edge is skipped, not walled, when it's this
+  // crossing's OWN entry or exit boundary -- that edge is where the
+  // corridor continues OUTSIDE this cell (into whatever's next), a
+  // completely different concern from the interior containment this
+  // function is responsible for. transitCellContainmentWalls (called
+  // separately) owns that outer boundary, gap-and-all; walling it here
+  // too would seal the crossing's own ends shut regardless of whether an
+  // opening belongs there. entryPoint/exitPoint already sit exactly on
+  // that boundary line (SIDE_POINT's own convention), so the exact
+  // CORRIDOR_LEN-wide edge to exclude is derived directly from them, the
+  // same shape doorWall/revealDoorWall already use elsewhere in this file.
+  const boundaryEdgeKey = (side, point) => {
+    const w = (side === 'north' || side === 'south')
+      ? { x1: point.x, y1: point.y, x2: point.x + CORRIDOR_LEN, y2: point.y }
+      : { x1: point.x, y1: point.y, x2: point.x, y2: point.y + CORRIDOR_LEN };
+    return `${Math.min(w.x1, w.x2)},${Math.min(w.y1, w.y2)},${Math.max(w.x1, w.x2)},${Math.max(w.y1, w.y2)}`;
+  };
+
+  const flankSegments = (segments, exclude = []) => {
+    const key = (gx, gy) => `${gx},${gy}`;
+    const excludeKeys = new Set(exclude.map(({ side, point }) => boundaryEdgeKey(side, point)));
+    const cellSet = new Set();
+    for (const seg of segments) {
+      for (const c of segmentCells(seg)) cellSet.add(key(c.gx, c.gy));
+    }
+    const tryPush = (w) => {
+      const k = `${Math.min(w.x1, w.x2)},${Math.min(w.y1, w.y2)},${Math.max(w.x1, w.x2)},${Math.max(w.y1, w.y2)}`;
+      if (!excludeKeys.has(k)) plainWalls.push(w);
+    };
+    for (const cellK of cellSet) {
+      const [gx, gy] = cellK.split(',').map(Number);
+      if (!cellSet.has(key(gx, gy - CORRIDOR_LEN)))
+        tryPush({ x1: gx, y1: gy, x2: gx + CORRIDOR_LEN, y2: gy });
+      if (!cellSet.has(key(gx, gy + CORRIDOR_LEN)))
+        tryPush({ x1: gx, y1: gy + CORRIDOR_LEN, x2: gx + CORRIDOR_LEN, y2: gy + CORRIDOR_LEN });
+      if (!cellSet.has(key(gx - CORRIDOR_LEN, gy)))
+        tryPush({ x1: gx, y1: gy, x2: gx, y2: gy + CORRIDOR_LEN });
+      if (!cellSet.has(key(gx + CORRIDOR_LEN, gy)))
+        tryPush({ x1: gx + CORRIDOR_LEN, y1: gy, x2: gx + CORRIDOR_LEN, y2: gy + CORRIDOR_LEN });
+    }
+  };
+
   if (OPPOSITE_SIDE[entrySide] === exitSide) {
     // Straight through (opposite sides) — one bounding-box segment from
     // entry to exit directly, same shape buildEdgeCorridor's own
@@ -1967,8 +2037,12 @@ export function transitCellCrossing(seed, rank, col, entrySide, exitSide, edgeId
     // shares a y (horizontal leg: variable gw, fixed gh) — mirroring
     // buildEdgeCorridor's own corner-case segments exactly, just walked in
     // the opposite direction (entry->corner->exit instead of
-    // exit->corner->entry).
-    const corner = { x: entryPoint.x, y: exitPoint.y };
+    // exit->corner->entry). The corner's own coordinate is entryPoint.x
+    // crossed with exitPoint.y -- seg1X/seg2Y below (not a separately
+    // declared `corner` point) ARE that crossing, already adjusted for
+    // entryPoint.x's/exitPoint.y's own exclusive-far nature (see #355
+    // follow-up below), so both segments reference the same corner
+    // consistently instead of one using an unadjusted copy.
 
     // #174 fix round 2 (found by review): the fixed-CORRIDOR_LEN dimension
     // must extend INWARD from whichever point anchors it, not always in
@@ -1984,17 +2058,49 @@ export function transitCellCrossing(seed, rank, col, entrySide, exitSide, edgeId
     const seg1X = entrySide === 'east' ? entryPoint.x - CORRIDOR_LEN : entryPoint.x;
     const seg2Y = exitSide === 'south' ? exitPoint.y - CORRIDOR_LEN : exitPoint.y;
 
+    // #355 follow-up (second regression found investigating the first):
+    // seg1's own y-range and seg2's own x-range used to be computed with
+    // Math.min(...)/Math.abs(...) alone, which only happens to reach the
+    // corner's own cell when the corner sits on the LARGER side of the
+    // Math.min already anchors at (i.e. seg2 naturally starting AT
+    // corner.x when corner.x <= exitPoint.x). Live-confirmed the specific
+    // combination where it doesn't: entrySide 'north' + exitSide 'west'
+    // (corner.y is the LARGER value relative to entryPoint.y, AND
+    // corner.x is the LARGER value relative to exitPoint.x, at once) left
+    // the corner's own cell covered by NEITHER segment -- a real gap in
+    // both the floor tiles and the containment walls, not just a
+    // wall-only bug. entryYAdj/exitXAdj apply the exact same "exclusive
+    // far edge" adjustment seg1X/seg2Y already use above (south/east are
+    // exclusive-far, matching entryPoint/exitPoint's own SIDE_POINT
+    // convention; north/west are inclusive-near, no adjustment needed),
+    // and the `+ CORRIDOR_LEN` on each span makes both ends -- not just
+    // whichever one Math.min happened to favor -- inclusive of the
+    // corner's own cell, so connectivity never depends on which
+    // direction the turn happens to go.
+    //
+    // corner.x/corner.y are entryPoint.x/exitPoint.y verbatim, so they
+    // carry whatever exclusive-far nature THOSE points have too (e.g.
+    // corner.x sits one past this cell's own east edge whenever entrySide
+    // is 'east') -- seg2's own reach toward the corner must use seg1X
+    // (entryPoint.x already adjusted), not raw corner.x, or it overshoots
+    // this cell's own bounds by one unit; symmetrically seg1 uses seg2Y
+    // rather than raw corner.y.
+    const entryYAdj = entrySide === 'south' ? entryPoint.y - CORRIDOR_LEN : entryPoint.y;
+    const exitXAdj = exitSide === 'east' ? exitPoint.x - CORRIDOR_LEN : exitPoint.x;
+
     const seg1 = {
-      gx: seg1X, gy: Math.min(entryPoint.y, corner.y),
-      gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(corner.y - entryPoint.y)),
+      gx: seg1X, gy: Math.min(entryYAdj, seg2Y),
+      gw: CORRIDOR_LEN, gh: Math.abs(seg2Y - entryYAdj) + CORRIDOR_LEN,
     };
     const seg2 = {
-      gx: Math.min(corner.x, exitPoint.x), gy: seg2Y,
-      gw: Math.max(CORRIDOR_LEN, Math.abs(exitPoint.x - corner.x)), gh: CORRIDOR_LEN,
+      gx: Math.min(seg1X, exitXAdj), gy: seg2Y,
+      gw: Math.abs(exitXAdj - seg1X) + CORRIDOR_LEN, gh: CORRIDOR_LEN,
     };
     corridorSegments.push(seg1, seg2);
-    flankSegment(seg1);
-    flankSegment(seg2);
+    flankSegments([seg1, seg2], [
+      { side: entrySide, point: entryPoint },
+      { side: exitSide, point: exitPoint },
+    ]);
   }
 
   return { entryPoint, exitPoint, plainWalls, corridorSegments };
