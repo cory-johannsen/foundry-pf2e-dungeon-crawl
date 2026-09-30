@@ -422,6 +422,14 @@ describe('buildPopulateAndUnlockGraphNode — corridor floor tile grid alignment
       expect(t.y % GRID_SIZE).toBe(0);
       expect(t.width).toBe(GRID_SIZE);
       expect(t.height).toBe(GRID_SIZE);
+      // #324 (fifth finding): a correct x/y/width/height only places the
+      // tile's own BOUNDING BOX on the grid -- Foundry's own Tile texture
+      // still defaults to center anchor (0.5, 0.5), not top-left, so the
+      // RENDERED art was drawn 50px off from that box until this was set
+      // explicitly. Room floor art (buildRoomAtGraphNode) already did this;
+      // corridor tiles never did.
+      expect(t.texture.anchorX).toBe(0);
+      expect(t.texture.anchorY).toBe(0);
     }
   });
 
@@ -487,6 +495,9 @@ describe('buildPopulateAndUnlockGraphNode — corridor floor tile grid alignment
     for (const t of corridorTiles) {
       expect(t.x % GRID_SIZE).toBe(0);
       expect(t.y % GRID_SIZE).toBe(0);
+      // #324 (fifth finding) -- see the single-cell test's own comment above.
+      expect(t.texture.anchorX).toBe(0);
+      expect(t.texture.anchorY).toBe(0);
     }
   });
 });
