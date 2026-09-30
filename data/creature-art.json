@@ -17198,5 +17198,125 @@
     "name": "Vault Builder",
     "level": 23,
     "art": "vault-builder-lob.webp"
+  },
+  {
+    "id": "hardhead_mole_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "4Eu8d39hem9NAoXg",
+    "name": "Hardhead Mole",
+    "level": 0,
+    "art": "hardhead-mole-lob.webp"
+  },
+  {
+    "id": "stonefish_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "3A8vgAWozHIc7gbY",
+    "name": "Stonefish",
+    "level": 0,
+    "art": "stonefish-lob.webp"
+  },
+  {
+    "id": "magnetic_gecko_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "ShUcJ2v8mqCwCeMf",
+    "name": "Magnetic Gecko",
+    "level": 1,
+    "art": "magnetic-gecko-lob.webp"
+  },
+  {
+    "id": "troodon_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "Rr6IJvc7GxRCeOhE",
+    "name": "Troodon",
+    "level": 1,
+    "art": "troodon-lob.webp"
+  },
+  {
+    "id": "harbor_seal_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "ezjJIrMEQeLCk7jy",
+    "name": "Harbor Seal",
+    "level": 2,
+    "art": "harbor-seal-lob.webp"
+  },
+  {
+    "id": "protoceratops_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "4XcnRHmgBtlnccEe",
+    "name": "Protoceratops",
+    "level": 2,
+    "art": "protoceratops-lob.webp"
+  },
+  {
+    "id": "shotalashu_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "O7EJDExSclMdUFWo",
+    "name": "Shotalashu",
+    "level": 2,
+    "art": "shotalashu-lob.webp"
+  },
+  {
+    "id": "stony_goat_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "HqZ2TrDL49tHhAvF",
+    "name": "Stony Goat",
+    "level": 2,
+    "art": "stony-goat-lob.webp"
+  },
+  {
+    "id": "crying_cicada_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "cYXWihCjHGmprCPz",
+    "name": "Crying Cicada",
+    "level": 3,
+    "art": "crying-cicada-lob.webp"
+  },
+  {
+    "id": "flynkett_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "3SNjewODzhPcxx9y",
+    "name": "Flynkett",
+    "level": 3,
+    "art": "flynkett-lob.webp"
+  },
+  {
+    "id": "rift_chameleon_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "ZyT4d8qw4oYclcb0",
+    "name": "Rift Chameleon",
+    "level": 3,
+    "art": "rift-chameleon-lob.webp"
+  },
+  {
+    "id": "stony_bat_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "cHAb5CflYMxet9pO",
+    "name": "Stony Bat",
+    "level": 3,
+    "art": "stony-bat-lob.webp"
+  },
+  {
+    "id": "swordfish_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "usNtfeE0DVJKg2nu",
+    "name": "Swordfish",
+    "level": 3,
+    "art": "swordfish-lob.webp"
+  },
+  {
+    "id": "weremoose_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "D8Y8P3XHLTMPLYJf",
+    "name": "Weremoose",
+    "level": 3,
+    "art": "weremoose-lob.webp"
+  },
+  {
+    "id": "almiraj_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "ljcMqo6PKDxsmoth",
+    "name": "Almiraj",
+    "level": 4,
+    "art": "almiraj-lob.webp"
   }
 ]
