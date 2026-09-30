@@ -299,3 +299,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 20,sovereign-dragon-ancient,Sovereign Dragon (Ancient),20,dragon,accept,,gemini,gemini-first
 20,sovereign-dragon-ancient-spellcaster,"Sovereign Dragon (Ancient, Spellcaster)",20,dragon,accept,,gemini,gemini-first
 20,the-great-flood,The Great Flood,20,hybrid,accept,,gemini,gemini-first
+21,time-dragon-ancient,Time Dragon (Ancient),20,dragon,accept,,gemini,gemini-first
+21,time-dragon-ancient-spellcaster,"Time Dragon (Ancient, Spellcaster)",20,dragon,accept,,gemini,gemini-first
+21,umbral-dragon-ancient,Umbral Dragon (Ancient),20,dragon,accept,,gemini,gemini-first
+21,umbral-dragon-ancient-spellcaster,"Umbral Dragon (Ancient, Spellcaster)",20,dragon,accept,,gemini,gemini-first
+21,vizier-dragon-ancient,Vizier Dragon (Ancient),20,dragon,accept,,gemini,gemini-first
+21,vizier-dragon-ancient-spellcaster,"Vizier Dragon (Ancient, Spellcaster)",20,dragon,accept,,gemini,gemini-first
+21,whisper-archdragon,Whisper Archdragon,20,dragon,accept,,gemini,gemini-first
+21,whisper-archdragon-spellcaster,Whisper Archdragon (Spellcaster),20,dragon,accept,,gemini,gemini-first
+21,adamantine-archdragon,Adamantine Archdragon,21,dragon,flag,bg_patch,gemini,gemini-first
+21,adamantine-archdragon-spellcaster,Adamantine Archdragon (Spellcaster),21,dragon,accept,,gemini,gemini-first
+21,benthic-reaver,Benthic Reaver,21,beast,accept,,comfyui,
+21,coral-archdragon,Coral Archdragon,21,dragon,accept,,gemini,gemini-first
+21,coral-archdragon-spellcaster,Coral Archdragon (Spellcaster),21,dragon,accept,,gemini,gemini-first
+21,executor-archdragon,Executor Archdragon,21,dragon,accept,,gemini,gemini-first
+21,executor-archdragon-spellcaster,Executor Archdragon (Spellcaster),21,dragon,accept,,gemini,gemini-first
