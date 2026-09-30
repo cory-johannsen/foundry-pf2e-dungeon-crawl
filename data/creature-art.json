@@ -16582,5 +16582,37 @@
     "name": "Pale Sovereign",
     "level": 16,
     "art": "pale-sovereign-lob.webp"
+  },
+  {
+    "id": "siabrae_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "hhoSyH9QthtvFptC",
+    "name": "Siabrae",
+    "level": 16,
+    "art": "siabrae-lob.webp"
+  },
+  {
+    "id": "fluxwraith_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "hDQmEtisrgRmufUW",
+    "name": "Fluxwraith",
+    "level": 17,
+    "art": "fluxwraith-lob.webp"
+  },
+  {
+    "id": "queen_sluagh_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "avBb4LvR3TsYpXma",
+    "name": "Queen Sluagh",
+    "level": 18,
+    "art": "queen-sluagh-lob.webp"
+  },
+  {
+    "id": "runecarved_lich_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "zPQZLswJISQrvPb7",
+    "name": "Runecarved Lich",
+    "level": 19,
+    "art": "runecarved-lich-lob.webp"
   }
 ]
