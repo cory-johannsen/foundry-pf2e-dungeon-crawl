@@ -164,3 +164,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 11,barrage-dragon-adult,Barrage Dragon (Adult),12,dragon,accept,,gemini,gemini-first
 11,barrage-dragon-adult-spellcaster,"Barrage Dragon (Adult, Spellcaster)",12,dragon,accept,,gemini,gemini-first
 11,brine-dragon-adult,Brine Dragon (Adult),12,dragon,accept,,gemini,gemini-first
+12,brine-dragon-adult-spellcaster,"Brine Dragon (Adult, Spellcaster)",12,dragon,accept,,gemini,gemini-first
+12,kuworsys,Kuworsys,12,beast,flag,halo_or_disc,gemini,
+12,mocking-dragon-adult,Mocking Dragon (Adult),12,dragon,accept,,gemini,gemini-first
+12,mocking-dragon-adult-spellcaster,"Mocking Dragon (Adult, Spellcaster)",12,dragon,accept,,gemini,gemini-first
+12,peng,Peng,12,beast,accept,,comfyui,
+12,sea-dragon-adult,Sea Dragon (Adult),12,dragon,accept,,gemini,gemini-first
+12,sea-dragon-adult-spellcaster,"Sea Dragon (Adult, Spellcaster)",12,dragon,accept,,gemini,gemini-first
+12,dedalon,Dedalon,13,beast,accept,,comfyui,
+12,executor-dragon-adult,Executor Dragon (Adult),13,dragon,accept,,gemini,gemini-first
+12,executor-dragon-adult-spellcaster,"Executor Dragon (Adult, Spellcaster)",13,dragon,accept,,gemini,gemini-first
+12,magma-dragon-adult,Magma Dragon (Adult),13,dragon,accept,,gemini,gemini-first
+12,magma-dragon-adult-spellcaster,"Magma Dragon (Adult, Spellcaster)",13,dragon,accept,,gemini,gemini-first
+12,sage-dragon-adult,Sage Dragon (Adult),13,dragon,flag,bg_patch,gemini,gemini-first
+12,sage-dragon-adult-spellcaster,"Sage Dragon (Adult, Spellcaster)",13,dragon,accept,,gemini,gemini-first
+12,sky-dragon-adult,Sky Dragon (Adult),13,dragon,accept,,gemini,gemini-first
