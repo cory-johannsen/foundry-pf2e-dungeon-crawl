@@ -15070,5 +15070,125 @@
     "name": "Fleshforged Dreadnought",
     "level": 18,
     "art": "fleshforged-dreadnought-lob.webp"
+  },
+  {
+    "id": "vorpal_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "X0Ldsvfw0NnRywZm",
+    "name": "Vorpal Dragon (Ancient)",
+    "level": 18,
+    "art": "vorpal-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "vorpal_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "BD7020Ux0XfuN9sY",
+    "name": "Vorpal Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "vorpal-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "wailing_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "x6rsUA8iKakg11iD",
+    "name": "Wailing Archdragon",
+    "level": 18,
+    "art": "wailing-archdragon-lob.webp"
+  },
+  {
+    "id": "wailing_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "e43EMo2IolpXGOfd",
+    "name": "Wailing Archdragon (Spellcaster)",
+    "level": 18,
+    "art": "wailing-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "bog_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "nPEm8bD6deYfA5Xs",
+    "name": "Bog Archdragon",
+    "level": 19,
+    "art": "bog-archdragon-lob.webp"
+  },
+  {
+    "id": "bog_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "A0h1xHoyIhQDFz5e",
+    "name": "Bog Archdragon (Spellcaster)",
+    "level": 19,
+    "art": "bog-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "cloud_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Z4cV7G4r3zgDoAlH",
+    "name": "Cloud Dragon (Ancient)",
+    "level": 19,
+    "art": "cloud-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "taljjae_the_beast_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "a1vTm01GBVF4TI8f",
+    "name": "Taljjae (The Beast)",
+    "level": 18,
+    "art": "taljjae-the-beast-lob.webp"
+  },
+  {
+    "id": "taljjae_the_hermit_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "XLDh6o6vBRCDEKsl",
+    "name": "Taljjae (The Hermit)",
+    "level": 18,
+    "art": "taljjae-the-hermit-lob.webp"
+  },
+  {
+    "id": "taljjae_the_hero_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "IO7sPevkM0zvnWbi",
+    "name": "Taljjae (The Hero)",
+    "level": 18,
+    "art": "taljjae-the-hero-lob.webp"
+  },
+  {
+    "id": "taljjae_the_nobleman_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "j3NhCEMLVm4HSsgr",
+    "name": "Taljjae (The Nobleman)",
+    "level": 18,
+    "art": "taljjae-the-nobleman-lob.webp"
+  },
+  {
+    "id": "taljjae_the_wanderer_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "hfi0qJePy2cf4Fqe",
+    "name": "Taljjae (The Wanderer)",
+    "level": 18,
+    "art": "taljjae-the-wanderer-lob.webp"
+  },
+  {
+    "id": "taljjae_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "bhLbKN7MJofTabfK",
+    "name": "Taljjae",
+    "level": 18,
+    "art": "taljjae-lob.webp"
+  },
+  {
+    "id": "taljjae_the_general_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "W0oF6Dl7G4UeTBSC",
+    "name": "Taljjae (The General)",
+    "level": 18,
+    "art": "taljjae-the-general-lob.webp"
+  },
+  {
+    "id": "taljjae_the_grandmother_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "sXZExyaijbRnKI2S",
+    "name": "Taljjae (The Grandmother)",
+    "level": 18,
+    "art": "taljjae-the-grandmother-lob.webp"
   }
 ]
