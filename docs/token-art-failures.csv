@@ -447,3 +447,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 31,fluxwraith,Fluxwraith,17,undead,accept,,gemini,gemini-first
 31,queen-sluagh,Queen Sluagh,18,undead,flag,bg_patch,gemini,gemini-first
 31,runecarved-lich,Runecarved Lich,19,undead,accept,,gemini,gemini-first
+32,metal-wisp,Metal Wisp,0,elemental,accept,,gemini,gemini-first
+32,wood-wisp,Wood Wisp,0,elemental,accept,,gemini,gemini-first
+32,ardande-gardener,Ardande Gardener,1,elemental,accept,,gemini,gemini-first
+32,despairing-pall,Despairing Pall,1,elemental,accept,,gemini,gemini-first
+32,dewdrop-jelly,Dewdrop Jelly,1,elemental,accept,,gemini,gemini-first
+32,ferrous-butterfly,Ferrous Butterfly,1,elemental,accept,,gemini,gemini-first
+32,gluttonous-geode,Gluttonous Geode,1,elemental,accept,,gemini,gemini-first
+32,lava-otter,Lava Otter,1,elemental,accept,,gemini,gemini-first
+32,metal-scamp,Metal Scamp,1,elemental,accept,,gemini,gemini-first
+32,talos-gadgeteer,Talos Gadgeteer,1,elemental,accept,,gemini,gemini-first
+32,vegetable-lamb,Vegetable Lamb,1,elemental,accept,,gemini,gemini-first
+32,wood-scamp,Wood Scamp,1,elemental,accept,,gemini,gemini-first
+32,gennayn,Gennayn,2,elemental,accept,,gemini,gemini-first
+32,mercurial,Mercurial,2,elemental,accept,,gemini,gemini-first
+32,moss-sloth,Moss Sloth,2,elemental,accept,,gemini,gemini-first

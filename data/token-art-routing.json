@@ -1,5 +1,5 @@
 {
-  "_comment": "Names/kinds routed to the Gemini backend FIRST (skip ComfyUI). Derived from docs/token-art-failures.csv (ComfyUI-first rows only) and docs/token-art-history/ via tools/analyze-art-failures.mjs [--history]; extend only when a group has n>=4 and a first-pass flag rate >=60%, or is a documented systematic failure. Adopted: hybrid (7/9), dragon (25/41, incl. young 8/13 and spellcaster 13/21), owlbear, storm/sky concepts (history). Undead adopted 2026-09-29 for the Book of the Dead pack (#241) on a near-threshold 5/9 (56%) ComfyUI flag rate plus the pack being ~all undead/incorporeal, where ComfyUI historically drew scenery/halos; revisit with data. Watch: fey (3/5). Gemini-first: 13/14 accepted on the first try (nue, a hybrid, needed a retry).",
+  "_comment": "Names/kinds routed to the Gemini backend FIRST (skip ComfyUI). Derived from docs/token-art-failures.csv (ComfyUI-first rows only) and docs/token-art-history/ via tools/analyze-art-failures.mjs [--history]; extend only when a group has n>=4 and a first-pass flag rate >=60%, or is a documented systematic failure. Adopted: hybrid (7/9), dragon (25/41, incl. young 8/13 and spellcaster 13/21), owlbear, storm/sky concepts (history). Undead adopted 2026-09-29 for the Book of the Dead pack (#241) on a near-threshold 5/9 (56%) ComfyUI flag rate plus the pack being ~all undead/incorporeal, where ComfyUI historically drew scenery/halos; revisit with data. Elemental adopted 2026-09-30 for the Rage of Elements pack (#285): scenery-implying subjects (fire, water, wind, storm) that history shows ComfyUI fills with backdrops; the earlier sample was 2/3 flagged (n=3). Watch: fey (3/5). Gemini-first: 13/14 accepted on the first try (nue, a hybrid, needed a retry).",
   "keywords": [
     "owlbear",
     "storm",
@@ -12,7 +12,8 @@
   "kinds": [
     "hybrid",
     "dragon",
-    "undead"
+    "undead",
+    "elemental"
   ],
   "kindVariants": []
 }

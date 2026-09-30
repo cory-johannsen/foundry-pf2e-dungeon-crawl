@@ -16614,5 +16614,125 @@
     "name": "Runecarved Lich",
     "level": 19,
     "art": "runecarved-lich-lob.webp"
+  },
+  {
+    "id": "metal_wisp_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "Vtx0UBhy5aUu3UMO",
+    "name": "Metal Wisp",
+    "level": 0,
+    "art": "metal-wisp-lob.webp"
+  },
+  {
+    "id": "wood_wisp_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "LVLf8bfqqLkM56tj",
+    "name": "Wood Wisp",
+    "level": 0,
+    "art": "wood-wisp-lob.webp"
+  },
+  {
+    "id": "ardande_gardener_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "7zKCt0OyooqW9UkL",
+    "name": "Ardande Gardener",
+    "level": 1,
+    "art": "ardande-gardener-lob.webp"
+  },
+  {
+    "id": "despairing_pall_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "vM6zlGT02raJqPTu",
+    "name": "Despairing Pall",
+    "level": 1,
+    "art": "despairing-pall-lob.webp"
+  },
+  {
+    "id": "dewdrop_jelly_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "NHWf9R3yN5Iil7Zh",
+    "name": "Dewdrop Jelly",
+    "level": 1,
+    "art": "dewdrop-jelly-lob.webp"
+  },
+  {
+    "id": "ferrous_butterfly_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "Ub0UIqBOjouOePe8",
+    "name": "Ferrous Butterfly",
+    "level": 1,
+    "art": "ferrous-butterfly-lob.webp"
+  },
+  {
+    "id": "gluttonous_geode_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "ki7r3AMO0lROqzcK",
+    "name": "Gluttonous Geode",
+    "level": 1,
+    "art": "gluttonous-geode-lob.webp"
+  },
+  {
+    "id": "lava_otter_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "D1WlR977uIedFwAr",
+    "name": "Lava Otter",
+    "level": 1,
+    "art": "lava-otter-lob.webp"
+  },
+  {
+    "id": "metal_scamp_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "5Seti8VsPjgd8f6i",
+    "name": "Metal Scamp",
+    "level": 1,
+    "art": "metal-scamp-lob.webp"
+  },
+  {
+    "id": "talos_gadgeteer_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "g36FR0xlbMSvWqdS",
+    "name": "Talos Gadgeteer",
+    "level": 1,
+    "art": "talos-gadgeteer-lob.webp"
+  },
+  {
+    "id": "vegetable_lamb_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "7C6sSVh7jipvHKbV",
+    "name": "Vegetable Lamb",
+    "level": 1,
+    "art": "vegetable-lamb-lob.webp"
+  },
+  {
+    "id": "wood_scamp_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "EjgbrWiEp37eIifZ",
+    "name": "Wood Scamp",
+    "level": 1,
+    "art": "wood-scamp-lob.webp"
+  },
+  {
+    "id": "gennayn_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "Gqz1qtpdgAl13pCE",
+    "name": "Gennayn",
+    "level": 2,
+    "art": "gennayn-lob.webp"
+  },
+  {
+    "id": "mercurial_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "BKHoKKSWvc7rQoyz",
+    "name": "Mercurial",
+    "level": 2,
+    "art": "mercurial-lob.webp"
+  },
+  {
+    "id": "moss_sloth_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "d8801ruMQkpXLcWk",
+    "name": "Moss Sloth",
+    "level": 2,
+    "art": "moss-sloth-lob.webp"
   }
 ]
