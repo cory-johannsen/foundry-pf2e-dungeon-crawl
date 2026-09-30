@@ -16222,5 +16222,125 @@
     "name": "Excorion",
     "level": 7,
     "art": "excorion-lob.webp"
+  },
+  {
+    "id": "hunter_wight_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "DMZo6DXmScDXJpJd",
+    "name": "Hunter Wight",
+    "level": 7,
+    "art": "hunter-wight-lob.webp"
+  },
+  {
+    "id": "cadaverous_rake_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "sgeULAtaLvg0Uhyn",
+    "name": "Cadaverous Rake",
+    "level": 8,
+    "art": "cadaverous-rake-lob.webp"
+  },
+  {
+    "id": "child_of_urgathoa_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "NcqruxA82SFvTnD1",
+    "name": "Child of Urgathoa",
+    "level": 8,
+    "art": "child-of-urgathoa-lob.webp"
+  },
+  {
+    "id": "drake_skeleton_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "sucEX2JFrVevTNjU",
+    "name": "Drake Skeleton",
+    "level": 8,
+    "art": "drake-skeleton-lob.webp"
+  },
+  {
+    "id": "fallen_champion_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "JazJz2crkoG9koQR",
+    "name": "Fallen Champion",
+    "level": 8,
+    "art": "fallen-champion-lob.webp"
+  },
+  {
+    "id": "ghost_pirate_captain_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "UMDBlaViAdaw2lnN",
+    "name": "Ghost Pirate Captain",
+    "level": 8,
+    "art": "ghost-pirate-captain-lob.webp"
+  },
+  {
+    "id": "ice_mummy_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "7JWjoMGf7f7PZgSD",
+    "name": "Ice Mummy",
+    "level": 8,
+    "art": "ice-mummy-lob.webp"
+  },
+  {
+    "id": "polong_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "M59XiYnJ4Z3bSwCC",
+    "name": "Polong",
+    "level": 8,
+    "art": "polong-lob.webp"
+  },
+  {
+    "id": "raw_nerve_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "j88xR2MqqZrmF5Wz",
+    "name": "Raw Nerve",
+    "level": 8,
+    "art": "raw-nerve-lob.webp"
+  },
+  {
+    "id": "vetalarana_emergent_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "LWLUaSHl8YCZdDMH",
+    "name": "Vetalarana Emergent",
+    "level": 8,
+    "art": "vetalarana-emergent-lob.webp"
+  },
+  {
+    "id": "waldgeist_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "VYLTAIVA9qUsbujo",
+    "name": "Waldgeist",
+    "level": 8,
+    "art": "waldgeist-lob.webp"
+  },
+  {
+    "id": "daqqanoenyent_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "ishwgxZAlNJxNwGE",
+    "name": "Daqqanoenyent",
+    "level": 9,
+    "art": "daqqanoenyent-lob.webp"
+  },
+  {
+    "id": "geist_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "iEQOUQk1wVHFsajW",
+    "name": "Geist",
+    "level": 9,
+    "art": "geist-lob.webp"
+  },
+  {
+    "id": "grappling_spirit_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "c6qRZuHQ7RHJEAtj",
+    "name": "Grappling Spirit",
+    "level": 9,
+    "art": "grappling-spirit-lob.webp"
+  },
+  {
+    "id": "prowler_wight_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "DVpP5ObHDoT0OULK",
+    "name": "Prowler Wight",
+    "level": 9,
+    "art": "prowler-wight-lob.webp"
   }
 ]

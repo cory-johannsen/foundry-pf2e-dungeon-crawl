@@ -398,3 +398,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 27,little-man-in-the-woods,Little Man In The Woods,6,undead,accept,,gemini,gemini-first
 27,deathless-hierophant-of-urgathoa,Deathless Hierophant Of Urgathoa,7,undead,accept,,gemini,gemini-first
 27,excorion,Excorion,7,undead,accept,,gemini,gemini-first
+28,hunter-wight,Hunter Wight,7,undead,accept,,gemini,gemini-first
+28,cadaverous-rake,Cadaverous Rake,8,undead,accept,,gemini,gemini-first
+28,child-of-urgathoa,Child of Urgathoa,8,undead,accept,,gemini,gemini-first
+28,drake-skeleton,Drake Skeleton,8,undead,flag,bg_patch,gemini,gemini-first
+28,fallen-champion,Fallen Champion,8,undead,accept,,gemini,gemini-first
+28,ghost-pirate-captain,Ghost Pirate Captain,8,undead,flag,bg_patch,gemini,gemini-first
+28,ice-mummy,Ice Mummy,8,undead,accept,,gemini,gemini-first
+28,polong,Polong,8,undead,accept,,gemini,gemini-first
+28,raw-nerve,Raw Nerve,8,undead,accept,,gemini,gemini-first
+28,vetalarana-emergent,Vetalarana Emergent,8,undead,accept,,gemini,gemini-first
+28,waldgeist,Waldgeist,8,undead,accept,,gemini,gemini-first
+28,daqqanoenyent,Daqqanoenyent,9,undead,accept,,gemini,gemini-first
+28,geist,Geist,9,undead,accept,,gemini,gemini-first
+28,grappling-spirit,Grappling Spirit,9,undead,accept,,gemini,gemini-first
+28,prowler-wight,Prowler Wight,9,undead,flag,bg_patch,gemini,gemini-first
