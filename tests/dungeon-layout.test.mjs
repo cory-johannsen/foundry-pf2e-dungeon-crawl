@@ -5,7 +5,8 @@ import {
   computeRanks, computeColumns,
   roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, buildEdgeCorridor, incomingFaceFor, doorSlotsForFace,
   cellBounds, projectOntoSide, findCorridorPath, INITIAL_GX, cellMarginWalls, transitCellCrossing,
-  transitCellContainmentWalls, CORRIDOR_LEN, outgoingMarginOffset,
+  transitCellContainmentWalls, CORRIDOR_LEN, outgoingMarginOffset, pendingForeignMarginOpenings,
+  marginBandApproach, findCoParentCollision, findPriorityCollision, assignDoorSlotsWithPriority,
 } from '../scripts/dungeon-layout.mjs';
 import { buildRoomGraph, attachHiddenPaths } from '../scripts/dungeon-deck.mjs';
 
@@ -757,16 +758,55 @@ describe('buildEdgeCorridor (multi-cell path)', () => {
     );
     expect(result.transitCells).toEqual([]);
     expect(result.doorWall).toBeDefined();
-    // #174 Task 5: this is fromRect.gx === toRect.gx (same column), so a
-    // null path now takes the exact same single-segment direct-line
-    // route as an adjacent (path.length <= 2) connection would -- the
-    // now-deleted trunkLaneCorridorSegments hack used to produce a
-    // 3-segment detour here instead. Hand-traced: fromRect's south face
-    // is at y=12, toRect's north face (toSlot.y1) is at y=26, so the one
-    // segment must span exactly that y-range.
-    expect(result.corridorSegments).toHaveLength(1);
-    expect(result.corridorSegments[0].gy).toBe(12);
-    expect(result.corridorSegments[0].gy + result.corridorSegments[0].gh).toBe(26);
+    // #297 update: '1,0' (the intermediate cell between fromPos and toPos)
+    // is occupied by room 'x' here -- exactly the boxed-in-through-a-real-
+    // room scenario #297's own dogleg now detects and reroutes around,
+    // where this test used to pin the OLD, buggy single-segment direct
+    // line straight through 'x' -- the "known, documented limitation" the
+    // #174 Task 5 comment above once described. For seed1/fromRoomId 'a',
+    // doorX0 lands at 306, inside 'x''s own rolled 12-wide footprint at
+    // (1,0) (gx 300..312), so the dogleg now fires. Hand-traced from
+    // buildEdgeCorridor's own #297 geometry: faceY=12, doorX0=306,
+    // doorX1=307, occupantEastEdge (x's own east edge)=312, laneX0=312,
+    // laneX1=313, turnGx=min(306,312)=306, turnGx2=max(307,313)=313,
+    // turnBottom=faceY+DOOR_WIDTH=13, corridorEndY=toRect.gy=26,
+    // legTop=corridorEndY-DOOR_WIDTH=25. Review round 1 fix added turn 2:
+    // gapX0=min(max(laneX0=312,toSlot.x1=300),toSlot.x2-DOOR_WIDTH=311)=311,
+    // gapX1=312, so turn 2 spans
+    // [min(laneX0=312,gapX0=311), max(laneX1=313,gapX1=312))=[311,313).
+    expect(result.corridorSegments).toEqual([
+      { gx: 306, gy: 12, gw: 7, gh: 1 },
+      { gx: 312, gy: 13, gw: 1, gh: 12 },
+      { gx: 311, gy: 25, gw: 2, gh: 1 },
+    ]);
+    // Review round 2 fix: foreignOpening now describes turn 2's own REAL
+    // (wider) floor width -- [311,313) -- not the narrower lane width
+    // round 1 used, so a future gap opened from this in the blocking
+    // room's own south wall doesn't wall off part of turn 2's own real
+    // floor. offset is relative to the blocking cell's own gx (300).
+    expect(result.foreignOpening).toEqual({ roomId: 'x', side: 'south', offset: 11, width: 2 });
+    // The real property #297 exists to guarantee: neither segment overlaps
+    // room 'x''s own rolled footprint at (1,0).
+    const xRect = roomRect('seed1', 'x', 1, 0);
+    for (const seg of result.corridorSegments) {
+      const overlapsX = seg.gx < xRect.gx + xRect.gw && seg.gx + seg.gw > xRect.gx;
+      const overlapsY = seg.gy < xRect.gy + xRect.gh && seg.gy + seg.gh > xRect.gy;
+      expect(overlapsX && overlapsY).toBe(false);
+    }
+    // Review round 1 fix: the corridor must actually REACH the target's
+    // real door, not just avoid the blocker -- the last (turn 2) segment's
+    // own x-range must cover revealDoorWall's own x-range.
+    const lastSeg = result.corridorSegments[result.corridorSegments.length - 1];
+    expect(lastSeg.gx).toBeLessThanOrEqual(result.revealDoorWall.x1);
+    expect(lastSeg.gx + lastSeg.gw).toBeGreaterThanOrEqual(result.revealDoorWall.x2);
+    // Review round 2 fix: pin the RELATIONSHIP, not just point values --
+    // foreignOpening's own x-range (relative to the blocking cell) must
+    // equal turn 2's own floor segment's x-range exactly, so a future
+    // regression in either place (the wall opening or the floor) is
+    // caught here even if the other one is edited without this test.
+    const blockerCellForA = cellBounds(1, 0);
+    expect(blockerCellForA.gx + result.foreignOpening.offset).toBe(lastSeg.gx);
+    expect(blockerCellForA.gx + result.foreignOpening.offset + result.foreignOpening.width).toBe(lastSeg.gx + lastSeg.gw);
   });
 
   it('chains every crossing point end-to-end: entry/exit points align exactly across every boundary in a straight multi-cell corridor', () => {
@@ -977,6 +1017,356 @@ describe('buildEdgeCorridor with a west-incoming target', () => {
   });
 });
 
+describe('buildEdgeCorridor — #297 dogleg around a blocking intermediate room', () => {
+  // Mirrors the live-reported repro: source at rank 0, target (a merge
+  // room reached via a shortcut) at rank 2, same column -- with an
+  // unrelated room occupying rank 1 of that same column whose footprint
+  // the naive direct line would cross. A LARGE source room (gw=12) and a
+  // SMALL blocking room (gw=6) reproduces the live scenario's own size
+  // mix and guarantees doorX0 can land inside the blocker's narrower
+  // footprint.
+  const seed = 'dogleg-repro-seed-0';
+
+  // doorOffsetAt is deterministic per (seed, slot, role, roomSize) -- for
+  // THIS seed/fromRoomId/exitFace combination it's a fixed value. The
+  // concrete seed above was chosen (see Step 1a) by looping
+  // 'dogleg-repro-seed-' + i and checking roomSizeAt/doorOffsetAt/roomRect
+  // directly until the real outgoingOffset it produces at
+  // 'from-room-south' already landed inside a 6-wide blocker's own
+  // footprint -- no runtime search needed here.
+
+  it('routes around a blocking room instead of crossing its footprint', () => {
+    const fromRoomId = 'from-room';
+    const toRoomId = 'to-room';
+    const blockerRoomId = 'blocker-room';
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 2, col: 0 };
+    const fromRect = roomRect(seed, fromRoomId, fromPos.rank, fromPos.col);
+    const toRect = roomRect(seed, toRoomId, toPos.rank, toPos.col);
+    const occupiedCells = {
+      '0,0': fromRoomId,
+      '1,0': blockerRoomId,
+      '2,0': toRoomId,
+    };
+    const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
+
+    const result = buildEdgeCorridor(
+      seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos,
+      'south', toSlot, occupiedCells, 'north',
+    );
+
+    const blockerRect = roomRect(seed, blockerRoomId, 1, 0);
+
+    // The real property, not a proxy: no corridor floor segment overlaps
+    // the blocker's own rect at all.
+    for (const seg of result.corridorSegments) {
+      const overlapsX = seg.gx < blockerRect.gx + blockerRect.gw && seg.gx + seg.gw > blockerRect.gx;
+      const overlapsY = seg.gy < blockerRect.gy + blockerRect.gh && seg.gy + seg.gh > blockerRect.gy;
+      expect(overlapsX && overlapsY).toBe(false);
+    }
+
+    // A dogleg was actually exercised for this scenario (the whole point
+    // of the test) -- if this ever fails, the seed no longer produces a
+    // doorX0 inside the blocker's footprint and must be re-chosen.
+    expect(result.foreignOpening).not.toBeNull();
+    expect(result.foreignOpening.roomId).toBe(blockerRoomId);
+    // Review round 1 fix: the lane travels vertically through the
+    // blocker's own EAST margin but never crosses that room's own east
+    // wall -- it crosses the blocker's own SOUTH wall (turn 2) to reach
+    // the target's cell below, so the opening is on the blocker's south
+    // side.
+    expect(result.foreignOpening.side).toBe('south');
+    // Review round 1 fix: the corridor must actually REACH the target's
+    // real door, not just avoid the blocker -- the last (turn 2) segment's
+    // own x-range must cover revealDoorWall's own x-range.
+    const lastSeg = result.corridorSegments[result.corridorSegments.length - 1];
+    expect(lastSeg.gx).toBeLessThanOrEqual(result.revealDoorWall.x1);
+    expect(lastSeg.gx + lastSeg.gw).toBeGreaterThanOrEqual(result.revealDoorWall.x2);
+    // Review round 2 fix: foreignOpening now describes turn 2's own real
+    // (potentially wider-than-DOOR_WIDTH) floor width, not the narrower
+    // lane width round 1 used -- pin the RELATIONSHIP (not just point
+    // values) between foreignOpening's own x-range (relative to the
+    // blocking cell) and turn 2's own floor segment's x-range, so a
+    // future regression in either place is caught here.
+    const blockerCell = cellBounds(1, 0);
+    expect(blockerCell.gx + result.foreignOpening.offset).toBe(lastSeg.gx);
+    expect(blockerCell.gx + result.foreignOpening.offset + result.foreignOpening.width).toBe(lastSeg.gx + lastSeg.gw);
+  });
+
+  it('activates due to #230/#231 span-widening even when the raw door offset alone would miss the blocker', () => {
+    // Review round 3 fix (Task 5's own closing system-wide sweep measured
+    // 40/455, 8.79%, dogleg-eligible overlap across a 500-seed corpus):
+    // this exact seed/room combination is the "does not activate" test's
+    // OWN original scenario from round 1/2 -- doorX0=308 sits safely past
+    // the blocker's own east edge (306), so the OLD trigger
+    // (`doorX0 < occupantEastEdge`) correctly declined. But the TARGET
+    // here is SMALL (gw=6) while the toSlot is a single-incoming, full-
+    // width slot clamped to that narrow 6-wide face -- #230's own
+    // pre-existing gap-widening (`gapX0`/`spanX0`/`spanX1`) then clamps
+    // gapX0 down to 305 and widens the final span back to [305,309],
+    // which DOES cross the blocker's [300,306] footprint. The widened-
+    // trigger fix (`spanOverlapsBlocker`, checking the SAME provisional
+    // span the non-dogleg branch would actually produce) now correctly
+    // catches this and reroutes -- this test pins that regression
+    // directly, since round 1/2's own narrower trigger silently produced
+    // an overlapping corridor for this exact scenario.
+    const missSeed = 'dogleg-miss-seed-2';
+    const fromRoomId = 'from-room-2';
+    const toRoomId = 'to-room-2';
+    const blockerRoomId = 'blocker-room-2';
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 2, col: 0 };
+    const fromRect = roomRect(missSeed, fromRoomId, fromPos.rank, fromPos.col);
+    const toRect = roomRect(missSeed, toRoomId, toPos.rank, toPos.col);
+    const occupiedCells = {
+      '0,0': fromRoomId, '2,0': toRoomId,
+      '1,0': blockerRoomId, '1,1': 'y', '1,-1': 'y', '1,2': 'y', '1,-2': 'y',
+      '0,1': 'y', '0,-1': 'y', '0,2': 'y', '0,-2': 'y',
+      '2,1': 'y', '2,-1': 'y', '2,2': 'y', '2,-2': 'y',
+    };
+    const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
+
+    const result = buildEdgeCorridor(
+      missSeed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos,
+      'south', toSlot, occupiedCells, 'north',
+    );
+
+    // Confirm the scenario is real: doorX0 alone sits past the blocker's
+    // own east edge (the OLD trigger's own check), yet the dogleg still
+    // activates (the round-3 fix's whole point).
+    const blockerRect = roomRect(missSeed, blockerRoomId, 1, 0);
+    const outgoingOffset = doorOffsetAt(missSeed, `${fromRoomId}-south`, 'outgoing', fromRect.gw);
+    const doorX0 = fromRect.gx + outgoingOffset;
+    expect(doorX0).toBeGreaterThanOrEqual(blockerRect.gx + blockerRect.gw);
+    expect(result.foreignOpening).not.toBeNull();
+
+    // The real property: no corridor floor segment overlaps the blocker's
+    // own rect.
+    for (const seg of result.corridorSegments) {
+      const overlapsX = seg.gx < blockerRect.gx + blockerRect.gw && seg.gx + seg.gw > blockerRect.gx;
+      const overlapsY = seg.gy < blockerRect.gy + blockerRect.gh && seg.gy + seg.gh > blockerRect.gy;
+      expect(overlapsX && overlapsY).toBe(false);
+    }
+    // Connectivity: the last (turn 2) segment must actually reach the
+    // real door.
+    const lastSeg = result.corridorSegments[result.corridorSegments.length - 1];
+    expect(lastSeg.gx).toBeLessThanOrEqual(result.revealDoorWall.x1);
+    expect(lastSeg.gx + lastSeg.gw).toBeGreaterThanOrEqual(result.revealDoorWall.x2);
+    // Hand-traced exact geometry (faceY=12, doorX0=308, doorX1=309,
+    // occupantEastEdge=306 -- so laneX0=306, laneX1=307; toSlot clamps
+    // gapX0 to 305, gapX1=306; turn 2 spans [min(306,305), max(307,306))
+    // = [305,307)).
+    expect(result.corridorSegments).toEqual([
+      { gx: 306, gy: 12, gw: 3, gh: 1 },
+      { gx: 306, gy: 13, gw: 1, gh: 12 },
+      { gx: 305, gy: 25, gw: 2, gh: 1 },
+    ]);
+    expect(result.foreignOpening).toEqual({ roomId: blockerRoomId, side: 'south', offset: 5, width: 2 });
+  });
+
+  it('does not activate when a real blocker exists but neither the raw door offset nor the widened span reaches its footprint', () => {
+    // Review round 3 fix: this test used to use `dogleg-miss-seed-2`
+    // (checking only that doorX0 missed the blocker), but that scenario
+    // turned out to ALSO exercise the round-3 gap (#230's own span-
+    // widening reaching back into the blocker even though doorX0 alone
+    // didn't) -- see the test above, which now correctly pins that as an
+    // ACTIVATING case. A genuine "does not activate" test needs a
+    // scenario where the WIDENED span also misses the blocker, not just
+    // doorX0 alone -- found via the same seed-search method as Step 1a
+    // and the round-3 fix's own provisional-span formula, this time using
+    // a LARGE (gw=12) target so its toSlot spans the target's full face
+    // (a single incoming connection, no #230 clamping at all) and
+    // doorX0/doorX1 land safely past the blocker's own east edge with no
+    // widening effect possible.
+    const missSeed = 'dogleg-clean-miss-seed-27';
+    const fromRoomId = 'from-room-2';
+    const toRoomId = 'to-room-2';
+    const blockerRoomId = 'blocker-room-2';
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 2, col: 0 };
+    const fromRect = roomRect(missSeed, fromRoomId, fromPos.rank, fromPos.col);
+    const toRect = roomRect(missSeed, toRoomId, toPos.rank, toPos.col);
+    const occupiedCells = {
+      '0,0': fromRoomId, '2,0': toRoomId,
+      '1,0': blockerRoomId, '1,1': 'y', '1,-1': 'y', '1,2': 'y', '1,-2': 'y',
+      '0,1': 'y', '0,-1': 'y', '0,2': 'y', '0,-2': 'y',
+      '2,1': 'y', '2,-1': 'y', '2,2': 'y', '2,-2': 'y',
+    };
+    const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
+
+    const result = buildEdgeCorridor(
+      missSeed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos,
+      'south', toSlot, occupiedCells, 'north',
+    );
+
+    // Confirm the scenario is real: doorX0 sits past the blocker's own
+    // east edge, AND (since the target is LARGE, matching the source's
+    // own full face width) the target's own slot is never narrower than
+    // the source's face, so #230's own clamp never widens the span back
+    // toward the blocker either -- '1,0' in occupiedCells above is a
+    // genuine blocker room, not an empty cell.
+    const blockerRect = roomRect(missSeed, blockerRoomId, 1, 0);
+    const outgoingOffset = doorOffsetAt(missSeed, `${fromRoomId}-south`, 'outgoing', fromRect.gw);
+    const doorX0 = fromRect.gx + outgoingOffset;
+    expect(doorX0).toBeGreaterThanOrEqual(blockerRect.gx + blockerRect.gw);
+    expect(toRect.gw).toBe(fromRect.gw);
+
+    // Byte-identical to the pre-#297 single-box shape: no dogleg, no
+    // third segment, no foreignOpening.
+    expect(result.foreignOpening).toBeNull();
+    expect(result.corridorSegments).toHaveLength(1);
+    expect(result.corridorSegments).toEqual([
+      { gx: 308, gy: 12, gw: 1, gh: 14 },
+    ]);
+  });
+});
+
+describe('marginBandApproach — #297 Round 2 extraction', () => {
+  it("produces the turn geometry Round 1's own south-branch dogleg already computes for its own laneX0 target", () => {
+    // Pinned values taken verbatim from the "activates due to #230/#231
+    // span-widening" test above (search 'dogleg-miss-seed-2'): faceY=12,
+    // doorX0=308, doorX1=309, occupantEastEdge=306 -- so laneX0=306,
+    // laneWidth=DOOR_WIDTH=1 -- and that test's own result.corridorSegments[0]
+    // ({ gx: 306, gy: 12, gw: 3, gh: 1 }) is exactly this helper's own
+    // turnSegment for the same inputs, confirming these literals are real,
+    // already-verified pinned values, not re-derived ones.
+    const doorX0 = 308;
+    const doorX1 = 309;
+    const faceY = 12;
+    const laneX0 = 306;
+    const laneWidth = DOOR_WIDTH;
+    const result = marginBandApproach(doorX0, doorX1, faceY, laneX0, laneWidth);
+    expect(result.turnGx).toBe(Math.min(doorX0, laneX0));
+    expect(result.turnGx2).toBe(Math.max(doorX1, laneX0 + laneWidth));
+    expect(result.turnBottom).toBe(faceY + DOOR_WIDTH);
+    expect(result.turnSegment).toEqual({ gx: result.turnGx, gy: faceY, gw: result.turnGx2 - result.turnGx, gh: DOOR_WIDTH });
+    expect(result.turnWalls.length).toBeGreaterThan(0);
+  });
+});
+
+describe('buildEdgeCorridor — #297 dogleg around a blocking intermediate room, mirrored onto the same-rank (east) fast path', () => {
+  // Exact mirror of the south/sameColumn dogleg tests above, axes swapped
+  // per the task-3 brief's own table (doorX0->doorY0, faceY->faceX,
+  // corridorEndY->corridorEndX, etc.). `toSlot`/`incomingFace` here are
+  // 'west', NOT 'north' -- a 'north' toSlot is a degenerate (single-y-value)
+  // horizontal line on this branch, which only makes sense as the TARGET
+  // face for a south-exit connection; an east-exit connection's physically
+  // sensible target face is its own west face (a vertical slot spanning y),
+  // the same pairing `outgoingMarginOffset`'s own test (above, "aligns an
+  // east-face, same-rank connection") and this file's own pre-existing
+  // "same-rank, east-exit fast path" test already establish.
+  const seed = 'dogleg-east-from-room-e-0';
+
+  // doorOffsetAt is deterministic per (seed, slot, role, roomSize) -- for
+  // THIS seed/fromRoomId/exitFace combination it's a fixed value. Found
+  // (per Step 1a) by looping 'dogleg-east-from-room-e-' + i and checking
+  // roomSizeAt/doorOffsetAt/roomRect directly until the real outgoingOffset
+  // it produces at 'from-room-e-east' already landed inside a 6-wide
+  // (ROOM_SIZE_SMALL) blocker's own footprint -- no runtime search needed
+  // here. Found on i=0: fromSize=12 (LARGE), blockerSize=6 (SMALL),
+  // doorY0=0, blocker spans [0,6) -- 0 lands inside.
+  it('routes around a blocking room instead of crossing its footprint', () => {
+    const fromRoomId = 'from-room-e';
+    const toRoomId = 'to-room-e';
+    const blockerRoomId = 'blocker-room-e';
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 0, col: 2 };
+    const fromRect = roomRect(seed, fromRoomId, fromPos.rank, fromPos.col);
+    const toRect = roomRect(seed, toRoomId, toPos.rank, toPos.col);
+    const occupiedCells = {
+      '0,0': fromRoomId,
+      '0,1': blockerRoomId,
+      '0,2': toRoomId,
+    };
+    const toSlot = doorSlotsForFace(toRect, 1, 'west')[0];
+
+    const result = buildEdgeCorridor(
+      seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos,
+      'east', toSlot, occupiedCells, 'west',
+    );
+
+    const blockerRect = roomRect(seed, blockerRoomId, 0, 1);
+
+    // The real property, not a proxy: no corridor floor segment overlaps
+    // the blocker's own rect at all.
+    for (const seg of result.corridorSegments) {
+      const overlapsX = seg.gx < blockerRect.gx + blockerRect.gw && seg.gx + seg.gw > blockerRect.gx;
+      const overlapsY = seg.gy < blockerRect.gy + blockerRect.gh && seg.gy + seg.gh > blockerRect.gy;
+      expect(overlapsX && overlapsY).toBe(false);
+    }
+
+    // A dogleg was actually exercised for this scenario (the whole point
+    // of the test) -- if this ever fails, the seed no longer produces a
+    // doorY0 inside the blocker's footprint and must be re-chosen.
+    expect(result.foreignOpening).not.toBeNull();
+    expect(result.foreignOpening.roomId).toBe(blockerRoomId);
+    // The lane travels horizontally through the blocker's own SOUTH
+    // margin but never crosses that room's own south wall -- it crosses
+    // the blocker's own EAST wall (turn 2) to reach the target's cell,
+    // so the opening is on the blocker's east side (the exact mirror of
+    // the south branch's own 'south' side).
+    expect(result.foreignOpening.side).toBe('east');
+    // The corridor must actually REACH the target's real door, not just
+    // avoid the blocker -- the last (turn 2) segment's own y-range must
+    // cover revealDoorWall's own y-range.
+    const lastSeg = result.corridorSegments[result.corridorSegments.length - 1];
+    expect(lastSeg.gy).toBeLessThanOrEqual(result.revealDoorWall.y1);
+    expect(lastSeg.gy + lastSeg.gh).toBeGreaterThanOrEqual(result.revealDoorWall.y2);
+    // Relationship pin (mirrors the south branch's own round-2 fix):
+    // foreignOpening's own y-range must equal the LAST segment's own
+    // y-range exactly, not merely overlap it -- both are the same turn-2
+    // crossing, computed from the same values.
+    const blockerCell = cellBounds(0, 1);
+    expect(blockerCell.gy + result.foreignOpening.offset).toBe(lastSeg.gy);
+    expect(blockerCell.gy + result.foreignOpening.offset + result.foreignOpening.width).toBe(lastSeg.gy + lastSeg.gh);
+  });
+
+  it('does not activate when a real blocker exists but doorY0 already sits past its own footprint', () => {
+    // Same seed-search process as above (Step 1a), this time searching
+    // for doorY0 landing AT OR PAST the blocker's own south edge instead
+    // of inside it, so the dogleg condition (`doorY0 < occupantSouthEdge`)
+    // is false and the output must be byte-identical to this file's
+    // pre-#297 single-box shape. Found: fromSize=12, blockerSize=6,
+    // doorY0=7, blocker spans [0,6) -- 7 sits past it.
+    const missSeed = 'dogleg-east-from-room-e2-1';
+    const fromRoomId = 'from-room-e2';
+    const toRoomId = 'to-room-e2';
+    const blockerRoomId = 'blocker-room-e2';
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 0, col: 2 };
+    const fromRect = roomRect(missSeed, fromRoomId, fromPos.rank, fromPos.col);
+    const toRect = roomRect(missSeed, toRoomId, toPos.rank, toPos.col);
+    const occupiedCells = {
+      '0,0': fromRoomId,
+      '0,1': blockerRoomId,
+      '0,2': toRoomId,
+    };
+    const toSlot = doorSlotsForFace(toRect, 1, 'west')[0];
+
+    const result = buildEdgeCorridor(
+      missSeed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos,
+      'east', toSlot, occupiedCells, 'west',
+    );
+
+    // Confirm the scenario is real: doorY0 (derived independently here,
+    // the same way buildEdgeCorridor computes it internally) sits at or
+    // past the blocker's own south edge -- '0,1' in occupiedCells above
+    // is a genuine blocker room, not an empty cell.
+    const blockerRect = roomRect(missSeed, blockerRoomId, 0, 1);
+    const outgoingOffset = doorOffsetAt(missSeed, `${fromRoomId}-east`, 'outgoing', fromRect.gw);
+    const doorY0 = fromRect.gy + outgoingOffset;
+    expect(doorY0).toBeGreaterThanOrEqual(blockerRect.gy + blockerRect.gh);
+
+    // Byte-identical to the pre-#297 single-box shape: no dogleg, no
+    // third segment, no foreignOpening.
+    expect(result.foreignOpening).toBeNull();
+    expect(result.corridorSegments).toHaveLength(1);
+    expect(result.corridorSegments).toEqual([
+      { gx: 312, gy: 7, gw: 14, gh: 1 },
+    ]);
+  });
+});
+
 describe('cellBounds', () => {
   it('returns the full stride-sized cell at the same origin roomRect uses', () => {
     expect(cellBounds(0, 0)).toEqual({ gx: INITIAL_GX, gy: 0, gw: COLUMN_STRIDE, gh: ROW_STRIDE });
@@ -1154,7 +1544,7 @@ describe('cellMarginWalls', () => {
   // misaligned gap) — a player could see and walk straight through it.
   it('seals both the east and south margin for a ROOM_SIZE_LARGE room, one CORRIDOR_LEN wide, with no open connection', () => {
     const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_LARGE, gh: ROOM_SIZE_LARGE };
-    const walls = cellMarginWalls(rect, 0, 0);
+    const walls = cellMarginWalls(rect, 0, 0, {});
     const east = walls.find((w) => w.dir === 'east');
     const south = walls.find((w) => w.dir === 'south');
     expect(east).toEqual({ dir: 'east', x1: 300 + COLUMN_STRIDE, y1: 0, x2: 300 + COLUMN_STRIDE, y2: ROW_STRIDE });
@@ -1164,7 +1554,7 @@ describe('cellMarginWalls', () => {
 
   it('leaves a gap in a ROOM_SIZE_LARGE room\'s own south margin where a connection crosses it', () => {
     const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_LARGE, gh: ROOM_SIZE_LARGE };
-    const walls = cellMarginWalls(rect, 0, 0, { openSide: 'south', openOffset: 6, openWidth: DOOR_WIDTH });
+    const walls = cellMarginWalls(rect, 0, 0, { south: [{ offset: 6, width: DOOR_WIDTH }] });
     const southWalls = walls.filter((w) => w.dir === 'south');
     expect(southWalls.length).toBe(2); // two segments flanking a 1-unit gap inside a 1-unit-wide margin
     for (const w of southWalls) {
@@ -1174,7 +1564,7 @@ describe('cellMarginWalls', () => {
 
   it('seals both the east and south margin for a small room with no open connection', () => {
     const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_SMALL, gh: ROOM_SIZE_SMALL };
-    const walls = cellMarginWalls(rect, 0, 0);
+    const walls = cellMarginWalls(rect, 0, 0, {});
     const east = walls.find((w) => w.dir === 'east');
     const south = walls.find((w) => w.dir === 'south');
     expect(east).toEqual({ dir: 'east', x1: 300 + COLUMN_STRIDE, y1: 0, x2: 300 + COLUMN_STRIDE, y2: ROW_STRIDE });
@@ -1183,7 +1573,7 @@ describe('cellMarginWalls', () => {
 
   it('leaves a gap in the east margin wall where a connection crosses it', () => {
     const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_SMALL, gh: ROOM_SIZE_SMALL };
-    const walls = cellMarginWalls(rect, 0, 0, { openSide: 'east', openOffset: 4, openWidth: 2 });
+    const walls = cellMarginWalls(rect, 0, 0, { east: [{ offset: 4, width: 2 }] });
     const eastWalls = walls.filter((w) => w.dir === 'east');
     // Two remaining solid segments flanking the gap, never spanning across it.
     expect(eastWalls.length).toBe(2);
@@ -1194,7 +1584,7 @@ describe('cellMarginWalls', () => {
 
   it('omits a flanking segment entirely when the gap reaches a cell corner', () => {
     const rect = { gx: 300, gy: 0, gw: ROOM_SIZE_SMALL, gh: ROOM_SIZE_SMALL };
-    const walls = cellMarginWalls(rect, 0, 0, { openSide: 'south', openOffset: 0, openWidth: ROOM_SIZE_SMALL });
+    const walls = cellMarginWalls(rect, 0, 0, { south: [{ offset: 0, width: ROOM_SIZE_SMALL }] });
     const southWalls = walls.filter((w) => w.dir === 'south');
     expect(southWalls.length).toBe(1); // only the segment from the gap's end to the cell's far corner
   });
@@ -1233,8 +1623,8 @@ describe('cellMarginWalls', () => {
     for (const roomSize of [ROOM_SIZE_SMALL, ROOM_SIZE_LARGE]) {
       for (const opening of [
         {},
-        { openSide: 'east', openOffset: 2, openWidth: roomSize === ROOM_SIZE_LARGE ? DOOR_WIDTH : 2 },
-        { openSide: 'south', openOffset: 0, openWidth: roomSize === ROOM_SIZE_LARGE ? DOOR_WIDTH : 3 },
+        { east: [{ offset: 2, width: roomSize === ROOM_SIZE_LARGE ? DOOR_WIDTH : 2 }] },
+        { south: [{ offset: 0, width: roomSize === ROOM_SIZE_LARGE ? DOOR_WIDTH : 3 }] },
       ]) {
         const rank = 1;
         const col = 1;
@@ -1245,9 +1635,9 @@ describe('cellMarginWalls', () => {
           const hasMargin = dir === 'east' ? roomSize < cell.gw : roomSize < cell.gh;
           expect(hasMargin).toBe(true); // sanity: both sizes have a real margin post-#288 (LARGE: CORRIDOR_LEN wide)
           const wallsOnSide = margin.filter((w) => w.dir === dir);
-          const isOpenSide = opening.openSide === dir;
-          const openStart = isOpenSide ? opening.openOffset : -1;
-          const openEnd = isOpenSide ? opening.openOffset + opening.openWidth : -1;
+          const openings = opening[dir] ?? [];
+          const openStart = openings.length > 0 ? openings[0].offset : -1;
+          const openEnd = openings.length > 0 ? openings[0].offset + openings[0].width : -1;
           expect(sideFullyAccountedFor(dir, cell, wallsOnSide, openStart, openEnd)).toBe(true);
         }
       }
@@ -1273,12 +1663,63 @@ describe('cellMarginWalls', () => {
         const rect = roomRect(seed, roomId, rank, col);
         if (rect.gw !== ROOM_SIZE_LARGE) continue;
         totalLargeRooms += 1;
-        const walls = cellMarginWalls(rect, rank, col);
+        const walls = cellMarginWalls(rect, rank, col, {});
         expect(walls.some((w) => w.dir === 'east')).toBe(true);
         expect(walls.some((w) => w.dir === 'south')).toBe(true);
       }
     }
     expect(totalLargeRooms).toBeGreaterThan(200); // sanity: real LARGE rooms were actually exercised
+  });
+});
+
+describe('cellMarginWalls — multiple openings per side', () => {
+  it('seals a side with two non-overlapping openings into three segments', () => {
+    const rect = { gx: 300, gy: 0, gw: 6, gh: 6 };
+    const walls = cellMarginWalls(rect, 0, 0, {
+      east: [{ offset: 1, width: 1 }, { offset: 4, width: 1 }],
+    });
+    const eastWalls = walls.filter((w) => w.dir === 'east').sort((a, b) => a.y1 - b.y1);
+    // cell is (300,0)-(313,13); rect is 6x6, so east margin runs y:[0,13] at x:313.
+    // Two 1-wide gaps at y=1 and y=4 split the east side into three segments:
+    // [0,1], [2,4], [5,13].
+    expect(eastWalls).toEqual([
+      { dir: 'east', x1: 313, y1: 0, x2: 313, y2: 1 },
+      { dir: 'east', x1: 313, y1: 2, x2: 313, y2: 4 },
+      { dir: 'east', x1: 313, y1: 5, x2: 313, y2: 13 },
+    ]);
+  });
+
+  it('with a single opening, matches the old single-opening call exactly', () => {
+    const rect = { gx: 300, gy: 0, gw: 6, gh: 6 };
+    const oldStyle = cellMarginWalls(rect, 0, 0, { east: [{ offset: 2, width: 1 }] });
+    // Same result whether expressed as the old openSide/openOffset/openWidth
+    // shape or the new list-of-one shape — this pins the generalization as
+    // a strict superset, not a behavior change, for the common case.
+    expect(oldStyle).toEqual([
+      { dir: 'east', x1: 313, y1: 0, x2: 313, y2: 2 },
+      { dir: 'east', x1: 313, y1: 3, x2: 313, y2: 13 },
+      { dir: 'south', x1: 300, y1: 13, x2: 313, y2: 13 },
+    ]);
+  });
+
+  it('with no openings on a margin-having side, seals it fully (unchanged behavior)', () => {
+    const rect = { gx: 300, gy: 0, gw: 6, gh: 6 };
+    const walls = cellMarginWalls(rect, 0, 0, {});
+    expect(walls).toEqual([
+      { dir: 'east', x1: 313, y1: 0, x2: 313, y2: 13 },
+      { dir: 'south', x1: 300, y1: 13, x2: 313, y2: 13 },
+    ]);
+  });
+
+  it('a LARGE room (no margin on a side) ignores openings for that side', () => {
+    const rect = { gx: 300, gy: 0, gw: 12, gh: 12 };
+    const walls = cellMarginWalls(rect, 0, 0, { east: [{ offset: 0, width: 1 }] });
+    // gw === cell.gw (13? no -- LARGE=12, cell=13, margin=1, so east DOES
+    // have margin here) -- use gw===cell.gw case instead: a room exactly
+    // filling the cell has no margin on that side at all.
+    const fullRect = { gx: 300, gy: 0, gw: 13, gh: 13 };
+    const noMarginWalls = cellMarginWalls(fullRect, 0, 0, { east: [{ offset: 0, width: 1 }] });
+    expect(noMarginWalls.filter((w) => w.dir === 'east')).toEqual([]);
   });
 });
 
@@ -1583,7 +2024,7 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
     const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
     const { doorWall } = buildEdgeCorridor(seed, 'A', 'B', fromRect, toRect, fromPos, toPos, 'south', toSlot, occupiedCells);
     const marginWalls = cellMarginWalls(fromRect, fromPos.rank, fromPos.col, {
-      openSide: 'south', openOffset: offset, openWidth: width,
+      south: [{ offset, width }],
     }).filter((w) => w.dir === 'south');
     // The margin wall's gap (the space between its two solid segments)
     // must span exactly [doorWall.x1, doorWall.x2].
@@ -1637,7 +2078,7 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
     const toSlot = doorSlotsForFace(toRect, 1, 'west')[0];
     const { doorWall } = buildEdgeCorridor(seed, 'A', 'B', fromRect, toRect, fromPos, toPos, 'east', toSlot, {}, 'west');
     const marginWalls = cellMarginWalls(fromRect, fromPos.rank, fromPos.col, {
-      openSide: 'east', openOffset: offset, openWidth: width,
+      east: [{ offset, width }],
     }).filter((w) => w.dir === 'east');
     expect(marginWalls).toHaveLength(2);
     const gapY0 = Math.min(...marginWalls.map((w) => w.y2));
@@ -1673,7 +2114,7 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
     const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
     const result = buildEdgeCorridor(seed, 'room-entry', 'room-room-entry-0', fromRect, toRect, fromPos, toPos, 'south', toSlot, {});
     const { offset, width } = outgoingMarginOffset(seed, 'room-entry', 'room-room-entry-0', 'south', fromRect, fromPos, toPos, {}, 'north');
-    const marginWalls = cellMarginWalls(fromRect, 0, 0, { openSide: 'south', openOffset: offset, openWidth: width })
+    const marginWalls = cellMarginWalls(fromRect, 0, 0, { south: [{ offset, width }] })
       .filter((w) => w.dir === 'south');
     // The margin wall's own gap (space between its solid segments) must
     // fully contain the target's own real door interval.
@@ -1720,7 +2161,7 @@ describe('outgoingMarginOffset (#174 Task 5 fix round)', () => {
     const toSlot = doorSlotsForFace(toRect, 3, 'north')[2]; // the slot farthest from the source's own column origin
     const result = buildEdgeCorridor(seed, 'merge-source', 'merge-target', fromRect, toRect, fromPos, toPos, 'south', toSlot, {});
     const { offset, width } = outgoingMarginOffset(seed, 'merge-source', 'merge-target', 'south', fromRect, fromPos, toPos, {}, 'north');
-    const marginWalls = cellMarginWalls(fromRect, 0, 0, { openSide: 'south', openOffset: offset, openWidth: width })
+    const marginWalls = cellMarginWalls(fromRect, 0, 0, { south: [{ offset, width }] })
       .filter((w) => w.dir === 'south');
     const gapStart = Math.min(...marginWalls.map((w) => w.x2));
     const gapEnd = Math.max(...marginWalls.map((w) => w.x1));
@@ -1886,7 +2327,7 @@ describe('corridor routing regression sweep (#174)', () => {
           );
           const marginWalls = cellMarginWalls(
             fromRect, positionByRoomId[fromId].rank, positionByRoomId[fromId].col,
-            { openSide: face, openOffset: offset, openWidth: width },
+            { [face]: [{ offset, width }] },
           ).filter((w) => w.dir === face);
           totalMarginedConnections += 1;
           // South's gap runs along x; east's runs along y. #174 Task 6
@@ -2022,7 +2463,7 @@ describe('corridor routing regression sweep (#174)', () => {
           );
           const marginWalls = cellMarginWalls(
             fromRect, positionByRoomId[fromId].rank, positionByRoomId[fromId].col,
-            { openSide: face, openOffset: offset, openWidth: width },
+            { [face]: [{ offset, width }] },
           ).filter((w) => w.dir === face);
           const cell = cellBounds(positionByRoomId[fromId].rank, positionByRoomId[fromId].col);
           const cellStart = face === 'south' ? cell.gx : cell.gy;
@@ -2539,6 +2980,168 @@ describe('corridor routing regression sweep (#174)', () => {
     expect(gapEnd).toBeCloseTo(doorEnd, 9);
     expect(gapEnd - gapStart).toBeCloseTo(DOOR_WIDTH, 9);
   });
+
+  // #297: the real, downstream property this whole fix exists to
+  // guarantee -- not the proxy metrics (side walls sealed, foreignOpening
+  // non-null, etc.) the dedicated unit tests already pin, but the actual
+  // corridor geometry: does any corridor segment for any real edge, across
+  // a real generated graph, land on top of any OTHER room's own footprint.
+  // Same seed/roomCount corpus and full pipeline (buildRoomGraph ->
+  // attachHiddenPaths -> computeRanks -> computeColumns) as the #294 sweep
+  // above, and the same real-slot resolution via incomingConnectionsFor/
+  // doorSlotsForFace (a merge room's real slot index, not always 0) --
+  // only the per-edge check differs: EVERY corridor segment (a dogleg's
+  // own 3-segment output included, not skipped the way the #294 sweep's
+  // own `corridorSegments.length !== 1` guard does), for EVERY real edge
+  // (not just the south/same-column and east/same-rank fast path), checked
+  // against every OTHER room's own rect.
+  it('no corridor segment overlaps any OTHER room\'s own footprint, across the same full-pipeline seed/roomCount sweep -- the real property #297\'s dogleg fix exists to guarantee, measured separately for the single-intermediate-blocking-cell case this plan covers (#297), using the REAL priority-aware slot assignment (Round 2)', () => {
+    let totalEdges = 0;
+    let overlappingEdges = 0;
+    let doglegEligibleEdges = 0;
+    let doglegEligibleOverlaps = 0;
+    let priorityCollisions = 0;
+    let nonResidualWallCollisions = 0;
+    let residualWallCollisions = 0;
+    let residualEdges = 0;
+    for (let i = 0; i < 500; i += 1) {
+      const seed = `sweep-${i}`;
+      const roomCount = 6 + (i % 15);
+      const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+      const { layoutEdges, hiddenIncomingByRoomId } = attachHiddenPaths({ rooms, edges, seed });
+      const ranks = computeRanks(layoutEdges, 'room-entry');
+      const columns = computeColumns(layoutEdges, ranks, 'room-entry');
+      const positionByRoomId = Object.fromEntries(
+        Object.keys(rooms).map((id) => [id, { rank: ranks[id], col: columns[id] }]),
+      );
+      const occupiedCells = Object.fromEntries(
+        Object.entries(positionByRoomId).map(([id, pos]) => [`${pos.rank},${pos.col}`, id]),
+      );
+      const rectById = Object.fromEntries(
+        Object.keys(rooms).map((id) => [id, roomRect(seed, id, positionByRoomId[id].rank, positionByRoomId[id].col)]),
+      );
+
+      for (const [fromId, children] of Object.entries(edges)) {
+        for (let idx = 0; idx < children.length; idx += 1) {
+          const toId = children[idx];
+          const face = exitFaceForIndex(idx);
+          const fromRect = rectById[fromId];
+          const toRect = rectById[toId];
+          const fromPos = positionByRoomId[fromId];
+          const toPos = positionByRoomId[toId];
+          const incoming = incomingConnectionsFor(layoutEdges, toId, hiddenIncomingByRoomId);
+          const slotIndex = incoming.findIndex((c) => c.sourceId === fromId);
+          if (slotIndex === -1) continue;
+          // #297 Round 2: real production slot resolution (this is what
+          // buildPopulateAndUnlockGraphNode actually calls now), not the
+          // plain list-order doorSlotsForFace this sweep used pre-Round-2.
+          const collision = findPriorityCollision(
+            seed, toId, toPos.rank, toPos.col, incoming, positionByRoomId, occupiedCells,
+          );
+          const slots = assignDoorSlotsWithPriority(seed, toRect, incoming, 'north', collision);
+          const toSlot = slots[slotIndex];
+          const { corridorSegments, transitCells, plainWalls, doorWall, revealDoorWall } = buildEdgeCorridor(
+            seed, fromId, toId, fromRect, toRect, fromPos, toPos,
+            face, toSlot, occupiedCells,
+          );
+          const allSegments = [
+            ...corridorSegments,
+            ...transitCells.flatMap((c) => c.corridorSegments),
+          ];
+          const overlaps = allSegments.some((seg) =>
+            Object.entries(rectById).some(
+              ([id, r]) => id !== fromId && id !== toId && rectsOverlap(seg, r),
+            ),
+          );
+          totalEdges += 1;
+          if (overlaps) overlappingEdges += 1;
+
+          const doglegEligible = (face === 'south' && toPos.col === fromPos.col && toPos.rank === fromPos.rank + 2)
+            || (face === 'east' && toPos.rank === fromPos.rank && toPos.col === fromPos.col + 2);
+          if (doglegEligible) {
+            doglegEligibleEdges += 1;
+            if (overlaps) doglegEligibleOverlaps += 1;
+          }
+
+          // #297 Round 2: whenever THIS edge is the colliding connection,
+          // measure the real cross-connection property against its own
+          // co-parent's own corridor, and separately track the documented
+          // LARGE-blocker/SMALL-target residual (Review Focus item 6) --
+          // reported, not assumed zero.
+          if (collision && incoming[collision.collidingIndex].sourceId === fromId) {
+            priorityCollisions += 1;
+            const blockerRect = rectById[collision.blockerId];
+            const isResidual = collision.axis === 'south'
+              ? (blockerRect.gw === ROOM_SIZE_LARGE && toRect.gw === ROOM_SIZE_SMALL)
+              : (blockerRect.gh === ROOM_SIZE_LARGE && toRect.gh === ROOM_SIZE_SMALL);
+            if (isResidual) residualEdges += 1;
+
+            const coParentId = collision.blockerId;
+            const coParentChildren = edges[coParentId] ?? [];
+            const coParentIdx = coParentChildren.indexOf(toId);
+            if (coParentIdx !== -1) {
+              const coParentFace = exitFaceForIndex(coParentIdx);
+              const coParentSlotIndex = incoming.findIndex((c) => c.sourceId === coParentId);
+              const coParentSlot = slots[coParentSlotIndex];
+              const coParentResult = buildEdgeCorridor(
+                seed, coParentId, toId, rectById[coParentId], toRect, positionByRoomId[coParentId], toPos,
+                coParentFace, coParentSlot, occupiedCells,
+              );
+              const wallCoversDoor = (walls, door) => walls.some(
+                (w) => w.y1 === w.y2 && door.y1 === door.y2 && w.y1 === door.y1
+                  && Math.min(w.x1, w.x2) < Math.max(door.x1, door.x2)
+                  && Math.max(w.x1, w.x2) > Math.min(door.x1, door.x2),
+              ) || walls.some(
+                (w) => w.x1 === w.x2 && door.x1 === door.x2 && w.x1 === door.x1
+                  && Math.min(w.y1, w.y2) < Math.max(door.y1, door.y2)
+                  && Math.max(w.y1, w.y2) > Math.min(door.y1, door.y2),
+              );
+              const collides = wallCoversDoor(plainWalls, coParentResult.revealDoorWall)
+                || wallCoversDoor(coParentResult.plainWalls, revealDoorWall)
+                || wallCoversDoor(plainWalls, coParentResult.doorWall)
+                || wallCoversDoor(coParentResult.plainWalls, doorWall);
+              if (collides) {
+                if (isResidual) residualWallCollisions += 1;
+                else nonResidualWallCollisions += 1;
+              }
+            }
+          }
+        }
+      }
+    }
+    expect(totalEdges).toBeGreaterThan(1000); // sanity: the sweep actually exercised real branching
+    expect(doglegEligibleEdges).toBeGreaterThan(0); // sanity: the dogleg-eligible shape actually occurs in this corpus
+    const overallRate = totalEdges > 0 ? overlappingEdges / totalEdges : 0;
+    const doglegRate = doglegEligibleEdges > 0 ? doglegEligibleOverlaps / doglegEligibleEdges : 0;
+    // eslint-disable-next-line no-console
+    console.log(`[sweep] #297 footprint overlap: ${overlappingEdges}/${totalEdges} edges overall (${(overallRate * 100).toFixed(2)}%); dogleg-eligible (rank+2/col+2, single intermediate blocking cell): ${doglegEligibleOverlaps}/${doglegEligibleEdges} (${(doglegRate * 100).toFixed(2)}%)`);
+    expect(priorityCollisions).toBeGreaterThan(0); // sanity: the corpus actually produced a real co-parent collision
+    const residualRate = priorityCollisions > 0 ? residualEdges / priorityCollisions : 0;
+    const nonResidualRate = priorityCollisions > 0 ? nonResidualWallCollisions / priorityCollisions : 0;
+    // eslint-disable-next-line no-console
+    console.log(`[sweep] #297 Round 2 slot priority: ${priorityCollisions} real co-parent collisions found; ${nonResidualWallCollisions}/${priorityCollisions} (${(nonResidualRate * 100).toFixed(2)}%) had a cross-connection wall collision OUTSIDE the documented LARGE/SMALL residual; documented LARGE-blocker/SMALL-target residual: ${residualEdges}/${priorityCollisions} (${(residualRate * 100).toFixed(2)}%), of which ${residualWallCollisions} actually manifested as a wall collision`);
+    // #297 Round 2's own second, smaller residual (found by this sweep,
+    // measured 2026-09-29 at 4/381 ~= 1.05%, tracked in #309 per this
+    // spec's own "Round 2 correction: slot priority" residual section):
+    // slot priority only ever repositions the TARGET's own door
+    // slots -- it was never designed to, and does not, protect the
+    // colliding connection's own dogleg containment wall (sealing "turn 2"
+    // at the blocking room's own south/east margin edge) from landing on
+    // the CO-PARENT's own door or gap position on that SAME face, which is
+    // computed completely independently (the co-parent's own naive gap
+    // clamp has no visibility into where the dogleg's own turn-2 wall
+    // will land, and vice versa) -- the same "two independently-computed
+    // positions sharing one crossing point, nothing forces agreement"
+    // shape this codebase has hit before (#230/#231). Tracked with its own
+    // real ceiling, not asserted to zero -- softening this to a blanket
+    // zero would either hide a real regression (if the rate silently grew)
+    // or force chasing a rare, already-characterized edge case back to
+    // zero, which is exactly the "keep grinding on #297" this plan's own
+    // history (Round 1's regression, Round 2's abandoned ride-along
+    // design) already showed is not worth it for a residual this small.
+    expect(nonResidualRate).toBeLessThanOrEqual(0.03);
+    expect(doglegEligibleOverlaps).toBe(0);
+  });
 });
 
 describe('incomingFaceByRoomId derivation over a real generated graph', () => {
@@ -2568,5 +3171,601 @@ describe('incomingFaceByRoomId derivation over a real generated graph', () => {
       }
     }
     expect(sawWest).toBe(true); // sanity: the sweep actually exercised the new fallback, not just the unchanged default
+  });
+});
+
+describe('pendingForeignMarginOpenings — #297', () => {
+  it('finds a foreign opening for the blocking room in a dogleg scenario', () => {
+    const seed = 'dogleg-repro-seed-0'; // same concrete seed Task 2 pinned (tests/dungeon-layout.test.mjs's own dogleg describe block)
+    const fromRoomId = 'from-room';
+    const toRoomId = 'to-room';
+    const blockerRoomId = 'blocker-room';
+    const fromPos = { rank: 0, col: 0 };
+    const toPos = { rank: 2, col: 0 };
+    const layoutPositionByRoomId = {
+      [fromRoomId]: fromPos,
+      [blockerRoomId]: { rank: 1, col: 0 },
+      [toRoomId]: toPos,
+    };
+    // Index 0 = toRoomId (the merge/shortcut room, gets exitFaceForIndex(0)='south'
+    // -- confirmed live repro order), index 1 = blockerRoomId.
+    const edges = { [fromRoomId]: [toRoomId, blockerRoomId] };
+    const occupiedCells = { '0,0': fromRoomId, '1,0': blockerRoomId, '2,0': toRoomId };
+    const incomingFaceByRoomId = { [toRoomId]: 'north', [blockerRoomId]: 'north' };
+
+    const openings = pendingForeignMarginOpenings(
+      seed, blockerRoomId, 1, 0, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
+    );
+
+    // Cross-check against the SAME buildEdgeCorridor call this function
+    // internally makes for this edge, rather than a second, independently
+    // hardcoded expected value -- this file's own recurring "two things
+    // must agree on a shared boundary" lesson applies here too, one level
+    // up from Task 2's own fix.
+    const fromRect = roomRect(seed, fromRoomId, fromPos.rank, fromPos.col);
+    const toRect = roomRect(seed, toRoomId, toPos.rank, toPos.col);
+    const toSlot = doorSlotsForFace(toRect, 1, 'north')[0];
+    const { foreignOpening } = buildEdgeCorridor(
+      seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos,
+      'south', toSlot, occupiedCells, 'north',
+    );
+    expect(foreignOpening).not.toBeNull();
+    expect(foreignOpening.side).toBe('south');
+    expect(openings.south).toEqual([{ offset: foreignOpening.offset, width: foreignOpening.width }]);
+    expect(openings.east).toEqual([]);
+  });
+
+  it('finds no foreign opening for a room with no blocking role', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const layoutPositionByRoomId = {
+      'a': { rank: 0, col: 0 },
+      'b': { rank: 1, col: 0 },
+    };
+    const edges = { a: ['b'] };
+    const occupiedCells = { '0,0': 'a', '1,0': 'b' };
+    const openings = pendingForeignMarginOpenings(
+      seed, 'b', 1, 0, edges, layoutPositionByRoomId, { b: 'north' }, occupiedCells,
+    );
+    expect(openings.east).toEqual([]);
+    expect(openings.south).toEqual([]);
+  });
+});
+
+describe('pendingForeignMarginOpenings — #297 Round 2: real slot resolution', () => {
+  it('resolves the REAL per-connection slot for a multi-parent target, not slot 0 of an assumed single-connection room', () => {
+    // A merge room with TWO real parents: shortcutSourceId (index 0, the
+    // edge whose own dogleg blocks through the SAME room this test
+    // targets) and blockerRoomId (index 1, its own direct adjacent edge).
+    // The merge room's own incoming face is 'north' with 2 real
+    // connections, so doorSlotsForFace(targetRect, 2, 'north') produces
+    // TWO half-width slots -- genuinely different from the single
+    // full-width slot the OLD, buggy call (doorSlotsForFace(targetRect, 1,
+    // 'north')[0]) would have used. This difference is what makes the
+    // test actually pin the fix, not just happen to pass under both the
+    // old and new code.
+    const seed = 'dogleg-repro-seed-0'; // reuse Round 1's own pinned seed
+    const blockerRoomId = 'blocker-room'; // this test's own room being queried -- the co-parent AND the blocker, per Round 2's own detection
+    const shortcutSourceId = 'from-room';
+    const mergeRoomId = 'to-room';
+    const layoutPositionByRoomId = {
+      [shortcutSourceId]: { rank: 0, col: 0 },
+      [blockerRoomId]: { rank: 1, col: 0 },
+      [mergeRoomId]: { rank: 2, col: 0 },
+    };
+    // blockerRoomId is ALSO a real parent of mergeRoomId here (a second,
+    // independent edge, unrelated to shortcutSourceId's own edge) --
+    // giving mergeRoomId 2 real incoming connections.
+    const layoutEdges = {
+      [shortcutSourceId]: [mergeRoomId, blockerRoomId],
+      [blockerRoomId]: [mergeRoomId],
+    };
+    const edges = layoutEdges; // no detour rooms in this scenario
+    const occupiedCells = { '0,0': shortcutSourceId, '1,0': blockerRoomId, '2,0': mergeRoomId };
+    const incomingFaceByRoomId = { [mergeRoomId]: 'north', [blockerRoomId]: 'north' };
+
+    const openings = pendingForeignMarginOpenings(
+      seed, blockerRoomId, 1, 0, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
+      layoutEdges, {},
+    );
+
+    // Cross-check: the REAL slot for shortcutSourceId's own edge into
+    // mergeRoomId is index 0 of a 2-connection doorSlotsForFace call --
+    // parentRoomIdsFor iterates Object.entries(layoutEdges) in insertion
+    // order, and shortcutSourceId ('from-room') is this object literal's
+    // own first key, so it's this target's own first real parent
+    // (verified directly: `node -e` printing Object.entries(layoutEdges)
+    // for this exact literal gives `from-room` before `blocker-room`).
+    // blockerRoomId occupies index 1.
+    const mergeRect = roomRect(seed, mergeRoomId, 2, 0);
+    const realSlots = doorSlotsForFace(mergeRect, 2, 'north');
+    const realSlotForShortcut = realSlots[0];
+    const { foreignOpening } = buildEdgeCorridor(
+      seed, shortcutSourceId, mergeRoomId, roomRect(seed, shortcutSourceId, 0, 0), mergeRect,
+      { rank: 0, col: 0 }, { rank: 2, col: 0 }, 'south', realSlotForShortcut, occupiedCells, 'north',
+    );
+    expect(foreignOpening).not.toBeNull();
+    expect(openings.south).toEqual([{ offset: foreignOpening.offset, width: foreignOpening.width }]);
+  });
+});
+
+describe('#297 regression: exact live repro (issue #297, seed 1790705053246-4vdgop9m7i5\'s own edge shape)', () => {
+  it('the merge room\'s second-parent edge routes around the blocking room instead of crossing its footprint, full pipeline', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const sourceId = 'from-room';
+    const blockerRoomId = 'blocker-room';
+    const mergeRoomId = 'to-room';
+    const sourcePos = { rank: 1, col: 0 };
+    const blockerPos = { rank: 2, col: 0 };
+    const mergePos = { rank: 3, col: 0 };
+    const layoutPositionByRoomId = {
+      [sourceId]: sourcePos,
+      [blockerRoomId]: blockerPos,
+      [mergeRoomId]: mergePos,
+    };
+    // Confirmed live graph order: index 0 = merge room (south exit),
+    // index 1 = blocking room (east exit) -- see this brief's own note
+    // above for why index order matters here.
+    const edges = { [sourceId]: [mergeRoomId, blockerRoomId] };
+    const occupiedCells = {
+      '1,0': sourceId,
+      '2,0': blockerRoomId,
+      '3,0': mergeRoomId,
+    };
+    const incomingFaceByRoomId = { [mergeRoomId]: 'north', [blockerRoomId]: 'north' };
+
+    const sourceRect = roomRect(seed, sourceId, sourcePos.rank, sourcePos.col);
+    const mergeRect = roomRect(seed, mergeRoomId, mergePos.rank, mergePos.col);
+    const blockerRect = roomRect(seed, blockerRoomId, blockerPos.rank, blockerPos.col);
+    const toSlot = doorSlotsForFace(mergeRect, 1, 'north')[0];
+
+    // The real edge that crosses the blocking room's own cell: source's
+    // south exit (index 0) to the merge room, 2 ranks down, same column --
+    // exactly buildEdgeCorridor's own null-path fast-path fallback.
+    const { corridorSegments, foreignOpening } = buildEdgeCorridor(
+      seed, sourceId, mergeRoomId, sourceRect, mergeRect, sourcePos, mergePos,
+      'south', toSlot, occupiedCells, 'north',
+    );
+
+    // The real property (this issue's own root cause): no corridor floor
+    // segment overlaps the blocking room's own rect.
+    for (const seg of corridorSegments) {
+      const overlapsX = seg.gx < blockerRect.gx + blockerRect.gw && seg.gx + seg.gw > blockerRect.gx;
+      const overlapsY = seg.gy < blockerRect.gy + blockerRect.gh && seg.gy + seg.gh > blockerRect.gy;
+      expect(overlapsX && overlapsY).toBe(false);
+    }
+    expect(foreignOpening).not.toBeNull();
+    expect(foreignOpening.roomId).toBe(blockerRoomId);
+    expect(foreignOpening.side).toBe('south');
+
+    // Full pipeline: the blocking room's own pendingForeignMarginOpenings
+    // scan (run as if building the BLOCKING room itself) must find this
+    // exact opening, and cellMarginWalls must actually seal the blocking
+    // room's own margin with it present -- not just that buildEdgeCorridor
+    // reports it in isolation.
+    const openings = pendingForeignMarginOpenings(
+      seed, blockerRoomId, blockerPos.rank, blockerPos.col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
+    );
+    expect(openings.south).toEqual([{ offset: foreignOpening.offset, width: foreignOpening.width }]);
+    expect(openings.east).toEqual([]);
+
+    const marginWalls = cellMarginWalls(blockerRect, blockerPos.rank, blockerPos.col, {
+      south: openings.south,
+      east: openings.east,
+    });
+    // The blocking room's own south margin must have a REAL gap at the
+    // foreign opening's own position -- not a single, unbroken wall that
+    // would seal the dogleg's own crossing shut. Check the midpoint of the
+    // opening's own x-range: no south wall segment may cover it.
+    const blockCell = cellBounds(blockerPos.rank, blockerPos.col);
+    const gapMidX = blockCell.gx + foreignOpening.offset + foreignOpening.width / 2;
+    const southWalls = marginWalls.filter((w) => w.dir === 'south');
+    const gapMidCovered = southWalls.some(
+      (w) => Math.min(w.x1, w.x2) < gapMidX && Math.max(w.x1, w.x2) > gapMidX,
+    );
+    expect(gapMidCovered).toBe(false);
+    // And the wall actually got split (more than a single unbroken
+    // full-width segment) -- confirms cellMarginWalls really acted on the
+    // opening, not that it happened to produce a wall that just doesn't
+    // reach the midpoint for some other reason.
+    expect(southWalls.length).toBeGreaterThan(1);
+  });
+});
+
+describe('#297 Round 2 regression: co-parent correctly distinguished from an unrelated blocker in the original live-reported graph', () => {
+  it('findPriorityCollision returns null when the blocker is genuinely unrelated to the target\'s real co-parent', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const sourceId = 'room-room-entry-0';
+    const blockerRoomId = 'room-room-room-entry-0-1';
+    const mergeRoomId = 'room-room-room-entry-0-0';
+    const coParentId = 'room-detour-0';
+    const sourcePos = { rank: 1, col: 0 };
+    const blockerPos = { rank: 2, col: 0 };
+    const mergePos = { rank: 3, col: 0 };
+    const coParentPos = { rank: 2, col: 2 };
+    const layoutPositionByRoomId = {
+      [sourceId]: sourcePos,
+      [blockerRoomId]: blockerPos,
+      [mergeRoomId]: mergePos,
+      [coParentId]: coParentPos,
+    };
+    // Real graph shape from the original live report (#297's own issue
+    // body, and this spec's own "Confirmed live" section): the merge
+    // room's real parents are sourceId and coParentId -- blockerRoomId is
+    // an unrelated sibling that merely happens to occupy the intermediate
+    // cell sourceId's own south-exit edge crosses.
+    const layoutEdges = {
+      [sourceId]: [mergeRoomId, blockerRoomId],
+      [coParentId]: [mergeRoomId],
+    };
+    const occupiedCells = {
+      '1,0': sourceId,
+      '2,0': blockerRoomId,
+      '3,0': mergeRoomId,
+      '2,2': coParentId,
+    };
+    const incomingConnections = incomingConnectionsFor(layoutEdges, mergeRoomId, {});
+    expect(incomingConnections).toEqual([
+      { sourceId, hidden: false },
+      { sourceId: coParentId, hidden: false },
+    ]);
+    const collision = findPriorityCollision(
+      seed, mergeRoomId, mergePos.rank, mergePos.col, incomingConnections, layoutPositionByRoomId, occupiedCells,
+    );
+    // The critical assertion: blockerRoomId occupies the intermediate cell
+    // (Round 1's own dogleg trigger fires), but it is NOT one of the merge
+    // room's own real parents -- findCoParentCollision (reused inside
+    // findPriorityCollision) must correctly reject it, so Round 1's own
+    // unmodified dogleg is used exactly as it always has been for this
+    // exact originally-reported shape.
+    expect(collision).toBeNull();
+  });
+});
+
+describe('#297 Round 2 regression: slot priority resolves the real co-parent collision without touching Round 1\'s own dogleg geometry', () => {
+  it('the colliding connection\'s own corridor uses the exact same dogleg shape as a naive slot assignment, only its own final target-approach gap differs, and the co-parent\'s own corridor is unaffected', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const shortcutSourceId = 'from-room';
+    const blockerRoomId = 'blocker-room';
+    const mergeRoomId = 'to-room';
+    const shortcutPos = { rank: 0, col: 0 };
+    const blockerPos = { rank: 1, col: 0 };
+    const mergePos = { rank: 2, col: 0 };
+    const layoutPositionByRoomId = {
+      [shortcutSourceId]: shortcutPos,
+      [blockerRoomId]: blockerPos,
+      [mergeRoomId]: mergePos,
+    };
+    const occupiedCells = { '0,0': shortcutSourceId, '1,0': blockerRoomId, '2,0': mergeRoomId };
+    const incomingConnections = [
+      { sourceId: shortcutSourceId, hidden: false },
+      { sourceId: blockerRoomId, hidden: false },
+    ];
+    const shortcutRect = roomRect(seed, shortcutSourceId, shortcutPos.rank, shortcutPos.col);
+    const blockerRect = roomRect(seed, blockerRoomId, blockerPos.rank, blockerPos.col);
+    const mergeRect = roomRect(seed, mergeRoomId, mergePos.rank, mergePos.col);
+
+    const collision = findPriorityCollision(
+      seed, mergeRoomId, mergePos.rank, mergePos.col, incomingConnections, layoutPositionByRoomId, occupiedCells,
+    );
+    expect(collision).not.toBeNull();
+
+    const naiveSlots = doorSlotsForFace(mergeRect, 2, 'north');
+    const prioritySlots = assignDoorSlotsWithPriority(seed, mergeRect, incomingConnections, 'north', collision);
+
+    const naiveResult = buildEdgeCorridor(
+      seed, shortcutSourceId, mergeRoomId, shortcutRect, mergeRect, shortcutPos, mergePos,
+      'south', naiveSlots[0], occupiedCells, 'north',
+    );
+    const priorityResult = buildEdgeCorridor(
+      seed, shortcutSourceId, mergeRoomId, shortcutRect, mergeRect, shortcutPos, mergePos,
+      'south', prioritySlots[0], occupiedCells, 'north',
+    );
+
+    // Round 1's own dogleg logic is completely untouched: same trigger,
+    // same turn/lane/turn-2 SHAPE (segment count, and every segment's own
+    // width/height except the final one), only the FINAL branch segment's
+    // own x-range (which encodes the target gap position) may differ
+    // between the naive and priority slot. `foreignOpening`'s own
+    // roomId/side are unaffected by which slot is used, but its own
+    // offset/width are NOT asserted equal here: per buildEdgeCorridor's
+    // own "Review round 2 fix" comment, that range is deliberately derived
+    // from gapX0/gapX1 (the same final target-approach gap this comment
+    // already calls out as allowed to differ), so asserting it byte-equal
+    // would contradict the very shape invariant this test is checking --
+    // confirmed by direct invocation against this exact fixture: naive
+    // gives {offset:2,width:5}, priority gives {offset:5,width:2} (same
+    // combined span, different split), both real slot assignments.
+    expect(priorityResult.foreignOpening.roomId).toEqual(naiveResult.foreignOpening.roomId);
+    expect(priorityResult.foreignOpening.side).toEqual(naiveResult.foreignOpening.side);
+    expect(priorityResult.corridorSegments).toHaveLength(naiveResult.corridorSegments.length);
+    for (let i = 0; i < naiveResult.corridorSegments.length - 1; i += 1) {
+      expect(priorityResult.corridorSegments[i]).toEqual(naiveResult.corridorSegments[i]);
+    }
+    // The source's own door is real and unmovable -- unaffected by which
+    // TARGET slot is used.
+    expect(priorityResult.doorWall).toEqual(naiveResult.doorWall);
+
+    // Now the real cross-connection property: build the co-parent's own
+    // corridor with ITS OWN priority slot, and confirm neither connection's
+    // own revealDoorWall is covered by the other's plainWalls -- the exact
+    // shape Round 1's own final review found violated.
+    const coParentResult = buildEdgeCorridor(
+      seed, blockerRoomId, mergeRoomId, blockerRect, mergeRect, blockerPos, mergePos,
+      'south', prioritySlots[1], occupiedCells, 'north',
+    );
+    const wallCoversDoor = (walls, door) => walls.some(
+      (w) => w.y1 === w.y2 && door.y1 === door.y2 && w.y1 === door.y1
+        && Math.min(w.x1, w.x2) < Math.max(door.x1, door.x2)
+        && Math.max(w.x1, w.x2) > Math.min(door.x1, door.x2),
+    );
+    expect(wallCoversDoor(priorityResult.plainWalls, coParentResult.revealDoorWall)).toBe(false);
+    expect(wallCoversDoor(coParentResult.plainWalls, priorityResult.revealDoorWall)).toBe(false);
+    // And the co-parent's own corridor takes the simple adjacent branch,
+    // not a dogleg -- the Global Constraints invariant this plan requires
+    // verifying, not assuming.
+    expect(coParentResult.foreignOpening).toBeNull();
+    expect(coParentResult.corridorSegments).toHaveLength(1);
+  });
+});
+
+describe('findCoParentCollision — #297 Round 2', () => {
+  it('finds the matching real connection index when the blocker is a co-parent', () => {
+    const incomingConnections = [
+      { sourceId: 'blocker-room', hidden: false },
+      { sourceId: 'from-room', hidden: false },
+    ];
+    const foreignOpening = { roomId: 'blocker-room', side: 'south', offset: 5, width: 2 };
+    expect(findCoParentCollision(foreignOpening, incomingConnections)).toBe(0);
+  });
+
+  it('returns -1 when there is no blocker', () => {
+    const incomingConnections = [{ sourceId: 'from-room', hidden: false }];
+    expect(findCoParentCollision(null, incomingConnections)).toBe(-1);
+  });
+
+  it('returns -1 when the blocker is unrelated to this target (Round 1\'s own unrelated-blocker case)', () => {
+    const incomingConnections = [{ sourceId: 'from-room', hidden: false }];
+    const foreignOpening = { roomId: 'some-unrelated-room', side: 'south', offset: 5, width: 2 };
+    expect(findCoParentCollision(foreignOpening, incomingConnections)).toBe(-1);
+  });
+
+  it('returns -1 when the matching connection is HIDDEN, not a real co-parent (Review Focus item 5)', () => {
+    const incomingConnections = [
+      { sourceId: 'detour-room', hidden: true },
+      { sourceId: 'from-room', hidden: false },
+    ];
+    const foreignOpening = { roomId: 'detour-room', side: 'south', offset: 5, width: 2 };
+    expect(findCoParentCollision(foreignOpening, incomingConnections)).toBe(-1);
+  });
+});
+
+describe('findPriorityCollision — #297 Round 2 (slot priority)', () => {
+  it('finds the priority collision for the pinned dogleg scenario', () => {
+    const seed = 'dogleg-repro-seed-0'; // reuses Task 2's own pinned seed/graph
+    const shortcutSourceId = 'from-room';
+    const blockerRoomId = 'blocker-room';
+    const mergeRoomId = 'to-room';
+    const layoutPositionByRoomId = {
+      [shortcutSourceId]: { rank: 0, col: 0 },
+      [blockerRoomId]: { rank: 1, col: 0 },
+      [mergeRoomId]: { rank: 2, col: 0 },
+    };
+    const occupiedCells = { '0,0': shortcutSourceId, '1,0': blockerRoomId, '2,0': mergeRoomId };
+    // Real parent order for mergeRoomId matches Object.entries(layoutEdges)'s
+    // own insertion order from Task 2's own pinned scenario: shortcutSourceId
+    // first (index 0), blockerRoomId second (index 1) -- verified via
+    // `node -e` in Task 2's own report, reused here directly.
+    const incomingConnections = [
+      { sourceId: shortcutSourceId, hidden: false },
+      { sourceId: blockerRoomId, hidden: false },
+    ];
+    const collision = findPriorityCollision(
+      seed, mergeRoomId, 2, 0, incomingConnections, layoutPositionByRoomId, occupiedCells,
+    );
+    expect(collision).not.toBeNull();
+    expect(collision.collidingIndex).toBe(0);
+    expect(collision.axis).toBe('south');
+    expect(collision.blockerId).toBe(blockerRoomId);
+    expect(collision.blockRank).toBe(1);
+    expect(collision.blockCol).toBe(0);
+  });
+
+  it('returns null when the intermediate cell is unoccupied (no dogleg needed at all)', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const layoutPositionByRoomId = { a: { rank: 0, col: 0 }, b: { rank: 2, col: 0 } };
+    const occupiedCells = { '0,0': 'a', '2,0': 'b' };
+    const incomingConnections = [{ sourceId: 'a', hidden: false }];
+    expect(findPriorityCollision(seed, 'b', 2, 0, incomingConnections, layoutPositionByRoomId, occupiedCells)).toBeNull();
+  });
+
+  it('returns null when the intermediate occupant is NOT one of this target\'s own real parents (Round 1\'s own unrelated-blocker case)', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const layoutPositionByRoomId = { a: { rank: 0, col: 0 }, unrelated: { rank: 1, col: 0 }, b: { rank: 2, col: 0 } };
+    const occupiedCells = { '0,0': 'a', '1,0': 'unrelated', '2,0': 'b' };
+    // 'unrelated' is not in incomingConnections at all -- not a parent of 'b'.
+    const incomingConnections = [{ sourceId: 'a', hidden: false }];
+    expect(findPriorityCollision(seed, 'b', 2, 0, incomingConnections, layoutPositionByRoomId, occupiedCells)).toBeNull();
+  });
+
+  it('ignores a HIDDEN connection as the colliding edge (Review Focus item 5)', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const layoutPositionByRoomId = { hiddenSource: { rank: 0, col: 0 }, blocker: { rank: 1, col: 0 }, target: { rank: 2, col: 0 } };
+    const occupiedCells = { '0,0': 'hiddenSource', '1,0': 'blocker', '2,0': 'target' };
+    const incomingConnections = [
+      { sourceId: 'hiddenSource', hidden: true },
+      { sourceId: 'blocker', hidden: false },
+    ];
+    expect(findPriorityCollision(seed, 'target', 2, 0, incomingConnections, layoutPositionByRoomId, occupiedCells)).toBeNull();
+  });
+});
+
+describe('assignDoorSlotsWithPriority — #297 Round 2', () => {
+  it('assigns the colliding connection the slot nearest the blocker\'s own east edge, for the pinned scenario', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const mergeRect = roomRect(seed, 'to-room', 2, 0);
+    const incomingConnections = [
+      { sourceId: 'from-room', hidden: false },
+      { sourceId: 'blocker-room', hidden: false },
+    ];
+    const collision = { collidingIndex: 0, axis: 'south', blockerId: 'blocker-room', blockRank: 1, blockCol: 0 };
+    const slots = assignDoorSlotsWithPriority(seed, mergeRect, incomingConnections, 'north', collision);
+    const blockerRect = roomRect(seed, 'blocker-room', 1, 0);
+    const edgeX = blockerRect.gx + blockerRect.gw;
+    // The colliding connection's own slot must contain, or lie entirely
+    // east of, the blocker's own east edge -- the real property, not a
+    // hardcoded expectation, so this test still pins the fix if the
+    // pinned seed's own room sizes ever change.
+    expect(slots[0].x1).toBeGreaterThanOrEqual(Math.min(edgeX, mergeRect.gx));
+    expect(slots[0].x1 <= edgeX && slots[0].x2 >= edgeX || slots[0].x1 >= edgeX).toBe(true);
+    // The co-parent's own slot must lie entirely at-or-west of the
+    // blocker's own east edge (never reaching into the dogleg's own lane).
+    expect(slots[1].x2).toBeLessThanOrEqual(edgeX);
+    // Every connection still gets exactly one, distinct slot (Review Focus
+    // item 2) -- no duplication, no dropped connection.
+    expect(slots).toHaveLength(2);
+    expect(slots[0]).not.toEqual(slots[1]);
+  });
+
+  it('returns list-order slots, unchanged, when there is no collision (Review Focus item 4)', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const rect = roomRect(seed, 'to-room', 2, 0);
+    const incomingConnections = [{ sourceId: 'a', hidden: false }, { sourceId: 'b', hidden: false }];
+    const plain = doorSlotsForFace(rect, 2, 'north');
+    const result = assignDoorSlotsWithPriority(seed, rect, incomingConnections, 'north', null);
+    expect(result).toEqual(plain);
+  });
+
+  it('pins the co-parent west of the edge even with 3+ connections and unfavorable list order (final-review finding B, 2026-09-29 -- real seed sweep-37, room-merge-9)', () => {
+    const seed = 'sweep-37';
+    const toId = 'room-merge-9';
+    const toPos = { rank: 7, col: 0 };
+    // Real graph shape (positions only -- roomRect/findPriorityCollision/
+    // assignDoorSlotsWithPriority are pure functions of seed+roomId+rank+
+    // col, so this reproduces the exact real geometry without running the
+    // full buildRoomGraph/attachHiddenPaths pipeline). The co-parent
+    // ('room-detour-0') is listed LAST (index 3), after the colliding
+    // connection (index 2) -- exactly the list-order shape finding B
+    // exploited.
+    const incomingConnections = [
+      { sourceId: 'room-room-room-room-room-entry-0-0-0-1', hidden: false },
+      { sourceId: 'room-room-room-room-room-entry-0-1-0-0', hidden: false },
+      { sourceId: 'room-room-room-room-room-room-entry-0-0-0-0-0', hidden: false },
+      { sourceId: 'room-detour-0', hidden: false },
+    ];
+    const layoutPositionByRoomId = {
+      'room-room-room-room-room-entry-0-0-0-1': { rank: 4, col: 2 },
+      'room-room-room-room-room-entry-0-1-0-0': { rank: 4, col: 4 },
+      'room-room-room-room-room-room-entry-0-0-0-0-0': { rank: 5, col: 0 },
+      'room-detour-0': { rank: 6, col: 0 },
+    };
+    const occupiedCells = {
+      '5,0': 'room-room-room-room-room-room-entry-0-0-0-0-0',
+      '6,0': 'room-detour-0',
+      '7,0': toId,
+    };
+    const toRect = roomRect(seed, toId, toPos.rank, toPos.col);
+
+    const collision = findPriorityCollision(
+      seed, toId, toPos.rank, toPos.col, incomingConnections, layoutPositionByRoomId, occupiedCells, 'north',
+    );
+    expect(collision).not.toBeNull();
+    expect(collision.collidingIndex).toBe(2);
+    expect(collision.blockerId).toBe('room-detour-0');
+
+    const slots = assignDoorSlotsWithPriority(seed, toRect, incomingConnections, 'north', collision);
+    const blockerRect = roomRect(seed, collision.blockerId, collision.blockRank, collision.blockCol);
+    const edgeCoord = blockerRect.gx + blockerRect.gw;
+    const coParentIndex = incomingConnections.findIndex((c) => c.sourceId === collision.blockerId);
+
+    // The critical assertion: the co-parent's own slot (index 3, listed
+    // AFTER the colliding connection) must land west of/at the edge --
+    // NOT wherever plain list-order preservation would have put it. Hand-
+    // traced against the pre-fix algorithm for this exact fixture: the
+    // pre-fix code gave this connection {x1:309,x2:312}, entirely EAST of
+    // edgeCoord (306), because the pre-fix loop merely preserved each
+    // non-colliding connection's own list-order position across the
+    // leftover slots, without regard to WHICH of them was actually the
+    // co-parent.
+    expect(slots[coParentIndex].x2).toBeLessThanOrEqual(edgeCoord);
+  });
+
+});
+
+describe('findPriorityCollision — #297 Round 2 fix (final-review finding D, corrected 2026-09-29)', () => {
+  it('does not grant priority when the corridor\'s own real span never overlaps the blocker\'s footprint, even though the intermediate cell is occupied by a real co-parent (real seed sweep-461, room-merge-14)', () => {
+    const seed = 'sweep-461';
+    const toId = 'room-merge-14';
+    const toPos = { rank: 9, col: 0 };
+    // Real graph shape: the co-parent ('room-room-merge-11-0') sits
+    // directly in the intermediate cell between the colliding connection's
+    // own source and the target -- Round 1's own dogleg TRIGGER condition
+    // (occupied intermediate cell, real co-parent) is satisfied, but the
+    // corridor's own actual provisional span (derived from the source's
+    // real door offset) never reaches the blocker's footprint, so Round
+    // 1's own dogleg would never actually fire for this edge. Verified by
+    // direct instrumentation against the pinned seed (search script, not
+    // committed): `spanOverlapsBlocker` is false. NOTE: in this specific
+    // fixture the colliding connection's own list index already happens
+    // to equal `priorityIndexForEdge`'s own result, so this test alone
+    // does NOT distinguish the plain-slot check (the first, broken version
+    // of this fix) from the priority-slot check (the corrected version) --
+    // see the second test below for that distinction, added after an
+    // independent re-review caught the first version using the wrong slot.
+    const incomingConnections = [
+      { sourceId: 'room-room-merge-11-0', hidden: false },
+      { sourceId: 'room-room-merge-11-1', hidden: false },
+    ];
+    const layoutPositionByRoomId = {
+      'room-room-merge-11-0': { rank: 8, col: 0 },
+      'room-room-merge-11-1': { rank: 7, col: 0 },
+    };
+    const occupiedCells = {
+      '7,0': 'room-room-merge-11-1',
+      '8,0': 'room-room-merge-11-0',
+      '9,0': toId,
+    };
+    const collision = findPriorityCollision(
+      seed, toId, toPos.rank, toPos.col, incomingConnections, layoutPositionByRoomId, occupiedCells, 'north',
+    );
+    // The critical assertion (finding D): an occupied, real-co-parent
+    // intermediate cell is NECESSARY but not SUFFICIENT -- without also
+    // checking `spanOverlapsBlocker`, the pre-fix version of this function
+    // returned a non-null collision here, granting the colliding
+    // connection slot priority for a corridor that was never actually
+    // going to dogleg at all.
+    expect(collision).toBeNull();
+  });
+
+  it('checks the span against the slot the connection would ACTUALLY receive if granted priority, not its own plain list-order slot (real seed sweep-9)', () => {
+    // This is the exact case an independent re-review caught the first
+    // version of the finding-D fix missing: the colliding connection's own
+    // PLAIN slot (list-order index 0, x=326..332) DOES overlap the
+    // blocker's footprint (the old, broken check's own verdict -- would
+    // have incorrectly granted priority), but the slot it would actually
+    // be assigned if priority WERE granted (priorityIndexForEdge's own
+    // result, index 1, x=332..338) does NOT overlap. The first fix
+    // attempt used the plain slot and got this wrong; it fixed only 1 of
+    // 11 real cases (the one where plain and priority slots coincidentally
+    // matched) and left the other 10, including this one, broken.
+    const seed = 'sweep-9';
+    const toId = 'room-room-room-room-room-room-entry-0-0-0-1-0';
+    const toPos = { rank: 7, col: 2 };
+    const incomingConnections = [
+      { sourceId: 'room-room-room-room-room-entry-0-0-0-1', hidden: false },
+      { sourceId: 'room-detour-1', hidden: false },
+    ];
+    const layoutPositionByRoomId = {
+      'room-room-room-room-room-entry-0-0-0-1': { rank: 5, col: 2 },
+      'room-detour-1': { rank: 6, col: 2 },
+    };
+    const occupiedCells = {
+      '5,2': 'room-room-room-room-room-entry-0-0-0-1',
+      '6,2': 'room-detour-1',
+      '7,2': toId,
+    };
+    const collision = findPriorityCollision(
+      seed, toId, toPos.rank, toPos.col, incomingConnections, layoutPositionByRoomId, occupiedCells, 'north',
+    );
+    expect(collision).toBeNull();
   });
 });

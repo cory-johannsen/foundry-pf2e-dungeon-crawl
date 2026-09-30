@@ -321,6 +321,58 @@ export function slotRowCol(slot) {
 }
 
 /**
+ * The "turn 1" jog every #297 dogleg (Round 1) uses: a short floor
+ * segment confined to the SOURCE room's own margin band (never the
+ * blocking cell itself -- see Round 1's own spec section for why: a
+ * room's floor starts immediately at its own cell's NW corner, so there
+ * is no y-range inside the blocking cell where turning wouldn't overlap
+ * that room's own floor), jogging from the source's own real door
+ * (doorX0..doorX1 at faceY) sideways to wherever the corridor needs to
+ * continue (targetLaneX0..+targetLaneWidth) -- the blocking room's own
+ * margin edge. Extracted here (Round 2 Task 1) purely to give Round 1's
+ * own already-proven dogleg logic a single, readable implementation
+ * instead of inline duplication across the south/east branches. (An
+ * earlier Round 2 design planned a second caller here -- a "ride-along"
+ * corridor landing on a co-parent's own corridor position instead of the
+ * blocker's own margin edge -- but that design was found geometrically
+ * unsound during its own implementation and replaced with slot-priority
+ * assignment, which needs no corridor-geometry helper at all. This
+ * function has exactly one caller.)
+ */
+export function marginBandApproach(doorX0, doorX1, faceY, targetLaneX0, targetLaneWidth) {
+  const turnGx = Math.min(doorX0, targetLaneX0);
+  const turnGx2 = Math.max(doorX1, targetLaneX0 + targetLaneWidth);
+  const turnBottom = faceY + DOOR_WIDTH;
+  const turnSegment = { gx: turnGx, gy: faceY, gw: turnGx2 - turnGx, gh: DOOR_WIDTH };
+  const turnWalls = [
+    // Side containment (Round 1's own round-2 self-review fix).
+    { x1: turnGx, y1: faceY, x2: turnGx, y2: turnBottom },
+    { x1: turnGx2, y1: faceY, x2: turnGx2, y2: turnBottom },
+    // Bottom cap, except where the lane continues down through it.
+    { x1: turnGx, y1: turnBottom, x2: targetLaneX0, y2: turnBottom },
+    { x1: targetLaneX0 + targetLaneWidth, y1: turnBottom, x2: turnGx2, y2: turnBottom },
+  ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
+  return { turnGx, turnGx2, turnBottom, turnSegment, turnWalls };
+}
+
+/** East-branch mirror of `marginBandApproach` — axes swapped (see the
+ * south/east mirror this file's own east-branch dogleg comments already
+ * document). */
+export function marginBandApproachY(doorY0, doorY1, faceX, targetLaneY0, targetLaneWidth) {
+  const turnGy = Math.min(doorY0, targetLaneY0);
+  const turnGy2 = Math.max(doorY1, targetLaneY0 + targetLaneWidth);
+  const turnRight = faceX + DOOR_WIDTH;
+  const turnSegment = { gx: faceX, gy: turnGy, gw: DOOR_WIDTH, gh: turnGy2 - turnGy };
+  const turnWalls = [
+    { x1: faceX, y1: turnGy, x2: turnRight, y2: turnGy },
+    { x1: faceX, y1: turnGy2, x2: turnRight, y2: turnGy2 },
+    { x1: turnRight, y1: turnGy, x2: turnRight, y2: targetLaneY0 },
+    { x1: turnRight, y1: targetLaneY0 + targetLaneWidth, x2: turnRight, y2: turnGy2 },
+  ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
+  return { turnRight, turnGy, turnGy2, turnSegment, turnWalls };
+}
+
+/**
  * Edge geometry connecting fromRoomId's exitFace to a specific door slot
  * on toRoomId's incoming face (`toSlot`, from `doorSlotsForFace` — Task 5's
  * redesign means "incoming" can be north or west per room, but potentially one of
@@ -483,7 +535,7 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
         ]
     ).filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
 
-    return { doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells };
+    return { doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells, foreignOpening: null };
   }
 
   // Adjacent (path.length <= 2), or no path found so we fall back to a
@@ -550,10 +602,130 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // fix touched or measured (see #232). Neither "closes #230" nor
     // "closes #288" means every door-coverage defect in this file is
     // gone.
-    const gapX0 = Math.min(Math.max(doorX0, toSlot.x1), toSlot.x2 - DOOR_WIDTH);
+    // #297: exactly one intermediate cell exists between source and
+    // target when they're 2 ranks apart in the same column on a null
+    // path -- if that cell holds a real room (not this edge's own
+    // source/target) whose own footprint the fixed doorX0 column would
+    // cross, reroute through that room's own east margin (a vertical
+    // "lane"), then jog sideways again through that same room's own south
+    // margin (turn 2 -- see `legTop` below) to reach wherever the
+    // target's real door lands, instead of cutting straight through the
+    // room. A larger rank gap always has more than one intermediate cell
+    // and is left on the pre-existing direct-line fallback unconditionally
+    // (#297's own documented scope limit).
+    let dogleg = null;
+    let foreignOpening = null;
+    if (!path && toPos.rank === fromPos.rank + 2) {
+      const blockRank = fromPos.rank + 1;
+      const blockCol = fromPos.col;
+      const occupantId = occupiedCells[`${blockRank},${blockCol}`];
+      if (occupantId != null && occupantId !== fromRoomId && occupantId !== toRoomId) {
+        const blockCell = cellBounds(blockRank, blockCol);
+        const occupantRect = roomRect(seed, occupantId, blockRank, blockCol);
+        // occupantRect.gx === blockCell.gx === fromRect.gx always (NW
+        // anchor, same column) -- the occupant's own footprint spans
+        // exactly [blockCell.gx, blockCell.gx + occupantRect.gw].
+        const occupantEastEdge = occupantRect.gx + occupantRect.gw;
+        // #297 fix round 3: doorX0 alone isn't the only way the corridor's real
+        // floor can reach into the blocker's footprint -- #230/#231's own
+        // gap-widening (spanX0/spanX1, widened when the target is a merge room
+        // with a narrower clamped slot than the source's face) can stretch the
+        // NON-dogleg span back across the blocker even when doorX0 itself sits
+        // outside it (measured: 40/455, 8.79%, in the closing system-wide
+        // sweep). Compute the SAME provisional gap/span the non-dogleg branch
+        // would actually produce, and trigger on THAT overlapping the blocker's
+        // footprint, not just doorX0 in isolation.
+        const provisionalGapX0 = Math.min(Math.max(doorX0, toSlot.x1), toSlot.x2 - DOOR_WIDTH);
+        const provisionalGapX1 = provisionalGapX0 + DOOR_WIDTH;
+        const provisionalSpanX0 = Math.min(doorX0, provisionalGapX0);
+        const provisionalSpanX1 = Math.max(doorX1, provisionalGapX1);
+        const spanOverlapsBlocker = provisionalSpanX0 < occupantEastEdge && provisionalSpanX1 > occupantRect.gx;
+        if (spanOverlapsBlocker) {
+          // The turn MUST happen while still inside the SOURCE's own
+          // margin band (faceY..blockCell.gy), never inside the blocking
+          // cell itself -- a room's floor starts immediately at its own
+          // cell's NW corner (no margin above/left of it), so there is no
+          // y-range inside the blocking cell where turning wouldn't
+          // overlap that room's own floor. The source's own margin is
+          // always >= DOOR_WIDTH deep (the same margin invariant
+          // cellMarginWalls relies on), so a DOOR_WIDTH-tall turn always
+          // fits there even for a LARGE source room.
+          const laneX0 = occupantEastEdge;
+          const laneX1 = laneX0 + DOOR_WIDTH;
+          // #297 Round 2 Task 1: turn 1's own geometry (turnGx/turnGx2/
+          // turnBottom) plus its own containment walls, extracted into
+          // `marginBandApproach` (see its own docblock) purely for
+          // readability -- this dogleg is the function's only caller.
+          const { turnGx, turnGx2, turnBottom, turnSegment: turn1Segment, turnWalls: turn1Walls } =
+            marginBandApproach(doorX0, doorX1, faceY, laneX0, DOOR_WIDTH);
+          // Review round 1 fix: the lane's own vertical run can't reach
+          // all the way to corridorEndY and stop -- that leaves it
+          // sealed off from wherever the target's real door (gapX0/gapX1
+          // below) actually lands, whenever the lane's own x doesn't
+          // happen to coincide with the door (measured: 84% of dogleg
+          // activations in a 2,000-seed sweep, including this file's own
+          // dogleg-repro-seed-0 test). A second turn, inside the
+          // BLOCKING room's own south margin band (>= DOOR_WIDTH deep,
+          // same invariant as every other margin in this file), jogs the
+          // lane sideways to the real door before crossing into the
+          // target's cell.
+          const legTop = corridorEndY - DOOR_WIDTH;
+          // occupantId/blockCell carried on `dogleg` itself -- `foreignOpening`
+          // can't be built here anymore (review round 2 fix: it needs
+          // gapX0/gapX1, computed below, which depend on `dogleg.laneX0`, so
+          // building it before gapX0 exists would mean re-deriving values
+          // that must actually agree with gapX0 -- see `foreignOpening`'s
+          // own assignment below).
+          dogleg = { laneX0, laneX1, turnGx, turnGx2, turnBottom, legTop, occupantId, blockCell, turn1Segment, turn1Walls };
+        }
+      }
+    }
+    // #297: when a dogleg is active, the corridor's real approach to the
+    // target is from the lane's own x, not the original (now-abandoned)
+    // doorX0 -- the target's own gap must track wherever the corridor
+    // actually lands, the same "two things must agree on a shared
+    // boundary" requirement #230 already established for the non-dogleg
+    // case.
+    const targetFacingX0 = dogleg ? dogleg.laneX0 : doorX0;
+    const gapX0 = Math.min(Math.max(targetFacingX0, toSlot.x1), toSlot.x2 - DOOR_WIDTH);
     const gapX1 = gapX0 + DOOR_WIDTH;
-    const spanX0 = Math.min(doorX0, gapX0);
-    const spanX1 = Math.max(doorX1, gapX1);
+    const spanX0 = dogleg ? dogleg.turnGx : Math.min(doorX0, gapX0);
+    const spanX1 = dogleg ? dogleg.turnGx2 : Math.max(doorX1, gapX1);
+    // Review round 2 fix: `foreignOpening` must describe the SAME x-range
+    // turn 2's own real floor spans (`Math.min(laneX0,gapX0)` ..
+    // `Math.max(laneX1,gapX1)`), computed from the SAME gapX0/gapX1 the
+    // containment walls below use -- not the narrower `[laneX0,laneX1)`
+    // lane width round 1 used. A future task feeds this straight into
+    // cellMarginWalls to open the blocking room's own south wall; an
+    // under-width opening there would wall off exactly the part of turn 2
+    // that reaches the real door -- the same "the margin gap must match
+    // the real floor's own width" defect #288/outgoingMarginOffset already
+    // fixed once for the SOURCE room's own margin, one level removed here
+    // for the BLOCKING room's.
+    if (dogleg) {
+      const openingX0 = Math.min(dogleg.laneX0, gapX0);
+      const openingX1 = Math.max(dogleg.laneX1, gapX1);
+      foreignOpening = {
+        roomId: dogleg.occupantId,
+        // The lane travels vertically through the blocking room's own
+        // EAST margin band but never actually crosses that room's own
+        // east wall -- it stays inside the cell throughout. It crosses
+        // the blocking room's own SOUTH wall (via the turn-2 jog) to
+        // continue into the target's cell below, so the opening this
+        // creates is on the blocking room's SOUTH side, not its east.
+        side: 'south',
+        offset: openingX0 - dogleg.blockCell.gx,
+        width: openingX1 - openingX0,
+      };
+    }
+    // Review round 1 fix: turn 2 (the jog inside the blocker's own south
+    // margin, see `legTop` above) can reach wider than `toSlot`'s own
+    // bounds whenever `laneX0`/`laneX1` sit outside the target's slot --
+    // exactly the case the turn exists to handle. The target-face capping
+    // walls below must widen to seal turn 2's own full reach, not just
+    // `toSlot`'s bounds, or its own outer edge stays open past the wall.
+    const targetCapX0 = dogleg ? Math.min(toSlot.x1, dogleg.laneX0, gapX0) : toSlot.x1;
+    const targetCapX1 = dogleg ? Math.max(toSlot.x2, dogleg.laneX1, gapX1) : toSlot.x2;
     // #294 fix round: the new side walls below must never reach past the
     // SOURCE's own cell boundary — see their own comment for why. Equals
     // corridorEndY exactly in the found-path (adjacent) case; strictly
@@ -574,9 +746,11 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       // merge room with 2+ real parents. `gapX0`/`gapX1` are already
       // guaranteed within `[toSlot.x1, toSlot.x2]` (#230's own clamp),
       // so these two walls need no `Math.max`/`Math.min` at all — just
-      // the slot's own edges.
-      { x1: toSlot.x1, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
-      { x1: gapX1, y1: corridorEndY, x2: toSlot.x2, y2: corridorEndY },
+      // the slot's own edges (`targetCapX0`/`targetCapX1`, which equal
+      // `toSlot.x1`/`toSlot.x2` outside a dogleg — see their own comment
+      // above for the dogleg-widened case).
+      { x1: targetCapX0, y1: corridorEndY, x2: gapX0, y2: corridorEndY },
+      { x1: gapX1, y1: corridorEndY, x2: targetCapX1, y2: corridorEndY },
       // #294 fix: the two walls above only ever cap the corridor's own
       // depth HORIZONTALLY (at the source's own face and the target's
       // own face) — nothing previously closed its SIDES. A token
@@ -614,8 +788,67 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       // live-reported leak stays fixed), and in the null-path case the
       // side walls now stop at the source's own margin, never reaching
       // into cells this function has no business drawing walls through.
-      { x1: spanX0, y1: faceY, x2: spanX0, y2: sideWallEndY },
-      { x1: spanX1, y1: faceY, x2: spanX1, y2: sideWallEndY },
+      ...(dogleg
+        ? [
+            // Self-review finding (round 2, discovered via the explicit
+            // "every corridor floor tile walled on all four sides except
+            // the door" hand-verification): turn 1's own left/right sides
+            // (`turnGx`/`turnGx2`, spanning `faceY..turnBottom`) had NO
+            // containment at all -- neither `cellMarginWalls` (only ever
+            // draws 2 lines, along a CELL's own OUTER east/south
+            // boundary, never an interior x) nor `roomEnclosureWalls`
+            // (only the room's own rect edges, at `faceY` itself, not
+            // south of it) covers this. This is the exact same margin-
+            // band-lateral-walk defect #294 already fixed once for the
+            // non-dogleg case's own `spanX0`/`spanX1` walls (which run
+            // this identical `faceY..sideWallEndY` depth) -- turn 1 is
+            // that same region for the dogleg case and needs the same
+            // containment. (#297 Round 2 Task 1: these 4 walls -- the pair
+            // above plus the south-cap pair below -- now come straight
+            // from `marginBandApproach`'s own `turnWalls`, not duplicated
+            // inline.)
+            ...dogleg.turn1Walls,
+            // Contain the lane's own sides for its own remaining run,
+            // through the rest of the source's own margin AND into the
+            // blocking cell -- but only down to `legTop`, not
+            // `corridorEndY`: below `legTop` the lane bends sideways into
+            // turn 2 (below), so a wall running the lane's own x all the
+            // way to `corridorEndY` would wall the lane off from that
+            // turn instead of just containing it (review round 1 fix —
+            // this was the dead-end bug: the original single-turn dogleg
+            // never anticipated a SECOND turn sharing the same band).
+            { x1: dogleg.laneX0, y1: dogleg.turnBottom, x2: dogleg.laneX0, y2: dogleg.legTop },
+            { x1: dogleg.laneX1, y1: dogleg.turnBottom, x2: dogleg.laneX1, y2: dogleg.legTop },
+            // Cap turn 2's own top edge (at legTop) except where the lane
+            // continues down into it -- same "seal everything except the
+            // declared opening" shape as the pair above. Turn 2's own
+            // south edge (at corridorEndY) is sealed by the two
+            // `targetCapX0`/`targetCapX1` walls earlier in this array,
+            // except at the real door (gapX0..gapX1).
+            { x1: Math.min(dogleg.laneX0, gapX0), y1: dogleg.legTop, x2: dogleg.laneX0, y2: dogleg.legTop },
+            { x1: dogleg.laneX1, y1: dogleg.legTop, x2: Math.max(dogleg.laneX1, gapX1), y2: dogleg.legTop },
+            // Review round 2 fix: turn 2's own floor is WIDER than the
+            // lane (it spans `[min(laneX0,gapX0), max(laneX1,gapX1))`,
+            // not just `[laneX0,laneX1)`) whenever `gapX0 !== laneX0` or
+            // `gapX1 !== laneX1` -- the common case, exactly the condition
+            // turn 2 exists to handle. The lane's own side walls above
+            // only run `turnBottom..legTop`, so turn 2's own sides (the
+            // part of its floor that extends past the lane, from `legTop`
+            // down to `corridorEndY`) were left completely unwalled --
+            // a token could walk laterally off the corridor into the
+            // blocking room's own open south-margin band. These two
+            // walls seal turn 2's own real left/right edges for its own
+            // depth (`legTop..corridorEndY`), the same "contain the
+            // floor's own real edges, not a narrower guess" shape as the
+            // lane's own side walls above and the non-dogleg span walls
+            // below.
+            { x1: Math.min(dogleg.laneX0, gapX0), y1: dogleg.legTop, x2: Math.min(dogleg.laneX0, gapX0), y2: corridorEndY },
+            { x1: Math.max(dogleg.laneX1, gapX1), y1: dogleg.legTop, x2: Math.max(dogleg.laneX1, gapX1), y2: corridorEndY },
+          ]
+        : [
+            { x1: spanX0, y1: faceY, x2: spanX0, y2: sideWallEndY },
+            { x1: spanX1, y1: faceY, x2: spanX1, y2: sideWallEndY },
+          ]),
     ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
     const doorWall = { x1: doorX0, y1: faceY, x2: doorX1, y2: faceY };
     const revealDoorWall = { x1: gapX0, y1: corridorEndY, x2: gapX1, y2: corridorEndY };
@@ -625,8 +858,20 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // (now-deleted) trunk-lane detour.
     return {
       doorWall, revealDoorWall, plainWalls,
-      corridorSegments: [{ gx: spanX0, gy: faceY, gw: spanX1 - spanX0, gh: corridorEndY - faceY }],
+      corridorSegments: dogleg
+        ? [
+            dogleg.turn1Segment,
+            { gx: dogleg.laneX0, gy: dogleg.turnBottom, gw: DOOR_WIDTH, gh: dogleg.legTop - dogleg.turnBottom },
+            {
+              gx: Math.min(dogleg.laneX0, gapX0),
+              gy: dogleg.legTop,
+              gw: Math.max(dogleg.laneX1, gapX1) - Math.min(dogleg.laneX0, gapX0),
+              gh: DOOR_WIDTH,
+            },
+          ]
+        : [{ gx: spanX0, gy: faceY, gw: spanX1 - spanX0, gh: corridorEndY - faceY }],
       transitCells: [],
+      foreignOpening,
     };
   }
 
@@ -644,13 +889,100 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     const corridorEndX = toRect.gx;
     const doorY0 = fromRect.gy + outgoingOffset;
     const doorY1 = doorY0 + DOOR_WIDTH;
+    // #297: exact mirror of the south/sameColumn branch's own dogleg above
+    // (see its own comment for the full reasoning) — exactly one
+    // intermediate cell exists between source and target when they're 2
+    // columns apart on the same rank on a null path; if that cell holds a
+    // real room whose own footprint the fixed doorY0 row would cross,
+    // reroute through that room's own south margin (a horizontal "lane"),
+    // then jog again through that same room's own east margin (turn 2) to
+    // reach wherever the target's real door lands, instead of cutting
+    // straight through the room.
+    let dogleg = null;
+    let foreignOpening = null;
+    if (!path && toPos.col === fromPos.col + 2) {
+      const blockRank = fromPos.rank;
+      const blockCol = fromPos.col + 1;
+      const occupantId = occupiedCells[`${blockRank},${blockCol}`];
+      if (occupantId != null && occupantId !== fromRoomId && occupantId !== toRoomId) {
+        const blockCell = cellBounds(blockRank, blockCol);
+        const occupantRect = roomRect(seed, occupantId, blockRank, blockCol);
+        // occupantRect.gy === blockCell.gy === fromRect.gy always (NW
+        // anchor, same rank) -- the occupant's own footprint spans
+        // exactly [blockCell.gy, blockCell.gy + occupantRect.gh].
+        const occupantSouthEdge = occupantRect.gy + occupantRect.gh;
+        // #297 fix round 3: mirror of the south branch's own fix -- doorY0
+        // alone isn't the only way the corridor's real floor can reach into
+        // the blocker's footprint; #230/#231's own gap-widening (spanY0/
+        // spanY1, widened when the target is a merge room with a narrower
+        // clamped slot than the source's face) can stretch the NON-dogleg
+        // span back across the blocker even when doorY0 itself sits outside
+        // it. Compute the SAME provisional gap/span the non-dogleg branch
+        // would actually produce, and trigger on THAT overlapping the
+        // blocker's footprint, not just doorY0 in isolation.
+        const provisionalGapY0 = Math.min(Math.max(doorY0, toSlot.y1), toSlot.y2 - DOOR_WIDTH);
+        const provisionalGapY1 = provisionalGapY0 + DOOR_WIDTH;
+        const provisionalSpanY0 = Math.min(doorY0, provisionalGapY0);
+        const provisionalSpanY1 = Math.max(doorY1, provisionalGapY1);
+        const spanOverlapsBlocker = provisionalSpanY0 < occupantSouthEdge && provisionalSpanY1 > occupantRect.gy;
+        if (spanOverlapsBlocker) {
+          // The turn MUST happen while still inside the SOURCE's own
+          // margin band (faceX..blockCell.gx), never inside the blocking
+          // cell itself -- same margin invariant as the south branch's
+          // own turn 1.
+          const laneY0 = occupantSouthEdge;
+          const laneY1 = laneY0 + DOOR_WIDTH;
+          // #297 Round 2 Task 1: mirror of the south branch's own
+          // `marginBandApproach` call above, via `marginBandApproachY` (see
+          // its own docblock) — same shared jog math, axes swapped.
+          const { turnRight, turnGy, turnGy2, turnSegment: turn1Segment, turnWalls: turn1Walls } =
+            marginBandApproachY(doorY0, doorY1, faceX, laneY0, DOOR_WIDTH);
+          // Mirror of the south branch's own `legTop` fix: the lane's own
+          // horizontal run can't reach all the way to corridorEndX and
+          // stop -- a second turn, inside the BLOCKING room's own east
+          // margin band, jogs the lane down/up to the real door before
+          // crossing into the target's cell.
+          const legRight = corridorEndX - DOOR_WIDTH;
+          dogleg = { laneY0, laneY1, turnGy, turnGy2, turnRight, legRight, occupantId, blockCell, turn1Segment, turn1Walls };
+        }
+      }
+    }
+    // #297: when a dogleg is active, the corridor's real approach to the
+    // target is from the lane's own y, not the original (now-abandoned)
+    // doorY0 -- mirror of the south branch's own `targetFacingX0`.
+    const targetFacingY0 = dogleg ? dogleg.laneY0 : doorY0;
     // #230 fix: same derivation as the south-exit/same-column branch
     // above, mirrored onto the y-axis — see its own comment for the full
     // reasoning.
-    const gapY0 = Math.min(Math.max(doorY0, toSlot.y1), toSlot.y2 - DOOR_WIDTH);
+    const gapY0 = Math.min(Math.max(targetFacingY0, toSlot.y1), toSlot.y2 - DOOR_WIDTH);
     const gapY1 = gapY0 + DOOR_WIDTH;
-    const spanY0 = Math.min(doorY0, gapY0);
-    const spanY1 = Math.max(doorY1, gapY1);
+    const spanY0 = dogleg ? dogleg.turnGy : Math.min(doorY0, gapY0);
+    const spanY1 = dogleg ? dogleg.turnGy2 : Math.max(doorY1, gapY1);
+    // Mirror of the south branch's own review round 2 fix: `foreignOpening`
+    // must describe the SAME y-range turn 2's own real floor spans, computed
+    // from the SAME gapY0/gapY1 the containment walls below use.
+    if (dogleg) {
+      const openingY0 = Math.min(dogleg.laneY0, gapY0);
+      const openingY1 = Math.max(dogleg.laneY1, gapY1);
+      foreignOpening = {
+        roomId: dogleg.occupantId,
+        // The lane travels horizontally through the blocking room's own
+        // SOUTH margin band but never actually crosses that room's own
+        // south wall -- it stays inside the cell throughout. It crosses
+        // the blocking room's own EAST wall (via the turn-2 jog) to
+        // continue into the target's cell, so the opening this creates is
+        // on the blocking room's EAST side, not its south.
+        side: 'east',
+        offset: openingY0 - dogleg.blockCell.gy,
+        width: openingY1 - openingY0,
+      };
+    }
+    // Mirror of the south branch's own review round 1 fix: turn 2 can
+    // reach wider than `toSlot`'s own bounds whenever `laneY0`/`laneY1`
+    // sit outside the target's slot -- the target-face capping walls
+    // below must widen to seal turn 2's own full reach.
+    const targetCapY0 = dogleg ? Math.min(toSlot.y1, dogleg.laneY0, gapY0) : toSlot.y1;
+    const targetCapY1 = dogleg ? Math.max(toSlot.y2, dogleg.laneY1, gapY1) : toSlot.y2;
     // #294 fix round: mirror of the south branch's own sideWallEndY —
     // never reach past the SOURCE's own cell boundary. See its own
     // comment (in the south branch above) for the full reasoning.
@@ -658,16 +990,36 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     const plainWalls = [
       { x1: faceX, y1: fromRect.gy, x2: faceX, y2: doorY0 },
       { x1: faceX, y1: doorY1, x2: faceX, y2: Math.max(fromRect.gy + fromRect.gh, spanY1) },
-      { x1: corridorEndX, y1: toSlot.y1, x2: corridorEndX, y2: gapY0 },
-      { x1: corridorEndX, y1: gapY1, x2: corridorEndX, y2: toSlot.y2 },
+      { x1: corridorEndX, y1: targetCapY0, x2: corridorEndX, y2: gapY0 },
+      { x1: corridorEndX, y1: gapY1, x2: corridorEndX, y2: targetCapY1 },
       // #294 fix: same missing-side-walls defect as the south/sameColumn
       // branch above, mirrored onto the x-axis — see its own comment for
       // the full reasoning. These two HORIZONTAL walls, at the corridor
       // floor's own real edges (spanY0/spanY1), seal the rest of the
       // margin band above and below the corridor's own path — clipped to
       // sideWallEndX for the same null-path reason as the south branch.
-      { x1: faceX, y1: spanY0, x2: sideWallEndX, y2: spanY0 },
-      { x1: faceX, y1: spanY1, x2: sideWallEndX, y2: spanY1 },
+      ...(dogleg
+        ? [
+            // Mirror of the south branch's own turn-1-side containment
+            // fix (self-discovered round-2 leak): turn 1's own top/bottom
+            // sides (`turnGy`/`turnGy2`, spanning `faceX..turnRight`) need
+            // the same containment `#294` already established for the
+            // non-dogleg case's own `spanY0`/`spanY1` walls. (#297 Round 2
+            // Task 1: these 4 walls now come straight from
+            // `marginBandApproachY`'s own `turnWalls`, not duplicated
+            // inline.)
+            ...dogleg.turn1Walls,
+            { x1: dogleg.turnRight, y1: dogleg.laneY0, x2: dogleg.legRight, y2: dogleg.laneY0 },
+            { x1: dogleg.turnRight, y1: dogleg.laneY1, x2: dogleg.legRight, y2: dogleg.laneY1 },
+            { x1: dogleg.legRight, y1: Math.min(dogleg.laneY0, gapY0), x2: dogleg.legRight, y2: dogleg.laneY0 },
+            { x1: dogleg.legRight, y1: dogleg.laneY1, x2: dogleg.legRight, y2: Math.max(dogleg.laneY1, gapY1) },
+            { x1: dogleg.legRight, y1: Math.min(dogleg.laneY0, gapY0), x2: corridorEndX, y2: Math.min(dogleg.laneY0, gapY0) },
+            { x1: dogleg.legRight, y1: Math.max(dogleg.laneY1, gapY1), x2: corridorEndX, y2: Math.max(dogleg.laneY1, gapY1) },
+          ]
+        : [
+            { x1: faceX, y1: spanY0, x2: sideWallEndX, y2: spanY0 },
+            { x1: faceX, y1: spanY1, x2: sideWallEndX, y2: spanY1 },
+          ]),
     ].filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
     // A null path (boxed in, both north and west neighbors occupied,
     // #196) and a found path.length<=2 now draw the exact same direct
@@ -677,8 +1029,20 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       doorWall: { x1: faceX, y1: doorY0, x2: faceX, y2: doorY1 },
       revealDoorWall: { x1: corridorEndX, y1: gapY0, x2: corridorEndX, y2: gapY1 },
       plainWalls,
-      corridorSegments: [{ gx: faceX, gy: spanY0, gw: corridorEndX - faceX, gh: spanY1 - spanY0 }],
+      corridorSegments: dogleg
+        ? [
+            dogleg.turn1Segment,
+            { gx: dogleg.turnRight, gy: dogleg.laneY0, gw: dogleg.legRight - dogleg.turnRight, gh: DOOR_WIDTH },
+            {
+              gx: dogleg.legRight,
+              gy: Math.min(dogleg.laneY0, gapY0),
+              gw: DOOR_WIDTH,
+              gh: Math.max(dogleg.laneY1, gapY1) - Math.min(dogleg.laneY0, gapY0),
+            },
+          ]
+        : [{ gx: faceX, gy: spanY0, gw: corridorEndX - faceX, gh: spanY1 - spanY0 }],
       transitCells: [],
+      foreignOpening,
     };
   }
 
@@ -735,6 +1099,7 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       { gx: Math.min(corner.x, entryPoint.x), gy: Math.min(corner.y, entryPoint.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(entryPoint.y - corner.y)) }
     ],
     transitCells: [],
+    foreignOpening: null,
   };
 }
 
@@ -811,6 +1176,325 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
   return exitFace === 'south'
     ? { offset: seg.gx - fromRect.gx, width: seg.gw }
     : { offset: seg.gy - fromRect.gy, width: seg.gh };
+}
+
+/**
+ * Whether a connection's own candidate corridor's `foreignOpening` (a
+ * #297 Round 1 dogleg trigger) points at ANOTHER of the same target
+ * room's own real parents -- the #297 Round 2 collision this file's own
+ * spec calls out: the blocking room turns out to be the target's own
+ * co-parent. Returns that co-parent's own index in `incomingConnections`,
+ * or -1 for "no collision" -- covers both "no dogleg at all" and "dogleg
+ * fired, but the blocker is genuinely unrelated" (Round 1's own original,
+ * still-valid case). Reused by `findPriorityCollision` (Round 2 Task 4,
+ * slot-priority design) with a synthetic `{roomId: blockerId}` argument,
+ * to confirm a blocking room is genuinely one of the target's own real
+ * parents before granting it slot priority.
+ *
+ * A HIDDEN connection's own sourceId never matches, even if it happens to
+ * equal `roomId` -- a hidden connection's own door stays sealed/
+ * unrevealed until a later game-state event, and the whole point of
+ * Round 1's own dungeonHiddenDoorForEdge/dungeonDoorFromRoomId split is
+ * that a hidden connection's own geometry is handled by a completely
+ * separate mechanism this file does not touch.
+ */
+export function findCoParentCollision(candidateForeignOpening, incomingConnections) {
+  if (!candidateForeignOpening) return -1;
+  return incomingConnections.findIndex(
+    (c) => !c.hidden && c.sourceId === candidateForeignOpening.roomId,
+  );
+}
+
+/**
+ * #297 Round 2: the slot index a colliding connection would land on if
+ * granted priority -- whichever slot already contains, or sits nearest
+ * east/south of, the blocking room's own far margin edge (the documented
+ * residual: a LARGE blocker with a SMALL target falls back to the LAST
+ * slot, since the edge falls past every slot's own far end). Extracted
+ * (2026-09-29, fixing final-review finding D properly -- see below) as
+ * the SINGLE shared source of truth for this index, used by BOTH
+ * `findPriorityCollision` (to check the span this connection would
+ * actually receive if granted priority) and `assignDoorSlotsWithPriority`
+ * (to actually grant it) -- two separately-hand-copied computations of
+ * this same index is exactly the "independently-computed positions,
+ * nothing forces agreement" shape this file keeps re-discovering the hard
+ * way (#230/#231, the abandoned ride-along design, and this very
+ * function's own first version, which computed the span using the
+ * connection's PLAIN list-order slot instead of the slot it would
+ * actually be assigned, catching 1 of 11 real cases instead of all 11 --
+ * see the SDD ledger's own review entry for the full trace).
+ */
+function priorityIndexForEdge(slots, axis, blockerRect) {
+  let priorityIndex = slots.findIndex((s) => {
+    const edgeCoord = axis === 'south' ? blockerRect.gx + blockerRect.gw : blockerRect.gy + blockerRect.gh;
+    const end = axis === 'south' ? s.x2 : s.y2;
+    return edgeCoord < end;
+  });
+  if (priorityIndex < 0) priorityIndex = slots.length - 1;
+  return priorityIndex;
+}
+
+/**
+ * #297 Round 2 (revised after the "ride-along" design in this file's own
+ * earlier docblocks was found geometrically unsound): detects whether ANY
+ * of `roomId`'s own real incoming connections is blocked, on its own
+ * null-path fast-path fallback (Round 1's own dogleg trigger condition --
+ * 2 ranks/columns apart, same column/row), by a cell occupied by ANOTHER
+ * of `roomId`'s own real parents. Unlike the abandoned ride-along design,
+ * this needs NO `buildEdgeCorridor` call -- the detection reuses only the
+ * same cheap primitives Round 1's own trigger already uses
+ * (`findCorridorPath`, `doorOffsetAt`, plain arithmetic), so it can run
+ * BEFORE any connection's own door slot or corridor is built, in a single
+ * pass.
+ *
+ * Reuses `findCoParentCollision` (unchanged, already merged) to confirm
+ * the blocking room is genuinely one of `roomId`'s own real parents, by
+ * passing it a synthetic `{roomId: blockerId}` -- that function only ever
+ * reads `.roomId` off its own first argument, so this is a legitimate
+ * reuse of its own already-tested hidden-connection guard, not a hack.
+ *
+ * #297 Round 2 fix (final-review finding D, 2026-09-29; corrected the same
+ * day after an independent re-review caught the first version of this fix
+ * checking the wrong slot): an occupied, real-co-parent intermediate cell
+ * is NECESSARY but not SUFFICIENT for Round 1's own dogleg to actually
+ * fire -- its own trigger (`buildEdgeCorridor`'s south/east fast-path
+ * branches) additionally requires `findCorridorPath` to have failed
+ * (`!path`) AND the corridor's own provisional span to actually overlap
+ * the blocker's footprint (`spanOverlapsBlocker`, the same #230/#231
+ * gap-widening check Round 1's own trigger uses) -- computed using the
+ * slot this connection would ACTUALLY receive if granted priority
+ * (`priorityIndexForEdge`, shared with `assignDoorSlotsWithPriority`), not
+ * its own plain list-order slot. The first version of this fix used the
+ * plain slot, which only coincidentally matches the priority slot when a
+ * connection's own list index already equals `priorityIndexForEdge`'s own
+ * result -- true for exactly 1 of the 11 real cases the final review
+ * measured, so that version fixed 1 case and left 10 broken (an
+ * independent re-review, dispatched specifically to verify this fix,
+ * caught it by hand-tracing a case where the two slots differ). The
+ * pre-fix version of this function (before either attempt) skipped both
+ * checks entirely, granting slot priority in all 11 cases where the
+ * colliding corridor was never actually going to dogleg at all.
+ * `incomingFace` is a required parameter (the target room's own real
+ * incoming face) so `doorSlotsForFace` below matches what
+ * `buildEdgeCorridor` will actually receive.
+ *
+ * Returns the FIRST such collision found (scope: exactly one, per this
+ * feature's own spec) or `null`.
+ */
+export function findPriorityCollision(seed, roomId, rank, col, incomingConnections, layoutPositionByRoomId, occupiedCells, incomingFace) {
+  const targetRect = roomRect(seed, roomId, rank, col);
+  const targetPos = { rank, col };
+  const slots = incomingConnections.length
+    ? doorSlotsForFace(targetRect, incomingConnections.length, incomingFace)
+    : [];
+  for (let i = 0; i < incomingConnections.length; i += 1) {
+    const { sourceId, hidden } = incomingConnections[i];
+    if (hidden) continue;
+    const sourcePos = layoutPositionByRoomId[sourceId];
+    if (!sourcePos) continue;
+    let blockerId = null;
+    let axis = null;
+    let blockRank = null;
+    let blockCol = null;
+    if (sourcePos.col === col && rank === sourcePos.rank + 2) {
+      blockRank = sourcePos.rank + 1;
+      blockCol = col;
+      blockerId = occupiedCells[`${blockRank},${blockCol}`];
+      axis = 'south';
+    } else if (sourcePos.rank === rank && col === sourcePos.col + 2) {
+      blockRank = rank;
+      blockCol = sourcePos.col + 1;
+      blockerId = occupiedCells[`${blockRank},${blockCol}`];
+      axis = 'east';
+    }
+    if (blockerId == null || blockerId === sourceId || blockerId === roomId) continue;
+    if (findCoParentCollision({ roomId: blockerId }, incomingConnections) < 0) continue;
+
+    const path = findCorridorPath(sourcePos, targetPos, occupiedCells, { fromRoomId: sourceId, toRoomId: roomId, incomingFace });
+    if (path) continue;
+
+    const sourceRect = roomRect(seed, sourceId, sourcePos.rank, sourcePos.col);
+    const blockerRect = roomRect(seed, blockerId, blockRank, blockCol);
+    const prioritySlot = slots[priorityIndexForEdge(slots, axis, blockerRect)];
+    const outgoingOffset = doorOffsetAt(seed, `${sourceId}-${axis}`, 'outgoing', sourceRect.gw);
+    let spanOverlapsBlocker;
+    if (axis === 'south') {
+      const doorX0 = sourceRect.gx + outgoingOffset;
+      const doorX1 = doorX0 + DOOR_WIDTH;
+      const occupantEastEdge = blockerRect.gx + blockerRect.gw;
+      const provisionalGapX0 = Math.min(Math.max(doorX0, prioritySlot.x1), prioritySlot.x2 - DOOR_WIDTH);
+      const provisionalGapX1 = provisionalGapX0 + DOOR_WIDTH;
+      const provisionalSpanX0 = Math.min(doorX0, provisionalGapX0);
+      const provisionalSpanX1 = Math.max(doorX1, provisionalGapX1);
+      spanOverlapsBlocker = provisionalSpanX0 < occupantEastEdge && provisionalSpanX1 > blockerRect.gx;
+    } else {
+      const doorY0 = sourceRect.gy + outgoingOffset;
+      const doorY1 = doorY0 + DOOR_WIDTH;
+      const occupantSouthEdge = blockerRect.gy + blockerRect.gh;
+      const provisionalGapY0 = Math.min(Math.max(doorY0, prioritySlot.y1), prioritySlot.y2 - DOOR_WIDTH);
+      const provisionalGapY1 = provisionalGapY0 + DOOR_WIDTH;
+      const provisionalSpanY0 = Math.min(doorY0, provisionalGapY0);
+      const provisionalSpanY1 = Math.max(doorY1, provisionalGapY1);
+      spanOverlapsBlocker = provisionalSpanY0 < occupantSouthEdge && provisionalSpanY1 > blockerRect.gy;
+    }
+    if (!spanOverlapsBlocker) continue;
+
+    return { collidingIndex: i, axis, blockerId, blockRank, blockCol };
+  }
+  return null;
+}
+
+/**
+ * #297 Round 2: the real per-connection slot list (`doorSlotsForFace`'s
+ * own output, unchanged), with the colliding connection's own entry
+ * (per `findPriorityCollision`) reassigned to whichever slot already
+ * contains -- or sits nearest east/south of, when the blocking room's
+ * own margin edge falls past every slot (the documented residual: a
+ * LARGE blocker with a SMALL target) -- the blocking room's own far
+ * margin edge. When `collision` is `null`, returns `doorSlotsForFace`'s
+ * own direct output, byte-identical to today.
+ *
+ * #297 Round 2 fix (final-review finding B, 2026-09-29): the co-parent's
+ * own connection (`collision.blockerId`'s own entry in
+ * `incomingConnections`) is now explicitly pinned to the remaining slot
+ * immediately WEST of the priority slot (`priorityIndex - 1`) -- every
+ * slot with an index below `priorityIndex` is guaranteed west of (or at)
+ * the blocking room's own margin edge, since `doorSlotsForFace` produces
+ * slots left-to-right and `priorityIndex` is the FIRST slot whose own far
+ * edge exceeds that margin edge. The pre-fix version merely preserved
+ * every non-colliding connection's own original list-order position
+ * across the leftover slots, with no guarantee THIS SPECIFIC connection
+ * (the co-parent) ended up west of the edge rather than some other,
+ * unrelated third connection -- whenever list order put an unrelated
+ * connection there instead, the co-parent itself could land east of the
+ * edge, in the dogleg's own reserved lane. Measured by the final review
+ * at 22 real cases, all 22 sealing the colliding connection. Every OTHER
+ * non-colliding, non-co-parent connection still keeps its own original
+ * relative order across whatever slots remain -- only the co-parent's own
+ * placement is now guaranteed rather than incidental. Defensive-only:
+ * when `priorityIndex` is 0 (no slot exists west of the edge at all), it
+ * falls back to the pre-fix list-order behavior rather than throwing --
+ * given this codebase's own room-size discretization (only `ROOM_SIZE_
+ * SMALL`/`ROOM_SIZE_LARGE`, `N >= 2` connections for any collision to
+ * exist at all), a blocker's own margin edge can never actually fall
+ * inside the very first slot, so this branch is believed unreachable in
+ * practice, not merely unobserved in this file's own 500-seed corpus --
+ * kept as a guard against a future change to room sizing invalidating
+ * that math silently, not because it fires today.
+ */
+export function assignDoorSlotsWithPriority(seed, rect, incomingConnections, incomingFace, collision) {
+  const slots = incomingConnections.length
+    ? doorSlotsForFace(rect, incomingConnections.length, incomingFace)
+    : [];
+  if (!collision) return slots;
+  const blockerRect = roomRect(seed, collision.blockerId, collision.blockRank, collision.blockCol);
+  const priorityIndex = priorityIndexForEdge(slots, collision.axis, blockerRect);
+
+  const coParentIndex = incomingConnections.findIndex((c) => c.sourceId === collision.blockerId);
+  const pinCoParentSlotIndex = coParentIndex >= 0 && priorityIndex > 0 ? priorityIndex - 1 : null;
+
+  const assignment = new Array(incomingConnections.length);
+  assignment[collision.collidingIndex] = slots[priorityIndex];
+  if (pinCoParentSlotIndex !== null) {
+    assignment[coParentIndex] = slots[pinCoParentSlotIndex];
+  }
+  const remainingIndices = [];
+  for (let idx = 0; idx < slots.length; idx += 1) {
+    if (idx !== priorityIndex && idx !== pinCoParentSlotIndex) remainingIndices.push(idx);
+  }
+  let r = 0;
+  for (let i = 0; i < incomingConnections.length; i += 1) {
+    if (i === collision.collidingIndex) continue;
+    if (i === coParentIndex && pinCoParentSlotIndex !== null) continue;
+    assignment[i] = slots[remainingIndices[r]];
+    r += 1;
+  }
+  return assignment;
+}
+
+/**
+ * Every foreign margin opening `roomId`'s own `cellMarginWalls` call must
+ * leave, for OTHER edges whose #297 dogleg routes through this room's own
+ * margin band. A pure scan over the whole graph's real edges (`edges`,
+ * never `layoutEdges` -- a hidden/detour edge's own routing is a separate,
+ * untouched mechanism per this feature's own documented scope), calling
+ * the SAME `buildEdgeCorridor` every real edge already goes through
+ * (`buildPopulateAndUnlockGraphNode`'s own incoming-connections loop) and
+ * reading back its `foreignOpening` field -- never re-deriving the
+ * dogleg's own geometry separately, the same "call the real function,
+ * don't approximate" precedent `outgoingMarginOffset` already set. Note
+ * this function never hardcodes `DOOR_WIDTH` or a specific `side` value --
+ * it passes through whatever `buildEdgeCorridor` computed, so it stays
+ * correct even though Task 2's own review rounds widened `foreignOpening`'s
+ * real meaning (real crossing width, potentially > DOOR_WIDTH; the side
+ * the corridor actually CROSSES, not the margin band the lane merely sits
+ * in) after this function's own design was first written.
+ *
+ * Correct regardless of build order: this module performs eager,
+ * full-graph pregeneration (`roomsToEagerlyBuild`), so every input here
+ * (`edges`, `layoutPositionByRoomId`, `incomingFaceByRoomId`) is already
+ * fully known before ANY room is built -- no persisted registry, no
+ * retroactive wall-patching needed (see this feature's own spec for the
+ * full reasoning and the two wrong designs it replaced).
+ *
+ * Round 2 (#297) fix: each candidate edge's own target door slot is now
+ * resolved via `incomingConnectionsFor(layoutEdges ?? edges, childId,
+ * hiddenIncomingByRoomId)` -- the SAME per-connection slot
+ * `buildPopulateAndUnlockGraphNode`'s own incoming-connections loop
+ * assigns that target room when it's actually built -- rather than always
+ * assuming the target has exactly one incoming connection
+ * (`doorSlotsForFace(targetRect, 1, targetIncomingFace)[0]`). A merge
+ * room with 2+ real parents gets a narrower, correctly-indexed slot per
+ * edge instead of every edge sharing one assumed full-width slot; a
+ * single-connection target still resolves to that same slot 0 as before
+ * (strict generalization). `layoutEdges`/`hiddenIncomingByRoomId` are
+ * optional trailing params so this stays a pure scan callable with just
+ * `edges` when no detour/hidden-path data is available (`layoutEdges ??
+ * edges` falls back to `edges` itself, which equals `layoutEdges` for
+ * every non-detour room).
+ */
+export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells, layoutEdges, hiddenIncomingByRoomId = {}) {
+  const result = { east: [], south: [] };
+  for (const [sourceId, childIds] of Object.entries(edges)) {
+    const sourcePos = layoutPositionByRoomId[sourceId];
+    if (!sourcePos) continue;
+    const sourceIncomingFace = incomingFaceByRoomId?.[sourceId] ?? 'north';
+    childIds.forEach((childId, index) => {
+      const targetPos = layoutPositionByRoomId[childId];
+      if (!targetPos) return;
+      const exitFace = exitFaceForIndex(index, sourceIncomingFace);
+      const sameColumnTwoDown = exitFace === 'south' && sourcePos.col === targetPos.col && targetPos.rank === sourcePos.rank + 2;
+      const sameRankTwoOver = exitFace === 'east' && sourcePos.rank === targetPos.rank && targetPos.col === sourcePos.col + 2;
+      if (!sameColumnTwoDown && !sameRankTwoOver) return;
+      // Only worth calling buildEdgeCorridor (real work) when THIS room is
+      // actually the blocking cell for this candidate edge.
+      const blockRank = sameColumnTwoDown ? sourcePos.rank + 1 : sourcePos.rank;
+      const blockCol = sameColumnTwoDown ? sourcePos.col : sourcePos.col + 1;
+      if (blockRank !== rank || blockCol !== col) return;
+      const sourceRect = roomRect(seed, sourceId, sourcePos.rank, sourcePos.col);
+      const targetRect = roomRect(seed, childId, targetPos.rank, targetPos.col);
+      const targetIncomingFace = incomingFaceByRoomId?.[childId] ?? 'north';
+      const targetConnections = incomingConnectionsFor(layoutEdges ?? edges, childId, hiddenIncomingByRoomId);
+      const slotIndex = targetConnections.findIndex((c) => !c.hidden && c.sourceId === sourceId);
+      // A real parent not found among its own target's real connections
+      // would be a graph-consistency bug elsewhere (childIds and
+      // parentRoomIdsFor disagreeing) -- fall back to a single full-width
+      // slot rather than crash, matching this function's own existing
+      // defensive style (the `if (!sourcePos) continue`/`if (!targetPos)
+      // return` guards just above).
+      const toSlot = slotIndex >= 0
+        ? doorSlotsForFace(targetRect, targetConnections.length, targetIncomingFace)[slotIndex]
+        : doorSlotsForFace(targetRect, 1, targetIncomingFace)[0];
+      const { foreignOpening } = buildEdgeCorridor(
+        seed, sourceId, childId, sourceRect, targetRect, sourcePos, targetPos,
+        exitFace, toSlot, occupiedCells, targetIncomingFace,
+      );
+      if (foreignOpening && foreignOpening.roomId === roomId) {
+        result[foreignOpening.side].push({ offset: foreignOpening.offset, width: foreignOpening.width });
+      }
+    });
+  }
+  return result;
 }
 
 /** Which compass direction `from` a cell faces to reach an
@@ -1006,21 +1690,40 @@ export function cellBounds(rank, col) {
  * correct, size-agnostic test: does this room's own rect actually fall
  * short of its cell's full span, regardless of which named size it is.
  */
-export function cellMarginWalls(rect, rank, col, { openSide = null, openOffset = 0, openWidth = 0 } = {}) {
+/**
+ * Seals a room's grid-cell margin beyond its own rect (see original
+ * docblock above this function, unchanged — the L-shaped-margin
+ * reasoning, the #288 `rect.gw < cell.gw` fix, all still apply).
+ *
+ * #297: generalized from a single `{openSide, openOffset, openWidth}` to
+ * `openingsBySide` (`{ east?: [{offset, width}], south?: [{offset, width}]
+ * }`), so a side can carry the room's OWN outgoing gap and an independent
+ * FOREIGN pass-through gap (another edge's dogleg routed through this
+ * room's own margin) at once — needed because a foreign dogleg's lane can
+ * land on the same side as this room's own outgoing connection. Every
+ * existing call site passing a single opening is expressible as a
+ * one-element array on that side; this function's own test suite pins
+ * that the single-opening case produces byte-identical output to the old
+ * single-opening signature (see this task's own review focus).
+ */
+export function cellMarginWalls(rect, rank, col, openingsBySide = {}) {
   const cell = cellBounds(rank, col);
   const walls = [];
 
   const sealSide = (dir, hasMargin, along) => {
     if (!hasMargin) return;
-    if (openSide !== dir) {
-      walls.push(along(cell.gx, cell.gy, cell.gx + cell.gw, cell.gy + cell.gh));
-      return;
-    }
-    const gapStart = openOffset;
-    const gapEnd = openOffset + openWidth;
+    const openings = (openingsBySide[dir] ?? [])
+      .slice()
+      .sort((a, b) => a.offset - b.offset);
     const full = dir === 'east' ? cell.gh : cell.gw;
-    if (gapStart > 0) walls.push(along(cell.gx, cell.gy, cell.gx + cell.gw, cell.gy + cell.gh, 0, gapStart));
-    if (gapEnd < full) walls.push(along(cell.gx, cell.gy, cell.gx + cell.gw, cell.gy + cell.gh, gapEnd, full));
+    let cursor = 0;
+    for (const { offset, width } of openings) {
+      const gapStart = offset;
+      const gapEnd = offset + width;
+      if (gapStart > cursor) walls.push(along(cell.gx, cell.gy, cell.gx + cell.gw, cell.gy + cell.gh, cursor, gapStart));
+      cursor = Math.max(cursor, gapEnd);
+    }
+    if (cursor < full) walls.push(along(cell.gx, cell.gy, cell.gx + cell.gw, cell.gy + cell.gh, cursor, full));
   };
 
   const eastLine = (cgx, cgy, cgx2, cgy2, from = 0, to = cgy2 - cgy) =>

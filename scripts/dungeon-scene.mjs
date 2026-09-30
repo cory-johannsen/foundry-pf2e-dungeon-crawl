@@ -43,6 +43,9 @@ import {
   transitCellContainmentWalls,
   DOOR_WIDTH,
   outgoingMarginOffset,
+  pendingForeignMarginOpenings,
+  findPriorityCollision,
+  assignDoorSlotsWithPriority,
 } from "./dungeon-layout.mjs";
 import { freeSpotInRect } from "./placement.mjs";
 import { generateEncounter } from "./encounter-generator.mjs";
@@ -355,6 +358,7 @@ export async function buildRoomAtGraphNode(
     isGoal = false, locationTag = null, artVariant = 0, seed = "",
     layoutPositionByRoomId = {}, occupiedCells = {},
     incomingFace = 'north', incomingFaceByRoomId = {},
+    edges = {}, layoutEdges, hiddenIncomingByRoomId = {},
   },
 ) {
   const rect = roomRect(seed, roomId, rank, col);
@@ -411,9 +415,22 @@ export async function buildRoomAtGraphNode(
   // correctly by that other side's own call instead) generalizes this
   // without needing to touch cellMarginWalls' own already-tested
   // signature.
+  // #297: this room's own margin walls must leave a gap for BOTH its own
+  // real outgoing connection(s) (computed below, via outgoingMarginOffset,
+  // same as before) AND any FOREIGN pass-through gap another edge's own
+  // dogleg needs through this room's own margin band
+  // (pendingForeignMarginOpenings, dungeon-layout.mjs — a pure scan over
+  // the whole graph, safe to call fresh for every room regardless of
+  // build order under this module's eager full-graph pregeneration; see
+  // its own docblock). Task 1 generalized cellMarginWalls to accept every
+  // opening for a side as an array in one call, replacing the old
+  // one-call-per-face-then-merge dance this block used to need.
   const marginFaces = outgoingFaces.filter((face) => face === "east" || face === "south");
-  const marginWalls = [];
-  const coveredMarginSides = new Set();
+  const foreignOpenings = pendingForeignMarginOpenings(
+    seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
+    layoutEdges, hiddenIncomingByRoomId,
+  );
+  const openingsBySide = { east: [...foreignOpenings.east], south: [...foreignOpenings.south] };
   for (const face of marginFaces) {
     const childId = childIdByFace[face];
     const childPos = childId ? layoutPositionByRoomId[childId] : null;
@@ -427,19 +444,9 @@ export async function buildRoomAtGraphNode(
       seed, roomId, childId, face, rect, { rank, col },
       childPos ?? { rank: NaN, col: NaN }, occupiedCells, childIncomingFace,
     );
-    // #288: openWidth is no longer always DOOR_WIDTH — outgoingMarginOffset's
-    // own return now carries the real corridor floor's width, which can be
-    // wider than DOOR_WIDTH when the source's and target's own door offsets
-    // differ (see its own docblock).
-    const sideWalls = cellMarginWalls(rect, rank, col, { openSide: face, openOffset: offset, openWidth: width });
-    for (const side of sideWalls) if (side.dir === face) marginWalls.push(side);
-    coveredMarginSides.add(face);
+    openingsBySide[face].push({ offset, width });
   }
-  if (coveredMarginSides.size < 2) {
-    for (const side of cellMarginWalls(rect, rank, col)) {
-      if (!coveredMarginSides.has(side.dir)) marginWalls.push(side);
-    }
-  }
+  const marginWalls = cellMarginWalls(rect, rank, col, openingsBySide);
   walls.push(
     ...marginWalls.map((side) =>
       wallDoc(side, {
@@ -1131,6 +1138,9 @@ export async function buildPopulateAndUnlockGraphNode(
         layoutPositionByRoomId: state.layoutPositionByRoomId,
         occupiedCells, incomingFace,
         incomingFaceByRoomId: state.incomingFaceByRoomId,
+        edges: state.edges,
+        layoutEdges: state.layoutEdges,
+        hiddenIncomingByRoomId: state.hiddenIncomingByRoomId,
       },
     );
 
@@ -1141,7 +1151,16 @@ export async function buildPopulateAndUnlockGraphNode(
     // face (usually north, sometimes west — #174 Task 6) — doorSlotsForFace's
     // Nth slot corresponds to incomingConnections' Nth entry (same order,
     // same length).
-    const slots = incomingConnections.length ? doorSlotsForFace(rect, incomingConnections.length, incomingFace) : [];
+    // #297 Round 2: assign door slots with priority for a colliding
+    // connection, so Round 1's own already-proven dogleg never needs to
+    // widen toward a co-parent's own slot -- see this room's own spec
+    // ("Round 2 correction: slot priority") for the full reasoning. Every
+    // OTHER connection's own slot, and Round 1's own buildEdgeCorridor call
+    // below (unchanged), are completely unaffected.
+    const priorityCollision = findPriorityCollision(
+      state.seed, room.id, rank, col, incomingConnections, state.layoutPositionByRoomId, occupiedCells, incomingFace,
+    );
+    const slots = assignDoorSlotsWithPriority(state.seed, rect, incomingConnections, incomingFace, priorityCollision);
     for (let i = 0; i < incomingConnections.length; i += 1) {
       const { sourceId, hidden } = incomingConnections[i];
       const toSlot = slots[i];
