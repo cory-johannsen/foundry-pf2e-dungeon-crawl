@@ -15982,5 +15982,125 @@
     "name": "Fafnheir",
     "level": 24,
     "art": "fafnheir-lob.webp"
+  },
+  {
+    "id": "predatory_rabbit_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "e49MDE5dJQ1XFq3O",
+    "name": "Predatory Rabbit",
+    "level": -1,
+    "art": "predatory-rabbit-lob.webp"
+  },
+  {
+    "id": "mummified_cat_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "3CdslCv2CMP7O12F",
+    "name": "Mummified Cat",
+    "level": 0,
+    "art": "mummified-cat-lob.webp"
+  },
+  {
+    "id": "zombie_snake_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "ZqZlji7aCGCGATMP",
+    "name": "Zombie Snake",
+    "level": 0,
+    "art": "zombie-snake-lob.webp"
+  },
+  {
+    "id": "festering_gnasher_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "EDhme1IKgO34NDrt",
+    "name": "Festering Gnasher",
+    "level": 1,
+    "art": "festering-gnasher-lob.webp"
+  },
+  {
+    "id": "scorned_hound_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "z3BpUMkUFoXqOFgf",
+    "name": "Scorned Hound",
+    "level": 1,
+    "art": "scorned-hound-lob.webp"
+  },
+  {
+    "id": "shadern_immolator_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "pDA6tCwQ3pE6ji4U",
+    "name": "Shadern Immolator",
+    "level": 1,
+    "art": "shadern-immolator-lob.webp"
+  },
+  {
+    "id": "skeletal_soldier_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "dKkHFA4aBgk82QJO",
+    "name": "Skeletal Soldier",
+    "level": 1,
+    "art": "skeletal-soldier-lob.webp"
+  },
+  {
+    "id": "decrepit_mummy_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "S5dXAmvghYCIrQDe",
+    "name": "Decrepit Mummy",
+    "level": 2,
+    "art": "decrepit-mummy-lob.webp"
+  },
+  {
+    "id": "husk_zombie_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "qO20so7Mv2pmsLL1",
+    "name": "Husk Zombie",
+    "level": 2,
+    "art": "husk-zombie-lob.webp"
+  },
+  {
+    "id": "lacedon_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "5ukWvQqK17BQl31O",
+    "name": "Lacedon",
+    "level": 2,
+    "art": "lacedon-lob.webp"
+  },
+  {
+    "id": "shredskin_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "eEE3lRhXCjGzlRLJ",
+    "name": "Shredskin",
+    "level": 2,
+    "art": "shredskin-lob.webp"
+  },
+  {
+    "id": "combusted_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "vaVIJeQnKFUeaC8K",
+    "name": "Combusted",
+    "level": 3,
+    "art": "combusted-lob.webp"
+  },
+  {
+    "id": "deathless_acolyte_of_urgathoa_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "27NxweHr9rB1hDCn",
+    "name": "Deathless Acolyte Of Urgathoa",
+    "level": 3,
+    "art": "deathless-acolyte-of-urgathoa-lob.webp"
+  },
+  {
+    "id": "fiddling_bones_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "jIypNMJE7rVYpItG",
+    "name": "Fiddling Bones",
+    "level": 3,
+    "art": "fiddling-bones-lob.webp"
+  },
+  {
+    "id": "zombie_owlbear_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "nbVljZhCnWgGxA18",
+    "name": "Zombie Owlbear",
+    "level": 3,
+    "art": "zombie-owlbear-lob.webp"
   }
 ]
