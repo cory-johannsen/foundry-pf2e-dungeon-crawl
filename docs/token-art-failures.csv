@@ -443,3 +443,7 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 30,horde-lich,Horde Lich,15,undead,accept,,gemini,gemini-first
 30,ecorche,Ecorche,16,undead,accept,,gemini,gemini-first
 30,pale-sovereign,Pale Sovereign,16,undead,accept,,gemini,gemini-first
+31,siabrae,Siabrae,16,undead,accept,,gemini,gemini-first
+31,fluxwraith,Fluxwraith,17,undead,accept,,gemini,gemini-first
+31,queen-sluagh,Queen Sluagh,18,undead,flag,bg_patch,gemini,gemini-first
+31,runecarved-lich,Runecarved Lich,19,undead,accept,,gemini,gemini-first
