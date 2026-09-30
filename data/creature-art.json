@@ -16974,5 +16974,125 @@
     "name": "Asp of Grief",
     "level": 10,
     "art": "asp-of-grief-lob.webp"
+  },
+  {
+    "id": "crystal_strider_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "5nf90vfzOVFbGEZZ",
+    "name": "Crystal Strider",
+    "level": 10,
+    "art": "crystal-strider-lob.webp"
+  },
+  {
+    "id": "jaathoom_shuyookh_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "O3Rjdf00nJOHF4PE",
+    "name": "Jaathoom Shuyookh",
+    "level": 10,
+    "art": "jaathoom-shuyookh-lob.webp"
+  },
+  {
+    "id": "solar_crow_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "Kv6zyQC3JCEWWwvf",
+    "name": "Solar Crow",
+    "level": 10,
+    "art": "solar-crow-lob.webp"
+  },
+  {
+    "id": "elemental_thicket_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "lQcfACi4RQrjIl5S",
+    "name": "Elemental Thicket",
+    "level": 11,
+    "art": "elemental-thicket-lob.webp"
+  },
+  {
+    "id": "kizidhar_shuyookh_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "eMbeqzGyypNU1wTS",
+    "name": "Kizidhar Shuyookh",
+    "level": 11,
+    "art": "kizidhar-shuyookh-lob.webp"
+  },
+  {
+    "id": "oregorger_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "AahAJjsv74rPfAG5",
+    "name": "Oregorger",
+    "level": 11,
+    "art": "oregorger-lob.webp"
+  },
+  {
+    "id": "veldenar_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "RZ83RzvCJJHHooyk",
+    "name": "Veldenar",
+    "level": 11,
+    "art": "veldenar-lob.webp"
+  },
+  {
+    "id": "jabali_shuyookh_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "1cpG2DuXPXq3DMBx",
+    "name": "Jabali Shuyookh",
+    "level": 12,
+    "art": "jabali-shuyookh-lob.webp"
+  },
+  {
+    "id": "boiling_spring_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "EHowgLz8ohFGTGvG",
+    "name": "Boiling Spring",
+    "level": 13,
+    "art": "boiling-spring-lob.webp"
+  },
+  {
+    "id": "brochmaw_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "3ItvROg0JbYKUGRu",
+    "name": "Brochmaw",
+    "level": 13,
+    "art": "brochmaw-lob.webp"
+  },
+  {
+    "id": "elder_outcrop_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "GdXjhFu8Afg24fM9",
+    "name": "Elder Outcrop",
+    "level": 13,
+    "art": "elder-outcrop-lob.webp"
+  },
+  {
+    "id": "living_magma_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "TPi6QRmfyM9BWSof",
+    "name": "Living Magma",
+    "level": 13,
+    "art": "living-magma-lob.webp"
+  },
+  {
+    "id": "melomach_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "Z5qBvEJ628DGe8zS",
+    "name": "Melomach",
+    "level": 13,
+    "art": "melomach-lob.webp"
+  },
+  {
+    "id": "picture_in_clouds_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "YWFBlSODRkWD60Je",
+    "name": "Picture-in-Clouds",
+    "level": 13,
+    "art": "picture-in-clouds-lob.webp"
+  },
+  {
+    "id": "twins_of_rowan_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "TlM6ePIW2yHNOMJv",
+    "name": "Twins of Rowan",
+    "level": 13,
+    "art": "twins-of-rowan-lob.webp"
   }
 ]
