@@ -17318,5 +17318,125 @@
     "name": "Almiraj",
     "level": 4,
     "art": "almiraj-lob.webp"
+  },
+  {
+    "id": "ghost_ape_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "G2uIPaWPL3ZeZOUQ",
+    "name": "Ghost Ape",
+    "level": 4,
+    "art": "ghost-ape-lob.webp"
+  },
+  {
+    "id": "giant_fangtooth_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "4pazCyBIXu22a7FU",
+    "name": "Giant Fangtooth",
+    "level": 4,
+    "art": "giant-fangtooth-lob.webp"
+  },
+  {
+    "id": "hexworm_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "IX2UM77aXajrTJ6x",
+    "name": "Hexworm",
+    "level": 4,
+    "art": "hexworm-lob.webp"
+  },
+  {
+    "id": "holdfast_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "VhS8LupBXLEcuztc",
+    "name": "Holdfast",
+    "level": 4,
+    "art": "holdfast-lob.webp"
+  },
+  {
+    "id": "leopard_seal_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "IjI9p8ZpS7LVBKJC",
+    "name": "Leopard Seal",
+    "level": 4,
+    "art": "leopard-seal-lob.webp"
+  },
+  {
+    "id": "marp_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "FBB17RW7BoqiBOqL",
+    "name": "Marp",
+    "level": 4,
+    "art": "marp-lob.webp"
+  },
+  {
+    "id": "mjolgat_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "Aos5iPQ6FUaqoSV5",
+    "name": "Mjolgat",
+    "level": 4,
+    "art": "mjolgat-lob.webp"
+  },
+  {
+    "id": "morthak_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "OEY3bg3YOjRPkyzI",
+    "name": "Morthak",
+    "level": 4,
+    "art": "morthak-lob.webp"
+  },
+  {
+    "id": "wereshark_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "IaTdqm2wFMKkogEC",
+    "name": "Wereshark",
+    "level": 4,
+    "art": "wereshark-lob.webp"
+  },
+  {
+    "id": "goblin_shark_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "9Qx9RrwHo68au5eG",
+    "name": "Goblin Shark",
+    "level": 5,
+    "art": "goblin-shark-lob.webp"
+  },
+  {
+    "id": "hooplamander_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "ngtgQfPlr4zg45w9",
+    "name": "Hooplamander",
+    "level": 5,
+    "art": "hooplamander-lob.webp"
+  },
+  {
+    "id": "scroungefeather_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "WZFZqUX1zDkSnuJP",
+    "name": "Scroungefeather",
+    "level": 5,
+    "art": "scroungefeather-lob.webp"
+  },
+  {
+    "id": "sporeback_frog_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "sHUhlm4zC6iK3GNn",
+    "name": "Sporeback Frog",
+    "level": 5,
+    "art": "sporeback-frog-lob.webp"
+  },
+  {
+    "id": "storm_snake_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "Im1rZmVvTuMtKjTD",
+    "name": "Storm Snake",
+    "level": 5,
+    "art": "storm-snake-lob.webp"
+  },
+  {
+    "id": "taldan_cave_squirrel_lob",
+    "pack": "pf2e.howl-of-the-wild-bestiary",
+    "docId": "hqJN853rWhcwJi6q",
+    "name": "Taldan Cave Squirrel",
+    "level": 5,
+    "art": "taldan-cave-squirrel-lob.webp"
   }
 ]
