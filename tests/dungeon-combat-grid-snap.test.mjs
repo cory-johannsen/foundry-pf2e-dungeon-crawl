@@ -178,19 +178,6 @@ describe("strideByPosture corrects an off-grid mover even when it doesn't move (
     expect(mover.token.y % GRID_SIZE).toBe(0);
   });
 
-  it("moves with animation disabled on a normal successful move (#141)", async () => {
-    installFoundryStubs();
-    const mover = makeCombatant({ id: "mover", x: 0, y: 0, speedFt: 30 });
-    const target = makeCombatant({ id: "target", x: 5 * GRID_SIZE, y: 0 });
-    const combat = makeCombat({ combatants: [mover, target] });
-
-    const status = await strideByPosture(combat, mover, "approach", target);
-
-    expect(status).toBe("moved");
-    // #141: animation disabled -- see dungeon-combat.mjs's own NO_ANIMATE.
-    const [, options] = mover.token.update.mock.calls.at(-1);
-    expect(options).toEqual({ animation: { duration: 0 } });
-  });
 });
 
 describe("pushTokenAway corrects an off-grid target even when it can't be pushed (#86)", () => {
@@ -262,10 +249,6 @@ describe("pushTokenAway corrects an off-grid target even when it can't be pushed
     expect(target.token.update).toHaveBeenCalledTimes(1);
     expect(target.token.x % GRID_SIZE).toBe(0);
     expect(target.token.y % GRID_SIZE).toBe(0);
-    // #141: animation disabled -- see dungeon-combat.mjs's own NO_ANIMATE.
-    expect(target.token.update.mock.calls[0][1]).toEqual({
-      animation: { duration: 0 },
-    });
   });
 });
 
@@ -490,10 +473,6 @@ describe("footprint-aware movement (#140)", () => {
 
     expect(status).toBe("moved");
     expect(mover.token.update).toHaveBeenCalled();
-    // #141: animation disabled on the actual move -- see dungeon-combat.mjs's
-    // own NO_ANIMATE.
-    const [, options] = mover.token.update.mock.calls.at(-1);
-    expect(options).toEqual({ animation: { duration: 0 } });
   });
 
   it("stepToward returns 'already-there' when already within melee reach", async () => {

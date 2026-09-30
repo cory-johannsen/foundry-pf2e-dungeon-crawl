@@ -23,18 +23,21 @@ import {
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 const FOLLOW_DEBOUNCE_MS = 250;
-// #141: every position this module ever writes is already grid-exact, but
-// Foundry's default animated slide (~277ms) can be interrupted by the NEXT
-// one of these calls before it finishes (moveFollowersToward fires once per
-// discrete leader step, and walking through a door is several steps in
-// quick succession) -- Foundry bakes in whatever fractional point the
-// interrupted slide had reached as the new starting position, rather than
-// cleanly jumping, which is what actually produced the long-reported
-// off-grid drift (live-confirmed via a preUpdateToken capture: every
-// destination this module ever wrote was grid-exact; only the animated
-// transition between them could land off-grid). An instant jump has
-// nothing to interrupt.
-const NO_ANIMATE = { animation: { duration: 0 } };
+// #361 revert of #141's own fix: passing {animation:{duration:0}} here
+// correctly stopped the interrupted-animation drift #141 diagnosed, but
+// live-confirmed (this same session, right after #141/#359 both deployed)
+// it also reliably triggers a genuine Foundry v14 core bug -- every real
+// leader move started throwing `TypeError: can't redefine non-configurable
+// property "<id>"` from Foundry's own #preUpdateMovement, aborting
+// moveFollowersToward before it could move ANY follower at all. Could not
+// reproduce the crash via isolated scripted token.update() calls (same
+// option, same tokens) -- it appears to specifically require Foundry's own
+// richer keyboard/ruler-driven movement pathway a real player move engages,
+// which a raw scripted update doesn't. A hard crash that stops every
+// follower, every time, is strictly worse than #141's own occasional
+// off-grid drift -- reverted to Foundry's default animated update
+// everywhere this constant was used, pending a fix that doesn't trigger
+// the Foundry-core bug (see #361).
 
 const pendingByScene = new Map(); // sceneId -> setTimeout handle
 const warnedNoLeaderForScene = new Set();
@@ -105,7 +108,7 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
       const snappedX = Math.round(token.x / gridSize) * gridSize;
       const snappedY = Math.round(token.y / gridSize) * gridSize;
       if (token.x !== snappedX || token.y !== snappedY) {
-        await token.update({ x: snappedX, y: snappedY }, NO_ANIMATE);
+        await token.update({ x: snappedX, y: snappedY });
       }
       const moverFootprint = footprint(token, gridSize);
       const fromCell = tokenCell(token, gridSize);
@@ -149,13 +152,10 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
         gw: moverFootprint.gw,
         gh: moverFootprint.gh,
       });
-      await token.update(
-        {
-          x: result.to.gx * gridSize,
-          y: result.to.gy * gridSize,
-        },
-        NO_ANIMATE,
-      );
+      await token.update({
+        x: result.to.gx * gridSize,
+        y: result.to.gy * gridSize,
+      });
     }
   } finally {
     inFlightScenes.delete(scene.id);
@@ -314,7 +314,7 @@ export async function resnapTokenNow(sceneId, tokenId) {
   const snappedX = Math.round(token.x / gridSize) * gridSize;
   const snappedY = Math.round(token.y / gridSize) * gridSize;
   if (token.x !== snappedX || token.y !== snappedY) {
-    await token.update({ x: snappedX, y: snappedY }, NO_ANIMATE);
+    await token.update({ x: snappedX, y: snappedY });
   }
 }
 

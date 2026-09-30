@@ -683,55 +683,6 @@ describe("moveFollowersToward footprint-awareness (#140)", () => {
   });
 });
 
-describe("moveFollowersToward move animation (#141)", () => {
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  // The actual root cause of the long-reported off-grid drift, live-
-  // confirmed: every position this module writes is already grid-exact,
-  // but Foundry's default animated slide can be interrupted by the NEXT
-  // move before it finishes, baking the interrupted slide's own
-  // fractional position in as the new starting point. Pinning that a
-  // follower's own move is written as an instant jump (no animation to
-  // interrupt) is the actual regression guard for the fix -- not just
-  // that the destination is grid-exact, which was already correct before
-  // this fix, every time.
-  it("moves a follower with animation disabled, so a rapid second move has nothing to interrupt", async () => {
-    vi.useFakeTimers();
-    const leader = makeToken({
-      id: "t-leader",
-      x: 5 * GRID,
-      y: 1 * GRID,
-      actorId: LEADER_ACTOR_ID,
-    });
-    const follower = makeToken({
-      id: "t-follower",
-      x: 0,
-      y: 0,
-      actorId: FOLLOWER_ACTOR_ID,
-    });
-    const scene = makeScene({ tokens: [leader, follower] });
-
-    installFoundryStubs({
-      dungeonRuns: {
-        [SCENE_ID]: {
-          hostUserId: HOST_USER_ID,
-          aiControlledActorIds: [FOLLOWER_ACTOR_ID],
-        },
-      },
-    });
-    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
-
-    runFollowMoveNow(SCENE_ID);
-    await vi.advanceTimersByTimeAsync(300);
-
-    expect(follower.update).toHaveBeenCalledTimes(1);
-    const [, options] = follower.update.mock.calls[0];
-    expect(options).toEqual({ animation: { duration: 0 } });
-  });
-});
-
 describe("resnapTokenNow (#141)", () => {
   it("snaps an off-grid token back to the nearest grid cell", () => {
     const token = makeToken({
@@ -747,13 +698,7 @@ describe("resnapTokenNow (#141)", () => {
     resnapTokenNow(SCENE_ID, "t-drifted");
 
     expect(token.update).toHaveBeenCalledTimes(1);
-    // #141: no animation on a resnap correction either -- nothing to
-    // interrupt (and interrupting an unrelated in-flight slide is exactly
-    // the mechanism that caused the drift this snaps back from).
-    expect(token.update).toHaveBeenCalledWith(
-      { x: 5 * GRID, y: 3 * GRID },
-      { animation: { duration: 0 } },
-    );
+    expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
   });
 
   it("does not call update on a token that's already grid-aligned", () => {
@@ -803,10 +748,7 @@ describe("resnapDriftedTokens (#141)", () => {
     resnapDriftedTokens(token, { x: token.x, y: token.y });
 
     expect(token.update).toHaveBeenCalledTimes(1);
-    expect(token.update).toHaveBeenCalledWith(
-      { x: 5 * GRID, y: 3 * GRID },
-      { animation: { duration: 0 } },
-    );
+    expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
     expect(requestDungeonAction).not.toHaveBeenCalled();
   });
 
