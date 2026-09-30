@@ -13,10 +13,11 @@
 ## Per-chunk workflow (~15 creatures, lowest level first)
 
 1. Worktree + branch off `origin/main` (`issue-252-chunk-N`); copy `.env`; `.venv` with Pillow+numpy.
-2. Take the next ~15 CSV rows. `grep "id: '<slug>'" tools/generate-token-art.mjs` before writing any `MONSTER_ART` prompt; suffix ids `-lob` on name collisions. Read the shared STYLE/NEGATIVE comment block first.
+2. Take the next ~15 CSV rows. Run `node tools/analyze-art-failures.mjs --route "<name>" ...` on them first: names it routes to `gemini` skip ComfyUI (rules in `data/token-art-routing.json`, derived from the failure log). `grep "id: '<slug>'" tools/generate-token-art.mjs` before writing any `MONSTER_ART` prompt; suffix ids `-lob` on name collisions. Read the shared STYLE/NEGATIVE comment block first.
 3. Generate (`node tools/generate-token-art.mjs <ids>`); dark-palette subjects go straight to `--backend=gemini`. Run `tools/check-token-art.mjs`; open every image and review it.
 4. Redo flagged ones (try `make-bg-transparent.mjs` on flat backgrounds first): max 3 ComfyUI rounds, then Gemini. Never `rm` a rejected Gemini image before the user has seen it. Fold settled failures into the shared constants immediately.
-5. Wire accepted ones into `data/creature-art.json`, delete their CSV rows.
+5. Log every creature's review result with `node tools/log-art-review.mjs --chunk N slug=accept slug=flag:tag,tag>gemini ...` (tags in `tools/art-failure-lib.mjs`; run after wiring so the final backend is recorded), then re-run the analyzer and extend the routing rules when a group has n>=4 and a first-pass flag rate >=60%.
+6. Wire accepted ones into `data/creature-art.json`, delete their CSV rows.
 6. `npm run validate:creature-art` + `npm test`, merge `origin/main`, bump `module.json` patch version, PR, automerge; verify with `gh pr view`.
 7. Update #252's progress table and post a terse status (N/M, PR ref) at chunk start, progress, and completion.
 

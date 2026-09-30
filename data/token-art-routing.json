@@ -1,0 +1,6 @@
+{
+  "_comment": "Names/kinds routed to the Gemini backend FIRST (skip ComfyUI). Derived from docs/token-art-failures.csv via tools/analyze-art-failures.mjs; extend only when a group has n>=4 and a first-pass flag rate >=60%. Watch, not yet adopted: dragon/young (5/8), fey (3/5).",
+  "keywords": ["owlbear"],
+  "kinds": ["hybrid"],
+  "kindVariants": []
+}
