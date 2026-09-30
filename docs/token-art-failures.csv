@@ -368,3 +368,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 25,requiem-archdragon,Requiem Archdragon,24,dragon,accept,,gemini,gemini-first
 25,requiem-archdragon-spellcaster,Requiem Archdragon (Spellcaster),24,dragon,accept,,gemini,gemini-first
 25,fafnheir,Fafnheir,24,beast,flag,wrong_details,gemini,
+26,predatory-rabbit,Predatory Rabbit,-1,undead,accept,,gemini,gemini-first
+26,mummified-cat,Mummified Cat,0,undead,accept,,gemini,gemini-first
+26,zombie-snake,Zombie Snake,0,undead,accept,,gemini,gemini-first
+26,festering-gnasher,Festering Gnasher,1,undead,flag,wrong_details,gemini,gemini-first
+26,scorned-hound,Scorned Hound,1,undead,accept,,gemini,gemini-first
+26,shadern-immolator,Shadern Immolator,1,undead,accept,,gemini,gemini-first
+26,skeletal-soldier,Skeletal Soldier,1,undead,flag,cropped,gemini,gemini-first
+26,decrepit-mummy,Decrepit Mummy,2,undead,flag,bg_patch,gemini,gemini-first
+26,husk-zombie,Husk Zombie,2,undead,flag,bg_patch,gemini,gemini-first
+26,lacedon,Lacedon,2,undead,accept,,gemini,gemini-first
+26,shredskin,Shredskin,2,undead,accept,,gemini,gemini-first
+26,combusted,Combusted,3,undead,accept,,gemini,gemini-first
+26,deathless-acolyte-of-urgathoa,Deathless Acolyte Of Urgathoa,3,undead,accept,,gemini,gemini-first
+26,fiddling-bones,Fiddling Bones,3,undead,accept,,gemini,gemini-first
+26,zombie-owlbear,Zombie Owlbear,3,hybrid,flag,hybrid_anatomy;cropped,gemini,gemini-first
