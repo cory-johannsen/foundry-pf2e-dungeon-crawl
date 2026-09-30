@@ -592,3 +592,14 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 41,warden-of-forests-and-meadows,Warden of Forests and Meadows,22,beast,accept,,comfyui,
 41,warden-of-oceans-and-rivers,Warden of Oceans and Rivers,22,beast,accept,,comfyui,
 41,warden-of-peaks-and-skies,Warden of Peaks and Skies,22,beast,accept,,comfyui,
+42,mythic-griffon,Mythic Griffon,4,hybrid,accept,,comfyui,gemini-first
+42,mythic-lich,Mythic Lich,12,undead,accept,,comfyui,gemini-first
+42,mythic-ogre-boss,Mythic Ogre Boss,7,beast,accept,,comfyui,
+42,mythic-gogiteth,Mythic Gogiteth,12,beast,accept,,comfyui,
+42,weaver-of-webs,Weaver of Webs,15,beast,accept,,comfyui,
+42,vulot,Vulot,21,beast,accept,,comfyui,
+42,agyra,Agyra,23,beast,accept,,comfyui,
+42,oliphaunt-of-jandelay,Oliphaunt of Jandelay,25,beast,accept,,comfyui,
+42,sublime-breath,Sublime Breath,6,beast,flag,cropped;wrong_details,comfyui,
+42,immortal-trickster,Immortal Trickster,11,beast,flag,monochrome_line_art;cropped,gemini,
+42,verex-that-was,Verex-That-Was,24,beast,flag,bg_patch;dark_palette_bg_lightened,gemini,
