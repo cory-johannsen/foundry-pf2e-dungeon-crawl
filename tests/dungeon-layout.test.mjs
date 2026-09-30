@@ -3634,4 +3634,99 @@ describe('assignDoorSlotsWithPriority — #297 Round 2', () => {
     const result = assignDoorSlotsWithPriority(seed, rect, incomingConnections, 'north', null);
     expect(result).toEqual(plain);
   });
+
+  it('pins the co-parent west of the edge even with 3+ connections and unfavorable list order (final-review finding B, 2026-09-29 -- real seed sweep-37, room-merge-9)', () => {
+    const seed = 'sweep-37';
+    const toId = 'room-merge-9';
+    const toPos = { rank: 7, col: 0 };
+    // Real graph shape (positions only -- roomRect/findPriorityCollision/
+    // assignDoorSlotsWithPriority are pure functions of seed+roomId+rank+
+    // col, so this reproduces the exact real geometry without running the
+    // full buildRoomGraph/attachHiddenPaths pipeline). The co-parent
+    // ('room-detour-0') is listed LAST (index 3), after the colliding
+    // connection (index 2) -- exactly the list-order shape finding B
+    // exploited.
+    const incomingConnections = [
+      { sourceId: 'room-room-room-room-room-entry-0-0-0-1', hidden: false },
+      { sourceId: 'room-room-room-room-room-entry-0-1-0-0', hidden: false },
+      { sourceId: 'room-room-room-room-room-room-entry-0-0-0-0-0', hidden: false },
+      { sourceId: 'room-detour-0', hidden: false },
+    ];
+    const layoutPositionByRoomId = {
+      'room-room-room-room-room-entry-0-0-0-1': { rank: 4, col: 2 },
+      'room-room-room-room-room-entry-0-1-0-0': { rank: 4, col: 4 },
+      'room-room-room-room-room-room-entry-0-0-0-0-0': { rank: 5, col: 0 },
+      'room-detour-0': { rank: 6, col: 0 },
+    };
+    const occupiedCells = {
+      '5,0': 'room-room-room-room-room-room-entry-0-0-0-0-0',
+      '6,0': 'room-detour-0',
+      '7,0': toId,
+    };
+    const toRect = roomRect(seed, toId, toPos.rank, toPos.col);
+
+    const collision = findPriorityCollision(
+      seed, toId, toPos.rank, toPos.col, incomingConnections, layoutPositionByRoomId, occupiedCells, 'north',
+    );
+    expect(collision).not.toBeNull();
+    expect(collision.collidingIndex).toBe(2);
+    expect(collision.blockerId).toBe('room-detour-0');
+
+    const slots = assignDoorSlotsWithPriority(seed, toRect, incomingConnections, 'north', collision);
+    const blockerRect = roomRect(seed, collision.blockerId, collision.blockRank, collision.blockCol);
+    const edgeCoord = blockerRect.gx + blockerRect.gw;
+    const coParentIndex = incomingConnections.findIndex((c) => c.sourceId === collision.blockerId);
+
+    // The critical assertion: the co-parent's own slot (index 3, listed
+    // AFTER the colliding connection) must land west of/at the edge --
+    // NOT wherever plain list-order preservation would have put it. Hand-
+    // traced against the pre-fix algorithm for this exact fixture: the
+    // pre-fix code gave this connection {x1:309,x2:312}, entirely EAST of
+    // edgeCoord (306), because the pre-fix loop merely preserved each
+    // non-colliding connection's own list-order position across the
+    // leftover slots, without regard to WHICH of them was actually the
+    // co-parent.
+    expect(slots[coParentIndex].x2).toBeLessThanOrEqual(edgeCoord);
+  });
+
+});
+
+describe('findPriorityCollision — #297 Round 2 fix (final-review finding D, 2026-09-29)', () => {
+  it('does not grant priority when the corridor\'s own real span never overlaps the blocker\'s footprint, even though the intermediate cell is occupied by a real co-parent (real seed sweep-461, room-merge-14)', () => {
+    const seed = 'sweep-461';
+    const toId = 'room-merge-14';
+    const toPos = { rank: 9, col: 0 };
+    // Real graph shape: the co-parent ('room-room-merge-11-0') sits
+    // directly in the intermediate cell between the colliding connection's
+    // own source and the target -- Round 1's own dogleg TRIGGER condition
+    // (occupied intermediate cell, real co-parent) is satisfied, but the
+    // corridor's own actual provisional span (derived from the source's
+    // real door offset and its own plain slot) never reaches the blocker's
+    // footprint, so Round 1's own dogleg would never actually fire for
+    // this edge. Verified by direct instrumentation against the pinned
+    // seed (search script, not committed): `spanOverlapsBlocker` is false.
+    const incomingConnections = [
+      { sourceId: 'room-room-merge-11-0', hidden: false },
+      { sourceId: 'room-room-merge-11-1', hidden: false },
+    ];
+    const layoutPositionByRoomId = {
+      'room-room-merge-11-0': { rank: 8, col: 0 },
+      'room-room-merge-11-1': { rank: 7, col: 0 },
+    };
+    const occupiedCells = {
+      '7,0': 'room-room-merge-11-1',
+      '8,0': 'room-room-merge-11-0',
+      '9,0': toId,
+    };
+    const collision = findPriorityCollision(
+      seed, toId, toPos.rank, toPos.col, incomingConnections, layoutPositionByRoomId, occupiedCells, 'north',
+    );
+    // The critical assertion (finding D): an occupied, real-co-parent
+    // intermediate cell is NECESSARY but not SUFFICIENT -- without also
+    // checking `spanOverlapsBlocker`, the pre-fix version of this function
+    // returned a non-null collision here, granting the colliding
+    // connection slot priority for a corridor that was never actually
+    // going to dogleg at all.
+    expect(collision).toBeNull();
+  });
 });

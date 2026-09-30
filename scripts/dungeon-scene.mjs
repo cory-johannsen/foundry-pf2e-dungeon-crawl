@@ -1158,7 +1158,7 @@ export async function buildPopulateAndUnlockGraphNode(
     // OTHER connection's own slot, and Round 1's own buildEdgeCorridor call
     // below (unchanged), are completely unaffected.
     const priorityCollision = findPriorityCollision(
-      state.seed, room.id, rank, col, incomingConnections, state.layoutPositionByRoomId, occupiedCells,
+      state.seed, room.id, rank, col, incomingConnections, state.layoutPositionByRoomId, occupiedCells, incomingFace,
     );
     const slots = assignDoorSlotsWithPriority(state.seed, rect, incomingConnections, incomingFace, priorityCollision);
     for (let i = 0; i < incomingConnections.length; i += 1) {

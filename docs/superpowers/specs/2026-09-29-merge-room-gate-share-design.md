@@ -7,10 +7,17 @@ corridor straight through a sibling room's own footprint.
 reviewed clean, but rejected at final whole-branch review (2026-09-29).
 Round 2's own first design ("ride-along," reusing a co-parent's own
 corridor) was found geometrically unsound during its own implementation
-and abandoned before any of its geometry-building tasks landed. The
-"Round 2 correction: slot priority" section below is the current,
-approved-for-planning design — Round 1's own dogleg is kept completely
-unchanged.
+and abandoned before any of its geometry-building tasks landed. Round 2's
+second design ("slot priority," below) was implemented (Tasks 1-6) and
+its OWN final whole-branch review (2026-09-29) found its Task 5 sweep
+metric was a proxy that undercounted real failures — see "Final-review
+correction" under "Round 2 correction: slot priority," below, for the
+real, flood-fill-measured numbers and findings A-D. Two of those findings
+(B, D) were fixed the same day, in the same round, after the user chose a
+scoped one-more-fix-round over accepting the door-line proxy's own
+(materially wrong) numbers or stopping outright. Findings A and C remain
+open, accepted residuals (tracked in #309) — Round 2 is a real,
+substantial improvement over `main`, not a complete fix.
 
 ## Problem
 
@@ -381,53 +388,112 @@ corpus (Testing, below) and reported honestly, not assumed away — if
 non-zero, it is documented the same way `#231`/`#232` document their own
 residuals elsewhere in this file, not silently accepted.
 
-**Second residual, found by Task 5's own sweep, outside the one above
-(measured 2026-09-29 — issue #309):** slot priority only ever repositions
-the *target's own* door slots. It has no effect on, and does not protect,
-the colliding connection's own dogleg *containment wall* — the wall
-sealing "turn 2" at the blocking room's own south/east margin edge — from
-landing on top of the co-parent's *own* door or target-side gap on that
-same face. That position is computed completely independently of the
-dogleg's own containment-wall position (the co-parent's own gap-clamp
-logic has no visibility into where the dogleg's own wall will land, and
-vice versa) — the same "two independently-computed positions sharing one
-crossing point, nothing forces agreement" shape this codebase has already
-hit in `#230`/`#231`. Measured at 4/381 (≈1.05%) of real co-parent
-collisions across a 500-seed corpus, versus 84/381 (≈22.05%) for the
-LARGE/SMALL residual above — markedly rarer, and narrower in cause (a
-coincidental near-edge clamp, not a structural size mismatch). Accepted
-as a documented, tracked residual (ceiling-asserted in the sweep, not
-chased to zero) per the user's own explicit decision not to continue
-iterating on #297 for this; a real fix would need either connection's own
-wall-building to have visibility into the other's actual gap/door
-position before committing its own geometry — the same category of
-cross-connection awareness the abandoned "ride-along" design attempted
-and failed to deliver safely. See #309 for the full trace and any future
-attempt.
+**Final-review correction (2026-09-29): Task 5's own sweep metric was a
+proxy, not ground truth.** It only checked whether a wall lay along the
+*other* connection's own door line — it could not see a wall crossing a
+corridor's own *floor* elsewhere along its path (the same shape as Round
+1's own Critical 2). The final whole-branch review built an independent,
+calibrated flood-fill connectivity checker (0 false positives on 5,252
+single-incoming connections) and found the REAL non-residual failure rate
+was **61/297 (≈20.5%)** colliding-connection seals + 10 co-parent seals —
+not the 4/381 (≈1.05%) the door-line proxy reported. Ground truth across
+381 real co-parent collisions, before any post-review fix:
 
-**Mechanism, concretely:** before assigning door slots for a target
-room's own incoming connections, scan for a priority collision using
-*only* the same geometric facts Round 1's own dogleg trigger already
-uses (room positions, `layoutEdges`, `occupiedCells`) — **no
-`buildEdgeCorridor` call needed for detection**, unlike the abandoned
-ride-along design, which required a first-pass corridor build before it
-could even determine whether a collision existed. For each real
+| Code | Colliding sealed | Co-parent sealed |
+|---|---|---|
+| `main` | 242 | 92 |
+| Round 1 + Task 2 (the original regression) | 370 | 346 |
+| Round 2, Tasks 1-6 complete (pre-fix) | 115 (54 residual + 61 non-residual) | 64 (54 residual + 10 non-residual) |
+
+Round 2 was still a real, substantial improvement over `main` even before
+any further fix — just not the near-complete fix the door-line proxy
+suggested. The review characterized the non-residual gap into four
+distinct findings, all variants of this codebase's recurring
+"independently-computed positions, nothing forces agreement" shape:
+
+- **Finding A (NOT fixed, the largest remaining gap):** the "SMALL/SMALL
+  always works" reasoning above is wrong. A same-size blocker and target
+  share the same column *and* the same east edge exactly (both anchor at
+  their own cell's NW corner, per `roomRect`) — so turn 2 must jog into
+  space the co-parent's own corridor can occupy. Covers 222/381 (58%) of
+  *all* collisions, not just the non-residual ones; 32 real seals. A real
+  fix needs either connection's own wall-building to have visibility into
+  the other's actual position before committing its own geometry — the
+  same category of cross-connection awareness the abandoned "ride-along"
+  design attempted and failed to deliver safely. Tracked as a documented,
+  unfixed residual (see #309, updated 2026-09-29 with this corrected
+  understanding — it supersedes that issue's own original, proxy-based
+  numbers).
+- **Finding B (FIXED 2026-09-29):** `assignDoorSlotsWithPriority` did not
+  enforce its own stated invariant — "the co-parent gets the slot west of
+  the edge" — once 3+ connections were present; non-colliding connections
+  merely kept their own list-order position across the leftover slots,
+  so a co-parent listed *after* the colliding connection could land east
+  of the edge instead. 22 real cases, 22/22 sealing the colliding
+  connection. Fixed by explicitly pinning the co-parent's own connection
+  to the remaining slot immediately west of the priority slot (see
+  `assignDoorSlotsWithPriority`'s own updated docblock).
+- **Finding C (NOT fixed, deliberately left alone):** `pendingForeignMarginOpenings`
+  (Task 2's own fix) still resolves the naive, list-order slot for a
+  colliding connection's foreign opening — not its real, priority-assigned
+  slot — disagreeing with the real corridor's own `foreignOpening` in
+  371/381 cases, reintroducing Round 1's own Critical 3 in effect.
+  Paradoxically load-bearing: making it consistent with the priority slot
+  was measured to RAISE non-residual co-parent seals from 10 to 87 (a
+  compensating error with `#231`'s own already-tracked residual). Left
+  untouched — fixing it requires fixing both `pendingForeignMarginOpenings`
+  and `outgoingMarginOffset`'s own `#231` interaction together, a
+  materially larger change than this round's own scope.
+- **Finding D (FIXED 2026-09-29):** `findPriorityCollision` re-derived
+  Round 1's own dogleg trigger incompletely — an occupied, real-co-parent
+  intermediate cell is *necessary* but not *sufficient* for the dogleg to
+  actually fire; the trigger also requires `findCorridorPath` to have
+  failed (`!path`) and the corridor's own provisional span to actually
+  overlap the blocker's footprint (`spanOverlapsBlocker`, the same
+  `#230`/`#231` gap-widening check). Skipping both granted slot priority
+  in 11 real cases where the colliding corridor was never going to dogleg
+  at all. Fixed by reusing the exact same primitives Round 1's own trigger
+  already uses (`findCorridorPath`, `doorOffsetAt`, plain arithmetic) —
+  never `buildEdgeCorridor` itself, so detection stays a single pass.
+
+**Real numbers after the B+D fix** (independently re-measured with the
+same flood-fill methodology, 500-seed corpus): non-residual colliding
+seals dropped from 61/297 to 41/296 (≈13.9%, largely finding A's own
+remaining, unfixed footprint); non-residual co-parent seals dropped from
+10/297 to 3/296 (≈1.0%). The residual case (LARGE blocker/SMALL target)
+is untouched by this fix, as expected — 54/84 for both colliding and
+co-parent, unchanged. Findings A and C remain open, accepted residuals
+per the user's own explicit decision (2026-09-29) not to pursue a third
+round on #297 beyond this one, concrete, well-scoped fix.
+
+**Mechanism, concretely (updated for the B+D fix):** before assigning
+door slots for a target room's own incoming connections, scan for a
+priority collision using *only* the same geometric facts and cheap
+primitives Round 1's own dogleg trigger already uses (room positions,
+`layoutEdges`, `occupiedCells`, `findCorridorPath`, `doorOffsetAt`) —
+**no `buildEdgeCorridor` call needed for detection**, unlike the
+abandoned ride-along design, which required a first-pass corridor build
+before it could even determine whether a collision existed. For each real
 connection (source `S`, target `T`, index `i`): if `S`/`T` are 2
 ranks/columns apart in the same column/row (Round 1's own dogleg
-condition) and the intermediate cell's own occupant is *also* one of
-`T`'s own other real parents (not itself, not hidden) — that occupant's
-own room rect gives `occupantEastEdge`/`occupantSouthEdge` directly, no
-corridor build required. Compute `doorSlotsForFace(rect, N, face)`
-exactly as today (unchanged), determine which slot index that edge falls
-into (or the nearest slot at/past it, for the residual case above),
-and build the final per-connection slot assignment: the colliding
-connection gets that slot; every other connection (in its own original
-relative order) gets the remaining slots, in order. If no collision:
-slot assignment is **completely unchanged** — connection `i` gets
-`slots[i]`, exactly as today, for every room that isn't affected by this
-specific collision shape. This is a **single pass** — Round 2's own
-originally-planned two-pass restructuring is no longer needed, since
-detection doesn't depend on any connection's own already-built corridor.
+condition), the intermediate cell's own occupant is *also* one of `T`'s
+own other real parents (not itself, not hidden), `findCorridorPath` finds
+no route, AND the corridor's own real provisional span (from the source's
+door offset and this connection's own plain slot) actually overlaps the
+occupant's footprint (finding D's own fix) — that occupant's own room
+rect gives `occupantEastEdge`/`occupantSouthEdge` directly. Compute
+`doorSlotsForFace(rect, N, face)` exactly as today (unchanged), determine
+which slot index that edge falls into (or the nearest slot at/past it,
+for the residual case above), and build the final per-connection slot
+assignment: the colliding connection gets that slot; the co-parent's own
+connection is explicitly pinned to the remaining slot immediately west of
+it (finding B's own fix, not merely "wherever list order happens to put
+it"); every other connection (in its own original relative order) gets
+whatever slots remain. If no collision: slot assignment is **completely
+unchanged** — connection `i` gets `slots[i]`, exactly as today. This is a
+**single pass** — Round 2's own originally-planned two-pass restructuring
+is still not needed, since detection never depends on any connection's
+own already-built corridor.
 
 **Doors and flags unchanged**, same as the original (superseded) design
 stated: both connections keep fully independent doors, their own
@@ -448,10 +514,15 @@ residuals, same pattern as every other residual in this file:
 
 - The blocking-room-wider-than-target-room case described above under
   "Round 2 correction" — measured, not assumed zero.
-- The dogleg-containment-wall-vs-co-parent's-own-door collision described
-  above as the "second residual" (issue #309) — measured at ≈1.05% of
-  real co-parent collisions, tracked with a ceiling assertion, not chased
-  to zero.
+- Finding A: same-size (SMALL/SMALL or LARGE/LARGE) blocker/target sharing
+  an exact east edge, forcing turn 2 to jog into the co-parent's own
+  corridor space — 58% of all collisions, ≈14% real (flood-fill-measured)
+  colliding-connection seal rate after the B+D fix. Tracked in #309.
+- Finding C: `pendingForeignMarginOpenings` resolving the naive, not
+  priority, slot for a colliding connection's own foreign opening —
+  deliberately left unfixed (fixing it in isolation was measured to make
+  outcomes worse via a compensating interaction with `#231`). Tracked in
+  #309.
 - Three-or-more real parents all colliding at the same intermediate cell
   (a co-parent's own corridor being itself blocked by a *second*
   co-parent). Not observed in the measured corpus; slot-priority
@@ -492,22 +563,28 @@ exact construction that hid all three Round 1 defects.
   after the fact).
 - A sweep assembled the same way as the #294/Round-1 sweep, but built
   with **real** `incomingConnectionsFor`-resolved slots throughout (not
-  the count-1 assumption Round 1's own sweep used), asserting the real
-  downstream properties, not a proxy: zero corridor/footprint overlap
-  (Round 1's own property), plus a tracked-ceiling ("track it, don't
-  paper over it," the same discipline `#230`'s own multi-slot residual
-  already uses) rate of cross-connection wall collisions outside the two
-  documented residuals — no connection's own `plainWalls` may be collinear
-  with another connection's own `doorWall`/`revealDoorWall` into the same
-  target room. Report, separately, the measured rate for BOTH documented
-  residuals (blocking room `LARGE`/target room `SMALL`; and the dogleg-
-  containment-wall-vs-co-parent's-own-door shape, #309) — do not assume
-  either is zero without measuring it.
+  the count-1 assumption Round 1's own sweep used): zero corridor/
+  footprint overlap (Round 1's own property), plus a tracked-ceiling
+  ("track it, don't paper over it," the same discipline `#230`'s own
+  multi-slot residual already uses) rate of a *door-line* cross-connection
+  wall check — no connection's own `plainWalls` may be collinear with
+  another connection's own `doorWall`/`revealDoorWall` into the same
+  target room. **Known limitation, found by the final review (2026-09-29):
+  this check is a proxy, not full connectivity** — it cannot see a wall
+  crossing a corridor's own floor elsewhere along its path (finding A's
+  own exact mechanism). Real ground truth requires a flood-fill-style
+  connectivity check (the final review's own method; not committed to
+  this suite, kept out of this round's own scope) — treat this sweep's own
+  numbers as a lower bound, not a completeness guarantee, and see findings
+  A-D above for the real, independently-measured rates.
 - `pendingForeignMarginOpenings` must resolve the real per-connection
   slot for a foreign opening, not assume a single full-width slot — the
   specific, independently-confirmed defect behind Round 1's own 85%
   door-coverage failure. (Already fixed and merged as part of this
-  round's own Task 2, independent of the slot-priority mechanism itself.)
+  round's own Task 2, independent of the slot-priority mechanism itself;
+  finding C above found this fix is itself now inconsistent with the
+  priority slot for the colliding connection specifically — left
+  unfixed, deliberately, see finding C.)
 - A scene-level test (`tests/dungeon-scene.test.mjs`) building a real
   multi-parent merge room end-to-end through `buildPopulateAndUnlockGraphNode`,
   confirming the actual Wall/Tile documents produced for both connections
@@ -523,23 +600,29 @@ exact construction that hid all three Round 1 defects.
   corridor overlapping `room-room-room-entry-0-1`'s footprint (Round 1's
   own criterion, still required).
 - On a **real, multi-parent merge room** (not a hand-built single-
-  connection graph): both the co-parent's own connection and the second
-  parent's own connection remain independently connected end-to-end, with
-  neither connection's own door sealed by the other's walls, for every
-  blocker/target size combination except the documented residual. This is
-  the criterion Round 1 never actually measured and that its own final
-  review found violated in 374-375 of 380 cases.
-- System-wide sweep, built with real per-connection slots: zero corridor/
-  room-footprint overlaps AND a tracked-ceiling rate of cross-connection
-  wall collisions, except the two documented residuals (blocker `LARGE`/
-  target `SMALL`, ≈22.05% of collisions; and the dogleg-containment-wall-
-  vs-co-parent's-own-door shape, #309, ≈1.05% of collisions) — both
-  measured and reported, not assumed zero.
+  connection graph): the criterion Round 1 never actually measured and
+  that its own final review found violated in 374-375 of 380 cases is
+  *substantially, not completely*, improved by Round 2. Ground truth
+  (independent flood-fill connectivity check, 500-seed corpus, before vs.
+  after Round 2's own B+D fix, out of 380-381 real co-parent collisions):
+
+  | | Colliding sealed | Co-parent sealed |
+  |---|---|---|
+  | `main` | 242 | 92 |
+  | Round 1 + Task 2 (the regression) | 370 | 346 |
+  | Round 2 (pre B+D fix) | 115 (54 residual + 61 non-residual) | 64 (54 residual + 10) |
+  | Round 2 (post B+D fix) | 95 (54 residual + 41 non-residual) | 57 (54 residual + 3) |
+
+  Findings A and C (see above) remain open, unfixed, accepted residuals —
+  a real 0%-non-residual-seal outcome was not achieved and is not claimed.
+- System-wide sweep (`tests/dungeon-layout.test.mjs`): zero corridor/
+  room-footprint overlaps, AND a tracked-ceiling rate on its own door-line
+  proxy metric (not a completeness guarantee — see Testing, above, for why
+  this specific metric undercounts real failures).
 - No regression in existing #225/#230/#288/#294 coverage, nor in Round
   1's own (unmodified, still fully in use) dogleg coverage — full test
   suite green, existing sweeps' own assertions unchanged in outcome.
 - Any remaining collision case (three-or-more real parents at one cell,
   two-or-more consecutive blockers, the generic corner-fallback branch,
-  the blocker-wider-than-target residual, or the dogleg-containment-wall-
-  vs-co-parent's-own-door residual, #309) is measured and documented as an
-  explicit residual, not silently left uncovered.
+  finding A, or finding C) is measured and documented as an explicit
+  residual (#309), not silently left uncovered.
