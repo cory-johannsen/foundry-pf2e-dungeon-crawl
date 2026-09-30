@@ -2007,6 +2007,42 @@ describe('transitCellCrossing', () => {
     }
   });
 
+  // #353 follow-up: transitCellContainmentWalls (called separately) only
+  // seals this CELL's own outer boundary -- plainWalls here is this
+  // crossing's OWN contribution, flanking the corridor's own 1-unit-wide
+  // passage so it's separated from the rest of this cell's own open
+  // interior, not just left as an empty array (the actual bug: a token in
+  // the passage had unobstructed sight to the whole cell's own dead
+  // space).
+  it('flanks a straight-through crossing\'s own passage with exactly two walls, on both long sides', () => {
+    const result = transitCellCrossing('seed1', 1, 0, 'north', 'south', 'a->b');
+    expect(result.plainWalls).toHaveLength(2);
+    const [seg] = result.corridorSegments;
+    // A north-south crossing is a vertical (narrow-x) strip -- flanked
+    // west (x=seg.gx) and east (x=seg.gx+seg.gw), each spanning its own
+    // full y-range, not the cell's own outer boundary (a different x).
+    for (const w of result.plainWalls) {
+      expect(w.x1).toBe(w.x2); // vertical wall
+      expect(Math.min(w.y1, w.y2)).toBe(seg.gy);
+      expect(Math.max(w.y1, w.y2)).toBe(seg.gy + seg.gh);
+    }
+    const xs = result.plainWalls.map((w) => w.x1).sort((a, b) => a - b);
+    expect(xs).toEqual([seg.gx, seg.gx + seg.gw]);
+  });
+
+  it('flanks an east-west straight-through crossing horizontally instead', () => {
+    const result = transitCellCrossing('seed1', 1, 0, 'west', 'east', 'a->b');
+    expect(result.plainWalls).toHaveLength(2);
+    const [seg] = result.corridorSegments;
+    for (const w of result.plainWalls) {
+      expect(w.y1).toBe(w.y2); // horizontal wall
+      expect(Math.min(w.x1, w.x2)).toBe(seg.gx);
+      expect(Math.max(w.x1, w.x2)).toBe(seg.gx + seg.gw);
+    }
+    const ys = result.plainWalls.map((w) => w.y1).sort((a, b) => a - b);
+    expect(ys).toEqual([seg.gy, seg.gy + seg.gh]);
+  });
+
   it('draws an L-shaped 2-segment path for a north-to-east (adjacent sides) crossing, staying inside the cell', () => {
     const result = transitCellCrossing('seed1', 0, 0, 'north', 'east', 'a->b');
     expect(result.corridorSegments.length).toBeGreaterThanOrEqual(1);
@@ -2016,6 +2052,21 @@ describe('transitCellCrossing', () => {
       expect(seg.gx + seg.gw).toBeLessThanOrEqual(cell.gx + cell.gw);
       expect(seg.gy).toBeGreaterThanOrEqual(cell.gy);
       expect(seg.gy + seg.gh).toBeLessThanOrEqual(cell.gy + cell.gh);
+    }
+  });
+
+  it('flanks an L-shaped crossing with two walls per segment (four total), each matching its own segment\'s own bounds', () => {
+    const result = transitCellCrossing('seed1', 0, 0, 'north', 'east', 'a->b');
+    expect(result.corridorSegments).toHaveLength(2);
+    expect(result.plainWalls).toHaveLength(4);
+    for (const seg of result.corridorSegments) {
+      const isVertical = seg.gh > seg.gw;
+      const matching = result.plainWalls.filter((w) =>
+        isVertical
+          ? w.x1 === w.x2 && Math.min(w.y1, w.y2) === seg.gy && Math.max(w.y1, w.y2) === seg.gy + seg.gh
+          : w.y1 === w.y2 && Math.min(w.x1, w.x2) === seg.gx && Math.max(w.x1, w.x2) === seg.gx + seg.gw,
+      );
+      expect(matching).toHaveLength(2);
     }
   });
 
