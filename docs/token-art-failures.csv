@@ -535,3 +535,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 37,swordfish,Swordfish,3,beast,accept,,gemini,gemini-first
 37,weremoose,Weremoose,3,hybrid,accept,,gemini,gemini-first
 37,almiraj,Almiraj,4,beast,accept,,gemini,gemini-first
+38,ghost-ape,Ghost Ape,4,undead,accept,,comfyui,gemini-first
+38,holdfast,Holdfast,4,beast,accept,,comfyui,
+38,marp,Marp,4,beast,accept,,comfyui,
+38,wereshark,Wereshark,4,hybrid,accept,,comfyui,gemini-first
+38,scroungefeather,Scroungefeather,5,beast,accept,,comfyui,
+38,storm-snake,Storm Snake,5,beast,accept,,comfyui,gemini-first
+38,taldan-cave-squirrel,Taldan Cave Squirrel,5,beast,accept,,comfyui,
+38,hexworm,Hexworm,4,beast,flag,halo_or_disc;wrong_details,comfyui,
+38,morthak,Morthak,4,beast,flag,cropped,comfyui,
+38,giant-fangtooth,Giant Fangtooth,4,beast,flag,cropped,gemini,
+38,hooplamander,Hooplamander,5,beast,flag,halo_or_disc,gemini,
+38,leopard-seal,Leopard Seal,4,beast,flag,scenery_backdrop;cropped,gemini,
+38,goblin-shark,Goblin Shark,5,beast,flag,scenery_backdrop;cropped,gemini,
+38,mjolgat,Mjolgat,4,beast,flag,wrong_subject,gemini,
+38,sporeback-frog,Sporeback Frog,5,beast,flag,scenery_backdrop;wrong_details,gemini,
