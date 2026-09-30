@@ -1115,3 +1115,78 @@ describe("resnapDriftedTokens (#141)", () => {
     expect(requestDungeonAction).not.toHaveBeenCalled();
   });
 });
+
+describe("moveFollowersToward + resnapDriftedTokens interaction (#87)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // The actual live-reported bug (#87, 2026-09-30): resnapDriftedTokens
+  // used to read a follower's position WHILE its own legitimate
+  // moveFollowersToward move was still mid-animation, round the
+  // still-fractional position back toward the follower's STARTING cell,
+  // and silently cancel the move -- confirmed live via a monkeypatched
+  // TokenDocument.update() call-stack capture (see #87's comment
+  // history). This produced the originally-reported symptom (two
+  // AI-controlled followers stacking on the same cell -- #181's own
+  // chain-following is what made it visible). Reproduced here at the
+  // single-follower level, since the race itself doesn't need a second
+  // follower to occur.
+  it("does not let resnapDriftedTokens cancel a follower's own in-flight move", async () => {
+    vi.useFakeTimers();
+    const leader = makeToken({ id: "t-leader", x: 3 * GRID, y: 0, actorId: LEADER_ACTOR_ID });
+    const follower = makeToken({ id: "t-f", x: 0, y: 0, actorId: "actor-f" });
+    // Simulates Foundry's own animated slide: the instant the real
+    // moveFollowersToward move is issued, animationContexts becomes
+    // non-empty and the position only partially advances toward the
+    // real destination (stays fractional/off-grid) -- the exact
+    // live-confirmed shape of the #87 race, not yet the final position.
+    follower.update = vi.fn(async (changes) => {
+      follower.object.animationContexts.set("move", {});
+      follower.__destination = { x: changes.x, y: changes.y };
+      follower.x = follower.x + (changes.x - follower.x) * 0.2;
+      follower.y = follower.y + (changes.y - follower.y) * 0.2;
+    });
+    const scene = makeScene({ tokens: [leader, follower] });
+
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: ["actor-f"],
+          marchingOrder: ["actor-f"],
+        },
+      },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    runFollowMoveNow(SCENE_ID);
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(follower.update).toHaveBeenCalledTimes(1);
+    const destination = follower.__destination;
+
+    // Simulate Foundry's updateToken hook firing reactively while the
+    // follower is still mid-flight -- exactly the moment the pre-fix
+    // code would round it back to the follower's STARTING cell and
+    // cancel its own legitimate move.
+    const resnapPromise = resnapDriftedTokens(follower, { x: follower.x, y: follower.y });
+
+    // Not reverted while still animating: no second update() call yet.
+    expect(follower.update).toHaveBeenCalledTimes(1);
+
+    // The animation genuinely finishes: Foundry lands the token at its
+    // real destination and animationContexts empties.
+    follower.object.animationContexts.clear();
+    Object.assign(follower, destination);
+    await vi.advanceTimersByTimeAsync(150);
+    await resnapPromise;
+
+    // Still only the one legitimate update() call -- the deferred
+    // resnap found the token already grid-aligned at its real
+    // destination and correctly left it alone.
+    expect(follower.update).toHaveBeenCalledTimes(1);
+    expect(follower.x).toBe(destination.x);
+    expect(follower.y).toBe(destination.y);
+  });
+});
