@@ -1,0 +1,91 @@
+level,chunk_label,size,first_pass_flagged,redo_rounds,deferred_count,backend,source,notes
+-1,batch 1,20,7,,0,comfyui,issue#16 body,"7 of 20 needed >=1 redo (halo/arch, monochrome, wrong subject, colored bg); ITEM-2 sample era"
+-1,"batch 2 (progress-log ""Batch 3"")",38,24,,1,comfyui,issue#16 body,"37 of 38 shipped; halfling-street-watcher deferred after 6 rounds, then grey-gradient bg accepted as exception"
+0,all 41,41,28,,0,comfyui,issue#16 body,13/41 clean first pass; 3 accepted checker false positives; ~25 of 41 on grey/white backdrop per code comment
+1,chunk 1,40,26,,0,comfyui,issue#16 body,3 creatures needed 3 full rounds each; 4 passed but never wired (tracking gap)
+1,chunk 2,40,22,,0,comfyui,issue#16 body,grig needed 4 rounds
+1,chunk 3,40,27,4,2,comfyui,issue#16 body,"naiad, shade-axis deferred after 4 rounds each; 23 planar shade-* variants in chunk; rounds=max stated"
+1,chunk 4,42,14,4,1,comfyui,https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5768254990 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5768255022,42 = 40 new + 2 deferred retries; suli-dune-dancer deferred after 4 redo rounds; shade-axis & naiad resolved on retry
+2,chunk 1,41,14,,0,comfyui,https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5768255059,salvage tool (make-bg-transparent) fixed 6 of 14 flagged; 2 checker false positives; deinonychus needed real rewrite
+2,chunk 2,40,,,0,comfyui,https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5768255101,"ittan-momen, mudwretch prompt rewrites"
+2,chunk 3,40,8,,0,comfyui,https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5768255128,8 flagged originals fixed; includes 17 soulbound-doll variants
+2,chunk 4,41,11,,0,comfyui,https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5768255161,mostly white/pale backdrops and scenery; 2 diptych failures
+3,chunk 1,40,25,,0,comfyui,https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5768255188,roughest early chunk; dvorovoi heaviest fix
+3,chunk 2,40,,4,0,comfyui,https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5768255215,pachycephalosaurus needed 4 full redo rounds; 2 checker false positives
+3,chunk 3,40,,4,1,comfyui,https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5768255244,tattoo-guardian deferred after 4 rounds / 16 attempts; 2 false positives
+3,chunk 4,10,,3,1,comfyui,https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5768255272,living-graffiti-blood deferred (3 rounds / 12 attempts); tattoo-guardian resolved first try after rewrite; shared NEGATIVE consolidation pass
+4,chunk 1,40,15,3,1,comfyui,https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5768255310,barghest-mc deferred after 3 rounds + transparency attempt; flag rate 15/40 vs 25/40 at L3c1
+4,chunk 2a,20,,3,1,comfyui,issue#16 body,19 of 20 shipped; hobgoblin-archer deferred after 3 rounds
+4,chunk 2b,40,19,3,2,comfyui,git:bfc93da ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5770151889 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5770297519,"first pass 17 clean/4 borderline/19 flagged; salvage fixed 10 of 19; shae, terror-shrike deferred after 3 rounds"
+4,chunk 2c,13,,3,2,comfyui,git:fcd94a6 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5770795724,"11 of 13 shipped; shae/terror-shrike resolved on retry; huldra, phantom-knight newly deferred after 3 rounds"
+5,chunk 1,40,,3,1,comfyui,git:c2d05c4 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5771978402,forest-troll deferred after 3 rounds + 4 salvage attempts
+5,chunk 2,40,,3,4,comfyui,git:77541f1 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5782729061,"living-whirlwind, kodama, mountaineer, namorrodor deferred after 3 rounds; forest-troll resolved"
+5,chunk 3,15,,4,4,comfyui,git:9f80575 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5783869796,the 4 deferred failed a 4th round; first ~15-size chunk
+5,chunk 4,7,,,0,comfyui,git:3b4c12f ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5784689171,"3 checker false positives (ice-golem, yeti, subaquatic-marauder); tier 148/152 shipped, 4 deferred"
+6,chunk 1,15,,,0,comfyui,git:c802d83 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5785915001,"2 checker false positives accepted (blizzardborn, bralani)"
+6,chunk 2,15,,3,1,comfyui,git:3983957 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5787400458,drider deferred after 3 rounds
+6,chunk 3,15,,,1,comfyui,git:9971fed ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5788151861,6 of 15 uncolored ink-wash on first attempt; drider 5 total attempts (rounds=attempts here)
+6,chunk 4,15,3,,0,comfyui,git:3a277bd ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5788605385,first pass 8 clean/4 borderline/3 bad after shared line-art fix; flagged=bad count
+6,chunk 5,15,5,3,1,comfyui,git:ed1ff16 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5789166309,first pass 9 clean/1 borderline/5 bad; smilodon deferred after 3 rounds + 2 salvage; flagged=bad count
+6,chunk 6,15,,3,2,comfyui,git:1211047 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5789774826,"wood-giant, ahuizotl deferred after 3 rounds"
+6,chunk 7,19,,1,0,comfyui,git:470cf94 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5790480337,only mi-go needed a redo; tier 148/152 shipped
+7,chunk 1,15,,2,1,comfyui,git:5102076 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5791209633,champion-of-shelyn deferred after 2 rounds / 8 attempts
+7,chunk 2,15,,2,0,comfyui,git:71a1c3d ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5791823165,
+7,chunk 3,15,9,2,0,comfyui,git:4a28c9f ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5792729040,9 of 15 bad on first pass
+7,chunk 4,15,9,2,0,comfyui,git:8eab092 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5793643960,9 of 15 bad on first pass
+7,chunk 5,15,,1,0,comfyui,git:fa5e125 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5794484087,
+7,chunk 6,15,,2,0,comfyui,git:91d9bc0 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5795319217,
+7,chunk 7,16,,3,0,comfyui,git:4bb16b3 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5796393869,new class: wispy/flame trailing edges leave disconnected gaps salvage cannot reach; tier 106/107 shipped
+8,chunk 1,15,,2,0,comfyui,git:a90a632 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5797688583,
+8,chunk 2,15,,1,0,comfyui,git:2e8f13f ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5798491577,
+8,chunk 3,15,11,2,1,comfyui,git:9b1f6eb ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5800211674,11 of 15 bad on first pass; nabasu deferred after 3 rounds
+8,chunk 4,15,,2,0,comfyui,git:6cd1cce ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5801346326,
+8,chunk 5,15,5,,0,comfyui,git:e3d1483 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5802082062,5 of 15 needed redos; salvage alone fixed 4; charnel-creation 1 redo round
+8,chunk 6,9,,1,0,comfyui,git:fc99994 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5802576919,tier 39/40 shipped
+3-8,manual resolution of 13 ComfyUI-deferred,13,,,0,gemini_manual,git:25b2be0 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5803293906,"11 of 13 clean on first manual attempt; smilodon needed salvage, huldra tighter crop; these rows ARE ComfyUI failures"
+9,chunk 1,15,,2,0,mixed,git:fae4eeb ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5803537441,desert-giant needed a 3rd round done manually via Gemini after 3 auto rounds
+9,chunk 2,15,,5,3,mixed,git:66212a5 ; git:5656ff0 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5837499154,"11/15 wired first, garuda 12th after 4th reroll; drakauthix, frost-giant, giant-snapping-turtle failed 5 rounds each -> deferred"
+9,deferred-3 manual Gemini,3,,,0,gemini_manual,git:a890325,"drakauthix, frost-giant, giant-snapping-turtle all clean on first manual attempt; ComfyUI failures"
+9,chunk 3,15,,,0,mixed,git:dc84790 ; git:199ce6e,4/15 then 15/15 wired (11 after resume); 5 more failed a round; paused twice for Gemini rate limit; size=stated list
+9,chunk 4,10,7,,0,comfyui,git:9d295e1,"3 of 10 wired, 7 failed; 5 rerolls wasted on duplicate --reroll=1 seed (operator error)"
+9,chunk 5,19,,3,11,comfyui,git:3b5d7d3,4/19 wired; 11 creatures flagged for manual after 2+ failed rounds (mastodon 3)
+9,chunk 6,10,7,,0,comfyui,git:3ee346e,3/10 wired; 7 failed
+9,chunk 7,11,4,,0,comfyui,git:2fd51ff,7/11 wired; 4 failed; completes initial pass
+9,chunk 8,22,,3,14,comfyui,git:ef6f9ed ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5844031610,8/22 wired at --reroll=3; 14 permanently deferred (3+ failures); level at 65/83
+9,ComfyUI-deferred batch via Gemini API,16,,,0,gemini_api,git:53141d3 ; git:3593c6d ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5848677534,14 deferred + vrock + zelekhut; plus black-dracolisk & alchemical-golem in #183 (17 total per comment); first billed Gemini calls
+10,chunk 1,15,7,3,0,comfyui,git:23495cf ; git:d63de93 ; git:d401953,"8/15 clean first, 7 rejected (full scene/fire); zero Gemini; auto-salvage active"
+10,chunk 2,15,6,3,2,mixed,git:411ed36 ; git:a11628e ; git:0b80899,9/15 first; imentesh + mobogo via Gemini (mobogo also 2 ComfyUI fails)
+10,chunk 3,15,7,3,1,mixed,git:19a15e1 ; git:68c7086,8/15 first; red-dragon-young-spellcaster via Gemini after 3 ComfyUI attempts
+10,chunk 4,15,5,,0,comfyui,git:9192a9e ; git:c468b6f,10/15 first
+10,chunk 5,16,9,3,4,mixed,git:a671e58 ; git:7b8f2cf,"7/16 first; nyogoth, chyzaedu, etioling-blightmage, infernal-registrar via Gemini after 3 ComfyUI failures each"
+11,chunk 1,15,4,3,1,mixed,git:4c18eb0 ; git:f26a6e9,11/15 first; elemental-avalanche via Gemini
+11,chunk 2,15,4,3,2,mixed,git:10346d1 ; git:d00c043 ; git:d624fb7,"high-roller, hippopotamus-topiary via Gemini"
+11,chunk 3,22,5,,0,comfyui,git:84270d9 ; git:d87069f,17/22 first; all 5 clean on retry
+12,chunk 1,15,3,3,1,mixed,git:86f1d94 ; git:f242ce4 ; git:d1db6b2,coral-dragon-adult via Gemini
+12,chunk 2,15,6,3,1,mixed,git:48dd8d9 ; git:dbe46f1 ; git:824379e,kokogiak via Gemini
+12,chunk 3,22,8,3,1,mixed,git:26d9ca9 ; git:0ab562b,14/22 first; betobeto-san Gemini-deferred
+13,chunk 1,15,,3,2,mixed,git:4d18d69,"animated-trebuchet, assault-alloy: 3 ComfyUI rounds then Gemini"
+13,chunk 2,15,9,3,2,mixed,git:e0463fc,"9 of 15 needed >=1 redo; glabrezu, iceberg-clam via Gemini"
+13,chunk 3,15,,3,2,mixed,git:75d5f57,"thanadaemon, urglid via Gemini"
+13,chunk 4,14,,,2,mixed,git:f343c44,"froghemoth, jorogumo Gemini-deferred (rounds not stated)"
+14,chunk 1,15,,3,1,mixed,git:1d640e7,4 of 15 needed rewrites for baked-in scenery; doprillu via Gemini; grikkitog & peri 3 rounds
+14,chunk 2,15,10,3,1,mixed,git:a5615d0,uthul via Gemini after 3 rounds
+14,chunk 3,8,,,0,comfyui,git:e6ca18d,no failure detail
+15,chunk 1,15,9,3,1,mixed,git:68ac816,grand-inquisitor via Gemini; includes suli-dune-dancer straggler
+15,chunk 2,15,10,3,4,mixed,git:a13936d,"peerless-healer, sordesdaemon, wemmuth, hyakume all 3 rounds then Gemini"
+15,chunk 3,17,,3,2,mixed,git:10d5fa2 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5861374855,"jotund-troll, toshigami: 3 ComfyUI rounds + Gemini"
+21,levels 21-25,17,,,,gemini_manual,git:f6dd432 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5803963302,user-directed manual workflow; grim-reaper white bg salvaged; lerritan/krampus non-square; thanatotic-titan regenerated (vignette)
+20,all 24,24,,,,gemini_manual,git:1667580 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5817386563,user-directed; veranallia nudity fixed in prompt
+19,all 22,22,,,,gemini_manual,git:49e85fa ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5819056209,user-directed
+18,batch 1,12,,,,gemini_manual,git:8dd751c ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5819855478,user-directed; paused for Gemini daily rate limit
+18,batch 2,16,,,,gemini_manual,git:3ccfdc4 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5836070762,user-directed; mirage-dragon-ancient/enchanting-ritualist/kraken redone; Gemini system prompt rewritten
+17,batch 1,14,,,,gemini_manual,git:66212a5 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5836794372,user-directed; deimavigga redone (photoreal/CGI)
+17,batch 2,17,,,,gemini_manual,git:5656ff0 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5837413008,user-directed
+16,batch 1,26,,,,gemini_manual,git:54e5861 ; https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/16#issuecomment-5848473609,user-directed; 6 needed prompt fix for ground leakage; 26 of 27
+16,final (World Ender),1,,,,gemini_manual,git:c59fd05,
+-1..2,"#252 Lost Omens chunk 1 (separate effort, not in 1,609)",15,5,,1,mixed,git:9eac506 ; git:6e8231e docs/token-art-failures.csv,deferred_count=creatures whose final backend is gemini (backfilled log); rounds not recorded; 3-attempt cap before Gemini
+2-3,"#252 Lost Omens chunk 2 (separate effort, not in 1,609)",15,5,,1,mixed,git:9c73bb3 ; git:6e8231e docs/token-art-failures.csv,deferred_count=creatures whose final backend is gemini (backfilled log); rounds not recorded; 3-attempt cap before Gemini
+4,"#252 Lost Omens chunk 3 (separate effort, not in 1,609)",15,3,,1,mixed,git:f852b4e ; git:6e8231e docs/token-art-failures.csv,deferred_count=creatures whose final backend is gemini (backfilled log); rounds not recorded; 3-attempt cap before Gemini
+5-6,"#252 Lost Omens chunk 4 (separate effort, not in 1,609)",15,8,,8,mixed,git:087518f ; git:6e8231e docs/token-art-failures.csv,deferred_count=creatures whose final backend is gemini (backfilled log); rounds not recorded; 3-attempt cap before Gemini
+6-7,"#252 Lost Omens chunk 5 (separate effort, not in 1,609)",15,7,,7,mixed,git:6b3fd36 ; git:6e8231e docs/token-art-failures.csv,deferred_count=creatures whose final backend is gemini (backfilled log); rounds not recorded; 3-attempt cap before Gemini
+7-8,"#252 Lost Omens chunk 6 (separate effort, not in 1,609)",15,9,,9,mixed,git:0fb5fab ; git:6e8231e docs/token-art-failures.csv,deferred_count=creatures whose final backend is gemini (backfilled log); rounds not recorded; 3-attempt cap before Gemini
