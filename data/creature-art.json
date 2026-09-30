@@ -14110,5 +14110,125 @@
     "name": "Wailing Dragon (Adult, Spellcaster)",
     "level": 10,
     "art": "wailing-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "wish_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "QMk8VTuuca2dMmw8",
+    "name": "Wish Dragon (Young, Spellcaster)",
+    "level": 10,
+    "art": "wish-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "zinba_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "rBlu1EsygXwCkOvd",
+    "name": "Zinba",
+    "level": 10,
+    "art": "zinba-lob.webp"
+  },
+  {
+    "id": "bog_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "SnzEkz4VOVXnyeAQ",
+    "name": "Bog Dragon (Adult, Spellcaster)",
+    "level": 11,
+    "art": "bog-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "crystal_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Xf0zy0ni79Pnbojj",
+    "name": "Crystal Dragon (Adult, Spellcaster)",
+    "level": 11,
+    "art": "crystal-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "hellknight_paravicar_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mJxgYD8TQg1W2oXC",
+    "name": "Hellknight Paravicar",
+    "level": 11,
+    "art": "hellknight-paravicar-lob.webp"
+  },
+  {
+    "id": "nue_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "9jvXTVcMNTx3kGfU",
+    "name": "Nue",
+    "level": 11,
+    "art": "nue-lob.webp"
+  },
+  {
+    "id": "pathfinder_venture_captain_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "o4XTf77fEEoFVTdA",
+    "name": "Pathfinder Venture-Captain",
+    "level": 11,
+    "art": "pathfinder-venture-captain-lob.webp"
+  },
+  {
+    "id": "pelagiadaemon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "wjsj4hWL1m1Fwegp",
+    "name": "Pelagiadaemon",
+    "level": 11,
+    "art": "pelagiadaemon-lob.webp"
+  },
+  {
+    "id": "sovereign_dragon_young_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "yKxTaTrjBWCk7lPq",
+    "name": "Sovereign Dragon (Young)",
+    "level": 11,
+    "art": "sovereign-dragon-young-lob.webp"
+  },
+  {
+    "id": "sovereign_dragon_young_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "cxCqulLN9wT5Mqfi",
+    "name": "Sovereign Dragon (Young, Spellcaster)",
+    "level": 11,
+    "art": "sovereign-dragon-young-spellcaster-lob.webp"
+  },
+  {
+    "id": "bog_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "I1oOJkeMEtucwABL",
+    "name": "Bog Dragon (Adult)",
+    "level": 11,
+    "art": "bog-dragon-adult-lob.webp"
+  },
+  {
+    "id": "crystal_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "wFcWMrjNtnfSKOYm",
+    "name": "Crystal Dragon (Adult)",
+    "level": 11,
+    "art": "crystal-dragon-adult-lob.webp"
+  },
+  {
+    "id": "howling_spawn_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "qcdNzMiO3XxPHLPJ",
+    "name": "Howling Spawn",
+    "level": 11,
+    "art": "howling-spawn-lob.webp"
+  },
+  {
+    "id": "privateer_captain_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "48bZvtRcd7T6FmA7",
+    "name": "Privateer Captain",
+    "level": 11,
+    "art": "privateer-captain-lob.webp"
+  },
+  {
+    "id": "somnalu_oculus_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "hLyLnBn7lEFstUG2",
+    "name": "Somnalu Oculus",
+    "level": 11,
+    "art": "somnalu-oculus-lob.webp"
   }
 ]

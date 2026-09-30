@@ -134,3 +134,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 9,vorvorak,Vorvorak,10,beast,flag,monochrome_line_art;cropped,gemini,
 9,wailing-dragon-adult,Wailing Dragon (Adult),10,dragon,flag,cropped,gemini,
 9,wailing-dragon-adult-spellcaster,"Wailing Dragon (Adult, Spellcaster)",10,dragon,flag,cropped,gemini,
+10,wish-dragon-young-spellcaster,"Wish Dragon (Young, Spellcaster)",10,dragon,accept,,gemini,gemini-first
+10,zinba,Zinba,10,beast,accept,,comfyui,
+10,bog-dragon-adult,Bog Dragon (Adult),11,dragon,flag,scenery_backdrop,gemini,
+10,bog-dragon-adult-spellcaster,"Bog Dragon (Adult, Spellcaster)",11,dragon,accept,,gemini,gemini-first
+10,crystal-dragon-adult,Crystal Dragon (Adult),11,dragon,flag,scenery_backdrop,gemini,
+10,crystal-dragon-adult-spellcaster,"Crystal Dragon (Adult, Spellcaster)",11,dragon,accept,,gemini,gemini-first
+10,hellknight-paravicar,Hellknight Paravicar,11,humanoid,accept,,comfyui,
+10,howling-spawn,Howling Spawn,11,beast,flag,cropped;scenery_backdrop,gemini,
+10,nue,Nue,11,hybrid,flag,hybrid_anatomy;wrong_details,gemini,gemini-first
+10,pathfinder-venture-captain,Pathfinder Venture-Captain,11,beast,accept,,comfyui,
+10,pelagiadaemon,Pelagiadaemon,11,beast,accept,,comfyui,
+10,privateer-captain,Privateer Captain,11,beast,flag,scenery_backdrop,gemini,
+10,somnalu-oculus,Somnalu Oculus,11,beast,flag,wrong_subject,gemini,
+10,sovereign-dragon-young,Sovereign Dragon (Young),11,dragon,accept,,gemini,gemini-first
+10,sovereign-dragon-young-spellcaster,"Sovereign Dragon (Young, Spellcaster)",11,dragon,accept,,gemini,gemini-first

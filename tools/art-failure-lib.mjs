@@ -28,7 +28,7 @@ export const BACKENDS = ['comfyui', 'gemini'];
 
 // Ordered: first match wins. Name is the creature's display name, lowercased.
 const KIND_RULES = [
-  ['hybrid', /owlbear|karina|rompo|manananggal|k'?-?nonna|pixiu|whalesteed|mamlambo|kallas|centaur|chimera|harpy|sphinx/],
+  ['hybrid', /owlbear|\bnue\b|karina|rompo|manananggal|k'?-?nonna|pixiu|whalesteed|mamlambo|kallas|centaur|chimera|harpy|sphinx/],
   ['dragon', /dragon|linnorm|imugi|wyrm/],
   ['undead', /walcofinde|flotsam|shui[- ]gui|stone sister|aurosrath|spellscar|ulgrem-axaan|lunar consort|ethereal|ghost|zombie|skeleton|wight|vampire/],
   ['construct', /animated|hopping head|automaton|conformer|golem|clockwork|juggernaut/],
@@ -97,6 +97,14 @@ export function parseSpec(spec) {
   return { slug: m[1], first_pass: m[2], tags, backend: m[4] ?? 'comfyui' };
 }
 
+/**
+ * A row routed Gemini-first (accepted on the first pass, final backend gemini) says
+ * nothing about ComfyUI, so ComfyUI flag rates must be computed without it — else a
+ * routed group's rate collapses and the rule that routed it looks unjustified.
+ */
+export const isGeminiFirst = (r) => (r.note ?? '').startsWith('gemini-first') || (r.first_pass === 'accept' && r.final_backend === 'gemini');
+export const comfyRows = (rows) => rows.filter((r) => !isGeminiFirst(r));
+
 const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);
 
 export function tally(rows, keyFn) {
@@ -119,7 +127,8 @@ export function tagCounts(rows) {
 }
 
 /** Groups (by kind or variant or name word) with enough data and a high enough flag rate. */
-export function geminiFirstCandidates(rows, { minN = 4, minRate = 60 } = {}) {
+export function geminiFirstCandidates(allRows, { minN = 4, minRate = 60 } = {}) {
+  const rows = comfyRows(allRows);
   const out = [];
   for (const [label, fn] of [
     ['kind', (r) => r.kind],
