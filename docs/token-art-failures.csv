@@ -194,3 +194,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 13,delight-dragon-adult-spellcaster,"Delight Dragon (Adult, Spellcaster)",14,dragon,accept,,gemini,gemini-first
 13,forest-dragon-adult,Forest Dragon (Adult),14,dragon,accept,,gemini,gemini-first
 13,forest-dragon-adult-spellcaster,"Forest Dragon (Adult, Spellcaster)",14,dragon,accept,,gemini,gemini-first
+14,gunpowder-ooze,Gunpowder Ooze,14,beast,flag,wrong_subject;scenery_backdrop,gemini,
+14,ijhyeojin,Ijhyeojin,14,beast,flag,monochrome_line_art;cropped,gemini,
+14,joseung-saja,Joseung Saja,14,beast,flag,halo_or_disc;scenery_backdrop,gemini,
+14,kun,Kun,14,beast,accept,,comfyui,
+14,oath-dragon-adult,Oath Dragon (Adult),14,dragon,accept,,gemini,gemini-first
+14,oath-dragon-adult-spellcaster,"Oath Dragon (Adult, Spellcaster)",14,dragon,accept,,gemini,gemini-first
+14,si-goluo,Sié Goluo,14,hybrid,accept,,gemini,gemini-first
+14,wish-dragon-adult,Wish Dragon (Adult),14,dragon,accept,,gemini,gemini-first
+14,wish-dragon-adult-spellcaster,"Wish Dragon (Adult, Spellcaster)",14,dragon,accept,,gemini,gemini-first
+14,clockwork-cannoneer,Clockwork Cannoneer,15,construct,flag,wrong_details;bg_patch,gemini,
+14,grand-defender,Grand Defender,15,humanoid,flag,scenery_backdrop,gemini,
+14,rime-dragon-ancient,Rime Dragon (Ancient),15,dragon,accept,,gemini,gemini-first
+14,rime-dragon-ancient-spellcaster,"Rime Dragon (Ancient, Spellcaster)",15,dragon,accept,,gemini,gemini-first
+14,somnalu,Somnalu,15,beast,flag,wrong_subject;cropped,gemini,
+14,sovereign-dragon-adult,Sovereign Dragon (Adult),15,dragon,accept,,gemini,gemini-first

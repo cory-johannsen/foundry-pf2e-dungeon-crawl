@@ -14590,5 +14590,125 @@
     "name": "Ainamuuren",
     "level": 14,
     "art": "ainamuuren-lob.webp"
+  },
+  {
+    "id": "oath_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "uEFJO70QbqWtSWBy",
+    "name": "Oath Dragon (Adult)",
+    "level": 14,
+    "art": "oath-dragon-adult-lob.webp"
+  },
+  {
+    "id": "oath_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "2N2f6ENAUP8ep1oC",
+    "name": "Oath Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "oath-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "si_goluo_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ld3hMGWfeUT7enNf",
+    "name": "Si\u00e9 Goluo",
+    "level": 14,
+    "art": "si-goluo-lob.webp"
+  },
+  {
+    "id": "wish_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "6IXJqhdCC8zyQrQm",
+    "name": "Wish Dragon (Adult)",
+    "level": 14,
+    "art": "wish-dragon-adult-lob.webp"
+  },
+  {
+    "id": "wish_dragon_adult_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "6TxkmwPPRPtmZtGn",
+    "name": "Wish Dragon (Adult, Spellcaster)",
+    "level": 14,
+    "art": "wish-dragon-adult-spellcaster-lob.webp"
+  },
+  {
+    "id": "rime_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "SceqM5LUypPfLmvh",
+    "name": "Rime Dragon (Ancient)",
+    "level": 15,
+    "art": "rime-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "rime_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "4WykWOJPwTKtbM55",
+    "name": "Rime Dragon (Ancient, Spellcaster)",
+    "level": 15,
+    "art": "rime-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "sovereign_dragon_adult_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "NgxX7OjbK40eRFde",
+    "name": "Sovereign Dragon (Adult)",
+    "level": 15,
+    "art": "sovereign-dragon-adult-lob.webp"
+  },
+  {
+    "id": "kun_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "DkQWhW0CelytSWAV",
+    "name": "Kun",
+    "level": 14,
+    "art": "kun-lob.webp"
+  },
+  {
+    "id": "gunpowder_ooze_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "qbfMDAa3RXvwyG7k",
+    "name": "Gunpowder Ooze",
+    "level": 14,
+    "art": "gunpowder-ooze-lob.webp"
+  },
+  {
+    "id": "ijhyeojin_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "6v2HzHeT1mNLaqg9",
+    "name": "Ijhyeojin",
+    "level": 14,
+    "art": "ijhyeojin-lob.webp"
+  },
+  {
+    "id": "joseung_saja_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7ZSjqT2yiJB5OKgk",
+    "name": "Joseung Saja",
+    "level": 14,
+    "art": "joseung-saja-lob.webp"
+  },
+  {
+    "id": "clockwork_cannoneer_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "qmw82W0WhPkn9UTW",
+    "name": "Clockwork Cannoneer",
+    "level": 15,
+    "art": "clockwork-cannoneer-lob.webp"
+  },
+  {
+    "id": "grand_defender_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "6X4zL4GSS9aUcP9f",
+    "name": "Grand Defender",
+    "level": 15,
+    "art": "grand-defender-lob.webp"
+  },
+  {
+    "id": "somnalu_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "KLxdUFCvZ7HkAP1E",
+    "name": "Somnalu",
+    "level": 15,
+    "art": "somnalu-lob.webp"
   }
 ]
