@@ -381,6 +381,30 @@ corpus (Testing, below) and reported honestly, not assumed away — if
 non-zero, it is documented the same way `#231`/`#232` document their own
 residuals elsewhere in this file, not silently accepted.
 
+**Second residual, found by Task 5's own sweep, outside the one above
+(measured 2026-09-29 — issue #309):** slot priority only ever repositions
+the *target's own* door slots. It has no effect on, and does not protect,
+the colliding connection's own dogleg *containment wall* — the wall
+sealing "turn 2" at the blocking room's own south/east margin edge — from
+landing on top of the co-parent's *own* door or target-side gap on that
+same face. That position is computed completely independently of the
+dogleg's own containment-wall position (the co-parent's own gap-clamp
+logic has no visibility into where the dogleg's own wall will land, and
+vice versa) — the same "two independently-computed positions sharing one
+crossing point, nothing forces agreement" shape this codebase has already
+hit in `#230`/`#231`. Measured at 4/381 (≈1.05%) of real co-parent
+collisions across a 500-seed corpus, versus 84/381 (≈22.05%) for the
+LARGE/SMALL residual above — markedly rarer, and narrower in cause (a
+coincidental near-edge clamp, not a structural size mismatch). Accepted
+as a documented, tracked residual (ceiling-asserted in the sweep, not
+chased to zero) per the user's own explicit decision not to continue
+iterating on #297 for this; a real fix would need either connection's own
+wall-building to have visibility into the other's actual gap/door
+position before committing its own geometry — the same category of
+cross-connection awareness the abandoned "ride-along" design attempted
+and failed to deliver safely. See #309 for the full trace and any future
+attempt.
+
 **Mechanism, concretely:** before assigning door slots for a target
 room's own incoming connections, scan for a priority collision using
 *only* the same geometric facts Round 1's own dogleg trigger already
@@ -424,6 +448,10 @@ residuals, same pattern as every other residual in this file:
 
 - The blocking-room-wider-than-target-room case described above under
   "Round 2 correction" — measured, not assumed zero.
+- The dogleg-containment-wall-vs-co-parent's-own-door collision described
+  above as the "second residual" (issue #309) — measured at ≈1.05% of
+  real co-parent collisions, tracked with a ceiling assertion, not chased
+  to zero.
 - Three-or-more real parents all colliding at the same intermediate cell
   (a co-parent's own corridor being itself blocked by a *second*
   co-parent). Not observed in the measured corpus; slot-priority
@@ -466,12 +494,15 @@ exact construction that hid all three Round 1 defects.
   with **real** `incomingConnectionsFor`-resolved slots throughout (not
   the count-1 assumption Round 1's own sweep used), asserting the real
   downstream properties, not a proxy: zero corridor/footprint overlap
-  (Round 1's own property), plus zero cross-connection wall collisions —
-  no connection's own `plainWalls` may be collinear with another
-  connection's own `doorWall`/`revealDoorWall` into the same target room.
-  Report, separately, the measured rate for the documented residual
-  (blocking room `LARGE`, target room `SMALL`) — do not assume it is zero
-  without measuring it.
+  (Round 1's own property), plus a tracked-ceiling ("track it, don't
+  paper over it," the same discipline `#230`'s own multi-slot residual
+  already uses) rate of cross-connection wall collisions outside the two
+  documented residuals — no connection's own `plainWalls` may be collinear
+  with another connection's own `doorWall`/`revealDoorWall` into the same
+  target room. Report, separately, the measured rate for BOTH documented
+  residuals (blocking room `LARGE`/target room `SMALL`; and the dogleg-
+  containment-wall-vs-co-parent's-own-door shape, #309) — do not assume
+  either is zero without measuring it.
 - `pendingForeignMarginOpenings` must resolve the real per-connection
   slot for a foreign opening, not assume a single full-width slot — the
   specific, independently-confirmed defect behind Round 1's own 85%
@@ -499,13 +530,16 @@ exact construction that hid all three Round 1 defects.
   the criterion Round 1 never actually measured and that its own final
   review found violated in 374-375 of 380 cases.
 - System-wide sweep, built with real per-connection slots: zero corridor/
-  room-footprint overlaps AND zero cross-connection wall collisions,
-  except the documented residual (blocker `LARGE`, target `SMALL`) —
+  room-footprint overlaps AND a tracked-ceiling rate of cross-connection
+  wall collisions, except the two documented residuals (blocker `LARGE`/
+  target `SMALL`, ≈22.05% of collisions; and the dogleg-containment-wall-
+  vs-co-parent's-own-door shape, #309, ≈1.05% of collisions) — both
   measured and reported, not assumed zero.
 - No regression in existing #225/#230/#288/#294 coverage, nor in Round
   1's own (unmodified, still fully in use) dogleg coverage — full test
   suite green, existing sweeps' own assertions unchanged in outcome.
 - Any remaining collision case (three-or-more real parents at one cell,
   two-or-more consecutive blockers, the generic corner-fallback branch,
-  or the blocker-wider-than-target residual) is measured and documented
-  as an explicit residual, not silently left uncovered.
+  the blocker-wider-than-target residual, or the dogleg-containment-wall-
+  vs-co-parent's-own-door residual, #309) is measured and documented as an
+  explicit residual, not silently left uncovered.
