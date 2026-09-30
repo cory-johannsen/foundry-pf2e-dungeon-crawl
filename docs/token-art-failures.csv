@@ -344,3 +344,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 23,oath-archdragon-spellcaster,Oath Archdragon (Spellcaster),22,dragon,accept,,gemini,gemini-first
 23,phase-archdragon,Phase Archdragon,22,dragon,accept,,gemini,gemini-first
 23,phase-archdragon-spellcaster,Phase Archdragon (Spellcaster),22,dragon,accept,,gemini,gemini-first
+24,wish-archdragon,Wish Archdragon,22,dragon,accept,,gemini,gemini-first
+24,wish-archdragon-spellcaster,Wish Archdragon (Spellcaster),22,dragon,accept,,gemini,gemini-first
+24,diabolic-archdragon,Diabolic Archdragon,23,dragon,accept,,gemini,gemini-first
+24,diabolic-archdragon-spellcaster,Diabolic Archdragon (Spellcaster),23,dragon,accept,,gemini,gemini-first
+24,elder-wyrmwraith,Elder Wyrmwraith,23,dragon,accept,,gemini,gemini-first
+24,empyreal-archdragon,Empyreal Archdragon,23,dragon,accept,,gemini,gemini-first
+24,empyreal-archdragon-spellcaster,Empyreal Archdragon (Spellcaster),23,dragon,accept,,gemini,gemini-first
+24,fortune-archdragon,Fortune Archdragon,23,dragon,flag,bg_patch,gemini,gemini-first
+24,fortune-archdragon-spellcaster,Fortune Archdragon (Spellcaster),23,dragon,accept,,gemini,gemini-first
+24,resurrection-archdragon,Resurrection Archdragon,23,dragon,accept,,gemini,gemini-first
+24,resurrection-archdragon-spellcaster,Resurrection Archdragon (Spellcaster),23,dragon,accept,,gemini,gemini-first
+24,rune-archdragon,Rune Archdragon,23,dragon,flag,cropped,gemini,gemini-first
+24,rune-archdragon-spellcaster,Rune Archdragon (Spellcaster),23,dragon,accept,,gemini,gemini-first
+24,sovereign-archdragon,Sovereign Archdragon,23,dragon,accept,,gemini,gemini-first
+24,sovereign-archdragon-spellcaster,Sovereign Archdragon (Spellcaster),23,dragon,accept,,gemini,gemini-first

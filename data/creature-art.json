@@ -15790,5 +15790,125 @@
     "name": "Phase Archdragon (Spellcaster)",
     "level": 22,
     "art": "phase-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "wish_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "bHIAcY47iYb3TKYa",
+    "name": "Wish Archdragon",
+    "level": 22,
+    "art": "wish-archdragon-lob.webp"
+  },
+  {
+    "id": "wish_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "EWzBj4wIQraT6rqe",
+    "name": "Wish Archdragon (Spellcaster)",
+    "level": 22,
+    "art": "wish-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "diabolic_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "QwB5R6L0izKv8Caj",
+    "name": "Diabolic Archdragon",
+    "level": 23,
+    "art": "diabolic-archdragon-lob.webp"
+  },
+  {
+    "id": "diabolic_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "b3ej6PYdzRvtCIa1",
+    "name": "Diabolic Archdragon (Spellcaster)",
+    "level": 23,
+    "art": "diabolic-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "elder_wyrmwraith_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "xcnM6RMbA2ROniM7",
+    "name": "Elder Wyrmwraith",
+    "level": 23,
+    "art": "elder-wyrmwraith-lob.webp"
+  },
+  {
+    "id": "empyreal_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "DN0kbSCNacBEm9RP",
+    "name": "Empyreal Archdragon",
+    "level": 23,
+    "art": "empyreal-archdragon-lob.webp"
+  },
+  {
+    "id": "empyreal_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "hK2ys4jpeRaW1C35",
+    "name": "Empyreal Archdragon (Spellcaster)",
+    "level": 23,
+    "art": "empyreal-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "fortune_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Ev1Gle9bZsfkN6p6",
+    "name": "Fortune Archdragon",
+    "level": 23,
+    "art": "fortune-archdragon-lob.webp"
+  },
+  {
+    "id": "fortune_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "XLkoSb7OYJWTJ4fr",
+    "name": "Fortune Archdragon (Spellcaster)",
+    "level": 23,
+    "art": "fortune-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "resurrection_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "mCfCGU2w5Yziv1F6",
+    "name": "Resurrection Archdragon",
+    "level": 23,
+    "art": "resurrection-archdragon-lob.webp"
+  },
+  {
+    "id": "resurrection_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "iFodAjceDZItd2Qy",
+    "name": "Resurrection Archdragon (Spellcaster)",
+    "level": 23,
+    "art": "resurrection-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "rune_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "K3jY2g1WUk17Of8U",
+    "name": "Rune Archdragon",
+    "level": 23,
+    "art": "rune-archdragon-lob.webp"
+  },
+  {
+    "id": "rune_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "ltkFXFlOrsE9DLhn",
+    "name": "Rune Archdragon (Spellcaster)",
+    "level": 23,
+    "art": "rune-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "sovereign_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "fHnpW5gLQ63Bakts",
+    "name": "Sovereign Archdragon",
+    "level": 23,
+    "art": "sovereign-archdragon-lob.webp"
+  },
+  {
+    "id": "sovereign_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "Yeb8NsMFHR8vpvQf",
+    "name": "Sovereign Archdragon (Spellcaster)",
+    "level": 23,
+    "art": "sovereign-archdragon-spellcaster-lob.webp"
   }
 ]
