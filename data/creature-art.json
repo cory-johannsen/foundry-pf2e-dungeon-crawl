@@ -17094,5 +17094,109 @@
     "name": "Twins of Rowan",
     "level": 13,
     "art": "twins-of-rowan-lob.webp"
+  },
+  {
+    "id": "zuhra_shuyookh_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "a2kTygtqIuMCSLIr",
+    "name": "Zuhra Shuyookh",
+    "level": 13,
+    "art": "zuhra-shuyookh-lob.webp"
+  },
+  {
+    "id": "brass_bastion_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "411wAxSMPPAImVz5",
+    "name": "Brass Bastion",
+    "level": 14,
+    "art": "brass-bastion-lob.webp"
+  },
+  {
+    "id": "faydhaan_shuyookh_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "E7OZ0cdycOi5Cuu1",
+    "name": "Faydhaan Shuyookh",
+    "level": 14,
+    "art": "faydhaan-shuyookh-lob.webp"
+  },
+  {
+    "id": "ifrit_shuyookh_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "XL7B63sTgdDJPbVQ",
+    "name": "Ifrit Shuyookh",
+    "level": 14,
+    "art": "ifrit-shuyookh-lob.webp"
+  },
+  {
+    "id": "lithic_locus_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "kzczIOOaDfPlFc03",
+    "name": "Lithic Locus",
+    "level": 14,
+    "art": "lithic-locus-lob.webp"
+  },
+  {
+    "id": "vault_keeper_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "m6lUcyekHwJxTLzo",
+    "name": "Vault Keeper",
+    "level": 14,
+    "art": "vault-keeper-lob.webp"
+  },
+  {
+    "id": "capritellix_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "RFxLankyC74BEY03",
+    "name": "Capritellix",
+    "level": 17,
+    "art": "capritellix-lob.webp"
+  },
+  {
+    "id": "anemos_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "hGPjJjjqBc42VrFs",
+    "name": "Anemos",
+    "level": 18,
+    "art": "anemos-lob.webp"
+  },
+  {
+    "id": "austral_the_south_wind_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "7U27iYyyGK8iGYzR",
+    "name": "Austral, The South Wind",
+    "level": 18,
+    "art": "austral-the-south-wind-lob.webp"
+  },
+  {
+    "id": "boreal_the_north_wind_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "8cJlApaLdgZCxfWq",
+    "name": "Boreal, The North Wind",
+    "level": 18,
+    "art": "boreal-the-north-wind-lob.webp"
+  },
+  {
+    "id": "eural_the_east_wind_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "dLFxm5kZBRzvqf1f",
+    "name": "Eural, The East Wind",
+    "level": 18,
+    "art": "eural-the-east-wind-lob.webp"
+  },
+  {
+    "id": "zephyr_the_west_wind_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "6CYo7vuxoroSqKzr",
+    "name": "Zephyr, The West Wind",
+    "level": 18,
+    "art": "zephyr-the-west-wind-lob.webp"
+  },
+  {
+    "id": "vault_builder_lob",
+    "pack": "pf2e.rage-of-elements-bestiary",
+    "docId": "g9hnlCy2R4uspfAI",
+    "name": "Vault Builder",
+    "level": 23,
+    "art": "vault-builder-lob.webp"
   }
 ]
