@@ -56,8 +56,24 @@ function installFoundryStubs({
   };
 }
 
-function makeToken({ id, x, y, actorId, width = 1, height = 1 }) {
-  const token = { id, x, y, actor: { id: actorId }, width, height };
+function makeToken({
+  id,
+  x,
+  y,
+  actorId,
+  width = 1,
+  height = 1,
+  animationContexts = new Map(),
+}) {
+  const token = {
+    id,
+    x,
+    y,
+    actor: { id: actorId },
+    width,
+    height,
+    object: { animationContexts },
+  };
   token.update = vi.fn(async (changes) => Object.assign(token, changes));
   return token;
 }
@@ -781,7 +797,7 @@ describe("moveFollowersToward chain-following (#181)", () => {
 });
 
 describe("resnapTokenNow (#141)", () => {
-  it("snaps an off-grid token back to the nearest grid cell", () => {
+  it("snaps an off-grid token back to the nearest grid cell", async () => {
     const token = makeToken({
       id: "t-drifted",
       x: 5.49 * GRID,
@@ -792,7 +808,7 @@ describe("resnapTokenNow (#141)", () => {
     installFoundryStubs();
     game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
 
-    resnapTokenNow(SCENE_ID, "t-drifted");
+    await resnapTokenNow(SCENE_ID, "t-drifted");
 
     expect(token.update).toHaveBeenCalledTimes(1);
     expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
@@ -820,6 +836,152 @@ describe("resnapTokenNow (#141)", () => {
 
     expect(() => resnapTokenNow(SCENE_ID, "nonexistent")).not.toThrow();
   });
+
+  it("defers correcting a token while it's still mid-animation, then corrects once settled (#87)", async () => {
+    vi.useFakeTimers();
+    const animationContexts = new Map([["move", {}]]);
+    const token = makeToken({
+      id: "t-animating",
+      x: 5.49 * GRID,
+      y: 3.49 * GRID,
+      actorId: "some-actor",
+      animationContexts,
+    });
+    const scene = makeScene({ tokens: [token] });
+    installFoundryStubs();
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    const promise = resnapTokenNow(SCENE_ID, "t-animating");
+
+    // Still animating -- no correction yet, even though the position is
+    // currently off-grid (exactly the #87 race: a mid-flight fractional
+    // position must never be judged as "drifted").
+    expect(token.update).not.toHaveBeenCalled();
+
+    // The animation genuinely finishes.
+    animationContexts.clear();
+    await vi.advanceTimersByTimeAsync(100);
+    await promise;
+
+    expect(token.update).toHaveBeenCalledTimes(1);
+    expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
+    vi.useRealTimers();
+  });
+
+  it("corrects anyway once the defensive cap elapses, even if still animating (#87)", async () => {
+    vi.useFakeTimers();
+    const animationContexts = new Map([["move", {}]]);
+    const token = makeToken({
+      id: "t-stuck-animating",
+      x: 5.49 * GRID,
+      y: 3.49 * GRID,
+      actorId: "some-actor",
+      animationContexts,
+    });
+    const scene = makeScene({ tokens: [token] });
+    installFoundryStubs();
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    const promise = resnapTokenNow(SCENE_ID, "t-stuck-animating");
+    // animationContexts is deliberately never cleared -- simulates the
+    // defensive cap's own fallback path, not the normal settle path.
+    await vi.advanceTimersByTimeAsync(3100);
+    await promise;
+
+    expect(token.update).toHaveBeenCalledTimes(1);
+    expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
+    vi.useRealTimers();
+  });
+
+  it("does not start a second correction for a token that already has one pending (#87)", async () => {
+    vi.useFakeTimers();
+    const animationContexts = new Map([["move", {}]]);
+    const token = makeToken({
+      id: "t-reentrant",
+      x: 5.49 * GRID,
+      y: 3.49 * GRID,
+      actorId: "some-actor",
+      animationContexts,
+    });
+    const scene = makeScene({ tokens: [token] });
+    installFoundryStubs();
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    const first = resnapTokenNow(SCENE_ID, "t-reentrant");
+    const second = resnapTokenNow(SCENE_ID, "t-reentrant");
+
+    animationContexts.clear();
+    await vi.advanceTimersByTimeAsync(100);
+    await Promise.all([first, second]);
+
+    expect(token.update).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it("corrects two different animating tokens independently, not serialized by each other (#87)", async () => {
+    vi.useFakeTimers();
+    const contextsA = new Map([["move", {}]]);
+    const contextsB = new Map([["move", {}]]);
+    const tokenA = makeToken({
+      id: "t-a",
+      x: 5.49 * GRID,
+      y: 0,
+      actorId: "actor-a",
+      animationContexts: contextsA,
+    });
+    const tokenB = makeToken({
+      id: "t-b",
+      x: 2.49 * GRID,
+      y: 0,
+      actorId: "actor-b",
+      animationContexts: contextsB,
+    });
+    const scene = makeScene({ tokens: [tokenA, tokenB] });
+    installFoundryStubs();
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    const promiseA = resnapTokenNow(SCENE_ID, "t-a");
+    const promiseB = resnapTokenNow(SCENE_ID, "t-b");
+
+    // B settles well before A -- must not wait on A's own guard entry.
+    contextsB.clear();
+    await vi.advanceTimersByTimeAsync(100);
+    await promiseB;
+    expect(tokenB.update).toHaveBeenCalledTimes(1);
+    expect(tokenA.update).not.toHaveBeenCalled();
+
+    contextsA.clear();
+    await vi.advanceTimersByTimeAsync(100);
+    await promiseA;
+    expect(tokenA.update).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it("no-ops if the token is deleted from the scene while a correction is deferred (#87)", async () => {
+    vi.useFakeTimers();
+    const animationContexts = new Map([["move", {}]]);
+    const token = makeToken({
+      id: "t-deleted-mid-wait",
+      x: 5.49 * GRID,
+      y: 3.49 * GRID,
+      actorId: "some-actor",
+      animationContexts,
+    });
+    const scene = makeScene({ tokens: [token] });
+    installFoundryStubs();
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    const promise = resnapTokenNow(SCENE_ID, "t-deleted-mid-wait");
+
+    // The token is removed from the scene before the animation settles.
+    scene.tokens = [];
+    animationContexts.clear();
+    await vi.advanceTimersByTimeAsync(100);
+
+    await expect(promise).resolves.not.toThrow();
+    expect(token.update).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
 });
 
 describe("resnapDriftedTokens (#141)", () => {
@@ -827,7 +989,7 @@ describe("resnapDriftedTokens (#141)", () => {
     requestDungeonAction.mockClear();
   });
 
-  it("snaps an off-grid token directly on a GM client, on a dungeon-run-managed scene", () => {
+  it("snaps an off-grid token directly on a GM client, on a dungeon-run-managed scene", async () => {
     const token = makeToken({
       id: "t-drifted",
       x: 5.49 * GRID,
@@ -842,7 +1004,7 @@ describe("resnapDriftedTokens (#141)", () => {
     });
     game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
 
-    resnapDriftedTokens(token, { x: token.x, y: token.y });
+    await resnapDriftedTokens(token, { x: token.x, y: token.y });
 
     expect(token.update).toHaveBeenCalledTimes(1);
     expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });

@@ -39,6 +39,18 @@ const FOLLOW_DEBOUNCE_MS = 250;
 // everywhere this constant was used, pending a fix that doesn't trigger
 // the Foundry-core bug (see #361).
 
+// #87: resnapTokenNow must never read a token's position while Foundry's
+// own animated slide is still interpolating it -- confirmed live
+// (2026-09-30, v14.368) that a still-fractional, mid-flight position can
+// get rounded back to the token's STARTING cell, silently cancelling a
+// legitimate, still-in-progress move. RESNAP_POLL_MS/RESNAP_MAX_WAIT_MS
+// are starting values verified against this session's own live capture
+// (the redundant-write storm converged within ~150ms); tune during live
+// verification if needed, not treated as final here.
+const RESNAP_POLL_MS = 100;
+const RESNAP_MAX_WAIT_MS = 3000;
+const resnapInFlight = new Set(); // tokenId -> a correction is already pending
+
 const pendingByScene = new Map(); // sceneId -> setTimeout handle
 const warnedNoLeaderForScene = new Set();
 const inFlightScenes = new Set();
@@ -325,6 +337,22 @@ export function followLeaderOnDoorOpened(wallDoc, changes) {
   }
 }
 
+/** Whether `token` is currently mid-flight of Foundry's own animated
+ * slide -- confirmed live (2026-09-30, v14.368) that
+ * `token.object.animationContexts` is a real Map, non-empty while
+ * animating and empty once settled. Not in Foundry's public API docs, so
+ * treated as a confirmed-live-but-undocumented signal, the same category
+ * as this module's existing reliance on `_movement.method`/`waypoints`
+ * (`isPositionChange`, above). Optional-chains to `undefined` if
+ * `token.object` doesn't exist (an older Foundry version, a system
+ * override, or a token not yet rendered on canvas) -- treated the same
+ * as "not animating," a deliberate graceful degradation to the
+ * immediate-correction behavior this function had before #87, rather
+ * than a new failure mode. */
+function isAnimating(token) {
+  return (token.object?.animationContexts?.size ?? 0) > 0;
+}
+
 /** Snaps `tokenId` on `sceneId` back to the grid if it's currently off-grid
  * — the actual correction `dungeon-remote.mjs`'s relayed `resnapToken`
  * action runs on whichever client executes it (always genuinely
@@ -335,14 +363,37 @@ export function followLeaderOnDoorOpened(wallDoc, changes) {
  * dictate. A no-op if the scene/token can't be found or is already
  * grid-aligned. */
 export async function resnapTokenNow(sceneId, tokenId) {
-  const scene = game.scenes.get(sceneId);
-  const token = scene?.tokens.find((t) => t.id === tokenId);
-  if (!token) return;
-  const gridSize = scene.grid?.size ?? 100;
-  const snappedX = Math.round(token.x / gridSize) * gridSize;
-  const snappedY = Math.round(token.y / gridSize) * gridSize;
-  if (token.x !== snappedX || token.y !== snappedY) {
-    await token.update({ x: snappedX, y: snappedY });
+  // #87: a second call for a token that already has a correction pending
+  // must not start a parallel poll loop -- the live capture that found
+  // this bug showed 6+ overlapping resnap attempts for the same token
+  // within ~150ms (both the GM-direct and relayed paths reacting
+  // independently), despite this function's own prior doc comment
+  // claiming no guard was needed.
+  if (resnapInFlight.has(tokenId)) return;
+  resnapInFlight.add(tokenId);
+  try {
+    const deadline = Date.now() + RESNAP_MAX_WAIT_MS;
+    let scene = game.scenes.get(sceneId);
+    let token = scene?.tokens.find((t) => t.id === tokenId);
+    if (!token) return;
+    while (isAnimating(token) && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, RESNAP_POLL_MS));
+      scene = game.scenes.get(sceneId);
+      token = scene?.tokens.find((t) => t.id === tokenId);
+      if (!token) return;
+    }
+    // The loop's own exit check (isAnimating false, or deadline passed)
+    // and this read/decision happen in the same synchronous continuation
+    // -- no `await` between them -- so a new move starting in that exact
+    // gap can't get judged against a stale reading.
+    const gridSize = scene.grid?.size ?? 100;
+    const snappedX = Math.round(token.x / gridSize) * gridSize;
+    const snappedY = Math.round(token.y / gridSize) * gridSize;
+    if (token.x !== snappedX || token.y !== snappedY) {
+      await token.update({ x: snappedX, y: snappedY });
+    }
+  } finally {
+    resnapInFlight.delete(tokenId);
   }
 }
 
