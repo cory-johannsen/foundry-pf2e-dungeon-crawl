@@ -16102,5 +16102,125 @@
     "name": "Zombie Owlbear",
     "level": 3,
     "art": "zombie-owlbear-lob.webp"
+  },
+  {
+    "id": "harlo_krant_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "Wv9iS7JacYjymqlY",
+    "name": "Harlo Krant",
+    "level": 4,
+    "art": "harlo-krant-lob.webp"
+  },
+  {
+    "id": "ichor_slinger_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "zOEuwWcvD7sQA1kc",
+    "name": "Ichor Slinger",
+    "level": 4,
+    "art": "ichor-slinger-lob.webp"
+  },
+  {
+    "id": "jitterbone_contortionist_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "dlizffh8cFUFOhUf",
+    "name": "Jitterbone Contortionist",
+    "level": 4,
+    "art": "jitterbone-contortionist-lob.webp"
+  },
+  {
+    "id": "zombie_lord_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "8o27tdIZFp0eTs5N",
+    "name": "Zombie Lord",
+    "level": 4,
+    "art": "zombie-lord-lob.webp"
+  },
+  {
+    "id": "bone_croupier_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "ol2lji9lH7PXh1uw",
+    "name": "Bone Croupier",
+    "level": 5,
+    "art": "bone-croupier-lob.webp"
+  },
+  {
+    "id": "ghul_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "vOuiG3tRcr8yL4jh",
+    "name": "Ghul",
+    "level": 5,
+    "art": "ghul-lob.webp"
+  },
+  {
+    "id": "iruxi_ossature_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "3pQvzrGhxO3bUwYT",
+    "name": "Iruxi Ossature",
+    "level": 5,
+    "art": "iruxi-ossature-lob.webp"
+  },
+  {
+    "id": "priest_of_kabriri_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "OsIjZpdtKmKrrBID",
+    "name": "Priest Of Kabriri",
+    "level": 5,
+    "art": "priest-of-kabriri-lob.webp"
+  },
+  {
+    "id": "skeletal_mage_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "ipVQuGff2OeTVwFK",
+    "name": "Skeletal Mage",
+    "level": 5,
+    "art": "skeletal-mage-lob.webp"
+  },
+  {
+    "id": "taunting_skull_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "Ur3dzfmvtN7lyPNG",
+    "name": "Taunting Skull",
+    "level": 5,
+    "art": "taunting-skull-lob.webp"
+  },
+  {
+    "id": "withered_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "z72hPIIjIiLIxnor",
+    "name": "Withered",
+    "level": 5,
+    "art": "withered-lob.webp"
+  },
+  {
+    "id": "faithless_ecclesiarch_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "A5GOni2mXNhVsdRg",
+    "name": "Faithless Ecclesiarch",
+    "level": 6,
+    "art": "faithless-ecclesiarch-lob.webp"
+  },
+  {
+    "id": "little_man_in_the_woods_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "vvxnRuYBU2uCBPPI",
+    "name": "Little Man In The Woods",
+    "level": 6,
+    "art": "little-man-in-the-woods-lob.webp"
+  },
+  {
+    "id": "deathless_hierophant_of_urgathoa_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "h0OtQsMR4OqnYatd",
+    "name": "Deathless Hierophant Of Urgathoa",
+    "level": 7,
+    "art": "deathless-hierophant-of-urgathoa-lob.webp"
+  },
+  {
+    "id": "excorion_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "KhHVStbsPSuPElFI",
+    "name": "Excorion",
+    "level": 7,
+    "art": "excorion-lob.webp"
   }
 ]
