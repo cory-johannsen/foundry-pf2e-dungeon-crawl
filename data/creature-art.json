@@ -16462,5 +16462,125 @@
     "name": "Mummy Prophet Of Set",
     "level": 13,
     "art": "mummy-prophet-of-set-lob.webp"
+  },
+  {
+    "id": "silent_stalker_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "Cl1SZNiURw65rz4p",
+    "name": "Silent Stalker",
+    "level": 13,
+    "art": "silent-stalker-lob.webp"
+  },
+  {
+    "id": "death_coach_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "7WqlOvjoqURmeorA",
+    "name": "Death Coach",
+    "level": 14,
+    "art": "death-coach-lob.webp"
+  },
+  {
+    "id": "minister_of_tumult_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "L0JAq1IGEsjJwTbl",
+    "name": "Minister Of Tumult",
+    "level": 14,
+    "art": "minister-of-tumult-lob.webp"
+  },
+  {
+    "id": "obrousian_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "1hdQjYLtup92Jlls",
+    "name": "Obrousian",
+    "level": 14,
+    "art": "obrousian-lob.webp"
+  },
+  {
+    "id": "tormented_burning_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "0PrrwvV1936eSCQy",
+    "name": "Tormented (Burning)",
+    "level": 14,
+    "art": "tormented-burning-lob.webp"
+  },
+  {
+    "id": "tormented_crushing_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "AXp5EzgP7p8FrYpN",
+    "name": "Tormented (Crushing)",
+    "level": 14,
+    "art": "tormented-crushing-lob.webp"
+  },
+  {
+    "id": "tormented_dislocation_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "f2dAjBXK55w6rnsh",
+    "name": "Tormented (Dislocation)",
+    "level": 14,
+    "art": "tormented-dislocation-lob.webp"
+  },
+  {
+    "id": "tormented_drowning_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "dcLHA7tihCF2Mraj",
+    "name": "Tormented (Drowning)",
+    "level": 14,
+    "art": "tormented-drowning-lob.webp"
+  },
+  {
+    "id": "tormented_impalement_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "VN2Vz1dxA9ti66bC",
+    "name": "Tormented (Impalement)",
+    "level": 14,
+    "art": "tormented-impalement-lob.webp"
+  },
+  {
+    "id": "tormented_starvation_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "hjBcN7ulP6FSK7ie",
+    "name": "Tormented (Starvation)",
+    "level": 14,
+    "art": "tormented-starvation-lob.webp"
+  },
+  {
+    "id": "gallowdead_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "gXo04F7O4pwOY698",
+    "name": "Gallowdead",
+    "level": 15,
+    "art": "gallowdead-lob.webp"
+  },
+  {
+    "id": "hollow_serpent_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "laYufBuih3cT95j4",
+    "name": "Hollow Serpent",
+    "level": 15,
+    "art": "hollow-serpent-lob.webp"
+  },
+  {
+    "id": "horde_lich_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "wGEZUOgoJNkgXx9Z",
+    "name": "Horde Lich",
+    "level": 15,
+    "art": "horde-lich-lob.webp"
+  },
+  {
+    "id": "ecorche_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "zqftTUpxqkdLx2IY",
+    "name": "Ecorche",
+    "level": 16,
+    "art": "ecorche-lob.webp"
+  },
+  {
+    "id": "pale_sovereign_lob",
+    "pack": "pf2e.book-of-the-dead-bestiary",
+    "docId": "Ze8SKqa4T8lhSDup",
+    "name": "Pale Sovereign",
+    "level": 16,
+    "art": "pale-sovereign-lob.webp"
   }
 ]
