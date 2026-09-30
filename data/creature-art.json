@@ -14950,5 +14950,125 @@
     "name": "Cuetzmonquali",
     "level": 17,
     "art": "cuetzmonquali-lob.webp"
+  },
+  {
+    "id": "executor_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "m5jgzb7JyWOjnmpQ",
+    "name": "Executor Dragon (Ancient)",
+    "level": 18,
+    "art": "executor-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "executor_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "aZlQ7bCTAopncJUR",
+    "name": "Executor Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "executor-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "magma_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "7QxDDSEmJaohqaXh",
+    "name": "Magma Dragon (Ancient)",
+    "level": 18,
+    "art": "magma-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "magma_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "HdIr8upCJBgIdnyj",
+    "name": "Magma Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "magma-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "rime_archdragon_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "fyS8hbgG2bahSIDp",
+    "name": "Rime Archdragon",
+    "level": 18,
+    "art": "rime-archdragon-lob.webp"
+  },
+  {
+    "id": "rime_archdragon_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "S94oj09Yjwbcilmo",
+    "name": "Rime Archdragon (Spellcaster)",
+    "level": 18,
+    "art": "rime-archdragon-spellcaster-lob.webp"
+  },
+  {
+    "id": "sage_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "EHKQzIzw5eyUoGwQ",
+    "name": "Sage Dragon (Ancient)",
+    "level": 18,
+    "art": "sage-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "sage_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "QXpygXJRkbhaaOMP",
+    "name": "Sage Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "sage-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "sky_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "LFOjID9xGMPd7BIl",
+    "name": "Sky Dragon (Ancient)",
+    "level": 18,
+    "art": "sky-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "sky_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "DvTyMt09Dw9JKYaD",
+    "name": "Sky Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "sky-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "stormcrown_dragon_ancient_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "J4Q5ocIVBGsCi7nV",
+    "name": "Stormcrown Dragon (Ancient)",
+    "level": 18,
+    "art": "stormcrown-dragon-ancient-lob.webp"
+  },
+  {
+    "id": "stormcrown_dragon_ancient_spellcaster_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "cLp70PB4aM8N80dg",
+    "name": "Stormcrown Dragon (Ancient, Spellcaster)",
+    "level": 18,
+    "art": "stormcrown-dragon-ancient-spellcaster-lob.webp"
+  },
+  {
+    "id": "caterpillar_carriage_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "AKYrUoUmunt46Vy8",
+    "name": "Caterpillar Carriage",
+    "level": 18,
+    "art": "caterpillar-carriage-lob.webp"
+  },
+  {
+    "id": "bone_ship_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "iD32uhsjUGLvC2q6",
+    "name": "Bone Ship",
+    "level": 18,
+    "art": "bone-ship-lob.webp"
+  },
+  {
+    "id": "fleshforged_dreadnought_lob",
+    "pack": "pf2e.lost-omens-bestiary",
+    "docId": "KTabPRN489yjTvek",
+    "name": "Fleshforged Dreadnought",
+    "level": 18,
+    "art": "fleshforged-dreadnought-lob.webp"
   }
 ]

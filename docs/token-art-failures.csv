@@ -239,3 +239,18 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 16,sea-dragon-ancient,Sea Dragon (Ancient),17,dragon,accept,,gemini,gemini-first
 16,sea-dragon-ancient-spellcaster,"Sea Dragon (Ancient, Spellcaster)",17,dragon,accept,,gemini,gemini-first
 16,wyrmwraith,Wyrmwraith,17,dragon,accept,,gemini,gemini-first
+17,bone-ship,Bone Ship,18,beast,flag,monochrome_line_art;scenery_backdrop;wrong_details,gemini,
+17,caterpillar-carriage,Caterpillar Carriage,18,beast,accept,,comfyui,
+17,executor-dragon-ancient,Executor Dragon (Ancient),18,dragon,accept,,gemini,gemini-first
+17,executor-dragon-ancient-spellcaster,"Executor Dragon (Ancient, Spellcaster)",18,dragon,accept,,gemini,gemini-first
+17,fleshforged-dreadnought,Fleshforged Dreadnought,18,beast,flag,bg_patch;wrong_details,gemini,
+17,magma-dragon-ancient,Magma Dragon (Ancient),18,dragon,accept,,gemini,gemini-first
+17,magma-dragon-ancient-spellcaster,"Magma Dragon (Ancient, Spellcaster)",18,dragon,accept,,gemini,gemini-first
+17,rime-archdragon,Rime Archdragon,18,dragon,accept,,gemini,gemini-first
+17,rime-archdragon-spellcaster,Rime Archdragon (Spellcaster),18,dragon,accept,,gemini,gemini-first
+17,sage-dragon-ancient,Sage Dragon (Ancient),18,dragon,accept,,gemini,gemini-first
+17,sage-dragon-ancient-spellcaster,"Sage Dragon (Ancient, Spellcaster)",18,dragon,accept,,gemini,gemini-first
+17,sky-dragon-ancient,Sky Dragon (Ancient),18,dragon,accept,,gemini,gemini-first
+17,sky-dragon-ancient-spellcaster,"Sky Dragon (Ancient, Spellcaster)",18,dragon,accept,,gemini,gemini-first
+17,stormcrown-dragon-ancient,Stormcrown Dragon (Ancient),18,dragon,accept,,gemini,gemini-first
+17,stormcrown-dragon-ancient-spellcaster,"Stormcrown Dragon (Ancient, Spellcaster)",18,dragon,accept,,gemini,gemini-first
