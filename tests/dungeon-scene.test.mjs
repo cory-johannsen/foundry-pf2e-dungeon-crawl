@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildRoomAtGraphNode, buildPopulateAndUnlockGraphNode } from '../scripts/dungeon-scene.mjs';
 import {
-  pendingForeignMarginOpenings, cellMarginWalls, roomRect,
+  pendingForeignMarginOpenings, cellMarginWalls, roomRect, cellBounds,
   buildEdgeCorridor, doorSlotsForFace, findPriorityCollision, assignDoorSlotsWithPriority,
 } from '../scripts/dungeon-layout.mjs';
 
@@ -117,9 +117,18 @@ describe('buildRoomAtGraphNode — #297 pending foreign margin openings', () => 
     // Explicitly confirm the gap really landed on the blocking room's SOUTH
     // wall, not its east one -- the exact defect Task 2's own review
     // rounds found and fixed in foreignOpening.side. A south wall segment
-    // is horizontal (y1 === y2); an east one is vertical (x1 === x2).
+    // is horizontal (y1 === y2); an east one is vertical (x1 === x2) AND
+    // sits at the cell's own east boundary specifically -- #353's own new
+    // passage-cap walls for the south opening are ALSO vertical (they cap
+    // that opening's own left/right sides), so "vertical" alone no longer
+    // disambiguates east from south; the east boundary's own x-coordinate
+    // does.
+    const cell = cellBounds(1, 0);
+    const eastBoundaryX = toPixels(cell.gx + cell.gw);
     const southMarginWalls = actualMarginWalls.filter((w) => w.c[1] === w.c[3]);
-    const eastMarginWalls = actualMarginWalls.filter((w) => w.c[0] === w.c[2]);
+    const eastMarginWalls = actualMarginWalls.filter(
+      (w) => w.c[0] === w.c[2] && w.c[0] === eastBoundaryX,
+    );
     expect(southMarginWalls.length).toBeGreaterThan(0);
     // Two south segments (before/after the gap) -- the gap itself is a real
     // interruption, not just a coincidentally-placed single wall.
