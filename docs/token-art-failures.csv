@@ -994,3 +994,13 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 73,animated-dagger,Animated Dagger,-1,construct,accept,,comfyui,gemini-first
 73,burrowing-viper-rat,Burrowing Viper Rat,-1,beast,accept,,comfyui,gemini-first
 73,elven-grave-robber,Elven Grave Robber,1,beast,accept,,comfyui,gemini-first
+74,elven-tracker,Elven Tracker,3,beast,accept,,comfyui,
+74,dream-of-doom,Dream of Doom,7,beast,accept,,comfyui,
+74,witch-s-eye,Witch's Eye,0,beast,accept,,comfyui,
+74,coven-winter-hag,Coven Winter Hag,8,beast,accept,,comfyui,
+74,serraleth,Serraleth,7,beast,accept,,comfyui,
+74,suhko,Suhko (1-2),1,beast,accept,,comfyui,
+74,bloody-barber-ruffian,Bloody Barber Ruffian,2,beast,accept,,comfyui,
+74,witch-s-wing,Witch's Wing,1,beast,accept,,comfyui,
+74,transformed-narcela,Transformed Narcela (7-8),8,beast,accept,,comfyui,
+74,witch-of-the-owl,Witch of the Owl,1,beast,accept,,comfyui,

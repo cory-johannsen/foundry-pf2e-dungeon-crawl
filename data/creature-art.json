@@ -23230,5 +23230,109 @@
     "name": "Elven Grave Robber",
     "level": 1,
     "art": "elven-grave-robber-lob.webp"
+  },
+  {
+    "id": "elven_tracker_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "55XJegJx3b5MoB2s",
+    "name": "Elven Tracker",
+    "level": 3,
+    "art": "elven-tracker-lob.webp"
+  },
+  {
+    "id": "dream_of_doom_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "576LENfQB9u4V92Y",
+    "name": "Dream of Doom",
+    "level": 7,
+    "art": "dream-of-doom-lob.webp"
+  },
+  {
+    "id": "witch_s_eye_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "5t2uXTLYX03YUmUk",
+    "name": "Witch's Eye",
+    "level": 0,
+    "art": "witch-s-eye-lob.webp"
+  },
+  {
+    "id": "coven_winter_hag_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "6gkKpEHa1YjnBu69",
+    "name": "Coven Winter Hag",
+    "level": 8,
+    "art": "coven-winter-hag-lob.webp"
+  },
+  {
+    "id": "serraleth_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "7Bon2mCIl8psUpUR",
+    "name": "Serraleth",
+    "level": 7,
+    "art": "serraleth-lob.webp"
+  },
+  {
+    "id": "serraleth_7_8_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "PIxgIqgDs3he4VV6",
+    "name": "Serraleth (7-8)",
+    "level": 9,
+    "art": "serraleth-lob.webp"
+  },
+  {
+    "id": "suhko_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "VQ1TNqlUvdlKkuN6",
+    "name": "Suhko (1-2)",
+    "level": 1,
+    "art": "suhko-lob.webp"
+  },
+  {
+    "id": "suhko_3_4_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "7W9dzIWzgEOB2UTK",
+    "name": "Suhko (3-4)",
+    "level": 3,
+    "art": "suhko-lob.webp"
+  },
+  {
+    "id": "bloody_barber_ruffian_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "7yap6E0QQkY0N9HO",
+    "name": "Bloody Barber Ruffian",
+    "level": 2,
+    "art": "bloody-barber-ruffian-lob.webp"
+  },
+  {
+    "id": "witch_s_wing_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "82otwWwog77fPBJ8",
+    "name": "Witch's Wing",
+    "level": 1,
+    "art": "witch-s-wing-lob.webp"
+  },
+  {
+    "id": "transformed_narcela_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "8DKm9pmBJdgsA4MQ",
+    "name": "Transformed Narcela (7-8)",
+    "level": 8,
+    "art": "transformed-narcela-lob.webp"
+  },
+  {
+    "id": "transformed_narcela_9_10_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "FHOgTGMrt9342ZbI",
+    "name": "Transformed Narcela (9-10)",
+    "level": 10,
+    "art": "transformed-narcela-lob.webp"
+  },
+  {
+    "id": "witch_of_the_owl_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "8i1a132Z2xJtqyQI",
+    "name": "Witch of the Owl",
+    "level": 1,
+    "art": "witch-of-the-owl-lob.webp"
   }
 ]
