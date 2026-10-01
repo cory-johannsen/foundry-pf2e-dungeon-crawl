@@ -21278,5 +21278,317 @@
     "name": "Aspis Warden",
     "level": 3,
     "art": "aspis-warden-lob.webp"
+  },
+  {
+    "id": "mr_chitters_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "RUXPx9VPJCmuD1V8",
+    "name": "Mr. Chitters (5-6)",
+    "level": 3,
+    "art": "mr-chitters-lob.webp"
+  },
+  {
+    "id": "mr_chitters_7_8_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "6dL5bhGVdRyID20x",
+    "name": "Mr. Chitters (7-8)",
+    "level": 5,
+    "art": "mr-chitters-lob.webp"
+  },
+  {
+    "id": "thorned_cocoon_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "AFQU2tJl09ykBkwY",
+    "name": "Thorned Cocoon (3-4)",
+    "level": 2,
+    "art": "thorned-cocoon-lob.webp"
+  },
+  {
+    "id": "thorned_cocoon_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "uZWktkWAmzadBTh1",
+    "name": "Thorned Cocoon (5-6)",
+    "level": 4,
+    "art": "thorned-cocoon-lob.webp"
+  },
+  {
+    "id": "nalla_rebel_leader_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "SprnhrgMbZxb59fA",
+    "name": "Nalla, Rebel Leader (1-2)",
+    "level": 1,
+    "art": "nalla-rebel-leader-lob.webp"
+  },
+  {
+    "id": "nalla_rebel_leader_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "E17afWSsCBGM8Gnq",
+    "name": "Nalla, Rebel Leader (3-4)",
+    "level": 3,
+    "art": "nalla-rebel-leader-lob.webp"
+  },
+  {
+    "id": "chops_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "jEjUHCcGcGinFqOU",
+    "name": "Chops (1-2)",
+    "level": 0,
+    "art": "chops-lob.webp"
+  },
+  {
+    "id": "chops_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "E2ExOJ9KFfGpw2H3",
+    "name": "Chops (3-4)",
+    "level": 2,
+    "art": "chops-lob.webp"
+  },
+  {
+    "id": "rebel_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "EGwZ6MSs8AVHf3q6",
+    "name": "Rebel",
+    "level": -1,
+    "art": "rebel-lob.webp"
+  },
+  {
+    "id": "elite_rebel_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "gZXQGOZO5XbWr9yD",
+    "name": "Elite Rebel",
+    "level": 1,
+    "art": "rebel-lob.webp"
+  },
+  {
+    "id": "little_zura_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "sLt5RvozduZ2soA5",
+    "name": "Little Zura (1-2)",
+    "level": 1,
+    "art": "little-zura-lob.webp"
+  },
+  {
+    "id": "little_zura_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "Gxy0zuO7aqC9NBv0",
+    "name": "Little Zura (3-4)",
+    "level": 3,
+    "art": "little-zura-lob.webp"
+  },
+  {
+    "id": "giant_short_faced_bear_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "HffGyY6B9Kz20jOY",
+    "name": "Lesser Giant Short-faced Bear",
+    "level": 4,
+    "art": "giant-short-faced-bear-lob.webp"
+  },
+  {
+    "id": "giant_short_faced_bear_pqaqs_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "PQaQSSjfkoV9mZzi",
+    "name": "Giant Short-faced Bear",
+    "level": 6,
+    "art": "giant-short-faced-bear-lob.webp"
+  },
+  {
+    "id": "snapjaw_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "KcLEkekZZw9uI88I",
+    "name": "Toxic Snapjaw (3-4)",
+    "level": 1,
+    "art": "snapjaw-lob.webp"
+  },
+  {
+    "id": "toxic_snapjaw_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "a15tV7snudRPQXHO",
+    "name": "Toxic Snapjaw (5-6)",
+    "level": 3,
+    "art": "snapjaw-lob.webp"
+  },
+  {
+    "id": "steel_mephit_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "LAZDcdX1ISXJCqPd",
+    "name": "Steel Mephit",
+    "level": 1,
+    "art": "steel-mephit-lob.webp"
+  },
+  {
+    "id": "greater_steel_mephit_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "ptDF1ghCxNHGhH0h",
+    "name": "Greater Steel Mephit",
+    "level": 4,
+    "art": "steel-mephit-lob.webp"
+  },
+  {
+    "id": "crowd_agitator_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "MOX8VzhEBVMkOpzr",
+    "name": "Crowd Agitator",
+    "level": 1,
+    "art": "crowd-agitator-lob.webp"
+  },
+  {
+    "id": "lelzeshin_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "b7VoFnPimmOwx8nX",
+    "name": "Lelzeshin (Tier 3-4)",
+    "level": 5,
+    "art": "lelzeshin-lob.webp"
+  },
+  {
+    "id": "lelzeshin_tier_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "QtDH32oEVWpFmlCi",
+    "name": "Lelzeshin (Tier 5-6)",
+    "level": 7,
+    "art": "lelzeshin-lob.webp"
+  },
+  {
+    "id": "desert_wind_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "RS04fRQEWzk2aZOx",
+    "name": "Desert Wind",
+    "level": 1,
+    "art": "desert-wind-lob.webp"
+  },
+  {
+    "id": "mountain_goat_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "rrlWzq8qKpOgaq7P",
+    "name": "Mountain Goat",
+    "level": 0,
+    "art": "mountain-goat-lob.webp"
+  },
+  {
+    "id": "tough_mountain_goat_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "TmDKaw1WenWKvNBU",
+    "name": "Tough Mountain Goat",
+    "level": 1,
+    "art": "mountain-goat-lob.webp"
+  },
+  {
+    "id": "blue_streak_ambushers_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "zAOgSgAqMLCrIvTl",
+    "name": "Blue Streak Ambushers (5-6)",
+    "level": 4,
+    "art": "blue-streak-ambushers-lob.webp"
+  },
+  {
+    "id": "blue_streak_ambushers_7_8_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "Uhb6f4ettpS7K2Jl",
+    "name": "Blue Streak Ambushers (7-8)",
+    "level": 5,
+    "art": "blue-streak-ambushers-lob.webp"
+  },
+  {
+    "id": "mirrored_lelzeshin_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "X6xVydw9XznvvFC2",
+    "name": "Mirrored Lelzeshin (Tier 3-4)",
+    "level": 2,
+    "art": "mirrored-lelzeshin-lob.webp"
+  },
+  {
+    "id": "mirrored_lelzeshin_tier_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "yAZBjwCVDGbdT4Sb",
+    "name": "Mirrored Lelzeshin (Tier 5-6)",
+    "level": 4,
+    "art": "mirrored-lelzeshin-lob.webp"
+  },
+  {
+    "id": "bandit_scout_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "ZMGXiRuVZ8r7hQVe",
+    "name": "Bandit Scout",
+    "level": 0,
+    "art": "bandit-scout-lob.webp"
+  },
+  {
+    "id": "dockhand_cultist_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "eBOY53WFYYksLmiH",
+    "name": "Dockhand Cultist",
+    "level": 0,
+    "art": "dockhand-cultist-lob.webp"
+  },
+  {
+    "id": "plum_leshy_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "qumj2VUZ6aTnjjIU",
+    "name": "Plum Leshy (1-2)",
+    "level": -1,
+    "art": "plum-leshy-lob.webp"
+  },
+  {
+    "id": "plum_leshy_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "fK69SijSGN3bOgSE",
+    "name": "Plum Leshy (3-4)",
+    "level": 1,
+    "art": "plum-leshy-lob.webp"
+  },
+  {
+    "id": "blue_streak_burglar_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "pSQYsY76zjDMfjv2",
+    "name": "Blue Streak Burglar",
+    "level": 4,
+    "art": "blue-streak-burglar-lob.webp"
+  },
+  {
+    "id": "leshy_crafter_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "pxDyzHzkEQTz3R1K",
+    "name": "Leshy Crafter (1-2)",
+    "level": 3,
+    "art": "leshy-crafter-lob.webp"
+  },
+  {
+    "id": "leshy_crafter_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "whbIBJJxlv5oVm6c",
+    "name": "Leshy Crafter (3-4)",
+    "level": 5,
+    "art": "leshy-crafter-lob.webp"
+  },
+  {
+    "id": "nashaxian_the_bored_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "tDKhy3OvsOX8Hzik",
+    "name": "Nashaxian The Bored",
+    "level": 3,
+    "art": "nashaxian-the-bored-lob.webp"
+  },
+  {
+    "id": "seaborn_fisher_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "tt4tZR8udjJ1zNyp",
+    "name": "Seaborn Fisher",
+    "level": -1,
+    "art": "seaborn-fisher-lob.webp"
+  },
+  {
+    "id": "larraz_virtanne_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "w8pkSmcvpZfp7Hsw",
+    "name": "Larraz Virtanne",
+    "level": 1,
+    "art": "larraz-virtanne-lob.webp"
+  },
+  {
+    "id": "rebel_brute_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "wv8PrDy91ae3njBv",
+    "name": "Rebel Brute",
+    "level": 2,
+    "art": "rebel-brute-lob.webp"
   }
 ]
