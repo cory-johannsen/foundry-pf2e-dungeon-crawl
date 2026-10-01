@@ -1034,3 +1034,7 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 77,possessed-clockwork-vessel,Possessed Clockwork Vessel,10,construct,accept,,comfyui,
 77,shard-of-aslynn,Shard of Aslynn (1-2),2,beast,accept,,comfyui,
 77,urdefhan-blood-mage,Urdefhan Blood Mage (PFS 4-11),8,beast,accept,,comfyui,
+78,potted-violet-etheroot,Potted Violet Etheroot,7,beast,accept,,comfyui,gemini-first
+78,travel-worn-lurker-in-light,Travel Worn Lurker In Light,4,beast,accept,,comfyui,gemini-first
+78,bugbear-raider,Bugbear Raider,4,beast,accept,,comfyui,gemini-first
+78,deimostride,Deimostride (7-8),7,beast,accept,,comfyui,gemini-first

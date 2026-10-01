@@ -23678,5 +23678,45 @@
     "name": "Shard of Aslynn (3-4)",
     "level": 4,
     "art": "shard-of-aslynn-lob.webp"
+  },
+  {
+    "id": "potted_violet_etheroot_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "Akq5V2jzJYUZXT8d",
+    "name": "Potted Violet Etheroot",
+    "level": 7,
+    "art": "potted-violet-etheroot-lob.webp"
+  },
+  {
+    "id": "travel_worn_lurker_in_light_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "E0KmdZTSCae2rVJi",
+    "name": "Travel Worn Lurker In Light",
+    "level": 4,
+    "art": "travel-worn-lurker-in-light-lob.webp"
+  },
+  {
+    "id": "bugbear_raider_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "Fu4ChrUyc18E0V0v",
+    "name": "Bugbear Raider",
+    "level": 4,
+    "art": "bugbear-raider-lob.webp"
+  },
+  {
+    "id": "deimostride_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "VhmCiYhSVBhxqdEb",
+    "name": "Deimostride (7-8)",
+    "level": 7,
+    "art": "deimostride-lob.webp"
+  },
+  {
+    "id": "deimostride_9_10_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "IpoCKKY4bUW4Jox9",
+    "name": "Deimostride (9-10)",
+    "level": 10,
+    "art": "deimostride-lob.webp"
   }
 ]
