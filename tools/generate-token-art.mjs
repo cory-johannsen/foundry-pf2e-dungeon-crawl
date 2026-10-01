@@ -72,9 +72,14 @@ loadDotEnv();
 
 const OUT_DIR = join(root, 'assets/tokens');
 const BASE = (process.env.COMFYUI_BASE_URL || 'https://comfyui.johannsen.cloud').replace(/\/$/, '');
-const CHECKPOINT = process.env.COMFYUI_CHECKPOINT || 'sd_xl_base_1.0.safetensors';
-const STEPS = parseInt(process.env.COMFYUI_STEPS || '28', 10);
-const CFG = parseFloat(process.env.COMFYUI_CFG || '7.0');
+// Default since 2026-10-01 (#452): DreamShaper XL Lightning, 6 steps, CFG 2. An A/B
+// on the 8 GB GPU measured ~41 s/image versus ~207 s for sd_xl_base_1.0 at 28
+// steps/CFG 7 (about 5x), with a modest style shift the owner accepted. The old
+// setup is still available via COMFYUI_CHECKPOINT=sd_xl_base_1.0.safetensors
+// COMFYUI_STEPS=28 COMFYUI_CFG=7.0.
+const CHECKPOINT = process.env.COMFYUI_CHECKPOINT || 'dreamshaperXL_lightningDPMSDE.safetensors';
+const STEPS = parseInt(process.env.COMFYUI_STEPS || '6', 10);
+const CFG = parseFloat(process.env.COMFYUI_CFG || '2.0');
 const SAMPLER = process.env.COMFYUI_SAMPLER || 'dpmpp_sde';
 const SCHEDULER = process.env.COMFYUI_SCHEDULER || 'karras';
 export const SIZE = 1024;
