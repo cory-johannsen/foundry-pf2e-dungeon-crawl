@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   resolveEncounterRoster,
+  xpFor,
   xpBudget,
   xpCeilingTierForDepth,
 } from "../scripts/encounter-roster.mjs";
@@ -609,5 +610,129 @@ describe("depth-scaled XP ceiling (#293)", () => {
   it("names the actual tier in the cap warning", async () => {
     const roster = await run({ partySize: 4, depthBias: 0 });
     expect(roster.warnings[0]).toMatch(/capped at Low/);
+  });
+});
+
+describe("depth XP cap clamps real creature levels (#293 follow-up)", () => {
+  // One creature at every level 0..10, so any clamp has something to land on.
+  const ladderPool = () =>
+    Array.from({ length: 11 }, (_, level) => ({
+      pack: "p",
+      id: `c${level}`,
+      name: `C${level}`,
+      level,
+      traits: [],
+    }));
+  const slots = (offsets) =>
+    offsets.map((levelOffset, i) => ({
+      id: `s${i}`,
+      kind: "creature",
+      levelOffset,
+    }));
+  const realXp = (roster, partyLevel) =>
+    roster.foes.reduce(
+      (sum, f) => sum + xpFor(f.level - partyLevel) * f.count,
+      0,
+    ) +
+    (roster.lurker ? xpFor(roster.lurker.level - partyLevel) : 0) +
+    (roster.twins
+      ? roster.twins.reduce((s, t) => s + xpFor(t.level - partyLevel), 0)
+      : 0);
+
+  it("first slot alone over the cap is clamped (5xL1, Moderate, +2 slot +1 bias)", async () => {
+    const roster = await resolveEncounterRoster({
+      resolved: { foes: slots([2]) },
+      api: makeStubApi(ladderPool()),
+      partyLevel: 1,
+      rng: () => 0.99,
+      levelOffsetBias: 1,
+      partySize: 5,
+      depthBias: 1,
+    });
+    expect(roster.foes).toHaveLength(1);
+    expect(realXp(roster, 1)).toBeLessThanOrEqual(xpBudget("moderate", 5));
+    expect(roster.approxXp).toBeLessThanOrEqual(xpBudget("moderate", 5));
+  });
+
+  it("does not let level tolerance pick a creature above the counted level", async () => {
+    // Nominal +1 (60 XP) fits a 100 budget, but tolerance would allow +2.
+    const roster = await resolveEncounterRoster({
+      resolved: { foes: slots([1]) },
+      api: makeStubApi(ladderPool()),
+      partyLevel: 3,
+      rng: () => 0.99,
+      partySize: 5,
+      depthBias: 1,
+    });
+    expect(roster.foes[0].level).toBeLessThanOrEqual(4);
+    expect(realXp(roster, 3)).toBeLessThanOrEqual(roster.approxXp);
+  });
+
+  for (const partySize of [1, 4, 6]) {
+    it(`Low at bias 0 stays under budget for a party of ${partySize}`, async () => {
+      const roster = await resolveEncounterRoster({
+        resolved: { foes: slots([0, 1, 0]) },
+        api: makeStubApi(ladderPool()),
+        partyLevel: 5,
+        rng: () => 0.99,
+        partySize,
+        depthBias: 0,
+      });
+      expect(roster.foes.length).toBeGreaterThanOrEqual(1);
+      expect(realXp(roster, 5)).toBeLessThanOrEqual(xpBudget("low", partySize));
+    });
+  }
+
+  it("without partySize nothing is clamped (unchanged)", async () => {
+    const roster = await resolveEncounterRoster({
+      resolved: { foes: slots([2]) },
+      api: makeStubApi(ladderPool()),
+      partyLevel: 1,
+      rng: () => 0.99,
+      levelOffsetBias: 1,
+    });
+    expect(roster.foes[0].level).toBe(5); // +3 +1 tolerance
+    expect(roster.approxXp).toBe(120);
+  });
+
+  it("property: real-level XP never exceeds the cap, roster never empty", async () => {
+    let seed = 12345;
+    const rand = () => {
+      seed = (seed * 1664525 + 1013904223) % 4294967296;
+      return seed / 4294967296;
+    };
+    for (let i = 0; i < 300; i += 1) {
+      const partyLevel = 1 + Math.floor(rand() * 8);
+      const partySize = 1 + Math.floor(rand() * 6);
+      const depthBias = Math.floor(rand() * 3);
+      const levelOffsetBias = Math.floor(rand() * 3);
+      const n = 1 + Math.floor(rand() * 5);
+      const offsets = Array.from(
+        { length: n },
+        () => Math.floor(rand() * 5) - 2,
+      );
+      const resolved = { foes: slots(offsets) };
+      if (rand() < 0.3) resolved.lurker = { kind: "lurker", levelOffset: 1 };
+      if (rand() < 0.2)
+        resolved.twins = [
+          { kind: "creature", levelOffset: 0 },
+          { kind: "creature", levelOffset: 0 },
+        ];
+      const roster = await resolveEncounterRoster({
+        resolved,
+        api: makeStubApi(ladderPool()),
+        partyLevel,
+        rng: rand,
+        levelOffsetBias,
+        partySize,
+        depthBias,
+      });
+      const cap = xpBudget(xpCeilingTierForDepth(depthBias), partySize);
+      const total =
+        roster.foes.length + (roster.lurker ? 1 : 0) + (roster.twins ? 1 : 0);
+      expect(total).toBeGreaterThanOrEqual(1);
+      if (total > 1)
+        expect(realXp(roster, partyLevel)).toBeLessThanOrEqual(cap);
+    }
   });
 });

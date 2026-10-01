@@ -124,9 +124,10 @@ async function pickCreature({
   levelOffsetBias = 0,
   requireTrait = null,
   boss = false,
+  upwardTolerance = LEVEL_TOLERANCE,
 }) {
   const minLevel = partyLevel + levelOffset + levelOffsetBias - LEVEL_TOLERANCE;
-  const maxLevel = partyLevel + levelOffset + levelOffsetBias + LEVEL_TOLERANCE;
+  const maxLevel = partyLevel + levelOffset + levelOffsetBias + upwardTolerance;
   const excludeAll = [
     ...new Set([...(excludeTraits ?? []), ...MANDATORY_EXCLUDE]),
   ];
@@ -218,8 +219,6 @@ export async function resolveEncounterRoster({
   let cappedCount = 0;
   const capTier = xpCeilingTierForDepth(depthBias);
   const xpCap = partySize != null ? xpBudget(capTier, partySize) : null;
-  const wouldExceedCap = (contribution) =>
-    xpCap != null && approxXp > 0 && approxXp + contribution > xpCap;
 
   const pick = (levelOffset, boss = false) =>
     pickCreature({
@@ -234,28 +233,84 @@ export async function resolveEncounterRoster({
       boss,
     });
 
-  async function choiceFor(slot, boss) {
-    if (slot.group) {
-      if (groupChoice.has(slot.group)) return groupChoice.get(slot.group);
-      const chosen = await pick(slot.levelOffset, boss);
-      groupChoice.set(slot.group, chosen);
-      return chosen;
+  // Cap-aware pick (#293): with a cap, the largest relative level `d` (at
+  // most the nominal slot level, at least -4) whose XP for `count` creatures
+  // fits the remaining budget. The pick is then limited to creatures whose
+  // REAL level is <= partyLevel + d (no upward tolerance), so what is
+  // charged is never below what spawns. Nothing fits even at -4 -> skipped
+  // (null), except into an empty roster, which takes -4 rather than nothing.
+  const fitOffset = (slotOffset, count) => {
+    const nominal = slotOffset + levelOffsetBias;
+    for (let d = nominal; d >= -4; d -= 1) {
+      if (approxXp + xpFor(d) * count <= xpCap) return d;
     }
-    return pick(slot.levelOffset, boss);
+    return approxXp === 0 ? -4 : null;
+  };
+  // Returns { chosen, contribution } or null when the cap holds the slot back.
+  async function pickWithinCap(slotOffset, count, boss = false) {
+    if (xpCap == null) {
+      const chosen = await pick(slotOffset, boss);
+      return {
+        chosen,
+        contribution: xpFor(slotOffset + levelOffsetBias) * count,
+      };
+    }
+    const d = fitOffset(slotOffset, count);
+    if (d == null) return null;
+    let chosen = await pickCreature({
+      api,
+      partyLevel,
+      levelOffset: d,
+      traits,
+      excludeTraits,
+      rng,
+      levelOffsetBias: 0,
+      requireTrait,
+      boss,
+      upwardTolerance: 0,
+    });
+    if (!chosen && d < slotOffset + levelOffsetBias) {
+      // Clamped below the nominal level and nothing exists down there.
+      // Later slot: the cap is what held it back, not a missing creature.
+      if (approxXp > 0) return null;
+      // Empty roster: an empty encounter is worse than an over-cap one, so
+      // fall back to the nominal pick and charge its real level.
+      chosen = await pick(slotOffset, boss);
+      if (chosen)
+        return {
+          chosen,
+          contribution: xpFor(chosen.level - partyLevel) * count,
+        };
+    }
+    return { chosen, contribution: xpFor(d) * count };
   }
 
   const foes = [];
   for (const slot of resolved.foes ?? []) {
     const count = slot.countsAs ?? 1;
-    const contribution = xpFor(slot.levelOffset + levelOffsetBias) * count;
-    if (wouldExceedCap(contribution)) {
+    const boss = isBoss && resolved.foes.indexOf(slot) === 0;
+    let result;
+    if (slot.group && groupChoice.has(slot.group)) {
+      // Group members reuse the first pick, so charge that creature's real
+      // level (not this slot's nominal one) and hold the member back if it
+      // no longer fits.
+      const chosen = groupChoice.get(slot.group);
+      const contribution = chosen
+        ? xpFor(chosen.level - partyLevel) * count
+        : xpFor(slot.levelOffset + levelOffsetBias) * count;
+      result =
+        xpCap != null && approxXp > 0 && approxXp + contribution > xpCap
+          ? null
+          : { chosen, contribution };
+    } else {
+      result = await pickWithinCap(slot.levelOffset, count, boss);
+      if (slot.group && result) groupChoice.set(slot.group, result.chosen);
+    }
+    if (!result) {
       cappedCount += 1;
       continue;
     }
-    const chosen = await choiceFor(
-      slot,
-      isBoss && resolved.foes.indexOf(slot) === 0,
-    );
+    const { chosen, contribution } = result;
     if (!chosen) {
       warnings.push(
         `No creature found for a level ${partyLevel + slot.levelOffset + levelOffsetBias} slot — place one yourself.`,
@@ -291,11 +346,11 @@ export async function resolveEncounterRoster({
 
   let lurker = null;
   if (resolved.lurker) {
-    const contribution = xpFor(resolved.lurker.levelOffset + levelOffsetBias);
-    if (wouldExceedCap(contribution)) {
+    const result = await pickWithinCap(resolved.lurker.levelOffset, 1);
+    if (!result) {
       cappedCount += 1;
     } else {
-      const chosen = await pick(resolved.lurker.levelOffset);
+      const { chosen, contribution } = result;
       if (chosen) {
         lurker = {
           pack: chosen.pack,
@@ -314,12 +369,14 @@ export async function resolveEncounterRoster({
   let twins = null;
   if (resolved.twins) {
     const [first] = resolved.twins;
-    const contribution =
-      xpFor(first.levelOffset + levelOffsetBias) * resolved.twins.length;
-    if (wouldExceedCap(contribution)) {
+    const result = await pickWithinCap(
+      first.levelOffset,
+      resolved.twins.length,
+    );
+    if (!result) {
       cappedCount += 1;
     } else {
-      const chosen = await pick(first.levelOffset);
+      const { chosen, contribution } = result;
       if (chosen) {
         twins = resolved.twins.map(() => ({
           pack: chosen.pack,
