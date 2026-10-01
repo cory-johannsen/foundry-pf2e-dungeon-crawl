@@ -1022,3 +1022,4 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 75,smokesight-wight-commander,Smokesight Wight Commander,12,undead,accept,,comfyui,gemini-first
 75,stabilized-black-pudding,Stabilized Black Pudding,7,beast,accept,,comfyui,
 75,witch-s-talon,Witch's Talon,-1,beast,accept,,comfyui,
+76,combustive-zombie,Combustive Zombie,8,undead,accept,,comfyui,gemini-first
