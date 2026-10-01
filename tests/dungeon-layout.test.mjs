@@ -9,6 +9,7 @@ import {
   marginBandApproach, findCoParentCollision, findPriorityCollision, assignDoorSlotsWithPriority,
 } from '../scripts/dungeon-layout.mjs';
 import { buildRoomGraph, attachHiddenPaths } from '../scripts/dungeon-deck.mjs';
+import { forEachEdge, buildSweepLayout, planSelector, outgoingPlanFor } from './helpers/layout-sweep.mjs';
 
 const SEED = 'seed-a';
 
@@ -4114,4 +4115,172 @@ describe('outgoingDoorPlan (#415)', () => {
     const two = outgoingDoorPlan(rect, { rank: 1, col: 2 }, { realChildIds: ['c', 'b', 'a'], hiddenChildIds: [] }, t);
     expect([...one.entries()].sort()).toEqual([...two.entries()].sort());
   });
+});
+
+describe('buildEdgeCorridor exitDoor (#415)', () => {
+  const seed = 'door-slot-seed';
+  const from = { gx: 300, gy: 13, gw: 6, gh: 6 };
+  it('same-column south: door at the planned x, no source-face caps', () => {
+    const to = { gx: 300, gy: 26, gw: 6, gh: 6 };
+    const target = { x1: 300, y1: 26, x2: 306, y2: 26 };
+    const exitDoor = { exitPoint: { x: 302, y: 19 }, doorSpan: { x1: 302, y1: 19, x2: 303, y2: 19 } };
+    const r = buildEdgeCorridor(seed, 'a', 'b', from, to, { rank: 1, col: 0 }, { rank: 2, col: 0 }, 'south', target, { '1,0': 'a', '2,0': 'b' }, 'north', exitDoor);
+    expect(r.doorWall).toEqual({ x1: 302, y1: 19, x2: 303, y2: 19 });
+    expect(r.plainWalls.some((w) => w.y1 === 19 && w.y2 === 19)).toBe(false);
+    // the corridor floor starts at the planned door
+    expect(r.corridorSegments[0].gx).toBeLessThanOrEqual(302);
+    expect(r.corridorSegments[0].gx + r.corridorSegments[0].gw).toBeGreaterThanOrEqual(303);
+  });
+  it('corner branch (lower-column target): leg 1 starts at the planned door and never enters the source', () => {
+    const to = { gx: 300, gy: 52, gw: 6, gh: 6 };
+    const fromE = { gx: 326, gy: 13, gw: 6, gh: 6 };
+    const target = { x1: 300, y1: 52, x2: 306, y2: 52 };
+    const exitDoor = { exitPoint: { x: 328, y: 19 }, doorSpan: { x1: 328, y1: 19, x2: 329, y2: 19 } };
+    const r = buildEdgeCorridor(seed, 'a', 'b', fromE, to, { rank: 1, col: 2 }, { rank: 4, col: 0 }, 'south', target, { '1,2': 'a', '4,0': 'b' }, 'north', exitDoor);
+    expect(r.doorWall).toEqual({ x1: 328, y1: 19, x2: 329, y2: 19 });
+    expect(r.plainWalls.some((w) => w.y1 === 19 && w.y2 === 19)).toBe(false);
+    for (const s of r.corridorSegments) {
+      expect(s.gy >= fromE.gy + fromE.gh || s.gy + s.gh <= fromE.gy).toBe(true);
+    }
+  });
+  it('east same-rank branch honors the planned row', () => {
+    const fromR = { gx: 300, gy: 0, gw: 12, gh: 12 };
+    const to = { gx: 326, gy: 0, gw: 6, gh: 6 };
+    const target = { x1: 326, y1: 0, x2: 326, y2: 6 };
+    const exitDoor = { exitPoint: { x: 312, y: 3 }, doorSpan: { x1: 312, y1: 3, x2: 312, y2: 4 } };
+    const r = buildEdgeCorridor(seed, 'a', 'b', fromR, to, { rank: 0, col: 0 }, { rank: 0, col: 2 }, 'east', target, { '0,0': 'a', '0,2': 'b' }, 'west', exitDoor);
+    expect(r.doorWall).toEqual({ x1: 312, y1: 3, x2: 312, y2: 4 });
+    expect(r.plainWalls.some((w) => w.x1 === 312 && w.x2 === 312)).toBe(false);
+  });
+  it('multi-cell chain starts at the planned door', () => {
+    const fromR = { gx: 300, gy: 0, gw: 12, gh: 12 };
+    const to = { gx: 300, gy: 39, gw: 12, gh: 12 };
+    const target = { x1: 300, y1: 39, x2: 312, y2: 39 };
+    const exitDoor = { exitPoint: { x: 303, y: 12 }, doorSpan: { x1: 303, y1: 12, x2: 304, y2: 12 } };
+    const r = buildEdgeCorridor(seed, 'a', 'b', fromR, to, { rank: 0, col: 0 }, { rank: 3, col: 0 }, 'south', target, {}, 'north', exitDoor);
+    expect(r.transitCells.length).toBeGreaterThan(0);
+    expect(r.doorWall.x1).toBe(303);
+    expect(r.transitCells[0].entryPoint.x).toBe(303);
+    expect(r.plainWalls.some((w) => w.y1 === 12 && w.y2 === 12)).toBe(false);
+  });
+  it('multi-cell east exit honors the planned row', () => {
+    const fromR = { gx: 300, gy: 0, gw: 12, gh: 12 };
+    const to = { gx: 352, gy: 13, gw: 12, gh: 12 };
+    const target = { x1: 352, y1: 13, x2: 364, y2: 13 };
+    const exitDoor = { exitPoint: { x: 312, y: 8 }, doorSpan: { x1: 312, y1: 8, x2: 312, y2: 9 } };
+    const r = buildEdgeCorridor(seed, 'a', 'b', fromR, to, { rank: 0, col: 0 }, { rank: 1, col: 4 }, 'east', target, {}, 'north', exitDoor);
+    expect(r.doorWall).toEqual({ x1: 312, y1: 8, x2: 312, y2: 9 });
+    expect(r.plainWalls.some((w) => w.x1 === 312 && w.x2 === 312)).toBe(false);
+  });
+  it('a plan entry with a null exitPoint (single door) behaves as no exitDoor', () => {
+    const to = { gx: 300, gy: 26, gw: 6, gh: 6 };
+    const target = { x1: 300, y1: 26, x2: 306, y2: 26 };
+    const a = buildEdgeCorridor(seed, 'a', 'b', from, to, { rank: 1, col: 0 }, { rank: 2, col: 0 }, 'south', target, { '1,0': 'a', '2,0': 'b' });
+    const b = buildEdgeCorridor(seed, 'a', 'b', from, to, { rank: 1, col: 0 }, { rank: 2, col: 0 }, 'south', target, { '1,0': 'a', '2,0': 'b' }, 'north', { face: 'south', exitPoint: null, doorSpan: null });
+    expect(b).toEqual(a);
+  });
+  it('without exitDoor the result is unchanged (existing behavior)', () => {
+    const to = { gx: 300, gy: 26, gw: 6, gh: 6 };
+    const target = { x1: 300, y1: 26, x2: 306, y2: 26 };
+    const a = buildEdgeCorridor(seed, 'a', 'b', from, to, { rank: 1, col: 0 }, { rank: 2, col: 0 }, 'south', target, { '1,0': 'a', '2,0': 'b' });
+    const b = buildEdgeCorridor(seed, 'a', 'b', from, to, { rank: 1, col: 0 }, { rank: 2, col: 0 }, 'south', target, { '1,0': 'a', '2,0': 'b' }, 'north', undefined);
+    expect(b).toEqual(a);
+  });
+});
+
+describe('plan-aware margin, enclosure and collision scans (#415)', () => {
+  it('roomEnclosureWalls: a face with door spans is solid except the spans', () => {
+    const rect = { gx: 300, gy: 13, gw: 6, gh: 6 };
+    const spans = [{ x1: 301, y1: 19, x2: 302, y2: 19 }, { x1: 304, y1: 19, x2: 305, y2: 19 }];
+    const walls = roomEnclosureWalls('s', 'r', { incomingCount: 1, outgoingFaces: ['south'], doorSpansByFace: { south: spans } }, rect);
+    const south = walls.filter((w) => w.dir === 'south');
+    expect(south.map((w) => [w.x1, w.x2])).toEqual([[300, 301], [302, 304], [305, 306]]);
+    for (const w of south) expect(w.y1 === 19 && w.y2 === 19).toBe(true);
+    const legacy = roomEnclosureWalls('s', 'r', { incomingCount: 1, outgoingFaces: ['south'] }, rect);
+    expect(walls.filter((w) => w.dir !== 'south')).toEqual(legacy.filter((w) => w.dir !== 'south'));
+  });
+  it('roomEnclosureWalls: east spans run vertically and an end span leaves no empty segment', () => {
+    const rect = { gx: 300, gy: 13, gw: 6, gh: 6 };
+    const walls = roomEnclosureWalls('s', 'r', { incomingCount: 1, outgoingFaces: ['east'], doorSpansByFace: { east: [{ x1: 306, y1: 13, x2: 306, y2: 14 }] } }, rect);
+    expect(walls.filter((w) => w.dir === 'east').map((w) => [w.x1, w.y1, w.x2, w.y2])).toEqual([[306, 14, 306, 19]]);
+  });
+  it('outgoingMarginOffset with exitDoor on a corner edge reports the planned door', () => {
+    const fromE = { gx: 326, gy: 13, gw: 6, gh: 6 };
+    const exitDoor = { exitPoint: { x: 330, y: 19 }, doorSpan: { x1: 330, y1: 19, x2: 331, y2: 19 } };
+    expect(outgoingMarginOffset('s', 'a', 'b', 'south', fromE, { rank: 1, col: 2 }, { rank: 4, col: 0 }, {}, 'north', exitDoor))
+      .toEqual({ offset: 4, width: 1 });
+    const fromR = { gx: 300, gy: 0, gw: 12, gh: 12 };
+    const exitE = { exitPoint: { x: 312, y: 8 }, doorSpan: { x1: 312, y1: 8, x2: 312, y2: 9 } };
+    expect(outgoingMarginOffset('s', 'a', 'b', 'east', fromR, { rank: 0, col: 0 }, { rank: 1, col: 4 }, {}, 'north', exitE))
+      .toEqual({ offset: 8, width: 1 });
+  });
+  it('findPriorityCollision and pendingForeignMarginOpenings with a legacy-equivalent plan match the plan-less calls', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const fromId = 'from-room'; const toId = 'to-room'; const blockId = 'blocker-room';
+    const pos = { [fromId]: { rank: 0, col: 0 }, [blockId]: { rank: 1, col: 0 }, [toId]: { rank: 2, col: 0 } };
+    const edges = { [fromId]: [toId, blockId] };
+    const occ = { '0,0': fromId, '1,0': blockId, '2,0': toId };
+    const inc = { [toId]: 'north', [blockId]: 'north' };
+    const planFor = (id) => (id === fromId ? new Map([[toId, { face: 'south', exitPoint: null, doorSpan: null }], [blockId, { face: 'south', exitPoint: null, doorSpan: null }]]) : null);
+    const noPlan = pendingForeignMarginOpenings(seed, blockId, 1, 0, edges, pos, inc, occ);
+    const withPlan = pendingForeignMarginOpenings(seed, blockId, 1, 0, edges, pos, inc, occ, undefined, {}, {}, planFor);
+    expect(withPlan).toEqual(noPlan);
+    expect(withPlan.south.length).toBeGreaterThan(0);
+    const conns = [{ sourceId: fromId, hidden: false }, { sourceId: blockId, hidden: false }];
+    const a = findPriorityCollision(seed, toId, 2, 0, conns, pos, occ, 'north');
+    const b = findPriorityCollision(seed, toId, 2, 0, conns, pos, occ, 'north', planFor);
+    expect(b).toEqual(a);
+  });
+  it('pendingForeignMarginOpenings covers hidden edges only when a plan is given', () => {
+    const seed = 'dogleg-repro-seed-0';
+    const fromId = 'from-room'; const toId = 'to-room'; const blockId = 'blocker-room';
+    const pos = { [fromId]: { rank: 0, col: 0 }, [blockId]: { rank: 1, col: 0 }, [toId]: { rank: 2, col: 0 } };
+    const edges = { [fromId]: [blockId] };
+    const hiddenEdges = { [fromId]: [toId] };
+    const hiddenIncoming = { [toId]: [fromId] };
+    const occ = { '0,0': fromId, '1,0': blockId, '2,0': toId };
+    const inc = { [toId]: 'north', [blockId]: 'north' };
+    const planFor = (id) => (id === fromId ? new Map([[blockId, { face: 'south', exitPoint: null, doorSpan: null }], [toId, { face: 'south', exitPoint: null, doorSpan: null }]]) : null);
+    const without = pendingForeignMarginOpenings(seed, blockId, 1, 0, edges, pos, inc, occ, edges, hiddenIncoming);
+    expect(without.south).toEqual([]);
+    const withPlan = pendingForeignMarginOpenings(seed, blockId, 1, 0, edges, pos, inc, occ, edges, hiddenIncoming, hiddenEdges, planFor);
+    expect(withPlan.south.length).toBe(1);
+  });
+});
+
+describe('planned doors over the 500-seed sweep (#415)', () => {
+  it('every planned multi-door edge: doorWall is the planned span, no source-face caps, face sealed except spans', () => {
+    let multi = 0;
+    forEachEdge(500, planSelector, ({ layout, sourceId, face, exitDoor, result }) => {
+      if (!exitDoor) return;
+      multi += 1;
+      expect(result.doorWall).toEqual({ x1: exitDoor.doorSpan.x1, y1: exitDoor.doorSpan.y1, x2: exitDoor.doorSpan.x2, y2: exitDoor.doorSpan.y2 });
+      const rect = layout.rect[sourceId];
+      const onFace = (w) => (face === 'south'
+        ? w.y1 === rect.gy + rect.gh && w.y2 === w.y1 && w.x1 >= rect.gx && w.x2 <= rect.gx + rect.gw
+        : w.x1 === rect.gx + rect.gw && w.x2 === w.x1 && w.y1 >= rect.gy && w.y2 <= rect.gy + rect.gh);
+      expect(result.plainWalls.filter(onFace)).toEqual([]);
+    });
+    expect(multi).toBeGreaterThan(100);
+  }, 120000);
+  it('enclosure + planned spans cover each outgoing face exactly except the doors', () => {
+    for (let i = 0; i < 500; i += 1) {
+      const L = buildSweepLayout(i);
+      for (const id of Object.keys(L.rooms)) {
+        const plan = outgoingPlanFor(L, id);
+        if (!plan.size) continue;
+        const spansByFace = {};
+        for (const e of plan.values()) if (e.doorSpan) (spansByFace[e.face] ??= []).push(e.doorSpan);
+        const outgoingFaces = [...new Set([...plan.values()].map((e) => e.face))];
+        const walls = roomEnclosureWalls(L.seed, id, { incomingCount: 1, incomingFace: L.incFace[id], outgoingFaces, doorSpansByFace: spansByFace }, L.rect[id]);
+        const r = L.rect[id];
+        for (const [face, spans] of Object.entries(spansByFace)) {
+          const len = face === 'south' ? r.gw : r.gh;
+          const covered = walls.filter((w) => w.dir === face)
+            .reduce((n, w) => n + (face === 'south' ? w.x2 - w.x1 : w.y2 - w.y1), 0);
+          expect(covered).toBe(len - spans.length * DOOR_WIDTH);
+        }
+      }
+    }
+  }, 120000);
 });
