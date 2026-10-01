@@ -241,6 +241,32 @@ Any model OpenRouter hosts works here — swap the `model:` strings for
 whichever you want `fast`/`reasoning` to actually use; the ones above are
 just a reasonable starting pair, not a requirement.
 
+#### Validated models
+
+`npm run validate:decision-model -- <model> [trials]` fires repeated
+combat-decision requests at a litellm model name and reports the
+tool-calling success rate (#454).
+
+**`inception/mercury-decide:free` (the `mercury-decide` entry): does not
+work through this path.** Run 2026-10-01, 10 trials: 0/10 succeeded,
+0 rate-limited, 10 other failures. Every trial failed identically with
+OpenRouter HTTP 400:
+
+> inception/mercury-decide:free is a decisions model and cannot be used
+> with the chat/completions endpoint. Use the /api/alpha/decisions
+> endpoint instead.
+
+It isn't a reliability problem — litellm's `openrouter/` provider and
+`decide()` both use chat/completions with tool calling, which this model
+refuses outright. Using it would need a separate client for OpenRouter's
+`/api/alpha/decisions` endpoint, which is out of scope here. The
+`mercury-decide` entry stays in `litellm-config.yaml` as the test case;
+don't repoint `fast`/`reasoning` at it.
+
+To rerun against a chat-capable model, add a `model_list` entry for it and
+publish litellm's port 4000 on the host (the default compose file doesn't),
+then pass `LITELLM_BASE_URL`.
+
 ## Migrating from older deployments
 
 If you deployed the agent-service before this change, your `.env` file
