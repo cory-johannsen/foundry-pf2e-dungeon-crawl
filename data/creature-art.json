@@ -22374,5 +22374,109 @@
     "name": "Hellbound Jailer (5-6)",
     "level": 5,
     "art": "hellbound-jailer-lob.webp"
+  },
+  {
+    "id": "aydrian_thrune_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "39ShWwOPdJq2X5o2",
+    "name": "Aydrian Thrune (3-4)",
+    "level": 3,
+    "art": "aydrian-thrune-lob.webp"
+  },
+  {
+    "id": "aydrian_thrune_5_6_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "eVVAitAkOGCPzhXJ",
+    "name": "Aydrian Thrune (5-6)",
+    "level": 5,
+    "art": "aydrian-thrune-lob.webp"
+  },
+  {
+    "id": "bloody_beetle_exoskeleton_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "AIO9Hug8KBesUfxI",
+    "name": "Bloody Beetle Exoskeleton",
+    "level": 3,
+    "art": "bloody-beetle-exoskeleton-lob.webp"
+  },
+  {
+    "id": "ninth_army_operative_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "AffE7EuKLFijoJzG",
+    "name": "Ninth Army Operative",
+    "level": 3,
+    "art": "ninth-army-operative-lob.webp"
+  },
+  {
+    "id": "iron_ring_bosun_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "FmZ8bz1ItIzxuu1D",
+    "name": "Iron Ring Bosun",
+    "level": 3,
+    "art": "iron-ring-bosun-lob.webp"
+  },
+  {
+    "id": "thomil_bolyrius_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "Xpf9HQDxoafOwfoB",
+    "name": "Thomil Bolyrius (3-4)",
+    "level": 3,
+    "art": "thomil-bolyrius-lob.webp"
+  },
+  {
+    "id": "thomil_bolyrius_5_6_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "HvrXHDTyttxDYvpL",
+    "name": "Thomil Bolyrius (5-6)",
+    "level": 5,
+    "art": "thomil-bolyrius-lob.webp"
+  },
+  {
+    "id": "vaggas_the_bosun_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "RZ8sWKkogng0IU8M",
+    "name": "Vaggas the Bosun",
+    "level": 3,
+    "art": "vaggas-the-bosun-lob.webp"
+  },
+  {
+    "id": "cobbled_bruiser_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "cYovLvzfbqkTF9uF",
+    "name": "Cobbled Bruiser",
+    "level": 4,
+    "art": "cobbled-bruiser-lob.webp"
+  },
+  {
+    "id": "peryton_heretical_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "ffzfTw9KfaJopkCx",
+    "name": "Peryton (Heretical)",
+    "level": 4,
+    "art": "peryton-heretical-lob.webp"
+  },
+  {
+    "id": "zebub_pfs_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "gwy6v9P8E8hIlP19",
+    "name": "Zebub (PFS)",
+    "level": 3,
+    "art": "zebub-pfs-lob.webp"
+  },
+  {
+    "id": "pelagastr_tail_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "vQjnfmvUzZwaUoBd",
+    "name": "Pelagastr Tail",
+    "level": 3,
+    "art": "pelagastr-tail-lob.webp"
+  },
+  {
+    "id": "umbral_drake_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "yw5hz4q8vn7S7aUF",
+    "name": "Umbral Drake",
+    "level": 3,
+    "art": "umbral-drake-lob.webp"
   }
 ]
