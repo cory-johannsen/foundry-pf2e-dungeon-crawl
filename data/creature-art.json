@@ -23070,5 +23070,133 @@
     "name": "Elite Cave Bear (PFS 4-07)",
     "level": 7,
     "art": "cave-bear.webp"
+  },
+  {
+    "id": "recon_patroller_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "0x30gt2GzALItGAh",
+    "name": "Recon Patroller",
+    "level": 2,
+    "art": "recon-patroller-lob.webp"
+  },
+  {
+    "id": "pappy_draighean_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "1G589gnuWGIOdrou",
+    "name": "Pappy Draighean",
+    "level": 3,
+    "art": "pappy-draighean-lob.webp"
+  },
+  {
+    "id": "pappy_draighean_5_6_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "ACDuWRp4JELgqmo8",
+    "name": "Pappy Draighean (5-6)",
+    "level": 5,
+    "art": "pappy-draighean-lob.webp"
+  },
+  {
+    "id": "witch_s_gaze_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "1ZUAVNlJb4MWtSCw",
+    "name": "Witch's Gaze",
+    "level": 2,
+    "art": "witch-s-gaze-lob.webp"
+  },
+  {
+    "id": "dorenea_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "1iYvAte2y5fTN9WE",
+    "name": "Dorenea",
+    "level": 5,
+    "art": "dorenea-lob.webp"
+  },
+  {
+    "id": "liaskra_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "2OBumnPBmrTgZRou",
+    "name": "Liaskra (1-2)",
+    "level": 1,
+    "art": "liaskra-lob.webp"
+  },
+  {
+    "id": "liaskra_3_4_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "sCLcQpldPYWnxPSL",
+    "name": "Liaskra (3-4)",
+    "level": 4,
+    "art": "liaskra-lob.webp"
+  },
+  {
+    "id": "sounrel_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "bP2uuVEI01zNZOlD",
+    "name": "Sounrel (3-4)",
+    "level": 5,
+    "art": "sounrel-lob.webp"
+  },
+  {
+    "id": "sounrel_5_6_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "2iba0fJU9Arc0XYN",
+    "name": "Sounrel (5-6)",
+    "level": 7,
+    "art": "sounrel-lob.webp"
+  },
+  {
+    "id": "ambush_assassin_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "2rEw46Ye8jWPkXys",
+    "name": "Ambush Assassin",
+    "level": 8,
+    "art": "ambush-assassin-lob.webp"
+  },
+  {
+    "id": "determined_thisnabel_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "weilkjJuw0L1iFdZ",
+    "name": "Determined Thisnabel (1-2)",
+    "level": 1,
+    "art": "determined-thisnabel-lob.webp"
+  },
+  {
+    "id": "determined_thisnabel_3_4_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "3TEapF0mBKvW3Rqf",
+    "name": "Determined Thisnabel (3-4)",
+    "level": 4,
+    "art": "determined-thisnabel-lob.webp"
+  },
+  {
+    "id": "nathatel_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "oqHSst4QRsoFZMXk",
+    "name": "Nathatel",
+    "level": 2,
+    "art": "nathatel-lob.webp"
+  },
+  {
+    "id": "nathatel_3_4_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "40Ow3r8prGGGjXgB",
+    "name": "Nathatel (3-4)",
+    "level": 4,
+    "art": "nathatel-lob.webp"
+  },
+  {
+    "id": "nathatel_5_6_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "LGgd2TQ90JG2CZKE",
+    "name": "Nathatel (5-6)",
+    "level": 6,
+    "art": "nathatel-lob.webp"
+  },
+  {
+    "id": "nathatel_7_8_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "IbC54Tp90MApKMXn",
+    "name": "Nathatel (7-8)",
+    "level": 8,
+    "art": "nathatel-lob.webp"
   }
 ]
