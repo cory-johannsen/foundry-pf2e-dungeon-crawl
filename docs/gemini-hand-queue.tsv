@@ -1,4 +1,3 @@
-# Creatures awaiting a hand-made Gemini image (owner supplies ~30/day free). slug<TAB>name<TAB>reason
-# Do NOT run --backend=gemini: API credits exhausted 2026-10-01.
-witch-s-talon-lob	Witch's Talon	wrong_subject (skeleton, not a human acolyte) + bg_patch (orange splashes)
-elven-hunter-lob	Elven Hunter	bg_patch (white patch bottom-left), cropped (4 attempts)
+# Creatures awaiting a hand-made image (owner supplies ~30/day free). slug<TAB>name<TAB>reason
+# Gemini API is out of credits; OpenRouter (meta/muse-image, $0.01/img) via --backend=openrouter is the paid fallback.
+combustive-zombie-lob	Combustive Zombie	filtered by Meta's content policy on OpenRouter (3 wordings tried, incl. fire/ember/smoke); needs a hand-made image
