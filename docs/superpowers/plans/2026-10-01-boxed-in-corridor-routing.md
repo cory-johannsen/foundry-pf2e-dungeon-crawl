@@ -429,21 +429,28 @@ Spec Phase 4. Each sub-PR keeps every ratchet.
 
 ## Chunk 5 (PRs G1-G3): dead-end stub (user Decision 6)
 
+**Dependency split (user Decision 9).** Chunks 0-4 and Chunk 5 as written below (non-sole-child stubs, about 464 edges today) do NOT depend on #439. A sole-child source (1,952 null edges) becomes stub-eligible only once the retreat feature #439 (a way back to the last fork) has landed; that is Chunk 6 below and must not start before #439 is merged and live-verified. Until then `planStubs` is called with `retreatAvailable: false` and the eligibility rule is exactly as in the spec.
+
+Stub decisions (user, Decisions 10-12): the stub door is locked and unlocked exactly like a real door, indistinguishable from one, with no extra check, skill roll or time cost; false shortcuts (a revealed hidden door leading to a stub) are allowed; flavor is collapsed rubble, `dungeonStubFlavor` is always `'rubble'`, and the end cap uses the rubble corridor-cap tile from #438. Until #438 ships the existing corridor tile is the placeholder: reference the asset through one constant (`STUB_CAP_TILE`) so swapping it is a one-line change.
+
 Spec section "Dead-end stub". Behind layoutVersion 3.
 
 ### Task 5.1 (PR G1): `planStubs` pure function
 
 **Files:** Modify `scripts/dungeon-layout.mjs`; tests in `tests/dungeon-layout.test.mjs`.
 
-**Interfaces:** `planStubs({ rooms, edges, layoutEdges, hiddenEdges, hiddenIncomingByRoomId, nullEdges }) -> { stubEdges: { [sourceId]: [targetId] } }` where `nullEdges` is the list of `{ sourceId, toId, hidden }` that remain unroutable. Canonical order: target rank, target id, source id. A candidate is stubbed only if (1) the target keeps >= 1 non-stub routable incoming edge, (2) the source keeps another non-stub real child or the edge is hidden, (3) after stubbing, BFS over non-stub `edges` from `room-entry` reaches every room and every non-goal room has a non-stub forward edge.
+**Interfaces:** `planStubs({ rooms, edges, layoutEdges, hiddenEdges, hiddenIncomingByRoomId, nullEdges, retreatAvailable = false }) -> { stubEdges: { [sourceId]: [targetId] } }` where `retreatAvailable` (true only after #439) makes rule 2 hold for a sole-child source, and `nullEdges` is the list of `{ sourceId, toId, hidden }` that remain unroutable. Canonical order: target rank, target id, source id. A candidate is stubbed only if (1) the target keeps >= 1 non-stub routable incoming edge, (2) the source keeps another non-stub real child or the edge is hidden, (3) after stubbing, BFS over non-stub `edges` from `room-entry` reaches every room and every non-goal room has a non-stub forward edge.
 
 - [ ] **Step 1: Tests**
 ```js
-it('never stubs the only child of a source (soft-lock)', () => {
+it('never stubs the only child of a source while retreat is unavailable (soft-lock)', () => {
   const edges = { 'room-entry': ['a'], a: ['m'], b: ['m'], m: [] }; // a is sole-child parent
   const { stubEdges } = planStubs({ rooms, edges, layoutEdges: edges, hiddenEdges: {}, hiddenIncomingByRoomId: {},
     nullEdges: [{ sourceId: 'a', toId: 'm', hidden: false }] });
   expect(stubEdges).toEqual({});
+});
+it('stubs that same sole-child source when retreatAvailable is true (#439 landed), still keeping the target reachable', () => {
+  /* same fixture plus a second routable parent of m (b -> m non-null); expect stubEdges to equal { a: ['m'] } */
 });
 it('stubs a hidden shortcut whose source has real children', () => { /* source with 2 real children + hidden edge to m; m has another routable parent -> stubbed */ });
 it('never stubs the last routable parent of a target', () => { /* both parents null: first (canonical) stays connecting, second may stub only if rules 2-3 hold */ });
@@ -458,7 +465,7 @@ Fill the fixtures with concrete room maps (each `rooms` entry `{ id, kind: 'comb
 
 **Files:** Modify `scripts/dungeon-layout.mjs`; tests.
 
-**Interfaces:** `stubGeometry(seed, sourceId, targetId, sourceRect, sourcePos, doorSpan, siblingFloors) -> { floor: [{gx,gy,gw,gh}], walls: [{x1,y1,x2,y2}], flavor: 'rubble'|'collapse', length }`. Floor is the door-cell tile directly below the south-face `doorSpan` plus up to 3 horizontal cells in the margin row toward the target's side, ending at least one cell short of the cell boundary, never intersecting `siblingFloors`; end cap and flank walls; `length` in 1..4; flavor and length from `splitmix32(seedFromString(`${seed}-stub-${sourceId}->${targetId}`))`.
+**Interfaces:** `stubGeometry(seed, sourceId, targetId, sourceRect, sourcePos, doorSpan, siblingFloors) -> { floor: [{gx,gy,gw,gh}], walls: [{x1,y1,x2,y2}], flavor: 'rubble', length }`. Floor is the door-cell tile directly below the south-face `doorSpan` plus up to 3 horizontal cells in the margin row toward the target's side, ending at least one cell short of the cell boundary, never intersecting `siblingFloors`; end cap and flank walls; `length` in 1..4; flavor (always 'rubble') and length from `splitmix32(seedFromString(`${seed}-stub-${sourceId}->${targetId}`))`.
 
 - [ ] Tests: sweep over all planned stubs: floor inside the source cell and its margin row, no overlap with ANY room rect (including intermediate rooms and the source interior), no edge-adjacency to another floor without a wall (`floor-oracle`), deterministic under shuffled sibling order, length in range, `siblingFloors` respected (shortens to 1). Implement; PASS; commit.
 
@@ -471,14 +478,27 @@ Fill the fixtures with concrete room maps (each `rooms` entry `{ id, kind: 'comb
 
 ### Task 5.4 (PR G3): scene build of the stub
 
-**Files:** `scripts/dungeon-scene.mjs` (`buildRoomAtGraphNode`: for each `stubEdges[roomId]` build `stubGeometry` walls and floor tiles after the room's real edges, a locked door wall with flags `{ dungeonStubDoorFor: targetId, dungeonDoorFromRoomId: roomId, dungeonStubFlavor }`; `handleDungeonDoorOpened`: when a `dungeonStubDoorFor` door opens, post the flavor chat line once and return `{ autoOpenTracker: false }`); art: reuse the corridor tile, no new asset.
+**Files:** `scripts/dungeon-scene.mjs` (`buildRoomAtGraphNode`: for each `stubEdges[roomId]` build `stubGeometry` walls and floor tiles after the room's real edges, a door wall, locked at build and unlocked by the source's resolution exactly like a real door (no extra check, roll or time cost; same look as a real door), with flags `{ dungeonStubDoorFor: targetId, dungeonDoorFromRoomId: roomId, dungeonStubFlavor }`; `handleDungeonDoorOpened`: when a `dungeonStubDoorFor` door opens, post the flavor chat line once and return `{ autoOpenTracker: false }`); art: the cap tile is the #438 rubble tile via the `STUB_CAP_TILE` constant; until #438 ships it points at the existing corridor tile (placeholder).
 
-- [ ] **Step 1: Tests** (existing scene test style in `tests/dungeon-scene.test.mjs`): a source with a stub gets the door wall with the three flags, the end-cap walls, and tiles; the door is locked at build and CLOSED after `unlockDoorsFromRoom`; opening it never calls `advanceToRoom` or reveals tokens; a layoutVersion 2 state builds no stub.
+- [ ] **Step 1: Tests** (existing scene test style in `tests/dungeon-scene.test.mjs`): a source with a stub gets the door wall with the three flags, the end-cap walls, and tiles; the door is locked at build and CLOSED after `unlockDoorsFromRoom`, with the same door type/art as a real door, and opening it triggers no roll or time cost; opening it never calls `advanceToRoom` or reveals tokens; a layoutVersion 2 state builds no stub.
 - [ ] **Step 2-4:** FAIL, implement, PASS, full suite. **Step 5:** `update-architecture-docs` only if imports changed; minor version bump; PR G3; comment that a NEW run is required to see a stub and that live verification (a stub door opens to a dead end, party still progresses via the other child) is the user's.
 
 ### Task 5.5: Whole-sweep acceptance
 
 - [ ] Add to the buildability test: for all 500 seeds, K6 invariants (goal reachable over non-stub edges, no stranded room), 0 stub/room overlaps, `stubbedEdges <= 464` before Chunk 4 and the measured value after it. Commit with the last PR.
+
+---
+
+## Chunk 6 (PR H): sole-child stubs, gated on #439
+
+**Do not start until #439 (retreat to the last fork) is merged and live-verified by the user.**
+
+### Task 6.1: Enable `retreatAvailable`
+
+**Files:** Modify `scripts/ui/dungeon-app.mjs` (pass `retreatAvailable: true` to `planStubs` under the run-state flag or layoutVersion that #439's merged spec defines; read it and use it, do not invent one); tests in `tests/dungeon-layout.test.mjs` and the Task 5.5 acceptance sweep.
+
+- [ ] **Step 1: Tests.** With `retreatAvailable: true`, the 500-seed sweep stubs the previously-ineligible sole-child edges that satisfy rules 1 and 3, the K6 invariants still hold (goal reachable over non-stub edges plus retreat as #439 defines it; no room unreachable), stub/room overlap is 0, and the residual direct-line edge count falls (new ratchet at the measured value). A run without the flag behaves exactly as Chunk 5.
+- [ ] **Step 2-4:** FAIL, implement, PASS, full suite. **Step 5:** version bump; commit; PR H; automerge; update the #427 table.
 
 ---
 
