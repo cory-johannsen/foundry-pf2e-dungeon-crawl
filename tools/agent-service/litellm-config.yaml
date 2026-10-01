@@ -7,3 +7,21 @@ model_list:
     litellm_params:
       model: ollama/qwen2.5:3b-instruct
       api_base: http://host.docker.internal:11434
+  # #138: OpenRouter support, as ready-to-adopt entries rather than the
+  # default -- combat decisions only ever request the literal model
+  # names "fast"/"reasoning" (COMBAT_REASONING_CANDIDATE_THRESHOLD
+  # routing), so these sit inert unless OPENROUTER_API_KEY is set AND
+  # the fast/reasoning entries above are repointed at them (see
+  # tools/agent-service/README.md's "Configuring model tiers" section).
+  # litellm only errors on a model_list entry's missing api_key when
+  # something actually requests that model name, so leaving these
+  # present with an unset OPENROUTER_API_KEY doesn't break the default
+  # local-Ollama setup.
+  - model_name: openrouter-fast
+    litellm_params:
+      model: openrouter/meta-llama/llama-3.1-8b-instruct
+      api_key: os.environ/OPENROUTER_API_KEY
+  - model_name: openrouter-reasoning
+    litellm_params:
+      model: openrouter/anthropic/claude-3.5-sonnet
+      api_key: os.environ/OPENROUTER_API_KEY

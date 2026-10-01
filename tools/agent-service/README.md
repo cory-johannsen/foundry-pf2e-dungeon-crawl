@@ -205,6 +205,42 @@ when the `reasoning` tier is requested: if a combat decision has more than
 8 candidates, litellm routes to `reasoning`; 8 or fewer candidates use
 `fast`.
 
+### Using OpenRouter instead of local Ollama
+
+`litellm-config.yaml` ships two extra, inert-by-default entries,
+`openrouter-fast` and `openrouter-reasoning`, as a ready-to-adopt
+template for routing through [OpenRouter](https://openrouter.ai) instead
+of a local Ollama model. They're inert because combat decisions only
+ever request the model names `fast`/`reasoning` literally — adding these
+extra entries doesn't change anything on its own.
+
+To actually use OpenRouter:
+
+1. Set `OPENROUTER_API_KEY` in your `.env` (an OpenRouter API key).
+2. Point `fast`/`reasoning` at the model strings instead of local Ollama
+   — either edit them directly, or copy the `openrouter-fast`/
+   `openrouter-reasoning` entries' `litellm_params` over:
+
+```yaml
+model_list:
+  - model_name: fast
+    litellm_params:
+      model: openrouter/meta-llama/llama-3.1-8b-instruct
+      api_key: os.environ/OPENROUTER_API_KEY
+  - model_name: reasoning
+    litellm_params:
+      model: openrouter/anthropic/claude-3.5-sonnet
+      api_key: os.environ/OPENROUTER_API_KEY
+```
+
+3. Restart (or bring up) the `litellm` service as above. No Node code or
+   rebuild needed — litellm reaches OpenRouter directly, the same way it
+   reaches a local Ollama model.
+
+Any model OpenRouter hosts works here — swap the `model:` strings for
+whichever you want `fast`/`reasoning` to actually use; the ones above are
+just a reasonable starting pair, not a requirement.
+
 ## Migrating from older deployments
 
 If you deployed the agent-service before this change, your `.env` file
