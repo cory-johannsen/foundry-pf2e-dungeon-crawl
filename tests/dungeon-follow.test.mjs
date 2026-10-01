@@ -1081,6 +1081,37 @@ describe("resnapDriftedTokens (#141)", () => {
     expect(requestDungeonAction).not.toHaveBeenCalled();
   });
 
+  // #87 (2026-10-01, round 3 review): the gate itself must also read
+  // `_source`, not just resnapTokenNow downstream -- at hook time,
+  // tokenDoc.x/tokenDoc.y (the animated value) can coincidentally look
+  // grid-aligned while _source is genuinely off-grid. If the gate trusted
+  // the animated value here, it would return early and nothing would ever
+  // retry this token until its own next position change -- a real,
+  // non-follower token (a monster, unrelated #141 drift) has no other
+  // backstop and could stay off-grid indefinitely.
+  it("triggers a correction from the token's own committed _source even when its animated x/y looks grid-aligned", async () => {
+    const token = makeToken({
+      id: "t-source-drifted",
+      x: 5 * GRID,
+      y: 3 * GRID,
+      sourceX: 5.49 * GRID,
+      sourceY: 3.49 * GRID,
+      actorId: "some-actor",
+    });
+    const scene = makeScene({ tokens: [token] });
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: { hostUserId: HOST_USER_ID, aiControlledActorIds: [] },
+      },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    await resnapDriftedTokens(token, { x: token.x, y: token.y });
+
+    expect(token.update).toHaveBeenCalledTimes(1);
+    expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
+  });
+
   it("does nothing on a scene with no active dungeon run", () => {
     const token = makeToken({
       id: "t-drifted",

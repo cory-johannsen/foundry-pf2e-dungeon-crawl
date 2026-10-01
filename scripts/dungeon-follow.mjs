@@ -301,9 +301,10 @@ export function runFollowMoveNow(sceneId) {
  *   payload could be captured, see #87), so this checks for `_movement`'s
  *   presence too rather than betting entirely on x/y still being there.
  *   This function doesn't need to read a position out of `_movement`
- *   itself: `moveFollowersToward` always re-reads the leader token's live
- *   `x`/`y` off the scene at the time it actually runs (debounced by
- *   FOLLOW_DEBOUNCE_MS), so it's correct however many separate
+ *   itself: `moveFollowersToward` always re-reads the leader token's own
+ *   committed `_source` position off the scene at the time it actually
+ *   runs (debounced by FOLLOW_DEBOUNCE_MS), so it's correct however many
+ *   separate
  *   `updateToken` calls a single leader move ends up split across, as long
  *   as at least one of them is recognized here as "a move happened" and
  *   re-arms the debounce. */
@@ -473,9 +474,19 @@ export function resnapDriftedTokens(tokenDoc, changes) {
   const run = getRunState(scene.id);
   if (!run) return;
   const gridSize = scene.grid?.size ?? 100;
-  const snappedX = Math.round(tokenDoc.x / gridSize) * gridSize;
-  const snappedY = Math.round(tokenDoc.y / gridSize) * gridSize;
-  if (tokenDoc.x === snappedX && tokenDoc.y === snappedY) return;
+  // #87 (2026-10-01, round 3 review): must read _source here too, not
+  // just downstream in resnapTokenNow -- tokenDoc.x/tokenDoc.y at hook
+  // time can coincidentally look grid-aligned mid-interpolation while
+  // _source is genuinely off-grid, and this gate returning early means
+  // NOTHING retries this token until its own next position change.
+  // Follower tokens get a second chance from moveFollowersToward's own
+  // inline snap on the next leader move, but any other token (a monster,
+  // #141 drift on an unrelated token) has no such backstop and could
+  // stay off-grid indefinitely.
+  const { x, y } = sourcePosition(tokenDoc);
+  const snappedX = Math.round(x / gridSize) * gridSize;
+  const snappedY = Math.round(y / gridSize) * gridSize;
+  if (x === snappedX && y === snappedY) return;
 
   if (game.user.isGM) {
     return resnapTokenNow(scene.id, tokenDoc.id);
