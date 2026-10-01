@@ -20534,5 +20534,117 @@
     "name": "Mutated Trollhound",
     "level": 5,
     "art": "mutated-trollhound-lob.webp"
+  },
+  {
+    "id": "yeth_warbeast_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "CmMK9sadwbxfBaYg",
+    "name": "Yeth Warbeast",
+    "level": 7,
+    "art": "yeth-warbeast-lob.webp"
+  },
+  {
+    "id": "disciple_of_urxehl_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "D4B3dR8y5h9QIeqi",
+    "name": "Disciple of Urxehl (7-8)",
+    "level": 8,
+    "art": "disciple-of-urxehl-lob.webp"
+  },
+  {
+    "id": "disciple_of_urxehl_9_10_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "U3RoZnfVAAKbrULX",
+    "name": "Disciple of Urxehl (9-10)",
+    "level": 10,
+    "art": "disciple-of-urxehl-lob.webp"
+  },
+  {
+    "id": "demoniac_spirit_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "E0V3aKLWuXyWrY8C",
+    "name": "Demoniac Spirit (7-8)",
+    "level": 9,
+    "art": "demoniac-spirit-lob.webp"
+  },
+  {
+    "id": "demoniac_spirit_9_10_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "EK8DKarizcVrLG5E",
+    "name": "Demoniac Spirit (9-10)",
+    "level": 11,
+    "art": "demoniac-spirit-lob.webp"
+  },
+  {
+    "id": "perizia_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "KvFN6OFxOnTYjdJq",
+    "name": "Perizia (5-6)",
+    "level": 6,
+    "art": "perizia-lob.webp"
+  },
+  {
+    "id": "perizia_7_8_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "pUcBzyZY5kY7ERNN",
+    "name": "Perizia (7-8)",
+    "level": 8,
+    "art": "perizia-lob.webp"
+  },
+  {
+    "id": "awakened_megalania_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "NAX7nXWzSkrjjsrq",
+    "name": "Awakened Megalania",
+    "level": 7,
+    "art": "awakened-megalania-lob.webp"
+  },
+  {
+    "id": "drandle_dreng_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "mFfhFprmaQr9rYC1",
+    "name": "Drandle Dreng (7-8)",
+    "level": 8,
+    "art": "drandle-dreng-lob.webp"
+  },
+  {
+    "id": "drandle_dreng_9_10_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "TXHl1KvScSce9bQV",
+    "name": "Drandle Dreng (9-10)",
+    "level": 10,
+    "art": "drandle-dreng-lob.webp"
+  },
+  {
+    "id": "mishka_the_bear_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "Z6qNXxgTgIz4rH2C",
+    "name": "Mishka The Bear (5-6)",
+    "level": 7,
+    "art": "mishka-the-bear-lob.webp"
+  },
+  {
+    "id": "mishka_the_bear_7_8_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "c4KECFBOIXqAagwm",
+    "name": "Mishka The Bear (7-8)",
+    "level": 9,
+    "art": "mishka-the-bear-lob.webp"
+  },
+  {
+    "id": "qxal_the_thorned_monarch_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "c7uwPrgkjqSKRXQG",
+    "name": "Qxal, The Thorned Monarch",
+    "level": 9,
+    "art": "qxal-the-thorned-monarch-lob.webp"
+  },
+  {
+    "id": "cyclops_bodak_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "o13KISidrNovd4jp",
+    "name": "Cyclops Bodak",
+    "level": 7,
+    "art": "cyclops-bodak-lob.webp"
   }
 ]
