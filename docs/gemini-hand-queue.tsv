@@ -1,3 +1,2 @@
 # Creatures awaiting a hand-made image (owner supplies ~30/day free). slug<TAB>name<TAB>reason
-# Gemini API is out of credits; OpenRouter (meta/muse-image, $0.01/img) via --backend=openrouter is the paid fallback.
-combustive-zombie-lob	Combustive Zombie	filtered by Meta's content policy on OpenRouter (3 wordings tried, incl. fire/ember/smoke); needs a hand-made image
+# Gemini API is out of credits. ComfyUI failures now fall back automatically to OpenRouter (muse -> flux.2-klein-4b -> krea-2-medium-turbo); this file is for creatures every model refused.
