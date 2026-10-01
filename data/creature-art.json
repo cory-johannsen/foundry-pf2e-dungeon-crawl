@@ -20310,5 +20310,133 @@
     "name": "Baron Utomo (5-6)",
     "level": 6,
     "art": "baron-utomo-lob.webp"
+  },
+  {
+    "id": "ogthup_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "PZ0PjHKcmcekBTSp",
+    "name": "Ogthup (5-6)",
+    "level": 4,
+    "art": "ogthup-lob.webp"
+  },
+  {
+    "id": "ogthup_7_8_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "3VXbICsrBiOGnxiz",
+    "name": "Ogthup (7-8)",
+    "level": 6,
+    "art": "ogthup-lob.webp"
+  },
+  {
+    "id": "scorched_earth_orc_scout_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "7nqeVP1X5v3UMWxZ",
+    "name": "Scorched Earth Orc (Scout) (5-6)",
+    "level": 4,
+    "art": "scorched-earth-orc-scout-lob.webp"
+  },
+  {
+    "id": "scorched_earth_orc_scout_7_8_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "cRrHxzUAZvbhgcDr",
+    "name": "Scorched Earth Orc (Scout) (7-8)",
+    "level": 6,
+    "art": "scorched-earth-orc-scout-lob.webp"
+  },
+  {
+    "id": "semyon_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "kRCNfSMqwHY9sYcg",
+    "name": "Semyon (5-6)",
+    "level": 4,
+    "art": "semyon-lob.webp"
+  },
+  {
+    "id": "semyon_7_8_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "8ZukoQpVoMcshX62",
+    "name": "Semyon (7-8)",
+    "level": 6,
+    "art": "semyon-lob.webp"
+  },
+  {
+    "id": "scorched_cavern_troll_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "IF1DWtelPtUF5aKh",
+    "name": "Scorched Cavern Troll",
+    "level": 4,
+    "art": "scorched-cavern-troll-lob.webp"
+  },
+  {
+    "id": "joyful_planar_nixie_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "R7LYEfEApIhp6jdp",
+    "name": "Joyful Planar Nixie",
+    "level": 5,
+    "art": "joyful-planar-nixie-lob.webp"
+  },
+  {
+    "id": "onyx_alliance_agent_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "hSUo6Y5Cc26Eckd7",
+    "name": "Onyx Alliance Agent (5-6)",
+    "level": 4,
+    "art": "onyx-alliance-agent-lob.webp"
+  },
+  {
+    "id": "onyx_alliance_agent_7_8_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "ZpSLUDoO0WmxwLCG",
+    "name": "Onyx Alliance Agent (7-8)",
+    "level": 6,
+    "art": "onyx-alliance-agent-lob.webp"
+  },
+  {
+    "id": "flaming_moss_monster_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "cx796RgvywxF8P1A",
+    "name": "Flaming Moss Monster",
+    "level": 5,
+    "art": "flaming-moss-monster-lob.webp"
+  },
+  {
+    "id": "awakened_giant_frilled_lizard_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "jZ5M9JxemkGVpfLy",
+    "name": "Awakened Giant Frilled Lizard",
+    "level": 5,
+    "art": "awakened-giant-frilled-lizard-lob.webp"
+  },
+  {
+    "id": "sea_devil_impaler_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "mot8pWHD6YEj08Js",
+    "name": "Sea Devil Impaler",
+    "level": 4,
+    "art": "sea-devil-impaler-lob.webp"
+  },
+  {
+    "id": "artennod_raike_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "wYPS72mQp7VqullU",
+    "name": "Artennod Raike (3-4)",
+    "level": 5,
+    "art": "artennod-raike-lob.webp"
+  },
+  {
+    "id": "artennod_raike_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "rFh82u8Jb6ZaGkm3",
+    "name": "Artennod Raike (5-6)",
+    "level": 7,
+    "art": "artennod-raike-lob.webp"
+  },
+  {
+    "id": "ash_archer_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "uROqM79s9ivzHzl3",
+    "name": "Ash Archer",
+    "level": 5,
+    "art": "ash-archer-lob.webp"
   }
 ]
