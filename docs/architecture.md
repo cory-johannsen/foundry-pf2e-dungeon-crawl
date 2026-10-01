@@ -167,6 +167,7 @@ graph LR
     tools_agent_service_providers_index_mjs["agent-service/providers/index.mjs"]
     tools_agent_service_providers_laya_mjs["agent-service/providers/laya.mjs"]
     tools_agent_service_providers_litellm_mjs["agent-service/providers/litellm.mjs"]
+    tools_agent_service_providers_openrouter_decisions_mjs["agent-service/providers/openrouter-decisions.mjs"]
     tools_agent_service_server_mjs["agent-service/server.mjs"]
     tools_agent_service_tier_selection_mjs["agent-service/tier-selection.mjs"]
     tools_agent_service_validate_decision_model_mjs["agent-service/validate-decision-model.mjs"]
@@ -340,15 +341,19 @@ graph LR
   tools_agent_service_providers_index_mjs --> tools_agent_service_env_mjs
   tools_agent_service_providers_index_mjs --> tools_agent_service_providers_litellm_mjs
   tools_agent_service_providers_index_mjs --> tools_agent_service_providers_laya_mjs
+  tools_agent_service_providers_index_mjs --> tools_agent_service_providers_openrouter_decisions_mjs
   tools_agent_service_providers_laya_mjs --> tools_agent_service_env_mjs
   tools_agent_service_providers_litellm_mjs --> tools_agent_service_env_mjs
   tools_agent_service_providers_litellm_mjs --> tools_agent_service_node_fetch_mjs
   tools_agent_service_providers_litellm_mjs --> tools_agent_service_tier_selection_mjs
+  tools_agent_service_providers_openrouter_decisions_mjs --> tools_agent_service_env_mjs
+  tools_agent_service_providers_openrouter_decisions_mjs --> tools_agent_service_providers_laya_mjs
   tools_agent_service_server_mjs --> tools_agent_service_providers_index_mjs
   tools_agent_service_server_mjs --> tools_agent_service_customization_generator_mjs
   tools_agent_service_server_mjs --> tools_agent_service_env_mjs
   tools_agent_service_tier_selection_mjs --> tools_agent_service_env_mjs
   tools_agent_service_validate_decision_model_mjs --> tools_agent_service_providers_litellm_mjs
+  tools_agent_service_validate_decision_model_mjs --> tools_agent_service_providers_index_mjs
   tools_agent_service_validate_decision_model_mjs --> tools_agent_service_env_mjs
 ```
 

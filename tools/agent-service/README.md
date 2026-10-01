@@ -268,6 +268,9 @@ OpenRouter's `/api/alpha/decisions` endpoint with Laya's request body:
 - There is no automatic fallback to Laya; a failed request is an error.
 - The free tier allows roughly 20 requests/minute.
 - To measure it: `PROVIDER=openrouter npm run validate:decision-model`.
+- Validated 2026-10-01 via the `openrouter` provider: 10/10 trials
+  succeeded, 0 rate-limited, 0 other failures (same sensible choice each
+  time on the sample context).
 
 To rerun against a chat-capable model, add a `model_list` entry for it and
 publish litellm's port 4000 on the host (the default compose file doesn't),
