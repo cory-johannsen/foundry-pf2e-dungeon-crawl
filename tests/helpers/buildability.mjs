@@ -21,11 +21,12 @@ export const ZERO = () => ({
 export const sumMeasures = (a, b) => Object.fromEntries(Object.keys(a).map((k) => [k, a[k] + b[k]]));
 
 /** Mirrors the scene's per-room build (door slots with priority, planned exit doors). */
-export function measureBuildability(layout) {
+export function measureBuildability(layout, { cellUse = new Map() } = {}) {
+  // `cellUse` (optional, filled): "rank,col" -> [{ id, c }], every edge's transit-cell crossing; the
+  // oracle test reads it.
   const m = ZERO();
   const { seed, rooms, layoutEdges, hiddenIncomingByRoomId, hiddenRooms, pos, occ, rect, incFace } = layout;
   const planFor = planSelector.planFor(layout);
-  const cellUse = new Map();
   for (const toId of Object.keys(rooms)) {
     const isDetour = hiddenRooms.includes(toId);
     const conns = incomingConnectionsFor(layoutEdges, toId, hiddenIncomingByRoomId)
