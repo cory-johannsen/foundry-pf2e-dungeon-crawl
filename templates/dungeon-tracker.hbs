@@ -340,6 +340,10 @@
           }}</button>
       </footer>
     </div>
+  {{else if generating}}
+    <div class="pf2edc-dungeon__generating">{{localize
+        "PF2EDC.Dungeon.Generating"
+      }}</div>
   {{else}}
     <form class="pf2edc-dungeon">
       <label>
