@@ -84,6 +84,9 @@ const CORRIDOR_ART_BY_VARIANT = {
   single: CORRIDOR_ART_PATH,
   end: `${ROOM_ART_DIR}/corridor-end.webp`,
   mid: `${ROOM_ART_DIR}/corridor-mid.webp`,
+  // #438: the collapsed-rubble cap for #427's dead-end stub corridors — not
+  // chosen by corridorTileVariant; the stub builder asks for it by name.
+  rubble: `${ROOM_ART_DIR}/corridor-rubble.webp`,
 };
 
 // A room's own light (ITEM-14) — see buildRoomAtGraphNode. Radii scale with the
