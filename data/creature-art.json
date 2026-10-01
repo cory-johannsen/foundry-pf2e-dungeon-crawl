@@ -19942,5 +19942,109 @@
     "name": "Ygracix",
     "level": 1,
     "art": "ygracix-lob.webp"
+  },
+  {
+    "id": "glorzia_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "0OnpbW2SdOZXdRgw",
+    "name": "Glorzia",
+    "level": 2,
+    "art": "glorzia-lob.webp"
+  },
+  {
+    "id": "reinforced_animated_guardian_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "0RPGHzGalRHqEEHx",
+    "name": "Reinforced Animated Guardian",
+    "level": 2,
+    "art": "reinforced-animated-guardian-lob.webp"
+  },
+  {
+    "id": "tewakam_nekotek_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "16NjM1igmVpNcleL",
+    "name": "Tewakam Nekotek (3-4)",
+    "level": 2,
+    "art": "tewakam-nekotek-lob.webp"
+  },
+  {
+    "id": "tewakam_nekotek_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "zNN1Af6Xx5Tmglcu",
+    "name": "Tewakam Nekotek (5-6)",
+    "level": 4,
+    "art": "tewakam-nekotek-lob.webp"
+  },
+  {
+    "id": "barrow_quasit_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "1xVm60zTlUsH8hnR",
+    "name": "Barrow Quasit",
+    "level": 3,
+    "art": "barrow-quasit-lob.webp"
+  },
+  {
+    "id": "frostbitten_trollhound_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "3ShJKXoXXENIToA8",
+    "name": "Frostbitten Trollhound",
+    "level": 2,
+    "art": "frostbitten-trollhound-lob.webp"
+  },
+  {
+    "id": "teflar_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "4DPuCgAisPyphiMN",
+    "name": "Teflar",
+    "level": 2,
+    "art": "teflar-lob.webp"
+  },
+  {
+    "id": "animated_guardian_warrior_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "BPchAmEdLQtWhe9r",
+    "name": "Animated Guardian Warrior",
+    "level": 3,
+    "art": "animated-guardian-warrior-lob.webp"
+  },
+  {
+    "id": "blighted_fungus_leshy_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "IHh8MUVqP315OCZ4",
+    "name": "Blighted Fungus Leshy",
+    "level": 3,
+    "art": "blighted-fungus-leshy-lob.webp"
+  },
+  {
+    "id": "ssalarn_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "Jie7zk3ct2AE92Om",
+    "name": "Ssalarn",
+    "level": 2,
+    "art": "ssalarn-lob.webp"
+  },
+  {
+    "id": "duergar_raider_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "UkcHfRJUx1OHELZm",
+    "name": "Duergar Raider",
+    "level": 2,
+    "art": "duergar-raider-lob.webp"
+  },
+  {
+    "id": "bloodthirsty_razortoothed_shark_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "jFfxjbvNtfWyHHCK",
+    "name": "Bloodthirsty Razortoothed Shark",
+    "level": 3,
+    "art": "bloodthirsty-razortoothed-shark-lob.webp"
+  },
+  {
+    "id": "awakened_giant_chameleon_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "vqgcpFLXabsGj7RQ",
+    "name": "Awakened Giant Chameleon",
+    "level": 3,
+    "art": "awakened-giant-chameleon-lob.webp"
   }
 ]
