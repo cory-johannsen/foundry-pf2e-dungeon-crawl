@@ -72,6 +72,56 @@ function sourcePosition(token) {
 
 const resnapInFlight = new Set(); // tokenIds with a correction already pending
 
+// #87 (2026-10-01, round 5 -- the robust fix): live-confirmed that even
+// `_source` isn't a safe read at every possible moment. A fresh live
+// capture caught `resnapDriftedTokens` firing via Foundry's own incoming
+// socket handler (`#handleUpdateDocuments`) ~40ms after this module's own
+// `moveFollowersToward` had already CALLED `token.update()` for a
+// legitimate move -- and at that exact instant, `tokenDoc._source` itself
+// still read an off-grid value that rounded back to the follower's
+// STARTING cell, not its real destination. Controlled live experiments
+// (polling a token's own `_source` during a real animated move) couldn't
+// pin down a precise, reliably-reproducible window where `_source` lags a
+// just-called `update()` -- browser background-tab timer throttling made
+// fine-grained polling itself unreliable -- but the live production
+// capture is unambiguous: `_source` is NOT guaranteed to reflect this
+// module's own just-issued write at every point in Foundry's own
+// multi-phase update/socket-confirmation lifecycle, however it happens.
+//
+// Rounds 1-4 each tried a different way to decide WHEN a position read is
+// trustworthy (animationContexts, two-poll stability, `_source`) and each
+// still left a live-reproducible gap. This round stops trying to answer
+// that question at all: `resnapDriftedTokens` now trusts this module's
+// own recent writes unconditionally and skips reacting to them entirely,
+// rather than reading ANY position value (`x`/`y` OR `_source`) during a
+// short window after this module itself touched that token. This can
+// only ever matter for genuine drift from OUTSIDE this module's own
+// control (a manual unsnapped drag, Foundry's own internal nudging) --
+// exactly #141's original, narrower intent for this self-heal hook in
+// the first place.
+const RECENT_WRITE_SUPPRESS_MS = 1000; // generous above any realistic animation + socket round-trip
+const recentlyWrittenByUs = new Map(); // tokenId -> Date.now() of our own last write
+
+function markRecentlyWritten(tokenId) {
+  recentlyWrittenByUs.set(tokenId, Date.now());
+}
+
+/** Test-only: clears this module's own real-wall-clock write-tracking
+ * state between tests. This file's own tests reuse token ids extensively
+ * across otherwise-unrelated `it()` blocks (e.g. "t-drifted"), and
+ * `recentlyWrittenByUs` uses genuine `Date.now()`, not vi's fake timers,
+ * so a correction in one test can otherwise leak into and suppress a
+ * later, unrelated test reusing the same id. Not imported by any
+ * production code path. */
+export function __clearRecentWritesForTests() {
+  recentlyWrittenByUs.clear();
+}
+
+function wasRecentlyWrittenByUs(tokenId) {
+  const writtenAt = recentlyWrittenByUs.get(tokenId);
+  return writtenAt !== undefined && Date.now() - writtenAt < RECENT_WRITE_SUPPRESS_MS;
+}
+
 const pendingByScene = new Map(); // sceneId -> setTimeout handle
 const warnedNoLeaderForScene = new Set();
 const inFlightScenes = new Set();
@@ -184,7 +234,13 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
       const snappedX = Math.round(followerSource.x / gridSize) * gridSize;
       const snappedY = Math.round(followerSource.y / gridSize) * gridSize;
       if (followerSource.x !== snappedX || followerSource.y !== snappedY) {
+        markRecentlyWritten(token.id);
         await token.update({ x: snappedX, y: snappedY });
+        // #87 (round 6): re-mark after the await resolves too, not just
+        // before -- the suppression window should cover however long the
+        // round-trip to the server and back actually takes, not just the
+        // time between issuing the write and it being accepted locally.
+        markRecentlyWritten(token.id);
       }
       const moverFootprint = footprint(
         { ...sourcePosition(token), width: token.width, height: token.height },
@@ -234,10 +290,14 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
         gw: moverFootprint.gw,
         gh: moverFootprint.gh,
       });
+      markRecentlyWritten(token.id);
       await token.update({
         x: result.to.gx * gridSize,
         y: result.to.gy * gridSize,
       });
+      // #87 (round 6): re-mark after the await resolves too -- see the
+      // inline #86 snap's own comment above for why.
+      markRecentlyWritten(token.id);
       referenceCell = result.to;
     }
   } finally {
@@ -407,6 +467,14 @@ export async function resnapTokenNow(sceneId, tokenId) {
   // within ~150ms (both the GM-direct and relayed paths reacting
   // independently).
   if (resnapInFlight.has(tokenId)) return;
+  // #87 (2026-10-01, round 5): the relayed path (dungeon-remote.mjs's
+  // `resnapToken` action) calls this function directly, bypassing
+  // `resnapDriftedTokens`'s own suppression check -- a non-GM host's own
+  // client has no way to know this GM-privileged client just wrote to
+  // this token (that bookkeeping only exists in moveFollowersToward's
+  // own local memory, which only runs here), so re-check it on this
+  // side too, the one place both the direct and relayed paths converge.
+  if (wasRecentlyWrittenByUs(tokenId)) return;
   resnapInFlight.add(tokenId);
   try {
     const scene = game.scenes.get(sceneId);
@@ -417,7 +485,11 @@ export async function resnapTokenNow(sceneId, tokenId) {
     const snappedX = Math.round(x / gridSize) * gridSize;
     const snappedY = Math.round(y / gridSize) * gridSize;
     if (x !== snappedX || y !== snappedY) {
+      markRecentlyWritten(tokenId);
       await token.update({ x: snappedX, y: snappedY });
+      // #87 (round 6): re-mark after the await resolves too -- see the
+      // inline #86 snap's own comment in moveFollowersToward for why.
+      markRecentlyWritten(tokenId);
     }
   } finally {
     resnapInFlight.delete(tokenId);
@@ -466,27 +538,44 @@ export async function resnapTokenNow(sceneId, tokenId) {
  * `abandonRun` clears it, so this stays live on a finished run's scene
  * too — harmless (still the same square-grid dungeon scene) but worth
  * knowing. A GM's own deliberate off-grid placement on a managed scene
- * gets snapped back too; there's no way to distinguish that from drift. */
-export function resnapDriftedTokens(tokenDoc, changes) {
+ * gets snapped back too; there's no way to distinguish that from drift.
+ *
+ * #87 (2026-10-01, round 6): accepts Foundry's own 4th `updateToken` hook
+ * argument, `userId` (the id of whoever's client issued the write that
+ * triggered this call) -- unused by any correctness decision here, only
+ * logged, alongside `changes`, whenever a correction actually proceeds.
+ * Round 5's suppression window stops this module from reacting to its
+ * OWN writes, but doesn't explain who/what commits a genuinely off-grid
+ * position in the first place when it isn't suppressed -- if that still
+ * happens live, this log line is what turns the next investigation into
+ * reading a console line instead of another round of guessing. */
+export function resnapDriftedTokens(tokenDoc, changes, _options, userId) {
   if (!isPositionChange(changes)) return;
   const scene = tokenDoc.parent;
   if (!scene) return;
   const run = getRunState(scene.id);
   if (!run) return;
+  // #87 (2026-10-01, round 5 -- the robust fix): if this module itself
+  // wrote this token's position within the last RECENT_WRITE_SUPPRESS_MS,
+  // trust that write unconditionally and skip entirely -- don't read
+  // ANY position field (`x`/`y` OR `_source`) to decide whether a
+  // correction is needed at all. Live-confirmed that even `_source`
+  // isn't reliably readable at every point in Foundry's own multi-phase
+  // update/socket-confirmation lifecycle (see RECENT_WRITE_SUPPRESS_MS's
+  // own doc comment above for the live evidence) -- the only way to stop
+  // guessing which read is safe is to not read anything at all for a
+  // token we know we just touched ourselves.
+  if (wasRecentlyWrittenByUs(tokenDoc.id)) return;
   const gridSize = scene.grid?.size ?? 100;
-  // #87 (2026-10-01, round 3 review): must read _source here too, not
-  // just downstream in resnapTokenNow -- tokenDoc.x/tokenDoc.y at hook
-  // time can coincidentally look grid-aligned mid-interpolation while
-  // _source is genuinely off-grid, and this gate returning early means
-  // NOTHING retries this token until its own next position change.
-  // Follower tokens get a second chance from moveFollowersToward's own
-  // inline snap on the next leader move, but any other token (a monster,
-  // #141 drift on an unrelated token) has no such backstop and could
-  // stay off-grid indefinitely.
   const { x, y } = sourcePosition(tokenDoc);
   const snappedX = Math.round(x / gridSize) * gridSize;
   const snappedY = Math.round(y / gridSize) * gridSize;
   if (x === snappedX && y === snappedY) return;
+
+  console.warn(
+    `${MODULE_ID} | dungeon-follow: resnapDriftedTokens correcting token ${tokenDoc.id} (source ${x},${y} -> ${snappedX},${snappedY}), writer userId=${userId}`,
+    changes,
+  );
 
   if (game.user.isGM) {
     return resnapTokenNow(scene.id, tokenDoc.id);
