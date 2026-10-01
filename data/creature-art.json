@@ -19262,5 +19262,181 @@
     "name": "Elite Duergar Taskmaster",
     "level": 3,
     "art": "duergar-taskmaster-lob.webp"
+  },
+  {
+    "id": "kobold_dragon_spellweaver_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "2fUyhm29ugKzkIdS",
+    "name": "Kobold Dragon Spellweaver",
+    "level": 4,
+    "art": "kobold-dragon-spellweaver-lob.webp"
+  },
+  {
+    "id": "webhekiz_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "f9NDRa2grZrqnTIs",
+    "name": "Webhekiz (3-4)",
+    "level": 3,
+    "art": "webhekiz-lob.webp"
+  },
+  {
+    "id": "webhekiz_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "3MSKMI7ehLTC1bqw",
+    "name": "Webhekiz (5-6)",
+    "level": 5,
+    "art": "webhekiz-lob.webp"
+  },
+  {
+    "id": "bijan_and_zaynap_ohrlavi_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "5JcVwrLq7moBA3WE",
+    "name": "Bijan And Zaynap Ohrlavi",
+    "level": 5,
+    "art": "bijan-and-zaynap-ohrlavi-lob.webp"
+  },
+  {
+    "id": "ghost_of_diggen_thrune_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "kpYq0piOlafgYSdo",
+    "name": "Ghost Of Diggen Thrune (1-2)",
+    "level": 4,
+    "art": "ghost-of-diggen-thrune-lob.webp"
+  },
+  {
+    "id": "ghost_of_diggen_thrune_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "5hR3mQw2sEy3Fy8g",
+    "name": "Ghost Of Diggen Thrune (3-4)",
+    "level": 4,
+    "art": "ghost-of-diggen-thrune-lob.webp"
+  },
+  {
+    "id": "sea_devil_invader_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "LKdTBOV9LUiFrKOU",
+    "name": "Sea Devil Invader",
+    "level": 4,
+    "art": "sea-devil-invader-lob.webp"
+  },
+  {
+    "id": "iloise_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "zM01pTDcCS3F6z2V",
+    "name": "Iloise (5-6)",
+    "level": 5,
+    "art": "iloise-lob.webp"
+  },
+  {
+    "id": "iloise_7_8_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "LMyYMgdcJqQPgGiY",
+    "name": "Iloise (7-8)",
+    "level": 7,
+    "art": "iloise-lob.webp"
+  },
+  {
+    "id": "skeletal_gladiator_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "NmBBGhDNNEEfxCun",
+    "name": "Skeletal Gladiator",
+    "level": 4,
+    "art": "skeletal-gladiator-lob.webp"
+  },
+  {
+    "id": "fleshforge_prototype_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "lzDOAywWh0mP4UeH",
+    "name": "Fleshforge Prototype (Acid Spit)",
+    "level": 5,
+    "art": "fleshforge-prototype-lob.webp"
+  },
+  {
+    "id": "fleshforge_prototype_breath_weapon_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "sN5jueRXgYI9DDGH",
+    "name": "Fleshforge Prototype (Breath Weapon)",
+    "level": 5,
+    "art": "fleshforge-prototype-lob.webp"
+  },
+  {
+    "id": "fleshforge_prototype_leaping_charge_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "QZVLjVPLl0PNo2K3",
+    "name": "Fleshforge Prototype (Leaping Charge)",
+    "level": 5,
+    "art": "fleshforge-prototype-lob.webp"
+  },
+  {
+    "id": "fleshforge_prototype_reach_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "R8D2GrilngQIb1eI",
+    "name": "Fleshforge Prototype (Reach)",
+    "level": 5,
+    "art": "fleshforge-prototype-lob.webp"
+  },
+  {
+    "id": "fleshforge_prototype_roots_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "toAsLLjdRwu1pT0b",
+    "name": "Fleshforge Prototype (Roots)",
+    "level": 5,
+    "art": "fleshforge-prototype-lob.webp"
+  },
+  {
+    "id": "fleshforge_prototype_shield_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "m3YBXS3ool7PmRfX",
+    "name": "Fleshforge Prototype (Shield)",
+    "level": 5,
+    "art": "fleshforge-prototype-lob.webp"
+  },
+  {
+    "id": "zatqualmish_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "hevuaQkMCF9o5KZ2",
+    "name": "Zatqualmish (3-4)",
+    "level": 4,
+    "art": "zatqualmish-lob.webp"
+  },
+  {
+    "id": "zatqualmish_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "UQyvGqfFcYva3fzc",
+    "name": "Zatqualmish (5-6)",
+    "level": 6,
+    "art": "zatqualmish-lob.webp"
+  },
+  {
+    "id": "ahrkinos_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "vV6a488IlsKsHpL8",
+    "name": "Ahrkinos (3-4)",
+    "level": 4,
+    "art": "ahrkinos-lob.webp"
+  },
+  {
+    "id": "ahrkinos_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "js2sA6P939oTuLuI",
+    "name": "Ahrkinos (5-6)",
+    "level": 6,
+    "art": "ahrkinos-lob.webp"
+  },
+  {
+    "id": "zombie_warhorse_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "rEPnlpuRVCpnQNYP",
+    "name": "Zombie Warhorse",
+    "level": 3,
+    "art": "zombie-warhorse-lob.webp"
+  },
+  {
+    "id": "dire_warg_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "zveTUg1NtYmTwlFn",
+    "name": "Dire Warg",
+    "level": 4,
+    "art": "dire-warg-lob.webp"
   }
 ]
