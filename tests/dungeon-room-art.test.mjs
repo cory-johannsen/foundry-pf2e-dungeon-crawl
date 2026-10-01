@@ -28,10 +28,12 @@ describe('dungeon room art assets exist on disk', () => {
   // longer than one square, so it reads as one continuous hallway instead of
   // a stack of separate boxed alcoves — see corridorTileVariant.
   cases.push('corridor.webp', 'corridor-end.webp', 'corridor-mid.webp');
+  // corridor-rubble (#438): the collapsed dead-end cap for #427's stub corridors.
+  cases.push('corridor-rubble.webp');
 
   it('finds every expected filename to check at all', () => {
-    // A guard on the guard: LOCATION_TAGS.length * (ROOM_ART_VARIANTS + 1) + 3.
-    expect(cases.length).toBe(LOCATION_TAGS.length * (ROOM_ART_VARIANTS + 1) + 3);
+    // A guard on the guard: LOCATION_TAGS.length * (ROOM_ART_VARIANTS + 1) + 4.
+    expect(cases.length).toBe(LOCATION_TAGS.length * (ROOM_ART_VARIANTS + 1) + 4);
   });
 
   it.each(cases)('%s exists', (filename) => {
