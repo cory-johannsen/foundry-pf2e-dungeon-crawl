@@ -1,7 +1,4 @@
 # Creatures awaiting a hand-made Gemini image (owner supplies ~30/day free). slug<TAB>name<TAB>reason
 # Do NOT run --backend=gemini: API credits exhausted 2026-10-01.
-animated-dagger-lob	Animated Dagger	bg_patch (black triangle shape behind the blade)
 witch-s-talon-lob	Witch's Talon	wrong_subject (skeleton, not a human acolyte) + bg_patch (orange splashes)
-burrowing-viper-rat-lob	Burrowing Viper Rat	halo_or_disc (orange disc with a square border behind)
 elven-hunter-lob	Elven Hunter	bg_patch (white patch bottom-left), cropped (4 attempts)
-elven-grave-robber-lob	Elven Grave Robber	scenery_backdrop (dead tree, ground) + white edge patch
