@@ -701,3 +701,10 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 50,khismar,Synthetic Khismar (5-6),6,beast,flag,bg_patch,comfyui,
 50,the-ascendant,The Ascendant (3-4),6,beast,accept,,comfyui,
 50,zombie-minihulk,Zombie Minihulk,6,undead,accept,,gemini,gemini-first
+51,mercenary-trapper,Mercenary Trapper (1-2),-1,beast,flag,bg_patch,comfyui,
+51,spark-troll,Spark Troll (1-2),-1,beast,accept,,comfyui,
+51,animated-guardian,Animated Guardian,1,construct,accept,,comfyui,
+51,awakened-ball-python,Awakened Ball Python,1,beast,accept,,comfyui,
+51,blighted-leaf-leshy,Blighted Leaf Leshy,1,beast,accept,,comfyui,
+51,charmed-crab,Charmed Crab,1,beast,accept,,comfyui,
+51,giant-worker-ant,Giant Worker Ant,1,beast,accept,,comfyui,

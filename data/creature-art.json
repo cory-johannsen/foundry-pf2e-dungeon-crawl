@@ -19566,5 +19566,253 @@
     "name": "Zombie Minihulk",
     "level": 6,
     "art": "zombie-minihulk-lob.webp"
+  },
+  {
+    "id": "lion_pfs_2_13_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "8FBm4IjFYlolzDXu",
+    "name": "Lion (PFS 2-13)",
+    "level": 3,
+    "art": "lion.webp"
+  },
+  {
+    "id": "weak_lion_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "EVWVIc2zNT18kZ2T",
+    "name": "Weak Lion",
+    "level": 3,
+    "art": "lion.webp"
+  },
+  {
+    "id": "ember_fox_pfs_2_14_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "8PH89qtfwyFvggMq",
+    "name": "Ember Fox (PFS 2-14)",
+    "level": 2,
+    "art": "ember-fox.webp"
+  },
+  {
+    "id": "fence_pfs_2_00_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "D0eC5CwcBAsSoAJC",
+    "name": "Fence (PFS 2-00)",
+    "level": 5,
+    "art": "fence.webp"
+  },
+  {
+    "id": "wounded_dragon_turtle_3_4_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "SHmxvGZAPxkttd06",
+    "name": "Wounded Dragon Turtle (3-4)",
+    "level": 5,
+    "art": "dragon-turtle.webp"
+  },
+  {
+    "id": "wounded_dragon_turtle_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "E0ShG9xKRN88vUdP",
+    "name": "Wounded Dragon Turtle (5-6)",
+    "level": 7,
+    "art": "dragon-turtle.webp"
+  },
+  {
+    "id": "plague_zombie_pfs_2_15_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "GopDDbkjVhXu4cwt",
+    "name": "Plague Zombie (PFS 2-15)",
+    "level": 1,
+    "art": "plague-zombie.webp"
+  },
+  {
+    "id": "kobold_warrior_pfs_2_11_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "KJAk6ALQk9Qkt53l",
+    "name": "Kobold Warrior (PFS 2-11)",
+    "level": -1,
+    "art": "kobold-warrior.webp"
+  },
+  {
+    "id": "hunting_spider_pfs_2_18_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "KVvRtfyqewytq40f",
+    "name": "Hunting Spider (PFS 2-18)",
+    "level": 1,
+    "art": "hunting-spider.webp"
+  },
+  {
+    "id": "young_ahuizotl_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "M1mbQnk40lu1lxdr",
+    "name": "Young Ahuizotl",
+    "level": 4,
+    "art": "ahuizotl.webp"
+  },
+  {
+    "id": "jinkin_pfs_2_00_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "TX7WPf5f7lq3AufA",
+    "name": "Jinkin (PFS 2-00)",
+    "level": 1,
+    "art": "jinkin.webp"
+  },
+  {
+    "id": "pixie_pfs_2_00_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "XKrlU3hiLBTPg95p",
+    "name": "Pixie (PFS 2-00)",
+    "level": 4,
+    "art": "pixie.webp"
+  },
+  {
+    "id": "goblin_skeleton_ggyxv_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "ggYXvNjK12pVwJ0P",
+    "name": "Goblin Skeleton",
+    "level": -1,
+    "art": "goblin-skeleton-lob.webp"
+  },
+  {
+    "id": "twigjack_pfs_2_08_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "iQprqoS2RXWPMAMQ",
+    "name": "Twigjack (PFS 2-08)",
+    "level": 3,
+    "art": "twigjack.webp"
+  },
+  {
+    "id": "weak_mist_stalker_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "mREQ0kbYYSYsYb4e",
+    "name": "Weak Mist Stalker",
+    "level": 4,
+    "art": "mist-stalker.webp"
+  },
+  {
+    "id": "weak_sea_devil_scout_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "nUweXdZmsMFLcEsM",
+    "name": "Weak Sea Devil Scout",
+    "level": 1,
+    "art": "sea-devil-scout.webp"
+  },
+  {
+    "id": "nuglub_pfs_2_00_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "q5ObT0toaicC2OyP",
+    "name": "Nuglub (PFS 2-00)",
+    "level": 2,
+    "art": "nuglub.webp"
+  },
+  {
+    "id": "commoner_pfs_2_13_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "qG5e77fMVkjBlK8B",
+    "name": "Commoner (PFS 2-13)",
+    "level": -1,
+    "art": "commoner.webp"
+  },
+  {
+    "id": "quickling_pfs_2_00_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "sOTeRfQ6NB3CtqBX",
+    "name": "Quickling (PFS 2-00)",
+    "level": 3,
+    "art": "quickling.webp"
+  },
+  {
+    "id": "ogre_spider_pfs_2_18_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "tY5snIGj4jBSJcay",
+    "name": "Ogre Spider (PFS 2-18)",
+    "level": 5,
+    "art": "ogre-spider.webp"
+  },
+  {
+    "id": "weak_mudwretch_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "unfgNRDtbFivlOEJ",
+    "name": "Weak Mudwretch",
+    "level": 1,
+    "art": "mudwretch.webp"
+  },
+  {
+    "id": "unkillable_zombie_shambler_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "yEvWtmFxwVsNGjWh",
+    "name": "Unkillable Zombie Shambler",
+    "level": 0,
+    "art": "zombie-shambler.webp"
+  },
+  {
+    "id": "blighted_leaf_leshy_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "6aIh6EXxkqkBciQA",
+    "name": "Blighted Leaf Leshy",
+    "level": 1,
+    "art": "blighted-leaf-leshy-lob.webp"
+  },
+  {
+    "id": "spark_troll_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "7R69eW0f3BuHe7TS",
+    "name": "Spark Troll (1-2)",
+    "level": -1,
+    "art": "spark-troll-lob.webp"
+  },
+  {
+    "id": "spark_troll_3_4_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "yqOuv6qNnJgCFPn1",
+    "name": "Spark Troll (3-4)",
+    "level": 1,
+    "art": "spark-troll-lob.webp"
+  },
+  {
+    "id": "mercenary_trapper_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "q5GtWMOvluZVt8Gx",
+    "name": "Mercenary Trapper (1-2)",
+    "level": -1,
+    "art": "mercenary-trapper-lob.webp"
+  },
+  {
+    "id": "mercenary_trapper_3_4_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "DYEJU8PPBg6yWGJe",
+    "name": "Mercenary Trapper (3-4)",
+    "level": 1,
+    "art": "mercenary-trapper-lob.webp"
+  },
+  {
+    "id": "awakened_ball_python_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "R58hBfz4R5QQtFnD",
+    "name": "Awakened Ball Python",
+    "level": 1,
+    "art": "awakened-ball-python-lob.webp"
+  },
+  {
+    "id": "animated_guardian_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "WEo5SYs2SPZkU6lu",
+    "name": "Animated Guardian",
+    "level": 1,
+    "art": "animated-guardian-lob.webp"
+  },
+  {
+    "id": "charmed_crab_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "zLeePJplf25baqJa",
+    "name": "Charmed Crab",
+    "level": 1,
+    "art": "charmed-crab-lob.webp"
+  },
+  {
+    "id": "giant_worker_ant_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "zihTF7JohmZM8cdS",
+    "name": "Giant Worker Ant",
+    "level": 1,
+    "art": "giant-worker-ant-lob.webp"
   }
 ]
