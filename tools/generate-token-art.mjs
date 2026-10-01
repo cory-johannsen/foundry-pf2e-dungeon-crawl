@@ -8119,7 +8119,7 @@ async function main() {
         // A provider content-policy rejection (400) is per-prompt: log it and
         // move on rather than abandoning the rest of the batch.
         if (backend === 'openrouter' && /request failed: 400/.test(String(err.message))) {
-          console.log();
+          console.log(`FILTERED (${String(err.message).slice(0, 160)})`);
           continue;
         }
         throw err;
