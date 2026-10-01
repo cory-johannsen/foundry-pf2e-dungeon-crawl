@@ -18598,5 +18598,149 @@
     "name": "Crowd Leader",
     "level": -1,
     "art": "crowd-leader-lob.webp"
+  },
+  {
+    "id": "farmer_drystan_s_scarecrow_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "1JVuJXe27PLyUVwf",
+    "name": "Farmer Drystan's Scarecrow (1-2)",
+    "level": 1,
+    "art": "farmer-drystan-s-scarecrow-lob.webp"
+  },
+  {
+    "id": "farmer_drystan_s_scarecrow_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "iozA5orydjkBmbHx",
+    "name": "Farmer Drystan's Scarecrow (3-4)",
+    "level": 3,
+    "art": "farmer-drystan-s-scarecrow-lob.webp"
+  },
+  {
+    "id": "giant_fox_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "4QEU9t2vYef8QfZQ",
+    "name": "Loyal Giant Fox",
+    "level": 1,
+    "art": "giant-fox-lob.webp"
+  },
+  {
+    "id": "harsus_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "F4LvpkwzeT7spRX9",
+    "name": "Harsus (1-2)",
+    "level": 1,
+    "art": "harsus-lob.webp"
+  },
+  {
+    "id": "harsus_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "54m8L1izUMDi02O9",
+    "name": "Harsus (3-4)",
+    "level": 3,
+    "art": "harsus-lob.webp"
+  },
+  {
+    "id": "muraxi_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "vgn39Yta3lgeRP1s",
+    "name": "Muraxi (3-4)",
+    "level": 1,
+    "art": "muraxi-lob.webp"
+  },
+  {
+    "id": "muraxi_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "7VCfX1QpRb2T7324",
+    "name": "Muraxi (5-6)",
+    "level": 3,
+    "art": "muraxi-lob.webp"
+  },
+  {
+    "id": "mitflit_sneak_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "8G0V3AjaLUkTbq0H",
+    "name": "Mitflit Sneak",
+    "level": 1,
+    "art": "mitflit-sneak-lob.webp"
+  },
+  {
+    "id": "guard_captain_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "K6JYKFI9HLFWf12d",
+    "name": "Guard Captain",
+    "level": 1,
+    "art": "guard-captain-lob.webp"
+  },
+  {
+    "id": "veteran_guard_captain_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "8y0d3FLVkqbObMLM",
+    "name": "Veteran Guard Captain",
+    "level": 4,
+    "art": "guard-captain-lob.webp"
+  },
+  {
+    "id": "hungry_blade_recruit_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "HbMQ2PXNYZH69HDP",
+    "name": "Hungry Blade Recruit",
+    "level": 1,
+    "art": "hungry-blade-recruit-lob.webp"
+  },
+  {
+    "id": "cinder_wolf_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "mIz8CjpB8uxf6M9f",
+    "name": "Cinder Wolf (1-2)",
+    "level": 1,
+    "art": "cinder-wolf-lob.webp"
+  },
+  {
+    "id": "cinder_wolf_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "Hjl0cYnMyrcsbKlY",
+    "name": "Cinder Wolf (3-4)",
+    "level": 1,
+    "art": "cinder-wolf-lob.webp"
+  },
+  {
+    "id": "barbed_bloodseeker_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "jXEmUa47j5o3lQIE",
+    "name": "Barbed Bloodseeker",
+    "level": 1,
+    "art": "barbed-bloodseeker-lob.webp"
+  },
+  {
+    "id": "gwibble_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "xFeeszDfh4RISbib",
+    "name": "Gwibble (1-2)",
+    "level": 1,
+    "art": "gwibble-lob.webp"
+  },
+  {
+    "id": "gwibble_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "oQmjMw2MTQDSGRs7",
+    "name": "Gwibble (3-4)",
+    "level": 3,
+    "art": "gwibble-lob.webp"
+  },
+  {
+    "id": "marcon_tinol_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "xIWdGhSA6Z7CQKBY",
+    "name": "Marcon Tinol (1-2)",
+    "level": 1,
+    "art": "marcon-tinol-lob.webp"
+  },
+  {
+    "id": "marcon_tinol_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "xHbU1j5KpscKk6q8",
+    "name": "Marcon Tinol (3-4)",
+    "level": 3,
+    "art": "marcon-tinol-lob.webp"
   }
 ]
