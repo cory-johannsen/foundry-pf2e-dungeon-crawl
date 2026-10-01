@@ -3,8 +3,11 @@
 **Tracks:** [#427](https://github.com/cory-johannsen/foundry-pf2e-dungeon-crawl/issues/427)
 (found live during #415 verification; not caused by #415).
 
-**Status:** design only. Open questions for the user are at the end; the
-recommendation below depends on the answer to Q1.
+**Status:** design, decisions recorded 2026-10-01 (see "Decisions"). The
+user chose option E (dead-end stub) for the unroutable remainder; the
+"Dead-end stub" section designs it and states, with measurements, the
+domain in which it is safe. New product questions it raises are listed
+last.
 
 ## Problem
 
@@ -265,14 +268,20 @@ layout would change (the same reason `CORRIDOR_LEN` is off the table), and
 prior work (#300) found the real bugs in wall geometry, not placement.
 Listed, not recommended.
 
-**E. Accept the fallback, make it harmless.** Keep the direct line but
-clip it and replace the through-room floor with a dead-end stub (no
-connection for the second parent). A merge room's second parent then has a
-door that leads nowhere: breaks the "every real parent reaches the merge
-room" guarantee (#93). Rejected.
+**E. Dead-end stub for an unroutable second parent (chosen by the user
+2026-10-01).** Instead of a corridor through a room, the parent keeps a
+door that opens onto a short dead-end corridor stub with no connection
+into the merge room. The original objection (it breaks "every real parent
+reaches the merge room", #93) stands as a hard constraint on WHERE a stub
+may be used, not on whether: see "Dead-end stub", which measures that a
+stub is safe for only about 19% of today's null edges and defines the
+rule. It is chosen as the unroutable-remainder mechanism, not as a
+replacement for Phase 4.
 
-**Recommendation: C**, in the phases below, with a decision gate after
-Phase 2. The redo (A) is last, optional, and subject to the kill criteria.
+**Recommendation (adopted, Q1): C**, in the phases below, with a decision
+gate after Phase 2. The redo (A) is last, optional, and subject to the
+kill criteria. Option E handles only what Phase 4 provably cannot route
+and the stub rule allows.
 
 ## Design
 
@@ -334,7 +343,7 @@ Absent, behavior is byte-identical, which is how the version gate works.
 
 Constraints the plan must honor, each already an invariant somewhere:
 doors pinned (a plan that moves a door is a `#415` regression); a cell's
-border is `COLUMN_STRIDE = 7` units wide (`ROOM_SIZE_LARGE + CORRIDOR_LEN`),
+border is `COLUMN_STRIDE = 13` units wide (`ROOM_SIZE_LARGE + CORRIDOR_LEN`, 12 + 1),
 and the sweep shows up to 5 edges through one cell today (6 under the redo), so the lane allocator
 must report infeasibility rather than overlap when a border cannot hold
 them; straight vs L shape is decided by entry/exit sides (`transitCellCrossing`),
@@ -430,12 +439,15 @@ geometric detail here):
   resolution: choose, per cell, whichever strip (east or south margin) the
   room's own outgoing plan (`outgoingDoorPlan`) leaves clear for the needed
   stretch (a room has no north or west margin), and fall back to a null edge
-  if neither is free. This is the principal unknown of the phase.
+  if neither is free; a null edge then goes to the stub rule (if eligible)
+  or stays on the documented direct-line residual (if not). This is the
+  principal unknown of the phase.
 
 Exit criterion: `INTERMEDIATE_OVERLAP_CEILING` 1,316 -> 0 for edges that
 are not provably boxed in (definition: a lane exists on some side of every
 occupied intermediate cell per the room's own outgoing plan); the remainder
-are counted, ratcheted, and listed.
+are counted, ratcheted, and listed, and each is either a stub (eligible)
+or an explicit residual (ineligible: see "Dead-end stub").
 
 ## layoutVersion gate
 
@@ -508,11 +520,17 @@ reproduce, not hand-built; #297 Finding E).
 | gate | Re-measure the `pathaware` variant on new geometry | none |
 | 3 | `incomingFaceForV3` path-aware west (only if the gate passes) | low once 1-2 land |
 | 4 | Margin-lane pass-through for the corner branch (own plan first) | high (#297 history) |
+| 5 | Dead-end stub (`planStubs`, `stubEdges` state, scene stub build, progression filters), layoutVersion 3 | medium: touches progression |
 
 Each PR bumps `module.json` (patch; 1b and 4 are minor candidates) and runs
 `update-architecture-docs` when imports change (the lane plan adds no new
 module). Phases 1 and 4 can swap order; 1 first is recommended because both
 need the plan layer (a pass-through lane is one more crossing in a cell).
+Phase 5 (stub) is independent of 1-4 in geometry (the stub never leaves its
+source's own cell margin) and can land any time after Phase 0; it should
+land AFTER Phase 4 so the eligibility rule is measured against the
+population Phase 4 actually leaves, but it may ship first if the user wants
+dead ends sooner (it then covers the 464 eligible edges today).
 
 ## Interactions with #415 Chunk 5 and #416
 
@@ -543,8 +561,8 @@ class to #416 afterwards.**
   the ends are pinned; the global lane ordering across a multi-cell chain
   can be unsatisfiable (A above B in one cell, below in the next). Not
   measured; Phase 1a decides.
-- Border capacity: up to 6 edges through one 7-unit border; a plan that
-  needs adjacent lanes with no gap relies on flank walls sharing a
+- Border capacity: up to 6 edges through one 13-unit border (5 today); plenty of
+  room, but lanes packed edge to edge rely on flank walls sharing a
   boundary. Needs a concrete hand-trace before the plan.
 - Hidden edges: sealed until revealed; they cross cells like any edge
   (504 null hidden edges, 223 overlapping) and their doors are keyed
@@ -584,44 +602,212 @@ by judgment.
 - **K4 (Phase 4):** if the pass-through rule leaves more than ~10% of the
   1,316 undisposed (neither fixed nor classified as no free lane), or if
   the oracle finds any sealed co-parent door (the #297 Round 1 failure,
-  375/380), stop and return to the user with Option D (re-layout) or Option E
-  as the remaining choices.
+  375/380), stop and return to the user. Option E is already adopted but
+  is limited by the stub rule (about 19% of null edges today), so the
+  remaining choices are Option D (re-layout) or a retreat mechanism for
+  sole-child parents (Q9).
+- **K6 (Phase 5):** if the stub rule ever leaves a room unreachable, a
+  non-goal room with no forward non-stub edge, or the goal unreachable from
+  entry over non-stub edges on ANY of the 500 seeds, the phase is not
+  mergeable (hard invariant, not a ratchet). If a stub overlaps any room,
+  the same.
 - **K5:** if live verification of a v3 scene shows a severed or leaking
   corridor the oracle did not predict, the oracle is wrong: fix the oracle
   before shipping anything else.
 
-## Open questions for the user
+## Decisions (user, 2026-10-01)
 
-1. **Reorder the plan?** The measurements say the chosen order (multi-cell
-   fix, then west redo) removes the cut floors (a real, independent bug) but
-   the west redo itself rescues at most 27% of null edges and about 1% of the
-   through-room overlaps (the trunk column blocks the west lane; Phase 4's
-   margin-lane pass-through is what reaches the 1,316). Recommendation: Phases
-   0, 1, 2 as written, a decision gate, the redo only if it passes, and Phase
-   4 as the real fix. Proceed on that, or keep the redo as the primary goal
-   regardless?
-2. **Junctions between different-target corridors.** Is it ever acceptable
-   for two edges to the same room to share floor? Recommendation: never (a
-   party could walk from one corridor into another edge's closed, unlocked
-   reveal door, bypassing the source's lock). That makes the 17 side-forced
-   crossings (and any pinned-end ones) reroutes or nulls.
-3. **Same-target merging.** May a merge room's several parents share the
-   last cell's lane (a Y-junction into one door slot)? #415 decision 3 says
-   separate; a Y-junction would reduce lane pressure. Default: separate.
-4. **layoutVersion.** 3 for new runs (recommended) or reuse 2? Reuse is only
-   safe if no v2 run is ever extended after the change; the repro scene is
-   v2.
-5. **Target-overlap ratchet semantics.** Is the one-cell door-tile inside
-   the target's top row (2,102 edges) intended? If yes, the `#416` ratchet
-   should count depth >= 2 only.
-6. **When a merge room's second parent truly cannot reach (Phase 4's
-   remainder).** Options: keep the honest direct-line fallback and accept it,
-   re-layout for those seeds (D), or hide the edge (a secret door: the
-   second parent's door becomes a hidden shortcut). Product decision, not an
-   engineering one.
-7. **Thresholds.** Are K2 (~2%), K3 (15%), K4 (~10%) the right lines, or do
-   you want stricter ones?
-8. **Phase 0 live check.** Authorize one Foundry world check of a cut floor
-   (A's vertical lane in cell r0c2 of a real run) to confirm the cut floors
-   are real in play, since the whole Phase 1 priority rests on computed
-   geometry.
+1. **Reorder (Q1):** Phases 1, 2, gate, then Phase 4 as the real fix; the
+   west redo stays optional and last (Phase 3).
+2. **Never share floor between different-target corridors (Q2).** The 17
+   side-forced crossings (and any pinned-end ones) are reroutes or nulls.
+3. **Same-target corridors (a merge room's parents) stay separate lanes
+   (Q3),** consistent with #415 decision 3.
+4. **layoutVersion 3 for new runs (Q4).**
+5. **The #416 ratchet counts depth >= 2 only (Q5).** The one-cell door tile
+   inside the target's rim is intended. `TARGET_OVERLAP` ratchets in this
+   spec therefore use depth >= 2 (170 today).
+6. **Option E for a merge room's second parent that truly cannot reach
+   (Q6),** chosen over keeping the fallback line, because the user finds
+   dead ends make dungeons more interesting. Designed below, with the
+   safety rule the measurements force.
+7. **Kill thresholds K2 ~2%, K3 15%, K4 ~10% stand (Q7).**
+8. **Phase 0 live check authorized (Q8),** read-only where possible; any
+   token test only in a throwaway scene created and deleted by the check.
+
+## Dead-end stub (option E)
+
+### What the measurements say about where a stub is safe
+
+The run is a DAG the party walks forward only: `advanceToRoom` accepts a
+room only if it is in `state.edges[currentRoomId]`, and the only backward
+step is `undoLastRoomEntry` of the last auto-entry, refused once that room
+is judged (`canUndoRoomEntry`). So a stub is not just a visual choice: the
+edge it replaces stops being a way forward.
+
+500-seed sweep, 2,470 null edges classified by what the stub would do to
+progression:
+
+| Class | Edges | Stub effect |
+| --- | --- | --- |
+| Real edge, source is the SOLE child-parent (merge tips are usually this) | 1,952 | party that took this branch has no way forward: soft-lock |
+| Hidden shortcut extra edge (source also has real children) | 450 | safe: the shortcut was optional anyway |
+| Real edge, source has other real children | 14 | safe |
+| Hidden incoming of a detour room | 54 | detour room becomes unreachable: orphan |
+| (separately) merge rooms with NO routable incoming edge | 99 of 1,237 | a stub on all of them makes the room unreachable |
+
+495 of 500 dungeons contain a null edge; 490 contain a sole-child one.
+Applied naively, E would soft-lock the party in nearly every dungeon (today
+the through-room fallback is ugly but walkable). The decision stands, with
+this rule:
+
+**Stub eligibility (hard invariants, checked for every candidate in
+canonical order):**
+
+1. After stubbing, the target still has at least one non-stub, routable
+   incoming edge (every room stays reachable via at least one parent).
+2. The source still has at least one other forward way: another non-stub
+   real child, or the stub edge is a hidden shortcut (optional by
+   construction). A source whose only real child is the stubbed edge is
+   ineligible.
+3. The goal stays reachable from `room-entry` over non-stub edges, and no
+   non-goal room is left with zero non-stub forward edges (re-verified as a
+   graph check over the whole plan, not edge by edge).
+
+Eligible today: about 464 of 2,470 (19%). The other ~2,000 stay connected:
+Phase 4 routes what it can; the rest remain on the documented direct-line
+fallback as a ratcheted residual (not a regression: it is today's
+behavior). Making them stubs needs a way back (a retreat), which is a new
+product feature: Q9.
+
+### Shape
+
+The stub lives entirely inside the source room's own grid cell, in its
+south margin row (never north or west: no margin there), so it cannot touch
+any other room by construction.
+
+- The stub is an outgoing edge of the source for door purposes: it takes a
+  slot in `outgoingDoorPlan` (real children plus hidden plus stub), on the
+  `south` face, ordered by the virtual target direction (the real target's
+  column), so sibling corridors and the stub never share a door cell.
+- Floor: the 1-cell tile directly below the door (always inside the planned
+  slot), then, if free, extended horizontally along the margin row toward
+  the target's side for up to 3 more cells, clipped so it ends at least one
+  cell short of the cell boundary and never enters a cell already used by a
+  sibling's lane. Length therefore 1 to 4 cells. A SMALL room has a deeper
+  margin but the stub stays in the one margin row so "inside the margin
+  row" has a single definition.
+- End: a plain wall cap across the corridor end and flanks, like #355's
+  flank walls; no door at the end.
+- It yields to real corridors: stubs are laid out after every real and
+  hidden edge's geometry, and only occupy cells the source's own sibling
+  corridors left free (this removes any lane conflict with #415 Chunk 5's
+  class by making the stub the loser).
+- Deterministic: stub length is a pure function of the seed and edge id
+  (`doorOffsetAt`-style salted seed), independent of build order.
+- Art: the existing corridor tile with a seeded flavor flag
+  `dungeonStubFlavor` of `rubble` or `collapse`. A dedicated rubble tile is
+  optional art, tracked separately; without it the flag only changes the
+  chat flavor line.
+
+### Door behavior
+
+- The stub's door is a normal door, locked until the source room is
+  resolved, then closed and openable, exactly like a real outgoing door
+  (`unlockDoorsFromRoom`). It carries a new flag `dungeonStubDoorFor:
+  <targetId>` plus `dungeonDoorFromRoomId`, never `dungeonDoorToRoomId` or
+  `dungeonRevealDoorForSlot`, so `handleDungeonDoorOpened` ignores it (no
+  reveal, no `advanceToRoom`, no combat/encounter start) and
+  `unlockDoorsFromRoom` must be extended to also unlock `dungeonStubDoorFor`
+  doors of that source.
+- Opening it reveals nothing. A one-line chat flavor message (the stub's
+  `dungeonStubFlavor`) on first open is the only effect.
+- A hidden-shortcut stub is sealed like any hidden door and revealed by the
+  same effects; revealing it opens a "false shortcut" stub and must not add
+  the edge to `state.edges` (see touchpoints).
+- Whether it is locked at all, and whether a stub door should look
+  different from a real door to the players, is Q10.
+
+### State model
+
+New persisted run-state field `stubEdges: { [sourceId]: [targetId] }`,
+written at precompute (`dungeon-app.mjs`) by a new pure
+`planStubs(layout)` in `scripts/dungeon-layout.mjs`, layoutVersion >= 3
+only (absent = none).
+
+- `layoutEdges` is unchanged: ranks, columns and every position stay
+  identical (no layout shift from stubbing).
+- `state.edges` (the progression graph) excludes stub edges, so "next room"
+  options, `advanceToRoom`, and tracker child lists never offer them.
+- `incomingConnectionsFor` gains a stub filter so the target neither
+  allocates a door slot for nor routes a corridor from the stub's source.
+
+### Touchpoints that assume every real edge connects
+
+Found by grep of `scripts/`; each needs an explicit decision in the plan.
+
+- `scripts/dungeon-runner.mjs`: `advanceToRoom` (progression; the `edges`
+  filter suffices), `roomsToEagerlyBuild` (reads `layoutEdges` indegree;
+  stays correct because stubs stay in `layoutEdges`), the outcome path via
+  `revealTravelTimeEffect` (`scripts/dungeon-deck.mjs`: adds hidden
+  children to `edges` on reveal; must skip stub targets).
+- `scripts/dungeon-scene.mjs`: `buildPopulateAndUnlockGraphNode`
+  (`incomingConnections`, door slots, `sourceChildIds`, plan inputs),
+  `outgoingPlanFromState` (add stub children), `unlockDoorsFromRoom`, its
+  relock twin, `unsealHiddenDoorFromRoom`, `handleDungeonDoorOpened`
+  (`state.edges[currentRoomId]` check), `resolveCurrentRoom`
+  (`childIds`/`hiddenChildIds`/`hiddenChildId`), `pendingForeignMarginOpenings`,
+  `outgoingMarginOffset`.
+- `scripts/ui/dungeon-app.mjs`: precompute (`layoutEdges`,
+  `hiddenIncomingByRoomId`, stamping `layoutVersion`), the outcome-unlock
+  block, the reveal call.
+- Layout internals: `incomingConnectionsFor`, `outgoingDoorPlan` callers,
+  `findPriorityCollision`, `assignDoorSlotsWithPriority`, and
+  `buildEdgeCorridor` (a stub is built by its own function, not this one).
+- Combat, follow, marching order and AI pathing do NOT read edges: they use
+  `findPath` over scene walls (`scripts/pathfinding.mjs`, called from
+  `dungeon-combat.mjs` and `dungeon-follow-mechanics.mjs`). The stub is just
+  more walled floor to them; the requirement is that its end cap and flanks
+  are real walls (the #353/#355 containment rule) and that it is reachable
+  only through its own door (no junction).
+
+### What stays guaranteed (#93)
+
+Under layoutVersion >= 3: every room is reachable from `room-entry` over
+non-stub edges (it has at least one non-stub, routable parent); every
+non-goal room has at least one forward non-stub edge (the party is never
+stranded); the goal is reachable. What changes: a merge room may have fewer
+doors than parents, and a stubbed `parent -> merge` edge is a dead end,
+only where the source has another way forward or the edge is a hidden
+shortcut. Not guaranteed, and never was: that every parent of a merge room
+has a real, non-overlapping corridor into it (2,470 edges are null today).
+
+### Property tests (added to the acceptance criteria)
+
+- No stub floor or wall overlaps ANY room rect, including intermediate ones
+  and the source's own interior, across the 500-seed sweep.
+- Every stub floor tile lies in its source's own cell, in its margin row.
+- The eligibility invariants above hold on every seed (K6), checked as graph
+  properties of the plan (BFS over non-stub edges from entry).
+- No stub floor is edge-adjacent to a different edge's floor without a wall
+  on the shared boundary (oracle).
+- Determinism: shuffled edge order gives identical `stubEdges` and
+  geometry.
+
+## New product questions raised by the stub
+
+9. **Sole-child parents.** 1,952 null edges (79%) are real edges whose source
+   has no other way forward; a stub there soft-locks the party that took the
+   branch. Options: keep them on the fallback line (default, what the
+   design above does), or add a retreat feature (a way back to the last fork,
+   or "the passage collapses behind you, turn back" re-opening the fork's
+   other child), which unlocks stubs for them. Want the retreat feature as a
+   separate issue?
+10. **Stub door lock state and look.** Locked-until-resolved like real doors
+    (default), or always openable? Indistinguishable from a real door
+    (default; surprise is the point) or marked? Does opening it consume
+    anything (a skill check, a time cost)?
+11. **Hidden-shortcut stubs.** When a revealed secret door leads to a dead
+    end, is that wanted ("false shortcut" flavor, default) or should
+    hidden shortcuts that cannot be routed simply never be generated?
+12. **Flavor.** `rubble` / `collapse` text, and is new tile art wanted?
