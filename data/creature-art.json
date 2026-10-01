@@ -22742,5 +22742,173 @@
     "name": "Thick Pelagastr Tail",
     "level": 5,
     "art": "thick-pelagastr-tail-lob.webp"
+  },
+  {
+    "id": "advanced_eltha_embercall_eltha_embercall_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "3r3etd3bUOn58TH3",
+    "name": "Advanced Eltha Embercall (9-10)/Eltha Embercall (11-12)",
+    "level": 11,
+    "art": "advanced-eltha-embercall-eltha-embercall-lob.webp"
+  },
+  {
+    "id": "mature_arabuk_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "83lyaQloNlS16sJu",
+    "name": "Mature Arabuk",
+    "level": 7,
+    "art": "mature-arabuk-lob.webp"
+  },
+  {
+    "id": "languid_purple_worm_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "8sCLuGyghlIvMoBo",
+    "name": "Languid Purple Worm",
+    "level": 12,
+    "art": "languid-purple-worm-lob.webp"
+  },
+  {
+    "id": "marcien_blakros_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "qDpKFbhWgSWEEA00",
+    "name": "Marcien Blakros (7-8)",
+    "level": 8,
+    "art": "marcien-blakros-lob.webp"
+  },
+  {
+    "id": "marcien_blakros_9_10_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "8tDDIvcinSurN8BF",
+    "name": "Marcien Blakros (9-10)",
+    "level": 10,
+    "art": "marcien-blakros-lob.webp"
+  },
+  {
+    "id": "caliclotherax_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "XyrToL9Wyl4MoAf1",
+    "name": "Caliclotherax (9-10)",
+    "level": 11,
+    "art": "caliclotherax-lob.webp"
+  },
+  {
+    "id": "caliclotherax_11_12_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "AaCmgrEQ4sPakXca",
+    "name": "Caliclotherax (11-12)",
+    "level": 13,
+    "art": "caliclotherax-lob.webp"
+  },
+  {
+    "id": "deep_shadow_guardian_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "DTBa5iNcHztFu7oo",
+    "name": "Deep Shadow Guardian",
+    "level": 6,
+    "art": "deep-shadow-guardian-lob.webp"
+  },
+  {
+    "id": "khisisi_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "zUbfyAyNN4aYLQKA",
+    "name": "Khisisi (5-6)",
+    "level": 7,
+    "art": "khisisi-lob.webp"
+  },
+  {
+    "id": "khisisi_7_8_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "FyQji78S25WiZMct",
+    "name": "Khisisi (7-8)",
+    "level": 9,
+    "art": "khisisi-lob.webp"
+  },
+  {
+    "id": "cobbled_brutalizer_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "HIPqiHMAfN2mmAlg",
+    "name": "Cobbled Brutalizer",
+    "level": 6,
+    "art": "cobbled-brutalizer-lob.webp"
+  },
+  {
+    "id": "enduring_zombie_hulk_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "LHEI3E4THLsz0rr0",
+    "name": "Enduring Zombie Hulk",
+    "level": 8,
+    "art": "enduring-zombie-hulk-lob.webp"
+  },
+  {
+    "id": "debased_relic_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "P0Y86CC9ULe0D4x7",
+    "name": "Debased Relic",
+    "level": 6,
+    "art": "debased-relic-lob.webp"
+  },
+  {
+    "id": "ruthless_fetchling_sneak_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "RxB7Hj5E3kGcE9Fi",
+    "name": "Ruthless Fetchling Sneak",
+    "level": 5,
+    "art": "ruthless-fetchling-sneak-lob.webp"
+  },
+  {
+    "id": "umbral_cu_sith_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "Y5ZcwtbKxA1BImQq",
+    "name": "Umbral Cu Sith",
+    "level": 9,
+    "art": "umbral-cu-sith-lob.webp"
+  },
+  {
+    "id": "shanrigol_mound_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "YsF8TteK6XsThooV",
+    "name": "Shanrigol Mound",
+    "level": 6,
+    "art": "shanrigol-mound-lob.webp"
+  },
+  {
+    "id": "old_drakauthix_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "bgwjxU9MmKJtcxx5",
+    "name": "Old Drakauthix (PFS 3-15)",
+    "level": 11,
+    "art": "old-drakauthix-lob.webp"
+  },
+  {
+    "id": "glurorchaes_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "fiwIeiExpZ1CQKAj",
+    "name": "Glurorchaes (7-8)",
+    "level": 8,
+    "art": "glurorchaes-lob.webp"
+  },
+  {
+    "id": "eltha_embercall_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "xiBVzPUwh1QI2lIs",
+    "name": "Eltha Embercall (9-10)",
+    "level": 9,
+    "art": "eltha-embercall-lob.webp"
+  },
+  {
+    "id": "eltha_embercall_11_12_28_cp_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "pYR3Ovkd9eKQQ5qE",
+    "name": "Eltha Embercall (11-12, 28+ CP)",
+    "level": 12,
+    "art": "eltha-embercall-lob.webp"
+  },
+  {
+    "id": "horrid_nightmare_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "sfStaEmGGvXWftsn",
+    "name": "Horrid Nightmare",
+    "level": 8,
+    "art": "horrid-nightmare-lob.webp"
   }
 ]

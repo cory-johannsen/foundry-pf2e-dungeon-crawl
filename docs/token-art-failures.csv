@@ -958,3 +958,20 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 69,thundering-wihsaak-arctic,Thundering Wihsaak (Arctic),6,beast,accept,,comfyui,
 69,thundering-wihsaak-heretical,Thundering Wihsaak (Heretical),6,beast,accept,,comfyui,
 69,thundering-wihsaak-rifle-mutation,Thundering Wihsaak (Rifle Mutation),6,beast,accept,,comfyui,
+70,glurorchaes,Glurorchaes (7-8),8,beast,accept,,comfyui,
+70,horrid-nightmare,Horrid Nightmare,8,beast,accept,,comfyui,
+70,marcien-blakros,Marcien Blakros (7-8),8,beast,accept,,comfyui,
+70,eltha-embercall,Eltha Embercall (9-10),9,beast,accept,,comfyui,
+70,umbral-cu-sith,Umbral Cu Sith,9,beast,accept,,comfyui,
+70,advanced-eltha-embercall-eltha-embercall,Advanced Eltha Embercall (9-10)/Eltha Embercall (11-12),11,beast,accept,,comfyui,
+70,caliclotherax,Caliclotherax (9-10),11,beast,accept,,comfyui,
+70,old-drakauthix,Old Drakauthix (PFS 3-15),11,beast,accept,,comfyui,
+70,languid-purple-worm,Languid Purple Worm,12,beast,accept,,comfyui,
+70,ruthless-fetchling-sneak,Ruthless Fetchling Sneak,5,beast,accept,,comfyui,gemini-first
+70,cobbled-brutalizer,Cobbled Brutalizer,6,beast,accept,,comfyui,gemini-first
+70,debased-relic,Debased Relic,6,beast,accept,,comfyui,gemini-first
+70,deep-shadow-guardian,Deep Shadow Guardian,6,beast,accept,,comfyui,gemini-first
+70,shanrigol-mound,Shanrigol Mound,6,beast,accept,,comfyui,gemini-first
+70,khisisi,Khisisi (5-6),7,beast,accept,,comfyui,gemini-first
+70,mature-arabuk,Mature Arabuk,7,beast,accept,,comfyui,gemini-first
+70,enduring-zombie-hulk,Enduring Zombie Hulk,8,undead,accept,,comfyui,gemini-first
