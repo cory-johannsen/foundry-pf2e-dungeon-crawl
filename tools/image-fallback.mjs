@@ -8,9 +8,12 @@
  * next model would fail the same way and just burn time.
  */
 
+// Owner's order (2026-10-01): Flux first, Krea only when Flux cannot produce
+// the image. Muse sits between them: cheapest per image but Meta's content
+// filter rejects some prompts, so it is a second choice, not the first.
 export const DEFAULT_OPENROUTER_MODELS = [
-  'meta/muse-image',
   'black-forest-labs/flux.2-klein-4b',
+  'meta/muse-image',
   'krea/krea-2-medium-turbo'
 ];
 
