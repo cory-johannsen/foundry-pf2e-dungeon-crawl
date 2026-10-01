@@ -21278,5 +21278,117 @@
     "name": "Aspis Warden",
     "level": 3,
     "art": "aspis-warden-lob.webp"
+  },
+  {
+    "id": "bergworm_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "1OHuJmY24AnfJHpz",
+    "name": "Bergworm",
+    "level": 3,
+    "art": "bergworm-lob.webp"
+  },
+  {
+    "id": "forged_bones_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "3bijukcKD8MfoHA9",
+    "name": "Forged Bones",
+    "level": 3,
+    "art": "forged-bones-lob.webp"
+  },
+  {
+    "id": "flaming_animated_armor_holy_hand_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "4paPYhdN4HHT3Orz",
+    "name": "Flaming Animated Armor (Holy Hand) (1-2)",
+    "level": 3,
+    "art": "flaming-animated-armor-holy-hand-lob.webp"
+  },
+  {
+    "id": "fasiel_ibn_sazadin_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "OOHNMq2uOfnp8QCg",
+    "name": "Fasiel Ibn Sazadin (1-2)",
+    "level": 3,
+    "art": "fasiel-ibn-sazadin-lob.webp"
+  },
+  {
+    "id": "fasiel_ibn_sazadin_3_4_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "986YKe07u2538RcF",
+    "name": "Fasiel Ibn Sazadin (3-4)",
+    "level": 5,
+    "art": "fasiel-ibn-sazadin-lob.webp"
+  },
+  {
+    "id": "flaming_animated_armor_ashgrip_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "9RI0biNpRaZBU1de",
+    "name": "Flaming Animated Armor (Ashgrip) (1-2)",
+    "level": 3,
+    "art": "flaming-animated-armor-ashgrip-lob.webp"
+  },
+  {
+    "id": "cinder_rat_leadroar_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "ATBFj4El0uLXDrjb",
+    "name": "Cinder Rat (Leadroar)",
+    "level": 3,
+    "art": "cinder-rat-leadroar-lob.webp"
+  },
+  {
+    "id": "deadly_fetchling_sneak_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "CmHz3bQDj6FxEecW",
+    "name": "Deadly Fetchling Sneak",
+    "level": 3,
+    "art": "deadly-fetchling-sneak-lob.webp"
+  },
+  {
+    "id": "flaming_animated_armor_leadroar_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "PhnmHglnmoiIb3Al",
+    "name": "Flaming Animated Armor (Leadroar) (1-2)",
+    "level": 3,
+    "art": "flaming-animated-armor-leadroar-lob.webp"
+  },
+  {
+    "id": "enraged_shrouded_bloodseeker_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "RCCGR5wlfGNPkkBy",
+    "name": "Enraged Shrouded Bloodseeker",
+    "level": 3,
+    "art": "enraged-shrouded-bloodseeker-lob.webp"
+  },
+  {
+    "id": "cinder_rat_ashgrip_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "S9v8OCktGEL0k6sC",
+    "name": "Cinder Rat (Ashgrip)",
+    "level": 3,
+    "art": "cinder-rat-ashgrip-lob.webp"
+  },
+  {
+    "id": "flaming_animated_armor_firecutter_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "dYcDARPuNmLlGNuG",
+    "name": "Flaming Animated Armor (Firecutter) (1-2)",
+    "level": 3,
+    "art": "flaming-animated-armor-firecutter-lob.webp"
+  },
+  {
+    "id": "hellbound_jailer_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "jItk6GNZ7lmT5zVY",
+    "name": "Hellbound Jailer (3-4)",
+    "level": 3,
+    "art": "hellbound-jailer-lob.webp"
+  },
+  {
+    "id": "hellbound_jailer_5_6_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "dgwmJ8A8sROXAGgf",
+    "name": "Hellbound Jailer (5-6)",
+    "level": 5,
+    "art": "hellbound-jailer-lob.webp"
   }
 ]
