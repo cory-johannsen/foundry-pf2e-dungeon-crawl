@@ -8058,7 +8058,7 @@ async function geminiGenerateOne(subject, dest) {
 }
 
 /**
- * OpenRouter image backend (#429): chat/completions with modalities:['image'].
+ * OpenRouter image backend (#429): POST /api/v1/images (b64_json response).
  * Same prompt as the Gemini backend (shared system prompt + creature line).
  * Model via OPENROUTER_IMAGE_MODEL, default Meta Muse Image. Each call is
  * billed on the owner's key, so — like Gemini — one call per subject.
@@ -8074,21 +8074,19 @@ async function openrouterGenerateOne(subject, dest) {
   }
   const systemPrompt = resolveGeminiSystemPrompt();
   const model = process.env.OPENROUTER_IMAGE_MODEL || 'meta/muse-image';
-  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  // Image-only models (Muse, Flux, Seedream, ...) are served by the dedicated
+  // /images endpoint, not chat/completions.
+  const res = await fetch('https://openrouter.ai/api/v1/images', {
     method: 'POST',
     headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
-    body: JSON.stringify({
-      model,
-      modalities: ['image'],
-      messages: [{ role: 'user', content: `${systemPrompt}\n\n${promptFor(subject)}` }]
-    })
+    body: JSON.stringify({ model, prompt: `${systemPrompt}\n\n${promptFor(subject)}` })
   });
   if (!res.ok) throw new Error(`openrouter request failed: ${res.status} ${await res.text()}`);
   const body = await res.json();
-  const url = body.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-  if (!url) throw new Error(`openrouter response had no image: ${JSON.stringify(body).slice(0, 500)}`);
-  const m = /^data:[^;]+;base64,(.*)$/s.exec(url);
-  const buf = m ? Buffer.from(m[1], 'base64') : Buffer.from(await (await fetch(url)).arrayBuffer());
+  const b64 = body.data?.[0]?.b64_json;
+  if (!b64) throw new Error(`openrouter response had no image: ${JSON.stringify(body).slice(0, 500)}`);
+  if (body.usage?.cost != null) process.stdout.write(`(cost $${body.usage.cost}) `);
+  const buf = Buffer.from(b64, 'base64');
   writeFileSync(dest, buf);
 }
 
