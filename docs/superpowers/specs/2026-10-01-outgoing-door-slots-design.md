@@ -280,6 +280,15 @@ faces and extended under the new ones would meet mismatched doors.
   (multi-cell chain + `findCorridorPath` interaction is the suspect). The
   property test will either confirm they vanish with planned doors or
   surface a further cause; treated as in scope if it is the same shape.
+  **Resolved in Chunk 4:** same shape (face versus path). The target's incoming
+  face is `west`, so BFS routes through the buffer column, and when a north and
+  a south route tie it tries north first; the connector then ran from the south
+  door back across the source room. With a planned exit, `findCorridorPath`
+  now refuses a first hop back across the source (north from a south door, west
+  from an east door). Source overlap under the plan is 0 over the 500-seed sweep.
+- Known, not this change: a merge target's wider floor than the margin opening
+  (#231) and sibling lane conflicts (Open question 5) still show as margin walls
+  cutting a floor; the buildability sweep ratchets them.
 - The hidden edge's reveal flow (`unsealHiddenDoorFromRoom`) is keyed by
   edge and shouldn't change, but is untested against a relocated door.
 - Live verification needs a **new** run (existing runs are version 1).

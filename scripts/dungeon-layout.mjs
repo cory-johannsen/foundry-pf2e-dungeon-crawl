@@ -571,11 +571,15 @@ function sourceFaceCapWalls(fromRect, exitFace, exitPoint) {
  * (gap-START) instead of deriving it, and does NOT return the source-face
  * cap walls: the source's own enclosure seals its face around its planned
  * doors. Absent (or a plan entry with a null `exitPoint`, i.e. a single-door
- * face) the behaviour is exactly as before.
+ * face) the door itself is placed exactly as before; the entry still marks the
+ * edge as planned, so the routed path may not start by crossing the source room
+ * (findCorridorPath's `exitFace`).
  */
 export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace = 'north', exitDoorArg) {
   const exitDoor = exitDoorArg?.exitPoint ? exitDoorArg : undefined;
-  const path = findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace });
+  // #415: any plan entry (even a single-door face's, whose exitPoint is null)
+  // marks a planned exit, so the path may not start by crossing the source room.
+  const path = findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace, exitFace: exitDoorArg ? exitFace : undefined });
   const slotSpan = incomingFace === 'west' ? (toSlot.y2 - toSlot.y1) : (toSlot.x2 - toSlot.x1);
   const outgoingOffset = doorOffsetAt(seed, `${fromRoomId}-${exitFace}`, 'outgoing', fromRect.gw);
 
@@ -1383,7 +1387,7 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
   }
   const aligned = exitFace === 'south' ? fromPos.col === toPos.col : fromPos.rank === toPos.rank;
   const path = aligned
-    ? findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace })
+    ? findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace, exitFace: exitDoorArg ? exitFace : undefined })
     : null;
   const usesOffsetBasedExit = aligned && (!path || path.length <= 2);
   // South's offset runs along the room's own width (gw); east's runs
@@ -1546,7 +1550,8 @@ export function findPriorityCollision(seed, roomId, rank, col, incomingConnectio
     if (blockerId == null || blockerId === sourceId || blockerId === roomId) continue;
     if (findCoParentCollision({ roomId: blockerId }, incomingConnections) < 0) continue;
 
-    const path = findCorridorPath(sourcePos, targetPos, occupiedCells, { fromRoomId: sourceId, toRoomId: roomId, incomingFace });
+    const planned = planFor?.(sourceId)?.get(roomId);
+    const path = findCorridorPath(sourcePos, targetPos, occupiedCells, { fromRoomId: sourceId, toRoomId: roomId, incomingFace, exitFace: planned ? planned.face : undefined });
     if (path) continue;
 
     const sourceRect = roomRect(seed, sourceId, sourcePos.rank, sourcePos.col);
@@ -1554,7 +1559,6 @@ export function findPriorityCollision(seed, roomId, rank, col, incomingConnectio
     const prioritySlot = slots[priorityIndexForEdge(slots, axis, blockerRect)];
     // #415: with a plan, the source's planned door replaces the seeded one
     // (a single-door face's null exitPoint keeps the legacy seeded door).
-    const planned = planFor?.(sourceId)?.get(roomId);
     if (planned && planned.face !== axis) continue;
     const plannedPoint = planned?.exitPoint;
     const outgoingOffset = doorOffsetAt(seed, `${sourceId}-${axis}`, 'outgoing', sourceRect.gw);
@@ -2332,12 +2336,13 @@ export function transitCellContainmentWalls(rank, col, openings) {
  * nothing to route around), or null if no path exists within the search
  * bounds — callers fall back to a direct line in that case (see
  * buildEdgeCorridor), so returning null rather than throwing is
- * deliberate. The search space is bounded to a small margin around the
+ * deliberate. `exitFace` (#415, optional): when the source's door face is known
+ * the first hop may not lead back across the source room. The search space is bounded to a small margin around the
  * two endpoints' own bounding box (not the whole graph) — real dungeons
  * never need a detour wider than a room or two, and an unbounded search
  * risks wandering arbitrarily far in a degenerate all-blocked case.
  */
-export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace = 'north' }) {
+export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace = 'north', exitFace }) {
   const SEARCH_MARGIN = 2;
   const key = (pos) => `${pos.rank},${pos.col}`;
   const minRank = Math.max(0, Math.min(fromPos.rank, toPos.rank) - SEARCH_MARGIN);
@@ -2408,6 +2413,12 @@ export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, to
       if (cameFrom.has(nextKey)) continue;
       if (isBlocked(next)) continue;
       if (!canEnter(current, next)) continue;
+      // #415: the source door is on `exitFace`. Rooms have no north/west margin,
+      // so a first hop back across the room (north from a south door, west from
+      // an east door) would draw its connector through the source's interior.
+      // BFS tried north first, so a tie between equal-length routes picked it.
+      if (current === fromPos
+        && ((exitFace === 'south' && next.rank < fromPos.rank) || (exitFace === 'east' && next.col < fromPos.col))) continue;
       cameFrom.set(nextKey, currentKey);
       queue.push(next);
     }

@@ -549,6 +549,9 @@ export async function startDungeonRun({
     hiddenIncomingByRoomId,
     layoutPositionByRoomId,
     incomingFaceByRoomId,
+    // #415: new runs use the outgoing door plan (exit faces by target direction,
+    // several doors per face). Absent on older runs = 1 = legacy geometry.
+    layoutVersion: 2,
     maxRank,
     currentRoomId: 'room-entry',
     history: [],
