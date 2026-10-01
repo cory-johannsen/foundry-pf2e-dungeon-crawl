@@ -8113,7 +8113,17 @@ async function main() {
     if (existsSync(final) && !force) { console.log(`${s.id.padEnd(10)} exists, skipping`); continue; }
     if (backend === 'gemini' || backend === 'openrouter') {
       process.stdout.write(`${s.id.padEnd(10)} ${backend}… `);
-      await (backend === 'gemini' ? geminiGenerateOne : openrouterGenerateOne)(s, dest);
+      try {
+        await (backend === 'gemini' ? geminiGenerateOne : openrouterGenerateOne)(s, dest);
+      } catch (err) {
+        // A provider content-policy rejection (400) is per-prompt: log it and
+        // move on rather than abandoning the rest of the batch.
+        if (backend === 'openrouter' && /request failed: 400/.test(String(err.message))) {
+          console.log();
+          continue;
+        }
+        throw err;
+      }
       shrink(dest, final);
       unlinkSync(dest);
       console.log(`-> ${s.dir ?? 'assets/tokens'}/${s.file}.webp`);
