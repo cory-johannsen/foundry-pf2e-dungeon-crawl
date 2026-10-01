@@ -39,23 +39,37 @@ const FOLLOW_DEBOUNCE_MS = 250;
 // everywhere this constant was used, pending a fix that doesn't trigger
 // the Foundry-core bug (see #361).
 
-// #87: resnapTokenNow must never read a token's position while Foundry's
-// own animated slide is still interpolating it -- confirmed live
-// (2026-09-30, v14.368) that a still-fractional, mid-flight position can
-// get rounded back to the token's STARTING cell, silently cancelling a
-// legitimate, still-in-progress move. RESNAP_POLL_MS is a starting value
-// verified against this session's own live capture (the redundant-write
-// storm converged within ~150ms). RESNAP_MAX_WAIT_MS is a defensive cap,
-// not a guess at typical slide duration -- it only matters if a token
-// never stops reporting "animating" (a genuine anomaly, not a real
-// slide taking a while), so it's set generously above even an unusually
-// long single-jump move (final review, 2026-09-30: Foundry scales slide
-// duration with distance at roughly 6 grid squares/second by default, so
-// even a 30-square combat stride -- well beyond a realistic single
-// dungeon-combat.mjs stepToward/strideByPosture jump -- finishes in ~5s).
-// Tune during live verification if needed, not treated as final here.
-const RESNAP_POLL_MS = 100;
-const RESNAP_MAX_WAIT_MS = 10000;
+// #87 (2026-10-01, round 3 -- the real fix): every position read in this
+// file that feeds a drift/off-grid DECISION must come from the token's
+// own committed `_source`, never the top-level `token.x`/`token.y`.
+// Independently confirmed live against a real v14.368 world (both by
+// reading Foundry's own client source, TokenDocument's #animateFrame/
+// #completeAnimation in client/canvas/placeables/token.mjs, and by
+// querying a live token's own `_source` directly): Foundry's animation
+// pipeline overwrites `token.x`/`token.y` every rendered frame with the
+// client-side interpolated position while a slide is in progress --
+// `token._source.x`/`token._source.y` is the sealed, server-committed
+// value animation never touches. Two earlier fix rounds this same session
+// (polling `token.object.animationContexts`, then requiring a
+// stable-across-two-polls reading) were both built on the wrong premise
+// -- that waiting long enough would make `token.x`/`token.y` trustworthy
+// -- and both still let drift-correction read/write a client-only
+// interpolated position in at least one case (round 1's own cap-expiry
+// path and the no-animation-check fast path; round 2's own fast path and
+// the `stopAnimation({reset:false})` case, where contexts empty out but
+// `token.x`/`token.y` stays frozen at a non-final value indefinitely, not
+// just briefly). Reading `_source` instead sidesteps the whole "is it
+// currently animating" question -- it's correct unconditionally,
+// regardless of whatever the animation is visually doing, so neither
+// `resnapTokenNow` nor the inline snap below needs to poll, wait, or
+// check animation state as a correctness condition at all anymore.
+function sourcePosition(token) {
+  return {
+    x: token._source?.x ?? token.x,
+    y: token._source?.y ?? token.y,
+  };
+}
+
 const resnapInFlight = new Set(); // tokenIds with a correction already pending
 
 const pendingByScene = new Map(); // sceneId -> setTimeout handle
@@ -113,8 +127,14 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
     const gridSize = scene.grid?.size ?? 100;
     const bounds = sceneBounds(scene, gridSize);
     const isBlocked = movementBlockedEdges(scene, gridSize);
-    const leaderCell = tokenCell(leaderToken, gridSize);
-    const occupied = scene.tokens.map((t) => footprint(t, gridSize));
+    // #87 (round 3): leaderCell/occupied both feed pathing DECISIONS, so
+    // both read each token's own committed `_source` position, not its
+    // possibly mid-animation `x`/`y` -- see sourcePosition's own doc
+    // comment above.
+    const leaderCell = tokenCell(sourcePosition(leaderToken), gridSize);
+    const occupied = scene.tokens.map((t) =>
+      footprint({ ...sourcePosition(t), width: t.width, height: t.height }, gridSize),
+    );
 
     // #181: chain-following — the first follower in marching order
     // targets the leader, exactly as before; every follower after it
@@ -149,29 +169,28 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
       // without ever calling `update()` at all -- mirrors
       // dungeon-combat.mjs's own `snapTokenToGrid`.
       //
-      // #87 (2026-10-01, live-confirmed the dominant remaining cause of
-      // "followers stuck behind the door"): this write has the exact same
-      // shape as resnapTokenNow's own cap-expiry bug, but with no guard at
-      // all and running every single follow-cycle (every FOLLOW_DEBOUNCE_MS
-      // the leader moves), not just once after a 10s timeout. While a
-      // follower's own prior move is still animating, token.x/token.y can
-      // read a mid-flight, client-interpolated position -- rounding and
-      // writing that is never safe, it can only land BEHIND the follower's
-      // real in-flight destination and silently cancel the slide. Skipped
-      // entirely while animating: there's nothing to correct yet (the slide
-      // hasn't settled), and this cycle's own findFollowMove call below
-      // computes a grid-exact destination regardless, from whatever
-      // position is currently readable -- it doesn't depend on this snap
-      // having run first.
-      if (!isAnimating(token)) {
-        const snappedX = Math.round(token.x / gridSize) * gridSize;
-        const snappedY = Math.round(token.y / gridSize) * gridSize;
-        if (token.x !== snappedX || token.y !== snappedY) {
-          await token.update({ x: snappedX, y: snappedY });
-        }
+      // #87 (2026-10-01, round 3): reads the follower's own committed
+      // `_source` position, never `token.x`/`token.y` -- see
+      // sourcePosition's own doc comment above. This needs no animation
+      // check at all: `_source` already reflects wherever this follower's
+      // own most recent legitimate move committed to, regardless of
+      // whether that move's slide is still visually playing out, so this
+      // can never read/write a transient, in-flight value. A prior round
+      // of this same fix skipped this snap entirely while `isAnimating`
+      // was true -- unnecessary now, and itself relied on animation
+      // timing this module has no reliable way to observe from outside
+      // Foundry's own rendering pipeline.
+      const followerSource = sourcePosition(token);
+      const snappedX = Math.round(followerSource.x / gridSize) * gridSize;
+      const snappedY = Math.round(followerSource.y / gridSize) * gridSize;
+      if (followerSource.x !== snappedX || followerSource.y !== snappedY) {
+        await token.update({ x: snappedX, y: snappedY });
       }
-      const moverFootprint = footprint(token, gridSize);
-      const fromCell = tokenCell(token, gridSize);
+      const moverFootprint = footprint(
+        { ...sourcePosition(token), width: token.width, height: token.height },
+        gridSize,
+      );
+      const fromCell = tokenCell(sourcePosition(token), gridSize);
       // #140: exclude the follower's own current footprint from the
       // occupancy list before searching for its own move -- otherwise a
       // 2x2+ follower's own body can make a leader-adjacent candidate
@@ -361,37 +380,6 @@ export function followLeaderOnDoorOpened(wallDoc, changes) {
   }
 }
 
-const warnedNoTokenObjectForToken = new Set();
-
-/** Whether `token` is currently mid-flight of Foundry's own animated
- * slide -- confirmed live (2026-09-30, v14.368) that
- * `token.object.animationContexts` is a real Map, non-empty while
- * animating and empty once settled. Not in Foundry's public API docs, so
- * treated as a confirmed-live-but-undocumented signal, the same category
- * as this module's existing reliance on `_movement.method`/`waypoints`
- * (`isPositionChange`, above). Optional-chains to `undefined` if
- * `token.object` doesn't exist (an older Foundry version, a system
- * override, or a token not yet rendered on canvas) -- treated the same
- * as "not animating," a deliberate graceful degradation to the
- * immediate-correction behavior this function had before #87, rather
- * than a new failure mode. Logs once per token id when this degradation
- * happens (final review, 2026-09-30: on a client without this token
- * rendered -- e.g. the Agent-GM account, or a GM viewing a different
- * scene -- this fix silently never engages there, which is worth being
- * able to tell apart from "fixed" during live verification). */
-function isAnimating(token) {
-  if (!token.object) {
-    if (!warnedNoTokenObjectForToken.has(token.id)) {
-      warnedNoTokenObjectForToken.add(token.id);
-      console.debug(
-        `${MODULE_ID} | dungeon-follow: token.object unavailable for ${token.id} on this client -- resnapTokenNow can't detect in-flight animation here and falls back to immediate correction (#87).`,
-      );
-    }
-    return false;
-  }
-  return (token.object.animationContexts?.size ?? 0) > 0;
-}
-
 /** Snaps `tokenId` on `sceneId` back to the grid if it's currently off-grid
  * — the actual correction `dungeon-remote.mjs`'s relayed `resnapToken`
  * action runs on whichever client executes it (always genuinely
@@ -400,83 +388,34 @@ function isAnimating(token) {
  * trusting caller-supplied coordinates, since a non-GM host's own request
  * only carries the ids that triggered it, not a position it's entitled to
  * dictate. A no-op if the scene/token can't be found or is already
- * grid-aligned. */
+ * grid-aligned.
+ *
+ * #87 (2026-10-01, round 3): reads `token._source`, not `token.x`/
+ * `token.y` -- see `sourcePosition`'s own doc comment above. This needs
+ * no animation-state check, polling, or deadline at all anymore: two
+ * earlier rounds this same session tried to infer "has the animation
+ * really finished" from `token.object.animationContexts` (first "is it
+ * currently empty", then "has it stayed empty and unchanged across two
+ * polls") and both still had a live-confirmed gap, because neither
+ * question is actually what this function needs answered -- `_source` IS
+ * the answer, directly, regardless of what the animation is doing. */
 export async function resnapTokenNow(sceneId, tokenId) {
-  // #87: a second call for a token that already has a correction pending
-  // must not start a parallel poll loop -- the live capture that found
-  // this bug showed 6+ overlapping resnap attempts for the same token
+  // A second call for a token that already has a correction pending must
+  // not race a parallel write -- the live capture that originally found
+  // this gap showed 6+ overlapping resnap attempts for the same token
   // within ~150ms (both the GM-direct and relayed paths reacting
-  // independently), despite this function's own prior doc comment
-  // claiming no guard was needed.
+  // independently).
   if (resnapInFlight.has(tokenId)) return;
   resnapInFlight.add(tokenId);
   try {
-    const deadline = Date.now() + RESNAP_MAX_WAIT_MS;
-    let scene = game.scenes.get(sceneId);
-    let token = scene?.tokens.find((t) => t.id === tokenId);
+    const scene = game.scenes.get(sceneId);
+    const token = scene?.tokens.find((t) => t.id === tokenId);
     if (!token) return;
-    // Fast path, unchanged from before #87: a token that was never seen
-    // animating at entry needs no polling at all -- every pre-#87 test's
-    // zero-added-delay expectation for the common already-settled case
-    // depends on this staying a synchronous, no-`await` branch.
-    if (isAnimating(token)) {
-      // Live-confirmed 2026-10-01 (round 2): once a token HAS been seen
-      // animating, `isAnimating(token)` reporting false on a later poll is
-      // NOT by itself proof `token.x`/`token.y` holds the real, settled
-      // destination -- caught live reading a position ~24% of the way
-      // through a still-in-progress slide, with `animationContexts`
-      // already empty at that exact instant. Whatever internal Foundry
-      // mechanism clears `animationContexts` can apparently do so slightly
-      // before the document's own x/y commits to its final value, a race
-      // inside Foundry's own pipeline. So once we've entered this polling
-      // path, "not animating" alone is not the settle signal -- require
-      // the position to also be UNCHANGED from the immediately preceding
-      // poll before trusting it enough to act on.
-      let lastX = token.x;
-      let lastY = token.y;
-      let stable = false;
-      while (!stable && Date.now() < deadline) {
-        await new Promise((resolve) => setTimeout(resolve, RESNAP_POLL_MS));
-        scene = game.scenes.get(sceneId);
-        token = scene?.tokens.find((t) => t.id === tokenId);
-        if (!token) return;
-        stable = !isAnimating(token) && token.x === lastX && token.y === lastY;
-        lastX = token.x;
-        lastY = token.y;
-      }
-      // Live-confirmed 2026-10-01 (round 1): if the deadline passes
-      // without ever observing a stable reading, `token.x`/`token.y` is --
-      // or very recently was -- a mid-flight, client-side interpolated
-      // position, not a committed resting point. Rounding and writing it
-      // back as a "correction" can only land BEHIND the follower's real
-      // in-flight destination, silently cancelling the slide -- caught
-      // live: a follower's real destination was a cell further down a
-      // hallway; a fast chain of real leader steps (each one under
-      // FOLLOW_DEBOUNCE_MS apart) kept retargeting this follower before
-      // each prior slide settled, so it was never stable long enough: the
-      // cap fired, read the mid-flight position, and snapped the follower
-      // back behind where it really was -- exactly what "stuck behind the
-      // door" looked like. So the deadline only ever means give up
-      // WITHOUT guessing -- bail silently rather than write anything.
-      // resnapDriftedTokens fires again on this token's own next real
-      // update regardless, so this isn't a permanent miss, just a skipped
-      // attempt until a cleaner one comes along.
-      if (!stable) {
-        console.warn(
-          `${MODULE_ID} | dungeon-follow: resnap deadline hit for ${tokenId} without a stable reading -- skipping rather than risk a mid-flight correction.`,
-        );
-        return;
-      }
-    }
-    // Either the fast path (never animating) or the polling path's own
-    // stable-read check just confirmed it's safe to trust this reading --
-    // either way, no `await` happens between that confirmation and this
-    // read/decision, so a new move starting in that exact gap can't get
-    // judged against a mid-flight reading.
     const gridSize = scene.grid?.size ?? 100;
-    const snappedX = Math.round(token.x / gridSize) * gridSize;
-    const snappedY = Math.round(token.y / gridSize) * gridSize;
-    if (token.x !== snappedX || token.y !== snappedY) {
+    const { x, y } = sourcePosition(token);
+    const snappedX = Math.round(x / gridSize) * gridSize;
+    const snappedY = Math.round(y / gridSize) * gridSize;
+    if (x !== snappedX || y !== snappedY) {
       await token.update({ x: snappedX, y: snappedY });
     }
   } finally {
@@ -505,11 +444,17 @@ export async function resnapTokenNow(sceneId, tokenId) {
  * for drift. Same GM-direct vs. host-relay split as `followLeaderIfDue`
  * (#65). The correction write is itself a real `updateToken` event, but
  * it's already grid-aligned by the time it lands, so it doesn't
- * re-trigger this function's own correction logic. (#87, 2026-09-30:
- * this hook's actual writes go through `resnapTokenNow`, which now
- * does need its own poll-before-correct and reentrancy guard -- a prior
- * version of this comment claimed neither was necessary; live evidence
- * disproved that.)
+ * re-trigger this function's own correction logic. This hook's own
+ * `tokenDoc.x`/`tokenDoc.y` read is only ever used as a cheap "should I
+ * even bother calling resnapTokenNow" gate -- `resnapTokenNow` itself
+ * (#87, 2026-10-01, round 3) always re-reads the token's own `_source`
+ * fresh regardless of what triggered it, so a stale/interpolated reading
+ * here can at worst cause one skipped or one unnecessary call, never a
+ * wrong correction. Needs its own reentrancy guard (`resnapInFlight`,
+ * live-confirmed 2026-09-30: 6+ overlapping resnap attempts for the same
+ * token within ~150ms, both the GM-direct and relayed paths reacting
+ * independently) -- a prior version of this comment claimed no guard was
+ * necessary; live evidence disproved that.
  *
  * Known limitation (tracked as a follow-up, not fixed here): this snaps
  * to the *nearest* grid cell, which isn't necessarily the cell this

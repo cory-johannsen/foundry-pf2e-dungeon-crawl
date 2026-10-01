@@ -56,6 +56,16 @@ function installFoundryStubs({
   };
 }
 
+// #87 (2026-10-01, round 3): `_source` models Foundry's own real
+// TokenDocument shape -- the committed, server-authoritative position,
+// distinct from the top-level `x`/`y` Foundry's animation pipeline
+// overwrites every rendered frame while a slide is in progress. Defaults
+// to matching `x`/`y` (the common "nothing is animating" case); pass
+// `sourceX`/`sourceY` explicitly to simulate a token whose real,
+// committed position differs from wherever its visual slide currently
+// looks like it is. `update()` commits to both, matching how a real
+// `token.update()` call immediately updates `_source` regardless of how
+// long the resulting visual animation takes to catch up.
 function makeToken({
   id,
   x,
@@ -63,7 +73,8 @@ function makeToken({
   actorId,
   width = 1,
   height = 1,
-  animationContexts = new Map(),
+  sourceX = x,
+  sourceY = y,
 }) {
   const token = {
     id,
@@ -72,9 +83,12 @@ function makeToken({
     actor: { id: actorId },
     width,
     height,
-    object: { animationContexts },
+    _source: { x: sourceX, y: sourceY },
   };
-  token.update = vi.fn(async (changes) => Object.assign(token, changes));
+  token.update = vi.fn(async (changes) => {
+    Object.assign(token, changes);
+    Object.assign(token._source, changes);
+  });
   return token;
 }
 
@@ -603,15 +617,15 @@ describe("runFollowMoveNow (#65)", () => {
     expect(follower.y % GRID).toBe(0);
   });
 
-  // Final review (2026-10-01): this inline snap had the exact same bug
-  // shape as resnapTokenNow's own cap-expiry bug (live-confirmed the more
-  // likely dominant cause of "followers stuck behind the door," since it
-  // runs every single follow-cycle a follower is still animating, not just
-  // once per 10s timeout) -- while animating, token.x/token.y is a
-  // mid-flight, client-interpolated position, not a committed resting
-  // point, so rounding and writing it back here can only land behind the
-  // follower's real in-flight destination and cancel the slide.
-  it("does not snap a follower's position while it's still mid-animation from its own prior move (#87)", async () => {
+  // #87 (2026-10-01, round 3): this inline snap reads the follower's own
+  // committed `_source` position, not its possibly mid-animation `x`/`y`
+  // -- Foundry's animation pipeline overwrites `x`/`y` every rendered
+  // frame while a slide is still playing out, but `_source` is the
+  // sealed, real value animation never touches. Two earlier fix rounds
+  // this same session tried to infer "is it safe to read x/y yet" from
+  // animation-state polling and both still had live-confirmed gaps;
+  // reading `_source` sidesteps the whole question.
+  it("reads the follower's own committed _source position, not a possibly mid-animation x/y (#87)", async () => {
     vi.useFakeTimers();
     const leader = makeToken({
       id: "t-leader",
@@ -619,12 +633,18 @@ describe("runFollowMoveNow (#65)", () => {
       y: GRID,
       actorId: LEADER_ACTOR_ID,
     });
+    // _source already at the leader's own cell (grid-exact, chebyshev 0
+    // -- definitely "already-near", no move needed) -- but the visual
+    // x/y is still some weird mid-flight-looking value from an earlier,
+    // not-yet-visually-settled animation. Nothing about that stale
+    // visual position should cause a "correction" write.
     const follower = makeToken({
       id: "t-follower-animating",
-      x: 5.5 * GRID,
-      y: 1.5 * GRID,
+      x: 5.73 * GRID,
+      y: 1.2 * GRID,
+      sourceX: 5 * GRID,
+      sourceY: GRID,
       actorId: FOLLOWER_ACTOR_ID,
-      animationContexts: new Map([["move", {}]]),
     });
     const scene = makeScene({ tokens: [leader, follower] });
 
@@ -878,127 +898,53 @@ describe("resnapTokenNow (#141)", () => {
     expect(() => resnapTokenNow(SCENE_ID, "nonexistent")).not.toThrow();
   });
 
-  it("defers correcting a token while it's still mid-animation, then corrects once settled (#87)", async () => {
-    vi.useFakeTimers();
-    const animationContexts = new Map([["move", {}]]);
+  // #87 (2026-10-01, round 3 -- the real fix): reads the token's own
+  // committed `_source`, never its top-level `x`/`y` -- Foundry's
+  // animation pipeline overwrites `x`/`y` every rendered frame while a
+  // slide is in progress (confirmed live against Foundry v14's own
+  // client source, TokenDocument's #animateFrame/#completeAnimation),
+  // but `_source` is the sealed, server-committed value animation never
+  // touches. Two earlier rounds this same session tried to infer "has
+  // the animation really finished" from `token.object.animationContexts`
+  // polling (first "is it currently empty", then "has it stayed empty
+  // and unchanged across two polls") and both still had a live-confirmed
+  // gap, because neither question is what this function actually needs
+  // answered -- `_source` is the direct answer, unconditionally.
+  it("reads the token's committed _source position, not a possibly mid-animation x/y", async () => {
     const token = makeToken({
-      id: "t-animating",
-      x: 5.49 * GRID,
-      y: 3.49 * GRID,
+      id: "t-mid-animation",
+      x: 5.73 * GRID,
+      y: 1.2 * GRID,
+      sourceX: 5 * GRID,
+      sourceY: GRID,
       actorId: "some-actor",
-      animationContexts,
     });
     const scene = makeScene({ tokens: [token] });
     installFoundryStubs();
     game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
 
-    const promise = resnapTokenNow(SCENE_ID, "t-animating");
+    await resnapTokenNow(SCENE_ID, "t-mid-animation");
 
-    // Still animating -- no correction yet, even though the position is
-    // currently off-grid (exactly the #87 race: a mid-flight fractional
-    // position must never be judged as "drifted").
     expect(token.update).not.toHaveBeenCalled();
+  });
 
-    // The animation genuinely finishes.
-    animationContexts.clear();
-    await vi.advanceTimersByTimeAsync(100);
-    await promise;
+  it("corrects using the committed _source position even while x/y still shows a different, mid-animation value", async () => {
+    const token = makeToken({
+      id: "t-drifted-source",
+      x: 2 * GRID,
+      y: 4 * GRID,
+      sourceX: 5.49 * GRID,
+      sourceY: 3.49 * GRID,
+      actorId: "some-actor",
+    });
+    const scene = makeScene({ tokens: [token] });
+    installFoundryStubs();
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    await resnapTokenNow(SCENE_ID, "t-drifted-source");
 
     expect(token.update).toHaveBeenCalledTimes(1);
     expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
-    vi.useRealTimers();
-  });
-
-  // Live-confirmed 2026-10-01 (round 2): `isAnimating` reporting false does
-  // NOT by itself mean the position has finished settling -- caught live
-  // reading a token's position ~24% of the way through a still-in-progress
-  // slide, with animationContexts already empty at that exact instant.
-  // This simulates that exact race: animationContexts clears on the FIRST
-  // poll, but the position is still visibly in motion (changes again on
-  // the SECOND poll) before it finally comes to rest on the third.
-  it("does not trust a position the instant animationContexts clears if it's still changing between polls (#87)", async () => {
-    vi.useFakeTimers();
-    const animationContexts = new Map([["move", {}]]);
-    const token = makeToken({
-      id: "t-racing-settle",
-      x: 5.24 * GRID,
-      y: 5.49 * GRID,
-      actorId: "some-actor",
-      animationContexts,
-    });
-    const scene = makeScene({ tokens: [token] });
-    installFoundryStubs();
-    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
-
-    const promise = resnapTokenNow(SCENE_ID, "t-racing-settle");
-
-    // animationContexts clears right as the position is still mid-flight,
-    // catching up toward its real destination -- not yet trustworthy.
-    animationContexts.clear();
-    token.x = 6.1 * GRID;
-    token.y = 7.3 * GRID;
-    await vi.advanceTimersByTimeAsync(100);
-    expect(token.update).not.toHaveBeenCalled();
-
-    // Still interpolating toward its real resting point -- changed again
-    // since the last poll, so still not trustworthy.
-    token.x = 6.49 * GRID;
-    token.y = 7.49 * GRID;
-    await vi.advanceTimersByTimeAsync(100);
-    expect(token.update).not.toHaveBeenCalled();
-
-    // Holds steady across two consecutive polls now -- only this is safe
-    // to correct from.
-    await vi.advanceTimersByTimeAsync(100);
-    await promise;
-
-    expect(token.update).toHaveBeenCalledTimes(1);
-    expect(token.update).toHaveBeenCalledWith({ x: 6 * GRID, y: 7 * GRID });
-    vi.useRealTimers();
-  });
-
-  // Live-confirmed 2026-10-01: correcting anyway on cap-expiry was itself
-  // the bug -- while still animating, token.x/token.y is a mid-flight,
-  // client-interpolated position, not a committed resting point, so
-  // writing a "correction" from that reading can only land behind the
-  // token's real in-flight destination, overwriting legitimate newer
-  // progress. Live capture: a follower's real destination was a cell
-  // further down a hallway; a fast chain of real leader steps kept
-  // retargeting it before each prior slide settled, so animationContexts
-  // never emptied -- the cap fired, read the mid-flight position, and
-  // snapped the follower back there -- exactly the "stuck behind the
-  // door" symptom. The deadline must mean "give up without guessing," not
-  // "guess anyway."
-  it("does not correct on cap-expiry while still animating -- bails rather than risk a mid-flight write (#87)", async () => {
-    vi.useFakeTimers();
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const animationContexts = new Map([["move", {}]]);
-    const token = makeToken({
-      id: "t-stuck-animating",
-      x: 5.49 * GRID,
-      y: 3.49 * GRID,
-      actorId: "some-actor",
-      animationContexts,
-    });
-    const scene = makeScene({ tokens: [token] });
-    installFoundryStubs();
-    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
-
-    const promise = resnapTokenNow(SCENE_ID, "t-stuck-animating");
-    // animationContexts is deliberately never cleared -- simulates the
-    // defensive cap's own fallback path, not the normal settle path.
-    await vi.advanceTimersByTimeAsync(10100);
-    await promise;
-
-    // Proves the cap branch was genuinely reached, not that the function
-    // just silently never wrote anything for an unrelated reason.
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("resnap deadline hit for t-stuck-animating"),
-    );
-    warnSpy.mockRestore();
-
-    expect(token.update).not.toHaveBeenCalled();
-    vi.useRealTimers();
   });
 
   // Final review (2026-09-30): the original version of this test used
@@ -1012,14 +958,11 @@ describe("resnapTokenNow (#141)", () => {
   // aligned" and both call update() before either write lands, which is
   // exactly the race the guard exists to prevent.
   it("does not start a second correction for a token that already has one pending (#87)", async () => {
-    vi.useFakeTimers();
-    const animationContexts = new Map([["move", {}]]);
     const token = makeToken({
       id: "t-reentrant",
       x: 5.49 * GRID,
       y: 3.49 * GRID,
       actorId: "some-actor",
-      animationContexts,
     });
     let releaseUpdate;
     const updateGate = new Promise((resolve) => {
@@ -1028,6 +971,7 @@ describe("resnapTokenNow (#141)", () => {
     token.update = vi.fn(async (changes) => {
       await updateGate;
       Object.assign(token, changes);
+      Object.assign(token._source, changes);
     });
     const scene = makeScene({ tokens: [token] });
     installFoundryStubs();
@@ -1036,13 +980,10 @@ describe("resnapTokenNow (#141)", () => {
     const first = resnapTokenNow(SCENE_ID, "t-reentrant");
     const second = resnapTokenNow(SCENE_ID, "t-reentrant");
 
-    animationContexts.clear();
-    await vi.advanceTimersByTimeAsync(100);
     releaseUpdate();
     await Promise.all([first, second]);
 
     expect(token.update).toHaveBeenCalledTimes(1);
-    vi.useRealTimers();
   });
 
   it("releases its guard once a correction finishes, so a later call for the same token id can still run (#87)", async () => {
@@ -1068,69 +1009,48 @@ describe("resnapTokenNow (#141)", () => {
     expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
   });
 
-  it("corrects two different animating tokens independently, not serialized by each other (#87)", async () => {
-    vi.useFakeTimers();
-    const contextsA = new Map([["move", {}]]);
-    const contextsB = new Map([["move", {}]]);
+  it("the reentrancy guard is keyed per-token -- a pending correction for one token does not block a different token", async () => {
     const tokenA = makeToken({
       id: "t-a",
       x: 5.49 * GRID,
       y: 0,
       actorId: "actor-a",
-      animationContexts: contextsA,
     });
     const tokenB = makeToken({
       id: "t-b",
       x: 2.49 * GRID,
       y: 0,
       actorId: "actor-b",
-      animationContexts: contextsB,
+    });
+    let releaseA;
+    const gateA = new Promise((resolve) => {
+      releaseA = resolve;
+    });
+    tokenA.update = vi.fn(async (changes) => {
+      await gateA;
+      Object.assign(tokenA, changes);
+      Object.assign(tokenA._source, changes);
     });
     const scene = makeScene({ tokens: [tokenA, tokenB] });
     installFoundryStubs();
     game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
 
     const promiseA = resnapTokenNow(SCENE_ID, "t-a");
-    const promiseB = resnapTokenNow(SCENE_ID, "t-b");
-
-    // B settles well before A -- must not wait on A's own guard entry.
-    contextsB.clear();
-    await vi.advanceTimersByTimeAsync(100);
-    await promiseB;
+    // B must settle on its own, without waiting on A's own still-pending
+    // (gated) write -- if B's call incorrectly shared A's guard entry,
+    // awaiting it here would hang forever, since A's own gate is only
+    // released after this await already completes.
+    await resnapTokenNow(SCENE_ID, "t-b");
     expect(tokenB.update).toHaveBeenCalledTimes(1);
-    expect(tokenA.update).not.toHaveBeenCalled();
+    // A's own write started (the guard let it proceed) but hasn't
+    // resolved yet -- its committed position is still the original,
+    // off-grid one.
+    expect(tokenA._source.x).toBe(5.49 * GRID);
 
-    contextsA.clear();
-    await vi.advanceTimersByTimeAsync(100);
+    releaseA();
     await promiseA;
     expect(tokenA.update).toHaveBeenCalledTimes(1);
-    vi.useRealTimers();
-  });
-
-  it("no-ops if the token is deleted from the scene while a correction is deferred (#87)", async () => {
-    vi.useFakeTimers();
-    const animationContexts = new Map([["move", {}]]);
-    const token = makeToken({
-      id: "t-deleted-mid-wait",
-      x: 5.49 * GRID,
-      y: 3.49 * GRID,
-      actorId: "some-actor",
-      animationContexts,
-    });
-    const scene = makeScene({ tokens: [token] });
-    installFoundryStubs();
-    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
-
-    const promise = resnapTokenNow(SCENE_ID, "t-deleted-mid-wait");
-
-    // The token is removed from the scene before the animation settles.
-    scene.tokens = [];
-    animationContexts.clear();
-    await vi.advanceTimersByTimeAsync(100);
-
-    await expect(promise).resolves.not.toThrow();
-    expect(token.update).not.toHaveBeenCalled();
-    vi.useRealTimers();
+    expect(tokenA._source.x).toBe(5 * GRID);
   });
 });
 
@@ -1271,29 +1191,32 @@ describe("moveFollowersToward + resnapDriftedTokens interaction (#87)", () => {
     vi.useRealTimers();
   });
 
-  // The actual live-reported bug (#87, 2026-09-30): resnapDriftedTokens
-  // used to read a follower's position WHILE its own legitimate
-  // moveFollowersToward move was still mid-animation, round the
-  // still-fractional position back toward the follower's STARTING cell,
-  // and silently cancel the move -- confirmed live via a monkeypatched
-  // TokenDocument.update() call-stack capture (see #87's comment
-  // history). This produced the originally-reported symptom (two
-  // AI-controlled followers stacking on the same cell -- #181's own
-  // chain-following is what made it visible). Reproduced here at the
-  // single-follower level, since the race itself doesn't need a second
-  // follower to occur.
+  // The actual live-reported bug (#87, 2026-09-30, rounds 1-2): earlier
+  // fix attempts read a follower's position WHILE its own legitimate
+  // moveFollowersToward move was still mid-animation, rounded a stale or
+  // mid-flight position back toward (or behind) the follower's own real
+  // destination, and silently cancelled the move -- confirmed live via a
+  // monkeypatched TokenDocument.update() call-stack capture (see #87's
+  // comment history). This produced the originally-reported symptom (AI
+  // followers stacking/stuck behind a door -- #181's own chain-following
+  // is what made it visible). Reproduced here at the single-follower
+  // level, since the race itself doesn't need a second follower to occur.
+  //
+  // #87 round 3 (2026-10-01, the real fix): the follower's own committed
+  // `_source` is updated immediately by its own legitimate move (matching
+  // real Foundry: the document commits as soon as `update()` resolves,
+  // regardless of how long the resulting VISUAL slide takes to catch up)
+  // -- this mock leaves the top-level `x`/`y` only partially advanced
+  // (20% of the way), simulating that still-in-progress visual slide, to
+  // prove resnapDriftedTokens's own reactive correction reads `_source`,
+  // not the lagging visual position.
   it("does not let resnapDriftedTokens cancel a follower's own in-flight move", async () => {
     vi.useFakeTimers();
     const leader = makeToken({ id: "t-leader", x: 3 * GRID, y: 0, actorId: LEADER_ACTOR_ID });
     const follower = makeToken({ id: "t-f", x: 0, y: 0, actorId: "actor-f" });
-    // Simulates Foundry's own animated slide: the instant the real
-    // moveFollowersToward move is issued, animationContexts becomes
-    // non-empty and the position only partially advances toward the
-    // real destination (stays fractional/off-grid) -- the exact
-    // live-confirmed shape of the #87 race, not yet the final position.
     follower.update = vi.fn(async (changes) => {
-      follower.object.animationContexts.set("move", {});
       follower.__destination = { x: changes.x, y: changes.y };
+      Object.assign(follower._source, changes);
       follower.x = follower.x + (changes.x - follower.x) * 0.2;
       follower.y = follower.y + (changes.y - follower.y) * 0.2;
     });
@@ -1317,31 +1240,14 @@ describe("moveFollowersToward + resnapDriftedTokens interaction (#87)", () => {
     const destination = follower.__destination;
 
     // Simulate Foundry's updateToken hook firing reactively while the
-    // follower is still mid-flight -- exactly the moment the pre-fix
-    // code would round it back to the follower's STARTING cell and
-    // cancel its own legitimate move.
-    const resnapPromise = resnapDriftedTokens(follower, { x: follower.x, y: follower.y });
+    // follower is still visually mid-flight (x/y lagging) -- exactly the
+    // moment the pre-fix code would round the lagging position back and
+    // cancel the follower's own legitimate move. _source is already at
+    // the real destination, so this must be a genuine no-op.
+    await resnapDriftedTokens(follower, { x: follower.x, y: follower.y });
 
-    // Not reverted while still animating: no second update() call yet.
     expect(follower.update).toHaveBeenCalledTimes(1);
-
-    // The animation genuinely finishes: Foundry lands the token at its
-    // real destination and animationContexts empties.
-    follower.object.animationContexts.clear();
-    Object.assign(follower, destination);
-    // Two poll intervals: resnapTokenNow (2026-10-01, round 2) now
-    // requires two consecutive stable reads before trusting a position,
-    // not just one "not animating" observation -- the first poll here
-    // sees the position change from its own pre-settle entry reading, the
-    // second confirms it's held steady.
-    await vi.advanceTimersByTimeAsync(250);
-    await resnapPromise;
-
-    // Still only the one legitimate update() call -- the deferred
-    // resnap found the token already grid-aligned at its real
-    // destination and correctly left it alone.
-    expect(follower.update).toHaveBeenCalledTimes(1);
-    expect(follower.x).toBe(destination.x);
-    expect(follower.y).toBe(destination.y);
+    expect(follower._source.x).toBe(destination.x);
+    expect(follower._source.y).toBe(destination.y);
   });
 });
