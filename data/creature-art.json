@@ -22478,5 +22478,269 @@
     "name": "Umbral Drake",
     "level": 3,
     "art": "umbral-drake-lob.webp"
+  },
+  {
+    "id": "smoldering_nightmare_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "2wV0Yv8uQpmRs2E5",
+    "name": "Smoldering Nightmare",
+    "level": 4,
+    "art": "smoldering-nightmare-lob.webp"
+  },
+  {
+    "id": "ninth_army_burglar_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "4XlfENtBfF9GB2fy",
+    "name": "Ninth Army Burglar",
+    "level": 4,
+    "art": "ninth-army-burglar-lob.webp"
+  },
+  {
+    "id": "bergworm_tyrant_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "8Sea3unOcDH6dWJI",
+    "name": "Bergworm Tyrant",
+    "level": 5,
+    "art": "bergworm-tyrant-lob.webp"
+  },
+  {
+    "id": "pup_of_tindalos_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "9FgyBdbHxwMYdGAt",
+    "name": "Pup of Tindalos",
+    "level": 3,
+    "art": "pup-of-tindalos-lob.webp"
+  },
+  {
+    "id": "poltergeist_holy_hand_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "Bpprw07yfbxqLdBp",
+    "name": "Poltergeist (Holy Hand)",
+    "level": 5,
+    "art": "poltergeist-holy-hand-lob.webp"
+  },
+  {
+    "id": "ninth_army_soldier_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "FfhpuXIxjhWGVnv2",
+    "name": "Ninth Army Soldier",
+    "level": 5,
+    "art": "ninth-army-soldier-lob.webp"
+  },
+  {
+    "id": "aspis_oppressor_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "GKF2zLJ0VLy1IBML",
+    "name": "Aspis Oppressor",
+    "level": 5,
+    "art": "aspis-oppressor-lob.webp"
+  },
+  {
+    "id": "rampaging_roast_medium_rare_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "IHuTNi8FQt54OpPj",
+    "name": "Rampaging Roast (Medium Rare)",
+    "level": 3,
+    "art": "rampaging-roast-medium-rare-lob.webp"
+  },
+  {
+    "id": "duergar_crusher_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "MK2YstG6JpFwI9sB",
+    "name": "Duergar Crusher",
+    "level": 5,
+    "art": "duergar-crusher-lob.webp"
+  },
+  {
+    "id": "shadow_guardian_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "WB4DMTHCIEBOiitp",
+    "name": "Shadow Guardian",
+    "level": 4,
+    "art": "shadow-guardian-lob.webp"
+  },
+  {
+    "id": "peryton_rifle_mutation_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "WpdOwEpoWwxrBUpF",
+    "name": "Peryton (Rifle Mutation)",
+    "level": 4,
+    "art": "peryton-rifle-mutation-lob.webp"
+  },
+  {
+    "id": "raseri_kanton_skeleton_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "fiArvThMW2QanZGk",
+    "name": "Raseri Kanton Skeleton",
+    "level": 4,
+    "art": "raseri-kanton-skeleton-lob.webp"
+  },
+  {
+    "id": "sandswept_statue_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "kTsUEbM3JkhT5VZM",
+    "name": "Sandswept Statue",
+    "level": 3,
+    "art": "sandswept-statue-lob.webp"
+  },
+  {
+    "id": "eloise_s_ghost_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "plYMMhlfO6OVrtEo",
+    "name": "Eloise's Ghost (1-2)",
+    "level": 4,
+    "art": "eloise-s-ghost-lob.webp"
+  },
+  {
+    "id": "eloise_s_ghost_3_4_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "zhtkM2GPvDNw3bY1",
+    "name": "Eloise's Ghost (3-4)",
+    "level": 6,
+    "art": "eloise-s-ghost-lob.webp"
+  },
+  {
+    "id": "ninth_army_war_mage_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "qRX3Gax6xC3yIqyt",
+    "name": "Ninth Army War Mage",
+    "level": 3,
+    "art": "ninth-army-war-mage-lob.webp"
+  },
+  {
+    "id": "peryton_arctic_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "wqJDAf89wSAdG0qy",
+    "name": "Peryton (Arctic)",
+    "level": 4,
+    "art": "peryton-arctic-lob.webp"
+  },
+  {
+    "id": "aspis_bulwark_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "zMVQXCDhP7yeuQg3",
+    "name": "Aspis Bulwark",
+    "level": 5,
+    "art": "aspis-bulwark-lob.webp"
+  },
+  {
+    "id": "tascio_raetullus_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "AuU3BGEz05Q180yI",
+    "name": "Tascio Raetullus (3-4)",
+    "level": 4,
+    "art": "tascio-raetullus-lob.webp"
+  },
+  {
+    "id": "tascio_raetullus_5_6_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "g4hfpuGdtTDq7KZw",
+    "name": "Tascio Raetullus (5-6)",
+    "level": 6,
+    "art": "tascio-raetullus-lob.webp"
+  },
+  {
+    "id": "thundering_wihsaak_heretical_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "BcSac9voqpoDjMTy",
+    "name": "Thundering Wihsaak (Heretical)",
+    "level": 6,
+    "art": "thundering-wihsaak-heretical-lob.webp"
+  },
+  {
+    "id": "shobhad_hunter_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "Q2a9EA1zQB8acuiF",
+    "name": "Shobhad Hunter (5-6)",
+    "level": 4,
+    "art": "shobhad-hunter-lob.webp"
+  },
+  {
+    "id": "shobhad_hunter_7_8_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "EB00f6ADElWInuix",
+    "name": "Shobhad Hunter (7-8)",
+    "level": 6,
+    "art": "shobhad-hunter-lob.webp"
+  },
+  {
+    "id": "onyx_alliance_officer_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "OVsp8tvdybZbbszm",
+    "name": "Onyx Alliance Officer",
+    "level": 5,
+    "art": "onyx-alliance-officer-lob.webp"
+  },
+  {
+    "id": "thundering_wihsaak_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "SJoWqX2P5LhJsbYA",
+    "name": "Thundering Wihsaak",
+    "level": 6,
+    "art": "thundering-wihsaak-lob.webp"
+  },
+  {
+    "id": "cole_farsen_gang_leader_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "WxN19w3aO5MpVY6Z",
+    "name": "Cole Farsen, Gang Leader",
+    "level": 7,
+    "art": "cole-farsen-gang-leader-lob.webp"
+  },
+  {
+    "id": "tyrannical_interrogator_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "g3UYRJQCwnjdvCm9",
+    "name": "Tyrannical Interrogator",
+    "level": 5,
+    "art": "tyrannical-interrogator-lob.webp"
+  },
+  {
+    "id": "thundering_wihsaak_arctic_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "gzMCaAr2Bd2gbhrF",
+    "name": "Thundering Wihsaak (Arctic)",
+    "level": 6,
+    "art": "thundering-wihsaak-arctic-lob.webp"
+  },
+  {
+    "id": "thundering_wihsaak_rifle_mutation_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "hGu2JDWOAHHMLYeH",
+    "name": "Thundering Wihsaak (Rifle Mutation)",
+    "level": 6,
+    "art": "thundering-wihsaak-rifle-mutation-lob.webp"
+  },
+  {
+    "id": "reckless_akitonian_scientist_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "iev4EOtchd0hp9sh",
+    "name": "Reckless Akitonian Scientist",
+    "level": 6,
+    "art": "reckless-akitonian-scientist-lob.webp"
+  },
+  {
+    "id": "ninth_army_fence_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "njJCv6ItwIzwO3Xj",
+    "name": "Ninth Army Fence",
+    "level": 5,
+    "art": "ninth-army-fence-lob.webp"
+  },
+  {
+    "id": "cole_farsen_advisor_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "qd6yO0nBdmoz8Fl2",
+    "name": "Cole Farsen, Advisor",
+    "level": 5,
+    "art": "cole-farsen-advisor-lob.webp"
+  },
+  {
+    "id": "thick_pelagastr_tail_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "tVsrWl9kfVIGG5OW",
+    "name": "Thick Pelagastr Tail",
+    "level": 5,
+    "art": "thick-pelagastr-tail-lob.webp"
   }
 ]
