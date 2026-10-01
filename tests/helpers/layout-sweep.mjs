@@ -17,7 +17,7 @@ export function rectsOverlap(a, b) {
 /** `restRoom` (default true) mirrors dungeon-app.mjs, which splices the mid-dungeon
  * rest room in before attachHiddenPaths. The #415 Chunk 1-3 baselines (and the
  * default-geometry digest test) were measured without it, so they pass false. */
-export function buildSweepLayout(i, { restRoom = true, layoutVersion = 1 } = {}) {
+export function buildSweepLayout(i, { restRoom = true, layoutVersion = 1, incomingFace } = {}) {
   const seed = `sweep-${i}`;
   const roomCount = 6 + (i % 15);
   const generated = buildRoomGraph({ seed, roomCount });
@@ -40,7 +40,12 @@ export function buildSweepLayout(i, { restRoom = true, layoutVersion = 1 } = {})
     id, pos, occ,
     new Set([...parentRoomIdsFor(layoutEdges, id), ...(hiddenIncomingByRoomId[id] ?? [])]),
   )]));
-  return { seed, rooms, edges, hiddenEdges: hiddenEdges ?? {}, hiddenRooms: [...(hiddenRooms ?? [])], layoutEdges, hiddenIncomingByRoomId, pos, occ, rect, incFace };
+  const layout = { seed, rooms, edges, hiddenEdges: hiddenEdges ?? {}, hiddenRooms: [...(hiddenRooms ?? [])], layoutEdges, hiddenIncomingByRoomId, pos, occ, rect, incFace };
+  // #427: tests may force the incoming face (e.g. 'west' for every room) to measure that geometry.
+  if (incomingFace) {
+    for (const id of ids) layout.incFace[id] = incomingFace(id, layout);
+  }
+  return layout;
 }
 
 /** Today's selection: face by child index (dungeon-scene.mjs ~1219). */
