@@ -20046,5 +20046,101 @@
     "name": "Awakened Giant Chameleon",
     "level": 3,
     "art": "awakened-giant-chameleon-lob.webp"
+  },
+  {
+    "id": "famished_mimic_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "9X3qkp1qsii5LFQP",
+    "name": "Famished Mimic",
+    "level": 3,
+    "art": "famished-mimic-lob.webp"
+  },
+  {
+    "id": "greeleep_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "A6zDTtZ6fLBLPmCP",
+    "name": "Greeleep (3-4)",
+    "level": 3,
+    "art": "greeleep-lob.webp"
+  },
+  {
+    "id": "greeleep_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "X7YcO5G0hpDP46EW",
+    "name": "Greeleep (5-6)",
+    "level": 5,
+    "art": "greeleep-lob.webp"
+  },
+  {
+    "id": "smoldering_moss_monster_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "E8mFpCpTrhiBfYcp",
+    "name": "Smoldering Moss Monster",
+    "level": 3,
+    "art": "smoldering-moss-monster-lob.webp"
+  },
+  {
+    "id": "desiccated_giant_crawling_hand_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "GPEyzpKkfrZIIF9L",
+    "name": "Desiccated Giant Crawling Hand",
+    "level": 3,
+    "art": "desiccated-giant-crawling-hand-lob.webp"
+  },
+  {
+    "id": "silaqui_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "rFRbYNAH3LXRXXrS",
+    "name": "Silaqui (3-4)",
+    "level": 3,
+    "art": "silaqui-lob.webp"
+  },
+  {
+    "id": "silaqui_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "SgRcBE1CNLlGXbwz",
+    "name": "Silaqui (5-6)",
+    "level": 5,
+    "art": "silaqui-lob.webp"
+  },
+  {
+    "id": "solvatar_caryg_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "aQqV0cBCyPuMoNAs",
+    "name": "Solvatar Caryg",
+    "level": 3,
+    "art": "solvatar-caryg-lob.webp"
+  },
+  {
+    "id": "corrupted_wildfire_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "fSeiGTAcD0mVUz5w",
+    "name": "Corrupted Wildfire (3-4)",
+    "level": 3,
+    "art": "corrupted-wildfire-lob.webp"
+  },
+  {
+    "id": "corrupted_wildfire_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "c7ppBFpsmLFP1YD5",
+    "name": "Corrupted Wildfire (5-6)",
+    "level": 5,
+    "art": "corrupted-wildfire-lob.webp"
+  },
+  {
+    "id": "planar_nixie_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "i3mgIwXZeJxwFWNI",
+    "name": "Planar Nixie",
+    "level": 3,
+    "art": "planar-nixie-lob.webp"
+  },
+  {
+    "id": "daughter_of_cocytus_tough_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "iryp7aFx7CUaIksJ",
+    "name": "Daughter of Cocytus Tough",
+    "level": 3,
+    "art": "daughter-of-cocytus-tough-lob.webp"
   }
 ]
