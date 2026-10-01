@@ -21086,5 +21086,101 @@
     "name": "Branwaen",
     "level": 1,
     "art": "branwaen-lob.webp"
+  },
+  {
+    "id": "ghast_heretical_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "3eowuKJaQ99K8Ofp",
+    "name": "Ghast (Heretical)",
+    "level": 2,
+    "art": "ghast-heretical-lob.webp"
+  },
+  {
+    "id": "animated_cookware_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "9FB0dIfsZSk6bdKt",
+    "name": "Animated Cookware",
+    "level": 2,
+    "art": "animated-cookware-lob.webp"
+  },
+  {
+    "id": "shrouded_bloodseeker_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "9auIrnhXBCHnO5Ww",
+    "name": "Shrouded Bloodseeker",
+    "level": 1,
+    "art": "shrouded-bloodseeker-lob.webp"
+  },
+  {
+    "id": "smilglen_daet_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "ChuQ39tv0plbsfVJ",
+    "name": "Smilglen Daet",
+    "level": 1,
+    "art": "smilglen-daet-lob.webp"
+  },
+  {
+    "id": "animated_full_plate_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "DEfeDmBh7lR7c9W8",
+    "name": "Animated Full Plate (PFS 3-99)",
+    "level": 2,
+    "art": "animated-full-plate-lob.webp"
+  },
+  {
+    "id": "vaggas_the_fanatic_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "KSKDACF4qh3HJTDo",
+    "name": "Vaggas the Fanatic",
+    "level": 1,
+    "art": "vaggas-the-fanatic-lob.webp"
+  },
+  {
+    "id": "uncle_jeb_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "qnu2pwoPe5Hh73vB",
+    "name": "Uncle Jeb (1-2)",
+    "level": 1,
+    "art": "uncle-jeb-lob.webp"
+  },
+  {
+    "id": "uncle_jeb_3_4_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "MQMfOX5h2OgJrhm6",
+    "name": "Uncle Jeb (3-4)",
+    "level": 3,
+    "art": "uncle-jeb-lob.webp"
+  },
+  {
+    "id": "arabuk_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "POFH4BcrEF9wxwp2",
+    "name": "Young Arabuk",
+    "level": 1,
+    "art": "arabuk-lob.webp"
+  },
+  {
+    "id": "arabuk_rthm0_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "RTHM0lrmzvUskBMy",
+    "name": "Arabuk",
+    "level": 5,
+    "art": "arabuk-lob.webp"
+  },
+  {
+    "id": "ghast_arctic_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "uJe5OEPDuvIG6eg6",
+    "name": "Ghast (Arctic)",
+    "level": 2,
+    "art": "ghast-arctic-lob.webp"
+  },
+  {
+    "id": "half_formed_abrikandilu_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "x6uXLDuFimMuvz3w",
+    "name": "Half-Formed Abrikandilu",
+    "level": 2,
+    "art": "half-formed-abrikandilu-lob.webp"
   }
 ]
