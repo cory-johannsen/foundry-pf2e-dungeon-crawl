@@ -22910,5 +22910,69 @@
     "name": "Horrid Nightmare",
     "level": 8,
     "art": "horrid-nightmare-lob.webp"
+  },
+  {
+    "id": "sparkles_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "SkV5zYJgu7hdpZE0",
+    "name": "Sparkles (11-12)",
+    "level": 9,
+    "art": "sparkles-lob.webp"
+  },
+  {
+    "id": "sparkles_9_10_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "8CEKF7wq9qZzmveH",
+    "name": "Sparkles (9-10)",
+    "level": 9,
+    "art": "sparkles-lob.webp"
+  },
+  {
+    "id": "onyx_alliance_commander_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "JXWHVfaSm3eHIb5v",
+    "name": "Onyx Alliance Commander",
+    "level": 7,
+    "art": "onyx-alliance-commander-lob.webp"
+  },
+  {
+    "id": "arisept_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "gtcISL1zMhQ0mv5g",
+    "name": "Arisept (7-8)",
+    "level": 8,
+    "art": "arisept-lob.webp"
+  },
+  {
+    "id": "arisept_9_10_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "LG2pZMbLXZKtcWZh",
+    "name": "Arisept (9-10)",
+    "level": 10,
+    "art": "arisept-lob.webp"
+  },
+  {
+    "id": "marcien_blakros_shadow_double_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "PqawYWEK0iqvcBZj",
+    "name": "Marcien Blakros (7-8) (Shadow Double)",
+    "level": 8,
+    "art": "marcien-blakros-shadow-double-lob.webp"
+  },
+  {
+    "id": "marcien_blakros_9_10_shadow_double_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "xVmDwoBxjKyCihYz",
+    "name": "Marcien Blakros (9-10) (Shadow Double)",
+    "level": 10,
+    "art": "marcien-blakros-shadow-double-lob.webp"
+  },
+  {
+    "id": "languid_isqulug_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "zIMgoLwuJVMYxqeF",
+    "name": "Languid Isqulug",
+    "level": 10,
+    "art": "languid-isqulug-lob.webp"
   }
 ]
