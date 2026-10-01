@@ -18894,5 +18894,149 @@
     "name": "Flaming Skull Skeletal Champion",
     "level": 2,
     "art": "flaming-skull-skeletal-champion-lob.webp"
+  },
+  {
+    "id": "storm_warrior_priest_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "6rjkzfJcwGUVq8Uo",
+    "name": "Storm Warrior-Priest",
+    "level": 2,
+    "art": "storm-warrior-priest-lob.webp"
+  },
+  {
+    "id": "ahksiva_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "86JAsGyUAfSviibC",
+    "name": "Ahksiva (1-2)",
+    "level": 3,
+    "art": "ahksiva-lob.webp"
+  },
+  {
+    "id": "ahksiva_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "pPpc1IevAeLYHZsh",
+    "name": "Ahksiva (3-4)",
+    "level": 5,
+    "art": "ahksiva-lob.webp"
+  },
+  {
+    "id": "barralbus_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "KR3t3QnVESdhkYr2",
+    "name": "Barralbus (1-2)",
+    "level": 3,
+    "art": "barralbus-lob.webp"
+  },
+  {
+    "id": "barralbus_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "8q3pSr4OLkcIDMIH",
+    "name": "Barralbus (3-4)",
+    "level": 5,
+    "art": "barralbus-lob.webp"
+  },
+  {
+    "id": "skeletal_mount_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "AKNY8155nYQ1WsmG",
+    "name": "Skeletal Mount",
+    "level": 2,
+    "art": "skeletal-mount-lob.webp"
+  },
+  {
+    "id": "ogre_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "DsEg9sT7jCcsuEDI",
+    "name": "Ogre",
+    "level": 2,
+    "art": "ogre-lob.webp"
+  },
+  {
+    "id": "skeleton_captain_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "IcbDCGnefdowfQE0",
+    "name": "Skeleton Captain",
+    "level": 2,
+    "art": "skeleton-captain-lob.webp"
+  },
+  {
+    "id": "offended_high_roller_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "NhMS6b3W6gXefijq",
+    "name": "Offended High Roller",
+    "level": 2,
+    "art": "offended-high-roller-lob.webp"
+  },
+  {
+    "id": "ralthiss_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "awImEAjEPe1LOY8m",
+    "name": "Ralthiss (1-2)",
+    "level": 2,
+    "art": "ralthiss-lob.webp"
+  },
+  {
+    "id": "ralthiss_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "Tnq5pjDMMSmPkBtB",
+    "name": "Ralthiss (3-4)",
+    "level": 4,
+    "art": "ralthiss-lob.webp"
+  },
+  {
+    "id": "reast_mycer_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "YtR25uDQSkKQMoaW",
+    "name": "Reast Mycer (1-2)",
+    "level": 2,
+    "art": "reast-mycer-lob.webp"
+  },
+  {
+    "id": "reast_mycer_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "hNAN6bqWxFKjxR4Q",
+    "name": "Reast Mycer (3-4)",
+    "level": 4,
+    "art": "reast-mycer-lob.webp"
+  },
+  {
+    "id": "seaborn_captain_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "ff0j2iOsGGONwOVw",
+    "name": "Seaborn Captain",
+    "level": 2,
+    "art": "seaborn-captain-lob.webp"
+  },
+  {
+    "id": "blue_streak_mage_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "mUWCqhhcmEHsSjKo",
+    "name": "Blue Streak Mage (5-6)",
+    "level": 3,
+    "art": "blue-streak-mage-lob.webp"
+  },
+  {
+    "id": "blue_streak_mage_7_8_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "oHbuqmMgS8PutzMZ",
+    "name": "Blue Streak Mage (7-8)",
+    "level": 5,
+    "art": "blue-streak-mage-lob.webp"
+  },
+  {
+    "id": "mummy_brute_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "oEHGUzWB0IH26h7y",
+    "name": "Mummy Brute",
+    "level": 2,
+    "art": "mummy-brute-lob.webp"
+  },
+  {
+    "id": "vigilant_guard_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "uwAyhK6sEoOyoR96",
+    "name": "Vigilant Guard",
+    "level": 2,
+    "art": "vigilant-guard-lob.webp"
   }
 ]
