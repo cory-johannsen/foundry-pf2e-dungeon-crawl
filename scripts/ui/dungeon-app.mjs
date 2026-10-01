@@ -51,7 +51,7 @@ import {
   unpauseIfGmLessRun,
 } from "../dungeon-combat.mjs";
 import { getGenerator } from "../generator-registry.mjs";
-import { computeRanks, computeColumns, parentRoomIdsFor, incomingFaceFor } from "../dungeon-layout.mjs";
+import { computeRanks, computeColumns, parentRoomIdsFor, incomingFaceFor, pruneConflictingShortcuts } from "../dungeon-layout.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -497,7 +497,7 @@ export async function startDungeonRun({
     seed: state.seed,
     roomCount,
   });
-  const { hiddenRooms, hiddenEdges, layoutEdges, hiddenIncomingByRoomId } =
+  const { hiddenRooms, hiddenEdges: attachedHiddenEdges, layoutEdges, hiddenIncomingByRoomId: attachedHiddenIncoming } =
     getGenerator().attachHiddenPaths({
       rooms, edges, seed: state.seed,
       // #93 post-merge fix (Task 3 addendum): a revealed detour room needs
@@ -512,6 +512,12 @@ export async function startDungeonRun({
   const layoutPositionByRoomId = Object.fromEntries(
     Object.keys(rooms).map((id) => [id, { rank: ranks[id], col: columns[id] }]),
   );
+  // #415 Chunk 5 (new runs are layoutVersion 2): drop optional hidden shortcuts that
+  // would share an outgoing face lane with another of their source's edges. Shortcuts
+  // add no layout node, so positions above stay valid; must precede the incoming faces.
+  const { hiddenEdges, hiddenIncomingByRoomId } = pruneConflictingShortcuts({
+    edges, hiddenRooms, hiddenEdges: attachedHiddenEdges, hiddenIncomingByRoomId: attachedHiddenIncoming,
+  }, layoutPositionByRoomId);
   // #174 follow-up (incoming-face redesign): choose each room's incoming
   // face once, from the fully precomputed layout, before any room's
   // walls are built -- same "full pregeneration" pattern

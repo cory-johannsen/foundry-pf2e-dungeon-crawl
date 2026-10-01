@@ -295,6 +295,31 @@ export function outgoingDoorPlan(rect, pos, { realChildIds = [], hiddenChildIds 
   return plan;
 }
 
+/** #415 Chunk 5 (layoutVersion >= 2 only): drop every hidden SHORTCUT whose
+ * outgoing face (outgoingDoorPlan's rule: east iff the target column is higher,
+ * else south) is already used by another of its source's edges. Two corridors on
+ * one face must share that face's 1-deep margin row / gutter, so they overlap
+ * (spec Open question 5, Option C). Shortcuts are optional and add no layout
+ * node, so pruning after positions are known changes nothing else; real edges and
+ * detour rooms (layout nodes) are never touched. Pure: returns new
+ * `{ hiddenEdges, hiddenIncomingByRoomId }`, inputs unmutated. */
+export function pruneConflictingShortcuts({ edges, hiddenRooms, hiddenEdges, hiddenIncomingByRoomId }, positionByRoomId) {
+  const detours = new Set(hiddenRooms);
+  const faceOf = (fromId, toId) => (positionByRoomId[toId].col > positionByRoomId[fromId].col ? 'east' : 'south');
+  const nextHidden = {};
+  const nextIncoming = Object.fromEntries(Object.entries(hiddenIncomingByRoomId).map(([k, v]) => [k, [...v]]));
+  for (const [fromId, targets] of Object.entries(hiddenEdges)) {
+    const [toId] = targets;
+    if (targets.length !== 1 || detours.has(toId)) { nextHidden[fromId] = targets; continue; }
+    const face = faceOf(fromId, toId);
+    const clash = (edges[fromId] ?? []).some((id) => faceOf(fromId, id) === face);
+    if (!clash) { nextHidden[fromId] = targets; continue; }
+    const rest = (nextIncoming[toId] ?? []).filter((id) => id !== fromId);
+    if (rest.length) nextIncoming[toId] = rest; else delete nextIncoming[toId];
+  }
+  return { hiddenEdges: nextHidden, hiddenIncomingByRoomId: nextIncoming };
+}
+
 /** A room's own four wall segments, by compass side — exported (Task 10's
  * own #93 pre-flight fix) so dungeon-scene.mjs can look up an individual
  * outgoing face's segment directly (e.g. for a per-connection frontier

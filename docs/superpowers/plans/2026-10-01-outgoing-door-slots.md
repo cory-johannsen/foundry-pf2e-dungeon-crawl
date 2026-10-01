@@ -622,9 +622,23 @@ Also add a multi-cell case (a source with a blocked column forcing `path.length 
 
 ---
 
-## Chunk 5 (PR E): lane conflicts (gated on the user's answer to spec Open question 5)
+## Chunk 5 (PR E): lane conflicts, Option C (avoid at hidden-shortcut generation)
 
-**Do not start this chunk until the user picks A/B/C/D in the spec.** The Chunk 1 ratchet already measures the conflict count (about 2.1% of rooms). Observation to test first, not assume: a SMALL source room sits in a LARGE-sized cell, so its south margin band is about 7 rows deep, and a second lane could stack in the band; only LARGE sources have the 1-row band. Measure how many of the conflicts are LARGE sources before choosing. After the decision, write a short plan addendum (new tasks, each test-first with `npm test`, version bump and a docs-only PR for the addendum), then execute.
+**Decision (user, Open question 5): Option C.** Do not keep a hidden shortcut that would share an outgoing face with another of its source's edges. Real edges are never dropped; detour rooms are never dropped (they are layout nodes: dropping one moves columns). Measured before the rule (v2, 500 seeds, 329 conflicting pairs): real+shortcut 174, detour+real 67, real+real 88. Only the 174 shortcut pairs are avoidable; the rest are the documented residual.
+
+**Shape.** Shortcuts add no layout node, so deciding after the layout is known changes nothing else: `attachHiddenPaths` stays as is (version 1 byte-identical, no new import in `dungeon-deck.mjs`), and a new pure `pruneConflictingShortcuts` in `dungeon-layout.mjs` runs in `dungeon-app.mjs` between the rank/column computation and the incoming-face computation, only when `layoutVersion >= 2` (new runs). Deterministic: a pure function of the graph and positions.
+
+### Task 5.1: sweep helper builds the version the selector asks for
+- [ ] `buildSweepLayout(i, { restRoom, layoutVersion = 1 })`; when `layoutVersion >= 2` apply `pruneConflictingShortcuts` to `hiddenEdges`/`hiddenIncomingByRoomId` before `incFace`. `planSelector.layoutVersion = 2`; `forEachEdge` passes `exitSelector.layoutVersion ?? 1`. The two direct `buildSweepLayout(i)` calls in the v2 invariant/buildability tests pass `{ layoutVersion: 2 }`. The digest test (version 1) must stay green untouched.
+
+### Task 5.2: failing tests first
+- [ ] Unit tests in `tests/dungeon-layout.test.mjs` for `pruneConflictingShortcuts`: drops a shortcut sharing a face with a real child; keeps a shortcut on a free face; never touches detour edges or real edges; leaves inputs unmutated; `hiddenIncomingByRoomId` loses the dropped source; deterministic (same result twice).
+- [ ] Lower `LANE_CONFLICT_CEILING` to the expected value (329 minus the 174 shortcut pairs, 155), and add a "no real/detour edge is lost" sweep check: every edge in `layoutEdges` and `edges` survives pruning, goal still reachable. Run: fails.
+
+### Task 5.3: implement and ratchet
+- [ ] Implement `pruneConflictingShortcuts` (same face rule as `outgoingDoorPlan`: east iff target column is higher, else south); call it in `dungeon-app.mjs` under `layoutVersion` 2. Make green, ratchet `LANE_CONFLICT_CEILING` to the measured value, `npm test`.
+- [ ] Report the residual (real+real and detour+real) with its cause: both edges of the pair are mandatory, and their lanes share the 1-deep south margin row / the east gutter.
+- [ ] Bump `module.json`; PR `feat(#415): drop hidden shortcuts that would share a face lane (new runs)`, body `Refs #415`.
 
 ---
 

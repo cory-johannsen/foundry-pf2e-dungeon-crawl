@@ -7,7 +7,7 @@ import { buildRoomGraph, attachHiddenPaths, insertRestRoom } from '../../scripts
 import {
   computeRanks, computeColumns, roomRect, incomingFaceFor, parentRoomIdsFor,
   incomingConnectionsFor, findPriorityCollision, assignDoorSlotsWithPriority,
-  exitFaceForIndex, buildEdgeCorridor, outgoingDoorPlan,
+  exitFaceForIndex, buildEdgeCorridor, outgoingDoorPlan, pruneConflictingShortcuts,
 } from '../../scripts/dungeon-layout.mjs';
 
 export function rectsOverlap(a, b) {
@@ -17,18 +17,23 @@ export function rectsOverlap(a, b) {
 /** `restRoom` (default true) mirrors dungeon-app.mjs, which splices the mid-dungeon
  * rest room in before attachHiddenPaths. The #415 Chunk 1-3 baselines (and the
  * default-geometry digest test) were measured without it, so they pass false. */
-export function buildSweepLayout(i, { restRoom = true } = {}) {
+export function buildSweepLayout(i, { restRoom = true, layoutVersion = 1 } = {}) {
   const seed = `sweep-${i}`;
   const roomCount = 6 + (i % 15);
   const generated = buildRoomGraph({ seed, roomCount });
   const { rooms, edges } = restRoom
     ? insertRestRoom({ rooms: generated.rooms, edges: generated.edges, seed, roomCount })
     : generated;
-  const { layoutEdges, hiddenIncomingByRoomId, hiddenEdges, hiddenRooms } = attachHiddenPaths({ rooms, edges, seed });
+  const attached = attachHiddenPaths({ rooms, edges, seed });
+  const { layoutEdges, hiddenRooms } = attached;
   const ranks = computeRanks(layoutEdges, 'room-entry');
   const cols = computeColumns(layoutEdges, ranks, 'room-entry');
   const ids = Object.keys(rooms);
   const pos = Object.fromEntries(ids.map((id) => [id, { rank: ranks[id], col: cols[id] }]));
+  // #415 Chunk 5 (layoutVersion >= 2): mirrors dungeon-app.mjs, which prunes between positions and incoming faces.
+  const { hiddenEdges, hiddenIncomingByRoomId } = layoutVersion >= 2
+    ? pruneConflictingShortcuts({ edges, hiddenRooms, hiddenEdges: attached.hiddenEdges, hiddenIncomingByRoomId: attached.hiddenIncomingByRoomId }, pos)
+    : attached;
   const occ = Object.fromEntries(Object.entries(pos).map(([id, p]) => [`${p.rank},${p.col}`, id]));
   const rect = Object.fromEntries(ids.map((id) => [id, roomRect(seed, id, pos[id].rank, pos[id].col)]));
   const incFace = Object.fromEntries(ids.map((id) => [id, incomingFaceFor(
@@ -48,7 +53,7 @@ export function legacyExitSelector(layout, { sourceId, toId, hidden }) {
 
 export function forEachEdge(seedCount, exitSelector, visit, layoutOptions) {
   for (let i = 0; i < seedCount; i += 1) {
-    const layout = buildSweepLayout(i, layoutOptions);
+    const layout = buildSweepLayout(i, { layoutVersion: exitSelector.layoutVersion ?? 1, ...layoutOptions });
     // The scene passes the source plan to findPriorityCollision under layoutVersion 2.
     const planFor = exitSelector.planFor?.(layout);
     const { seed, pos, occ, rect, incFace, layoutEdges, hiddenIncomingByRoomId, hiddenRooms } = layout;
@@ -82,6 +87,7 @@ export function planSelector(layout, { sourceId, toId }) {
   const entry = outgoingPlanFor(layout, sourceId).get(toId);
   return { face: entry.face, exitDoor: entry };
 }
+planSelector.layoutVersion = 2;
 planSelector.planFor = (layout) => (sourceId) => outgoingPlanFor(layout, sourceId);
 
 /** The plan for one source room, from the same inputs the scene has: real
