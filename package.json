@@ -9,6 +9,7 @@
     "test:watch": "vitest",
     "validate:dungeon": "node tools/validate-dungeon-setpieces.mjs",
     "validate:creature-art": "node tools/validate-creature-art.mjs",
+    "validate:decision-model": "node tools/agent-service/validate-decision-model.mjs",
     "tokens": "node tools/generate-token-art.mjs",
     "tokens:check": "node tools/check-token-art.mjs",
     "tokens:import": "node tools/import-token.mjs",
