@@ -309,6 +309,31 @@ export function roomSidesForRect(rect) {
   };
 }
 
+/** #415: solid wall segments covering `side` (a roomSidesForRect face)
+ * except `spans` (door spans lying on that face). Zero-length gaps are
+ * dropped; spans are sorted so caller order never matters. */
+function faceWallsAroundSpans(face, side, spans) {
+  const horizontal = face === 'south' || face === 'north';
+  const lo = (w) => (horizontal ? Math.min(w.x1, w.x2) : Math.min(w.y1, w.y2));
+  const hi = (w) => (horizontal ? Math.max(w.x1, w.x2) : Math.max(w.y1, w.y2));
+  const sorted = [...spans].sort((a, b) => lo(a) - lo(b));
+  const end = horizontal ? side.x2 : side.y2;
+  const walls = [];
+  let cursor = horizontal ? side.x1 : side.y1;
+  const push = (from, to) => {
+    if (to <= from) return;
+    walls.push(horizontal
+      ? { dir: face, x1: from, y1: side.y1, x2: to, y2: side.y2 }
+      : { dir: face, x1: side.x1, y1: from, x2: side.x2, y2: to });
+  };
+  for (const span of sorted) {
+    push(cursor, lo(span));
+    cursor = Math.max(cursor, hi(span));
+  }
+  push(cursor, end);
+  return walls;
+}
+
 /**
  * A room's own enclosing walls (#93 generalization). South/east/west stay
  * full-face, excluded per `outgoingFaces` (unchanged from before). North
@@ -321,13 +346,21 @@ export function roomSidesForRect(rect) {
  * rect) aren't derivable from `roomId` alone the way the old slot-indexed
  * version could derive its own rect internally.
  */
-export function roomEnclosureWalls(seed, roomId, { incomingCount = 0, incomingFace = 'north', outgoingFaces = [] }, rect) {
+export function roomEnclosureWalls(seed, roomId, { incomingCount = 0, incomingFace = 'north', outgoingFaces = [], doorSpansByFace = {} }, rect) {
   const sides = roomSidesForRect(rect);
   const walls = [];
   const ALL_FACES = ['north', 'south', 'east', 'west'];
   for (const face of ALL_FACES) {
     if (face === incomingFace) continue;
-    if (!outgoingFaces.includes(face)) walls.push({ dir: face, ...sides[face] });
+    if (!outgoingFaces.includes(face)) {
+      walls.push({ dir: face, ...sides[face] });
+      continue;
+    }
+    // #415: an outgoing face with planned doors is solid everywhere except
+    // exactly its door spans (the source seals its own face; a child's
+    // per-edge caps would otherwise cover a sibling edge's door).
+    const spans = doorSpansByFace?.[face];
+    if (spans?.length) walls.push(...faceWallsAroundSpans(face, sides[face], spans));
   }
   if (incomingCount === 0) walls.push({ dir: incomingFace, ...sides[incomingFace] });
   return walls;
@@ -531,7 +564,17 @@ function sourceFaceCapWalls(fromRect, exitFace, exitPoint) {
   ).filter((w) => w.x1 !== w.x2 || w.y1 !== w.y2);
 }
 
-export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace = 'north') {
+/**
+ * `exitDoor` (#415, optional, last): a planned outgoing door
+ * `{ exitPoint: {x,y}, doorSpan }` (an `outgoingDoorPlan` entry works as is).
+ * When it carries an `exitPoint`, every branch places the source door there
+ * (gap-START) instead of deriving it, and does NOT return the source-face
+ * cap walls: the source's own enclosure seals its face around its planned
+ * doors. Absent (or a plan entry with a null `exitPoint`, i.e. a single-door
+ * face) the behaviour is exactly as before.
+ */
+export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace = 'north', exitDoorArg) {
+  const exitDoor = exitDoorArg?.exitPoint ? exitDoorArg : undefined;
   const path = findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace });
   const slotSpan = incomingFace === 'west' ? (toSlot.y2 - toSlot.y1) : (toSlot.x2 - toSlot.x1);
   const outgoingOffset = doorOffsetAt(seed, `${fromRoomId}-${exitFace}`, 'outgoing', fromRect.gw);
@@ -555,11 +598,11 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // conversion just below already used internally; extending it to the
     // room's own real door too means that conversion is no longer needed
     // as a separate step (see chainStartAnchor/chainEndAnchor below).
-    const exitPoint = exitFace === 'east'
+    const exitPoint = exitDoor?.exitPoint ?? (exitFace === 'east'
       ? { x: fromRect.gx + fromRect.gw, y: fromRect.gy + fromRect.gh / 2 - DOOR_WIDTH }
       : exitFace === 'west'
       ? { x: fromRect.gx, y: fromRect.gy + fromRect.gh / 2 - DOOR_WIDTH }
-      : { x: fromRect.gx + fromRect.gw / 2 - DOOR_WIDTH, y: fromRect.gy + fromRect.gh };
+      : { x: fromRect.gx + fromRect.gw / 2 - DOOR_WIDTH, y: fromRect.gy + fromRect.gh });
     const doorWall = exitFace === 'south'
       ? { x1: exitPoint.x, y1: exitPoint.y, x2: exitPoint.x + DOOR_WIDTH, y2: exitPoint.y }
       : { x1: exitPoint.x, y1: exitPoint.y, x2: exitPoint.x, y2: exitPoint.y + DOOR_WIDTH };
@@ -674,7 +717,7 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       ...cornerConnector(lastCellPoint, entryPoint, { fromSide: transitCells[transitCells.length - 1].exitSide }),
     ];
     const plainWalls = [
-      ...sourceFaceCapWalls(fromRect, exitFace, exitPoint),
+      ...(exitDoor ? [] : sourceFaceCapWalls(fromRect, exitFace, exitPoint)),
       ...(incomingFace === 'west'
         ? [
             { x1: entryPoint.x, y1: toSlot.y1, x2: entryPoint.x, y2: entryPoint.y },
@@ -715,7 +758,7 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // the target (a door floating in empty space, not actually
     // connected). Use the target's real position directly instead.
     const corridorEndY = toRect.gy;
-    const doorX0 = fromRect.gx + outgoingOffset;
+    const doorX0 = exitDoor ? exitDoor.exitPoint.x : fromRect.gx + outgoingOffset;
     const doorX1 = doorX0 + DOOR_WIDTH;
     // #230 fix: derive the target's own gap from the SOURCE's already-
     // committed door offset (doorX0) instead of independently seeding it
@@ -889,8 +932,16 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // less than it in the null-path (boxed-in) case.
     const sideWallEndY = Math.min(corridorEndY, cellBounds(fromPos.rank, fromPos.col).gy + ROW_STRIDE);
     const plainWalls = [
-      { x1: fromRect.gx, y1: faceY, x2: doorX0, y2: faceY },
-      { x1: doorX1, y1: faceY, x2: Math.max(fromRect.gx + fromRect.gw, spanX1), y2: faceY },
+      // #415: with a planned door the source's own enclosure seals its face, so
+      // the two face caps are dropped -- but the corridor floor can run past the
+      // room's own east edge (#230 gap-widening), and that overshoot still needs
+      // its wall against the margin band above it (no sight/movement leak).
+      ...(exitDoor
+        ? (spanX1 > fromRect.gx + fromRect.gw ? [{ x1: fromRect.gx + fromRect.gw, y1: faceY, x2: spanX1, y2: faceY }] : [])
+        : [
+            { x1: fromRect.gx, y1: faceY, x2: doorX0, y2: faceY },
+            { x1: doorX1, y1: faceY, x2: Math.max(fromRect.gx + fromRect.gw, spanX1), y2: faceY },
+          ]),
       // #93 pre-flight fix, round 2 (found during Task 6's own redo):
       // capped strictly at `toSlot.x1`/`toSlot.x2` — NEVER `spanX1`.
       // `spanX1` also folds in the SOURCE room's own door offset
@@ -1044,7 +1095,7 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
   if (exitFace === 'east' && sameRank) {
     const faceX = fromRect.gx + fromRect.gw;
     const corridorEndX = toRect.gx;
-    const doorY0 = fromRect.gy + outgoingOffset;
+    const doorY0 = exitDoor ? exitDoor.exitPoint.y : fromRect.gy + outgoingOffset;
     const doorY1 = doorY0 + DOOR_WIDTH;
     // #297: exact mirror of the south/sameColumn branch's own dogleg above
     // (see its own comment for the full reasoning) — exactly one
@@ -1146,8 +1197,14 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // comment (in the south branch above) for the full reasoning.
     const sideWallEndX = Math.min(corridorEndX, cellBounds(fromPos.rank, fromPos.col).gx + COLUMN_STRIDE);
     const plainWalls = [
-      { x1: faceX, y1: fromRect.gy, x2: faceX, y2: doorY0 },
-      { x1: faceX, y1: doorY1, x2: faceX, y2: Math.max(fromRect.gy + fromRect.gh, spanY1) },
+      // #415: mirror of the south branch (overshoot past the room's own south
+      // edge keeps its wall; the face caps are the source enclosure's job).
+      ...(exitDoor
+        ? (spanY1 > fromRect.gy + fromRect.gh ? [{ x1: faceX, y1: fromRect.gy + fromRect.gh, x2: faceX, y2: spanY1 }] : [])
+        : [
+            { x1: faceX, y1: fromRect.gy, x2: faceX, y2: doorY0 },
+            { x1: faceX, y1: doorY1, x2: faceX, y2: Math.max(fromRect.gy + fromRect.gh, spanY1) },
+          ]),
       { x1: corridorEndX, y1: targetCapY0, x2: corridorEndX, y2: gapY0 },
       { x1: corridorEndX, y1: gapY1, x2: corridorEndX, y2: targetCapY1 },
       // #294 fix: same missing-side-walls defect as the south/sameColumn
@@ -1222,11 +1279,11 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
   // gap-START semantics directly, keeping the door's own span
   // `[point, point + DOOR_WIDTH)` inside one whole cell instead of
   // straddling two.
-  const exitPoint = exitFace === 'east'
+  const exitPoint = exitDoor?.exitPoint ?? (exitFace === 'east'
     ? { x: fromRect.gx + fromRect.gw, y: fromRect.gy + fromRect.gh / 2 - DOOR_WIDTH }
     : exitFace === 'west'
     ? { x: fromRect.gx, y: fromRect.gy + fromRect.gh / 2 - DOOR_WIDTH }
-    : { x: fromRect.gx + fromRect.gw / 2 - DOOR_WIDTH, y: fromRect.gy + fromRect.gh };
+    : { x: fromRect.gx + fromRect.gw / 2 - DOOR_WIDTH, y: fromRect.gy + fromRect.gh });
   const entryPoint = incomingFace === 'west'
     ? { x: toSlot.x1, y: clampDoorStart(toSlot.y1, toSlot.y2, toSlot.y1 + slotSpan / 2 - DOOR_WIDTH) }
     : { x: clampDoorStart(toSlot.x1, toSlot.x2, toSlot.x1 + slotSpan / 2 - DOOR_WIDTH), y: toSlot.y1 };
@@ -1244,7 +1301,7 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     : { x1: entryPoint.x, y1: entryPoint.y, x2: entryPoint.x + DOOR_WIDTH, y2: entryPoint.y };
 
   const plainWalls = [
-    ...sourceFaceCapWalls(fromRect, exitFace, exitPoint),
+    ...(exitDoor ? [] : sourceFaceCapWalls(fromRect, exitFace, exitPoint)),
     ...(incomingFace === 'west'
       ? [
           { x1: entryPoint.x, y1: toSlot.y1, x2: entryPoint.x, y2: entryPoint.y },
@@ -1315,7 +1372,8 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
  * per-connection slot (this assumption doesn't know about) is a
  * separate, already-tracked residual — #231 — not solved here.
  */
-export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells, incomingFace = 'north') {
+export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells, incomingFace = 'north', exitDoorArg) {
+  const exitDoor = exitDoorArg?.exitPoint ? exitDoorArg : undefined;
   if (exitFace !== 'south' && exitFace !== 'east') {
     // West never takes buildEdgeCorridor's offset-based branch — always
     // center-based, regardless of the child's rank/column. #324: matches
@@ -1334,6 +1392,12 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
   // its own doorX0/doorY0 computations).
   const faceSpan = exitFace === 'south' ? fromRect.gw : fromRect.gh;
   if (!usesOffsetBasedExit) {
+    // #415: a planned door is the door, wherever the branch would have put it.
+    if (exitDoor) {
+      return exitFace === 'south'
+        ? { offset: exitDoor.exitPoint.x - fromRect.gx, width: DOOR_WIDTH }
+        : { offset: exitDoor.exitPoint.y - fromRect.gy, width: DOOR_WIDTH };
+    }
     // #324: matches buildEdgeCorridor's own exitPoint gap-START fix in
     // both its multi-cell and corner-case branches (full DOOR_WIDTH, not
     // half) -- these must never independently drift.
@@ -1342,7 +1406,7 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
   const toRect = roomRect(seed, toRoomId, toPos.rank, toPos.col);
   const toSlot = doorSlotsForFace(toRect, 1, incomingFace)[0];
   const { corridorSegments } = buildEdgeCorridor(
-    seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace,
+    seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace, exitDoor,
   );
   const seg = corridorSegments[0];
   return exitFace === 'south'
@@ -1453,7 +1517,7 @@ function priorityIndexForEdge(slots, axis, blockerRect) {
  * Returns the FIRST such collision found (scope: exactly one, per this
  * feature's own spec) or `null`.
  */
-export function findPriorityCollision(seed, roomId, rank, col, incomingConnections, layoutPositionByRoomId, occupiedCells, incomingFace) {
+export function findPriorityCollision(seed, roomId, rank, col, incomingConnections, layoutPositionByRoomId, occupiedCells, incomingFace, planFor) {
   const targetRect = roomRect(seed, roomId, rank, col);
   const targetPos = { rank, col };
   const slots = incomingConnections.length
@@ -1488,10 +1552,15 @@ export function findPriorityCollision(seed, roomId, rank, col, incomingConnectio
     const sourceRect = roomRect(seed, sourceId, sourcePos.rank, sourcePos.col);
     const blockerRect = roomRect(seed, blockerId, blockRank, blockCol);
     const prioritySlot = slots[priorityIndexForEdge(slots, axis, blockerRect)];
+    // #415: with a plan, the source's planned door replaces the seeded one
+    // (a single-door face's null exitPoint keeps the legacy seeded door).
+    const planned = planFor?.(sourceId)?.get(roomId);
+    if (planned && planned.face !== axis) continue;
+    const plannedPoint = planned?.exitPoint;
     const outgoingOffset = doorOffsetAt(seed, `${sourceId}-${axis}`, 'outgoing', sourceRect.gw);
     let spanOverlapsBlocker;
     if (axis === 'south') {
-      const doorX0 = sourceRect.gx + outgoingOffset;
+      const doorX0 = plannedPoint ? plannedPoint.x : sourceRect.gx + outgoingOffset;
       const doorX1 = doorX0 + DOOR_WIDTH;
       const occupantEastEdge = blockerRect.gx + blockerRect.gw;
       const provisionalGapX0 = Math.min(Math.max(doorX0, prioritySlot.x1), prioritySlot.x2 - DOOR_WIDTH);
@@ -1500,7 +1569,7 @@ export function findPriorityCollision(seed, roomId, rank, col, incomingConnectio
       const provisionalSpanX1 = Math.max(doorX1, provisionalGapX1);
       spanOverlapsBlocker = provisionalSpanX0 < occupantEastEdge && provisionalSpanX1 > blockerRect.gx;
     } else {
-      const doorY0 = sourceRect.gy + outgoingOffset;
+      const doorY0 = plannedPoint ? plannedPoint.y : sourceRect.gy + outgoingOffset;
       const doorY1 = doorY0 + DOOR_WIDTH;
       const occupantSouthEdge = blockerRect.gy + blockerRect.gh;
       const provisionalGapY0 = Math.min(Math.max(doorY0, prioritySlot.y1), prioritySlot.y2 - DOOR_WIDTH);
@@ -1625,46 +1694,66 @@ export function assignDoorSlotsWithPriority(seed, rect, incomingConnections, inc
  * edges` falls back to `edges` itself, which equals `layoutEdges` for
  * every non-detour room).
  */
-export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells, layoutEdges, hiddenIncomingByRoomId = {}) {
+export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells, layoutEdges, hiddenIncomingByRoomId = {}, hiddenEdges = {}, planFor) {
   const result = { east: [], south: [] };
-  for (const [sourceId, childIds] of Object.entries(edges)) {
+  // #415: with a plan, hidden edges are scanned too (legacy ignores them) and
+  // each edge's face/door come from the source's plan, not its child index.
+  const sourceIds = planFor
+    ? [...new Set([...Object.keys(edges), ...Object.keys(hiddenEdges)])]
+    : Object.keys(edges);
+  for (const sourceId of sourceIds) {
     const sourcePos = layoutPositionByRoomId[sourceId];
     if (!sourcePos) continue;
     const sourceIncomingFace = incomingFaceByRoomId?.[sourceId] ?? 'north';
-    childIds.forEach((childId, index) => {
+    const plan = planFor ? planFor(sourceId) : null;
+    const candidates = (edges[sourceId] ?? []).map((childId, index) => ({ childId, index, hidden: false }));
+    if (plan) {
+      for (const childId of hiddenEdges[sourceId] ?? []) candidates.push({ childId, index: -1, hidden: true });
+    }
+    for (const { childId, index, hidden } of candidates) {
       const targetPos = layoutPositionByRoomId[childId];
-      if (!targetPos) return;
-      const exitFace = exitFaceForIndex(index, sourceIncomingFace);
+      if (!targetPos) continue;
+      let exitFace;
+      let exitDoor;
+      if (plan) {
+        const entry = plan.get(childId);
+        if (!entry) continue;
+        exitFace = entry.face;
+        exitDoor = entry;
+      } else {
+        if (hidden) continue;
+        exitFace = exitFaceForIndex(index, sourceIncomingFace);
+      }
       const sameColumnTwoDown = exitFace === 'south' && sourcePos.col === targetPos.col && targetPos.rank === sourcePos.rank + 2;
       const sameRankTwoOver = exitFace === 'east' && sourcePos.rank === targetPos.rank && targetPos.col === sourcePos.col + 2;
-      if (!sameColumnTwoDown && !sameRankTwoOver) return;
+      if (!sameColumnTwoDown && !sameRankTwoOver) continue;
       // Only worth calling buildEdgeCorridor (real work) when THIS room is
       // actually the blocking cell for this candidate edge.
       const blockRank = sameColumnTwoDown ? sourcePos.rank + 1 : sourcePos.rank;
       const blockCol = sameColumnTwoDown ? sourcePos.col : sourcePos.col + 1;
-      if (blockRank !== rank || blockCol !== col) return;
+      if (blockRank !== rank || blockCol !== col) continue;
       const sourceRect = roomRect(seed, sourceId, sourcePos.rank, sourcePos.col);
       const targetRect = roomRect(seed, childId, targetPos.rank, targetPos.col);
       const targetIncomingFace = incomingFaceByRoomId?.[childId] ?? 'north';
       const targetConnections = incomingConnectionsFor(layoutEdges ?? edges, childId, hiddenIncomingByRoomId);
-      const slotIndex = targetConnections.findIndex((c) => !c.hidden && c.sourceId === sourceId);
+      const slotIndex = targetConnections.findIndex((c) => c.hidden === hidden && c.sourceId === sourceId);
       // A real parent not found among its own target's real connections
       // would be a graph-consistency bug elsewhere (childIds and
       // parentRoomIdsFor disagreeing) -- fall back to a single full-width
       // slot rather than crash, matching this function's own existing
       // defensive style (the `if (!sourcePos) continue`/`if (!targetPos)
-      // return` guards just above).
+      // continue` guards just above).
       const toSlot = slotIndex >= 0
         ? doorSlotsForFace(targetRect, targetConnections.length, targetIncomingFace)[slotIndex]
         : doorSlotsForFace(targetRect, 1, targetIncomingFace)[0];
       const { foreignOpening } = buildEdgeCorridor(
         seed, sourceId, childId, sourceRect, targetRect, sourcePos, targetPos,
-        exitFace, toSlot, occupiedCells, targetIncomingFace,
+        exitFace, toSlot, occupiedCells, targetIncomingFace, exitDoor,
       );
       if (foreignOpening && foreignOpening.roomId === roomId) {
         result[foreignOpening.side].push({ offset: foreignOpening.offset, width: foreignOpening.width });
       }
-    });
+    }
   }
   return result;
 }
