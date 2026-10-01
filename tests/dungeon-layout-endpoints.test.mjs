@@ -22,7 +22,7 @@ const TARGET_OVERLAP_CEILING = 2272; // fixed under #416
 // Edges whose margin opening is narrower than the corridor floor, all explained by a pre-existing
 // cause (below). Measured 993 of 9,930; may only fall.
 const MARGIN_OPENING_CUT_CEILING = 993;
-const LANE_CONFLICT_CEILING = 329; // spec Open question 5; Chunk 5 (avoid generating conflicting hidden shortcuts)
+const LANE_CONFLICT_CEILING = 155; // was 329; Chunk 5 drops conflicting shortcuts. Residual: real+real 88, detour+real 67 (mandatory edges)
 
 function measure(selector) {
   const m = { edges: 0, source: 0, target: 0, lane: 0, bySource: new Map() };
@@ -206,11 +206,36 @@ describe('layoutVersion 2 buildability: wall versus door (#415)', () => {
   }, 300000);
 });
 
+describe('layoutVersion 2 shortcut pruning keeps every guaranteed edge (#415 Chunk 5)', () => {
+  it('real and detour edges and goal reachability are untouched; only optional shortcuts are dropped', () => {
+    let dropped = 0; let kept = 0;
+    for (let i = 0; i < SEEDS; i += 1) {
+      const v1 = buildSweepLayout(i);
+      const v2 = buildSweepLayout(i, { layoutVersion: 2 });
+      expect(v2.edges).toEqual(v1.edges);
+      expect(v2.layoutEdges).toEqual(v1.layoutEdges);
+      expect(v2.pos).toEqual(v1.pos);
+      for (const [from, to] of Object.entries(v1.hiddenEdges)) {
+        const isDetour = v1.hiddenRooms.includes(to[0]);
+        if (isDetour) expect(v2.hiddenEdges[from]).toEqual(to);
+        else if (v2.hiddenEdges[from]) { expect(v2.hiddenEdges[from]).toEqual(to); kept += 1; } else dropped += 1;
+      }
+      for (const from of Object.keys(v2.hiddenEdges)) expect(v1.hiddenEdges[from]).toEqual(v2.hiddenEdges[from]);
+      const goal = Object.keys(v2.rooms).find((id) => v2.rooms[id].isGoal);
+      const seen = new Set(['room-entry']); const q = ['room-entry'];
+      while (q.length) for (const c of v2.edges[q.shift()] ?? []) if (!seen.has(c)) { seen.add(c); q.push(c); }
+      expect(seen.has(goal)).toBe(true);
+    }
+    expect(dropped).toBeGreaterThan(0);
+    expect(kept).toBeGreaterThan(0);
+  }, 120000);
+});
+
 describe('outgoingDoorPlan invariants over the sweep (#415)', () => {
   it('faces are south/east only, east only for higher-column targets, spans disjoint and in-slot, within face capacity, order-independent', () => {
     let rooms = 0; let maxDoors = 0; let multiDoorFaces = 0;
     for (let i = 0; i < SEEDS; i += 1) {
-      const L = buildSweepLayout(i);
+      const L = buildSweepLayout(i, { layoutVersion: 2 });
       for (const sourceId of Object.keys(L.rooms)) {
         const real = L.edges[sourceId] ?? [];
         const hidden = (L.hiddenEdges[sourceId] ?? []).slice(0, 1);

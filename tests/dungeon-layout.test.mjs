@@ -6,7 +6,7 @@ import {
   roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, buildEdgeCorridor, incomingFaceFor, doorSlotsForFace, outgoingSlotsForFace, outgoingDoorPlan,
   cellBounds, projectOntoSide, findCorridorPath, INITIAL_GX, cellMarginWalls, transitCellCrossing,
   transitCellContainmentWalls, CORRIDOR_LEN, outgoingMarginOffset, pendingForeignMarginOpenings,
-  marginBandApproach, findCoParentCollision, findPriorityCollision, assignDoorSlotsWithPriority,
+  marginBandApproach, findCoParentCollision, findPriorityCollision, assignDoorSlotsWithPriority, pruneConflictingShortcuts,
 } from '../scripts/dungeon-layout.mjs';
 import { buildRoomGraph, attachHiddenPaths } from '../scripts/dungeon-deck.mjs';
 import { forEachEdge, buildSweepLayout, planSelector, outgoingPlanFor } from './helpers/layout-sweep.mjs';
@@ -4265,7 +4265,7 @@ describe('planned doors over the 500-seed sweep (#415)', () => {
   }, 120000);
   it('enclosure + planned spans cover each outgoing face exactly except the doors', () => {
     for (let i = 0; i < 500; i += 1) {
-      const L = buildSweepLayout(i);
+      const L = buildSweepLayout(i, { layoutVersion: 2 });
       for (const id of Object.keys(L.rooms)) {
         const plan = outgoingPlanFor(L, id);
         if (!plan.size) continue;
