@@ -8057,13 +8057,46 @@ async function geminiGenerateOne(subject, dest) {
   writeFileSync(dest, Buffer.from(data, 'base64'));
 }
 
+/**
+ * OpenRouter image backend (#429): chat/completions with modalities:['image'].
+ * Same prompt as the Gemini backend (shared system prompt + creature line).
+ * Model via OPENROUTER_IMAGE_MODEL, default Meta Muse Image. Each call is
+ * billed on the owner's key, so — like Gemini — one call per subject.
+ */
+async function openrouterGenerateOne(subject, dest) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      'OPENROUTER_API_KEY not set — add it to .env (this worktree or the main checkout) to use --backend=openrouter'
+    );
+  }
+  const systemPrompt = resolveGeminiSystemPrompt();
+  const model = process.env.OPENROUTER_IMAGE_MODEL || 'meta/muse-image';
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model,
+      modalities: ['image'],
+      messages: [{ role: 'user', content: `${systemPrompt}\n\n${promptFor(subject)}` }]
+    })
+  });
+  if (!res.ok) throw new Error(`openrouter request failed: ${res.status} ${await res.text()}`);
+  const body = await res.json();
+  const url = body.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+  if (!url) throw new Error(`openrouter response had no image: ${JSON.stringify(body).slice(0, 500)}`);
+  const m = /^data:[^;]+;base64,(.*)$/s.exec(url);
+  const buf = m ? Buffer.from(m[1], 'base64') : Buffer.from(await (await fetch(url)).arrayBuffer());
+  writeFileSync(dest, buf);
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const force = args.includes('--force');
   const reroll = parseInt(args.find((a) => a.startsWith('--reroll='))?.split('=')[1] ?? '0', 10);
   const backend = args.find((a) => a.startsWith('--backend='))?.split('=')[1] ?? 'comfyui';
-  if (!['comfyui', 'gemini'].includes(backend)) {
-    throw new Error(`unknown --backend=${backend}; expected comfyui or gemini`);
+  if (!['comfyui', 'gemini', 'openrouter'].includes(backend)) {
+    throw new Error(`unknown --backend=${backend}; expected comfyui, gemini or openrouter`);
   }
   if (backend === 'gemini' && !process.env.GEMINI_API_KEY) {
     throw new Error(
@@ -8078,9 +8111,9 @@ async function main() {
     const dest = join(outDir, `${s.file}.png`);
     const final = join(outDir, `${s.file}.webp`);
     if (existsSync(final) && !force) { console.log(`${s.id.padEnd(10)} exists, skipping`); continue; }
-    if (backend === 'gemini') {
-      process.stdout.write(`${s.id.padEnd(10)} gemini… `);
-      await geminiGenerateOne(s, dest);
+    if (backend === 'gemini' || backend === 'openrouter') {
+      process.stdout.write(`${s.id.padEnd(10)} ${backend}… `);
+      await (backend === 'gemini' ? geminiGenerateOne : openrouterGenerateOne)(s, dest);
       shrink(dest, final);
       unlinkSync(dest);
       console.log(`-> ${s.dir ?? 'assets/tokens'}/${s.file}.webp`);
