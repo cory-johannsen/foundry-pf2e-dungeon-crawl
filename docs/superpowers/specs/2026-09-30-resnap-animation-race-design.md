@@ -99,18 +99,22 @@ today's existing check, just deferred until it's safe to trust.
 cap elapses while `isAnimating` is STILL true, this function does **not**
 read a position and correct anyway — it bails without writing anything.
 The original design said to "proceed with the correction anyway" on
-cap-expiry; that was itself a bug, caught live: `token.x`/`token.y` can
-be a *stale* snapshot left over from an earlier, since-superseded resting
-point while a fast chain of real moves (several leader steps in quick
-succession, each retargeting a follower before the previous slide
-settles) is still working through — Foundry doesn't update those fields
-synchronously per-animation. Writing that stale reading back as a
-"correction" actively overwrites legitimate newer progress. Live capture:
-a follower's real destination was a cell further down a hallway; the cap
-fired, read a stale pre-move position, and snapped the follower back
-there — this *was* the "AI followers stuck behind the door" symptom,
-not a separate bug. The cap now only ever means "give up without
-guessing" — `resnapDriftedTokens` fires again on this token's own next
+cap-expiry; that was itself a bug, caught live: while still animating,
+`token.x`/`token.y` is a mid-flight, client-side interpolated position,
+not a committed resting point (the underlying document can't change every
+render frame, so this reading is local animation state, not DB state).
+Rounding and writing it back as a "correction" can only land *behind* the
+token's real in-flight destination, overwriting legitimate newer
+progress. This reproduces under ordinary play: a fast chain of real
+leader steps (each one under `FOLLOW_DEBOUNCE_MS` apart) keeps
+retargeting a follower before each prior slide settles, so
+`animationContexts` never empties — the cap fires, reads the mid-flight
+position, and snaps the follower back behind where it really was. Live
+capture: a follower's real destination was a cell further down a
+hallway; the cap fired, read the mid-flight position, and snapped the
+follower back there — this *was* the "AI followers stuck behind the
+door" symptom, not a separate bug. The cap now only ever means "give up
+without guessing" — `resnapDriftedTokens` fires again on this token's own next
 real update regardless, so a skipped attempt isn't a permanent miss.
 
 `resnapDriftedTokens` itself is unchanged — it can still fire eagerly on a
@@ -139,6 +143,23 @@ synchronous continuation (no `await` between them) — otherwise a new move
 could start in that exact gap and get judged against a stale reading.
 Implementation detail, not a design gap, but one the implementer must get
 right.
+
+### Sibling bug found in the same review (2026-10-01): `moveFollowersToward`'s own inline #86 snap
+
+`moveFollowersToward`'s own per-follower loop (`scripts/dungeon-follow.mjs`)
+has always had its own inline off-grid snap-correction — an older, simpler
+fix (#86) predating this whole investigation — that reads `token.x`/
+`token.y`, rounds, and writes a correction, with **no animation check at
+all**. This is the exact same bug shape as the cap-expiry bug above (a
+mid-flight, client-interpolated position read and written back as if it
+were committed), except it runs on *every single follow-cycle* a follower
+is still animating from its own prior move — far more often than the
+cap's once-per-10-seconds path, and so the more likely dominant cause of
+the live-reported "stuck behind the door" symptom, not just a contributor.
+Fixed in the same pass: skip the snap entirely while `isAnimating(token)`
+is true. Nothing downstream depends on it having run first — the same
+cycle's own `findFollowMove` call computes a grid-exact destination
+regardless, from whatever position is currently readable.
 
 ### Reentrancy guard
 

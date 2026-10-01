@@ -602,6 +602,47 @@ describe("runFollowMoveNow (#65)", () => {
     expect(follower.x % GRID).toBe(0);
     expect(follower.y % GRID).toBe(0);
   });
+
+  // Final review (2026-10-01): this inline snap had the exact same bug
+  // shape as resnapTokenNow's own cap-expiry bug (live-confirmed the more
+  // likely dominant cause of "followers stuck behind the door," since it
+  // runs every single follow-cycle a follower is still animating, not just
+  // once per 10s timeout) -- while animating, token.x/token.y is a
+  // mid-flight, client-interpolated position, not a committed resting
+  // point, so rounding and writing it back here can only land behind the
+  // follower's real in-flight destination and cancel the slide.
+  it("does not snap a follower's position while it's still mid-animation from its own prior move (#87)", async () => {
+    vi.useFakeTimers();
+    const leader = makeToken({
+      id: "t-leader",
+      x: 5 * GRID,
+      y: GRID,
+      actorId: LEADER_ACTOR_ID,
+    });
+    const follower = makeToken({
+      id: "t-follower-animating",
+      x: 5.5 * GRID,
+      y: 1.5 * GRID,
+      actorId: FOLLOWER_ACTOR_ID,
+      animationContexts: new Map([["move", {}]]),
+    });
+    const scene = makeScene({ tokens: [leader, follower] });
+
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: [FOLLOWER_ACTOR_ID],
+        },
+      },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    runFollowMoveNow(SCENE_ID);
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(follower.update).not.toHaveBeenCalled();
+  });
 });
 
 describe("moveFollowersToward footprint-awareness (#140)", () => {
@@ -869,17 +910,20 @@ describe("resnapTokenNow (#141)", () => {
   });
 
   // Live-confirmed 2026-10-01: correcting anyway on cap-expiry was itself
-  // the bug -- token.x/token.y can be a stale pre-move snapshot while a
-  // fast chain of real moves is still settling (Foundry doesn't update
-  // those fields synchronously per-animation), so writing a "correction"
-  // from that reading actively overwrites legitimate newer progress. Live
-  // capture: a follower's real destination was a cell further down a
-  // hallway; the cap fired, read a stale pre-move position, and snapped
-  // the follower back there -- exactly the "stuck behind the door"
-  // symptom. The deadline must mean "give up without guessing," not
+  // the bug -- while still animating, token.x/token.y is a mid-flight,
+  // client-interpolated position, not a committed resting point, so
+  // writing a "correction" from that reading can only land behind the
+  // token's real in-flight destination, overwriting legitimate newer
+  // progress. Live capture: a follower's real destination was a cell
+  // further down a hallway; a fast chain of real leader steps kept
+  // retargeting it before each prior slide settled, so animationContexts
+  // never emptied -- the cap fired, read the mid-flight position, and
+  // snapped the follower back there -- exactly the "stuck behind the
+  // door" symptom. The deadline must mean "give up without guessing," not
   // "guess anyway."
-  it("does not correct on cap-expiry while still animating -- bails rather than risk a stale write (#87)", async () => {
+  it("does not correct on cap-expiry while still animating -- bails rather than risk a mid-flight write (#87)", async () => {
     vi.useFakeTimers();
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const animationContexts = new Map([["move", {}]]);
     const token = makeToken({
       id: "t-stuck-animating",
@@ -897,6 +941,13 @@ describe("resnapTokenNow (#141)", () => {
     // defensive cap's own fallback path, not the normal settle path.
     await vi.advanceTimersByTimeAsync(10100);
     await promise;
+
+    // Proves the cap branch was genuinely reached, not that the function
+    // just silently never wrote anything for an unrelated reason.
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("resnap deadline hit for t-stuck-animating"),
+    );
+    warnSpy.mockRestore();
 
     expect(token.update).not.toHaveBeenCalled();
     vi.useRealTimers();

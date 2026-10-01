@@ -148,10 +148,27 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
       // findFollowMove's "already-near" status can skip straight past it
       // without ever calling `update()` at all -- mirrors
       // dungeon-combat.mjs's own `snapTokenToGrid`.
-      const snappedX = Math.round(token.x / gridSize) * gridSize;
-      const snappedY = Math.round(token.y / gridSize) * gridSize;
-      if (token.x !== snappedX || token.y !== snappedY) {
-        await token.update({ x: snappedX, y: snappedY });
+      //
+      // #87 (2026-10-01, live-confirmed the dominant remaining cause of
+      // "followers stuck behind the door"): this write has the exact same
+      // shape as resnapTokenNow's own cap-expiry bug, but with no guard at
+      // all and running every single follow-cycle (every FOLLOW_DEBOUNCE_MS
+      // the leader moves), not just once after a 10s timeout. While a
+      // follower's own prior move is still animating, token.x/token.y can
+      // read a mid-flight, client-interpolated position -- rounding and
+      // writing that is never safe, it can only land BEHIND the follower's
+      // real in-flight destination and silently cancel the slide. Skipped
+      // entirely while animating: there's nothing to correct yet (the slide
+      // hasn't settled), and this cycle's own findFollowMove call below
+      // computes a grid-exact destination regardless, from whatever
+      // position is currently readable -- it doesn't depend on this snap
+      // having run first.
+      if (!isAnimating(token)) {
+        const snappedX = Math.round(token.x / gridSize) * gridSize;
+        const snappedY = Math.round(token.y / gridSize) * gridSize;
+        if (token.x !== snappedX || token.y !== snappedY) {
+          await token.update({ x: snappedX, y: snappedY });
+        }
       }
       const moverFootprint = footprint(token, gridSize);
       const fromCell = tokenCell(token, gridSize);
@@ -405,31 +422,34 @@ export async function resnapTokenNow(sceneId, tokenId) {
       if (!token) return;
     }
     // Live-confirmed 2026-10-01: if the token is STILL animating once the
-    // deadline passes, `token.x`/`token.y` can be a stale snapshot left
-    // over from an EARLIER, since-superseded resting point -- Foundry
-    // doesn't update those fields synchronously while a fast chain of
-    // moves (several real leader steps in quick succession, each
-    // retargeting this follower before the previous slide settles) is
-    // still working through. Writing that stale reading back as a
-    // "correction" actively overwrites legitimate newer progress --
-    // caught live: a follower's real destination was a cell further down
-    // a hallway; the cap fired, read a stale pre-move position, and
-    // snapped the follower back there, which is exactly what "stuck
-    // behind the door" looked like. So the deadline only ever means give
-    // up WITHOUT guessing -- bail silently rather than write anything.
-    // resnapDriftedTokens fires again on this token's own next real
-    // update regardless, so this isn't a permanent miss, just a skipped
-    // attempt until a cleaner one comes along.
+    // deadline passes, `token.x`/`token.y` is a mid-flight, client-side
+    // interpolated position, not a committed resting point -- the document
+    // itself can't change position every render frame, so this value is
+    // local-client animation state, not DB state (same read every other
+    // caller in this file already treats as untrustworthy while animating).
+    // Rounding and writing it back as a "correction" can only land BEHIND
+    // the follower's real in-flight destination, silently cancelling the
+    // slide -- caught live: a follower's real destination was a cell
+    // further down a hallway; a fast chain of real leader steps (each one
+    // under FOLLOW_DEBOUNCE_MS apart) kept retargeting this follower before
+    // each prior slide settled, so animationContexts never emptied: the cap
+    // fired, read the mid-flight position, and snapped the follower back
+    // behind where it really was -- exactly what "stuck behind the door"
+    // looked like. So the deadline only ever means give up WITHOUT
+    // guessing -- bail silently rather than write anything. resnapDriftedTokens
+    // fires again on this token's own next real update regardless, so this
+    // isn't a permanent miss, just a skipped attempt until a cleaner one
+    // comes along.
     if (isAnimating(token)) {
       console.warn(
-        `${MODULE_ID} | dungeon-follow: resnap deadline hit for ${tokenId} while still animating -- skipping rather than risk a stale correction.`,
+        `${MODULE_ID} | dungeon-follow: resnap deadline hit for ${tokenId} while still animating -- skipping rather than risk a mid-flight correction.`,
       );
       return;
     }
     // The loop's own exit check (isAnimating false) and this read/decision
     // happen in the same synchronous continuation -- no `await` between
     // them -- so a new move starting in that exact gap can't get judged
-    // against a stale reading.
+    // against a mid-flight reading.
     const gridSize = scene.grid?.size ?? 100;
     const snappedX = Math.round(token.x / gridSize) * gridSize;
     const snappedY = Math.round(token.y / gridSize) * gridSize;
