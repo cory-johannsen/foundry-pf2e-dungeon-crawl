@@ -653,3 +653,16 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 46,kanker,Kanker,2,beast,flag,bg_patch,comfyui,
 46,kobold-dragon-mage,Kobold Dragon Mage (1-14),2,dragon,accept,,gemini,gemini-first
 46,meleeka-sanvara,Meleeka Sanvara (1-2),2,beast,accept,,comfyui,
+47,mummy-brute,Mummy Brute,2,undead,accept,,gemini,gemini-first
+47,offended-high-roller,Offended High Roller,2,beast,accept,,comfyui,
+47,ogre,Ogre,2,beast,accept,,comfyui,
+47,ralthiss,Ralthiss (1-2),2,beast,accept,,comfyui,
+47,reast-mycer,Reast Mycer (1-2),2,beast,accept,,comfyui,
+47,seaborn-captain,Seaborn Captain,2,beast,accept,,comfyui,
+47,skeletal-mount,Skeletal Mount,2,undead,accept,,gemini,gemini-first
+47,skeleton-captain,Skeleton Captain,2,undead,accept,,gemini,gemini-first
+47,storm-warrior-priest,Storm Warrior-Priest,2,humanoid,accept,,gemini,gemini-first
+47,vigilant-guard,Vigilant Guard,2,beast,flag,monochrome_line_art;bg_patch,comfyui,
+47,ahksiva,Ahksiva (1-2),3,beast,accept,,comfyui,
+47,barralbus,Barralbus (1-2),3,beast,accept,,comfyui,
+47,blue-streak-mage,Blue Streak Mage (5-6),3,beast,accept,,comfyui,
