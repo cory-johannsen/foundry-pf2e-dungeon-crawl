@@ -29,6 +29,7 @@ async function callLiteLLM(body, { baseUrl, apiKey, timeoutMs, fetchImpl }) {
 export async function decide(
   context,
   {
+    model = selectCombatTier(context),
     baseUrl = readEnvOrDotenv("LITELLM_BASE_URL") ?? "http://litellm:4000/v1",
     apiKey = readEnvOrDotenv("LITELLM_API_KEY"),
     timeoutMs = Number(readEnvOrDotenv("LITELLM_COMBAT_TIMEOUT_MS")) || DEFAULT_COMBAT_TIMEOUT_MS,
@@ -36,7 +37,6 @@ export async function decide(
   } = {},
 ) {
   const candidateIds = context.candidates.map((c) => c.id);
-  const model = selectCombatTier(context);
 
   const payload = await callLiteLLM(
     {

@@ -126,4 +126,20 @@ describe("litellm provider decide()", () => {
       decide(CONTEXT, { baseUrl: "http://litellm:4000/v1", fetchImpl }),
     ).rejects.toThrow(/litellm provider/);
   });
+
+  it("uses an explicit model override instead of tier selection when provided", async () => {
+    const fetchImpl = fakeFetch({ candidateId: "endTurn", rationale: "no good options" });
+    await decide(CONTEXT, { baseUrl: "http://litellm:4000/v1", model: "mercury-decide", fetchImpl });
+
+    const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    expect(body.model).toBe("mercury-decide");
+  });
+
+  it("still falls back to tier selection when no model override is given", async () => {
+    const fetchImpl = fakeFetch({ candidateId: "endTurn", rationale: "no good options" });
+    await decide(CONTEXT, { baseUrl: "http://litellm:4000/v1", fetchImpl });
+
+    const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    expect(body.model).toBe("fast");
+  });
 });
