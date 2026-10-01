@@ -7,7 +7,7 @@ import { buildRoomGraph, attachHiddenPaths } from '../../scripts/dungeon-deck.mj
 import {
   computeRanks, computeColumns, roomRect, incomingFaceFor, parentRoomIdsFor,
   incomingConnectionsFor, findPriorityCollision, assignDoorSlotsWithPriority,
-  exitFaceForIndex, buildEdgeCorridor,
+  exitFaceForIndex, buildEdgeCorridor, outgoingDoorPlan,
 } from '../../scripts/dungeon-layout.mjs';
 
 export function rectsOverlap(a, b) {
@@ -64,4 +64,23 @@ export function forEachEdge(seedCount, exitSelector, visit) {
       });
     }
   }
+}
+
+/** Plan-driven selector (#415 Chunk 2): the exit face and door the outgoing plan
+ * assigns to the sourceId -> toId edge. `exitDoor` is only set when the face
+ * carries several doors (single-door faces stay on the legacy path). Used by
+ * Chunk 4. */
+export function planSelector(layout, { sourceId, toId }) {
+  const entry = outgoingPlanFor(layout, sourceId).get(toId);
+  return { face: entry.face, exitDoor: entry.exitPoint ? entry : undefined };
+}
+
+/** The plan for one source room, from the same inputs the scene has: real
+ * children plus the (single) hidden child, target positions from the layout. */
+export function outgoingPlanFor(layout, sourceId) {
+  return outgoingDoorPlan(
+    layout.rect[sourceId], layout.pos[sourceId],
+    { realChildIds: layout.edges[sourceId] ?? [], hiddenChildIds: (layout.hiddenEdges[sourceId] ?? []).slice(0, 1) },
+    layout.pos,
+  );
 }

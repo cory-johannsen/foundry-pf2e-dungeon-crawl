@@ -233,6 +233,68 @@ export function doorSlotsForFace(rect, count, face) {
   }));
 }
 
+/** Outgoing counterpart of doorSlotsForFace (#415): equal contiguous slots
+ * along a room's south (left to right) or east (top to bottom) face. West and
+ * north are never outgoing faces. */
+export function outgoingSlotsForFace(rect, count, face) {
+  const { gx, gy, gw, gh } = rect;
+  if (face === 'east') {
+    const step = gh / count;
+    return Array.from({ length: count }, (_, i) => ({
+      x1: gx + gw, y1: gy + i * step, x2: gx + gw, y2: gy + (i + 1) * step,
+    }));
+  }
+  if (face === 'south') {
+    const step = gw / count;
+    return Array.from({ length: count }, (_, i) => ({
+      x1: gx + i * step, y1: gy + gh, x2: gx + (i + 1) * step, y2: gy + gh,
+    }));
+  }
+  throw new Error(`outgoingSlotsForFace: unsupported face ${face}`);
+}
+
+function compareTargets(a, b) {
+  return (a.tp.col - b.tp.col) || (a.tp.rank - b.tp.rank) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+}
+
+/** #415: the single source of truth for a room's outgoing doors. Face by target
+ * direction (east only for a higher-column target; south otherwise, which is
+ * always valid because its horizontal leg runs along the source's own south
+ * margin), slots by a total order independent of build/iteration order. No
+ * seeded values: byte-stable for existing seeds. Not yet consumed by the scene. */
+export function outgoingDoorPlan(rect, pos, { realChildIds = [], hiddenChildIds = [] }, positionByRoomId) {
+  const byFace = { south: [], east: [] };
+  for (const id of [...realChildIds, ...hiddenChildIds]) {
+    const tp = positionByRoomId[id];
+    byFace[tp.col > pos.col ? 'east' : 'south'].push({ id, tp });
+  }
+  const plan = new Map();
+  for (const face of ['south', 'east']) {
+    // south: ascending target column (left door to the left-most target);
+    // east: descending, so the nearest target takes the lowest door and legs nest.
+    const list = byFace[face].slice().sort(face === 'south' ? compareTargets : (a, b) => compareTargets(b, a));
+    const slots = list.length ? outgoingSlotsForFace(rect, list.length, face) : [];
+    list.forEach(({ id }, slotIndex) => {
+      const slot = slots[slotIndex];
+      let exitPoint = null;
+      let doorSpan = null;
+      if (list.length > 1) {
+        if (face === 'south') {
+          const x = clampDoorStart(slot.x1, slot.x2, slot.x1 + (slot.x2 - slot.x1) / 2 - DOOR_WIDTH);
+          exitPoint = { x, y: slot.y1 };
+          doorSpan = { x1: x, y1: slot.y1, x2: x + DOOR_WIDTH, y2: slot.y1 };
+        } else {
+          const y = clampDoorStart(slot.y1, slot.y2, slot.y1 + (slot.y2 - slot.y1) / 2 - DOOR_WIDTH);
+          exitPoint = { x: slot.x1, y };
+          doorSpan = { x1: slot.x1, y1: y, x2: slot.x1, y2: y + DOOR_WIDTH };
+        }
+      }
+      plan.set(id, { face, slotIndex, slot, doorCount: list.length, exitPoint, doorSpan });
+    });
+  }
+  return plan;
+}
+
 /** A room's own four wall segments, by compass side — exported (Task 10's
  * own #93 pre-flight fix) so dungeon-scene.mjs can look up an individual
  * outgoing face's segment directly (e.g. for a per-connection frontier
