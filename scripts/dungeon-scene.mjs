@@ -800,6 +800,7 @@ export async function populateSlotEncounter(
     prefillExcludeTraits = [],
     hidden = true,
     levelOffsetBias = 0,
+    depthBias = null,
     locationTag = null,
     seed = "",
     isBoss = false,
@@ -809,6 +810,7 @@ export async function populateSlotEncounter(
     prefillTraits,
     prefillExcludeTraits,
     levelOffsetBias,
+    depthBias,
     locationTag,
     isBoss,
     skipThemeDialog: true,
@@ -1301,11 +1303,13 @@ export async function buildPopulateAndUnlockGraphNode(
 
   if (room.kind === "combat") {
     if (!isSlotPopulated(scene, room.id)) {
+      const depthBias = depthBiasFor({ rank, maxRank: state.maxRank, isGoal: room.isGoal });
       await populateSlotEncounter(scene, room.id, {
         rect,
         prefillTraits: state.traits,
         prefillExcludeTraits: state.excludeTraits,
-        levelOffsetBias: depthBiasFor({ rank, maxRank: state.maxRank, isGoal: room.isGoal }),
+        levelOffsetBias: depthBias,
+        depthBias,
         locationTag: room.locationTag,
         seed: state.seed,
         isBoss: room.isGoal,

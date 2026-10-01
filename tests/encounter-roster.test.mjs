@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   resolveEncounterRoster,
   xpBudget,
+  xpCeilingTierForDepth,
 } from "../scripts/encounter-roster.mjs";
 
 function makeStubApi(pool) {
@@ -526,5 +527,87 @@ describe("boss room pool", () => {
     const roster = await run([m, v], two, true);
     expect(roster.foes[0].id).toBe("v");
     expect(roster.foes[1].id).toBe("m");
+  });
+});
+
+describe("depth-scaled XP ceiling (#293)", () => {
+  const goblinApi = () =>
+    makeStubApi([{ pack: "p", id: "g", name: "Goblin", level: 5, traits: [] }]);
+  const fourPlain = {
+    foes: [1, 2, 3, 4, 5, 6].map((n) => ({
+      id: `s${n}`,
+      kind: "creature",
+      levelOffset: 0,
+    })),
+  };
+  const run = (extra) =>
+    resolveEncounterRoster({
+      resolved: fourPlain,
+      api: goblinApi(),
+      partyLevel: 5,
+      rng: () => 0,
+      ...extra,
+    });
+
+  it("maps depth bias to a ceiling tier", () => {
+    expect(xpCeilingTierForDepth(0)).toBe("low");
+    expect(xpCeilingTierForDepth(1)).toBe("moderate");
+    expect(xpCeilingTierForDepth(2)).toBe("severe");
+    expect(xpCeilingTierForDepth(3)).toBe("severe");
+    expect(xpCeilingTierForDepth(null)).toBe("severe");
+    expect(xpCeilingTierForDepth(undefined)).toBe("severe");
+  });
+
+  for (const partySize of [1, 3, 4, 5, 6]) {
+    for (const [bias, tier] of [
+      [0, "low"],
+      [1, "moderate"],
+      [2, "severe"],
+    ]) {
+      it(`bias ${bias} stays within ${tier} for a party of ${partySize}`, async () => {
+        const roster = await run({ partySize, depthBias: bias });
+        const budget = xpBudget(tier, partySize);
+        // First slot is always accepted, so only assert the budget when it
+        // could have admitted more than that one slot.
+        if (budget >= 40) expect(roster.approxXp).toBeLessThanOrEqual(budget);
+        else expect(roster.foes).toHaveLength(1);
+        expect(roster.foes.length).toBeGreaterThanOrEqual(1);
+      });
+    }
+  }
+
+  it("bias 0 admits fewer slots than bias 2 for a party of 4", async () => {
+    expect((await run({ partySize: 4, depthBias: 0 })).approxXp).toBe(40);
+    expect((await run({ partySize: 4, depthBias: 1 })).approxXp).toBe(80);
+    expect((await run({ partySize: 4, depthBias: 2 })).approxXp).toBe(120);
+  });
+
+  it("still always accepts the first slot even above the Low ceiling", async () => {
+    const api = makeStubApi([
+      { pack: "p", id: "ogre", name: "Ogre", level: 7, traits: [] },
+    ]);
+    const roster = await resolveEncounterRoster({
+      resolved: {
+        foes: [{ id: "s1", kind: "creature", levelOffset: 2, countsAs: 3 }],
+      },
+      api,
+      partyLevel: 5,
+      rng: () => 0,
+      partySize: 4,
+      depthBias: 0,
+    });
+    expect(roster.foes).toHaveLength(1);
+    expect(roster.approxXp).toBe(240);
+  });
+
+  it("omitted depthBias keeps the Severe cap", async () => {
+    const roster = await run({ partySize: 4 });
+    expect(roster.approxXp).toBe(120);
+    expect(roster.warnings[0]).toMatch(/capped at Severe/);
+  });
+
+  it("names the actual tier in the cap warning", async () => {
+    const roster = await run({ partySize: 4, depthBias: 0 });
+    expect(roster.warnings[0]).toMatch(/capped at Low/);
   });
 });

@@ -150,6 +150,7 @@ export async function generateEncounter({
   forceHidden = false,
   extraFlags = null,
   levelOffsetBias = 0,
+  depthBias = null,
   locationTag = null,
   skipThemeDialog = false,
   scene: sceneOverride = null,
@@ -202,6 +203,7 @@ export async function generateEncounter({
     requireTrait: locationTag,
     partySize,
     isBoss,
+    depthBias,
   });
 
   await postEncounterChatCard(api, roster);
