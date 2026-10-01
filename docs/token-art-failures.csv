@@ -883,3 +883,25 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 64,crumbling-ravener-husk,Crumbling Ravener Husk,9,undead,accept,,gemini,gemini-first
 64,hand-of-urxehl,Hand Of Urxehl (7-8),9,beast,flag,bg_patch,gemini,
 64,brittle-ravener-husk,Brittle Ravener Husk,11,undead,accept,,gemini,gemini-first
+65,animated-blade,Animated Blade (PFS 3-99),-1,construct,flag,wrong_subject,gemini,
+65,aspis-recruit,Aspis Recruit,-1,beast,flag,bg_patch,gemini,
+65,bloody-skeleton-guard,Bloody Skeleton Guard,-1,undead,accept,,gemini,gemini-first
+65,hellbound-robber,Hellbound Robber,-1,beast,flag,halo_or_disc,gemini,
+65,unstable-skeleton-guard,Unstable Skeleton Guard,-1,undead,accept,,gemini,gemini-first
+65,skeleton-warrior,Skeleton Warrior,0,undead,accept,,gemini,gemini-first
+65,aspis-agent,Aspis Agent,1,humanoid,flag,bg_patch,gemini,
+65,bloody-barber-leader,Bloody Barber Leader,1,beast,flag,scenery_backdrop,gemini,
+65,ninth-army-bodyguard,Ninth Army Bodyguard,1,beast,flag,bg_patch,gemini,
+65,ninth-army-guard,Ninth Army Guard,1,beast,flag,bg_patch,gemini,
+65,rampaging-roast-well-done,Rampaging Roast (Well Done),1,beast,flag,wrong_subject;scenery_backdrop,gemini,
+65,sulfuric-slime,Sulfuric Slime,1,beast,flag,wrong_subject,gemini,
+65,timewarped-amalgam,Timewarped Amalgam,1,beast,flag,wrong_subject,gemini,
+65,bloody-skeletal-champion,Bloody Skeletal Champion,2,undead,accept,,gemini,gemini-first
+65,cog-the-ruffian,Cog the Ruffian,2,beast,flag,monochrome_line_art,gemini,
+65,fipp-the-prophet,Fipp the Prophet,2,beast,flag,decorative_frame,gemini,
+65,kobold-dragon-mage-s3,Kobold Dragon Mage (PFS 3-99),2,dragon,accept,,gemini,gemini-first
+65,monastic-bodyguard,Monastic Bodyguard (3-4),2,beast,flag,halo_or_disc,gemini,
+65,ninth-army-ruffian,Ninth Army Ruffian,2,beast,flag,bg_patch,gemini,
+65,unstable-skeletal-champion,Unstable Skeletal Champion,2,undead,accept,,gemini,gemini-first
+65,wailing-ghost,Wailing Ghost,2,undead,accept,,gemini,gemini-first
+65,arabuk-yearling,Arabuk Yearling,3,beast,flag,scenery_backdrop,gemini,

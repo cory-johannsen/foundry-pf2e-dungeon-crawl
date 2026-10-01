@@ -22078,5 +22078,189 @@
     "name": "Daughter Of Cocytus Enforcer",
     "level": 4,
     "art": "daughter-of-cocytus-enforcer-lob.webp"
+  },
+  {
+    "id": "bloody_skeletal_champion_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "4S77ftUx1zp7JscD",
+    "name": "Bloody Skeletal Champion",
+    "level": 2,
+    "art": "bloody-skeletal-champion-lob.webp"
+  },
+  {
+    "id": "fipp_the_prophet_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "B57HMAtx8pj3kt8u",
+    "name": "Fipp the Prophet",
+    "level": 2,
+    "art": "fipp-the-prophet-lob.webp"
+  },
+  {
+    "id": "cog_the_ruffian_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "CIjBUkWnth0CE30k",
+    "name": "Cog the Ruffian",
+    "level": 2,
+    "art": "cog-the-ruffian-lob.webp"
+  },
+  {
+    "id": "arabuk_yearling_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "Ce5z95Z1twvMCsw9",
+    "name": "Arabuk Yearling",
+    "level": 3,
+    "art": "arabuk-yearling-lob.webp"
+  },
+  {
+    "id": "unstable_skeletal_champion_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "Hez7S4Mhvi816fHi",
+    "name": "Unstable Skeletal Champion",
+    "level": 2,
+    "art": "unstable-skeletal-champion-lob.webp"
+  },
+  {
+    "id": "hellbound_robber_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "HtrdSWlJzDf7dMOO",
+    "name": "Hellbound Robber",
+    "level": -1,
+    "art": "hellbound-robber-lob.webp"
+  },
+  {
+    "id": "bloody_barber_leader_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "IP4wercLl66JDCaG",
+    "name": "Bloody Barber Leader",
+    "level": 1,
+    "art": "bloody-barber-leader-lob.webp"
+  },
+  {
+    "id": "timewarped_amalgam_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "L1gzOT7o2xxJoqUD",
+    "name": "Timewarped Amalgam",
+    "level": 1,
+    "art": "timewarped-amalgam-lob.webp"
+  },
+  {
+    "id": "wailing_ghost_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "P51YAmzcq1jONhJR",
+    "name": "Wailing Ghost",
+    "level": 2,
+    "art": "wailing-ghost-lob.webp"
+  },
+  {
+    "id": "ninth_army_ruffian_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "RLBOKSaMrOCA4fdZ",
+    "name": "Ninth Army Ruffian",
+    "level": 2,
+    "art": "ninth-army-ruffian-lob.webp"
+  },
+  {
+    "id": "kobold_dragon_mage_s3_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "Tt9DtLxj1N2TBT9w",
+    "name": "Kobold Dragon Mage (PFS 3-99)",
+    "level": 2,
+    "art": "kobold-dragon-mage-s3-lob.webp"
+  },
+  {
+    "id": "aspis_agent_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "YMT0Hl0LO9QKrb3X",
+    "name": "Aspis Agent",
+    "level": 1,
+    "art": "aspis-agent-lob.webp"
+  },
+  {
+    "id": "bloody_skeleton_guard_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "YwkPGpBPttW2G7Xn",
+    "name": "Bloody Skeleton Guard",
+    "level": -1,
+    "art": "bloody-skeleton-guard-lob.webp"
+  },
+  {
+    "id": "animated_blade_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "ZzH4EqJtWIhaNWSv",
+    "name": "Animated Blade (PFS 3-99)",
+    "level": -1,
+    "art": "animated-blade-lob.webp"
+  },
+  {
+    "id": "ninth_army_guard_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "byhh6wysf9MdM7LM",
+    "name": "Ninth Army Guard",
+    "level": 1,
+    "art": "ninth-army-guard-lob.webp"
+  },
+  {
+    "id": "aspis_recruit_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "hEh3j8Fz8lbjuiRF",
+    "name": "Aspis Recruit",
+    "level": -1,
+    "art": "aspis-recruit-lob.webp"
+  },
+  {
+    "id": "rampaging_roast_well_done_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "mZ2bmxg4JcVh1p2k",
+    "name": "Rampaging Roast (Well Done)",
+    "level": 1,
+    "art": "rampaging-roast-well-done-lob.webp"
+  },
+  {
+    "id": "ninth_army_bodyguard_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "phgXSggQiGRNn4Yr",
+    "name": "Ninth Army Bodyguard",
+    "level": 1,
+    "art": "ninth-army-bodyguard-lob.webp"
+  },
+  {
+    "id": "skeleton_warrior_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "qFzhrDwmnBhk4FyL",
+    "name": "Skeleton Warrior",
+    "level": 0,
+    "art": "skeleton-warrior-lob.webp"
+  },
+  {
+    "id": "unstable_skeleton_guard_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "sHl25TefznyV8xC8",
+    "name": "Unstable Skeleton Guard",
+    "level": -1,
+    "art": "unstable-skeleton-guard-lob.webp"
+  },
+  {
+    "id": "monastic_bodyguard_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "xkXMKw8GhdI5FNar",
+    "name": "Monastic Bodyguard (3-4)",
+    "level": 2,
+    "art": "monastic-bodyguard-lob.webp"
+  },
+  {
+    "id": "monastic_bodyguard_5_6_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "zzbBBSmjvCzJ6lyt",
+    "name": "Monastic Bodyguard (5-6)",
+    "level": 4,
+    "art": "monastic-bodyguard-lob.webp"
+  },
+  {
+    "id": "sulfuric_slime_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "yfh8wibKauDIh6Dj",
+    "name": "Sulfuric Slime",
+    "level": 1,
+    "art": "sulfuric-slime-lob.webp"
   }
 ]
