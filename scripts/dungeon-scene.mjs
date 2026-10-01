@@ -46,6 +46,7 @@ import {
   pendingForeignMarginOpenings,
   findPriorityCollision,
   assignDoorSlotsWithPriority,
+  outgoingDoorPlan,
 } from "./dungeon-layout.mjs";
 import { freeSpotInRect } from "./placement.mjs";
 import { generateEncounter } from "./encounter-generator.mjs";
@@ -342,6 +343,21 @@ export async function createDungeonScene() {
 }
 
 /**
+ * #415 (layoutVersion >= 2): the outgoing door plan of `sourceId`, from the
+ * persisted graph. Real children come from `edges`, the single hidden child
+ * from `hiddenEdges`; the plan itself is order-independent, so a hidden edge
+ * revealed into `edges` later yields the identical plan.
+ */
+function outgoingPlanFromState(seed, sourceId, { edges, hiddenEdges, layoutPositionByRoomId }) {
+  const pos = layoutPositionByRoomId[sourceId];
+  return outgoingDoorPlan(
+    roomRect(seed, sourceId, pos.rank, pos.col), pos,
+    { realChildIds: edges?.[sourceId] ?? [], hiddenChildIds: (hiddenEdges?.[sourceId] ?? []).slice(0, 1) },
+    layoutPositionByRoomId,
+  );
+}
+
+/**
  * #93 — manual/live-verification checklist (no Foundry test harness exists
  * for this file, same existing boundary the old linear-slot room builder
  * always had). Run this against a real Foundry
@@ -398,13 +414,38 @@ export async function buildRoomAtGraphNode(
     layoutPositionByRoomId = {}, occupiedCells = {},
     incomingFace = 'north', incomingFaceByRoomId = {},
     edges = {}, layoutEdges, hiddenIncomingByRoomId = {},
+    // #415: run-state `layoutVersion` (absent = 1 = legacy exit faces by child
+    // index). Version 2 takes every outgoing door from outgoingDoorPlan.
+    layoutVersion = 1, hiddenEdges = {},
   },
 ) {
   const rect = roomRect(seed, roomId, rank, col);
+  const planned = layoutVersion >= 2;
+  const plan = planned
+    ? outgoingDoorPlan(
+      rect, { rank, col },
+      { realChildIds: isGoal ? [] : childIds, hiddenChildIds: hiddenChildId ? [hiddenChildId] : [] },
+      layoutPositionByRoomId,
+    )
+    : null;
 
   const realOutgoingFaces = isGoal ? [] : childIds.map((_, i) => exitFaceForIndex(i, incomingFace));
   const hiddenFaceIndex = childIds.length; // reserved right after the real children
-  const outgoingFaces = hiddenChildId ? [...realOutgoingFaces, exitFaceForIndex(hiddenFaceIndex, incomingFace)] : realOutgoingFaces;
+  const legacyOutgoingFaces = hiddenChildId ? [...realOutgoingFaces, exitFaceForIndex(hiddenFaceIndex, incomingFace)] : realOutgoingFaces;
+  const outgoingFaces = planned ? [...new Set([...plan.values()].map((e) => e.face))] : legacyOutgoingFaces;
+  // #415: a face with several doors is sealed by THIS room except for each
+  // door's own one-cell span (placeholders and the child's door fill them);
+  // a single-door face stays fully open for its placeholder, as before.
+  const doorSpansByFace = {};
+  if (planned) {
+    for (const entry of plan.values()) {
+      if (!entry.doorSpan) continue;
+      (doorSpansByFace[entry.face] ??= []).push(entry.doorSpan);
+    }
+    for (const [face, spans] of Object.entries(doorSpansByFace)) {
+      spans.sort((a, b) => (face === 'south' ? a.x1 - b.x1 : a.y1 - b.y1));
+    }
+  }
   // #174 Task 5 fix round: which child each outgoing face actually
   // connects to, so the margin-gap computation below can tell whether
   // buildEdgeCorridor will use its offset-based or center-based exit
@@ -419,7 +460,7 @@ export async function buildRoomAtGraphNode(
   // (which never includes north) regardless of how many incoming
   // connections this room has or which index it was among its own
   // parent's children.
-  const walls = roomEnclosureWalls(seed, roomId, { incomingCount: incomingConnections.length, incomingFace, outgoingFaces }, rect).map(
+  const walls = roomEnclosureWalls(seed, roomId, { incomingCount: incomingConnections.length, incomingFace, outgoingFaces, doorSpansByFace }, rect).map(
     (side) =>
       wallDoc(side, {
         flags: {
@@ -465,13 +506,25 @@ export async function buildRoomAtGraphNode(
   // opening for a side as an array in one call, replacing the old
   // one-call-per-face-then-merge dance this block used to need.
   const marginFaces = outgoingFaces.filter((face) => face === "east" || face === "south");
-  const foreignOpenings = pendingForeignMarginOpenings(
-    seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
-    layoutEdges, hiddenIncomingByRoomId,
-  );
+  const planFor = planned
+    ? (sourceId) => outgoingPlanFromState(seed, sourceId, { edges, hiddenEdges, layoutPositionByRoomId })
+    : undefined;
+  const foreignOpenings = planned
+    ? pendingForeignMarginOpenings(
+      seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
+      layoutEdges, hiddenIncomingByRoomId, hiddenEdges, planFor,
+    )
+    : pendingForeignMarginOpenings(
+      seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
+      layoutEdges, hiddenIncomingByRoomId,
+    );
   const openingsBySide = { east: [...foreignOpenings.east], south: [...foreignOpenings.south] };
-  for (const face of marginFaces) {
-    const childId = childIdByFace[face];
+  // #415: one opening per planned door (a face may carry several), each as wide
+  // as that door's own corridor floor.
+  const marginTargets = planned
+    ? [...plan.entries()].map(([childId, entry]) => ({ face: entry.face, childId, exitDoor: entry }))
+    : marginFaces.map((face) => ({ face, childId: childIdByFace[face], exitDoor: undefined }));
+  for (const { face, childId, exitDoor } of marginTargets) {
     const childPos = childId ? layoutPositionByRoomId[childId] : null;
     // #174 Task 6: the CHILD's own incoming face, not this room's — this
     // must match wherever buildEdgeCorridor will actually land the
@@ -481,7 +534,7 @@ export async function buildRoomAtGraphNode(
     const childIncomingFace = childId ? (incomingFaceByRoomId?.[childId] ?? 'north') : 'north';
     const { offset, width } = outgoingMarginOffset(
       seed, roomId, childId, face, rect, { rank, col },
-      childPos ?? { rank: NaN, col: NaN }, occupiedCells, childIncomingFace,
+      childPos ?? { rank: NaN, col: NaN }, occupiedCells, childIncomingFace, exitDoor,
     );
     openingsBySide[face].push({ offset, width });
   }
@@ -529,8 +582,10 @@ export async function buildRoomAtGraphNode(
   // topological, so every parent builds before its children.
   for (let i = 0; i < childIds.length; i += 1) {
     if (isSlotBuilt(scene, childIds[i])) continue;
-    const face = exitFaceForIndex(i, incomingFace);
-    const side = roomSidesForRect(rect)[face];
+    // #415: a multi-door face's placeholder covers only this door's span.
+    const entry = plan?.get(childIds[i]);
+    const face = entry ? entry.face : exitFaceForIndex(i, incomingFace);
+    const side = entry?.doorSpan ?? roomSidesForRect(rect)[face];
     walls.push(
       wallDoc(side, {
         flags: { [MODULE_ID]: { dungeonFrontierWallForEdge: `${roomId}->${childIds[i]}` } },
@@ -545,8 +600,9 @@ export async function buildRoomAtGraphNode(
   // target that built first already carries its own sealed
   // dungeonHiddenDoorForEdge gate/reveal doors for this edge.
   if (hiddenChildId && !isSlotBuilt(scene, hiddenChildId)) {
-    const face = exitFaceForIndex(hiddenFaceIndex, incomingFace);
-    const side = roomSidesForRect(rect)[face];
+    const entry = plan?.get(hiddenChildId);
+    const face = entry ? entry.face : exitFaceForIndex(hiddenFaceIndex, incomingFace);
+    const side = entry?.doorSpan ?? roomSidesForRect(rect)[face];
     walls.push(
       wallDoc(side, {
         ds: CONST.WALL_DOOR_STATES.LOCKED,
@@ -1152,6 +1208,11 @@ export async function buildPopulateAndUnlockGraphNode(
   // this field existed — reading a property off `undefined` would throw
   // instead of falling back, leaving the party's room-build stuck.
   const incomingFace = state.incomingFaceByRoomId?.[room.id] ?? 'north';
+  // #415: absent on any run persisted before the outgoing door plan existed.
+  const layoutVersion = state.layoutVersion ?? 1;
+  const planFor = layoutVersion >= 2
+    ? (sourceId) => outgoingPlanFromState(state.seed, sourceId, state)
+    : undefined;
 
   // #93 pre-flight fix (merge-door redesign): every real parent this room
   // has (usually 1, more for a merge room), plus a shortcut's hidden extra
@@ -1182,6 +1243,8 @@ export async function buildPopulateAndUnlockGraphNode(
         edges: state.edges,
         layoutEdges: state.layoutEdges,
         hiddenIncomingByRoomId: state.hiddenIncomingByRoomId,
+        layoutVersion,
+        hiddenEdges: state.hiddenEdges ?? {},
       },
     );
 
@@ -1199,7 +1262,7 @@ export async function buildPopulateAndUnlockGraphNode(
     // OTHER connection's own slot, and Round 1's own buildEdgeCorridor call
     // below (unchanged), are completely unaffected.
     const priorityCollision = findPriorityCollision(
-      state.seed, room.id, rank, col, incomingConnections, state.layoutPositionByRoomId, occupiedCells, incomingFace,
+      state.seed, room.id, rank, col, incomingConnections, state.layoutPositionByRoomId, occupiedCells, incomingFace, planFor,
     );
     const slots = assignDoorSlotsWithPriority(state.seed, rect, incomingConnections, incomingFace, priorityCollision);
     for (let i = 0; i < incomingConnections.length; i += 1) {
@@ -1216,14 +1279,18 @@ export async function buildPopulateAndUnlockGraphNode(
       // (exitFaceForIndex(sourceChildIds.length) — same convention
       // buildRoomAtGraphNode's own hiddenFaceIndex uses for itself).
       const sourceIncomingFace = state.incomingFaceByRoomId?.[sourceId] ?? 'north'; // #174 Task 6: incomingFaceByRoomId is now real, non-empty data; the fallback only covers a state predating this precompute step
-      const exitFaceFromSource = hidden
-        ? exitFaceForIndex(sourceChildIds.length, sourceIncomingFace)
-        : exitFaceForIndex(sourceChildIds.indexOf(room.id), sourceIncomingFace);
+      // #415 (layoutVersion 2): face and door come from the source's plan.
+      const plannedExit = planFor?.(sourceId).get(room.id);
+      const exitFaceFromSource = plannedExit
+        ? plannedExit.face
+        : hidden
+          ? exitFaceForIndex(sourceChildIds.length, sourceIncomingFace)
+          : exitFaceForIndex(sourceChildIds.indexOf(room.id), sourceIncomingFace);
       // #174 Task 4/5: sourcePos/{rank, col} let buildEdgeCorridor pathfind
       // (findCorridorPath) a route around any other room's own occupied
       // cell instead of assuming a direct/single-corner connection.
       const { doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells } =
-        buildEdgeCorridor(state.seed, sourceId, room.id, sourceRect, rect, sourcePos, { rank, col }, exitFaceFromSource, toSlot, occupiedCells, incomingFace);
+        buildEdgeCorridor(state.seed, sourceId, room.id, sourceRect, rect, sourcePos, { rank, col }, exitFaceFromSource, toSlot, occupiedCells, incomingFace, plannedExit);
       if (hidden) {
         // #156: sealed until Task 9's reveal step explicitly promotes it
         // (both doorWall and revealDoorWall share the SAME

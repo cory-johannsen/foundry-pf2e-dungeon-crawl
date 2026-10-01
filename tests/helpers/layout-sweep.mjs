@@ -3,7 +3,7 @@
 // and the precompute in scripts/ui/dungeon-app.mjs (~500-530), so a sweep sees
 // exactly what a real run builds. The older #174 sweeps do NOT: they skip
 // hidden edges, exclude an edge's own endpoints and use one north slot.
-import { buildRoomGraph, attachHiddenPaths } from '../../scripts/dungeon-deck.mjs';
+import { buildRoomGraph, attachHiddenPaths, insertRestRoom } from '../../scripts/dungeon-deck.mjs';
 import {
   computeRanks, computeColumns, roomRect, incomingFaceFor, parentRoomIdsFor,
   incomingConnectionsFor, findPriorityCollision, assignDoorSlotsWithPriority,
@@ -14,10 +14,16 @@ export function rectsOverlap(a, b) {
   return a.gx < b.gx + b.gw && a.gx + a.gw > b.gx && a.gy < b.gy + b.gh && a.gy + a.gh > b.gy;
 }
 
-export function buildSweepLayout(i) {
+/** `restRoom` (default true) mirrors dungeon-app.mjs, which splices the mid-dungeon
+ * rest room in before attachHiddenPaths. The #415 Chunk 1-3 baselines (and the
+ * default-geometry digest test) were measured without it, so they pass false. */
+export function buildSweepLayout(i, { restRoom = true } = {}) {
   const seed = `sweep-${i}`;
   const roomCount = 6 + (i % 15);
-  const { rooms, edges } = buildRoomGraph({ seed, roomCount });
+  const generated = buildRoomGraph({ seed, roomCount });
+  const { rooms, edges } = restRoom
+    ? insertRestRoom({ rooms: generated.rooms, edges: generated.edges, seed, roomCount })
+    : generated;
   const { layoutEdges, hiddenIncomingByRoomId, hiddenEdges, hiddenRooms } = attachHiddenPaths({ rooms, edges, seed });
   const ranks = computeRanks(layoutEdges, 'room-entry');
   const cols = computeColumns(layoutEdges, ranks, 'room-entry');
@@ -40,9 +46,11 @@ export function legacyExitSelector(layout, { sourceId, toId, hidden }) {
   return { face, exitDoor: undefined };
 }
 
-export function forEachEdge(seedCount, exitSelector, visit) {
+export function forEachEdge(seedCount, exitSelector, visit, layoutOptions) {
   for (let i = 0; i < seedCount; i += 1) {
-    const layout = buildSweepLayout(i);
+    const layout = buildSweepLayout(i, layoutOptions);
+    // The scene passes the source plan to findPriorityCollision under layoutVersion 2.
+    const planFor = exitSelector.planFor?.(layout);
     const { seed, pos, occ, rect, incFace, layoutEdges, hiddenIncomingByRoomId, hiddenRooms } = layout;
     for (const toId of Object.keys(layout.rooms)) {
       const isDetour = hiddenRooms.includes(toId);
@@ -50,7 +58,7 @@ export function forEachEdge(seedCount, exitSelector, visit) {
         .map((c) => (isDetour ? { ...c, hidden: true } : c));
       if (!conns.length) continue;
       const face = incFace[toId];
-      const collision = findPriorityCollision(seed, toId, pos[toId].rank, pos[toId].col, conns, pos, occ, face);
+      const collision = findPriorityCollision(seed, toId, pos[toId].rank, pos[toId].col, conns, pos, occ, face, planFor);
       const slots = assignDoorSlotsWithPriority(seed, rect[toId], conns, face, collision);
       conns.forEach(({ sourceId, hidden }, k) => {
         const sel = exitSelector(layout, { sourceId, toId, hidden });
@@ -72,8 +80,9 @@ export function forEachEdge(seedCount, exitSelector, visit) {
  * Chunk 4. */
 export function planSelector(layout, { sourceId, toId }) {
   const entry = outgoingPlanFor(layout, sourceId).get(toId);
-  return { face: entry.face, exitDoor: entry.exitPoint ? entry : undefined };
+  return { face: entry.face, exitDoor: entry };
 }
+planSelector.planFor = (layout) => (sourceId) => outgoingPlanFor(layout, sourceId);
 
 /** The plan for one source room, from the same inputs the scene has: real
  * children plus the (single) hidden child, target positions from the layout. */

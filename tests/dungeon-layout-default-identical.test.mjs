@@ -14,6 +14,7 @@ import {
 import { forEachEdge, buildSweepLayout, legacyExitSelector } from './helpers/layout-sweep.mjs';
 
 const SEEDS = 500;
+const NO_REST_ROOM = { restRoom: false }; // the digest predates the sweep mirroring insertRestRoom
 const GOLDEN_DIGEST = 'f179b4c09a584cd2df8fc459b7647aa5207f65b65e45285967c6cd1cecf2f478';
 
 function digest(explicitUndefined) {
@@ -27,9 +28,9 @@ function digest(explicitUndefined) {
     ];
     put('margin', explicitUndefined ? outgoingMarginOffset(...args, undefined) : outgoingMarginOffset(...args));
     put('slot', toSlot);
-  });
+  }, NO_REST_ROOM);
   for (let i = 0; i < SEEDS; i += 1) {
-    const L = buildSweepLayout(i);
+    const L = buildSweepLayout(i, NO_REST_ROOM);
     for (const id of Object.keys(L.rooms)) {
       const { rank, col } = L.pos[id];
       const conns = incomingConnectionsFor(L.layoutEdges, id, L.hiddenIncomingByRoomId);

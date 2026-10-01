@@ -4252,7 +4252,7 @@ describe('planned doors over the 500-seed sweep (#415)', () => {
   it('every planned multi-door edge: doorWall is the planned span, no source-face caps, face sealed except spans', () => {
     let multi = 0;
     forEachEdge(500, planSelector, ({ layout, sourceId, face, exitDoor, result }) => {
-      if (!exitDoor) return;
+      if (!exitDoor?.exitPoint) return; // single-door faces carry a null exitPoint
       multi += 1;
       expect(result.doorWall).toEqual({ x1: exitDoor.doorSpan.x1, y1: exitDoor.doorSpan.y1, x2: exitDoor.doorSpan.x2, y2: exitDoor.doorSpan.y2 });
       const rect = layout.rect[sourceId];
