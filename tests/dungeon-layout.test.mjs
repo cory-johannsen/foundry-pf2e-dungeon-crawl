@@ -3,7 +3,7 @@ import {
   ROOM_SIZE_SMALL, ROOM_SIZE_LARGE, DOOR_WIDTH,
   roomSizeAt, doorOffsetAt, corridorTileVariant,
   computeRanks, computeColumns,
-  roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, buildEdgeCorridor, incomingFaceFor, doorSlotsForFace,
+  roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, buildEdgeCorridor, incomingFaceFor, doorSlotsForFace, outgoingSlotsForFace, outgoingDoorPlan,
   cellBounds, projectOntoSide, findCorridorPath, INITIAL_GX, cellMarginWalls, transitCellCrossing,
   transitCellContainmentWalls, CORRIDOR_LEN, outgoingMarginOffset, pendingForeignMarginOpenings,
   marginBandApproach, findCoParentCollision, findPriorityCollision, assignDoorSlotsWithPriority,
@@ -4052,5 +4052,66 @@ describe('findPriorityCollision — #297 Round 2 fix (final-review finding D, co
       seed, toId, toPos.rank, toPos.col, incomingConnections, layoutPositionByRoomId, occupiedCells, 'north',
     );
     expect(collision).toBeNull();
+  });
+});
+
+describe('outgoingSlotsForFace (#415)', () => {
+  const rect = { gx: 300, gy: 13, gw: 6, gh: 6 };
+  it('splits the south face left to right', () => {
+    expect(outgoingSlotsForFace(rect, 3, 'south')).toEqual([
+      { x1: 300, y1: 19, x2: 302, y2: 19 },
+      { x1: 302, y1: 19, x2: 304, y2: 19 },
+      { x1: 304, y1: 19, x2: 306, y2: 19 },
+    ]);
+  });
+  it('splits the east face top to bottom', () => {
+    expect(outgoingSlotsForFace(rect, 2, 'east')).toEqual([
+      { x1: 306, y1: 13, x2: 306, y2: 16 },
+      { x1: 306, y1: 16, x2: 306, y2: 19 },
+    ]);
+  });
+  it('rejects faces that are never outgoing', () => {
+    expect(() => outgoingSlotsForFace(rect, 1, 'west')).toThrow();
+    expect(() => outgoingSlotsForFace(rect, 1, 'north')).toThrow();
+  });
+});
+
+describe('outgoingDoorPlan (#415)', () => {
+  const rect = { gx: 300, gy: 13, gw: 6, gh: 6 };
+  const pos = { rank: 1, col: 0 };
+  const P = (rank, col) => ({ rank, col });
+  it('uses south for same-column and lower-column targets, east for higher-column', () => {
+    const plan = outgoingDoorPlan(rect, { rank: 1, col: 2 }, { realChildIds: ['a', 'b'], hiddenChildIds: [] },
+      { a: P(2, 2), b: P(3, 4) });
+    expect(plan.get('a').face).toBe('south');
+    expect(plan.get('b').face).toBe('east');
+  });
+  it('never assigns west or north', () => {
+    const plan = outgoingDoorPlan(rect, pos, { realChildIds: ['a', 'b', 'c'], hiddenChildIds: [] },
+      { a: P(2, 0), b: P(2, 2), c: P(3, 4) });
+    for (const e of plan.values()) expect(['south', 'east']).toContain(e.face);
+  });
+  it('single door on a face leaves exitPoint null (legacy, byte-identical)', () => {
+    const plan = outgoingDoorPlan(rect, pos, { realChildIds: ['a'], hiddenChildIds: [] }, { a: P(2, 0) });
+    expect(plan.get('a')).toMatchObject({ face: 'south', doorCount: 1, exitPoint: null, doorSpan: null });
+  });
+  it('two south doors get disjoint one-cell spans inside their slots, sorted by target column', () => {
+    const plan = outgoingDoorPlan(rect, { rank: 1, col: 2 }, { realChildIds: ['far', 'same'], hiddenChildIds: [] },
+      { far: P(3, 0), same: P(3, 2) });
+    const far = plan.get('far'); const same = plan.get('same');
+    expect(far.slotIndex).toBe(0); expect(same.slotIndex).toBe(1);
+    expect(far.doorSpan.x2 - far.doorSpan.x1).toBe(1);
+    expect(far.doorSpan.x2).toBeLessThanOrEqual(same.doorSpan.x1);
+    for (const e of [far, same]) {
+      expect(e.doorSpan.x1).toBeGreaterThanOrEqual(e.slot.x1);
+      expect(e.doorSpan.x2).toBeLessThanOrEqual(e.slot.x2);
+      expect(e.exitPoint).toEqual({ x: e.doorSpan.x1, y: rect.gy + rect.gh });
+    }
+  });
+  it('is independent of child-list order', () => {
+    const t = { a: P(3, 0), b: P(3, 2), c: P(4, 4) };
+    const one = outgoingDoorPlan(rect, { rank: 1, col: 2 }, { realChildIds: ['a', 'b', 'c'], hiddenChildIds: [] }, t);
+    const two = outgoingDoorPlan(rect, { rank: 1, col: 2 }, { realChildIds: ['c', 'b', 'a'], hiddenChildIds: [] }, t);
+    expect([...one.entries()].sort()).toEqual([...two.entries()].sort());
   });
 });
