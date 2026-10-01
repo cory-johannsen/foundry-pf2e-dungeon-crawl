@@ -22622,5 +22622,125 @@
     "name": "Aspis Bulwark",
     "level": 5,
     "art": "aspis-bulwark-lob.webp"
+  },
+  {
+    "id": "tascio_raetullus_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "AuU3BGEz05Q180yI",
+    "name": "Tascio Raetullus (3-4)",
+    "level": 4,
+    "art": "tascio-raetullus-lob.webp"
+  },
+  {
+    "id": "tascio_raetullus_5_6_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "g4hfpuGdtTDq7KZw",
+    "name": "Tascio Raetullus (5-6)",
+    "level": 6,
+    "art": "tascio-raetullus-lob.webp"
+  },
+  {
+    "id": "thundering_wihsaak_heretical_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "BcSac9voqpoDjMTy",
+    "name": "Thundering Wihsaak (Heretical)",
+    "level": 6,
+    "art": "thundering-wihsaak-heretical-lob.webp"
+  },
+  {
+    "id": "shobhad_hunter_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "Q2a9EA1zQB8acuiF",
+    "name": "Shobhad Hunter (5-6)",
+    "level": 4,
+    "art": "shobhad-hunter-lob.webp"
+  },
+  {
+    "id": "shobhad_hunter_7_8_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "EB00f6ADElWInuix",
+    "name": "Shobhad Hunter (7-8)",
+    "level": 6,
+    "art": "shobhad-hunter-lob.webp"
+  },
+  {
+    "id": "onyx_alliance_officer_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "OVsp8tvdybZbbszm",
+    "name": "Onyx Alliance Officer",
+    "level": 5,
+    "art": "onyx-alliance-officer-lob.webp"
+  },
+  {
+    "id": "thundering_wihsaak_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "SJoWqX2P5LhJsbYA",
+    "name": "Thundering Wihsaak",
+    "level": 6,
+    "art": "thundering-wihsaak-lob.webp"
+  },
+  {
+    "id": "cole_farsen_gang_leader_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "WxN19w3aO5MpVY6Z",
+    "name": "Cole Farsen, Gang Leader",
+    "level": 7,
+    "art": "cole-farsen-gang-leader-lob.webp"
+  },
+  {
+    "id": "tyrannical_interrogator_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "g3UYRJQCwnjdvCm9",
+    "name": "Tyrannical Interrogator",
+    "level": 5,
+    "art": "tyrannical-interrogator-lob.webp"
+  },
+  {
+    "id": "thundering_wihsaak_arctic_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "gzMCaAr2Bd2gbhrF",
+    "name": "Thundering Wihsaak (Arctic)",
+    "level": 6,
+    "art": "thundering-wihsaak-arctic-lob.webp"
+  },
+  {
+    "id": "thundering_wihsaak_rifle_mutation_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "hGu2JDWOAHHMLYeH",
+    "name": "Thundering Wihsaak (Rifle Mutation)",
+    "level": 6,
+    "art": "thundering-wihsaak-rifle-mutation-lob.webp"
+  },
+  {
+    "id": "reckless_akitonian_scientist_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "iev4EOtchd0hp9sh",
+    "name": "Reckless Akitonian Scientist",
+    "level": 6,
+    "art": "reckless-akitonian-scientist-lob.webp"
+  },
+  {
+    "id": "ninth_army_fence_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "njJCv6ItwIzwO3Xj",
+    "name": "Ninth Army Fence",
+    "level": 5,
+    "art": "ninth-army-fence-lob.webp"
+  },
+  {
+    "id": "cole_farsen_advisor_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "qd6yO0nBdmoz8Fl2",
+    "name": "Cole Farsen, Advisor",
+    "level": 5,
+    "art": "cole-farsen-advisor-lob.webp"
+  },
+  {
+    "id": "thick_pelagastr_tail_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "tVsrWl9kfVIGG5OW",
+    "name": "Thick Pelagastr Tail",
+    "level": 5,
+    "art": "thick-pelagastr-tail-lob.webp"
   }
 ]
