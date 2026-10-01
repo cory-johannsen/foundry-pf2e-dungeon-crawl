@@ -889,6 +889,11 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       return {
         hasScene: true,
         hasRun: false,
+        // #185: set by #onStart just before it awaits startDungeonRun/the
+        // relayed equivalent, and cleared by the render() already at the
+        // end of that method once the await resolves -- a plain instance
+        // field survives across the two render() calls that bracket it.
+        generating: this.generating ?? false,
         defaultRoomCount: 6,
         availableTraits,
         traitsFieldHtml: traitFieldHtml({
@@ -1277,25 +1282,36 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // (ITEM-18) sends them back here if this run is later abandoned.
     const previousSceneId = canvas?.scene?.id ?? null;
 
-    if (game.user.isGM) {
-      await startDungeonRun({
-        roomCount,
-        traits,
-        excludeTraits,
-        previousSceneId,
-        hostUserId: null,
-      });
-    } else {
-      await requestDungeonAction(
-        "startRun",
-        {
+    // #185: Start Dungeon now eagerly builds every room's full content up
+    // front (#93), so the gap between clicking Start and the scene actually
+    // changing is long enough to need feedback -- render immediately with
+    // the flag set, before awaiting either path below, rather than leaving
+    // the form sitting there unresponsive-looking for the whole wait.
+    this.generating = true;
+    this.render();
+    try {
+      if (game.user.isGM) {
+        await startDungeonRun({
           roomCount,
           traits,
           excludeTraits,
           previousSceneId,
-        },
-        { timeoutMs: 60_000 },
-      );
+          hostUserId: null,
+        });
+      } else {
+        await requestDungeonAction(
+          "startRun",
+          {
+            roomCount,
+            traits,
+            excludeTraits,
+            previousSceneId,
+          },
+          { timeoutMs: 60_000 },
+        );
+      }
+    } finally {
+      this.generating = false;
     }
     this.render();
   }

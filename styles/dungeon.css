@@ -13,6 +13,7 @@
 .pf2edc-dungeon__marching-order-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pf2edc-dungeon__marching-order-controls { display: flex; gap: 0.2rem; flex: 0 0 auto; }
 .pf2edc-dungeon__marching-order-controls button { width: 1.8em; height: 1.8em; padding: 0; line-height: 1; }
+.pf2edc-dungeon__generating { text-align: center; font-style: italic; opacity: 0.8; padding: 1.5rem 0; }
 
 /* ----- Trait picker (encounter theme + dungeon-start forms) ----- */
 .pf2edc-trait-field { display: flex; align-items: center; gap: 0.5rem; }

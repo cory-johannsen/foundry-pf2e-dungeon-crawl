@@ -38,6 +38,7 @@
   "PF2EDC.Dungeon.Effect.restless_night": "Restless Night — no benefit from a rest here.",
   "PF2EDC.Dungeon.Effect.treasure": "Treasure — the party finds something valuable.",
   "PF2EDC.Dungeon.FailButton": "Mark Failed",
+  "PF2EDC.Dungeon.Generating": "Dungeon generating…",
   "PF2EDC.Dungeon.GmOnlyWarning": "Only the GM can manage a dungeon crawl.",
   "PF2EDC.Dungeon.HideButton": "Hide",
   "PF2EDC.Dungeon.Kind.combat": "Combat",
