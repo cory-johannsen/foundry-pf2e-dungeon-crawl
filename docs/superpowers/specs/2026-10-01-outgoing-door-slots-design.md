@@ -86,14 +86,12 @@ even column, so a column difference is never 1.
 | `t < s` | `west` (optional) | leg 1 would run west **out of a face that has no margin** (rooms have none on north/west, see `cellMarginWalls`) into the always-empty odd buffer column, which `sealBufferCellIfUnbuilt` walls off |
 | any | `north` | never; it is an incoming face (or free when incoming is `west`, still never valid: targets are below) |
 
-**Recommendation (open question 1):** do not assign `west` at all. Once a
+**Decision 1:** `west` is not assigned at all. Once a
 face can carry several doors, south absorbs every non-east target, so west
 is never required, and west would need new buffer-cell crossing geometry
 (treat the buffer cell as a transit cell with an east entry side, with its
 own openings) for no feasibility gain. Under this recommendation outgoing
-candidates are `['south', 'east']` for both incoming faces. If the user
-wants west used for lower-column targets, the buffer-cell crossing is a
-separate phase (see Phasing).
+candidates are `['south', 'east']` for both incoming faces. Using west would be a separate phase, cancelled by Decision 1.
 
 ## Face assignment (deterministic)
 
@@ -203,13 +201,11 @@ style of the #225 buildability tests (not footprint overlap):
 3. A margin opening exists for every door on a margin face and is as wide
    as that corridor's real floor there (#288's rule).
 4. No source-face cap or margin wall ends up covering another edge's door.
-5. Two south doors on one face produce two corridors whose floors may
-   merge in the shared margin row. Merging is acceptable gameplay-wise (both
-   are exits of the same room, each target door has its own locked/closed
-   door), but the walls must not bisect the merged floor. Unknown: whether
-   the corner branch's reliance on cell-margin walls (it builds no side
-   walls of its own) already handles this; to be determined by the test,
-   not assumed.
+5. Corridors on one face stay physically separate (Decision 3): no two
+   edges' floors may overlap or touch. East doors are separate by slot
+   row; south doors are separate only if their margin-row legs are
+   disjoint, which fails for two lower-column targets (Open question 5).
+   The test asserts pairwise floor disjointness per source room.
 
 ## Property test (acceptance criterion)
 
@@ -300,20 +296,42 @@ faces and extended under the new ones would meet mismatched doors.
 3. Scene wiring (`dungeon-scene.mjs` placeholders, margin openings, source
    call), `layoutVersion` gate, wall-vs-opening buildability sweep, the
    property test goes green for source overlap.
-4. Optional: west exits via buffer-cell crossing (only if open question 1
-   chooses to keep west), and whatever the shared-margin-row test turns up.
+4. Resolve Open question 5 (lane conflicts), as the user decides.
 
 Phases 1+2 could be one PR if small; 3 is the risky one and ships alone.
 Each PR bumps `module.json`; run `update-architecture-docs` when imports
 change (phase 1 may add none).
 
-## Open questions for the user
+## Decisions (user, 2026-10-01)
 
-1. Drop `west` as an assignable outgoing face (recommended) or keep it for
-   lower-column targets (needs buffer-cell crossing geometry, phase 4)?
-2. Existing runs keep the old geometry (version gate) -- acceptable, or
-   should unbuilt rooms of a running dungeon adopt the new layout?
-3. Merged corridor floors for two doors on one face acceptable (Containment
-   rule 5), or must each corridor stay physically separate?
-4. Ratchet the target-overlap class here and fix it in its own issue
-   (proposed), or widen this work to zero it?
+1. `west` is dropped as an assignable outgoing face. Lower-column targets
+   use `south`; candidates are `['south', 'east']` for both incoming faces.
+   Phase 4 (west via buffer cell) is cancelled.
+2. Existing runs are ignored: only new runs get the fix, behind the
+   `layoutVersion` gate (absent = 1 = legacy).
+3. Corridors sharing a face stay physically separate: no merged floors.
+   This replaces the "merge acceptable" stance in Containment rule 5 (see
+   Open question 5 for the case this makes infeasible).
+4. The target-room overlap class is ratcheted in the #415 property test and
+   fixed under #416, not #415.
+
+## Open question (found while planning)
+
+5. Decision 3 cannot hold for every room. South doors' horizontal legs all
+   run in the source's single, one-cell-deep south margin row. A
+   lower-column target's leg runs west from its door to the target's
+   entry; two lower-column targets on the same room therefore overlap in
+   that row whatever the slot order (the far target's leg passes the
+   other door). East doors are unaffected (each east slot is its own
+   row). A same-column target's leg is vertical and can sit rightmost
+   without overlap. Measured on the 500-seed sweep: about 149 of 7,028
+   source rooms (2.1%) have two or more lower-column targets
+   (`westcol,westcol` 139, `same,westcol,westcol` 1, `east,westcol,westcol`
+   9). Options: (A) allow a shared trunk (merged floor) for that case only;
+   (B) re-admit `west` for the second lower-column edge (buffer-cell
+   crossing geometry, the cancelled phase 4); (C) avoid the situation at
+   graph generation (e.g. hidden shortcut selection never adds a second
+   lower-column target to a source; only valid if the real/hidden split of
+   those 149 allows it, not yet measured); (D) deepen the margin (changes
+   `CORRIDOR_LEN`/stride, rejected as it shifts every layout). The plan
+   builds a lane-conflict ratchet and defers this to its last chunk.
