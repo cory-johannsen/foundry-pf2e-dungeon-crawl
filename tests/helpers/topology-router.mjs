@@ -27,14 +27,14 @@ export const ZERO_ROUTE = () => ({
 });
 export const sumRoutes = (a, b) => Object.fromEntries(Object.keys(a).map((k) => [k, k === 'maxExtra' || k === 'maxLoad' ? Math.max(a[k], b[k]) : a[k] + b[k]]));
 
-export function routeLayoutTopologyAware(layout, { maxTries = 40, order = 'canonical' } = {}) {
+export function routeLayoutTopologyAware(layout, { maxTries = 40, order = 'canonical', slotOrder = 'plan', unresolvableIds = null } = {}) {
   const out = ZERO_ROUTE();
   const specs = [];
   visitEdges(layout, ({ sourceId, toId, res, build }) => {
     out.edges += 1;
     const chain = chainFromResult(layout, sourceId, toId, res);
     if (chain) specs.push({ sourceId, toId, targetRank: layout.pos[toId].rank, build, baseChain: chain });
-  });
+  }, { slotOrder });
   specs.sort(order === 'reverse' ? (a, b) => canonical(b, a)
     : order === 'longestFirst' ? (a, b) => (b.baseChain.cells.length - a.baseChain.cells.length) || canonical(a, b)
     : order === 'shortestFirst' ? (a, b) => (a.baseChain.cells.length - b.baseChain.cells.length) || canonical(a, b) : canonical);
@@ -88,7 +88,7 @@ export function routeLayoutTopologyAware(layout, { maxTries = 40, order = 'canon
       }
     }
     out.tries += tries;
-    if (!done) out.unresolvable += 1;
+    if (!done) { out.unresolvable += 1; unresolvableIds?.push(`${spec.sourceId}->${spec.toId}`); }
   }
   out.maxLoad = placer.load.size ? Math.max(...placer.load.values()) : 0;
   out.blobs = placer.stats.blobs;
