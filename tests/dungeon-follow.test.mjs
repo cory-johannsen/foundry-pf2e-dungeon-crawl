@@ -580,8 +580,11 @@ describe("runFollowMoveNow (#65)", () => {
     await vi.advanceTimersByTimeAsync(300);
 
     expect(follower.update).toHaveBeenCalledTimes(1);
-    const [{ x, y }] = follower.update.mock.calls[0];
+    const [{ x, y }, moveOptions] = follower.update.mock.calls[0];
     expect({ gx: x / GRID, gy: y / GRID }).not.toEqual({ gx: 6, gy: 1 });
+    // #87 (2026-10-01, round 7): see the inline #86 snap's own teleport
+    // assertion below for why this matters.
+    expect(moveOptions).toEqual({ teleport: true });
   });
 
   // #86: a follower's own token can end up off-grid for reasons entirely
@@ -625,6 +628,14 @@ describe("runFollowMoveNow (#65)", () => {
     expect(follower.update).toHaveBeenCalledTimes(1);
     expect(follower.x % GRID).toBe(0);
     expect(follower.y % GRID).toBe(0);
+    // #87 (2026-10-01, round 7): every write this module makes must pass
+    // `{ teleport: true }` -- Foundry v14 otherwise routes a plain
+    // `update({x, y})` through its own wall-collision-constrained movement
+    // pipeline, which can silently commit a different, non-grid-exact
+    // position than the one requested if the straight-line path to it
+    // clips a wall (live-confirmed; see this file's module-level comment
+    // above `RECENT_WRITE_SUPPRESS_MS`).
+    expect(follower.update.mock.calls[0][1]).toEqual({ teleport: true });
   });
 
   // #87 (2026-10-01, round 3): this inline snap reads the follower's own
@@ -882,7 +893,10 @@ describe("resnapTokenNow (#141)", () => {
     await resnapTokenNow(SCENE_ID, "t-drifted");
 
     expect(token.update).toHaveBeenCalledTimes(1);
-    expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
+    expect(token.update).toHaveBeenCalledWith(
+      { x: 5 * GRID, y: 3 * GRID },
+      { teleport: true },
+    );
   });
 
   it("does not call update on a token that's already grid-aligned", () => {
@@ -954,7 +968,10 @@ describe("resnapTokenNow (#141)", () => {
     await resnapTokenNow(SCENE_ID, "t-drifted-source");
 
     expect(token.update).toHaveBeenCalledTimes(1);
-    expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
+    expect(token.update).toHaveBeenCalledWith(
+      { x: 5 * GRID, y: 3 * GRID },
+      { teleport: true },
+    );
   });
 
   // Final review (2026-09-30): the original version of this test used
@@ -1016,7 +1033,10 @@ describe("resnapTokenNow (#141)", () => {
     await resnapTokenNow(SCENE_ID, "t-guard-release");
 
     expect(token.update).toHaveBeenCalledTimes(1);
-    expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
+    expect(token.update).toHaveBeenCalledWith(
+      { x: 5 * GRID, y: 3 * GRID },
+      { teleport: true },
+    );
   });
 
   it("the reentrancy guard is keyed per-token -- a pending correction for one token does not block a different token", async () => {
@@ -1087,7 +1107,10 @@ describe("resnapDriftedTokens (#141)", () => {
     await resnapDriftedTokens(token, { x: token.x, y: token.y });
 
     expect(token.update).toHaveBeenCalledTimes(1);
-    expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
+    expect(token.update).toHaveBeenCalledWith(
+      { x: 5 * GRID, y: 3 * GRID },
+      { teleport: true },
+    );
     expect(requestDungeonAction).not.toHaveBeenCalled();
   });
 
@@ -1119,7 +1142,10 @@ describe("resnapDriftedTokens (#141)", () => {
     await resnapDriftedTokens(token, { x: token.x, y: token.y });
 
     expect(token.update).toHaveBeenCalledTimes(1);
-    expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
+    expect(token.update).toHaveBeenCalledWith(
+      { x: 5 * GRID, y: 3 * GRID },
+      { teleport: true },
+    );
   });
 
   it("does nothing on a scene with no active dungeon run", () => {
