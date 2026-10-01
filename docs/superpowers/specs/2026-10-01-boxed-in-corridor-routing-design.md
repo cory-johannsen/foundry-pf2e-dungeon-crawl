@@ -569,7 +569,11 @@ class to #416 afterwards.**
   across a 2-cell stretch (sweep-10: A west->south and B south->east around
   r0c1+r0c2 alternate on the perimeter) and only 16 are the cell-local
   N-S vs W-E pairs. Peak load is 5 edges in one 13-wide border (fits).
-  Prototype: `tests/helpers/lane-prototype.mjs`.
+  Prototype: `tests/helpers/lane-prototype.mjs`. User chose a
+  topology-aware router; see
+  `2026-10-01-topology-aware-corridor-routing-design.md` (sequential
+  re-routing leaves 185 unresolvable, K2' also fails; it supersedes
+  Phase 1's "tens of edges" expectation and adds Q-A to Q-C).
 - Border capacity: up to 6 edges through one 13-unit border (5 today); plenty of
   room, but lanes packed edge to edge rely on flank walls sharing a
   boundary. Needs a concrete hand-trace before the plan.

@@ -37,7 +37,9 @@ export function visitEdges(layout, visit) {
       const sel = planSelector(layout, { sourceId, toId });
       const res = buildEdgeCorridor(seed, sourceId, toId, rect[sourceId], rect[toId], pos[sourceId], pos[toId],
         sel.face, slots[k], occ, face, sel.exitDoor);
-      visit({ sourceId, toId, face, sel, slot: slots[k], res });
+      const build = (occOverride = occ) => buildEdgeCorridor(seed, sourceId, toId, rect[sourceId], rect[toId], pos[sourceId], pos[toId],
+        sel.face, slots[k], occOverride, face, sel.exitDoor);
+      visit({ sourceId, toId, face, sel, slot: slots[k], res, build });
     });
   }
 }
