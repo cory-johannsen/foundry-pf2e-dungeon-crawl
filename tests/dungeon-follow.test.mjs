@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import {
   followLeaderOnDoorOpened,
   followLeaderIfDue,
   runFollowMoveNow,
   resnapDriftedTokens,
   resnapTokenNow,
+  __clearRecentWritesForTests,
 } from "../scripts/dungeon-follow.mjs";
 import { requestDungeonAction } from "../scripts/dungeon-remote.mjs";
 
@@ -18,6 +19,15 @@ import { requestDungeonAction } from "../scripts/dungeon-remote.mjs";
 vi.mock("../scripts/dungeon-remote.mjs", () => ({
   requestDungeonAction: vi.fn(),
 }));
+
+// #87 (2026-10-01, round 5): resnapDriftedTokens/resnapTokenNow now track
+// "did this module just write this token" using real Date.now(), not vi's
+// fake timers -- this file reuses token ids extensively across otherwise-
+// unrelated tests (e.g. "t-drifted"), so without a reset, a correction in
+// one test can leak into and silently suppress a later, unrelated test.
+beforeEach(() => {
+  __clearRecentWritesForTests();
+});
 
 const GRID = 100;
 const HOST_USER_ID = "host1";
@@ -1280,5 +1290,58 @@ describe("moveFollowersToward + resnapDriftedTokens interaction (#87)", () => {
     expect(follower.update).toHaveBeenCalledTimes(1);
     expect(follower._source.x).toBe(destination.x);
     expect(follower._source.y).toBe(destination.y);
+  });
+
+  // #87 round 5 (2026-10-01): live-confirmed that even `_source` isn't
+  // reliably readable at every point in Foundry's own multi-phase update/
+  // socket-confirmation lifecycle -- a real capture caught
+  // `resnapDriftedTokens` firing via Foundry's own incoming socket
+  // handler (`#handleUpdateDocuments`) ~40ms after moveFollowersToward
+  // had already called `token.update()` for a legitimate move, and at
+  // that exact instant `_source` itself still read an off-grid value
+  // that rounded back to the follower's STARTING cell. This test forces
+  // exactly that: `_source` is deliberately left wrong (simulating that
+  // unreproducible transient read) immediately after the legitimate
+  // move, and the assertion is that NO correction happens anyway --
+  // proving the write-suppression window is what's protecting this, not
+  // (only) `_source` happening to read correctly.
+  it("does not let resnapDriftedTokens correct a recently-self-written token, even if its _source reads as off-grid at that instant", async () => {
+    vi.useFakeTimers();
+    const leader = makeToken({ id: "t-leader", x: 3 * GRID, y: 0, actorId: LEADER_ACTOR_ID });
+    const follower = makeToken({ id: "t-f2", x: 0, y: 0, actorId: "actor-f" });
+    follower.update = vi.fn(async (changes) => {
+      follower.__destination = { x: changes.x, y: changes.y };
+      Object.assign(follower._source, changes);
+      // Simulate the live-observed race: right after this legitimate
+      // write, _source itself transiently reads a fractional, off-grid
+      // value instead of the real destination -- exactly the reading
+      // that fooled every pre-round-5 fix.
+      follower._source.x = changes.x - 51;
+      follower._source.y = changes.y - 51;
+    });
+    const scene = makeScene({ tokens: [leader, follower] });
+
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: ["actor-f"],
+          marchingOrder: ["actor-f"],
+        },
+      },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    runFollowMoveNow(SCENE_ID);
+    await vi.advanceTimersByTimeAsync(300);
+
+    expect(follower.update).toHaveBeenCalledTimes(1);
+
+    // Fires immediately after, well within the suppression window --
+    // must be skipped entirely, without even reading the (deliberately
+    // wrong) _source value.
+    await resnapDriftedTokens(follower, { x: follower.x, y: follower.y });
+
+    expect(follower.update).toHaveBeenCalledTimes(1);
   });
 });

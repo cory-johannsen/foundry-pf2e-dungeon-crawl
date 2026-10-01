@@ -168,6 +168,50 @@ animation state at all anymore. `RESNAP_POLL_MS`/`RESNAP_MAX_WAIT_MS` and
 `isAnimating` are removed entirely; `token.object.animationContexts` is no
 longer read anywhere in this file.
 
+**Revised a fourth time 2026-10-01 (round 4), confirmatory review):**
+`resnapDriftedTokens`'s own trigger gate still read `tokenDoc.x`/
+`tokenDoc.y` (the animated value) instead of `_source` -- fixed to use
+`_source` there too, since a gate decision made from the wrong field could
+silently skip a needed correction indefinitely for any non-follower token.
+
+**Revised a fifth time 2026-10-01 (round 5), the symptom STILL reproduced
+live after round 4 shipped — the robust fix:** a fresh live capture
+caught `resnapDriftedTokens` firing via Foundry's own incoming socket
+handler (`#handleUpdateDocuments`) ~40ms after `moveFollowersToward` had
+already *called* `token.update()` for a legitimate move -- and at that
+exact instant, `tokenDoc._source` itself still read an off-grid value
+that rounded back to the follower's STARTING cell, not its real
+destination. Controlled live experiments (polling a token's own `_source`
+during a genuinely animated move) could not pin down a precise,
+reliably-reproducible window where `_source` lags a just-called
+`update()` -- browser background-tab timer throttling made fine-grained
+polling itself unreliable as a diagnostic technique -- but the live
+production capture is unambiguous: `_source` is *not* guaranteed to
+reflect this module's own just-issued write at every point in Foundry's
+own multi-phase update/socket-confirmation lifecycle, however that
+actually happens internally.
+
+Four rounds each tried a different way to decide *when* a position read
+is trustworthy (`animationContexts` once, `animationContexts` across two
+polls, `_source`, `_source` in one more place) and each still left a
+live-reproducible gap. Round 5 stops trying to answer that question at
+all. `moveFollowersToward` now marks every token id it writes to (the
+inline snap, and the real "move" write) in a small `recentlyWrittenByUs`
+map (`tokenId -> Date.now()`); `resnapTokenNow`'s own correction write
+marks it too. `resnapDriftedTokens` checks this map FIRST and returns
+immediately, without reading any position field at all, for any token
+written within the last `RECENT_WRITE_SUPPRESS_MS` (1000ms, generous
+above any realistic animation plus socket round-trip) -- `resnapTokenNow`
+re-checks the same map on entry too, since the relayed path
+(`dungeon-remote.mjs`'s `resnapToken` action) reaches it directly,
+bypassing `resnapDriftedTokens`'s own gate, and a non-GM host's own
+client has no way to know this GM-privileged client just wrote to a
+token (that bookkeeping only ever exists in `moveFollowersToward`'s own
+local memory). This can only ever matter for genuine drift from OUTSIDE
+this module's own control (a manual unsnapped drag, Foundry's own
+internal nudging) -- exactly #141's original, narrower intent for this
+self-heal hook in the first place.
+
 `resnapDriftedTokens` itself is unchanged — it can still fire eagerly on a
 mid-flight fractional position exactly as today; the fix is entirely in
 `resnapTokenNow`'s own write-side logic, which both the GM-direct call and
