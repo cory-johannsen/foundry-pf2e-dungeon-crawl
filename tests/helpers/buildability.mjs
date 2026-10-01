@@ -20,11 +20,9 @@ export const ZERO = () => ({
 });
 export const sumMeasures = (a, b) => Object.fromEntries(Object.keys(a).map((k) => [k, a[k] + b[k]]));
 
-/** Mirrors the scene's per-room build (door slots with priority, planned exit doors). */
-export function measureBuildability(layout, { cellUse = new Map() } = {}) {
-  // `cellUse` (optional, filled): "rank,col" -> [{ id, c }], every edge's transit-cell crossing; the
-  // oracle test reads it.
-  const m = ZERO();
+/** Mirrors the scene's per-room build (door slots with priority, planned exit doors): calls
+ * `visit({ sourceId, toId, face, sel, slot, res })` once for every built edge of the layout. */
+export function visitEdges(layout, visit) {
   const { seed, rooms, layoutEdges, hiddenIncomingByRoomId, hiddenRooms, pos, occ, rect, incFace } = layout;
   const planFor = planSelector.planFor(layout);
   for (const toId of Object.keys(rooms)) {
@@ -39,6 +37,17 @@ export function measureBuildability(layout, { cellUse = new Map() } = {}) {
       const sel = planSelector(layout, { sourceId, toId });
       const res = buildEdgeCorridor(seed, sourceId, toId, rect[sourceId], rect[toId], pos[sourceId], pos[toId],
         sel.face, slots[k], occ, face, sel.exitDoor);
+      visit({ sourceId, toId, face, sel, slot: slots[k], res });
+    });
+  }
+}
+
+export function measureBuildability(layout, { cellUse = new Map() } = {}) {
+  // `cellUse` (optional, filled): "rank,col" -> [{ id, c }], every edge's transit-cell crossing; the
+  // oracle test reads it.
+  const m = ZERO();
+  const { pos, occ, rect } = layout;
+  visitEdges(layout, ({ sourceId, toId, face, sel, res }) => {
       const segs = [...res.corridorSegments, ...res.transitCells.flatMap((c) => c.corridorSegments)];
       const path = findCorridorPath(pos[sourceId], pos[toId], occ,
         { fromRoomId: sourceId, toRoomId: toId, incomingFace: face, exitFace: sel.face });
@@ -70,8 +79,7 @@ export function measureBuildability(layout, { cellUse = new Map() } = {}) {
           cellUse.get(key).push({ id: `${sourceId}->${toId}`, c });
         }
       }
-    });
-  }
+  });
   const cutEdges = new Set();
   for (const [key, uses] of cellUse) {
     const [rank, col] = key.split(',').map(Number);
