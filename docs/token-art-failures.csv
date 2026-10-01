@@ -679,3 +679,15 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 48,spirit-guardian-statue,Spirit Guardian Statue,3,beast,accept,,comfyui,
 48,thorn,Vengeant Thorn (1-2),3,beast,accept,,comfyui,
 48,vicious-vulpine,Vicious Vulpine,3,beast,accept,,comfyui,
+49,webhekiz,Webhekiz (3-4),3,beast,accept,,comfyui,
+49,zombie-warhorse,Zombie Warhorse,3,undead,accept,,gemini,gemini-first
+49,ahrkinos,Ahrkinos (3-4),4,beast,flag,bg_patch,comfyui,
+49,dire-warg,Dire Warg,4,beast,flag,halo_or_disc,comfyui,
+49,ghost-of-diggen-thrune,Ghost Of Diggen Thrune (1-2),4,undead,accept,,gemini,gemini-first
+49,kobold-dragon-spellweaver,Kobold Dragon Spellweaver,4,dragon,accept,,gemini,gemini-first
+49,sea-devil-invader,Sea Devil Invader,4,beast,flag,scenery_backdrop;wrong_subject,comfyui,
+49,skeletal-gladiator,Skeletal Gladiator,4,undead,accept,,gemini,gemini-first
+49,zatqualmish,Zatqualmish (3-4),4,beast,accept,,comfyui,
+49,bijan-and-zaynap-ohrlavi,Bijan And Zaynap Ohrlavi,5,beast,accept,,comfyui,
+49,fleshforge-prototype,Fleshforge Prototype (Acid Spit),5,beast,accept,,comfyui,
+49,iloise,Iloise (5-6),5,beast,accept,,comfyui,
