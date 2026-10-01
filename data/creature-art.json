@@ -19038,5 +19038,229 @@
     "name": "Vigilant Guard",
     "level": 2,
     "art": "vigilant-guard-lob.webp"
+  },
+  {
+    "id": "prefect_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "NQgsuMnXXABeebuS",
+    "name": "Prefect (Electrowhip) (3-4)",
+    "level": 3,
+    "art": "prefect-lob.webp"
+  },
+  {
+    "id": "prefect_fist_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "7PXPcv8x3Wnc730i",
+    "name": "Prefect (Fist) (3-4)",
+    "level": 3,
+    "art": "prefect-lob.webp"
+  },
+  {
+    "id": "elite_prefect_fist_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "UyJUEp0asfGDBvYa",
+    "name": "Elite Prefect (Fist) (3-4)",
+    "level": 4,
+    "art": "prefect-lob.webp"
+  },
+  {
+    "id": "prefect_electrowhip_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "oKACWOSiBpxgMqa4",
+    "name": "Prefect (Electrowhip) (5-6)",
+    "level": 5,
+    "art": "prefect-lob.webp"
+  },
+  {
+    "id": "prefect_fist_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "GdYMRHVctjyvOD7D",
+    "name": "Prefect (Fist) (5-6)",
+    "level": 5,
+    "art": "prefect-lob.webp"
+  },
+  {
+    "id": "dorobu_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "CPDWLOHl0ODbMplt",
+    "name": "Dorobu (1-2)",
+    "level": 3,
+    "art": "dorobu-lob.webp"
+  },
+  {
+    "id": "dorobu_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "AbFKkDIHUwx2EnR5",
+    "name": "Dorobu (3-4)",
+    "level": 6,
+    "art": "dorobu-lob.webp"
+  },
+  {
+    "id": "neidre_fliavazzana_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "BVgoWV3U3kHHAMg9",
+    "name": "Neidre Fliavazzana (3-4)",
+    "level": 3,
+    "art": "neidre-fliavazzana-lob.webp"
+  },
+  {
+    "id": "neidre_fliavazzana_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "zE9WuJXq3I4uZNNX",
+    "name": "Neidre Fliavazzana (5-6)",
+    "level": 5,
+    "art": "neidre-fliavazzana-lob.webp"
+  },
+  {
+    "id": "thorn_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "NmkeNdV7SWYG7bYe",
+    "name": "Vengeant Thorn (1-2)",
+    "level": 3,
+    "art": "thorn-lob.webp"
+  },
+  {
+    "id": "vengeant_thorn_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "FXwYc62zORdcfnYb",
+    "name": "Vengeant Thorn (3-4)",
+    "level": 5,
+    "art": "thorn-lob.webp"
+  },
+  {
+    "id": "fleshforge_dreg_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "bDKozdvVEElVQywQ",
+    "name": "Fleshforge Dreg (Acid Spit)",
+    "level": 3,
+    "art": "fleshforge-dreg-lob.webp"
+  },
+  {
+    "id": "fleshforge_dreg_breath_weapon_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "t1QyIgwLORMhHNL4",
+    "name": "Fleshforge Dreg (Breath Weapon)",
+    "level": 3,
+    "art": "fleshforge-dreg-lob.webp"
+  },
+  {
+    "id": "fleshforge_dreg_leaping_charge_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "WlJ8fVMV7gXNQ9eR",
+    "name": "Fleshforge Dreg (Leaping Charge)",
+    "level": 3,
+    "art": "fleshforge-dreg-lob.webp"
+  },
+  {
+    "id": "fleshforge_dreg_reach_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "PXXHRzLRLB4bJ7M5",
+    "name": "Fleshforge Dreg (Reach)",
+    "level": 3,
+    "art": "fleshforge-dreg-lob.webp"
+  },
+  {
+    "id": "fleshforge_dreg_roots_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "JEwMnYFfyxr5i6Dy",
+    "name": "Fleshforge Dreg (Roots)",
+    "level": 3,
+    "art": "fleshforge-dreg-lob.webp"
+  },
+  {
+    "id": "fleshforge_dreg_shield_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "cuTgbvAxDEkT4XhZ",
+    "name": "Fleshforge Dreg (Shield)",
+    "level": 3,
+    "art": "fleshforge-dreg-lob.webp"
+  },
+  {
+    "id": "vicious_vulpine_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "NTPKBjuubDmuSJTN",
+    "name": "Vicious Vulpine",
+    "level": 3,
+    "art": "vicious-vulpine-lob.webp"
+  },
+  {
+    "id": "metallic_sod_hound_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "t238i4Zw2JsDvUop",
+    "name": "Metallic Sod Hound",
+    "level": 3,
+    "art": "metallic-sod-hound-lob.webp"
+  },
+  {
+    "id": "greater_metallic_sod_hound_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "NUFsxlmHqk4LeYlq",
+    "name": "Greater Metallic Sod Hound",
+    "level": 5,
+    "art": "metallic-sod-hound-lob.webp"
+  },
+  {
+    "id": "keff_the_lion_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "yn7x4Me1YrPuXFZf",
+    "name": "Keff The Lion (1-2)",
+    "level": 3,
+    "art": "keff-the-lion-lob.webp"
+  },
+  {
+    "id": "keff_the_lion_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "Nh3mKGv0uy1tovpL",
+    "name": "Keff The Lion (3-4)",
+    "level": 4,
+    "art": "keff-the-lion-lob.webp"
+  },
+  {
+    "id": "kip_the_druid_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "PtU1netfc7U8MaR4",
+    "name": "Kip The Druid (1-2)",
+    "level": 3,
+    "art": "kip-the-druid-lob.webp"
+  },
+  {
+    "id": "kip_the_druid_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "QUimZFYGY12QjoC4",
+    "name": "Kip The Druid (3-4)",
+    "level": 4,
+    "art": "kip-the-druid-lob.webp"
+  },
+  {
+    "id": "dire_cinder_wolf_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "QMT1Yfa2IrNrdZGP",
+    "name": "Dire Cinder Wolf",
+    "level": 3,
+    "art": "dire-cinder-wolf-lob.webp"
+  },
+  {
+    "id": "giant_osprey_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "RYhsJ69TGrcvtfaM",
+    "name": "Giant Osprey",
+    "level": 3,
+    "art": "giant-osprey-lob.webp"
+  },
+  {
+    "id": "spirit_guardian_statue_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "U2igHGiYNNclSdsm",
+    "name": "Spirit Guardian Statue",
+    "level": 3,
+    "art": "spirit-guardian-statue-lob.webp"
+  },
+  {
+    "id": "duergar_taskmaster_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "zgvD5MpjPBJXIian",
+    "name": "Elite Duergar Taskmaster",
+    "level": 3,
+    "art": "duergar-taskmaster-lob.webp"
   }
 ]
