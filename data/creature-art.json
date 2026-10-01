@@ -23566,5 +23566,117 @@
     "name": "Urdefhan Blood Mage (PFS 4-11)",
     "level": 8,
     "art": "urdefhan-blood-mage-lob.webp"
+  },
+  {
+    "id": "grace_of_the_owl_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "BsuqNSusIHt19ijd",
+    "name": "Grace of the Owl",
+    "level": 3,
+    "art": "grace-of-the-owl-lob.webp"
+  },
+  {
+    "id": "undead_nathatel_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "C9gWLpxJr4QKxP64",
+    "name": "Undead Nathatel",
+    "level": 5,
+    "art": "undead-nathatel-lob.webp"
+  },
+  {
+    "id": "undead_nathatel_7_8_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "nr6qCJkCLNAZh5ED",
+    "name": "Undead Nathatel (7-8)",
+    "level": 7,
+    "art": "undead-nathatel-lob.webp"
+  },
+  {
+    "id": "revna_the_brave_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "CgoJslSLVrUc86W5",
+    "name": "Revna the Brave (5-6)",
+    "level": 5,
+    "art": "revna-the-brave-lob.webp"
+  },
+  {
+    "id": "revna_the_brave_7_8_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "gOmGPZ3Ul1bFtQZO",
+    "name": "Revna the Brave (7-8)",
+    "level": 7,
+    "art": "revna-the-brave-lob.webp"
+  },
+  {
+    "id": "abyssal_warhound_pack_leader_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "DMbCbc6tGOjJfdIo",
+    "name": "Abyssal Warhound Pack Leader",
+    "level": 5,
+    "art": "abyssal-warhound-pack-leader-lob.webp"
+  },
+  {
+    "id": "vrisk_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "DSJtkGzddv1y6as5",
+    "name": "Vrisk",
+    "level": 3,
+    "art": "vrisk-lob.webp"
+  },
+  {
+    "id": "transformed_bremix_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "YBrbpODnj7nYtI7W",
+    "name": "Transformed Bremix (7-8)",
+    "level": 8,
+    "art": "transformed-bremix-lob.webp"
+  },
+  {
+    "id": "transformed_bremix_9_10_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "GiSG0NC5MMpekWAu",
+    "name": "Transformed Bremix (9-10)",
+    "level": 10,
+    "art": "transformed-bremix-lob.webp"
+  },
+  {
+    "id": "aslynn_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "IMeWlbCAMJRKc5Ao",
+    "name": "Aslynn",
+    "level": 9,
+    "art": "aslynn-lob.webp"
+  },
+  {
+    "id": "tsimaan_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "IkS9AxSHCAPTYSoB",
+    "name": "Tsimaan",
+    "level": 0,
+    "art": "tsimaan-lob.webp"
+  },
+  {
+    "id": "possessed_clockwork_vessel_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "J7dnmfDzygsR1mLq",
+    "name": "Possessed Clockwork Vessel",
+    "level": 10,
+    "art": "possessed-clockwork-vessel-lob.webp"
+  },
+  {
+    "id": "shard_of_aslynn_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "OOwfdaGQYDknAH4e",
+    "name": "Shard of Aslynn (1-2)",
+    "level": 2,
+    "art": "shard-of-aslynn-lob.webp"
+  },
+  {
+    "id": "shard_of_aslynn_3_4_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "JGbgYTBRSSf94v0U",
+    "name": "Shard of Aslynn (3-4)",
+    "level": 4,
+    "art": "shard-of-aslynn-lob.webp"
   }
 ]
