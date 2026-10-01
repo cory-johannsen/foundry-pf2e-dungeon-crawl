@@ -21182,5 +21182,101 @@
     "name": "Half-Formed Abrikandilu",
     "level": 2,
     "art": "half-formed-abrikandilu-lob.webp"
+  },
+  {
+    "id": "pontrius_tilasti_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "uOgiYc5VGhSxkLFa",
+    "name": "Pontrius Tilasti (1-2)",
+    "level": 2,
+    "art": "pontrius-tilasti-lob.webp"
+  },
+  {
+    "id": "pontrius_tilasti_3_4_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "43L2RtbBprItSjPY",
+    "name": "Pontrius Tilasti (3-4)",
+    "level": 3,
+    "art": "pontrius-tilasti-lob.webp"
+  },
+  {
+    "id": "aspis_enforcer_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "Gt2NqeZldkUf4vHI",
+    "name": "Aspis Enforcer",
+    "level": 3,
+    "art": "aspis-enforcer-lob.webp"
+  },
+  {
+    "id": "tadrun_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "WGi99nXZYSv7U92M",
+    "name": "Tadrun (1-2)",
+    "level": 2,
+    "art": "tadrun-lob.webp"
+  },
+  {
+    "id": "tadrun_3_4_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "by3YpQPT2mWc0kFE",
+    "name": "Tadrun (3-4)",
+    "level": 4,
+    "art": "tadrun-lob.webp"
+  },
+  {
+    "id": "vengeful_ember_fox_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "aZl2962bnq1j6Hpy",
+    "name": "Vengeful Ember Fox",
+    "level": 2,
+    "art": "vengeful-ember-fox-lob.webp"
+  },
+  {
+    "id": "onyx_alliance_enforcer_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "oOl4UOYKpGeS3Ep7",
+    "name": "Onyx Alliance Enforcer",
+    "level": 2,
+    "art": "onyx-alliance-enforcer-lob.webp"
+  },
+  {
+    "id": "veteran_onyx_alliance_enforcer_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "bW7iJLqP4AOvkMeu",
+    "name": "Veteran Onyx Alliance Enforcer",
+    "level": 4,
+    "art": "onyx-alliance-enforcer-lob.webp"
+  },
+  {
+    "id": "aspis_striker_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "hqFuN3UINx7ChbqS",
+    "name": "Aspis Striker",
+    "level": 3,
+    "art": "aspis-striker-lob.webp"
+  },
+  {
+    "id": "scalding_mephit_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "jMxFlkAbepA47sHb",
+    "name": "Scalding Mephit",
+    "level": 2,
+    "art": "scalding-mephit-lob.webp"
+  },
+  {
+    "id": "lightweight_animated_armor_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "olP1l0gi9qYFZtt2",
+    "name": "Lightweight Animated Armor",
+    "level": 2,
+    "art": "lightweight-animated-armor-lob.webp"
+  },
+  {
+    "id": "aspis_warden_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "q6J7DcU3am7wKIRD",
+    "name": "Aspis Warden",
+    "level": 3,
+    "art": "aspis-warden-lob.webp"
   }
 ]

@@ -104,7 +104,6 @@ level,rarity,pack,docId,name
 3,common,pf2e.pfs-season-3-bestiary,39ShWwOPdJq2X5o2,Aydrian Thrune (3-4)
 3,common,pf2e.pfs-season-3-bestiary,3bijukcKD8MfoHA9,Forged Bones
 11,common,pf2e.pfs-season-3-bestiary,3r3etd3bUOn58TH3,Advanced Eltha Embercall (9-10)/Eltha Embercall (11-12)
-3,common,pf2e.pfs-season-3-bestiary,43L2RtbBprItSjPY,Pontrius Tilasti (3-4)
 2,common,pf2e.pfs-season-3-bestiary,4S77ftUx1zp7JscD,Bloody Skeletal Champion
 4,common,pf2e.pfs-season-3-bestiary,4XlfENtBfF9GB2fy,Ninth Army Burglar
 3,common,pf2e.pfs-season-3-bestiary,4paPYhdN4HHT3Orz,Flaming Animated Armor (Holy Hand) (1-2)
@@ -133,7 +132,6 @@ level,rarity,pack,docId,name
 3,common,pf2e.pfs-season-3-bestiary,FmZ8bz1ItIzxuu1D,Iron Ring Bosun
 9,common,pf2e.pfs-season-3-bestiary,FyQji78S25WiZMct,Khisisi (7-8)
 5,common,pf2e.pfs-season-3-bestiary,GKF2zLJ0VLy1IBML,Aspis Oppressor
-3,common,pf2e.pfs-season-3-bestiary,Gt2NqeZldkUf4vHI,Aspis Enforcer
 6,common,pf2e.pfs-season-3-bestiary,HIPqiHMAfN2mmAlg,Cobbled Brutalizer
 2,common,pf2e.pfs-season-3-bestiary,Hez7S4Mhvi816fHi,Unstable Skeletal Champion
 -1,common,pf2e.pfs-season-3-bestiary,HtrdSWlJzDf7dMOO,Hellbound Robber
@@ -161,7 +159,6 @@ level,rarity,pack,docId,name
 9,common,pf2e.pfs-season-3-bestiary,SkV5zYJgu7hdpZE0,Sparkles (11-12)
 2,common,pf2e.pfs-season-3-bestiary,Tt9DtLxj1N2TBT9w,Kobold Dragon Mage (PFS 3-99)
 4,common,pf2e.pfs-season-3-bestiary,WB4DMTHCIEBOiitp,Shadow Guardian
-2,common,pf2e.pfs-season-3-bestiary,WGi99nXZYSv7U92M,Tadrun (1-2)
 4,common,pf2e.pfs-season-3-bestiary,WpdOwEpoWwxrBUpF,Peryton (Rifle Mutation)
 7,common,pf2e.pfs-season-3-bestiary,WxN19w3aO5MpVY6Z,"Cole Farsen, Gang Leader"
 3,common,pf2e.pfs-season-3-bestiary,Xpf9HQDxoafOwfoB,Thomil Bolyrius (3-4)
@@ -171,10 +168,7 @@ level,rarity,pack,docId,name
 6,common,pf2e.pfs-season-3-bestiary,YsF8TteK6XsThooV,Shanrigol Mound
 -1,common,pf2e.pfs-season-3-bestiary,YwkPGpBPttW2G7Xn,Bloody Skeleton Guard
 -1,common,pf2e.pfs-season-3-bestiary,ZzH4EqJtWIhaNWSv,Animated Blade (PFS 3-99)
-2,common,pf2e.pfs-season-3-bestiary,aZl2962bnq1j6Hpy,Vengeful Ember Fox
-4,common,pf2e.pfs-season-3-bestiary,bW7iJLqP4AOvkMeu,Veteran Onyx Alliance Enforcer
 11,common,pf2e.pfs-season-3-bestiary,bgwjxU9MmKJtcxx5,Old Drakauthix (PFS 3-15)
-4,common,pf2e.pfs-season-3-bestiary,by3YpQPT2mWc0kFE,Tadrun (3-4)
 1,common,pf2e.pfs-season-3-bestiary,byhh6wysf9MdM7LM,Ninth Army Guard
 4,common,pf2e.pfs-season-3-bestiary,cYovLvzfbqkTF9uF,Cobbled Bruiser
 3,common,pf2e.pfs-season-3-bestiary,dYcDARPuNmLlGNuG,Flaming Animated Armor (Firecutter) (1-2)
@@ -190,19 +184,14 @@ level,rarity,pack,docId,name
 6,common,pf2e.pfs-season-3-bestiary,gzMCaAr2Bd2gbhrF,Thundering Wihsaak (Arctic)
 -1,common,pf2e.pfs-season-3-bestiary,hEh3j8Fz8lbjuiRF,Aspis Recruit
 6,common,pf2e.pfs-season-3-bestiary,hGu2JDWOAHHMLYeH,Thundering Wihsaak (Rifle Mutation)
-3,common,pf2e.pfs-season-3-bestiary,hqFuN3UINx7ChbqS,Aspis Striker
 6,common,pf2e.pfs-season-3-bestiary,iev4EOtchd0hp9sh,Reckless Akitonian Scientist
 3,common,pf2e.pfs-season-3-bestiary,jItk6GNZ7lmT5zVY,Hellbound Jailer (3-4)
-2,common,pf2e.pfs-season-3-bestiary,jMxFlkAbepA47sHb,Scalding Mephit
 3,common,pf2e.pfs-season-3-bestiary,kTsUEbM3JkhT5VZM,Sandswept Statue
 1,common,pf2e.pfs-season-3-bestiary,mZ2bmxg4JcVh1p2k,Rampaging Roast (Well Done)
 5,common,pf2e.pfs-season-3-bestiary,njJCv6ItwIzwO3Xj,Ninth Army Fence
-2,common,pf2e.pfs-season-3-bestiary,oOl4UOYKpGeS3Ep7,Onyx Alliance Enforcer
-2,common,pf2e.pfs-season-3-bestiary,olP1l0gi9qYFZtt2,Lightweight Animated Armor
 12,common,pf2e.pfs-season-3-bestiary,pYR3Ovkd9eKQQ5qE,"Eltha Embercall (11-12, 28+ CP)"
 1,common,pf2e.pfs-season-3-bestiary,phgXSggQiGRNn4Yr,Ninth Army Bodyguard
 4,common,pf2e.pfs-season-3-bestiary,plYMMhlfO6OVrtEo,Eloise's Ghost (1-2)
-3,common,pf2e.pfs-season-3-bestiary,q6J7DcU3am7wKIRD,Aspis Warden
 8,common,pf2e.pfs-season-3-bestiary,qDpKFbhWgSWEEA00,Marcien Blakros (7-8)
 0,common,pf2e.pfs-season-3-bestiary,qFzhrDwmnBhk4FyL,Skeleton Warrior
 3,common,pf2e.pfs-season-3-bestiary,qRX3Gax6xC3yIqyt,Ninth Army War Mage
@@ -210,7 +199,6 @@ level,rarity,pack,docId,name
 -1,common,pf2e.pfs-season-3-bestiary,sHl25TefznyV8xC8,Unstable Skeleton Guard
 8,common,pf2e.pfs-season-3-bestiary,sfStaEmGGvXWftsn,Horrid Nightmare
 5,common,pf2e.pfs-season-3-bestiary,tVsrWl9kfVIGG5OW,Thick Pelagastr Tail
-2,common,pf2e.pfs-season-3-bestiary,uOgiYc5VGhSxkLFa,Pontrius Tilasti (1-2)
 3,common,pf2e.pfs-season-3-bestiary,vQjnfmvUzZwaUoBd,Pelagastr Tail
 4,common,pf2e.pfs-season-3-bestiary,wqJDAf89wSAdG0qy,Peryton (Arctic)
 10,common,pf2e.pfs-season-3-bestiary,xVmDwoBxjKyCihYz,Marcien Blakros (9-10) (Shadow Double)
