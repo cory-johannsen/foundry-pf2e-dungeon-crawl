@@ -87,15 +87,35 @@ similarly confirmed-live-but-undocumented).
 `resnapTokenNow` changes from "read position, correct immediately" to:
 before reading the position to decide on a correction, poll
 `token.object?.animationContexts` until it's empty, or until a defensive
-cap elapses (generous — above a typical token slide, even a
-long-distance one). Both the poll interval and the cap are named module
+cap elapses. Both the poll interval and the cap are named module
 constants next to this file's existing `FOLLOW_DEBOUNCE_MS`, not inline
-numbers — proposed starting values `RESNAP_POLL_MS = 100` and
-`RESNAP_MAX_WAIT_MS = 3000`, not hard-tuned, expected to be re-checked
-during live verification (Testing, below). Only once the
-animation is genuinely settled (or the cap is hit) does it re-read the
-token's *current* `x`/`y` and decide whether a correction is still needed
-— exactly today's existing check, just deferred until it's safe to trust.
+numbers — `RESNAP_POLL_MS = 100`, `RESNAP_MAX_WAIT_MS = 10000` (bumped
+from an initial 3000 during the final review, see Testing below). Once
+the animation is genuinely settled, it re-reads the token's *current*
+`x`/`y` and decides whether a correction is still needed — exactly
+today's existing check, just deferred until it's safe to trust.
+
+**Revised 2026-10-01, live-confirmed bug in the original design:** if the
+cap elapses while `isAnimating` is STILL true, this function does **not**
+read a position and correct anyway — it bails without writing anything.
+The original design said to "proceed with the correction anyway" on
+cap-expiry; that was itself a bug, caught live: while still animating,
+`token.x`/`token.y` is a mid-flight, client-side interpolated position,
+not a committed resting point (the underlying document can't change every
+render frame, so this reading is local animation state, not DB state).
+Rounding and writing it back as a "correction" can only land *behind* the
+token's real in-flight destination, overwriting legitimate newer
+progress. This reproduces under ordinary play: a fast chain of real
+leader steps (each one under `FOLLOW_DEBOUNCE_MS` apart) keeps
+retargeting a follower before each prior slide settles, so
+`animationContexts` never empties — the cap fires, reads the mid-flight
+position, and snaps the follower back behind where it really was. Live
+capture: a follower's real destination was a cell further down a
+hallway; the cap fired, read the mid-flight position, and snapped the
+follower back there — this *was* the "AI followers stuck behind the
+door" symptom, not a separate bug. The cap now only ever means "give up
+without guessing" — `resnapDriftedTokens` fires again on this token's own next
+real update regardless, so a skipped attempt isn't a permanent miss.
 
 `resnapDriftedTokens` itself is unchanged — it can still fire eagerly on a
 mid-flight fractional position exactly as today; the fix is entirely in
@@ -123,6 +143,23 @@ synchronous continuation (no `await` between them) — otherwise a new move
 could start in that exact gap and get judged against a stale reading.
 Implementation detail, not a design gap, but one the implementer must get
 right.
+
+### Sibling bug found in the same review (2026-10-01): `moveFollowersToward`'s own inline #86 snap
+
+`moveFollowersToward`'s own per-follower loop (`scripts/dungeon-follow.mjs`)
+has always had its own inline off-grid snap-correction — an older, simpler
+fix (#86) predating this whole investigation — that reads `token.x`/
+`token.y`, rounds, and writes a correction, with **no animation check at
+all**. This is the exact same bug shape as the cap-expiry bug above (a
+mid-flight, client-interpolated position read and written back as if it
+were committed), except it runs on *every single follow-cycle* a follower
+is still animating from its own prior move — far more often than the
+cap's once-per-10-seconds path, and so the more likely dominant cause of
+the live-reported "stuck behind the door" symptom, not just a contributor.
+Fixed in the same pass: skip the snap entirely while `isAnimating(token)`
+is true. Nothing downstream depends on it having run first — the same
+cycle's own `findFollowMove` call computes a grid-exact destination
+regardless, from whatever position is currently readable.
 
 ### Reentrancy guard
 
@@ -167,8 +204,9 @@ existing `makeToken`/`makeScene`/`installFoundryStubs`/
   (simulating the animation finishing) and advance fake timers past one
   `RESNAP_POLL_MS` interval; assert the correction *does* land afterward.
 - A token whose `animationContexts` never empties: advance fake timers
-  past `RESNAP_MAX_WAIT_MS`; assert the correction still lands (the
-  defensive cap fires).
+  past `RESNAP_MAX_WAIT_MS`; assert **no** correction is written (revised
+  2026-10-01 — the cap means "give up without guessing," not "correct
+  anyway," per the live-confirmed bug above).
 - Two concurrent `resnapTokenNow` calls for the same token id: assert only
   one `token.update()` call happens, not two (the reentrancy guard).
 - Regression test for the actual live-reported bug: extend the existing
