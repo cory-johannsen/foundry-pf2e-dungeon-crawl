@@ -22974,5 +22974,101 @@
     "name": "Languid Isqulug",
     "level": 10,
     "art": "languid-isqulug-lob.webp"
+  },
+  {
+    "id": "harpy_forager_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "1iEGNvvHIG8EdOf1",
+    "name": "Harpy Forager",
+    "level": 7,
+    "art": "harpy-forager-lob.webp"
+  },
+  {
+    "id": "meddlesome_scrit_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "4Kll3POFvVeSNVkH",
+    "name": "Meddlesome Scrit",
+    "level": -1,
+    "art": "meddlesome-scrit-lob.webp"
+  },
+  {
+    "id": "veteran_vermlek_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "8WT81nQ029L5MN34",
+    "name": "Veteran Vermlek",
+    "level": 4,
+    "art": "vermlek.webp"
+  },
+  {
+    "id": "charlatan_pfs_4_05_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "8xeZ6N46DLqnOw32",
+    "name": "Charlatan (PFS 4-05)",
+    "level": 3,
+    "art": "charlatan.webp"
+  },
+  {
+    "id": "elite_sulfur_zombie_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "DwxyObby3PbYNyrf",
+    "name": "Elite Sulfur Zombie",
+    "level": 7,
+    "art": "sulfur-zombie.webp"
+  },
+  {
+    "id": "elite_palace_skelm_pfs_4_11_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "NvaXW0zwejtYSek4",
+    "name": "Elite Palace Skelm (PFS 4-11)",
+    "level": 9,
+    "art": "palace-skelm.webp"
+  },
+  {
+    "id": "dig_widget_pfs_4_07_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "Y2mjAL3OGIuof4mz",
+    "name": "Dig-Widget (PFS 4-07)",
+    "level": 4,
+    "art": "dig-widget.webp"
+  },
+  {
+    "id": "elite_animate_dream_pfs_4_11_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "eWJwFmEasIOSGQgu",
+    "name": "Elite Animate Dream (PFS 4-11)",
+    "level": 8,
+    "art": "animate-dream.webp"
+  },
+  {
+    "id": "greater_barghest_pfs_4_07_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "mS4CumAcPpkDdjrO",
+    "name": "Greater Barghest (PFS 4-07)",
+    "level": 7,
+    "art": "barghest-mc.webp"
+  },
+  {
+    "id": "living_boulder_pfs_4_04_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "mbTq6K9uYYIVbwDL",
+    "name": "Living Boulder (PFS 4-04)",
+    "level": 2,
+    "art": "living-boulder.webp"
+  },
+  {
+    "id": "dero_stalker_pfs_4_05_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "oH2KT9LhUs299AN9",
+    "name": "Dero Stalker (PFS 4-05)",
+    "level": 2,
+    "art": "dero-stalker.webp"
+  },
+  {
+    "id": "elite_cave_bear_pfs_4_07_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "w54JWkw6lcLXL0Za",
+    "name": "Elite Cave Bear (PFS 4-07)",
+    "level": 7,
+    "art": "cave-bear.webp"
   }
 ]
