@@ -52,7 +52,6 @@ level,rarity,pack,docId,name
 3,common,pf2e.pfs-season-2-bestiary,5NCKrDA869F82zPC,Leaded Skeleton
 4,common,pf2e.pfs-season-2-bestiary,61jBzgd1NYLw4NC0,Vermlek Centaur (3-4)
 -1,common,pf2e.pfs-season-2-bestiary,6PKCOGCNmsMQHc7A,Flaming Eye (1-2)
-3,common,pf2e.pfs-season-2-bestiary,6kRWSFIjPusy4d58,The Scholar of Sorts (1-2)
 1,common,pf2e.pfs-season-2-bestiary,70vDhFdWWU6olNlb,Archis Peers (1-2)
 4,common,pf2e.pfs-season-2-bestiary,7nqeVP1X5v3UMWxZ,Scorched Earth Orc (Scout) (5-6)
 7,common,pf2e.pfs-season-2-bestiary,7rSEHlUPv6DLkAy1,Wishbound Belker (7-8)
@@ -71,20 +70,16 @@ level,rarity,pack,docId,name
 5,common,pf2e.pfs-season-2-bestiary,DlIJbeLe4iNKMOQd,Run-Down Efreet
 9,common,pf2e.pfs-season-2-bestiary,E0V3aKLWuXyWrY8C,Demoniac Spirit (7-8)
 11,common,pf2e.pfs-season-2-bestiary,EK8DKarizcVrLG5E,Demoniac Spirit (9-10)
-4,common,pf2e.pfs-season-2-bestiary,Ek6C2abooQizETsX,Draugr Raider
 1,common,pf2e.pfs-season-2-bestiary,F22a7CKj2leYfxyo,Hobgoblin Skeleton
 3,common,pf2e.pfs-season-2-bestiary,FCs8aeSiwqnSyTMF,Wind Malevolent (3-4)
 1,common,pf2e.pfs-season-2-bestiary,GIJOVHi9G7tcoMds,Lesser Skeletal Cyclops
 9,common,pf2e.pfs-season-2-bestiary,GL9QRBCuNKjuvZSE,Clouded Quartz (7-8)
 4,common,pf2e.pfs-season-2-bestiary,IF1DWtelPtUF5aKh,Scorched Cavern Troll
 3,common,pf2e.pfs-season-2-bestiary,IxDPownROvUhSU21,Ash Skeleton (3-4)
-5,common,pf2e.pfs-season-2-bestiary,JxJ3vbV7piLxZrJ9,The Scholar of Sorts (3-4)
 6,common,pf2e.pfs-season-2-bestiary,KvFN6OFxOnTYjdJq,Perizia (5-6)
-4,common,pf2e.pfs-season-2-bestiary,LxPHOPYyrNhDNFod,Chained Drained Troll
 1,common,pf2e.pfs-season-2-bestiary,NAUPuR7aWSQ6mBUs,Usij Cultist
 7,common,pf2e.pfs-season-2-bestiary,NAX7nXWzSkrjjsrq,Awakened Megalania
 5,common,pf2e.pfs-season-2-bestiary,NGNU5Rq90TmNhwhN,Kayajima Guardian Dogu (3-4)
-5,common,pf2e.pfs-season-2-bestiary,NMD2wE4GLfoS41IB,Wishbound Mist Stalker (7-8)
 7,common,pf2e.pfs-season-2-bestiary,PFRXopyGSJmdYE6Y,Kayajima Guardian Dogu (5-6)
 3,common,pf2e.pfs-season-2-bestiary,PUb8Ipy6NKAMDFQw,Skeletal Cyclops
 4,common,pf2e.pfs-season-2-bestiary,PZ0PjHKcmcekBTSp,Ogthup (5-6)
@@ -93,21 +88,16 @@ level,rarity,pack,docId,name
 6,common,pf2e.pfs-season-2-bestiary,QpNynyK54qEwmswI,Frost Troll Hunter
 -1,common,pf2e.pfs-season-2-bestiary,R1QGjRlquOmfH2Zx,Exploding Skeleton Guard
 5,common,pf2e.pfs-season-2-bestiary,R7LYEfEApIhp6jdp,Joyful Planar Nixie
-4,common,pf2e.pfs-season-2-bestiary,RO4UAvgak0jAo2We,Burning Sun Orc (5-6)
-6,common,pf2e.pfs-season-2-bestiary,RmcCPvmrAeSTx3BR,Burning Sun Orc (7-8)
 3,common,pf2e.pfs-season-2-bestiary,SFBumlEX6jDIwAvL,Saddleback Bunyip
 1,common,pf2e.pfs-season-2-bestiary,SX348ZSY0SyMfOXa,Flaming Eye (3-4)
 5,common,pf2e.pfs-season-2-bestiary,SXXftJEy3DL8XXfF,Scorched Earth Orc (Clipper) (5-6)
 5,common,pf2e.pfs-season-2-bestiary,SqAWqJEi3IVB5TbO,Kayajima Daeodon
-5,common,pf2e.pfs-season-2-bestiary,StqA0Lpk26G4Ux1l,The Saboteur (5-6)
 10,common,pf2e.pfs-season-2-bestiary,TXHl1KvScSce9bQV,Drandle Dreng (9-10)
 10,common,pf2e.pfs-season-2-bestiary,U3RoZnfVAAKbrULX,Disciple of Urxehl (9-10)
 1,common,pf2e.pfs-season-2-bestiary,U6gghw2Ke21cRzs0,Brittle Skeletal Horse
 5,common,pf2e.pfs-season-2-bestiary,UIAaR0AdABRgGGNc,Chesjilawa Jadwiga Karina (5-6)
 9,common,pf2e.pfs-season-2-bestiary,V5O0ecsMk0QSTpqJ,Crumbling Ravener Husk
 5,common,pf2e.pfs-season-2-bestiary,VbRX9bK5kLIJWnXH,Sezruth (3-4)
-3,common,pf2e.pfs-season-2-bestiary,X0HPqlpqFHqmB9Ni,Valgomorus (1-2)
-6,common,pf2e.pfs-season-2-bestiary,X6ODple6SbEvbmmj,Corvius Vayn (7-8)
 4,common,pf2e.pfs-season-2-bestiary,XVda3dqZWi21we2j,Ragewight (3-4)
 5,common,pf2e.pfs-season-2-bestiary,XZOpmROxLS1bnApy,Mother Forsythe (3-4)
 2,common,pf2e.pfs-season-2-bestiary,Y0qzWOi3ihBHwYWE,Ferocious Zombie Grindylow
@@ -116,17 +106,13 @@ level,rarity,pack,docId,name
 6,common,pf2e.pfs-season-2-bestiary,ZpSLUDoO0WmxwLCG,Onyx Alliance Agent (7-8)
 8,common,pf2e.pfs-season-2-bestiary,ZzBtsGGjEvlqpiDq,Strak (7-8)
 4,common,pf2e.pfs-season-2-bestiary,aBxy7czPiVOSIlTl,Russian Soldier (5-6)
-4,common,pf2e.pfs-season-2-bestiary,aQsmJxRJIM0nzw5e,Corvius Vayn (5-6)
 5,common,pf2e.pfs-season-2-bestiary,ad58hkodIp5UjPa3,Mutated Trollhound
-5,common,pf2e.pfs-season-2-bestiary,aqfexx59fbDiR7RH,Valgomorus (3-4)
-4,common,pf2e.pfs-season-2-bestiary,bzV9QF6CfIGX8aNR,Aspis Veteran Guard
 9,common,pf2e.pfs-season-2-bestiary,c4KECFBOIXqAagwm,Mishka The Bear (7-8)
 9,common,pf2e.pfs-season-2-bestiary,c7uwPrgkjqSKRXQG,"Qxal, The Thorned Monarch"
 6,common,pf2e.pfs-season-2-bestiary,cRrHxzUAZvbhgcDr,Scorched Earth Orc (Scout) (7-8)
 5,common,pf2e.pfs-season-2-bestiary,ckvfamrYKeUYX7Cl,Starved Sea Drake
 5,common,pf2e.pfs-season-2-bestiary,cx796RgvywxF8P1A,Flaming Moss Monster
 0,common,pf2e.pfs-season-2-bestiary,dXvAp2TjUxpE16nS,Zombie Grindylow
-3,common,pf2e.pfs-season-2-bestiary,f4tnLJMEjq9IUMNZ,Urkhas (3-4)
 0,common,pf2e.pfs-season-2-bestiary,fF28drhtacyoHU96,Skeletal Reveler
 5,common,pf2e.pfs-season-2-bestiary,fHDBl7jIleuzmOM2,Scorched Earth Orc (Sharpshooter) (5-6)
 1,common,pf2e.pfs-season-2-bestiary,fpKKNDabU5XPov30,Ash Skeleton (1-2)
@@ -134,7 +120,6 @@ level,rarity,pack,docId,name
 4,common,pf2e.pfs-season-2-bestiary,hSUo6Y5Cc26Eckd7,Onyx Alliance Agent (5-6)
 5,common,pf2e.pfs-season-2-bestiary,iEQyYzFBvgyD5yBy,Wind Malevolent (5-6)
 11,common,pf2e.pfs-season-2-bestiary,ib1c9CIOEXxnEfQG,Hand Of Urxehl (9-10)
-3,common,pf2e.pfs-season-2-bestiary,iqGqGi066OvLdgKb,The Saboteur (3-4)
 2,common,pf2e.pfs-season-2-bestiary,iuHyixlsXUA4KJ9Q,Tough Skeletal Reveler
 5,common,pf2e.pfs-season-2-bestiary,jZ5M9JxemkGVpfLy,Awakened Giant Frilled Lizard
 4,common,pf2e.pfs-season-2-bestiary,kRCNfSMqwHY9sYcg,Semyon (5-6)
@@ -142,23 +127,17 @@ level,rarity,pack,docId,name
 8,common,pf2e.pfs-season-2-bestiary,mFfhFprmaQr9rYC1,Drandle Dreng (7-8)
 4,common,pf2e.pfs-season-2-bestiary,mot8pWHD6YEj08Js,Sea Devil Impaler
 7,common,pf2e.pfs-season-2-bestiary,nSFA4Kei2Gyf7dc6,Murta Kronniksdottir (5-6)
-6,common,pf2e.pfs-season-2-bestiary,nu3o0lcRZ6Bk57pA,Iverri (5-6)
 7,common,pf2e.pfs-season-2-bestiary,o13KISidrNovd4jp,Cyclops Bodak
 8,common,pf2e.pfs-season-2-bestiary,pUcBzyZY5kY7ERNN,Perizia (7-8)
-5,common,pf2e.pfs-season-2-bestiary,peEfisGfqzcCxaRf,Urkhas (5-6)
 6,common,pf2e.pfs-season-2-bestiary,rCErTabCxzPbR0ON,Insidious Dragon Forest Rot
 7,common,pf2e.pfs-season-2-bestiary,rFh82u8Jb6ZaGkm3,Artennod Raike (5-6)
 4,common,pf2e.pfs-season-2-bestiary,sRXkrqt5mOXzceR5,Dragon Forest Rot
 3,common,pf2e.pfs-season-2-bestiary,sm6SKZaGvDSAAwde,Sezruth (1-2)
-4,common,pf2e.pfs-season-2-bestiary,tLCIfeC1WWuGB9zj,Baron Utomo (3-4)
 5,common,pf2e.pfs-season-2-bestiary,uROqM79s9ivzHzl3,Ash Archer
 5,common,pf2e.pfs-season-2-bestiary,wYPS72mQp7VqullU,Artennod Raike (3-4)
-3,common,pf2e.pfs-season-2-bestiary,wt2bOysQCOVDRGJu,Wishbound Mist Stalker (5-6)
 4,common,pf2e.pfs-season-2-bestiary,x4m5ks6Rd8fYzXPm,Daughter Of Cocytus Enforcer
 2,common,pf2e.pfs-season-2-bestiary,xW5IhEbAhQneniT2,Storm Bear (1-2)
 6,common,pf2e.pfs-season-2-bestiary,xmKHQAQ9z7XrPNp7,Russian Soldier (7-8)
 5,common,pf2e.pfs-season-2-bestiary,yCACZfj6PJJGCLcr,Murta Kronniksdottir (3-4)
-6,common,pf2e.pfs-season-2-bestiary,yQm21z0RyZgZWcpm,Baron Utomo (5-6)
-4,common,pf2e.pfs-season-2-bestiary,z5YeacI4avkX3etA,Iverri (3-4)
 6,common,pf2e.pfs-season-2-bestiary,zSuXInzH5E8rYNEl,Vermlek Centaur (5-6)
 6,common,pf2e.pfs-season-2-bestiary,zpIVn1k5nsR0sMZ8,Ragewight (5-6)

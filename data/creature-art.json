@@ -20142,5 +20142,173 @@
     "name": "Daughter of Cocytus Tough",
     "level": 3,
     "art": "daughter-of-cocytus-tough-lob.webp"
+  },
+  {
+    "id": "the_scholar_of_sorts_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "6kRWSFIjPusy4d58",
+    "name": "The Scholar of Sorts (1-2)",
+    "level": 3,
+    "art": "the-scholar-of-sorts-lob.webp"
+  },
+  {
+    "id": "the_scholar_of_sorts_3_4_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "JxJ3vbV7piLxZrJ9",
+    "name": "The Scholar of Sorts (3-4)",
+    "level": 5,
+    "art": "the-scholar-of-sorts-lob.webp"
+  },
+  {
+    "id": "draugr_raider_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "Ek6C2abooQizETsX",
+    "name": "Draugr Raider",
+    "level": 4,
+    "art": "draugr-raider-lob.webp"
+  },
+  {
+    "id": "chained_drained_troll_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "LxPHOPYyrNhDNFod",
+    "name": "Chained Drained Troll",
+    "level": 4,
+    "art": "chained-drained-troll-lob.webp"
+  },
+  {
+    "id": "wishbound_mist_stalker_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "wt2bOysQCOVDRGJu",
+    "name": "Wishbound Mist Stalker (5-6)",
+    "level": 3,
+    "art": "wishbound-mist-stalker-lob.webp"
+  },
+  {
+    "id": "wishbound_mist_stalker_7_8_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "NMD2wE4GLfoS41IB",
+    "name": "Wishbound Mist Stalker (7-8)",
+    "level": 5,
+    "art": "wishbound-mist-stalker-lob.webp"
+  },
+  {
+    "id": "burning_sun_orc_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "RO4UAvgak0jAo2We",
+    "name": "Burning Sun Orc (5-6)",
+    "level": 4,
+    "art": "burning-sun-orc-lob.webp"
+  },
+  {
+    "id": "burning_sun_orc_7_8_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "RmcCPvmrAeSTx3BR",
+    "name": "Burning Sun Orc (7-8)",
+    "level": 6,
+    "art": "burning-sun-orc-lob.webp"
+  },
+  {
+    "id": "the_saboteur_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "iqGqGi066OvLdgKb",
+    "name": "The Saboteur (3-4)",
+    "level": 3,
+    "art": "the-saboteur-lob.webp"
+  },
+  {
+    "id": "the_saboteur_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "StqA0Lpk26G4Ux1l",
+    "name": "The Saboteur (5-6)",
+    "level": 5,
+    "art": "the-saboteur-lob.webp"
+  },
+  {
+    "id": "valgomorus_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "X0HPqlpqFHqmB9Ni",
+    "name": "Valgomorus (1-2)",
+    "level": 3,
+    "art": "valgomorus-lob.webp"
+  },
+  {
+    "id": "valgomorus_3_4_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "aqfexx59fbDiR7RH",
+    "name": "Valgomorus (3-4)",
+    "level": 5,
+    "art": "valgomorus-lob.webp"
+  },
+  {
+    "id": "corvius_vayn_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "aQsmJxRJIM0nzw5e",
+    "name": "Corvius Vayn (5-6)",
+    "level": 4,
+    "art": "corvius-vayn-lob.webp"
+  },
+  {
+    "id": "corvius_vayn_7_8_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "X6ODple6SbEvbmmj",
+    "name": "Corvius Vayn (7-8)",
+    "level": 6,
+    "art": "corvius-vayn-lob.webp"
+  },
+  {
+    "id": "aspis_veteran_guard_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "bzV9QF6CfIGX8aNR",
+    "name": "Aspis Veteran Guard",
+    "level": 4,
+    "art": "aspis-veteran-guard-lob.webp"
+  },
+  {
+    "id": "urkhas_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "f4tnLJMEjq9IUMNZ",
+    "name": "Urkhas (3-4)",
+    "level": 3,
+    "art": "urkhas-lob.webp"
+  },
+  {
+    "id": "urkhas_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "peEfisGfqzcCxaRf",
+    "name": "Urkhas (5-6)",
+    "level": 5,
+    "art": "urkhas-lob.webp"
+  },
+  {
+    "id": "iverri_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "z5YeacI4avkX3etA",
+    "name": "Iverri (3-4)",
+    "level": 4,
+    "art": "iverri-lob.webp"
+  },
+  {
+    "id": "iverri_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "nu3o0lcRZ6Bk57pA",
+    "name": "Iverri (5-6)",
+    "level": 6,
+    "art": "iverri-lob.webp"
+  },
+  {
+    "id": "baron_utomo_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "tLCIfeC1WWuGB9zj",
+    "name": "Baron Utomo (3-4)",
+    "level": 4,
+    "art": "baron-utomo-lob.webp"
+  },
+  {
+    "id": "baron_utomo_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "yQm21z0RyZgZWcpm",
+    "name": "Baron Utomo (5-6)",
+    "level": 6,
+    "art": "baron-utomo-lob.webp"
   }
 ]
