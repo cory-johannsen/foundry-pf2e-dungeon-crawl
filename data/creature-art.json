@@ -23198,5 +23198,37 @@
     "name": "Nathatel (7-8)",
     "level": 8,
     "art": "nathatel-lob.webp"
+  },
+  {
+    "id": "animated_dagger_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "548JZ6YeXsfYxVe5",
+    "name": "Animated Dagger",
+    "level": -1,
+    "art": "animated-dagger-lob.webp"
+  },
+  {
+    "id": "animated_dagger_3_4_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "16Ye7Wd2pXiUiGJo",
+    "name": "Animated Dagger (3-4)",
+    "level": 0,
+    "art": "animated-dagger-lob.webp"
+  },
+  {
+    "id": "burrowing_viper_rat_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "473NoC8CXToJcWzk",
+    "name": "Burrowing Viper Rat",
+    "level": -1,
+    "art": "burrowing-viper-rat-lob.webp"
+  },
+  {
+    "id": "elven_grave_robber_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "4bGcT950NIM36Pmn",
+    "name": "Elven Grave Robber",
+    "level": 1,
+    "art": "elven-grave-robber-lob.webp"
   }
 ]
