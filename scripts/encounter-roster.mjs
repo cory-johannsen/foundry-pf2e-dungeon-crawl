@@ -84,6 +84,20 @@ export function xpBudget(tier, partySize) {
 }
 
 /**
+ * The XP ceiling tier for a dungeon room's depth bias (#293): the shallow
+ * rooms (bias 0) cap at Low, the middle ones (bias 1) at Moderate, and
+ * everything deeper (bias >= 2, the goal room included) at Severe. A missing
+ * depth (`null`/`undefined`, e.g. the standalone macro) keeps the historical
+ * Severe cap.
+ */
+export function xpCeilingTierForDepth(bias) {
+  if (bias == null) return "severe";
+  if (bias <= 0) return "low";
+  if (bias === 1) return "moderate";
+  return "severe";
+}
+
+/**
  * `levelOffsetBias` shifts the target level band — a dungeon room's
  * depth-based difficulty ramp (see dungeon-deck.mjs's depthBiasFor).
  * `requireTrait` is a single ANDed restriction — a dungeon room's own
@@ -155,8 +169,8 @@ async function pickCreature({
  * a warning and is left out of the roster, matching the "place one yourself"
  * fallback the Dragon/Ooze/Monstrosity card handlers use.
  *
- * `partySize`, when given, caps the roster at GM Core's Severe XP budget
- * (#144): the encounter deck's "draw a number of cards equal to the party
+ * `partySize`, when given, caps the roster at a GM Core XP budget (#144;
+ * Severe unless `depthBias` says otherwise, see below): the encounter deck's "draw a number of cards equal to the party
  * size" rule was adapted straight from 5e's much shallower per-monster XP
  * math, but a PF2e level-appropriate creature alone is already 40 XP
  * (`xpFor(0)`) — a party of 4 drawing 4 ordinary cards already lands at
@@ -168,6 +182,14 @@ async function pickCreature({
  * strong slot (or a party of 1) can't leave the whole encounter empty.
  * `null` (the default) disables the cap entirely, for callers with no real
  * party size to check against.
+ *
+ * `depthBias` (#293), when given, scales the ceiling with dungeon depth via
+ * `xpCeilingTierForDepth`: 0 -> Low, 1 -> Moderate, >= 2 -> Severe, so early
+ * rooms stay easy instead of every room being allowed up to Severe. `null`
+ * (the default) keeps the Severe cap. It is deliberately separate from
+ * `levelOffsetBias`, which defaults to 0 for standalone callers and would
+ * otherwise silently tighten them to Low. The first-slot-always-accepted rule
+ * applies at every tier.
  *
  * Skipping is decided by simple running-total order (foes, then Lurker,
  * then Twins) — a `group` slot's two members are checked independently, so
@@ -188,14 +210,16 @@ export async function resolveEncounterRoster({
   requireTrait = null,
   partySize = null,
   isBoss = false,
+  depthBias = null,
 }) {
   const warnings = [];
   const groupChoice = new Map();
   let approxXp = 0;
   let cappedCount = 0;
-  const severeCap = partySize != null ? xpBudget("severe", partySize) : null;
+  const capTier = xpCeilingTierForDepth(depthBias);
+  const xpCap = partySize != null ? xpBudget(capTier, partySize) : null;
   const wouldExceedCap = (contribution) =>
-    severeCap != null && approxXp > 0 && approxXp + contribution > severeCap;
+    xpCap != null && approxXp > 0 && approxXp + contribution > xpCap;
 
   const pick = (levelOffset, boss = false) =>
     pickCreature({
@@ -313,7 +337,7 @@ export async function resolveEncounterRoster({
 
   if (cappedCount > 0) {
     warnings.push(
-      `Encounter capped at Severe difficulty for a party of ${partySize} — ${cappedCount} further creature card(s) held back.`,
+      `Encounter capped at ${capTier[0].toUpperCase()}${capTier.slice(1)} difficulty for a party of ${partySize} — ${cappedCount} further creature card(s) held back.`,
     );
   }
 
