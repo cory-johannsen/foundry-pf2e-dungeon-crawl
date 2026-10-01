@@ -991,3 +991,6 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 72,nathatel,Nathatel,2,beast,accept,,comfyui,
 72,meddlesome-scrit,Meddlesome Scrit,-1,beast,accept,,comfyui,
 72,harpy-forager,Harpy Forager,7,hybrid,accept,,comfyui,gemini-first
+73,animated-dagger,Animated Dagger,-1,construct,accept,,comfyui,gemini-first
+73,burrowing-viper-rat,Burrowing Viper Rat,-1,beast,accept,,comfyui,gemini-first
+73,elven-grave-robber,Elven Grave Robber,1,beast,accept,,comfyui,gemini-first
