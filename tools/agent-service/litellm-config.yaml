@@ -25,15 +25,3 @@ model_list:
     litellm_params:
       model: openrouter/anthropic/claude-3.5-sonnet
       api_key: os.environ/OPENROUTER_API_KEY
-  # #454: a dedicated, non-production entry for validating
-  # inception/mercury-decide:free's tool-calling reliability via
-  # tools/agent-service/validate-decision-model.mjs. Deliberately its own
-  # named tier, not a repoint of fast/reasoning -- see that script and
-  # providers/litellm.mjs's decide() `model` option. Inert by default for
-  # the same reason openrouter-fast/openrouter-reasoning above are: litellm
-  # only errors on a missing api_key when something actually requests this
-  # model name.
-  - model_name: mercury-decide
-    litellm_params:
-      model: openrouter/inception/mercury-decide:free
-      api_key: os.environ/OPENROUTER_API_KEY
