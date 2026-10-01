@@ -117,6 +117,57 @@ door" symptom, not a separate bug. The cap now only ever means "give up
 without guessing" — `resnapDriftedTokens` fires again on this token's own next
 real update regardless, so a skipped attempt isn't a permanent miss.
 
+**Revised again 2026-10-01 (round 2), the symptom still reproduced live
+after round 1 shipped:** `isAnimating(token)` reporting false is *not* by
+itself proof `token.x`/`token.y` holds the real, settled destination —
+caught live reading a position ~24% of the way through a still-in-progress
+slide, with `animationContexts` already empty at that exact instant.
+Whatever internal Foundry mechanism clears `animationContexts` can
+apparently do so slightly before the document's own x/y commits to its
+final value — a race inside Foundry's own pipeline, separate from (and in
+addition to) round 1's own cap-expiry bug. Fix: once a token has been seen
+animating, a single "not animating" poll is no longer enough — require the
+position to also be *unchanged* from the immediately preceding poll before
+trusting it (two consecutive stable reads, not one). A token that was
+never seen animating at entry still takes the original zero-delay fast
+path — this only affects the polling branch, so it adds no latency to the
+common already-settled case.
+
+**Revised a third time 2026-10-01 (round 3), the real fix — round 2's own
+premise was wrong:** an adversarial review of round 2, asked specifically
+whether its own stability-check theory held up, went and read Foundry
+v14's actual client source (`client/canvas/placeables/token.mjs`,
+`#animateFrame`/`#completeAnimation`) rather than taking the live capture's
+surface-level explanation at face value. It does not support round 2's
+"animationContexts can clear slightly before x/y commits" theory: on a
+normal animation finish, `#animateFrame` merges the final position into
+the document and only then clears the animation context, in the same
+synchronous step — no poll can land in between. What both rounds 1 and 2
+actually missed: **`token.x`/`token.y` is the client-side, continuously
+re-interpolated value Foundry's animation pipeline overwrites every
+rendered frame while a slide is in progress — it was never the right field
+to read for a drift/off-grid decision in the first place.**
+`token._source.x`/`token._source.y` is the sealed, server-committed
+position animation never touches, confirmed live (querying a real token's
+own `_source` directly) and independently re-confirmed by reading
+Foundry's own source for where it's assigned. Round 2's fix also still had
+a gap round 1 shared: neither function's "fast path" (a token never seen
+animating at entry) had *any* protection, and the one real way to get
+`animationContexts` empty while `x`/`y` is stuck off its real value
+(`stopAnimation({reset:false})`, used by e.g. token-HUD moves or undo) is
+**permanent**, not a brief window either stability check could outlast.
+
+The real fix: every position read in `resnapTokenNow`, `moveFollowersToward`'s
+own inline snap-correction, and the `leaderCell`/`occupied` decisions
+`moveFollowersToward` builds its candidate search from, now reads each
+token's own `_source.x`/`_source.y`, never the top-level `x`/`y`. This
+makes the whole "is it currently animating" question moot for correctness
+— `_source` is unconditionally correct regardless of what the animation is
+visually doing, so neither function needs to poll, wait, or check
+animation state at all anymore. `RESNAP_POLL_MS`/`RESNAP_MAX_WAIT_MS` and
+`isAnimating` are removed entirely; `token.object.animationContexts` is no
+longer read anywhere in this file.
+
 `resnapDriftedTokens` itself is unchanged — it can still fire eagerly on a
 mid-flight fractional position exactly as today; the fix is entirely in
 `resnapTokenNow`'s own write-side logic, which both the GM-direct call and
