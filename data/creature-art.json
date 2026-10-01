@@ -20438,5 +20438,101 @@
     "name": "Ash Archer",
     "level": 5,
     "art": "ash-archer-lob.webp"
+  },
+  {
+    "id": "scorched_earth_orc_sharpshooter_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "fHDBl7jIleuzmOM2",
+    "name": "Scorched Earth Orc (Sharpshooter) (5-6)",
+    "level": 5,
+    "art": "scorched-earth-orc-sharpshooter-lob.webp"
+  },
+  {
+    "id": "scorched_earth_orc_sharpshooter_7_8_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "0ATZwmS2yxbheza4",
+    "name": "Scorched Earth Orc (Sharpshooter) (7-8)",
+    "level": 7,
+    "art": "scorched-earth-orc-sharpshooter-lob.webp"
+  },
+  {
+    "id": "wishbound_belker_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "2LcIG75RQoujanC9",
+    "name": "Wishbound Belker (5-6)",
+    "level": 5,
+    "art": "wishbound-belker-lob.webp"
+  },
+  {
+    "id": "wishbound_belker_7_8_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "7rSEHlUPv6DLkAy1",
+    "name": "Wishbound Belker (7-8)",
+    "level": 7,
+    "art": "wishbound-belker-lob.webp"
+  },
+  {
+    "id": "master_sergeant_morgroar_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "CXSThQwaRg1eEurb",
+    "name": "Master Sergeant Morgroar (3-4)",
+    "level": 5,
+    "art": "master-sergeant-morgroar-lob.webp"
+  },
+  {
+    "id": "master_sergeant_morgroar_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "C0UQiPJLDm7vb0ZV",
+    "name": "Master Sergeant Morgroar (5-6)",
+    "level": 7,
+    "art": "master-sergeant-morgroar-lob.webp"
+  },
+  {
+    "id": "run_down_efreet_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "DlIJbeLe4iNKMOQd",
+    "name": "Run-Down Efreet",
+    "level": 5,
+    "art": "run-down-efreet-lob.webp"
+  },
+  {
+    "id": "debilitated_bulette_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "Qdx9UbT68Elqneti",
+    "name": "Debilitated Bulette",
+    "level": 6,
+    "art": "debilitated-bulette-lob.webp"
+  },
+  {
+    "id": "frost_troll_hunter_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "QpNynyK54qEwmswI",
+    "name": "Frost Troll Hunter",
+    "level": 6,
+    "art": "frost-troll-hunter-lob.webp"
+  },
+  {
+    "id": "scorched_earth_orc_clipper_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "SXXftJEy3DL8XXfF",
+    "name": "Scorched Earth Orc (Clipper) (5-6)",
+    "level": 5,
+    "art": "scorched-earth-orc-clipper-lob.webp"
+  },
+  {
+    "id": "scorched_earth_orc_clipper_7_8_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "YpACDyWCHXtaXppg",
+    "name": "Scorched Earth Orc (Clipper) (7-8)",
+    "level": 7,
+    "art": "scorched-earth-orc-clipper-lob.webp"
+  },
+  {
+    "id": "mutated_trollhound_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "ad58hkodIp5UjPa3",
+    "name": "Mutated Trollhound",
+    "level": 5,
+    "art": "mutated-trollhound-lob.webp"
   }
 ]
