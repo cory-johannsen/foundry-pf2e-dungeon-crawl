@@ -169,6 +169,7 @@ graph LR
     tools_agent_service_providers_litellm_mjs["agent-service/providers/litellm.mjs"]
     tools_agent_service_server_mjs["agent-service/server.mjs"]
     tools_agent_service_tier_selection_mjs["agent-service/tier-selection.mjs"]
+    tools_agent_service_validate_decision_model_mjs["agent-service/validate-decision-model.mjs"]
   end
   subgraph "GM-less relay & permissions"
     scripts_choice_prompts_mjs["choice-prompts.mjs"]
@@ -347,6 +348,8 @@ graph LR
   tools_agent_service_server_mjs --> tools_agent_service_customization_generator_mjs
   tools_agent_service_server_mjs --> tools_agent_service_env_mjs
   tools_agent_service_tier_selection_mjs --> tools_agent_service_env_mjs
+  tools_agent_service_validate_decision_model_mjs --> tools_agent_service_providers_litellm_mjs
+  tools_agent_service_validate_decision_model_mjs --> tools_agent_service_env_mjs
 ```
 
 Notably, `tools/agent-service/*` never imports anything from `scripts/`,
