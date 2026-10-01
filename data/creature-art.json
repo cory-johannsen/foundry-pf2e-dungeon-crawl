@@ -19814,5 +19814,133 @@
     "name": "Giant Worker Ant",
     "level": 1,
     "art": "giant-worker-ant-lob.webp"
+  },
+  {
+    "id": "abyssal_fungi_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "4BaZvzpSYftJEkV8",
+    "name": "Abyssal Fungi",
+    "level": 2,
+    "art": "abyssal-fungi-lob.webp"
+  },
+  {
+    "id": "razortoothed_shark_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "83k9JooGu3wbCJKa",
+    "name": "Razortoothed Shark",
+    "level": 1,
+    "art": "razortoothed-shark-lob.webp"
+  },
+  {
+    "id": "anatomical_model_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "BXnmDgVkhD97fI1o",
+    "name": "Anatomical Model (1-2)",
+    "level": 2,
+    "art": "anatomical-model-lob.webp"
+  },
+  {
+    "id": "anatomical_model_3_4_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "j7K9SefeHJ16qHMl",
+    "name": "Anatomical Model (3-4)",
+    "level": 4,
+    "art": "anatomical-model-lob.webp"
+  },
+  {
+    "id": "elite_anatomical_model_3_4_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "ZshsztmoWjDZEqGT",
+    "name": "Elite Anatomical Model (3-4)",
+    "level": 4,
+    "art": "anatomical-model-lob.webp"
+  },
+  {
+    "id": "weakened_abyssal_fungi_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "BjJ5KAf1f3SeAesY",
+    "name": "Weakened Abyssal Fungi",
+    "level": 1,
+    "art": "weakened-abyssal-fungi-lob.webp"
+  },
+  {
+    "id": "bruorsivi_mandragora_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "dqPqUX69bPiVdMNG",
+    "name": "Lesser Bruorsivi Mandragora",
+    "level": 1,
+    "art": "bruorsivi-mandragora-lob.webp"
+  },
+  {
+    "id": "bruorsivi_mandragora_o78tq_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "O78tQX7291q1CADm",
+    "name": "Bruorsivi Mandragora",
+    "level": 4,
+    "art": "bruorsivi-mandragora-lob.webp"
+  },
+  {
+    "id": "mercenary_wizard_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "c4t6aDgo7pdMI7yN",
+    "name": "Mercenary Wizard (1-2)",
+    "level": 1,
+    "art": "mercenary-wizard-lob.webp"
+  },
+  {
+    "id": "mercenary_wizard_3_4_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "P8fk8icXxlR6VVcm",
+    "name": "Mercenary Wizard (3-4)",
+    "level": 3,
+    "art": "mercenary-wizard-lob.webp"
+  },
+  {
+    "id": "scorched_earth_mephit_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "W9XSFbMIXk1A7aT9",
+    "name": "Scorched Earth Mephit",
+    "level": 1,
+    "art": "scorched-earth-mephit-lob.webp"
+  },
+  {
+    "id": "small_opossum_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "jjx1CL2NpFG78tOZ",
+    "name": "Small Opossum",
+    "level": 1,
+    "art": "small-opossum-lob.webp"
+  },
+  {
+    "id": "tough_small_opossum_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "hCZIkwJQQTMwdjfy",
+    "name": "Tough Small Opossum",
+    "level": 2,
+    "art": "small-opossum-lob.webp"
+  },
+  {
+    "id": "daughter_of_cocytus_grunt_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "pmuLQSwB0530m873",
+    "name": "Daughter of Cocytus Grunt",
+    "level": 2,
+    "art": "daughter-of-cocytus-grunt-lob.webp"
+  },
+  {
+    "id": "aspis_guard_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "qZFgHBqfjIaBviTS",
+    "name": "Aspis Guard",
+    "level": 2,
+    "art": "aspis-guard-lob.webp"
+  },
+  {
+    "id": "ygracix_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "xRwAQ93HjGe59RvO",
+    "name": "Ygracix",
+    "level": 1,
+    "art": "ygracix-lob.webp"
   }
 ]
