@@ -109,7 +109,6 @@ level,rarity,pack,docId,name
 2,common,pf2e.pfs-season-3-bestiary,4S77ftUx1zp7JscD,Bloody Skeletal Champion
 4,common,pf2e.pfs-season-3-bestiary,4XlfENtBfF9GB2fy,Ninth Army Burglar
 3,common,pf2e.pfs-season-3-bestiary,4paPYhdN4HHT3Orz,Flaming Animated Armor (Holy Hand) (1-2)
-3,common,pf2e.pfs-season-3-bestiary,55uIx8vScaf8JeTY,Junior (3-4)
 7,common,pf2e.pfs-season-3-bestiary,83lyaQloNlS16sJu,Mature Arabuk
 9,common,pf2e.pfs-season-3-bestiary,8CEKF7wq9qZzmveH,Sparkles (9-10)
 5,common,pf2e.pfs-season-3-bestiary,8Sea3unOcDH6dWJI,Bergworm Tyrant
@@ -151,7 +150,6 @@ level,rarity,pack,docId,name
 1,common,pf2e.pfs-season-3-bestiary,L1gzOT7o2xxJoqUD,Timewarped Amalgam
 10,common,pf2e.pfs-season-3-bestiary,LG2pZMbLXZKtcWZh,Arisept (9-10)
 8,common,pf2e.pfs-season-3-bestiary,LHEI3E4THLsz0rr0,Enduring Zombie Hulk
-5,common,pf2e.pfs-season-3-bestiary,Lmo4SH5wpywZL1YS,Displaced Robot (5-6)
 5,common,pf2e.pfs-season-3-bestiary,MK2YstG6JpFwI9sB,Duergar Crusher
 3,common,pf2e.pfs-season-3-bestiary,MQMfOX5h2OgJrhm6,Uncle Jeb (3-4)
 3,common,pf2e.pfs-season-3-bestiary,OOHNMq2uOfnp8QCg,Fasiel Ibn Sazadin (1-2)
@@ -162,7 +160,6 @@ level,rarity,pack,docId,name
 3,common,pf2e.pfs-season-3-bestiary,PhnmHglnmoiIb3Al,Flaming Animated Armor (Leadroar) (1-2)
 8,common,pf2e.pfs-season-3-bestiary,PqawYWEK0iqvcBZj,Marcien Blakros (7-8) (Shadow Double)
 4,common,pf2e.pfs-season-3-bestiary,Q2a9EA1zQB8acuiF,Shobhad Hunter (5-6)
-1,common,pf2e.pfs-season-3-bestiary,QvrnfL8u3azh9lBA,Fetchling Sneak
 3,common,pf2e.pfs-season-3-bestiary,RCCGR5wlfGNPkkBy,Enraged Shrouded Bloodseeker
 2,common,pf2e.pfs-season-3-bestiary,RLBOKSaMrOCA4fdZ,Ninth Army Ruffian
 5,common,pf2e.pfs-season-3-bestiary,RTHM0lrmzvUskBMy,Arabuk
@@ -171,15 +168,12 @@ level,rarity,pack,docId,name
 3,common,pf2e.pfs-season-3-bestiary,S9v8OCktGEL0k6sC,Cinder Rat (Ashgrip)
 6,common,pf2e.pfs-season-3-bestiary,SJoWqX2P5LhJsbYA,Thundering Wihsaak
 9,common,pf2e.pfs-season-3-bestiary,SkV5zYJgu7hdpZE0,Sparkles (11-12)
-1,common,pf2e.pfs-season-3-bestiary,SyFPYtqvE9jAZ6LR,Aspis Defender
 2,common,pf2e.pfs-season-3-bestiary,Tt9DtLxj1N2TBT9w,Kobold Dragon Mage (PFS 3-99)
 4,common,pf2e.pfs-season-3-bestiary,WB4DMTHCIEBOiitp,Shadow Guardian
 2,common,pf2e.pfs-season-3-bestiary,WGi99nXZYSv7U92M,Tadrun (1-2)
-1,common,pf2e.pfs-season-3-bestiary,WaTrewLfMf8WH0O9,Ninth Army Mage
 4,common,pf2e.pfs-season-3-bestiary,WpdOwEpoWwxrBUpF,Peryton (Rifle Mutation)
 7,common,pf2e.pfs-season-3-bestiary,WxN19w3aO5MpVY6Z,"Cole Farsen, Gang Leader"
 3,common,pf2e.pfs-season-3-bestiary,Xpf9HQDxoafOwfoB,Thomil Bolyrius (3-4)
-1,common,pf2e.pfs-season-3-bestiary,XxbdbTlnY0P3RU3h,Aspis Usurper
 11,common,pf2e.pfs-season-3-bestiary,XyrToL9Wyl4MoAf1,Caliclotherax (9-10)
 9,common,pf2e.pfs-season-3-bestiary,Y5ZcwtbKxA1BImQq,Umbral Cu Sith
 1,common,pf2e.pfs-season-3-bestiary,YMT0Hl0LO9QKrb3X,Aspis Agent
@@ -200,49 +194,38 @@ level,rarity,pack,docId,name
 8,common,pf2e.pfs-season-3-bestiary,fiwIeiExpZ1CQKAj,Glurorchaes (7-8)
 5,common,pf2e.pfs-season-3-bestiary,g3UYRJQCwnjdvCm9,Tyrannical Interrogator
 6,common,pf2e.pfs-season-3-bestiary,g4hfpuGdtTDq7KZw,Tascio Raetullus (5-6)
-3,common,pf2e.pfs-season-3-bestiary,gehsgt6uN6sUsmDW,Revinus (3-4)
 8,common,pf2e.pfs-season-3-bestiary,gtcISL1zMhQ0mv5g,Arisept (7-8)
 3,common,pf2e.pfs-season-3-bestiary,gwy6v9P8E8hIlP19,Zebub (PFS)
 6,common,pf2e.pfs-season-3-bestiary,gzMCaAr2Bd2gbhrF,Thundering Wihsaak (Arctic)
-1,common,pf2e.pfs-season-3-bestiary,h2vnwOGmGFcKVGYq,Iron Ring Pirate
 -1,common,pf2e.pfs-season-3-bestiary,hEh3j8Fz8lbjuiRF,Aspis Recruit
 6,common,pf2e.pfs-season-3-bestiary,hGu2JDWOAHHMLYeH,Thundering Wihsaak (Rifle Mutation)
 3,common,pf2e.pfs-season-3-bestiary,hqFuN3UINx7ChbqS,Aspis Striker
-1,common,pf2e.pfs-season-3-bestiary,i9cCVnI5OlMe8d2u,Displaced Robot (1-2)
 6,common,pf2e.pfs-season-3-bestiary,iev4EOtchd0hp9sh,Reckless Akitonian Scientist
 3,common,pf2e.pfs-season-3-bestiary,jItk6GNZ7lmT5zVY,Hellbound Jailer (3-4)
 2,common,pf2e.pfs-season-3-bestiary,jMxFlkAbepA47sHb,Scalding Mephit
 3,common,pf2e.pfs-season-3-bestiary,kTsUEbM3JkhT5VZM,Sandswept Statue
-1,common,pf2e.pfs-season-3-bestiary,mYpAGYbt6cGiTU8p,Junior (1-2)
 1,common,pf2e.pfs-season-3-bestiary,mZ2bmxg4JcVh1p2k,Rampaging Roast (Well Done)
-1,common,pf2e.pfs-season-3-bestiary,nS4auasfEXEU0rtx,Onyx Alliance Scout
 5,common,pf2e.pfs-season-3-bestiary,njJCv6ItwIzwO3Xj,Ninth Army Fence
 2,common,pf2e.pfs-season-3-bestiary,oOl4UOYKpGeS3Ep7,Onyx Alliance Enforcer
 2,common,pf2e.pfs-season-3-bestiary,olP1l0gi9qYFZtt2,Lightweight Animated Armor
-1,common,pf2e.pfs-season-3-bestiary,p0RvcmcEe8zfoMkT,Hellbound Rogue
 12,common,pf2e.pfs-season-3-bestiary,pYR3Ovkd9eKQQ5qE,"Eltha Embercall (11-12, 28+ CP)"
 1,common,pf2e.pfs-season-3-bestiary,phgXSggQiGRNn4Yr,Ninth Army Bodyguard
 4,common,pf2e.pfs-season-3-bestiary,plYMMhlfO6OVrtEo,Eloise's Ghost (1-2)
 3,common,pf2e.pfs-season-3-bestiary,q6J7DcU3am7wKIRD,Aspis Warden
 8,common,pf2e.pfs-season-3-bestiary,qDpKFbhWgSWEEA00,Marcien Blakros (7-8)
 0,common,pf2e.pfs-season-3-bestiary,qFzhrDwmnBhk4FyL,Skeleton Warrior
-3,common,pf2e.pfs-season-3-bestiary,qPUP8Qtp7HXmXiBi,Displaced Robot (3-4)
 3,common,pf2e.pfs-season-3-bestiary,qRX3Gax6xC3yIqyt,Ninth Army War Mage
 5,common,pf2e.pfs-season-3-bestiary,qd6yO0nBdmoz8Fl2,"Cole Farsen, Advisor"
 1,common,pf2e.pfs-season-3-bestiary,qnu2pwoPe5Hh73vB,Uncle Jeb (1-2)
-1,common,pf2e.pfs-season-3-bestiary,rwRPi6GwXhF34W55,Branwaen
 -1,common,pf2e.pfs-season-3-bestiary,sHl25TefznyV8xC8,Unstable Skeleton Guard
 8,common,pf2e.pfs-season-3-bestiary,sfStaEmGGvXWftsn,Horrid Nightmare
 5,common,pf2e.pfs-season-3-bestiary,tVsrWl9kfVIGG5OW,Thick Pelagastr Tail
 2,common,pf2e.pfs-season-3-bestiary,uJe5OEPDuvIG6eg6,Ghast (Arctic)
 2,common,pf2e.pfs-season-3-bestiary,uOgiYc5VGhSxkLFa,Pontrius Tilasti (1-2)
-1,common,pf2e.pfs-season-3-bestiary,uzFHHePtuxBv6K9u,Revinus (1-2)
 3,common,pf2e.pfs-season-3-bestiary,vQjnfmvUzZwaUoBd,Pelagastr Tail
-7,common,pf2e.pfs-season-3-bestiary,vuxdXTrDMv5YQ1Fx,Displaced Robot (7-8)
 4,common,pf2e.pfs-season-3-bestiary,wqJDAf89wSAdG0qy,Peryton (Arctic)
 2,common,pf2e.pfs-season-3-bestiary,x6uXLDuFimMuvz3w,Half-Formed Abrikandilu
 10,common,pf2e.pfs-season-3-bestiary,xVmDwoBxjKyCihYz,Marcien Blakros (9-10) (Shadow Double)
-3,common,pf2e.pfs-season-3-bestiary,xYByANF8t6zhxt4p,Veteran Onyx Alliance Scout
 9,common,pf2e.pfs-season-3-bestiary,xiBVzPUwh1QI2lIs,Eltha Embercall (9-10)
 2,common,pf2e.pfs-season-3-bestiary,xkXMKw8GhdI5FNar,Monastic Bodyguard (3-4)
 1,common,pf2e.pfs-season-3-bestiary,yfh8wibKauDIh6Dj,Sulfuric Slime

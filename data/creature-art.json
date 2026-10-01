@@ -20950,5 +20950,141 @@
     "name": "Alchemy-Gorged Giant Leech",
     "level": 1,
     "art": "alchemy-gorged-giant-leech-lob.webp"
+  },
+  {
+    "id": "junior_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "mYpAGYbt6cGiTU8p",
+    "name": "Junior (1-2)",
+    "level": 1,
+    "art": "junior-lob.webp"
+  },
+  {
+    "id": "junior_3_4_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "55uIx8vScaf8JeTY",
+    "name": "Junior (3-4)",
+    "level": 3,
+    "art": "junior-lob.webp"
+  },
+  {
+    "id": "displaced_robot_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "i9cCVnI5OlMe8d2u",
+    "name": "Displaced Robot (1-2)",
+    "level": 1,
+    "art": "displaced-robot-lob.webp"
+  },
+  {
+    "id": "displaced_robot_3_4_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "qPUP8Qtp7HXmXiBi",
+    "name": "Displaced Robot (3-4)",
+    "level": 3,
+    "art": "displaced-robot-lob.webp"
+  },
+  {
+    "id": "displaced_robot_5_6_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "Lmo4SH5wpywZL1YS",
+    "name": "Displaced Robot (5-6)",
+    "level": 5,
+    "art": "displaced-robot-lob.webp"
+  },
+  {
+    "id": "displaced_robot_7_8_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "vuxdXTrDMv5YQ1Fx",
+    "name": "Displaced Robot (7-8)",
+    "level": 7,
+    "art": "displaced-robot-lob.webp"
+  },
+  {
+    "id": "fetchling_sneak_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "QvrnfL8u3azh9lBA",
+    "name": "Fetchling Sneak",
+    "level": 1,
+    "art": "fetchling-sneak-lob.webp"
+  },
+  {
+    "id": "aspis_defender_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "SyFPYtqvE9jAZ6LR",
+    "name": "Aspis Defender",
+    "level": 1,
+    "art": "aspis-defender-lob.webp"
+  },
+  {
+    "id": "ninth_army_mage_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "WaTrewLfMf8WH0O9",
+    "name": "Ninth Army Mage",
+    "level": 1,
+    "art": "ninth-army-mage-lob.webp"
+  },
+  {
+    "id": "aspis_usurper_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "XxbdbTlnY0P3RU3h",
+    "name": "Aspis Usurper",
+    "level": 1,
+    "art": "aspis-usurper-lob.webp"
+  },
+  {
+    "id": "revinus_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "uzFHHePtuxBv6K9u",
+    "name": "Revinus (1-2)",
+    "level": 1,
+    "art": "revinus-lob.webp"
+  },
+  {
+    "id": "revinus_3_4_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "gehsgt6uN6sUsmDW",
+    "name": "Revinus (3-4)",
+    "level": 3,
+    "art": "revinus-lob.webp"
+  },
+  {
+    "id": "iron_ring_pirate_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "h2vnwOGmGFcKVGYq",
+    "name": "Iron Ring Pirate",
+    "level": 1,
+    "art": "iron-ring-pirate-lob.webp"
+  },
+  {
+    "id": "onyx_alliance_scout_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "nS4auasfEXEU0rtx",
+    "name": "Onyx Alliance Scout",
+    "level": 1,
+    "art": "onyx-alliance-scout-lob.webp"
+  },
+  {
+    "id": "veteran_onyx_alliance_scout_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "xYByANF8t6zhxt4p",
+    "name": "Veteran Onyx Alliance Scout",
+    "level": 3,
+    "art": "onyx-alliance-scout-lob.webp"
+  },
+  {
+    "id": "hellbound_rogue_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "p0RvcmcEe8zfoMkT",
+    "name": "Hellbound Rogue",
+    "level": 1,
+    "art": "hellbound-rogue-lob.webp"
+  },
+  {
+    "id": "branwaen_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "rwRPi6GwXhF34W55",
+    "name": "Branwaen",
+    "level": 1,
+    "art": "branwaen-lob.webp"
   }
 ]
