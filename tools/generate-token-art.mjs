@@ -8064,10 +8064,12 @@ async function geminiGenerateOne(subject, dest) {
  * billed on the owner's key, so — like Gemini — one call per subject.
  */
 async function openrouterGenerateOne(subject, dest) {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  // .env spells it OPEN_ROUTER_API_KEY; a shell-level OPENROUTER_API_KEY (used
+  // by other tools) must not shadow it, so the .env name wins.
+  const apiKey = process.env.OPEN_ROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     throw new Error(
-      'OPENROUTER_API_KEY not set — add it to .env (this worktree or the main checkout) to use --backend=openrouter'
+      'OPEN_ROUTER_API_KEY not set — add it to .env (this worktree or the main checkout) to use --backend=openrouter'
     );
   }
   const systemPrompt = resolveGeminiSystemPrompt();
