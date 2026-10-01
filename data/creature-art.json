@@ -23558,5 +23558,13 @@
     "name": "Elite Combustive Zombie",
     "level": 9,
     "art": "combustive-zombie-lob.webp"
+  },
+  {
+    "id": "urdefhan_blood_mage_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "JTrKsjnCLJy7W1gj",
+    "name": "Urdefhan Blood Mage (PFS 4-11)",
+    "level": 8,
+    "art": "urdefhan-blood-mage-lob.webp"
   }
 ]
