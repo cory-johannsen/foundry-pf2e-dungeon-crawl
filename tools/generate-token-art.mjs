@@ -7961,7 +7961,7 @@ else:
 }
 
 const CLEAN_THRESHOLD = 45;      // stay under the checker's 50
-const MAX_ATTEMPTS = 3;   // 1 try + 2 retries via ComfyUI, then defer to --backend=gemini (owner rule, 2026-09-29)
+const MAX_ATTEMPTS = 4;   // 1 try + 3 retries via ComfyUI; failures then queue in docs/gemini-hand-queue.tsv for the owner's free daily Gemini images (API credits exhausted 2026-10-01, do NOT call --backend=gemini)
 
 /**
  * Try to key out a failed attempt's background instead of throwing the
