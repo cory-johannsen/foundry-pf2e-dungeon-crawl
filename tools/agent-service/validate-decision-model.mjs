@@ -14,11 +14,17 @@
  * provider needs (e.g. OPENROUTER_API_KEY for an openrouter/* entry).
  *
  * Run: node tools/agent-service/validate-decision-model.mjs [modelName] [trialCount]
+ *
+ * With PROVIDER=<name> (e.g. PROVIDER=openrouter) it instead exercises that
+ * providers/index.mjs provider's decide() directly, with its own defaults
+ * (model, endpoint, key) — modelName is ignored.
  */
-import { decide } from "./providers/litellm.mjs";
+import { decide as decideLitellm } from "./providers/litellm.mjs";
+import { resolveProvider } from "./providers/index.mjs";
 import { readEnvOrDotenv } from "./env.mjs";
 
 const MODEL_NAME = process.argv[2] ?? "mercury-decide";
+const PROVIDER = process.env.PROVIDER;
 const TRIAL_COUNT = Number(process.argv[3]) || 10;
 // Free-tier OpenRouter models rate-limit aggressively; this delay keeps a
 // genuine tool-calling-reliability signal from being swamped by 429s that
@@ -50,7 +56,9 @@ function isRateLimitError(err) {
 
 async function runTrial(baseUrl, apiKey) {
   try {
-    const result = await decide(SAMPLE_CONTEXT, { model: MODEL_NAME, baseUrl, apiKey });
+    const result = PROVIDER
+      ? await resolveProvider(PROVIDER)(SAMPLE_CONTEXT)
+      : await decideLitellm(SAMPLE_CONTEXT, { model: MODEL_NAME, baseUrl, apiKey });
     return { ok: true, result };
   } catch (err) {
     return { ok: false, rateLimited: isRateLimitError(err), error: err.message };
@@ -61,7 +69,7 @@ async function main() {
   const baseUrl = readEnvOrDotenv("LITELLM_BASE_URL") ?? "http://localhost:4000/v1";
   const apiKey = readEnvOrDotenv("LITELLM_API_KEY");
 
-  console.log(`validate-decision-model: running ${TRIAL_COUNT} trials against "${MODEL_NAME}" via ${baseUrl}`);
+  console.log(`validate-decision-model: running ${TRIAL_COUNT} trials against ${PROVIDER ? `provider "${PROVIDER}"` : `"${MODEL_NAME}" via ${baseUrl}`}`);
 
   const results = [];
   for (let i = 0; i < TRIAL_COUNT; i += 1) {

@@ -1,8 +1,9 @@
 import { readEnvOrDotenv } from '../env.mjs';
 import { decide as decideLitellm } from './litellm.mjs';
 import { decide as decideLaya } from './laya.mjs';
+import { decide as decideOpenrouter } from './openrouter-decisions.mjs';
 
-const PROVIDERS = { litellm: decideLitellm, laya: decideLaya };
+const PROVIDERS = { litellm: decideLitellm, laya: decideLaya, openrouter: decideOpenrouter };
 
 /** Picks the decide() function named by PF2EDC_AGENT_PROVIDER — a real shell
  * env var if set, otherwise a `.env` entry, defaulting to "litellm". */

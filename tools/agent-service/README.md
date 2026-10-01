@@ -258,10 +258,19 @@ OpenRouter HTTP 400:
 
 It isn't a reliability problem — litellm's `openrouter/` provider and
 `decide()` both use chat/completions with tool calling, which this model
-refuses outright. Using it would need a separate client for OpenRouter's
-`/api/alpha/decisions` endpoint, which is out of scope here. The
-`mercury-decide` entry stays in `litellm-config.yaml` as the test case;
-don't repoint `fast`/`reasoning` at it.
+refuses outright, so `mercury-decide` cannot go through litellm at all
+(its `model_list` entry was removed). Instead it is used via the
+`openrouter` provider (`providers/openrouter-decisions.mjs`), which calls
+OpenRouter's `/api/alpha/decisions` endpoint with Laya's request body:
+
+- Select it with `PF2EDC_AGENT_PROVIDER=openrouter`.
+- Key: `OPEN_ROUTER_API_KEY` (falls back to `OPENROUTER_API_KEY`).
+- There is no automatic fallback to Laya; a failed request is an error.
+- The free tier allows roughly 20 requests/minute.
+- To measure it: `PROVIDER=openrouter npm run validate:decision-model`.
+- Validated 2026-10-01 via the `openrouter` provider: 10/10 trials
+  succeeded, 0 rate-limited, 0 other failures (same sensible choice each
+  time on the sample context).
 
 To rerun against a chat-capable model, add a `model_list` entry for it and
 publish litellm's port 4000 on the host (the default compose file doesn't),
