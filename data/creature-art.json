@@ -23334,5 +23334,213 @@
     "name": "Witch of the Owl",
     "level": 1,
     "art": "witch-of-the-owl-lob.webp"
+  },
+  {
+    "id": "witch_s_talon_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "2KVO6l8BKRO3pxE8",
+    "name": "Witch's Talon",
+    "level": -1,
+    "art": "witch-s-talon-lob.webp"
+  },
+  {
+    "id": "smokesight_deadeye_wight_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "4r7haYeUSxjW3wtR",
+    "name": "Smokesight Deadeye Wight",
+    "level": 9,
+    "art": "smokesight-deadeye-wight-lob.webp"
+  },
+  {
+    "id": "elite_smokesight_deadeye_wight_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "4G6VvfIsceXfEZBB",
+    "name": "Elite Smokesight Deadeye Wight",
+    "level": 10,
+    "art": "smokesight-deadeye-wight-lob.webp"
+  },
+  {
+    "id": "elven_hunter_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "4NyzLWjptheUAbgW",
+    "name": "Elven Hunter",
+    "level": 7,
+    "art": "elven-hunter-lob.webp"
+  },
+  {
+    "id": "skeletal_pathfinder_veteran_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "4RC6Uw5awahsRh2K",
+    "name": "Skeletal Pathfinder Veteran",
+    "level": 2,
+    "art": "skeletal-pathfinder-veteran-lob.webp"
+  },
+  {
+    "id": "mutant_shadow_drake_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "55qjNw6rOCdJYC52",
+    "name": "Mutant Shadow Drake",
+    "level": 3,
+    "art": "mutant-shadow-drake-lob.webp"
+  },
+  {
+    "id": "recon_scout_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "7NNuVN0DwPvmZLN9",
+    "name": "Recon Scout",
+    "level": 6,
+    "art": "recon-scout-lob.webp"
+  },
+  {
+    "id": "harpy_wailer_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "7Njvm0rs09uwz7wv",
+    "name": "Harpy Wailer",
+    "level": 9,
+    "art": "harpy-wailer-lob.webp"
+  },
+  {
+    "id": "ambush_spy_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "8OzYnoDXrQcSL0GD",
+    "name": "Ambush Spy",
+    "level": 6,
+    "art": "ambush-spy-lob.webp"
+  },
+  {
+    "id": "stabilized_black_pudding_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "8h0PJxZu0WVcNm6H",
+    "name": "Stabilized Black Pudding",
+    "level": 7,
+    "art": "stabilized-black-pudding-lob.webp"
+  },
+  {
+    "id": "evasive_vampire_count_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "Q0N3WeP9tulx1Zx6",
+    "name": "Weak Evasive Vampire Count",
+    "level": 5,
+    "art": "evasive-vampire-count-lob.webp"
+  },
+  {
+    "id": "evasive_vampire_count_9twgn_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "9TWGnI8mAUwt4jqE",
+    "name": "Evasive Vampire Count",
+    "level": 6,
+    "art": "evasive-vampire-count-lob.webp"
+  },
+  {
+    "id": "smokesight_prowler_wight_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "SO8aRCEXdCRJ8TIG",
+    "name": "Smokesight Prowler Wight",
+    "level": 9,
+    "art": "smokesight-prowler-wight-lob.webp"
+  },
+  {
+    "id": "elite_smokesight_prowler_wight_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "9fBLqeIyvH232sFp",
+    "name": "Elite Smokesight Prowler Wight",
+    "level": 10,
+    "art": "smokesight-prowler-wight-lob.webp"
+  },
+  {
+    "id": "faded_animate_dream_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "AkbAW7XeZQ67qW1R",
+    "name": "Faded Animate Dream",
+    "level": 7,
+    "art": "faded-animate-dream-lob.webp"
+  },
+  {
+    "id": "smokesight_wight_captain_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "qqNfvVoquLzXsg9j",
+    "name": "Smokesight Wight Captain",
+    "level": 10,
+    "art": "smokesight-wight-captain-lob.webp"
+  },
+  {
+    "id": "elite_smokesight_wight_captain_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "BRo5HCigb4YTjJys",
+    "name": "Elite Smokesight Wight Captain",
+    "level": 11,
+    "art": "smokesight-wight-captain-lob.webp"
+  },
+  {
+    "id": "smokesight_wight_commander_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "Q6BTF30qgInYi2BA",
+    "name": "Smokesight Wight Commander",
+    "level": 12,
+    "art": "smokesight-wight-commander-lob.webp"
+  },
+  {
+    "id": "elite_smokesight_wight_commander_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "KV2LmRMc9ho9mBPy",
+    "name": "Elite Smokesight Wight Commander",
+    "level": 13,
+    "art": "smokesight-wight-commander-lob.webp"
+  },
+  {
+    "id": "smokesight_hunter_wight_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "pomHkkLGJxTvpAyA",
+    "name": "Smokesight Hunter Wight",
+    "level": 7,
+    "art": "smokesight-hunter-wight-lob.webp"
+  },
+  {
+    "id": "elite_smokesight_hunter_wight_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "UDodAGDnGkGwYsMi",
+    "name": "Elite Smokesight Hunter Wight",
+    "level": 8,
+    "art": "smokesight-hunter-wight-lob.webp"
+  },
+  {
+    "id": "cunning_vampire_spawn_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "YBKHuyR2fNxtkYRu",
+    "name": "Weak Cunning Vampire Spawn",
+    "level": 3,
+    "art": "cunning-vampire-spawn-lob.webp"
+  },
+  {
+    "id": "cunning_vampire_spawn_tp99g_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "tP99gLygKXOZdbvr",
+    "name": "Cunning Vampire Spawn",
+    "level": 4,
+    "art": "cunning-vampire-spawn-lob.webp"
+  },
+  {
+    "id": "smokesight_stalker_wight_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "eC1Y25pgLNSpAoki",
+    "name": "Smokesight Stalker Wight",
+    "level": 7,
+    "art": "smokesight-stalker-wight-lob.webp"
+  },
+  {
+    "id": "elite_smokesight_stalker_wight_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "YjTKd7VZwCFaTWPB",
+    "name": "Elite Smokesight Stalker Wight",
+    "level": 8,
+    "art": "smokesight-stalker-wight-lob.webp"
+  },
+  {
+    "id": "skeletal_pathfinder_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "sV98dOFzkqnhzCwr",
+    "name": "Skeletal Pathfinder",
+    "level": 1,
+    "art": "skeletal-pathfinder-lob.webp"
   }
 ]

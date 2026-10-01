@@ -1004,3 +1004,21 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 74,witch-s-wing,Witch's Wing,1,beast,accept,,comfyui,
 74,transformed-narcela,Transformed Narcela (7-8),8,beast,accept,,comfyui,
 74,witch-of-the-owl,Witch of the Owl,1,beast,accept,,comfyui,
+75,ambush-spy,Ambush Spy,6,beast,accept,,comfyui,
+75,cunning-vampire-spawn,Weak Cunning Vampire Spawn,3,undead,accept,,comfyui,gemini-first
+75,elven-hunter,Elven Hunter,7,humanoid,accept,,comfyui,
+75,evasive-vampire-count,Weak Evasive Vampire Count,5,undead,accept,,comfyui,gemini-first
+75,faded-animate-dream,Faded Animate Dream,7,beast,accept,,comfyui,
+75,harpy-wailer,Harpy Wailer,9,hybrid,accept,,comfyui,gemini-first
+75,mutant-shadow-drake,Mutant Shadow Drake,3,beast,accept,,comfyui,
+75,recon-scout,Recon Scout,6,beast,accept,,comfyui,
+75,skeletal-pathfinder,Skeletal Pathfinder,1,undead,accept,,comfyui,gemini-first
+75,skeletal-pathfinder-veteran,Skeletal Pathfinder Veteran,2,undead,accept,,comfyui,gemini-first
+75,smokesight-deadeye-wight,Smokesight Deadeye Wight,9,undead,accept,,comfyui,gemini-first
+75,smokesight-hunter-wight,Smokesight Hunter Wight,7,undead,accept,,comfyui,gemini-first
+75,smokesight-prowler-wight,Smokesight Prowler Wight,9,undead,accept,,comfyui,gemini-first
+75,smokesight-stalker-wight,Smokesight Stalker Wight,7,undead,accept,,comfyui,gemini-first
+75,smokesight-wight-captain,Smokesight Wight Captain,10,undead,accept,,comfyui,gemini-first
+75,smokesight-wight-commander,Smokesight Wight Commander,12,undead,accept,,comfyui,gemini-first
+75,stabilized-black-pudding,Stabilized Black Pudding,7,beast,accept,,comfyui,
+75,witch-s-talon,Witch's Talon,-1,beast,accept,,comfyui,
