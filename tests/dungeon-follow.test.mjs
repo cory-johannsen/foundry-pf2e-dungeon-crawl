@@ -909,6 +909,54 @@ describe("resnapTokenNow (#141)", () => {
     vi.useRealTimers();
   });
 
+  // Live-confirmed 2026-10-01 (round 2): `isAnimating` reporting false does
+  // NOT by itself mean the position has finished settling -- caught live
+  // reading a token's position ~24% of the way through a still-in-progress
+  // slide, with animationContexts already empty at that exact instant.
+  // This simulates that exact race: animationContexts clears on the FIRST
+  // poll, but the position is still visibly in motion (changes again on
+  // the SECOND poll) before it finally comes to rest on the third.
+  it("does not trust a position the instant animationContexts clears if it's still changing between polls (#87)", async () => {
+    vi.useFakeTimers();
+    const animationContexts = new Map([["move", {}]]);
+    const token = makeToken({
+      id: "t-racing-settle",
+      x: 5.24 * GRID,
+      y: 5.49 * GRID,
+      actorId: "some-actor",
+      animationContexts,
+    });
+    const scene = makeScene({ tokens: [token] });
+    installFoundryStubs();
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    const promise = resnapTokenNow(SCENE_ID, "t-racing-settle");
+
+    // animationContexts clears right as the position is still mid-flight,
+    // catching up toward its real destination -- not yet trustworthy.
+    animationContexts.clear();
+    token.x = 6.1 * GRID;
+    token.y = 7.3 * GRID;
+    await vi.advanceTimersByTimeAsync(100);
+    expect(token.update).not.toHaveBeenCalled();
+
+    // Still interpolating toward its real resting point -- changed again
+    // since the last poll, so still not trustworthy.
+    token.x = 6.49 * GRID;
+    token.y = 7.49 * GRID;
+    await vi.advanceTimersByTimeAsync(100);
+    expect(token.update).not.toHaveBeenCalled();
+
+    // Holds steady across two consecutive polls now -- only this is safe
+    // to correct from.
+    await vi.advanceTimersByTimeAsync(100);
+    await promise;
+
+    expect(token.update).toHaveBeenCalledTimes(1);
+    expect(token.update).toHaveBeenCalledWith({ x: 6 * GRID, y: 7 * GRID });
+    vi.useRealTimers();
+  });
+
   // Live-confirmed 2026-10-01: correcting anyway on cap-expiry was itself
   // the bug -- while still animating, token.x/token.y is a mid-flight,
   // client-interpolated position, not a committed resting point, so
@@ -1281,7 +1329,12 @@ describe("moveFollowersToward + resnapDriftedTokens interaction (#87)", () => {
     // real destination and animationContexts empties.
     follower.object.animationContexts.clear();
     Object.assign(follower, destination);
-    await vi.advanceTimersByTimeAsync(150);
+    // Two poll intervals: resnapTokenNow (2026-10-01, round 2) now
+    // requires two consecutive stable reads before trusting a position,
+    // not just one "not animating" observation -- the first poll here
+    // sees the position change from its own pre-settle entry reading, the
+    // second confirms it's held steady.
+    await vi.advanceTimersByTimeAsync(250);
     await resnapPromise;
 
     // Still only the one legitimate update() call -- the deferred

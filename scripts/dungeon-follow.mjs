@@ -415,41 +415,64 @@ export async function resnapTokenNow(sceneId, tokenId) {
     let scene = game.scenes.get(sceneId);
     let token = scene?.tokens.find((t) => t.id === tokenId);
     if (!token) return;
-    while (isAnimating(token) && Date.now() < deadline) {
-      await new Promise((resolve) => setTimeout(resolve, RESNAP_POLL_MS));
-      scene = game.scenes.get(sceneId);
-      token = scene?.tokens.find((t) => t.id === tokenId);
-      if (!token) return;
-    }
-    // Live-confirmed 2026-10-01: if the token is STILL animating once the
-    // deadline passes, `token.x`/`token.y` is a mid-flight, client-side
-    // interpolated position, not a committed resting point -- the document
-    // itself can't change position every render frame, so this value is
-    // local-client animation state, not DB state (same read every other
-    // caller in this file already treats as untrustworthy while animating).
-    // Rounding and writing it back as a "correction" can only land BEHIND
-    // the follower's real in-flight destination, silently cancelling the
-    // slide -- caught live: a follower's real destination was a cell
-    // further down a hallway; a fast chain of real leader steps (each one
-    // under FOLLOW_DEBOUNCE_MS apart) kept retargeting this follower before
-    // each prior slide settled, so animationContexts never emptied: the cap
-    // fired, read the mid-flight position, and snapped the follower back
-    // behind where it really was -- exactly what "stuck behind the door"
-    // looked like. So the deadline only ever means give up WITHOUT
-    // guessing -- bail silently rather than write anything. resnapDriftedTokens
-    // fires again on this token's own next real update regardless, so this
-    // isn't a permanent miss, just a skipped attempt until a cleaner one
-    // comes along.
+    // Fast path, unchanged from before #87: a token that was never seen
+    // animating at entry needs no polling at all -- every pre-#87 test's
+    // zero-added-delay expectation for the common already-settled case
+    // depends on this staying a synchronous, no-`await` branch.
     if (isAnimating(token)) {
-      console.warn(
-        `${MODULE_ID} | dungeon-follow: resnap deadline hit for ${tokenId} while still animating -- skipping rather than risk a mid-flight correction.`,
-      );
-      return;
+      // Live-confirmed 2026-10-01 (round 2): once a token HAS been seen
+      // animating, `isAnimating(token)` reporting false on a later poll is
+      // NOT by itself proof `token.x`/`token.y` holds the real, settled
+      // destination -- caught live reading a position ~24% of the way
+      // through a still-in-progress slide, with `animationContexts`
+      // already empty at that exact instant. Whatever internal Foundry
+      // mechanism clears `animationContexts` can apparently do so slightly
+      // before the document's own x/y commits to its final value, a race
+      // inside Foundry's own pipeline. So once we've entered this polling
+      // path, "not animating" alone is not the settle signal -- require
+      // the position to also be UNCHANGED from the immediately preceding
+      // poll before trusting it enough to act on.
+      let lastX = token.x;
+      let lastY = token.y;
+      let stable = false;
+      while (!stable && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, RESNAP_POLL_MS));
+        scene = game.scenes.get(sceneId);
+        token = scene?.tokens.find((t) => t.id === tokenId);
+        if (!token) return;
+        stable = !isAnimating(token) && token.x === lastX && token.y === lastY;
+        lastX = token.x;
+        lastY = token.y;
+      }
+      // Live-confirmed 2026-10-01 (round 1): if the deadline passes
+      // without ever observing a stable reading, `token.x`/`token.y` is --
+      // or very recently was -- a mid-flight, client-side interpolated
+      // position, not a committed resting point. Rounding and writing it
+      // back as a "correction" can only land BEHIND the follower's real
+      // in-flight destination, silently cancelling the slide -- caught
+      // live: a follower's real destination was a cell further down a
+      // hallway; a fast chain of real leader steps (each one under
+      // FOLLOW_DEBOUNCE_MS apart) kept retargeting this follower before
+      // each prior slide settled, so it was never stable long enough: the
+      // cap fired, read the mid-flight position, and snapped the follower
+      // back behind where it really was -- exactly what "stuck behind the
+      // door" looked like. So the deadline only ever means give up
+      // WITHOUT guessing -- bail silently rather than write anything.
+      // resnapDriftedTokens fires again on this token's own next real
+      // update regardless, so this isn't a permanent miss, just a skipped
+      // attempt until a cleaner one comes along.
+      if (!stable) {
+        console.warn(
+          `${MODULE_ID} | dungeon-follow: resnap deadline hit for ${tokenId} without a stable reading -- skipping rather than risk a mid-flight correction.`,
+        );
+        return;
+      }
     }
-    // The loop's own exit check (isAnimating false) and this read/decision
-    // happen in the same synchronous continuation -- no `await` between
-    // them -- so a new move starting in that exact gap can't get judged
-    // against a mid-flight reading.
+    // Either the fast path (never animating) or the polling path's own
+    // stable-read check just confirmed it's safe to trust this reading --
+    // either way, no `await` happens between that confirmation and this
+    // read/decision, so a new move starting in that exact gap can't get
+    // judged against a mid-flight reading.
     const gridSize = scene.grid?.size ?? 100;
     const snappedX = Math.round(token.x / gridSize) * gridSize;
     const snappedY = Math.round(token.y / gridSize) * gridSize;

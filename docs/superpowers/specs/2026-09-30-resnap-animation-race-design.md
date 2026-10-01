@@ -117,6 +117,22 @@ door" symptom, not a separate bug. The cap now only ever means "give up
 without guessing" — `resnapDriftedTokens` fires again on this token's own next
 real update regardless, so a skipped attempt isn't a permanent miss.
 
+**Revised again 2026-10-01 (round 2), the symptom still reproduced live
+after round 1 shipped:** `isAnimating(token)` reporting false is *not* by
+itself proof `token.x`/`token.y` holds the real, settled destination —
+caught live reading a position ~24% of the way through a still-in-progress
+slide, with `animationContexts` already empty at that exact instant.
+Whatever internal Foundry mechanism clears `animationContexts` can
+apparently do so slightly before the document's own x/y commits to its
+final value — a race inside Foundry's own pipeline, separate from (and in
+addition to) round 1's own cap-expiry bug. Fix: once a token has been seen
+animating, a single "not animating" poll is no longer enough — require the
+position to also be *unchanged* from the immediately preceding poll before
+trusting it (two consecutive stable reads, not one). A token that was
+never seen animating at entry still takes the original zero-delay fast
+path — this only affects the polling branch, so it adds no latency to the
+common already-settled case.
+
 `resnapDriftedTokens` itself is unchanged — it can still fire eagerly on a
 mid-flight fractional position exactly as today; the fix is entirely in
 `resnapTokenNow`'s own write-side logic, which both the GM-direct call and
