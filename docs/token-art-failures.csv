@@ -905,3 +905,15 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 65,unstable-skeletal-champion,Unstable Skeletal Champion,2,undead,accept,,gemini,gemini-first
 65,wailing-ghost,Wailing Ghost,2,undead,accept,,gemini,gemini-first
 65,arabuk-yearling,Arabuk Yearling,3,beast,flag,scenery_backdrop,gemini,
+66,bergworm,Bergworm,3,beast,accept,,comfyui,
+66,cinder-rat-ashgrip,Cinder Rat (Ashgrip),3,beast,accept,,comfyui,
+66,cinder-rat-leadroar,Cinder Rat (Leadroar),3,beast,accept,,comfyui,
+66,deadly-fetchling-sneak,Deadly Fetchling Sneak,3,beast,accept,,comfyui,
+66,enraged-shrouded-bloodseeker,Enraged Shrouded Bloodseeker,3,beast,accept,,comfyui,
+66,fasiel-ibn-sazadin,Fasiel Ibn Sazadin (1-2),3,beast,accept,,comfyui,
+66,flaming-animated-armor-ashgrip,Flaming Animated Armor (Ashgrip) (1-2),3,construct,accept,,comfyui,
+66,flaming-animated-armor-firecutter,Flaming Animated Armor (Firecutter) (1-2),3,construct,accept,,comfyui,
+66,flaming-animated-armor-holy-hand,Flaming Animated Armor (Holy Hand) (1-2),3,construct,accept,,comfyui,
+66,flaming-animated-armor-leadroar,Flaming Animated Armor (Leadroar) (1-2),3,construct,accept,,comfyui,
+66,forged-bones,Forged Bones,3,beast,accept,,comfyui,
+66,hellbound-jailer,Hellbound Jailer (3-4),3,beast,accept,,comfyui,
