@@ -15,7 +15,7 @@ import { readEnvOrDotenv } from "../env.mjs";
 // 19 others rather than risk it being silently dropped from a long list.
 const MAX_CRITERIA = 20;
 
-function truncatedCriteria(candidates) {
+export function truncatedCriteria(candidates) {
   const endTurn = candidates.find((c) => c.id === 'endTurn');
   const others = candidates.filter((c) => c.id !== 'endTurn');
   const kept = endTurn ? [...others.slice(0, MAX_CRITERIA - 1), endTurn] : others.slice(0, MAX_CRITERIA);

@@ -33,6 +33,11 @@ describe('resolveProvider', () => {
     expect(resolveProvider('laya')).toBe(decideLaya);
   });
 
+  it('picks the openrouter decisions provider by name', async () => {
+    const { decide } = await import('../tools/agent-service/providers/openrouter-decisions.mjs');
+    expect(resolveProvider('openrouter')).toBe(decide);
+  });
+
   it('reads PF2EDC_AGENT_PROVIDER from .env when it is not a real shell environment variable', async () => {
     mockedEnvFileContent = 'PF2EDC_AGENT_PROVIDER=laya\n';
     const { decide: decideLaya } = await import('../tools/agent-service/providers/laya.mjs');
