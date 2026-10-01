@@ -23542,5 +23542,21 @@
     "name": "Skeletal Pathfinder",
     "level": 1,
     "art": "skeletal-pathfinder-lob.webp"
+  },
+  {
+    "id": "combustive_zombie_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "vA5VwmGb7xZ0WQdM",
+    "name": "Combustive Zombie",
+    "level": 8,
+    "art": "combustive-zombie-lob.webp"
+  },
+  {
+    "id": "elite_combustive_zombie_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "2N9DhnUedzp3FHhM",
+    "name": "Elite Combustive Zombie",
+    "level": 9,
+    "art": "combustive-zombie-lob.webp"
   }
 ]
