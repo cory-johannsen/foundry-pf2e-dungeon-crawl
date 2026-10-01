@@ -87,15 +87,31 @@ similarly confirmed-live-but-undocumented).
 `resnapTokenNow` changes from "read position, correct immediately" to:
 before reading the position to decide on a correction, poll
 `token.object?.animationContexts` until it's empty, or until a defensive
-cap elapses (generous — above a typical token slide, even a
-long-distance one). Both the poll interval and the cap are named module
+cap elapses. Both the poll interval and the cap are named module
 constants next to this file's existing `FOLLOW_DEBOUNCE_MS`, not inline
-numbers — proposed starting values `RESNAP_POLL_MS = 100` and
-`RESNAP_MAX_WAIT_MS = 3000`, not hard-tuned, expected to be re-checked
-during live verification (Testing, below). Only once the
-animation is genuinely settled (or the cap is hit) does it re-read the
-token's *current* `x`/`y` and decide whether a correction is still needed
-— exactly today's existing check, just deferred until it's safe to trust.
+numbers — `RESNAP_POLL_MS = 100`, `RESNAP_MAX_WAIT_MS = 10000` (bumped
+from an initial 3000 during the final review, see Testing below). Once
+the animation is genuinely settled, it re-reads the token's *current*
+`x`/`y` and decides whether a correction is still needed — exactly
+today's existing check, just deferred until it's safe to trust.
+
+**Revised 2026-10-01, live-confirmed bug in the original design:** if the
+cap elapses while `isAnimating` is STILL true, this function does **not**
+read a position and correct anyway — it bails without writing anything.
+The original design said to "proceed with the correction anyway" on
+cap-expiry; that was itself a bug, caught live: `token.x`/`token.y` can
+be a *stale* snapshot left over from an earlier, since-superseded resting
+point while a fast chain of real moves (several leader steps in quick
+succession, each retargeting a follower before the previous slide
+settles) is still working through — Foundry doesn't update those fields
+synchronously per-animation. Writing that stale reading back as a
+"correction" actively overwrites legitimate newer progress. Live capture:
+a follower's real destination was a cell further down a hallway; the cap
+fired, read a stale pre-move position, and snapped the follower back
+there — this *was* the "AI followers stuck behind the door" symptom,
+not a separate bug. The cap now only ever means "give up without
+guessing" — `resnapDriftedTokens` fires again on this token's own next
+real update regardless, so a skipped attempt isn't a permanent miss.
 
 `resnapDriftedTokens` itself is unchanged — it can still fire eagerly on a
 mid-flight fractional position exactly as today; the fix is entirely in
@@ -167,8 +183,9 @@ existing `makeToken`/`makeScene`/`installFoundryStubs`/
   (simulating the animation finishing) and advance fake timers past one
   `RESNAP_POLL_MS` interval; assert the correction *does* land afterward.
 - A token whose `animationContexts` never empties: advance fake timers
-  past `RESNAP_MAX_WAIT_MS`; assert the correction still lands (the
-  defensive cap fires).
+  past `RESNAP_MAX_WAIT_MS`; assert **no** correction is written (revised
+  2026-10-01 — the cap means "give up without guessing," not "correct
+  anyway," per the live-confirmed bug above).
 - Two concurrent `resnapTokenNow` calls for the same token id: assert only
   one `token.update()` call happens, not two (the reentrancy guard).
 - Regression test for the actual live-reported bug: extend the existing

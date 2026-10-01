@@ -868,7 +868,17 @@ describe("resnapTokenNow (#141)", () => {
     vi.useRealTimers();
   });
 
-  it("corrects anyway once the defensive cap elapses, even if still animating (#87)", async () => {
+  // Live-confirmed 2026-10-01: correcting anyway on cap-expiry was itself
+  // the bug -- token.x/token.y can be a stale pre-move snapshot while a
+  // fast chain of real moves is still settling (Foundry doesn't update
+  // those fields synchronously per-animation), so writing a "correction"
+  // from that reading actively overwrites legitimate newer progress. Live
+  // capture: a follower's real destination was a cell further down a
+  // hallway; the cap fired, read a stale pre-move position, and snapped
+  // the follower back there -- exactly the "stuck behind the door"
+  // symptom. The deadline must mean "give up without guessing," not
+  // "guess anyway."
+  it("does not correct on cap-expiry while still animating -- bails rather than risk a stale write (#87)", async () => {
     vi.useFakeTimers();
     const animationContexts = new Map([["move", {}]]);
     const token = makeToken({
@@ -885,14 +895,10 @@ describe("resnapTokenNow (#141)", () => {
     const promise = resnapTokenNow(SCENE_ID, "t-stuck-animating");
     // animationContexts is deliberately never cleared -- simulates the
     // defensive cap's own fallback path, not the normal settle path.
-    // RESNAP_MAX_WAIT_MS (final review, 2026-09-30: bumped from 3000 to
-    // 10000 -- generous above even a long single-jump move, not a guess
-    // at typical slide duration).
     await vi.advanceTimersByTimeAsync(10100);
     await promise;
 
-    expect(token.update).toHaveBeenCalledTimes(1);
-    expect(token.update).toHaveBeenCalledWith({ x: 5 * GRID, y: 3 * GRID });
+    expect(token.update).not.toHaveBeenCalled();
     vi.useRealTimers();
   });
 

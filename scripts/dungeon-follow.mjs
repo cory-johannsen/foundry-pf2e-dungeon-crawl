@@ -404,10 +404,32 @@ export async function resnapTokenNow(sceneId, tokenId) {
       token = scene?.tokens.find((t) => t.id === tokenId);
       if (!token) return;
     }
-    // The loop's own exit check (isAnimating false, or deadline passed)
-    // and this read/decision happen in the same synchronous continuation
-    // -- no `await` between them -- so a new move starting in that exact
-    // gap can't get judged against a stale reading.
+    // Live-confirmed 2026-10-01: if the token is STILL animating once the
+    // deadline passes, `token.x`/`token.y` can be a stale snapshot left
+    // over from an EARLIER, since-superseded resting point -- Foundry
+    // doesn't update those fields synchronously while a fast chain of
+    // moves (several real leader steps in quick succession, each
+    // retargeting this follower before the previous slide settles) is
+    // still working through. Writing that stale reading back as a
+    // "correction" actively overwrites legitimate newer progress --
+    // caught live: a follower's real destination was a cell further down
+    // a hallway; the cap fired, read a stale pre-move position, and
+    // snapped the follower back there, which is exactly what "stuck
+    // behind the door" looked like. So the deadline only ever means give
+    // up WITHOUT guessing -- bail silently rather than write anything.
+    // resnapDriftedTokens fires again on this token's own next real
+    // update regardless, so this isn't a permanent miss, just a skipped
+    // attempt until a cleaner one comes along.
+    if (isAnimating(token)) {
+      console.warn(
+        `${MODULE_ID} | dungeon-follow: resnap deadline hit for ${tokenId} while still animating -- skipping rather than risk a stale correction.`,
+      );
+      return;
+    }
+    // The loop's own exit check (isAnimating false) and this read/decision
+    // happen in the same synchronous continuation -- no `await` between
+    // them -- so a new move starting in that exact gap can't get judged
+    // against a stale reading.
     const gridSize = scene.grid?.size ?? 100;
     const snappedX = Math.round(token.x / gridSize) * gridSize;
     const snappedY = Math.round(token.y / gridSize) * gridSize;
