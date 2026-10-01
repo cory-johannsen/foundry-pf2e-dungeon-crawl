@@ -559,8 +559,17 @@ class to #416 afterwards.**
 
 - The 510 intersections may not all be resolvable by interior offsets once
   the ends are pinned; the global lane ordering across a multi-cell chain
-  can be unsatisfiable (A above B in one cell, below in the next). Not
-  measured; Phase 1a decides.
+  can be unsatisfiable (A above B in one cell, below in the next).
+  **Measured (Phase 1a, PR B, layoutVersion 2 baseline, 500 seeds, 2,063
+  multi-cell edges): K2 TRIPS.** With pinned door ends, today's straight/L
+  shapes and only the corner exit coordinates free, a greedy canonical-order
+  plan must block 204 edges (9.9%); 194 with reorderings, and a pairwise
+  lower bound is 193, against the 2% allowance of 41. Cause is topology, not
+  capacity: of 381 pairs that cannot coexist even alone, 365 interleave
+  across a 2-cell stretch (sweep-10: A west->south and B south->east around
+  r0c1+r0c2 alternate on the perimeter) and only 16 are the cell-local
+  N-S vs W-E pairs. Peak load is 5 edges in one 13-wide border (fits).
+  Prototype: `tests/helpers/lane-prototype.mjs`.
 - Border capacity: up to 6 edges through one 13-unit border (5 today); plenty of
   room, but lanes packed edge to edge rely on flank walls sharing a
   boundary. Needs a concrete hand-trace before the plan.
