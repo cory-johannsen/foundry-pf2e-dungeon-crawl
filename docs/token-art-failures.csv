@@ -691,3 +691,13 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 49,bijan-and-zaynap-ohrlavi,Bijan And Zaynap Ohrlavi,5,beast,accept,,comfyui,
 49,fleshforge-prototype,Fleshforge Prototype (Acid Spit),5,beast,accept,,comfyui,
 49,iloise,Iloise (5-6),5,beast,accept,,comfyui,
+50,nashaxian-the-angered,Nashaxian The Angered,5,beast,accept,,comfyui,
+50,nevashi,Nevashi (5-6),5,beast,accept,,comfyui,
+50,paravaax,Paravaax (3-4),5,beast,accept,,comfyui,
+50,voidworm-ouroboros,Voidworm Ouroboros,5,beast,accept,,comfyui,
+50,doctor-velshun,Doctor Velshun (5-6),6,beast,accept,,comfyui,
+50,manifestation-of-qxal,Manifestation of Qxal (3-4),6,beast,accept,,comfyui,
+50,statue-of-set,Statue Of Set,6,beast,accept,,comfyui,
+50,khismar,Synthetic Khismar (5-6),6,beast,flag,bg_patch,comfyui,
+50,the-ascendant,The Ascendant (3-4),6,beast,accept,,comfyui,
+50,zombie-minihulk,Zombie Minihulk,6,undead,accept,,gemini,gemini-first

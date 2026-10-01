@@ -19438,5 +19438,133 @@
     "name": "Dire Warg",
     "level": 4,
     "art": "dire-warg-lob.webp"
+  },
+  {
+    "id": "nevashi_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "5tDBVocD4ScJHKQz",
+    "name": "Nevashi (5-6)",
+    "level": 5,
+    "art": "nevashi-lob.webp"
+  },
+  {
+    "id": "nevashi_7_8_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "1Yb78i4YajKrsens",
+    "name": "Nevashi (7-8)",
+    "level": 7,
+    "art": "nevashi-lob.webp"
+  },
+  {
+    "id": "paravaax_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "dtXiSNcy7bM4UITo",
+    "name": "Paravaax (3-4)",
+    "level": 5,
+    "art": "paravaax-lob.webp"
+  },
+  {
+    "id": "paravaax_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "1eeMzFoSPuQAAsiY",
+    "name": "Paravaax (5-6)",
+    "level": 7,
+    "art": "paravaax-lob.webp"
+  },
+  {
+    "id": "doctor_velshun_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "F7gjEHGO2c956FEy",
+    "name": "Doctor Velshun (5-6)",
+    "level": 6,
+    "art": "doctor-velshun-lob.webp"
+  },
+  {
+    "id": "doctor_velshun_7_8_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "MOPGJAQUS4Aop7Mm",
+    "name": "Doctor Velshun (7-8)",
+    "level": 8,
+    "art": "doctor-velshun-lob.webp"
+  },
+  {
+    "id": "khismar_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "QYTRwhdkSWZKRtlj",
+    "name": "Synthetic Khismar (5-6)",
+    "level": 6,
+    "art": "khismar-lob.webp"
+  },
+  {
+    "id": "synthetic_khismar_7_8_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "gB7km6bV9dCXUQjZ",
+    "name": "Synthetic Khismar (7-8)",
+    "level": 8,
+    "art": "khismar-lob.webp"
+  },
+  {
+    "id": "nashaxian_the_angered_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "ZpowNcW774gt8XjS",
+    "name": "Nashaxian The Angered",
+    "level": 5,
+    "art": "nashaxian-the-angered-lob.webp"
+  },
+  {
+    "id": "the_ascendant_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "kDEiL11fbXWHQrdH",
+    "name": "The Ascendant (3-4)",
+    "level": 6,
+    "art": "the-ascendant-lob.webp"
+  },
+  {
+    "id": "the_ascendant_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "bM27sjs9yA3rX4DA",
+    "name": "The Ascendant (5-6)",
+    "level": 8,
+    "art": "the-ascendant-lob.webp"
+  },
+  {
+    "id": "voidworm_ouroboros_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "eR68t20AU5lPKALJ",
+    "name": "Voidworm Ouroboros",
+    "level": 5,
+    "art": "voidworm-ouroboros-lob.webp"
+  },
+  {
+    "id": "statue_of_set_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "ihm2nXJtzcgFUJRN",
+    "name": "Statue Of Set",
+    "level": 6,
+    "art": "statue-of-set-lob.webp"
+  },
+  {
+    "id": "manifestation_of_qxal_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "lvWJic1WYdyJATa0",
+    "name": "Manifestation of Qxal (3-4)",
+    "level": 6,
+    "art": "manifestation-of-qxal-lob.webp"
+  },
+  {
+    "id": "manifestation_of_qxal_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "rOYazaPBX73nLCJE",
+    "name": "Manifestation of Qxal (5-6)",
+    "level": 8,
+    "art": "manifestation-of-qxal-lob.webp"
+  },
+  {
+    "id": "zombie_minihulk_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "uQdILi1siFfXewFf",
+    "name": "Zombie Minihulk",
+    "level": 6,
+    "art": "zombie-minihulk-lob.webp"
   }
 ]
