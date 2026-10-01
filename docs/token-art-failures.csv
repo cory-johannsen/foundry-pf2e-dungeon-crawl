@@ -639,3 +639,17 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 45,marcon-tinol,Marcon Tinol (1-2),1,beast,flag,bg_patch,comfyui,
 45,mitflit-sneak,Mitflit Sneak,1,beast,accept,,comfyui,
 45,muraxi,Muraxi (3-4),1,beast,accept,,comfyui,
+46,orc-alchemist,Orc Alchemist,1,beast,accept,,comfyui,
+46,pine-brute,Pine Brute,1,beast,accept,,comfyui,
+46,ptiro-valner,Ptiro Valner (1-2),1,beast,flag,bg_patch;wrong_details,comfyui,
+46,skeleton-corporal,Skeleton Corporal,1,undead,accept,,gemini,gemini-first
+46,technic-zombie,Technic Zombie (3-4),1,undead,accept,,gemini,gemini-first
+46,zombie-riding-horse,Zombie Riding Horse,1,undead,accept,,gemini,gemini-first
+46,zombie-flesh-golem,'Zombie' Flesh Golem (3-4),2,undead,accept,,gemini,gemini-first
+46,bandit-lieutenant,Bandit Lieutenant,2,beast,accept,,comfyui,
+46,blue-streak-sentry,Blue Streak Sentry,2,beast,flag,bg_patch,comfyui,
+46,flaming-skull-skeletal-champion,Flaming Skull Skeletal Champion,2,undead,accept,,gemini,gemini-first
+46,hungry-blade-apprentice,Hungry Blade Apprentice,2,beast,accept,,comfyui,
+46,kanker,Kanker,2,beast,flag,bg_patch,comfyui,
+46,kobold-dragon-mage,Kobold Dragon Mage (1-14),2,dragon,accept,,gemini,gemini-first
+46,meleeka-sanvara,Meleeka Sanvara (1-2),2,beast,accept,,comfyui,

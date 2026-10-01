@@ -18742,5 +18742,157 @@
     "name": "Marcon Tinol (3-4)",
     "level": 3,
     "art": "marcon-tinol-lob.webp"
+  },
+  {
+    "id": "meleeka_sanvara_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "1MXO3xJS50lENkHL",
+    "name": "Meleeka Sanvara (1-2)",
+    "level": 2,
+    "art": "meleeka-sanvara-lob.webp"
+  },
+  {
+    "id": "meleeka_sanvara_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "4MXoQZUrmGeuySrp",
+    "name": "Meleeka Sanvara (3-4)",
+    "level": 4,
+    "art": "meleeka-sanvara-lob.webp"
+  },
+  {
+    "id": "bandit_lieutenant_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "1lfSUWK706fFrvhT",
+    "name": "Bandit Lieutenant",
+    "level": 2,
+    "art": "bandit-lieutenant-lob.webp"
+  },
+  {
+    "id": "technic_zombie_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "7467YYEHyLkJzXvU",
+    "name": "Technic Zombie (3-4)",
+    "level": 1,
+    "art": "technic-zombie-lob.webp"
+  },
+  {
+    "id": "technic_zombie_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "PFSkqGyg7eGaES1k",
+    "name": "Technic Zombie (5-6)",
+    "level": 3,
+    "art": "technic-zombie-lob.webp"
+  },
+  {
+    "id": "ptiro_valner_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "tBY1ayiQyI5tyME6",
+    "name": "Ptiro Valner (1-2)",
+    "level": 1,
+    "art": "ptiro-valner-lob.webp"
+  },
+  {
+    "id": "ptiro_valner_3_4_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "8axdoIyHw2WK9anh",
+    "name": "Ptiro Valner (3-4)",
+    "level": 3,
+    "art": "ptiro-valner-lob.webp"
+  },
+  {
+    "id": "zombie_riding_horse_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "9dnyyDG4MCkL3zkn",
+    "name": "Zombie Riding Horse",
+    "level": 1,
+    "art": "zombie-riding-horse-lob.webp"
+  },
+  {
+    "id": "pine_brute_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "JDjwID3HZJqytPFP",
+    "name": "Pine Brute",
+    "level": 1,
+    "art": "pine-brute-lob.webp"
+  },
+  {
+    "id": "kobold_dragon_mage_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "dOSeTKHADNhJ1bhz",
+    "name": "Kobold Dragon Mage (1-14)",
+    "level": 2,
+    "art": "kobold-dragon-mage-lob.webp"
+  },
+  {
+    "id": "kobold_dragon_mage_pfs_1_11_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "Kv7ciLOLN8vDgIGy",
+    "name": "Kobold Dragon Mage (PFS 1-11)",
+    "level": 2,
+    "art": "kobold-dragon-mage-lob.webp"
+  },
+  {
+    "id": "skeleton_corporal_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "Si5l2FvDCCmG6DRa",
+    "name": "Skeleton Corporal",
+    "level": 1,
+    "art": "skeleton-corporal-lob.webp"
+  },
+  {
+    "id": "zombie_flesh_golem_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "f9jyVOOKEvRkvIY4",
+    "name": "'Zombie' Flesh Golem (3-4)",
+    "level": 2,
+    "art": "zombie-flesh-golem-lob.webp"
+  },
+  {
+    "id": "zombie_flesh_golem_5_6_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "fXIJWv2uooumqZo8",
+    "name": "'Zombie' Flesh Golem (5-6)",
+    "level": 4,
+    "art": "zombie-flesh-golem-lob.webp"
+  },
+  {
+    "id": "kanker_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "kfoGOOgTkRjIzD4U",
+    "name": "Kanker",
+    "level": 2,
+    "art": "kanker-lob.webp"
+  },
+  {
+    "id": "orc_alchemist_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "mTXgvQ7zhA8VNVeG",
+    "name": "Orc Alchemist",
+    "level": 1,
+    "art": "orc-alchemist-lob.webp"
+  },
+  {
+    "id": "hungry_blade_apprentice_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "nmNVx7cAqeurlbeu",
+    "name": "Hungry Blade Apprentice",
+    "level": 2,
+    "art": "hungry-blade-apprentice-lob.webp"
+  },
+  {
+    "id": "blue_streak_sentry_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "peNTVZwcm8Tg7s2e",
+    "name": "Blue Streak Sentry",
+    "level": 2,
+    "art": "blue-streak-sentry-lob.webp"
+  },
+  {
+    "id": "flaming_skull_skeletal_champion_lob",
+    "pack": "pf2e.pfs-season-1-bestiary",
+    "docId": "z8Bp3EtiJhA3nNrY",
+    "name": "Flaming Skull Skeletal Champion",
+    "level": 2,
+    "art": "flaming-skull-skeletal-champion-lob.webp"
   }
 ]
