@@ -16,6 +16,7 @@
  * it came out of the same deck.
  */
 import { writeFileSync, readFileSync, existsSync, mkdirSync, unlinkSync } from 'node:fs';
+import { openrouterModels, runFallbackChain } from './image-fallback.mjs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -7961,7 +7962,7 @@ else:
 }
 
 const CLEAN_THRESHOLD = 45;      // stay under the checker's 50
-const MAX_ATTEMPTS = 4;   // 1 try + 3 retries via ComfyUI; failures then queue in docs/gemini-hand-queue.tsv for the owner's free daily Gemini images (API credits exhausted 2026-10-01, do NOT call --backend=gemini)
+const MAX_ATTEMPTS = 4;   // 1 try + 3 retries via ComfyUI; if none comes back clean, fall back to the OpenRouter model hierarchy (tools/image-fallback.mjs), or pass --no-fallback. Never use --backend=gemini (API credits exhausted 2026-10-01).
 
 /**
  * Try to key out a failed attempt's background instead of throwing the
@@ -8057,23 +8058,27 @@ async function geminiGenerateOne(subject, dest) {
   writeFileSync(dest, Buffer.from(data, 'base64'));
 }
 
+/** .env spells it OPEN_ROUTER_API_KEY; a shell-level OPENROUTER_API_KEY (used
+ *  by other tools) must not shadow it, so the .env name wins. */
+function openrouterKey() {
+  return process.env.OPEN_ROUTER_API_KEY || process.env.OPENROUTER_API_KEY || null;
+}
+
 /**
  * OpenRouter image backend (#429): POST /api/v1/images (b64_json response).
  * Same prompt as the Gemini backend (shared system prompt + creature line).
- * Model via OPENROUTER_IMAGE_MODEL, default Meta Muse Image. Each call is
- * billed on the owner's key, so — like Gemini — one call per subject.
+ * One call per model, billed on the owner's key; the model hierarchy lives in
+ * tools/image-fallback.mjs and openrouterGenerate() walks it.
  */
-async function openrouterGenerateOne(subject, dest) {
-  // .env spells it OPEN_ROUTER_API_KEY; a shell-level OPENROUTER_API_KEY (used
-  // by other tools) must not shadow it, so the .env name wins.
-  const apiKey = process.env.OPEN_ROUTER_API_KEY || process.env.OPENROUTER_API_KEY;
+async function openrouterGenerateOne(subject, dest, model) {
+  const apiKey = openrouterKey();
   if (!apiKey) {
-    throw new Error(
-      'OPEN_ROUTER_API_KEY not set — add it to .env (this worktree or the main checkout) to use --backend=openrouter'
+    throw Object.assign(
+      new Error('OPEN_ROUTER_API_KEY not set — add it to .env (this worktree or the main checkout) to use OpenRouter'),
+      { fatal: true }
     );
   }
   const systemPrompt = resolveGeminiSystemPrompt();
-  const model = process.env.OPENROUTER_IMAGE_MODEL || 'meta/muse-image';
   // Image-only models (Muse, Flux, Seedream, ...) are served by the dedicated
   // /images endpoint, not chat/completions.
   const res = await fetch('https://openrouter.ai/api/v1/images', {
@@ -8090,9 +8095,22 @@ async function openrouterGenerateOne(subject, dest) {
   writeFileSync(dest, buf);
 }
 
+/** Try each OpenRouter model in order until one returns an image. */
+async function openrouterGenerate(subject, dest, models) {
+  const { model } = await runFallbackChain(
+    models,
+    (m) => openrouterGenerateOne(subject, dest, m),
+    (m, err) => process.stdout.write(`\n${' '.repeat(10)} ${m} failed: ${String(err.message).slice(0, 140)}\n${' '.repeat(10)} `)
+  );
+  return model;
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const force = args.includes('--force');
+  // --no-fallback: never spend on OpenRouter when ComfyUI cannot produce a clean image.
+  const comfyFallback = !args.includes('--no-fallback');
+  const orModels = openrouterModels({ override: args.find((a) => a.startsWith('--model='))?.split('=')[1] ?? null });
   const reroll = parseInt(args.find((a) => a.startsWith('--reroll='))?.split('=')[1] ?? '0', 10);
   const backend = args.find((a) => a.startsWith('--backend='))?.split('=')[1] ?? 'comfyui';
   if (!['comfyui', 'gemini', 'openrouter'].includes(backend)) {
@@ -8113,20 +8131,23 @@ async function main() {
     if (existsSync(final) && !force) { console.log(`${s.id.padEnd(10)} exists, skipping`); continue; }
     if (backend === 'gemini' || backend === 'openrouter') {
       process.stdout.write(`${s.id.padEnd(10)} ${backend}… `);
+      let usedModel = null;
       try {
-        await (backend === 'gemini' ? geminiGenerateOne : openrouterGenerateOne)(s, dest);
+        if (backend === 'gemini') await geminiGenerateOne(s, dest);
+        else usedModel = await openrouterGenerate(s, dest, orModels);
       } catch (err) {
-        // A provider content-policy rejection (400) is per-prompt: log it and
-        // move on rather than abandoning the rest of the batch.
-        if (backend === 'openrouter' && /request failed: 400/.test(String(err.message))) {
-          console.log(`FILTERED (${String(err.message).slice(0, 160)})`);
+        // Every OpenRouter model refused this prompt (provider content
+        // filters are per-prompt): log it and move on rather than abandoning
+        // the rest of the batch. A fatal error (no key) still aborts.
+        if (backend === 'openrouter' && !err.fatal) {
+          console.log(`FAILED ${String(err.message).slice(0, 300)}`);
           continue;
         }
         throw err;
       }
       shrink(dest, final);
       unlinkSync(dest);
-      console.log(`-> ${s.dir ?? 'assets/tokens'}/${s.file}.webp`);
+      console.log(`-> ${s.dir ?? 'assets/tokens'}/${s.file}.webp${usedModel ? ` (${usedModel})` : ''}`);
       continue;
     }
     const prompt = promptFor(s);
@@ -8151,9 +8172,17 @@ async function main() {
     let best = null;
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
       process.stdout.write(`${s.id.padEnd(10)} attempt ${attempt + 1}… `);
-      const id = await enqueue(build(prompt, (base + attempt * 7919) % 2_000_000_000,
-                                     `pf2edc-token-${s.id}`, negativeFor(s)));
-      writeFileSync(dest, await fetchImage(await waitFor(id)));
+      try {
+        const id = await enqueue(build(prompt, (base + attempt * 7919) % 2_000_000_000,
+                                       `pf2edc-token-${s.id}`, negativeFor(s)));
+        writeFileSync(dest, await fetchImage(await waitFor(id)));
+      } catch (err) {
+        // A ComfyUI error (timeout behind someone else's job, server down) is a
+        // failed attempt, not a crash: the fallback below takes over if every
+        // attempt fails.
+        console.log(`ComfyUI error: ${String(err.message).slice(0, 120)}`);
+        continue;
+      }
       let score = backgroundScore(dest);
       if (score === null) { console.log('(unmeasured) kept'); best = { score: 0 }; break; }
       if (score >= CLEAN_THRESHOLD) {
@@ -8173,8 +8202,28 @@ async function main() {
       }
       if (score < CLEAN_THRESHOLD) break;
     }
-    // Keep the darkest of the attempts if none came back clean.
     const bestPath = join(outDir, `.best-${s.file}.png`);
+    // ComfyUI could not produce a clean image (every attempt over the
+    // background threshold, or every attempt errored): fall back to the
+    // OpenRouter model hierarchy (#429), unless --no-fallback or no key.
+    if ((best === null || best.score >= CLEAN_THRESHOLD) && comfyFallback && openrouterKey()) {
+      process.stdout.write(`${' '.repeat(10)} no clean ComfyUI image; trying OpenRouter… `);
+      try {
+        const model = await openrouterGenerate(s, dest, orModels);
+        if (existsSync(bestPath)) unlinkSync(bestPath);
+        shrink(dest, final);
+        unlinkSync(dest);
+        console.log(`-> ${s.dir ?? 'assets/tokens'}/${s.file}.webp (fallback ${model})`);
+        continue;
+      } catch (err) {
+        console.log(`fallback failed (${String(err.message).slice(0, 200)}); keeping the best ComfyUI attempt`);
+      }
+    }
+    if (!existsSync(bestPath) && !existsSync(dest)) {
+      console.log(`${' '.repeat(10)} FAILED: no image produced`);
+      continue;
+    }
+    // Keep the darkest of the attempts if none came back clean.
     if (existsSync(bestPath)) {
       writeFileSync(dest, readFileSync(bestPath));
       unlinkSync(bestPath);
