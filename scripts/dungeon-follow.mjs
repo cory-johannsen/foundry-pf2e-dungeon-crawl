@@ -102,6 +102,47 @@ const resnapInFlight = new Set(); // tokenIds with a correction already pending
 const RECENT_WRITE_SUPPRESS_MS = 1000; // generous above any realistic animation + socket round-trip
 const recentlyWrittenByUs = new Map(); // tokenId -> Date.now() of our own last write
 
+// #87 (2026-10-01, round 7 -- the actual root cause): round 6 shipped and
+// the symptom reproduced AGAIN. Live-caught this time with the frozen
+// evidence still sitting in the world: two followers permanently resting
+// at genuinely off-grid, QUARTER-CELL-offset `_source` positions (e.g.
+// x=30424/y=549 against a 100px grid) right next to a door's wall corner
+// -- no animation in progress, unchanged across repeated reads seconds
+// apart, so not a timing/read-staleness artifact of any kind. Confirmed
+// by reading Foundry v14's own client source
+// (client/documents/token.mjs's TokenDocument#move/#_regulateMovement,
+// client/placeables/token.mjs's Token#constrainMovementPath/
+// #getCollisionWaypoint): a plain `TokenDocument#update({x, y})` is
+// internally converted into a waypoint-based move through Foundry's own
+// movement/pathing pipeline, which runs a WALL-COLLISION CHECK on the
+// straight-line path from the token's current position to the requested
+// destination whenever the token is rendered -- regardless of whether the
+// caller is a human dragging/pathfinding or a script calling `update()`
+// directly. If that straight-line path clips a wall (exactly what
+// happens when a follower's path passes close to a door frame corner),
+// Foundry silently overrides the destination with a "collision waypoint"
+// snapped to quarter-cell granularity, not our requested exact grid
+// cell -- and that overridden value is what actually gets committed to
+// `_source`. None of rounds 1-6 could ever have caught this: every one of
+// them assumed the bug was about reading a position at the wrong TIME:
+// this is Foundry's own write path silently substituting a DIFFERENT,
+// non-grid-exact destination for the one this module asked for.
+//
+// This module already does its own wall-aware pathfinding
+// (`movementBlockedEdges`/`findFollowMove`) before ever calling
+// `update()` -- a follower is never asked to move anywhere its own path
+// doesn't already clear. Foundry's additional wall-collision check on the
+// write itself is therefore redundant for every `token.update()` call
+// this module makes, and is the actual mechanism silently relocating
+// followers to the wrong cell. Foundry exposes `{ teleport: true }` as an
+// update option for exactly this -- a deprecated-but-fully-functional
+// (since v13, removal "until: 15") compatibility shim that maps to the
+// `displace` movement action, which has `walls: null` (no collision
+// check at all). Passed on every `token.update({x, y}, ...)` call this
+// module makes (the inline #86 snap, the real move write, and
+// `resnapTokenNow`'s own correction) so none of them can ever again be
+// silently redirected by a wall collision mid-write.
+
 function markRecentlyWritten(tokenId) {
   recentlyWrittenByUs.set(tokenId, Date.now());
 }
@@ -235,7 +276,7 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
       const snappedY = Math.round(followerSource.y / gridSize) * gridSize;
       if (followerSource.x !== snappedX || followerSource.y !== snappedY) {
         markRecentlyWritten(token.id);
-        await token.update({ x: snappedX, y: snappedY });
+        await token.update({ x: snappedX, y: snappedY }, { teleport: true });
         // #87 (round 6): re-mark after the await resolves too, not just
         // before -- the suppression window should cover however long the
         // round-trip to the server and back actually takes, not just the
@@ -291,10 +332,13 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
         gh: moverFootprint.gh,
       });
       markRecentlyWritten(token.id);
-      await token.update({
-        x: result.to.gx * gridSize,
-        y: result.to.gy * gridSize,
-      });
+      await token.update(
+        {
+          x: result.to.gx * gridSize,
+          y: result.to.gy * gridSize,
+        },
+        { teleport: true },
+      );
       // #87 (round 6): re-mark after the await resolves too -- see the
       // inline #86 snap's own comment above for why.
       markRecentlyWritten(token.id);
@@ -486,7 +530,7 @@ export async function resnapTokenNow(sceneId, tokenId) {
     const snappedY = Math.round(y / gridSize) * gridSize;
     if (x !== snappedX || y !== snappedY) {
       markRecentlyWritten(tokenId);
-      await token.update({ x: snappedX, y: snappedY });
+      await token.update({ x: snappedX, y: snappedY }, { teleport: true });
       // #87 (round 6): re-mark after the await resolves too -- see the
       // inline #86 snap's own comment in moveFollowersToward for why.
       markRecentlyWritten(tokenId);

@@ -282,6 +282,58 @@ strictly additive to round 5's own protection:
    the bad position, instead of requiring another round of monkeypatched
    call-stack capture to find out.
 
+**Revised a seventh time 2026-10-01 (round 7), the actual root cause --
+round 6 shipped and the symptom reproduced AGAIN:** this time the frozen
+evidence was still live in the world. Two followers were permanently
+resting at genuinely off-grid, quarter-cell-offset `_source` positions
+(e.g. x=30424/y=549 against a 100px grid) right next to a door's wall
+corner -- confirmed, via two reads three seconds apart, completely
+unchanged: not animation, not a stale read, not a timing race of any
+kind. Traced into Foundry v14's own client source
+(`client/documents/token.mjs`'s `TokenDocument#move`,
+`client/canvas/placeables/token.mjs`'s
+`Token#constrainMovementPath`/`#getCollisionWaypoint`): a plain
+`TokenDocument#update({x, y})` is internally converted into a
+waypoint-based move through Foundry's own movement/pathing pipeline,
+which runs a **wall-collision check** on the straight-line path from the
+token's current position to the requested destination whenever the token
+is rendered -- regardless of whether the caller is a human dragging a
+token or a script calling `update()` directly. If that straight-line path
+clips a wall (exactly what happens when a follower's path passes close to
+a door frame corner), Foundry silently overrides the destination with a
+"collision waypoint" snapped to quarter-cell granularity, not the exact
+grid cell this module requested -- and THAT overridden value is what
+actually gets committed to `_source`.
+
+None of rounds 1-6 could ever have caught this: every one of them assumed
+the bug was about reading a position at the wrong *time*. This is
+Foundry's own write path silently substituting a *different*,
+non-grid-exact destination for the one this module asked for -- a write
+correctness bug, not a read timing bug.
+
+This module already does its own wall-aware pathfinding
+(`movementBlockedEdges`/`findFollowMove`) before ever calling `update()`
+-- a follower is never asked to move anywhere its own path doesn't
+already clear. Foundry's additional wall-collision check on the write
+itself is therefore pure redundancy for every `token.update()` call this
+module makes, and is the actual mechanism silently relocating followers
+to the wrong cell. The fix: pass `{ teleport: true }` as the update
+options on every `token.update({x, y}, ...)` call this module makes (the
+inline #86 snap, the real move write, and `resnapTokenNow`'s own
+correction). This is a deprecated-but-fully-functional (since v13,
+removal "until: 15") Foundry compatibility option that maps internally to
+the `displace` movement action, which has `walls: null` -- no
+wall-collision check at all, exactly what a module-internal programmatic
+relocation needs.
+
+**Live-validated before shipping, not just unit-tested:** applied
+`{ teleport: true }` directly against the two frozen, live-stuck tokens
+from the production capture above (via the foundry-rest skill) -- both
+landed exactly on grid (where every previous round's approach, including
+`resnapTokenNow`'s own correction logic, had failed to) confirming the
+fix works against the real Foundry server's actual movement pipeline, not
+just a mocked test double.
+
 ### Sibling bug found in the same review (2026-10-01): `moveFollowersToward`'s own inline #86 snap
 
 `moveFollowersToward`'s own per-follower loop (`scripts/dungeon-follow.mjs`)
