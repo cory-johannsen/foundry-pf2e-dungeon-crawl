@@ -21590,5 +21590,493 @@
     "name": "Rebel Brute",
     "level": 2,
     "art": "rebel-brute-lob.webp"
+  },
+  {
+    "id": "leaded_skeleton_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "5NCKrDA869F82zPC",
+    "name": "Leaded Skeleton",
+    "level": 3,
+    "art": "leaded-skeleton-lob.webp"
+  },
+  {
+    "id": "tough_leaded_skeleton_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "1Hr2rWZf52nWnJ4t",
+    "name": "Tough Leaded Skeleton",
+    "level": 5,
+    "art": "leaded-skeleton-lob.webp"
+  },
+  {
+    "id": "hand_of_urxehl_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "1Mn1KhwyL6gU4TRl",
+    "name": "Hand Of Urxehl (7-8)",
+    "level": 9,
+    "art": "hand-of-urxehl-lob.webp"
+  },
+  {
+    "id": "hand_of_urxehl_9_10_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "ib1c9CIOEXxnEfQG",
+    "name": "Hand Of Urxehl (9-10)",
+    "level": 11,
+    "art": "hand-of-urxehl-lob.webp"
+  },
+  {
+    "id": "brittle_ravener_husk_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "1ZIaQe0SNDmoVUoh",
+    "name": "Brittle Ravener Husk",
+    "level": 11,
+    "art": "brittle-ravener-husk-lob.webp"
+  },
+  {
+    "id": "kayajima_boar_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "3oL6mD7SYNxbghTd",
+    "name": "Kayajima Boar",
+    "level": 3,
+    "art": "kayajima-boar-lob.webp"
+  },
+  {
+    "id": "fire_eye_cyclops_zombie_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "5CosDEozyZDtngtD",
+    "name": "Fire-Eye Cyclops Zombie (1-2)",
+    "level": 3,
+    "art": "fire-eye-cyclops-zombie-lob.webp"
+  },
+  {
+    "id": "fire_eye_cyclops_zombie_3_4_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "4ER4ulKtEiqgxWEg",
+    "name": "Fire-Eye Cyclops Zombie (3-4)",
+    "level": 5,
+    "art": "fire-eye-cyclops-zombie-lob.webp"
+  },
+  {
+    "id": "burned_out_efreet_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "4NVVOVTT1jIQfAjR",
+    "name": "Burned-Out Efreet",
+    "level": 3,
+    "art": "burned-out-efreet-lob.webp"
+  },
+  {
+    "id": "clouded_quartz_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "576v0bDKtGE5dwnQ",
+    "name": "Clouded Quartz (5-6)",
+    "level": 7,
+    "art": "clouded-quartz-lob.webp"
+  },
+  {
+    "id": "clouded_quartz_7_8_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "GL9QRBCuNKjuvZSE",
+    "name": "Clouded Quartz (7-8)",
+    "level": 9,
+    "art": "clouded-quartz-lob.webp"
+  },
+  {
+    "id": "vermlek_centaur_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "61jBzgd1NYLw4NC0",
+    "name": "Vermlek Centaur (3-4)",
+    "level": 4,
+    "art": "vermlek-centaur-lob.webp"
+  },
+  {
+    "id": "vermlek_centaur_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "zSuXInzH5E8rYNEl",
+    "name": "Vermlek Centaur (5-6)",
+    "level": 6,
+    "art": "vermlek-centaur-lob.webp"
+  },
+  {
+    "id": "flaming_eye_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "6PKCOGCNmsMQHc7A",
+    "name": "Flaming Eye (1-2)",
+    "level": -1,
+    "art": "flaming-eye-lob.webp"
+  },
+  {
+    "id": "flaming_eye_3_4_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "SX348ZSY0SyMfOXa",
+    "name": "Flaming Eye (3-4)",
+    "level": 1,
+    "art": "flaming-eye-lob.webp"
+  },
+  {
+    "id": "archis_peers_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "70vDhFdWWU6olNlb",
+    "name": "Archis Peers (1-2)",
+    "level": 1,
+    "art": "archis-peers-lob.webp"
+  },
+  {
+    "id": "archis_peers_3_4_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "ljs6Ueki3nmInJ9v",
+    "name": "Archis Peers (3-4)",
+    "level": 3,
+    "art": "archis-peers-lob.webp"
+  },
+  {
+    "id": "strak_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "7w0gBYxl6kS9WYgl",
+    "name": "Strak (5-6)",
+    "level": 6,
+    "art": "strak-lob.webp"
+  },
+  {
+    "id": "strak_7_8_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "ZzBtsGGjEvlqpiDq",
+    "name": "Strak (7-8)",
+    "level": 8,
+    "art": "strak-lob.webp"
+  },
+  {
+    "id": "kareida_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "8Eywy3sqfECiULGl",
+    "name": "Kareida",
+    "level": 1,
+    "art": "kareida-lob.webp"
+  },
+  {
+    "id": "mother_forsythe_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "XZOpmROxLS1bnApy",
+    "name": "Mother Forsythe (3-4)",
+    "level": 5,
+    "art": "mother-forsythe-lob.webp"
+  },
+  {
+    "id": "mother_forsythe_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "8OAeFPKcZGpFDTsv",
+    "name": "Mother Forsythe (5-6)",
+    "level": 7,
+    "art": "mother-forsythe-lob.webp"
+  },
+  {
+    "id": "chesjilawa_jadwiga_karina_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "UIAaR0AdABRgGGNc",
+    "name": "Chesjilawa Jadwiga Karina (5-6)",
+    "level": 5,
+    "art": "chesjilawa-jadwiga-karina-lob.webp"
+  },
+  {
+    "id": "chesjilawa_jadwiga_karina_7_8_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "8WXX6nSrxpry1QYN",
+    "name": "Chesjilawa Jadwiga Karina (7-8)",
+    "level": 7,
+    "art": "chesjilawa-jadwiga-karina-lob.webp"
+  },
+  {
+    "id": "firestorm_brimorak_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "AMZBCYKz639sHMPZ",
+    "name": "Firestorm Brimorak",
+    "level": 7,
+    "art": "firestorm-brimorak-lob.webp"
+  },
+  {
+    "id": "usij_acolyte_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "BSbqNkNSs5IMu6RO",
+    "name": "Usij Acolyte",
+    "level": -1,
+    "art": "usij-acolyte-lob.webp"
+  },
+  {
+    "id": "chained_troll_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "Cl2RNfFj3iuc1xp3",
+    "name": "Chained Troll",
+    "level": 6,
+    "art": "chained-troll-lob.webp"
+  },
+  {
+    "id": "hobgoblin_skeleton_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "F22a7CKj2leYfxyo",
+    "name": "Hobgoblin Skeleton",
+    "level": 1,
+    "art": "hobgoblin-skeleton-lob.webp"
+  },
+  {
+    "id": "wind_malevolent_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "FCs8aeSiwqnSyTMF",
+    "name": "Wind Malevolent (3-4)",
+    "level": 3,
+    "art": "wind-malevolent-lob.webp"
+  },
+  {
+    "id": "wind_malevolent_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "iEQyYzFBvgyD5yBy",
+    "name": "Wind Malevolent (5-6)",
+    "level": 5,
+    "art": "wind-malevolent-lob.webp"
+  },
+  {
+    "id": "skeletal_cyclops_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "GIJOVHi9G7tcoMds",
+    "name": "Lesser Skeletal Cyclops",
+    "level": 1,
+    "art": "skeletal-cyclops-lob.webp"
+  },
+  {
+    "id": "skeletal_cyclops_pub8i_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "PUb8Ipy6NKAMDFQw",
+    "name": "Skeletal Cyclops",
+    "level": 3,
+    "art": "skeletal-cyclops-lob.webp"
+  },
+  {
+    "id": "ash_skeleton_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "fpKKNDabU5XPov30",
+    "name": "Ash Skeleton (1-2)",
+    "level": 1,
+    "art": "ash-skeleton-lob.webp"
+  },
+  {
+    "id": "ash_skeleton_3_4_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "IxDPownROvUhSU21",
+    "name": "Ash Skeleton (3-4)",
+    "level": 3,
+    "art": "ash-skeleton-lob.webp"
+  },
+  {
+    "id": "usij_cultist_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "NAUPuR7aWSQ6mBUs",
+    "name": "Usij Cultist",
+    "level": 1,
+    "art": "usij-cultist-lob.webp"
+  },
+  {
+    "id": "kayajima_guardian_dogu_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "NGNU5Rq90TmNhwhN",
+    "name": "Kayajima Guardian Dogu (3-4)",
+    "level": 5,
+    "art": "kayajima-guardian-dogu-lob.webp"
+  },
+  {
+    "id": "kayajima_guardian_dogu_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "PFRXopyGSJmdYE6Y",
+    "name": "Kayajima Guardian Dogu (5-6)",
+    "level": 7,
+    "art": "kayajima-guardian-dogu-lob.webp"
+  },
+  {
+    "id": "storm_bear_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "xW5IhEbAhQneniT2",
+    "name": "Storm Bear (1-2)",
+    "level": 2,
+    "art": "storm-bear-lob.webp"
+  },
+  {
+    "id": "storm_bear_3_4_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "QQ93gOZxsfTdTSn2",
+    "name": "Storm Bear (3-4)",
+    "level": 4,
+    "art": "storm-bear-lob.webp"
+  },
+  {
+    "id": "exploding_skeleton_guard_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "R1QGjRlquOmfH2Zx",
+    "name": "Exploding Skeleton Guard",
+    "level": -1,
+    "art": "exploding-skeleton-guard-lob.webp"
+  },
+  {
+    "id": "saddleback_bunyip_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "SFBumlEX6jDIwAvL",
+    "name": "Saddleback Bunyip",
+    "level": 3,
+    "art": "saddleback-bunyip-lob.webp"
+  },
+  {
+    "id": "kayajima_daeodon_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "SqAWqJEi3IVB5TbO",
+    "name": "Kayajima Daeodon",
+    "level": 5,
+    "art": "kayajima-daeodon-lob.webp"
+  },
+  {
+    "id": "brittle_skeletal_horse_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "U6gghw2Ke21cRzs0",
+    "name": "Brittle Skeletal Horse",
+    "level": 1,
+    "art": "brittle-skeletal-horse-lob.webp"
+  },
+  {
+    "id": "crumbling_ravener_husk_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "V5O0ecsMk0QSTpqJ",
+    "name": "Crumbling Ravener Husk",
+    "level": 9,
+    "art": "crumbling-ravener-husk-lob.webp"
+  },
+  {
+    "id": "sezruth_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "sm6SKZaGvDSAAwde",
+    "name": "Sezruth (1-2)",
+    "level": 3,
+    "art": "sezruth-lob.webp"
+  },
+  {
+    "id": "sezruth_3_4_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "VbRX9bK5kLIJWnXH",
+    "name": "Sezruth (3-4)",
+    "level": 5,
+    "art": "sezruth-lob.webp"
+  },
+  {
+    "id": "ragewight_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "XVda3dqZWi21we2j",
+    "name": "Ragewight (3-4)",
+    "level": 4,
+    "art": "ragewight-lob.webp"
+  },
+  {
+    "id": "ragewight_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "zpIVn1k5nsR0sMZ8",
+    "name": "Ragewight (5-6)",
+    "level": 6,
+    "art": "ragewight-lob.webp"
+  },
+  {
+    "id": "ferocious_zombie_grindylow_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "Y0qzWOi3ihBHwYWE",
+    "name": "Ferocious Zombie Grindylow",
+    "level": 2,
+    "art": "ferocious-zombie-grindylow-lob.webp"
+  },
+  {
+    "id": "russian_soldier_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "aBxy7czPiVOSIlTl",
+    "name": "Russian Soldier (5-6)",
+    "level": 4,
+    "art": "russian-soldier-lob.webp"
+  },
+  {
+    "id": "russian_soldier_7_8_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "xmKHQAQ9z7XrPNp7",
+    "name": "Russian Soldier (7-8)",
+    "level": 6,
+    "art": "russian-soldier-lob.webp"
+  },
+  {
+    "id": "starved_sea_drake_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "ckvfamrYKeUYX7Cl",
+    "name": "Starved Sea Drake",
+    "level": 5,
+    "art": "starved-sea-drake-lob.webp"
+  },
+  {
+    "id": "zombie_grindylow_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "dXvAp2TjUxpE16nS",
+    "name": "Zombie Grindylow",
+    "level": 0,
+    "art": "zombie-grindylow-lob.webp"
+  },
+  {
+    "id": "skeletal_reveler_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "fF28drhtacyoHU96",
+    "name": "Skeletal Reveler",
+    "level": 0,
+    "art": "skeletal-reveler-lob.webp"
+  },
+  {
+    "id": "tough_skeletal_reveler_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "iuHyixlsXUA4KJ9Q",
+    "name": "Tough Skeletal Reveler",
+    "level": 2,
+    "art": "skeletal-reveler-lob.webp"
+  },
+  {
+    "id": "demonplague_zombie_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "gOPvMgZIQXidd1n8",
+    "name": "Demonplague Zombie",
+    "level": 3,
+    "art": "demonplague-zombie-lob.webp"
+  },
+  {
+    "id": "murta_kronniksdottir_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "yCACZfj6PJJGCLcr",
+    "name": "Murta Kronniksdottir (3-4)",
+    "level": 5,
+    "art": "murta-kronniksdottir-lob.webp"
+  },
+  {
+    "id": "murta_kronniksdottir_5_6_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "nSFA4Kei2Gyf7dc6",
+    "name": "Murta Kronniksdottir (5-6)",
+    "level": 7,
+    "art": "murta-kronniksdottir-lob.webp"
+  },
+  {
+    "id": "insidious_dragon_forest_rot_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "rCErTabCxzPbR0ON",
+    "name": "Insidious Dragon Forest Rot",
+    "level": 6,
+    "art": "insidious-dragon-forest-rot-lob.webp"
+  },
+  {
+    "id": "dragon_forest_rot_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "sRXkrqt5mOXzceR5",
+    "name": "Dragon Forest Rot",
+    "level": 4,
+    "art": "dragon-forest-rot-lob.webp"
+  },
+  {
+    "id": "daughter_of_cocytus_enforcer_lob",
+    "pack": "pf2e.pfs-season-2-bestiary",
+    "docId": "x4m5ks6Rd8fYzXPm",
+    "name": "Daughter Of Cocytus Enforcer",
+    "level": 4,
+    "art": "daughter-of-cocytus-enforcer-lob.webp"
   }
 ]

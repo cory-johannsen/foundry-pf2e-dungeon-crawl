@@ -842,3 +842,44 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 63,blue-streak-burglar,Blue Streak Burglar,4,beast,flag,bg_patch;wrong_details,gemini,
 63,giant-short-faced-bear,Lesser Giant Short-faced Bear,4,beast,flag,scenery_backdrop,gemini,
 63,lelzeshin,Lelzeshin (Tier 3-4),5,beast,flag,bg_patch,gemini,
+64,exploding-skeleton-guard,Exploding Skeleton Guard,-1,undead,accept,,gemini,gemini-first
+64,flaming-eye,Flaming Eye (1-2),-1,beast,flag,wrong_subject,gemini,
+64,usij-acolyte,Usij Acolyte,-1,humanoid,flag,decorative_frame,gemini,
+64,skeletal-reveler,Skeletal Reveler,0,undead,accept,,gemini,gemini-first
+64,zombie-grindylow,Zombie Grindylow,0,undead,accept,,gemini,gemini-first
+64,archis-peers,Archis Peers (1-2),1,beast,flag,scenery_backdrop,gemini,
+64,ash-skeleton,Ash Skeleton (1-2),1,undead,accept,,gemini,gemini-first
+64,brittle-skeletal-horse,Brittle Skeletal Horse,1,undead,accept,,gemini,gemini-first
+64,hobgoblin-skeleton,Hobgoblin Skeleton,1,undead,accept,,gemini,gemini-first
+64,kareida,Kareida,1,beast,flag,halo_or_disc,gemini,
+64,skeletal-cyclops,Lesser Skeletal Cyclops,1,undead,accept,,gemini,gemini-first
+64,usij-cultist,Usij Cultist,1,beast,flag,decorative_frame,gemini,
+64,ferocious-zombie-grindylow,Ferocious Zombie Grindylow,2,undead,accept,,gemini,gemini-first
+64,storm-bear,Storm Bear (1-2),2,beast,accept,,gemini,gemini-first
+64,burned-out-efreet,Burned-Out Efreet,3,beast,flag,wrong_subject,gemini,
+64,demonplague-zombie,Demonplague Zombie,3,undead,accept,,gemini,gemini-first
+64,fire-eye-cyclops-zombie,Fire-Eye Cyclops Zombie (1-2),3,undead,accept,,gemini,gemini-first
+64,kayajima-boar,Kayajima Boar,3,beast,flag,monochrome_line_art;scenery_backdrop,gemini,
+64,leaded-skeleton,Leaded Skeleton,3,undead,accept,,gemini,gemini-first
+64,saddleback-bunyip,Saddleback Bunyip,3,beast,flag,scenery_backdrop,gemini,
+64,sezruth,Sezruth (1-2),3,beast,flag,halo_or_disc,gemini,
+64,wind-malevolent,Wind Malevolent (3-4),3,beast,flag,bg_patch,gemini,
+64,daughter-of-cocytus-enforcer,Daughter Of Cocytus Enforcer,4,beast,flag,halo_or_disc,gemini,
+64,dragon-forest-rot,Dragon Forest Rot,4,dragon,accept,,gemini,gemini-first
+64,ragewight,Ragewight (3-4),4,undead,accept,,gemini,gemini-first
+64,russian-soldier,Russian Soldier (5-6),4,beast,flag,decorative_frame,gemini,
+64,vermlek-centaur,Vermlek Centaur (3-4),4,hybrid,accept,,gemini,gemini-first
+64,chesjilawa-jadwiga-karina,Chesjilawa Jadwiga Karina (5-6),5,hybrid,accept,,gemini,gemini-first
+64,kayajima-daeodon,Kayajima Daeodon,5,beast,flag,scenery_backdrop,gemini,
+64,kayajima-guardian-dogu,Kayajima Guardian Dogu (3-4),5,beast,flag,scenery_backdrop,gemini,
+64,mother-forsythe,Mother Forsythe (3-4),5,beast,flag,halo_or_disc,gemini,
+64,murta-kronniksdottir,Murta Kronniksdottir (3-4),5,beast,flag,decorative_frame,gemini,
+64,starved-sea-drake,Starved Sea Drake,5,beast,flag,scenery_backdrop,gemini,
+64,chained-troll,Chained Troll,6,beast,flag,halo_or_disc,gemini,
+64,insidious-dragon-forest-rot,Insidious Dragon Forest Rot,6,dragon,accept,,gemini,gemini-first
+64,strak,Strak (5-6),6,beast,flag,bg_patch,gemini,
+64,clouded-quartz,Clouded Quartz (5-6),7,beast,accept,,gemini,gemini-first
+64,firestorm-brimorak,Firestorm Brimorak,7,beast,accept,,gemini,gemini-first
+64,crumbling-ravener-husk,Crumbling Ravener Husk,9,undead,accept,,gemini,gemini-first
+64,hand-of-urxehl,Hand Of Urxehl (7-8),9,beast,flag,bg_patch,gemini,
+64,brittle-ravener-husk,Brittle Ravener Husk,11,undead,accept,,gemini,gemini-first
