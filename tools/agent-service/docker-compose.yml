@@ -9,6 +9,9 @@ services:
       AGENT_SERVICE_API_KEY: ${AGENT_SERVICE_API_KEY}
       PF2EDC_AGENT_PROVIDER: ${PF2EDC_AGENT_PROVIDER:-litellm}
       LAYA_API_KEY: ${LAYA_API_KEY}
+      # #454: the `openrouter` provider (mercury-decide) key; unused unless
+      # PF2EDC_AGENT_PROVIDER=openrouter.
+      OPEN_ROUTER_API_KEY: ${OPEN_ROUTER_API_KEY}
       LAYA_BASE_URL: ${LAYA_BASE_URL}
       AGENT_SERVICE_ALLOWED_ORIGIN: ${AGENT_SERVICE_ALLOWED_ORIGIN}
       LITELLM_BASE_URL: ${LITELLM_BASE_URL:-http://litellm:4000/v1}

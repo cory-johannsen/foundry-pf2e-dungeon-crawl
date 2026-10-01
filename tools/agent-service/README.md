@@ -92,6 +92,11 @@ litellm:
   "Self-hosting Laya" below). Falls back to a default hosted instance if
   unset.
 
+To use OpenRouter's mercury-decide instead (#454), set
+`PF2EDC_AGENT_PROVIDER=openrouter` and `OPEN_ROUTER_API_KEY` (both are
+passed into the container by `docker-compose.yml`); the image must be
+rebuilt (`docker compose up --build -d`) for the provider code to be in it.
+
 Optional, for locking down CORS:
 
 - `AGENT_SERVICE_ALLOWED_ORIGIN` — the `Access-Control-Allow-Origin` value
