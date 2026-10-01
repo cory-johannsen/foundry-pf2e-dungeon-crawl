@@ -20646,5 +20646,309 @@
     "name": "Cyclops Bodak",
     "level": 7,
     "art": "cyclops-bodak-lob.webp"
+  },
+  {
+    "id": "filth_fire_pfs_3_01_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "06XCiuS7ZDEM5Xpf",
+    "name": "Filth Fire (PFS 3-01)",
+    "level": 4,
+    "art": "filth-fire.webp"
+  },
+  {
+    "id": "elite_hadrosaurid_pfs_3_99_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "1PE6CVTY6BBH9k7t",
+    "name": "Elite Hadrosaurid (PFS 3-99)",
+    "level": 5,
+    "art": "hadrosaurid.webp"
+  },
+  {
+    "id": "weretiger_pfs_3_13_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "6aGKyGMSHD4fqReA",
+    "name": "Weretiger (PFS 3-13)",
+    "level": 4,
+    "art": "weretiger.webp"
+  },
+  {
+    "id": "leopard_pfs_3_13_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "BQOgvcGbGxFSQQ0T",
+    "name": "Leopard (PFS 3-13)",
+    "level": 2,
+    "art": "leopard.webp"
+  },
+  {
+    "id": "cairn_wight_pfs_3_09_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "DZwKXXrlzmk5Hqyx",
+    "name": "Cairn Wight (PFS 3-09)",
+    "level": 4,
+    "art": "cairn-wight.webp"
+  },
+  {
+    "id": "giant_amoeba_pfs_3_98_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "El0QINB4nVKeiI5A",
+    "name": "Giant Amoeba (PFS 3-98)",
+    "level": 1,
+    "art": "giant-amoeba.webp"
+  },
+  {
+    "id": "weak_hell_hound_pfs_3_07_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "HOQG0wl3ZtqS2j4v",
+    "name": "Weak Hell Hound (PFS 3-07)",
+    "level": 2,
+    "art": "hell-hound.webp"
+  },
+  {
+    "id": "elite_hell_hound_pfs_3_07_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "XYBA4EoyegNciY2P",
+    "name": "Elite Hell Hound (PFS 3-07)",
+    "level": 4,
+    "art": "hell-hound.webp"
+  },
+  {
+    "id": "eloko_pfs_3_03_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "ISBNLUY6Ilu0Jl28",
+    "name": "Eloko (PFS 3-03)",
+    "level": 7,
+    "art": "eloko-lob.webp"
+  },
+  {
+    "id": "skulk_pfs_3_13_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "LqEHXPTgyVUltvS2",
+    "name": "Skulk (PFS 3-13)",
+    "level": 1,
+    "art": "skulk.webp"
+  },
+  {
+    "id": "drakauthix_pfs_3_15_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "QHDVWljImF5sRhX2",
+    "name": "Drakauthix (PFS 3-15)",
+    "level": 9,
+    "art": "drakauthix.webp"
+  },
+  {
+    "id": "werebat_pfs_3_13_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "U41mRr07sJywSFYZ",
+    "name": "Werebat (PFS 3-13)",
+    "level": 2,
+    "art": "werebat.webp"
+  },
+  {
+    "id": "living_landslide_pfs_3_11_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "aICR8DJ80nD1rOM0",
+    "name": "Living Landslide (PFS 3-11)",
+    "level": 5,
+    "art": "living-landslide.webp"
+  },
+  {
+    "id": "shadow_pfs_3_17_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "d0kPtsi2DH3V9WJu",
+    "name": "Shadow (PFS 3-17)",
+    "level": 4,
+    "art": "shadow.webp"
+  },
+  {
+    "id": "nuglub_pfs_3_18_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "dj61OwkpKzv9ctsN",
+    "name": "Nuglub (PFS 3-18)",
+    "level": 2,
+    "art": "nuglub.webp"
+  },
+  {
+    "id": "lesser_animate_dream_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "eiWWhTeR8QTLKptH",
+    "name": "Lesser Animate Dream",
+    "level": 6,
+    "art": "animate-dream.webp"
+  },
+  {
+    "id": "bugbear_tormentor_pfs_3_13_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "gR4cLkgcor3Lp35F",
+    "name": "Bugbear Tormentor (PFS 3-13)",
+    "level": 3,
+    "art": "bugbear-tormentor.webp"
+  },
+  {
+    "id": "grimstalker_pfs_3_13_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "jaMihaRbFNvKHVUc",
+    "name": "Grimstalker (PFS 3-13)",
+    "level": 5,
+    "art": "grimstalker.webp"
+  },
+  {
+    "id": "kobold_scout_pfs_3_99_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "l1EWODWiDlDLQx0L",
+    "name": "Kobold Scout (PFS 3-99)",
+    "level": 1,
+    "art": "kobold-scout.webp"
+  },
+  {
+    "id": "elite_hieracosphinx_pfs_3_14_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "m1bVKRXsSXnBNka5",
+    "name": "Elite Hieracosphinx (PFS 3-14)",
+    "level": 5,
+    "art": "hieracosphinx.webp"
+  },
+  {
+    "id": "grimple_pfs_3_18_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "nPuiF2GEyJ2WMG4v",
+    "name": "Grimple (PFS 3-18)",
+    "level": -1,
+    "art": "grimple.webp"
+  },
+  {
+    "id": "kobold_warrior_pfs_3_99_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "psFZ9UdpJR4rRpEy",
+    "name": "Kobold Warrior (PFS 3-99)",
+    "level": -1,
+    "art": "kobold-warrior.webp"
+  },
+  {
+    "id": "mummy_guardian_pfs_3_09_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "vwV33OVSDH6fsdPI",
+    "name": "Mummy Guardian (PFS 3-09)",
+    "level": 6,
+    "art": "mummy-guardian.webp"
+  },
+  {
+    "id": "giant_rat_pfs_3_98_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "vwWjjQwPR9XItpjY",
+    "name": "Giant Rat (PFS 3-98)",
+    "level": -1,
+    "art": "giant-rat.webp"
+  },
+  {
+    "id": "elite_green_hag_pfs_3_99_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "wLM38nmdIITxkr4k",
+    "name": "Elite Green Hag (PFS 3-99)",
+    "level": 5,
+    "art": "green-hag.webp"
+  },
+  {
+    "id": "animated_knickknack_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "2N2Nj4W9kWn2fU6P",
+    "name": "Animated Knickknack (1-2)",
+    "level": -1,
+    "art": "animated-knickknack-lob.webp"
+  },
+  {
+    "id": "animated_knickknack_3_4_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "RmgJ2iZ20AKxZZjQ",
+    "name": "Animated Knickknack (3-4)",
+    "level": 1,
+    "art": "animated-knickknack-lob.webp"
+  },
+  {
+    "id": "temporal_echoes_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "hYqXZ2glAj0mVfCx",
+    "name": "Temporal Echoes (1-2)",
+    "level": 0,
+    "art": "temporal-echoes-lob.webp"
+  },
+  {
+    "id": "temporal_echoes_3_4_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "oqxqAesRlacxYKiY",
+    "name": "Temporal Echoes (3-4)",
+    "level": 2,
+    "art": "temporal-echoes-lob.webp"
+  },
+  {
+    "id": "temporal_echoes_5_6_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "2jiOLCpHekITyQTQ",
+    "name": "Temporal Echoes (5-6)",
+    "level": 4,
+    "art": "temporal-echoes-lob.webp"
+  },
+  {
+    "id": "temporal_echoes_7_8_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "JmQiEhCnr9WcG6Dl",
+    "name": "Temporal Echoes (7-8)",
+    "level": 6,
+    "art": "temporal-echoes-lob.webp"
+  },
+  {
+    "id": "revinus_s_guards_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "mQmcKIgTUn3xMClx",
+    "name": "Revinus's Guards (1-2)",
+    "level": -1,
+    "art": "revinus-s-guards-lob.webp"
+  },
+  {
+    "id": "revinus_s_guards_3_4_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "ALH2skuaXvEy6NHW",
+    "name": "Revinus's Guards (3-4)",
+    "level": 1,
+    "art": "revinus-s-guards-lob.webp"
+  },
+  {
+    "id": "explosive_rat_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "EiCWpQOwOlGnvWB8",
+    "name": "Explosive Rat",
+    "level": 0,
+    "art": "explosive-rat-lob.webp"
+  },
+  {
+    "id": "bloody_barber_ambusher_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "h65eZJq6Iie69zLD",
+    "name": "Bloody Barber Ambusher",
+    "level": -1,
+    "art": "bloody-barber-ambusher-lob.webp"
+  },
+  {
+    "id": "cog_the_torchbearer_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "iibGqYRM92mGVV8h",
+    "name": "Cog the Torchbearer",
+    "level": -1,
+    "art": "cog-the-torchbearer-lob.webp"
+  },
+  {
+    "id": "iron_ring_deckhand_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "ips7faBeWNAqpByM",
+    "name": "Iron Ring Deckhand",
+    "level": -1,
+    "art": "iron-ring-deckhand-lob.webp"
+  },
+  {
+    "id": "alchemy_gorged_giant_leech_lob",
+    "pack": "pf2e.pfs-season-3-bestiary",
+    "docId": "umiKZDfhNO3mXvEb",
+    "name": "Alchemy-Gorged Giant Leech",
+    "level": 1,
+    "art": "alchemy-gorged-giant-leech-lob.webp"
   }
 ]
