@@ -239,6 +239,49 @@ could start in that exact gap and get judged against a stale reading.
 Implementation detail, not a design gap, but one the implementer must get
 right.
 
+**Revised a sixth time 2026-10-01 (round 6), hardening round 5 before the
+next live test, per a final adversarial review:** the review's Critical
+Finding was that round 5's `recentlyWrittenByUs` map is purely per-client,
+in-memory state — on this project's own documented architecture (a human
+GM *and* a separate "Agent" GM-privileged account, both capable of running
+`moveFollowersToward`/`resnapDriftedTokens` independently), two
+simultaneously-connected GM clients would each have their own map with no
+visibility into the other's writes, which could reproduce the original
+symptom via a path round 5 doesn't cover. Live-checked directly against
+the actual running session this investigation has used throughout (via
+`game.users.contents`/`game.users.activeGM`): only one GM-privileged user
+("Agent," role 4) was active; a second GM-capable account ("Gamemaster")
+exists on this world but was not connected; the human player was
+connected as a non-GM "Fighter" (role 2), matching this module's own
+non-GM-host relay path, not a second GM client. This rules out the
+multi-GM-client race as the cause of this session's own reproductions —
+it remains a real, architecturally-possible gap worth closing if it's
+ever seen live, but isn't what round 5 needed to fix here, so round 6
+does not add `activeGM`-based gating speculatively.
+
+Two smaller, concrete, risk-free hardenings from the same review, both
+strictly additive to round 5's own protection:
+
+1. **Re-mark after the write resolves, not just before.** All three write
+   sites (`moveFollowersToward`'s inline #86 snap, its real "move" write,
+   and `resnapTokenNow`'s own correction) called `markRecentlyWritten`
+   immediately before `await token.update(...)`; round 6 also calls it
+   again immediately after that `await` resolves. This extends the
+   suppression window to cover however long the actual round-trip to the
+   server and back takes, rather than only the gap between issuing the
+   write and the call returning — relevant for the relayed, non-GM-host
+   path in particular, where that round-trip is a real network hop rather
+   than a same-process call.
+2. **Diagnostic logging.** `resnapDriftedTokens` now accepts Foundry's own
+   4th `updateToken` hook argument, `userId`, and logs it alongside the
+   `changes` payload via `console.warn` whenever it proceeds past the
+   `wasRecentlyWrittenByUs` check and finds a token genuinely off-grid.
+   This changes no decision this function makes — it's observability
+   only — but it means that if this symptom is ever caught live again,
+   the very next capture shows definitively who/what actually committed
+   the bad position, instead of requiring another round of monkeypatched
+   call-stack capture to find out.
+
 ### Sibling bug found in the same review (2026-10-01): `moveFollowersToward`'s own inline #86 snap
 
 `moveFollowersToward`'s own per-follower loop (`scripts/dungeon-follow.mjs`)

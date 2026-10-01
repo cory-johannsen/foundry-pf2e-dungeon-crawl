@@ -236,6 +236,11 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
       if (followerSource.x !== snappedX || followerSource.y !== snappedY) {
         markRecentlyWritten(token.id);
         await token.update({ x: snappedX, y: snappedY });
+        // #87 (round 6): re-mark after the await resolves too, not just
+        // before -- the suppression window should cover however long the
+        // round-trip to the server and back actually takes, not just the
+        // time between issuing the write and it being accepted locally.
+        markRecentlyWritten(token.id);
       }
       const moverFootprint = footprint(
         { ...sourcePosition(token), width: token.width, height: token.height },
@@ -290,6 +295,9 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
         x: result.to.gx * gridSize,
         y: result.to.gy * gridSize,
       });
+      // #87 (round 6): re-mark after the await resolves too -- see the
+      // inline #86 snap's own comment above for why.
+      markRecentlyWritten(token.id);
       referenceCell = result.to;
     }
   } finally {
@@ -479,6 +487,9 @@ export async function resnapTokenNow(sceneId, tokenId) {
     if (x !== snappedX || y !== snappedY) {
       markRecentlyWritten(tokenId);
       await token.update({ x: snappedX, y: snappedY });
+      // #87 (round 6): re-mark after the await resolves too -- see the
+      // inline #86 snap's own comment in moveFollowersToward for why.
+      markRecentlyWritten(tokenId);
     }
   } finally {
     resnapInFlight.delete(tokenId);
@@ -527,8 +538,18 @@ export async function resnapTokenNow(sceneId, tokenId) {
  * `abandonRun` clears it, so this stays live on a finished run's scene
  * too — harmless (still the same square-grid dungeon scene) but worth
  * knowing. A GM's own deliberate off-grid placement on a managed scene
- * gets snapped back too; there's no way to distinguish that from drift. */
-export function resnapDriftedTokens(tokenDoc, changes) {
+ * gets snapped back too; there's no way to distinguish that from drift.
+ *
+ * #87 (2026-10-01, round 6): accepts Foundry's own 4th `updateToken` hook
+ * argument, `userId` (the id of whoever's client issued the write that
+ * triggered this call) -- unused by any correctness decision here, only
+ * logged, alongside `changes`, whenever a correction actually proceeds.
+ * Round 5's suppression window stops this module from reacting to its
+ * OWN writes, but doesn't explain who/what commits a genuinely off-grid
+ * position in the first place when it isn't suppressed -- if that still
+ * happens live, this log line is what turns the next investigation into
+ * reading a console line instead of another round of guessing. */
+export function resnapDriftedTokens(tokenDoc, changes, _options, userId) {
   if (!isPositionChange(changes)) return;
   const scene = tokenDoc.parent;
   if (!scene) return;
@@ -550,6 +571,11 @@ export function resnapDriftedTokens(tokenDoc, changes) {
   const snappedX = Math.round(x / gridSize) * gridSize;
   const snappedY = Math.round(y / gridSize) * gridSize;
   if (x === snappedX && y === snappedY) return;
+
+  console.warn(
+    `${MODULE_ID} | dungeon-follow: resnapDriftedTokens correcting token ${tokenDoc.id} (source ${x},${y} -> ${snappedX},${snappedY}), writer userId=${userId}`,
+    changes,
+  );
 
   if (game.user.isGM) {
     return resnapTokenNow(scene.id, tokenDoc.id);
