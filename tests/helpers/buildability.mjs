@@ -22,7 +22,11 @@ export const sumMeasures = (a, b) => Object.fromEntries(Object.keys(a).map((k) =
 
 /** Mirrors the scene's per-room build (door slots with priority, planned exit doors): calls
  * `visit({ sourceId, toId, face, sel, slot, res })` once for every built edge of the layout. */
-export function visitEdges(layout, visit) {
+/** `slotOrder: 'approach'` (#427 Phase 4 prototype) orders each target's incoming connections before slot
+ * assignment: a north face west to east by source column (a west face top to bottom by source rank), ties by
+ * the other axis then id, hidden last. It is the planarity-consistent slot order a v3 incoming door plan
+ * would impose (the incoming twin of outgoingDoorPlan's compareTargets). Default 'plan' is today's order. */
+export function visitEdges(layout, visit, { slotOrder = 'plan' } = {}) {
   const { seed, rooms, layoutEdges, hiddenIncomingByRoomId, hiddenRooms, pos, occ, rect, incFace } = layout;
   const planFor = planSelector.planFor(layout);
   for (const toId of Object.keys(rooms)) {
@@ -31,7 +35,14 @@ export function visitEdges(layout, visit) {
       .map((c) => (isDetour ? { ...c, hidden: true } : c));
     if (!conns.length) continue;
     const face = incFace[toId];
-    const collision = findPriorityCollision(seed, toId, pos[toId].rank, pos[toId].col, conns, pos, occ, face, planFor);
+    if (slotOrder === 'approach') {
+      const major = (c) => (face === 'west' ? pos[c.sourceId].rank : pos[c.sourceId].col);
+      const minor = (c) => (face === 'west' ? pos[c.sourceId].col : -pos[c.sourceId].rank); // nearer rank first: a farther same-column source passes on the east side
+      conns.sort((a, b) => (a.hidden === b.hidden ? 0 : a.hidden ? 1 : -1) || (major(a) - major(b)) || (minor(a) - minor(b))
+        || (a.sourceId < b.sourceId ? -1 : a.sourceId > b.sourceId ? 1 : 0));
+    }
+    // 'approach' replaces #297's priority swap: the order itself is the planarity-consistent assignment.
+    const collision = slotOrder === 'approach' ? null : findPriorityCollision(seed, toId, pos[toId].rank, pos[toId].col, conns, pos, occ, face, planFor);
     const slots = assignDoorSlotsWithPriority(seed, rect[toId], conns, face, collision);
     conns.forEach(({ sourceId }, k) => {
       const sel = planSelector(layout, { sourceId, toId });
@@ -44,7 +55,7 @@ export function visitEdges(layout, visit) {
   }
 }
 
-export function measureBuildability(layout, { cellUse = new Map() } = {}) {
+export function measureBuildability(layout, { cellUse = new Map(), slotOrder = 'plan' } = {}) {
   // `cellUse` (optional, filled): "rank,col" -> [{ id, c }], every edge's transit-cell crossing; the
   // oracle test reads it.
   const m = ZERO();
@@ -81,7 +92,7 @@ export function measureBuildability(layout, { cellUse = new Map() } = {}) {
           cellUse.get(key).push({ id: `${sourceId}->${toId}`, c });
         }
       }
-  });
+  }, { slotOrder });
   const cutEdges = new Set();
   for (const [key, uses] of cellUse) {
     const [rank, col] = key.split(',').map(Number);
