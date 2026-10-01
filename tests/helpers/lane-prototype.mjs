@@ -25,19 +25,25 @@ function sidePoint(cell, side, coord) {
 const alongStart = (cell, side) => (side === 'north' || side === 'south' ? cell.gx : cell.gy);
 const coordOf = (point, side) => (side === 'north' || side === 'south' ? point.x : point.y);
 
+/** The chain descriptor of one built edge (null when it has no transit cells). */
+export function chainFromResult(layout, sourceId, toId, res) {
+  const tc = res.transitCells;
+  if (!tc.length) return null;
+  return {
+    id: `${sourceId}->${toId}`, sourceId, toId, seed: layout.seed, targetRank: layout.pos[toId].rank,
+    cells: tc.map((c) => ({ rank: c.rank, col: c.col, entrySide: c.entrySide, exitSide: c.exitSide })),
+    c0: coordOf(tc[0].entryPoint, tc[0].entrySide),
+    cn: coordOf(tc.at(-1).exitPoint, tc.at(-1).exitSide),
+    baseline: tc.map((c) => coordOf(c.exitPoint, c.exitSide)), // today's exit coordinate per cell
+  };
+}
+
 /** Every edge's multi-cell chain as built today: sides, pinned end coordinates, today's coordinates. */
 export function edgeChains(layout) {
   const chains = [];
   visitEdges(layout, ({ sourceId, toId, res }) => {
-    const tc = res.transitCells;
-    if (!tc.length) return;
-    chains.push({
-      id: `${sourceId}->${toId}`, sourceId, toId, seed: layout.seed, targetRank: layout.pos[toId].rank,
-      cells: tc.map((c) => ({ rank: c.rank, col: c.col, entrySide: c.entrySide, exitSide: c.exitSide })),
-      c0: coordOf(tc[0].entryPoint, tc[0].entrySide),
-      cn: coordOf(tc.at(-1).exitPoint, tc.at(-1).exitSide),
-      baseline: tc.map((c) => coordOf(c.exitPoint, c.exitSide)), // today's exit coordinate per cell
-    });
+    const chain = chainFromResult(layout, sourceId, toId, res);
+    if (chain) chains.push(chain);
   });
   return chains;
 }
@@ -64,7 +70,7 @@ const canonical = (a, b) => a.targetRank - b.targetRank
   || (a.sourceId < b.sourceId ? -1 : a.sourceId > b.sourceId ? 1 : 0);
 
 /** Floors of one cell crossing for given border coordinates. */
-function cellFloors(chain, i, entryCoord, exitCoord) {
+export function cellFloors(chain, i, entryCoord, exitCoord) {
   const { rank, col, entrySide, exitSide } = chain.cells[i];
   const cell = cellBounds(rank, col);
   return transitCellCrossing(chain.seed, rank, col, entrySide, exitSide, chain.id, {
@@ -82,13 +88,20 @@ function cellFloors(chain, i, entryCoord, exitCoord) {
  */
 export function assignLanes(chains, { nodeBudget = 50000, first = new Set() } = {}) {
   const ordered = [...chains].sort((a, b) => (first.has(b.id) - first.has(a.id)) || canonical(a, b));
-  const placedByCell = new Map(); // "rank,col" -> [floors[]]
+  const placer = makePlacer(nodeBudget);
   const infeasible = [];
+  for (const chain of ordered) if (!placer.tryPlace(chain)) infeasible.push(chain.id);
+  return { infeasible, maxLoad: Math.max(0, ...placer.load.values()), blobs: placer.stats.blobs, exhausted: placer.stats.exhausted, placed: placer.placed };
+}
+
+/** Incremental placer: `tryPlace(chain)` assigns the chain's free coordinates against everything placed
+ * so far and commits it on success (returns false and commits nothing otherwise). */
+export function makePlacer(nodeBudget = 50000) {
+  const placedByCell = new Map(); // "rank,col" -> [floors[]]
   const placed = new Map();
-  let blobs = 0;
-  let exhausted = 0;
+  const stats = { blobs: 0, exhausted: 0 };
   const load = new Map();
-  for (const chain of ordered) {
+  const tryPlace = (chain) => {
     const n = chain.cells.length;
     const corner = chain.cells.map((c) => OPPOSITE[c.entrySide] !== c.exitSide);
     const vars = []; // cell indices (< n - 1) whose exit coordinate is free
@@ -96,7 +109,7 @@ export function assignLanes(chains, { nodeBudget = 50000, first = new Set() } = 
     const lastStraight = !corner[n - 1];
     // Pinned conflict with no corner at all: the existing block geometry stays as it is (counted).
     const pinnedVar = lastStraight && vars.length ? vars.at(-1) : null;
-    if (lastStraight && !vars.length && chain.c0 !== chain.cn) blobs += 1;
+    if (lastStraight && !vars.length && chain.c0 !== chain.cn) stats.blobs += 1;
 
     const domainFor = (i) => {
       if (i === pinnedVar) return [chain.cn];
@@ -147,7 +160,7 @@ export function assignLanes(chains, { nodeBudget = 50000, first = new Set() } = 
     // First run: cells before the first variable cell run on c0.
     for (let j = 0; j < (vars[0] ?? n); j += 1) if (j < n - 1 && !corner[j]) coords[j + 1] = coords[j];
     const ok = solve2(0, 0, vars[0] ?? n);
-    if (!ok) { infeasible.push(chain.id); if (nodes > nodeBudget) exhausted += 1; continue; }
+    if (!ok) { if (nodes > nodeBudget) stats.exhausted += 1; return false; }
     placed.set(chain.id, [...coords]);
     chain.cells.forEach((c, i) => {
       const key = `${c.rank},${c.col}`;
@@ -155,8 +168,9 @@ export function assignLanes(chains, { nodeBudget = 50000, first = new Set() } = 
       placedByCell.get(key).push(floorsByCell[i]);
       load.set(key, (load.get(key) ?? 0) + 1);
     });
-  }
-  return { infeasible, maxLoad: Math.max(0, ...load.values()), blobs, exhausted, placed };
+    return true;
+  };
+  return { tryPlace, placed, load, stats, placedByCell };
 }
 
 /** True if some choice of the free (corner) coordinates leaves no two chains' floors intersecting. */

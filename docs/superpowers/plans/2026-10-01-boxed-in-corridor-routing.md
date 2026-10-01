@@ -4,7 +4,7 @@
 
 **Goal:** No corridor of any real or hidden edge is drawn through a room that is neither its source nor its target, no wall cuts another edge's corridor floor, and an edge that truly cannot be routed becomes a safe dead-end stub instead of a line through a room.
 
-**Architecture:** Measure first (a shared sweep harness plus a flood-fill oracle, ratcheted at today's numbers). Then fix shared transit cells with a pure whole-layout lane plan, fix west-incoming target geometry, route the corner branch through occupied cells' margin lanes (generalizing #297's dogleg), and finally add a `stubEdges` plan for the edges that cannot be routed and may safely be dead ends. Everything that changes geometry or progression is behind run-state `layoutVersion` 3 (absent/1/2 keep today's behavior byte-for-byte).
+**Architecture:** Measure first (a shared sweep harness plus a flood-fill oracle, ratcheted at today's numbers). Then fix shared transit cells with a pure whole-layout topology-aware router and lane plan (a fixed-path lane plan was measured and fails K2; see the topology design note), fix west-incoming target geometry, route the corner branch through occupied cells' margin lanes (generalizing #297's dogleg), and finally add a `stubEdges` plan for the edges that cannot be routed and may safely be dead ends. Everything that changes geometry or progression is behind run-state `layoutVersion` 3 (absent/1/2 keep today's behavior byte-for-byte).
 
 **Tech Stack:** Node ES modules, vitest (`npm test` = `vitest run`), Foundry VTT module.
 
@@ -33,9 +33,11 @@ Baselines (spec, measured 2026-10-01 on main 0.54.49): 9,930 edges; null-path 2,
 - A stub on a source whose only real child is that edge soft-locks the party (the run only moves forward): `planStubs` must refuse it; test with a fixture where the source has one child (Task 5.1).
 - A merge room whose every incoming edge is null must keep at least one connecting edge: `planStubs` may never stub the last routable parent (Task 5.1).
 - A hidden shortcut stub, once revealed, must not become a progression edge (`revealTravelTimeEffect`): test that `state.edges` is unchanged after reveal (Task 5.3).
-- Shuffled edge/room order must yield identical lane plan and `stubEdges` (Tasks 1.2, 5.1).
-- A run persisted before this change (layoutVersion 1 or 2, no `stubEdges`) must build byte-identical geometry (Tasks 1.3, 5.4).
-- Eight corridors through one 13-wide border: the lane planner must report infeasible, never overlap (Task 1.2).
+- Shuffled edge/room order must yield identical lane plan and `stubEdges` (Tasks 1.5, 5.1).
+- A run persisted before this change (layoutVersion 1 or 2, no `stubEdges`) must build byte-identical geometry (Tasks 1.6, 5.4).
+- Eight corridors through one 13-wide border: the lane planner must report infeasible, never overlap (Task 1.5).
+- Unresolvable edges (no non-crossing route) must be handled exactly as null-class edges in v3 (Q-A, Tasks 1.6, 5.1), never drawn through shared floor (Task 1.5).
+- Re-routed edges must not change door slots or foreign margin openings silently: the slot/margin functions assume plain-occupancy paths (Task 1.5 open question).
 
 ---
 
@@ -295,7 +297,7 @@ export function buildFloorModel(floors, walls) {
 
 **Files:** Modify `tests/dungeon-layout-buildability.test.mjs`.
 
-- [ ] **Step 1: Test.** For seed `sweep-10` (index 10), assemble, per transit cell `(0,2)`, the floors of both crossings and the cell's walls (containment from union openings plus every crossing's `plainWalls`), and assert the oracle's `reach` from the start of edge B's floor does NOT reach B's far end (the cut is real under the model), pinning that the two methods agree on the known sample. Expected today: B is severed. After Chunk 1b the same test (flipped under a v3 plan) must show it connected; leave a `// flips in Chunk 1b` comment naming it.
+- [ ] **Step 1: Test.** For seed `sweep-10` (index 10), assemble, per transit cell `(0,2)`, the floors of both crossings and the cell's walls (containment from union openings plus every crossing's `plainWalls`), and assert the oracle's `reach` from the start of edge B's floor does NOT reach B's far end (the cut is real under the model), pinning that the two methods agree on the known sample. Expected today: B is severed. After Task 1.6 (PR C2) the same test (flipped under a v3 plan) must show it connected; leave a `// flips in Chunk 1b` (now Task 1.6) comment naming it.
 - [ ] **Step 2-4:** write, run (FAIL on the assertion shape until written correctly), pass.
 - [ ] **Step 5: Commit** `test(#427): oracle confirms the known cut`.
 
@@ -306,7 +308,7 @@ export function buildFloorModel(floors, walls) {
 - [ ] **Step 1:** Copy `.env` into the worktree. Compare the live world's module version with this branch's `module.json` (memory: stale Foundry version trap).
 - [ ] **Step 2: Prefer read-only.** Find (offline) a layoutVersion 2 run seed containing the Task 0.4 shape, or use the user's existing v2 scene `vPjL50w7nUMOZIT3` and search its `Wall` documents for a transit cell crossed by two edges (`dungeonTransitCellMarginForCell` flags plus tiles with `dungeonTransitCellCrossing` for the same cell key). Then, via the REST relay or a script macro on the canvas, query collision without creating anything: `CONFIG.Canvas.polygonBackends.move.testCollision(a, b, { type: "move", mode: "any" })` between two points on one corridor floor that straddle the other edge's flank wall. Record: collision true or false, the wall ids hit.
 - [ ] **Step 3: Only if the read-only query cannot answer,** create a throwaway scene (`Scene.create({ name: "tmp-427-livecheck" })`), copy only the needed walls and one token into it, run the test, then delete the scene. Verify cleanup: `game.scenes.getName("tmp-427-livecheck")` is `undefined` and the real scene's wall/tile/token counts equal their before-counts. Never move tokens in the real scene.
-- [ ] **Step 4:** Post on #427: the exact queries run, results, and "changed nothing" or the exact list of created and deleted documents. If the result contradicts the oracle (cut not blocking), spec K5 applies: fix the oracle model before Chunk 1b.
+- [ ] **Step 4:** Post on #427: the exact queries run, results, and "changed nothing" or the exact list of created and deleted documents. If the result contradicts the oracle (cut not blocking), spec K5 applies: fix the oracle model before Task 1.6.
 
 **Result (done 2026-10-01, read-only, nothing created or changed).** Live world: Foundry 14.368, module 0.54.49 (older than this branch). The user's scene `vPjL50w7nUMOZIT3` IS the `sweep-10` layout (its cell r0c2 holds edge A's west->south vertical lane with the same plain flank walls at x=326/327 as the sweep). Edge B's crossing is not built there yet (its rooms are not revealed), so the cut itself could not be exercised end to end. Instead `CONFIG.Canvas.polygonBackends.{move,sight}.testCollision(a, b, { type, mode })` was run on the scene's own walls (grid 100): (1) along A's lane `(326.5,3.5)->(326.5,11.5)`: no collision (move and sight); (2) across A's x=327 flank at B's row `(326.5,10.5)->(327.5,10.5)`: collision at x=327 (move and sight); (3) across both flanks `(325.5,10.5)->(327.5,10.5)`: collisions at x=326 and x=327; (4) open air control: none. So a flank wall lying inside another edge's floor blocks walking and sight, and walls along a lane's own boundary do not: the oracle's wall model holds (K5 not triggered). B's own flank cutting A (y=10, y=11) is the same wall type, not separately exercised.
 
@@ -316,58 +318,101 @@ export function buildFloorModel(floors, walls) {
 
 ---
 
-## Chunk 1 (PRs B and C): shared transit-cell lane plan (layoutVersion 3)
+## Chunk 1 (PRs B, B', C1, C2): topology-aware router and lane plan (layoutVersion 3)
 
-### Task 1.1 (PR B): Lane feasibility prototype, no behavior
+Design: `docs/superpowers/specs/2026-10-01-topology-aware-corridor-routing-design.md` (read it first). The
+original "lane plan over fixed shortest paths" tripped K2 (PR B, #450: 204 of 2,063 unresolvable vs 41); the
+user chose to make the router topology-aware. The prototype of that router (docs PR B') also fails K2' (185
+unresolvable), so C1/C2 are gated on the user's answers to Q-A to Q-C in the design note. Do not start C1 before
+those are recorded on #427.
 
-**Files:**
-- Create: `tests/helpers/lane-prototype.mjs`
-- Test: `tests/dungeon-layout-lanes-prototype.test.mjs`
+Ratchets never loosen. The v3 ratchet for null paths is the combined boxed-in count (null union unresolvable)
+once Q-A is answered yes; v1/v2 ratchets stay as they are.
+
+### Task 1.1 (PR B, DONE #450): lane feasibility prototype, K2 measured (tripped)
+
+`tests/helpers/lane-prototype.mjs` (`edgeChains`, `makePlacer`, `assignLanes`) and its test.
+
+### Task 1.2 (PR B', docs + test-only prototype): topology-aware router prototype, K2' measured (tripped)
+
+**Files:** `tests/helpers/topology-router.mjs`, `tests/dungeon-layout-topology-prototype.test.mjs`, the design note.
+Result: 1,842 placed on their shortest path, 36 placed after re-routing, 185 unresolvable (9.0%), 0 crossings and
+0 cuts among placed edges, +1.4% path length. See the design note, section 4.
+
+### Task 1.3 (decision gate, no PR): record Q-A, Q-B, Q-C on #427
+
+- [ ] Q-A answered yes: v3 treats unresolvable edges as null-class (combined boxed-in ratchet, start 2,237 on the
+  v2 sweep). Q-A no: stop and redesign (options in design note section 6).
+- [ ] Q-B yes: run Task 1.4 first. Q-C: decides whether Chunk 4 runs before C1/C2 (U measured on Phase 4 geometry).
+
+### Task 1.4 (optional PR, test-only, if Q-B): joint rip-up-and-reroute prototype (K2'')
+
+Extend `topology-router.mjs`: when an edge fails, retry with the earlier edge it conflicts with placed after it,
+bounded to 3 iterations, deterministic. Measure unresolvable on 500 seeds. If still above 5% of multi-cell edges
+(about 100), record and continue with Q-A's answer; do not optimize further. Test first: the new option must
+leave the greedy result unchanged when disabled (assert the 100-seed numbers of Task 1.2).
+
+### Task 1.5 (PR C1): pure `routeEdgesTopologyAware` in `scripts/dungeon-layout.mjs`
+
+**Files:** Modify `scripts/dungeon-layout.mjs` (new exports after `transitCellCrossing`; optional `blockedCells`
+option on `findCorridorPath`, default unchanged); Test: `tests/dungeon-layout.test.mjs` (new
+`describe('routeEdgesTopologyAware (#427)')`).
 
 **Interfaces:**
-- Produces: `crossingsByCell(layout) -> Map<"rank,col", [{ edgeId, toId, entrySide, exitSide, entryPoint, exitPoint }]>` (the pinned crossings exactly as `buildEdgeCorridor` builds them today) and `assignableWithoutCrossing(crossings) -> boolean` (true if some choice of interior offsets, keeping each crossing's pinned end points fixed, leaves no two different-target floors intersecting).
+- Consumes: `buildEdgeCorridor`, `findCorridorPath`, `cellBounds`, `incomingConnectionsFor`, `outgoingDoorPlan`.
+- Produces: `routeEdgesTopologyAware({ seed, positionByRoomId, occupiedCells, layoutEdges, hiddenIncomingByRoomId,
+  incomingFaceByRoomId, planFor, slotsForRoom, maxTries = 40 }) -> { lanes: Map<edgeId, Map<"rank,col", { entryPoint,
+  exitPoint }>>, blockedByEdge: Map<edgeId, string[]>, unresolvable: [edgeId] }`. `edgeId` is `${from}->${to}`.
+  Canonical order: target rank, target id, source id. Door ends pinned. Border capacity 13 lanes.
 
-- [ ] **Step 1: Test** that records, for the 500-seed sweep, how many of the 510 intersections are resolvable by interior offsets alone, and ratchets: `expect(unresolvable).toBeLessThanOrEqual(K2_ALLOWANCE)` where `K2_ALLOWANCE = Math.floor(0.02 * 2077)` (41). First run prints the number; this task's deliverable is that number written into spec Risks and the issue.
-- [ ] **Step 2:** FAIL (module missing). **Step 3:** implement `crossingsByCell` by calling the same code path as `measureBuildability` (reuse its visit loop; extract it to a shared `visitEdges(layout, cb)` in `tests/helpers/buildability.mjs` and have both use it). Implement `assignableWithoutCrossing` as a backtracking search over per-border offsets in `[0, 12]` with floors as 1-wide strips (straight or L per `transitCellCrossing`'s shape rule), pruning when two different-target floors intersect.
-- [ ] **Step 4:** run; record the number. **Step 5:** commit; version bump; PR; automerge.
-- **Decision rule:** if unresolvable > 41 (K2), stop and report to the user (Q2/Q3 are already decided: reroute or accept; ask which for the excess).
+- [ ] **Step 1: Tests (write, run, see them fail).**
+  1. Two parallel pinned straight edges through one cell get distinct offsets, never intersect.
+  2. A cell-local N-S vs W-E pair: the later edge is re-routed or reported unresolvable, never merged.
+  3. The sweep-10 pair (A west to south over r0c1+r0c2, B south to east): not both placed on shortest paths; the
+     result is deterministic.
+  4. Order independence: reverse the key order of `layoutEdges` and the room map; the result deep-equals.
+  5. Capacity: 14 straight crossings through one border report the excess unresolvable, without overlap.
+  6. Sweep (500 seeds, v2 inputs): every placed edge has 0 floor crossings and 0 cut occurrences by the real
+     wall/floor check (`measureBuildability`'s `cuts`/overlap logic on the lane output); unresolvable count equals the
+     prototype's 185 (+/- the section 3 unknown, K8: more than 25% above stops the chunk); extra path length under
+     3% (K7); found-path intermediate overlap 0.
+- [ ] **Step 2:** run, expect FAIL. **Step 3:** implement (promote the prototype's placer and blocked-cell search;
+  pure, no scene use). **Step 4:** PASS, full `npm test`. **Step 5:** `module.json` patch bump (check origin/main
+  first, never reuse); commit; PR; automerge; update the #427 table.
+- **Open question to settle in this PR, with a measurement:** slot/margin functions (`findPriorityCollision`,
+  `assignDoorSlotsWithPriority`, `outgoingMarginOffset`, `pendingForeignMarginOpenings`) call `findCorridorPath` on
+  plain occupancy. Measure on the sweep how many re-routed edges change first or last hop face; if any, either
+  restrict re-routes to keep both hops (re-measure U) or re-derive slots after routing. Record the choice and the
+  numbers in the design note.
 
-### Task 1.2 (PR C): `transitLanePlan` pure function
+### Task 1.6 (PR C2): `lanes`/`blockedCells` on `buildEdgeCorridor`, scene wiring, layoutVersion 3
 
 **Files:**
-- Modify: `scripts/dungeon-layout.mjs` (new export after `transitCellCrossing`)
-- Test: `tests/dungeon-layout.test.mjs` (new `describe('transitLanePlan (#427)')`)
+- Modify: `scripts/dungeon-layout.mjs` (`buildEdgeCorridor` trailing optional `routing` parameter `{ lanes, blockedCells }`:
+  occupied cells plus `blockedCells` go to `findCorridorPath`; `lanes.get(edgeId)` supplies `forcedEntryPoint`/
+  `forcedExitPoint` per cell)
+- Modify: `scripts/dungeon-scene.mjs` (`buildPopulateAndUnlockGraphNode`: compute the routing once from state when
+  `layoutVersion >= 3`; unresolvable edges follow the existing null-path fallback, Q-A)
+- Modify: `scripts/ui/dungeon-app.mjs` (stamp `layoutVersion: 3`; add a test for the stamp if feasible)
+- Modify: `tests/dungeon-layout-default-identical.test.mjs` (the v1/v2 digests must NOT change)
 
-**Interfaces:**
-- Consumes: `findCorridorPath`, `cellBounds`, `incomingConnectionsFor`, `outgoingDoorPlan`.
-- Produces: `transitLanePlan({ seed, positionByRoomId, occupiedCells, layoutEdges, hiddenIncomingByRoomId, incomingFaceByRoomId, planFor, slotsForRoom }) -> { lanes: Map<edgeId, Map<"rank,col", { entryPoint, exitPoint }>>, infeasible: [edgeId] }`. `edgeId` is `${fromRoomId}->${toRoomId}`. Canonical processing order: target rank, target id, source id. Pinned: each edge's first entry and last exit stay at the real doors; only interior points move. A cell border is 13 units; crossings on one border get distinct integer offsets; adjacent lanes may share a boundary.
-
-- [ ] **Step 1: Tests**
-  1. Two edges through one cell on parallel straight paths get distinct offsets and never intersect.
-  2. Two edges whose sides force a crossing (north-south and west-east) land in `infeasible` (never merged).
-  3. Order independence: reversing the key order of `layoutEdges` (and of the room map) yields a deep-equal plan.
-  4. Capacity: 14 straight crossings through one cell report the excess as infeasible without overlap.
-  5. Sweep: over 500 seeds, for every non-infeasible crossing in every cell, no two different-target floors intersect and no flank wall lies inside any floor (use `measureBuildability`'s `cuts` logic on lane output).
-- [ ] **Step 2:** FAIL. **Step 3:** implement per the interface; no scene use yet. Straight vs L shape comes from entry/exit sides as `transitCellCrossing` decides.
-- [ ] **Step 4:** PASS. **Step 5:** commit.
-
-### Task 1.3: `buildEdgeCorridor` accepts `lanes`, scene uses it under v3
-
-**Files:**
-- Modify: `scripts/dungeon-layout.mjs` (`buildEdgeCorridor` trailing param `lanes`; pass `forcedEntryPoint`/`forcedExitPoint` to `transitCellContainmentWalls`/`transitCellCrossing` from `lanes.get(edgeId)`)
-- Modify: `scripts/dungeon-scene.mjs` (`buildPopulateAndUnlockGraphNode`: compute the plan once from state when `layoutVersion >= 3`, pass the edge's lanes; `buildTransitCellIfNeeded` unchanged: it already unions openings)
-- Modify: `scripts/ui/dungeon-app.mjs` (stamp `layoutVersion: 3`)
-- Modify: `tests/dungeon-layout-default-identical.test.mjs` (digest for v1/v2 must not change)
-
-**Interfaces:** `buildEdgeCorridor(..., incomingFace, exitDoorArg, lanes)`; `lanes` is the per-edge Map from Task 1.2 or undefined (byte-identical to today).
-
-- [ ] **Step 1: Tests.** (a) Without `lanes` the result is deep-equal to today's for the whole 500-seed sweep (snapshot digest in `dungeon-layout-default-identical.test.mjs`). (b) With the plan, `measureBuildability` on a `lanes`-aware sweep gives `cutOccurrences === 0`, `floorCrossings` equal to the number of `infeasible` pairs (expected 0 different-target after rerouting, below), `targetDoorCovered === 0`, `chainMismatch === 0`, `nullPath <= NULL_PATH_CEILING + 41`. (c) Flip the Task 0.4 sample: edge B is now connected in the oracle.
-- [ ] **Step 2:** FAIL. **Step 3:** implement. For `infeasible` edges: block the offending cell for the later edge (canonical order) in `occupiedCells` and re-run `findCorridorPath`, once; if still infeasible the edge keeps its documented residual geometry and is counted in a ratcheted `LANE_INFEASIBLE_CEILING` (set to the measured value).
-- [ ] **Step 4:** full `npm test`; PASS. **Step 5:** `module.json` minor bump; commit; PR; automerge; update the #427 table. A new run is required to verify live.
+- [ ] **Step 1: Tests (write, run, see them fail).** (a) Without `routing` the result deep-equals today's across
+  the 500-seed sweep (digests unchanged). (b) v3 sweep with routing: `cutEdges`, `cutOccurrences`, `floorCrossings`
+  ratchets drop to 0 for placed edges (ratchet them at the measured value; residual edges, if any, counted in a
+  `LANE_RESIDUAL_CEILING`); the combined boxed-in ratchet (null union unresolvable) is set at the measured value and
+  may only fall; `targetDoorCovered`, `chainMismatch`, `sourceOverlap` stay 0; deep target overlap stays <= 160;
+  intermediate overlap on found paths 0. (c) The two oracle tests marked "flips in Chunk 1b" in
+  `tests/dungeon-layout-buildability.test.mjs` flip to "connected" under a v3 plan. (d) Buildability sweep: no new
+  door or wall leaks (oracle). (e) A layoutVersion-3 stamp test where feasible.
+- [ ] **Step 2:** FAIL. **Step 3:** implement. **Step 4:** full `npm test`. **Step 5:** `module.json` minor bump
+  (check origin/main first); `update-architecture-docs` if any `scripts/` import changed (expected none); commit;
+  PR; automerge; update the #427 table. A NEW run is required to verify live.
 
 ---
 
 ## Chunk 2 (PR D): west-incoming target geometry
+
+Depends on Task 1.6 (PR C2) merged (it runs under the v3 router/`lanes`). The router changes the set of found paths, so re-measure the west-face numbers (7 covered doors, deep overlaps) on v3 geometry at the start of the chunk before trusting the figures below.
 
 ### Task 2.1: Covered west doors and deep overlaps, test first
 
@@ -401,7 +446,7 @@ Only if Task 2.2 passes.
 
 ## Chunk 4 (PRs F1-F3): margin-lane pass-through for the corner branch
 
-Spec Phase 4. Each sub-PR keeps every ratchet.
+Spec Phase 4. Each sub-PR keeps every ratchet. Depends on Task 1.6 (the pass-through lane is one more chord in the router's shared-stretch model and is placed by the same loop). Added goal: measure how much a passage shrinks the router's unresolvable set U (185 on the v2 sweep before Phase 4) and ratchet the combined boxed-in count down; if Q-C chose Phase 4 first, Chunk 4 instead runs on v2 geometry and Task 1.5 is re-measured afterwards.
 
 ### Task 4.1 (PR F1): `occupiedCellPassage` pure function
 
@@ -430,6 +475,8 @@ Spec Phase 4. Each sub-PR keeps every ratchet.
 ---
 
 ## Chunk 5 (PRs G1-G3): dead-end stub (user Decision 6)
+
+**Router interaction.** `planStubs`' `nullEdges` input is null-path edges union the router's `unresolvable` edges (Q-A); re-measure the eligible count (464 today, null set only) on that union at the start of this chunk and keep the K6 invariants unchanged.
 
 **Dependency split (user Decision 9).** Chunks 0-4 and Chunk 5 as written below (non-sole-child stubs, about 464 edges today) do NOT depend on #439. A sole-child source (1,952 null edges) becomes stub-eligible only once the retreat feature #439 (a way back to the last fork) has landed; that is Chunk 6 below and must not start before #439 is merged and live-verified. Until then `planStubs` is called with `retreatAvailable: false` and the eligibility rule is exactly as in the spec.
 
@@ -506,6 +553,6 @@ Fill the fixtures with concrete room maps (each `rooms` entry `{ id, kind: 'comb
 
 ## Self-Review
 
-- Spec coverage: Phase 0 (0.1-0.5), 1a/1b (1.1-1.3), 2 (2.1), gate (2.2), 3 (3.1), 4 (4.1-4.4), 5 stub (5.1-5.5), layoutVersion gate (1.3, 5.3, 5.4), containment and property tests (0.2, 0.3, 1.2, 4.3, 5.2), kill criteria K1-K6 as stop rules inside the tasks, interactions with #415 Chunk 5 and #416 (Chunk 2 folds the west part of #416; Chunk 5 of #415 is independent and should land before Chunk 1b, re-measure baselines then).
-- Known depth difference: Chunks 0 and 5 give full test and code; Chunks 1-4 give interfaces, exact tests to write and decision rules, with detailed geometry deliberately derived from the Task 1.1 measurement and a short design note at the start of each Chunk 4 sub-PR (spec says Phase 4 gets "its own plan first"). If Task 1.1 exceeds K2 or Task 2.2 fails, stop and report; do not improvise past a kill criterion.
-- Type consistency: `edgeId` is `${fromRoomId}->${toRoomId}` everywhere; `stubEdges` is `{ [sourceId]: [targetId] }`; `lanes` is `Map<edgeId, Map<"rank,col", { entryPoint, exitPoint }>>`.
+- Spec coverage: Phase 0 (0.1-0.5), 1a (1.1, 1.2), 1b (1.5, 1.6), decision gate (1.3, 1.4), 2 (2.1), gate (2.2), 3 (3.1), 4 (4.1-4.4), 5 stub (5.1-5.5), layoutVersion gate (1.6, 5.3, 5.4), containment and property tests (0.2, 0.3, 1.5, 4.3, 5.2), kill criteria K1-K6 as stop rules inside the tasks, interactions with #415 Chunk 5 and #416 (Chunk 2 folds the west part of #416; Chunk 5 of #415 is independent and should land before Task 1.5, re-measure baselines then).
+- Known depth difference: Chunks 0 and 5 give full test and code; Chunks 1-4 give interfaces, exact tests to write and decision rules, with detailed geometry deliberately derived from the Task 1.1 measurement and a short design note at the start of each Chunk 4 sub-PR (spec says Phase 4 gets "its own plan first"). Task 1.1 exceeded K2 and Task 1.2 exceeded K2' (both measured; user chose the router in Chunk 1 and Task 1.3 gates further work on Q-A to Q-C). If Task 1.5 exceeds K7/K8 or Task 2.2 fails, stop and report; do not improvise past a kill criterion.
+- Type consistency: `edgeId` is `${fromRoomId}->${toRoomId}` everywhere; `stubEdges` is `{ [sourceId]: [targetId] }`; `lanes` is `Map<edgeId, Map<"rank,col", { entryPoint, exitPoint }>>`; `unresolvable` is `[edgeId]`; `blockedCells` is an optional `findCorridorPath` option (a list of "rank,col").
