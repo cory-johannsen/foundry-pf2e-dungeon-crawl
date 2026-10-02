@@ -6,8 +6,8 @@
 
 **Status:** design, 2026-10-01. Spec only: no plan, no code. The user was not
 in the session; every product choice below is a recommendation, and the ones
-that need a human decision are collected in "Open product questions" (the
-spec is written so the recommended answer is the default if nobody answers).
+that needed a human decision were answered on 2026-10-01 and are recorded in
+"Decisions". Plan: `docs/superpowers/plans/2026-10-01-retreat.md`.
 
 ## Problem
 
@@ -46,7 +46,7 @@ and is also the general answer to any dead end.
   rewards and XP already granted stay granted).
 - Letting the party retreat out of an unjudged room (that is Undo's job,
   unchanged) or out of a room that still has a forward move (no "flee
-  anywhere" button; see Q3).
+  anywhere" button; see Decision 3).
 - A general "fast travel" or map-jump feature.
 
 ## Measurements (500-seed sweep)
@@ -96,7 +96,7 @@ A "careless" party that also re-opens doors into rooms it has already
 cleared (merge rooms it can reach from another parent) averages 2.49
 revisits and 2.90 retreats per run and still never gets stuck. So: a
 typical run meets one or two dead ends, a few meet five or more. The
-product consequence is real (see Q1, Q2) and is the reason retreat must be
+product consequence is real (see Decisions 1, 2) and is the reason retreat must be
 cheap and the dead end must feel intended, not punitive.
 
 ## Terms
@@ -191,7 +191,7 @@ walk (they would path through the whole branch).
 
 ### Run state
 
-Added by `createRun` for layoutVersion >= 3 only; absent on every older run.
+Stamped by the precompute step in `dungeon-app.mjs` for layoutVersion >= 3 only; absent on every older run.
 
 | Field | Shape | Meaning |
 | --- | --- | --- |
@@ -276,7 +276,7 @@ Re-locking (`spent(c)` = visited and no open room reachable from c over
 non-stub edges; call the existing `relockDoorFromRoom` for each such edge,
 and filter spent targets out of `unlockDoorsFromRoom`'s `childIds` in
 `resolveCurrentRoom`) is designed as an optional later chunk (R5) and is
-Q5. The soft-lock proof does not depend on it.
+Decision 5. The soft-lock proof does not depend on it.
 
 ### Soft-lock proof
 
@@ -316,7 +316,7 @@ Failure modes the implementation must handle (each has a test):
   `disabled` and the tracker button shows a GM-only "Reset retreat path"
   that rebuilds `retreatPath` as `[room-entry, ...history rooms in order, current]`
   filtered to a valid chain over `layoutEdges`; the run is never blocked on
-  the feature failing. Q6.
+  the feature failing (Decision 6).
 - **GM override as a last resort:** a GM-only "Move party to room..." is NOT
   added (that is a different feature); the existing Abandon remains the
   escape hatch.
@@ -357,14 +357,14 @@ Failure modes the implementation must handle (each has a test):
   together. Retreat is a human/GM (or hosting player) action, never an AI
   decision: the combat-decision agent has no exploration decisions. A table
   where every player is offline AND the GM is the Agent login has nobody to
-  press the button: Q4.
+  press the button: Decision 4 (`autoRetreat`).
 - **Multiplayer, GM-less hosting.** State lives in the `dungeonRuns` world
   setting; only the GM client executes scene effects, a hosting non-GM
   routes through `requestDungeonAction` exactly like `undoRoomEntry`, and the
   broadcast (`decideGmLessBroadcast`) delivers the new state. Two clients
   pressing at once: the second `retreatTo` re-reads and is rejected (above).
 - **Layout version.** `retreatVersion` and `retreatPath` are written only by
-  `createRun` for `layoutVersion >= 3`. A run without `retreatVersion` never
+  the precompute step for `layoutVersion >= 3`. A run without `retreatVersion` never
   shows the feature and never has a sole-child stub (Chunk 7 plans stubs
   only when it stamps `retreatVersion`). Existing runs are ignored, per the
   user's #427 decision.
@@ -384,7 +384,7 @@ any penalty is felt every run, and the module has no exploration clock to
 charge (travel time is flavor only, `reduced_travel_time`/`extra_travel_time`).
 Flavor carries the weight: the rubble line plus "the party turns back".
 Whether to add any cost (e.g. a wandering-monster check, an in-fiction
-time note, a rest-clock tick) is Q1.
+time note, a rest-clock tick) was Decision 1 (answered: none).
 
 ## Interface to #427 Chunk 7 (sole-child stubs)
 
@@ -397,7 +397,7 @@ The exact thing Chunk 7 reads:
   in the #427 plan (`retreatAvailable = false` by default).
 - **In persisted run state:** `state.retreatVersion` (number). The planner
   stamped sole-child stubs only if it also stamps `retreatVersion: 1` in the
-  same `createRun`, so `retreatVersion >= 1` is a precondition of any
+  same precompute, so `retreatVersion >= 1` is a precondition of any
   sole-child entry in `state.stubEdges`. A reader may assert it.
 - **Rule 2 under retreat:** replaced by "the source may have no non-stub
   real child; the dead-end room is handled by `isDeadEnd` + `retreatTargetFor`".
@@ -455,10 +455,10 @@ with the camera, open the sibling door, finish the run.
 | Chunk | Content | Risk |
 | --- | --- | --- |
 | R1 | `scripts/dungeon-retreat.mjs` pure functions + unit tests + the soft-lock property test (against the measurement's stub set). No runtime wiring, no flag. | low, pure |
-| R2 | Run state (`retreatVersion`, `retreatPath`, `stubsOpened`, `retreats`) for layoutVersion >= 3 in `createRun`/precompute; `advanceToRoom`/`undoLastRoomEntry` maintain `retreatPath`; `retreatTo`, `markStubOpened`. | low-medium, touches progression |
+| R2 | Run state (`retreatVersion`, `retreatPath`, `stubsOpened`, `retreats`) for layoutVersion >= 3 in the precompute step; `advanceToRoom`/`undoLastRoomEntry` maintain `retreatPath`; `retreatTo`, `markStubOpened`. | low-medium, touches progression |
 | R3 | `handleDungeonDoorOpened`: revisit branch and stub-door branch; `retreatToFork` scene function; relay action. | medium, touches the door hook |
 | R4 | Tracker button + template + lang strings + chat card. | low |
-| R5 | Optional: re-lock spent branches (Q5). | medium |
+| R5 | Optional: re-lock spent branches (Decision 5, not scheduled). | medium |
 | (#427 Chunk 7) | Sole-child stubs: `retreatAvailable` at precompute. Starts after R1-R4 are merged and the user live-verifies. | medium |
 
 R1-R4 can merge before #427's stubs exist (v3 may not exist yet either:
@@ -472,7 +472,7 @@ until then). Each PR bumps `module.json` per CLAUDE.md; R2-R3 also touch
 - **Frequency.** 69% of runs meet a dead end, 1.4 per run on average, up
   to 7. If dead ends feel like wasted time, the fix is a design one (cap
   the stub count per dungeon, or restrict sole-child stubs to rooms past a
-  fork), decided in Chunk 7 with the real numbers, not here. Q2.
+  fork), decided in Chunk 7 with the real numbers, not here (Decision 2).
 - **Revisits.** v1 allows walking into a spent branch (one wasted door
   and retreat). Cheap, but could annoy; R5 removes it.
 - **Teleport semantics.** `moveTokensToRoom` is a plain update today; the
@@ -502,30 +502,33 @@ until then). Each PR bumps `module.json` per CLAUDE.md; R2-R3 also touch
 - Whether stubs/dead-ends interact with `roomsToEagerlyBuild` is covered by
   #427's own touchpoint list; retreat adds no build dependency.
 
-## Open product questions
+## Decisions (user, 2026-10-01)
 
-Defaults are the recommended answer; they apply if nobody answers.
+The user accepted the recommended default for every question that was open
+in the first draft of this spec.
 
-- **Q1: Does retreat cost anything?** Default: no (see "Cost of retreat").
-  Alternatives: a wandering-monster check, an in-fiction time tick, a
-  one-time Perception/Survival check to find the way, a morale/stress note.
-- **Q2: How often should a dead end happen?** Today's rule would stub 78% of
-  sole-child null edges (about 3 per dungeon, 69% of runs). Default: accept
-  that, decide a cap in Chunk 7 after live play. Alternative: cap at N per
-  dungeon now.
-- **Q3: Should the GM (or party) be able to turn back from a room that is NOT
-  a dead end?** Default: no (Undo covers the unjudged case; a free
-  anywhere-retreat undermines the branching choice). Alternative: a
-  GM-only "Turn back" always available on a judged room.
-- **Q4: Auto-retreat for tables with nobody to click?** (All players
-  offline and an Agent GM, or a GM who wants no prompt.) Default: manual
-  only. Alternative: a world setting `autoRetreat` (default off) so the
-  GM client retreats right after the discovery card.
-- **Q5: Re-lock spent branches?** Default: no in v1 (revisits are cheap
-  and safe). Alternative: R5.
-- **Q6: Repair control for a corrupt `retreatPath`?** Default: GM-only
-  "Reset retreat path" in the tracker. Alternative: silent auto-rebuild on
-  read.
-- **Q7: Flavor text.** Default: the rubble line from #427 on opening, then
-  "The way is choked with rubble. The party turns back." No collapse
-  variant (Decision 12). Wording is the user's.
+1. **No cost.** Retreat costs nothing (no check, resource, wandering
+   monster, XP or clock). See "Cost of retreat".
+2. **Frequency accepted.** About 3 stubs per dungeon (69% of runs meet a
+   dead end) is accepted for now; whether to cap the stub count is decided
+   in #427 Chunk 7 after live play, not here.
+3. **Dead ends only.** No retreat from a room that still has a forward move
+   (Undo covers the unjudged case).
+4. **Manual, with an optional auto mode.** The default is the button. A new
+   world setting `autoRetreat` (client-independent, GM-scoped, default
+   `false`) makes the GM client retreat immediately after the discovery
+   card when `canRetreat` is ok. The setting is in scope (Chunk R3/R4).
+5. **No re-locking of spent branches in v1.** R5 stays optional and is not
+   scheduled.
+6. **Repair control.** A GM-only "Reset retreat path" tracker button
+   rebuilds a missing or inconsistent `retreatPath`.
+7. **Flavor.** The #427 rubble line on opening, then "The way is choked with
+   rubble. The party turns back." No collapse variant (Decision 12).
+
+Implementation notes found while planning (precision, not new product
+choices): the run-state fields are stamped in the precompute step of
+`scripts/ui/dungeon-app.mjs` next to `layoutVersion` (that step rebuilds the
+state `createRun` returned, and `createRun` does not know the layout version),
+not inside `createRun`; and `moveTokensToRoom` is a plain
+`updateEmbeddedDocuments` today, so retreat adds a `teleport` option to it
+rather than relying on the #141/#470 combat-movement fix.
