@@ -30350,5 +30350,125 @@
     "name": "Bone Croupier",
     "level": 5,
     "art": "bone-croupier-lob.webp"
+  },
+  {
+    "id": "celestial_menagerie_bruiser",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "7YJHi9niIKpFXXrf",
+    "name": "Celestial Menagerie Bruiser",
+    "level": 8,
+    "art": "celestial-menagerie-bruiser.webp"
+  },
+  {
+    "id": "cat_sith",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "7p4RWS26W5k6vCkH",
+    "name": "Cat Sith",
+    "level": 6,
+    "art": "cat-sith.webp"
+  },
+  {
+    "id": "bitter_truth_bandit",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "88VcnxbKPF2QkPiF",
+    "name": "Bitter Truth Bandit",
+    "level": 6,
+    "art": "bitter-truth-bandit.webp"
+  },
+  {
+    "id": "gluttondark_babau",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "9cwg4cOgvFqtxIQ1",
+    "name": "Gluttondark Babau",
+    "level": 7,
+    "art": "gluttondark-babau.webp"
+  },
+  {
+    "id": "muurfeli",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "B2jQKaAXO7LofE7L",
+    "name": "Muurfeli",
+    "level": 16,
+    "art": "muurfeli.webp"
+  },
+  {
+    "id": "ammut",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "B9fl34W1jENDoYqc",
+    "name": "Ammut",
+    "level": 18,
+    "art": "ammut.webp"
+  },
+  {
+    "id": "cavnakash",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "BBamjhcpvwXGhlbM",
+    "name": "Cavnakash",
+    "level": 5,
+    "art": "cavnakash.webp"
+  },
+  {
+    "id": "tallow_ooze",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "BORxkpaFBSCyB1f1",
+    "name": "Tallow Ooze",
+    "level": 11,
+    "art": "tallow-ooze.webp"
+  },
+  {
+    "id": "dyzallin_s_golem",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "BsnU2Hf4a3MuXVPn",
+    "name": "Dyzallin's Golem",
+    "level": 18,
+    "art": "dyzallin-s-golem.webp"
+  },
+  {
+    "id": "gahlepod",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "C07vwQbz6mKwLRGY",
+    "name": "Gahlepod",
+    "level": 7,
+    "art": "gahlepod.webp"
+  },
+  {
+    "id": "tanessa_fleer",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "CNO54boXvXg7xSP6",
+    "name": "Tanessa Fleer",
+    "level": 9,
+    "art": "tanessa-fleer.webp"
+  },
+  {
+    "id": "runkrunk",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "CQ2682vd4bUtvKQX",
+    "name": "Runkrunk",
+    "level": 10,
+    "art": "runkrunk.webp"
+  },
+  {
+    "id": "thessekka",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "CYXoXHr9BoPInIbe",
+    "name": "Thessekka",
+    "level": 14,
+    "art": "thessekka.webp"
+  },
+  {
+    "id": "shoony_tiller",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "D0laesU2eB1VOZTX",
+    "name": "Shoony Tiller",
+    "level": 0,
+    "art": "shoony-tiller.webp"
+  },
+  {
+    "id": "headless_xulgath",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "DJyAXPHQy7OUUw00",
+    "name": "Headless Xulgath",
+    "level": 11,
+    "art": "headless-xulgath.webp"
   }
 ]
