@@ -29230,5 +29230,157 @@
     "name": "Bone Gladiator",
     "level": 7,
     "art": "bone-gladiator.webp"
+  },
+  {
+    "id": "deadtide_skeleton_guard",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "ro9oVsu1cuCP8OQH",
+    "name": "Deadtide Skeleton Guard",
+    "level": -1,
+    "art": "deadtide-skeleton-guard.webp"
+  },
+  {
+    "id": "augrael",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "saEUzIgUtV2AzKhl",
+    "name": "Augrael",
+    "level": 3,
+    "art": "augrael.webp"
+  },
+  {
+    "id": "aller_rosk",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "tOL4rWj2oYWZ4ow2",
+    "name": "Aller Rosk",
+    "level": 5,
+    "art": "aller-rosk.webp"
+  },
+  {
+    "id": "voidbracken_chuul",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "tXfiVIThQlBT6B1H",
+    "name": "Voidbracken Chuul",
+    "level": 9,
+    "art": "voidbracken-chuul.webp"
+  },
+  {
+    "id": "carman_rajani",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "tYzzLLUv9WBhHhQY",
+    "name": "Carman Rajani",
+    "level": 6,
+    "art": "carman-rajani.webp"
+  },
+  {
+    "id": "urdefhan_death_scout",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "tZCFmJonHkhGg1Vs",
+    "name": "Urdefhan Death Scout",
+    "level": 6,
+    "art": "urdefhan-death-scout.webp"
+  },
+  {
+    "id": "gulzash",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "uWn6DCzthgUt97d7",
+    "name": "Gulzash",
+    "level": 4,
+    "art": "gulzash.webp"
+  },
+  {
+    "id": "azvalvigander",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "uyGxJOnJ1gYwOpy5",
+    "name": "Azvalvigander",
+    "level": 3,
+    "art": "azvalvigander.webp"
+  },
+  {
+    "id": "seugathi_servant",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "v9B0hB5sm4YZxebY",
+    "name": "Seugathi Servant",
+    "level": 6,
+    "art": "seugathi-servant.webp"
+  },
+  {
+    "id": "child_of_belcorra",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "vHei0y2PKlXfxQ8Z",
+    "name": "Child of Belcorra",
+    "level": 5,
+    "art": "child-of-belcorra.webp"
+  },
+  {
+    "id": "seugathi_reality_warper",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "vS1YISLmSnkNotkL",
+    "name": "Seugathi Reality Warper",
+    "level": 9,
+    "art": "seugathi-reality-warper.webp"
+  },
+  {
+    "id": "hellforge_barbazu",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "vX4SBXIICKfrM4pF",
+    "name": "Hellforge Barbazu",
+    "level": 5,
+    "art": "hellforge-barbazu.webp"
+  },
+  {
+    "id": "nhakazarin",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "w2N0foudBFcRCaHK",
+    "name": "Nhakazarin",
+    "level": 5,
+    "art": "nhakazarin.webp"
+  },
+  {
+    "id": "chafkhem",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "x0NDgH3EMLTLh02r",
+    "name": "Chafkhem",
+    "level": 8,
+    "art": "chafkhem.webp"
+  },
+  {
+    "id": "flickerwisp",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "x3eOZvKUginj5Blh",
+    "name": "Flickerwisp",
+    "level": 2,
+    "art": "flickerwisp.webp"
+  },
+  {
+    "id": "boss_skrawng",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "xAfkUwJYq5JLmSrW",
+    "name": "Boss Skrawng",
+    "level": 1,
+    "art": "boss-skrawng.webp"
+  },
+  {
+    "id": "jaul_s_wolf",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "xj1Qn0VA4H4aKSjW",
+    "name": "Jaul's Wolf",
+    "level": 4,
+    "art": "jaul-s-wolf.webp"
+  },
+  {
+    "id": "dhuthorex_sage",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "zkiaelYxDB1ttlCI",
+    "name": "Dhuthorex Sage",
+    "level": 11,
+    "art": "dhuthorex-sage.webp"
+  },
+  {
+    "id": "mulventok",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "zsgW8hHm3JfZUgwF",
+    "name": "Mulventok",
+    "level": 7,
+    "art": "mulventok.webp"
   }
 ]
