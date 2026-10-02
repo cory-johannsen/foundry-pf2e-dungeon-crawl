@@ -29510,5 +29510,125 @@
     "name": "Blood Boar",
     "level": 6,
     "art": "boar.webp"
+  },
+  {
+    "id": "laslunn",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "9oNwQuwKGUuG9G9g",
+    "name": "Laslunn",
+    "level": 13,
+    "art": "laslunn.webp"
+  },
+  {
+    "id": "promise_guard",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "Afq4Osh3W1k9Bcsh",
+    "name": "Promise Guard",
+    "level": 17,
+    "art": "promise-guard.webp"
+  },
+  {
+    "id": "skeletal_hellknight",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "Aii18rhNPMLW4Pxh",
+    "name": "Skeletal Hellknight",
+    "level": 2,
+    "art": "skeletal-hellknight.webp"
+  },
+  {
+    "id": "immortal_ichor",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "AtiN3EsRpHn5qbuv",
+    "name": "Immortal Ichor",
+    "level": 15,
+    "art": "immortal-ichor.webp"
+  },
+  {
+    "id": "king_harral",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "C4PD4p4I9byZ8yp6",
+    "name": "King Harral",
+    "level": 14,
+    "art": "king-harral.webp"
+  },
+  {
+    "id": "xevalorg",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "CJVRPFTKuJroiD5C",
+    "name": "Xevalorg",
+    "level": 13,
+    "art": "xevalorg.webp"
+  },
+  {
+    "id": "precentor",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "CmbcgWZgOSDmo2Pm",
+    "name": "Precentor",
+    "level": 16,
+    "art": "precentor.webp"
+  },
+  {
+    "id": "vaklish",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "Ejxngh2tHFseZQHW",
+    "name": "Vaklish",
+    "level": 12,
+    "art": "vaklish.webp"
+  },
+  {
+    "id": "mercenary_sailor",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "El7eSPV9aRi98Ufy",
+    "name": "Mercenary Sailor",
+    "level": 5,
+    "art": "mercenary-sailor.webp"
+  },
+  {
+    "id": "ilgreth",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "Ev930dfPpwCR8Zju",
+    "name": "Ilgreth",
+    "level": 20,
+    "art": "ilgreth.webp"
+  },
+  {
+    "id": "dragonstorm_fire_giant",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "F9BHPV16N4eEL0TP",
+    "name": "Dragonstorm Fire Giant",
+    "level": 18,
+    "art": "dragonstorm-fire-giant.webp"
+  },
+  {
+    "id": "talamira",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "Fe1lYhCUY4UO4Plw",
+    "name": "Talamira",
+    "level": 13,
+    "art": "talamira.webp"
+  },
+  {
+    "id": "grauladon",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "H0pP1GqpMfX1WEiQ",
+    "name": "Grauladon",
+    "level": 2,
+    "art": "grauladon.webp"
+  },
+  {
+    "id": "weathered_wail",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "H7NO4Q7ctHnfGKeJ",
+    "name": "Weathered Wail",
+    "level": 17,
+    "art": "weathered-wail.webp"
+  },
+  {
+    "id": "ingnovim_s_assistant",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "Ig1joUmSHSNL6QVU",
+    "name": "Ingnovim's Assistant",
+    "level": 17,
+    "art": "ingnovim-s-assistant.webp"
   }
 ]
