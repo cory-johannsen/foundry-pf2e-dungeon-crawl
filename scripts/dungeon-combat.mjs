@@ -697,6 +697,24 @@ function combatantOpponents(combat, combatant) {
   );
 }
 
+/** #410: true for a player character who is currently unconscious or dying.
+ * Monsters/NPCs are never "downed" for targeting purposes. */
+function isDownedCharacter(combatant) {
+  if (combatant.actor?.type !== "character") return false;
+  return Array.from(combatant.actor?.conditions ?? []).some(
+    (c) => c.slug === "unconscious" || c.slug === "dying",
+  );
+}
+
+/** `combatantOpponents` minus downed player characters -- who an AI may
+ * choose to attack/target. Physical presence (blocking, landing) must keep
+ * using the unfiltered `combatantOpponents`. */
+function combatantTargets(combat, combatant) {
+  return combatantOpponents(combat, combatant).filter(
+    (c) => !isDownedCharacter(c),
+  );
+}
+
 /** Every other still-alive combatant on `combatant`'s own side — the
  * mirror image of `combatantOpponents`, added for #126's ally-aware area
  * spell placement scoring (which opponents an area candidate catches is
@@ -1424,7 +1442,7 @@ export function findReactiveStrikeOpportunities(
   gridDistanceFt,
 ) {
   const opportunities = [];
-  for (const reactor of combatantOpponents(combat, mover)) {
+  for (const reactor of combatantTargets(combat, mover)) {
     if (!reactor.getFlag(MODULE_ID, "agentControlled")) continue;
     if (getReactionUsed(combat, reactor.id, combat.round)) continue;
     const item = (reactor.actor?.items ?? []).find(isReactiveStrikeInScope);
@@ -1868,7 +1886,7 @@ function nearestOpponent(combat, combatant) {
   const me = combatant.token;
   let best = null;
   let bestDistance = Infinity;
-  for (const opponent of combatantOpponents(combat, combatant)) {
+  for (const opponent of combatantTargets(combat, combatant)) {
     const distance = chebyshevSquares(me, opponent.token, gridSize);
     if (distance < bestDistance) {
       bestDistance = distance;
@@ -2882,7 +2900,7 @@ export async function getPendingAgentTurn(combat) {
   const gridSize = combat.scene?.grid?.size ?? 100;
   const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
 
-  const rawOpponents = combatantOpponents(combat, combatant);
+  const rawOpponents = combatantTargets(combat, combatant);
   const rawAllies = combatantAllies(combat, combatant);
   // #91: every opponent-facing ranged/spell target-eligibility check below
   // needs "is there actually a clear shot," not just "is it in range" — a
