@@ -70,7 +70,7 @@ import {
   retreatTo,
   markStubOpened,
 } from "./dungeon-runner.mjs";
-import { canRetreat, hasNoWayForward } from "./dungeon-retreat.mjs";
+import { canRetreat, hasNoWayForward, roomDisplayLabel } from "./dungeon-retreat.mjs";
 import { depthBiasFor } from "./dungeon-deck.mjs";
 import { startCombatForRoom } from "./dungeon-combat.mjs";
 import { playDoorSound } from "./dungeon-sound.mjs";
@@ -1887,7 +1887,7 @@ export async function announceRetreatIfAvailable(
     await doRetreat(scene.id);
     return;
   }
-  const target = state.rooms?.[verdict.targetId]?.name ?? verdict.targetId;
+  const target = roomDisplayLabel(state, verdict.targetId, game.i18n);
   // #585: a walled dead end has no rubble; its card just offers the turn back.
   const walled = (state.stubEdges?.[state.currentRoomId] ?? []).length === 0;
   const message = game.i18n.format(
@@ -1964,7 +1964,7 @@ export async function retreatToFork(
   await ChatMessage.create({
     content: game.i18n.format(
       walled ? "PF2EDC.Dungeon.Retreat.TurnedNoWay" : "PF2EDC.Dungeon.Retreat.Turned",
-      { target: state.rooms[target]?.name ?? target },
+      { target: roomDisplayLabel(state, target, game.i18n) },
     ),
   });
   return { ok: true };
