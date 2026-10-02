@@ -32190,5 +32190,125 @@
     "name": "Pelmo",
     "level": -1,
     "art": "pelmo.webp"
+  },
+  {
+    "id": "gref",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "pE5GxoB1FtXBqnF7",
+    "name": "Gref",
+    "level": 2,
+    "art": "gref.webp"
+  },
+  {
+    "id": "iroran_skeleton",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "pK1tlsgkmzkaaCe5",
+    "name": "Iroran Skeleton",
+    "level": 11,
+    "art": "iroran-skeleton.webp"
+  },
+  {
+    "id": "minchgorm",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "pTkvg8OITTl6lsJY",
+    "name": "Minchgorm",
+    "level": 18,
+    "art": "minchgorm.webp"
+  },
+  {
+    "id": "garrote_master_assassin",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "pfHOwcITyC4gdCVu",
+    "name": "Garrote Master Assassin",
+    "level": 16,
+    "art": "garrote-master-assassin.webp"
+  },
+  {
+    "id": "alchemist_aspirant",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "phkvSUK6WXxgJOoC",
+    "name": "Alchemist Aspirant",
+    "level": 10,
+    "art": "alchemist-aspirant.webp"
+  },
+  {
+    "id": "ulressia_the_blessed",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "q61A6EsMnDDtnqxH",
+    "name": "Ulressia The Blessed",
+    "level": 19,
+    "art": "ulressia-the-blessed.webp"
+  },
+  {
+    "id": "overdrive_imentesh",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "qSL6PtsHPekEEEjx",
+    "name": "Overdrive Imentesh",
+    "level": 17,
+    "art": "overdrive-imentesh.webp"
+  },
+  {
+    "id": "agradaemon",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "qUhxXE2yT0qwSJQm",
+    "name": "Agradaemon",
+    "level": 19,
+    "art": "agradaemon.webp"
+  },
+  {
+    "id": "bolar_of_stonemoor",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "qY1NrXKmL0y18qoz",
+    "name": "Bolar Of Stonemoor",
+    "level": -1,
+    "art": "bolar-of-stonemoor.webp"
+  },
+  {
+    "id": "grimwold",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "r3j5KEvULFP3fZS7",
+    "name": "Grimwold",
+    "level": 14,
+    "art": "grimwold.webp"
+  },
+  {
+    "id": "graveknight_of_kharnas",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "rGTq4qItRB5H7nEk",
+    "name": "Graveknight Of Kharnas",
+    "level": 17,
+    "art": "graveknight-of-kharnas.webp"
+  },
+  {
+    "id": "fayati_alummur",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "rM6ix6XTroJod3Vr",
+    "name": "Fayati Alummur",
+    "level": 8,
+    "art": "fayati-alummur.webp"
+  },
+  {
+    "id": "grinlowe",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "rXePwiS4iecWNMGU",
+    "name": "Grinlowe",
+    "level": 16,
+    "art": "grinlowe.webp"
+  },
+  {
+    "id": "olansa_terimor",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "rm0iJOMwruWSE93I",
+    "name": "Olansa Terimor",
+    "level": 23,
+    "art": "olansa-terimor.webp"
+  },
+  {
+    "id": "starwatch_commando",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "rsKf8ixrl3yBq1gb",
+    "name": "Starwatch Commando",
+    "level": 11,
+    "art": "starwatch-commando.webp"
   }
 ]
