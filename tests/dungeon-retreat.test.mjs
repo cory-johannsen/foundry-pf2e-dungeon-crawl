@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   RETREAT_VERSION, spentRooms, openChildren, isDeadEnd, retreatTargetFor, canRetreat,
-  withEntry, withUndoneEntry, withRetreat, withStubOpened, rebuildRetreatPath,
+  withEntry, withUndoneEntry, withRetreat, withStubOpened, rebuildRetreatPath, retreatStateFor,
 } from '../scripts/dungeon-retreat.mjs';
 
 // entry -> f ; f -> a, b ; a -> d (dead end: its only forward edge is a stub to g) ; b -> g ; g goal
@@ -107,5 +107,13 @@ describe('reducers', () => {
   it('rebuildRetreatPath gives a valid chain entry..current, or null', () => {
     expect(rebuildRetreatPath(fixture({ retreatPath: undefined }))).toEqual(['room-entry', 'f', 'a', 'd']);
     expect(rebuildRetreatPath(fixture({ currentRoomId: 'nowhere' }))).toBe(null);
+  });
+});
+
+describe('retreatStateFor (#439 R2)', () => {
+  it('stamps only layoutVersion >= 3', () => {
+    expect(retreatStateFor(2)).toEqual({});
+    expect(retreatStateFor(undefined)).toEqual({});
+    expect(retreatStateFor(3)).toEqual({ retreatVersion: 1, retreatPath: ['room-entry'], stubsOpened: {}, retreats: [] });
   });
 });

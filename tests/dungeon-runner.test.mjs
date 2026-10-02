@@ -35,6 +35,9 @@ import {
   replaceRunState,
   effectiveMarchingOrder,
   setMarchingOrder,
+  retreatTo,
+  markStubOpened,
+  resetRetreatPath,
 } from "../scripts/dungeon-runner.mjs";
 import { registerGenerator } from '../scripts/generator-registry.mjs';
 import { DefaultGenerator } from '../scripts/default-generator.mjs';
@@ -2504,5 +2507,83 @@ describe("replaceRunState", () => {
     await replaceRunState("s1", { seed: "fresh" }, { settingsRef });
     expect(getRunState("s1", { settingsRef })).toEqual({ seed: "fresh" });
     expect(getRunState("s2", { settingsRef })).toBe(other);
+  });
+});
+
+function v3State(over = {}) {
+  const rooms = Object.fromEntries(['room-entry', 'f', 'a', 'b', 'd', 'g'].map((id) => [id, { id, isGoal: id === 'g', kind: 'combat' }]));
+  return {
+    rooms, edges: { 'room-entry': ['f'], f: ['a', 'b'], a: ['d'], d: [], b: ['g'], g: [] },
+    hiddenEdges: {}, stubEdges: { d: ['g'] }, layoutVersion: 3, retreatVersion: 1,
+    history: [{ roomId: 'f' }, { roomId: 'a' }, { roomId: 'd' }],
+    currentRoomId: 'd', retreatPath: ['room-entry', 'f', 'a', 'd'],
+    stubsOpened: {}, retreats: [], completed: false, lastAutoEntry: null, ...over,
+  };
+}
+
+describe('retreat (#439)', () => {
+  it('advanceToRoom pushes retreatPath on a v3 run', async () => {
+    const settingsRef = makeSettingsStub();
+    await replaceRunState('s', v3State({ currentRoomId: 'f', retreatPath: ['room-entry', 'f'], history: [{ roomId: 'f' }] }), { settingsRef });
+    const { state } = await advanceToRoom({ sceneId: 's', roomId: 'b' }, { settingsRef });
+    expect(state.retreatPath).toEqual(['room-entry', 'f', 'b']);
+  });
+  it('advanceToRoom leaves a legacy run without retreat fields', async () => {
+    const settingsRef = makeSettingsStub();
+    const legacy = v3State({ currentRoomId: 'f', history: [{ roomId: 'f' }], layoutVersion: 2 });
+    for (const k of ['retreatVersion', 'retreatPath', 'stubsOpened', 'retreats']) delete legacy[k];
+    await replaceRunState('s', legacy, { settingsRef });
+    const { state } = await advanceToRoom({ sceneId: 's', roomId: 'b' }, { settingsRef });
+    expect('retreatPath' in state).toBe(false);
+    expect(state.lastAutoEntry).toMatchObject({ roomId: 'b', fromRoomId: 'f' });
+  });
+  it('a revisit (already judged) sets lastAutoEntry to null', async () => {
+    const settingsRef = makeSettingsStub();
+    await replaceRunState('s', v3State({ currentRoomId: 'f', retreatPath: ['room-entry', 'f'], history: [{ roomId: 'f' }, { roomId: 'a' }] }), { settingsRef });
+    const { state } = await advanceToRoom({ sceneId: 's', roomId: 'a' }, { settingsRef });
+    expect(state.lastAutoEntry).toBe(null);
+  });
+  it('undoLastRoomEntry pops the path', async () => {
+    const settingsRef = makeSettingsStub();
+    await replaceRunState('s', v3State({ currentRoomId: 'f', retreatPath: ['room-entry', 'f'], history: [{ roomId: 'f' }] }), { settingsRef });
+    await advanceToRoom({ sceneId: 's', roomId: 'b' }, { settingsRef });
+    const { state } = await undoLastRoomEntry({ sceneId: 's' }, { settingsRef });
+    expect(state.retreatPath).toEqual(['room-entry', 'f']);
+  });
+  it('retreatTo refuses before the stub door was opened, works after, and is idempotent under a double call', async () => {
+    const settingsRef = makeSettingsStub();
+    await replaceRunState('s', v3State(), { settingsRef });
+    expect((await retreatTo({ sceneId: 's' }, { settingsRef })).reason).toBe('undiscovered');
+    await markStubOpened({ sceneId: 's', sourceId: 'd', targetId: 'g' }, { settingsRef });
+    const first = await retreatTo({ sceneId: 's' }, { settingsRef });
+    expect(first).toMatchObject({ ok: true, fromRoomId: 'd', toRoomId: 'f' });
+    expect(first.state.retreatPath).toEqual(['room-entry', 'f']);
+    const second = await retreatTo({ sceneId: 's' }, { settingsRef });
+    expect(second.ok).toBe(false);
+    expect(getRunState('s', { settingsRef }).retreats).toHaveLength(1);
+  });
+  it('retreatTo refuses with combatActive and on a pre-v3 run, changing nothing', async () => {
+    const settingsRef = makeSettingsStub();
+    await replaceRunState('s', v3State({ stubsOpened: { 'd->g': true } }), { settingsRef });
+    expect((await retreatTo({ sceneId: 's' }, { settingsRef, combatActive: true })).reason).toBe('combat');
+    expect(getRunState('s', { settingsRef }).currentRoomId).toBe('d');
+    await replaceRunState('s', v3State({ retreatVersion: undefined }), { settingsRef });
+    expect((await retreatTo({ sceneId: 's' }, { settingsRef })).reason).toBe('disabled');
+  });
+  it('markStubOpened is idempotent', async () => {
+    const settingsRef = makeSettingsStub();
+    await replaceRunState('s', v3State(), { settingsRef });
+    await markStubOpened({ sceneId: 's', sourceId: 'd', targetId: 'g' }, { settingsRef });
+    const s = await markStubOpened({ sceneId: 's', sourceId: 'd', targetId: 'g' }, { settingsRef });
+    expect(s.stubsOpened).toEqual({ 'd->g': true });
+  });
+  it('resetRetreatPath rebuilds a missing path and refuses an unreachable current room', async () => {
+    const settingsRef = makeSettingsStub();
+    await replaceRunState('s', v3State({ retreatPath: undefined }), { settingsRef });
+    const r = await resetRetreatPath({ sceneId: 's' }, { settingsRef });
+    expect(r.ok).toBe(true);
+    expect(r.state.retreatPath).toEqual(['room-entry', 'f', 'a', 'd']);
+    await replaceRunState('s', v3State({ currentRoomId: 'nowhere' }), { settingsRef });
+    expect((await resetRetreatPath({ sceneId: 's' }, { settingsRef })).ok).toBe(false);
   });
 });
