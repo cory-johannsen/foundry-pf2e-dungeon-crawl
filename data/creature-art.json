@@ -33078,5 +33078,125 @@
     "name": "Cleansed Cultist",
     "level": 6,
     "art": "cleansed-cultist.webp"
+  },
+  {
+    "id": "numerian_guthallah",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "UqUj1IF3vCFuXYqb",
+    "name": "Numerian Guthallah",
+    "level": 19,
+    "art": "numerian-guthallah.webp"
+  },
+  {
+    "id": "cursed_guardian",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "V7FoP8iIcehuiF20",
+    "name": "Cursed Guardian",
+    "level": 4,
+    "art": "cursed-guardian.webp"
+  },
+  {
+    "id": "quintessa_maray",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "VEWrS5u71szMrhs4",
+    "name": "Quintessa Maray",
+    "level": 11,
+    "art": "quintessa-maray.webp"
+  },
+  {
+    "id": "general_avinash_jurrg",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "VSffsyt5RONB4k2U",
+    "name": "General Avinash Jurrg",
+    "level": 14,
+    "art": "general-avinash-jurrg.webp"
+  },
+  {
+    "id": "lintwerth",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "WGHV95WkNnlY70Sn",
+    "name": "Lintwerth",
+    "level": 11,
+    "art": "lintwerth.webp"
+  },
+  {
+    "id": "freshly_bloomed_basilisk",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "WJ0bMCZUHJVwKYG1",
+    "name": "Freshly Bloomed Basilisk",
+    "level": 9,
+    "art": "freshly-bloomed-basilisk.webp"
+  },
+  {
+    "id": "svetlana",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "WmSZELnHCZ9g9Nq2",
+    "name": "Svetlana",
+    "level": 1,
+    "art": "svetlana.webp"
+  },
+  {
+    "id": "brush_thylacine",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "Wyqsf3qDt7PqQ8OM",
+    "name": "Brush Thylacine",
+    "level": 2,
+    "art": "brush-thylacine.webp"
+  },
+  {
+    "id": "imeckus_stroon",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "XydYK1C7RFDqKine",
+    "name": "Imeckus Stroon",
+    "level": 12,
+    "art": "imeckus-stroon.webp"
+  },
+  {
+    "id": "ilora_nuski",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "XzFifthQr0V5nEJe",
+    "name": "Ilora Nuski",
+    "level": 12,
+    "art": "ilora-nuski.webp"
+  },
+  {
+    "id": "jaggedbriar_hag",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "Y9N8MaTYupFhCUuN",
+    "name": "Jaggedbriar Hag",
+    "level": 7,
+    "art": "jaggedbriar-hag.webp"
+  },
+  {
+    "id": "akiros_ismort",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "YFnWOu9edWhj6vV6",
+    "name": "Akiros Ismort",
+    "level": 3,
+    "art": "akiros-ismort.webp"
+  },
+  {
+    "id": "ntavi",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "Ypxj2FdUPQqpWPf3",
+    "name": "Ntavi",
+    "level": 6,
+    "art": "ntavi.webp"
+  },
+  {
+    "id": "lickweed",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "ZDt1rLh1VUFnHj5S",
+    "name": "Lickweed",
+    "level": 4,
+    "art": "lickweed.webp"
+  },
+  {
+    "id": "kundal",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "ZGVQcWl03kBIStS0",
+    "name": "Kundal",
+    "level": 7,
+    "art": "kundal.webp"
   }
 ]
