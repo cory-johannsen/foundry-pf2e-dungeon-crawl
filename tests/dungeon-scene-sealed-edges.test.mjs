@@ -4,7 +4,7 @@
 // the co-parent's room; the co-parent's own cell-margin wall (same line as the merge room's north face) then
 // covers the second parent's door. Ratchets only fall; the acceptance target is 0 (see the todo).
 import { describe, it, expect } from 'vitest';
-import { buildSweepScene, sealedEdgeReport } from './helpers/scene-oracle.mjs';
+import { buildSweepScene, sealedEdgeReport, corridorLineBlockers } from './helpers/scene-oracle.mjs';
 
 const SEEDS = 200;
 // layoutVersion 3 (shipped), measured over sweep-0..199. v2 for reference: 737 / 491 / 13 / 497 / 100 / 78.
@@ -49,6 +49,30 @@ describe('scene oracle: sealed edges and reachability (#490, layoutVersion 3)', 
     expect(t.rooms).toBeLessThanOrEqual(V3_UNREACHABLE_ROOMS);
     expect(t.dungeons).toBeLessThanOrEqual(V3_DUNGEONS_WITH_UNREACHABLE);
     expect(t.goal).toBeLessThanOrEqual(V3_GOAL_UNREACHABLE);
+  }, 180000);
+
+  // Why "cut an opening in the co-parent's margin wall" is NOT a fix: the gate-held fallback corridor is a
+  // door-to-door L drawn through other rooms' cells. Its center line crosses ~13 solid walls on average (other
+  // rooms' cell-margin walls, other corridors' walls, and, for ~43%, a room's own enclosure walls). Unsealing the
+  // door alone leaves every one of these edges unwalkable. If a fix ever makes the line walkable this test must
+  // be flipped to the new numbers (never loosened without that).
+  it('documents that no gate-held fallback corridor line is walkable end to end (unsealing the door is not enough)', async () => {
+    let edges = 0;
+    let walkable = 0;
+    let withEnclosure = 0;
+    for (let i = 0; i < SEEDS; i += 1) {
+      const { layout, scene } = await buildSweepScene(i, 3);
+      const r = sealedEdgeReport(layout, scene);
+      for (const e of r.sealedEdges.filter((x) => !x.hidden && x.cause === 'noPathGateHeld')) {
+        const blockers = corridorLineBlockers(scene, e);
+        edges += 1;
+        if (!blockers.length) walkable += 1;
+        if (blockers.some((b) => b.kind === 'EnclosureWall')) withEnclosure += 1;
+      }
+    }
+    expect(edges).toBe(V3_SEALED_GATE_HELD);
+    expect(walkable).toBe(0);
+    expect(withEnclosure).toBe(197);
   }, 180000);
 
   it.todo('target: 0 sealed real edges and 0 goal-unreachable dungeons over 500 seeds (needs the #490 routing fix)');

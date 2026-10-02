@@ -151,3 +151,44 @@ export function sealedEdgeReport(layout, scene) {
   const unreachable = Object.keys(layout.rooms).filter((r) => !seen.has(r) && !layout.hiddenRooms.includes(r));
   return { sealedDoors: sealedDoorSet.size, sealedEdges, unreachable, goalReachable: seen.has('room-goal') };
 }
+
+const doorMid = (d) => ({ x: (d.c[0] + d.c[2]) / 2, y: (d.c[1] + d.c[3]) / 2, horizontal: d.c[1] === d.c[3] });
+
+// Does the axis-aligned wall `w` properly cross the axis-aligned segment p-q? Touching an end of the segment
+// (the door the line starts or ends on) does not count; the center lines run 50px off every 100px grid line, so
+// a wall is never collinear with them.
+function wallCrossesSegment(p, q, w) {
+  const [a, b, c, e] = w.c;
+  const [wx0, wx1, wy0, wy1] = [Math.min(a, c), Math.max(a, c), Math.min(b, e), Math.max(b, e)];
+  if (p.x === q.x) return wy0 === wy1 && wy0 > Math.min(p.y, q.y) && wy0 < Math.max(p.y, q.y) && p.x >= wx0 && p.x <= wx1;
+  return wx0 === wx1 && wx0 > Math.min(p.x, q.x) && wx0 < Math.max(p.x, q.x) && p.y >= wy0 && p.y <= wy1;
+}
+
+/**
+ * #490: is the corridor of a real edge walkable from its outgoing door to its reveal door? Walks the corridor's
+ * center line (out of the door, along the first leg, then the second leg into the reveal door: the corner shape
+ * `buildEdgeCorridor` draws for a null path) and returns the SOLID walls it crosses, each as
+ * `{ coords, kind, roomId }`. An empty list means the line is walkable once the doors themselves are unsealed.
+ */
+export function corridorLineBlockers(scene, { from, to }) {
+  const out = scene.walls.find((w) => w.door && w.flags?.[MODULE_ID]?.dungeonDoorToRoomId === to && w.flags[MODULE_ID].dungeonDoorFromRoomId === from);
+  const rev = scene.walls.find((w) => w.door && w.flags?.[MODULE_ID]?.dungeonRevealDoorForSlot === to && w.flags[MODULE_ID].dungeonDoorFromRoomId === from);
+  if (!out || !rev) return null;
+  const c1 = doorMid(out);
+  const c2 = doorMid(rev);
+  const pts = c1.horizontal
+    ? [c1, { x: c1.x, y: c1.y + 50 }, { x: c2.x, y: c1.y + 50 }, c2]
+    : [c1, { x: c2.x, y: c1.y }, c2];
+  const found = new Set();
+  const blockers = [];
+  for (let s = 0; s < pts.length - 1; s += 1) {
+    for (const w of scene.walls) {
+      if (w.door || found.has(w) || !wallCrossesSegment(pts[s], pts[s + 1], w)) continue;
+      found.add(w);
+      const f = w.flags?.[MODULE_ID] ?? {};
+      const key = Object.keys(f).find((k) => /Wall/.test(k));
+      blockers.push({ coords: w.c, kind: key ? key.replace(/^dungeon|ForRoom$/g, '') : 'corridorPlain', roomId: f[key] ?? null });
+    }
+  }
+  return blockers;
+}
