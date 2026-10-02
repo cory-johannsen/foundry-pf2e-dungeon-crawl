@@ -828,3 +828,67 @@ has a real, non-overlapping corridor into it (2,470 edges are null today).
     uses it as its cap tile asset, and until it ships the existing corridor
     tile is the placeholder. The `dungeonStubFlavor` flag therefore has one
     value, `rubble`, and the "collapse" variant is dropped.
+
+## Chunk 7 rule fix: sole-child stubs must be judged against the scene's dead edges (measured 2026-10-02)
+
+Measured by `tests/dungeon-stub-oracle-aware.test.mjs` and `tests/helpers/stub-oracle-aware.mjs` (prototype only,
+nothing shipped), 500 v3 seeds, retreat on.
+
+**The symptom was a net.** `planStubs({ retreatAvailable: true })` moves goal-unreachable 36 -> 41 and
+dungeons-with-an-unreachable-room 93 -> 94 on the ratchet oracle (`sealedEdgeReport`), but that is 37 dungeons losing
+the goal and 32 gaining it (22 / 21 for rooms). Nothing is wrong with a handful of seeds: the stub plan perturbs every
+dungeon that has one.
+
+**Three dead-edge semantics** (the choice decides the verdict):
+
+| Semantics | Dead edge | Baseline goal lost / dungeons with unreachable room / rooms |
+|---|---|---|
+| `opt` (the ratchet oracle) | a door is sealed; a null-path fallback with open doors counts LIVE | 36 / 93 / 405 |
+| `strict` (`sceneValidity`) | sealed OR null-path fallback | 281 / 294 / 1872 |
+| `truth` | sealed OR null-path fallback whose centre line crosses a wall (few cross none) | 245 / 263 / 1611 |
+
+**Causes of the 37 goal losses on `opt`:**
+
+1. 31 (hypothesis a/c): the stub removes a null-path edge the `opt` oracle counts live (null but not sealed), and
+   the target's remaining parent is itself unreachable at scene level because an ancestor edge is sealed. Rule 3 floods
+   the layout graph, where every edge is passable, so it cannot see this. Only 6 (of 7 losses that are real under `truth`, the 7th being churn) stubbed a fallback line that is
+   genuinely walkable (`truth` live): 14 of 1,376 stubs, the only real regressions of this kind.
+2. 6 (door-slot churn): the stubbed edges were already dead; a stub takes an `outgoingDoorPlan` slot, which re-slots
+   the source's other doors and seals a different edge. No pre-scene predicate can see this.
+3. Hypothesis (b), order dependence: not the cause (the plan is canonical and deterministic).
+4. Hypothesis (d), retreat flood: not a factor. Retreat only returns to a room already reached over forward edges, so
+   directed reachability from `room-entry` over non-stub edges IS the retreat-on reachability; the oracle flood is
+   already right. Also `strict` never loses a goal or a room-dungeon (0 / 0 per dungeon): a stub removes a dead
+   edge. The 5 extra `opt` losses are the optimistic oracle crediting edges that cannot be walked.
+
+**Corrected rule (rule 3'):** a stub is kept only if the rooms reachable from `room-entry` over the BASELINE scene's
+live edges (unsealed; stubbed edges removed) do not shrink. This needs the sealed set, so it is scene-level:
+build the no-stub scene, filter the graph-eligible plan, then verify by building the stubbed scene and dropping a stub
+(first whose removal alone clears it, else last) while any of the three semantics regresses against the baseline. The
+filter must run before geometry is placed, or placement must be re-run on the survivors (a filtered subset can leave
+a stub without a free door tile; seen as "no free door tile" warnings in the prototype). The pure predicates cannot
+do this: requiring the target to keep a routable non-stub parent changes nothing (measured, identical to current).
+
+**Result, retreat on, 500 seeds (no stubs / current planner / corrected rule):**
+
+| | none | current | corrected |
+|---|---|---|---|
+| sealed doors | 1478 | 411 | 432 |
+| real sealed edges | 1380 | 352 | 373 |
+| `opt`: goal lost / dungeons with unreachable room / rooms | 36 / 93 / 405 | 41 / 94 / 350 | 4 / 72 / 148 |
+| `strict`: same | 281 / 294 / 1872 | 274 / 289 / 1805 | 276 / 290 / 1819 |
+| `truth`: same | 245 / 263 / 1611 | 240 / 261 / 1543 | 235 / 256 / 1510 |
+| stubs / dungeons with a stub | 0 / 0 | 1376 / 465 | 1324 / 451 |
+| per-dungeon regressions vs none | 0 | 37 goal, 22 room (opt) | 0 (all three) |
+| stub door sealed | | 0 | 0 |
+
+8 dungeons needed the verify step to drop one stub. Mean 2.65 stubs per dungeon (max 9), 49 dungeons have none.
+
+**Player impact:** about 2.75 of ~14.9 rooms hold a stub, and stub sources are almost never on the shortest
+entry-to-goal path (0.002 per dungeon). A direct run meets about none; a party that clears side branches meets all
+~2.65, each a one-line rubble flavor and a retreat.
+
+**Open for the user before Chunk 7:** (1) is a scene-level verify (scene build at precompute, ~10 ms per dungeon) in
+the planner's layering acceptable, or should the sealed set be injected by the caller; (2) which oracle is the
+ratchet from now on (`opt` as today, or `truth`); (3) K6's "any seed" invariant is only met with the verify
+step; accept it, or relax K6 to an aggregate ratchet.
