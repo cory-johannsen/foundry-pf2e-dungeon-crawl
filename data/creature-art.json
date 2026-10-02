@@ -28534,5 +28534,93 @@
     "name": "Weredigo",
     "level": 15,
     "art": "weredigo.webp"
+  },
+  {
+    "id": "floolf",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "erbFDwCcn1qsJnxS",
+    "name": "Floolf",
+    "level": 1,
+    "art": "floolf.webp"
+  },
+  {
+    "id": "divine_warden_of_brigh",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "gSX7hcUFdtOt5a4I",
+    "name": "Divine Warden of Brigh",
+    "level": 10,
+    "art": "divine-warden-of-brigh.webp"
+  },
+  {
+    "id": "psstpsstmitl",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "h3qZZZ5PCbY87HZ4",
+    "name": "Psstpsstmitl",
+    "level": 21,
+    "art": "psstpsstmitl.webp"
+  },
+  {
+    "id": "urok",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "mngmrx4PtFoFMp5I",
+    "name": "Urok",
+    "level": 9,
+    "art": "urok.webp"
+  },
+  {
+    "id": "kobold_tunnelrunner",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "oF1SkWMwJpWtKIoq",
+    "name": "Kobold Tunnelrunner",
+    "level": 0,
+    "art": "kobold-tunnelrunner.webp"
+  },
+  {
+    "id": "eleukas",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "ssaJVgjmjvk9ezoe",
+    "name": "Eleukas",
+    "level": 2,
+    "art": "eleukas.webp"
+  },
+  {
+    "id": "duhgik",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "tKrAtcACOtDnHLG0",
+    "name": "Duhgik",
+    "level": 6,
+    "art": "duhgik.webp"
+  },
+  {
+    "id": "goblin_zombie",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "uPeDOylL6zsZKSIs",
+    "name": "Goblin Zombie",
+    "level": 1,
+    "art": "goblin-zombie.webp"
+  },
+  {
+    "id": "ogre_hurler",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "xkMQlY10mUIIkrfa",
+    "name": "Ogre Hurler",
+    "level": 4,
+    "art": "ogre-hurler.webp"
+  },
+  {
+    "id": "cacaodaemon",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "z3u0OykjFKz9KJjk",
+    "name": "Cacaodaemon",
+    "level": 1,
+    "art": "cacaodaemon.webp"
+  },
+  {
+    "id": "wordsmith",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "zvxYdvU6TAxoFMRu",
+    "name": "Wordsmith",
+    "level": 4,
+    "art": "wordsmith.webp"
   }
 ]
