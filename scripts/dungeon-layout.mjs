@@ -627,7 +627,10 @@ function sourceFaceCapWalls(fromRect, exitFace, exitPoint) {
 }
 
 /**
- * `exitDoor` (#415, optional, last): a planned outgoing door
+ * `routing` (#427, layoutVersion >= 3, optional trailing): `{ blockedCells }`, cells `findCorridorPath` must avoid
+ * (the topology-aware router's re-route). Absent, today's behavior exactly.
+ *
+ * `exitDoor` (#415, optional): a planned outgoing door
  * `{ exitPoint: {x,y}, doorSpan }` (an `outgoingDoorPlan` entry works as is).
  * When it carries an `exitPoint`, every branch places the source door there
  * (gap-START) instead of deriving it, and does NOT return the source-face
@@ -637,11 +640,13 @@ function sourceFaceCapWalls(fromRect, exitFace, exitPoint) {
  * edge as planned, so the routed path may not start by crossing the source room
  * (findCorridorPath's `exitFace`).
  */
-export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace = 'north', exitDoorArg) {
+export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace = 'north', exitDoorArg, routing) {
   const exitDoor = exitDoorArg?.exitPoint ? exitDoorArg : undefined;
   // #415: any plan entry (even a single-door face's, whose exitPoint is null)
   // marks a planned exit, so the path may not start by crossing the source room.
-  const path = findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace, exitFace: exitDoorArg ? exitFace : undefined });
+  const path = findCorridorPath(fromPos, toPos, occupiedCells, {
+    fromRoomId, toRoomId, incomingFace, exitFace: exitDoorArg ? exitFace : undefined, blockedCells: routing?.blockedCells,
+  });
   const slotSpan = incomingFace === 'west' ? (toSlot.y2 - toSlot.y1) : (toSlot.x2 - toSlot.x1);
   const outgoingOffset = doorOffsetAt(seed, `${fromRoomId}-${exitFace}`, 'outgoing', fromRect.gw);
 
@@ -2433,13 +2438,13 @@ export function transitCellContainmentWalls(rank, col, openings) {
  * nothing to route around), or null if no path exists within the search
  * bounds — callers fall back to a direct line in that case (see
  * buildEdgeCorridor), so returning null rather than throwing is
- * deliberate. `exitFace` (#415, optional): when the source's door face is known
+ * deliberate. `blockedCells` (#427, optional) are extra cells to avoid. `exitFace` (#415, optional): when the source's door face is known
  * the first hop may not lead back across the source room. The search space is bounded to a small margin around the
  * two endpoints' own bounding box (not the whole graph) — real dungeons
  * never need a detour wider than a room or two, and an unbounded search
  * risks wandering arbitrarily far in a degenerate all-blocked case.
  */
-export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace = 'north', exitFace }) {
+export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace = 'north', exitFace, blockedCells }) {
   const SEARCH_MARGIN = 2;
   const key = (pos) => `${pos.rank},${pos.col}`;
   const minRank = Math.max(0, Math.min(fromPos.rank, toPos.rank) - SEARCH_MARGIN);
@@ -2463,9 +2468,12 @@ export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, to
   // legitimately contain a co-parent at a real entry point today; when it
   // does, this function correctly returns null (the existing, honest
   // "no free path" degradation), same as before either fix was tried.
+  // #427 (layoutVersion >= 3): `blockedCells` (optional array or Set of "rank,col") are cells the topology-aware
+  // router has already given to another edge; they block like a foreign room but never change `occupiedCells`.
+  const blocked = blockedCells ? new Set(blockedCells) : null;
   const isBlocked = (pos) => {
     const occupant = occupiedCells[key(pos)];
-    return occupant != null && occupant !== fromRoomId && occupant !== toRoomId;
+    return (occupant != null && occupant !== fromRoomId && occupant !== toRoomId) || (blocked?.has(key(pos)) ?? false);
   };
   // Generalized from #174's own north-only-entry fix: a room's incoming
   // connection lands on whichever face incomingFaceFor chose for it
@@ -2781,4 +2789,223 @@ export function planPassageLanes({ positionByRoomId, rectByRoomId, edgeGeometry,
     lanes.set(t.edgeId, { tiles, ...geometry, doorMouths: { src: tiles[0], dst: tiles.at(-1) } });
   }
   return lanes;
+}
+
+// ---------------------------------------------------------------------------------------------
+// #427 Chunk 3 (layoutVersion 3): topology-aware corridor router. PURE. Design:
+// docs/superpowers/specs/2026-10-01-topology-aware-corridor-routing-design.md.
+// ---------------------------------------------------------------------------------------------
+
+const routerArea = (a, b) => Math.max(0, Math.min(a.gx + a.gw, b.gx + b.gw) - Math.max(a.gx, b.gx))
+  * Math.max(0, Math.min(a.gy + a.gh, b.gy + b.gh) - Math.max(a.gy, b.gy));
+/** Absolute point on `side` of `cell` at `coord` (x for north/south, y for east/west). */
+const routerSidePoint = (cell, side, coord) => (side === 'north' ? { x: coord, y: cell.gy }
+  : side === 'south' ? { x: coord, y: cell.gy + cell.gh }
+  : side === 'west' ? { x: cell.gx, y: coord } : { x: cell.gx + cell.gw, y: coord });
+const routerAlongStart = (cell, side) => (side === 'north' || side === 'south' ? cell.gx : cell.gy);
+const routerCoordOf = (point, side) => (side === 'north' || side === 'south' ? point.x : point.y);
+
+/**
+ * Incremental lane placer. A chain `{ id, seed, cells: [{ rank, col, entrySide, exitSide }], c0, cn, baseline }`
+ * crosses cells 0..n-1; border j (0..n) carries one scalar coordinate. `c0` and `cn` (the doors' projections) are
+ * pinned; a STRAIGHT cell carries its coordinate through (as `buildEdgeCorridor` forces it); a CORNER cell's exit
+ * coordinate is free (domain: the cell's 13 offsets, `baseline[i]` first, then nearest). When the last cell is
+ * straight, the run reaching it must end on `cn`. `tryPlace(chain)` picks the first assignment whose floors
+ * intersect no already placed edge's floor in any cell and commits it (returns false, commits nothing, otherwise).
+ */
+export function makeLanePlacer(nodeBudget = 50000) {
+  const placedByCell = new Map(); // "rank,col" -> [floors[]]
+  const placed = new Map();
+  const stats = { blobs: 0, exhausted: 0 };
+  const cellFloors = (chain, i, entryCoord, exitCoord) => {
+    const { rank, col, entrySide, exitSide } = chain.cells[i];
+    const cell = cellBounds(rank, col);
+    return transitCellCrossing(chain.seed, rank, col, entrySide, exitSide, chain.id, {
+      forcedEntryPoint: routerSidePoint(cell, entrySide, entryCoord),
+      forcedExitPoint: routerSidePoint(cell, exitSide, exitCoord),
+    }).corridorSegments;
+  };
+  const tryPlace = (chain) => {
+    const n = chain.cells.length;
+    const corner = chain.cells.map((c) => OPPOSITE_SIDE[c.entrySide] !== c.exitSide);
+    const vars = []; // cell indices (< n - 1) whose exit coordinate is free
+    for (let i = 0; i < n - 1; i += 1) if (corner[i]) vars.push(i);
+    const lastStraight = !corner[n - 1];
+    const pinnedVar = lastStraight && vars.length ? vars.at(-1) : null;
+    // Pinned conflict with no corner at all: the existing block geometry stays as it is (counted).
+    if (lastStraight && !vars.length && chain.c0 !== chain.cn) stats.blobs += 1;
+
+    const domainFor = (i) => {
+      if (i === pinnedVar) return [chain.cn];
+      const cell = cellBounds(chain.cells[i].rank, chain.cells[i].col);
+      const start = routerAlongStart(cell, chain.cells[i].exitSide);
+      const base = chain.baseline[i];
+      return Array.from({ length: COLUMN_STRIDE }, (_, k) => start + k)
+        .sort((a, b) => Math.abs(a - base) - Math.abs(b - base) || a - b);
+    };
+    const conflicts = (i, floors) => (placedByCell.get(`${chain.cells[i].rank},${chain.cells[i].col}`) ?? [])
+      .some((o) => o.some((f) => floors.some((g) => routerArea(f, g) > 0)));
+
+    let nodes = 0;
+    const coords = new Array(n + 1).fill(null); // coords[j] = coordinate on border j, filled left to right
+    coords[0] = chain.c0; coords[n] = chain.cn;
+    const floorsByCell = new Array(n).fill(null);
+    const fillRun = (from, to) => {
+      for (let i = from; i < to; i += 1) {
+        floorsByCell[i] = cellFloors(chain, i, coords[i], i === n - 1 ? chain.cn : coords[i + 1]);
+        if (conflicts(i, floorsByCell[i])) return false;
+      }
+      return true;
+    };
+    const solve = (vi, from) => {
+      if (!fillRun(from, vi < vars.length ? vars[vi] : n)) return false;
+      if (vi === vars.length) return true;
+      const i = vars[vi];
+      for (const v of domainFor(i)) {
+        nodes += 1;
+        if (nodes > nodeBudget) return false;
+        coords[i + 1] = v;
+        floorsByCell[i] = cellFloors(chain, i, coords[i], v);
+        if (conflicts(i, floorsByCell[i])) continue;
+        const next = vars[vi + 1] ?? n;
+        for (let j = i + 1; j < next; j += 1) if (j < n - 1 && !corner[j]) coords[j + 1] = coords[j];
+        if (solve(vi + 1, i + 1)) return true;
+      }
+      coords[i + 1] = null;
+      return false;
+    };
+    for (let j = 0; j < (vars[0] ?? n); j += 1) if (j < n - 1 && !corner[j]) coords[j + 1] = coords[j];
+    if (!solve(0, 0)) { if (nodes > nodeBudget) stats.exhausted += 1; return false; }
+    placed.set(chain.id, [...coords]);
+    chain.cells.forEach((c, i) => {
+      const key = `${c.rank},${c.col}`;
+      if (!placedByCell.has(key)) placedByCell.set(key, []);
+      placedByCell.get(key).push(floorsByCell[i]);
+    });
+    return true;
+  };
+  return { tryPlace, placed, placedByCell, stats };
+}
+
+/**
+ * Sequential topology-aware router (layoutVersion >= 3). Every multi-cell edge of the layout (real and hidden) is
+ * taken in canonical order (target rank, target id, source id) and built with the real `buildEdgeCorridor` (door
+ * ends pinned from `planFor` and `slotsForRoom`, exactly as the scene builds it). Its free corner coordinates are
+ * assigned so its floors intersect no already placed edge's floor in any cell. On failure the cells of its chain that
+ * already carry a placed edge are added to a blocked set and the edge is rebuilt around them (breadth-first over
+ * blocked sets in sorted order, `maxTries` budget). A candidate that becomes a null path or whose connectors would
+ * overlap a room other than its own two is skipped, never turned into the direct-line fallback. An edge with no
+ * placeable candidate is `unresolvable` and is not drawn through shared floor (user decision Q-A: v3 treats it as
+ * null-class; the scene keeps its existing fallback line for now).
+ *
+ * `slotsForRoom(toId) -> [{ sourceId, slot }]` is the room's incoming door slots in slot order (the v3 scene's
+ * `incomingSlotsV3`); `planFor(sourceId)` the outgoing plan (a Map toId -> entry). Neither the edge list nor the
+ * input key order matters: the result is a pure function of the layout.
+ *
+ * Returns `{ lanes, blockedByEdge, unresolvable, stats }`: `lanes` Map `${from}->${to}` -> Map "rank,col" ->
+ * `{ entrySide, exitSide, entryPoint, exitPoint }` (insertion order is path order; absolute border points);
+ * `blockedByEdge` Map edgeId -> sorted "rank,col" keys for each RE-ROUTED edge (an edge that kept its shortest path is
+ * not listed); `unresolvable` sorted edge ids; `stats` counters for the sweep ratchets.
+ */
+export function routeEdgesTopologyAware({
+  seed, positionByRoomId, occupiedCells, incomingFaceByRoomId = {}, planFor, slotsForRoom, maxTries = 40, keepFirstHop = false,
+}) {
+  const rects = Object.fromEntries(Object.entries(positionByRoomId).map(([id, p]) => [id, roomRect(seed, id, p.rank, p.col)]));
+  const chainOf = (id, sourceId, toId, res) => {
+    const tc = res.transitCells;
+    if (!tc.length) return null;
+    return {
+      id, sourceId, toId, seed,
+      cells: tc.map((c) => ({ rank: c.rank, col: c.col, entrySide: c.entrySide, exitSide: c.exitSide })),
+      c0: routerCoordOf(tc[0].entryPoint, tc[0].entrySide),
+      cn: routerCoordOf(tc.at(-1).exitPoint, tc.at(-1).exitSide),
+      baseline: tc.map((c) => routerCoordOf(c.exitPoint, c.exitSide)),
+    };
+  };
+  const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+  const specs = [];
+  const seen = new Set();
+  const stats = {
+    edges: 0, multi: 0, placedFirst: 0, rerouted: 0, unresolvable: 0, tries: 0, baseCells: 0, extraCells: 0,
+    firstHopChanged: 0, lastHopChanged: 0,
+  };
+  for (const toId of Object.keys(positionByRoomId).sort()) {
+    const incomingFace = incomingFaceByRoomId[toId] ?? 'north';
+    for (const { sourceId, slot } of slotsForRoom(toId)) {
+      const id = `${sourceId}->${toId}`;
+      const plannedExit = planFor?.(sourceId)?.get(toId);
+      if (seen.has(id) || !plannedExit || !positionByRoomId[sourceId]) continue;
+      seen.add(id);
+      stats.edges += 1;
+      const build = (blockedCells) => buildEdgeCorridor(
+        seed, sourceId, toId, rects[sourceId], rects[toId], positionByRoomId[sourceId], positionByRoomId[toId],
+        plannedExit.face, slot, occupiedCells, incomingFace, plannedExit, blockedCells.length ? { blockedCells } : undefined,
+      );
+      const chain = chainOf(id, sourceId, toId, build([]));
+      if (chain) specs.push({ id, sourceId, toId, targetRank: positionByRoomId[toId].rank, build, baseChain: chain });
+    }
+  }
+  specs.sort((a, b) => (a.targetRank - b.targetRank) || cmp(a.toId, b.toId) || cmp(a.sourceId, b.sourceId));
+  stats.multi = specs.length;
+
+  const placer = makeLanePlacer();
+  const lanes = new Map();
+  const blockedByEdge = new Map();
+  const unresolvable = [];
+  for (const spec of specs) {
+    const others = Object.entries(rects).filter(([id]) => id !== spec.sourceId && id !== spec.toId).map(([, r]) => r);
+    const visited = new Set(['']);
+    const queue = [[]];
+    let tries = 0;
+    let done = false;
+    while (queue.length && !done && tries <= maxTries) {
+      const blocked = queue.shift();
+      tries += 1;
+      const res = spec.build(blocked);
+      const candidate = chainOf(spec.id, spec.sourceId, spec.toId, res);
+      if (!candidate) continue; // blocked into a null path: not a routed candidate
+      // keepFirstHop: a re-route may not change the first transit cell (the source's margin geometry stays as built).
+      if (keepFirstHop && blocked.length
+        && (candidate.cells[0].rank !== spec.baseChain.cells[0].rank || candidate.cells[0].col !== spec.baseChain.cells[0].col)) continue;
+      if (blocked.length) {
+        const segs = [...res.corridorSegments, ...res.transitCells.flatMap((c) => c.corridorSegments)];
+        if (others.some((r) => segs.some((s) => routerArea(s, r) > 0))) continue;
+      }
+      if (placer.tryPlace(candidate)) {
+        done = true;
+        const coords = placer.placed.get(candidate.id);
+        const cellLanes = new Map();
+        candidate.cells.forEach((c, i) => {
+          const cell = cellBounds(c.rank, c.col);
+          cellLanes.set(`${c.rank},${c.col}`, {
+            entrySide: c.entrySide, exitSide: c.exitSide,
+            entryPoint: routerSidePoint(cell, c.entrySide, coords[i]), exitPoint: routerSidePoint(cell, c.exitSide, coords[i + 1]),
+          });
+        });
+        lanes.set(spec.id, cellLanes);
+        if (blocked.length) {
+          stats.rerouted += 1;
+          blockedByEdge.set(spec.id, blocked);
+          const first = (c) => `${c.cells[0].rank},${c.cells[0].col}`;
+          const last = (c) => `${c.cells.at(-1).rank},${c.cells.at(-1).col}`;
+          if (first(candidate) !== first(spec.baseChain)) stats.firstHopChanged += 1;
+          if (last(candidate) !== last(spec.baseChain)) stats.lastHopChanged += 1;
+        } else stats.placedFirst += 1;
+        stats.baseCells += spec.baseChain.cells.length;
+        stats.extraCells += candidate.cells.length - spec.baseChain.cells.length;
+      } else {
+        for (const c of candidate.cells) {
+          const key = `${c.rank},${c.col}`;
+          if (!placer.placedByCell.has(key) || blocked.includes(key)) continue;
+          const next = [...blocked, key].sort();
+          const signature = next.join('|');
+          if (!visited.has(signature)) { visited.add(signature); queue.push(next); }
+        }
+      }
+    }
+    stats.tries += tries;
+    if (!done) { stats.unresolvable += 1; unresolvable.push(spec.id); }
+  }
+  unresolvable.sort();
+  return { lanes, blockedByEdge, unresolvable, stats };
 }

@@ -187,3 +187,21 @@ edges, hidden maps, faces, plans), not stored.
 (sequential router with blocked-cell re-routing; options `maxTries`, `order`) plus
 `tests/dungeon-layout-topology-prototype.test.mjs` (first 100 seeds in the suite, about 18 s). Test-only; it
 changes no behavior and is discarded or promoted into `scripts/` by Chunk 1's implementation PRs.
+
+## 11. Implementation measurements (Task 3.1, pure router in `scripts/dungeon-layout.mjs`)
+
+`routeEdgesTopologyAware` is the prototype's placer and blocked-cell search promoted to `scripts/`
+(`makeLanePlacer`, `findCorridorPath`'s `blockedCells`, `buildEdgeCorridor`'s trailing `routing = { blockedCells }`). On the
+500-seed sweep with layoutVersion 3 slots (incoming door order): 2,063 multi-cell edges, 1,842 placed on their shortest path, 36
+placed after re-routing, 185 unresolvable (identical to the v2 prototype: the v3 door order does not change the router's
+result), 0 floor crossings and 0 cut occurrences among placed edges on the real wall/floor check, +70 cells over 4,971 (+1.4%, K7
+holds), tries 5,299.
+
+**The section 3 unknown, measured.** Of the 36 re-routed edges, 20 change the first transit cell and 0 change the last (the
+incoming-neighbor rule fixes the last hop). Door slots and foreign margin openings are not moved by a re-route in principle:
+`findPriorityCollision`/`pendingForeignMarginOpenings` only act on null-path doglegs, which a re-route never produces (a
+candidate that becomes null is skipped), and `outgoingMarginOffset` for a planned multi-cell edge returns the planned door
+(offset and width independent of the path). What a changed first hop does change is connector 1 (source door to the first
+transit cell), which runs through the source's own margin band; that is checked at the scene level in Task 3.2 (sealed-door
+oracle). The option `keepFirstHop` (re-routes may not change the first transit cell) removes the question by construction:
+14 re-routed, 199 unresolvable (+7.6% over 185, within K8's +25%), +20 cells.
