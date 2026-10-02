@@ -2128,6 +2128,117 @@ async function walkTokenThroughSteps(token, steps, gridSize) {
 }
 
 /**
+ * #554 DIAGNOSTIC ONLY: after a hop-walk finishes, re-reads the mover's live
+ * final footprint and every other still-alive combatant's live footprint,
+ * and -- only if the mover ended on top of someone -- logs a console warning
+ * and whispers the GM one chat message carrying everything needed to
+ * reconstruct how it happened (the planned path/steps, the occupants
+ * snapshot the move used vs. the live footprints, whether the token ended
+ * where the plan said it would). Emits nothing at all for a normal move.
+ * Never alters movement: it only reads, and any error inside is swallowed so
+ * it can never throw into the caller's move. `combatant` is whichever
+ * combatant's token was moved (the pushed target, for pushTokenAway).
+ */
+export async function reportMoveOverlap({
+  combat,
+  combatant,
+  kind,
+  posture = null,
+  targetCombatant = null,
+  startCell,
+  goalCell,
+  path,
+  steps,
+  occupantsSnapshot,
+  speedSquares,
+  stopWithin,
+  gridSize,
+}) {
+  try {
+    const grid = gridSize ?? combat.scene?.grid?.size ?? 100;
+    const mine = footprint(combatant.token, grid);
+    const liveOthers = combat.combatants
+      .filter((c) => c.id !== combatant.id && c.token)
+      .map((c) => {
+        const fp = footprint(c.token, grid);
+        return {
+          id: c.id,
+          name: c.name ?? c.token?.name ?? null,
+          x: c.token.x,
+          y: c.token.y,
+          cell: { gx: fp.gx, gy: fp.gy },
+          disposition: c.token.disposition,
+          isDefeated: !!c.isDefeated,
+          width: c.token.width,
+          height: c.token.height,
+          fp,
+        };
+      });
+    const hit = liveOthers.filter((o) => !o.isDefeated && overlaps(mine, o.fp));
+    if (!hit.length) return;
+
+    const key = (f) => `${f.gx},${f.gy},${f.gw},${f.gh}`;
+    const liveAliveKeys = liveOthers
+      .filter((o) => !o.isDefeated)
+      .map((o) => key(o.fp))
+      .sort();
+    const snapKeys = (occupantsSnapshot ?? []).map(key).sort();
+    const occupantsChanged =
+      JSON.stringify(liveAliveKeys) !== JSON.stringify(snapKeys);
+    const lastStep = steps?.[steps.length - 1];
+    const finalCellWasPlanned =
+      !!lastStep && lastStep.gx === mine.gx && lastStep.gy === mine.gy;
+    const cells = (list) => (list ?? []).map((c) => ({ gx: c.gx, gy: c.gy }));
+    const payload = {
+      kind,
+      posture,
+      mover: {
+        id: combatant.id,
+        name: combatant.name ?? combatant.token?.name ?? null,
+        disposition: combatant.token.disposition,
+        width: combatant.token.width,
+        height: combatant.token.height,
+      },
+      startCell,
+      goalCell,
+      targetId: targetCombatant?.id ?? null,
+      speedSquares,
+      stopWithin,
+      path: cells(path),
+      steps: cells(steps),
+      liveFinalCell: { gx: mine.gx, gy: mine.gy },
+      overlapped: hit.map((o) => ({ id: o.id, name: o.name, cell: o.cell })),
+      occupantsSnapshot: (occupantsSnapshot ?? []).map((f) => ({ ...f })),
+      liveOthers: liveOthers.map(({ fp, ...rest }) => rest),
+      occupantsChanged,
+      finalCellWasPlanned,
+      round: combat.round ?? null,
+      turn: combat.turn ?? null,
+      moduleVersion: game.modules?.get?.(MODULE_ID)?.version ?? null,
+    };
+    console.warn(
+      "pf2e-dungeon-crawl | move ended overlapping a combatant",
+      payload,
+    );
+    const esc = (t) =>
+      String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const moverName = payload.mover.name ?? payload.mover.id;
+    const gmIds = ChatMessage.getWhisperRecipients("GM").map((u) => u.id);
+    await ChatMessage.create({
+      content:
+        `<p>Diagnostic #554: ${esc(moverName)} ended its ${esc(kind)} on ` +
+        `${esc(hit[0].name ?? hit[0].id)}'s square</p>` +
+        `<details><summary>Payload</summary><pre>${esc(
+          JSON.stringify(payload, null, 2),
+        )}</pre></details>`,
+      whisper: gmIds,
+    });
+  } catch (err) {
+    console.debug("pf2e-dungeon-crawl | reportMoveOverlap failed", err);
+  }
+}
+
+/**
  * Walks up to `speedSquares` steps of `path` (a findPath result, `path[0]`
  * === the mover's own current cell), stopping early once within
  * `stopWithinSquares` (Chebyshev) of `targetCell` — the same "don't
@@ -2217,6 +2328,20 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
   );
   if (!waypoint) return "blocked";
   await walkTokenThroughSteps(me, waypoint.steps, gridSize);
+  await reportMoveOverlap({
+    combat,
+    combatant,
+    kind: "stepToward",
+    targetCombatant: target,
+    startCell: start,
+    goalCell: goal,
+    path,
+    steps: waypoint.steps,
+    occupantsSnapshot: occupants,
+    speedSquares,
+    stopWithin: MELEE_REACH_SQUARES,
+    gridSize,
+  });
   await offerReactiveStrikesAgainst(combat, combatant);
   return "moved";
 }
@@ -2267,6 +2392,21 @@ export async function pushTokenAway(combat, attacker, target, distanceSquares) {
   );
   if (!waypoint) return;
   await walkTokenThroughSteps(target.token, waypoint.steps, gridSize);
+  await reportMoveOverlap({
+    combat,
+    combatant: target,
+    kind: "pushTokenAway",
+    posture: "retreat",
+    targetCombatant: attacker,
+    startCell: start,
+    goalCell: awayFrom,
+    path,
+    steps: waypoint.steps,
+    occupantsSnapshot: occupants,
+    speedSquares: distanceSquares,
+    stopWithin: 0,
+    gridSize,
+  });
 }
 
 /**
@@ -3390,6 +3530,21 @@ export async function strideByPosture(combat, combatant, posture, target) {
   );
   if (!waypoint) return "blocked";
   await walkTokenThroughSteps(me, waypoint.steps, gridSize);
+  await reportMoveOverlap({
+    combat,
+    combatant,
+    kind: "strideByPosture",
+    posture,
+    targetCombatant: target,
+    startCell: start,
+    goalCell: targetCell,
+    path,
+    steps: waypoint.steps,
+    occupantsSnapshot: occupants,
+    speedSquares,
+    stopWithin,
+    gridSize,
+  });
   await offerReactiveStrikesAgainst(combat, combatant);
   return "moved";
 }
