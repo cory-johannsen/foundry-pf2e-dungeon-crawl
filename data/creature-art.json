@@ -34614,5 +34614,173 @@
     "name": "Anugobu Apprentice",
     "level": 3,
     "art": "anugobu-apprentice.webp"
+  },
+  {
+    "id": "sixth_pillar_student",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "eVKjtiQtDaJpk9Ra",
+    "name": "Sixth Pillar Student",
+    "level": 14,
+    "art": "sixth-pillar-student.webp"
+  },
+  {
+    "id": "watchtower_shadow",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "ew2WOdIU5njPMzok",
+    "name": "Watchtower Shadow",
+    "level": 15,
+    "art": "watchtower-shadow.webp"
+  },
+  {
+    "id": "abbot_tsujon",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "f0nafAQA1tSXLqwL",
+    "name": "Abbot Tsujon",
+    "level": 18,
+    "art": "abbot-tsujon.webp"
+  },
+  {
+    "id": "sthira",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "g1ms3xQfS6Ws7KGD",
+    "name": "Sthira",
+    "level": 20,
+    "art": "sthira.webp"
+  },
+  {
+    "id": "hummingbird",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "gGDWBzon2T2mrSqf",
+    "name": "Hummingbird",
+    "level": 13,
+    "art": "hummingbird.webp"
+  },
+  {
+    "id": "ki_adept",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "o8UMCrKWf89xNvSE",
+    "name": "Ki Adept",
+    "level": 13,
+    "art": "ki-adept.webp"
+  },
+  {
+    "id": "ki_adept_ahmoza_twins",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "haUIlixea4iwy0GZ",
+    "name": "Ki Adept (Ahmoza Twins)",
+    "level": 13,
+    "art": "ki-adept.webp"
+  },
+  {
+    "id": "desecrated_guardian",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "htshGim6Q1y75TPt",
+    "name": "Desecrated Guardian",
+    "level": 18,
+    "art": "desecrated-guardian.webp"
+  },
+  {
+    "id": "juspix_rammel",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "i3dC41mOjfoBxQTk",
+    "name": "Juspix Rammel",
+    "level": 14,
+    "art": "juspix-rammel.webp"
+  },
+  {
+    "id": "portal_eater",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "iQ1wsuosURrA6tUI",
+    "name": "Portal Eater",
+    "level": 18,
+    "art": "portal-eater.webp"
+  },
+  {
+    "id": "butterfly_blade_warrior",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "jnN7fYYndv3oobJJ",
+    "name": "Butterfly Blade Warrior",
+    "level": 13,
+    "art": "butterfly-blade-warrior.webp"
+  },
+  {
+    "id": "watchtower_wraith",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "ka41qAFCgGFBXUPJ",
+    "name": "Watchtower Wraith",
+    "level": 16,
+    "art": "watchtower-wraith.webp"
+  },
+  {
+    "id": "amihan",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "koRKlywSbwttifEq",
+    "name": "Amihan",
+    "level": 15,
+    "art": "amihan.webp"
+  },
+  {
+    "id": "umbasi",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "l2oapyRhfCFRsCHX",
+    "name": "Umbasi",
+    "level": 13,
+    "art": "umbasi.webp"
+  },
+  {
+    "id": "flying_mountain_kaminari",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "lqHn5wSzxvdllGgH",
+    "name": "Flying Mountain Kaminari",
+    "level": 18,
+    "art": "flying-mountain-kaminari.webp"
+  },
+  {
+    "id": "watchtower_poltergeist",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "mwovQpf278O1vdCR",
+    "name": "Watchtower Poltergeist",
+    "level": 14,
+    "art": "watchtower-poltergeist.webp"
+  },
+  {
+    "id": "gomwai",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "nejHZ9ccKcDXZWQM",
+    "name": "Gomwai",
+    "level": 12,
+    "art": "gomwai.webp"
+  },
+  {
+    "id": "lantondo",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "qV1bsHLfgI8xh0Nr",
+    "name": "Lantondo",
+    "level": 15,
+    "art": "lantondo.webp"
+  },
+  {
+    "id": "mammoth_turtle",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "rAsJXFWr1IJatEUm",
+    "name": "Mammoth Turtle",
+    "level": 14,
+    "art": "mammoth-turtle.webp"
+  },
+  {
+    "id": "muckish_creep",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "sXtwJyM7sWWDQDOU",
+    "name": "Muckish Creep",
+    "level": 8,
+    "art": "muckish-creep.webp"
+  },
+  {
+    "id": "dromornis",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "tBQgipDUVhamBNrZ",
+    "name": "Dromornis",
+    "level": 10,
+    "art": "dromornis.webp"
   }
 ]
