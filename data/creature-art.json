@@ -28750,5 +28750,125 @@
     "name": "Urdefhan Blood Mage",
     "level": 8,
     "art": "urdefhan-blood-mage-lob.webp"
+  },
+  {
+    "id": "barcumbuk",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "8Iozx4jbIGHxK4yf",
+    "name": "Barcumbuk",
+    "level": 8,
+    "art": "barcumbuk.webp"
+  },
+  {
+    "id": "cratonys",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "9Tr4aUNr2wxxMDcg",
+    "name": "Cratonys",
+    "level": 6,
+    "art": "cratonys.webp"
+  },
+  {
+    "id": "drill_field_barbazu",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "A4MusxxoLxwMVZua",
+    "name": "Drill Field Barbazu",
+    "level": 5,
+    "art": "drill-field-barbazu.webp"
+  },
+  {
+    "id": "gibtas_bounder",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "BJYrYqkV7PkXgSfk",
+    "name": "Gibtas Bounder",
+    "level": 5,
+    "art": "gibtas-bounder.webp"
+  },
+  {
+    "id": "poisoning_room_specter",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "BOaM3pAuWl06Q6IZ",
+    "name": "Poisoning Room Specter",
+    "level": 7,
+    "art": "poisoning-room-specter.webp"
+  },
+  {
+    "id": "bright_walker",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "ChRgdkplhO1D81Lg",
+    "name": "Bright Walker",
+    "level": 9,
+    "art": "bright-walker.webp"
+  },
+  {
+    "id": "belcorra_haruvex",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "DDJGNAh3rfyIupAb",
+    "name": "Belcorra Haruvex",
+    "level": 12,
+    "art": "belcorra-haruvex.webp"
+  },
+  {
+    "id": "drow_warden",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "DawBQWRyrM4cKfGI",
+    "name": "Drow Warden",
+    "level": 4,
+    "art": "drow-warden.webp"
+  },
+  {
+    "id": "dreshkan",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "DnAeqlJRZc5N7hve",
+    "name": "Dreshkan",
+    "level": 4,
+    "art": "dreshkan.webp"
+  },
+  {
+    "id": "jaul_mezmin",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "EN3mp0sVObP8ou3p",
+    "name": "Jaul Mezmin",
+    "level": 6,
+    "art": "jaul-mezmin.webp"
+  },
+  {
+    "id": "corpselight",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "HBRz8BVLVN9u9Odp",
+    "name": "Corpselight",
+    "level": 2,
+    "art": "corpselight.webp"
+  },
+  {
+    "id": "nox",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "HnIyJuqKNOvK7eOJ",
+    "name": "Nox",
+    "level": 4,
+    "art": "nox.webp"
+  },
+  {
+    "id": "quara_orshendiel",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "JrowrtDilEG8dN2s",
+    "name": "Quara Orshendiel",
+    "level": 11,
+    "art": "quara-orshendiel.webp"
+  },
+  {
+    "id": "morlock_scavenger",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "KSFGGxU3qxYJzWpe",
+    "name": "Morlock Scavenger",
+    "level": 1,
+    "art": "morlock-scavenger.webp"
+  },
+  {
+    "id": "urevian",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "Mk6Uo4Vt1HkG9EvL",
+    "name": "Urevian",
+    "level": 9,
+    "art": "urevian.webp"
   }
 ]
