@@ -3309,8 +3309,10 @@ export function layoutEdgeGeometry({
       const sourcePos = positionByRoomId[sourceId];
       const sourceRect = roomRect(seed, sourceId, sourcePos.rank, sourcePos.col);
       const planned = planFor(sourceId).get(toId);
+      // #555: the scene builds every v3 connection with `coverDoorCell` (its corner legs keep the door's own cell).
       const result = buildEdgeCorridor(
         seed, sourceId, toId, sourceRect, toRect, sourcePos, toPos, planned.face, slot, occupiedCells, toFace, planned,
+        { coverDoorCell: true },
       );
       out.push({ sourceId, toId, hidden, result });
     }
@@ -3370,6 +3372,23 @@ export function planStubGeometries({
     }
   }
   return { geometries, infeasible };
+}
+
+/**
+ * Whether NEW runs get dead-end stubs. Off until the scene builds them (G3 flips it): a run that carried
+ * `stubEdges` before the scene built stub doors would have a gap in the source's south face.
+ */
+export const NEW_RUN_STUBS_ENABLED = false;
+
+/**
+ * #427: the run-state fields the stub plan adds at precompute. layoutVersion < 3 (or stubs off) returns the
+ * progression graph untouched and no `stubEdges` key (v1/v2 stay byte-identical); v3 returns `stubEdges` and the
+ * progression graph without its stub edges (`layoutEdges` is never touched: nothing moves). Pure.
+ */
+export function stubStateFor(layoutVersion, inputs, { enabled = NEW_RUN_STUBS_ENABLED, retreatAvailable = false } = {}) {
+  if (!(layoutVersion >= 3) || !enabled) return { edges: inputs.edges };
+  const { stubEdges } = planStubsForLayout({ ...inputs, retreatAvailable });
+  return { edges: applyStubsToEdges(inputs.edges, stubEdges), stubEdges };
 }
 
 /**

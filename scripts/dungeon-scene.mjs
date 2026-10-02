@@ -752,7 +752,11 @@ export function focusCameraOnRoom(scene, roomId, rank, col, seed) {
  * ends of the edge together, same reasoning as unlockDoorsFromRoom's own
  * fix round 1 (a merge target's several doors all share the same
  * dungeonDoorToRoomId; only the fromRoomId/dungeonDoorFromRoomId pair picks
- * out the specific one this undo needs to reverse). */
+ * out the specific one this undo needs to reverse).
+ *
+ * #427: a stub door is deliberately NOT relocked here. Undo reverses one edge's pair of doors; the source's
+ * other doors (real siblings and stubs alike) were unlocked by its own resolution and stay unlocked, and a stub
+ * is never the edge a party enters by, so it is never the edge an undo reverses. */
 export async function relockDoorFromRoom(scene, fromRoomId, toRoomId) {
   const wall = scene.walls.find(
     (w) =>
@@ -801,6 +805,16 @@ export async function unsealHiddenDoorFromRoom(scene, roomId, targetRoomId) {
     (w) => w.getFlag(MODULE_ID, "dungeonHiddenDoorForEdge") === `${roomId}->${targetRoomId}`,
   );
   for (const wall of walls) {
+    // #427: a hidden dead-end stub's door only opens (a false shortcut); it is never promoted to a progression or
+    // reveal door, so opening it can never advance the run.
+    if (wall.getFlag(MODULE_ID, "dungeonStubDoorFor")) {
+      await wall.update({
+        ds: CONST.WALL_DOOR_STATES.CLOSED,
+        [`flags.${MODULE_ID}.-=dungeonHiddenDoorForEdge`]: null,
+        [`flags.${MODULE_ID}.-=dungeonHiddenDoorRole`]: null,
+      });
+      continue;
+    }
     const isReveal = wall.getFlag(MODULE_ID, "dungeonHiddenDoorRole") === "reveal";
     await wall.update({
       ds: CONST.WALL_DOOR_STATES.CLOSED,
@@ -1564,6 +1578,18 @@ export async function unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildId
         w.getFlag(MODULE_ID, "dungeonDoorFromRoomId") === roomId,
     );
     if (wall) {
+      await wall.update({ ds: CONST.WALL_DOOR_STATES.CLOSED });
+      playDoorSound("unlock");
+    }
+  }
+  // #427: the source's dead-end stub doors unlock with its real doors (Decision 10: indistinguishable, no extra
+  // check). A hidden stub keeps its sealed hidden-door flags and opens only when revealed (unsealHiddenDoorFromRoom).
+  for (const wall of scene.walls) {
+    if (
+      wall.getFlag(MODULE_ID, "dungeonStubDoorFor") &&
+      wall.getFlag(MODULE_ID, "dungeonDoorFromRoomId") === roomId &&
+      !wall.getFlag(MODULE_ID, "dungeonHiddenDoorForEdge")
+    ) {
       await wall.update({ ds: CONST.WALL_DOOR_STATES.CLOSED });
       playDoorSound("unlock");
     }

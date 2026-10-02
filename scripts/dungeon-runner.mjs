@@ -251,7 +251,9 @@ export async function createRun(
  * just became live, non-null only for a genuine reveal — so the caller
  * (`ui/dungeon-app.mjs`'s `applyRoomEffect`) knows which scene door to
  * unseal, without re-deriving it from `hiddenEdges`, which is already
- * mutated by the time that runs.
+ * mutated by the time that runs. #427: `revealedStubId` is the same for a hidden
+ * shortcut that is a dead-end stub (a false shortcut): its door is unsealed too,
+ * but the edge is NOT merged into `edges` and `revealedRoomId` stays null.
  */
 export async function markRoomOutcome(
   { sceneId, succeeded },
@@ -325,8 +327,8 @@ export async function markRoomOutcome(
       ? { effectKey: "rest_room_passed" }
       : getGenerator().resolveRoomOutcome(getGenerator().findOutcomeTemplate(room.outcomeSlotId), succeeded);
 
-  const { edges, hiddenEdges, revealedRoomId } = getGenerator().revealTravelTimeEffect(
-    { edges: state.edges, hiddenEdges: state.hiddenEdges ?? {} },
+  const { edges, hiddenEdges, revealedRoomId, revealedStubId = null } = getGenerator().revealTravelTimeEffect(
+    { edges: state.edges, hiddenEdges: state.hiddenEdges ?? {}, stubEdges: state.stubEdges },
     room.id,
     effectKey,
   );
@@ -338,7 +340,7 @@ export async function markRoomOutcome(
     history: [...state.history, { ...base, effectKey }],
   };
   await persist(sceneId, newState, settingsRef);
-  return { state: newState, effectKey, revealedRoomId };
+  return { state: newState, effectKey, revealedRoomId, revealedStubId };
 }
 
 /**

@@ -690,7 +690,7 @@ export function attachHiddenPaths({
 // Data-only reveal — see #156, filed during #93 pre-flight review: no
 // door/room geometry is built for the revealed edge anywhere in this
 // plan yet. Deliberately deferred; do not block this task on it.
-export function revealTravelTimeEffect({ edges, hiddenEdges }, roomId, effectKey) {
+export function revealTravelTimeEffect({ edges, hiddenEdges, stubEdges }, roomId, effectKey) {
   if (effectKey !== 'reduced_travel_time' && effectKey !== 'extra_travel_time') {
     return { edges, hiddenEdges, revealedRoomId: null };
   }
@@ -698,6 +698,11 @@ export function revealTravelTimeEffect({ edges, hiddenEdges }, roomId, effectKey
   if (!hidden?.length) return { edges, hiddenEdges, revealedRoomId: null };
   const newHiddenEdges = { ...hiddenEdges };
   delete newHiddenEdges[roomId];
+  // #427 (layoutVersion >= 3): a hidden shortcut that is a dead-end stub opens a false shortcut. Its door is revealed
+  // (`revealedStubId`, the caller unseals it) but the edge never joins the progression graph.
+  if (stubEdges?.[roomId]?.includes(hidden[0])) {
+    return { edges, hiddenEdges: newHiddenEdges, revealedRoomId: null, revealedStubId: hidden[0] };
+  }
   return {
     edges: { ...edges, [roomId]: [...(edges[roomId] ?? []), ...hidden] },
     hiddenEdges: newHiddenEdges,
