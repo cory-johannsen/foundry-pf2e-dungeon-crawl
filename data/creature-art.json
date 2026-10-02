@@ -29630,5 +29630,133 @@
     "name": "Ingnovim's Assistant",
     "level": 17,
     "art": "ingnovim-s-assistant.webp"
+  },
+  {
+    "id": "xotanispawn",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "JD6kdfZveObBe1mR",
+    "name": "Xotanispawn",
+    "level": 17,
+    "art": "xotanispawn.webp"
+  },
+  {
+    "id": "hellcrown",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "KROWh0CteDFFGsih",
+    "name": "Hellcrown",
+    "level": 1,
+    "art": "hellcrown.webp"
+  },
+  {
+    "id": "kalavakus",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "KzKQYgiUZ3hJo473",
+    "name": "Kalavakus",
+    "level": 10,
+    "art": "kalavakus.webp"
+  },
+  {
+    "id": "dmiri_yoltosha",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "L4K4V09tQVXj7ZiI",
+    "name": "Dmiri Yoltosha",
+    "level": 4,
+    "art": "dmiri-yoltosha.webp"
+  },
+  {
+    "id": "lazurite_infused_stone_golem",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "L7IJO5z82nEN9IjM",
+    "name": "Lazurite-Infused Stone Golem",
+    "level": 12,
+    "art": "lazurite-infused-stone-golem.webp"
+  },
+  {
+    "id": "scarlet_triad_bruiser",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "Lx5JiVOGWnzzjCrW",
+    "name": "Scarlet Triad Bruiser",
+    "level": 10,
+    "art": "scarlet-triad-bruiser.webp"
+  },
+  {
+    "id": "kralgurn",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "MFTMMXiwvW1aqOzs",
+    "name": "Kralgurn",
+    "level": 14,
+    "art": "kralgurn.webp"
+  },
+  {
+    "id": "doorwarden",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "MOyYEls8wNGHoe8F",
+    "name": "Doorwarden",
+    "level": 5,
+    "art": "doorwarden.webp"
+  },
+  {
+    "id": "hezle",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "MWQmOXxGcbaMsXDD",
+    "name": "Hezle",
+    "level": 8,
+    "art": "hezle.webp"
+  },
+  {
+    "id": "manifestation_of_dahak",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "N8vOjTD2SqS2b9Sy",
+    "name": "Lesser Manifestation Of Dahak",
+    "level": 22,
+    "art": "manifestation-of-dahak.webp"
+  },
+  {
+    "id": "manifestation_of_dahak_sy47p",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "sY47PB9b7nCJjgRq",
+    "name": "Manifestation Of Dahak",
+    "level": 24,
+    "art": "manifestation-of-dahak.webp"
+  },
+  {
+    "id": "nketiah",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "NK49bh04355Lgz5r",
+    "name": "Nketiah",
+    "level": 6,
+    "art": "nketiah.webp"
+  },
+  {
+    "id": "dalos",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "NrMgYvnIHFxeFEhX",
+    "name": "Dalos",
+    "level": 13,
+    "art": "dalos.webp"
+  },
+  {
+    "id": "scarlet_triad_thug",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "NwLrwNqwedh95iry",
+    "name": "Scarlet Triad Thug",
+    "level": 7,
+    "art": "scarlet-triad-thug.webp"
+  },
+  {
+    "id": "ekujae_guardian",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "NwNu2yvMnbvPvpY8",
+    "name": "Ekujae Guardian",
+    "level": 2,
+    "art": "ekujae-guardian.webp"
+  },
+  {
+    "id": "ghastly_bear",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "OJH8y8LqmgbkN8ce",
+    "name": "Ghastly Bear",
+    "level": 9,
+    "art": "ghastly-bear.webp"
   }
 ]
