@@ -24302,5 +24302,45 @@
     "name": "Dura (3-4)",
     "level": 2,
     "art": "dura-lob.webp"
+  },
+  {
+    "id": "patched_up_automaton_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "y1Pe1I9h9gKzWC8k",
+    "name": "Patched Up Automaton",
+    "level": 3,
+    "art": "patched-up-automaton-lob.webp"
+  },
+  {
+    "id": "larcius_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "yTBGycsIv6hxeyXv",
+    "name": "Larcius",
+    "level": 5,
+    "art": "larcius-lob.webp"
+  },
+  {
+    "id": "urdefhan_high_tormentor_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "z8or2fyRrPjNJL10",
+    "name": "Urdefhan High Tormentor (PFS 4-11)",
+    "level": 10,
+    "art": "urdefhan-high-tormentor-lob.webp"
+  },
+  {
+    "id": "depleted_roiling_incant_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "zj9L3bvmhtnOilmf",
+    "name": "Depleted Roiling Incant",
+    "level": 7,
+    "art": "depleted-roiling-incant-lob.webp"
+  },
+  {
+    "id": "infested_clockwork_heap_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "zmOYvFVhxA6zDEBg",
+    "name": "Infested Clockwork Heap",
+    "level": 5,
+    "art": "infested-clockwork-heap-lob.webp"
   }
 ]

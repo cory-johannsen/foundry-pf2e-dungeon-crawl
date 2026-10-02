@@ -1098,3 +1098,8 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 82,giant-fetid-familiar,Giant Fetid Familiar,1,beast,accept,,comfyui,
 82,well-fed-potted-violet-etheroot,Well-Fed Potted Violet Etheroot,9,beast,accept,,comfyui,
 82,dura,Dura (1-2),-1,beast,accept,,comfyui,
+83,patched-up-automaton,Patched Up Automaton,3,construct,accept,,comfyui,
+83,larcius,Larcius,5,beast,accept,,comfyui,
+83,urdefhan-high-tormentor,Urdefhan High Tormentor (PFS 4-11),10,beast,accept,,comfyui,
+83,depleted-roiling-incant,Depleted Roiling Incant,7,beast,accept,,comfyui,
+83,infested-clockwork-heap,Infested Clockwork Heap,5,construct,accept,,comfyui,
