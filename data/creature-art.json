@@ -24014,5 +24014,149 @@
     "name": "Fleshwarp Apprentice",
     "level": 1,
     "art": "fleshwarp-apprentice-lob.webp"
+  },
+  {
+    "id": "abyssal_warhound_general_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "eEwgeT3w7CBJLpbr",
+    "name": "Abyssal Warhound General",
+    "level": 8,
+    "art": "abyssal-warhound-general-lob.webp"
+  },
+  {
+    "id": "bugbear_night_terror_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "fn5Jex9qIMxB86xH",
+    "name": "Bugbear Night Terror",
+    "level": 3,
+    "art": "bugbear-night-terror-lob.webp"
+  },
+  {
+    "id": "menacing_shadow_drake_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "hKyWYatvNfvM82QG",
+    "name": "Menacing Shadow Drake",
+    "level": 2,
+    "art": "menacing-shadow-drake-lob.webp"
+  },
+  {
+    "id": "halran_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "m68Zvfw17TYfoacL",
+    "name": "Halran (1-2)",
+    "level": -1,
+    "art": "halran-lob.webp"
+  },
+  {
+    "id": "halran_3_4_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "hm3ZkeNOSM8b5KLo",
+    "name": "Halran (3-4)",
+    "level": 2,
+    "art": "halran-lob.webp"
+  },
+  {
+    "id": "grim_rictus_bridge_guard_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "jJwEeklWJu49aXi7",
+    "name": "Grim Rictus Bridge Guard",
+    "level": 1,
+    "art": "grim-rictus-bridge-guard-lob.webp"
+  },
+  {
+    "id": "animated_leather_armor_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "jV3wANLbZbv6S5Mv",
+    "name": "Animated Leather Armor",
+    "level": 1,
+    "art": "animated-leather-armor-lob.webp"
+  },
+  {
+    "id": "animated_leather_armor_4_99_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "qdUFJOVrItZjjl6j",
+    "name": "Animated Leather Armor (4-99)",
+    "level": 1,
+    "art": "animated-leather-armor-lob.webp"
+  },
+  {
+    "id": "bugbear_terror_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "lGz4MraAcv1NwyDS",
+    "name": "Bugbear Terror",
+    "level": 1,
+    "art": "bugbear-terror-lob.webp"
+  },
+  {
+    "id": "bugbear_bully_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "mSPLEMPyiA0NkKN0",
+    "name": "Bugbear Bully",
+    "level": 4,
+    "art": "bugbear-bully-lob.webp"
+  },
+  {
+    "id": "automaton_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "mjE5Fgn1nmJIPOP7",
+    "name": "Damaged Automaton",
+    "level": 1,
+    "art": "automaton-lob.webp"
+  },
+  {
+    "id": "stabilized_ochre_jelly_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "neAEB3E1yECRRmEv",
+    "name": "Stabilized Ochre Jelly",
+    "level": 5,
+    "art": "stabilized-ochre-jelly-lob.webp"
+  },
+  {
+    "id": "bandit_skullcracker_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "ntw6udZsknaAx6Ra",
+    "name": "Bandit Skullcracker",
+    "level": 3,
+    "art": "bandit-skullcracker-lob.webp"
+  },
+  {
+    "id": "seldrick_dralston_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "oEq4kZIpZ77jD5Pu",
+    "name": "Seldrick Dralston (1-2)",
+    "level": 2,
+    "art": "seldrick-dralston-lob.webp"
+  },
+  {
+    "id": "seldrick_dralston_3_4_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "sMgRhArIc1GsFifq",
+    "name": "Seldrick Dralston (3-4)",
+    "level": 4,
+    "art": "seldrick-dralston-lob.webp"
+  },
+  {
+    "id": "bugbear_slasher_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "oPA6PVdRSC43FDDB",
+    "name": "Bugbear Slasher",
+    "level": 3,
+    "art": "bugbear-slasher-lob.webp"
+  },
+  {
+    "id": "lemming_rat_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "oTEsCGg0PxDNnj4p",
+    "name": "Lemming Rat",
+    "level": -1,
+    "art": "lemming-rat-lob.webp"
+  },
+  {
+    "id": "fasiel_ibn_sazadin_s4_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "p1ip40AhsO1fwy4M",
+    "name": "Fasiel Ibn Sazadin (5-6)",
+    "level": 7,
+    "art": "fasiel-ibn-sazadin-s4-lob.webp"
   }
 ]
