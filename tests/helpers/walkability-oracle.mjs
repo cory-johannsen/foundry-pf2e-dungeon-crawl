@@ -154,6 +154,7 @@ export function sweepShapeOfRunLayout(P) {
     hiddenIncomingByRoomId: P.hiddenIncomingByRoomId, pos, occ: P.occupiedCells, incFace: P.incomingFaceByRoomId,
     ...(P.stubEdges ? { stubEdges: P.stubEdges } : {}),
     ...(P.walledEdges ? { walledEdges: P.walledEdges } : {}),
+    ...(P.topologyRouting ? { topologyRouting: true } : {}),
     rect: Object.fromEntries(Object.keys(P.rooms).map((id) => [id, roomRect(P.seed, id, pos[id].rank, pos[id].col)])),
   };
 }

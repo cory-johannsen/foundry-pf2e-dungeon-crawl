@@ -47,7 +47,8 @@ order, which setpiece each room draws) and the grid-unit room geometry,
 both fully deterministic from a seed, both Foundry-free. (`dungeon-reseed.mjs`, #490, is the exception: it builds
 each new run's layout and, if the goal is unreachable, retries seeds `<seed>~r1..r20` by checking a scratch scene
 built with `dungeon-scene.mjs`; `dungeon-stub-oracle.mjs`, #427 Chunk 7, finds the edges that scene cannot walk and plans the
-rubble stubs that replace them.)
+rubble stubs that replace them. A run stamped `topologyRouting` (#427, new v3 runs) also has its corridors routed around
+each other by `routeEdgesTopologyAware`; the scene, the reseed and the stub/wall planner all read the one `routingForLayout`.)
 
 **Foundry scene building** (`dungeon-scene.mjs`, `foundry-api.mjs`,
 `placement.mjs`, `data-loader.mjs`, `dungeon-sound.mjs`/`audio.mjs`) —

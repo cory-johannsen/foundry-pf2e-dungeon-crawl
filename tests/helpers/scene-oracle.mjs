@@ -65,6 +65,8 @@ export async function buildSceneForLayout(L, layoutVersion) {
     ...(L.stubEdges ? { stubEdges: L.stubEdges } : {}),
     // #585: dead edges walled instead of built.
     ...(L.walledEdges ? { walledEdges: L.walledEdges } : {}),
+    // #427: a topology-routed run (stamped at creation) routes its corridors in the scene.
+    ...(L.topologyRouting ? { topologyRouting: true } : {}),
   };
   for (const id of Object.keys(L.rooms)) {
     await buildPopulateAndUnlockGraphNode(scene, state, {

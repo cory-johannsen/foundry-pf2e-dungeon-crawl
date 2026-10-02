@@ -18,6 +18,7 @@
  */
 import {
   roomRect, outgoingDoorPlan, findCorridorPath, stubStateFor, applyStubsToEdges, planStubGeometries, mergeEdgeMaps,
+  routingForLayout,
 } from './dungeon-layout.mjs';
 
 const MODULE_ID = 'pf2e-dungeon-crawl';
@@ -154,13 +155,27 @@ export function deadEdgeSets(layout, scene) {
   const pos = layout.layoutPositionByRoomId;
   const strict = new Set(sealed);
   const truth = new Set(sealed);
+  // #427: a topology-routed layout (`layout.topologyRouting`) re-routes some edges around others' floors; an edge the
+  // router could not place (`unresolvable`) is drawn as a null-path fallback line, so it is dead for every semantics.
+  const routingFor = layout.topologyRouting ? routingForLayout({
+    seed: layout.seed, positionByRoomId: pos, occupiedCells: layout.occupiedCells, incomingFaceByRoomId: layout.incomingFaceByRoomId,
+    layoutEdges: layout.layoutEdges, hiddenIncomingByRoomId: layout.hiddenIncomingByRoomId, hiddenRooms: layout.hiddenRooms,
+    edges: layout.edges, hiddenEdges: layout.hiddenEdges, stubEdges: layout.stubEdges ?? {}, walledEdges: layout.walledEdges ?? {},
+  }) : undefined;
   for (const [from, kids] of Object.entries(layout.edges)) {
     const plan = outgoingDoorPlan(roomRect(layout.seed, from, pos[from].rank, pos[from].col), pos[from], {
       realChildIds: kids, hiddenChildIds: (layout.hiddenEdges[from] ?? []).slice(0, 1),
     }, pos);
     for (const to of kids) {
+      const routing = routingFor?.(edgeKey(from, to));
+      if (routing?.unresolvable) {
+        strict.add(edgeKey(from, to));
+        truth.add(edgeKey(from, to));
+        continue;
+      }
       const path = findCorridorPath(pos[from], pos[to], layout.occupiedCells, {
         fromRoomId: from, toRoomId: to, incomingFace: layout.incomingFaceByRoomId[to], exitFace: plan.get(to)?.face,
+        blockedCells: routing?.blockedCells,
       });
       if (path) continue;
       strict.add(edgeKey(from, to));
@@ -169,6 +184,21 @@ export function deadEdgeSets(layout, scene) {
   }
   const union = new Set([...truth, ...unwalkableEdges(layout, scene)]);
   return { opt: sealed, strict, truth, union };
+}
+
+/** The hidden links (`from->to`, shortcut gates and detour entrances) of `layout` that its topology routing cannot place. */
+function hiddenUnresolvable(layout) {
+  const routingFor = routingForLayout({
+    seed: layout.seed, positionByRoomId: layout.layoutPositionByRoomId, occupiedCells: layout.occupiedCells,
+    incomingFaceByRoomId: layout.incomingFaceByRoomId, layoutEdges: layout.layoutEdges,
+    hiddenIncomingByRoomId: layout.hiddenIncomingByRoomId, hiddenRooms: layout.hiddenRooms, edges: layout.edges,
+    hiddenEdges: layout.hiddenEdges, stubEdges: layout.stubEdges ?? {}, walledEdges: layout.walledEdges ?? {},
+  });
+  const isHiddenLink = (k) => {
+    const [from, to] = k.split('->');
+    return (layout.hiddenEdges[from] ?? []).slice(0, 1).includes(to);
+  };
+  return routingFor.unresolvable.filter(isHiddenLink).sort();
 }
 
 /** Flood from room-entry over `layout.edges` skipping `dead` keys: `{ goal, unreachable: [roomId] }` (hidden rooms excluded). */
@@ -223,6 +253,7 @@ export async function planStubsVerified({ layout, buildScene, retreatAvailable }
     seed: layout.seed, rooms: layout.rooms, positionByRoomId, occupiedCells: layout.occupiedCells, edges: layout.edges,
     layoutEdges: layout.layoutEdges, hiddenEdges: layout.hiddenEdges, hiddenRooms: layout.hiddenRooms,
     hiddenIncomingByRoomId: layout.hiddenIncomingByRoomId, incomingFaceByRoomId: layout.incomingFaceByRoomId,
+    topologyRouting: layout.topologyRouting === true,
   };
   const planned = stubStateFor(3, inputs, { retreatAvailable, deadEdges }).stubEdges ?? {};
   const placeable = (set, walled = new Set()) => {
@@ -289,7 +320,19 @@ export async function planStubsVerified({ layout, buildScene, retreatAvailable }
   // Walling removes doors and re-slots siblings, which can kill an edge that was walkable before: `lost` reports whether
   // that cost the goal or a room the stub-free scene reached (1 of 500 measured seeds, a dungeon whose goal is
   // unreachable anyway; the reseed rejects it). Giving up a stub did not repair it (measured), so no repair is attempted.
-  const res = await settle(kept, cur);
+  let res = await settle(kept, cur);
+  // #427: with topology routing the routing of the FINAL graph can differ from the stub-free one (stubs and walls free
+  // door slots), so a hidden shortcut or detour link the router could place before can become unplaceable now. It would
+  // be drawn as a fallback line through rooms; a hidden link is optional by construction, so it becomes a stub too.
+  // Each pass re-settles (a new stub re-slots its siblings); bounded.
+  if (layout.topologyRouting) {
+    for (let pass = 0; pass < 5; pass += 1) {
+      const L = res.fin.L;
+      const hidden = hiddenUnresolvable(L).filter((k) => !res.stubSet.has(k));
+      if (!hidden.length) break;
+      res = await settle(placeable(new Set([...res.stubSet, ...hidden])), undefined);
+    }
+  }
   const fin = res.fin;
   const walled = res.walledSet;
   return { layout: fin.L, base, verdicts: fin.verdicts, deadSets: fin.sets, dropped, baseDead: baseSets.union, walled: walled.size, lost: lostUnion(fin.verdicts) };
