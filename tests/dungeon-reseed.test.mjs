@@ -1,13 +1,12 @@
 // #490: goal-only reject-and-reseed (product module scripts/dungeon-reseed.mjs).
 import { describe, it, expect } from 'vitest';
 import * as deck from '../scripts/dungeon-deck.mjs';
-import { NEW_RUN_LAYOUT_VERSION } from '../scripts/dungeon-layout.mjs';
+import { NEW_RUN_LAYOUT_VERSION, applyStubsToEdges } from '../scripts/dungeon-layout.mjs';
 import {
-  candidateSeed, selectSeed, reseedStateFor, computeRunLayout, evaluateLayout, RESEED_MAX_TRIES,
+  candidateSeed, selectSeed, reseedStateFor, computeRunLayout, evaluateLayout, planRunLayoutStubs, RESEED_MAX_TRIES,
 } from '../scripts/dungeon-reseed.mjs';
 import { chooseRunLayout } from '../scripts/dungeon-reseed.mjs';
 import { buildSweepLayout } from './helpers/layout-sweep.mjs';
-import { buildStubbedSweepLayout } from './helpers/stub-sweep.mjs';
 import { buildSceneForLayout } from './helpers/scene-oracle.mjs';
 import { oracleReports } from './helpers/stub-oracle-aware.mjs';
 import { edgeWalkability, walkableVerdict } from './helpers/walkability-oracle.mjs';
@@ -62,14 +61,14 @@ describe('reseedStateFor', () => {
 const ctx = (i, seed) => ({ generator: deck, seed, roomCount: 6 + (i % 15), setpieceIds: {} });
 
 describe('product layout + truth predicate agree with the test oracle', () => {
-  it('computeRunLayout equals the sweep layout (edges, stubs, positions) and the verdict equals oracle truth plus per-edge walkability', async () => {
+  it('computeRunLayout equals the stub-free sweep layout (edges, positions) and the verdict equals oracle truth plus per-edge walkability', async () => {
     let goalFalse = 0;
     for (let i = 0; i < 500; i += 1) {
       const seed = `sweep-${i}`;
-      const S = buildStubbedSweepLayout(i, { retreatAvailable: false, layoutVersion: 3, seed });
+      const S = buildSweepLayout(i, { layoutVersion: 3, seed });
       const P = computeRunLayout({ ...ctx(i, seed), layoutVersion: NEW_RUN_LAYOUT_VERSION });
       expect(P.edges).toEqual(S.edges);
-      expect(P.stubEdges).toEqual(S.stubEdges);
+      expect('stubEdges' in P).toBe(false); // #427 Chunk 7: stubs come from planRunLayoutStubs, not the sync precompute
       expect(P.layoutPositionByRoomId).toEqual(S.pos);
       expect(P.incomingFaceByRoomId).toEqual(S.incFace);
       const { scene } = await buildSceneForLayout(S, 3);
@@ -113,9 +112,11 @@ describe('chooseRunLayout', () => {
       expect(a.layout.seed).toBe(a.seed);
       expect(a.seedOrigin).toBe(`sweep-${i}`);
       expect(a.seed).toBe(a.reseedTries === 0 ? `sweep-${i}` : `sweep-${i}~r${a.reseedTries}`);
-      const S = buildStubbedSweepLayout(i, { retreatAvailable: false, layoutVersion: 3, seed: a.seed });
-      expect(a.layout.edges).toEqual(S.edges);
-      expect(a.layout.stubEdges).toEqual(S.stubEdges);
+      const S = buildSweepLayout(i, { layoutVersion: 3, seed: a.seed });
+      // The chosen layout is the final seed's layout with its planned stubs removed from the progression graph.
+      expect(a.layout.edges).toEqual(applyStubsToEdges(S.edges, a.layout.stubEdges));
+      expect(a.layout.layoutEdges).toEqual(S.layoutEdges);
+      expect(a.layout.stubEdges).toBeTypeOf('object');
     }
     expect(warnings).toEqual([]);
   }, 60000);
@@ -126,4 +127,30 @@ describe('chooseRunLayout', () => {
     expect([r.exhausted, r.goalReachable, warnings.length]).toEqual([true, false, 1]);
     expect(r.layout.seed).toBe(r.seed);
   }, 60000);
+});
+
+describe('planRunLayoutStubs / the reseed predicate runs AFTER the stub plan (#427 Chunk 7)', () => {
+  it('the verdict of the plan is the verdict of the stubbed layout, and the plan has sole-child stubs', async () => {
+    let soleChild = 0;
+    for (let i = 0; i < 25; i += 1) {
+      const P = computeRunLayout({ ...ctx(i, `sweep-${i}`) });
+      const planned = await planRunLayoutStubs(P, { retreatAvailable: true });
+      expect(await evaluateLayout(planned.layout)).toEqual(planned.verdict);
+      expect(planned.layout.layoutEdges).toEqual(P.layoutEdges); // nothing moves
+      for (const [s, ts] of Object.entries(planned.layout.stubEdges)) {
+        for (const t of ts) expect(planned.layout.edges[s]).not.toContain(t);
+        if ((planned.layout.edges[s] ?? []).length === 0) soleChild += 1;
+      }
+    }
+    expect(soleChild).toBeGreaterThan(0);
+  }, 120000);
+  it('without retreat no source is left without a forward edge (rule 2 stays)', async () => {
+    for (let i = 0; i < 25; i += 1) {
+      const P = computeRunLayout({ ...ctx(i, `sweep-${i}`) });
+      const planned = await planRunLayoutStubs(P, { retreatAvailable: false });
+      for (const s of Object.keys(planned.layout.stubEdges)) {
+        if ((P.edges[s] ?? []).length > 0) expect([i, s, (planned.layout.edges[s] ?? []).length > 0 || (planned.layout.stubEdges[s] ?? []).every((t) => !P.edges[s].includes(t))]).toEqual([i, s, true]);
+      }
+    }
+  }, 120000);
 });

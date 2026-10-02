@@ -8,18 +8,19 @@
  * final seed). If none works it keeps the best candidate and warns; it never blocks run creation and is bounded by N.
  *
  * `selectSeed` is pure given an `evaluate(seed)`. `computeRunLayout` is the precompute `startDungeonRun` runs, factored
- * out so a candidate and the real run share one code path. `evaluateLayout` builds the layout's scene on a scratch
- * (in-memory) scene with the real scene builder and floods the truth-live graph. Its verdict is the same as the test
- * oracle's `truth` (tests/helpers/stub-oracle-aware.mjs `oracleReports`) PLUS (#575) the per-edge door-to-door walkability
- * (tests/helpers/walkability-oracle.mjs `edgeWalkability`); tests/dungeon-reseed.test.mjs proves that over 500 seeds.
+ * out so a candidate and the real run share one code path (it returns the layout STUB-FREE). `planRunLayoutStubs`
+ * (#427 Chunk 7) adds the stubs: it builds the layout's scene on a scratch (in-memory) scene with the real scene
+ * builder and plans them against the dead edges (scripts/dungeon-stub-oracle.mjs). The verdict is the goal flooding
+ * the `union` live graph, which is the test oracle's `truth` (tests/helpers/stub-oracle-aware.mjs `oracleReports`)
+ * PLUS (#575) the per-edge door-to-door walkability (tests/helpers/walkability-oracle.mjs `edgeWalkability`);
+ * tests/dungeon-reseed.test.mjs proves that over 500 seeds.
  */
 import {
-  computeRanks, computeColumns, parentRoomIdsFor, incomingFaceFor, pruneConflictingShortcuts, stubStateFor,
-  NEW_RUN_LAYOUT_VERSION, roomRect, outgoingDoorPlan, findCorridorPath,
+  computeRanks, computeColumns, parentRoomIdsFor, incomingFaceFor, pruneConflictingShortcuts, NEW_RUN_LAYOUT_VERSION,
 } from './dungeon-layout.mjs';
 import { buildPopulateAndUnlockGraphNode } from './dungeon-scene.mjs';
-
-const MODULE_ID = 'pf2e-dungeon-crawl';
+import { deadEdgeSets, verdictsOf, planStubsVerified } from './dungeon-stub-oracle.mjs';
+import { RETREAT_VERSION } from './dungeon-retreat.mjs';
 
 /** How many reseeds are tried after the original seed (user decision: N = 20, ~100% goal-reachable measured). */
 export const RESEED_MAX_TRIES = 20;
@@ -58,7 +59,7 @@ export async function selectSeed({ seed, evaluate, maxTries = RESEED_MAX_TRIES, 
 
 /**
  * The layout precompute of `startDungeonRun` for `seed`: room graph, rest room, hidden paths, positions, incoming faces
- * and (layoutVersion >= 3) the stub plan. Pure; `generator` is `getGenerator()` (or the dungeon-deck module).
+ * Stub-free (`planRunLayoutStubs` adds the stub plan). Pure; `generator` is `getGenerator()` (or the dungeon-deck module).
  * `setpieceIds` is `{ puzzle, trap, narrative, treasure }`, each an id list.
  */
 export function computeRunLayout({ generator, seed, roomCount, setpieceIds = {}, layoutVersion = NEW_RUN_LAYOUT_VERSION }) {
@@ -89,14 +90,10 @@ export function computeRunLayout({ generator, seed, roomCount, setpieceIds = {},
       return [id, incomingFaceFor(id, layoutPositionByRoomId, occupiedCells, legitimateSourceIds)];
     }),
   );
-  // #427: stubs leave the progression graph (`edges`) but stay in `layoutEdges`, so no room moves.
-  const { edges, stubEdges } = stubStateFor(layoutVersion, {
-    seed, rooms, positionByRoomId: layoutPositionByRoomId, occupiedCells,
-    edges: edgesBeforeStubs, layoutEdges, hiddenEdges, hiddenRooms: [...hiddenRooms], hiddenIncomingByRoomId,
-    incomingFaceByRoomId,
-  });
+  // #427 Chunk 7: the layout is returned STUB-FREE; `planRunLayoutStubs` (async, it builds the scene) adds the stubs
+  // (they leave the progression graph `edges` but stay in `layoutEdges`, so no room moves).
   return {
-    seed, layoutVersion, rooms, edges, ...(stubEdges ? { stubEdges } : {}), layoutEdges, hiddenRooms: [...hiddenRooms],
+    seed, layoutVersion, rooms, edges: edgesBeforeStubs, layoutEdges, hiddenRooms: [...hiddenRooms],
     hiddenEdges, hiddenIncomingByRoomId, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
     maxRank: Math.max(...Object.values(ranks)), maxCol: Math.max(...Object.values(columns)),
   };
@@ -152,168 +149,26 @@ async function buildScratchScene(layout) {
   return scene;
 }
 
-const edgeKey = (from, to) => `${from}->${to}`;
-
-// A door wall's span is covered, even partly, by a collinear SOLID wall.
-function overlapsOnLine(w, d) {
-  const [x1, y1, x2, y2] = d.c;
-  const [a, b, c, e] = w.c;
-  if (y1 === y2) return b === y1 && e === y1 && Math.max(Math.min(a, c), Math.min(x1, x2)) < Math.min(Math.max(a, c), Math.max(x1, x2));
-  return a === x1 && c === x1 && Math.max(Math.min(b, e), Math.min(y1, y2)) < Math.min(Math.max(b, e), Math.max(y1, y2));
-}
-
-const doorMid = (d) => ({ x: (d.c[0] + d.c[2]) / 2, y: (d.c[1] + d.c[3]) / 2, horizontal: d.c[1] === d.c[3] });
-
-// Does the axis-aligned wall `w` properly cross the axis-aligned segment p-q? Touching an end does not count.
-function wallCrossesSegment(p, q, w) {
-  const [a, b, c, e] = w.c;
-  const [wx0, wx1, wy0, wy1] = [Math.min(a, c), Math.max(a, c), Math.min(b, e), Math.max(b, e)];
-  if (p.x === q.x) return wy0 === wy1 && wy0 > Math.min(p.y, q.y) && wy0 < Math.max(p.y, q.y) && p.x >= wx0 && p.x <= wx1;
-  return wx0 === wx1 && wx0 > Math.min(p.x, q.x) && wx0 < Math.max(p.x, q.x) && p.y >= wy0 && p.y <= wy1;
-}
-
-/** Is the null-path fallback corridor of real edge `from->to` walkable along its centre line (no solid wall crossed)? */
-function centreLineClear(scene, from, to) {
-  const flag = (w) => w.flags?.[MODULE_ID] ?? {};
-  const out = scene.walls.find((w) => w.door && flag(w).dungeonDoorToRoomId === to && flag(w).dungeonDoorFromRoomId === from);
-  const rev = scene.walls.find((w) => w.door && flag(w).dungeonRevealDoorForSlot === to && flag(w).dungeonDoorFromRoomId === from);
-  if (!out || !rev) return false;
-  const c1 = doorMid(out);
-  const c2 = doorMid(rev);
-  const pts = c1.horizontal
-    ? [c1, { x: c1.x, y: c1.y + 50 }, { x: c2.x, y: c1.y + 50 }, c2]
-    : [c1, { x: c2.x, y: c1.y }, c2];
-  for (let s = 0; s < pts.length - 1; s += 1) {
-    for (const w of scene.walls) if (!w.door && wallCrossesSegment(pts[s], pts[s + 1], w)) return false;
-  }
-  return true;
-}
-
-const GRID = 100;
-const cellKey = (cx, cy) => `${cx},${cy}`;
-
-// Unit wall edges a set of walls occupies: 'v:x,y' sits between cells (x-1,y) and (x,y), 'h:x,y' between (x,y-1) and
-// (x,y). A wall covering even part of a unit edge blocks all of it (half-cell flank walls exist).
-function unitEdgeKeys(walls) {
-  const keys = new Set();
-  for (const w of walls) {
-    const [a, b, c, e] = w.c.map((n) => n / GRID);
-    if (a === c) {
-      for (let y = Math.floor(Math.min(b, e) + 1e-9); y < Math.ceil(Math.max(b, e) - 1e-9); y += 1) keys.add(`v:${Math.round(a)},${y}`);
-    } else {
-      for (let x = Math.floor(Math.min(a, c) + 1e-9); x < Math.ceil(Math.max(a, c) - 1e-9); x += 1) keys.add(`h:${x},${Math.round(b)}`);
-    }
-  }
-  return keys;
-}
-
-// The cell on the corridor side of door wall `d`: `out` for an outgoing door (below / east), else a reveal door (above / west).
-function doorCorridorCell(d, out) {
-  const cx = Math.floor(Math.min(d.c[0], d.c[2]) / GRID + 1e-9);
-  const cy = Math.floor(d.c[1] / GRID + 1e-9);
-  if (d.c[1] === d.c[3]) return out ? cellKey(cx, cy) : cellKey(cx, cy - 1);
-  return out ? cellKey(cx, cy) : cellKey(cx - 1, cy);
-}
-
 /**
- * #575: the real edges whose doors a token cannot walk between. Flood the corridor TILE floor with every solid wall
- * and every door as a blocker; an edge is walkable when the cell just outside its outgoing door and the cell just
- * outside its reveal door share a floor component and neither door is covered by a solid wall. This sees what the
- * sealed-door and null-path-centre-line checks cannot: a found-path corridor cut by a sibling corridor's flank or a
- * cell-margin wall (the stuck e0 -> e0-0 and e0-1-0 -> rest edges of seed 1790965681939-q11uulo9ja).
- * Returns the set of `from->to` keys that are NOT walkable.
+ * Verdict `{ goal, unreachable }` of a layout (stub-free or stubbed): build its walls, flood the `union` live graph
+ * (scripts/dungeon-stub-oracle.mjs `deadEdgeSets`: sealed doors, null-path fallback lines through walls, and #575
+ * edges not walkable door to door). `unreachable` is the number of non-hidden rooms the flood misses.
  */
-function unwalkableEdges(layout, scene) {
-  const floor = new Set();
-  for (const t of scene.tiles) {
-    const w = Math.max(1, Math.round((t.width ?? GRID) / GRID));
-    const h = Math.max(1, Math.round((t.height ?? GRID) / GRID));
-    const x0 = Math.round((t.x - (t.width ?? GRID) / 2) / GRID);
-    const y0 = Math.round((t.y - (t.height ?? GRID) / 2) / GRID);
-    for (let i = 0; i < w; i += 1) for (let j = 0; j < h; j += 1) floor.add(cellKey(x0 + i, y0 + j));
-  }
-  const solid = unitEdgeKeys(scene.walls.filter((w) => !w.door));
-  const doors = unitEdgeKeys(scene.walls.filter((w) => w.door));
-  const edgeBetween = (x, y, nx, ny) => (x !== nx ? `v:${Math.max(x, nx)},${y}` : `h:${x},${Math.max(y, ny)}`);
-  const comp = new Map();
-  let id = 0;
-  for (const start of floor) {
-    if (comp.has(start)) continue;
-    id += 1;
-    comp.set(start, id);
-    const stack = [start];
-    while (stack.length) {
-      const [x, y] = stack.pop().split(',').map(Number);
-      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-        const k = cellKey(x + dx, y + dy);
-        if (comp.has(k) || !floor.has(k)) continue;
-        const wall = edgeBetween(x, y, x + dx, y + dy);
-        if (solid.has(wall) || doors.has(wall)) continue;
-        comp.set(k, id);
-        stack.push(k);
-      }
-    }
-  }
-  const flag = (w) => w.flags?.[MODULE_ID] ?? {};
-  const bad = new Set();
-  for (const [from, kids] of Object.entries(layout.edges)) {
-    for (const to of kids) {
-      const out = scene.walls.find((w) => w.door && flag(w).dungeonDoorToRoomId === to && flag(w).dungeonDoorFromRoomId === from);
-      const rev = scene.walls.find((w) => w.door && flag(w).dungeonRevealDoorForSlot === to && flag(w).dungeonDoorFromRoomId === from);
-      const sealed = (d) => [...unitEdgeKeys([d])].some((k) => solid.has(k));
-      const s = out && doorCorridorCell(out, true);
-      const t = rev && doorCorridorCell(rev, false);
-      if (!out || !rev || sealed(out) || sealed(rev) || !floor.has(s) || !floor.has(t) || comp.get(s) !== comp.get(t)) bad.add(edgeKey(from, to));
-    }
-  }
-  return bad;
-}
-
-/**
- * The `truth` verdict of a built scene: flood from room-entry over `layout.edges` skipping dead real edges. An edge is
- * dead when one of its doors is sealed by a solid wall, or it is a null-path fallback (no free corridor) whose centre
- * line crosses a wall, or (#575) it is not walkable door to door over the corridor floor (`unwalkableEdges`).
- * Returns `{ goal, unreachable }` (`unreachable` = number of non-hidden rooms the flood misses).
- */
-function truthVerdict(layout, scene) {
-  const solid = scene.walls.filter((w) => !w.door);
-  const sealedEdges = new Set();
-  for (const d of scene.walls.filter((w) => w.door)) {
-    const f = d.flags?.[MODULE_ID] ?? {};
-    if (f.dungeonHiddenDoorForEdge) continue; // detour/shortcut doors are not progression edges
-    const to = f.dungeonDoorToRoomId ?? f.dungeonRevealDoorForSlot;
-    if (to && solid.some((w) => overlapsOnLine(w, d))) sealedEdges.add(edgeKey(f.dungeonDoorFromRoomId, to));
-  }
-  const rect = Object.fromEntries(Object.keys(layout.rooms).map((id) => {
-    const p = layout.layoutPositionByRoomId[id];
-    return [id, roomRect(layout.seed, id, p.rank, p.col)];
-  }));
-  const dead = unwalkableEdges(layout, scene);
-  for (const [from, kids] of Object.entries(layout.edges)) {
-    const plan = outgoingDoorPlan(rect[from], layout.layoutPositionByRoomId[from], {
-      realChildIds: kids, hiddenChildIds: (layout.hiddenEdges[from] ?? []).slice(0, 1),
-    }, layout.layoutPositionByRoomId);
-    for (const to of kids) {
-      const k = edgeKey(from, to);
-      const path = findCorridorPath(layout.layoutPositionByRoomId[from], layout.layoutPositionByRoomId[to], layout.occupiedCells, {
-        fromRoomId: from, toRoomId: to, incomingFace: layout.incomingFaceByRoomId[to], exitFace: plan.get(to)?.face,
-      });
-      if (sealedEdges.has(k) || (!path && !centreLineClear(scene, from, to))) dead.add(k);
-    }
-  }
-  const seen = new Set(['room-entry']);
-  const queue = ['room-entry'];
-  while (queue.length) {
-    const x = queue.shift();
-    for (const c of layout.edges[x] ?? []) if (!seen.has(c) && !dead.has(edgeKey(x, c))) { seen.add(c); queue.push(c); }
-  }
-  const unreachable = Object.keys(layout.rooms).filter((r) => !seen.has(r) && !layout.hiddenRooms.includes(r)).length;
-  return { goal: seen.has('room-goal'), unreachable };
-}
-
-/** Verdict `{ goal, unreachable }` for a `computeRunLayout` result: build its walls, flood the truth-live graph. */
 export async function evaluateLayout(layout) {
-  return truthVerdict(layout, await buildScratchScene(layout));
+  const v = verdictsOf(layout, deadEdgeSets(layout, await buildScratchScene(layout))).union;
+  return { goal: v.goal, unreachable: v.unreachable.length };
+}
+
+/**
+ * #427 Chunk 7: the stub plan of a stub-free `computeRunLayout` result (layoutVersion >= 3), judged on the scene
+ * (`planStubsVerified`): every dead edge (union oracle) that the eligibility rules allow becomes a rubble-capped stub,
+ * sole-child sources included because retreat (#439) is live (`retreatAvailable`). Returns
+ * `{ layout (stubs applied), verdict: { goal, unreachable }, dropped }`; the verdict is the final stubbed scene's.
+ */
+export async function planRunLayoutStubs(layout, { retreatAvailable = RETREAT_VERSION >= 1 } = {}) {
+  const r = await planStubsVerified({ layout, buildScene: buildScratchScene, retreatAvailable });
+  const v = r.verdicts.union;
+  return { layout: r.layout, verdict: { goal: v.goal, unreachable: v.unreachable.length }, dropped: r.dropped };
 }
 
 /**
@@ -332,9 +187,10 @@ export async function chooseRunLayout({
   }
   const layouts = new Map();
   const evaluate = async (s) => {
-    const layout = build(s);
-    layouts.set(s, layout);
-    return evaluateLayout(layout);
+    // Stubs are part of the candidate: the verdict is the goal's reachability AFTER the stub plan.
+    const planned = await planRunLayoutStubs(build(s), { retreatAvailable: layoutVersion >= 3 && RETREAT_VERSION >= 1 });
+    layouts.set(s, planned.layout);
+    return planned.verdict;
   };
   const r = await selectSeed({ seed, evaluate, maxTries, yieldFn });
   if (r.exhausted) warn(`no goal-reachable layout for seed "${seed}" in ${maxTries + 1} candidates; keeping "${r.seed}"`);
