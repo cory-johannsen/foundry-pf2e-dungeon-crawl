@@ -78,9 +78,15 @@ const ROOM_KIND_WORDS = {
 const ENGLISH_I18N = {
   localize: (key) => {
     if (key === 'PF2EDC.Dungeon.Retreat.PreviousRoom') return 'the previous room';
+    if (key === 'PF2EDC.Dungeon.RoomTile.Goal') return 'Goal';
+    if (key === 'PF2EDC.Dungeon.RoomTile.Generic') return 'Room';
+    if (key.includes('RoomTile.Kind.')) {
+      const w = ROOM_KIND_WORDS[key.split('.').pop()];
+      return w ? w[0].toUpperCase() + w.slice(1) : key;
+    }
     return ROOM_KIND_WORDS[key.split('.').pop()] ?? key;
   },
-  format: (key, d) => (key.endsWith('NoRank') ? `the ${d.kind} room` : `the ${d.kind} room (rank ${d.rank})`),
+  format: (key, d) => (key.endsWith('RoomTile.Name') ? `${d.kind} (rank ${d.rank}, col ${d.col})` : key.endsWith('NoRank') ? `the ${d.kind} room` : `the ${d.kind} room (rank ${d.rank})`),
 };
 
 /** #577: a readable name for a room in retreat text. Generated rooms have no `name`, so build one from the room
@@ -94,6 +100,17 @@ export function roomDisplayLabel(state, roomId, i18n = ENGLISH_I18N) {
   const kind = i18n.localize(`${L}RoomKind.${room.kind}`);
   const rank = state.layoutPositionByRoomId?.[roomId]?.rank;
   return Number.isFinite(rank) ? i18n.format(`${L}RoomLabel`, { kind, rank }) : i18n.format(`${L}RoomLabelNoRank`, { kind });
+}
+
+/** #574: the Foundry-UI name of a room's floor-art Tile, so it is identifiable in the Tiles directory / on hover:
+ * 'Combat (rank 2, col 1)', or 'Goal (rank 5, col 0)' for the goal room. Without a finite rank AND col it is just
+ * the kind word; an unknown/missing kind reads 'Room'. `i18n` ({localize, format}) defaults to English. */
+export function roomTileName(kind, rank, col, isGoal = false, i18n = ENGLISH_I18N) {
+  const L = 'PF2EDC.Dungeon.RoomTile.';
+  const label = isGoal
+    ? i18n.localize(`${L}Goal`)
+    : Object.hasOwn(ROOM_KIND_WORDS, kind) ? i18n.localize(`${L}Kind.${kind}`) : i18n.localize(`${L}Generic`);
+  return Number.isFinite(rank) && Number.isFinite(col) ? i18n.format(`${L}Name`, { kind: label, rank, col }) : label;
 }
 
 export function withEntry(state, roomId) {
