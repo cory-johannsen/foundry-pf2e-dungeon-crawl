@@ -143,11 +143,16 @@ function wallDoc(
  * shared by a connection's own corridor and a #174 Task 5 transit cell's
  * own crossing, both of which lay tile-per-grid-square the same way the
  * old linear-slot builder's single corridorRect loop always did. */
-function corridorTilesForSegments(segments) {
+function corridorTilesForSegments(segments, { fullWidth = false } = {}) {
   const tiles = [];
   for (const segment of segments) {
     const vertical = segment.gh >= segment.gw;
     const length = vertical ? segment.gh : segment.gw;
+    // #555 (layoutVersion >= 3): a segment wider than one cell (the #230/#231 gap-widening bridge between a
+    // source door and a clamped target slot) is tiled across its whole width, not just its first column, so the
+    // door cell the bridge exists to cover has a floor tile in its own column.
+    const cross = fullWidth ? Math.max(1, Math.round(vertical ? segment.gw : segment.gh)) : 1;
+    for (let ci = 0; ci < cross; ci += 1) {
     // #324 (second finding, the multi-cell/transit-cell path): a
     // multi-cell corridor's own room-door anchor is deliberately
     // fractional (buildEdgeCorridor's own chainStartAnchor/chainEndAnchor,
@@ -167,8 +172,8 @@ function corridorTilesForSegments(segments) {
     const baseGx = Math.floor(segment.gx);
     const baseGy = Math.floor(segment.gy);
     for (let ti = 0; ti < length; ti += 1) {
-      const dx = vertical ? 0 : ti;
-      const dy = vertical ? ti : 0;
+      const dx = vertical ? ci : ti;
+      const dy = vertical ? ti : ci;
       const { variant, rotation } = corridorTileVariant(ti, length, vertical);
       tiles.push({
         // anchorX/anchorY: 0.5 (center) -- NOT top-left. Room floor art
@@ -199,6 +204,7 @@ function corridorTilesForSegments(segments) {
         height: toPixels(1),
         rotation,
       });
+    }
     }
   }
   return tiles;
@@ -1336,7 +1342,8 @@ export async function buildPopulateAndUnlockGraphNode(
       // (findCorridorPath) a route around any other room's own occupied
       // cell instead of assuming a direct/single-corner connection.
       const { doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells } =
-        buildEdgeCorridor(state.seed, sourceId, room.id, sourceRect, rect, sourcePos, { rank, col }, exitFaceFromSource, toSlot, occupiedCells, incomingFace, plannedExit);
+        buildEdgeCorridor(state.seed, sourceId, room.id, sourceRect, rect, sourcePos, { rank, col }, exitFaceFromSource, toSlot, occupiedCells, incomingFace, plannedExit,
+          layoutVersion >= 3 ? { coverDoorCell: true } : undefined);
       if (hidden) {
         // #156: sealed until Task 9's reveal step explicitly promotes it
         // (both doorWall and revealDoorWall share the SAME
@@ -1388,7 +1395,7 @@ export async function buildPopulateAndUnlockGraphNode(
       // variant/rotation logic the old linear-slot builder's single-corridorRect
       // loop always used, just offset by each segment's own gx/gy instead
       // of a single shared corridorRect's.
-      tiles.push(...corridorTilesForSegments(corridorSegments));
+      tiles.push(...corridorTilesForSegments(corridorSegments, { fullWidth: layoutVersion >= 3 }));
       placeholderIdsToDelete.push(...placeholderIdsByConnection[i]);
 
       // #174 Task 4/5: every intermediate, empty cell this connection's
