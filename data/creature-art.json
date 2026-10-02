@@ -33198,5 +33198,125 @@
     "name": "Kundal",
     "level": 7,
     "art": "kundal.webp"
+  },
+  {
+    "id": "false_priestess",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "ZPm7WqgQTjysuTiT",
+    "name": "False Priestess",
+    "level": 7,
+    "art": "false-priestess.webp"
+  },
+  {
+    "id": "ngara",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "ZbgFOoDCOXqhJWhz",
+    "name": "Ngara",
+    "level": 12,
+    "art": "ngara.webp"
+  },
+  {
+    "id": "spirit_of_stisshak",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "ZoUIXzygFDuHKebr",
+    "name": "Spirit of Stisshak",
+    "level": 7,
+    "art": "spirit-of-stisshak.webp"
+  },
+  {
+    "id": "castruccio_irovetti",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "aEz68WBHT9F5YlXz",
+    "name": "Castruccio Irovetti",
+    "level": 16,
+    "art": "castruccio-irovetti.webp"
+  },
+  {
+    "id": "hill_giant_butcher",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "bF0FHdZMWl1OuRae",
+    "name": "Hill Giant Butcher",
+    "level": 14,
+    "art": "hill-giant-butcher.webp"
+  },
+  {
+    "id": "auchs",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "bHnGsHHymPUC1XGc",
+    "name": "Auchs",
+    "level": 2,
+    "art": "auchs.webp"
+  },
+  {
+    "id": "bog_mummy_cultist",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "bjMn6cRNFK9jgfe0",
+    "name": "Bog Mummy Cultist",
+    "level": 9,
+    "art": "bog-mummy-cultist.webp"
+  },
+  {
+    "id": "leng_envoy",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "bwEYizrdHs8lmvxE",
+    "name": "Leng Envoy",
+    "level": 18,
+    "art": "leng-envoy.webp"
+  },
+  {
+    "id": "evindra",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "cPcregujkG0LUHiG",
+    "name": "Evindra",
+    "level": 13,
+    "art": "evindra.webp"
+  },
+  {
+    "id": "fen_pudding",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "cjQVmbjqONihI9SR",
+    "name": "Fen Pudding",
+    "level": 12,
+    "art": "fen-pudding.webp"
+  },
+  {
+    "id": "old_crackjaw",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "dZEl1W8zV3rj5D9O",
+    "name": "Old Crackjaw",
+    "level": 5,
+    "art": "old-crackjaw.webp"
+  },
+  {
+    "id": "the_stag_lord",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "defXhBIK4TtoZXGK",
+    "name": "The Stag Lord",
+    "level": 6,
+    "art": "the-stag-lord.webp"
+  },
+  {
+    "id": "vordakai",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "eAu4SOvMaNISD3RZ",
+    "name": "Vordakai",
+    "level": 12,
+    "art": "vordakai.webp"
+  },
+  {
+    "id": "dovan_from_nisroch",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "eVHkWtrdGJMVMob7",
+    "name": "Dovan from Nisroch",
+    "level": 2,
+    "art": "dovan-from-nisroch.webp"
+  },
+  {
+    "id": "ancient_wisp",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "etIP2Mdv3Xnr0wto",
+    "name": "Ancient Wisp",
+    "level": 10,
+    "art": "ancient-wisp.webp"
   }
 ]
