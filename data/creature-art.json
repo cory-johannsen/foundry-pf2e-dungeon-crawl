@@ -31198,5 +31198,109 @@
     "name": "Stirvyn Banyan",
     "level": 12,
     "art": "stirvyn-banyan.webp"
+  },
+  {
+    "id": "xulgath_hardscale",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "tg5SrKu228LZkoC0",
+    "name": "Xulgath Hardscale",
+    "level": 12,
+    "art": "xulgath-hardscale.webp"
+  },
+  {
+    "id": "bogey",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "u6b7tlXDXMxmkdLO",
+    "name": "Bogey",
+    "level": 3,
+    "art": "bogey.webp"
+  },
+  {
+    "id": "xulgath_stoneliege",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "uPWqYc05YQ0Q4i0g",
+    "name": "Xulgath Stoneliege",
+    "level": 8,
+    "art": "xulgath-stoneliege.webp"
+  },
+  {
+    "id": "xulgath_skirmisher",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "uUcqr8gPQIw5govC",
+    "name": "Xulgath Skirmisher",
+    "level": 6,
+    "art": "xulgath-skirmisher.webp"
+  },
+  {
+    "id": "kalkek",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "viTyDNdkTo0JPLb8",
+    "name": "Kalkek",
+    "level": 7,
+    "art": "kalkek.webp"
+  },
+  {
+    "id": "kimilekki",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "vxFQrDnQqUpGpQmK",
+    "name": "Kimilekki",
+    "level": 17,
+    "art": "kimilekki.webp"
+  },
+  {
+    "id": "lyrt_cozurn",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "wBlnbLj8FfgxArQm",
+    "name": "Lyrt Cozurn",
+    "level": 15,
+    "art": "lyrt-cozurn.webp"
+  },
+  {
+    "id": "wight_cultist",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "wOzDhkm9sd7IygoS",
+    "name": "Wight Cultist",
+    "level": 12,
+    "art": "wight-cultist.webp"
+  },
+  {
+    "id": "corrupted_priest",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "wi94WddixQEID9Jl",
+    "name": "Corrupted Priest",
+    "level": 3,
+    "art": "corrupted-priest.webp"
+  },
+  {
+    "id": "xulgath_mage",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "wiNeCuB0DXt2ReAx",
+    "name": "Xulgath Mage",
+    "level": 7,
+    "art": "xulgath-mage.webp"
+  },
+  {
+    "id": "iridescent_elephant",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "x2XcPDPLeCAXITlZ",
+    "name": "Iridescent Elephant",
+    "level": 7,
+    "art": "iridescent-elephant.webp"
+  },
+  {
+    "id": "xulgath_bilebearer",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "xWsfcDcgbubVpjow",
+    "name": "Xulgath Bilebearer",
+    "level": 2,
+    "art": "xulgath-bilebearer.webp"
+  },
+  {
+    "id": "drow_bodyguard_golem",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "yqH59ltUd0f3kLLL",
+    "name": "Drow Bodyguard Golem",
+    "level": 14,
+    "art": "drow-bodyguard-golem.webp"
   }
 ]
