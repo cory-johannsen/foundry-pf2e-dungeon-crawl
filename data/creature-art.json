@@ -28118,5 +28118,37 @@
     "name": "Naiad Raider",
     "level": 6,
     "art": "naiad-raider.webp"
+  },
+  {
+    "id": "ghoul_pfs_intro_2",
+    "pack": "pf2e.pfs-introductions-bestiary",
+    "docId": "0PInbNLNpw7qKTAu",
+    "name": "Ghoul (PFS Intro 2)",
+    "level": 1,
+    "art": "ghoul.webp"
+  },
+  {
+    "id": "sun_scorched_shadow_drake",
+    "pack": "pf2e.pfs-introductions-bestiary",
+    "docId": "LG0Vg7zBMGFQUkvE",
+    "name": "Sun-Scorched Shadow Drake",
+    "level": 1,
+    "art": "sun-scorched-shadow-drake.webp"
+  },
+  {
+    "id": "rain_in_cloudy_day",
+    "pack": "pf2e.pfs-introductions-bestiary",
+    "docId": "RPqISpa2Jq8Jy3dh",
+    "name": "Rain In Cloudy Day",
+    "level": 2,
+    "art": "rain-in-cloudy-day.webp"
+  },
+  {
+    "id": "swamp_ooze",
+    "pack": "pf2e.pfs-introductions-bestiary",
+    "docId": "j7hidXUeUNJtQEW4",
+    "name": "Swamp Ooze",
+    "level": 1,
+    "art": "swamp-ooze.webp"
   }
 ]
