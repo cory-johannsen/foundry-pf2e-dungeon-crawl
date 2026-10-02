@@ -66,6 +66,17 @@
   "PF2EDC.Dungeon.ReadOnlyHint": "{host} is running this crawl — you're viewing read-only.",
   "PF2EDC.Dungeon.RequestFailedWarning": "That request couldn't be completed — check that a GM is connected.",
   "PF2EDC.Dungeon.RerunEncounterHint": "The ruin drawn here means an extra fight — click Run Encounter again once the party is through.",
+  "PF2EDC.Dungeon.Retreat.Button": "Turn back",
+  "PF2EDC.Dungeon.Retreat.Card": "The way is choked with rubble. Turn back to {target}?",
+  "PF2EDC.Dungeon.Retreat.Refused.combat": "You can't turn back while a combat is active.",
+  "PF2EDC.Dungeon.Retreat.Refused.completed": "The dungeon is already complete.",
+  "PF2EDC.Dungeon.Retreat.Refused.disabled": "Turning back isn't available in this run.",
+  "PF2EDC.Dungeon.Retreat.Refused.no-target": "There is no earlier room with an unexplored way forward.",
+  "PF2EDC.Dungeon.Retreat.Refused.not-dead-end": "This room still has a way forward.",
+  "PF2EDC.Dungeon.Retreat.Refused.undiscovered": "The party hasn't found the dead end yet.",
+  "PF2EDC.Dungeon.Retreat.Refused.unjudged": "Resolve this room before turning back.",
+  "PF2EDC.Dungeon.Retreat.StubFlavor": "The passage ahead is choked with rubble.",
+  "PF2EDC.Dungeon.Retreat.Turned": "The way is choked with rubble. The party turns back to {target}.",
   "PF2EDC.Dungeon.RoomBuildFailedError": "Dungeon Crawl: failed to prepare the next room — see console for details.",
   "PF2EDC.Dungeon.RoomCountLabel": "Number of rooms (including the goal room)",
   "PF2EDC.Dungeon.SafeEntryHint": "A safe room — no encounter, trap or puzzle. The way onward is already open.",
@@ -112,5 +123,7 @@
   "PF2EDC.Settings.AgentServiceApiKeyHint": "The bearer token your agent-service deployment was started with (AGENT_SERVICE_API_KEY). Stored only in this browser (never synced to players), so each GM sets it in their own browser.",
   "PF2EDC.Settings.AgentServiceApiKeyLabel": "Agent Service API Key",
   "PF2EDC.Settings.AgentServiceUrlHint": "Base URL of your self-hosted tools/agent-service instance (e.g. https://agent.yourdomain.com). Stored only in this browser, so each GM sets it in their own browser.",
-  "PF2EDC.Settings.AgentServiceUrlLabel": "Agent Service URL"
+  "PF2EDC.Settings.AgentServiceUrlLabel": "Agent Service URL",
+  "PF2EDC.Settings.AutoRetreat.Hint": "When the party opens the last door of a dead end, move them straight back to the last fork instead of posting a Turn back button.",
+  "PF2EDC.Settings.AutoRetreat.Name": "Turn back automatically at a dead end"
 }
