@@ -6,10 +6,10 @@ import {
 } from '../tools/image-fallback.mjs';
 
 describe('openrouterModels', () => {
-  it('defaults to flux klein first, then muse, with krea turbo last', () => {
+  it('defaults to cheapest first: muse, then flux klein, with krea turbo last', () => {
     expect(openrouterModels({ env: {} })).toEqual([
-      'black-forest-labs/flux.2-klein-4b',
       'meta/muse-image',
+      'black-forest-labs/flux.2-klein-4b',
       'krea/krea-2-medium-turbo'
     ]);
     expect(DEFAULT_OPENROUTER_MODELS).toHaveLength(3);

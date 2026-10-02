@@ -8,12 +8,14 @@
  * next model would fail the same way and just burn time.
  */
 
-// Owner's order (2026-10-01): Flux first, Krea only when Flux cannot produce
-// the image. Muse sits between them: cheapest per image but Meta's content
-// filter rejects some prompts, so it is a second choice, not the first.
+// Owner's order: cheapest first. ComfyUI is always tried before any of these.
+// Measured per-image cost on OpenRouter: Muse $0.01, Flux klein $0.014, Krea
+// $0.015. Muse is first even though Meta's content filter rejects some
+// prompts — a rejection just falls through to Flux, and Krea only runs if
+// Flux cannot produce the image.
 export const DEFAULT_OPENROUTER_MODELS = [
-  'black-forest-labs/flux.2-klein-4b',
   'meta/muse-image',
+  'black-forest-labs/flux.2-klein-4b',
   'krea/krea-2-medium-turbo'
 ];
 
