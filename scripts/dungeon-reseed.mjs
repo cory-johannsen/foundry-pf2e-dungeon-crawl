@@ -21,8 +21,8 @@ import { buildPopulateAndUnlockGraphNode } from './dungeon-scene.mjs';
 
 const MODULE_ID = 'pf2e-dungeon-crawl';
 
-/** How many reseeds are tried after the original seed (user decision: N = 10, 99.8% goal-reachable measured). */
-export const RESEED_MAX_TRIES = 10;
+/** How many reseeds are tried after the original seed (user decision: N = 20, ~100% goal-reachable measured). */
+export const RESEED_MAX_TRIES = 20;
 
 /** Candidate k of `seed`: k = 0 is the seed itself. */
 export const candidateSeed = (seed, k) => (k === 0 ? seed : `${seed}~r${k}`);
