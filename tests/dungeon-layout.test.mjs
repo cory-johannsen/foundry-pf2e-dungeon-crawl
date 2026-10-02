@@ -6,7 +6,7 @@ import {
   roomRect, exitFaceForIndex, roomEnclosureWalls, ROW_STRIDE, COLUMN_STRIDE, parentRoomIdsFor, incomingConnectionsFor, buildEdgeCorridor, incomingFaceFor, doorSlotsForFace, outgoingSlotsForFace, outgoingDoorPlan,
   cellBounds, projectOntoSide, findCorridorPath, INITIAL_GX, cellMarginWalls, transitCellCrossing,
   transitCellContainmentWalls, CORRIDOR_LEN, outgoingMarginOffset, pendingForeignMarginOpenings,
-  marginBandApproach, findCoParentCollision, findPriorityCollision, assignDoorSlotsWithPriority, pruneConflictingShortcuts,
+  marginBandApproach, incomingDoorOrder, findCoParentCollision, findPriorityCollision, assignDoorSlotsWithPriority, pruneConflictingShortcuts,
 } from '../scripts/dungeon-layout.mjs';
 import { buildRoomGraph, attachHiddenPaths } from '../scripts/dungeon-deck.mjs';
 import { forEachEdge, buildSweepLayout, planSelector, outgoingPlanFor } from './helpers/layout-sweep.mjs';
@@ -4283,4 +4283,53 @@ describe('planned doors over the 500-seed sweep (#415)', () => {
       }
     }
   }, 120000);
+});
+
+describe('incomingDoorOrder (#427, layoutVersion 3)', () => {
+  const P = {
+    t: { rank: 3, col: 0 },
+    a: { rank: 1, col: 2 }, b: { rank: 2, col: 0 }, c: { rank: 0, col: 0 }, d: { rank: 1, col: 0 },
+    h: { rank: 0, col: -1 }, w1: { rank: 1, col: 1 }, w2: { rank: 0, col: 2 },
+  };
+  const conn = (sourceId, hidden = false) => ({ sourceId, hidden });
+  const ids = (cs) => cs.map((c) => c.sourceId);
+
+  it('sweep-0 repro: the second parent east of the merge room gets the slot east of its co-parent', () => {
+    const L = buildSweepLayout(0, { layoutVersion: 2 });
+    const conns = incomingConnectionsFor(L.layoutEdges, 'room-merge-3', L.hiddenIncomingByRoomId);
+    expect(ids(conns)).toEqual(['room-room-entry-1', 'room-room-room-entry-0-0']); // today's list order: east parent first
+    expect(ids(incomingDoorOrder(conns, L.pos, 'north', L.pos['room-merge-3']))).toEqual(['room-room-room-entry-0-0', 'room-room-entry-1']);
+  });
+  it('north face: source column ascending', () => {
+    expect(ids(incomingDoorOrder([conn('a'), conn('b')], P, 'north', P.t))).toEqual(['b', 'a']);
+  });
+  it('is independent of input order and does not mutate the input', () => {
+    const input = [conn('a'), conn('b'), conn('c'), conn('d'), conn('h', true)];
+    const frozen = JSON.stringify(input);
+    const expected = ids(incomingDoorOrder(input, P, 'north', P.t));
+    for (const perm of [[4, 3, 2, 1, 0], [2, 0, 4, 1, 3], [1, 4, 0, 3, 2]]) {
+      expect(ids(incomingDoorOrder(perm.map((i) => input[i]), P, 'north', P.t))).toEqual(expected);
+    }
+    expect(JSON.stringify(input)).toBe(frozen);
+  });
+  it('hidden connections sort last, whatever their column', () => {
+    expect(ids(incomingDoorOrder([conn('h', true), conn('a'), conn('b')], P, 'north', P.t))).toEqual(['b', 'a', 'h']);
+  });
+  it('same column as the target: the farther source first (the dogleg priority is the swap that runs on this order)', () => {
+    expect(ids(incomingDoorOrder([conn('c'), conn('b'), conn('d')], P, 'north', P.t))).toEqual(['c', 'd', 'b']);
+  });
+  it('a column west of the target takes the farther source first', () => {
+    expect(ids(incomingDoorOrder([conn('b'), conn('c'), conn('d')], P, 'north', { rank: 3, col: 4 }))).toEqual(['c', 'd', 'b']);
+  });
+  it('a column east of the target takes the nearer source first', () => {
+    const pos = { x: { rank: 0, col: 2 }, y: { rank: 1, col: 2 } };
+    expect(ids(incomingDoorOrder([conn('x'), conn('y')], pos, 'north', { rank: 3, col: 0 }))).toEqual(['y', 'x']);
+  });
+  it('west face: source rank ascending, ties by column ascending', () => {
+    expect(ids(incomingDoorOrder([conn('a'), conn('w2'), conn('w1'), conn('c')], P, 'west', P.t))).toEqual(['c', 'w2', 'w1', 'a']);
+  });
+  it('source id is the last tie-break', () => {
+    const pos = { x: { rank: 0, col: 0 }, y: { rank: 0, col: 0 }, t: { rank: 3, col: 0 } };
+    expect(ids(incomingDoorOrder([conn('y'), conn('x')], pos, 'north', pos.t))).toEqual(['x', 'y']);
+  });
 });
