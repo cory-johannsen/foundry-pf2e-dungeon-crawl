@@ -1,9 +1,9 @@
 // tests/dungeon-layout-buildability.test.mjs
 import { describe, it, expect } from 'vitest';
-import { buildSweepLayout } from './helpers/layout-sweep.mjs';
-import { measureBuildability, sumMeasures } from './helpers/buildability.mjs';
+import { buildSweepLayout, planSelector } from './helpers/layout-sweep.mjs';
+import { measureBuildability, sumMeasures, visitEdges } from './helpers/buildability.mjs';
 import { buildFloorModel } from './helpers/floor-oracle.mjs';
-import { transitCellContainmentWalls } from '../scripts/dungeon-layout.mjs';
+import { transitCellContainmentWalls, pendingForeignMarginOpenings, incomingSlotsV3 } from '../scripts/dungeon-layout.mjs';
 
 const SEEDS = 500;
 // Ratchets, measured on main 0.54.60 (layoutVersion 2: rest room spliced, shortcuts pruned; 9,498 edges).
@@ -82,5 +82,66 @@ describe('measureBuildability reproduces the spec baseline on layoutVersion 1 (#
       edges: 9930, nullPath: 2470, interOverlap: 1316, multi: 2077, sharedCells: 1257,
       cutEdges: 526, cutOccurrences: 861, floorCrossings: 510, targetOverlapDeep: 170,
     });
+  });
+});
+
+// layoutVersion 3, Task 2.1 (#427): `incomingDoorOrder` replaces the list order; #297's priority swap still runs on it.
+// Every v2 ratchet holds on the v3 geometry; the one that moves is intermediate overlap (the order alone).
+const V3_INTERMEDIATE_OVERLAP_CEILING = 1097;
+describe('layoutVersion 3 buildability: incoming door order only (#427)', () => {
+  const layouts = Array.from({ length: SEEDS }, (_, i) => buildSweepLayout(i, { layoutVersion: 3 }));
+  const total = layouts.map((l) => measureBuildability(l)).reduce(sumMeasures);
+  it('holds every v2 invariant', () => {
+    expect(total.edges).toBe(9498);
+    expect(total.interOverlapFound).toBe(0);
+    expect(total.targetDoorCovered).toBe(0);
+    expect(total.chainMismatch).toBe(0);
+    expect(total.sourceOverlap).toBe(0);
+  });
+  it('holds every v2 ratchet (K9) and the order alone lowers intermediate overlap', () => {
+    expect(total.nullPath).toBeLessThanOrEqual(NULL_PATH_CEILING);
+    expect(total.interOverlap).toBeLessThanOrEqual(V3_INTERMEDIATE_OVERLAP_CEILING);
+    expect(total.interOverlap).toBeLessThan(INTERMEDIATE_OVERLAP_CEILING);
+    expect(total.cutEdges).toBeLessThanOrEqual(SHARED_CELL_CUT_EDGES_CEILING);
+    expect(total.cutOccurrences).toBeLessThanOrEqual(SHARED_CELL_CUT_OCCURRENCES_CEILING);
+    expect(total.floorCrossings).toBeLessThanOrEqual(FLOOR_CROSSING_CEILING);
+    expect(total.targetOverlapDeep).toBeLessThanOrEqual(DEEP_TARGET_OVERLAP_CEILING);
+  });
+  it('door/wall agreement: every dogleg\'s foreign margin opening is reported by pendingForeignMarginOpenings in v3 order', () => {
+    let doglegs = 0;
+    for (const L of layouts) {
+      const planFor = planSelector.planFor(L);
+      visitEdges(L, ({ res }) => {
+        const fo = res.foreignOpening;
+        if (!fo) return;
+        doglegs += 1;
+        const { rank, col } = L.pos[fo.roomId];
+        const open = pendingForeignMarginOpenings(L.seed, fo.roomId, rank, col, L.edges, L.pos, L.incFace, L.occ,
+          L.layoutEdges, L.hiddenIncomingByRoomId, L.hiddenEdges, planFor, true);
+        expect(open[fo.side]).toContainEqual({ offset: fo.offset, width: fo.width });
+      });
+    }
+    expect(doglegs).toBeGreaterThan(300);
+  });
+  it('incomingSlotsV3 is the slot every built edge actually received', () => {
+    let checked = 0;
+    for (const L of layouts.slice(0, 100)) {
+      const planFor = planSelector.planFor(L);
+      const received = new Map();
+      visitEdges(L, ({ sourceId, toId, slot }) => received.set(`${sourceId}->${toId}`, slot));
+      for (const toId of Object.keys(L.rooms)) {
+        const slots = incomingSlotsV3(L.seed, toId, L.pos[toId], {
+          layoutEdges: L.layoutEdges, hiddenIncomingByRoomId: L.hiddenIncomingByRoomId, positionByRoomId: L.pos,
+          occupiedCells: L.occ, incomingFace: L.incFace[toId], planFor, detour: L.hiddenRooms.includes(toId),
+        });
+        for (const { sourceId, slot } of slots) { expect(received.get(`${sourceId}->${toId}`)).toEqual(slot); checked += 1; }
+      }
+    }
+    expect(checked).toBeGreaterThan(1500);
+  });
+  it('v1/v2 slot assignment is untouched (the same helper without layoutVersion 3 still uses the priority swap)', () => {
+    const v2 = Array.from({ length: SEEDS }, (_, i) => measureBuildability(buildSweepLayout(i, { layoutVersion: 2 }))).reduce(sumMeasures);
+    expect(v2.interOverlap).toBe(1132);
+    expect(v2.cutOccurrences).toBe(814);
   });
 });

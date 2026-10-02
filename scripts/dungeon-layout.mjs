@@ -151,6 +151,43 @@ export function incomingConnectionsFor(layoutEdges, roomId, hiddenIncomingByRoom
 }
 
 /**
+ * Run-state `layoutVersion` stamped on every NEW run (#427: 3 = incoming door order; one evolving version,
+ * later geometry changes ride on it). Absent/1/2 on a persisted run keep that run's geometry byte-for-byte.
+ */
+export const NEW_RUN_LAYOUT_VERSION = 3;
+
+/**
+ * #427 (layoutVersion >= 3): the slot order of a room's incoming connections,
+ * a total order that depends only on the sources' and the target's grid
+ * positions, never on list order (the incoming twin of `outgoingDoorPlan`'s
+ * target ordering). v3 assigns slot N to the Nth entry, then still applies
+ * #297's `findPriorityCollision`/`assignDoorSlotsWithPriority` on the ordered
+ * list: the order alone put more doors under another corridor's walls than
+ * v2 does (955 vs 775 sealed doors over 200 seeds in the scene-level check);
+ * the order plus the swap plus `incomingSlotsV3`-exact margin openings: 619.
+ *
+ * North face: source column ascending (west slot first). Sources in one
+ * column tie on rank: a column at or WEST of the target takes the farther
+ * source first, a column EAST of it the nearer source first. (Measured over
+ * the 500-seed sweep: nearer-first everywhere raises cutOccurrences 814 ->
+ * 819, a K1 violation; this variant holds every v2 ratchet.) West face:
+ * source rank ascending, then column ascending. Hidden connections last,
+ * source id as the final tie-break. `targetPosition` is the target room's
+ * `{ rank, col }`. Returns a new array.
+ */
+export function incomingDoorOrder(connections, positionByRoomId, face, targetPosition) {
+  const pos = (c) => positionByRoomId[c.sourceId];
+  const major = (c) => (face === 'west' ? pos(c).rank : pos(c).col);
+  const minor = (c) => {
+    if (face === 'west') return pos(c).col;
+    return pos(c).col > targetPosition.col ? -pos(c).rank : pos(c).rank;
+  };
+  return [...connections].sort((a, b) => (a.hidden === b.hidden ? 0 : a.hidden ? 1 : -1)
+    || (major(a) - major(b)) || (minor(a) - minor(b))
+    || (a.sourceId < b.sourceId ? -1 : a.sourceId > b.sourceId ? 1 : 0));
+}
+
+/**
  * Which compass face `roomId` should receive its incoming connection(s)
  * on — 'north' (today's only option, unchanged for the common case) or
  * 'west' as a fallback, chosen once per room from the fully precomputed
@@ -1401,7 +1438,7 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
  * per-connection slot (this assumption doesn't know about) is a
  * separate, already-tracked residual — #231 — not solved here.
  */
-export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells, incomingFace = 'north', exitDoorArg) {
+export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells, incomingFace = 'north', exitDoorArg, realToSlot) {
   const exitDoor = exitDoorArg?.exitPoint ? exitDoorArg : undefined;
   if (exitFace !== 'south' && exitFace !== 'east') {
     // West never takes buildEdgeCorridor's offset-based branch — always
@@ -1433,7 +1470,8 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
     return { offset: faceSpan / 2 - DOOR_WIDTH, width: DOOR_WIDTH };
   }
   const toRect = roomRect(seed, toRoomId, toPos.rank, toPos.col);
-  const toSlot = doorSlotsForFace(toRect, 1, incomingFace)[0];
+  // #427 (v3): `realToSlot` is the connection's actual door slot; v1/v2 assume one full-width slot (#231).
+  const toSlot = realToSlot ?? doorSlotsForFace(toRect, 1, incomingFace)[0];
   const { corridorSegments } = buildEdgeCorridor(
     seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace, exitDoor,
   );
@@ -1683,6 +1721,30 @@ export function assignDoorSlotsWithPriority(seed, rect, incomingConnections, inc
 }
 
 /**
+ * #427 (layoutVersion >= 3): the incoming connections of `targetId` in slot
+ * order, each with the door slot it receives: `incomingDoorOrder`, then #297's
+ * priority swap on the ordered list. The ONE definition every v3 consumer
+ * shares (the scene's per-room build, `pendingForeignMarginOpenings`, and the
+ * source room's own margin opening through `outgoingMarginOffset`'s
+ * `realToSlot`), so no two of them can disagree about where a door is.
+ * `detour` marks every connection hidden, as the scene does for a hidden room.
+ * Returns `[{ sourceId, hidden, slot }]`.
+ */
+export function incomingSlotsV3(seed, targetId, targetPos, {
+  layoutEdges, hiddenIncomingByRoomId = {}, positionByRoomId, occupiedCells, incomingFace = 'north', planFor, detour = false,
+}) {
+  const listed = incomingConnectionsFor(layoutEdges, targetId, hiddenIncomingByRoomId)
+    .map((c) => (detour ? { ...c, hidden: true } : c));
+  if (!listed.length) return [];
+  const ordered = incomingDoorOrder(listed, positionByRoomId, incomingFace, targetPos);
+  const collision = findPriorityCollision(
+    seed, targetId, targetPos.rank, targetPos.col, ordered, positionByRoomId, occupiedCells, incomingFace, planFor,
+  );
+  const slots = assignDoorSlotsWithPriority(seed, roomRect(seed, targetId, targetPos.rank, targetPos.col), ordered, incomingFace, collision);
+  return ordered.map((c, k) => ({ sourceId: c.sourceId, hidden: c.hidden, slot: slots[k] }));
+}
+
+/**
  * Every foreign margin opening `roomId`'s own `cellMarginWalls` call must
  * leave, for OTHER edges whose #297 dogleg routes through this room's own
  * margin band. A pure scan over the whole graph's real edges (`edges`,
@@ -1723,7 +1785,7 @@ export function assignDoorSlotsWithPriority(seed, rect, incomingConnections, inc
  * edges` falls back to `edges` itself, which equals `layoutEdges` for
  * every non-detour room).
  */
-export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells, layoutEdges, hiddenIncomingByRoomId = {}, hiddenEdges = {}, planFor) {
+export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells, layoutEdges, hiddenIncomingByRoomId = {}, hiddenEdges = {}, planFor, orderedIncoming = false) {
   const result = { east: [], south: [] };
   // #415: with a plan, hidden edges are scanned too (legacy ignores them) and
   // each edge's face/door come from the source's plan, not its child index.
@@ -1764,8 +1826,18 @@ export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, lay
       const sourceRect = roomRect(seed, sourceId, sourcePos.rank, sourcePos.col);
       const targetRect = roomRect(seed, childId, targetPos.rank, targetPos.col);
       const targetIncomingFace = incomingFaceByRoomId?.[childId] ?? 'north';
-      const targetConnections = incomingConnectionsFor(layoutEdges ?? edges, childId, hiddenIncomingByRoomId);
+      // #427 (layoutVersion >= 3, `orderedIncoming`): the slot is the one `incomingSlotsV3` gives the scene's
+      // per-room build (incomingDoorOrder, then the priority swap); otherwise list order (v1/v2).
+      const targetConnections = orderedIncoming
+        ? incomingSlotsV3(seed, childId, targetPos, {
+          layoutEdges: layoutEdges ?? edges, hiddenIncomingByRoomId, positionByRoomId: layoutPositionByRoomId,
+          occupiedCells, incomingFace: targetIncomingFace, planFor,
+        })
+        : incomingConnectionsFor(layoutEdges ?? edges, childId, hiddenIncomingByRoomId);
       const slotIndex = targetConnections.findIndex((c) => c.hidden === hidden && c.sourceId === sourceId);
+      const targetSlots = orderedIncoming
+        ? targetConnections.map((c) => c.slot)
+        : doorSlotsForFace(targetRect, targetConnections.length, targetIncomingFace);
       // A real parent not found among its own target's real connections
       // would be a graph-consistency bug elsewhere (childIds and
       // parentRoomIdsFor disagreeing) -- fall back to a single full-width
@@ -1773,7 +1845,7 @@ export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, lay
       // defensive style (the `if (!sourcePos) continue`/`if (!targetPos)
       // continue` guards just above).
       const toSlot = slotIndex >= 0
-        ? doorSlotsForFace(targetRect, targetConnections.length, targetIncomingFace)[slotIndex]
+        ? targetSlots[slotIndex]
         : doorSlotsForFace(targetRect, 1, targetIncomingFace)[0];
       const { foreignOpening } = buildEdgeCorridor(
         seed, sourceId, childId, sourceRect, targetRect, sourcePos, targetPos,

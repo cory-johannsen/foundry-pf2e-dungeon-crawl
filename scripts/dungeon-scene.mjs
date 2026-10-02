@@ -44,6 +44,7 @@ import {
   DOOR_WIDTH,
   outgoingMarginOffset,
   pendingForeignMarginOpenings,
+  incomingSlotsV3,
   findPriorityCollision,
   assignDoorSlotsWithPriority,
   outgoingDoorPlan,
@@ -515,7 +516,7 @@ export async function buildRoomAtGraphNode(
   const foreignOpenings = planned
     ? pendingForeignMarginOpenings(
       seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
-      layoutEdges, hiddenIncomingByRoomId, hiddenEdges, planFor,
+      layoutEdges, hiddenIncomingByRoomId, hiddenEdges, planFor, layoutVersion >= 3,
     )
     : pendingForeignMarginOpenings(
       seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
@@ -535,9 +536,17 @@ export async function buildRoomAtGraphNode(
     // implementer" in the brief). This room's own incomingFace has no
     // bearing on which face its children receive their connections on.
     const childIncomingFace = childId ? (incomingFaceByRoomId?.[childId] ?? 'north') : 'north';
+    // #427 (v3): the child's REAL door slot, from the same incomingSlotsV3 its own build uses, instead of
+    // outgoingMarginOffset's assumed single full-width slot (#231), so this opening matches the real floor.
+    const realToSlot = layoutVersion >= 3 && childId && childPos
+      ? incomingSlotsV3(seed, childId, childPos, {
+        layoutEdges: layoutEdges ?? edges, hiddenIncomingByRoomId, positionByRoomId: layoutPositionByRoomId,
+        occupiedCells, incomingFace: childIncomingFace, planFor,
+      }).find((c) => c.sourceId === roomId && c.hidden === (childId === hiddenChildId))?.slot
+      : undefined;
     const { offset, width } = outgoingMarginOffset(
       seed, roomId, childId, face, rect, { rank, col },
-      childPos ?? { rank: NaN, col: NaN }, occupiedCells, childIncomingFace, exitDoor,
+      childPos ?? { rank: NaN, col: NaN }, occupiedCells, childIncomingFace, exitDoor, realToSlot,
     );
     openingsBySide[face].push({ offset, width });
   }
@@ -1225,8 +1234,19 @@ export async function buildPopulateAndUnlockGraphNode(
   // but Task 5's function has no notion of "detour" and shouldn't need
   // one; this caller already has `state.hiddenRooms`.
   const isDetour = state.hiddenRooms.includes(room.id);
-  const incomingConnections = incomingConnectionsFor(state.layoutEdges, room.id, state.hiddenIncomingByRoomId)
-    .map((conn) => (isDetour ? { ...conn, hidden: true } : conn));
+  // #427 (layoutVersion >= 3): slot N goes to the Nth connection of incomingSlotsV3 (incomingDoorOrder, then
+  // the priority swap), a pure function of the layout. Everything below indexes by this order, and
+  // buildRoomAtGraphNode's placeholder lookup too.
+  const v3Slots = layoutVersion >= 3
+    ? incomingSlotsV3(state.seed, room.id, { rank, col }, {
+      layoutEdges: state.layoutEdges, hiddenIncomingByRoomId: state.hiddenIncomingByRoomId,
+      positionByRoomId: state.layoutPositionByRoomId, occupiedCells, incomingFace, planFor, detour: isDetour,
+    })
+    : null;
+  const incomingConnections = v3Slots
+    ? v3Slots.map(({ sourceId, hidden }) => ({ sourceId, hidden }))
+    : incomingConnectionsFor(state.layoutEdges, room.id, state.hiddenIncomingByRoomId)
+      .map((conn) => (isDetour ? { ...conn, hidden: true } : conn));
 
   if (!alreadyBuilt) {
     // Creates this room's own enclosure walls + floor art + light already
@@ -1264,10 +1284,15 @@ export async function buildPopulateAndUnlockGraphNode(
     // ("Round 2 correction: slot priority") for the full reasoning. Every
     // OTHER connection's own slot, and Round 1's own buildEdgeCorridor call
     // below (unchanged), are completely unaffected.
-    const priorityCollision = findPriorityCollision(
-      state.seed, room.id, rank, col, incomingConnections, state.layoutPositionByRoomId, occupiedCells, incomingFace, planFor,
-    );
-    const slots = assignDoorSlotsWithPriority(state.seed, rect, incomingConnections, incomingFace, priorityCollision);
+    // (v3: `v3Slots` above already carries the swapped slots, on the incomingDoorOrder-sorted list.)
+    const slots = v3Slots
+      ? v3Slots.map(({ slot }) => slot)
+      : assignDoorSlotsWithPriority(
+        state.seed, rect, incomingConnections, incomingFace,
+        findPriorityCollision(
+          state.seed, room.id, rank, col, incomingConnections, state.layoutPositionByRoomId, occupiedCells, incomingFace, planFor,
+        ),
+      );
     for (let i = 0; i < incomingConnections.length; i += 1) {
       const { sourceId, hidden } = incomingConnections[i];
       const toSlot = slots[i];

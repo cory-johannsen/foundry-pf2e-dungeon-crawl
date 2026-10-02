@@ -40,7 +40,7 @@ export function buildSweepLayout(i, { restRoom = true, layoutVersion = 1, incomi
     id, pos, occ,
     new Set([...parentRoomIdsFor(layoutEdges, id), ...(hiddenIncomingByRoomId[id] ?? [])]),
   )]));
-  const layout = { seed, rooms, edges, hiddenEdges: hiddenEdges ?? {}, hiddenRooms: [...(hiddenRooms ?? [])], layoutEdges, hiddenIncomingByRoomId, pos, occ, rect, incFace };
+  const layout = { layoutVersion, seed, rooms, edges, hiddenEdges: hiddenEdges ?? {}, hiddenRooms: [...(hiddenRooms ?? [])], layoutEdges, hiddenIncomingByRoomId, pos, occ, rect, incFace };
   // #427: tests may force the incoming face (e.g. 'west' for every room) to measure that geometry.
   if (incomingFace) {
     for (const id of ids) layout.incFace[id] = incomingFace(id, layout);

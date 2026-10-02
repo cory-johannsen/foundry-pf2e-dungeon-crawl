@@ -2,7 +2,7 @@
 // Whole-layout buildability measurement for #427 (counts only, no behavior).
 import {
   buildEdgeCorridor, findCorridorPath, findPriorityCollision, assignDoorSlotsWithPriority,
-  incomingConnectionsFor, cellBounds, transitCellContainmentWalls,
+  incomingConnectionsFor, incomingDoorOrder, cellBounds, transitCellContainmentWalls,
 } from '../../scripts/dungeon-layout.mjs';
 import { planSelector } from './layout-sweep.mjs';
 
@@ -35,16 +35,19 @@ export function visitEdges(layout, visit, { slotOrder = 'plan' } = {}) {
       .map((c) => (isDetour ? { ...c, hidden: true } : c));
     if (!conns.length) continue;
     const face = incFace[toId];
+    // layoutVersion 3 (#427): the real incomingDoorOrder replaces the list order; the priority swap still runs on it.
+    const v3 = (layout.layoutVersion ?? 1) >= 3;
+    const ordered = v3 ? incomingDoorOrder(conns, pos, face, pos[toId]) : conns;
     if (slotOrder === 'approach') {
       const major = (c) => (face === 'west' ? pos[c.sourceId].rank : pos[c.sourceId].col);
       const minor = (c) => (face === 'west' ? pos[c.sourceId].col : -pos[c.sourceId].rank); // nearer rank first: a farther same-column source passes on the east side
-      conns.sort((a, b) => (a.hidden === b.hidden ? 0 : a.hidden ? 1 : -1) || (major(a) - major(b)) || (minor(a) - minor(b))
+      ordered.sort((a, b) => (a.hidden === b.hidden ? 0 : a.hidden ? 1 : -1) || (major(a) - major(b)) || (minor(a) - minor(b))
         || (a.sourceId < b.sourceId ? -1 : a.sourceId > b.sourceId ? 1 : 0));
     }
-    // 'approach' replaces #297's priority swap: the order itself is the planarity-consistent assignment.
-    const collision = slotOrder === 'approach' ? null : findPriorityCollision(seed, toId, pos[toId].rank, pos[toId].col, conns, pos, occ, face, planFor);
-    const slots = assignDoorSlotsWithPriority(seed, rect[toId], conns, face, collision);
-    conns.forEach(({ sourceId }, k) => {
+    // v3 (order, then the priority swap on the ordered list) and the prototype option (order only) differ here.
+    const collision = slotOrder === 'approach' ? null : findPriorityCollision(seed, toId, pos[toId].rank, pos[toId].col, ordered, pos, occ, face, planFor);
+    const slots = assignDoorSlotsWithPriority(seed, rect[toId], ordered, face, collision);
+    ordered.forEach(({ sourceId }, k) => {
       const sel = planSelector(layout, { sourceId, toId });
       const res = buildEdgeCorridor(seed, sourceId, toId, rect[sourceId], rect[toId], pos[sourceId], pos[toId],
         sel.face, slots[k], occ, face, sel.exitDoor);
