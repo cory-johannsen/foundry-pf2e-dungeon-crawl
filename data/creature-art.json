@@ -33878,5 +33878,365 @@
     "name": "Thresholder Disciple",
     "level": 14,
     "art": "thresholder-disciple.webp"
+  },
+  {
+    "id": "shino_hakusa",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "khAJHftnWe21eTm2",
+    "name": "Shino Hakusa (Level 14)",
+    "level": 14,
+    "art": "shino-hakusa.webp"
+  },
+  {
+    "id": "shino_hakusa_level_16",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "0N4ugHFs5GYllcMA",
+    "name": "Shino Hakusa (Level 16)",
+    "level": 16,
+    "art": "shino-hakusa.webp"
+  },
+  {
+    "id": "shino_hakusa_level_20",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "RVaEIyjBl44etuvL",
+    "name": "Shino Hakusa (Level 20)",
+    "level": 20,
+    "art": "shino-hakusa.webp"
+  },
+  {
+    "id": "takatorra",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "J7s3MTb3eZP6u3LT",
+    "name": "Takatorra (Level 9)",
+    "level": 9,
+    "art": "takatorra.webp"
+  },
+  {
+    "id": "takatorra_level_13",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "1y2FBsV4g80KNac1",
+    "name": "Takatorra (Level 13)",
+    "level": 13,
+    "art": "takatorra.webp"
+  },
+  {
+    "id": "takatorra_daitengu_form",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "Y1Px08o90xG5dWTq",
+    "name": "Takatorra (Daitengu Form)",
+    "level": 18,
+    "art": "takatorra.webp"
+  },
+  {
+    "id": "arms_of_balance",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "5cMbN10QKGS06Zhy",
+    "name": "Arms of Balance (Jivati Rovat)",
+    "level": 15,
+    "art": "arms-of-balance.webp"
+  },
+  {
+    "id": "arms_of_balance_pravan_majinapti",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "xBSLIoVsZ6I4LOZc",
+    "name": "Arms of Balance (Pravan Majinapti)",
+    "level": 15,
+    "art": "arms-of-balance.webp"
+  },
+  {
+    "id": "arms_of_balance_ranya_shibhatesh",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "2ZnZ0d61CQHMHtHN",
+    "name": "Arms of Balance (Ranya Shibhatesh)",
+    "level": 15,
+    "art": "arms-of-balance.webp"
+  },
+  {
+    "id": "arms_of_balance_usvani",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "65LJVPu9DFkF0YNX",
+    "name": "Arms of Balance (Usvani)",
+    "level": 15,
+    "art": "arms-of-balance.webp"
+  },
+  {
+    "id": "golarion_s_finest",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "tu64qeuTiIGHtvgR",
+    "name": "Golarion's Finest (Brartork)",
+    "level": 13,
+    "art": "golarion-s-finest.webp"
+  },
+  {
+    "id": "golarion_s_finest_han",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "CKS4OsoyI2QI8RUn",
+    "name": "Golarion's Finest (Han)",
+    "level": 13,
+    "art": "golarion-s-finest.webp"
+  },
+  {
+    "id": "golarion_s_finest_jun",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "N9Qp7x6n6ighaXOY",
+    "name": "Golarion's Finest (Jun)",
+    "level": 13,
+    "art": "golarion-s-finest.webp"
+  },
+  {
+    "id": "golarion_s_finest_krankkiss",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "snrGRRYXD8mUG4Y1",
+    "name": "Golarion's Finest (Krankkiss)",
+    "level": 13,
+    "art": "golarion-s-finest.webp"
+  },
+  {
+    "id": "golarion_s_finest_mingyu",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "2ryxyUYlf8lY6o1D",
+    "name": "Golarion's Finest (Mingyu)",
+    "level": 13,
+    "art": "golarion-s-finest.webp"
+  },
+  {
+    "id": "golarion_s_finest_numoriz",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "JFa9WD0nXOTgFGha",
+    "name": "Golarion's Finest (Numoriz)",
+    "level": 13,
+    "art": "golarion-s-finest.webp"
+  },
+  {
+    "id": "golarion_s_finest_paunnima",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "wFswIWjySnPqVNVT",
+    "name": "Golarion's Finest (Paunnima)",
+    "level": 13,
+    "art": "golarion-s-finest.webp"
+  },
+  {
+    "id": "golarion_s_finest_rajna",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "pi3njPvz8AsOrVGZ",
+    "name": "Golarion's Finest (Rajna)",
+    "level": 13,
+    "art": "golarion-s-finest.webp"
+  },
+  {
+    "id": "surjit_hamelan",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "4RaeyGxw5EgagDZE",
+    "name": "Surjit Hamelan",
+    "level": 13,
+    "art": "surjit-hamelan.webp"
+  },
+  {
+    "id": "tino",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "526cj9mVkwQ9gDn6",
+    "name": "Tino (Oni Form)",
+    "level": 18,
+    "art": "tino.webp"
+  },
+  {
+    "id": "rivka",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "k5UjbiYr87NVK7qp",
+    "name": "Rivka (Cimurlian)",
+    "level": 13,
+    "art": "rivka.webp"
+  },
+  {
+    "id": "rivka_igroon",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "zpXQHbe037haBVmD",
+    "name": "Rivka (Igroon)",
+    "level": 13,
+    "art": "rivka.webp"
+  },
+  {
+    "id": "rivka_kujiba",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "56U7JoNKbci67vRE",
+    "name": "Rivka (Kujiba)",
+    "level": 13,
+    "art": "rivka.webp"
+  },
+  {
+    "id": "rivka_mogaru",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "MdkbAYfKgIvtTxBO",
+    "name": "Rivka (Mogaru)",
+    "level": 13,
+    "art": "rivka.webp"
+  },
+  {
+    "id": "rivka_yorak",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "EYr9GBleLFezHqBk",
+    "name": "Rivka (Yorak)",
+    "level": 13,
+    "art": "rivka.webp"
+  },
+  {
+    "id": "kas_xi_rai",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "6Eh9w3FY129KXm7k",
+    "name": "Kas Xi Rai",
+    "level": 17,
+    "art": "kas-xi-rai.webp"
+  },
+  {
+    "id": "taiga_yai",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "6wRicVhIx07i94s3",
+    "name": "Taiga Yai",
+    "level": 15,
+    "art": "taiga-yai.webp"
+  },
+  {
+    "id": "spirit_turtle",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "6z4xzi3yZuGr1Iv7",
+    "name": "Spirit Turtle",
+    "level": 21,
+    "art": "spirit-turtle.webp"
+  },
+  {
+    "id": "laruhao",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "7MiWOVxjocxNr0dh",
+    "name": "Laruhao",
+    "level": 19,
+    "art": "laruhao.webp"
+  },
+  {
+    "id": "tino_tung",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "qpbFSs0Z68z58T4m",
+    "name": "Tino Tung (Level 9)",
+    "level": 9,
+    "art": "tino-tung.webp"
+  },
+  {
+    "id": "tino_tung_level_13",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "7pCof1aDBZ1XlsXO",
+    "name": "Tino Tung (Level 13)",
+    "level": 13,
+    "art": "tino-tung.webp"
+  },
+  {
+    "id": "yabin_the_just",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "u3vdt2J02rw8RyRq",
+    "name": "Yabin the Just (Level 9)",
+    "level": 9,
+    "art": "yabin-the-just.webp"
+  },
+  {
+    "id": "yabin_the_just_level_13",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "7qyR096MhufccSiM",
+    "name": "Yabin the Just (Level 13)",
+    "level": 13,
+    "art": "yabin-the-just.webp"
+  },
+  {
+    "id": "bul_gae",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "80tgHHqfxA5lUfjS",
+    "name": "Bul-Gae",
+    "level": 14,
+    "art": "bul-gae-lob.webp"
+  },
+  {
+    "id": "ran_to",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "XN2uksGMgndh1jSP",
+    "name": "Ran-to (Level 14)",
+    "level": 14,
+    "art": "ran-to.webp"
+  },
+  {
+    "id": "ran_to_level_16",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "9WcpNMJJqF3cLTqT",
+    "name": "Ran-to (Level 16)",
+    "level": 16,
+    "art": "ran-to.webp"
+  },
+  {
+    "id": "ran_to_level_20",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "qW8stNdPqQwibYQz",
+    "name": "Ran-to (Level 20)",
+    "level": 20,
+    "art": "ran-to.webp"
+  },
+  {
+    "id": "razu",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "9ksOukuecb43zqOd",
+    "name": "Razu",
+    "level": 18,
+    "art": "razu.webp"
+  },
+  {
+    "id": "mage_of_many_styles",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "AYQEkPFyTuGlxNg3",
+    "name": "Mage of Many Styles",
+    "level": 13,
+    "art": "mage-of-many-styles.webp"
+  },
+  {
+    "id": "lophiithu",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "AeWPn9gJMgDg7WTo",
+    "name": "Lophiithu",
+    "level": 21,
+    "art": "lophiithu.webp"
+  },
+  {
+    "id": "agile_warrior",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "AxVNn9nyobosLEAq",
+    "name": "Agile Warrior",
+    "level": 13,
+    "art": "agile-warrior.webp"
+  },
+  {
+    "id": "agile_warrior_nightmares",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "fOdNBYgjTveLzpbd",
+    "name": "Agile Warrior (Nightmares)",
+    "level": 13,
+    "art": "agile-warrior.webp"
+  },
+  {
+    "id": "dread_roc",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "DW4UFHXzExWwvEuH",
+    "name": "Dread Roc",
+    "level": 15,
+    "art": "dread-roc.webp"
+  },
+  {
+    "id": "angoyang",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "EItI5u34FIIuZM9W",
+    "name": "Angoyang",
+    "level": 14,
+    "art": "angoyang.webp"
+  },
+  {
+    "id": "kun",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "lemXhFkFAUbZGtL6",
+    "name": "Kun",
+    "level": 14,
+    "art": "kun-lob.webp"
   }
 ]
