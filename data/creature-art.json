@@ -28374,5 +28374,45 @@
     "name": "Armored Cave Bears",
     "level": 9,
     "art": "armored-cave-bears.webp"
+  },
+  {
+    "id": "nonsequitaur",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "4BzHtRTPQ5mZj9Mr",
+    "name": "Nonsequitaur",
+    "level": 3,
+    "art": "nonsequitaur.webp"
+  },
+  {
+    "id": "blarghest",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "8Cbj8BtyRDerg4Lf",
+    "name": "Blarghest",
+    "level": 2,
+    "art": "blarghest.webp"
+  },
+  {
+    "id": "wendlyn",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "8xPlavExNidQSFyb",
+    "name": "Wendlyn",
+    "level": 2,
+    "art": "wendlyn.webp"
+  },
+  {
+    "id": "squirrelwind",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "9mD3SQoKORr1dP1v",
+    "name": "Squirrelwind",
+    "level": 10,
+    "art": "squirrelwind.webp"
+  },
+  {
+    "id": "mari_lwyd",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "CHLE0BV8wQJY4ksk",
+    "name": "Mari Lwyd",
+    "level": 11,
+    "art": "mari-lwyd.webp"
   }
 ]
