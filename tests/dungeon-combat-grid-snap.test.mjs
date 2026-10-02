@@ -99,6 +99,7 @@ describe("stepToward corrects an off-grid mover even when it doesn't move (#86)"
     expect(mover.token.y % GRID_SIZE).toBe(0);
     expect(mover.token.x).toBe(Math.round(OFF_GRID_X / GRID_SIZE) * GRID_SIZE);
     expect(mover.token.y).toBe(Math.round(OFF_GRID_Y / GRID_SIZE) * GRID_SIZE);
+    expect(mover.token.update.mock.calls[0][1]).toEqual({ teleport: true });
   });
 
   it("snaps the mover to its nearest grid cell when it has no speed to move with", async () => {
@@ -178,6 +179,21 @@ describe("strideByPosture corrects an off-grid mover even when it doesn't move (
     expect(mover.token.y % GRID_SIZE).toBe(0);
   });
 
+  it("passes { teleport: true } on its own move update when it actually moves", async () => {
+    installFoundryStubs();
+    const mover = makeCombatant({ id: "mover", x: 0, y: 0, speedFt: 30 });
+    const target = makeCombatant({ id: "target", x: 5 * GRID_SIZE, y: 0 });
+    const combat = makeCombat({ combatants: [mover, target] });
+
+    const status = await strideByPosture(combat, mover, "approach", target);
+
+    expect(status).toBe("moved");
+    // Grid-aligned start -> the #86 snap correction never fires here; this
+    // is strideByPosture's own waypoint write (line ~3295).
+    expect(mover.token.update).toHaveBeenCalledTimes(1);
+    expect(mover.token.update.mock.calls[0][1]).toEqual({ teleport: true });
+  });
+
 });
 
 describe("pushTokenAway corrects an off-grid target even when it can't be pushed (#86)", () => {
@@ -249,6 +265,21 @@ describe("pushTokenAway corrects an off-grid target even when it can't be pushed
     expect(target.token.update).toHaveBeenCalledTimes(1);
     expect(target.token.x % GRID_SIZE).toBe(0);
     expect(target.token.y % GRID_SIZE).toBe(0);
+  });
+
+  it("passes { teleport: true } on its own push-move update, separately from the #86 snap correction", async () => {
+    installFoundryStubs();
+    const attacker = makeCombatant({ id: "attacker", x: 0, y: 0 });
+    const target = makeCombatant({ id: "target", x: GRID_SIZE, y: 0 });
+    const combat = makeCombat({ combatants: [attacker, target] });
+
+    await pushTokenAway(combat, attacker, target, 1);
+
+    // Grid-aligned start -> the #86 snap correction (a separate call site,
+    // already covered above) never fires here; this is the push itself.
+    expect(target.token.update).toHaveBeenCalledTimes(1);
+    expect(target.token.x % GRID_SIZE).toBe(0);
+    expect(target.token.update.mock.calls[0][1]).toEqual({ teleport: true });
   });
 });
 
@@ -473,6 +504,7 @@ describe("footprint-aware movement (#140)", () => {
 
     expect(status).toBe("moved");
     expect(mover.token.update).toHaveBeenCalled();
+    expect(mover.token.update.mock.calls[0][1]).toEqual({ teleport: true });
   });
 
   it("stepToward returns 'already-there' when already within melee reach", async () => {
