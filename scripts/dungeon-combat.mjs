@@ -629,6 +629,9 @@ export async function runAgentDecisionLoop(
       console.error("agent-service: applyAgentDecision failed:", err.message);
       return;
     }
+    if (pending) {
+      await new Promise((resolve) => setTimeout(resolve, ACTION_PACE_DELAY_MS));
+    }
   }
 }
 
