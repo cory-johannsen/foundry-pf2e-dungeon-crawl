@@ -24718,5 +24718,189 @@
     "name": "Elite Grig (PFS Q18)",
     "level": 1,
     "art": "grig.webp"
+  },
+  {
+    "id": "commodore_sticky_fingers",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "76sfB4T9gkJjAJOS",
+    "name": "Commodore Sticky Fingers",
+    "level": 1,
+    "art": "commodore-sticky-fingers.webp"
+  },
+  {
+    "id": "elite_commodore_sticky_fingers",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "FU2kzh3jmBopL5t9",
+    "name": "Elite Commodore Sticky Fingers",
+    "level": 2,
+    "art": "commodore-sticky-fingers.webp"
+  },
+  {
+    "id": "lively_commodore_sticky_fingers",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "g8vmUHZ62eNlvhDu",
+    "name": "Lively Commodore Sticky Fingers",
+    "level": 3,
+    "art": "commodore-sticky-fingers.webp"
+  },
+  {
+    "id": "robber",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "7KvVT7fGXol8j8Px",
+    "name": "Tough Robber",
+    "level": 1,
+    "art": "robber.webp"
+  },
+  {
+    "id": "entodemonologist",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "heoQC3T9m6CoHyrj",
+    "name": "Entodemonologist",
+    "level": 3,
+    "art": "entodemonologist.webp"
+  },
+  {
+    "id": "arrogant_entodemonologist",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "7Ve2GNNqbx0q4j23",
+    "name": "Arrogant Entodemonologist",
+    "level": 5,
+    "art": "entodemonologist.webp"
+  },
+  {
+    "id": "blue_scarf_heavy",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "85IQFVma3lRsLjNm",
+    "name": "Blue-Scarf Heavy",
+    "level": 4,
+    "art": "blue-scarf-heavy.webp"
+  },
+  {
+    "id": "ghessa",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "mU6Ut1p451lLZslX",
+    "name": "Ghessa",
+    "level": 4,
+    "art": "ghessa.webp"
+  },
+  {
+    "id": "ghessa_5_6",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "8KnRiKYMkDNYb1mL",
+    "name": "Ghessa (5-6)",
+    "level": 7,
+    "art": "ghessa.webp"
+  },
+  {
+    "id": "shadow_of_sezruth",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "8PWnKKHdqNP1oByv",
+    "name": "Empowered Shadow of Sezruth",
+    "level": 4,
+    "art": "shadow-of-sezruth.webp"
+  },
+  {
+    "id": "shadow_of_sezruth_sojch",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "sojCHh1TezXP7JhA",
+    "name": "Shadow of Sezruth",
+    "level": 4,
+    "art": "shadow-of-sezruth.webp"
+  },
+  {
+    "id": "arisen_shadow_pixie",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "8Zj3XDNa07fjkWAq",
+    "name": "Arisen Shadow Pixie",
+    "level": 1,
+    "art": "arisen-shadow-pixie.webp"
+  },
+  {
+    "id": "elite_arisen_shadow_pixie",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "ytb75tCpHFXxryFZ",
+    "name": "Elite Arisen Shadow Pixie",
+    "level": 2,
+    "art": "arisen-shadow-pixie.webp"
+  },
+  {
+    "id": "germinated_mandragora",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "99jIe6Kvy9kEDdde",
+    "name": "Germinated Mandragora",
+    "level": 3,
+    "art": "germinated-mandragora.webp"
+  },
+  {
+    "id": "sharktopus_eidolon",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "9X5xKHclQlkkmNTI",
+    "name": "Sharktopus Eidolon",
+    "level": -1,
+    "art": "sharktopus-eidolon.webp"
+  },
+  {
+    "id": "trained_sharktopus_eidolon",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "MvXeEZ76Z83dZQcm",
+    "name": "Trained Sharktopus Eidolon",
+    "level": 1,
+    "art": "sharktopus-eidolon.webp"
+  },
+  {
+    "id": "husk_shield",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "9i6k29a2Y62VMoQa",
+    "name": "Husk Shield",
+    "level": 1,
+    "art": "husk-shield.webp"
+  },
+  {
+    "id": "barnacle_barnaby",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "ACCnvTL2K5L9CAPg",
+    "name": "Barnacle Barnaby",
+    "level": 3,
+    "art": "barnacle-barnaby.webp"
+  },
+  {
+    "id": "barnacle_barnaby_5_6",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "YKy7KS3pxT9tuRWp",
+    "name": "Barnacle Barnaby (5-6)",
+    "level": 4,
+    "art": "barnacle-barnaby.webp"
+  },
+  {
+    "id": "arcadian_lurker_in_light",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "CQLmN7oFQ6N934hh",
+    "name": "Arcadian Lurker In Light",
+    "level": 5,
+    "art": "arcadian-lurker-in-light.webp"
+  },
+  {
+    "id": "hoarding_bat",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "CZ6Z15ofj8zlHcol",
+    "name": "Hoarding Bat",
+    "level": 1,
+    "art": "hoarding-bat.webp"
+  },
+  {
+    "id": "metal_rascal",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "CsTQHukdMTfu9WOZ",
+    "name": "Metal Rascal",
+    "level": 1,
+    "art": "metal-rascal.webp"
+  },
+  {
+    "id": "bloodied_kithangian",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "D965w0VaPj6RMQZl",
+    "name": "Bloodied Kithangian",
+    "level": 8,
+    "art": "bloodied-kithangian.webp"
   }
 ]
