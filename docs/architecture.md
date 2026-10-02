@@ -42,9 +42,11 @@ unit test that would mostly just be testing the mock.
 ## Subsystems
 
 **Dungeon generation / sequencing** (`dungeon-deck.mjs`,
-`dungeon-layout.mjs`, `dungeon-retreat.mjs`, `prng.mjs`) — the abstract room sequence (kind,
+`dungeon-layout.mjs`, `dungeon-reseed.mjs`, `dungeon-retreat.mjs`, `prng.mjs`) — the abstract room sequence (kind,
 order, which setpiece each room draws) and the grid-unit room geometry,
-both fully deterministic from a seed, both Foundry-free.
+both fully deterministic from a seed, both Foundry-free. (`dungeon-reseed.mjs`, #490, is the exception: it builds
+each new run's layout and, if the goal is unreachable, retries seeds `<seed>~r1..r10` by checking a scratch scene
+built with `dungeon-scene.mjs`.)
 
 **Foundry scene building** (`dungeon-scene.mjs`, `foundry-api.mjs`,
 `placement.mjs`, `data-loader.mjs`, `dungeon-sound.mjs`/`audio.mjs`) —
@@ -213,6 +215,7 @@ graph LR
   subgraph "Dungeon generation / sequencing"
     scripts_dungeon_deck_mjs["dungeon-deck.mjs"]
     scripts_dungeon_layout_mjs["dungeon-layout.mjs"]
+    scripts_dungeon_reseed_mjs["dungeon-reseed.mjs"]
     scripts_dungeon_retreat_mjs["dungeon-retreat.mjs"]
     scripts_prng_mjs["prng.mjs"]
   end
@@ -268,6 +271,8 @@ graph LR
   scripts_dungeon_remote_mjs --> scripts_ui_dungeon_app_mjs
   scripts_dungeon_remote_mjs --> scripts_dungeon_scene_mjs
   scripts_dungeon_remote_mjs --> scripts_dungeon_follow_mjs
+  scripts_dungeon_reseed_mjs --> scripts_dungeon_layout_mjs
+  scripts_dungeon_reseed_mjs --> scripts_dungeon_scene_mjs
   scripts_dungeon_runner_mjs --> scripts_generator_registry_mjs
   scripts_dungeon_runner_mjs --> scripts_dungeon_retreat_mjs
   scripts_dungeon_runner_mjs --> scripts_skill_challenge_mechanics_mjs
@@ -338,6 +343,7 @@ graph LR
   scripts_ui_dungeon_app_mjs --> scripts_generator_registry_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_retreat_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_layout_mjs
+  scripts_ui_dungeon_app_mjs --> scripts_dungeon_reseed_mjs
   tools_agent_service_customization_generator_mjs --> tools_agent_service_node_fetch_mjs
   tools_agent_service_customization_generator_mjs --> tools_agent_service_env_mjs
   tools_agent_service_customization_generator_mjs --> tools_agent_service_tier_selection_mjs

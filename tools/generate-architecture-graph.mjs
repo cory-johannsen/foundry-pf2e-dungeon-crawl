@@ -128,6 +128,7 @@ const GROUPS = [
         "scripts/dungeon-deck.mjs",
         "scripts/dungeon-retreat.mjs",
         "scripts/dungeon-layout.mjs",
+        "scripts/dungeon-reseed.mjs",
         "scripts/prng.mjs",
       ].includes(p),
   },
