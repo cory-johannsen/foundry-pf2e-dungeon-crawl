@@ -28622,5 +28622,133 @@
     "name": "Wordsmith",
     "level": 4,
     "art": "wordsmith.webp"
+  },
+  {
+    "id": "elder_child_of_belcorra",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "00s3MhFQ4yOp2rTf",
+    "name": "Elder Child of Belcorra",
+    "level": 9,
+    "art": "elder-child-of-belcorra.webp"
+  },
+  {
+    "id": "urthagul",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "0jvmec4yJH1ASfRy",
+    "name": "Urthagul",
+    "level": 10,
+    "art": "urthagul.webp"
+  },
+  {
+    "id": "warped_brew_morlock",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "277uvPqG9RLMQUcO",
+    "name": "Warped Brew Morlock",
+    "level": 2,
+    "art": "warped-brew-morlock.webp"
+  },
+  {
+    "id": "murschen",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "2K0oJcLauMwyRNZQ",
+    "name": "Murschen",
+    "level": 8,
+    "art": "murschen.webp"
+  },
+  {
+    "id": "dread_wisp",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "2TOXR7nKS6xPng2Y",
+    "name": "Dread Wisp",
+    "level": 9,
+    "art": "dread-wisp.webp"
+  },
+  {
+    "id": "chandriu_invisar",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "3H1rBpUQwTcNd6xZ",
+    "name": "Chandriu Invisar",
+    "level": 6,
+    "art": "chandriu-invisar.webp"
+  },
+  {
+    "id": "galudu",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "3Ll0LCZcmQmb7aV3",
+    "name": "Galudu",
+    "level": 11,
+    "art": "galudu.webp"
+  },
+  {
+    "id": "afflicted_irnakurse",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "3d3NAcPfvn07mcGN",
+    "name": "Afflicted Irnakurse",
+    "level": 8,
+    "art": "afflicted-irnakurse.webp"
+  },
+  {
+    "id": "beluthus",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "3ry9WSvMMXHUe3kE",
+    "name": "Beluthus",
+    "level": 11,
+    "art": "beluthus.webp"
+  },
+  {
+    "id": "sacuishu",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "3vn9W5SThovdsEnY",
+    "name": "Sacuishu",
+    "level": 9,
+    "art": "sacuishu.webp"
+  },
+  {
+    "id": "torture_chamber_barbazu",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "4bznEiwsJvInwZwA",
+    "name": "Torture Chamber Barbazu",
+    "level": 5,
+    "art": "torture-chamber-barbazu.webp"
+  },
+  {
+    "id": "dragon_s_blood_puffball",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "55SmPtsUXsridUjJ",
+    "name": "Dragon's Blood Puffball",
+    "level": 8,
+    "art": "dragon-s-blood-puffball.webp"
+  },
+  {
+    "id": "viscous_black_pudding",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "5iuvJLceeLJPlR8O",
+    "name": "Viscous Black Pudding",
+    "level": 7,
+    "art": "viscous-black-pudding.webp"
+  },
+  {
+    "id": "deepwater_dhuthorex",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "78Vf1Lk9ph2RGDgL",
+    "name": "Deepwater Dhuthorex",
+    "level": 9,
+    "art": "deepwater-dhuthorex.webp"
+  },
+  {
+    "id": "ysondkhelir",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "8AVy2qIK6vh13sSj",
+    "name": "Ysondkhelir",
+    "level": 8,
+    "art": "ysondkhelir.webp"
+  },
+  {
+    "id": "urdefhan_blood_mage",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "OTT7CCkonkfwhJ8Y",
+    "name": "Urdefhan Blood Mage",
+    "level": 8,
+    "art": "urdefhan-blood-mage-lob.webp"
   }
 ]
