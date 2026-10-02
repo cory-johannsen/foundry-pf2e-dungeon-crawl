@@ -24342,5 +24342,381 @@
     "name": "Infested Clockwork Heap",
     "level": 5,
     "art": "infested-clockwork-heap-lob.webp"
+  },
+  {
+    "id": "jamimpi",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "vXTBGridjDSxFRlU",
+    "name": "Jamimpi",
+    "level": 10,
+    "art": "jamimpi.webp"
+  },
+  {
+    "id": "resolved_jamimpi",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "05Vy7mpQdzAs55rh",
+    "name": "Resolved Jamimpi",
+    "level": 13,
+    "art": "jamimpi.webp"
+  },
+  {
+    "id": "sezelrian_warg",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "0dQiQc0E38o6Yvmd",
+    "name": "Sezelrian Warg",
+    "level": 5,
+    "art": "sezelrian-warg.webp"
+  },
+  {
+    "id": "hermit_rat",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "Zff7C8x4VzB7ZOiZ",
+    "name": "Hermit Rat",
+    "level": -1,
+    "art": "hermit-rat.webp"
+  },
+  {
+    "id": "feral_hermit_rat",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "0dfF8IyWHPop4IR6",
+    "name": "Feral Hermit Rat",
+    "level": 0,
+    "art": "hermit-rat.webp"
+  },
+  {
+    "id": "dull_pukwudgie",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "10uyFFDhy90H2reO",
+    "name": "Dull Pukwudgie",
+    "level": 6,
+    "art": "pukwudgie.webp"
+  },
+  {
+    "id": "sharp_pukwudgie",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "5XCozjNbo5j47UEQ",
+    "name": "Sharp Pukwudgie",
+    "level": 8,
+    "art": "pukwudgie.webp"
+  },
+  {
+    "id": "robber_novice",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "1WBoIEFSt54GDpNp",
+    "name": "Robber Novice",
+    "level": -1,
+    "art": "robber-novice.webp"
+  },
+  {
+    "id": "the_warden",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "7Ox34TV7Py1pZr9o",
+    "name": "The Warden (1-2)",
+    "level": 2,
+    "art": "the-warden.webp"
+  },
+  {
+    "id": "the_upset_warden_1_2",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "8IJilQMumSAPhsqP",
+    "name": "The Upset Warden (1-2)",
+    "level": 3,
+    "art": "the-warden.webp"
+  },
+  {
+    "id": "the_warden_3_4",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "1kqDiAAQGH26eAC7",
+    "name": "The Warden (3-4)",
+    "level": 4,
+    "art": "the-warden.webp"
+  },
+  {
+    "id": "the_upset_warden_3_4",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "Z9ofpt7xRr9o47Ya",
+    "name": "The Upset Warden (3-4)",
+    "level": 5,
+    "art": "the-warden.webp"
+  },
+  {
+    "id": "assassins_guild_rogue",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "1ytpVvgPTh6J0zxF",
+    "name": "Assassins' Guild Rogue",
+    "level": 1,
+    "art": "assassins-guild-rogue.webp"
+  },
+  {
+    "id": "tough_assassins_guild_rogue",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "8lrRsd8fGzm9ts5R",
+    "name": "Tough Assassins' Guild Rogue",
+    "level": 5,
+    "art": "assassins-guild-rogue.webp"
+  },
+  {
+    "id": "spry_blodeuwedd",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "3w7qrvJsy55a8ct9",
+    "name": "Spry Blodeuwedd",
+    "level": 5,
+    "art": "spry-blodeuwedd.webp"
+  },
+  {
+    "id": "alystair_caskwater",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "L55H4HofGvCM02au",
+    "name": "Alystair Caskwater (1-2)",
+    "level": 2,
+    "art": "alystair-caskwater.webp"
+  },
+  {
+    "id": "vengeful_alystair_caskwater_1_2",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "nMMRUST4ow0kcbTy",
+    "name": "Vengeful Alystair Caskwater (1-2)",
+    "level": 3,
+    "art": "alystair-caskwater.webp"
+  },
+  {
+    "id": "alystair_caskwater_3_4",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "4JnqGDbDbDziIVgI",
+    "name": "Alystair Caskwater (3-4)",
+    "level": 4,
+    "art": "alystair-caskwater.webp"
+  },
+  {
+    "id": "vengeful_alystair_caskwater_3_4",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "SJ39wba6n3d5bvIh",
+    "name": "Vengeful Alystair Caskwater (3-4)",
+    "level": 5,
+    "art": "alystair-caskwater.webp"
+  },
+  {
+    "id": "foolhardy_mercenary",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "RPhiMYpPORMIIDJi",
+    "name": "Foolhardy Mercenary",
+    "level": -1,
+    "art": "foolhardy-mercenary.webp"
+  },
+  {
+    "id": "angry_foolhardy_mercenary",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "4sspCrQyEVJW5wh7",
+    "name": "Angry Foolhardy Mercenary",
+    "level": 1,
+    "art": "foolhardy-mercenary.webp"
+  },
+  {
+    "id": "elite_foolhardy_mercenary",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "M1POW9BD03uSF6pA",
+    "name": "Elite Foolhardy Mercenary",
+    "level": 1,
+    "art": "foolhardy-mercenary.webp"
+  },
+  {
+    "id": "salted_ghost_pirate_captain",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "5b0fdcM8fB8DZMz7",
+    "name": "Salted Ghost Pirate Captain",
+    "level": 7,
+    "art": "ghost-pirate-captain-lob.webp"
+  },
+  {
+    "id": "pampla",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "6H1jqrmwgQhOECTD",
+    "name": "Pampla",
+    "level": 2,
+    "art": "pampla.webp"
+  },
+  {
+    "id": "orcish_demonologist",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "kN7vPgG2s8zNuptz",
+    "name": "Orcish Demonologist",
+    "level": 7,
+    "art": "orcish-demonologist.webp"
+  },
+  {
+    "id": "studied_orcish_demonologist",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "6QsYuNHAfPXsT6K3",
+    "name": "Studied Orcish Demonologist",
+    "level": 8,
+    "art": "orcish-demonologist.webp"
+  },
+  {
+    "id": "asper_hajeri",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "byTExdYHVbLJKmKA",
+    "name": "Asper Hajeri",
+    "level": 10,
+    "art": "asper-hajeri.webp"
+  },
+  {
+    "id": "asper_hajeri_9_10",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "6SDKAujYM3nP4iDC",
+    "name": "Asper Hajeri (9\u201310)",
+    "level": 12,
+    "art": "asper-hajeri.webp"
+  },
+  {
+    "id": "giant_mouse",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "6Y4PxbzhsTlctbhB",
+    "name": "Weak Giant Mouse",
+    "level": -1,
+    "art": "giant-mouse.webp"
+  },
+  {
+    "id": "giant_mouse_qag6y",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "qaG6YsOmqFuZG4dX",
+    "name": "Giant Mouse",
+    "level": 0,
+    "art": "giant-mouse.webp"
+  },
+  {
+    "id": "tok_loyalist",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "71DbpnNs2qzRCziB",
+    "name": "Tok Loyalist",
+    "level": -1,
+    "art": "tok-loyalist.webp"
+  },
+  {
+    "id": "tok_loyalist_3_4",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "vT3oWDIHL3ncRVPx",
+    "name": "Tok Loyalist (3-4)",
+    "level": 1,
+    "art": "tok-loyalist.webp"
+  },
+  {
+    "id": "bandit_leader",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "76EVzDaB5gJi73tZ",
+    "name": "Bandit Leader",
+    "level": 3,
+    "art": "bandit-leader.webp"
+  },
+  {
+    "id": "experienced_bandit_leader",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "dtEPbSLwgcGpzMb5",
+    "name": "Experienced Bandit Leader",
+    "level": 5,
+    "art": "bandit-leader.webp"
+  },
+  {
+    "id": "exhausted_raja_rakshasa",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "Bxiaf72ErU7KNgpB",
+    "name": "Exhausted Raja Rakshasa",
+    "level": 7,
+    "art": "raja-rakshasa.webp"
+  },
+  {
+    "id": "weary_raja_rakshasa",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "JVp0JmEzex6bzMyt",
+    "name": "Weary Raja Rakshasa",
+    "level": 9,
+    "art": "raja-rakshasa.webp"
+  },
+  {
+    "id": "weak_leaf_leshy_q19",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "UuOiurvJyyaFZjUB",
+    "name": "Weak Leaf Leshy (Q19)",
+    "level": -1,
+    "art": "leaf-leshy.webp"
+  },
+  {
+    "id": "bandit_yh9zt",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "yH9ZTfutmRfnDeRh",
+    "name": "Bandit",
+    "level": 1,
+    "art": "bandit.webp"
+  },
+  {
+    "id": "tough_bandit",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "V9o9SxLYw9s973Uh",
+    "name": "Tough Bandit",
+    "level": 3,
+    "art": "bandit.webp"
+  },
+  {
+    "id": "empowered_daeodon",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "YtmA0Qpc4NrAKIfv",
+    "name": "Empowered Daeodon",
+    "level": 6,
+    "art": "daeodon.webp"
+  },
+  {
+    "id": "burning_sun_orc",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "axWiudjK1tVIL2Yr",
+    "name": "Burning Sun Orc",
+    "level": 5,
+    "art": "burning-sun-orc-lob.webp"
+  },
+  {
+    "id": "weak_sewer_ooze_pfs_q18",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "dXSti6gNOpoEYoIF",
+    "name": "Weak Sewer Ooze (PFS Q18)",
+    "level": -1,
+    "art": "sewer-ooze.webp"
+  },
+  {
+    "id": "elite_sewer_ooze_pfs_q18",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "vsWgbVO6zJIjiqAs",
+    "name": "Elite Sewer Ooze (PFS Q18)",
+    "level": 2,
+    "art": "sewer-ooze.webp"
+  },
+  {
+    "id": "sprite_pfs_q18",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "q9VY2Whn0rV7zJVK",
+    "name": "Sprite (PFS Q18)",
+    "level": -1,
+    "art": "sprite.webp"
+  },
+  {
+    "id": "elite_sprite_pfs_q18",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "zbh0oprNBaxTbsqh",
+    "name": "Elite Sprite (PFS Q18)",
+    "level": 1,
+    "art": "sprite.webp"
+  },
+  {
+    "id": "elite_hound_of_tindalos",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "uxnlSeL2HruddbcF",
+    "name": "Elite Hound Of Tindalos",
+    "level": 7,
+    "art": "hound-of-tindalos-b2.webp"
+  },
+  {
+    "id": "elite_grig_pfs_q18",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "yavU0fOuDKQ42ELm",
+    "name": "Elite Grig (PFS Q18)",
+    "level": 1,
+    "art": "grig.webp"
   }
 ]
