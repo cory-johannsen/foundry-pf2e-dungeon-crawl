@@ -33,6 +33,16 @@ export function reseedStateFor(layoutVersion, { seedOrigin, reseedTries }) {
   return layoutVersion >= 3 ? { seedOrigin, reseedTries } : {};
 }
 
+/**
+ * #585: run-state fields of the dead-edge walls: `walledEdges` (`{ source: [target] }`, absent when none) and the
+ * `deadEdgeWalls: true` flag that gates the generalised Turn back (scripts/dungeon-retreat.mjs). layoutVersion < 3 gets
+ * none (v1/v2 byte-identical); a v3 run created before this change has neither and keeps its old behaviour.
+ */
+export function deadEdgeWallsStateFor(layoutVersion, walledEdges) {
+  if (!(layoutVersion >= 3)) return {};
+  return { deadEdgeWalls: true, ...(walledEdges ? { walledEdges } : {}) };
+}
+
 const better = (a, b) => (a.goal !== b.goal ? a.goal : a.unreachable < b.unreachable);
 
 /**
@@ -136,6 +146,7 @@ async function buildScratchScene(layout) {
     hiddenRooms: layout.hiddenRooms, edges: layout.edges, layoutEdges: layout.layoutEdges,
     hiddenIncomingByRoomId: layout.hiddenIncomingByRoomId, hiddenEdges: layout.hiddenEdges, layoutVersion: layout.layoutVersion,
     maxRank: layout.maxRank, ...(layout.stubEdges ? { stubEdges: layout.stubEdges } : {}),
+    ...(layout.walledEdges ? { walledEdges: layout.walledEdges } : {}),
   };
   for (const id of Object.keys(layout.rooms)) {
     const pos = layout.layoutPositionByRoomId[id];
@@ -163,12 +174,19 @@ export async function evaluateLayout(layout) {
  * #427 Chunk 7: the stub plan of a stub-free `computeRunLayout` result (layoutVersion >= 3), judged on the scene
  * (`planStubsVerified`): every dead edge (union oracle) that the eligibility rules allow becomes a rubble-capped stub,
  * sole-child sources included because retreat (#439) is live (`retreatAvailable`). Returns
- * `{ layout (stubs applied), verdict: { goal, unreachable }, dropped }`; the verdict is the final stubbed scene's.
+ * `{ layout (stubs applied, dead edges walled: `walledEdges`), verdict: { goal, unreachable }, dropped, walled, lost }`;
+ * the verdict is the final scene's, after the walls (#585).
  */
 export async function planRunLayoutStubs(layout, { retreatAvailable = RETREAT_VERSION >= 1 } = {}) {
   const r = await planStubsVerified({ layout, buildScene: buildScratchScene, retreatAvailable });
   const v = r.verdicts.union;
-  return { layout: r.layout, verdict: { goal: v.goal, unreachable: v.unreachable.length }, dropped: r.dropped };
+  // #585: the verdict is of the final scene AFTER the dead-edge walls. A layout where door re-slotting killed an edge the
+  // stub-free scene could walk (and so lost a room or the goal) is not acceptable either: it counts as not goal-reachable,
+  // so the reseed moves on to the next candidate.
+  return {
+    layout: r.layout, verdict: { goal: v.goal && !r.lost, unreachable: v.unreachable.length }, dropped: r.dropped,
+    walled: r.walled, lost: r.lost,
+  };
 }
 
 /**

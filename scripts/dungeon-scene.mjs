@@ -49,6 +49,7 @@ import {
   assignDoorSlotsWithPriority,
   outgoingDoorPlan,
   outgoingPlanForStubs,
+  mergeEdgeMaps,
   plannedMarginOpenings,
   planStubGeometries,
 } from "./dungeon-layout.mjs";
@@ -455,11 +456,16 @@ export async function buildRoomAtGraphNode(
     // #427 (layoutVersion >= 3): dead-end stubs of this room's source, and the detour rooms (stub geometry needs
     // both to see every other corridor). Ignored below v3: an older run never carries them.
     stubEdges: stubEdgesParam = {}, hiddenRooms = [],
+    // #585 (layoutVersion >= 3): dead edges walled instead of built; `edges` already omits them.
+    walledEdges: walledEdgesParam = {},
   },
 ) {
   const rect = roomRect(seed, roomId, rank, col);
   const planned = layoutVersion >= 2;
   const stubEdges = layoutVersion >= 3 ? stubEdgesParam : {};
+  const walledEdges = layoutVersion >= 3 ? walledEdgesParam : {};
+  // #585: a walled edge builds no connection, like a stub, but (unlike a stub) no door, tile or flank either.
+  const excludedEdges = mergeEdgeMaps(stubEdges, walledEdges);
   const stubChildIds = stubEdges?.[roomId] ?? [];
   const hiddenIsStub = !!hiddenChildId && stubChildIds.includes(hiddenChildId);
   const plan = planned
@@ -561,7 +567,7 @@ export async function buildRoomAtGraphNode(
   if (planned) {
     openingsBySide = plannedMarginOpenings(seed, roomId, { rank, col }, {
       plan, hiddenChildId, edges, hiddenEdges, layoutEdges, hiddenIncomingByRoomId, positionByRoomId: layoutPositionByRoomId,
-      incomingFaceByRoomId, occupiedCells, planFor, layoutVersion, stubEdges,
+      incomingFaceByRoomId, occupiedCells, planFor, layoutVersion, stubEdges: excludedEdges,
     });
   } else {
     const foreignOpenings = pendingForeignMarginOpenings(
@@ -668,7 +674,7 @@ export async function buildRoomAtGraphNode(
   if (stubChildIds.length) {
     const placed = planStubGeometries({
       seed, positionByRoomId: layoutPositionByRoomId, occupiedCells, edges, layoutEdges, hiddenEdges, hiddenRooms,
-      hiddenIncomingByRoomId, incomingFaceByRoomId, stubEdges,
+      hiddenIncomingByRoomId, incomingFaceByRoomId, stubEdges, walledEdges,
     });
     for (const targetId of stubChildIds) {
       const key = `${roomId}->${targetId}`;
@@ -1329,6 +1335,9 @@ export async function buildPopulateAndUnlockGraphNode(
   const layoutVersion = state.layoutVersion ?? 1;
   // #427: dead-end stubs exist only on layoutVersion >= 3 runs; an older state's `stubEdges` is ignored.
   const stubEdges = layoutVersion >= 3 ? (state.stubEdges ?? {}) : {};
+  // #585: walled dead edges (absent on a run created before them) build nothing: excluded like stubs below.
+  const walledEdges = layoutVersion >= 3 ? (state.walledEdges ?? {}) : {};
+  const excludedEdges = mergeEdgeMaps(stubEdges, walledEdges);
   const planFor = layoutVersion >= 2
     ? (sourceId) => outgoingPlanFromState(state.seed, sourceId, { ...state, stubEdges })
     : undefined;
@@ -1348,12 +1357,12 @@ export async function buildPopulateAndUnlockGraphNode(
     ? incomingSlotsV3(state.seed, room.id, { rank, col }, {
       layoutEdges: state.layoutEdges, hiddenIncomingByRoomId: state.hiddenIncomingByRoomId,
       positionByRoomId: state.layoutPositionByRoomId, occupiedCells, incomingFace, planFor, detour: isDetour,
-      stubEdges,
+      stubEdges: excludedEdges,
     })
     : null;
   const incomingConnections = v3Slots
     ? v3Slots.map(({ sourceId, hidden }) => ({ sourceId, hidden }))
-    : incomingConnectionsFor(state.layoutEdges, room.id, state.hiddenIncomingByRoomId, stubEdges)
+    : incomingConnectionsFor(state.layoutEdges, room.id, state.hiddenIncomingByRoomId, excludedEdges)
       .map((conn) => (isDetour ? { ...conn, hidden: true } : conn));
 
   if (!alreadyBuilt) {
@@ -1377,6 +1386,7 @@ export async function buildPopulateAndUnlockGraphNode(
         layoutVersion,
         hiddenEdges: state.hiddenEdges ?? {},
         stubEdges,
+        walledEdges,
         hiddenRooms: state.hiddenRooms ?? [],
       },
     );

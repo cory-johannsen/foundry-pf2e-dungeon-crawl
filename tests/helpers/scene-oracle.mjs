@@ -63,6 +63,8 @@ export async function buildSceneForLayout(L, layoutVersion) {
     hiddenEdges: L.hiddenEdges, layoutVersion, maxRank: 20,
     // #427: a stub-aware sweep layout (tests/helpers/stub-sweep.mjs) carries the planned stubs; absent = none.
     ...(L.stubEdges ? { stubEdges: L.stubEdges } : {}),
+    // #585: dead edges walled instead of built.
+    ...(L.walledEdges ? { walledEdges: L.walledEdges } : {}),
   };
   for (const id of Object.keys(L.rooms)) {
     await buildPopulateAndUnlockGraphNode(scene, state, {
