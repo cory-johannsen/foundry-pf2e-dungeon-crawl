@@ -32958,5 +32958,125 @@
     "name": "Troll Guard",
     "level": 15,
     "art": "troll-guard.webp"
+  },
+  {
+    "id": "chief_sootscale",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "RL6cxasbeQMtCDvV",
+    "name": "Chief Sootscale",
+    "level": 2,
+    "art": "chief-sootscale.webp"
+  },
+  {
+    "id": "melianse",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "RTd4FwqGq8gBjdAO",
+    "name": "Melianse",
+    "level": 5,
+    "art": "melianse.webp"
+  },
+  {
+    "id": "oleg",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "RfIipAkVucpR0f0x",
+    "name": "Oleg",
+    "level": 1,
+    "art": "oleg.webp"
+  },
+  {
+    "id": "phomandala",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "S4oIMaVPzQuRaTpK",
+    "name": "Phomandala",
+    "level": 19,
+    "art": "phomandala.webp"
+  },
+  {
+    "id": "the_knurly_witch",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "SVUjDSZHYmwbQgnq",
+    "name": "The Knurly Witch",
+    "level": 20,
+    "art": "the-knurly-witch.webp"
+  },
+  {
+    "id": "gaetane",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "SZVTHAwTVXDwIOqC",
+    "name": "Gaetane",
+    "level": 14,
+    "art": "gaetane.webp"
+  },
+  {
+    "id": "pitax_warden",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "SaSXYUpSWIFHIzET",
+    "name": "Pitax Warden",
+    "level": 12,
+    "art": "pitax-warden.webp"
+  },
+  {
+    "id": "whimwyrm",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "SfFMqKTUQ1Dwu5lT",
+    "name": "Whimwyrm",
+    "level": 17,
+    "art": "whimwyrm.webp"
+  },
+  {
+    "id": "minognos_ushad",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "SjU0oB6pOk0XY8VN",
+    "name": "Minognos-Ushad",
+    "level": 19,
+    "art": "minognos-ushad.webp"
+  },
+  {
+    "id": "thylacine",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "TLoNfIIhS7YGdV54",
+    "name": "Thylacine",
+    "level": 0,
+    "art": "thylacine.webp"
+  },
+  {
+    "id": "logger",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "UAlHSl6Cpujld1dx",
+    "name": "Logger",
+    "level": 1,
+    "art": "logger.webp"
+  },
+  {
+    "id": "kressle",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "UBwmJpIyIV65U7R2",
+    "name": "Kressle",
+    "level": 1,
+    "art": "kressle.webp"
+  },
+  {
+    "id": "engelidis",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "UPESZZbXchcuqI1r",
+    "name": "Engelidis",
+    "level": 16,
+    "art": "engelidis.webp"
+  },
+  {
+    "id": "vilderavn_herald",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "UXXEOnvp2MDaS9Sc",
+    "name": "Vilderavn Herald",
+    "level": 19,
+    "art": "vilderavn-herald.webp"
+  },
+  {
+    "id": "cleansed_cultist",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "UfB3NfSgZIkN5Rjx",
+    "name": "Cleansed Cultist",
+    "level": 6,
+    "art": "cleansed-cultist.webp"
   }
 ]
