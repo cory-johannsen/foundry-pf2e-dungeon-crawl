@@ -32718,5 +32718,125 @@
     "name": "Storm-Struck Arboreal",
     "level": 16,
     "art": "storm-struck-arboreal.webp"
+  },
+  {
+    "id": "bloom_cultist",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "BWI2CbtRo2lUcraX",
+    "name": "Bloom Cultist",
+    "level": 5,
+    "art": "bloom-cultist.webp"
+  },
+  {
+    "id": "grigori",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "Bq2eST0Ke4MnKXgR",
+    "name": "Grigori",
+    "level": 7,
+    "art": "grigori.webp"
+  },
+  {
+    "id": "tiger_lord_hill_giant",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "Cj2zn7JazTB9ZnIq",
+    "name": "Tiger Lord Hill Giant (TL2)",
+    "level": 12,
+    "art": "tiger-lord-hill-giant.webp"
+  },
+  {
+    "id": "virthad",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "Dxn6t9aoWUwPn6CE",
+    "name": "Virthad",
+    "level": 8,
+    "art": "virthad.webp"
+  },
+  {
+    "id": "stag_lord_bandit",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "Ea0Edd9XNA17yj9n",
+    "name": "Stag Lord Bandit",
+    "level": 0,
+    "art": "stag-lord-bandit.webp"
+  },
+  {
+    "id": "hannis_drelev",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "EvNCuVyY5sEGM4ZL",
+    "name": "Hannis Drelev",
+    "level": 12,
+    "art": "hannis-drelev.webp"
+  },
+  {
+    "id": "windchaser",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "F0uz9YV8ILAM8fIg",
+    "name": "Windchaser",
+    "level": 8,
+    "art": "windchaser.webp"
+  },
+  {
+    "id": "tiger_lord",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "HkdsqQLNb9XwzYIH",
+    "name": "Tiger Lord",
+    "level": 8,
+    "art": "tiger-lord.webp"
+  },
+  {
+    "id": "boggard_warden",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "I8IPTHEU1zF5KmAB",
+    "name": "Boggard Warden",
+    "level": 9,
+    "art": "boggard-warden.webp"
+  },
+  {
+    "id": "agai",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "IGVqtFsNIyghuVsD",
+    "name": "Agai",
+    "level": 9,
+    "art": "agai.webp"
+  },
+  {
+    "id": "tulvak",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "K61HTqmdHRPHQz1x",
+    "name": "Tulvak",
+    "level": 11,
+    "art": "tulvak.webp"
+  },
+  {
+    "id": "nugrah",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "KP7uf1E8CQgzTuQy",
+    "name": "Nugrah",
+    "level": 5,
+    "art": "nugrah.webp"
+  },
+  {
+    "id": "prank_workshop_mitflit",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "Kmr8s4sEMn365d5M",
+    "name": "Prank Workshop Mitflit",
+    "level": 1,
+    "art": "prank-workshop-mitflit.webp"
+  },
+  {
+    "id": "nightmare_rook",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "L3q7yQ0jKqH2IWy7",
+    "name": "Nightmare Rook",
+    "level": 20,
+    "art": "nightmare-rook.webp"
+  },
+  {
+    "id": "elder_elemental_tsunami",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "L6ANJQoCyk5dWcdH",
+    "name": "Elder Elemental Tsunami",
+    "level": 14,
+    "art": "elder-elemental-tsunami.webp"
   }
 ]
