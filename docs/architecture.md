@@ -21,7 +21,7 @@ across the module rather than being a one-off pattern:
   `dungeon-deck.mjs`, `trap-mechanics.mjs`, `puzzle-mechanics.mjs`,
   `skill-challenge-mechanics.mjs`, `treasure.mjs`, `agent-candidates.mjs`,
   `combat-rewards.mjs`, `dungeon-follow-mechanics.mjs`, `cover-items.mjs`,
-  `encounter-deck.mjs`, and `dungeon-layout.mjs` are all this shape.
+  `encounter-deck.mjs`, `dungeon-layout.mjs`, and `dungeon-retreat.mjs` are all this shape.
 - A **Foundry-glue** file that touches `game`/`Actor`/`ChatMessage`/`Scene`
   and calls into its pure sibling for the actual decision logic.
   `dungeon-scene.mjs`, `trap-combat.mjs`, `puzzle.mjs`,
@@ -42,7 +42,7 @@ unit test that would mostly just be testing the mock.
 ## Subsystems
 
 **Dungeon generation / sequencing** (`dungeon-deck.mjs`,
-`dungeon-layout.mjs`, `prng.mjs`) — the abstract room sequence (kind,
+`dungeon-layout.mjs`, `dungeon-retreat.mjs`, `prng.mjs`) — the abstract room sequence (kind,
 order, which setpiece each room draws) and the grid-unit room geometry,
 both fully deterministic from a seed, both Foundry-free.
 
@@ -213,6 +213,7 @@ graph LR
   subgraph "Dungeon generation / sequencing"
     scripts_dungeon_deck_mjs["dungeon-deck.mjs"]
     scripts_dungeon_layout_mjs["dungeon-layout.mjs"]
+    scripts_dungeon_retreat_mjs["dungeon-retreat.mjs"]
     scripts_prng_mjs["prng.mjs"]
   end
   subgraph "Foundry scene building"
