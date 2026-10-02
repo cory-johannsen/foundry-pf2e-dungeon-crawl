@@ -144,9 +144,13 @@ export function parentRoomIdsFor(layoutEdges, roomId) {
  * with a room's own outgoing faces (south/east/west, always disjoint
  * from the incoming face).
  */
-export function incomingConnectionsFor(layoutEdges, roomId, hiddenIncomingByRoomId = {}) {
-  const real = parentRoomIdsFor(layoutEdges, roomId).map((sourceId) => ({ sourceId, hidden: false }));
-  const hidden = (hiddenIncomingByRoomId[roomId] ?? []).map((sourceId) => ({ sourceId, hidden: true }));
+export function incomingConnectionsFor(layoutEdges, roomId, hiddenIncomingByRoomId = {}, stubEdges = {}) {
+  // #427 (layoutVersion >= 3): a stub is a dead end, not a connection: its source gets no door slot here and
+  // routes no corridor into this room. `layoutEdges` itself never changes, so no room moves.
+  const real = parentRoomIdsFor(layoutEdges, roomId).filter((sourceId) => !isStubEdge(stubEdges, sourceId, roomId))
+    .map((sourceId) => ({ sourceId, hidden: false }));
+  const hidden = (hiddenIncomingByRoomId[roomId] ?? []).filter((sourceId) => !isStubEdge(stubEdges, sourceId, roomId))
+    .map((sourceId) => ({ sourceId, hidden: true }));
   return [...real, ...hidden];
 }
 
@@ -299,23 +303,27 @@ function compareTargets(a, b) {
  * always valid because its horizontal leg runs along the source's own south
  * margin), slots by a total order independent of build/iteration order. No
  * seeded values: byte-stable for existing seeds. Not yet consumed by the scene. */
-export function outgoingDoorPlan(rect, pos, { realChildIds = [], hiddenChildIds = [] }, positionByRoomId) {
+export function outgoingDoorPlan(rect, pos, { realChildIds = [], hiddenChildIds = [], stubChildIds = [] }, positionByRoomId) {
   const byFace = { south: [], east: [] };
   for (const id of [...realChildIds, ...hiddenChildIds]) {
     const tp = positionByRoomId[id];
     byFace[tp.col > pos.col ? 'east' : 'south'].push({ id, tp });
   }
+  // #427 (layoutVersion >= 3): a dead-end stub always takes a south slot (its corridor lives in the source's own
+  // south margin row), ordered by its real target's column like any child, and always carries its own door span.
+  for (const id of stubChildIds) byFace.south.push({ id, tp: positionByRoomId[id], stub: true });
   const plan = new Map();
   for (const face of ['south', 'east']) {
     // south: ascending target column (left door to the left-most target);
     // east: descending, so the nearest target takes the lowest door and legs nest.
     const list = byFace[face].slice().sort(face === 'south' ? compareTargets : (a, b) => compareTargets(b, a));
     const slots = list.length ? outgoingSlotsForFace(rect, list.length, face) : [];
-    list.forEach(({ id }, slotIndex) => {
+    const hasStub = list.some((e) => e.stub);
+    list.forEach(({ id, stub }, slotIndex) => {
       const slot = slots[slotIndex];
       let exitPoint = null;
       let doorSpan = null;
-      if (list.length > 1) {
+      if (list.length > 1 || hasStub) {
         if (face === 'south') {
           const x = clampDoorStart(slot.x1, slot.x2, slot.x1 + (slot.x2 - slot.x1) / 2 - DOOR_WIDTH);
           exitPoint = { x, y: slot.y1 };
@@ -326,7 +334,8 @@ export function outgoingDoorPlan(rect, pos, { realChildIds = [], hiddenChildIds 
           doorSpan = { x1: slot.x1, y1: y, x2: slot.x1, y2: y + DOOR_WIDTH };
         }
       }
-      plan.set(id, { face, slotIndex, slot, doorCount: list.length, exitPoint, doorSpan });
+      plan.set(id, stub ? { face, slotIndex, slot, doorCount: list.length, exitPoint, doorSpan, stub: true }
+        : { face, slotIndex, slot, doorCount: list.length, exitPoint, doorSpan });
     });
   }
   return plan;
@@ -1737,8 +1746,9 @@ export function assignDoorSlotsWithPriority(seed, rect, incomingConnections, inc
  */
 export function incomingSlotsV3(seed, targetId, targetPos, {
   layoutEdges, hiddenIncomingByRoomId = {}, positionByRoomId, occupiedCells, incomingFace = 'north', planFor, detour = false,
+  stubEdges = {},
 }) {
-  const listed = incomingConnectionsFor(layoutEdges, targetId, hiddenIncomingByRoomId)
+  const listed = incomingConnectionsFor(layoutEdges, targetId, hiddenIncomingByRoomId, stubEdges)
     .map((c) => (detour ? { ...c, hidden: true } : c));
   if (!listed.length) return [];
   const ordered = incomingDoorOrder(listed, positionByRoomId, incomingFace, targetPos);
@@ -1790,7 +1800,7 @@ export function incomingSlotsV3(seed, targetId, targetPos, {
  * edges` falls back to `edges` itself, which equals `layoutEdges` for
  * every non-detour room).
  */
-export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells, layoutEdges, hiddenIncomingByRoomId = {}, hiddenEdges = {}, planFor, orderedIncoming = false) {
+export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells, layoutEdges, hiddenIncomingByRoomId = {}, hiddenEdges = {}, planFor, orderedIncoming = false, stubEdges = {}) {
   const result = { east: [], south: [] };
   // #415: with a plan, hidden edges are scanned too (legacy ignores them) and
   // each edge's face/door come from the source's plan, not its child index.
@@ -1807,6 +1817,8 @@ export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, lay
       for (const childId of hiddenEdges[sourceId] ?? []) candidates.push({ childId, index: -1, hidden: true });
     }
     for (const { childId, index, hidden } of candidates) {
+      // #427: a stub (hidden shortcut stubs stay in `hiddenEdges`) is a dead end: it routes no corridor.
+      if (isStubEdge(stubEdges, sourceId, childId)) continue;
       const targetPos = layoutPositionByRoomId[childId];
       if (!targetPos) continue;
       let exitFace;
@@ -1836,9 +1848,9 @@ export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, lay
       const targetConnections = orderedIncoming
         ? incomingSlotsV3(seed, childId, targetPos, {
           layoutEdges: layoutEdges ?? edges, hiddenIncomingByRoomId, positionByRoomId: layoutPositionByRoomId,
-          occupiedCells, incomingFace: targetIncomingFace, planFor,
+          occupiedCells, incomingFace: targetIncomingFace, planFor, stubEdges,
         })
-        : incomingConnectionsFor(layoutEdges ?? edges, childId, hiddenIncomingByRoomId);
+        : incomingConnectionsFor(layoutEdges ?? edges, childId, hiddenIncomingByRoomId, stubEdges);
       const slotIndex = targetConnections.findIndex((c) => c.hidden === hidden && c.sourceId === sourceId);
       const targetSlots = orderedIncoming
         ? targetConnections.map((c) => c.slot)
@@ -1862,6 +1874,43 @@ export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, lay
     }
   }
   return result;
+}
+
+/**
+ * #415/#427 (planned doors, layoutVersion >= 2): every opening `roomId`'s own `cellMarginWalls` call must leave,
+ * `{ east: [{offset,width}], south: [...] }`: the foreign pass-through gaps other edges' doglegs need
+ * (`pendingForeignMarginOpenings`) plus one gap per planned outgoing door. The scene's per-room build and the stub
+ * planner both call this, so they can never disagree about where the margin is open. `plan` is the room's own
+ * `outgoingDoorPlan`; a stub entry opens nothing (its corridor never crosses the cell margin). `layoutVersion >= 3`
+ * uses each child's real `incomingSlotsV3` slot.
+ */
+export function plannedMarginOpenings(seed, roomId, { rank, col }, {
+  plan, hiddenChildId = null, edges, hiddenEdges = {}, layoutEdges, hiddenIncomingByRoomId = {}, positionByRoomId,
+  incomingFaceByRoomId = {}, occupiedCells, planFor, layoutVersion = 3, stubEdges = {},
+}) {
+  const rect = roomRect(seed, roomId, rank, col);
+  const foreign = pendingForeignMarginOpenings(
+    seed, roomId, rank, col, edges, positionByRoomId, incomingFaceByRoomId, occupiedCells,
+    layoutEdges, hiddenIncomingByRoomId, hiddenEdges, planFor, layoutVersion >= 3, stubEdges,
+  );
+  const openingsBySide = { east: [...foreign.east], south: [...foreign.south] };
+  for (const [childId, entry] of plan.entries()) {
+    if (entry.stub) continue;
+    const childPos = positionByRoomId[childId];
+    const childIncomingFace = incomingFaceByRoomId?.[childId] ?? 'north';
+    const realToSlot = layoutVersion >= 3 && childPos
+      ? incomingSlotsV3(seed, childId, childPos, {
+        layoutEdges: layoutEdges ?? edges, hiddenIncomingByRoomId, positionByRoomId, occupiedCells,
+        incomingFace: childIncomingFace, planFor, stubEdges,
+      }).find((c) => c.sourceId === roomId && c.hidden === (childId === hiddenChildId))?.slot
+      : undefined;
+    const { offset, width } = outgoingMarginOffset(
+      seed, roomId, childId, entry.face, rect, { rank, col },
+      childPos ?? { rank: NaN, col: NaN }, occupiedCells, childIncomingFace, entry, realToSlot,
+    );
+    openingsBySide[entry.face].push({ offset, width });
+  }
+  return openingsBySide;
 }
 
 /** Which compass direction `from` a cell faces to reach an
@@ -3008,4 +3057,347 @@ export function routeEdgesTopologyAware({
   }
   unresolvable.sort();
   return { lanes, blockedByEdge, unresolvable, stats };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// #427 Chunk 6 (layoutVersion >= 3): dead-end stubs. An edge that cannot be routed (null path) and may safely be a
+// dead end becomes a short rubble-capped stub in its source's own south margin row instead of a corridor drawn
+// through other rooms. Design: docs/superpowers/specs/2026-10-01-boxed-in-corridor-routing-design.md "Dead-end stub".
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Run-state `stubEdges` is `{ [sourceId]: [targetId] }`; whether the source -> target edge is a stub. */
+export function isStubEdge(stubEdges, sourceId, targetId) {
+  return !!stubEdges?.[sourceId]?.includes(targetId);
+}
+
+/** The progression graph without its stub edges (a stub is a dead end, not a way forward). Hidden shortcut
+ * stubs are not in `edges` to begin with. Returns a new map; `edges` is not mutated. */
+export function applyStubsToEdges(edges, stubEdges) {
+  if (!stubEdges) return edges;
+  return Object.fromEntries(Object.entries(edges).map(([src, kids]) => [src, kids.filter((c) => !isStubEdge(stubEdges, src, c))]));
+}
+
+/**
+ * Pure stub eligibility planner. `edges` is the progression graph (real edges, no stubs yet; detour rooms keep
+ * their own real outgoing edge), `layoutEdges` the layout graph (unused for rules, kept for the shared shape),
+ * `hiddenEdges` / `hiddenIncomingByRoomId` the shortcut and detour links, `nullEdges` the unroutable
+ * `{ sourceId, toId, hidden }` candidates. Candidates are taken in canonical order (target rank when
+ * `positionByRoomId` is given, target id, source id), and stubbed only when:
+ *   1. the target keeps another non-stub real parent, and is never left without a routable one (when every real
+ *      parent is null the canonical-first one stays connecting);
+ *   2. the source keeps another non-stub real child, or the edge is a hidden shortcut (optional by construction),
+ *      or `retreatAvailable` (a sole-child source is only safe once the party can turn back, #439);
+ *   3. over the whole graph after stubbing: every room reachable from `room-entry` over non-stub `edges` still is,
+ *      the goal is reachable, and no room that had a forward edge is left without one (with `retreatAvailable` a
+ *      source may keep only its stub: the party turns back, #439, so only reachability is required then).
+ * Pure and deterministic: no randomness, independent of key order. Returns `{ stubEdges }`.
+ */
+export function planStubs({
+  rooms, edges, layoutEdges, hiddenEdges = {}, hiddenIncomingByRoomId = {}, nullEdges = [], retreatAvailable = false,
+  positionByRoomId = {},
+}) {
+  void layoutEdges; void hiddenEdges; void hiddenIncomingByRoomId;
+  const stubbed = new Set(); // `${source}\u0000${target}`
+  const key = (s, t) => `${s}\u0000${t}`;
+  const goalId = Object.keys(rooms).sort().find((id) => rooms[id]?.isGoal);
+  const rankOf = (id) => positionByRoomId[id]?.rank ?? 0;
+  const byId = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+  const nullKey = new Set(nullEdges.filter((e) => !e.hidden).map((e) => key(e.sourceId, e.toId)));
+  const parentsOf = (t) => Object.keys(edges).filter((p) => edges[p].includes(t)).sort(byId);
+  const forwardOf = (s) => (edges[s] ?? []).filter((c) => !stubbed.has(key(s, c)));
+  const reach = () => {
+    const seen = new Set(['room-entry']);
+    const queue = ['room-entry'];
+    while (queue.length) {
+      const id = queue.shift();
+      for (const c of forwardOf(id)) if (!seen.has(c)) { seen.add(c); queue.push(c); }
+    }
+    return seen;
+  };
+  const baseReach = reach();
+  const baseForward = new Set(Object.keys(edges).filter((s) => (edges[s] ?? []).length > 0));
+
+  const candidates = [...nullEdges].sort((a, b) => (rankOf(a.toId) - rankOf(b.toId))
+    || byId(a.toId, b.toId) || byId(a.sourceId, b.sourceId) || ((a.hidden ? 1 : 0) - (b.hidden ? 1 : 0)));
+  for (const { sourceId, toId, hidden } of candidates) {
+    if (stubbed.has(key(sourceId, toId))) continue;
+    if (!edges[sourceId] && !hidden) continue;
+    if (!hidden && !(edges[sourceId] ?? []).includes(toId)) continue;
+    // Rule 1: the target keeps a non-stub real parent, and a routable one when it ever had one.
+    const parents = parentsOf(toId);
+    const keptParents = parents.filter((p) => !stubbed.has(key(p, toId)) && !(p === sourceId && !hidden));
+    if (!keptParents.length) continue;
+    if (!hidden) {
+      const routable = parents.filter((p) => !nullKey.has(key(p, toId)));
+      // Every real parent null: the canonical-first parent stays connecting (never the one stubbed here).
+      if (!routable.length && parents[0] === sourceId) continue;
+    }
+    // Rule 2: the source keeps another way forward (or the edge is an optional hidden shortcut, or retreat exists).
+    if (!hidden && !retreatAvailable && !forwardOf(sourceId).some((c) => c !== toId)) continue;
+    // Rule 3: graph check over the whole plan with this stub applied.
+    if (!hidden) stubbed.add(key(sourceId, toId));
+    let ok = true;
+    if (!hidden) {
+      const seen = reach();
+      for (const id of baseReach) if (!seen.has(id)) { ok = false; break; }
+      if (ok && goalId && !seen.has(goalId)) ok = false;
+      // With retreat (#439) a source may be left with only its stub; the party turns back instead of being stranded.
+      if (ok && !retreatAvailable) {
+        for (const id of baseReach) {
+          if (rooms[id]?.isGoal) continue;
+          if (baseForward.has(id) && forwardOf(id).length === 0) { ok = false; break; }
+        }
+      }
+      if (!ok) stubbed.delete(key(sourceId, toId));
+    }
+    if (!ok) continue;
+    if (hidden) stubbed.add(key(sourceId, toId));
+  }
+  const stubEdges = {};
+  for (const { sourceId, toId } of candidates) {
+    if (stubbed.has(key(sourceId, toId))) {
+      (stubEdges[sourceId] ??= []);
+      if (!stubEdges[sourceId].includes(toId)) stubEdges[sourceId].push(toId);
+    }
+  }
+  return { stubEdges };
+}
+
+/** The longest a stub gets, in cells, door tile included. */
+export const STUB_MAX_LENGTH = 4;
+
+const rectsCross = (a, b) => Math.min(a.gx + a.gw, b.gx + b.gw) > Math.max(a.gx, b.gx)
+  && Math.min(a.gy + a.gh, b.gy + b.gh) > Math.max(a.gy, b.gy);
+
+/** Does axis-aligned wall `w` cut through the INTERIOR of the unit tile `t`, or lie on the vertical line
+ * `boundaryX` (when given) across the tile's row? Walls on the tile's own top/bottom edge never cut it. */
+function wallCutsTile(w, t, boundaryX) {
+  if (w.x1 === w.x2) {
+    const overlapY = Math.min(Math.max(w.y1, w.y2), t.gy + t.gh) - Math.max(Math.min(w.y1, w.y2), t.gy);
+    if (overlapY <= 0) return false;
+    if (boundaryX !== undefined) return w.x1 === boundaryX;
+    return w.x1 > t.gx && w.x1 < t.gx + t.gw;
+  }
+  if (boundaryX !== undefined) return false;
+  const overlapX = Math.min(Math.max(w.x1, w.x2), t.gx + t.gw) - Math.max(Math.min(w.x1, w.x2), t.gx);
+  return overlapX > 0 && w.y1 > t.gy && w.y1 < t.gy + t.gh;
+}
+
+/**
+ * #427 (layoutVersion >= 3): the geometry of one dead-end stub, in its source's own south margin row. Pure.
+ * The floor is the 1-cell tile directly below the stub's planned south door (`doorSpan`, an `outgoingDoorPlan`
+ * entry's span) plus up to `STUB_MAX_LENGTH - 1` more cells along the row toward the target's side (toward the
+ * room's middle when the target shares the source's column), at least one cell short of the cell boundary, ending in
+ * a wall cap. Length is seeded (`splitmix32` over `${seed}-stub-${source}->${target}`), so it never depends on
+ * build order. It yields to everything already there: a tile is dropped (and the stub stops) when it would overlap
+ * an `obstacleFloors` rect, when an `obstacleWalls` wall runs through it or along the boundary it shares with the
+ * previous tile, or when it would sit under another door of the same face (`otherDoorSpans`, which would join the
+ * two corridors). Returns `null` when even the door tile is not free: the caller keeps that edge on its fallback.
+ * `{ floor: [{gx,gy,gw,gh}], walls, doorWall, flavor: 'rubble', length, dir, doorSpan }`. Walls are the south flank
+ * and one cap per end; the room's own south wall already seals the north side.
+ */
+export function stubGeometry(seed, sourceId, targetId, {
+  sourceRect, sourcePos, targetPos, doorSpan, obstacleFloors = [], obstacleWalls = [], otherDoorSpans = [],
+}) {
+  const cell = cellBounds(sourcePos.rank, sourcePos.col);
+  const rowY = sourceRect.gy + sourceRect.gh;
+  const x0 = doorSpan.x1;
+  const tile = (x) => ({ gx: x, gy: rowY, gw: 1, gh: 1 });
+  const free = (t, boundaryX) => !obstacleFloors.some((f) => rectsCross(f, t))
+    && !obstacleWalls.some((w) => wallCutsTile(w, t))
+    && !(boundaryX !== undefined && obstacleWalls.some((w) => wallCutsTile(w, t, boundaryX)));
+  if (!free(tile(x0))) return null;
+  const toward = Math.sign(targetPos.col - sourcePos.col);
+  const dir = toward || (x0 + 0.5 < sourceRect.gx + sourceRect.gw / 2 ? 1 : -1);
+  const wanted = 1 + Math.floor(splitmix32(seedFromString(`${seed}-stub-${sourceId}->${targetId}`))() * STUB_MAX_LENGTH);
+  let length = 1;
+  while (length < wanted) {
+    const x = x0 + dir * length;
+    if (x < cell.gx + 1 || x > cell.gx + COLUMN_STRIDE - 2) break;
+    if (otherDoorSpans.some((s) => s.y1 === rowY && s.x1 <= x && x < s.x2)) break;
+    if (!free(tile(x), dir > 0 ? x : x + 1)) break;
+    length += 1;
+  }
+  const gx = dir > 0 ? x0 : x0 - (length - 1);
+  return {
+    floor: [{ gx, gy: rowY, gw: length, gh: 1 }],
+    walls: [
+      { x1: gx, y1: rowY + 1, x2: gx + length, y2: rowY + 1 },
+      { x1: gx, y1: rowY, x2: gx, y2: rowY + 1 },
+      { x1: gx + length, y1: rowY, x2: gx + length, y2: rowY + 1 },
+    ],
+    doorWall: { x1: doorSpan.x1, y1: rowY, x2: doorSpan.x2, y2: rowY },
+    flavor: 'rubble',
+    length,
+    dir,
+    doorSpan,
+  };
+}
+
+/**
+ * #427: every edge (real, hidden shortcut, detour link) whose corridor has no grid path, exactly as
+ * `buildEdgeCorridor` decides it (`findCorridorPath` with the target's incoming face and the source plan's exit
+ * face). `planFor(sourceId)` is the source's `outgoingDoorPlan` WITHOUT stubs (a stub never changes a face).
+ * Sorted by target id then source id; `hidden` marks shortcut and detour links. Pure.
+ */
+export function nullPathEdges({
+  positionByRoomId, occupiedCells, layoutEdges, hiddenRooms = [], hiddenIncomingByRoomId = {}, incomingFaceByRoomId = {}, planFor,
+}) {
+  const detours = new Set(hiddenRooms);
+  const out = [];
+  for (const toId of Object.keys(positionByRoomId).sort()) {
+    const detour = detours.has(toId);
+    const conns = incomingConnectionsFor(layoutEdges, toId, hiddenIncomingByRoomId)
+      .map((c) => (detour ? { ...c, hidden: true } : c));
+    for (const { sourceId, hidden } of conns) {
+      const entry = planFor?.(sourceId)?.get(toId);
+      const path = findCorridorPath(positionByRoomId[sourceId], positionByRoomId[toId], occupiedCells, {
+        fromRoomId: sourceId, toRoomId: toId, incomingFace: incomingFaceByRoomId[toId] ?? 'north', exitFace: entry?.face,
+      });
+      if (!path) out.push({ sourceId, toId, hidden });
+    }
+  }
+  return out.sort((a, b) => (a.toId < b.toId ? -1 : a.toId > b.toId ? 1 : a.sourceId < b.sourceId ? -1 : a.sourceId > b.sourceId ? 1 : 0));
+}
+
+/**
+ * #427 (layoutVersion >= 3): the outgoing door plan of `sourceId` from run state, stubs included. Real children
+ * come from `edges` (stub edges are filtered again here, so a stub-free or a stub-removed map both work), the single
+ * hidden child from `hiddenEdges` unless it is a stub, and stubs from `stubEdges`. The one definition the scene,
+ * the planner and the tests share, so they can never disagree about a door.
+ */
+export function outgoingPlanForStubs(seed, sourceId, { edges, hiddenEdges = {}, stubEdges = {}, positionByRoomId }) {
+  const pos = positionByRoomId[sourceId];
+  return outgoingDoorPlan(
+    roomRect(seed, sourceId, pos.rank, pos.col), pos,
+    {
+      realChildIds: (edges?.[sourceId] ?? []).filter((c) => !isStubEdge(stubEdges, sourceId, c)),
+      hiddenChildIds: (hiddenEdges?.[sourceId] ?? []).slice(0, 1).filter((c) => !isStubEdge(stubEdges, sourceId, c)),
+      stubChildIds: stubEdges?.[sourceId] ?? [],
+    },
+    positionByRoomId,
+  );
+}
+
+/**
+ * #427: the built corridor geometry of every connection of the layout, exactly as the scene's per-room build
+ * produces it under layoutVersion >= 3 (`incomingSlotsV3` slots, the source plan's face and door). Returns
+ * `[{ sourceId, toId, hidden, result }]` (`result` is `buildEdgeCorridor`'s return) in room-id order. Stubs are not
+ * connections: they have no entry here.
+ */
+export function layoutEdgeGeometry({
+  seed, positionByRoomId, occupiedCells, layoutEdges, hiddenRooms = [], hiddenIncomingByRoomId = {}, incomingFaceByRoomId = {},
+  planFor, stubEdges = {},
+}) {
+  const detours = new Set(hiddenRooms);
+  const out = [];
+  for (const toId of Object.keys(positionByRoomId).sort()) {
+    const toPos = positionByRoomId[toId];
+    const toFace = incomingFaceByRoomId[toId] ?? 'north';
+    const slots = incomingSlotsV3(seed, toId, toPos, {
+      layoutEdges, hiddenIncomingByRoomId, positionByRoomId, occupiedCells, incomingFace: toFace, planFor,
+      detour: detours.has(toId), stubEdges,
+    });
+    const toRect = roomRect(seed, toId, toPos.rank, toPos.col);
+    for (const { sourceId, hidden, slot } of slots) {
+      const sourcePos = positionByRoomId[sourceId];
+      const sourceRect = roomRect(seed, sourceId, sourcePos.rank, sourcePos.col);
+      const planned = planFor(sourceId).get(toId);
+      const result = buildEdgeCorridor(
+        seed, sourceId, toId, sourceRect, toRect, sourcePos, toPos, planned.face, slot, occupiedCells, toFace, planned,
+      );
+      out.push({ sourceId, toId, hidden, result });
+    }
+  }
+  return out;
+}
+
+/**
+ * #427: place every stub of `stubEdges` (pure; the scene calls this too). Stubs yield to everything real: the
+ * obstacles are all connections' floors and plain walls under THIS stub set, the source's own margin walls
+ * (`plannedMarginOpenings`, the same openings the scene builds), and the stubs already placed. Returns
+ * `{ geometries: Map<"src->tgt", stubGeometry + { sourceId, targetId, hidden }>, infeasible: ["src->tgt"] }`; an
+ * infeasible stub is one whose door tile is not free.
+ */
+export function planStubGeometries({
+  seed, positionByRoomId, occupiedCells, edges, layoutEdges, hiddenEdges = {}, hiddenRooms = [], hiddenIncomingByRoomId = {},
+  incomingFaceByRoomId = {}, stubEdges,
+}) {
+  const planFor = (src) => outgoingPlanForStubs(seed, src, { edges, hiddenEdges, stubEdges, positionByRoomId });
+  const realEdges = applyStubsToEdges(edges, stubEdges);
+  const edgeGeo = layoutEdgeGeometry({
+    seed, positionByRoomId, occupiedCells, layoutEdges, hiddenRooms, hiddenIncomingByRoomId, incomingFaceByRoomId, planFor, stubEdges,
+  });
+  const baseFloors = [];
+  const baseWalls = [];
+  for (const { result } of edgeGeo) {
+    baseFloors.push(...result.corridorSegments, ...result.transitCells.flatMap((c) => c.corridorSegments));
+    baseWalls.push(...result.plainWalls, ...result.transitCells.flatMap((c) => c.plainWalls ?? []));
+  }
+  const geometries = new Map();
+  const infeasible = [];
+  for (const sourceId of Object.keys(stubEdges ?? {}).sort()) {
+    if (!stubEdges[sourceId]?.length) continue;
+    const pos = positionByRoomId[sourceId];
+    const rect = roomRect(seed, sourceId, pos.rank, pos.col);
+    const plan = planFor(sourceId);
+    const marginWalls = cellMarginWalls(rect, pos.rank, pos.col, plannedMarginOpenings(seed, sourceId, pos, {
+      plan, hiddenChildId: (hiddenEdges[sourceId] ?? [])[0] ?? null, edges: realEdges, hiddenEdges, layoutEdges,
+      hiddenIncomingByRoomId, positionByRoomId, incomingFaceByRoomId, occupiedCells, planFor, layoutVersion: 3, stubEdges,
+    }));
+    const placedFloors = [];
+    const placedWalls = [];
+    const ordered = [...stubEdges[sourceId]].sort((a, b) => plan.get(a).slotIndex - plan.get(b).slotIndex);
+    for (const targetId of ordered) {
+      const entry = plan.get(targetId);
+      const g = stubGeometry(seed, sourceId, targetId, {
+        sourceRect: rect, sourcePos: pos, targetPos: positionByRoomId[targetId], doorSpan: entry.doorSpan,
+        obstacleFloors: [...baseFloors, ...placedFloors],
+        obstacleWalls: [...baseWalls, ...marginWalls.map(({ x1, y1, x2, y2 }) => ({ x1, y1, x2, y2 })), ...placedWalls],
+        otherDoorSpans: [...plan.entries()].filter(([id, e]) => id !== targetId && e.face === 'south' && e.doorSpan).map(([, e]) => e.doorSpan),
+      });
+      const key = `${sourceId}->${targetId}`;
+      if (!g) { infeasible.push(key); continue; }
+      placedFloors.push(...g.floor);
+      placedWalls.push(...g.walls);
+      geometries.set(key, { ...g, sourceId, targetId, hidden: (hiddenEdges[sourceId] ?? []).slice(0, 1).includes(targetId) });
+    }
+  }
+  return { geometries, infeasible };
+}
+
+/**
+ * #427: the whole stub plan for a layout, as `dungeon-app.mjs` computes it at precompute (layoutVersion >= 3):
+ * the unroutable edges (`nullPathEdges`), the graph-eligible subset (`planStubs`), then geometry; a stub whose door
+ * tile is not free is dropped (canonical order, one at a time, re-placing the rest) so every stored stub is
+ * buildable. `retreatAvailable` is false until Chunk 7 (#439 live-verified). Returns
+ * `{ stubEdges, geometries, dropped: ["src->tgt"], nullEdges }`. Pure and independent of key order.
+ */
+export function planStubsForLayout({
+  seed, rooms, positionByRoomId, occupiedCells, edges, layoutEdges, hiddenEdges = {}, hiddenRooms = [],
+  hiddenIncomingByRoomId = {}, incomingFaceByRoomId = {}, retreatAvailable = false,
+}) {
+  const planFor0 = (src) => outgoingPlanForStubs(seed, src, { edges, hiddenEdges, stubEdges: {}, positionByRoomId });
+  const nullEdges = nullPathEdges({
+    positionByRoomId, occupiedCells, layoutEdges, hiddenRooms, hiddenIncomingByRoomId, incomingFaceByRoomId, planFor: planFor0,
+  });
+  const { stubEdges } = planStubs({
+    rooms, edges, layoutEdges, hiddenEdges, hiddenIncomingByRoomId, nullEdges, retreatAvailable, positionByRoomId,
+  });
+  const dropped = [];
+  let geometries = new Map();
+  while (Object.keys(stubEdges).length) {
+    const placed = planStubGeometries({
+      seed, positionByRoomId, occupiedCells, edges, layoutEdges, hiddenEdges, hiddenRooms, hiddenIncomingByRoomId,
+      incomingFaceByRoomId, stubEdges,
+    });
+    if (!placed.infeasible.length) { geometries = placed.geometries; break; }
+    const rank = (id) => positionByRoomId[id].rank;
+    const [src, tgt] = placed.infeasible.map((k) => k.split('->')).sort((a, b) => (rank(a[1]) - rank(b[1]))
+      || (a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))[0];
+    stubEdges[src] = stubEdges[src].filter((t) => t !== tgt);
+    if (!stubEdges[src].length) delete stubEdges[src];
+    dropped.push(`${src}->${tgt}`);
+  }
+  return { stubEdges, geometries, dropped, nullEdges };
 }
