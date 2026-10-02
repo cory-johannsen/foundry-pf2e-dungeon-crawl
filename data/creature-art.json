@@ -28414,5 +28414,125 @@
     "name": "Mari Lwyd",
     "level": 11,
     "art": "mari-lwyd.webp"
+  },
+  {
+    "id": "chea",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "DqDwGNZzUrtlKJQ6",
+    "name": "Chea",
+    "level": 9,
+    "art": "chea.webp"
+  },
+  {
+    "id": "ailuran",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "F8UHnGYafHS3Pnyt",
+    "name": "Ailuran",
+    "level": 5,
+    "art": "ailuran.webp"
+  },
+  {
+    "id": "rt5rrmn",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "FdsQgecBdj4h5qca",
+    "name": "Rt5rrmn",
+    "level": 8,
+    "art": "rt5rrmn.webp"
+  },
+  {
+    "id": "morlibint",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "GQE978SzTLS0Sa8B",
+    "name": "Morlibint",
+    "level": 4,
+    "art": "morlibint.webp"
+  },
+  {
+    "id": "pr_rall",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "JhC9sqhFy88lX4Xu",
+    "name": "Pr'rall",
+    "level": 9,
+    "art": "pr-rall.webp"
+  },
+  {
+    "id": "lisavet",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "L9Gg91HVIzYANuXK",
+    "name": "Lisavet",
+    "level": 2,
+    "art": "lisavet.webp"
+  },
+  {
+    "id": "gristleburst",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "M6MAHeD7U52inXED",
+    "name": "Gristleburst",
+    "level": 2,
+    "art": "gristleburst.webp"
+  },
+  {
+    "id": "nosferotter",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "MO2QmDcf117b8FQk",
+    "name": "Nosferotter",
+    "level": 2,
+    "art": "nosferotter.webp"
+  },
+  {
+    "id": "whispering_way_medusa",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "Nd54wB2wWnpPbHCc",
+    "name": "Whispering Way Medusa",
+    "level": 8,
+    "art": "whispering-way-medusa.webp"
+  },
+  {
+    "id": "demom",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "PVLDkCH0syWw8ArW",
+    "name": "Demom",
+    "level": 3,
+    "art": "demom.webp"
+  },
+  {
+    "id": "edolpho_phinelli",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "TejC7NPsqRPHwOe3",
+    "name": "Edolpho Phinelli",
+    "level": 3,
+    "art": "edolpho-phinelli.webp"
+  },
+  {
+    "id": "zhang_yong",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "YuSniRhf05jBHwPy",
+    "name": "Zhang Yong",
+    "level": 14,
+    "art": "zhang-yong.webp"
+  },
+  {
+    "id": "hellknight_centaur",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "bCyzCto3GIqvWBoM",
+    "name": "Hellknight Centaur",
+    "level": 4,
+    "art": "hellknight-centaur.webp"
+  },
+  {
+    "id": "firebrand_brass_dragon",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "befgp7CwzDJ6LRa5",
+    "name": "Firebrand Brass Dragon (Ancient)",
+    "level": 17,
+    "art": "firebrand-brass-dragon.webp"
+  },
+  {
+    "id": "weredigo",
+    "pack": "pf2e.blog-bestiary",
+    "docId": "d0nNIzVZe1f81aAg",
+    "name": "Weredigo",
+    "level": 15,
+    "art": "weredigo.webp"
   }
 ]
