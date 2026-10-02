@@ -25638,5 +25638,133 @@
     "name": "Azlanti Sorcerer",
     "level": 6,
     "art": "azlanti-sorcerer.webp"
+  },
+  {
+    "id": "raised_draugr",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "meKJ9hL6pDye46XR",
+    "name": "Raised Draugr",
+    "level": 2,
+    "art": "raised-draugr.webp"
+  },
+  {
+    "id": "busoborn_void_zombie",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "oNgo28jVdWiHUSY2",
+    "name": "Busoborn Void Zombie",
+    "level": 4,
+    "art": "busoborn-void-zombie.webp"
+  },
+  {
+    "id": "azlanti_novice_sorcerer",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "sEUngbUxAOr8YwHh",
+    "name": "Azlanti Novice Sorcerer",
+    "level": 4,
+    "art": "azlanti-novice-sorcerer.webp"
+  },
+  {
+    "id": "blue_scarf_tough",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "sJDwY8h0z324Rmw7",
+    "name": "Blue-Scarf Tough",
+    "level": 2,
+    "art": "blue-scarf-tough.webp"
+  },
+  {
+    "id": "tanuki_prankster",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "shh9wJMiV7Z5ugZI",
+    "name": "Tanuki Prankster",
+    "level": 0,
+    "art": "tanuki-prankster.webp"
+  },
+  {
+    "id": "three_headed_goat_eidolon",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "tVEpi32axSPlmIjL",
+    "name": "Three-Headed Goat Eidolon",
+    "level": 4,
+    "art": "three-headed-goat-eidolon.webp"
+  },
+  {
+    "id": "azlanti_cutpurse",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "uDmXkhH56GdGtfQo",
+    "name": "Azlanti Cutpurse",
+    "level": 3,
+    "art": "azlanti-cutpurse.webp"
+  },
+  {
+    "id": "hidden_current",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "ut5ji1ZwtUDUfR2B",
+    "name": "Hidden Current",
+    "level": 8,
+    "art": "hidden-current.webp"
+  },
+  {
+    "id": "giant_hermit_rat",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "vu8hri1UKziND6Fo",
+    "name": "Giant Hermit Rat",
+    "level": 1,
+    "art": "giant-hermit-rat.webp"
+  },
+  {
+    "id": "well_fed_dandasuka",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "vzVej5D1DNHNQwoZ",
+    "name": "Well-Fed Dandasuka",
+    "level": 7,
+    "art": "well-fed-dandasuka.webp"
+  },
+  {
+    "id": "younger_sister_vivatu",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "xdShljXDpy0zfYZZ",
+    "name": "Younger Sister Vivatu",
+    "level": 1,
+    "art": "younger-sister-vivatu.webp"
+  },
+  {
+    "id": "baby_brine_shark",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "xtIoQWKv3xBd2gqZ",
+    "name": "Baby Brine Shark",
+    "level": 1,
+    "art": "baby-brine-shark.webp"
+  },
+  {
+    "id": "azlanti_thief",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "yDcmp9DpXU1gLrop",
+    "name": "Azlanti Thief",
+    "level": 5,
+    "art": "azlanti-thief.webp"
+  },
+  {
+    "id": "ulfen_ghost_pirate_captain",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "yDoN1wYdKb3Wlp22",
+    "name": "Ulfen Ghost Pirate Captain",
+    "level": 8,
+    "art": "ulfen-ghost-pirate-captain.webp"
+  },
+  {
+    "id": "deskari_cultist",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "ytfKFUktZrRur3nO",
+    "name": "Deskari Cultist",
+    "level": 2,
+    "art": "deskari-cultist.webp"
+  },
+  {
+    "id": "orcish_throat_slitters",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "zIi94PzeveWBlxTy",
+    "name": "Orcish Throat Slitters",
+    "level": 6,
+    "art": "orcish-throat-slitters.webp"
   }
 ]
