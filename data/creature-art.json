@@ -32462,5 +32462,141 @@
     "name": "Tenome",
     "level": 4,
     "art": "tenome.webp"
+  },
+  {
+    "id": "giant_trapdoor_spider",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "1UWbR2WkeP0kl1nQ",
+    "name": "Giant Trapdoor Spider",
+    "level": 2,
+    "art": "giant-trapdoor-spider.webp"
+  },
+  {
+    "id": "trapdoor_ogre_spider",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "1ZKOTqqzeorIv7BB",
+    "name": "Trapdoor Ogre Spider",
+    "level": 5,
+    "art": "trapdoor-ogre-spider.webp"
+  },
+  {
+    "id": "avatar_of_the_lantern_king",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "1vsQlCVwa9kVmgRi",
+    "name": "Avatar of the Lantern King",
+    "level": 24,
+    "art": "avatar-of-the-lantern-king.webp"
+  },
+  {
+    "id": "foras",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "2mkfF43tP8IGVfBz",
+    "name": "Foras",
+    "level": 19,
+    "art": "foras.webp"
+  },
+  {
+    "id": "river_elasmosaurus",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "3QkgiJJ0IS6oTT0t",
+    "name": "River Elasmosaurus",
+    "level": 11,
+    "art": "river-elasmosaurus.webp"
+  },
+  {
+    "id": "the_lonely_warrior",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "3Tb42wMuwjtP3iYN",
+    "name": "The Lonely Warrior",
+    "level": 6,
+    "art": "the-lonely-warrior.webp"
+  },
+  {
+    "id": "wild_hunt_archer",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "3gtQv6Mkr7CUlG7W",
+    "name": "Wild Hunt Archer",
+    "level": 16,
+    "art": "wild-hunt-archer.webp"
+  },
+  {
+    "id": "thresholder_hermeticist",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "3kyS4KzEmG8Eyl4N",
+    "name": "Thresholder Hermeticist",
+    "level": 16,
+    "art": "thresholder-hermeticist.webp"
+  },
+  {
+    "id": "eobald",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "3xHHKI7PGQN218aL",
+    "name": "Eobald",
+    "level": 6,
+    "art": "eobald.webp"
+  },
+  {
+    "id": "corax",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "48o307dry03xazvd",
+    "name": "Corax",
+    "level": 3,
+    "art": "corax.webp"
+  },
+  {
+    "id": "sister_of_the_bloodshot_eye",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "554zNFkbYXBdmgAy",
+    "name": "Sister of the Bloodshot Eye",
+    "level": 12,
+    "art": "sister-of-the-bloodshot-eye.webp"
+  },
+  {
+    "id": "volodmyra",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "5Xslhvyh3MSzgIXN",
+    "name": "Volodmyra",
+    "level": 3,
+    "art": "volodmyra.webp"
+  },
+  {
+    "id": "pavetta_stroon_drelev",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "5npzwOJSQLSPhmx2",
+    "name": "Pavetta Stroon-Drelev",
+    "level": 9,
+    "art": "pavetta-stroon-drelev.webp"
+  },
+  {
+    "id": "phantasmal_protagonist",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "5yd6BBLY2vCNz1zh",
+    "name": "Phantasmal Protagonist",
+    "level": 4,
+    "art": "phantasmal-protagonist.webp"
+  },
+  {
+    "id": "risen_fetch",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "6zWcjvPya0wWDZv2",
+    "name": "Risen Fetch",
+    "level": 22,
+    "art": "risen-fetch.webp"
+  },
+  {
+    "id": "lesser_jabberwock",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "XQyXoOe7FCpZilaF",
+    "name": "Lesser Jabberwock",
+    "level": 21,
+    "art": "jabberwock.webp"
+  },
+  {
+    "id": "shambler_ulzd7",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "uLzD70CB7Bh2XxQf",
+    "name": "Shambler",
+    "level": 6,
+    "art": "shambler.webp"
   }
 ]
