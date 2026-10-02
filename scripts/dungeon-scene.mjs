@@ -71,7 +71,7 @@ import {
   retreatTo,
   markStubOpened,
 } from "./dungeon-runner.mjs";
-import { canRetreat, hasNoWayForward, roomDisplayLabel } from "./dungeon-retreat.mjs";
+import { canRetreat, hasNoWayForward, roomDisplayLabel, roomTileName } from "./dungeon-retreat.mjs";
 import { depthBiasFor } from "./dungeon-deck.mjs";
 import { startCombatForRoom } from "./dungeon-combat.mjs";
 import { playDoorSound } from "./dungeon-sound.mjs";
@@ -464,7 +464,7 @@ export async function buildRoomAtGraphNode(
   {
     rank, col, childIds = [], incomingConnections = [],
     hiddenChildId = null,
-    isGoal = false, locationTag = null, artVariant = 0, seed = "",
+    isGoal = false, kind = null, locationTag = null, artVariant = 0, seed = "",
     layoutPositionByRoomId = {}, occupiedCells = {},
     incomingFace = 'north', incomingFaceByRoomId = {},
     edges = {}, layoutEdges, hiddenIncomingByRoomId = {},
@@ -775,6 +775,8 @@ export async function buildRoomAtGraphNode(
   // permanent "this room was built" marker, unlike any wall-based signal.
   const tiles = [
     {
+      // #574: identifiable in the Foundry UI. Nothing matches room tiles by name (only by the flag below).
+      name: roomTileName(kind, rank, col, isGoal, globalThis.game?.i18n),
       texture: {
         src: roomArtPath({ locationTag, isGoal, artVariant }),
         anchorX: 0,
@@ -1397,7 +1399,7 @@ export async function buildPopulateAndUnlockGraphNode(
       room.id,
       {
         rank, col, childIds, incomingConnections, hiddenChildId,
-        isGoal: room.isGoal, locationTag: room.locationTag,
+        isGoal: room.isGoal, kind: room.kind, locationTag: room.locationTag,
         artVariant: room.artVariant, seed: state.seed,
         layoutPositionByRoomId: state.layoutPositionByRoomId,
         occupiedCells, incomingFace,
