@@ -129,6 +129,7 @@ const GROUPS = [
         "scripts/dungeon-retreat.mjs",
         "scripts/dungeon-layout.mjs",
         "scripts/dungeon-reseed.mjs",
+        "scripts/dungeon-stub-oracle.mjs",
         "scripts/prng.mjs",
       ].includes(p),
   },

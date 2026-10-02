@@ -927,3 +927,29 @@ but a sole-dead-edge room is a visible dead end behind a stub-less door in 16 du
 
 **What the oracle cannot see:** real token/wall collision beyond the centre-line test, lane width, door state (a
 locked or closed door), a live rank cap. One live example earlier matched the oracle's dead-edge model.
+
+## Chunk 7 shipped: walkability-union dead edges become stubs (2026-10-02)
+
+Decisions (user): dead-edge definition = the walkability UNION (`truth` dead plus #575's per-edge walkability: sealedDoor,
+wallCut, tileGap, noStartTile, noEndTile, missingDoor), so found-path cut edges are stubbed too; retreat on for v3
+(`retreatAvailable = layoutVersion >= 3 && RETREAT_VERSION >= 1`); rule 1 keeps a walkable non-stub parent, rule 3'
+(live reach must not shrink) replaces the graph-only rule 3 as the scene-level guard; verify step drops a stub while
+any semantics (opt/strict/truth/union) regresses vs the stub-free scene. Code: `scripts/dungeon-stub-oracle.mjs`
+(`deadEdgeSets`, `planStubsVerified`), `filterStubsByLiveReach` and the `deadEdges` input of `planStubsForLayout` in
+`dungeon-layout.mjs`, `planRunLayoutStubs` in `dungeon-reseed.mjs` (the reseed predicate runs after the plan).
+
+500 seeds, retreat on (tests/dungeon-stub-union-sweep.test.mjs; independent test-side oracles):
+
+| | no stubs | today (hidden-only) | shipped |
+|---|---|---|---|
+| dead real edges (union) | 2556 | 2554 | 1277 |
+| dungeons with a dead edge reachable from entry | 490 | 490 | 313 |
+| sealed doors | 1478 | 1447 | 473 |
+| union: goal lost / dungeons with an unreachable room / rooms | 271 / 311 / 2305 | 269 / 311 / 2289 | 266 / 311 / 2258 |
+| stubs / dungeons with a stub (max) | 0 | 26 / 26 (1) | 1272 / 454 (8) |
+| per-dungeon regressions vs none (4 semantics) | 0 | 1 | 0 |
+| stub doors sealed | | | 0 |
+
+Dead edges left unstubbed (1311 of 2556): 892 target has no other walkable parent (rule 1; 468 of them in an already
+unreachable zone), 184 other graph rule (rule 3), 211 no free door tile in the source's south margin row, 24 dropped by
+the verify step. 70 null-path fallback edges are walkable by the oracle and stay as today.

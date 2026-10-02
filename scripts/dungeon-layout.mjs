@@ -3169,6 +3169,39 @@ export function planStubs({
   return { stubEdges };
 }
 
+/**
+ * #427 Chunk 7, rule 3' (scene-level): keep a stub only when the rooms reachable from `room-entry` over the BASELINE's
+ * live edges (every edge not in `deadKeys`, `src->child`) do not shrink once the kept stubs are removed too. The
+ * graph rules cannot see this: they flood the layout graph, where a dead edge still looks passable. Candidates are
+ * visited in canonical order (target id, source id), one at a time, so the result is deterministic. `exempt` keys
+ * (hidden shortcut stubs, which are not progression edges) pass through untouched. Pure; returns `stubEdges`.
+ */
+export function filterStubsByLiveReach({ edges, stubEdges, deadKeys, exempt = new Set() }) {
+  const key = (s, t) => `${s}->${t}`;
+  const reach = (blocked) => {
+    const seen = new Set(['room-entry']);
+    const queue = ['room-entry'];
+    while (queue.length) {
+      const x = queue.shift();
+      for (const c of edges[x] ?? []) if (!seen.has(c) && !deadKeys.has(key(x, c)) && !blocked.has(key(x, c))) { seen.add(c); queue.push(c); }
+    }
+    return seen;
+  };
+  const base = reach(new Set());
+  const cand = Object.entries(stubEdges ?? {}).flatMap(([s, ts]) => ts.map((t) => ({ s, t })))
+    .sort((a, b) => (a.t < b.t ? -1 : a.t > b.t ? 1 : a.s < b.s ? -1 : a.s > b.s ? 1 : 0));
+  const kept = new Set();
+  for (const { s, t } of cand) {
+    if (exempt.has(key(s, t))) { kept.add(key(s, t)); continue; }
+    kept.add(key(s, t));
+    const seen = reach(kept);
+    if ([...base].some((r) => !seen.has(r))) kept.delete(key(s, t));
+  }
+  const out = {};
+  for (const { s, t } of cand) if (kept.has(key(s, t))) (out[s] ??= []).push(t);
+  return out;
+}
+
 /** The longest a stub gets, in cells, door tile included. */
 export const STUB_MAX_LENGTH = 4;
 
@@ -3386,9 +3419,9 @@ export const NEW_RUN_STUBS_ENABLED = true;
  * progression graph untouched and no `stubEdges` key (v1/v2 stay byte-identical); v3 returns `stubEdges` and the
  * progression graph without its stub edges (`layoutEdges` is never touched: nothing moves). Pure.
  */
-export function stubStateFor(layoutVersion, inputs, { enabled = NEW_RUN_STUBS_ENABLED, retreatAvailable = false } = {}) {
+export function stubStateFor(layoutVersion, inputs, { enabled = NEW_RUN_STUBS_ENABLED, retreatAvailable = false, deadEdges } = {}) {
   if (!(layoutVersion >= 3) || !enabled) return { edges: inputs.edges };
-  const { stubEdges } = planStubsForLayout({ ...inputs, retreatAvailable });
+  const { stubEdges } = planStubsForLayout({ ...inputs, retreatAvailable, deadEdges });
   return { edges: applyStubsToEdges(inputs.edges, stubEdges), stubEdges };
 }
 
@@ -3401,15 +3434,27 @@ export function stubStateFor(layoutVersion, inputs, { enabled = NEW_RUN_STUBS_EN
  */
 export function planStubsForLayout({
   seed, rooms, positionByRoomId, occupiedCells, edges, layoutEdges, hiddenEdges = {}, hiddenRooms = [],
-  hiddenIncomingByRoomId = {}, incomingFaceByRoomId = {}, retreatAvailable = false,
+  hiddenIncomingByRoomId = {}, incomingFaceByRoomId = {}, retreatAvailable = false, deadEdges,
 }) {
   const planFor0 = (src) => outgoingPlanForStubs(seed, src, { edges, hiddenEdges, stubEdges: {}, positionByRoomId });
-  const nullEdges = nullPathEdges({
+  const nullAll = nullPathEdges({
     positionByRoomId, occupiedCells, layoutEdges, hiddenRooms, hiddenIncomingByRoomId, incomingFaceByRoomId, planFor: planFor0,
   });
-  const { stubEdges } = planStubs({
+  // #427 Chunk 7: with `deadEdges` (`{ sourceId, toId }`, the real edges the BUILT scene cannot walk: the walkability
+  // union) the real candidates are those, found-path cut edges included, and rule 3' (`filterStubsByLiveReach`)
+  // applies; the hidden null-path links stay candidates as before. Without it the null-path edges are the candidates.
+  const nullEdges = deadEdges
+    ? [...nullAll.filter((e) => e.hidden), ...deadEdges.map(({ sourceId, toId }) => ({ sourceId, toId, hidden: false }))]
+    : nullAll;
+  let { stubEdges } = planStubs({
     rooms, edges, layoutEdges, hiddenEdges, hiddenIncomingByRoomId, nullEdges, retreatAvailable, positionByRoomId,
   });
+  if (deadEdges) {
+    stubEdges = filterStubsByLiveReach({
+      edges, stubEdges, deadKeys: new Set(deadEdges.map((e) => `${e.sourceId}->${e.toId}`)),
+      exempt: new Set(nullAll.filter((e) => e.hidden).map((e) => `${e.sourceId}->${e.toId}`)),
+    });
+  }
   const dropped = [];
   let geometries = new Map();
   while (Object.keys(stubEdges).length) {

@@ -42,11 +42,12 @@ unit test that would mostly just be testing the mock.
 ## Subsystems
 
 **Dungeon generation / sequencing** (`dungeon-deck.mjs`,
-`dungeon-layout.mjs`, `dungeon-reseed.mjs`, `dungeon-retreat.mjs`, `prng.mjs`) — the abstract room sequence (kind,
+`dungeon-layout.mjs`, `dungeon-reseed.mjs`, `dungeon-stub-oracle.mjs`, `dungeon-retreat.mjs`, `prng.mjs`) — the abstract room sequence (kind,
 order, which setpiece each room draws) and the grid-unit room geometry,
 both fully deterministic from a seed, both Foundry-free. (`dungeon-reseed.mjs`, #490, is the exception: it builds
-each new run's layout and, if the goal is unreachable, retries seeds `<seed>~r1..r10` by checking a scratch scene
-built with `dungeon-scene.mjs`.)
+each new run's layout and, if the goal is unreachable, retries seeds `<seed>~r1..r20` by checking a scratch scene
+built with `dungeon-scene.mjs`; `dungeon-stub-oracle.mjs`, #427 Chunk 7, finds the edges that scene cannot walk and plans the
+rubble stubs that replace them.)
 
 **Foundry scene building** (`dungeon-scene.mjs`, `foundry-api.mjs`,
 `placement.mjs`, `data-loader.mjs`, `dungeon-sound.mjs`/`audio.mjs`) —
@@ -217,6 +218,7 @@ graph LR
     scripts_dungeon_layout_mjs["dungeon-layout.mjs"]
     scripts_dungeon_reseed_mjs["dungeon-reseed.mjs"]
     scripts_dungeon_retreat_mjs["dungeon-retreat.mjs"]
+    scripts_dungeon_stub_oracle_mjs["dungeon-stub-oracle.mjs"]
     scripts_prng_mjs["prng.mjs"]
   end
   subgraph "Foundry scene building"
@@ -273,6 +275,8 @@ graph LR
   scripts_dungeon_remote_mjs --> scripts_dungeon_follow_mjs
   scripts_dungeon_reseed_mjs --> scripts_dungeon_layout_mjs
   scripts_dungeon_reseed_mjs --> scripts_dungeon_scene_mjs
+  scripts_dungeon_reseed_mjs --> scripts_dungeon_stub_oracle_mjs
+  scripts_dungeon_reseed_mjs --> scripts_dungeon_retreat_mjs
   scripts_dungeon_runner_mjs --> scripts_generator_registry_mjs
   scripts_dungeon_runner_mjs --> scripts_dungeon_retreat_mjs
   scripts_dungeon_runner_mjs --> scripts_skill_challenge_mechanics_mjs
@@ -292,6 +296,7 @@ graph LR
   scripts_dungeon_scene_mjs --> scripts_trap_library_mjs
   scripts_dungeon_scene_mjs --> scripts_prng_mjs
   scripts_dungeon_sound_mjs --> scripts_audio_mjs
+  scripts_dungeon_stub_oracle_mjs --> scripts_dungeon_layout_mjs
   scripts_encounter_deck_mjs --> scripts_prng_mjs
   scripts_encounter_generator_mjs --> scripts_foundry_api_mjs
   scripts_encounter_generator_mjs --> scripts_encounter_deck_mjs
