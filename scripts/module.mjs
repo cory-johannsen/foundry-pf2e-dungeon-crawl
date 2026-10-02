@@ -1,5 +1,10 @@
 import { generateEncounter } from "./encounter-generator.mjs";
-import { DungeonApp, resolveCurrentRoom } from "./ui/dungeon-app.mjs";
+import {
+  DungeonApp,
+  resolveCurrentRoom,
+  retreatFromCard,
+} from "./ui/dungeon-app.mjs";
+import { retreatCardActionFor } from "./dungeon-retreat.mjs";
 import {
   abandonRun,
   getRunState,
@@ -284,6 +289,34 @@ Hooks.on("updateWall", async (wall, changes) => {
     wall.id,
   );
   if (autoOpenTracker) openDungeonTrackerIfNotOpen();
+});
+
+/** #439: binds the "Turn back" button on the retreat chat card (posted by
+ * dungeon-scene.mjs's announceRetreatIfAvailable). Disabled, not removed, for a
+ * user who is neither a GM nor the run's host. */
+Hooks.on("renderChatMessageHTML", (message, html) => {
+  const action = retreatCardActionFor(message, {
+    isGM: game.user.isGM,
+    hostUserId: getRunState(message?.flags?.[MODULE_ID]?.retreatCard?.sceneId)
+      ?.hostUserId,
+    userId: game.user.id,
+  });
+  if (!action) return;
+  const button = html.querySelector?.("button[data-pf2edc-retreat]");
+  if (!button) return;
+  button.disabled = !action.enabled;
+  button.addEventListener("click", async (event) => {
+    event.preventDefault();
+    if (button.disabled) return;
+    button.disabled = true;
+    try {
+      await retreatFromCard(action.sceneId);
+    } finally {
+      // Re-enable so a refused press (e.g. active combat) can be retried; a
+      // successful retreat makes a repeat press a refused no-op anyway.
+      button.disabled = !action.enabled;
+    }
+  });
 });
 
 /** #109: keeps every non-host, non-GM client's DungeonApp in sync with a

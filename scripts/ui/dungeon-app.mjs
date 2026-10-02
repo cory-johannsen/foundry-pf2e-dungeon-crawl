@@ -10,6 +10,7 @@ import {
   recordPuzzleStageAttempt,
   roomsToEagerlyBuild,
   replaceRunState,
+  resetRetreatPath,
   effectiveMarchingOrder,
   setMarchingOrder,
 } from "../dungeon-runner.mjs";
@@ -36,6 +37,7 @@ import {
   isSlotBuilt,
   placePartyInRoom,
   undoRoomEntry,
+  retreatToFork,
   focusCameraOnRoom,
   teardownDungeonRun,
   buildPopulateAndUnlockGraphNode,
@@ -51,7 +53,7 @@ import {
   unpauseIfGmLessRun,
 } from "../dungeon-combat.mjs";
 import { getGenerator } from "../generator-registry.mjs";
-import { retreatStateFor } from "../dungeon-retreat.mjs";
+import { retreatStateFor, retreatUiFor } from "../dungeon-retreat.mjs";
 import { computeRanks,computeColumns, parentRoomIdsFor, incomingFaceFor, pruneConflictingShortcuts, NEW_RUN_LAYOUT_VERSION } from "../dungeon-layout.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -819,6 +821,18 @@ export async function startCombatRecoveryFor(sceneId) {
   await startCombatForRoom(scene, currentRoom.id);
 }
 
+/** #439: the Turn back action shared by the tracker button and the chat-card
+ * button. A GM runs it directly; a non-GM host routes it over the relay (the
+ * GM-side handler authorizes it against the run's tracked host). */
+export async function retreatFromCard(sceneId) {
+  if (!sceneId) return;
+  if (game.user.isGM) {
+    await retreatToFork(sceneId);
+  } else {
+    await requestDungeonAction("retreat", { sceneId });
+  }
+}
+
 export async function abandonDungeonRun(sceneId) {
   const scene = game.scenes.get(sceneId);
   const state = getRunState(sceneId);
@@ -840,6 +854,8 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       succeed: DungeonApp.#onSucceed,
       fail: DungeonApp.#onFail,
       undo: DungeonApp.#onUndo,
+      retreat: DungeonApp.#onRetreat,
+      resetRetreatPath: DungeonApp.#onResetRetreatPath,
       abandon: DungeonApp.#onAbandon,
       declareVictory: DungeonApp.#onDeclareVictory,
       declareDefeat: DungeonApp.#onDeclareDefeat,
@@ -1145,6 +1161,14 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       ).length,
       currentRoomResolved,
       canUndo: canUndoRoomEntry(state),
+      // #439: Turn back / Reset retreat path; both false for v1/v2 runs and
+      // (Decision 10) Turn back stays false until the stub door is opened.
+      ...retreatUiFor(state, {
+        isGM: !!game.user?.isGM,
+        combatActive: !!game.combats?.some?.(
+          (c) => c.scene?.id === sceneId && c.started,
+        ),
+      }),
       isSafeEntry,
       isSafeRest,
       isSafeRoom: isSafeEntry || isSafeRest,
@@ -1628,6 +1652,23 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       await undoRoomEntry(sceneId);
     } else {
       await requestDungeonAction("undoRoomEntry", { sceneId });
+    }
+    this.render();
+  }
+
+  static async #onRetreat() {
+    await retreatFromCard(canvas?.scene?.id);
+    this.render();
+  }
+
+  static async #onResetRetreatPath() {
+    const sceneId = canvas?.scene?.id;
+    if (!sceneId || !game.user.isGM) return;
+    const result = await resetRetreatPath({ sceneId });
+    if (!result.ok) {
+      ui.notifications?.warn(
+        game.i18n.localize("PF2EDC.Dungeon.Retreat.ResetFailed"),
+      );
     }
     this.render();
   }

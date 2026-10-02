@@ -304,6 +304,7 @@ graph LR
   scripts_foundry_api_mjs --> scripts_combat_rewards_mjs
   scripts_module_mjs --> scripts_encounter_generator_mjs
   scripts_module_mjs --> scripts_ui_dungeon_app_mjs
+  scripts_module_mjs --> scripts_dungeon_retreat_mjs
   scripts_module_mjs --> scripts_dungeon_runner_mjs
   scripts_module_mjs --> scripts_dungeon_permissions_mjs
   scripts_module_mjs --> scripts_dungeon_remote_mjs

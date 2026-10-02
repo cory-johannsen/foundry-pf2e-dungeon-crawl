@@ -316,6 +316,20 @@
               }}</button>
           </footer>
         {{/if}}
+        {{#if canRetreat}}
+          <footer>
+            <button type="button" data-action="retreat">{{localize
+                "PF2EDC.Dungeon.Retreat.Button"
+              }}</button>
+          </footer>
+        {{/if}}
+        {{#if canResetRetreatPath}}
+          <footer>
+            <button type="button" data-action="resetRetreatPath">{{localize
+                "PF2EDC.Dungeon.Retreat.ResetButton"
+              }}</button>
+          </footer>
+        {{/if}}
       {{/unless}}
 
       {{#if history.length}}
