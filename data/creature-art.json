@@ -28990,5 +28990,125 @@
     "name": "Dread Dhuthorex",
     "level": 11,
     "art": "dread-dhuthorex.webp"
+  },
+  {
+    "id": "will_o_the_deep",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "YXF12ssz8tEh2YUe",
+    "name": "Will-o'-the-Deep",
+    "level": 6,
+    "art": "will-o-the-deep.webp"
+  },
+  {
+    "id": "wrin_sivinxi",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "ZDYMKYZVyR8Fqakp",
+    "name": "Wrin Sivinxi",
+    "level": 5,
+    "art": "wrin-sivinxi.webp"
+  },
+  {
+    "id": "nyzuros",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "ZFP8RyQW4SNtJ3AE",
+    "name": "Nyzuros",
+    "level": 7,
+    "art": "nyzuros.webp"
+  },
+  {
+    "id": "witchfire_warden",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "aIDLQY5mBPyxTjZ2",
+    "name": "Witchfire Warden",
+    "level": 9,
+    "art": "witchfire-warden.webp"
+  },
+  {
+    "id": "groetan_candle",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "bfuIEdKBj9bhuOft",
+    "name": "Groetan Candle",
+    "level": 6,
+    "art": "groetan-candle.webp"
+  },
+  {
+    "id": "salaisa_malthulas",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "bif3iQcDPi27rx6x",
+    "name": "Salaisa Malthulas",
+    "level": 11,
+    "art": "salaisa-malthulas.webp"
+  },
+  {
+    "id": "seugathi_researcher",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "cMpgGvq1fGxh8wI0",
+    "name": "Seugathi Researcher",
+    "level": 6,
+    "art": "seugathi-researcher.webp"
+  },
+  {
+    "id": "voidglutton",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "ceLvlSQsYNORH8oM",
+    "name": "Voidglutton",
+    "level": 8,
+    "art": "voidglutton.webp"
+  },
+  {
+    "id": "reaper_skull_puffball",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "czQFet5Qo63IXtHl",
+    "name": "Reaper Skull Puffball",
+    "level": 9,
+    "art": "reaper-skull-puffball.webp"
+  },
+  {
+    "id": "lady_s_whisper",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "dWOK0nzGWyc5NkNz",
+    "name": "Lady's Whisper",
+    "level": 11,
+    "art": "lady-s-whisper.webp"
+  },
+  {
+    "id": "nhimbaloth_s_cutter",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "eoQgRltsgJWa4aeC",
+    "name": "Nhimbaloth's Cutter",
+    "level": 8,
+    "art": "nhimbaloth-s-cutter.webp"
+  },
+  {
+    "id": "dune_candle",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "gUihlg28MEloIqE3",
+    "name": "Dune Candle",
+    "level": 6,
+    "art": "dune-candle.webp"
+  },
+  {
+    "id": "dulac",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "h0Ztbh36be4rpJCz",
+    "name": "Dulac",
+    "level": 9,
+    "art": "dulac.webp"
+  },
+  {
+    "id": "jarelle_kaldrian",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "hia81Ut7fEREbhkq",
+    "name": "Jarelle Kaldrian",
+    "level": 5,
+    "art": "jarelle-kaldrian.webp"
+  },
+  {
+    "id": "jafaki",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "jE8BEe6pcnGraw2p",
+    "name": "Jafaki",
+    "level": 8,
+    "art": "jafaki.webp"
   }
 ]
