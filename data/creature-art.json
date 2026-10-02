@@ -28870,5 +28870,125 @@
     "name": "Urevian",
     "level": 9,
     "art": "urevian.webp"
+  },
+  {
+    "id": "spellvoid",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "NXdpFypPPmRwYBT1",
+    "name": "Spellvoid",
+    "level": 6,
+    "art": "spellvoid.webp"
+  },
+  {
+    "id": "scalathrax",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "Nkz8Z5TrEqRePGlk",
+    "name": "Scalathrax",
+    "level": 4,
+    "art": "scalathrax.webp"
+  },
+  {
+    "id": "khurfel",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "Np787X9Z4aQxOdCg",
+    "name": "Khurfel",
+    "level": 10,
+    "art": "khurfel.webp"
+  },
+  {
+    "id": "siora_fallowglade",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "OErk9kO3PhYwMXoJ",
+    "name": "Siora Fallowglade",
+    "level": 7,
+    "art": "siora-fallowglade.webp"
+  },
+  {
+    "id": "caligni_defender",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "OloMMRPtTQKF0x16",
+    "name": "Caligni Defender",
+    "level": 8,
+    "art": "caligni-defender.webp"
+  },
+  {
+    "id": "drow_hunter",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "OqoWbYOyHDGHEeHV",
+    "name": "Drow Hunter",
+    "level": 7,
+    "art": "drow-hunter.webp"
+  },
+  {
+    "id": "otari_ilvashti",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "R0EEgMDKcynpAWoa",
+    "name": "Otari Ilvashti",
+    "level": 9,
+    "art": "otari-ilvashti.webp"
+  },
+  {
+    "id": "urdefhan_lasher",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "Sbxt8YT0AOFfVCPX",
+    "name": "Urdefhan Lasher",
+    "level": 7,
+    "art": "urdefhan-lasher.webp"
+  },
+  {
+    "id": "gibtanius",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "T6vOuhM1KV5Fr75F",
+    "name": "Gibtanius",
+    "level": 8,
+    "art": "gibtanius.webp"
+  },
+  {
+    "id": "observation_deck_seugathi_researcher",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "TiAzR8SnYwhACWbj",
+    "name": "Observation Deck Seugathi Researcher",
+    "level": 6,
+    "art": "observation-deck-seugathi-researcher.webp"
+  },
+  {
+    "id": "deep_end_sarglagon",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "To0MLA0arpkiE6Cz",
+    "name": "Deep End Sarglagon",
+    "level": 8,
+    "art": "deep-end-sarglagon.webp"
+  },
+  {
+    "id": "morlock_engineer",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "V73Oqm1EL1KOoXOl",
+    "name": "Morlock Engineer",
+    "level": 3,
+    "art": "morlock-engineer.webp"
+  },
+  {
+    "id": "kragala",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "VeyuTE1GUJ71oMMn",
+    "name": "Kragala",
+    "level": 4,
+    "art": "kragala.webp"
+  },
+  {
+    "id": "ryta",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "WR07Z6MjvebSHzI7",
+    "name": "Ryta",
+    "level": 4,
+    "art": "ryta.webp"
+  },
+  {
+    "id": "dread_dhuthorex",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "YHYdZemNHp0fnWca",
+    "name": "Dread Dhuthorex",
+    "level": 11,
+    "art": "dread-dhuthorex.webp"
   }
 ]
