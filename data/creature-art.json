@@ -33718,5 +33718,165 @@
     "name": "Rezatha",
     "level": 17,
     "art": "rezatha.webp"
+  },
+  {
+    "id": "rigg_gargadilly",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "ugzdSsP9U0gGLZ3v",
+    "name": "Rigg Gargadilly",
+    "level": 7,
+    "art": "rigg-gargadilly.webp"
+  },
+  {
+    "id": "irahkatu",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "v2cJC9tdjRHexMwa",
+    "name": "Irahkatu",
+    "level": 13,
+    "art": "irahkatu.webp"
+  },
+  {
+    "id": "bloom_of_lamashtu",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "vBugpZnpxQcrrWoo",
+    "name": "Bloom of Lamashtu",
+    "level": 10,
+    "art": "bloom-of-lamashtu.webp"
+  },
+  {
+    "id": "bloom_wyvern",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "vTzbfxtvhhmS7KWr",
+    "name": "Bloom Wyvern",
+    "level": 8,
+    "art": "bloom-wyvern.webp"
+  },
+  {
+    "id": "cephal_lorentus",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "vff5VzjJpRMmg4Hx",
+    "name": "Cephal Lorentus",
+    "level": 9,
+    "art": "cephal-lorentus.webp"
+  },
+  {
+    "id": "korog",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "vrZrha0Gz14Zd4tA",
+    "name": "Korog",
+    "level": 16,
+    "art": "korog.webp"
+  },
+  {
+    "id": "skeletal_tiger_lord",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "vs8QT4LYEcQfA6Us",
+    "name": "Skeletal Tiger Lord",
+    "level": 8,
+    "art": "skeletal-tiger-lord.webp"
+  },
+  {
+    "id": "overgrown_viper_vine",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "w8jUzPPGLQECT4j7",
+    "name": "Overgrown Viper Vine",
+    "level": 14,
+    "art": "overgrown-viper-vine.webp"
+  },
+  {
+    "id": "lizardfolk_warrior",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "wD6nctHffSaMdyag",
+    "name": "Lizardfolk Warrior",
+    "level": 2,
+    "art": "lizardfolk-warrior.webp"
+  },
+  {
+    "id": "enormous_dragonfly",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "wHQmyXnG4Yax4KcK",
+    "name": "Enormous Dragonfly",
+    "level": 9,
+    "art": "enormous-dragonfly.webp"
+  },
+  {
+    "id": "kargstaad",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "wJDtBtvRtyxtyqHS",
+    "name": "Kargstaad",
+    "level": 19,
+    "art": "kargstaad.webp"
+  },
+  {
+    "id": "drelev_guard",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "wMfnwJoLvxdZZAwr",
+    "name": "Drelev Guard",
+    "level": 8,
+    "art": "drelev-guard.webp"
+  },
+  {
+    "id": "fionn",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "wdoRpYImTQuVGZSQ",
+    "name": "Fionn",
+    "level": 13,
+    "art": "fionn.webp"
+  },
+  {
+    "id": "jewel",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "xMuLJmx51eBv9FcE",
+    "name": "Jewel",
+    "level": 9,
+    "art": "jewel.webp"
+  },
+  {
+    "id": "winged_owlbear",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "xqTVUqUs5UsGcSuH",
+    "name": "Winged Owlbear",
+    "level": 18,
+    "art": "winged-owlbear.webp"
+  },
+  {
+    "id": "happs_bydon",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "y5W2rrHzQmeSE6LU",
+    "name": "Happs Bydon",
+    "level": 0,
+    "art": "happs-bydon.webp"
+  },
+  {
+    "id": "oversized_chimera",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "y68kqNXmr1BnjZtc",
+    "name": "Oversized Chimera",
+    "level": 12,
+    "art": "oversized-chimera.webp"
+  },
+  {
+    "id": "xae",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "ylMXDs2f7C0YKdZY",
+    "name": "Xae",
+    "level": 11,
+    "art": "xae.webp"
+  },
+  {
+    "id": "prazil",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "yzlu5YX7Oxo7TVvK",
+    "name": "Prazil",
+    "level": 5,
+    "art": "prazil.webp"
+  },
+  {
+    "id": "thresholder_disciple",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "z1Hk6z6RU4sF9aJU",
+    "name": "Thresholder Disciple",
+    "level": 14,
+    "art": "thresholder-disciple.webp"
   }
 ]
