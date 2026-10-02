@@ -55,7 +55,7 @@ describe("playHeuristicTurn action pacing (#479)", () => {
     // both fired back-to-back with the delay merely racing alongside them.
     expect(move.mock.invocationCallOrder[0]).toBeLessThan(setTimeoutSpy.mock.invocationCallOrder[0]);
     expect(setTimeoutSpy.mock.invocationCallOrder[0]).toBeLessThan(strike.mock.invocationCallOrder[0]);
-    const paceDelayCalls = setTimeoutSpy.mock.calls.filter((call) => call[1] === 600);
+    const paceDelayCalls = setTimeoutSpy.mock.calls.filter((call) => call[1] === 1200);
     expect(paceDelayCalls).toHaveLength(1);
     expect(combat.nextTurn).toHaveBeenCalled();
     vi.useRealTimers();
@@ -73,7 +73,44 @@ describe("playHeuristicTurn action pacing (#479)", () => {
 
     expect(move).not.toHaveBeenCalled();
     expect(strike).not.toHaveBeenCalled();
-    expect(setTimeoutSpy.mock.calls.filter((call) => call[1] === 600)).toHaveLength(0);
+    expect(setTimeoutSpy.mock.calls.filter((call) => call[1] === 1200)).toHaveLength(0);
     expect(combat.nextTurn).toHaveBeenCalled();
+  });
+
+  async function runWith(settingsGet, deps = {}) {
+    installFoundryStubs();
+    if (settingsGet) globalThis.game.settings = { get: settingsGet };
+    const mover = makeCombatant({ id: "mover", x: 0, y: 0, disposition: -1 });
+    const target = makeCombatant({ id: "target", x: GRID_SIZE, y: 0, disposition: 1 });
+    const combat = makeCombat({ combatants: [mover, target] });
+    vi.useFakeTimers();
+    const spy = vi.spyOn(globalThis, "setTimeout");
+    const p = playHeuristicTurn(combat, mover, {
+      move: vi.fn().mockResolvedValue("moved"),
+      strike: vi.fn().mockResolvedValue(undefined),
+      ...deps,
+    });
+    await vi.runAllTimersAsync();
+    await p;
+    return spy.mock.calls.map((c) => c[1]);
+  }
+
+  it("reads the actionPaceDelayMs world setting (#479)", async () => {
+    const delays = await runWith((_m, key) => (key === "actionPaceDelayMs" ? 900 : undefined));
+    expect(delays.filter((d) => d === 900)).toHaveLength(1);
+  });
+
+  it("falls back to 1200 when the setting is invalid or throws (#479)", async () => {
+    expect((await runWith(() => -1)).filter((d) => d === 1200)).toHaveLength(1);
+    vi.restoreAllMocks();
+    expect(
+      (await runWith(() => { throw new Error("x"); })).filter((d) => d === 1200),
+    ).toHaveLength(1);
+  });
+
+  it("an injected delayMs still wins over the setting (#479)", async () => {
+    const delays = await runWith(() => 900, { delayMs: 77 });
+    expect(delays.filter((d) => d === 77)).toHaveLength(1);
+    expect(delays).not.toContain(900);
   });
 });

@@ -77,7 +77,7 @@ describe('runAgentDecisionLoop', () => {
     await loopPromise;
 
     expect(fetchDecision).toHaveBeenCalledTimes(2);
-    const paceDelayCalls = setTimeoutSpy.mock.calls.filter((call) => call[1] === 600);
+    const paceDelayCalls = setTimeoutSpy.mock.calls.filter((call) => call[1] === 1200);
     // Two actions -> exactly one gap between them, none after the turn ends.
     expect(paceDelayCalls.length).toBe(1);
     vi.useRealTimers();
@@ -93,7 +93,7 @@ describe('runAgentDecisionLoop', () => {
 
     await runAgentDecisionLoop(combat, combatant, { fetchDecision, getPending, applyDecision });
 
-    expect(setTimeoutSpy.mock.calls.filter((call) => call[1] === 600)).toHaveLength(0);
+    expect(setTimeoutSpy.mock.calls.filter((call) => call[1] === 1200)).toHaveLength(0);
   });
 
   it('does nothing (never calls getPending or fetchDecision) when agentServiceUrl is not configured', async () => {

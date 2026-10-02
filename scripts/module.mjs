@@ -91,6 +91,25 @@ Hooks.once("init", () => {
     type: Boolean,
     default: false,
   });
+  // #479: live-tunable pacing of AI-controlled combat (milliseconds).
+  game.settings.register(MODULE_ID, "movementStepDelayMs", {
+    name: "PF2EDC.Settings.MovementStepDelayMs.Name",
+    hint: "PF2EDC.Settings.MovementStepDelayMs.Hint",
+    scope: "world",
+    config: true,
+    type: Number,
+    range: { min: 100, max: 3000, step: 50 },
+    default: 600,
+  });
+  game.settings.register(MODULE_ID, "actionPaceDelayMs", {
+    name: "PF2EDC.Settings.ActionPaceDelayMs.Name",
+    hint: "PF2EDC.Settings.ActionPaceDelayMs.Hint",
+    scope: "world",
+    config: true,
+    type: Number,
+    range: { min: 0, max: 5000, step: 100 },
+    default: 1200,
+  });
 });
 
 Hooks.once("ready", async () => {
