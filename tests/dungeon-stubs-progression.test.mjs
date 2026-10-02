@@ -123,8 +123,17 @@ describe('stubStateFor (the precompute step of a new run)', () => {
   const L = buildSweepLayout(0, { layoutVersion: 3 });
   const inputs = stubInputsFor(L);
 
-  it('is off for new runs until the scene builds stubs, and never touches v1/v2 runs', () => {
-    expect(typeof NEW_RUN_STUBS_ENABLED).toBe('boolean');
+  it('is on for new v3 runs (G3: the scene builds stubs), and never touches v1/v2 runs', () => {
+    expect(NEW_RUN_STUBS_ENABLED).toBe(true);
+    // the default (no options) is what the app uses: a v3 sweep layout with an eligible hidden shortcut gets stubs
+    let withStubs = 0;
+    for (let i = 0; i < 100; i += 1) {
+      const s = stubStateFor(3, stubInputsFor(buildSweepLayout(i, { layoutVersion: 3 })));
+      expect(s.stubEdges).toBeTruthy();
+      if (Object.keys(s.stubEdges).length) withStubs += 1;
+    }
+    expect(withStubs).toBeGreaterThan(0);
+    expect('stubEdges' in stubStateFor(2, inputs)).toBe(false);
     for (const v of [1, 2]) {
       const s = stubStateFor(v, inputs, { enabled: true });
       expect(s.edges).toBe(inputs.edges);

@@ -6,9 +6,11 @@
 import { describe, it, expect } from 'vitest';
 import { buildSweepScene, buildSceneForLayout, sealedEdgeReport, corridorLineBlockers, sceneValidity, layoutValidity } from './helpers/scene-oracle.mjs';
 import { buildSweepLayout } from './helpers/layout-sweep.mjs';
+import { buildStubbedSweepLayout } from './helpers/stub-sweep.mjs';
 
 const SEEDS = 200;
-// layoutVersion 3 (shipped), measured over sweep-0..199. v2 for reference: 737 / 491 / 13 / 497 / 100 / 78.
+// layoutVersion 3 WITHOUT dead-end stubs (the fallback-line world; the stub ratchets are at the end of this file),
+// measured over sweep-0..199. v2 for reference: 737 / 491 / 13 / 497 / 100 / 78.
 const V3_SEALED_REAL_EDGES = 580;
 const V3_SEALED_GATE_HELD = 460; // null path because a co-parent holds the gate cell: the dominant cause
 const V3_SEALED_SOLE_INCOMING = 13; // real edge that is its target's only incoming edge (true soft-locks)
@@ -121,4 +123,61 @@ describe('reject-and-reseed prototype (#490, measured, not shipped)', () => {
     expect(t.acceptedHidden).toBeLessThan(BASES * 0.3);
     expect(t.tries / BASES).toBeLessThan(2.6);
   }, 240000);
+});
+
+// #427 Chunk 6: dead-end stubs (shipped for new v3 runs). Measured over the same 500-seed sweep as the layout
+// ratchets, scene level, with and without the stubs the planner chooses (without retreat, #439: only hidden
+// shortcut edges are eligible, 26 of the 2,052 null edges). The stubs may only help: each count below is at or under
+// the no-stub baseline and only falls from here. (On the 200-seed subset above, real sealed edges are 582 with stubs
+// vs 580 without: re-slotting a merge room's door after its hidden parent leaves shifts which fallback line covers
+// which door, a wash locally and a gain over 500 seeds.) Chunk 7's sole-child stubs (retreat available) are
+// measured in the same way: sealed doors 1478 -> 411, real sealed edges 1380 -> 352, gate-held 1106 -> 172;
+// but goal-unreachable dungeons 36 -> 41, which Chunk 7 must resolve before it ships.
+const MEASURE_SEEDS = 500;
+const NO_STUB_500 = { sealedDoors: 1478, sealedRealEdges: 1380, gateHeld: 1106, sole: 30, unreachableRooms: 405, dungeons: 93, goalUnreachable: 36 };
+const STUBS_500 = { sealedDoors: 1447, sealedRealEdges: 1375, gateHeld: 1102, sole: 30, unreachableRooms: 380, dungeons: 89, goalUnreachable: 33 };
+const STUB_DOORS_SEALED = 0;
+
+describe('dead-end stubs shipped (#427 Chunk 6): sealed-edge ratchets over 500 seeds', () => {
+  const measure = async (layoutFor) => {
+    const t = { sealedDoors: 0, sealedRealEdges: 0, gateHeld: 0, sole: 0, unreachableRooms: 0, dungeons: 0, goalUnreachable: 0, stubs: 0, stubDoorsSealed: 0 };
+    for (let i = 0; i < MEASURE_SEEDS; i += 1) {
+      const layout = layoutFor(i);
+      const { scene } = await buildSceneForLayout(layout, 3);
+      const r = sealedEdgeReport(layout, scene);
+      t.sealedDoors += r.sealedDoors;
+      for (const e of r.sealedEdges.filter((x) => !x.hidden)) {
+        t.sealedRealEdges += 1;
+        if (e.cause === 'noPathGateHeld') t.gateHeld += 1;
+        if (e.sole) t.sole += 1;
+      }
+      t.unreachableRooms += r.unreachable.length;
+      if (r.unreachable.length) t.dungeons += 1;
+      if (!r.goalReachable) t.goalUnreachable += 1;
+      t.stubs += Object.values(layout.stubEdges ?? {}).flat().length;
+      t.stubDoorsSealed += scene.walls.filter((w) => w.door && w.flags?.['pf2e-dungeon-crawl']?.dungeonStubDoorFor
+        && sealedStub(scene, w)).length;
+    }
+    return t;
+  };
+  // A door wall is sealed when a collinear SOLID wall overlaps its span (same test the oracle uses).
+  const sealedStub = (scene, d) => {
+    const [x1, y1, x2, y2] = d.c;
+    return scene.walls.some((w) => !w.door && (y1 === y2
+      ? w.c[1] === y1 && w.c[3] === y1 && Math.max(Math.min(w.c[0], w.c[2]), Math.min(x1, x2)) < Math.min(Math.max(w.c[0], w.c[2]), Math.max(x1, x2))
+      : w.c[0] === x1 && w.c[2] === x1 && Math.max(Math.min(w.c[1], w.c[3]), Math.min(y1, y2)) < Math.min(Math.max(w.c[1], w.c[3]), Math.max(y1, y2))));
+  };
+
+  it('with stubs every count is at or under the no-stub baseline, and the ratchets only fall', async () => {
+    const base = await measure((i) => buildSweepLayout(i, { layoutVersion: 3 }));
+    const stubbed = await measure((i) => buildStubbedSweepLayout(i));
+    // The baseline is the measured pre-stub world (guards the helper itself).
+    expect({ ...base, stubs: undefined, stubDoorsSealed: undefined }).toEqual({ ...NO_STUB_500, stubs: undefined, stubDoorsSealed: undefined });
+    for (const k of Object.keys(NO_STUB_500)) {
+      expect(stubbed[k], k).toBeLessThanOrEqual(NO_STUB_500[k]);
+      expect(stubbed[k], k).toBeLessThanOrEqual(STUBS_500[k]);
+    }
+    expect(stubbed.stubs).toBeGreaterThanOrEqual(26);
+    expect(stubbed.stubDoorsSealed).toBe(STUB_DOORS_SEALED);
+  }, 300000);
 });

@@ -48,6 +48,9 @@ import {
   findPriorityCollision,
   assignDoorSlotsWithPriority,
   outgoingDoorPlan,
+  outgoingPlanForStubs,
+  plannedMarginOpenings,
+  planStubGeometries,
 } from "./dungeon-layout.mjs";
 import { freeSpotInRect } from "./placement.mjs";
 import { generateEncounter } from "./encounter-generator.mjs";
@@ -210,6 +213,28 @@ function corridorTilesForSegments(segments, { fullWidth = false } = {}) {
   return tiles;
 }
 
+/** #427: the floor tiles of one dead-end stub, door tile first and the collapsed-rubble cap (#438) on the far end.
+ * `g` is a `stubGeometry` result; each tile is one cell of its single floor rect. */
+function stubTilesFor(g, key) {
+  const f = g.floor[0];
+  const tiles = [];
+  for (let k = 0; k < g.length; k += 1) {
+    const gx = g.dir > 0 ? f.gx + k : f.gx + f.gw - 1 - k;
+    const cap = k === g.length - 1;
+    tiles.push({
+      texture: { src: CORRIDOR_ART_BY_VARIANT[cap ? "rubble" : "single"], anchorX: 0.5, anchorY: 0.5 },
+      x: toPixels(gx) + toPixels(1) / 2,
+      y: toPixels(f.gy) + toPixels(1) / 2,
+      width: toPixels(1),
+      height: toPixels(1),
+      // The cap faces the dead end like corridorTileVariant's far 'end' tile (90 heading east, 270 west).
+      rotation: cap ? (g.dir > 0 ? 90 : 270) : 0,
+      flags: { [MODULE_ID]: { dungeonStubCorridorFor: key } },
+    });
+  }
+  return tiles;
+}
+
 /**
  * Builds (idempotently) one intermediate, empty cell's own corridor floor
  * tiles and outer-boundary containment for a multi-cell corridor path
@@ -362,13 +387,9 @@ export async function createDungeonScene() {
  * from `hiddenEdges`; the plan itself is order-independent, so a hidden edge
  * revealed into `edges` later yields the identical plan.
  */
-function outgoingPlanFromState(seed, sourceId, { edges, hiddenEdges, layoutPositionByRoomId }) {
-  const pos = layoutPositionByRoomId[sourceId];
-  return outgoingDoorPlan(
-    roomRect(seed, sourceId, pos.rank, pos.col), pos,
-    { realChildIds: edges?.[sourceId] ?? [], hiddenChildIds: (hiddenEdges?.[sourceId] ?? []).slice(0, 1) },
-    layoutPositionByRoomId,
-  );
+function outgoingPlanFromState(seed, sourceId, { edges, hiddenEdges, layoutPositionByRoomId, stubEdges }) {
+  // #427 (layoutVersion >= 3 only: callers pass `stubEdges` only then): dead-end stubs take south slots too.
+  return outgoingPlanForStubs(seed, sourceId, { edges, hiddenEdges, stubEdges, positionByRoomId: layoutPositionByRoomId });
 }
 
 /**
@@ -431,14 +452,24 @@ export async function buildRoomAtGraphNode(
     // #415: run-state `layoutVersion` (absent = 1 = legacy exit faces by child
     // index). Version 2 takes every outgoing door from outgoingDoorPlan.
     layoutVersion = 1, hiddenEdges = {},
+    // #427 (layoutVersion >= 3): dead-end stubs of this room's source, and the detour rooms (stub geometry needs
+    // both to see every other corridor). Ignored below v3: an older run never carries them.
+    stubEdges: stubEdgesParam = {}, hiddenRooms = [],
   },
 ) {
   const rect = roomRect(seed, roomId, rank, col);
   const planned = layoutVersion >= 2;
+  const stubEdges = layoutVersion >= 3 ? stubEdgesParam : {};
+  const stubChildIds = stubEdges?.[roomId] ?? [];
+  const hiddenIsStub = !!hiddenChildId && stubChildIds.includes(hiddenChildId);
   const plan = planned
     ? outgoingDoorPlan(
       rect, { rank, col },
-      { realChildIds: isGoal ? [] : childIds, hiddenChildIds: hiddenChildId ? [hiddenChildId] : [] },
+      {
+        realChildIds: isGoal ? [] : childIds,
+        hiddenChildIds: hiddenChildId && !hiddenIsStub ? [hiddenChildId] : [],
+        stubChildIds,
+      },
       layoutPositionByRoomId,
     )
     : null;
@@ -521,44 +552,39 @@ export async function buildRoomAtGraphNode(
   // one-call-per-face-then-merge dance this block used to need.
   const marginFaces = outgoingFaces.filter((face) => face === "east" || face === "south");
   const planFor = planned
-    ? (sourceId) => outgoingPlanFromState(seed, sourceId, { edges, hiddenEdges, layoutPositionByRoomId })
+    ? (sourceId) => outgoingPlanFromState(seed, sourceId, { edges, hiddenEdges, layoutPositionByRoomId, stubEdges })
     : undefined;
-  const foreignOpenings = planned
-    ? pendingForeignMarginOpenings(
-      seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
-      layoutEdges, hiddenIncomingByRoomId, hiddenEdges, planFor, layoutVersion >= 3,
-    )
-    : pendingForeignMarginOpenings(
+  // #415/#427: a planned room's margin openings (foreign pass-through gaps plus one gap per planned door, stubs
+  // open nothing) come from the layout module's `plannedMarginOpenings`, the very function the stub planner uses
+  // to place a stub, so the two can never disagree about where the margin is open.
+  let openingsBySide;
+  if (planned) {
+    openingsBySide = plannedMarginOpenings(seed, roomId, { rank, col }, {
+      plan, hiddenChildId, edges, hiddenEdges, layoutEdges, hiddenIncomingByRoomId, positionByRoomId: layoutPositionByRoomId,
+      incomingFaceByRoomId, occupiedCells, planFor, layoutVersion, stubEdges,
+    });
+  } else {
+    const foreignOpenings = pendingForeignMarginOpenings(
       seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
       layoutEdges, hiddenIncomingByRoomId,
     );
-  const openingsBySide = { east: [...foreignOpenings.east], south: [...foreignOpenings.south] };
-  // #415: one opening per planned door (a face may carry several), each as wide
-  // as that door's own corridor floor.
-  const marginTargets = planned
-    ? [...plan.entries()].map(([childId, entry]) => ({ face: entry.face, childId, exitDoor: entry }))
-    : marginFaces.map((face) => ({ face, childId: childIdByFace[face], exitDoor: undefined }));
-  for (const { face, childId, exitDoor } of marginTargets) {
-    const childPos = childId ? layoutPositionByRoomId[childId] : null;
-    // #174 Task 6: the CHILD's own incoming face, not this room's — this
-    // must match wherever buildEdgeCorridor will actually land the
-    // connection at the far end (see this task's own "Note for the
-    // implementer" in the brief). This room's own incomingFace has no
-    // bearing on which face its children receive their connections on.
-    const childIncomingFace = childId ? (incomingFaceByRoomId?.[childId] ?? 'north') : 'north';
-    // #427 (v3): the child's REAL door slot, from the same incomingSlotsV3 its own build uses, instead of
-    // outgoingMarginOffset's assumed single full-width slot (#231), so this opening matches the real floor.
-    const realToSlot = layoutVersion >= 3 && childId && childPos
-      ? incomingSlotsV3(seed, childId, childPos, {
-        layoutEdges: layoutEdges ?? edges, hiddenIncomingByRoomId, positionByRoomId: layoutPositionByRoomId,
-        occupiedCells, incomingFace: childIncomingFace, planFor,
-      }).find((c) => c.sourceId === roomId && c.hidden === (childId === hiddenChildId))?.slot
-      : undefined;
-    const { offset, width } = outgoingMarginOffset(
-      seed, roomId, childId, face, rect, { rank, col },
-      childPos ?? { rank: NaN, col: NaN }, occupiedCells, childIncomingFace, exitDoor, realToSlot,
-    );
-    openingsBySide[face].push({ offset, width });
+    openingsBySide = { east: [...foreignOpenings.east], south: [...foreignOpenings.south] };
+    // v1 (no plan): one opening per margin-having outgoing face, as wide as that child's own corridor floor.
+    for (const face of marginFaces) {
+      const childId = childIdByFace[face];
+      const childPos = childId ? layoutPositionByRoomId[childId] : null;
+      // #174 Task 6: the CHILD's own incoming face, not this room's — this
+      // must match wherever buildEdgeCorridor will actually land the
+      // connection at the far end (see this task's own "Note for the
+      // implementer" in the brief). This room's own incomingFace has no
+      // bearing on which face its children receive their connections on.
+      const childIncomingFace = childId ? (incomingFaceByRoomId?.[childId] ?? 'north') : 'north';
+      const { offset, width } = outgoingMarginOffset(
+        seed, roomId, childId, face, rect, { rank, col },
+        childPos ?? { rank: NaN, col: NaN }, occupiedCells, childIncomingFace, undefined, undefined,
+      );
+      openingsBySide[face].push({ offset, width });
+    }
   }
   const marginWalls = cellMarginWalls(rect, rank, col, openingsBySide);
   walls.push(
@@ -621,7 +647,7 @@ export async function buildRoomAtGraphNode(
   // Same already-built guard as the real placeholders above: a hidden
   // target that built first already carries its own sealed
   // dungeonHiddenDoorForEdge gate/reveal doors for this edge.
-  if (hiddenChildId && !isSlotBuilt(scene, hiddenChildId)) {
+  if (hiddenChildId && !hiddenIsStub && !isSlotBuilt(scene, hiddenChildId)) {
     const entry = plan?.get(hiddenChildId);
     const face = entry ? entry.face : exitFaceForIndex(hiddenFaceIndex, incomingFace);
     const side = entry?.doorSpan ?? roomSidesForRect(rect)[face];
@@ -631,6 +657,47 @@ export async function buildRoomAtGraphNode(
         flags: { [MODULE_ID]: { dungeonHiddenDoorForEdge: `${roomId}->${hiddenChildId}` } },
       }),
     );
+  }
+
+  // #427 (layoutVersion >= 3): this room's dead-end stubs. Each is a locked door on the south face (at the span the
+  // plan gave it, so the enclosure above leaves exactly that gap), a south flank and an end cap, and a floor of
+  // 1-4 rubble-capped tiles in the south margin row. Locked like a normal door and unlocked by this room's own
+  // resolution (`unlockDoorsFromRoom`); a hidden shortcut's stub also carries the sealed hidden-door flags, so the
+  // same reveal effects open it. The door never carries `dungeonDoorToRoomId` or `dungeonRevealDoorForSlot`.
+  const stubTiles = [];
+  if (stubChildIds.length) {
+    const placed = planStubGeometries({
+      seed, positionByRoomId: layoutPositionByRoomId, occupiedCells, edges, layoutEdges, hiddenEdges, hiddenRooms,
+      hiddenIncomingByRoomId, incomingFaceByRoomId, stubEdges,
+    });
+    for (const targetId of stubChildIds) {
+      const key = `${roomId}->${targetId}`;
+      const g = placed.geometries.get(key);
+      if (!g) {
+        // The precompute only keeps stubs whose door tile is free, so this is a bug elsewhere. Never leave a
+        // hole in the face: wall the planned span shut.
+        console.error(`${MODULE_ID} | stub ${key} has no free door tile; sealing its span`);
+        walls.push(wallDoc(plan.get(targetId).doorSpan, { flags: { [MODULE_ID]: { dungeonStubWallFor: key } } }));
+        continue;
+      }
+      const hidden = targetId === hiddenChildId;
+      walls.push(
+        wallDoc(g.doorWall, {
+          door: CONST.WALL_DOOR_TYPES.DOOR,
+          ds: CONST.WALL_DOOR_STATES.LOCKED,
+          flags: {
+            [MODULE_ID]: {
+              dungeonStubDoorFor: targetId,
+              dungeonDoorFromRoomId: roomId,
+              dungeonStubFlavor: g.flavor,
+              ...(hidden ? { dungeonHiddenDoorForEdge: key, dungeonHiddenDoorRole: "gate" } : {}),
+            },
+          },
+        }),
+        ...g.walls.map((w) => wallDoc(w, { flags: { [MODULE_ID]: { dungeonStubWallFor: key } } })),
+      );
+      stubTiles.push(...stubTilesFor(g, key));
+    }
   }
 
   // This room's OWN enclosure walls, created now — but NONE of
@@ -694,7 +761,7 @@ export async function buildRoomAtGraphNode(
       flags: { [MODULE_ID]: { dungeonRoomBuilt: roomId } },
     },
   ];
-  await scene.createEmbeddedDocuments("Tile", tiles);
+  await scene.createEmbeddedDocuments("Tile", [...tiles, ...stubTiles]);
 
   const { bright, dim } = roomLightRadii(rect.gw);
   await scene.createEmbeddedDocuments("AmbientLight", [
@@ -1260,8 +1327,10 @@ export async function buildPopulateAndUnlockGraphNode(
   const incomingFace = state.incomingFaceByRoomId?.[room.id] ?? 'north';
   // #415: absent on any run persisted before the outgoing door plan existed.
   const layoutVersion = state.layoutVersion ?? 1;
+  // #427: dead-end stubs exist only on layoutVersion >= 3 runs; an older state's `stubEdges` is ignored.
+  const stubEdges = layoutVersion >= 3 ? (state.stubEdges ?? {}) : {};
   const planFor = layoutVersion >= 2
-    ? (sourceId) => outgoingPlanFromState(state.seed, sourceId, state)
+    ? (sourceId) => outgoingPlanFromState(state.seed, sourceId, { ...state, stubEdges })
     : undefined;
 
   // #93 pre-flight fix (merge-door redesign): every real parent this room
@@ -1279,11 +1348,12 @@ export async function buildPopulateAndUnlockGraphNode(
     ? incomingSlotsV3(state.seed, room.id, { rank, col }, {
       layoutEdges: state.layoutEdges, hiddenIncomingByRoomId: state.hiddenIncomingByRoomId,
       positionByRoomId: state.layoutPositionByRoomId, occupiedCells, incomingFace, planFor, detour: isDetour,
+      stubEdges,
     })
     : null;
   const incomingConnections = v3Slots
     ? v3Slots.map(({ sourceId, hidden }) => ({ sourceId, hidden }))
-    : incomingConnectionsFor(state.layoutEdges, room.id, state.hiddenIncomingByRoomId)
+    : incomingConnectionsFor(state.layoutEdges, room.id, state.hiddenIncomingByRoomId, stubEdges)
       .map((conn) => (isDetour ? { ...conn, hidden: true } : conn));
 
   if (!alreadyBuilt) {
@@ -1306,6 +1376,8 @@ export async function buildPopulateAndUnlockGraphNode(
         hiddenIncomingByRoomId: state.hiddenIncomingByRoomId,
         layoutVersion,
         hiddenEdges: state.hiddenEdges ?? {},
+        stubEdges,
+        hiddenRooms: state.hiddenRooms ?? [],
       },
     );
 
