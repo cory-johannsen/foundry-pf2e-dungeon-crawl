@@ -2579,16 +2579,16 @@ export async function autoPlayCombatantTurnIfDue(combat) {
  * if not already, strike once, apply the result, advance the turn — shared
  * by the non-agent-controlled path above and the agent-timeout fallback
  * below, so both use exactly the same behavior. */
-export async function playHeuristicTurn(combat, combatant) {
+export async function playHeuristicTurn(
+  combat,
+  combatant,
+  { move = stepToward, strike = rollAndApplyStrike, delayMs = ACTION_PACE_DELAY_MS } = {},
+) {
   const target = nearestOpponent(combat, combatant);
   if (target) {
-    await stepToward(
-      combat,
-      combatant,
-      target.combatant,
-      target.distanceSquares,
-    );
-    await rollAndApplyStrike(combat, combatant, target.combatant);
+    await move(combat, combatant, target.combatant, target.distanceSquares);
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    await strike(combat, combatant, target.combatant);
   }
   if (game.combats.has(combat.id) && combat.combatant?.id === combatant.id) {
     await combat.nextTurn();
