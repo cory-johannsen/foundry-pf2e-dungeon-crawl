@@ -39,7 +39,9 @@ for (const spec of args) {
   const s = parseSpec(spec);
   const slug = s.slug.replace(/-lob$/, '');
   if (have.has(slug)) throw new Error(`${slug} is already logged; edit the CSV row instead`);
-  const e = art.find((x) => x.id === `${slug.replace(/-/g, '_')}_lob`);
+  // Lost Omens ids carry a `_lob` suffix; every later pack uses plain ids, so match the
+  // art file as well (it is the one key every pack shares).
+  const e = art.find((x) => x.id === `${slug.replace(/-/g, '_')}_lob` || x.art === `${slug}.webp` || x.art === `${slug}-lob.webp` || x.id === slug.replace(/-/g, '_'));
   if (!e) throw new Error(`${slug}: not in data/creature-art.json (wire it first)`);
   out += `${rowToCsv({
     chunk, slug, name: e.name, level: e.level, kind: kindOf(e.name),
