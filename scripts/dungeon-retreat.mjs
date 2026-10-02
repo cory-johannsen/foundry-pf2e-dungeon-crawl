@@ -107,6 +107,24 @@ export function rebuildRetreatPath(state) {
   return null;
 }
 
+/** #439 R4: which retreat controls the tracker shows. `canRetreat` is false until
+ * the stub door has been opened (canRetreat's 'undiscovered' reason), so the button
+ * never leaks a stub; the GM-only repair shows when the path is missing or its tail
+ * is not the current room. Pre-v3 runs (no retreatVersion) show nothing. */
+export function retreatUiFor(state, { isGM = false, combatActive = false } = {}) {
+  if (!(state?.retreatVersion >= 1)) return { canRetreat: false, canResetRetreatPath: false };
+  const path = state.retreatPath;
+  const broken = !Array.isArray(path) || path[path.length - 1] !== state.currentRoomId;
+  return { canRetreat: canRetreat(state, { combatActive }).ok, canResetRetreatPath: isGM && broken };
+}
+
+/** #439 R4: what the chat-card button binds to; null when the message is not a retreat card. */
+export function retreatCardActionFor(message, { isGM = false, hostUserId = null, userId = null } = {}) {
+  const card = message?.flags?.['pf2e-dungeon-crawl']?.retreatCard;
+  if (!card?.sceneId) return null;
+  return { sceneId: card.sceneId, enabled: !!isGM || (!!hostUserId && hostUserId === userId) };
+}
+
 /** #439: the run-state fields a new run carries; empty for layoutVersion < 3 so
  * older runs stay byte-identical. */
 export function retreatStateFor(layoutVersion) {

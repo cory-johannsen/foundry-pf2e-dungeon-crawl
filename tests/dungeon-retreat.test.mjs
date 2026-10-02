@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import {
   RETREAT_VERSION, spentRooms, openChildren, isDeadEnd, retreatTargetFor, canRetreat,
   withEntry, withUndoneEntry, withRetreat, withStubOpened, rebuildRetreatPath, retreatStateFor,
+  retreatUiFor, retreatCardActionFor,
 } from '../scripts/dungeon-retreat.mjs';
 
 // entry -> f ; f -> a, b ; a -> d (dead end: its only forward edge is a stub to g) ; b -> g ; g goal
@@ -115,5 +116,48 @@ describe('retreatStateFor (#439 R2)', () => {
     expect(retreatStateFor(2)).toEqual({});
     expect(retreatStateFor(undefined)).toEqual({});
     expect(retreatStateFor(3)).toEqual({ retreatVersion: 1, retreatPath: ['room-entry'], stubsOpened: {}, retreats: [] });
+  });
+});
+
+describe('retreatUiFor (#439 R4.1)', () => {
+  const discovered = () => fixture({ stubsOpened: { 'd->g': true } });
+  it('offers Turn back at a discovered dead end, no repair', () => {
+    expect(retreatUiFor(discovered(), { isGM: true })).toEqual({ canRetreat: true, canResetRetreatPath: false });
+  });
+  it('never leaks the stub: no button before the stub door is opened', () => {
+    expect(retreatUiFor(fixture(), { isGM: true })).toEqual({ canRetreat: false, canResetRetreatPath: false });
+    expect(retreatUiFor(fixture(), { isGM: false })).toEqual({ canRetreat: false, canResetRetreatPath: false });
+  });
+  it('a missing path disables Turn back and offers GM-only repair (Review Focus 3)', () => {
+    const s = discovered(); delete s.retreatPath;
+    expect(retreatUiFor(s, { isGM: true })).toEqual({ canRetreat: false, canResetRetreatPath: true });
+    expect(retreatUiFor(s, { isGM: false })).toEqual({ canRetreat: false, canResetRetreatPath: false });
+  });
+  it('an inconsistent path (tail is not the current room) offers repair', () => {
+    const s = discovered(); s.retreatPath = ['room-entry', 'f'];
+    expect(retreatUiFor(s, { isGM: true }).canResetRetreatPath).toBe(true);
+  });
+  it('an active combat hides Turn back', () => {
+    expect(retreatUiFor(discovered(), { isGM: true, combatActive: true }).canRetreat).toBe(false);
+  });
+  it('a pre-v3 / null state shows nothing', () => {
+    expect(retreatUiFor(fixture({ retreatVersion: undefined }), { isGM: true })).toEqual({ canRetreat: false, canResetRetreatPath: false });
+    expect(retreatUiFor(null, { isGM: true })).toEqual({ canRetreat: false, canResetRetreatPath: false });
+  });
+});
+
+describe('retreatCardActionFor (#439 R4.2)', () => {
+  const card = { flags: { 'pf2e-dungeon-crawl': { retreatCard: { sceneId: 's1' } } } };
+  it('null without the card flag', () => {
+    expect(retreatCardActionFor({ flags: {} }, { isGM: true })).toBe(null);
+    expect(retreatCardActionFor(null, { isGM: true })).toBe(null);
+  });
+  it('enabled for a GM', () => {
+    expect(retreatCardActionFor(card, { isGM: true })).toEqual({ sceneId: 's1', enabled: true });
+  });
+  it('enabled for the run host, disabled for another player', () => {
+    expect(retreatCardActionFor(card, { isGM: false, hostUserId: 'u1', userId: 'u1' })).toEqual({ sceneId: 's1', enabled: true });
+    expect(retreatCardActionFor(card, { isGM: false, hostUserId: 'u1', userId: 'u2' })).toEqual({ sceneId: 's1', enabled: false });
+    expect(retreatCardActionFor(card, { isGM: false, userId: 'u2' })).toEqual({ sceneId: 's1', enabled: false });
   });
 });
