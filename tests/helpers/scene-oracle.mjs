@@ -50,8 +50,12 @@ export function makeFakeScene() {
 
 /** Builds every room of `buildSweepLayout(i, { layoutVersion })` and returns `{ layout, scene }`. */
 export async function buildSweepScene(i, layoutVersion, layoutOptions = {}) {
+  return buildSceneForLayout(buildSweepLayout(i, { layoutVersion, ...layoutOptions }), layoutVersion);
+}
+
+/** Same, for an already-built layout (e.g. a reseeded candidate). */
+export async function buildSceneForLayout(L, layoutVersion) {
   installFoundryStubs();
-  const L = buildSweepLayout(i, { layoutVersion, ...layoutOptions });
   const scene = makeFakeScene();
   const state = {
     seed: L.seed, layoutPositionByRoomId: L.pos, incomingFaceByRoomId: L.incFace, hiddenRooms: L.hiddenRooms,
@@ -191,4 +195,69 @@ export function corridorLineBlockers(scene, { from, to }) {
     }
   }
   return blockers;
+}
+
+/**
+ * #490 (reject-and-reseed): the PURE-layout validity verdict (no scene build, ~0.25 ms): a real edge is dead when
+ * `findCorridorPath` is null for it. It cannot see sealed doors on non-null corridors, so it never rejects a
+ * scene-valid layout (recall 1.0 measured) but accepts some scene-invalid ones (precision ~0.93).
+ */
+export function layoutValidity(layout) {
+  const dead = new Set();
+  for (const [from, kids] of Object.entries(layout.edges)) {
+    const plan = outgoingDoorPlan(layout.rect[from], layout.pos[from], {
+      realChildIds: kids, hiddenChildIds: (layout.hiddenEdges[from] ?? []).slice(0, 1),
+    }, layout.pos);
+    for (const to of kids) {
+      const path = findCorridorPath(layout.pos[from], layout.pos[to], layout.occ, {
+        fromRoomId: from, toRoomId: to, incomingFace: layout.incFace[to], exitFace: plan.get(to)?.face,
+      });
+      if (!path) dead.add(`${from}->${to}`);
+    }
+  }
+  const seen = new Set(['room-entry']);
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const [s, kids] of Object.entries(layout.edges)) {
+      for (const c of kids) if (seen.has(s) && !seen.has(c) && !dead.has(`${s}->${c}`)) { seen.add(c); grew = true; }
+    }
+  }
+  const unreachable = Object.keys(layout.rooms).filter((r) => !seen.has(r) && !layout.hiddenRooms.includes(r));
+  return { goalReachable: seen.has('room-goal'), unreachable, deadEdges: dead.size };
+}
+
+/**
+ * #490 (reject-and-reseed): the SCENE-level validity verdict a candidate seed is measured against. A real edge is
+ * dead when any of its door walls is sealed (`sealedEdgeReport`) OR its corridor is the null-path fallback (a
+ * straight line through foreign cells: 0 of 1106 measured ones were walkable, see corridorLineBlockers). Flood
+ * over the live real edges from room-entry: `goalReachable`, `unreachable` (non-hidden rooms missed) and
+ * `soleDead` (a dead real edge that is its target's only incoming real edge).
+ */
+export function sceneValidity(layout, scene) {
+  const report = sealedEdgeReport(layout, scene);
+  const sealed = new Set(report.sealedEdges.filter((e) => !e.hidden).map((e) => `${e.from}->${e.to}`));
+  const dead = new Set();
+  const incoming = {};
+  for (const [from, kids] of Object.entries(layout.edges)) {
+    const plan = outgoingDoorPlan(layout.rect[from], layout.pos[from], {
+      realChildIds: kids, hiddenChildIds: (layout.hiddenEdges[from] ?? []).slice(0, 1),
+    }, layout.pos);
+    for (const to of kids) {
+      incoming[to] = (incoming[to] ?? 0) + 1;
+      const path = findCorridorPath(layout.pos[from], layout.pos[to], layout.occ, {
+        fromRoomId: from, toRoomId: to, incomingFace: layout.incFace[to], exitFace: plan.get(to)?.face,
+      });
+      if (!path || sealed.has(`${from}->${to}`)) dead.add(`${from}->${to}`);
+    }
+  }
+  const seen = new Set(['room-entry']);
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const [s, kids] of Object.entries(layout.edges)) {
+      for (const c of kids) if (seen.has(s) && !seen.has(c) && !dead.has(`${s}->${c}`)) { seen.add(c); grew = true; }
+    }
+  }
+  const unreachable = Object.keys(layout.rooms).filter((r) => !seen.has(r) && !layout.hiddenRooms.includes(r));
+  const soleDead = [...dead].filter((k) => incoming[k.split('->')[1]] === 1).length;
+  return { goalReachable: seen.has('room-goal'), unreachable, deadEdges: dead.size, soleDead };
 }

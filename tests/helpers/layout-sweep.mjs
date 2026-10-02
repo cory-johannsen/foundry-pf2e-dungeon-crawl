@@ -17,9 +17,10 @@ export function rectsOverlap(a, b) {
 /** `restRoom` (default true) mirrors dungeon-app.mjs, which splices the mid-dungeon
  * rest room in before attachHiddenPaths. The #415 Chunk 1-3 baselines (and the
  * default-geometry digest test) were measured without it, so they pass false. */
-export function buildSweepLayout(i, { restRoom = true, layoutVersion = 1, incomingFace } = {}) {
-  const seed = `sweep-${i}`;
-  const roomCount = 6 + (i % 15);
+export function buildSweepLayout(i, { restRoom = true, layoutVersion = 1, incomingFace, seed: seedOverride, roomCount: roomCountOverride } = {}) {
+  // #490: `seed` re-derives the same dungeon shape for a reseeded candidate; `i` still picks the room count.
+  const seed = seedOverride ?? `sweep-${i}`;
+  const roomCount = roomCountOverride ?? (6 + (i % 15));
   const generated = buildRoomGraph({ seed, roomCount });
   const { rooms, edges } = restRoom
     ? insertRestRoom({ rooms: generated.rooms, edges: generated.edges, seed, roomCount })
