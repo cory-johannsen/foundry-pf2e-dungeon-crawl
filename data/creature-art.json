@@ -33438,5 +33438,125 @@
     "name": "Goblin Bat-Dog",
     "level": 4,
     "art": "goblin-bat-dog.webp"
+  },
+  {
+    "id": "the_misbegotten_troll",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "jUNnWUuiVueOTvHt",
+    "name": "The Misbegotten Troll",
+    "level": 18,
+    "art": "the-misbegotten-troll.webp"
+  },
+  {
+    "id": "jin_durwhimmer",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "jmH2nbWRJSYgzx5z",
+    "name": "Jin Durwhimmer",
+    "level": 9,
+    "art": "jin-durwhimmer.webp"
+  },
+  {
+    "id": "hateful_hermit",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "k9eR5UwCSrfpPPAv",
+    "name": "Hateful Hermit",
+    "level": 5,
+    "art": "hateful-hermit.webp"
+  },
+  {
+    "id": "gedovius",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "kSR0D8dLXTlw09NT",
+    "name": "Gedovius",
+    "level": 16,
+    "art": "gedovius.webp"
+  },
+  {
+    "id": "talon_peak_roc",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "kiUlJn4FzWMzgkbW",
+    "name": "Talon Peak Roc",
+    "level": 12,
+    "art": "talon-peak-roc.webp"
+  },
+  {
+    "id": "grabbles",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "lRxISnNmcfUm7AfG",
+    "name": "Grabbles",
+    "level": 2,
+    "art": "grabbles.webp"
+  },
+  {
+    "id": "the_beast",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "lZtkMlyix3kaTO0j",
+    "name": "The Beast",
+    "level": 9,
+    "art": "the-beast.webp"
+  },
+  {
+    "id": "gurija",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "lutSSPcXOzDDqIGj",
+    "name": "Gurija",
+    "level": 5,
+    "art": "gurija.webp"
+  },
+  {
+    "id": "ankou_assassin",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "m8kwG6NskYDlBSCy",
+    "name": "Ankou Assassin",
+    "level": 17,
+    "art": "ankou-assassin.webp"
+  },
+  {
+    "id": "alasen",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "mMfMs5PlNYkwe55s",
+    "name": "Alasen",
+    "level": 14,
+    "art": "alasen.webp"
+  },
+  {
+    "id": "darivan",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "mbAhAq5OyZAv6lq5",
+    "name": "Darivan",
+    "level": 10,
+    "art": "darivan.webp"
+  },
+  {
+    "id": "king_vesket",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "mgh7E2Mh0ZRaniCc",
+    "name": "King Vesket",
+    "level": 6,
+    "art": "king-vesket.webp"
+  },
+  {
+    "id": "ilthuliak",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "n82GZhM6joceE91v",
+    "name": "Ilthuliak",
+    "level": 21,
+    "art": "ilthuliak.webp"
+  },
+  {
+    "id": "fetch_stalker",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "nDFogS2qQJomjfmR",
+    "name": "Fetch Stalker",
+    "level": 18,
+    "art": "fetch-stalker.webp"
+  },
+  {
+    "id": "black_smilodon",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "ndoXVn6MPPxSJvcC",
+    "name": "Black Smilodon",
+    "level": 14,
+    "art": "black-smilodon.webp"
   }
 ]
