@@ -13,8 +13,8 @@ export function stubInputsFor(L) {
 
 /** A v3 sweep layout whose progression graph has the planned stubs removed and `stubEdges` / `stubGeometries`
  * attached, exactly as a stubbed run's state would be. `retreatAvailable` turns on sole-child stubs (Chunk 7). */
-export function buildStubbedSweepLayout(i, { retreatAvailable = false, layoutVersion = 3 } = {}) {
-  const L = buildSweepLayout(i, { layoutVersion });
+export function buildStubbedSweepLayout(i, { retreatAvailable = false, layoutVersion = 3, seed } = {}) {
+  const L = buildSweepLayout(i, { layoutVersion, seed }); // #490: `seed` = a reseeded candidate
   const plan = planStubsForLayout({ ...stubInputsFor(L), retreatAvailable });
   return {
     ...L, edges: applyStubsToEdges(L.edges, plan.stubEdges), baseEdges: L.edges,
