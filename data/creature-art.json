@@ -30470,5 +30470,125 @@
     "name": "Headless Xulgath",
     "level": 11,
     "art": "headless-xulgath.webp"
+  },
+  {
+    "id": "convergent_soldier",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "DXNDZNHSZxlNXJnk",
+    "name": "Convergent Soldier",
+    "level": 16,
+    "art": "convergent-soldier.webp"
+  },
+  {
+    "id": "corrosive_lizard",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "EBDDeBHGGZ8xvIM6",
+    "name": "Corrosive Lizard",
+    "level": 2,
+    "art": "corrosive-lizard.webp"
+  },
+  {
+    "id": "xulgath_gutrager",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "FZqrluaaz5vhXEZ9",
+    "name": "Xulgath Gutrager",
+    "level": 10,
+    "art": "xulgath-gutrager.webp"
+  },
+  {
+    "id": "raptor_guard_wight",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "Ffj8PyKkBkYNV6pd",
+    "name": "Raptor Guard Wight",
+    "level": 13,
+    "art": "raptor-guard-wight.webp"
+  },
+  {
+    "id": "zinogyvaz",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "G2ICeUU6br5Xem3P",
+    "name": "Zinogyvaz",
+    "level": 16,
+    "art": "zinogyvaz.webp"
+  },
+  {
+    "id": "deghuun",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "GuJJJzmjLKbkZUur",
+    "name": "Deghuun (Child of Mhar)",
+    "level": 18,
+    "art": "deghuun.webp"
+  },
+  {
+    "id": "saurian_warmonger",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "HCxhltvoCdy3RXlH",
+    "name": "Saurian Warmonger",
+    "level": 16,
+    "art": "saurian-warmonger.webp"
+  },
+  {
+    "id": "barking_stag",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "HEeRO5IF4lAGfDqE",
+    "name": "Barking Stag",
+    "level": 13,
+    "art": "barking-stag.webp"
+  },
+  {
+    "id": "starved_staff",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "HHy2GazURA6Cx1ee",
+    "name": "Starved Staff",
+    "level": 14,
+    "art": "starved-staff.webp"
+  },
+  {
+    "id": "lion_visitant",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "HbxPY2GSxhRu4rVi",
+    "name": "Lion Visitant",
+    "level": 5,
+    "art": "lion-visitant.webp"
+  },
+  {
+    "id": "xulgath_spinesnapper",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "I31kJb0DRkzTn8iX",
+    "name": "Xulgath Spinesnapper",
+    "level": 5,
+    "art": "xulgath-spinesnapper.webp"
+  },
+  {
+    "id": "xulgath_herd_tender",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "I6i1uvFI7VCTyVbM",
+    "name": "Xulgath Herd-Tender",
+    "level": 8,
+    "art": "xulgath-herd-tender.webp"
+  },
+  {
+    "id": "harrow_doll",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "IVpSJcoRLGgUfqW7",
+    "name": "Harrow Doll",
+    "level": 8,
+    "art": "harrow-doll.webp"
+  },
+  {
+    "id": "nemmia_bramblecloak",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "IacftcXDDMBNcKbY",
+    "name": "Nemmia Bramblecloak",
+    "level": 3,
+    "art": "nemmia-bramblecloak.webp"
+  },
+  {
+    "id": "obsidian_golem",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "JRvLtSt9cda4pc8z",
+    "name": "Obsidian Golem",
+    "level": 16,
+    "art": "obsidian-golem.webp"
   }
 ]
