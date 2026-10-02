@@ -25110,5 +25110,189 @@
     "name": "Elite Lively Commodore Sticky Fingers",
     "level": 4,
     "art": "commodore-sticky-fingers.webp"
+  },
+  {
+    "id": "tanuki_trickster",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "JnKbAKFzBMiSvCPP",
+    "name": "Tanuki Trickster",
+    "level": 2,
+    "art": "tanuki-trickster.webp"
+  },
+  {
+    "id": "omertius_the_gorger",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "JtB2dCxf7ap44IkQ",
+    "name": "Omertius, The Gorger",
+    "level": 8,
+    "art": "omertius-the-gorger.webp"
+  },
+  {
+    "id": "ashen_brimorak",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "KCBvB2B1OzeJy2cq",
+    "name": "Ashen Brimorak",
+    "level": 6,
+    "art": "ashen-brimorak.webp"
+  },
+  {
+    "id": "div_worshipper",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "LBzI86ngk7wYf7p6",
+    "name": "Weak Div Worshipper",
+    "level": -1,
+    "art": "div-worshipper.webp"
+  },
+  {
+    "id": "div_worshipper_qvdmg",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "qvdMGFjaJe08JQW5",
+    "name": "Div Worshipper",
+    "level": 1,
+    "art": "div-worshipper.webp"
+  },
+  {
+    "id": "shenga_heartrender",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "LWNwaiSnwU0poWgn",
+    "name": "Shenga Heartrender",
+    "level": 7,
+    "art": "shenga-heartrender.webp"
+  },
+  {
+    "id": "void_zombie_explorer",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "MZcunXY0d99zLI1v",
+    "name": "Void Zombie Explorer",
+    "level": 3,
+    "art": "void-zombie-explorer.webp"
+  },
+  {
+    "id": "cosmic_amoeba",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "Mmsmoh7tpsnLZWrI",
+    "name": "Cosmic Amoeba",
+    "level": 1,
+    "art": "cosmic-amoeba.webp"
+  },
+  {
+    "id": "weak_cosmic_amoeba",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "c93xz68jVyaTiAI5",
+    "name": "Weak Cosmic Amoeba",
+    "level": 1,
+    "art": "cosmic-amoeba.webp"
+  },
+  {
+    "id": "little_brother_zibini",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "NoatZIUfJETSq20A",
+    "name": "Little Brother Zibini",
+    "level": -1,
+    "art": "little-brother-zibini.webp"
+  },
+  {
+    "id": "little_brother_zibini_3_4",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "epmml7kA0akrIGPG",
+    "name": "Little Brother Zibini (3-4)",
+    "level": 3,
+    "art": "little-brother-zibini.webp"
+  },
+  {
+    "id": "cultist_of_sezelrian",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "NsGS0bvUPAA64hv5",
+    "name": "Cultist of Sezelrian",
+    "level": 6,
+    "art": "cultist-of-sezelrian.webp"
+  },
+  {
+    "id": "experienced_cultist_of_sezelrian",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "ojgI1Ze5pDqrGH5t",
+    "name": "Experienced Cultist of Sezelrian",
+    "level": 8,
+    "art": "cultist-of-sezelrian.webp"
+  },
+  {
+    "id": "busoborn_akata",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "Nwga1GE1BrsiHVlT",
+    "name": "Busoborn Akata",
+    "level": 4,
+    "art": "busoborn-akata.webp"
+  },
+  {
+    "id": "shrewd_busoborn_akata",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "Q2Pg6YJidDTOE7zA",
+    "name": "Shrewd Busoborn Akata",
+    "level": 6,
+    "art": "busoborn-akata.webp"
+  },
+  {
+    "id": "arjol_parkit",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "OCMrR1GIiGTadIQc",
+    "name": "Time-Worn Arjol Parkit",
+    "level": 1,
+    "art": "arjol-parkit.webp"
+  },
+  {
+    "id": "arjol_parkit_yq9ua",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "yq9uaibTxRdywsWo",
+    "name": "Arjol Parkit",
+    "level": 4,
+    "art": "arjol-parkit.webp"
+  },
+  {
+    "id": "shurrizih",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "PS82Nly4bzXQQovZ",
+    "name": "Shurrizih",
+    "level": 7,
+    "art": "shurrizih.webp"
+  },
+  {
+    "id": "enraged_shurrizih",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "P0R1Nsk9BOjQTaGE",
+    "name": "Enraged Shurrizih",
+    "level": 9,
+    "art": "shurrizih.webp"
+  },
+  {
+    "id": "shadowborn_stalker",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "PYdVfyDCOZeX2n9n",
+    "name": "Shadowborn Stalker",
+    "level": -1,
+    "art": "shadowborn-stalker.webp"
+  },
+  {
+    "id": "tanuki_mastermind",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "PuyA0edGhV0eBduX",
+    "name": "Tanuki Mastermind",
+    "level": 4,
+    "art": "tanuki-mastermind.webp"
+  },
+  {
+    "id": "hardwood_scamp",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "Q2hwsj2uhZwm2kUM",
+    "name": "Hardwood Scamp",
+    "level": 1,
+    "art": "hardwood-scamp.webp"
+  },
+  {
+    "id": "elite_trained_vulkariki_eidolon",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "vK1DxX5eTu1QKhbm",
+    "name": "Elite Trained Vulkariki Eidolon",
+    "level": 3,
+    "art": "vulkariki-eidolon.webp"
   }
 ]
