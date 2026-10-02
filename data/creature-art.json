@@ -31070,5 +31070,133 @@
     "name": "Violet",
     "level": 1,
     "art": "violet.webp"
+  },
+  {
+    "id": "ledorick_banyan",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "lh3pcyJlUUtNpWcI",
+    "name": "Ledorick Banyan",
+    "level": 14,
+    "art": "ledorick-banyan.webp"
+  },
+  {
+    "id": "ledorick_banyan_possessed",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "xGTl3DVCD0etE6MU",
+    "name": "Ledorick Banyan (Possessed)",
+    "level": 14,
+    "art": "ledorick-banyan.webp"
+  },
+  {
+    "id": "bogeyman",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "nFYpYIL5OUCFZCr9",
+    "name": "Bogeyman",
+    "level": 10,
+    "art": "bogeyman.webp"
+  },
+  {
+    "id": "the_vanish_man",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "oJJspO9P2vDdtMYd",
+    "name": "The Vanish Man",
+    "level": 16,
+    "art": "the-vanish-man.webp"
+  },
+  {
+    "id": "andera_paldreen",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "oYstle5FAR800UQT",
+    "name": "Andera Paldreen",
+    "level": 10,
+    "art": "andera-paldreen.webp"
+  },
+  {
+    "id": "arskuva_the_gnasher",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "otSfn7djr37Bdejj",
+    "name": "Arskuva the Gnasher",
+    "level": 12,
+    "art": "arskuva-the-gnasher.webp"
+  },
+  {
+    "id": "aives_the_smoke_dragon",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "pOlP9ZR0eFS57c27",
+    "name": "Aives The Smoke Dragon",
+    "level": 4,
+    "art": "aives-the-smoke-dragon.webp"
+  },
+  {
+    "id": "skarja",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "qCTU0ywtCOgiUM0q",
+    "name": "Skarja",
+    "level": 13,
+    "art": "skarja.webp"
+  },
+  {
+    "id": "delamar_gianvin",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "qKHkamxIPbqxEiwp",
+    "name": "Delamar Gianvin",
+    "level": 6,
+    "art": "delamar-gianvin.webp"
+  },
+  {
+    "id": "hooklimb_xulgath",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "qXC4lGSWxqIhO5tr",
+    "name": "Hooklimb Xulgath",
+    "level": 10,
+    "art": "hooklimb-xulgath.webp"
+  },
+  {
+    "id": "smoldering_leopard",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "rxGByemLAAeM4h29",
+    "name": "Smoldering Leopard",
+    "level": 3,
+    "art": "smoldering-leopard.webp"
+  },
+  {
+    "id": "drunken_brawler",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "s6Yfy1AgPp4ky7QI",
+    "name": "Drunken Brawler",
+    "level": 1,
+    "art": "drunken-brawler.webp"
+  },
+  {
+    "id": "ciza",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "s7447jKTaAd4r3Oa",
+    "name": "Ciza",
+    "level": 17,
+    "art": "ciza.webp"
+  },
+  {
+    "id": "urushil",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "sPuh6Ahatn0Vhn7P",
+    "name": "Urushil",
+    "level": 18,
+    "art": "urushil.webp"
+  },
+  {
+    "id": "faceless_butcher",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "sQvm52N0E5ulBaaq",
+    "name": "Faceless Butcher",
+    "level": 11,
+    "art": "faceless-butcher.webp"
+  },
+  {
+    "id": "stirvyn_banyan",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "tPvr9zvUfktMIvYU",
+    "name": "Stirvyn Banyan",
+    "level": 12,
+    "art": "stirvyn-banyan.webp"
   }
 ]
