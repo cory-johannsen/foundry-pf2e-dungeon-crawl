@@ -12,9 +12,12 @@
  * the goal or a room the stub-free scene reached (door re-slotting can seal a different edge; no pre-scene predicate
  * can see that), dropping stubs until none does. tests/helpers/stub-union.mjs and walkability-oracle.mjs are the
  * independent test-side oracles these must agree with (tests/dungeon-stub-oracle.test.mjs).
+ * #585: every dead edge the stub plan could not turn into a stub is WALLED (`walledEdges`): no door, no corridor, a solid
+ * face where the door would be, and out of `edges`. Walling removes doors, which re-slots siblings and can kill another
+ * edge, so `planStubsVerified` repeats (re-place the stubs, rebuild, wall what is dead) until no live real edge is dead.
  */
 import {
-  roomRect, outgoingDoorPlan, findCorridorPath, stubStateFor, applyStubsToEdges, planStubGeometries,
+  roomRect, outgoingDoorPlan, findCorridorPath, stubStateFor, applyStubsToEdges, planStubGeometries, mergeEdgeMaps,
 } from './dungeon-layout.mjs';
 
 const MODULE_ID = 'pf2e-dungeon-crawl';
@@ -222,19 +225,23 @@ export async function planStubsVerified({ layout, buildScene, retreatAvailable }
     hiddenIncomingByRoomId: layout.hiddenIncomingByRoomId, incomingFaceByRoomId: layout.incomingFaceByRoomId,
   };
   const planned = stubStateFor(3, inputs, { retreatAvailable, deadEdges }).stubEdges ?? {};
-  const placeable = (set) => {
+  const placeable = (set, walled = new Set()) => {
     const kept = new Set(set);
     for (;;) {
       const se = fromKeys(kept);
       if (!Object.keys(se).length) return kept;
-      const placed = planStubGeometries({ ...inputs, stubEdges: se });
+      const placed = planStubGeometries({ ...inputs, edges: applyStubsToEdges(inputs.edges, fromKeys(walled)), stubEdges: se, walledEdges: fromKeys(walled) });
       if (!placed.infeasible.length) return kept;
       kept.delete([...placed.infeasible].sort()[0]);
     }
   };
-  const stubbed = (set) => {
+  const stubbed = (set, walled = new Set()) => {
     const stubEdges = fromKeys(set);
-    return { ...layout, edges: applyStubsToEdges(layout.edges, stubEdges), stubEdges };
+    const walledEdges = fromKeys(walled);
+    return {
+      ...layout, edges: applyStubsToEdges(layout.edges, mergeEdgeMaps(stubEdges, walledEdges)), stubEdges,
+      ...(walled.size ? { walledEdges } : {}),
+    };
   };
   const evalSet = async (set) => {
     const L = stubbed(set);
@@ -258,5 +265,32 @@ export async function planStubsVerified({ layout, buildScene, retreatAvailable }
     }
     kept = pick.t; cur = pick.next; dropped += 1;
   }
-  return { layout: cur.L, base, verdicts: cur.verdicts, deadSets: cur.sets, dropped, baseDead: baseSets.union };
+  // #585: wall what is still dead. Each pass re-places the stubs against the walled set (a stub whose door tile the
+  // re-slotting took away is dead too, so it is walled instead), rebuilds, and walls the new dead edges, until none is.
+  const settle = async (start, startFin) => {
+    const walledSet = new Set();
+    let stubSet = start;
+    let last = startFin ?? await evalSet(stubSet);
+    for (let pass = 0; pass < 50; pass += 1) {
+      const before = walledSet.size;
+      for (const k of last.sets.union) walledSet.add(k);
+      if (walledSet.size === before && pass > 0) break;
+      const placedSet = placeable(stubSet, walledSet);
+      for (const x of stubSet) if (!placedSet.has(x)) walledSet.add(x);
+      stubSet = placedSet;
+      const L = stubbed(stubSet, walledSet);
+      const sets = deadEdgeSets(L, await buildScene(L));
+      last = { L, sets, verdicts: verdictsOf(L, sets) };
+    }
+    return { fin: last, walledSet, stubSet };
+  };
+  // The union verdict is the product's (walling removes edges the optimistic semantics still call live).
+  const lostUnion = (v) => (base.union.goal && !v.union.goal) || v.union.unreachable.some((r) => !base.union.unreachable.includes(r));
+  // Walling removes doors and re-slots siblings, which can kill an edge that was walkable before: `lost` reports whether
+  // that cost the goal or a room the stub-free scene reached (1 of 500 measured seeds, a dungeon whose goal is
+  // unreachable anyway; the reseed rejects it). Giving up a stub did not repair it (measured), so no repair is attempted.
+  const res = await settle(kept, cur);
+  const fin = res.fin;
+  const walled = res.walledSet;
+  return { layout: fin.L, base, verdicts: fin.verdicts, deadSets: fin.sets, dropped, baseDead: baseSets.union, walled: walled.size, lost: lostUnion(fin.verdicts) };
 }

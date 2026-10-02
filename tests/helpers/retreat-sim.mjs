@@ -55,11 +55,12 @@ export function pickStubs(layout, { allowSole }) {
 }
 
 /** Run state for a layout and stub set, as the runner would hold it right after entering room-entry. */
-export function initialState(layout, stubs) {
+export function initialState(layout, stubs, walled = new Set()) {
   const edges = {}; const stubEdges = {};
   for (const [src, kids] of Object.entries(layout.edges)) {
-    edges[src] = kids.filter((c) => !stubs.has(`${src}>${c}`));
-    const st = kids.filter((c) => stubs.has(`${src}>${c}`));
+    // #585: a walled edge (a dead edge that could not become a stub) is in neither `edges` nor `stubEdges`.
+    edges[src] = kids.filter((c) => !stubs.has(`${src}>${c}`) && !walled.has(`${src}>${c}`));
+    const st = kids.filter((c) => stubs.has(`${src}>${c}`) && !walled.has(`${src}>${c}`));
     if (st.length) stubEdges[src] = st;
   }
   return {
@@ -71,12 +72,12 @@ export function initialState(layout, stubs) {
 /** One walk. `policy`: 'sensible' (new doors and unopened stubs, uniformly), 'careless' (also revisits),
  * 'adversarial' (unopened stubs first, then the child whose closure contains the most stub sources). Calls
  * `check(state)` at EVERY step. Returns { done, steps, retreats }. */
-export function walk(layout, stubs, policy, rnd, check) {
-  let state = initialState(layout, stubs);
+export function walk(layout, stubs, policy, rnd, check, walled = new Set()) {
+  let state = initialState(layout, stubs, walled);
   const judge = (s, id) => ({ ...s, history: [...s.history, { roomId: id }], completed: layout.rooms[id].isGoal || s.completed });
   state = judge(state, 'room-entry');
-  const stubOnly = new Set(Object.entries(initialState(layout, stubs).stubEdges)
-    .filter(([src]) => (initialState(layout, stubs).edges[src] ?? []).length === 0).map(([src]) => src));
+  const stubOnly = new Set(Object.entries(state.stubEdges)
+    .filter(([src]) => (state.edges[src] ?? []).length === 0).map(([src]) => src));
   let steps = 0; let retreats = 0;
   while (steps++ < 5000) {
     check(state);

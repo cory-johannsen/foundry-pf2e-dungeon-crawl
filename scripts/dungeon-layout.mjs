@@ -3076,6 +3076,24 @@ export function isStubEdge(stubEdges, sourceId, targetId) {
   return !!stubEdges?.[sourceId]?.includes(targetId);
 }
 
+/**
+ * #585: union of two `{ [sourceId]: [targetId] }` edge maps (stubs and walled edges), a new map, inputs untouched.
+ * Every consumer that only needs "this edge builds no connection" (incoming slots, margin openings, corridor
+ * geometry) is handed the merge; only the stub placer and the outgoing door plan still see the pure stubs.
+ */
+export function mergeEdgeMaps(a, b) {
+  const out = {};
+  for (const m of [a, b]) {
+    for (const [src, ts] of Object.entries(m ?? {})) {
+      for (const t of ts) {
+        const list = (out[src] ??= []);
+        if (!list.includes(t)) list.push(t);
+      }
+    }
+  }
+  return out;
+}
+
 /** The progression graph without its stub edges (a stub is a dead end, not a way forward). Hidden shortcut
  * stubs are not in `edges` to begin with. Returns a new map; `edges` is not mutated. */
 export function applyStubsToEdges(edges, stubEdges) {
@@ -3362,12 +3380,17 @@ export function layoutEdgeGeometry({
  */
 export function planStubGeometries({
   seed, positionByRoomId, occupiedCells, edges, layoutEdges, hiddenEdges = {}, hiddenRooms = [], hiddenIncomingByRoomId = {},
-  incomingFaceByRoomId = {}, stubEdges,
+  incomingFaceByRoomId = {}, stubEdges, walledEdges = {},
 }) {
-  const planFor = (src) => outgoingPlanForStubs(seed, src, { edges, hiddenEdges, stubEdges, positionByRoomId });
-  const realEdges = applyStubsToEdges(edges, stubEdges);
+  // #585: a walled edge builds no connection (it is excluded like a stub) but takes no door slot either; `edges`
+  // already omits it, so the plan sees pure stubs while every "no connection" consumer sees the merge.
+  const excluded = mergeEdgeMaps(stubEdges, walledEdges);
+  const liveEdges = applyStubsToEdges(edges, walledEdges);
+  const planFor = (src) => outgoingPlanForStubs(seed, src, { edges: liveEdges, hiddenEdges, stubEdges, positionByRoomId });
+  const realEdges = applyStubsToEdges(edges, excluded);
   const edgeGeo = layoutEdgeGeometry({
-    seed, positionByRoomId, occupiedCells, layoutEdges, hiddenRooms, hiddenIncomingByRoomId, incomingFaceByRoomId, planFor, stubEdges,
+    seed, positionByRoomId, occupiedCells, layoutEdges, hiddenRooms, hiddenIncomingByRoomId, incomingFaceByRoomId, planFor,
+    stubEdges: excluded,
   });
   const baseFloors = [];
   const baseWalls = [];
@@ -3384,7 +3407,7 @@ export function planStubGeometries({
     const plan = planFor(sourceId);
     const marginWalls = cellMarginWalls(rect, pos.rank, pos.col, plannedMarginOpenings(seed, sourceId, pos, {
       plan, hiddenChildId: (hiddenEdges[sourceId] ?? [])[0] ?? null, edges: realEdges, hiddenEdges, layoutEdges,
-      hiddenIncomingByRoomId, positionByRoomId, incomingFaceByRoomId, occupiedCells, planFor, layoutVersion: 3, stubEdges,
+      hiddenIncomingByRoomId, positionByRoomId, incomingFaceByRoomId, occupiedCells, planFor, layoutVersion: 3, stubEdges: excluded,
     }));
     const placedFloors = [];
     const placedWalls = [];

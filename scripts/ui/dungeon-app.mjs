@@ -55,7 +55,7 @@ import {
 import { getGenerator } from "../generator-registry.mjs";
 import { retreatStateFor, retreatUiFor } from "../dungeon-retreat.mjs";
 import { NEW_RUN_LAYOUT_VERSION } from "../dungeon-layout.mjs";
-import { chooseRunLayout, reseedStateFor } from "../dungeon-reseed.mjs";
+import { chooseRunLayout, reseedStateFor, deadEdgeWallsStateFor } from "../dungeon-reseed.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -499,7 +499,7 @@ export async function startDungeonRun({
   });
   console.log(`${MODULE_ID} | layout seed "${chosen.seed}" (origin "${chosen.seedOrigin}", reseeds ${chosen.reseedTries}, ${chosen.ms} ms)`);
   const {
-    rooms, edges, stubEdges, layoutEdges, hiddenRooms, hiddenEdges, hiddenIncomingByRoomId,
+    rooms, edges, stubEdges, walledEdges, layoutEdges, hiddenRooms, hiddenEdges, hiddenIncomingByRoomId,
     layoutPositionByRoomId, incomingFaceByRoomId, maxRank, maxCol,
   } = chosen.layout;
 
@@ -518,6 +518,8 @@ export async function startDungeonRun({
     rooms,
     edges,
     ...(stubEdges ? { stubEdges } : {}),
+    // #585: dead edges walled instead of built (absent = none; a run created before them has neither field).
+    ...deadEdgeWallsStateFor(NEW_RUN_LAYOUT_VERSION, walledEdges),
     layoutEdges,
     hiddenRooms: [...hiddenRooms],
     hiddenEdges,
