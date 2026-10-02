@@ -535,10 +535,40 @@ describe("footprint-aware movement (#140)", () => {
     mover.token.update.mock.calls.forEach((call) => {
       expect(call[1]).toEqual({ teleport: true });
     });
-    const stepDelayCalls = setTimeoutSpy.mock.calls.filter((call) => call[1] === 250);
+    const stepDelayCalls = setTimeoutSpy.mock.calls.filter((call) => call[1] === 600);
     // One fewer delay than hops -- no delay waited after the final hop.
     expect(stepDelayCalls.length).toBe(mover.token.update.mock.calls.length - 1);
     vi.useRealTimers();
+  });
+
+  async function hopDelays(settingsGet) {
+    installFoundryStubs();
+    if (settingsGet) globalThis.game.settings = { get: settingsGet };
+    vi.useFakeTimers();
+    const spy = vi.spyOn(globalThis, "setTimeout");
+    const mover = makeCombatant({ id: "mover", x: 0, y: 0, speedFt: 30 });
+    const target = makeCombatant({ id: "target", x: 5 * GRID_SIZE, y: 0 });
+    const combat = makeCombat({ combatants: [mover, target] });
+    const p = stepToward(combat, mover, target, 10);
+    await vi.runAllTimersAsync();
+    await p;
+    const hops = mover.token.update.mock.calls.length;
+    const delays = spy.mock.calls.map((c) => c[1]);
+    vi.useRealTimers();
+    return { hops, delays };
+  }
+
+  it("uses the movementStepDelayMs world setting between hops (#479)", async () => {
+    const { hops, delays } = await hopDelays((_m, key) => (key === "movementStepDelayMs" ? 900 : undefined));
+    expect(delays.filter((d) => d === 900)).toHaveLength(hops - 1);
+    expect(delays).not.toContain(600);
+  });
+
+  it("falls back to the 600ms default for a missing or invalid setting (#479)", async () => {
+    for (const get of [() => undefined, () => -5, () => "fast", () => NaN, () => { throw new Error("unregistered"); }]) {
+      const { hops, delays } = await hopDelays(get);
+      expect(delays.filter((d) => d === 600)).toHaveLength(hops - 1);
+    }
   });
 
   it("pushTokenAway walks multiple squares one at a time when pushed further than one square", async () => {

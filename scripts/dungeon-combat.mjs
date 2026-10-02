@@ -524,7 +524,9 @@ const AUTO_PLAY_DELAY_MS = 700;
 // own animated movement pipeline (see #87/#141/#361: that pipeline's own
 // wall-collision check silently relocates a token to the wrong cell;
 // { teleport: true } bypasses it on every single hop, same as before).
-const MOVEMENT_STEP_DELAY_MS = 250;
+// DEFAULT value (ms); the live value is the world setting
+// `movementStepDelayMs`, read at call time by movementStepDelayMs().
+const MOVEMENT_STEP_DELAY_MS = 600;
 // #479: how long an agent-controlled combatant's turn pauses between one
 // applied action and the next decision, on both the agent-decision path
 // (runAgentDecisionLoop) and the heuristic fallback (playHeuristicTurn) --
@@ -532,7 +534,23 @@ const MOVEMENT_STEP_DELAY_MS = 250;
 // once. Shared by both paths rather than two separate constants.
 // Deliberately a different value from AUTO_PLAY_DELAY_MS so a test spying
 // on setTimeout by delay value can never confuse the two.
-const ACTION_PACE_DELAY_MS = 600;
+// DEFAULT value (ms); the live value is the world setting
+// `actionPaceDelayMs`, read at call time by actionPaceDelayMs().
+const ACTION_PACE_DELAY_MS = 1200;
+
+function readPacingSetting(key, fallback) {
+  try {
+    const v = game.settings.get(MODULE_ID, key);
+    if (typeof v === "number" && Number.isFinite(v) && v >= 0) return v;
+  } catch {
+    // settings unavailable or key unregistered: use the default
+  }
+  return fallback;
+}
+const movementStepDelayMs = () =>
+  readPacingSetting("movementStepDelayMs", MOVEMENT_STEP_DELAY_MS);
+const actionPaceDelayMs = () =>
+  readPacingSetting("actionPaceDelayMs", ACTION_PACE_DELAY_MS);
 
 // How long an agent-controlled combatant's turn waits for an external
 // decision (via getPendingAgentTurn/applyAgentDecision, Task 3) before
@@ -630,7 +648,7 @@ export async function runAgentDecisionLoop(
       return;
     }
     if (pending) {
-      await new Promise((resolve) => setTimeout(resolve, ACTION_PACE_DELAY_MS));
+      await new Promise((resolve) => setTimeout(resolve, actionPaceDelayMs()));
     }
   }
 }
@@ -2074,7 +2092,7 @@ async function walkTokenThroughSteps(token, steps, gridSize) {
       { teleport: true },
     );
     if (i < steps.length - 1) {
-      await new Promise((resolve) => setTimeout(resolve, MOVEMENT_STEP_DELAY_MS));
+      await new Promise((resolve) => setTimeout(resolve, movementStepDelayMs()));
     }
   }
 }
@@ -2582,12 +2600,12 @@ export async function autoPlayCombatantTurnIfDue(combat) {
 export async function playHeuristicTurn(
   combat,
   combatant,
-  { move = stepToward, strike = rollAndApplyStrike, delayMs = ACTION_PACE_DELAY_MS } = {},
+  { move = stepToward, strike = rollAndApplyStrike, delayMs } = {},
 ) {
   const target = nearestOpponent(combat, combatant);
   if (target) {
     await move(combat, combatant, target.combatant, target.distanceSquares);
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    await new Promise((resolve) => setTimeout(resolve, delayMs ?? actionPaceDelayMs()));
     await strike(combat, combatant, target.combatant);
   }
   if (game.combats.has(combat.id) && combat.combatant?.id === combatant.id) {
