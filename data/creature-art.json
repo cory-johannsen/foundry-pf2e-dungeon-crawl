@@ -27398,5 +27398,149 @@
     "name": "Elite Concentrated Congealed Magic",
     "level": 5,
     "art": "congealed-magic.webp"
+  },
+  {
+    "id": "hired_hand",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "hwfZVB8kzOPQwtVG",
+    "name": "Hired Hand",
+    "level": 0,
+    "art": "hired-hand.webp"
+  },
+  {
+    "id": "carnival_bear",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "iLEF7J09yI6zMkyt",
+    "name": "Carnival Bear",
+    "level": 2,
+    "art": "carnival-bear.webp"
+  },
+  {
+    "id": "big_carnival_bear",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "iDDdkl7Q4tKSaOk8",
+    "name": "Big Carnival Bear",
+    "level": 3,
+    "art": "carnival-bear.webp"
+  },
+  {
+    "id": "ulfen_bodyguard",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "iwC7PSPnHIIwbgmI",
+    "name": "Ulfen Bodyguard",
+    "level": -1,
+    "art": "ulfen-bodyguard.webp"
+  },
+  {
+    "id": "leshy_ghoul",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "ixPuh9vPLklQNjLw",
+    "name": "Leshy Ghoul",
+    "level": 3,
+    "art": "leshy-ghoul.webp"
+  },
+  {
+    "id": "burning_silver_najid",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "jlAAQiwWILw9VbdG",
+    "name": "Burning Silver Najid",
+    "level": 6,
+    "art": "burning-silver-najid.webp"
+  },
+  {
+    "id": "chelaxian_fighter",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "l2hVUFGqqmGPzPIy",
+    "name": "Chelaxian Fighter",
+    "level": 6,
+    "art": "chelaxian-fighter.webp"
+  },
+  {
+    "id": "mukade",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "lKKA7ZGe2uiZ2BPw",
+    "name": "\u014cmukade",
+    "level": 2,
+    "art": "mukade.webp"
+  },
+  {
+    "id": "vespiria",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "lW0kemhu0n0bPlUg",
+    "name": "Vespiria",
+    "level": 4,
+    "art": "vespiria.webp"
+  },
+  {
+    "id": "the_elite_appraiser",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "mPTq5IPFfXfr1TCB",
+    "name": "The Elite Appraiser",
+    "level": 7,
+    "art": "the-elite-appraiser.webp"
+  },
+  {
+    "id": "mordant_spire_plunderer",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "x7eJuFLVgF1gvRe7",
+    "name": "Mordant Spire Plunderer",
+    "level": 3,
+    "art": "mordant-spire-plunderer.webp"
+  },
+  {
+    "id": "angry_mordant_spire_plunderer",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "mpMbctpOEN2aZeS5",
+    "name": "Angry Mordant Spire Plunderer",
+    "level": 5,
+    "art": "mordant-spire-plunderer.webp"
+  },
+  {
+    "id": "chelaxian_weaponmaster",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "pHKWW2XeJ2MwGQnJ",
+    "name": "Chelaxian Weaponmaster",
+    "level": 8,
+    "art": "chelaxian-weaponmaster.webp"
+  },
+  {
+    "id": "champion_of_deskari",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "zj8zotvDTmsPTti7",
+    "name": "Champion of Deskari",
+    "level": 7,
+    "art": "champion-of-deskari.webp"
+  },
+  {
+    "id": "deadly_champion_of_deskari",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "pUmN6dmK5lBLz7NS",
+    "name": "Deadly Champion of Deskari",
+    "level": 9,
+    "art": "champion-of-deskari.webp"
+  },
+  {
+    "id": "origami_mite",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "pZPwu93JXb65kmyz",
+    "name": "Origami Mite",
+    "level": -1,
+    "art": "origami-mite.webp"
+  },
+  {
+    "id": "appraiser",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "qGG1x7nAp6ueDZZC",
+    "name": "Decked-Out Appraiser",
+    "level": 9,
+    "art": "appraiser.webp"
+  },
+  {
+    "id": "bloodsick_wild_dog",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "r0vzF6pSDGQ44FvX",
+    "name": "Bloodsick Wild Dog",
+    "level": 3,
+    "art": "bloodsick-wild-dog.webp"
   }
 ]
