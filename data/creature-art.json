@@ -32310,5 +32310,157 @@
     "name": "Starwatch Commando",
     "level": 11,
     "art": "starwatch-commando.webp"
+  },
+  {
+    "id": "blune_bandersworth",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "sUrJ7jxzBiJTbwVo",
+    "name": "Blune Bandersworth",
+    "level": 20,
+    "art": "blune-bandersworth.webp"
+  },
+  {
+    "id": "eunice",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "sn9Pjkr2jlMEqc3E",
+    "name": "Eunice",
+    "level": 0,
+    "art": "eunice.webp"
+  },
+  {
+    "id": "wrent_dicaspiron",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "syUXLdUsEDYgni5R",
+    "name": "Wrent Dicaspiron",
+    "level": 10,
+    "art": "wrent-dicaspiron.webp"
+  },
+  {
+    "id": "maurrisa_jonne",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "t9m4ikMZsDwo9TQ1",
+    "name": "Maurrisa Jonne",
+    "level": 10,
+    "art": "maurrisa-jonne.webp"
+  },
+  {
+    "id": "vaultbreaker_ooze",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "tm8vQ7gdAe9zVdDg",
+    "name": "Vaultbreaker Ooze",
+    "level": 6,
+    "art": "vaultbreaker-ooze.webp"
+  },
+  {
+    "id": "the_inkmaster",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "tt5eaS28C4PrHmZD",
+    "name": "The Inkmaster",
+    "level": 16,
+    "art": "the-inkmaster.webp"
+  },
+  {
+    "id": "vargouille",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "uFU6dQfcNeKq68YT",
+    "name": "Vargouille",
+    "level": 2,
+    "art": "vargouille.webp"
+  },
+  {
+    "id": "myrna_rath",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "vPMmTtvl5UPOcCoa",
+    "name": "Myrna Rath",
+    "level": 16,
+    "art": "myrna-rath.webp"
+  },
+  {
+    "id": "hundun_chaos_mage",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "vwxNCuBksHYU2Dwf",
+    "name": "Hundun Chaos Mage",
+    "level": 18,
+    "art": "hundun-chaos-mage.webp"
+  },
+  {
+    "id": "clockwork_injector",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "w2J6GpuMYM24U4sb",
+    "name": "Clockwork Injector",
+    "level": 14,
+    "art": "clockwork-injector.webp"
+  },
+  {
+    "id": "child_of_venom",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "wsVW8MdOTeGgGM59",
+    "name": "Child Of Venom",
+    "level": 13,
+    "art": "child-of-venom.webp"
+  },
+  {
+    "id": "sleepless_sun_veteran",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "xN3FDmrCKWW0psBu",
+    "name": "Sleepless Sun Veteran",
+    "level": 6,
+    "art": "sleepless-sun-veteran.webp"
+  },
+  {
+    "id": "diobel_sweeper_tough",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "xkkj0TW6BKNT3Bg4",
+    "name": "Diobel Sweeper Tough",
+    "level": 7,
+    "art": "diobel-sweeper-tough.webp"
+  },
+  {
+    "id": "bloody_barber_goon",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "y0bIU9FCWHOJxUzG",
+    "name": "Bloody Barber Goon",
+    "level": 12,
+    "art": "bloody-barber-goon.webp"
+  },
+  {
+    "id": "skinsaw_seamer",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "y1tw2ohNagqQJ6RV",
+    "name": "Skinsaw Seamer",
+    "level": 8,
+    "art": "skinsaw-seamer.webp"
+  },
+  {
+    "id": "kemeneles",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "yR6p0KVvZ3tPflRt",
+    "name": "Kemeneles",
+    "level": 2,
+    "art": "kemeneles.webp"
+  },
+  {
+    "id": "ofalth_zombie",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "ySpOZlKUbcxWhKQ6",
+    "name": "Ofalth Zombie",
+    "level": 7,
+    "art": "ofalth-zombie.webp"
+  },
+  {
+    "id": "najra_lizard",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "zj2sCM8tQSMG9Qm6",
+    "name": "Najra Lizard",
+    "level": 4,
+    "art": "najra-lizard.webp"
+  },
+  {
+    "id": "tenome",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "zrh3MrS68H2gPlVs",
+    "name": "Tenome",
+    "level": 4,
+    "art": "tenome.webp"
   }
 ]
