@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   stepToward,
   strideByPosture,
@@ -95,8 +95,8 @@ describe("stepToward corrects an off-grid mover even when it doesn't move (#86)"
     await stepToward(combat, mover, target, 1);
 
     expect(mover.token.update).toHaveBeenCalledTimes(1);
-    expect(mover.token.x % GRID_SIZE).toBe(0);
-    expect(mover.token.y % GRID_SIZE).toBe(0);
+    expect(Math.abs(mover.token.x % GRID_SIZE)).toBe(0);
+    expect(Math.abs(mover.token.y % GRID_SIZE)).toBe(0);
     expect(mover.token.x).toBe(Math.round(OFF_GRID_X / GRID_SIZE) * GRID_SIZE);
     expect(mover.token.y).toBe(Math.round(OFF_GRID_Y / GRID_SIZE) * GRID_SIZE);
     expect(mover.token.update.mock.calls[0][1]).toEqual({ teleport: true });
@@ -120,8 +120,8 @@ describe("stepToward corrects an off-grid mover even when it doesn't move (#86)"
     await stepToward(combat, mover, target, 4);
 
     expect(mover.token.update).toHaveBeenCalledTimes(1);
-    expect(mover.token.x % GRID_SIZE).toBe(0);
-    expect(mover.token.y % GRID_SIZE).toBe(0);
+    expect(Math.abs(mover.token.x % GRID_SIZE)).toBe(0);
+    expect(Math.abs(mover.token.y % GRID_SIZE)).toBe(0);
   });
 
   it("does not call update at all when the mover is already grid-aligned and doesn't need to move", async () => {
@@ -153,8 +153,8 @@ describe("strideByPosture corrects an off-grid mover even when it doesn't move (
     await strideByPosture(combat, mover, "approach", null);
 
     expect(mover.token.update).toHaveBeenCalledTimes(1);
-    expect(mover.token.x % GRID_SIZE).toBe(0);
-    expect(mover.token.y % GRID_SIZE).toBe(0);
+    expect(Math.abs(mover.token.x % GRID_SIZE)).toBe(0);
+    expect(Math.abs(mover.token.y % GRID_SIZE)).toBe(0);
   });
 
   it("snaps the mover to its nearest grid cell when it has no speed to move with", async () => {
@@ -175,23 +175,31 @@ describe("strideByPosture corrects an off-grid mover even when it doesn't move (
     await strideByPosture(combat, mover, "approach", target);
 
     expect(mover.token.update).toHaveBeenCalledTimes(1);
-    expect(mover.token.x % GRID_SIZE).toBe(0);
-    expect(mover.token.y % GRID_SIZE).toBe(0);
+    expect(Math.abs(mover.token.x % GRID_SIZE)).toBe(0);
+    expect(Math.abs(mover.token.y % GRID_SIZE)).toBe(0);
   });
 
-  it("passes { teleport: true } on its own move update when it actually moves", async () => {
+  it("passes { teleport: true } on every hop of its own move update, walking multiple squares instead of jumping once", async () => {
     installFoundryStubs();
     const mover = makeCombatant({ id: "mover", x: 0, y: 0, speedFt: 30 });
     const target = makeCombatant({ id: "target", x: 5 * GRID_SIZE, y: 0 });
     const combat = makeCombat({ combatants: [mover, target] });
+    vi.useFakeTimers();
 
-    const status = await strideByPosture(combat, mover, "approach", target);
+    const movePromise = strideByPosture(combat, mover, "approach", target);
+    await vi.runAllTimersAsync();
+    const status = await movePromise;
 
     expect(status).toBe("moved");
-    // Grid-aligned start -> the #86 snap correction never fires here; this
-    // is strideByPosture's own waypoint write (line ~3295).
-    expect(mover.token.update).toHaveBeenCalledTimes(1);
-    expect(mover.token.update.mock.calls[0][1]).toEqual({ teleport: true });
+    // Grid-aligned start -> the #86 snap correction never fires here; every
+    // call below is strideByPosture's own waypoint-walking (line ~3295).
+    expect(mover.token.update.mock.calls.length).toBeGreaterThan(1);
+    mover.token.update.mock.calls.forEach((call) => {
+      expect(call[1]).toEqual({ teleport: true });
+    });
+    expect(Math.abs(mover.token.x % GRID_SIZE)).toBe(0);
+    expect(Math.abs(mover.token.y % GRID_SIZE)).toBe(0);
+    vi.useRealTimers();
   });
 
 });
@@ -507,6 +515,50 @@ describe("footprint-aware movement (#140)", () => {
     expect(mover.token.update.mock.calls[0][1]).toEqual({ teleport: true });
   });
 
+  it("stepToward walks multiple squares one at a time, waiting MOVEMENT_STEP_DELAY_MS between hops", async () => {
+    installFoundryStubs();
+    // vi.useFakeTimers() must come before vi.spyOn(globalThis, "setTimeout")
+    // -- it replaces the global, so spying first would wrap a reference
+    // fake timers then discard, leaving the spy watching nothing.
+    vi.useFakeTimers();
+    const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+    const mover = makeCombatant({ id: "mover", x: 0, y: 0, speedFt: 30 });
+    const target = makeCombatant({ id: "target", x: 5 * GRID_SIZE, y: 0 });
+    const combat = makeCombat({ combatants: [mover, target] });
+
+    const movePromise = stepToward(combat, mover, target, 10);
+    await vi.runAllTimersAsync();
+    const status = await movePromise;
+
+    expect(status).toBe("moved");
+    expect(mover.token.update.mock.calls.length).toBeGreaterThan(1);
+    mover.token.update.mock.calls.forEach((call) => {
+      expect(call[1]).toEqual({ teleport: true });
+    });
+    const stepDelayCalls = setTimeoutSpy.mock.calls.filter((call) => call[1] === 250);
+    // One fewer delay than hops -- no delay waited after the final hop.
+    expect(stepDelayCalls.length).toBe(mover.token.update.mock.calls.length - 1);
+    vi.useRealTimers();
+  });
+
+  it("pushTokenAway walks multiple squares one at a time when pushed further than one square", async () => {
+    installFoundryStubs();
+    vi.useFakeTimers();
+    const attacker = makeCombatant({ id: "attacker", x: 0, y: 0 });
+    const target = makeCombatant({ id: "target", x: GRID_SIZE, y: 0 });
+    const combat = makeCombat({ combatants: [attacker, target] });
+
+    const pushPromise = pushTokenAway(combat, attacker, target, 3);
+    await vi.runAllTimersAsync();
+    await pushPromise;
+
+    expect(target.token.update.mock.calls.length).toBeGreaterThan(1);
+    target.token.update.mock.calls.forEach((call) => {
+      expect(call[1]).toEqual({ teleport: true });
+    });
+    vi.useRealTimers();
+  });
+
   it("stepToward returns 'already-there' when already within melee reach", async () => {
     installFoundryStubs();
     const mover = makeCombatant({ id: "mover", x: 0, y: 0 });
@@ -562,7 +614,10 @@ describe("footprint-aware movement (#140)", () => {
     });
     const combat = makeCombat({ combatants: [mover, hostileRight, target] });
 
-    const status = await stepToward(combat, mover, target, 10);
+    vi.useFakeTimers();
+    const statusPromise = stepToward(combat, mover, target, 10);
+    await vi.runAllTimersAsync();
+    const status = await statusPromise;
 
     // Before the fix, movementBlockedEdges re-expanded the hostile's
     // occupied square by the mover's own footprint a second time,

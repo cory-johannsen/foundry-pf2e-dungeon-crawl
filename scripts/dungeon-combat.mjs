@@ -516,6 +516,23 @@ export function maybeResolveCombatForCombatant(combatant, changes) {
 // --- ITEM-8: automating a non-player combatant's own turn ---------------
 
 const AUTO_PLAY_DELAY_MS = 700;
+// #479: how long each individual grid-square hop of an AI-controlled
+// combatant's movement pauses before the next one, so players can
+// actually see it move instead of it jumping straight to its
+// destination. Every hop still writes via { teleport: true } -- this
+// paces the write-by-write sequence, it does not reintroduce Foundry's
+// own animated movement pipeline (see #87/#141/#361: that pipeline's own
+// wall-collision check silently relocates a token to the wrong cell;
+// { teleport: true } bypasses it on every single hop, same as before).
+const MOVEMENT_STEP_DELAY_MS = 250;
+// #479: how long an agent-controlled combatant's turn pauses between one
+// applied action and the next decision, on both the agent-decision path
+// (runAgentDecisionLoop) and the heuristic fallback (playHeuristicTurn) --
+// so a turn's actions resolve visibly one at a time instead of all at
+// once. Shared by both paths rather than two separate constants.
+// Deliberately a different value from AUTO_PLAY_DELAY_MS so a test spying
+// on setTimeout by delay value can never confuse the two.
+const ACTION_PACE_DELAY_MS = 600;
 
 // How long an agent-controlled combatant's turn waits for an external
 // decision (via getPendingAgentTurn/applyAgentDecision, Task 3) before
@@ -611,6 +628,9 @@ export async function runAgentDecisionLoop(
     } catch (err) {
       console.error("agent-service: applyAgentDecision failed:", err.message);
       return;
+    }
+    if (pending) {
+      await new Promise((resolve) => setTimeout(resolve, ACTION_PACE_DELAY_MS));
     }
   }
 }
@@ -2041,6 +2061,24 @@ function posturePath(
   return null;
 }
 
+/** Writes `token`'s position through each cell in `steps` in order (an
+ * ordered list of {gx, gy} cells, not including the token's own starting
+ * cell -- see walkPath's own updated return shape), each still via
+ * { teleport: true } so Foundry's wall-collision check never relocates a
+ * single hop (#87/#141/#361), with MOVEMENT_STEP_DELAY_MS between each
+ * write except after the last one. */
+async function walkTokenThroughSteps(token, steps, gridSize) {
+  for (let i = 0; i < steps.length; i += 1) {
+    await token.update(
+      { x: steps[i].gx * gridSize, y: steps[i].gy * gridSize },
+      { teleport: true },
+    );
+    if (i < steps.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, MOVEMENT_STEP_DELAY_MS));
+    }
+  }
+}
+
 /**
  * Walks up to `speedSquares` steps of `path` (a findPath result, `path[0]`
  * === the mover's own current cell), stopping early once within
@@ -2053,8 +2091,10 @@ function posturePath(
  * must never end its own movement on top of, ally or hostile — passing
  * through one of these cells on the way further along the path is still
  * fine, so a waypoint sitting on one is simply skipped as a candidate stop
- * rather than treated as blocking the route. Returns the destination
- * {gx, gy} actually reached, or `null` if the mover shouldn't move at all
+ * rather than treated as blocking the route. Returns `{cell, steps}` —
+ * `cell` is the destination {gx, gy} actually reached, `steps` is every
+ * intermediate cell from the mover's own current cell up to and including
+ * `cell`, in travel order — or `null` if the mover shouldn't move at all
  * (no path, or every waypoint is within the stop distance already or
  * occupied).
  */
@@ -2083,7 +2123,9 @@ function walkPath(
       stepIndex = i;
     }
   }
-  return stepIndex > 0 ? path[stepIndex] : null;
+  return stepIndex > 0
+    ? { cell: path[stepIndex], steps: path.slice(1, stepIndex + 1) }
+    : null;
 }
 
 /**
@@ -2126,7 +2168,7 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
     moverFootprint,
   );
   if (!waypoint) return "blocked";
-  await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize }, { teleport: true });
+  await walkTokenThroughSteps(me, waypoint.steps, gridSize);
   await offerReactiveStrikesAgainst(combat, combatant);
   return "moved";
 }
@@ -2176,13 +2218,7 @@ export async function pushTokenAway(combat, attacker, target, distanceSquares) {
     moverFootprint,
   );
   if (!waypoint) return;
-  await target.token.update(
-    {
-      x: waypoint.gx * gridSize,
-      y: waypoint.gy * gridSize,
-    },
-    { teleport: true },
-  );
+  await walkTokenThroughSteps(target.token, waypoint.steps, gridSize);
 }
 
 /**
@@ -2543,16 +2579,16 @@ export async function autoPlayCombatantTurnIfDue(combat) {
  * if not already, strike once, apply the result, advance the turn — shared
  * by the non-agent-controlled path above and the agent-timeout fallback
  * below, so both use exactly the same behavior. */
-export async function playHeuristicTurn(combat, combatant) {
+export async function playHeuristicTurn(
+  combat,
+  combatant,
+  { move = stepToward, strike = rollAndApplyStrike, delayMs = ACTION_PACE_DELAY_MS } = {},
+) {
   const target = nearestOpponent(combat, combatant);
   if (target) {
-    await stepToward(
-      combat,
-      combatant,
-      target.combatant,
-      target.distanceSquares,
-    );
-    await rollAndApplyStrike(combat, combatant, target.combatant);
+    await move(combat, combatant, target.combatant, target.distanceSquares);
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    await strike(combat, combatant, target.combatant);
   }
   if (game.combats.has(combat.id) && combat.combatant?.id === combatant.id) {
     await combat.nextTurn();
@@ -3305,7 +3341,7 @@ export async function strideByPosture(combat, combatant, posture, target) {
     moverFootprint,
   );
   if (!waypoint) return "blocked";
-  await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize }, { teleport: true });
+  await walkTokenThroughSteps(me, waypoint.steps, gridSize);
   await offerReactiveStrikesAgainst(combat, combatant);
   return "moved";
 }
