@@ -52,6 +52,7 @@ import {
   mergeEdgeMaps,
   plannedMarginOpenings,
   planStubGeometries,
+  routingForLayout,
 } from "./dungeon-layout.mjs";
 import { freeSpotInRect } from "./placement.mjs";
 import { generateEncounter } from "./encounter-generator.mjs";
@@ -394,6 +395,23 @@ function outgoingPlanFromState(seed, sourceId, { edges, hiddenEdges, layoutPosit
 }
 
 /**
+ * #427: the topology-aware router's `routingFor(edgeId)` for a persisted run state. Only a run stamped
+ * `topologyRouting: true` at creation (layoutVersion >= 3) routes; every other run (v1/v2, and a v3 run created before
+ * the router shipped) returns `undefined` and keeps its geometry exactly.
+ */
+export function routingFromState(state) {
+  if (!((state.layoutVersion ?? 1) >= 3) || state.topologyRouting !== true) return undefined;
+  const positions = state.layoutPositionByRoomId;
+  const occupiedCells = {};
+  for (const [id, pos] of Object.entries(positions)) occupiedCells[`${pos.rank},${pos.col}`] = id;
+  return routingForLayout({
+    seed: state.seed, positionByRoomId: positions, occupiedCells, incomingFaceByRoomId: state.incomingFaceByRoomId ?? {},
+    layoutEdges: state.layoutEdges, hiddenIncomingByRoomId: state.hiddenIncomingByRoomId, hiddenRooms: state.hiddenRooms ?? [],
+    edges: state.edges, hiddenEdges: state.hiddenEdges ?? {}, stubEdges: state.stubEdges ?? {}, walledEdges: state.walledEdges ?? {},
+  });
+}
+
+/**
  * #93 — manual/live-verification checklist (no Foundry test harness exists
  * for this file, same existing boundary the old linear-slot room builder
  * always had). Run this against a real Foundry
@@ -458,6 +476,8 @@ export async function buildRoomAtGraphNode(
     stubEdges: stubEdgesParam = {}, hiddenRooms = [],
     // #585 (layoutVersion >= 3): dead edges walled instead of built; `edges` already omits them.
     walledEdges: walledEdgesParam = {},
+    // #427 (v3): the topology-aware router's routingFor(edgeId); undefined below version 3.
+    routingFor,
   },
 ) {
   const rect = roomRect(seed, roomId, rank, col);
@@ -567,7 +587,7 @@ export async function buildRoomAtGraphNode(
   if (planned) {
     openingsBySide = plannedMarginOpenings(seed, roomId, { rank, col }, {
       plan, hiddenChildId, edges, hiddenEdges, layoutEdges, hiddenIncomingByRoomId, positionByRoomId: layoutPositionByRoomId,
-      incomingFaceByRoomId, occupiedCells, planFor, layoutVersion, stubEdges: excludedEdges,
+      incomingFaceByRoomId, occupiedCells, planFor, layoutVersion, stubEdges: excludedEdges, routingFor,
     });
   } else {
     const foreignOpenings = pendingForeignMarginOpenings(
@@ -674,7 +694,7 @@ export async function buildRoomAtGraphNode(
   if (stubChildIds.length) {
     const placed = planStubGeometries({
       seed, positionByRoomId: layoutPositionByRoomId, occupiedCells, edges, layoutEdges, hiddenEdges, hiddenRooms,
-      hiddenIncomingByRoomId, incomingFaceByRoomId, stubEdges, walledEdges,
+      hiddenIncomingByRoomId, incomingFaceByRoomId, stubEdges, walledEdges, routingFor,
     });
     for (const targetId of stubChildIds) {
       const key = `${roomId}->${targetId}`;
@@ -1341,6 +1361,8 @@ export async function buildPopulateAndUnlockGraphNode(
   const planFor = layoutVersion >= 2
     ? (sourceId) => outgoingPlanFromState(state.seed, sourceId, { ...state, stubEdges })
     : undefined;
+  // #427 (layoutVersion >= 3): the whole layout's topology-aware routing; undefined below version 3.
+  const routingFor = routingFromState(state);
 
   // #93 pre-flight fix (merge-door redesign): every real parent this room
   // has (usually 1, more for a merge room), plus a shortcut's hidden extra
@@ -1388,6 +1410,7 @@ export async function buildPopulateAndUnlockGraphNode(
         stubEdges,
         walledEdges,
         hiddenRooms: state.hiddenRooms ?? [],
+        routingFor,
       },
     );
 
@@ -1439,7 +1462,7 @@ export async function buildPopulateAndUnlockGraphNode(
       // cell instead of assuming a direct/single-corner connection.
       const { doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells } =
         buildEdgeCorridor(state.seed, sourceId, room.id, sourceRect, rect, sourcePos, { rank, col }, exitFaceFromSource, toSlot, occupiedCells, incomingFace, plannedExit,
-          layoutVersion >= 3 ? { coverDoorCell: true } : undefined);
+          layoutVersion >= 3 ? { ...routingFor?.(`${sourceId}->${room.id}`), coverDoorCell: true } : undefined);
       if (hidden) {
         // #156: sealed until Task 9's reveal step explicitly promotes it
         // (both doorWall and revealDoorWall share the SAME

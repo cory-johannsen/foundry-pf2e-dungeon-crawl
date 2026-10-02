@@ -13,9 +13,11 @@ import { installFoundryStubs } from './helpers/scene-oracle.mjs';
 
 installFoundryStubs();
 const SEEDS = 500;
+// #427: both the unrouted pipeline (a v3 run created before the topology router) and the routed one (every new run).
+const casesFor = async (topologyRouting) => {
 const cases = [];
 for (let i = 0; i < SEEDS; i += 1) {
-  const chosen = await chooseRunLayout({ generator: deck, seed: `sweep-${i}`, roomCount: 6 + (i % 15) });
+  const chosen = await chooseRunLayout({ generator: deck, seed: `sweep-${i}`, roomCount: 6 + (i % 15), topologyRouting });
   const L = chosen.layout;
   const flat = (m) => Object.entries(m ?? {}).flatMap(([s, ts]) => ts.map((t) => `${s}>${t}`));
   const stubs = new Set(flat(L.stubEdges));
@@ -25,8 +27,13 @@ for (let i = 0; i < SEEDS; i += 1) {
   for (const [s, kids] of Object.entries(L.edges)) all[s] = [...kids, ...(L.stubEdges?.[s] ?? []), ...(L.walledEdges?.[s] ?? [])];
   cases.push({ layout: { seed: L.seed, rooms: L.rooms, edges: all, hiddenRooms: L.hiddenRooms }, stubs, walled, goalReachable: chosen.goalReachable });
 }
+return cases;
+};
 
-describe('#439 retreat soft-lock property against the real stub plan (500 seeds)', () => {
+for (const topologyRouting of [false, true]) {
+const cases = await casesFor(topologyRouting);
+
+describe(`#439 retreat soft-lock property against the real stub plan (500 seeds, topologyRouting ${topologyRouting})`, () => {
   it('has real sole-child stubs (guards the seam)', () => {
     const sole = cases.reduce((n, { layout, stubs, walled }) => n + Object.entries(initialState(layout, stubs, walled).edges)
       .filter(([s, kids]) => kids.length === 0 && (layout.edges[s] ?? []).length > 0).length, 0);
@@ -39,7 +46,7 @@ describe('#439 retreat soft-lock property against the real stub plan (500 seeds)
       return n + Object.keys(layout.rooms).filter((r) => !layout.rooms[r].isGoal && (layout.edges[r] ?? []).length > 0
         && (st.edges[r] ?? []).length === 0 && (st.stubEdges[r] ?? []).length === 0).length;
     }, 0);
-    expect(pure).toBeGreaterThan(50);
+    expect(pure).toBeGreaterThan(topologyRouting ? 20 : 50);
   });
 
   it('the goal is reachable over the live edges in every chosen layout (reseed N = 20)', () => {
@@ -71,3 +78,4 @@ describe('#439 retreat soft-lock property against the real stub plan (500 seeds)
     }, 300_000);
   }
 });
+}

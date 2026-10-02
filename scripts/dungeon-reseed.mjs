@@ -43,6 +43,19 @@ export function deadEdgeWallsStateFor(layoutVersion, walledEdges) {
   return { deadEdgeWalls: true, ...(walledEdges ? { walledEdges } : {}) };
 }
 
+/**
+ * #427: whether NEW runs (layoutVersion >= 3) get topology-aware corridor routing (scripts/dungeon-layout.mjs
+ * `routeEdgesTopologyAware`): the whole pipeline (reseed, stubs, walls) and the scene then use the routed corridors.
+ * A run is routed only when its state carries `topologyRouting: true`, stamped at creation, so a v3 run created before
+ * the router shipped keeps its geometry on rebuild.
+ */
+export const NEW_RUN_TOPOLOGY_ROUTING = true;
+
+/** Run-state field of the routing flag; layoutVersion < 3 (or an unrouted layout) gets none (v1/v2 byte-identical). */
+export function topologyRoutingStateFor(layoutVersion, layout) {
+  return layoutVersion >= 3 && layout?.topologyRouting === true ? { topologyRouting: true } : {};
+}
+
 const better = (a, b) => (a.goal !== b.goal ? a.goal : a.unreachable < b.unreachable);
 
 /**
@@ -72,7 +85,9 @@ export async function selectSeed({ seed, evaluate, maxTries = RESEED_MAX_TRIES, 
  * Stub-free (`planRunLayoutStubs` adds the stub plan). Pure; `generator` is `getGenerator()` (or the dungeon-deck module).
  * `setpieceIds` is `{ puzzle, trap, narrative, treasure }`, each an id list.
  */
-export function computeRunLayout({ generator, seed, roomCount, setpieceIds = {}, layoutVersion = NEW_RUN_LAYOUT_VERSION }) {
+export function computeRunLayout({
+  generator, seed, roomCount, setpieceIds = {}, layoutVersion = NEW_RUN_LAYOUT_VERSION, topologyRouting = false,
+}) {
   const { puzzle: puzzleSetpieceIds, trap: trapSetpieceIds, narrative: narrativeSetpieceIds, treasure: treasureSetpieceIds } = setpieceIds;
   const sets = { puzzleSetpieceIds, trapSetpieceIds, narrativeSetpieceIds, treasureSetpieceIds };
   const generated = generator.buildRoomGraph({ seed, roomCount, ...sets });
@@ -106,6 +121,7 @@ export function computeRunLayout({ generator, seed, roomCount, setpieceIds = {},
     seed, layoutVersion, rooms, edges: edgesBeforeStubs, layoutEdges, hiddenRooms: [...hiddenRooms],
     hiddenEdges, hiddenIncomingByRoomId, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
     maxRank: Math.max(...Object.values(ranks)), maxCol: Math.max(...Object.values(columns)),
+    ...(topologyRouting && layoutVersion >= 3 ? { topologyRouting: true } : {}),
   };
 }
 
@@ -145,7 +161,7 @@ async function buildScratchScene(layout) {
     seed: layout.seed, layoutPositionByRoomId: layout.layoutPositionByRoomId, incomingFaceByRoomId: layout.incomingFaceByRoomId,
     hiddenRooms: layout.hiddenRooms, edges: layout.edges, layoutEdges: layout.layoutEdges,
     hiddenIncomingByRoomId: layout.hiddenIncomingByRoomId, hiddenEdges: layout.hiddenEdges, layoutVersion: layout.layoutVersion,
-    maxRank: layout.maxRank, ...(layout.stubEdges ? { stubEdges: layout.stubEdges } : {}),
+    maxRank: layout.maxRank, ...(layout.topologyRouting ? { topologyRouting: true } : {}), ...(layout.stubEdges ? { stubEdges: layout.stubEdges } : {}),
     ...(layout.walledEdges ? { walledEdges: layout.walledEdges } : {}),
   };
   for (const id of Object.keys(layout.rooms)) {
@@ -196,10 +212,10 @@ export async function planRunLayoutStubs(layout, { retreatAvailable = RETREAT_VE
  */
 export async function chooseRunLayout({
   generator, seed, roomCount, setpieceIds = {}, layoutVersion = NEW_RUN_LAYOUT_VERSION,
-  maxTries = RESEED_MAX_TRIES, yieldFn = null, warn = () => {},
+  maxTries = RESEED_MAX_TRIES, yieldFn = null, warn = () => {}, topologyRouting = false,
 }) {
   const t0 = Date.now();
-  const build = (s) => computeRunLayout({ generator, seed: s, roomCount, setpieceIds, layoutVersion });
+  const build = (s) => computeRunLayout({ generator, seed: s, roomCount, setpieceIds, layoutVersion, topologyRouting });
   if (!(layoutVersion >= 3)) {
     return { layout: build(seed), seed, seedOrigin: seed, reseedTries: 0, goalReachable: null, exhausted: false, ms: 0 };
   }

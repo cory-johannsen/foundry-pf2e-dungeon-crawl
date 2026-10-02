@@ -205,3 +205,45 @@ candidate that becomes null is skipped), and `outgoingMarginOffset` for a planne
 transit cell), which runs through the source's own margin band; that is checked at the scene level in Task 3.2 (sealed-door
 oracle). The option `keepFirstHop` (re-routes may not change the first transit cell) removes the question by construction:
 14 re-routed, 199 unresolvable (+7.6% over 185, within K8's +25%), +20 cells.
+
+## 12. Router shipped (new v3 runs, flag `topologyRouting`)
+
+PR #489 (scene wiring of Task 3.2) was superseded: since it was held, v3 gained reseed over the full pipeline, dead-edge
+stubs with retreat and dead-edge walls, so the wiring is redone on main. What shipped:
+
+- **Flag.** A run is routed only when its persisted state carries `topologyRouting: true`, stamped at creation
+  (`topologyRoutingStateFor`, `NEW_RUN_TOPOLOGY_ROUTING`, like `deadEdgeWalls`). v1/v2 and a v3 run without the flag
+  behave exactly as before (golden digests: 40 seeds of v1, v2, and of the whole unflagged v3 pipeline).
+- **One routing function.** `routingForLayout(...)` (scripts/dungeon-layout.mjs) routes the layout's FINAL graph (stubs and
+  walled edges excluded, the same slots and door plan the scene builds with) and returns `routingFor(edgeId)`; the scene
+  (`routingFromState`), `planStubGeometries`/`layoutEdgeGeometry`/`plannedMarginOpenings`, `deadEdgeSets` and `nullPathEdges`
+  all use it, so the reseed's judgment, the stub placement and the built scene see the same corridors. The router's lane
+  search uses a deterministic node budget (5,000; 50,000 and 1,000 give the same routing on 1,000 layouts), and each
+  placer call memoises cell floors (a failing search on one layout took 13 s before, 0.3 s after).
+- **Unresolvable edges are dead edges.** A real edge the router cannot place is dead for every semantics (it would be drawn as a
+  fallback line), so the stub/wall planner stubs or walls it. A hidden shortcut or detour link that becomes unplaceable once
+  stubs and walls free door slots is stubbed too (3 of 500 layouts needed it).
+
+500 seeds, whole pipeline (reseed N = 20 -> router -> stubs -> walls), union oracle, same seeds with and without routing:
+
+| | unrouted | routed |
+|---|---|---|
+| dead real edges before stubs/walls (union) | 1,952 | 1,704 |
+| of which found-path dead (cut, not null path) | 419 | 171 |
+| stubs / walls (total) | 1,466 / 495 | 1,466 / 250 |
+| walls per dungeon | 0.99 | 0.50 |
+| rooms with 2+ live forward exits | 1,052 | 1,171 |
+| reachable rooms (of 7,441) / unreachable non-goal | 6,978 / 463 | 7,232 / 209 |
+| leaf rooms (no live exit) | 1,145 | 1,288 |
+| goal reachable, dead edges left, sealed progression doors, door/corridor mismatches | 500, 0, 0, 0 | 500, 0, 0, 0 |
+| reseed: candidates tried, first-try passes, max tries, exhausted | 654, 234, 18, 0 | identical |
+| run creation, mean / p95 / max (150 seeds, one process) | 142 / 473 / 1,407 ms | 203 / 684 / 2,789 ms |
+
+Router (stub-free graph, 500 layouts): 8,775 edges, 1,941 multi-cell, 1,769 placed on the shortest path, 32 re-routed, 140
+unresolvable, 62 extra cells over 4,630 (+1.3%), 17 first-hop changes and 0 last-hop changes (K8: the door/corridor coverage
+sweep and the sealed-progression-door check stay at 0 on the final scenes).
+
+What the router does not fix: sealed doors (1,201 of the 1,704 dead edges) are doors covered by a solid wall, not corridor
+cuts. Of the 171 found-path dead edges (150-seed breakdown, per cause) most are the unresolvable ones and adjacent-room edges
+(the router only routes multi-cell paths); about 30 per 150 seeds are laned edges still cut by a margin or flank wall outside the
+router's cell model.

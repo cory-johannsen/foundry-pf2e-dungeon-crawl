@@ -56,7 +56,9 @@ import {
 import { getGenerator } from "../generator-registry.mjs";
 import { retreatStateFor, retreatUiFor, hasNoWayForward } from "../dungeon-retreat.mjs";
 import { NEW_RUN_LAYOUT_VERSION } from "../dungeon-layout.mjs";
-import { chooseRunLayout, reseedStateFor, deadEdgeWallsStateFor } from "../dungeon-reseed.mjs";
+import {
+  chooseRunLayout, reseedStateFor, deadEdgeWallsStateFor, topologyRoutingStateFor, NEW_RUN_TOPOLOGY_ROUTING,
+} from "../dungeon-reseed.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -495,6 +497,7 @@ export async function startDungeonRun({
   // (room rects, doors, deck, encounters) then uses the FINAL seed, stored in state.seed.
   const chosen = await chooseRunLayout({
     generator: getGenerator(), seed: state.seed, roomCount, layoutVersion: NEW_RUN_LAYOUT_VERSION,
+    topologyRouting: NEW_RUN_TOPOLOGY_ROUTING,
     setpieceIds: { puzzle: puzzleSetpieceIds, trap: trapSetpieceIds, narrative: narrativeSetpieceIds, treasure: treasureSetpieceIds },
     // Candidates are CPU-bound (~25 ms each): hand the thread back between them so the 'generating' popup stays alive.
     yieldFn: () => new Promise((resolve) => setTimeout(resolve, 0)),
@@ -523,6 +526,8 @@ export async function startDungeonRun({
     ...(stubEdges ? { stubEdges } : {}),
     // #585: dead edges walled instead of built (absent = none; a run created before them has neither field).
     ...deadEdgeWallsStateFor(NEW_RUN_LAYOUT_VERSION, walledEdges),
+    // #427: corridors routed around each other (absent = a run created before the router; it keeps its geometry).
+    ...topologyRoutingStateFor(NEW_RUN_LAYOUT_VERSION, chosen.layout),
     layoutEdges,
     hiddenRooms: [...hiddenRooms],
     hiddenEdges,
