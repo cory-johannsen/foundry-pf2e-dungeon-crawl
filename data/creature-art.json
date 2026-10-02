@@ -25294,5 +25294,181 @@
     "name": "Elite Trained Vulkariki Eidolon",
     "level": 3,
     "art": "vulkariki-eidolon.webp"
+  },
+  {
+    "id": "mutant_cryptid_pine_pangolin",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "QoTiAPdSnxN6jfzF",
+    "name": "Mutant Cryptid Pine Pangolin",
+    "level": 8,
+    "art": "mutant-cryptid-pine-pangolin.webp"
+  },
+  {
+    "id": "dohv_dranna",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "R110GkevjeNDEfNb",
+    "name": "Steadied Dohv-Dranna",
+    "level": 10,
+    "art": "dohv-dranna.webp"
+  },
+  {
+    "id": "sronwa",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "R1S3vlOlNEEqW8kO",
+    "name": "Sronwa",
+    "level": 3,
+    "art": "sronwa.webp"
+  },
+  {
+    "id": "sronwa_5_6",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "RghG76jeaTeQCT6j",
+    "name": "Sronwa (5-6)",
+    "level": 5,
+    "art": "sronwa.webp"
+  },
+  {
+    "id": "assassins_guild_grenadier",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "Rq1k5VZAedG0BGn3",
+    "name": "Assassins' Guild Grenadier",
+    "level": 3,
+    "art": "assassins-guild-grenadier.webp"
+  },
+  {
+    "id": "ghostknife_infiltrator",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "bvhvwHYwL3VOEt8R",
+    "name": "Ghostknife Infiltrator",
+    "level": 3,
+    "art": "ghostknife-infiltrator.webp"
+  },
+  {
+    "id": "tough_ghostknife_infiltrator",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "S0LJTh5aCM7de0zE",
+    "name": "Tough Ghostknife Infiltrator",
+    "level": 5,
+    "art": "ghostknife-infiltrator.webp"
+  },
+  {
+    "id": "locust_knight",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "V5pKh6jxtdXLl1wE",
+    "name": "Locust Knight",
+    "level": 4,
+    "art": "locust-knight.webp"
+  },
+  {
+    "id": "hardened_locust_knight",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "SFfNRoOqDlefQN4q",
+    "name": "Hardened Locust Knight",
+    "level": 6,
+    "art": "locust-knight.webp"
+  },
+  {
+    "id": "firmagor",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "TRRlNkWX1EJnLNZi",
+    "name": "Firmagor",
+    "level": 4,
+    "art": "firmagor.webp"
+  },
+  {
+    "id": "enraged_firmagor",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "gHzc6zocHNWzMsm4",
+    "name": "Enraged Firmagor",
+    "level": 6,
+    "art": "firmagor.webp"
+  },
+  {
+    "id": "topiary_beast",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "TfhlACV07vdjfTCl",
+    "name": "Topiary Beast",
+    "level": 1,
+    "art": "topiary-beast.webp"
+  },
+  {
+    "id": "beastmaster_cultist",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "UJrYlFe8jydcY42U",
+    "name": "Beastmaster Cultist",
+    "level": 6,
+    "art": "beastmaster-cultist.webp"
+  },
+  {
+    "id": "trained_beastmaster_cultist",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "XNHZFmrAQTcSYgKY",
+    "name": "Trained Beastmaster Cultist",
+    "level": 8,
+    "art": "beastmaster-cultist.webp"
+  },
+  {
+    "id": "tisbah",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "kLL35GP9ZczW1tKV",
+    "name": "Tisbah",
+    "level": 2,
+    "art": "tisbah.webp"
+  },
+  {
+    "id": "tisbah_3_4",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "V5gA4pv3ewFxfY6L",
+    "name": "Tisbah (3-4)",
+    "level": 4,
+    "art": "tisbah.webp"
+  },
+  {
+    "id": "shadowborn_slayer",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "VNOQk9lAIaCT5QNW",
+    "name": "Shadowborn Slayer",
+    "level": 1,
+    "art": "shadowborn-slayer.webp"
+  },
+  {
+    "id": "omertius_the_engorged",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "YVUARKHWKUs8gWlr",
+    "name": "Omertius, The Engorged",
+    "level": 9,
+    "art": "omertius-the-engorged.webp"
+  },
+  {
+    "id": "287_s_ghost",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "YmQ71Om9pSUBgrqn",
+    "name": "287's Ghost",
+    "level": 7,
+    "art": "287-s-ghost.webp"
+  },
+  {
+    "id": "deskari_fantatic",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "Z7Rhe3GtUobh0RZ0",
+    "name": "Deskari Fantatic",
+    "level": 4,
+    "art": "deskari-fantatic.webp"
+  },
+  {
+    "id": "sewer_gator",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "b7jGiIJ1JDrwb4FC",
+    "name": "Sewer Gator",
+    "level": 6,
+    "art": "sewer-gator.webp"
+  },
+  {
+    "id": "toxic_sewer_gator",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "a91e870yzNM7jD93",
+    "name": "Toxic Sewer Gator",
+    "level": 8,
+    "art": "sewer-gator.webp"
   }
 ]
