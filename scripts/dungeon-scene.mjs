@@ -70,7 +70,7 @@ import {
   retreatTo,
   markStubOpened,
 } from "./dungeon-runner.mjs";
-import { canRetreat } from "./dungeon-retreat.mjs";
+import { canRetreat, hasNoWayForward } from "./dungeon-retreat.mjs";
 import { depthBiasFor } from "./dungeon-deck.mjs";
 import { startCombatForRoom } from "./dungeon-combat.mjs";
 import { playDoorSound } from "./dungeon-sound.mjs";
@@ -1857,6 +1857,8 @@ export async function handleDungeonDoorOpened(sceneId, wallId, deps = {}) {
         }
       }
       await unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildIds);
+      // #585: a rest room whose every way forward was walled is a dead end too.
+      await announceNoWayForward(scene, resolvedState, deps);
     }
 
     return { autoOpenTracker: room?.kind !== "combat" };
@@ -1886,12 +1888,30 @@ export async function announceRetreatIfAvailable(
     return;
   }
   const target = state.rooms?.[verdict.targetId]?.name ?? verdict.targetId;
-  const message = game.i18n.format("PF2EDC.Dungeon.Retreat.Card", { target });
+  // #585: a walled dead end has no rubble; its card just offers the turn back.
+  const walled = (state.stubEdges?.[state.currentRoomId] ?? []).length === 0;
+  const message = game.i18n.format(
+    walled ? "PF2EDC.Dungeon.Retreat.CardNoWay" : "PF2EDC.Dungeon.Retreat.Card",
+    { target },
+  );
   const label = game.i18n.localize("PF2EDC.Dungeon.Retreat.Button");
   await ChatMessage.create({
     content: `<p>${message}</p><button type="button" data-pf2edc-retreat>${label}</button>`,
     flags: { [MODULE_ID]: { retreatCard: { sceneId: scene.id } } },
   });
+}
+
+/**
+ * #585: a room that resolves with no walkable forward exit and no stub (every forward edge was walled) says so once,
+ * then offers Turn back like a discovered stub dead end does (autoRetreat turns back straight away). Runs created
+ * before the walls (no `deadEdgeWalls`) and rooms with a way forward or a stub say nothing.
+ */
+export async function announceNoWayForward(scene, state, deps = {}) {
+  if (!hasNoWayForward(state)) return;
+  await ChatMessage.create({
+    content: game.i18n.localize("PF2EDC.Dungeon.Retreat.NoWayForward"),
+  });
+  await announceRetreatIfAvailable(scene, state, deps);
 }
 
 /** #439: turn the party back to the nearest fork. Tokens are teleported
@@ -1940,10 +1960,12 @@ export async function retreatToFork(
   });
   if (!result.ok) return { ok: false, reason: result.reason };
   focusCameraOnRoom(scene, target, rank, col, state.seed);
+  const walled = (state.stubEdges?.[state.currentRoomId] ?? []).length === 0;
   await ChatMessage.create({
-    content: game.i18n.format("PF2EDC.Dungeon.Retreat.Turned", {
-      target: state.rooms[target]?.name ?? target,
-    }),
+    content: game.i18n.format(
+      walled ? "PF2EDC.Dungeon.Retreat.TurnedNoWay" : "PF2EDC.Dungeon.Retreat.Turned",
+      { target: state.rooms[target]?.name ?? target },
+    ),
   });
   return { ok: true };
 }

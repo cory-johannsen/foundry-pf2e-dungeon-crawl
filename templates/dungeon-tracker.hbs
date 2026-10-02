@@ -316,6 +316,11 @@
               }}</button>
           </footer>
         {{/if}}
+        {{#if noWayForward}}
+          <p class="pf2edc-dungeon__no-way">{{localize
+              "PF2EDC.Dungeon.Retreat.NoWayForward"
+            }}</p>
+        {{/if}}
         {{#if canRetreat}}
           <footer>
             <button type="button" data-action="retreat">{{localize

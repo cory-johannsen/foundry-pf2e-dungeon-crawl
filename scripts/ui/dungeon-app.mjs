@@ -38,6 +38,7 @@ import {
   placePartyInRoom,
   undoRoomEntry,
   retreatToFork,
+  announceNoWayForward,
   focusCameraOnRoom,
   teardownDungeonRun,
   buildPopulateAndUnlockGraphNode,
@@ -53,7 +54,7 @@ import {
   unpauseIfGmLessRun,
 } from "../dungeon-combat.mjs";
 import { getGenerator } from "../generator-registry.mjs";
-import { retreatStateFor, retreatUiFor } from "../dungeon-retreat.mjs";
+import { retreatStateFor, retreatUiFor, hasNoWayForward } from "../dungeon-retreat.mjs";
 import { NEW_RUN_LAYOUT_VERSION } from "../dungeon-layout.mjs";
 import { chooseRunLayout, reseedStateFor, deadEdgeWallsStateFor } from "../dungeon-reseed.mjs";
 
@@ -276,6 +277,8 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
       }
     }
     await unlockDoorsFromRoom(scene, currentRoom.id, childIds, hiddenChildIds);
+    // #585: no walkable way forward and no stub (every exit was walled): say so and offer Turn back.
+    await announceNoWayForward(scene, state);
   }
   if (state?.completed) await sweepCompletedDungeonScene(scene);
 }
@@ -1131,6 +1134,8 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       canUndo: canUndoRoomEntry(state),
       // #439: Turn back / Reset retreat path; both false for v1/v2 runs and
       // (Decision 10) Turn back stays false until the stub door is opened.
+      // #585: a resolved room whose every exit was walled: the tracker says so (Turn back follows canRetreat).
+      noWayForward: currentRoomResolved && hasNoWayForward(state),
       ...retreatUiFor(state, {
         isGM: !!game.user?.isGM,
         combatActive: !!game.combats?.some?.(
