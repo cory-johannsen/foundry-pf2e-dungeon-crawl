@@ -34454,5 +34454,165 @@
     "name": "Syu Tak-nwa (Level 20)",
     "level": 20,
     "art": "syu-tak-nwa.webp"
+  },
+  {
+    "id": "grave_spinosaurus",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "T5KMiSE8W1R8ChbV",
+    "name": "Grave Spinosaurus",
+    "level": 15,
+    "art": "grave-spinosaurus.webp"
+  },
+  {
+    "id": "elder_cauthooj",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "TEHxsglxWi1i3jSN",
+    "name": "Elder Cauthooj",
+    "level": 14,
+    "art": "elder-cauthooj.webp"
+  },
+  {
+    "id": "troff_frostknuckles",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "TTEcqxuMqzIdkX6q",
+    "name": "Troff Frostknuckles",
+    "level": 14,
+    "art": "troff-frostknuckles.webp"
+  },
+  {
+    "id": "gumiho",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "TbImjEpxYO5tsJIA",
+    "name": "Gumiho",
+    "level": 17,
+    "art": "gumiho.webp"
+  },
+  {
+    "id": "speakers_to_the_wind",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "TjmD89wG7qQ0tRXj",
+    "name": "Speakers to the Wind (Gnoll Cascade Bearer)",
+    "level": 13,
+    "art": "speakers-to-the-wind.webp"
+  },
+  {
+    "id": "ghost_monk",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "TqKFvTmJnhdclCgt",
+    "name": "Ghost Monk",
+    "level": 9,
+    "art": "ghost-monk.webp"
+  },
+  {
+    "id": "cloudsplitter",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "UbXvVA3ZdSN6pj1j",
+    "name": "Cloudsplitter",
+    "level": 18,
+    "art": "cloudsplitter.webp"
+  },
+  {
+    "id": "inmyeonjo",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "VEnxFwTAhyO03Yse",
+    "name": "Inmyeonjo",
+    "level": 16,
+    "art": "inmyeonjo.webp"
+  },
+  {
+    "id": "melodic_squall",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "VGJF0jWWnA4ljfZE",
+    "name": "Melodic Squall",
+    "level": 16,
+    "art": "melodic-squall.webp"
+  },
+  {
+    "id": "koto_zekora",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "XiO3tJlYmuZwOBaA",
+    "name": "Koto Zekora",
+    "level": 17,
+    "art": "koto-zekora.webp"
+  },
+  {
+    "id": "archery_specialist",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "YHSV9DfaqoaSggLi",
+    "name": "Archery Specialist",
+    "level": 13,
+    "art": "archery-specialist.webp"
+  },
+  {
+    "id": "sanzuwu",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "YHbBs2Jq6ukngOra",
+    "name": "Sanzuwu",
+    "level": 15,
+    "art": "sanzuwu.webp"
+  },
+  {
+    "id": "caustic_monitor",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "YVP3pM7jxY9Gyouy",
+    "name": "Caustic Monitor",
+    "level": 13,
+    "art": "caustic-monitor.webp"
+  },
+  {
+    "id": "orochi",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "Yg0lmfxyBSggOkUp",
+    "name": "Orochi",
+    "level": 18,
+    "art": "orochi.webp"
+  },
+  {
+    "id": "xun",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "ZoBq423Q9PMa3rDV",
+    "name": "Master Xun",
+    "level": 14,
+    "art": "xun.webp"
+  },
+  {
+    "id": "tyrannosaurus_imperator",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "Zp6lrCF3JwpdfKyK",
+    "name": "Tyrannosaurus Imperator",
+    "level": 14,
+    "art": "tyrannosaurus-imperator.webp"
+  },
+  {
+    "id": "mafika_ayuwari",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "blm15iXMR3Lbwdom",
+    "name": "Mafika Ayuwari",
+    "level": 17,
+    "art": "mafika-ayuwari.webp"
+  },
+  {
+    "id": "shadow_yai",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "cg1kQPO3FBSCFDVt",
+    "name": "Shadow Yai",
+    "level": 16,
+    "art": "shadow-yai.webp"
+  },
+  {
+    "id": "canopy_elder",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "d7fBEPfzXSeCZZXE",
+    "name": "Canopy Elder",
+    "level": 19,
+    "art": "canopy-elder.webp"
+  },
+  {
+    "id": "anugobu_apprentice",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "dTcsY3v9lg4BRrsj",
+    "name": "Anugobu Apprentice",
+    "level": 3,
+    "art": "anugobu-apprentice.webp"
   }
 ]
