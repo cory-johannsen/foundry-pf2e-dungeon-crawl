@@ -175,3 +175,11 @@ describe('enforced routing (persistent ComfyUI failure classes)', () => {
     expect(src).toMatch(/--backend=comfyui overrides this/);
   });
 });
+
+describe('hybrid model preference', () => {
+  it('generator uses Krea for centaur-type hybrids', () => {
+    const src = readFileSync(new URL('../tools/generate-token-art.mjs', import.meta.url), 'utf8');
+    expect(src).toMatch(/\/centaur\/\.test\(s\.id\)/);
+    expect(src).toContain("override: 'krea/krea-2-medium-turbo'");
+  });
+});
