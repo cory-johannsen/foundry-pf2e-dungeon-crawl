@@ -140,15 +140,21 @@ export function geminiFirstCandidates(allRows, { minN = 4, minRate = 60 } = {}) 
   return out;
 }
 
-/** Recommended first backend for a creature name under data/token-art-routing.json rules. */
-export function routeFor(name, rules) {
+/**
+ * Recommended first backend for a creature under data/token-art-routing.json
+ * rules. Anything the rules match is known to fail on ComfyUI, so the answer is
+ * 'openrouter' (Gemini is out of credits); everything else is 'comfyui'.
+ * `id` is the generator entry id, matched against rules.ids.
+ */
+export function routeFor(name, rules, id = null) {
+  if (id && (rules.ids ?? []).includes(id)) return { backend: 'openrouter', why: `id "${id}" is a catalogued ComfyUI failure` };
   const n = String(name ?? '').toLowerCase();
   const hit = (rules.keywords ?? []).find((k) => n.includes(k.toLowerCase()));
-  if (hit) return { backend: 'gemini', why: `name matches "${hit}"` };
+  if (hit) return { backend: 'openrouter', why: `name matches "${hit}"` };
   const kind = kindOf(name);
-  if ((rules.kinds ?? []).includes(kind)) return { backend: 'gemini', why: `kind "${kind}"` };
+  if ((rules.kinds ?? []).includes(kind)) return { backend: 'openrouter', why: `kind "${kind}"` };
   const v = `${kind}/${variantOf(name)}`;
-  if ((rules.kindVariants ?? []).includes(v)) return { backend: 'gemini', why: `kind/variant "${v}"` };
+  if ((rules.kindVariants ?? []).includes(v)) return { backend: 'openrouter', why: `kind/variant "${v}"` };
   return { backend: 'comfyui', why: 'no rule matched' };
 }
 
