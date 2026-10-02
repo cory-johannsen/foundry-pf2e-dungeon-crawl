@@ -27262,5 +27262,141 @@
     "name": "Shadowpact Vampire",
     "level": 9,
     "art": "shadowpact-vampire.webp"
+  },
+  {
+    "id": "sarkorian_red_bison",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "ZU8KOnWF8rOEFfsF",
+    "name": "Sarkorian Red Bison",
+    "level": 8,
+    "art": "sarkorian-red-bison.webp"
+  },
+  {
+    "id": "shadowpact_stone_bulwark",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "aBz4XFVOnNtkS2Fx",
+    "name": "Shadowpact Stone Bulwark",
+    "level": 11,
+    "art": "shadowpact-stone-bulwark.webp"
+  },
+  {
+    "id": "umberweed",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "hnmnIi97RaE24dqh",
+    "name": "Umberweed",
+    "level": 2,
+    "art": "umberweed.webp"
+  },
+  {
+    "id": "mischievous_umberweed",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "bSToMBsNPqlCLL8Y",
+    "name": "Mischievous Umberweed",
+    "level": 4,
+    "art": "umberweed.webp"
+  },
+  {
+    "id": "inhabited_statue",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "bsr7ZIYYMwmApxzw",
+    "name": "Inhabited Statue",
+    "level": 3,
+    "art": "inhabited-statue.webp"
+  },
+  {
+    "id": "ulfen_witchguard",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "d0aM4MIS4Pa37yfW",
+    "name": "Ulfen Witchguard",
+    "level": 4,
+    "art": "ulfen-witchguard.webp"
+  },
+  {
+    "id": "demonic_river_drake",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "dCIHriuIvqhS1SDB",
+    "name": "Demonic River Drake",
+    "level": 3,
+    "art": "demonic-river-drake.webp"
+  },
+  {
+    "id": "shadowpact_shadow",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "dYT5imrNO0oEGmaz",
+    "name": "Shadowpact Shadow",
+    "level": 7,
+    "art": "shadowpact-shadow.webp"
+  },
+  {
+    "id": "chelaxian_mage",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "eOYuuZz5EAnQ91zA",
+    "name": "Chelaxian Mage",
+    "level": 6,
+    "art": "chelaxian-mage.webp"
+  },
+  {
+    "id": "xurgimoth",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "eWVvyriH1S9HFIH0",
+    "name": "Weak Xurgimoth",
+    "level": 7,
+    "art": "xurgimoth.webp"
+  },
+  {
+    "id": "sharkskin",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "ehJSJV5ojAmaDa4r",
+    "name": "Sharkskin",
+    "level": 7,
+    "art": "sharkskin.webp"
+  },
+  {
+    "id": "oozeshard",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "fGs4dA3CTZo5xuHS",
+    "name": "Oozeshard",
+    "level": 8,
+    "art": "oozeshard.webp"
+  },
+  {
+    "id": "zombie_leshy",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "fUptgBB85gl6Gza2",
+    "name": "Zombie Leshy",
+    "level": 1,
+    "art": "zombie-leshy.webp"
+  },
+  {
+    "id": "shadowpact_goliath_spider",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "g3uoVDefLugxcsVF",
+    "name": "Shadowpact Goliath Spider",
+    "level": 11,
+    "art": "shadowpact-goliath-spider.webp"
+  },
+  {
+    "id": "shadowpact_tarantula",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "gAUi1o6aCiOHnt8e",
+    "name": "Shadowpact Tarantula",
+    "level": 6,
+    "art": "shadowpact-tarantula.webp"
+  },
+  {
+    "id": "blood_awakened_tree",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "hIWGQg4qYQkU5lT7",
+    "name": "Blood-Awakened Tree",
+    "level": 5,
+    "art": "blood-awakened-tree.webp"
+  },
+  {
+    "id": "elite_concentrated_congealed_magic",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "tiPPgdHWXNWE7LKF",
+    "name": "Elite Concentrated Congealed Magic",
+    "level": 5,
+    "art": "congealed-magic.webp"
   }
 ]
