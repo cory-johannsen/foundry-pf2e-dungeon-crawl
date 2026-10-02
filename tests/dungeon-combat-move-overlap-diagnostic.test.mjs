@@ -3,6 +3,7 @@ import {
   reportMoveOverlap,
   stepToward,
   strideByPosture,
+  pushTokenAway,
 } from "../scripts/dungeon-combat.mjs";
 
 // #554: diagnostic-only reporting of moves that end on another combatant.
@@ -116,18 +117,18 @@ describe("reportMoveOverlap (#554)", () => {
   });
 
   it("never throws on malformed data", async () => {
-    await expect(reportMoveOverlap({})).resolves.toBeUndefined();
+    await expect(reportMoveOverlap({})).resolves.toBe(false);
     const a = args();
     a.combatant.token = undefined;
-    await expect(reportMoveOverlap(a)).resolves.toBeUndefined();
+    await expect(reportMoveOverlap(a)).resolves.toBe(false);
     await expect(
       reportMoveOverlap({ ...args(), combat: { combatants: null } }),
-    ).resolves.toBeUndefined();
+    ).resolves.toBe(false);
   });
 
   it("never throws when the chat post itself fails", async () => {
     ChatMessage.create.mockRejectedValue(new Error("boom"));
-    await expect(reportMoveOverlap(args())).resolves.toBeUndefined();
+    await expect(reportMoveOverlap(args())).resolves.toBe(false);
   });
 
   it("flags occupantsChanged when a live footprint differs from the snapshot", async () => {
@@ -164,6 +165,59 @@ describe("real moves ending on a free cell emit no diagnostic (#554)", () => {
     const p = stepToward(combat, mover, target, 8);
     await vi.runAllTimersAsync();
     expect(await p).toBe("moved");
+    expect(warn).not.toHaveBeenCalled();
+    expect(created).toHaveLength(0);
+  });
+});
+
+describe("pre-move overlap reporting (#554)", () => {
+  it("reports an overlap already present before the move, once, with pre-move kind", async () => {
+    const mover = makeCombatant({ id: "m", name: "Greedspawn", x: 3 * G, y: 0 });
+    const fighter = makeCombatant({ id: "f", name: "Fighter", x: 3 * G, y: 0, disposition: 1 });
+    const combat = makeCombat([mover, fighter]);
+    // distance 1 -> "already-there" early return; must still report once.
+    expect(await stepToward(combat, mover, fighter, 1)).toBe("already-there");
+    expect(created).toHaveLength(1);
+    expect(created[0].content).toContain('"kind": "stepToward:pre-move"');
+    expect(created[0].content).toContain('"snapMoved": false');
+    expect(created[0].content).toContain('"earlyReturnPossible": true');
+    expect(warn).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports a snap that lands the mover on an occupied cell", async () => {
+    const mover = makeCombatant({ id: "m", name: "Greedspawn", x: 2.6 * G, y: 0 });
+    const fighter = makeCombatant({ id: "f", name: "Fighter", x: 3 * G, y: 0, disposition: 1 });
+    const combat = makeCombat([mover, fighter]);
+    await strideByPosture(combat, mover, "approach", null);
+    expect(created).toHaveLength(1);
+    expect(created[0].content).toContain('"kind": "strideByPosture:pre-move"');
+    expect(created[0].content).toContain('"snapMoved": true');
+    expect(created[0].content).toContain("260");
+    expect(created[0].content).toContain('"preSnapPosition"');
+  });
+
+  it("emits at most one whisper per call when pre-move already reported", async () => {
+    const mover = makeCombatant({ id: "m", x: 0, y: 0 });
+    const fighter = makeCombatant({ id: "f", x: 0, y: 0, disposition: 1 });
+    const far = makeCombatant({ id: "t", x: 8 * G, y: 0, disposition: 1 });
+    const combat = makeCombat([mover, fighter, far]);
+    vi.useFakeTimers();
+    const p = strideByPosture(combat, mover, "approach", far);
+    await vi.runAllTimersAsync();
+    await p;
+    expect(created.length).toBeLessThanOrEqual(1);
+    expect(created).toHaveLength(1);
+  });
+
+  it("pushTokenAway on a normal push emits nothing and still moves", async () => {
+    const attacker = makeCombatant({ id: "a", x: 0, y: 0, disposition: 1 });
+    const victim = makeCombatant({ id: "v", x: 1 * G, y: 0 });
+    const combat = makeCombat([attacker, victim]);
+    vi.useFakeTimers();
+    const p = pushTokenAway(combat, attacker, victim, 1);
+    await vi.runAllTimersAsync();
+    await p;
+    expect(victim.token.x).toBe(2 * G);
     expect(warn).not.toHaveBeenCalled();
     expect(created).toHaveLength(0);
   });

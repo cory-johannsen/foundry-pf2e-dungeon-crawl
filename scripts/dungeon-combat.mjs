@@ -2153,6 +2153,7 @@ export async function reportMoveOverlap({
   speedSquares,
   stopWithin,
   gridSize,
+  extra = null,
 }) {
   try {
     const grid = gridSize ?? combat.scene?.grid?.size ?? 100;
@@ -2175,7 +2176,7 @@ export async function reportMoveOverlap({
         };
       });
     const hit = liveOthers.filter((o) => !o.isDefeated && overlaps(mine, o.fp));
-    if (!hit.length) return;
+    if (!hit.length) return false;
 
     const key = (f) => `${f.gx},${f.gy},${f.gw},${f.gh}`;
     const liveAliveKeys = liveOthers
@@ -2215,6 +2216,7 @@ export async function reportMoveOverlap({
       round: combat.round ?? null,
       turn: combat.turn ?? null,
       moduleVersion: game.modules?.get?.(MODULE_ID)?.version ?? null,
+      ...(extra ?? {}),
     };
     console.warn(
       "pf2e-dungeon-crawl | move ended overlapping a combatant",
@@ -2233,9 +2235,44 @@ export async function reportMoveOverlap({
         )}</pre></details>`,
       whisper: gmIds,
     });
+    return true;
   } catch (err) {
     console.debug("pf2e-dungeon-crawl | reportMoveOverlap failed", err);
+    return false;
   }
+}
+
+/** #554 diagnostic: the pre-move variant of reportMoveOverlap, called right
+ * after a mover function's own snapTokenToGrid and before any early return
+ * can fire -- catches an overlap that already existed or that the snap
+ * itself produced (`preSnap` is the token's raw {x, y} captured before the
+ * snap). Returns whether it reported, so the post-walk check can skip a
+ * duplicate whisper for the same call. Never throws, never moves anything. */
+async function reportPreMoveOverlap(fn, combat, combatant, preSnap, gridSize, target) {
+  try {
+    const t = combatant.token;
+    return await reportMoveOverlap({
+      combat,
+      combatant,
+      kind: `${fn}:pre-move`,
+      targetCombatant: target ?? null,
+      startCell: tokenCell(t, gridSize),
+      gridSize,
+      extra: {
+        preSnapPosition: preSnap,
+        snapMoved: preSnap.x !== t.x || preSnap.y !== t.y,
+        earlyReturnPossible: true,
+      },
+    });
+  } catch (err) {
+    console.debug("pf2e-dungeon-crawl | reportPreMoveOverlap failed", err);
+    return false;
+  }
+}
+
+/** Raw {x, y} of `token` for the #554 pre-snap capture; never throws. */
+function rawPosition(token) {
+  return { x: token?.x, y: token?.y };
 }
 
 /**
@@ -2296,7 +2333,16 @@ function walkPath(
  */
 export async function stepToward(combat, combatant, target, distanceSquares) {
   const gridSize = combat.scene?.grid?.size ?? 100;
+  const preSnap = rawPosition(combatant.token);
   await snapTokenToGrid(combatant.token, gridSize);
+  const preReported = await reportPreMoveOverlap(
+    "stepToward",
+    combat,
+    combatant,
+    preSnap,
+    gridSize,
+    target,
+  );
   if (distanceSquares <= MELEE_REACH_SQUARES) return "already-there";
   const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
   // Confirmed live: an NPC's land speed lives at system.movement.speeds.land,
@@ -2328,6 +2374,7 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
   );
   if (!waypoint) return "blocked";
   await walkTokenThroughSteps(me, waypoint.steps, gridSize);
+  if (!preReported)
   await reportMoveOverlap({
     combat,
     combatant,
@@ -2364,7 +2411,16 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
  */
 export async function pushTokenAway(combat, attacker, target, distanceSquares) {
   const gridSize = combat.scene?.grid?.size ?? 100;
+  const preSnap = rawPosition(target.token);
   await snapTokenToGrid(target.token, gridSize);
+  const preReported = await reportPreMoveOverlap(
+    "pushTokenAway",
+    combat,
+    target,
+    preSnap,
+    gridSize,
+    attacker,
+  );
   const moverFootprint = footprint(target.token, gridSize);
   const start = tokenCell(target.token, gridSize);
   const awayFrom = tokenCell(attacker.token, gridSize);
@@ -2392,6 +2448,7 @@ export async function pushTokenAway(combat, attacker, target, distanceSquares) {
   );
   if (!waypoint) return;
   await walkTokenThroughSteps(target.token, waypoint.steps, gridSize);
+  if (!preReported)
   await reportMoveOverlap({
     combat,
     combatant: target,
@@ -3490,7 +3547,16 @@ export async function getPendingAgentTurn(combat) {
  * speed to move, or if no usable path exists. */
 export async function strideByPosture(combat, combatant, posture, target) {
   const gridSize = combat.scene?.grid?.size ?? 100;
+  const preSnap = rawPosition(combatant.token);
   await snapTokenToGrid(combatant.token, gridSize);
+  const preReported = await reportPreMoveOverlap(
+    "strideByPosture",
+    combat,
+    combatant,
+    preSnap,
+    gridSize,
+    target,
+  );
   const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
   const speedFt = combatant.actor?.system?.movement?.speeds?.land?.value ?? 0;
   const speedSquares = Math.floor(speedFt / gridDistanceFt);
@@ -3530,6 +3596,7 @@ export async function strideByPosture(combat, combatant, posture, target) {
   );
   if (!waypoint) return "blocked";
   await walkTokenThroughSteps(me, waypoint.steps, gridSize);
+  if (!preReported)
   await reportMoveOverlap({
     combat,
     combatant,
