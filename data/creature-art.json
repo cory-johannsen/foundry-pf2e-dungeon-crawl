@@ -30590,5 +30590,125 @@
     "name": "Obsidian Golem",
     "level": 16,
     "art": "obsidian-golem.webp"
+  },
+  {
+    "id": "viktor_volkano",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "JvSCGGnexk7CmVke",
+    "name": "Viktor Volkano",
+    "level": 2,
+    "art": "viktor-volkano.webp"
+  },
+  {
+    "id": "pinacosaurus",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "KXNSBeUWLxMfd2Zg",
+    "name": "Pinacosaurus",
+    "level": 4,
+    "art": "pinacosaurus.webp"
+  },
+  {
+    "id": "horba",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "L25SQceNMS8IstYI",
+    "name": "Horba",
+    "level": 2,
+    "art": "horba.webp"
+  },
+  {
+    "id": "cu_sith",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "N8ekzW9snBA2YAKv",
+    "name": "Cu Sith",
+    "level": 7,
+    "art": "cu-sith.webp"
+  },
+  {
+    "id": "daring_danika",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "NBCqA1NLRlhMuqGl",
+    "name": "Daring Danika",
+    "level": 2,
+    "art": "daring-danika.webp"
+  },
+  {
+    "id": "xilvirek",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "NITxPebTwserqASe",
+    "name": "Xilvirek",
+    "level": 12,
+    "art": "xilvirek.webp"
+  },
+  {
+    "id": "dyzallin_shraen",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "NgmbMRekIHiA44lg",
+    "name": "Dyzallin Shraen",
+    "level": 19,
+    "art": "dyzallin-shraen.webp"
+  },
+  {
+    "id": "shoony_militia_member",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "OCrQtfKDFpLedE13",
+    "name": "Shoony Militia Member",
+    "level": 2,
+    "art": "shoony-militia-member.webp"
+  },
+  {
+    "id": "zashathal_head_taker",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "OqThOmNrdW3HVa7k",
+    "name": "Zashathal Head-Taker",
+    "level": 15,
+    "art": "zashathal-head-taker.webp"
+  },
+  {
+    "id": "urdefhan_hunter",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "PYvtflsrA9ITevEq",
+    "name": "Urdefhan Hunter",
+    "level": 12,
+    "art": "urdefhan-hunter.webp"
+  },
+  {
+    "id": "lakkai_one_fang",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "Plig7vUF9cEY1VBJ",
+    "name": "Lakkai One-Fang",
+    "level": 3,
+    "art": "lakkai-one-fang.webp"
+  },
+  {
+    "id": "ararda",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "PpAOxz6ayvkn0fMK",
+    "name": "Ararda",
+    "level": 18,
+    "art": "ararda.webp"
+  },
+  {
+    "id": "corrupted_retainer",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "Q3Z0rIINoWYxVSrS",
+    "name": "Corrupted Retainer",
+    "level": 2,
+    "art": "corrupted-retainer.webp"
+  },
+  {
+    "id": "helg_eats_the_eaters",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "QFScy7QFB7PIeTEa",
+    "name": "Helg Eats-The-Eaters",
+    "level": 15,
+    "art": "helg-eats-the-eaters.webp"
+  },
+  {
+    "id": "mistress_dusklight",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "QMFlW9qrUKWBOF1Q",
+    "name": "Mistress Dusklight",
+    "level": 11,
+    "art": "mistress-dusklight.webp"
   }
 ]
