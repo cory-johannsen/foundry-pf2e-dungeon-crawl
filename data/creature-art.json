@@ -33318,5 +33318,125 @@
     "name": "Ancient Wisp",
     "level": 10,
     "art": "ancient-wisp.webp"
+  },
+  {
+    "id": "terrion_numesti",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "etrlNmJRUWDKbKwG",
+    "name": "Terrion Numesti",
+    "level": 9,
+    "art": "terrion-numesti.webp"
+  },
+  {
+    "id": "wild_hunt_scout",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "fQ9FuovHuRt6vtcq",
+    "name": "Wild Hunt Scout",
+    "level": 18,
+    "art": "wild-hunt-scout.webp"
+  },
+  {
+    "id": "bloomborn_athach",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "fbsy6zPV4HjHiis7",
+    "name": "Bloomborn Athach",
+    "level": 17,
+    "art": "bloomborn-athach.webp"
+  },
+  {
+    "id": "kereek",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "fiBhPqM2lomswplt",
+    "name": "Kereek",
+    "level": 5,
+    "art": "kereek.webp"
+  },
+  {
+    "id": "davik_nettles",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "fs1iFoZmJF1iUWwX",
+    "name": "Davik Nettles",
+    "level": 4,
+    "art": "davik-nettles.webp"
+  },
+  {
+    "id": "ghostly_guard",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "gXbDaY9ci2u22ptT",
+    "name": "Ghostly Guard",
+    "level": 15,
+    "art": "ghostly-guard.webp"
+  },
+  {
+    "id": "nishkiv_the_knife",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "gdTJOwXUwwhKAzlR",
+    "name": "Nishkiv the Knife",
+    "level": 1,
+    "art": "nishkiv-the-knife.webp"
+  },
+  {
+    "id": "jamandi_aldori",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "h73Up6EQZqtgh6gP",
+    "name": "Jamandi Aldori",
+    "level": 14,
+    "art": "jamandi-aldori.webp"
+  },
+  {
+    "id": "malgorzata_niska",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "hGLp8mkvx8J8DDL8",
+    "name": "Malgorzata Niska",
+    "level": 5,
+    "art": "malgorzata-niska.webp"
+  },
+  {
+    "id": "primal_bandersnatch",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "hLBHFloWuXLjCQYH",
+    "name": "Primal Bandersnatch",
+    "level": 19,
+    "art": "primal-bandersnatch.webp"
+  },
+  {
+    "id": "annamede_belavarah",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "hLvxvLere6DruDLJ",
+    "name": "Annamede Belavarah",
+    "level": 8,
+    "art": "annamede-belavarah.webp"
+  },
+  {
+    "id": "thresholder_mystic",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "htHgsx1COWOfhE3D",
+    "name": "Thresholder Mystic",
+    "level": 17,
+    "art": "thresholder-mystic.webp"
+  },
+  {
+    "id": "centaur_scout",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "hywUu3wVDuXePx3e",
+    "name": "Centaur Scout",
+    "level": 5,
+    "art": "centaur-scout.webp"
+  },
+  {
+    "id": "nyrissa",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "j7fPCy71EfQL1KmU",
+    "name": "Nyrissa",
+    "level": 23,
+    "art": "nyrissa.webp"
+  },
+  {
+    "id": "goblin_bat_dog",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "jFA0q3g3MsFxS3xO",
+    "name": "Goblin Bat-Dog",
+    "level": 4,
+    "art": "goblin-bat-dog.webp"
   }
 ]
