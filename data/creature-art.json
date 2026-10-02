@@ -27678,5 +27678,189 @@
     "name": "Big Katsu",
     "level": 4,
     "art": "katsu.webp"
+  },
+  {
+    "id": "marshy_snapdrake",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "1sswwOStdEzuYFj5",
+    "name": "Marshy Snapdrake",
+    "level": 8,
+    "art": "marshy-snapdrake.webp"
+  },
+  {
+    "id": "pirate_goblin",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "42CDa8VdpSxgdooS",
+    "name": "Pirate Goblin",
+    "level": -1,
+    "art": "pirate-goblin.webp"
+  },
+  {
+    "id": "ogre_hunter",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "4e3nTysxN8Yz27ZH",
+    "name": "Ogre Hunter",
+    "level": 9,
+    "art": "ogre-hunter.webp"
+  },
+  {
+    "id": "kalagemmon_decayed_resentment_witch",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "5X1SYNuwDRKFdHij",
+    "name": "Kalagemmon, Decayed Resentment Witch",
+    "level": 3,
+    "art": "kalagemmon-decayed-resentment-witch.webp"
+  },
+  {
+    "id": "demonologist_61bhr",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "61BHReqSkicuE8Dz",
+    "name": "Demonologist",
+    "level": 7,
+    "art": "demonologist.webp"
+  },
+  {
+    "id": "greater_demonologist",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "wFQyPlsanAsARNJf",
+    "name": "Greater Demonologist",
+    "level": 9,
+    "art": "demonologist.webp"
+  },
+  {
+    "id": "eye_of_choral",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "6KDLEO0y33QX4lTb",
+    "name": "Eye of Choral",
+    "level": 7,
+    "art": "eye-of-choral.webp"
+  },
+  {
+    "id": "naiad_warrior",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "6QGeuunQZRNvtx9L",
+    "name": "Naiad Warrior",
+    "level": 3,
+    "art": "naiad-warrior.webp"
+  },
+  {
+    "id": "pirate_gorilla",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "6u92gcfDEM8UgMJQ",
+    "name": "Pirate Gorilla",
+    "level": 2,
+    "art": "pirate-gorilla.webp"
+  },
+  {
+    "id": "imp_minion",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "BeaQYUmT1DrnFxpR",
+    "name": "Imp Minion",
+    "level": 1,
+    "art": "imp-minion.webp"
+  },
+  {
+    "id": "imp_minion_3_4",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "xaoetADwlJqF8Hy0",
+    "name": "Imp Minion (3-4)",
+    "level": 2,
+    "art": "imp-minion.webp"
+  },
+  {
+    "id": "naiad_water_defender",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "Boi0rYXIXLQ2gee5",
+    "name": "Naiad Water Defender",
+    "level": 7,
+    "art": "naiad-water-defender.webp"
+  },
+  {
+    "id": "undead_hellknight_maralictor",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "DQLXeha5TehcbX2n",
+    "name": "Undead Hellknight Maralictor",
+    "level": 7,
+    "art": "undead-hellknight-maralictor.webp"
+  },
+  {
+    "id": "olinda_posandi",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "GD8dO41GvkdPQTT9",
+    "name": "Olinda Posandi",
+    "level": 1,
+    "art": "olinda-posandi.webp"
+  },
+  {
+    "id": "olinda_posandi_3_4",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "McQbKbTiy38rEEna",
+    "name": "Olinda Posandi (3-4)",
+    "level": 3,
+    "art": "olinda-posandi.webp"
+  },
+  {
+    "id": "thoroughbred_nightmare",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "HRGx74hvyLwpAzYx",
+    "name": "Thoroughbred Nightmare",
+    "level": 9,
+    "art": "thoroughbred-nightmare.webp"
+  },
+  {
+    "id": "gloom_bulwark",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "ILno59HeyBptm3ez",
+    "name": "Gloom Bulwark",
+    "level": 6,
+    "art": "gloom-bulwark.webp"
+  },
+  {
+    "id": "naiad_commander",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "IZEACOQ6B09yLtTa",
+    "name": "Naiad Commander",
+    "level": 6,
+    "art": "naiad-commander.webp"
+  },
+  {
+    "id": "timonithaea",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "UG5iXBqsLxRifjSW",
+    "name": "Timonithaea",
+    "level": 7,
+    "art": "timonithaea.webp"
+  },
+  {
+    "id": "timonithaea_7_9",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "Idl8zxFPu9dyRA5h",
+    "name": "Timonithaea (7-9)",
+    "level": 9,
+    "art": "timonithaea.webp"
+  },
+  {
+    "id": "skeleton_guard_qyzdy",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "QYzdYO3GoxML2RC3",
+    "name": "Skeleton Guard",
+    "level": -1,
+    "art": "skeleton-guard.webp"
+  },
+  {
+    "id": "lesser_marsh_giant",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "djUdn9CVNR8ZfZye",
+    "name": "Lesser Marsh Giant",
+    "level": 6,
+    "art": "marsh-giant.webp"
+  },
+  {
+    "id": "hellknight_armiger",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "fdr7uCxIjCTEBnqs",
+    "name": "Hellknight Armiger",
+    "level": 4,
+    "art": "hellknight-armiger-lob.webp"
   }
 ]
