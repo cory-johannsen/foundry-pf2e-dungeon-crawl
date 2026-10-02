@@ -26462,5 +26462,189 @@
     "name": "Elite Animated Flame",
     "level": 2,
     "art": "animated-flame.webp"
+  },
+  {
+    "id": "acid_ooze",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "8pwRaEdE6KOJtqME",
+    "name": "Acid Ooze",
+    "level": 1,
+    "art": "acid-ooze.webp"
+  },
+  {
+    "id": "halfling_shadower",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "8quXVZUPAj0GVApE",
+    "name": "Halfling Shadower",
+    "level": -1,
+    "art": "halfling-shadower.webp"
+  },
+  {
+    "id": "averill_quint",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "9SOVzDCIuCxrw0SP",
+    "name": "Averill Quint (1-2)",
+    "level": 2,
+    "art": "averill-quint.webp"
+  },
+  {
+    "id": "averill_quint_3_4",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "q38KzSLeQCZyyGcL",
+    "name": "Averill Quint (3-4)",
+    "level": 4,
+    "art": "averill-quint.webp"
+  },
+  {
+    "id": "averill_quint_5_6",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "X2kMJF6i22qJurvq",
+    "name": "Averill Quint (5-6)",
+    "level": 6,
+    "art": "averill-quint.webp"
+  },
+  {
+    "id": "averill_quint_7_8",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "gt3nDK7aWirEyshC",
+    "name": "Averill Quint (7-8)",
+    "level": 8,
+    "art": "averill-quint.webp"
+  },
+  {
+    "id": "norvix",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "9X5FaZMvR8zocTPH",
+    "name": "Norvix (1-2)",
+    "level": 2,
+    "art": "norvix.webp"
+  },
+  {
+    "id": "norvix_3_4",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "gTriIFlRaguK2PMJ",
+    "name": "Norvix (3-4)",
+    "level": 4,
+    "art": "norvix.webp"
+  },
+  {
+    "id": "the_heartwood_rots",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "AeqhAqpqRxK375Tx",
+    "name": "The Heartwood Rots",
+    "level": 4,
+    "art": "the-heartwood-rots.webp"
+  },
+  {
+    "id": "enraged_the_heartwood_rots",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "pBTarYCVijNYATCq",
+    "name": "Enraged The Heartwood Rots",
+    "level": 6,
+    "art": "the-heartwood-rots.webp"
+  },
+  {
+    "id": "enava",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "BbhEPZ59tIuwXZD6",
+    "name": "Enava",
+    "level": 7,
+    "art": "enava.webp"
+  },
+  {
+    "id": "minister_jo",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "KYu7rbnhKEW3Fd9j",
+    "name": "Minister Jo",
+    "level": 6,
+    "art": "minister-jo.webp"
+  },
+  {
+    "id": "decked_out_minister_jo",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "CIpg1SEA4sibmZzb",
+    "name": "Decked-Out Minister Jo",
+    "level": 8,
+    "art": "minister-jo.webp"
+  },
+  {
+    "id": "really_decked_out_minister_jo",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "RXu82z4h9lwWxzCe",
+    "name": "Really Decked-Out Minister Jo",
+    "level": 9,
+    "art": "minister-jo.webp"
+  },
+  {
+    "id": "toy_automaton",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "Cnl7rFA6xHJexN2X",
+    "name": "Toy Automaton",
+    "level": -1,
+    "art": "toy-automaton.webp"
+  },
+  {
+    "id": "divine_oozeshard",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "D7W52RHoK6Fv7KWY",
+    "name": "Divine Oozeshard",
+    "level": 10,
+    "art": "divine-oozeshard.webp"
+  },
+  {
+    "id": "cackling_skull",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "DS1eimATKlj0Z2H5",
+    "name": "Cackling Skull",
+    "level": 6,
+    "art": "cackling-skull.webp"
+  },
+  {
+    "id": "screaming_grub_undead",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "DclMSxfKDPrsc48z",
+    "name": "Screaming Grub Undead",
+    "level": 7,
+    "art": "screaming-grub-undead.webp"
+  },
+  {
+    "id": "silver_devil_delinquent",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "DdteCJzCt58mt58U",
+    "name": "Silver Devil Delinquent",
+    "level": -1,
+    "art": "silver-devil-delinquent.webp"
+  },
+  {
+    "id": "hesla_the_broken_ember",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "EWutX9eW7tYLpors",
+    "name": "Hesla, The Broken Ember",
+    "level": 12,
+    "art": "hesla-the-broken-ember.webp"
+  },
+  {
+    "id": "hesla_the_broken_ember_11_12",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "k6VFoe5R52PbVZJB",
+    "name": "Hesla, The Broken Ember (11-12)",
+    "level": 14,
+    "art": "hesla-the-broken-ember.webp"
+  },
+  {
+    "id": "spirit_hound",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "EmqrVLiMr5N2QxQJ",
+    "name": "Spirit Hound",
+    "level": 1,
+    "art": "spirit-hound.webp"
+  },
+  {
+    "id": "dispatch_disciple",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "F5Y2CpfFW7m2zQYz",
+    "name": "Dispatch Disciple",
+    "level": 1,
+    "art": "dispatch-disciple.webp"
   }
 ]
