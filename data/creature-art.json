@@ -31950,5 +31950,125 @@
     "name": "Bloody Berleth",
     "level": 11,
     "art": "bloody-berleth.webp"
+  },
+  {
+    "id": "giant_joro_spider",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "Uhi3wX4KveuMSARt",
+    "name": "Giant Joro Spider",
+    "level": 8,
+    "art": "giant-joro-spider.webp"
+  },
+  {
+    "id": "myrucarx",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "WDTdWiC9Rdl6rqh8",
+    "name": "Myrucarx",
+    "level": 18,
+    "art": "myrucarx.webp"
+  },
+  {
+    "id": "bregdi",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "WXwvWHRpwK17YABQ",
+    "name": "Bregdi",
+    "level": 9,
+    "art": "bregdi.webp"
+  },
+  {
+    "id": "mr_snips",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "Wk2T0Wr8Sebo4br5",
+    "name": "Mr. Snips",
+    "level": 14,
+    "art": "mr-snips.webp"
+  },
+  {
+    "id": "the_rabbit_prince",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "WplBGSeB9pK9AULX",
+    "name": "The Rabbit Prince",
+    "level": 17,
+    "art": "the-rabbit-prince.webp"
+  },
+  {
+    "id": "siege_shard",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "XDt87cqF85zWnlC8",
+    "name": "Siege Shard",
+    "level": 3,
+    "art": "siege-shard.webp"
+  },
+  {
+    "id": "giant_bone_skipper",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "Xi53GFvTgBApltjp",
+    "name": "Giant Bone Skipper",
+    "level": 7,
+    "art": "giant-bone-skipper.webp"
+  },
+  {
+    "id": "avsheros_the_betrayer",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "Z6R8YjgX8Jvt9Ds4",
+    "name": "Avsheros the Betrayer",
+    "level": 23,
+    "art": "avsheros-the-betrayer.webp"
+  },
+  {
+    "id": "dreadsong_dancer",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "ZL2qLXwomKfBB8Eu",
+    "name": "Dreadsong Dancer",
+    "level": 8,
+    "art": "dreadsong-dancer.webp"
+  },
+  {
+    "id": "mobana",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "ZY3q7AV1qbwWwNl2",
+    "name": "Mobana",
+    "level": 9,
+    "art": "mobana.webp"
+  },
+  {
+    "id": "calennia",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "a3pTQfLzsJThQvI9",
+    "name": "Calennia",
+    "level": 16,
+    "art": "calennia.webp"
+  },
+  {
+    "id": "ravenile_rager",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "aDgVmO3afhIgXQSN",
+    "name": "Ravenile Rager",
+    "level": 14,
+    "art": "ravenile-rager.webp"
+  },
+  {
+    "id": "svartalfar_killer",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "ai7Q9vBHHAGj7uFE",
+    "name": "Svartalfar Killer",
+    "level": 8,
+    "art": "svartalfar-killer.webp"
+  },
+  {
+    "id": "barrel_launcher",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "azyIfDNNW44jY8YX",
+    "name": "Barrel Launcher",
+    "level": 14,
+    "art": "barrel-launcher.webp"
+  },
+  {
+    "id": "il_setsya_wyrmtouched",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "cLlOUUpCIAQwUuOP",
+    "name": "Il'setsya Wyrmtouched",
+    "level": 19,
+    "art": "il-setsya-wyrmtouched.webp"
   }
 ]
