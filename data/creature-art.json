@@ -31830,5 +31830,125 @@
     "name": "Priest of Blackfingers",
     "level": 12,
     "art": "priest-of-blackfingers.webp"
+  },
+  {
+    "id": "ixusoth",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "M8ONVV7yl4uu0zcz",
+    "name": "Ixusoth",
+    "level": 15,
+    "art": "ixusoth.webp"
+  },
+  {
+    "id": "antaro_boldblade",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "MONwgTbrcZFzr6vC",
+    "name": "Antaro Boldblade",
+    "level": -1,
+    "art": "antaro-boldblade.webp"
+  },
+  {
+    "id": "carvey",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "MQnhyCM9LInNYtl0",
+    "name": "Carvey",
+    "level": 8,
+    "art": "carvey.webp"
+  },
+  {
+    "id": "prospecti_statue",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "MqfZxoxFwzqAXhTP",
+    "name": "Prospecti Statue",
+    "level": 7,
+    "art": "prospecti-statue.webp"
+  },
+  {
+    "id": "tiderunner_aquamancer",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "N1IpUIW2Ry7uBN3G",
+    "name": "Tiderunner Aquamancer",
+    "level": 13,
+    "art": "tiderunner-aquamancer.webp"
+  },
+  {
+    "id": "slithering_rift",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "P9Wg0sGcNkemOvm3",
+    "name": "Slithering Rift",
+    "level": 18,
+    "art": "slithering-rift.webp"
+  },
+  {
+    "id": "zrukbat",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "PEjcy9CxelKC3Kp6",
+    "name": "Zrukbat",
+    "level": 2,
+    "art": "zrukbat.webp"
+  },
+  {
+    "id": "zeal_damned_ghoul",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "QBlBYsxySiBMxf22",
+    "name": "Zeal-damned Ghoul",
+    "level": 10,
+    "art": "zeal-damned-ghoul.webp"
+  },
+  {
+    "id": "camarach",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "QRcIVhQV2vlpADSf",
+    "name": "Camarach",
+    "level": 17,
+    "art": "camarach.webp"
+  },
+  {
+    "id": "tyrroicese",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "Rinxhe1cRXKEsXuW",
+    "name": "Tyrroicese",
+    "level": 10,
+    "art": "tyrroicese.webp"
+  },
+  {
+    "id": "alchemical_horror",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "RtWlzHaOrfFdJyJY",
+    "name": "Alchemical Horror",
+    "level": 21,
+    "art": "alchemical-horror.webp"
+  },
+  {
+    "id": "nenchuuj",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "RyXA4wOGY8lenKVw",
+    "name": "Nenchuuj",
+    "level": 19,
+    "art": "nenchuuj.webp"
+  },
+  {
+    "id": "poison_eater",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "S9JJsUNSeeoIClON",
+    "name": "Poison Eater",
+    "level": 8,
+    "art": "poison-eater.webp"
+  },
+  {
+    "id": "miogimo",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "Sq0Kb92nGkqj19Xx",
+    "name": "Miogimo",
+    "level": 17,
+    "art": "miogimo.webp"
+  },
+  {
+    "id": "bloody_berleth",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "TIaZIUb9Mq9B4Mf2",
+    "name": "Bloody Berleth",
+    "level": 11,
+    "art": "bloody-berleth.webp"
   }
 ]
