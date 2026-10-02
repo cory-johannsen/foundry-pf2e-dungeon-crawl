@@ -3375,10 +3375,11 @@ export function planStubGeometries({
 }
 
 /**
- * Whether NEW runs get dead-end stubs. Off until the scene builds them (G3 flips it): a run that carried
- * `stubEdges` before the scene built stub doors would have a gap in the source's south face.
+ * Whether NEW runs get dead-end stubs (layoutVersion >= 3 only). It was off while the scene could not build them: a
+ * run that carried `stubEdges` before the scene built stub doors would have a gap in the source's south face.
+ * Without retreat (#439 live-verified, Chunk 7) only hidden shortcut stubs are eligible.
  */
-export const NEW_RUN_STUBS_ENABLED = false;
+export const NEW_RUN_STUBS_ENABLED = true;
 
 /**
  * #427: the run-state fields the stub plan adds at precompute. layoutVersion < 3 (or stubs off) returns the
