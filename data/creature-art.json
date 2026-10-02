@@ -31702,5 +31702,133 @@
     "name": "Veksciralenix",
     "level": 20,
     "art": "veksciralenix.webp"
+  },
+  {
+    "id": "miriel_grayleaf",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "GWO6vweLGT2J6q62",
+    "name": "Miriel Grayleaf",
+    "level": -1,
+    "art": "miriel-grayleaf.webp"
+  },
+  {
+    "id": "venom_mage",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "GYhV5eYNDO1Llbv2",
+    "name": "Venom Mage",
+    "level": 9,
+    "art": "venom-mage.webp"
+  },
+  {
+    "id": "grabble_forden",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "H4bY8v6e3drOIoUe",
+    "name": "Grabble Forden",
+    "level": 13,
+    "art": "grabble-forden.webp"
+  },
+  {
+    "id": "franca_laurentz",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "HF0ymYmKC6KydPQ1",
+    "name": "Franca Laurentz",
+    "level": 13,
+    "art": "franca-laurentz.webp"
+  },
+  {
+    "id": "clockwork_amalgam",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "HifZEgdCuZearOG2",
+    "name": "Clockwork Amalgam",
+    "level": 20,
+    "art": "clockwork-amalgam.webp"
+  },
+  {
+    "id": "blune_s_illusory_toady",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "IKfYWE1NLVNLCXZm",
+    "name": "Blune's Illusory Toady",
+    "level": 16,
+    "art": "blune-s-illusory-toady.webp"
+  },
+  {
+    "id": "ralso",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "JZUYQzQtzIwOGYvd",
+    "name": "Ralso",
+    "level": 4,
+    "art": "ralso.webp"
+  },
+  {
+    "id": "diobel_sweeper_chemist",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "JdMqHbaTwtOHVE7Y",
+    "name": "Diobel Sweeper Chemist",
+    "level": 9,
+    "art": "diobel-sweeper-chemist.webp"
+  },
+  {
+    "id": "water_elemental_vessel",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "nfULZbf8OOUDdrZM",
+    "name": "Water Elemental Vessel",
+    "level": 16,
+    "art": "water-elemental-vessel.webp"
+  },
+  {
+    "id": "water_elemental_vessel_i2",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "JhYJUNlcxiurcZcl",
+    "name": "Water Elemental Vessel (I2)",
+    "level": 16,
+    "art": "water-elemental-vessel.webp"
+  },
+  {
+    "id": "zealborn",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "JmHyHwaPMNKXzBts",
+    "name": "Zealborn",
+    "level": 12,
+    "art": "zealborn.webp"
+  },
+  {
+    "id": "gloaming_will_o_wisp",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "JnNPdvOXtkGQHyfQ",
+    "name": "Gloaming Will-o'-Wisp",
+    "level": 13,
+    "art": "gloaming-will-o-wisp.webp"
+  },
+  {
+    "id": "daemonic_rumormonger",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "JsyO7yBf6YaF4YwF",
+    "name": "Daemonic Rumormonger",
+    "level": 22,
+    "art": "daemonic-rumormonger.webp"
+  },
+  {
+    "id": "copper_hand_illusionist",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "JuCLvgvxYbSRXqON",
+    "name": "Copper Hand Illusionist",
+    "level": 5,
+    "art": "copper-hand-illusionist.webp"
+  },
+  {
+    "id": "hestriviniaas",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "LAamprMlzk7k5auj",
+    "name": "Hestriviniaas",
+    "level": 22,
+    "art": "hestriviniaas.webp"
+  },
+  {
+    "id": "priest_of_blackfingers",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "LkaB8RH73DY4TO9V",
+    "name": "Priest of Blackfingers",
+    "level": 12,
+    "art": "priest-of-blackfingers.webp"
   }
 ]
