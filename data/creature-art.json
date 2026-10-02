@@ -30830,5 +30830,125 @@
     "name": "Shoony Hierarch",
     "level": 4,
     "art": "shoony-hierarch.webp"
+  },
+  {
+    "id": "hollow_hush",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "YZcw33uhsPHWKcHM",
+    "name": "Hollow Hush",
+    "level": 18,
+    "art": "hollow-hush.webp"
+  },
+  {
+    "id": "xulgath_thoughtmaw",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "YaKW9i3v9nn8Blij",
+    "name": "Xulgath Thoughtmaw",
+    "level": 15,
+    "art": "xulgath-thoughtmaw.webp"
+  },
+  {
+    "id": "vitalia",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "Z3VrS25uw9vD2sek",
+    "name": "Vitalia",
+    "level": 18,
+    "art": "vitalia.webp"
+  },
+  {
+    "id": "juvenile_boar",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "a2FCggU8UCQl6RDx",
+    "name": "Juvenile Boar",
+    "level": 0,
+    "art": "juvenile-boar.webp"
+  },
+  {
+    "id": "ginjana_mindkeeper",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "aIT5S2fKgMZ6pVP2",
+    "name": "Ginjana Mindkeeper",
+    "level": 11,
+    "art": "ginjana-mindkeeper.webp"
+  },
+  {
+    "id": "giant_aukashungi",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "aUDIi3Z0N7IhzaT0",
+    "name": "Giant Aukashungi",
+    "level": 14,
+    "art": "giant-aukashungi.webp"
+  },
+  {
+    "id": "iffdahsil",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "aqcDvkIaKwJdMEAO",
+    "name": "Iffdahsil",
+    "level": 21,
+    "art": "iffdahsil.webp"
+  },
+  {
+    "id": "leandrus",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "b5creqUAlBl0Tmmc",
+    "name": "Leandrus",
+    "level": 2,
+    "art": "leandrus.webp"
+  },
+  {
+    "id": "darklands_alchemical_golem",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "bJUlb2DxT1xyaYAp",
+    "name": "Darklands Alchemical Golem",
+    "level": 10,
+    "art": "darklands-alchemical-golem.webp"
+  },
+  {
+    "id": "adrivallo",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "beb9LqlOBFseROnY",
+    "name": "Adrivallo",
+    "level": 10,
+    "art": "adrivallo.webp"
+  },
+  {
+    "id": "kharostan",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "bpTQfx4UixMV3Fja",
+    "name": "Kharostan",
+    "level": 16,
+    "art": "kharostan.webp"
+  },
+  {
+    "id": "abberton_ruffian",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "dP6sDHTZrDcV2I9w",
+    "name": "Abberton Ruffian",
+    "level": -1,
+    "art": "abberton-ruffian.webp"
+  },
+  {
+    "id": "sodden_sentinel",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "f4H9d0b1vJvxeFqs",
+    "name": "Sodden Sentinel",
+    "level": 11,
+    "art": "sodden-sentinel.webp"
+  },
+  {
+    "id": "swardlands_delinquent",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "f6uVOvKEkojOf9Ab",
+    "name": "Swardlands Delinquent",
+    "level": 4,
+    "art": "swardlands-delinquent.webp"
+  },
+  {
+    "id": "sarvel_ever_hunger",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "fsPWWmIao1eFTAV4",
+    "name": "Sarvel Ever-Hunger",
+    "level": 22,
+    "art": "sarvel-ever-hunger.webp"
   }
 ]
