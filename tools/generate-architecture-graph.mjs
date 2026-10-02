@@ -126,6 +126,7 @@ const GROUPS = [
     match: (p) =>
       [
         "scripts/dungeon-deck.mjs",
+        "scripts/dungeon-retreat.mjs",
         "scripts/dungeon-layout.mjs",
         "scripts/prng.mjs",
       ].includes(p),
