@@ -649,6 +649,8 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
   });
   const slotSpan = incomingFace === 'west' ? (toSlot.y2 - toSlot.y1) : (toSlot.x2 - toSlot.x1);
   const outgoingOffset = doorOffsetAt(seed, `${fromRoomId}-${exitFace}`, 'outgoing', fromRect.gw);
+  // #555 (layoutVersion >= 3, set by the scene): corner legs heading west keep the door's own cell.
+  const coverFromCell = routing?.coverDoorCell === true;
 
   if (path && path.length > 2) {
     // Multi-cell path (#174): chain transitCellCrossing across every
@@ -784,7 +786,7 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // preferring an endpoint's margined sides, or a margin-aware crossing
     // point next to a room's own cell, both bigger than this task's scope.
     const corridorSegments = [
-      ...cornerConnector(exitPoint, firstCellPoint, { toSide: transitCells[0].entrySide }),
+      ...cornerConnector(exitPoint, firstCellPoint, { toSide: transitCells[0].entrySide, coverFromCell }),
       ...cornerConnector(lastCellPoint, entryPoint, { fromSide: transitCells[transitCells.length - 1].exitSide }),
     ];
     const plainWalls = [
@@ -1390,7 +1392,8 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     revealDoorWall,
     plainWalls,
     corridorSegments: [
-      { gx: Math.min(exitPoint.x, corner.x), gy: Math.min(exitPoint.y, corner.y), gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - exitPoint.x)), gh: CORRIDOR_LEN },
+      // #555: heading west, include the door's own cell (see cornerConnector's coverFromCell).
+      { gx: Math.min(exitPoint.x, corner.x), gy: Math.min(exitPoint.y, corner.y), gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - exitPoint.x)) + (coverFromCell && corner.x < exitPoint.x ? CORRIDOR_LEN : 0), gh: CORRIDOR_LEN },
       { gx: Math.min(corner.x, entryPoint.x), gy: Math.min(corner.y, entryPoint.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(entryPoint.y - corner.y)) }
     ],
     transitCells: [],
@@ -1903,12 +1906,15 @@ function directionBetween(from, to) {
  * cell.gx) where extending forward already stays inward, same as Task
  * 3's own round-2 fix for transitCellCrossing's internal corner case.
  */
-function cornerConnector(from, to, { fromSide, toSide } = {}) {
+function cornerConnector(from, to, { fromSide, toSide, coverFromCell = false } = {}) {
   const corner = { x: to.x, y: from.y };
+  // #555: a leg heading WEST spans [to.x, from.x), omitting from's own cell; for a gap-START door point that
+  // is the door's cell, leaving the hallway one cell left of the door. `coverFromCell` includes it.
+  const westExtra = coverFromCell && corner.x < from.x ? CORRIDOR_LEN : 0;
   const leg1Gy = fromSide === 'south' ? from.y - CORRIDOR_LEN : Math.min(from.y, corner.y);
   const leg2Gx = toSide === 'east' ? to.x - CORRIDOR_LEN : Math.min(corner.x, to.x);
   return [
-    { gx: Math.min(from.x, corner.x), gy: leg1Gy, gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - from.x)), gh: CORRIDOR_LEN },
+    { gx: Math.min(from.x, corner.x), gy: leg1Gy, gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - from.x)) + westExtra, gh: CORRIDOR_LEN },
     { gx: leg2Gx, gy: Math.min(corner.y, to.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(to.y - corner.y)) },
   ];
 }
