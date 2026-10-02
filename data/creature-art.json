@@ -27094,5 +27094,173 @@
     "name": "Empowered Shadow Lesolethe",
     "level": 8,
     "art": "shadow-lesolethe.webp"
+  },
+  {
+    "id": "ghoul_commando",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "RqMuQNzW5qQ7elW8",
+    "name": "Ghoul Commando",
+    "level": 5,
+    "art": "ghoul-commando.webp"
+  },
+  {
+    "id": "origami_cockroach",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "RrzJSeoQkjjzqWVl",
+    "name": "Origami Cockroach",
+    "level": 1,
+    "art": "origami-cockroach.webp"
+  },
+  {
+    "id": "amriya",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "T6eOv8LWQ2emr5fo",
+    "name": "Amriya",
+    "level": 7,
+    "art": "amriya.webp"
+  },
+  {
+    "id": "vespiria_queen",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "ToGMQllme8A08Ejz",
+    "name": "Vespiria Queen",
+    "level": 6,
+    "art": "vespiria-queen.webp"
+  },
+  {
+    "id": "maralictor_marius_salutio",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "Tx53uPtEt55FwP1U",
+    "name": "Maralictor Marius Salutio",
+    "level": 3,
+    "art": "maralictor-marius-salutio.webp"
+  },
+  {
+    "id": "maralictor_marius_salutio_5_6",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "kSpMlrZrl3VxOOwm",
+    "name": "Maralictor Marius Salutio (5-6)",
+    "level": 5,
+    "art": "maralictor-marius-salutio.webp"
+  },
+  {
+    "id": "chelaxian_assassin",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "UnViyhUqgZl0QPDi",
+    "name": "Chelaxian Assassin",
+    "level": 8,
+    "art": "chelaxian-assassin.webp"
+  },
+  {
+    "id": "pathfinder_sentinel",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "UpQf4mRdvh8IZvLb",
+    "name": "Pathfinder Sentinel",
+    "level": 5,
+    "art": "pathfinder-sentinel.webp"
+  },
+  {
+    "id": "auto_greeter",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "atGWVa1Oph9FqTtx",
+    "name": "Rusty Auto-Greeter",
+    "level": 3,
+    "art": "auto-greeter.webp"
+  },
+  {
+    "id": "auto_greeter_vqyuo",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "VqyUov2QqD82mWhZ",
+    "name": "Auto-Greeter",
+    "level": 5,
+    "art": "auto-greeter.webp"
+  },
+  {
+    "id": "najid_ouidda",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "VxN6YjITeZGV6wtR",
+    "name": "Najid Ouidda",
+    "level": 4,
+    "art": "najid-ouidda.webp"
+  },
+  {
+    "id": "gruasha",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "W3xaOlhpn1nkCQAn",
+    "name": "Gruasha",
+    "level": 11,
+    "art": "gruasha.webp"
+  },
+  {
+    "id": "captain_pitros_nanaeil",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "p6ScuVpuqhDJxNie",
+    "name": "Captain Pitros Nanaeil",
+    "level": 7,
+    "art": "captain-pitros-nanaeil.webp"
+  },
+  {
+    "id": "resolved_captain_pitros_nanaeil",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "WFzFnVT4p0o3Pl4O",
+    "name": "Resolved Captain Pitros Nanaeil",
+    "level": 9,
+    "art": "captain-pitros-nanaeil.webp"
+  },
+  {
+    "id": "shadowpact_statue",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "WN5zrToyxuA72kT0",
+    "name": "Shadowpact Statue",
+    "level": 7,
+    "art": "shadowpact-statue.webp"
+  },
+  {
+    "id": "congealed_magic",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "gjeL6QJBoniPAm4M",
+    "name": "Congealed Magic",
+    "level": 3,
+    "art": "congealed-magic.webp"
+  },
+  {
+    "id": "elite_congealed_magic",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "XMtgZP2i1lttMf15",
+    "name": "Elite Congealed Magic",
+    "level": 3,
+    "art": "congealed-magic.webp"
+  },
+  {
+    "id": "concentrated_congealed_magic",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "agYSQuaxGkFQVBus",
+    "name": "Concentrated Congealed Magic",
+    "level": 5,
+    "art": "congealed-magic.webp"
+  },
+  {
+    "id": "pathfinder_protector",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "qKAKdnesCwrDLCYI",
+    "name": "Whippoorwill Pathfinder Protector",
+    "level": -1,
+    "art": "pathfinder-protector.webp"
+  },
+  {
+    "id": "pathfinder_protector_ydu6i",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "YDU6IB772rxulMHX",
+    "name": "Pathfinder Protector",
+    "level": 1,
+    "art": "pathfinder-protector.webp"
+  },
+  {
+    "id": "shadowpact_vampire",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "YTVWLsn6i8OukstI",
+    "name": "Shadowpact Vampire",
+    "level": 9,
+    "art": "shadowpact-vampire.webp"
   }
 ]
