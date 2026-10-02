@@ -33558,5 +33558,165 @@
     "name": "Black Smilodon",
     "level": 14,
     "art": "black-smilodon.webp"
+  },
+  {
+    "id": "hillstomper",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "ni0RSuVeUgs5WmlY",
+    "name": "Hillstomper",
+    "level": 12,
+    "art": "hillstomper.webp"
+  },
+  {
+    "id": "barbtongued_wyvern",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "oM1AvORITfhzwrDk",
+    "name": "Barbtongued Wyvern",
+    "level": 18,
+    "art": "barbtongued-wyvern.webp"
+  },
+  {
+    "id": "dog",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "oOPf7VG4tuMvzrgA",
+    "name": "Dog (Ekundayo's Companion)",
+    "level": 6,
+    "art": "dog.webp"
+  },
+  {
+    "id": "tree_that_weeps",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "obT2KQ8YYlRxvSWr",
+    "name": "Tree that Weeps",
+    "level": 18,
+    "art": "tree-that-weeps.webp"
+  },
+  {
+    "id": "the_gardener",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "ovjnD3aiPgRi2C7u",
+    "name": "The Gardener",
+    "level": 16,
+    "art": "the-gardener.webp"
+  },
+  {
+    "id": "hargulka",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "pD5Y7gJtqlr2A4a2",
+    "name": "Hargulka",
+    "level": 8,
+    "art": "hargulka.webp"
+  },
+  {
+    "id": "niodrhast",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "pT5hfxcsG7eV5oxh",
+    "name": "Niodrhast",
+    "level": 19,
+    "art": "niodrhast.webp"
+  },
+  {
+    "id": "wild_hunt_monarch",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "pZosztihhMtCLinT",
+    "name": "Wild Hunt Monarch",
+    "level": 20,
+    "art": "wild-hunt-monarch.webp"
+  },
+  {
+    "id": "akuzhail",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "pcct13qdrriJf3OL",
+    "name": "Akuzhail",
+    "level": 10,
+    "art": "akuzhail.webp"
+  },
+  {
+    "id": "immense_mandragora",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "pfvUhfy0VHNlTyvN",
+    "name": "Immense Mandragora",
+    "level": 20,
+    "art": "immense-mandragora.webp"
+  },
+  {
+    "id": "numerian_adamantine_golem",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "qKCx4DrEL3vTcNC3",
+    "name": "Numerian Adamantine Golem",
+    "level": 18,
+    "art": "numerian-adamantine-golem.webp"
+  },
+  {
+    "id": "werendegar",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "qLfHY6uNUQ99NZei",
+    "name": "Werendegar",
+    "level": 21,
+    "art": "werendegar.webp"
+  },
+  {
+    "id": "the_first_faithful",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "qS7JwIPqsjNKKALK",
+    "name": "The First Faithful",
+    "level": 13,
+    "art": "the-first-faithful.webp"
+  },
+  {
+    "id": "defaced_naiad_queen",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "rnFjLc6xYYPtXS6a",
+    "name": "Defaced Naiad Queen",
+    "level": 15,
+    "art": "defaced-naiad-queen.webp"
+  },
+  {
+    "id": "kargstaad_s_giant",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "s0BfmFWAhLQkQEbg",
+    "name": "Kargstaad's Giant",
+    "level": 15,
+    "art": "kargstaad-s-giant.webp"
+  },
+  {
+    "id": "elga_verniex",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "sMCEMlNngFINMX8y",
+    "name": "Elga Verniex",
+    "level": 5,
+    "art": "elga-verniex.webp"
+  },
+  {
+    "id": "sepoko",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "sedubjznhIbVfCkD",
+    "name": "Sepoko",
+    "level": 11,
+    "art": "sepoko.webp"
+  },
+  {
+    "id": "mastiff_of_tindalos",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "sw32QdZlsWnmWaVY",
+    "name": "Mastiff Of Tindalos",
+    "level": 15,
+    "art": "mastiff-of-tindalos.webp"
+  },
+  {
+    "id": "fetch_behemoth",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "tjq87ghubOcPAXjj",
+    "name": "Fetch Behemoth",
+    "level": 20,
+    "art": "fetch-behemoth.webp"
+  },
+  {
+    "id": "rezatha",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "tq87VRZjkGBmW8kf",
+    "name": "Rezatha",
+    "level": 17,
+    "art": "rezatha.webp"
   }
 ]
