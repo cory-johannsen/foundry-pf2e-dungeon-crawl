@@ -34782,5 +34782,93 @@
     "name": "Dromornis",
     "level": 10,
     "art": "dromornis.webp"
+  },
+  {
+    "id": "yoh_souran",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "tfBczpCPNVnRE8pJ",
+    "name": "Yoh Souran",
+    "level": 15,
+    "art": "yoh-souran.webp"
+  },
+  {
+    "id": "spinel_leviathan_syndara",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "uvBZm8b7Vtzn1U2d",
+    "name": "Spinel Leviathan Syndara",
+    "level": 24,
+    "art": "spinel-leviathan-syndara.webp"
+  },
+  {
+    "id": "maalya",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "vgMFPC9SoC3eyNSs",
+    "name": "Maalya",
+    "level": 15,
+    "art": "maalya.webp"
+  },
+  {
+    "id": "hantu_denai",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "vjONecsFtSFpjNaN",
+    "name": "Hantu Denai",
+    "level": 9,
+    "art": "hantu-denai.webp"
+  },
+  {
+    "id": "yabin",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "wfp1cV5xCdpElkoU",
+    "name": "Yabin (White Serpent Form)",
+    "level": 18,
+    "art": "yabin.webp"
+  },
+  {
+    "id": "akila_stormheel",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "xiQIw7iFjOizo3Fm",
+    "name": "Akila Stormheel",
+    "level": 13,
+    "art": "akila-stormheel.webp"
+  },
+  {
+    "id": "anugobu_wondercrafter",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "yNqeqEULKA536K4r",
+    "name": "Anugobu Wondercrafter",
+    "level": 7,
+    "art": "anugobu-wondercrafter.webp"
+  },
+  {
+    "id": "drake_courser",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "ybPcnDqULaojoU8a",
+    "name": "Drake Courser",
+    "level": 12,
+    "art": "drake-courser.webp"
+  },
+  {
+    "id": "halspin_the_stung",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "zFye7hJzzwgajovA",
+    "name": "Halspin the Stung",
+    "level": 15,
+    "art": "halspin-the-stung.webp"
+  },
+  {
+    "id": "jaiban",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "zNOSSDaaCozimqaS",
+    "name": "Jaiban",
+    "level": 15,
+    "art": "jaiban.webp"
+  },
+  {
+    "id": "yarrika_mulandez",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "zmE4irZj6a2WpB6f",
+    "name": "Yarrika Mulandez",
+    "level": 15,
+    "art": "yarrika-mulandez.webp"
   }
 ]
