@@ -31454,5 +31454,125 @@
     "name": "Almiraj",
     "level": 1,
     "art": "almiraj-lob.webp"
+  },
+  {
+    "id": "battle_leader_rekarek",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "4ffoPNBKdEwBmYgL",
+    "name": "Battle Leader Rekarek",
+    "level": 2,
+    "art": "battle-leader-rekarek.webp"
+  },
+  {
+    "id": "washboard_dog_tough",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "5pBr5aWUb7yGCqN7",
+    "name": "Washboard Dog Tough",
+    "level": 7,
+    "art": "washboard-dog-tough.webp"
+  },
+  {
+    "id": "kekker",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "6c5CnrSxMYEgP6Fz",
+    "name": "Kekker",
+    "level": 2,
+    "art": "kekker.webp"
+  },
+  {
+    "id": "blackfingers_acolyte",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "7LN8clGKJWTpxISR",
+    "name": "Blackfingers Acolyte",
+    "level": 6,
+    "art": "blackfingers-acolyte.webp"
+  },
+  {
+    "id": "avarek",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "7bMhDg4DNqoPlRsF",
+    "name": "Avarek",
+    "level": 8,
+    "art": "avarek.webp"
+  },
+  {
+    "id": "frefferth",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "8AdsRaXftoR1beTk",
+    "name": "Frefferth",
+    "level": 9,
+    "art": "frefferth.webp"
+  },
+  {
+    "id": "gang_tough",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "8GQ7dq7s9CetOlkg",
+    "name": "Gang Tough",
+    "level": 7,
+    "art": "gang-tough.webp"
+  },
+  {
+    "id": "pickled_punk",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "8HTPdiH6yEk0jlNF",
+    "name": "Pickled Punk",
+    "level": 1,
+    "art": "pickled-punk.webp"
+  },
+  {
+    "id": "agent_of_the_gray_queen",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "8LlqjWcqiFq7YMmQ",
+    "name": "Agent of the Gray Queen",
+    "level": 19,
+    "art": "agent-of-the-gray-queen.webp"
+  },
+  {
+    "id": "skinsaw_murderer",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "8PRqUfkHLvu9ufGL",
+    "name": "Skinsaw Murderer",
+    "level": 6,
+    "art": "skinsaw-murderer.webp"
+  },
+  {
+    "id": "wynsal_starborn",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "8eBXEszbl4gOHGdU",
+    "name": "Wynsal Starborn",
+    "level": 17,
+    "art": "wynsal-starborn.webp"
+  },
+  {
+    "id": "teraphant",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "8jjEOs99Bmo1v0Qc",
+    "name": "Teraphant",
+    "level": 9,
+    "art": "teraphant.webp"
+  },
+  {
+    "id": "lie_master",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "94yI4TrNag0jMaYy",
+    "name": "Lie-Master",
+    "level": 14,
+    "art": "lie-master.webp"
+  },
+  {
+    "id": "copper_hand_rogue",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "9M1YJxTXqya55HDx",
+    "name": "Copper Hand Rogue",
+    "level": 4,
+    "art": "copper-hand-rogue.webp"
+  },
+  {
+    "id": "chalky",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "9vt9Dr2a8MkkD83z",
+    "name": "Chalky",
+    "level": 9,
+    "art": "chalky.webp"
   }
 ]
