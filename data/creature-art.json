@@ -24158,5 +24158,149 @@
     "name": "Fasiel Ibn Sazadin (5-6)",
     "level": 7,
     "art": "fasiel-ibn-sazadin-s4-lob.webp"
+  },
+  {
+    "id": "aslynn_the_dream_taker_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "pKw8DutJNom5QxBZ",
+    "name": "Aslynn the Dream Taker",
+    "level": 11,
+    "art": "aslynn-the-dream-taker-lob.webp"
+  },
+  {
+    "id": "grim_rictus_robber_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "r77a464nSqsntQnv",
+    "name": "Grim Rictus Robber",
+    "level": -1,
+    "art": "grim-rictus-robber-lob.webp"
+  },
+  {
+    "id": "infested_clockwork_vessel_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "sQeRXRsly4npOU4r",
+    "name": "Infested Clockwork Vessel",
+    "level": 8,
+    "art": "infested-clockwork-vessel-lob.webp"
+  },
+  {
+    "id": "farah_al_saleel_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "spj8i9bMQDZhj8C9",
+    "name": "Farah Al-Saleel (3-4)",
+    "level": 5,
+    "art": "farah-al-saleel-lob.webp"
+  },
+  {
+    "id": "farah_al_saleel_5_6_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "vHLV1hPjfAwMSUEI",
+    "name": "Farah Al-Saleel (5-6)",
+    "level": 7,
+    "art": "farah-al-saleel-lob.webp"
+  },
+  {
+    "id": "denufair_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "swGHHImKBCUTwpyc",
+    "name": "Denufair",
+    "level": -1,
+    "art": "denufair-lob.webp"
+  },
+  {
+    "id": "determined_halran_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "t4trkvNuN5cQudRR",
+    "name": "Determined Halran (1-2)",
+    "level": 1,
+    "art": "determined-halran-lob.webp"
+  },
+  {
+    "id": "determined_halran_3_4_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "wvH5n8xxN8rYeNeC",
+    "name": "Determined Halran (3-4)",
+    "level": 4,
+    "art": "determined-halran-lob.webp"
+  },
+  {
+    "id": "troublesome_scrit_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "tihsW2usCLrMwa2Y",
+    "name": "Troublesome Scrit",
+    "level": 1,
+    "art": "troublesome-scrit-lob.webp"
+  },
+  {
+    "id": "accursed_succubus_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "u6hNwxqw69JIeBEx",
+    "name": "Accursed Succubus",
+    "level": 5,
+    "art": "accursed-succubus-lob.webp"
+  },
+  {
+    "id": "mutated_scorpion_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "uJ9U93JZlW4T0Hnn",
+    "name": "Mutated Scorpion",
+    "level": 5,
+    "art": "mutated-scorpion-lob.webp"
+  },
+  {
+    "id": "brinna_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "udCpriOCsMBEuhr8",
+    "name": "Brinna",
+    "level": 3,
+    "art": "brinna-lob.webp"
+  },
+  {
+    "id": "abyssal_warhound_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "vTndTdmCdHiNxJ6x",
+    "name": "Abyssal Warhound",
+    "level": 1,
+    "art": "abyssal-warhound-lob.webp"
+  },
+  {
+    "id": "coven_grave_hag_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "woCCr4BBVOjc3x92",
+    "name": "Coven Grave Hag",
+    "level": 10,
+    "art": "coven-grave-hag-lob.webp"
+  },
+  {
+    "id": "giant_fetid_familiar_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "xKCWrQM7tgIz5vTx",
+    "name": "Giant Fetid Familiar",
+    "level": 1,
+    "art": "giant-fetid-familiar-lob.webp"
+  },
+  {
+    "id": "well_fed_potted_violet_etheroot_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "xY95sdnK1MMIyeee",
+    "name": "Well-Fed Potted Violet Etheroot",
+    "level": 9,
+    "art": "well-fed-potted-violet-etheroot-lob.webp"
+  },
+  {
+    "id": "dura_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "xiowQvReC58NPbD5",
+    "name": "Dura (1-2)",
+    "level": -1,
+    "art": "dura-lob.webp"
+  },
+  {
+    "id": "dura_3_4_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "yMIbNWGAZTLYUFVI",
+    "name": "Dura (3-4)",
+    "level": 2,
+    "art": "dura-lob.webp"
   }
 ]
