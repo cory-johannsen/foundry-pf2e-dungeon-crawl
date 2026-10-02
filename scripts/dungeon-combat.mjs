@@ -1983,7 +1983,10 @@ function movementBlockedEdges(combat, combatant, excludeCell = null) {
   const gridSize = combat.scene?.grid?.size ?? 100;
   const wallBlocked = sceneWallBlockedEdges(combat);
   const hostiles = hostileFootprints(combat, combatant, gridSize, excludeCell);
-  return (a, b) => wallBlocked(a, b) || cellOccupied(b, hostiles);
+  // #567: living cover is never subject to the excludeCell exemption.
+  const cover = livingCoverFootprints(combat, gridSize);
+  return (a, b) =>
+    wallBlocked(a, b) || cellOccupied(b, hostiles) || cellOccupied(b, cover);
 }
 
 /**
@@ -2031,7 +2034,8 @@ function hostileFootprints(combat, combatant, gridSize, excludeCell = null) {
     );
 }
 
-/** Footprints of every OTHER still-alive combatant (i.e. excluding
+/** Footprints of every living cover item (#567) plus every OTHER
+ * still-alive combatant (i.e. excluding
  * `combatant` itself), ally or hostile, relative to `combatant` — #27: a
  * Stride may never end its movement sharing a square with anyone, even an
  * ally (PF2e disallows it without an explicit exception this module
@@ -2041,9 +2045,13 @@ function hostileFootprints(combat, combatant, gridSize, excludeCell = null) {
  * above). */
 function otherCombatantFootprints(combat, combatant, gridSize) {
   return [
-    ...combatantOpponents(combat, combatant),
-    ...combatantAllies(combat, combatant),
-  ].map((c) => footprint(c.token, gridSize));
+    ...[
+      ...combatantOpponents(combat, combatant),
+      ...combatantAllies(combat, combatant),
+    ].map((c) => footprint(c.token, gridSize)),
+    // #567: a mover also never ends on a living cover item (non-combatant).
+    ...livingCoverFootprints(combat, gridSize),
+  ];
 }
 
 /** Whether the mover's own `moverFootprint.gw × moverFootprint.gh` block,
@@ -2517,13 +2525,24 @@ async function applyDefeatIfReducedToZero(target) {
  * its token/actor happen to still be in on the scene). */
 function activeCoverCells(combat) {
   const gridSize = combat.scene?.grid?.size ?? 100;
-  return (combat.scene?.tokens ?? [])
-    .filter(
-      (t) =>
-        t.getFlag(MODULE_ID, "coverItem") &&
-        (t.actor?.system?.attributes?.hp?.value ?? 0) > 0,
-    )
-    .map((t) => tokenCell(t, gridSize));
+  return livingCoverTokens(combat).map((t) => tokenCell(t, gridSize));
+}
+
+/** Single source of truth for "living cover" (#96, #567): scene tokens
+ * flagged `coverItem` whose actor still has HP. Corpses, destroyed cover
+ * and any other non-combatant token are never included. */
+function livingCoverTokens(combat) {
+  return (combat.scene?.tokens ?? []).filter(
+    (t) =>
+      t.getFlag(MODULE_ID, "coverItem") &&
+      (t.actor?.system?.attributes?.hp?.value ?? 0) > 0,
+  );
+}
+
+/** Footprints of every living cover item (#567) -- impassable and
+ * unlandable for AI combat movement. */
+function livingCoverFootprints(combat, gridSize) {
+  return livingCoverTokens(combat).map((t) => footprint(t, gridSize));
 }
 
 /**
