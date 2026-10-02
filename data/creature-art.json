@@ -32838,5 +32838,125 @@
     "name": "Elder Elemental Tsunami",
     "level": 14,
     "art": "elder-elemental-tsunami.webp"
+  },
+  {
+    "id": "boggard_cultist",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "LF67gTrSqSb7h4KZ",
+    "name": "Boggard Cultist",
+    "level": 8,
+    "art": "boggard-cultist.webp"
+  },
+  {
+    "id": "the_dancing_lady",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "LdIVntI4ho9eKTVt",
+    "name": "The Dancing Lady",
+    "level": 8,
+    "art": "the-dancing-lady.webp"
+  },
+  {
+    "id": "satinder_morne",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "Lm30gxMpkRJ2Y43d",
+    "name": "Satinder Morne",
+    "level": 6,
+    "art": "satinder-morne.webp"
+  },
+  {
+    "id": "kob_moleg",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "M7hMPdEbaC1RNwfY",
+    "name": "Kob Moleg",
+    "level": 16,
+    "art": "kob-moleg.webp"
+  },
+  {
+    "id": "black_tear_cutthroat",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "MqxA7COGMXc5CNsZ",
+    "name": "Black Tear Cutthroat",
+    "level": -1,
+    "art": "black-tear-cutthroat.webp"
+  },
+  {
+    "id": "armag_twice_born",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "NSY6VAGs9VrKzyRX",
+    "name": "Armag Twice-Born",
+    "level": 14,
+    "art": "armag-twice-born.webp"
+  },
+  {
+    "id": "jurgrindor",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "Nx6vcagWXhYToIdC",
+    "name": "Jurgrindor",
+    "level": 3,
+    "art": "jurgrindor.webp"
+  },
+  {
+    "id": "aecora_silverfire",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "NxVi4ot2bzNOk6Zj",
+    "name": "Aecora Silverfire",
+    "level": 7,
+    "art": "aecora-silverfire.webp"
+  },
+  {
+    "id": "sir_fredero_sinnet",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "O5EEnXdrKPcODuwh",
+    "name": "Sir Fredero Sinnet",
+    "level": 9,
+    "art": "sir-fredero-sinnet.webp"
+  },
+  {
+    "id": "the_horned_hunter",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "OhuPV1g5LfejhtAz",
+    "name": "The Horned Hunter",
+    "level": 18,
+    "art": "the-horned-hunter.webp"
+  },
+  {
+    "id": "wild_hunt_hound",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "OnHIutiVLt1czwWL",
+    "name": "Wild Hunt Hound",
+    "level": 14,
+    "art": "wild-hunt-hound.webp"
+  },
+  {
+    "id": "kellid_graveknight",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "P1kWLRlEPTcZ3uzD",
+    "name": "Kellid Graveknight",
+    "level": 14,
+    "art": "kellid-graveknight.webp"
+  },
+  {
+    "id": "zorek",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "PK8yBANFyMqFZ3IY",
+    "name": "Zorek",
+    "level": 12,
+    "art": "zorek.webp"
+  },
+  {
+    "id": "ameon_trask",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "QF2AIby1vQRq5b9E",
+    "name": "Ameon Trask",
+    "level": 10,
+    "art": "ameon-trask.webp"
+  },
+  {
+    "id": "troll_guard",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "QkGk4GMq3pCtBbLS",
+    "name": "Troll Guard",
+    "level": 15,
+    "art": "troll-guard.webp"
   }
 ]
