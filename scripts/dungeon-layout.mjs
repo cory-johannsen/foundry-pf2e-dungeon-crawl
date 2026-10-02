@@ -2522,3 +2522,263 @@ export function findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, to
   }
   return null;
 }
+
+// ---------------------------------------------------------------------------------------------
+// #427 Phase 4 (layoutVersion 3): passage lanes. PURE and NOT yet wired into the scene (Task 2.4 waits for
+// the user's decision at gate 2.3). See docs/superpowers/specs/2026-10-01-margin-lane-passage-design.md.
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * The single trigger for a passage lane (shared by the planner, the scene and the tests, so they can never
+ * disagree): an edge the router marked unresolvable, or a null-path edge whose fallback line overlaps a room
+ * other than its own two.
+ */
+export function needsPassage({ nullPath, fallbackOverlapsOtherRoom, unresolvable }) {
+  return Boolean(unresolvable) || Boolean(nullPath && fallbackOverlapsOtherRoom);
+}
+
+/**
+ * The unit tile just outside a door: south of the wall for a south-face door, north for north, right for east,
+ * left for west. `doorWall` is a one-unit (DOOR_WIDTH) wall; `face` is the compass face of the room it is on.
+ */
+export function mouthTile(doorWall, face) {
+  const x = Math.min(doorWall.x1, doorWall.x2);
+  const y = Math.min(doorWall.y1, doorWall.y2);
+  if (face === 'north') return { x, y: y - 1 };
+  if (face === 'west') return { x: x - 1, y };
+  return { x, y }; // south and east: the tile starts at the wall
+}
+
+/** The edge of a mouth tile that carries its door: a south-face door is on the mouth's north edge, etc. */
+export function mouthDoorSide(face) {
+  return { south: 'north', north: 'south', east: 'west', west: 'east' }[face];
+}
+
+const tileCellOf = (x, y) => ({ rank: Math.floor(y / ROW_STRIDE), col: Math.floor((x - INITIAL_GX) / COLUMN_STRIDE) });
+const LANE_DIRS = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+
+/**
+ * Everything a lane's walls and cell-border openings need, derived from its tile list ALONE (plus which edge of
+ * the first and last tile carries a door), so floor, walls and openings can never disagree (the
+ * `trunkLaneCorridorSegments` and #297 Round 1 failure class).
+ *
+ * - `floors`: maximal straight runs as rects; a turning tile ends its run, so no tile is in two rects.
+ * - `walls`: every tile boundary that is not shared with the lane's own previous or next tile and is not one
+ *   of the two doors, merged into maximal collinear segments, sorted.
+ * - `openingsByCell`: for each pair of consecutive tiles (and each door, whose outer side is one more tile) in
+ *   different grid cells, one opening on both cells,
+ *   `{ side, offset, width: 1 }`, `offset` the ABSOLUTE grid coordinate of the opening's first unit (y for an
+ *   east/west border, x for a north/south one).
+ */
+export function passageLaneGeometry(tiles, { srcDoorSide, dstDoorSide } = {}) {
+  const floors = [];
+  let runStart = 0;
+  for (let i = 1; i <= tiles.length; i += 1) {
+    const turns = i < tiles.length && i - runStart >= 2
+      && (tiles[i].x - tiles[i - 1].x !== tiles[i - 1].x - tiles[i - 2].x || tiles[i].y - tiles[i - 1].y !== tiles[i - 1].y - tiles[i - 2].y);
+    if (i === tiles.length || turns) {
+      const a = tiles[runStart]; const b = tiles[i - 1];
+      floors.push({ gx: Math.min(a.x, b.x), gy: Math.min(a.y, b.y), gw: Math.abs(a.x - b.x) + 1, gh: Math.abs(a.y - b.y) + 1 });
+      runStart = i;
+    }
+  }
+  const index = new Map(tiles.map((p, i) => [`${p.x},${p.y}`, i]));
+  const horizontal = new Map(); // y -> Set of x (unit edge from x to x+1)
+  const vertical = new Map(); // x -> Set of y
+  const addH = (y, x) => { if (!horizontal.has(y)) horizontal.set(y, new Set()); horizontal.get(y).add(x); };
+  const addV = (x, y) => { if (!vertical.has(x)) vertical.set(x, new Set()); vertical.get(x).add(y); };
+  tiles.forEach((p, i) => {
+    const sides = [
+      ['north', 0, -1, () => addH(p.y, p.x)], ['south', 0, 1, () => addH(p.y + 1, p.x)],
+      ['west', -1, 0, () => addV(p.x, p.y)], ['east', 1, 0, () => addV(p.x + 1, p.y)],
+    ];
+    for (const [side, dx, dy, add] of sides) {
+      const j = index.get(`${p.x + dx},${p.y + dy}`);
+      if (j !== undefined && (j === i - 1 || j === i + 1)) continue;
+      if (i === 0 && side === srcDoorSide) continue;
+      if (i === tiles.length - 1 && side === dstDoorSide) continue;
+      add();
+    }
+  });
+  const merge = (map, make) => [...map.entries()].flatMap(([line, set]) => {
+    const sorted = [...set].sort((a, b) => a - b);
+    const out = [];
+    let start = sorted[0]; let prev = sorted[0];
+    for (let k = 1; k <= sorted.length; k += 1) {
+      if (k < sorted.length && sorted[k] === prev + 1) { prev = sorted[k]; continue; }
+      out.push(make(line, start, prev + 1));
+      start = sorted[k]; prev = sorted[k];
+    }
+    return out;
+  });
+  const walls = [
+    ...merge(horizontal, (y, x1, x2) => ({ x1, y1: y, x2, y2: y })),
+    ...merge(vertical, (x, y1, y2) => ({ x1: x, y1, x2: x, y2 })),
+  ].sort((a, b) => (a.x1 - b.x1) || (a.y1 - b.y1) || (a.x2 - b.x2) || (a.y2 - b.y2));
+
+  const openingsByCell = {};
+  const open = (cell, side, offset) => {
+    const k = `${cell.rank},${cell.col}`;
+    (openingsByCell[k] ??= []).push({ side, offset, width: 1 });
+  };
+  // A door whose line is a cell border (a north/west-face door always is) is a border crossing too: the walls
+  // of the cell on the lane's side of it must leave the door's own unit open.
+  const beyond = (p, doorSide) => ({ x: p.x + (doorSide === 'east' ? 1 : doorSide === 'west' ? -1 : 0), y: p.y + (doorSide === 'south' ? 1 : doorSide === 'north' ? -1 : 0) });
+  const crossings = [];
+  if (srcDoorSide && tiles.length) crossings.push([beyond(tiles[0], srcDoorSide), tiles[0]]);
+  for (let i = 1; i < tiles.length; i += 1) crossings.push([tiles[i - 1], tiles[i]]);
+  if (dstDoorSide && tiles.length) crossings.push([tiles.at(-1), beyond(tiles.at(-1), dstDoorSide)]);
+  for (const [a, b] of crossings) {
+    const ca = tileCellOf(a.x, a.y); const cb = tileCellOf(b.x, b.y);
+    if (ca.rank === cb.rank && ca.col === cb.col) continue;
+    const dx = b.x - a.x; const dy = b.y - a.y;
+    const side = dx === 1 ? 'east' : dx === -1 ? 'west' : dy === 1 ? 'south' : 'north';
+    const opposite = { east: 'west', west: 'east', south: 'north', north: 'south' }[side];
+    const offset = dx !== 0 ? a.y : a.x;
+    open(ca, side, offset);
+    open(cb, opposite, offset);
+  }
+  return { floors, walls, openingsByCell };
+}
+
+const laneCompare = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
+/** Turn-penalised Dijkstra over unit tiles: 1 per step plus `turnCost` per turn, fixed neighbour order and
+ * insertion-order ties, so the lane is a pure function of the obstacle set. */
+function routeLane(start, end, isBlocked, bounds, { turnCost, maxCost }) {
+  const dist = new Map();
+  const prev = new Map();
+  const heap = [];
+  let seq = 0;
+  const less = (a, b) => a[0] < b[0] || (a[0] === b[0] && a[1] < b[1]);
+  const push = (item) => {
+    heap.push(item);
+    let i = heap.length - 1;
+    while (i > 0) {
+      const p = (i - 1) >> 1;
+      if (!less(heap[i], heap[p])) break;
+      [heap[p], heap[i]] = [heap[i], heap[p]];
+      i = p;
+    }
+  };
+  const pop = () => {
+    const top = heap[0];
+    const last = heap.pop();
+    if (heap.length) {
+      heap[0] = last;
+      let i = 0;
+      for (;;) {
+        const l = 2 * i + 1; const r = l + 1; let m = i;
+        if (l < heap.length && less(heap[l], heap[m])) m = l;
+        if (r < heap.length && less(heap[r], heap[m])) m = r;
+        if (m === i) break;
+        [heap[m], heap[i]] = [heap[i], heap[m]];
+        i = m;
+      }
+    }
+    return top;
+  };
+  const stateKey = (x, y, d) => `${x},${y},${d}`;
+  for (let d = 0; d < 4; d += 1) {
+    dist.set(stateKey(start.x, start.y, d), 0);
+    push([0, (seq += 1), start.x, start.y, d]);
+  }
+  while (heap.length) {
+    const [cost, , x, y, d] = pop();
+    const k = stateKey(x, y, d);
+    if (cost > dist.get(k)) continue;
+    if (cost > maxCost) return null;
+    if (x === end.x && y === end.y) {
+      const tiles = [];
+      for (let cur = k; cur; cur = prev.get(cur)) {
+        const [tx, ty] = cur.split(',').map(Number);
+        tiles.push({ x: tx, y: ty });
+      }
+      tiles.reverse();
+      return tiles.filter((p, i, all) => i === 0 || p.x !== all[i - 1].x || p.y !== all[i - 1].y);
+    }
+    for (let nd = 0; nd < 4; nd += 1) {
+      const nx = x + LANE_DIRS[nd][0]; const ny = y + LANE_DIRS[nd][1];
+      if (nx < bounds.x0 || nx >= bounds.x1 || ny < bounds.y0 || ny >= bounds.y1) continue;
+      if (!(nx === end.x && ny === end.y) && isBlocked(nx, ny)) continue;
+      const nc = cost + 1 + (nd === d ? 0 : turnCost);
+      const nk = stateKey(nx, ny, nd);
+      if (nc < (dist.get(nk) ?? Infinity)) { dist.set(nk, nc); prev.set(nk, k); push([nc, (seq += 1), nx, ny, nd]); }
+    }
+  }
+  return null;
+}
+
+const rectTiles = (rects) => rects.flatMap((r) => Array.from({ length: r.gw * r.gh }, (_, k) => `${r.gx + (k % r.gw)},${r.gy + Math.floor(k / r.gw)}`));
+
+/**
+ * Plans one-tile-wide passage lanes for the edges `needsPassage` flags (the "targets"), through free unit tiles
+ * beside the occupied cells, one target at a time in canonical order (target rank, target id, source id), each
+ * served lane becoming an obstacle for the next, so a result is a simultaneous assignment. PURE: a function of
+ * its input only (no randomness, no key-order dependence).
+ *
+ * Input: `positionByRoomId`, `rectByRoomId`; `edgeGeometry` = every NON-target edge as
+ * `{ edgeId, floors: [{gx,gy,gw,gh}], mouths: [{x,y}] }` (as `visitEdges` builds it); `targets` = each target as
+ * `{ edgeId, sourceId, toId, srcMouth, dstMouth, srcFace, dstFace, floors }` where `floors` is the fallback line
+ * the edge keeps if it gets no lane (so no served lane may cross it: a fixed point pins every unserved line a
+ * lane would cross and re-routes until none does).
+ *
+ * Obstacles: room tiles, other edges' floors, every edge's door-mouth tile (a mouth is its own edge's floor),
+ * placed lanes and pinned fallback lines. Search bounded to the source/target cell box plus one cell, cost cap 400.
+ *
+ * Returns `Map<edgeId, { tiles, floors, walls, openingsByCell, doorMouths }>` of the SERVED targets only; an edge
+ * absent from the map keeps its fallback line (a counted residual).
+ */
+export function planPassageLanes({ positionByRoomId, rectByRoomId, edgeGeometry, targets }, { turnCost = 3, maxCost = 400 } = {}) {
+  const roomTiles = new Set(rectTiles(Object.values(rectByRoomId)));
+  const floorTiles = new Set(edgeGeometry.flatMap((e) => rectTiles(e.floors)));
+  const mouthTiles = new Set();
+  for (const e of edgeGeometry) for (const m of e.mouths) mouthTiles.add(`${m.x},${m.y}`);
+  for (const t of targets) { mouthTiles.add(`${t.srcMouth.x},${t.srcMouth.y}`); mouthTiles.add(`${t.dstMouth.x},${t.dstMouth.y}`); }
+  const ordered = [...targets].sort((a, b) => (positionByRoomId[a.toId].rank - positionByRoomId[b.toId].rank)
+    || laneCompare(a.toId, b.toId) || laneCompare(a.sourceId, b.sourceId) || laneCompare(a.edgeId, b.edgeId));
+
+  const pass = (pinnedTiles) => {
+    const laneTiles = new Set();
+    const served = new Map();
+    const isBlocked = (x, y) => {
+      const k = `${x},${y}`;
+      return roomTiles.has(k) || floorTiles.has(k) || mouthTiles.has(k) || laneTiles.has(k) || pinnedTiles.has(k);
+    };
+    const unserved = [];
+    for (const t of ordered) {
+      const ps = positionByRoomId[t.sourceId]; const pt = positionByRoomId[t.toId];
+      const lo = cellBounds(Math.min(ps.rank, pt.rank) - 1, Math.min(ps.col, pt.col) - 1);
+      const hi = cellBounds(Math.max(ps.rank, pt.rank) + 1, Math.max(ps.col, pt.col) + 1);
+      const bounds = { x0: lo.gx, y0: lo.gy, x1: hi.gx + hi.gw, y1: hi.gy + hi.gh };
+      // A door mouth that is already another corridor's floor (or inside a room) cannot start or end a separate
+      // lane: the two floors would be one connected area behind that corridor's own walls.
+      const mouthTaken = (m) => { const k = `${m.x},${m.y}`; return roomTiles.has(k) || floorTiles.has(k) || laneTiles.has(k) || pinnedTiles.has(k); };
+      const tiles = mouthTaken(t.srcMouth) || mouthTaken(t.dstMouth)
+        ? null
+        : routeLane(t.srcMouth, t.dstMouth, isBlocked, bounds, { turnCost, maxCost });
+      if (!tiles) { unserved.push(t); continue; }
+      for (const p of tiles) laneTiles.add(`${p.x},${p.y}`);
+      served.set(t.edgeId, tiles);
+    }
+    return { served, unserved, laneTiles };
+  };
+
+  const pinnedTiles = new Set();
+  const pinned = new Set();
+  let result;
+  for (let iteration = 0; iteration < 50; iteration += 1) {
+    result = pass(pinnedTiles);
+    const conflicting = result.unserved.filter((t) => !pinned.has(t.edgeId) && rectTiles(t.floors).some((k) => result.laneTiles.has(k)));
+    if (!conflicting.length) break;
+    for (const t of conflicting) { pinned.add(t.edgeId); for (const k of rectTiles(t.floors)) pinnedTiles.add(k); }
+  }
+  const lanes = new Map();
+  for (const t of ordered) {
+    const tiles = result.served.get(t.edgeId);
+    if (!tiles) continue;
+    const geometry = passageLaneGeometry(tiles, { srcDoorSide: mouthDoorSide(t.srcFace), dstDoorSide: mouthDoorSide(t.dstFace) });
+    lanes.set(t.edgeId, { tiles, ...geometry, doorMouths: { src: tiles[0], dst: tiles.at(-1) } });
+  }
+  return lanes;
+}
