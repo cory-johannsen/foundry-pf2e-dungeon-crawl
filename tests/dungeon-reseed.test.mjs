@@ -15,7 +15,7 @@ import { edgeWalkability, walkableVerdict } from './helpers/walkability-oracle.m
 describe('selectSeed (pure given an evaluate)', () => {
   it('candidate seeds are the original, then <seed>~r<k>', () => {
     expect([candidateSeed('abc', 0), candidateSeed('abc', 1), candidateSeed('abc', 10)]).toEqual(['abc', 'abc~r1', 'abc~r10']);
-    expect(RESEED_MAX_TRIES).toBe(10);
+    expect(RESEED_MAX_TRIES).toBe(20);
   });
   it('keeps the original seed when its goal is reachable', async () => {
     const r = await selectSeed({ seed: 's', evaluate: async () => ({ goal: true, unreachable: 3 }) });
