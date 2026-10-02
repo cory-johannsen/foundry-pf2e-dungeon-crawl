@@ -27,18 +27,19 @@ describe('goal-only reseed ratchet (500 bases, N = 10)', () => {
       maxMs: Math.max(...out.map((r) => r.ms)), meanMs: mean(out.map((r) => r.ms)),
     };
     expect(RESEED_MAX_TRIES).toBe(10);
-    // Base world (no reseed): about half of the dungeons cannot reach the goal.
-    expect(stats.baseGoal).toBe(256);
-    // Accepted seeds: goal reachable in 496/500 at N = 10 with today's stub planner (4 more need 11-18 reseeds:
-    // bases 12, 87, 269 at k = 11/12, base 358 at k = 18). The corrected Chunk 7 planner measured 499.
-    expect(stats.goal).toBe(496);
-    expect(stats.exhausted).toBe(4);
-    expect(stats.cand).toBeGreaterThan(2.0);
-    expect(stats.cand).toBeLessThan(2.1);
+    // Base world (no reseed): over half of the dungeons cannot reach the goal. #575: the predicate also needs every
+    // edge on the route to be walkable door to door (was 256 under `truth` alone; 496/500 accepted at N = 10).
+    expect(stats.baseGoal).toBe(231);
+    // Accepted seeds: goal reachable in 495/500 at N = 10 (5 more need 11+ reseeds; N = 20 reaches 500/500 on the
+    // oracle sweep).
+    expect(stats.goal).toBe(495);
+    expect(stats.exhausted).toBe(5);
+    expect(stats.cand).toBeGreaterThan(2.2);
+    expect(stats.cand).toBeLessThan(2.35);
     expect(stats.worst).toBeLessThanOrEqual(1 + RESEED_MAX_TRIES);
-    // Skew: secret-detour dungeons fall 66% -> ~36%, hidden rooms 1.11 -> ~0.5.
-    expect(stats.detour).toBe(179);
-    expect(stats.hidden).toBeGreaterThan(0.46);
-    expect(stats.hidden).toBeLessThan(0.54);
+    // Skew: secret-detour dungeons fall 66% -> ~29%, hidden rooms 1.11 -> ~0.38 (detour edges are often cut ones).
+    expect(stats.detour).toBe(147);
+    expect(stats.hidden).toBeGreaterThan(0.34);
+    expect(stats.hidden).toBeLessThan(0.42);
   }, 600000);
 });

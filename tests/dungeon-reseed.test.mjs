@@ -10,6 +10,7 @@ import { buildSweepLayout } from './helpers/layout-sweep.mjs';
 import { buildStubbedSweepLayout } from './helpers/stub-sweep.mjs';
 import { buildSceneForLayout } from './helpers/scene-oracle.mjs';
 import { oracleReports } from './helpers/stub-oracle-aware.mjs';
+import { edgeWalkability, walkableVerdict } from './helpers/walkability-oracle.mjs';
 
 describe('selectSeed (pure given an evaluate)', () => {
   it('candidate seeds are the original, then <seed>~r<k>', () => {
@@ -61,7 +62,7 @@ describe('reseedStateFor', () => {
 const ctx = (i, seed) => ({ generator: deck, seed, roomCount: 6 + (i % 15), setpieceIds: {} });
 
 describe('product layout + truth predicate agree with the test oracle', () => {
-  it('computeRunLayout equals the sweep layout (edges, stubs, positions) and the verdict equals oracle truth', async () => {
+  it('computeRunLayout equals the sweep layout (edges, stubs, positions) and the verdict equals oracle truth plus per-edge walkability', async () => {
     let goalFalse = 0;
     for (let i = 0; i < 500; i += 1) {
       const seed = `sweep-${i}`;
@@ -71,10 +72,14 @@ describe('product layout + truth predicate agree with the test oracle', () => {
       expect(P.stubEdges).toEqual(S.stubEdges);
       expect(P.layoutPositionByRoomId).toEqual(S.pos);
       expect(P.incomingFaceByRoomId).toEqual(S.incFace);
-      const R = oracleReports(S, (await buildSceneForLayout(S, 3)).scene);
+      const { scene } = await buildSceneForLayout(S, 3);
+      const R = oracleReports(S, scene);
+      // #575: the product verdict is `truth` PLUS the per-edge walkability oracle (a dead edge under either is dead).
+      const deadEdges = new Set([...R.sealed, ...[...R.nullE].filter((e) => !R.walkableNull.has(e)), ...edgeWalkability(S, scene).dead]);
+      const expected = walkableVerdict(S, deadEdges);
       const v = await evaluateLayout(P);
-      expect([i, v.goal]).toEqual([i, R.truth.goal]);
-      expect([i, v.unreachable]).toEqual([i, R.truth.unreachable.length]);
+      expect([i, v.goal]).toEqual([i, expected.goal]);
+      expect([i, v.unreachable]).toEqual([i, expected.unreachable.length]);
       if (!v.goal) goalFalse += 1;
     }
     expect(goalFalse).toBeGreaterThan(100); // the base world has plenty of failures to be equivalent on

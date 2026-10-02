@@ -10,8 +10,8 @@
  * `selectSeed` is pure given an `evaluate(seed)`. `computeRunLayout` is the precompute `startDungeonRun` runs, factored
  * out so a candidate and the real run share one code path. `evaluateLayout` builds the layout's scene on a scratch
  * (in-memory) scene with the real scene builder and floods the truth-live graph. Its verdict is the same as the test
- * oracle's `truth` (tests/helpers/stub-oracle-aware.mjs `oracleReports`); tests/dungeon-reseed.test.mjs proves that
- * over 500 seeds.
+ * oracle's `truth` (tests/helpers/stub-oracle-aware.mjs `oracleReports`) PLUS (#575) the per-edge door-to-door walkability
+ * (tests/helpers/walkability-oracle.mjs `edgeWalkability`); tests/dungeon-reseed.test.mjs proves that over 500 seeds.
  */
 import {
   computeRanks, computeColumns, parentRoomIdsFor, incomingFaceFor, pruneConflictingShortcuts, stubStateFor,
@@ -189,10 +189,91 @@ function centreLineClear(scene, from, to) {
   return true;
 }
 
+const GRID = 100;
+const cellKey = (cx, cy) => `${cx},${cy}`;
+
+// Unit wall edges a set of walls occupies: 'v:x,y' sits between cells (x-1,y) and (x,y), 'h:x,y' between (x,y-1) and
+// (x,y). A wall covering even part of a unit edge blocks all of it (half-cell flank walls exist).
+function unitEdgeKeys(walls) {
+  const keys = new Set();
+  for (const w of walls) {
+    const [a, b, c, e] = w.c.map((n) => n / GRID);
+    if (a === c) {
+      for (let y = Math.floor(Math.min(b, e) + 1e-9); y < Math.ceil(Math.max(b, e) - 1e-9); y += 1) keys.add(`v:${Math.round(a)},${y}`);
+    } else {
+      for (let x = Math.floor(Math.min(a, c) + 1e-9); x < Math.ceil(Math.max(a, c) - 1e-9); x += 1) keys.add(`h:${x},${Math.round(b)}`);
+    }
+  }
+  return keys;
+}
+
+// The cell on the corridor side of door wall `d`: `out` for an outgoing door (below / east), else a reveal door (above / west).
+function doorCorridorCell(d, out) {
+  const cx = Math.floor(Math.min(d.c[0], d.c[2]) / GRID + 1e-9);
+  const cy = Math.floor(d.c[1] / GRID + 1e-9);
+  if (d.c[1] === d.c[3]) return out ? cellKey(cx, cy) : cellKey(cx, cy - 1);
+  return out ? cellKey(cx, cy) : cellKey(cx - 1, cy);
+}
+
+/**
+ * #575: the real edges whose doors a token cannot walk between. Flood the corridor TILE floor with every solid wall
+ * and every door as a blocker; an edge is walkable when the cell just outside its outgoing door and the cell just
+ * outside its reveal door share a floor component and neither door is covered by a solid wall. This sees what the
+ * sealed-door and null-path-centre-line checks cannot: a found-path corridor cut by a sibling corridor's flank or a
+ * cell-margin wall (the stuck e0 -> e0-0 and e0-1-0 -> rest edges of seed 1790965681939-q11uulo9ja).
+ * Returns the set of `from->to` keys that are NOT walkable.
+ */
+function unwalkableEdges(layout, scene) {
+  const floor = new Set();
+  for (const t of scene.tiles) {
+    const w = Math.max(1, Math.round((t.width ?? GRID) / GRID));
+    const h = Math.max(1, Math.round((t.height ?? GRID) / GRID));
+    const x0 = Math.round((t.x - (t.width ?? GRID) / 2) / GRID);
+    const y0 = Math.round((t.y - (t.height ?? GRID) / 2) / GRID);
+    for (let i = 0; i < w; i += 1) for (let j = 0; j < h; j += 1) floor.add(cellKey(x0 + i, y0 + j));
+  }
+  const solid = unitEdgeKeys(scene.walls.filter((w) => !w.door));
+  const doors = unitEdgeKeys(scene.walls.filter((w) => w.door));
+  const edgeBetween = (x, y, nx, ny) => (x !== nx ? `v:${Math.max(x, nx)},${y}` : `h:${x},${Math.max(y, ny)}`);
+  const comp = new Map();
+  let id = 0;
+  for (const start of floor) {
+    if (comp.has(start)) continue;
+    id += 1;
+    comp.set(start, id);
+    const stack = [start];
+    while (stack.length) {
+      const [x, y] = stack.pop().split(',').map(Number);
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const k = cellKey(x + dx, y + dy);
+        if (comp.has(k) || !floor.has(k)) continue;
+        const wall = edgeBetween(x, y, x + dx, y + dy);
+        if (solid.has(wall) || doors.has(wall)) continue;
+        comp.set(k, id);
+        stack.push(k);
+      }
+    }
+  }
+  const flag = (w) => w.flags?.[MODULE_ID] ?? {};
+  const bad = new Set();
+  for (const [from, kids] of Object.entries(layout.edges)) {
+    for (const to of kids) {
+      const out = scene.walls.find((w) => w.door && flag(w).dungeonDoorToRoomId === to && flag(w).dungeonDoorFromRoomId === from);
+      const rev = scene.walls.find((w) => w.door && flag(w).dungeonRevealDoorForSlot === to && flag(w).dungeonDoorFromRoomId === from);
+      const sealed = (d) => [...unitEdgeKeys([d])].some((k) => solid.has(k));
+      const s = out && doorCorridorCell(out, true);
+      const t = rev && doorCorridorCell(rev, false);
+      if (!out || !rev || sealed(out) || sealed(rev) || !floor.has(s) || !floor.has(t) || comp.get(s) !== comp.get(t)) bad.add(edgeKey(from, to));
+    }
+  }
+  return bad;
+}
+
 /**
  * The `truth` verdict of a built scene: flood from room-entry over `layout.edges` skipping dead real edges. An edge is
  * dead when one of its doors is sealed by a solid wall, or it is a null-path fallback (no free corridor) whose centre
- * line crosses a wall. Returns `{ goal, unreachable }` (`unreachable` = number of non-hidden rooms the flood misses).
+ * line crosses a wall, or (#575) it is not walkable door to door over the corridor floor (`unwalkableEdges`).
+ * Returns `{ goal, unreachable }` (`unreachable` = number of non-hidden rooms the flood misses).
  */
 function truthVerdict(layout, scene) {
   const solid = scene.walls.filter((w) => !w.door);
@@ -207,7 +288,7 @@ function truthVerdict(layout, scene) {
     const p = layout.layoutPositionByRoomId[id];
     return [id, roomRect(layout.seed, id, p.rank, p.col)];
   }));
-  const dead = new Set();
+  const dead = unwalkableEdges(layout, scene);
   for (const [from, kids] of Object.entries(layout.edges)) {
     const plan = outgoingDoorPlan(rect[from], layout.layoutPositionByRoomId[from], {
       realChildIds: kids, hiddenChildIds: (layout.hiddenEdges[from] ?? []).slice(0, 1),
