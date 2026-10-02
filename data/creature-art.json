@@ -28294,5 +28294,85 @@
     "name": "Doatara the Priest",
     "level": 7,
     "art": "doatara-the-priest.webp"
+  },
+  {
+    "id": "ogden",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "V4rVnbjJbcOIdC4Z",
+    "name": "Ogden",
+    "level": 7,
+    "art": "ogden.webp"
+  },
+  {
+    "id": "jinkin_ripclaw",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "VKHaguCFtnDVMXTz",
+    "name": "Jinkin Ripclaw",
+    "level": 1,
+    "art": "jinkin-ripclaw.webp"
+  },
+  {
+    "id": "soulbound_guardian",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "Z6aUTOMtvX2erFeA",
+    "name": "Soulbound Guardian",
+    "level": 4,
+    "art": "soulbound-guardian.webp"
+  },
+  {
+    "id": "splitsoul_object",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "fIV51W6NgHjZQDEG",
+    "name": "Splitsoul Object",
+    "level": 1,
+    "art": "splitsoul-object.webp"
+  },
+  {
+    "id": "taxidermic_dog",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "hfoTGdl5WdS5s1Ss",
+    "name": "Taxidermic Dog",
+    "level": 1,
+    "art": "taxidermic-dog.webp"
+  },
+  {
+    "id": "auldegrund_grimcarver",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "iPhDi4SU6pbTJmef",
+    "name": "Auldegrund Grimcarver",
+    "level": 7,
+    "art": "auldegrund-grimcarver.webp"
+  },
+  {
+    "id": "simulacrum",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "ki4Wf1p5DlJaIYmU",
+    "name": "Simulacrum",
+    "level": 4,
+    "art": "simulacrum.webp"
+  },
+  {
+    "id": "kelorbeyan_guard",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "pPk3CgAHycfQZno7",
+    "name": "Kelorbeyan Guard",
+    "level": 4,
+    "art": "kelorbeyan-guard.webp"
+  },
+  {
+    "id": "carl_the_cobbler",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "ws7D95828SXNi4Vp",
+    "name": "Carl The Cobbler",
+    "level": 5,
+    "art": "carl-the-cobbler.webp"
+  },
+  {
+    "id": "armored_cave_bears",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "zQmFPwuGNkF9EGTX",
+    "name": "Armored Cave Bears",
+    "level": 9,
+    "art": "armored-cave-bears.webp"
   }
 ]
