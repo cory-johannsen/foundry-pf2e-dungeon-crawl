@@ -30710,5 +30710,125 @@
     "name": "Mistress Dusklight",
     "level": 11,
     "art": "mistress-dusklight.webp"
+  },
+  {
+    "id": "bugul_noz",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "QZHvPM0Yatn8oxsj",
+    "name": "Bugul Noz",
+    "level": 12,
+    "art": "bugul-noz.webp"
+  },
+  {
+    "id": "viskithrel",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "QcJtBai5JViNFqUC",
+    "name": "Viskithrel",
+    "level": 15,
+    "art": "viskithrel.webp"
+  },
+  {
+    "id": "elysian_sheep",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "R3SbxfWLp8xUvXUP",
+    "name": "Elysian Sheep",
+    "level": 7,
+    "art": "elysian-sheep.webp"
+  },
+  {
+    "id": "luminous_ooze",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "RIZDryL3Wnk6ucks",
+    "name": "Luminous Ooze",
+    "level": 4,
+    "art": "luminous-ooze.webp"
+  },
+  {
+    "id": "qormintur",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "RbrUXZyhqbsglVrr",
+    "name": "Qormintur",
+    "level": 16,
+    "art": "qormintur.webp"
+  },
+  {
+    "id": "shraen_graveknight",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "S5pcyiSXhMKrMjcC",
+    "name": "Shraen Graveknight",
+    "level": 15,
+    "art": "shraen-graveknight.webp"
+  },
+  {
+    "id": "xulgath_roughrider",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "SBz0ylPxEaUhG2aZ",
+    "name": "Xulgath Roughrider",
+    "level": 11,
+    "art": "xulgath-roughrider.webp"
+  },
+  {
+    "id": "convergent_giant_eagle",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "Sxip3Rmi0PFpzHNw",
+    "name": "Convergent Giant Eagle",
+    "level": 15,
+    "art": "convergent-giant-eagle.webp"
+  },
+  {
+    "id": "zuipnyrn",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "TdqGpBasgDOUqmNp",
+    "name": "Zuipnyrn",
+    "level": 3,
+    "art": "zuipnyrn.webp"
+  },
+  {
+    "id": "smiler",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "U6jOmV5RAkj32qOi",
+    "name": "Smiler",
+    "level": 3,
+    "art": "smiler.webp"
+  },
+  {
+    "id": "ulthadar",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "UKBR2GdXIdg66Nqm",
+    "name": "Ulthadar",
+    "level": 8,
+    "art": "ulthadar.webp"
+  },
+  {
+    "id": "chimpanzee_visitant",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "WOeSP1KLzo0qTpZu",
+    "name": "Chimpanzee Visitant",
+    "level": 3,
+    "art": "chimpanzee-visitant.webp"
+  },
+  {
+    "id": "saurian_worldwatcher",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "Xva8XyRrsHB6S7e8",
+    "name": "Saurian Worldwatcher",
+    "level": 18,
+    "art": "saurian-worldwatcher.webp"
+  },
+  {
+    "id": "guardian_of_the_faithful",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "XyHk8ChyuOkJuhVZ",
+    "name": "Guardian of the Faithful",
+    "level": 8,
+    "art": "guardian-of-the-faithful.webp"
+  },
+  {
+    "id": "shoony_hierarch",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "YS8UvVGFgHP2TrY3",
+    "name": "Shoony Hierarch",
+    "level": 4,
+    "art": "shoony-hierarch.webp"
   }
 ]
