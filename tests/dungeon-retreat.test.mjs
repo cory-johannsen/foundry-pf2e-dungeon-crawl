@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import {
   RETREAT_VERSION, spentRooms, openChildren, isDeadEnd, retreatTargetFor, canRetreat,
   withEntry, withUndoneEntry, withRetreat, withStubOpened, rebuildRetreatPath, retreatStateFor,
-  retreatUiFor, retreatCardActionFor,
+  retreatUiFor, retreatCardActionFor, hasNoWayForward,
 } from '../scripts/dungeon-retreat.mjs';
 
 // entry -> f ; f -> a, b ; a -> d (dead end: its only forward edge is a stub to g) ; b -> g ; g goal
@@ -159,5 +159,58 @@ describe('retreatCardActionFor (#439 R4.2)', () => {
     expect(retreatCardActionFor(card, { isGM: false, hostUserId: 'u1', userId: 'u1' })).toEqual({ sceneId: 's1', enabled: true });
     expect(retreatCardActionFor(card, { isGM: false, hostUserId: 'u1', userId: 'u2' })).toEqual({ sceneId: 's1', enabled: false });
     expect(retreatCardActionFor(card, { isGM: false, userId: 'u2' })).toEqual({ sceneId: 's1', enabled: false });
+  });
+});
+
+// #585: a room whose every forward edge was WALLED (a dead edge that could not become a stub) has no door to discover:
+// entry -> f ; f -> w, b ; w -> g was walled (edges.w is empty, no stub) ; b -> g ; g goal.
+function walledFixture(over = {}) {
+  const rooms = Object.fromEntries(['room-entry', 'f', 'w', 'b', 'g'].map((id) => [id, { id, isGoal: id === 'g' }]));
+  return {
+    rooms,
+    edges: { 'room-entry': ['f'], f: ['w', 'b'], w: [], b: ['g'], g: [] },
+    stubEdges: {}, walledEdges: { w: ['g'] }, deadEdgeWalls: true,
+    history: [{ roomId: 'f' }, { roomId: 'w' }],
+    currentRoomId: 'w', retreatPath: ['room-entry', 'f', 'w'],
+    retreatVersion: 1, stubsOpened: {}, retreats: [], completed: false,
+    ...over,
+  };
+}
+
+describe('Turn back at a walled dead end (#585)', () => {
+  it('hasNoWayForward: a deadEdgeWalls run, a non-goal room with no forward edge and no stub', () => {
+    expect(hasNoWayForward(walledFixture())).toBe(true);
+    expect(hasNoWayForward(walledFixture({ currentRoomId: 'f', retreatPath: ['room-entry', 'f'] }))).toBe(false); // has edges
+    expect(hasNoWayForward(walledFixture({ currentRoomId: 'g', retreatPath: ['room-entry', 'f', 'b', 'g'] }))).toBe(false); // goal
+    expect(hasNoWayForward(walledFixture({ stubEdges: { w: ['g'] } }))).toBe(false); // a stub door is discovered, not announced
+  });
+
+  it('hasNoWayForward is false for a run created before the walls (no deadEdgeWalls flag) and below retreat v1', () => {
+    expect(hasNoWayForward(walledFixture({ deadEdgeWalls: undefined }))).toBe(false);
+    expect(hasNoWayForward(walledFixture({ retreatVersion: undefined }))).toBe(false);
+    expect(hasNoWayForward(undefined)).toBe(false);
+  });
+
+  it('Turn back is available as soon as the walled dead end is judged, with nothing to discover', () => {
+    expect(canRetreat(walledFixture())).toEqual({ ok: true, targetId: 'f' });
+    expect(retreatUiFor(walledFixture(), { isGM: false })).toEqual({ canRetreat: true, canResetRetreatPath: false });
+  });
+
+  it('it stays refused while unjudged or in combat (never offered wrongly)', () => {
+    expect(canRetreat(walledFixture({ history: [{ roomId: 'f' }] }))).toEqual({ ok: false, reason: 'unjudged' });
+    expect(canRetreat(walledFixture(), { combatActive: true })).toEqual({ ok: false, reason: 'combat' });
+    expect(retreatUiFor(walledFixture({ history: [{ roomId: 'f' }] }), {}).canRetreat).toBe(false);
+  });
+
+  it('a stub room keeps Decision 10: no button until its stub door is opened, even on a deadEdgeWalls run', () => {
+    const s = fixture({ deadEdgeWalls: true });
+    expect(retreatUiFor(s, {}).canRetreat).toBe(false);
+    expect(retreatUiFor({ ...s, stubsOpened: { 'd->g': true } }, {}).canRetreat).toBe(true);
+  });
+
+  it('withRetreat works from a walled dead end', () => {
+    const after = withRetreat(walledFixture(), 7);
+    expect(after.currentRoomId).toBe('f');
+    expect(after.retreatPath).toEqual(['room-entry', 'f']);
   });
 });

@@ -14,10 +14,13 @@ globalThis.foundry = {
   applications: { api: { ApplicationV2: class {}, HandlebarsApplicationMixin: (Base) => Base } },
   utils: { escapeHTML: (s) => String(s) },
 };
-const { moveTokensToRoom, handleDungeonDoorOpened, retreatToFork } = await import('../scripts/dungeon-scene.mjs');
+const { moveTokensToRoom, handleDungeonDoorOpened, retreatToFork, announceNoWayForward } = await import('../scripts/dungeon-scene.mjs');
 const { replaceRunState, getRunState } = await import('../scripts/dungeon-runner.mjs');
 const { DUNGEON_ACTIONS } = await import('../scripts/dungeon-remote.mjs');
 const { isAuthorizedRequest } = await import('../scripts/dungeon-permissions.mjs');
+
+const { registerGenerator } = await import('../scripts/generator-registry.mjs');
+const { DefaultGenerator } = await import('../scripts/default-generator.mjs');
 
 const MODULE_ID = 'pf2e-dungeon-crawl';
 const SID = 's';
@@ -284,5 +287,95 @@ describe('relay actions (#439 R3.3)', () => {
     expect(isAuthorizedRequest('retreat', 'u1', run)).toBe(true);
     expect(isAuthorizedRequest('retreat', 'u2', run)).toBe(false);
     expect(isAuthorizedRequest('retreat', undefined, run)).toBe(false);
+  });
+});
+
+describe('walled dead end: flavor line and Turn back (#585)', () => {
+  beforeEach(() => installGlobals());
+  // f -> w (all children walled: edges.w empty, no stub), f -> b ; party at w, judged.
+  const walledState = (over = {}) => v3State({
+    edges: { 'room-entry': ['f'], f: ['w', 'b'], w: [], b: ['g'], g: [] },
+    stubEdges: {}, walledEdges: { w: ['g'] }, deadEdgeWalls: true,
+    history: [{ roomId: 'f' }, { roomId: 'w' }], currentRoomId: 'w', retreatPath: ['room-entry', 'f', 'w'],
+    rooms: Object.fromEntries(['room-entry', 'f', 'w', 'b', 'g'].map((id) => [id, { id, isGoal: id === 'g', kind: 'combat', name: `Room ${id}` }])),
+    layoutPositionByRoomId: { 'room-entry': { rank: 0, col: 0 }, f: { rank: 1, col: 0 }, w: { rank: 2, col: 0 }, b: { rank: 2, col: 1 }, g: { rank: 3, col: 1 } },
+    ...over,
+  });
+
+  it('posts the one flavor line, then one Turn back card (no rubble wording)', async () => {
+    scenes.set(SID, makeScene());
+    await announceNoWayForward(scenes.get(SID), walledState());
+    expect(chat).toHaveLength(2);
+    expect(chat[0].content).toBe('PF2EDC.Dungeon.Retreat.NoWayForward');
+    expect(chat[1].flags[MODULE_ID].retreatCard).toEqual({ sceneId: SID });
+    expect(chat[1].content).toContain('data-pf2edc-retreat');
+    expect(chat[1].content).toContain('PF2EDC.Dungeon.Retreat.CardNoWay');
+    expect(chat[1].content).not.toContain('PF2EDC.Dungeon.Retreat.Card|');
+  });
+
+  it('autoRetreat: flavor line, then retreatToFork instead of a card', async () => {
+    scenes.set(SID, makeScene());
+    settingsValues.autoRetreat = true;
+    const calls = [];
+    await announceNoWayForward(scenes.get(SID), walledState(), { retreatToFork: async (id) => { calls.push(id); } });
+    expect(calls).toEqual([SID]);
+    expect(chat.map((c) => c.content)).toEqual(['PF2EDC.Dungeon.Retreat.NoWayForward']);
+  });
+
+  it('no target: the flavor line only', async () => {
+    scenes.set(SID, makeScene());
+    await announceNoWayForward(scenes.get(SID), walledState({ retreatPath: ['w'], history: [{ roomId: 'w' }] }));
+    expect(chat.map((c) => c.content)).toEqual(['PF2EDC.Dungeon.Retreat.NoWayForward']);
+  });
+
+  it('says nothing for a room with a way forward, a stub, or a run created before the walls', async () => {
+    scenes.set(SID, makeScene());
+    await announceNoWayForward(scenes.get(SID), walledState({ currentRoomId: 'f', retreatPath: ['room-entry', 'f'] }));
+    await announceNoWayForward(scenes.get(SID), walledState({ stubEdges: { w: ['g'] } }));
+    await announceNoWayForward(scenes.get(SID), walledState({ deadEdgeWalls: undefined }));
+    expect(chat).toHaveLength(0);
+  });
+
+  it('retreatToFork from a walled dead end turns back with the no-rubble line', async () => {
+    installGlobals({ party: [] });
+    scenes.set(SID, makeScene());
+    await seed(walledState());
+    expect(await retreatToFork(SID)).toEqual({ ok: true });
+    expect(getRunState(SID).currentRoomId).toBe('f');
+    expect(chat[0].content).toContain('PF2EDC.Dungeon.Retreat.TurnedNoWay');
+  });
+
+  it('a stub dead end still turns back with the rubble line', async () => {
+    installGlobals({ party: [] });
+    scenes.set(SID, makeScene());
+    await seed(v3State({ stubsOpened: { 'd->g': 1 }, deadEdgeWalls: true }));
+    await retreatToFork(SID);
+    expect(chat[0].content).toContain('PF2EDC.Dungeon.Retreat.Turned|');
+  });
+});
+
+describe('a rest room whose every exit was walled announces the dead end (#585)', () => {
+  it('opening its reveal door resolves it and posts the flavor line and the Turn back card', async () => {
+    installGlobals();
+    registerGenerator(DefaultGenerator);
+    const reveal = wall('w-r', { dungeonRevealDoorForSlot: 'r' });
+    const restScene = makeScene({ walls: [reveal] });
+    // unlockDoorsFromRoom walks scene.walls as a collection of documents (find / for..of), like Foundry's.
+    restScene.walls = Object.assign([reveal], { get: (id) => (id === 'w-r' ? reveal : undefined) });
+    scenes.set(SID, restScene);
+    const rooms = Object.fromEntries(['room-entry', 'f', 'r', 'b', 'g'].map((id) => [id, {
+      id, isGoal: id === 'g', kind: id === 'r' ? 'safe_rest' : 'combat', name: `Room ${id}`, outcomeSlotId: null,
+    }]));
+    await seed(v3State({
+      rooms, edges: { 'room-entry': ['f'], f: ['r', 'b'], r: [], b: ['g'], g: [] }, stubEdges: {}, walledEdges: { r: ['g'] },
+      deadEdgeWalls: true, hiddenEdges: {},
+      layoutPositionByRoomId: { 'room-entry': { rank: 0, col: 0 }, f: { rank: 1, col: 0 }, r: { rank: 2, col: 0 }, b: { rank: 2, col: 1 }, g: { rank: 3, col: 1 } },
+      history: [{ roomId: 'f' }], currentRoomId: 'f', retreatPath: ['room-entry', 'f'],
+    }));
+    await handleDungeonDoorOpened(SID, 'w-r');
+    const texts = chat.map((c) => c.content);
+    expect(texts[0]).toBe('PF2EDC.Dungeon.Retreat.NoWayForward');
+    expect(chat[1].flags[MODULE_ID].retreatCard).toEqual({ sceneId: SID });
+    expect(getRunState(SID).currentRoomId).toBe('r');
   });
 });

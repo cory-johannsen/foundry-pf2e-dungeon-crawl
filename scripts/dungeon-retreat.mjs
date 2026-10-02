@@ -55,6 +55,22 @@ export function canRetreat(state, { combatActive = false } = {}) {
   return { ok: true, targetId };
 }
 
+/**
+ * #585: the current room has no walkable forward exit and no stub door to find: every forward edge was WALLED at
+ * precompute (a dead edge that could not become a stub gets no door, scripts/dungeon-reseed.mjs). Only runs stamped
+ * `deadEdgeWalls` announce it (a run created before the walls keeps its old behavior), and only for a non-goal room
+ * with retreat on. A room with a stub is not announced here: its stub door is discovered by opening it (Decision 10).
+ * `canRetreat` needs no change for this: a judged room with no open child and no stub has nothing left to discover,
+ * so `Turn back` is offered the moment the room is judged.
+ */
+export function hasNoWayForward(state) {
+  if (!state?.deadEdgeWalls || !(state.retreatVersion >= 1)) return false;
+  const id = state.currentRoomId;
+  const room = state.rooms?.[id];
+  if (!room || room.isGoal) return false;
+  return (state.edges?.[id] ?? []).length === 0 && (state.stubEdges?.[id] ?? []).length === 0;
+}
+
 export function withEntry(state, roomId) {
   if (!(state.retreatVersion >= 1)) return state;
   return { ...state, retreatPath: [...(state.retreatPath ?? []), roomId] };
@@ -109,7 +125,8 @@ export function rebuildRetreatPath(state) {
 
 /** #439 R4: which retreat controls the tracker shows. `canRetreat` is false until
  * the stub door has been opened (canRetreat's 'undiscovered' reason), so the button
- * never leaks a stub; the GM-only repair shows when the path is missing or its tail
+ * never leaks a stub; a room with no stub and no forward edge (#585: every exit walled)
+ * has nothing to discover, so it offers Turn back as soon as it is judged; the GM-only repair shows when the path is missing or its tail
  * is not the current room. Pre-v3 runs (no retreatVersion) show nothing. */
 export function retreatUiFor(state, { isGM = false, combatActive = false } = {}) {
   if (!(state?.retreatVersion >= 1)) return { canRetreat: false, canResetRetreatPath: false };
