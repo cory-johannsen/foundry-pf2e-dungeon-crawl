@@ -30206,5 +30206,149 @@
     "name": "Remnant of Barzillai",
     "level": 10,
     "art": "remnant-of-barzillai.webp"
+  },
+  {
+    "id": "nihiris",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "0VzVpqN3Yp0IY3C1",
+    "name": "Nihiris",
+    "level": 17,
+    "art": "nihiris.webp"
+  },
+  {
+    "id": "resin_seep_xulgath",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "0pw0r1w8vO7aRocN",
+    "name": "Resin-seep Xulgath",
+    "level": 10,
+    "art": "resin-seep-xulgath.webp"
+  },
+  {
+    "id": "jellico_bounce_bounce",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "16cZVZxsXVRHfuuQ",
+    "name": "Jellico Bounce-Bounce",
+    "level": 2,
+    "art": "jellico-bounce-bounce.webp"
+  },
+  {
+    "id": "death_drider",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "18Y3yoYcEGoLcmDy",
+    "name": "Death Drider",
+    "level": 13,
+    "art": "death-drider.webp"
+  },
+  {
+    "id": "herecite_of_zevgavizeb",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "1vOre5O8t3pQPUp6",
+    "name": "Herecite of Zevgavizeb",
+    "level": 10,
+    "art": "herecite-of-zevgavizeb.webp"
+  },
+  {
+    "id": "counteflora",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "29NHB8DNNAbEk5Va",
+    "name": "Counteflora",
+    "level": 10,
+    "art": "counteflora.webp"
+  },
+  {
+    "id": "pin_tingwheely",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "2Ey2VZ3aQlN4FGHJ",
+    "name": "Pin Tingwheely",
+    "level": 8,
+    "art": "pin-tingwheely.webp"
+  },
+  {
+    "id": "war_sauropelta",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "2XRzA5GZeDk88Y2z",
+    "name": "War Sauropelta",
+    "level": 12,
+    "art": "war-sauropelta.webp"
+  },
+  {
+    "id": "kirosthrek",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "2bu9oGbB7UUTq2sR",
+    "name": "Kirosthrek",
+    "level": 20,
+    "art": "kirosthrek.webp"
+  },
+  {
+    "id": "mechanical_carny",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "3Fxih1eU4IXABxpy",
+    "name": "Mechanical Carny",
+    "level": 2,
+    "art": "mechanical-carny.webp"
+  },
+  {
+    "id": "pruana_two_punch",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "4QgC23j1wzfaCecR",
+    "name": "Pruana Two-punch",
+    "level": 3,
+    "art": "pruana-two-punch.webp"
+  },
+  {
+    "id": "brughadatch",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "4eQVYZ7sH7O8mw3R",
+    "name": "Brughadatch",
+    "level": 10,
+    "art": "brughadatch.webp"
+  },
+  {
+    "id": "xulgath_deepmouth",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "4lJiW36oO2iG7jCB",
+    "name": "Xulgath Deepmouth",
+    "level": 12,
+    "art": "xulgath-deepmouth.webp"
+  },
+  {
+    "id": "urdefhan_dominator",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "5G8Iokror8QtBhbx",
+    "name": "Urdefhan Dominator",
+    "level": 14,
+    "art": "urdefhan-dominator.webp"
+  },
+  {
+    "id": "shanchek",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "5tlPKUZroqzycuzD",
+    "name": "Shanchek",
+    "level": 15,
+    "art": "shanchek.webp"
+  },
+  {
+    "id": "blood_wolf",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "HFAhDmrkxg6YLhdF",
+    "name": "Blood Wolf",
+    "level": 3,
+    "art": "wolf.webp"
+  },
+  {
+    "id": "urdefhan_high_tormentor",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "IRon2oG76IG28Z4m",
+    "name": "Urdefhan High Tormentor",
+    "level": 10,
+    "art": "urdefhan-high-tormentor-lob.webp"
+  },
+  {
+    "id": "bone_croupier",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "SAqbWugp2NcdEtrr",
+    "name": "Bone Croupier",
+    "level": 5,
+    "art": "bone-croupier-lob.webp"
   }
 ]
