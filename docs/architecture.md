@@ -276,6 +276,7 @@ graph LR
   scripts_dungeon_scene_mjs --> scripts_placement_mjs
   scripts_dungeon_scene_mjs --> scripts_encounter_generator_mjs
   scripts_dungeon_scene_mjs --> scripts_dungeon_runner_mjs
+  scripts_dungeon_scene_mjs --> scripts_dungeon_retreat_mjs
   scripts_dungeon_scene_mjs --> scripts_dungeon_deck_mjs
   scripts_dungeon_scene_mjs --> scripts_dungeon_combat_mjs
   scripts_dungeon_scene_mjs --> scripts_dungeon_sound_mjs

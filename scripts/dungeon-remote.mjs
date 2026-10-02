@@ -10,7 +10,12 @@
  * discriminated by `type`.
  */
 import { SOCKET } from "./player-choice.mjs";
-import { getRunState, findActiveHostedRun, setMarchingOrder } from "./dungeon-runner.mjs";
+import {
+  getRunState,
+  findActiveHostedRun,
+  setMarchingOrder,
+  resetRetreatPath,
+} from "./dungeon-runner.mjs";
 import { isAuthorizedRequest } from "./dungeon-permissions.mjs";
 import {
   startDungeonRun,
@@ -24,7 +29,7 @@ import {
   chooseNarrativeOption,
   claimTreasureFor,
 } from "./ui/dungeon-app.mjs";
-import { undoRoomEntry } from "./dungeon-scene.mjs";
+import { undoRoomEntry, retreatToFork } from "./dungeon-scene.mjs";
 import { runFollowMoveNow, resnapTokenNow } from "./dungeon-follow.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -37,7 +42,7 @@ const pending = new Map();
  * nothing more. `args` always carries whatever the action needs, plus
  * `requestingUserId` (only `startRun` uses it — to set the new run's
  * `hostUserId` to whoever actually asked, not to this client's own id). */
-const DUNGEON_ACTIONS = {
+export const DUNGEON_ACTIONS = {
   startRun: (args) =>
     startDungeonRun({ ...args, hostUserId: args.requestingUserId }),
   resolveRoom: (args) =>
@@ -45,6 +50,8 @@ const DUNGEON_ACTIONS = {
       scene: game.scenes.get(args.sceneId),
     }),
   undoRoomEntry: (args) => undoRoomEntry(args.sceneId),
+  retreat: (args) => retreatToFork(args.sceneId),
+  resetRetreatPath: (args) => resetRetreatPath({ sceneId: args.sceneId }),
   abandonRun: (args) => abandonDungeonRun(args.sceneId),
   declareOutcome: (args) =>
     resolveCombatRoomOutcome(args.sceneId, args.succeeded),

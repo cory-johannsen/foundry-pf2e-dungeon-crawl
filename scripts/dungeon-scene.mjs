@@ -62,7 +62,11 @@ import {
   ensureTrapState,
   ensureTreasureState,
   markRoomOutcome,
+  effectiveMarchingOrder,
+  retreatTo,
+  markStubOpened,
 } from "./dungeon-runner.mjs";
+import { canRetreat } from "./dungeon-retreat.mjs";
 import { depthBiasFor } from "./dungeon-deck.mjs";
 import { startCombatForRoom } from "./dungeon-combat.mjs";
 import { playDoorSound } from "./dungeon-sound.mjs";
@@ -1172,7 +1176,15 @@ export async function teardownDungeonRun(
 /** Move already-placed tokens into roomId — for undo, stepping the party
  * back. Keyed by roomRect(seed, roomId, rank, col), since a room's
  * position is no longer derivable from an integer alone (#93). */
-export async function moveTokensToRoom(scene, tokenIds, roomId, rank, col, seed) {
+export async function moveTokensToRoom(
+  scene,
+  tokenIds,
+  roomId,
+  rank,
+  col,
+  seed,
+  { teleport = false } = {},
+) {
   if (!tokenIds?.length) return;
   const rect = roomRect(seed, roomId, rank, col);
   const updates = tokenIds.map((id, i) => ({
@@ -1180,7 +1192,13 @@ export async function moveTokensToRoom(scene, tokenIds, roomId, rank, col, seed)
     x: toPixels(rect.gx + (i % rect.gw)),
     y: toPixels(rect.gy + Math.floor(i / rect.gw)),
   }));
-  await scene.updateEmbeddedDocuments("Token", updates);
+  // #439: a plain update is constrained by Foundry's wall-collision pipeline
+  // (the #87/#141 root cause); retreat must pass teleport so tokens cross walls.
+  await scene.updateEmbeddedDocuments(
+    "Token",
+    updates,
+    teleport ? { teleport: true } : undefined,
+  );
 }
 
 /**
@@ -1592,7 +1610,7 @@ const roomsBeingOpened = new Set();
  * only ever hands back the plain boolean, same bridge pattern
  * `onCombatAutoResolved` already uses for `resolveCurrentRoom`.
  */
-export async function handleDungeonDoorOpened(sceneId, wallId) {
+export async function handleDungeonDoorOpened(sceneId, wallId, deps = {}) {
   // Called directly from a global hook, which fires on every connected
   // client — only the GM's own client should act on it.
   if (!game.user.isGM) return { autoOpenTracker: false };
@@ -1605,6 +1623,31 @@ export async function handleDungeonDoorOpened(sceneId, wallId) {
   // off IT instead would fire the reveal as soon as a room's outcome
   // resolves, before the party has actually opened its real door. See
   // buildEdgeCorridor's docblock (dungeon-layout.mjs, Task 6).
+  // #439: a stub door (a dead-end corridor) only records discovery and may
+  // offer a retreat; it never advances the run.
+  const stubTargetId = wall?.getFlag(MODULE_ID, "dungeonStubDoorFor");
+  if (stubTargetId) {
+    const stubSourceId = wall.getFlag(MODULE_ID, "dungeonDoorFromRoomId");
+    const stubState = getRunState(sceneId);
+    // Only the party's CURRENT room's own stub door counts.
+    if (!stubState || stubState.currentRoomId !== stubSourceId)
+      return { autoOpenTracker: false };
+    playDoorSound("open");
+    const first = !stubState.stubsOpened?.[`${stubSourceId}->${stubTargetId}`];
+    const after = await markStubOpened({
+      sceneId,
+      sourceId: stubSourceId,
+      targetId: stubTargetId,
+    });
+    if (first) {
+      await ChatMessage.create({
+        content: game.i18n.localize("PF2EDC.Dungeon.Retreat.StubFlavor"),
+      });
+      await announceRetreatIfAvailable(scene, after, deps);
+    }
+    return { autoOpenTracker: true };
+  }
+
   const roomId = wall?.getFlag(MODULE_ID, "dungeonRevealDoorForSlot");
   if (!roomId) return { autoOpenTracker: false };
 
@@ -1615,6 +1658,19 @@ export async function handleDungeonDoorOpened(sceneId, wallId) {
   if (roomsBeingOpened.has(roomId)) return { autoOpenTracker: false };
   roomsBeingOpened.add(roomId);
   try {
+    // #439: re-entering a room the party already judged (after a retreat)
+    // only moves the run; it must not re-reveal tokens, restart its combat,
+    // or re-unlock anything. v3 (retreatVersion >= 1) runs only.
+    if (
+      state.retreatVersion >= 1 &&
+      (state.history ?? []).some((h) => h.roomId === roomId)
+    ) {
+      playDoorSound("open");
+      await advanceToRoom({ sceneId, roomId, revealedTokenIds: [] });
+      const { rank, col } = state.layoutPositionByRoomId[roomId];
+      focusCameraOnRoom(scene, roomId, rank, col, state.seed);
+      return { autoOpenTracker: false };
+    }
     // #93 fix round 1: no lazy-build fallback here anymore — see this
     // task's own "fix round 1" note above. By the time this room's reveal
     // door exists at all, that room's own build (Tile flag + both doors,
@@ -1692,6 +1748,89 @@ export async function handleDungeonDoorOpened(sceneId, wallId) {
   } finally {
     roomsBeingOpened.delete(roomId);
   }
+}
+
+/** #439: true while any started combat belongs to this scene. */
+function sceneHasActiveCombat(scene) {
+  return !!game.combats?.some((c) => c.scene?.id === scene?.id && c.started);
+}
+
+/** #439: after a stub door is first opened, either turn back automatically
+ * (autoRetreat world setting) or post a chat card with a Turn back button. */
+export async function announceRetreatIfAvailable(
+  scene,
+  state,
+  { retreatToFork: doRetreat = retreatToFork } = {},
+) {
+  const verdict = canRetreat(state, {
+    combatActive: sceneHasActiveCombat(scene),
+  });
+  if (!verdict.ok) return;
+  if (game.settings.get(MODULE_ID, "autoRetreat")) {
+    await doRetreat(scene.id);
+    return;
+  }
+  const target = state.rooms?.[verdict.targetId]?.name ?? verdict.targetId;
+  const message = game.i18n.format("PF2EDC.Dungeon.Retreat.Card", { target });
+  const label = game.i18n.localize("PF2EDC.Dungeon.Retreat.Button");
+  await ChatMessage.create({
+    content: `<p>${message}</p><button type="button" data-pf2edc-retreat>${label}</button>`,
+    flags: { [MODULE_ID]: { retreatCard: { sceneId: scene.id } } },
+  });
+}
+
+/** #439: turn the party back to the nearest fork. Tokens are teleported
+ * FIRST and the run state persisted AFTER, so a failed move leaves the run
+ * in the dead end with the button still showing. Never unlocks doors. */
+export async function retreatToFork(
+  sceneId,
+  { runnerRetreatTo = retreatTo } = {},
+) {
+  const scene = game.scenes.get(sceneId);
+  const state = getRunState(sceneId);
+  const verdict = canRetreat(state, {
+    combatActive: sceneHasActiveCombat(scene),
+  });
+  if (!scene || !verdict.ok) {
+    ui.notifications?.warn(
+      game.i18n.localize(
+        `PF2EDC.Dungeon.Retreat.Refused.${verdict.reason ?? "disabled"}`,
+      ),
+    );
+    return { ok: false, reason: verdict.reason };
+  }
+  const target = verdict.targetId;
+  const { rank, col } = state.layoutPositionByRoomId[target];
+  const order = effectiveMarchingOrder(state);
+  const partyIds = partyActorIds();
+  const tokens = scene.tokens.filter((t) => partyIds.has(t.actor?.id));
+  // Humans (not in the AI order) first, then AI actors in marching order.
+  tokens.sort((a, b) => {
+    const ia = order.indexOf(a.actor.id);
+    const ib = order.indexOf(b.actor.id);
+    return (ia < 0 ? -1 : ia) - (ib < 0 ? -1 : ib);
+  });
+  await moveTokensToRoom(
+    scene,
+    tokens.map((t) => t.id),
+    target,
+    rank,
+    col,
+    state.seed,
+    { teleport: true },
+  );
+  const result = await runnerRetreatTo({
+    sceneId,
+    combatActive: sceneHasActiveCombat(scene),
+  });
+  if (!result.ok) return { ok: false, reason: result.reason };
+  focusCameraOnRoom(scene, target, rank, col, state.seed);
+  await ChatMessage.create({
+    content: game.i18n.format("PF2EDC.Dungeon.Retreat.Turned", {
+      target: state.rooms[target]?.name ?? target,
+    }),
+  });
+  return { ok: true };
 }
 
 /** Reverses the most recent automatic entry: re-hides what was revealed,

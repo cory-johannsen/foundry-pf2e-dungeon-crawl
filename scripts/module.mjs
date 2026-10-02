@@ -77,6 +77,15 @@ Hooks.once("init", () => {
     type: String,
     default: "",
   });
+  // #439: at a dead end, turn back to the last fork without a button press.
+  game.settings.register(MODULE_ID, "autoRetreat", {
+    name: "PF2EDC.Settings.AutoRetreat.Name",
+    hint: "PF2EDC.Settings.AutoRetreat.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: false,
+  });
 });
 
 Hooks.once("ready", async () => {
