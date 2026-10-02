@@ -892,3 +892,38 @@ entry-to-goal path (0.002 per dungeon). A direct run meets about none; a party t
 the planner's layering acceptable, or should the sealed set be injected by the caller; (2) which oracle is the
 ratchet from now on (`opt` as today, or `truth`); (3) K6's "any seed" invariant is only met with the verify
 step; accept it, or relax K6 to an aggregate ratchet.
+
+## Goal-only reject-and-reseed (measured 2026-10-02, #490/#427; test `tests/dungeon-goal-reseed.test.mjs`)
+
+Prototype only, no product code. Predicate G: goal reachable from room-entry over edges the `truth` oracle leaves
+live. Candidate k of base i = seed `sweep-i~rk` (k = 0 is the base). Policy "stub-first" evaluates G on the layout
+after `planStubsOracleAwareVerified` (retreat on); "before-stubs" evaluates it on the plain layout and stubs only the
+accepted one. 500 bases, layoutVersion 3.
+
+| N reseeds | runs ending G true (stub-first) | before-stubs | E[candidates] | worst | secret-detour dungeons | hidden rooms/dungeon |
+|---|---|---|---|---|---|---|
+| 0 (base) | 265 (53.0%) | 255 | 1.00 | 1 | 330 (66.0%) | 1.11 |
+| 1 | 389 (77.8%) | 379 | 1.47 | 2 | 242 (48.4%) | 0.78 |
+| 3 | 465 (93.0%) | 459 | 1.82 | 4 | 198 (39.6%) | 0.58 |
+| 5 | 485 (97.0%) | 482 | 1.92 | 6 | 185 (37.0%) | 0.53 |
+| 10 | 499 (99.8%) | 497 | 1.99 | 11 | 181 (36.2%) | 0.52 |
+| 20 | 500 (100%) | 500 | 2.00 | 19 | 180 (36.0%) | 0.52 |
+
+Cost per candidate (single process, fake scene, no content): plain build + oracle ~10 ms, stub plan + verify ~15 ms,
+so ~25 ms stub-first (max 176 ms); before-stubs is ~10 ms per rejected candidate plus one stub pass.
+
+**Skew, accepted (N=20, stub-first) vs base:** secret-detour dungeons 66.0% -> 36.0%, hidden rooms 1.11 -> 0.52,
+merge rooms 1.15 -> 1.15 (unchanged), stubs 2.65 -> 3.07, rooms 15.99 -> 15.40, goal rank 9.90 -> 9.40, mean rank
+4.30 -> 4.11. Room-kind mix within 0.7 points of the base. The goal-only predicate keeps about half of the secret
+detours (36% vs 22-25% under the full predicate) but still cuts them materially: dungeons with a detour room pass G
+28.8% on the base seed against 100% without. Merge rooms are not the issue, detour rooms are.
+
+**Residual after goal-only reseed + stubs (N=20, `truth`):** goal reachable in all 500. Dungeons with an unreachable
+non-goal room 256 -> 47 (rooms 1275 -> 80, of which combat 39, treasure 10, skill 9, puzzle 9, narrative 7, trap 6);
+dungeons with a sole-incoming dead real edge 30 -> 16; sealed doors 432 -> 127. Another 472 rooms (222 combat, 62
+rest, 53 skill, 52 treasure) are reachable only through null-path fallback lines the oracle says cross no wall; the
+oracle counts them live, real collision may not. The 80 unreachable rooms are optional content (none is the goal),
+but a sole-dead-edge room is a visible dead end behind a stub-less door in 16 dungeons.
+
+**What the oracle cannot see:** real token/wall collision beyond the centre-line test, lane width, door state (a
+locked or closed door), a live rank cap. One live example earlier matched the oracle's dead-edge model.
