@@ -19,6 +19,14 @@
  */
 import { getGenerator } from "./generator-registry.mjs";
 import {
+  withEntry,
+  withUndoneEntry,
+  withRetreat,
+  withStubOpened,
+  canRetreat,
+  rebuildRetreatPath,
+} from "./dungeon-retreat.mjs";
+import {
   initSkillChallengeState,
   applySkillChallengeAttempt,
 } from "./skill-challenge-mechanics.mjs";
@@ -350,15 +358,20 @@ export async function advanceToRoom(
   const children = state.edges[state.currentRoomId] ?? [];
   if (!children.includes(roomId)) return { ok: false, state };
 
+  // #439: a revisit (room already judged) must not be auto-entered/undoable again.
+  const revisit =
+    state.retreatVersion >= 1 && state.history.some((h) => h.roomId === roomId);
+  const advanced = withEntry({ ...state, currentRoomId: roomId }, roomId);
   const newState = {
-    ...state,
-    currentRoomId: roomId,
-    lastAutoEntry: {
-      roomId,
-      fromRoomId: state.currentRoomId,
-      toRoomId: roomId,
-      revealedTokenIds,
-    },
+    ...advanced,
+    lastAutoEntry: revisit
+      ? null
+      : {
+          roomId,
+          fromRoomId: state.currentRoomId,
+          toRoomId: roomId,
+          revealedTokenIds,
+        },
   };
   await persist(sceneId, newState, settingsRef);
   return { ok: true, state: newState };
@@ -419,13 +432,58 @@ export async function undoLastRoomEntry(
     return { ok: false, state: state ?? null, undone: null };
 
   const undone = state.lastAutoEntry;
-  const newState = {
-    ...state,
-    currentRoomId: undone.fromRoomId,
-    lastAutoEntry: null,
-  };
+  const newState = withUndoneEntry(
+    { ...state, currentRoomId: undone.fromRoomId, lastAutoEntry: null },
+    undone.roomId,
+  );
   await persist(sceneId, newState, settingsRef);
   return { ok: true, state: newState, undone };
+}
+
+/** #439: turn back to the nearest fork. Re-reads state and re-checks canRetreat, so a double
+ * press (or two clients) retreats once; the caller moves the tokens first, then persists via this. */
+export async function retreatTo(
+  { sceneId },
+  { settingsRef = defaultSettingsRef(), combatActive = false } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return { ok: false, state: null, reason: "disabled" };
+  const verdict = canRetreat(state, { combatActive });
+  if (!verdict.ok) return { ok: false, state, reason: verdict.reason };
+  const newState = withRetreat(state, Date.now());
+  await persist(sceneId, newState, settingsRef);
+  return {
+    ok: true,
+    state: newState,
+    fromRoomId: state.currentRoomId,
+    toRoomId: verdict.targetId,
+  };
+}
+
+/** #439: record that a stub door was opened (discovery); idempotent. */
+export async function markStubOpened(
+  { sceneId, sourceId, targetId },
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const newState = withStubOpened(state, sourceId, targetId);
+  if (newState !== state) await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
+/** #439: GM-only repair of a missing/corrupt retreatPath (shortest chain over state.edges). */
+export async function resetRetreatPath(
+  { sceneId },
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state || !(state.retreatVersion >= 1)) return { ok: false, state };
+  const path = rebuildRetreatPath(state);
+  if (!path) return { ok: false, state };
+  const newState = { ...state, retreatPath: path };
+  await persist(sceneId, newState, settingsRef);
+  return { ok: true, state: newState };
 }
 
 export async function abandonRun(

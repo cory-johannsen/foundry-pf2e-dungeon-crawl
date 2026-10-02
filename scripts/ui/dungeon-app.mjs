@@ -51,7 +51,8 @@ import {
   unpauseIfGmLessRun,
 } from "../dungeon-combat.mjs";
 import { getGenerator } from "../generator-registry.mjs";
-import { computeRanks, computeColumns, parentRoomIdsFor, incomingFaceFor, pruneConflictingShortcuts, NEW_RUN_LAYOUT_VERSION } from "../dungeon-layout.mjs";
+import { retreatStateFor } from "../dungeon-retreat.mjs";
+import { computeRanks,computeColumns, parentRoomIdsFor, incomingFaceFor, pruneConflictingShortcuts, NEW_RUN_LAYOUT_VERSION } from "../dungeon-layout.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -559,6 +560,8 @@ export async function startDungeonRun({
     // several doors per face); #427: version 3 adds the incoming door order. Absent
     // on older runs = 1 = legacy geometry; a persisted 1 or 2 is never upgraded.
     layoutVersion: NEW_RUN_LAYOUT_VERSION,
+    // #439: retreat bookkeeping, stamped only for layoutVersion >= 3.
+    ...retreatStateFor(NEW_RUN_LAYOUT_VERSION),
     maxRank,
     currentRoomId: 'room-entry',
     history: [],

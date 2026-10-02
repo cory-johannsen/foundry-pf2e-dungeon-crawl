@@ -269,6 +269,7 @@ graph LR
   scripts_dungeon_remote_mjs --> scripts_dungeon_scene_mjs
   scripts_dungeon_remote_mjs --> scripts_dungeon_follow_mjs
   scripts_dungeon_runner_mjs --> scripts_generator_registry_mjs
+  scripts_dungeon_runner_mjs --> scripts_dungeon_retreat_mjs
   scripts_dungeon_runner_mjs --> scripts_skill_challenge_mechanics_mjs
   scripts_dungeon_runner_mjs --> scripts_puzzle_mechanics_mjs
   scripts_dungeon_scene_mjs --> scripts_dungeon_layout_mjs
@@ -333,6 +334,7 @@ graph LR
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_scene_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_combat_mjs
   scripts_ui_dungeon_app_mjs --> scripts_generator_registry_mjs
+  scripts_ui_dungeon_app_mjs --> scripts_dungeon_retreat_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_layout_mjs
   tools_agent_service_customization_generator_mjs --> tools_agent_service_node_fetch_mjs
   tools_agent_service_customization_generator_mjs --> tools_agent_service_env_mjs

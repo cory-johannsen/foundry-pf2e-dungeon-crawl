@@ -106,3 +106,10 @@ export function rebuildRetreatPath(state) {
   }
   return null;
 }
+
+/** #439: the run-state fields a new run carries; empty for layoutVersion < 3 so
+ * older runs stay byte-identical. */
+export function retreatStateFor(layoutVersion) {
+  if (!(layoutVersion >= 3)) return {};
+  return { retreatVersion: RETREAT_VERSION, retreatPath: ['room-entry'], stubsOpened: {}, retreats: [] };
+}
