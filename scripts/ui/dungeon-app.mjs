@@ -54,7 +54,8 @@ import {
 } from "../dungeon-combat.mjs";
 import { getGenerator } from "../generator-registry.mjs";
 import { retreatStateFor, retreatUiFor } from "../dungeon-retreat.mjs";
-import { computeRanks,computeColumns, parentRoomIdsFor, incomingFaceFor, pruneConflictingShortcuts, stubStateFor, NEW_RUN_LAYOUT_VERSION } from "../dungeon-layout.mjs";
+import { NEW_RUN_LAYOUT_VERSION } from "../dungeon-layout.mjs";
+import { chooseRunLayout, reseedStateFor } from "../dungeon-reseed.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -485,73 +486,22 @@ export async function startDungeonRun({
     },
   );
 
-  const generated = getGenerator().buildRoomGraph({
-    seed: state.seed,
-    roomCount,
-    puzzleSetpieceIds,
-    trapSetpieceIds,
-    narrativeSetpieceIds,
-    treasureSetpieceIds,
+  // #490: the layout precompute (graph, rest room, hidden paths, positions, incoming faces, #427 stubs) now lives in
+  // dungeon-reseed.mjs's computeRunLayout. For layoutVersion >= 3 it runs once per candidate seed until the goal is
+  // reachable over walkable edges (bounded; keeps the best and warns if none is); every seeded value downstream
+  // (room rects, doors, deck, encounters) then uses the FINAL seed, stored in state.seed.
+  const chosen = await chooseRunLayout({
+    generator: getGenerator(), seed: state.seed, roomCount, layoutVersion: NEW_RUN_LAYOUT_VERSION,
+    setpieceIds: { puzzle: puzzleSetpieceIds, trap: trapSetpieceIds, narrative: narrativeSetpieceIds, treasure: treasureSetpieceIds },
+    // Candidates are CPU-bound (~25 ms each): hand the thread back between them so the 'generating' popup stays alive.
+    yieldFn: () => new Promise((resolve) => setTimeout(resolve, 0)),
+    warn: (msg) => console.warn(`${MODULE_ID} | ${msg}`),
   });
-  // #93 post-merge fix (Task 2 addendum, found by Task 15's final review):
-  // restore the mid-dungeon rest room BEFORE attachHiddenPaths runs — a
-  // hidden path must never be allowed to select the rest room as its own
-  // fromId (see the Task 3 addendum), so the rest room has to already
-  // exist in the graph by the time attachHiddenPaths does its own
-  // eligibility scan.
-  const { rooms, edges: edgesBeforeStubs } = getGenerator().insertRestRoom({
-    rooms: generated.rooms,
-    edges: generated.edges,
-    seed: state.seed,
-    roomCount,
-  });
-  const { hiddenRooms, hiddenEdges: attachedHiddenEdges, layoutEdges, hiddenIncomingByRoomId: attachedHiddenIncoming } =
-    getGenerator().attachHiddenPaths({
-      rooms, edges: edgesBeforeStubs, seed: state.seed,
-      // #93 post-merge fix (Task 3 addendum): a revealed detour room needs
-      // real content the same way a main-graph room does.
-      puzzleSetpieceIds, trapSetpieceIds, narrativeSetpieceIds, treasureSetpieceIds,
-    });
-  // #156: rank/col must come from layoutEdges (includes detour rooms), not
-  // edges (visible-only) — computing over edges leaves every detour room's
-  // rank/col undefined, since its only incoming connection is hidden.
-  const ranks = computeRanks(layoutEdges, 'room-entry');
-  const columns = computeColumns(layoutEdges, ranks, 'room-entry');
-  const layoutPositionByRoomId = Object.fromEntries(
-    Object.keys(rooms).map((id) => [id, { rank: ranks[id], col: columns[id] }]),
-  );
-  // #415 Chunk 5 (new runs are layoutVersion 2): drop optional hidden shortcuts that
-  // would share an outgoing face lane with another of their source's edges. Shortcuts
-  // add no layout node, so positions above stay valid; must precede the incoming faces.
-  const { hiddenEdges, hiddenIncomingByRoomId } = pruneConflictingShortcuts({
-    edges: edgesBeforeStubs, hiddenRooms, hiddenEdges: attachedHiddenEdges, hiddenIncomingByRoomId: attachedHiddenIncoming,
-  }, layoutPositionByRoomId);
-  // #174 follow-up (incoming-face redesign): choose each room's incoming
-  // face once, from the fully precomputed layout, before any room's
-  // walls are built -- same "full pregeneration" pattern
-  // layoutPositionByRoomId itself already uses.
-  const occupiedCellsForIncomingFace = {};
-  for (const [id, pos] of Object.entries(layoutPositionByRoomId)) {
-    occupiedCellsForIncomingFace[`${pos.rank},${pos.col}`] = id;
-  }
-  const incomingFaceByRoomId = Object.fromEntries(
-    Object.keys(rooms).map((id) => {
-      const legitimateSourceIds = new Set([
-        ...parentRoomIdsFor(layoutEdges, id),
-        ...(hiddenIncomingByRoomId[id] ?? []),
-      ]);
-      return [id, incomingFaceFor(id, layoutPositionByRoomId, occupiedCellsForIncomingFace, legitimateSourceIds)];
-    }),
-  );
-  // #427 (layoutVersion >= 3, once NEW_RUN_STUBS_ENABLED): edges that cannot be routed and may safely be dead ends
-  // become stubs. They leave the progression graph (`edges`) but stay in `layoutEdges`, so no room moves.
-  const { edges, stubEdges } = stubStateFor(NEW_RUN_LAYOUT_VERSION, {
-    seed: state.seed, rooms, positionByRoomId: layoutPositionByRoomId, occupiedCells: occupiedCellsForIncomingFace,
-    edges: edgesBeforeStubs, layoutEdges, hiddenEdges, hiddenRooms: [...hiddenRooms], hiddenIncomingByRoomId,
-    incomingFaceByRoomId,
-  });
-  const maxRank = Math.max(...Object.values(ranks));
-  const maxCol = Math.max(...Object.values(columns));
+  console.log(`${MODULE_ID} | layout seed "${chosen.seed}" (origin "${chosen.seedOrigin}", reseeds ${chosen.reseedTries}, ${chosen.ms} ms)`);
+  const {
+    rooms, edges, stubEdges, layoutEdges, hiddenRooms, hiddenEdges, hiddenIncomingByRoomId,
+    layoutPositionByRoomId, incomingFaceByRoomId, maxRank, maxCol,
+  } = chosen.layout;
 
   // #93 pre-flight fix: strip the OLD array-model fields createRun still
   // sets (currentIndex/physicalSlotByRoomId/nextPhysicalSlot, from its own
@@ -562,6 +512,9 @@ export async function startDungeonRun({
   const { currentIndex: _oldIndex, physicalSlotByRoomId: _oldSlots, nextPhysicalSlot: _oldNext, ...stateWithoutLegacyFields } = state;
   state = {
     ...stateWithoutLegacyFields,
+    // #490: the final seed (createRun's own array-model rooms, built from the original seed, are discarded above).
+    seed: chosen.seed,
+    ...reseedStateFor(NEW_RUN_LAYOUT_VERSION, chosen),
     rooms,
     edges,
     ...(stubEdges ? { stubEdges } : {}),
