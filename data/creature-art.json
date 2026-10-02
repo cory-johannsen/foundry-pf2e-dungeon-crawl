@@ -32598,5 +32598,125 @@
     "name": "Shambler",
     "level": 6,
     "art": "shambler.webp"
+  },
+  {
+    "id": "horagnamon",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "7PkMXEkBrxhTCw4s",
+    "name": "Horagnamon",
+    "level": 8,
+    "art": "horagnamon.webp"
+  },
+  {
+    "id": "thorn_river_bandit",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "7bWjM5e9sKxaYbOw",
+    "name": "Thorn River Bandit",
+    "level": -1,
+    "art": "thorn-river-bandit.webp"
+  },
+  {
+    "id": "wild_hunt_horse",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "7os3GIj69tIqXTGl",
+    "name": "Wild Hunt Horse",
+    "level": 15,
+    "art": "wild-hunt-horse.webp"
+  },
+  {
+    "id": "hooktongue_hydra",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "8D3xvMiuOLJ3p6FU",
+    "name": "Hooktongue Hydra",
+    "level": 13,
+    "art": "hooktongue-hydra.webp"
+  },
+  {
+    "id": "tartuccio",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "8IYynuqZxDpXZwBE",
+    "name": "Tartuccio",
+    "level": 4,
+    "art": "tartuccio.webp"
+  },
+  {
+    "id": "cyclops_zombie",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "8cRXmQ9vd93T0m2N",
+    "name": "Cyclops Zombie",
+    "level": 7,
+    "art": "cyclops-zombie.webp"
+  },
+  {
+    "id": "irovetti_s_fetch",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "8eTfnYg0xmcgmDVQ",
+    "name": "Irovetti's Fetch",
+    "level": 20,
+    "art": "irovetti-s-fetch.webp"
+  },
+  {
+    "id": "nilak",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "9nGhRYarE5KkwOwc",
+    "name": "Nilak",
+    "level": 9,
+    "art": "nilak.webp"
+  },
+  {
+    "id": "enormous_flame_drake",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "AA3hdVlJhALthghl",
+    "name": "Enormous Flame Drake",
+    "level": 8,
+    "art": "enormous-flame-drake.webp"
+  },
+  {
+    "id": "gromog",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "AGNRcnrftglAtlbN",
+    "name": "Gromog",
+    "level": 2,
+    "art": "gromog.webp"
+  },
+  {
+    "id": "numerian_radiant_warden",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "ASevlX00GdHGNWrS",
+    "name": "Numerian Radiant Warden",
+    "level": 17,
+    "art": "numerian-radiant-warden.webp"
+  },
+  {
+    "id": "villamor_koth",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "AjpJNvt4nwzDAhqT",
+    "name": "Villamor Koth",
+    "level": 15,
+    "art": "villamor-koth.webp"
+  },
+  {
+    "id": "aldori_sister",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "Awlsx9BtgkQ39x6N",
+    "name": "Aldori Sister",
+    "level": 7,
+    "art": "aldori-sister.webp"
+  },
+  {
+    "id": "hooktongue",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "BEo6xNEhEKPsUzIn",
+    "name": "Hooktongue",
+    "level": 14,
+    "art": "hooktongue.webp"
+  },
+  {
+    "id": "storm_struck_arboreal",
+    "pack": "pf2e.kingmaker-bestiary",
+    "docId": "BJbe6BzLSIx8Jsix",
+    "name": "Storm-Struck Arboreal",
+    "level": 16,
+    "art": "storm-struck-arboreal.webp"
   }
 ]
