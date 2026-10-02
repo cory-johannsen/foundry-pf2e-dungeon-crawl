@@ -28014,5 +28014,109 @@
     "name": "Kalagemmon, Decayed Cyclops",
     "level": 1,
     "art": "kalagemmon-decayed-cyclops.webp"
+  },
+  {
+    "id": "infested_attendant",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "ekC1VHJtexh3AgVv",
+    "name": "Infested Attendant",
+    "level": 6,
+    "art": "infested-attendant.webp"
+  },
+  {
+    "id": "naiad_ship_hunter",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "fy5aCyFumedLL4x8",
+    "name": "Naiad Ship Hunter",
+    "level": 4,
+    "art": "naiad-ship-hunter.webp"
+  },
+  {
+    "id": "shriveled_leaf_of_talhindir",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "gCD8rOahd9F9ZSJO",
+    "name": "Shriveled Leaf of Talhindir",
+    "level": 2,
+    "art": "shriveled-leaf-of-talhindir.webp"
+  },
+  {
+    "id": "skeleton_adept",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "iUYrg5Cz4CRe37It",
+    "name": "Skeleton Adept",
+    "level": -1,
+    "art": "skeleton-adept.webp"
+  },
+  {
+    "id": "goblin_rigger",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "ioKbBqdvygylDQOM",
+    "name": "Goblin Rigger",
+    "level": 1,
+    "art": "goblin-rigger.webp"
+  },
+  {
+    "id": "undead_hellknight_armiger",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "jTxS0VhfRoXcPPMm",
+    "name": "Undead Hellknight Armiger",
+    "level": 3,
+    "art": "undead-hellknight-armiger.webp"
+  },
+  {
+    "id": "bartolo_posandi",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "sjMxdb8gEpK7ejBQ",
+    "name": "Bartolo Posandi",
+    "level": 1,
+    "art": "bartolo-posandi.webp"
+  },
+  {
+    "id": "bartolo_posandi_3_4",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "lGBzkcTH3i49Bg7e",
+    "name": "Bartolo Posandi (3-4)",
+    "level": 3,
+    "art": "bartolo-posandi.webp"
+  },
+  {
+    "id": "diabolic_messenger",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "mTuhmeDPgTeTDyUF",
+    "name": "Diabolic Messenger",
+    "level": 4,
+    "art": "diabolic-messenger.webp"
+  },
+  {
+    "id": "distracted_zaluraak",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "mmv8aD2JO1fsGVRJ",
+    "name": "Distracted Zaluraak",
+    "level": 8,
+    "art": "distracted-zaluraak.webp"
+  },
+  {
+    "id": "torn_trio",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "nBkr40GmiqL2EQOx",
+    "name": "Torn Trio",
+    "level": 13,
+    "art": "torn-trio.webp"
+  },
+  {
+    "id": "captain_conziva",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "rooOa7FSBuJhAm9Z",
+    "name": "Captain Conziva",
+    "level": 3,
+    "art": "captain-conziva.webp"
+  },
+  {
+    "id": "naiad_raider",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "zqTfhL6DJ2mNCvuG",
+    "name": "Naiad Raider",
+    "level": 6,
+    "art": "naiad-raider.webp"
   }
 ]
