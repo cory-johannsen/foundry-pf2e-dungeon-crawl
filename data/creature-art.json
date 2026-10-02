@@ -31574,5 +31574,133 @@
     "name": "Chalky",
     "level": 9,
     "art": "chalky.webp"
+  },
+  {
+    "id": "skitterstitch",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "AYNIAAxV7TbIKPI4",
+    "name": "Skitterstitch",
+    "level": 6,
+    "art": "skitterstitch.webp"
+  },
+  {
+    "id": "lord_guirden",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "B4kIfCimsz8wfc0k",
+    "name": "Lord Guirden",
+    "level": 19,
+    "art": "lord-guirden.webp"
+  },
+  {
+    "id": "secret_keeper",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "BCMkxoQB4xK4BniG",
+    "name": "Secret-Keeper",
+    "level": 14,
+    "art": "secret-keeper.webp"
+  },
+  {
+    "id": "black_whale_guard",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "BLRsSDFSMbZHcGDQ",
+    "name": "Black Whale Guard",
+    "level": 12,
+    "art": "black-whale-guard.webp"
+  },
+  {
+    "id": "black_whale_guard_f3",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "d3TzpCuRJF78xHZK",
+    "name": "Black Whale Guard (F3)",
+    "level": 12,
+    "art": "black-whale-guard.webp"
+  },
+  {
+    "id": "the_stabbing_beast",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "BoFg19e3N8WiNa3Z",
+    "name": "The Stabbing Beast",
+    "level": 15,
+    "art": "the-stabbing-beast.webp"
+  },
+  {
+    "id": "reginald_vancaskerkin",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "BuPf7xtqfwCjNOQv",
+    "name": "Reginald Vancaskerkin",
+    "level": 18,
+    "art": "reginald-vancaskerkin.webp"
+  },
+  {
+    "id": "grick",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "Bv1s6xJ55HS3Gxgs",
+    "name": "Grick",
+    "level": 3,
+    "art": "grick.webp"
+  },
+  {
+    "id": "scathka",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "CLntGVs7cAIL9Trk",
+    "name": "Scathka",
+    "level": 12,
+    "art": "scathka.webp"
+  },
+  {
+    "id": "clockwork_chopper",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "D36nL0YjCVHfjBNw",
+    "name": "Clockwork Chopper",
+    "level": 14,
+    "art": "clockwork-chopper.webp"
+  },
+  {
+    "id": "ghaele_of_kharnas",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "D5UF1i0f1IRcQcNB",
+    "name": "Ghaele Of Kharnas",
+    "level": 17,
+    "art": "ghaele-of-kharnas.webp"
+  },
+  {
+    "id": "shikwashim_mercenary",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "DKReNCapWWubM3pm",
+    "name": "Shikwashim Mercenary",
+    "level": 9,
+    "art": "shikwashim-mercenary.webp"
+  },
+  {
+    "id": "living_mural",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "E279VPhAy1a4ihqI",
+    "name": "Living Mural",
+    "level": 19,
+    "art": "living-mural.webp"
+  },
+  {
+    "id": "kapral",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "E7NEf3kmsY3YjRrz",
+    "name": "Kapral",
+    "level": 14,
+    "art": "kapral.webp"
+  },
+  {
+    "id": "chaos_gulgamodh",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "EGQgqBfV80ll3pcf",
+    "name": "Chaos Gulgamodh",
+    "level": 21,
+    "art": "chaos-gulgamodh.webp"
+  },
+  {
+    "id": "veksciralenix",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "Fmsw7P5CF3uHtD5W",
+    "name": "Veksciralenix",
+    "level": 20,
+    "art": "veksciralenix.webp"
   }
 ]
