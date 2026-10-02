@@ -26230,5 +26230,237 @@
     "name": "Loyal Ort",
     "level": 0,
     "art": "ort.webp"
+  },
+  {
+    "id": "chelaxian_devilcaster",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "4FDC41jW5psjstWb",
+    "name": "Chelaxian Devilcaster",
+    "level": 8,
+    "art": "chelaxian-devilcaster.webp"
+  },
+  {
+    "id": "irrisen_bandit",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "h5m411V6fKfxNxyr",
+    "name": "Irrisen Bandit",
+    "level": 1,
+    "art": "irrisen-bandit.webp"
+  },
+  {
+    "id": "experienced_irrisen_bandit",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "4be1bEozkaOaRJ2w",
+    "name": "Experienced Irrisen Bandit",
+    "level": 3,
+    "art": "irrisen-bandit.webp"
+  },
+  {
+    "id": "dread_leshy_ghoul",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "59X4JpNNQTOg2Fsp",
+    "name": "Dread Leshy Ghoul",
+    "level": 5,
+    "art": "dread-leshy-ghoul.webp"
+  },
+  {
+    "id": "blooddrunk_wild_dog",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "5M7E6bf3IrkcXjiN",
+    "name": "Blooddrunk Wild Dog",
+    "level": 5,
+    "art": "blooddrunk-wild-dog.webp"
+  },
+  {
+    "id": "puddles_phantom",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "5Txfy0wV529fleUw",
+    "name": "Puddles Phantom",
+    "level": 4,
+    "art": "puddles-phantom.webp"
+  },
+  {
+    "id": "puddles_phantom_5_6",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "ooCLBFbCLCQWhPqD",
+    "name": "Puddles Phantom (5-6)",
+    "level": 6,
+    "art": "puddles-phantom.webp"
+  },
+  {
+    "id": "rowan_the_whispering",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "6b57waH8dbIlkJ03",
+    "name": "Enraged Rowan the Whispering",
+    "level": 2,
+    "art": "rowan-the-whispering.webp"
+  },
+  {
+    "id": "rowan_the_whispering_lc2go",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "lc2GO6v9tDZKRPgp",
+    "name": "Rowan the Whispering",
+    "level": 2,
+    "art": "rowan-the-whispering.webp"
+  },
+  {
+    "id": "empowered_rowan_the_whispering",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "E5bLZ3iqgTj1PiS5",
+    "name": "Empowered Rowan the Whispering",
+    "level": 5,
+    "art": "rowan-the-whispering.webp"
+  },
+  {
+    "id": "yollen_frivetti",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "pZjEM3BqKHUVgBvG",
+    "name": "Yollen Frivetti",
+    "level": 8,
+    "art": "yollen-frivetti.webp"
+  },
+  {
+    "id": "empowered_yollen_frivetti",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "6gz6gfIh8Wp34S1D",
+    "name": "Empowered Yollen Frivetti",
+    "level": 10,
+    "art": "yollen-frivetti.webp"
+  },
+  {
+    "id": "ulfen_captain",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "76ecaFqNc2mgG2Z3",
+    "name": "Ulfen Captain",
+    "level": 2,
+    "art": "ulfen-captain.webp"
+  },
+  {
+    "id": "luxia_mirsaad",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "ydZKHWhrtR63ZUp7",
+    "name": "Luxia Mirsaad",
+    "level": 6,
+    "art": "luxia-mirsaad.webp"
+  },
+  {
+    "id": "luxia_mirsaad_7_8",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "78TjfaddxGYF1ShI",
+    "name": "Luxia Mirsaad (7-8)",
+    "level": 8,
+    "art": "luxia-mirsaad.webp"
+  },
+  {
+    "id": "the_husk_of_deskari",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "cJMsjCIJQB2iafmk",
+    "name": "The Husk of Deskari",
+    "level": 14,
+    "art": "the-husk-of-deskari.webp"
+  },
+  {
+    "id": "the_husk_of_deskari_13_14",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "7H1fqxjhk0PzUMy4",
+    "name": "The Husk of Deskari (13-14)",
+    "level": 17,
+    "art": "the-husk-of-deskari.webp"
+  },
+  {
+    "id": "brain_guzzler",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "7I4Q7ine33rieFen",
+    "name": "Brain Guzzler",
+    "level": 5,
+    "art": "brain-guzzler.webp"
+  },
+  {
+    "id": "brain_guzzler_central_research",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "Lt5GIrcYWixW0FaA",
+    "name": "Brain Guzzler (Central Research)",
+    "level": 5,
+    "art": "brain-guzzler.webp"
+  },
+  {
+    "id": "enhanced_brain_guzzler",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "SAgX6cRaMFL9zki6",
+    "name": "Enhanced Brain Guzzler",
+    "level": 7,
+    "art": "brain-guzzler.webp"
+  },
+  {
+    "id": "enhanced_brain_guzzler_central_research",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "q7Ar2jl4HFLwB5wF",
+    "name": "Enhanced Brain Guzzler (Central Research)",
+    "level": 7,
+    "art": "brain-guzzler.webp"
+  },
+  {
+    "id": "wood_beetle",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "D3xQFEsWihKRTvNF",
+    "name": "Weak Wood Beetle",
+    "level": -1,
+    "art": "wood-beetle.webp"
+  },
+  {
+    "id": "wood_beetle_7srwi",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "7SrWidQhUsvgCJbh",
+    "name": "Wood Beetle",
+    "level": 0,
+    "art": "wood-beetle.webp"
+  },
+  {
+    "id": "pathfinder_guardian",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "7fpoma6F3bwK9tBQ",
+    "name": "Pathfinder Guardian",
+    "level": 3,
+    "art": "pathfinder-guardian.webp"
+  },
+  {
+    "id": "hot_spring_statue",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "8WUahWEQk0yOwTIA",
+    "name": "Hot Spring Statue",
+    "level": 7,
+    "art": "hot-spring-statue.webp"
+  },
+  {
+    "id": "reinforced_hot_spring_statue",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "7u3rxbzBNCYwKmyx",
+    "name": "Reinforced Hot Spring Statue",
+    "level": 9,
+    "art": "hot-spring-statue.webp"
+  },
+  {
+    "id": "animated_flame",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "xNKBknnZ5ev5lBes",
+    "name": "Weak Animated Flame",
+    "level": -1,
+    "art": "animated-flame.webp"
+  },
+  {
+    "id": "animated_flame_88hat",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "88HAT2lHPAm8bWHC",
+    "name": "Animated Flame",
+    "level": 1,
+    "art": "animated-flame.webp"
+  },
+  {
+    "id": "elite_animated_flame",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "niboeMqpzuQ8yvOX",
+    "name": "Elite Animated Flame",
+    "level": 2,
+    "art": "animated-flame.webp"
   }
 ]
