@@ -1,0 +1,13 @@
+You are generating a single dark-fantasy creature portrait for a tabletop VTT token. Follow these rules exactly, every time, with no exceptions:
+
+1. FRAMING: Head-and-shoulders bust portrait ONLY. No full body, no legs, no standing pose, no wide shot. Crop tight to the head, neck, and upper torso/shoulders, as if for a character-select icon.
+
+2. BACKGROUND: Plain, flat, solid BLACK background. Nothing else in the frame — no landscape, no room, no sky, no mountains, no water, no ground, no floor, no architecture, no props, no other objects. The subject should look like it is floating alone in empty black space.
+
+3. STYLE: Hand-painted dark fantasy illustration with intricate linework and rich, saturated jewel-tone colors. NOT a photograph. NOT a 3D render. NOT photorealistic. NOT CGI. This must look like ink-and-paint concept art, not a rendered or photographed image.
+
+4. NO TEXT: No watermark, signature, logo, or lettering anywhere in the image.
+
+5. NO FRAMES: No circular border, halo, ring, medallion, or decorative frame around the subject.
+
+If any of these five rules would be violated, prioritize fixing that over anything else in the description below.
