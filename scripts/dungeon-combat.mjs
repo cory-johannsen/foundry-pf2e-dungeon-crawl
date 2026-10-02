@@ -793,19 +793,23 @@ function nearestHazardousRegionPoint(scene, token, gridSize) {
   return null;
 }
 
-/** Reach for one ready action, in squares — a `reach-N` trait (N in feet)
+/** Reach for one ready action, in squares -- a `reach-N` trait (N in feet)
  * takes priority; otherwise a ranged action's own range increment (feet);
- * otherwise plain melee reach. Confirmed live during planning: a PF2e
- * strike's own `.traits` array carries entries like `{name: 'reach-20', ...}`,
- * and `.item.system.range` is `{increment, max}` in feet for a ranged
- * attack, `null` for melee. */
-function actionReachSquares(action, gridDistanceFt) {
+ * otherwise plain melee reach. Confirmed live: a PF2e strike's `.traits`
+ * array carries entries like `{name: 'reach-20', ...}`. `.item.system.range`
+ * has two live shapes: NPC items use an object `{increment, max}` in feet
+ * (`null` increment for melee), while PC weapon items use a plain NUMBER in
+ * feet (e.g. 120 for a heavy crossbow) and `null` for melee (#614). Only a
+ * finite positive increment counts as ranged; anything else is melee. */
+export function actionReachSquares(action, gridDistanceFt) {
   const reachTrait = (action.traits ?? []).find((t) =>
     /^reach-\d+$/.test(t.name ?? ""),
   );
   if (reachTrait) return Number(reachTrait.name.split("-")[1]) / gridDistanceFt;
-  const rangeIncrement = action.item?.system?.range?.increment;
-  if (rangeIncrement) return rangeIncrement / gridDistanceFt;
+  const range = action.item?.system?.range;
+  const rangeIncrement = typeof range === "number" ? range : range?.increment;
+  if (Number.isFinite(rangeIncrement) && rangeIncrement > 0)
+    return rangeIncrement / gridDistanceFt;
   return MELEE_REACH_SQUARES;
 }
 
