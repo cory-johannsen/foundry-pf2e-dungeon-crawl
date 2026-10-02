@@ -29382,5 +29382,133 @@
     "name": "Mulventok",
     "level": 7,
     "art": "mulventok.webp"
+  },
+  {
+    "id": "bshez_sand_claws_shak",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "080v247YtmFRxT3l",
+    "name": "Bshez \"Sand Claws\" Shak",
+    "level": 17,
+    "art": "bshez-sand-claws-shak.webp"
+  },
+  {
+    "id": "scarlet_triad_sneak",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "1lkay2gwgEquq0NF",
+    "name": "Scarlet Triad Sneak",
+    "level": 6,
+    "art": "scarlet-triad-sneak.webp"
+  },
+  {
+    "id": "warbal_bumblebrasher",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "1tDEWL9mAIXvTYik",
+    "name": "Warbal Bumblebrasher",
+    "level": 1,
+    "art": "warbal-bumblebrasher.webp"
+  },
+  {
+    "id": "duergar_slave_lord",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "2FbG5nLE91b6BNiB",
+    "name": "Duergar Slave Lord",
+    "level": 13,
+    "art": "duergar-slave-lord.webp"
+  },
+  {
+    "id": "inizra_arumelo",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "30FX1WFr0RkGeueX",
+    "name": "Inizra Arumelo",
+    "level": 20,
+    "art": "inizra-arumelo.webp"
+  },
+  {
+    "id": "bloody_blade_mercenary",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "4vEQ8zRXC51Qo4Mv",
+    "name": "Bloody Blade Mercenary",
+    "level": 1,
+    "art": "bloody-blade-mercenary.webp"
+  },
+  {
+    "id": "candlaron_s_echo",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "53lk7ek73j65A09B",
+    "name": "Candlaron's Echo",
+    "level": 21,
+    "art": "candlaron-s-echo.webp"
+  },
+  {
+    "id": "soulbound_ruin",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "595MAHwB4JWtzLAA",
+    "name": "Soulbound Ruin",
+    "level": 15,
+    "art": "soulbound-ruin.webp"
+  },
+  {
+    "id": "grippli_archer",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "5DwiLZJf6KxpIjDq",
+    "name": "Grippli Archer",
+    "level": 3,
+    "art": "grippli-archer.webp"
+  },
+  {
+    "id": "hermean_mutant",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "5dSVk2y88SLsPPON",
+    "name": "Hermean Mutant",
+    "level": 19,
+    "art": "hermean-mutant.webp"
+  },
+  {
+    "id": "deculi",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "5jFR05QRixpOChRy",
+    "name": "Deculi",
+    "level": 12,
+    "art": "deculi.webp"
+  },
+  {
+    "id": "tarrasque_the_armageddon_engine",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "5r2S6FeE6D1Oh66T",
+    "name": "Tarrasque, The Armageddon Engine",
+    "level": 25,
+    "art": "tarrasque-the-armageddon-engine.webp"
+  },
+  {
+    "id": "racharak",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "60aeSJvu09ZM3SPx",
+    "name": "Racharak",
+    "level": 8,
+    "art": "racharak.webp"
+  },
+  {
+    "id": "mengkare",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "6AN7eagk2WrWc4im",
+    "name": "Mengkare",
+    "level": 23,
+    "art": "mengkare.webp"
+  },
+  {
+    "id": "scarlet_triad_sniper",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "7WNFNE3SVMRGbBDf",
+    "name": "Scarlet Triad Sniper",
+    "level": 11,
+    "art": "scarlet-triad-sniper.webp"
+  },
+  {
+    "id": "blood_boar",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "91BSCAJA1Oto2ctf",
+    "name": "Blood Boar",
+    "level": 6,
+    "art": "boar.webp"
   }
 ]
