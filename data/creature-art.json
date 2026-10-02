@@ -29878,5 +29878,125 @@
     "name": "Zuferian",
     "level": 15,
     "art": "zuferian.webp"
+  },
+  {
+    "id": "zephyr_guard",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "YIXAcvSyI1C94r9l",
+    "name": "Zephyr Guard",
+    "level": 14,
+    "art": "zephyr-guard.webp"
+  },
+  {
+    "id": "alak_stagram",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "YV3wA2Kgjp74l7YJ",
+    "name": "Alak Stagram",
+    "level": 2,
+    "art": "alak-stagram.webp"
+  },
+  {
+    "id": "living_sap",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "YdLf7y2ZHudpjWx9",
+    "name": "Living Sap",
+    "level": 6,
+    "art": "living-sap.webp"
+  },
+  {
+    "id": "crucidaemon",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "ZRGRAqkDEZbRn8x3",
+    "name": "Crucidaemon",
+    "level": 15,
+    "art": "crucidaemon.webp"
+  },
+  {
+    "id": "aiudara_wraith",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "ZqL6MP4XxDys9dmW",
+    "name": "Aiudara Wraith",
+    "level": 18,
+    "art": "aiudara-wraith.webp"
+  },
+  {
+    "id": "mud_spider",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "ZtSb3mHZ5sD2uqHd",
+    "name": "Mud Spider",
+    "level": 6,
+    "art": "mud-spider.webp"
+  },
+  {
+    "id": "calmont",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "aaDiR0EIWRQx8wdy",
+    "name": "Calmont",
+    "level": 3,
+    "art": "calmont.webp"
+  },
+  {
+    "id": "uri_zandivar",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "aiNE06bxKD6jfoLd",
+    "name": "Uri Zandivar",
+    "level": 19,
+    "art": "uri-zandivar.webp"
+  },
+  {
+    "id": "falrok",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "dG5DBgrxlaimsWOS",
+    "name": "Falrok",
+    "level": 14,
+    "art": "falrok.webp"
+  },
+  {
+    "id": "veshumirix",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "dTikLHqGfiSYemuZ",
+    "name": "Veshumirix",
+    "level": 16,
+    "art": "veshumirix.webp"
+  },
+  {
+    "id": "heuberk_thropp",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "dlW3UaXVpnzjd6xe",
+    "name": "Heuberk Thropp",
+    "level": 9,
+    "art": "heuberk-thropp.webp"
+  },
+  {
+    "id": "scarlet_triad_enforcer",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "egTpOr4Wc0L5e0iY",
+    "name": "Scarlet Triad Enforcer",
+    "level": 15,
+    "art": "scarlet-triad-enforcer.webp"
+  },
+  {
+    "id": "scarlet_triad_mage",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "gF8Qy1k8gPBEUBAd",
+    "name": "Scarlet Triad Mage",
+    "level": 15,
+    "art": "scarlet-triad-mage.webp"
+  },
+  {
+    "id": "aluum_enforcer",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "j4BCcTvIMtoUPRzw",
+    "name": "Aluum Enforcer",
+    "level": 10,
+    "art": "aluum-enforcer.webp"
+  },
+  {
+    "id": "bida",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "jO2fGZayk4R1AzYK",
+    "name": "Bida",
+    "level": 8,
+    "art": "bida.webp"
   }
 ]
