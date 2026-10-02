@@ -325,7 +325,12 @@ async function resolveCombat(combat, outcome, api) {
   // (a surviving player-summoned ally, an undefeated hostile the party
   // fled from) keeps the pre-#172 immediate-delete behavior unchanged.
   const defeatedHostileCombatants = npcCombatants.filter(
-    (c) => c.isDefeated && c.token?.disposition === -1,
+    // #476: also count a hostile at 0 HP that nothing flagged defeated
+    // (it died through a damage path this module doesn't automate). A
+    // living unflagged hostile (the party fled) still pays no XP.
+    (c) =>
+      (c.isDefeated || (c.actor?.system?.attributes?.hp?.value ?? 1) <= 0) &&
+      c.token?.disposition === -1,
   );
   const otherNpcCombatants = npcCombatants.filter(
     (c) => !defeatedHostileCombatants.includes(c),
@@ -504,6 +509,31 @@ export function maybeResolveCombatForActor(actor) {
       isModuleCombat(c) && c.combatants.some((cb) => cb.actorId === actor.id),
   );
   return combat ? autoResolveIfDecided(combat) : null;
+}
+
+/**
+ * #476: marks every 0-HP NPC combatant of `actor` defeated, whatever damage
+ * path got it there (this module only flags defeat from its own automated
+ * paths). Only the single active GM client acts -- toggleDefeated toggles,
+ * so two GM clients both acting would undo each other. Characters are
+ * skipped (their dying handling already exists).
+ */
+export async function autoDefeatZeroHpNpcs(actor) {
+  if (!game.users?.activeGM?.isSelf) return;
+  if (!actor || actor.type === "character") return;
+  if ((actor.system?.attributes?.hp?.value ?? 1) > 0) return;
+  const combats = game.combats.filter(
+    (c) =>
+      isModuleCombat(c) && c.combatants.some((cb) => cb.actorId === actor.id),
+  );
+  for (const combat of combats) {
+    for (const combatant of combat.combatants) {
+      if (combatant.actorId !== actor.id) continue;
+      if (combatant.isDefeated || combatant.actor?.type === "character")
+        continue;
+      await applyDefeatIfReducedToZero(combatant);
+    }
+  }
 }
 
 /** Hook target for `updateCombatant` — module.mjs registers this. */
