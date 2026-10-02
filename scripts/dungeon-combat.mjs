@@ -2351,6 +2351,65 @@ function walkPath(
 }
 
 /**
+ * #606: fallback landing for an approach when `walkPath` found nothing on
+ * the single shortest path (its penultimate cells were all held by allies,
+ * e.g. a party member standing just inside a doorway, so the one A* route
+ * had no unoccupied cell to stop on). Searches every cell within
+ * `speedSquares` for an unoccupied one strictly closer to `targetCell` than
+ * `start` (and not inside the `stopWithinSquares` clamp), reachable by a real
+ * wall/hostile-aware path no longer than the speed budget (passing THROUGH
+ * allies is still fine). Prefers the cell nearest the target, then the
+ * shortest walk. Returns `{cell, steps}` like walkPath, or `null`.
+ */
+function fallbackLanding(
+  start,
+  targetCell,
+  speedSquares,
+  stopWithinSquares,
+  isBlocked,
+  bounds,
+  occupantFootprints,
+  moverFootprint = { gw: 1, gh: 1 },
+) {
+  const cheb = (a, b) => Math.max(Math.abs(a.gx - b.gx), Math.abs(a.gy - b.gy));
+  const startDist = cheb(start, targetCell);
+  const candidates = [];
+  for (let dx = -speedSquares; dx <= speedSquares; dx += 1) {
+    for (let dy = -speedSquares; dy <= speedSquares; dy += 1) {
+      if (dx === 0 && dy === 0) continue;
+      const cell = { gx: start.gx + dx, gy: start.gy + dy };
+      const d = cheb(cell, targetCell);
+      if (d >= startDist) continue;
+      if (stopWithinSquares > 0 && d < stopWithinSquares) continue;
+      if (cellOccupied(cell, occupantFootprints, moverFootprint)) continue;
+      candidates.push({ cell, d, walk: Math.max(Math.abs(dx), Math.abs(dy)) });
+    }
+  }
+  candidates.sort((a, b) => a.d - b.d || a.walk - b.walk);
+  for (const { cell } of candidates) {
+    const path = findPath(
+      start,
+      cell,
+      (a, b) =>
+        (b.gx === targetCell.gx && b.gy === targetCell.gy) || isBlocked(a, b),
+      bounds,
+      2000,
+      moverFootprint,
+    );
+    // The approach's own target square is exempt from hostile blocking (so
+    // findPath can reach it); a walk must still never pass through it.
+    if (
+      path &&
+      path.length > 1 &&
+      path.length - 1 <= speedSquares &&
+      !path.some((p) => p.gx === targetCell.gx && p.gy === targetCell.gy)
+    )
+      return { cell, steps: path.slice(1) };
+  }
+  return null;
+}
+
+/**
  * Moves `combatant`'s token toward `target`'s token along a real,
  * wall-aware path (#100), up to its own speed, stopping once adjacent
  * (MELEE_REACH_SQUARES). A no-op (beyond `snapTokenToGrid`'s own possible
@@ -2397,7 +2456,17 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
     MELEE_REACH_SQUARES,
     occupants,
     moverFootprint,
-  );
+  ) ??
+    fallbackLanding(
+      start,
+      goal,
+      speedSquares,
+      MELEE_REACH_SQUARES,
+      isBlocked,
+      bounds,
+      occupants,
+      moverFootprint,
+    );
   if (!waypoint) return "blocked";
   await walkTokenThroughSteps(me, waypoint.steps, gridSize);
   if (!preReported)
@@ -3630,7 +3699,19 @@ export async function strideByPosture(combat, combatant, posture, target) {
     stopWithin,
     occupants,
     moverFootprint,
-  );
+  ) ??
+    (posture === "approach"
+      ? fallbackLanding(
+          start,
+          targetCell,
+          speedSquares,
+          stopWithin,
+          isBlocked,
+          bounds,
+          occupants,
+          moverFootprint,
+        )
+      : null);
   if (!waypoint) return "blocked";
   await walkTokenThroughSteps(me, waypoint.steps, gridSize);
   if (!preReported)
