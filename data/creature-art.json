@@ -29110,5 +29110,125 @@
     "name": "Jafaki",
     "level": 8,
     "art": "jafaki.webp"
+  },
+  {
+    "id": "bloodsiphon",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "k4fVLtVrgIEg9xij",
+    "name": "Bloodsiphon",
+    "level": 4,
+    "art": "bloodsiphon.webp"
+  },
+  {
+    "id": "drow_cavern_seer",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "kzHRJGLvjOJk5WU7",
+    "name": "Drow Cavern Seer",
+    "level": 9,
+    "art": "drow-cavern-seer.webp"
+  },
+  {
+    "id": "mister_beak",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "kzX588Hjb3w4QPOj",
+    "name": "Mister Beak",
+    "level": 3,
+    "art": "mister-beak.webp"
+  },
+  {
+    "id": "morlock_cultist",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "lH2rdwiyOPStkQvZ",
+    "name": "Morlock Cultist",
+    "level": 4,
+    "art": "morlock-cultist.webp"
+  },
+  {
+    "id": "canker_cultist",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "lMCEVxKkQ7XK6Nid",
+    "name": "Canker Cultist",
+    "level": 3,
+    "art": "canker-cultist.webp"
+  },
+  {
+    "id": "murmur",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "mlifDVJJWwjFtUxv",
+    "name": "Murmur",
+    "level": 7,
+    "art": "murmur.webp"
+  },
+  {
+    "id": "shanrigol_behemoth",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "mrxDc0fj5t5CvjJQ",
+    "name": "Shanrigol Behemoth",
+    "level": 9,
+    "art": "shanrigol-behemoth.webp"
+  },
+  {
+    "id": "summoning_chamber_erinys",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "njfwxMPXTPA5AegD",
+    "name": "Summoning Chamber Erinys",
+    "level": 8,
+    "art": "summoning-chamber-erinys.webp"
+  },
+  {
+    "id": "caliddo_haruvex",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "oXnpdJVN6NIE58W3",
+    "name": "Caliddo Haruvex",
+    "level": 10,
+    "art": "caliddo-haruvex.webp"
+  },
+  {
+    "id": "seugathi_guard",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "qOkxxiM4tNf96CHQ",
+    "name": "Seugathi Guard",
+    "level": 6,
+    "art": "seugathi-guard.webp"
+  },
+  {
+    "id": "shanrigol_heap",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "qXT1SQDtGqMkVl7Q",
+    "name": "Shanrigol Heap",
+    "level": 4,
+    "art": "shanrigol-heap.webp"
+  },
+  {
+    "id": "vischari",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "qoyopMMlRdgPAbXZ",
+    "name": "Vischari",
+    "level": 7,
+    "art": "vischari.webp"
+  },
+  {
+    "id": "padli",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "qw2pk1zjvgxbeGBO",
+    "name": "Padli",
+    "level": 9,
+    "art": "padli.webp"
+  },
+  {
+    "id": "drow_shootist",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "rArZ2y5xqSWeUU0G",
+    "name": "Drow Shootist",
+    "level": 8,
+    "art": "drow-shootist.webp"
+  },
+  {
+    "id": "bone_gladiator",
+    "pack": "pf2e.abomination-vaults-bestiary",
+    "docId": "rketcmqDQJbFFYfq",
+    "name": "Bone Gladiator",
+    "level": 7,
+    "art": "bone-gladiator.webp"
   }
 ]
