@@ -352,6 +352,19 @@ describe('walled dead end: flavor line and Turn back (#585)', () => {
     await retreatToFork(SID);
     expect(chat[0].content).toContain('PF2EDC.Dungeon.Retreat.Turned|');
   });
+
+  it('names an unnamed target room by kind and rank, never its raw id (#577)', async () => {
+    installGlobals({ party: [] });
+    scenes.set(SID, makeScene());
+    const st = v3State({ stubsOpened: { 'd->g': 1 }, deadEdgeWalls: true });
+    for (const r of Object.values(st.rooms)) delete r.name;
+    st.rooms.f.kind = 'treasure';
+    await seed(st);
+    await retreatToFork(SID);
+    expect(chat[0].content).toContain('PF2EDC.Dungeon.Retreat.RoomLabel|');
+    expect(chat[0].content).toContain('RoomKind.treasure');
+    expect(chat[0].content).not.toContain('"target":"f"');
+  });
 });
 
 describe('a rest room whose every exit was walled announces the dead end (#585)', () => {

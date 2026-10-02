@@ -71,6 +71,31 @@ export function hasNoWayForward(state) {
   return (state.edges?.[id] ?? []).length === 0 && (state.stubEdges?.[id] ?? []).length === 0;
 }
 
+const ROOM_KIND_WORDS = {
+  safe_entry: 'entry', safe_rest: 'rest', skill_challenge: 'skill challenge', combat: 'combat',
+  trap: 'trap', puzzle: 'puzzle', narrative: 'narrative', treasure: 'treasure',
+};
+const ENGLISH_I18N = {
+  localize: (key) => {
+    if (key === 'PF2EDC.Dungeon.Retreat.PreviousRoom') return 'the previous room';
+    return ROOM_KIND_WORDS[key.split('.').pop()] ?? key;
+  },
+  format: (key, d) => (key.endsWith('NoRank') ? `the ${d.kind} room` : `the ${d.kind} room (rank ${d.rank})`),
+};
+
+/** #577: a readable name for a room in retreat text. Generated rooms have no `name`, so build one from the room
+ * kind and layout rank; an explicit name wins, and an unknown room/kind gives a generic label (never a raw id).
+ * `i18n` ({localize, format}) defaults to English; the scene layer passes game.i18n. */
+export function roomDisplayLabel(state, roomId, i18n = ENGLISH_I18N) {
+  const room = state?.rooms?.[roomId];
+  if (room?.name) return room.name;
+  const L = 'PF2EDC.Dungeon.Retreat.';
+  if (!room || !Object.hasOwn(ROOM_KIND_WORDS, room.kind)) return i18n.localize(`${L}PreviousRoom`);
+  const kind = i18n.localize(`${L}RoomKind.${room.kind}`);
+  const rank = state.layoutPositionByRoomId?.[roomId]?.rank;
+  return Number.isFinite(rank) ? i18n.format(`${L}RoomLabel`, { kind, rank }) : i18n.format(`${L}RoomLabelNoRank`, { kind });
+}
+
 export function withEntry(state, roomId) {
   if (!(state.retreatVersion >= 1)) return state;
   return { ...state, retreatPath: [...(state.retreatPath ?? []), roomId] };
