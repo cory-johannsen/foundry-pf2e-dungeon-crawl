@@ -23718,5 +23718,165 @@
     "name": "Deimostride (9-10)",
     "level": 10,
     "art": "deimostride-lob.webp"
+  },
+  {
+    "id": "bugbear_trickster_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "Jk2lUr8825TMWZ8R",
+    "name": "Bugbear Trickster",
+    "level": 5,
+    "art": "bugbear-trickster-lob.webp"
+  },
+  {
+    "id": "rhenei_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "K9ClMcqPZ4BdZ7iU",
+    "name": "Rhenei (1-2)",
+    "level": -1,
+    "art": "rhenei-lob.webp"
+  },
+  {
+    "id": "rhenei_3_4_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "gqQoahBEk37LqeTL",
+    "name": "Rhenei (3-4)",
+    "level": 2,
+    "art": "rhenei-lob.webp"
+  },
+  {
+    "id": "bolger_trusk_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "LIU62taP4KjBpqEk",
+    "name": "Bolger Trusk (5-6)",
+    "level": 7,
+    "art": "bolger-trusk-lob.webp"
+  },
+  {
+    "id": "bolger_trusk_7_8_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "hbnmM6YafwUqH50s",
+    "name": "Bolger Trusk (7-8)",
+    "level": 9,
+    "art": "bolger-trusk-lob.webp"
+  },
+  {
+    "id": "determined_rhenei_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "p35bUOIZohXTurQM",
+    "name": "Determined Rhenei (1-2)",
+    "level": 1,
+    "art": "determined-rhenei-lob.webp"
+  },
+  {
+    "id": "determined_rhenei_3_4_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "MGcRvpxJjShaEIoD",
+    "name": "Determined Rhenei (3-4)",
+    "level": 4,
+    "art": "determined-rhenei-lob.webp"
+  },
+  {
+    "id": "abyssal_drool_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "MHqOUkqUQ58Y2uFD",
+    "name": "Abyssal Drool",
+    "level": -1,
+    "art": "abyssal-drool-lob.webp"
+  },
+  {
+    "id": "ambush_scout_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "MJd091LyUYQR2cK0",
+    "name": "Ambush Scout",
+    "level": 2,
+    "art": "ambush-scout-lob.webp"
+  },
+  {
+    "id": "ambush_runner_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "NCTFP1qF2F7I5QT8",
+    "name": "Ambush Runner",
+    "level": -1,
+    "art": "ambush-runner-lob.webp"
+  },
+  {
+    "id": "skulk_raider_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "NZpxlgV4KHdjigi4",
+    "name": "Skulk Raider",
+    "level": 1,
+    "art": "skulk-raider-lob.webp"
+  },
+  {
+    "id": "festering_vermlek_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "OQRaBwlV8ZgkZPrY",
+    "name": "Festering Vermlek",
+    "level": 1,
+    "art": "festering-vermlek-lob.webp"
+  },
+  {
+    "id": "ambush_observer_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "OXhYQYaXtFRHj0EG",
+    "name": "Ambush Observer",
+    "level": 4,
+    "art": "ambush-observer-lob.webp"
+  },
+  {
+    "id": "ulfen_soldier_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "PKLIiMW0UMWYT6os",
+    "name": "Ulfen Soldier",
+    "level": 3,
+    "art": "ulfen-soldier-lob.webp"
+  },
+  {
+    "id": "veteran_ulfen_soldier_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "P6zS0Cdwu6Gkxv26",
+    "name": "Veteran Ulfen Soldier",
+    "level": 5,
+    "art": "ulfen-soldier-lob.webp"
+  },
+  {
+    "id": "enormous_rat_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "QbvkJokjXuCAaJcl",
+    "name": "Enormous Rat",
+    "level": 3,
+    "art": "enormous-rat-lob.webp"
+  },
+  {
+    "id": "fetid_familiar_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "R6aEJWeDH1DFfP0z",
+    "name": "Fetid Familiar",
+    "level": -1,
+    "art": "fetid-familiar-lob.webp"
+  },
+  {
+    "id": "determined_dura_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "RG0E58wEmyclbeJA",
+    "name": "Determined Dura (1-2)",
+    "level": 1,
+    "art": "determined-dura-lob.webp"
+  },
+  {
+    "id": "determined_dura_3_4_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "iacML9PbFyo49TMe",
+    "name": "Determined Dura (3-4)",
+    "level": 4,
+    "art": "determined-dura-lob.webp"
+  },
+  {
+    "id": "ambush_raider_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "RpDO2ClbBiAUfQCL",
+    "name": "Ambush Raider",
+    "level": 5,
+    "art": "ambush-raider-lob.webp"
   }
 ]
