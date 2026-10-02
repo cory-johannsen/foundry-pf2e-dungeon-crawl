@@ -1843,7 +1843,17 @@ async function snapTokenToGrid(token, gridSize) {
   const snappedX = cell.gx * gridSize;
   const snappedY = cell.gy * gridSize;
   if (token.x !== snappedX || token.y !== snappedY) {
-    await token.update({ x: snappedX, y: snappedY });
+    // #141: Foundry v14 runs every TokenDocument#update({x,y}) through its own
+    // movement pipeline, which re-checks wall collisions on the straight-line
+    // path even for a scripted update -- if that line clips a wall, Foundry
+    // silently substitutes a quarter-cell "collision waypoint" instead of the
+    // exact cell requested. This module already does its own wall-aware
+    // pathfinding before ever calling update(), so that check is redundant
+    // and is the actual mechanism putting tokens off-grid. { teleport: true }
+    // (Foundry's `displace` movement action, walls: null) bypasses it -- same
+    // fix as dungeon-follow.mjs's #87/PR #407, ported here for combat
+    // movement's own four token.update() call sites.
+    await token.update({ x: snappedX, y: snappedY }, { teleport: true });
   }
 }
 
@@ -2116,7 +2126,7 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
     moverFootprint,
   );
   if (!waypoint) return "blocked";
-  await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize });
+  await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize }, { teleport: true });
   await offerReactiveStrikesAgainst(combat, combatant);
   return "moved";
 }
@@ -2166,10 +2176,13 @@ export async function pushTokenAway(combat, attacker, target, distanceSquares) {
     moverFootprint,
   );
   if (!waypoint) return;
-  await target.token.update({
-    x: waypoint.gx * gridSize,
-    y: waypoint.gy * gridSize,
-  });
+  await target.token.update(
+    {
+      x: waypoint.gx * gridSize,
+      y: waypoint.gy * gridSize,
+    },
+    { teleport: true },
+  );
 }
 
 /**
@@ -3292,7 +3305,7 @@ export async function strideByPosture(combat, combatant, posture, target) {
     moverFootprint,
   );
   if (!waypoint) return "blocked";
-  await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize });
+  await me.update({ x: waypoint.gx * gridSize, y: waypoint.gy * gridSize }, { teleport: true });
   await offerReactiveStrikesAgainst(combat, combatant);
   return "moved";
 }
