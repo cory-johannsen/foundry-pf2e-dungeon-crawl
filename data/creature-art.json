@@ -24902,5 +24902,213 @@
     "name": "Bloodied Kithangian",
     "level": 8,
     "art": "bloodied-kithangian.webp"
+  },
+  {
+    "id": "azarketi_ruffian",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "DyCslG0OmFNRq7XP",
+    "name": "Azarketi Ruffian",
+    "level": 4,
+    "art": "azarketi-ruffian.webp"
+  },
+  {
+    "id": "hardened_azarketi_ruffian",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "M05AoaYPBCgYJKDW",
+    "name": "Hardened Azarketi Ruffian",
+    "level": 6,
+    "art": "azarketi-ruffian.webp"
+  },
+  {
+    "id": "blazing_skull",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "EEYXxfc4SFh0JGec",
+    "name": "Blazing Skull",
+    "level": 3,
+    "art": "blazing-skull.webp"
+  },
+  {
+    "id": "shadow_draugr",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "qqBaCxN4Epxe1rnF",
+    "name": "Weak Shadow Draugr",
+    "level": 1,
+    "art": "shadow-draugr.webp"
+  },
+  {
+    "id": "shadow_draugr_egaof",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "EgAoF7pXBsHxthA0",
+    "name": "Shadow Draugr",
+    "level": 2,
+    "art": "shadow-draugr.webp"
+  },
+  {
+    "id": "wanikkawi",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "yiwRRjZ2RgyLt2gv",
+    "name": "Wanikkawi",
+    "level": 7,
+    "art": "wanikkawi.webp"
+  },
+  {
+    "id": "wanikkawi_7_8",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "EvxkVVrCtJIczTML",
+    "name": "Wanikkawi (7-8)",
+    "level": 9,
+    "art": "wanikkawi.webp"
+  },
+  {
+    "id": "two_headed_goat_eidolon",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "FQI8cKxD4A6bG8sJ",
+    "name": "Two-Headed Goat Eidolon",
+    "level": 2,
+    "art": "two-headed-goat-eidolon.webp"
+  },
+  {
+    "id": "carcaras",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "GJXz9twOPUjoCBsY",
+    "name": "Carcaras",
+    "level": 2,
+    "art": "carcaras.webp"
+  },
+  {
+    "id": "krosovahn_mendesil",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "H5lFXWXFl7vKrugU",
+    "name": "Krosovahn Mendesil",
+    "level": 5,
+    "art": "krosovahn-mendesil.webp"
+  },
+  {
+    "id": "krosovahn_mendesil_7_8",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "TWsApxv2Bx0n7M3i",
+    "name": "Krosovahn Mendesil (7-8)",
+    "level": 5,
+    "art": "krosovahn-mendesil.webp"
+  },
+  {
+    "id": "uirch_of_the_burning_suns",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "HKYoyKZp8aSJ9dn7",
+    "name": "Uirch of the Burning Suns",
+    "level": 7,
+    "art": "uirch-of-the-burning-suns.webp"
+  },
+  {
+    "id": "blessed_uirch_of_the_burning_suns",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "oU6tQs6uHhf2vuN1",
+    "name": "Blessed Uirch of the Burning Suns",
+    "level": 9,
+    "art": "uirch-of-the-burning-suns.webp"
+  },
+  {
+    "id": "mutant_cryptid_snapdrake",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "Hfh8jRPyXBw4B4ic",
+    "name": "Elite Mutant Cryptid Snapdrake",
+    "level": 10,
+    "art": "mutant-cryptid-snapdrake.webp"
+  },
+  {
+    "id": "the_librarian",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "HkTnWXF1xNQHTPoK",
+    "name": "The Librarian",
+    "level": 12,
+    "art": "the-librarian.webp"
+  },
+  {
+    "id": "the_inscrutable_librarian",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "oUnyuHa0VTB2Zhdk",
+    "name": "The Inscrutable Librarian",
+    "level": 14,
+    "art": "the-librarian.webp"
+  },
+  {
+    "id": "vulkariki_eidolon",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "aIr87HsiKf9lmxi4",
+    "name": "Vulkariki Eidolon",
+    "level": -1,
+    "art": "vulkariki-eidolon.webp"
+  },
+  {
+    "id": "trained_vulkariki_eidolon",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "Hvrz7fywW7hmpYcJ",
+    "name": "Trained Vulkariki Eidolon",
+    "level": 1,
+    "art": "vulkariki-eidolon.webp"
+  },
+  {
+    "id": "cacophonous_hound_echo",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "Hysy3I3yiYsUZHxY",
+    "name": "Weak Cacophonous Hound Echo",
+    "level": 4,
+    "art": "cacophonous-hound-echo.webp"
+  },
+  {
+    "id": "robbers",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "I3moTdccfUwGK3oJ",
+    "name": "Experienced Robbers",
+    "level": 3,
+    "art": "robbers.webp"
+  },
+  {
+    "id": "trapmaster_tok",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "IxxXcBWC9DeOmMxL",
+    "name": "Trapmaster Tok",
+    "level": 3,
+    "art": "trapmaster-tok.webp"
+  },
+  {
+    "id": "trapmaster_tok_3_4",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "jB6tZ23QDSO4iCoK",
+    "name": "Trapmaster Tok (3-4)",
+    "level": 5,
+    "art": "trapmaster-tok.webp"
+  },
+  {
+    "id": "hound_echo",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "JGtNz1mLf5rsvJWC",
+    "name": "Hound Echo",
+    "level": 2,
+    "art": "hound-echo.webp"
+  },
+  {
+    "id": "weak_hound_echo",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "JKduEdHCeBVIYcdd",
+    "name": "Weak Hound Echo",
+    "level": 2,
+    "art": "hound-echo.webp"
+  },
+  {
+    "id": "cacophonous_hound_echo_vvzkt",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "vvZktgY1C8Eabs3w",
+    "name": "Cacophonous Hound Echo",
+    "level": 4,
+    "art": "hound-echo.webp"
+  },
+  {
+    "id": "elite_lively_commodore_sticky_fingers",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "WcLXNcwcA1k9QtbU",
+    "name": "Elite Lively Commodore Sticky Fingers",
+    "level": 4,
+    "art": "commodore-sticky-fingers.webp"
   }
 ]
