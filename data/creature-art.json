@@ -30950,5 +30950,125 @@
     "name": "Sarvel Ever-Hunger",
     "level": 22,
     "art": "sarvel-ever-hunger.webp"
+  },
+  {
+    "id": "xulgath_bomber",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "fvGqCYfVAI3KXnSl",
+    "name": "Xulgath Bomber",
+    "level": 7,
+    "art": "xulgath-bomber.webp"
+  },
+  {
+    "id": "giant_flea",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "gN8VuDZ8b9dp0Ep0",
+    "name": "Giant Flea",
+    "level": 3,
+    "art": "giant-flea.webp"
+  },
+  {
+    "id": "ruanna_nyamma",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "gZBayD2gJu7iZrud",
+    "name": "Ruanna Nyamma",
+    "level": 4,
+    "art": "ruanna-nyamma.webp"
+  },
+  {
+    "id": "darricus_stallit",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "hz2uoBS8DFOWshko",
+    "name": "Darricus Stallit",
+    "level": 8,
+    "art": "darricus-stallit.webp"
+  },
+  {
+    "id": "evora_yarket",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "i3kQzeKcSoxkNYJb",
+    "name": "Evora Yarket",
+    "level": 7,
+    "art": "evora-yarket.webp"
+  },
+  {
+    "id": "vavakia",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "i6t819VnEr1ESCAd",
+    "name": "Vavakia",
+    "level": 18,
+    "art": "vavakia.webp"
+  },
+  {
+    "id": "qurashith",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "iUA3E379TDoEAXz7",
+    "name": "Qurashith",
+    "level": 17,
+    "art": "qurashith.webp"
+  },
+  {
+    "id": "doblagub",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "igd75rbnUbYBNyYw",
+    "name": "Doblagub",
+    "level": 13,
+    "art": "doblagub.webp"
+  },
+  {
+    "id": "tashlock_banyan",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "j31HXlZiUqQrAHSB",
+    "name": "Tashlock Banyan",
+    "level": 12,
+    "art": "tashlock-banyan.webp"
+  },
+  {
+    "id": "bugaboo",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "jCcA2ca8VnnDtVU9",
+    "name": "Bugaboo",
+    "level": 6,
+    "art": "bugaboo.webp"
+  },
+  {
+    "id": "muse_phantom",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "jaUUH2i5UQZYQqab",
+    "name": "Muse Phantom",
+    "level": 5,
+    "art": "muse-phantom.webp"
+  },
+  {
+    "id": "convergent_kendley_nathrael",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "jwcMb71QRhMw94Id",
+    "name": "Convergent Kendley Nathrael",
+    "level": 19,
+    "art": "convergent-kendley-nathrael.webp"
+  },
+  {
+    "id": "yaganty",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "jxGA1C8xX0WkJGI4",
+    "name": "Yaganty",
+    "level": 10,
+    "art": "yaganty.webp"
+  },
+  {
+    "id": "xulgath_demon_caller",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "k6mTbQPIlez0QhYg",
+    "name": "Xulgath Demon-Caller",
+    "level": 5,
+    "art": "xulgath-demon-caller.webp"
+  },
+  {
+    "id": "violet",
+    "pack": "pf2e.extinction-curse-bestiary",
+    "docId": "lM9j6lc5MkBlGfzD",
+    "name": "Violet",
+    "level": 1,
+    "art": "violet.webp"
   }
 ]
