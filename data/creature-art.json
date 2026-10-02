@@ -27542,5 +27542,141 @@
     "name": "Bloodsick Wild Dog",
     "level": 3,
     "art": "bloodsick-wild-dog.webp"
+  },
+  {
+    "id": "deep_manifestation_of_nightmare",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "r49oNm9Uh5ArWH0A",
+    "name": "Deep Manifestation of Nightmare",
+    "level": 9,
+    "art": "deep-manifestation-of-nightmare.webp"
+  },
+  {
+    "id": "dispatch_disciple_novice",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "r5D7TdcdnEU9iHwz",
+    "name": "Dispatch Disciple Novice",
+    "level": 0,
+    "art": "dispatch-disciple-novice.webp"
+  },
+  {
+    "id": "chelaxian_cleric",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "rhqyUuII5hZRY7SR",
+    "name": "Chelaxian Cleric",
+    "level": 6,
+    "art": "chelaxian-cleric.webp"
+  },
+  {
+    "id": "demonbred_bottlenose_dolphin",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "sasMJfCAbcQYz9mn",
+    "name": "Demonbred Bottlenose Dolphin",
+    "level": 1,
+    "art": "demonbred-bottlenose-dolphin.webp"
+  },
+  {
+    "id": "chelaxian_hierophant",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "t3zxmaBdC2DBIPoE",
+    "name": "Chelaxian Hierophant",
+    "level": 8,
+    "art": "chelaxian-hierophant.webp"
+  },
+  {
+    "id": "dispatch_disciple_trainee",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "tKu5K0tqXBaWONOi",
+    "name": "Dispatch Disciple Trainee",
+    "level": -1,
+    "art": "dispatch-disciple-trainee.webp"
+  },
+  {
+    "id": "manifestation_of_nightmare",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "u96XnQKi4DjyzrDe",
+    "name": "Manifestation of Nightmare",
+    "level": 7,
+    "art": "manifestation-of-nightmare.webp"
+  },
+  {
+    "id": "pathfinder_defender",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "uKJyWPVgIEKD2Zhk",
+    "name": "Pathfinder Defender",
+    "level": 7,
+    "art": "pathfinder-defender.webp"
+  },
+  {
+    "id": "matriarch_szvetneera",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "uRcnysnmS8BSBvav",
+    "name": "Matriarch Szvetneera",
+    "level": 2,
+    "art": "matriarch-szvetneera.webp"
+  },
+  {
+    "id": "pitborn_fire_giant_cavalry",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "uhbPmh3gP5ia23jr",
+    "name": "Pitborn Fire Giant Cavalry",
+    "level": 11,
+    "art": "pitborn-fire-giant-cavalry.webp"
+  },
+  {
+    "id": "getidline",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "vabJaz7nwJZEo2Hb",
+    "name": "Getidline (Riptide Demon)",
+    "level": 6,
+    "art": "getidline.webp"
+  },
+  {
+    "id": "demonic_ocean_drake",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "vcFcMU2RSaYdnbo0",
+    "name": "Demonic Ocean Drake",
+    "level": 5,
+    "art": "demonic-ocean-drake.webp"
+  },
+  {
+    "id": "screaming_grub_priest",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "wOKr5dsIguC8AcFV",
+    "name": "Screaming Grub Priest",
+    "level": 5,
+    "art": "screaming-grub-priest.webp"
+  },
+  {
+    "id": "bun_the_black",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "wcgXXXDuc8RzUl3P",
+    "name": "Enraged Bun the Black",
+    "level": 5,
+    "art": "bun-the-black.webp"
+  },
+  {
+    "id": "amalgam_ooze",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "yIHwP9U2C1iJnuf7",
+    "name": "Amalgam Ooze",
+    "level": 3,
+    "art": "amalgam-ooze.webp"
+  },
+  {
+    "id": "screaming_grub_cultist",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "z8rv7nCOIH8AgINW",
+    "name": "Screaming Grub Cultist",
+    "level": 3,
+    "art": "screaming-grub-cultist.webp"
+  },
+  {
+    "id": "katsu",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "zPCvmyhQFzAG8xbD",
+    "name": "Big Katsu",
+    "level": 4,
+    "art": "katsu.webp"
   }
 ]
