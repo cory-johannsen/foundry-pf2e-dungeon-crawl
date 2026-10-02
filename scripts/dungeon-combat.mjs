@@ -2387,8 +2387,23 @@ function fallbackLanding(
   }
   candidates.sort((a, b) => a.d - b.d || a.walk - b.walk);
   for (const { cell } of candidates) {
-    const path = findPath(start, cell, isBlocked, bounds, 2000, moverFootprint);
-    if (path && path.length > 1 && path.length - 1 <= speedSquares)
+    const path = findPath(
+      start,
+      cell,
+      (a, b) =>
+        (b.gx === targetCell.gx && b.gy === targetCell.gy) || isBlocked(a, b),
+      bounds,
+      2000,
+      moverFootprint,
+    );
+    // The approach's own target square is exempt from hostile blocking (so
+    // findPath can reach it); a walk must still never pass through it.
+    if (
+      path &&
+      path.length > 1 &&
+      path.length - 1 <= speedSquares &&
+      !path.some((p) => p.gx === targetCell.gx && p.gy === targetCell.gy)
+    )
       return { cell, steps: path.slice(1) };
   }
   return null;

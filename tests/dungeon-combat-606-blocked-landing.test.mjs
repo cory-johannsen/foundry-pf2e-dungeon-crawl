@@ -90,6 +90,20 @@ describe("#606 AI party stalls with free squares beside the target", () => {
     expect(result).toBe("moved");
   });
 
+  it("never lands beyond the target or walks through it in a 1-wide corridor", async () => {
+    const mover = mk("m", 0, 0, 1, { speed: 30 });
+    const blocker = mk("b", 1, 0, 1);
+    const target = mk("t", 2, 0, -1);
+    const combat = {
+      round: 1, turn: 0, combatants: [mover, blocker, target],
+      scene: { id: "s", grid: { size: G, distance: 5 }, width: 4 * G, height: G,
+        tokens: [], walls: { contents: [] } },
+      getFlag: () => undefined, setFlag: async () => {},
+    };
+    expect(await stepToward(combat, mover, target, 2)).toBe("blocked");
+    expect(mover.token.update).not.toHaveBeenCalled();
+  });
+
   it("still reports blocked when every reachable square is truly occupied", async () => {
     const { c, combat } = scenario();
     // Wall in the thief: corridor cell with only the wizard's cell ahead.
