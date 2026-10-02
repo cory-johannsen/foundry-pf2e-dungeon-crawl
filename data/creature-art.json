@@ -26646,5 +26646,261 @@
     "name": "Dispatch Disciple",
     "level": 1,
     "art": "dispatch-disciple.webp"
+  },
+  {
+    "id": "captain_fraez",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "lIDNURqXggfoC4M4",
+    "name": "Captain Fraez",
+    "level": 6,
+    "art": "captain-fraez.webp"
+  },
+  {
+    "id": "incensed_captain_fraez",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "F5bq5CD7r7kKIzxj",
+    "name": "Incensed Captain Fraez",
+    "level": 8,
+    "art": "captain-fraez.webp"
+  },
+  {
+    "id": "acid_oozelet",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "FD4aoeVkKq0vjTIK",
+    "name": "Acid Oozelet",
+    "level": 0,
+    "art": "acid-oozelet.webp"
+  },
+  {
+    "id": "foroxicks",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "LQKJpKDgHn9kZBC0",
+    "name": "Foroxicks",
+    "level": 2,
+    "art": "foroxicks.webp"
+  },
+  {
+    "id": "arrogant_foroxicks",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "FMv0dhiDvYJEZwrb",
+    "name": "Arrogant Foroxicks",
+    "level": 4,
+    "art": "foroxicks.webp"
+  },
+  {
+    "id": "azlanti_altered_lion",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "VlIiU3VbBE5Nugfw",
+    "name": "Azlanti-Altered Lion (Additional Head)",
+    "level": 3,
+    "art": "azlanti-altered-lion.webp"
+  },
+  {
+    "id": "azlanti_altered_lion_additional_legs",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "FdyZQfDxEvO7MnJR",
+    "name": "Azlanti-Altered Lion (Additional Legs)",
+    "level": 3,
+    "art": "azlanti-altered-lion.webp"
+  },
+  {
+    "id": "azlanti_altered_lion_armor_plating",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "I7TDVCaFyCewtz2U",
+    "name": "Azlanti-Altered Lion (Armor Plating)",
+    "level": 3,
+    "art": "azlanti-altered-lion.webp"
+  },
+  {
+    "id": "azlanti_altered_lion_chameleon_fur",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "ISimjXutJ21dMAef",
+    "name": "Azlanti-Altered Lion (Chameleon Fur)",
+    "level": 3,
+    "art": "azlanti-altered-lion.webp"
+  },
+  {
+    "id": "screaming_grub_necromancer",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "FvKfmKTvZsnwcEvA",
+    "name": "Screaming Grub Necromancer",
+    "level": 7,
+    "art": "screaming-grub-necromancer.webp"
+  },
+  {
+    "id": "sotroz",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "XO0qUnfdiZD6Rfq0",
+    "name": "Sotroz",
+    "level": 7,
+    "art": "sotroz.webp"
+  },
+  {
+    "id": "invigorated_sotroz",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "G85LmVGtI5rCij3L",
+    "name": "Invigorated Sotroz",
+    "level": 9,
+    "art": "sotroz.webp"
+  },
+  {
+    "id": "cybernetic_zombie",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "GAfHs5qLHlTivX2j",
+    "name": "Cybernetic Zombie",
+    "level": 3,
+    "art": "cybernetic-zombie.webp"
+  },
+  {
+    "id": "sparking_cybernetic_zombie",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "eK1Rixc3SaPMLlRc",
+    "name": "Sparking Cybernetic Zombie",
+    "level": 4,
+    "art": "cybernetic-zombie.webp"
+  },
+  {
+    "id": "flaring_cybernetic_zombie",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "m34HYN3kl1idPtyg",
+    "name": "Flaring Cybernetic Zombie",
+    "level": 5,
+    "art": "cybernetic-zombie.webp"
+  },
+  {
+    "id": "rimesnap",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "GMKVSvtmRxBacSKH",
+    "name": "Rimesnap",
+    "level": 2,
+    "art": "rimesnap.webp"
+  },
+  {
+    "id": "chelaxian_adjutant",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "pRGyImVHPn1l2zZI",
+    "name": "Chelaxian Adjutant",
+    "level": 1,
+    "art": "chelaxian-adjutant.webp"
+  },
+  {
+    "id": "angry_chelaxian_adjutant",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "GMSsq8SWXQSyZogT",
+    "name": "Angry Chelaxian Adjutant",
+    "level": 3,
+    "art": "chelaxian-adjutant.webp"
+  },
+  {
+    "id": "gargarthezul_captain",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "g4fBdPs1EiVZUaRj",
+    "name": "Immoral Gargarthezul Captain (Demon Pirate)",
+    "level": 5,
+    "art": "gargarthezul-captain.webp"
+  },
+  {
+    "id": "gargarthezul_captain_gusiy",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "GusIY16q3q8pIzxz",
+    "name": "Gargarthezul Captain",
+    "level": 6,
+    "art": "gargarthezul-captain.webp"
+  },
+  {
+    "id": "damned_gargarthezul_captain_demon_pirate",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "NWbyushzs5cK2MUs",
+    "name": "Damned Gargarthezul Captain (Demon Pirate)",
+    "level": 7,
+    "art": "gargarthezul-captain.webp"
+  },
+  {
+    "id": "high_matriarch_szvetneera",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "H4jJW55d3UqTkUDs",
+    "name": "High Matriarch Szvetneera",
+    "level": 4,
+    "art": "high-matriarch-szvetneera.webp"
+  },
+  {
+    "id": "retriever",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "Hz8jN6d6Xw6mXvNk",
+    "name": "Retriever",
+    "level": 10,
+    "art": "retriever.webp"
+  },
+  {
+    "id": "runt_retriever",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "nsiwnhZNFBmkK3Ws",
+    "name": "Runt Retriever",
+    "level": 10,
+    "art": "retriever.webp"
+  },
+  {
+    "id": "soaring_nilith",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "IMXxbw7DBVZJB79Y",
+    "name": "Soaring Nilith",
+    "level": 10,
+    "art": "soaring-nilith.webp"
+  },
+  {
+    "id": "elegecide",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "d38YKJUIBaZCPUsx",
+    "name": "Elegecide (Doom Demon)",
+    "level": -1,
+    "art": "elegecide.webp"
+  },
+  {
+    "id": "haunting_elegecide_doom_demon",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "RoesKKe7w12AF0oA",
+    "name": "Haunting Elegecide (Doom Demon)",
+    "level": 1,
+    "art": "elegecide.webp"
+  },
+  {
+    "id": "blood_elegecide_doom_demon",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "JEaWYZM9W9wH0jLj",
+    "name": "Blood Elegecide (Doom Demon)",
+    "level": 5,
+    "art": "elegecide.webp"
+  },
+  {
+    "id": "gargarthezul",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "XT0kYhTG6Xj81lFD",
+    "name": "Immoral Gargarthezul",
+    "level": -1,
+    "art": "gargarthezul.webp"
+  },
+  {
+    "id": "gargarthezul_mslzi",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "mSlZIP1LoLTz0q0B",
+    "name": "Gargarthezul",
+    "level": 1,
+    "art": "gargarthezul.webp"
+  },
+  {
+    "id": "damned_gargarthezul",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "fNCuPjbkZrkVxvUw",
+    "name": "Damned Gargarthezul",
+    "level": 2,
+    "art": "gargarthezul.webp"
+  },
+  {
+    "id": "greater_gargarthezul",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "JlZ1fb2VF9IVPNdL",
+    "name": "Greater Gargarthezul",
+    "level": 3,
+    "art": "gargarthezul.webp"
   }
 ]
