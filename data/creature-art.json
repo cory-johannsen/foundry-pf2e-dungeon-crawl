@@ -29998,5 +29998,213 @@
     "name": "Bida",
     "level": 8,
     "art": "bida.webp"
+  },
+  {
+    "id": "emaliza_zandivar",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "jZc4PrsX3HCJnkXx",
+    "name": "Emaliza Zandivar",
+    "level": 20,
+    "art": "emaliza-zandivar.webp"
+  },
+  {
+    "id": "rinnarv_bontimar",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "kLX36WXp6rjTt71z",
+    "name": "Rinnarv Bontimar",
+    "level": 20,
+    "art": "rinnarv-bontimar.webp"
+  },
+  {
+    "id": "jahsi",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "kciXaXw31gHA3gZl",
+    "name": "Jahsi",
+    "level": 8,
+    "art": "jahsi.webp"
+  },
+  {
+    "id": "ishti",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "lRqptquQcM6ZcQ4O",
+    "name": "Ishti",
+    "level": 18,
+    "art": "ishti.webp"
+  },
+  {
+    "id": "ingnovim_tluss",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "lcYcBIFmfKFt8Hcs",
+    "name": "Ingnovim Tluss",
+    "level": 19,
+    "art": "ingnovim-tluss.webp"
+  },
+  {
+    "id": "jaggaki",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "mY494hn9sKVD9q8C",
+    "name": "Jaggaki",
+    "level": 13,
+    "art": "jaggaki.webp"
+  },
+  {
+    "id": "scarlet_triad_agent",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "mYJ6NNthl702Pz2s",
+    "name": "Scarlet Triad Agent",
+    "level": 11,
+    "art": "scarlet-triad-agent.webp"
+  },
+  {
+    "id": "spiritbound_aluum",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "n6FQeNsDgKaDIF7b",
+    "name": "Spiritbound Aluum",
+    "level": 16,
+    "art": "spiritbound-aluum.webp"
+  },
+  {
+    "id": "scarlet_triad_poisoner",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "nQ2eBOpK71I8D2JC",
+    "name": "Scarlet Triad Poisoner",
+    "level": 8,
+    "art": "scarlet-triad-poisoner.webp"
+  },
+  {
+    "id": "belmazog",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "oPXRJxxWrY2kz2qf",
+    "name": "Belmazog",
+    "level": 9,
+    "art": "belmazog.webp"
+  },
+  {
+    "id": "kelda_halrig",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "qemmmfu7exswGMGZ",
+    "name": "Kelda Halrig",
+    "level": 8,
+    "art": "kelda-halrig.webp"
+  },
+  {
+    "id": "mae",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "qouYGPM8mE4KUCTe",
+    "name": "Rusty Mae",
+    "level": 10,
+    "art": "mae.webp"
+  },
+  {
+    "id": "renali",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "r02b4f1XNq7OihhD",
+    "name": "Renali",
+    "level": 4,
+    "art": "renali.webp"
+  },
+  {
+    "id": "emperor_bird",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "rd8Scu1YBSyKFwnk",
+    "name": "Emperor Bird",
+    "level": 2,
+    "art": "emperor-bird.webp"
+  },
+  {
+    "id": "barushak_il_varashma",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "sQZDwS08l6Agsryq",
+    "name": "Barushak Il-Varashma",
+    "level": 11,
+    "art": "barushak-il-varashma.webp"
+  },
+  {
+    "id": "dragonscarred_dead",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "scPhFbBqlmD2fQHa",
+    "name": "Dragonscarred Dead",
+    "level": 13,
+    "art": "dragonscarred-dead.webp"
+  },
+  {
+    "id": "spawn_of_dahak",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "t5mX2rkcKzcOzJXQ",
+    "name": "Spawn of Dahak",
+    "level": 8,
+    "art": "spawn-of-dahak.webp"
+  },
+  {
+    "id": "nolly_peltry",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "tGyPrTGSpndXKU88",
+    "name": "Nolly Peltry",
+    "level": 11,
+    "art": "nolly-peltry.webp"
+  },
+  {
+    "id": "forge_spurned",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "tr3qlFJVHqloE9zI",
+    "name": "Forge-Spurned",
+    "level": 5,
+    "art": "forge-spurned.webp"
+  },
+  {
+    "id": "corrupt_guard",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "w1Pqv0YmG4MevpQc",
+    "name": "Corrupt Guard",
+    "level": 12,
+    "art": "corrupt-guard.webp"
+  },
+  {
+    "id": "vazgorlu",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "xPV49ZBCwDdCq5eI",
+    "name": "Vazgorlu",
+    "level": 20,
+    "art": "vazgorlu.webp"
+  },
+  {
+    "id": "graveshell",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "xXtGS9uBa9z43X7y",
+    "name": "Graveshell",
+    "level": 1,
+    "art": "graveshell.webp"
+  },
+  {
+    "id": "accursed_forge_spurned",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "xrxjjjRMKzwsYbGm",
+    "name": "Accursed Forge-Spurned",
+    "level": 15,
+    "art": "accursed-forge-spurned.webp"
+  },
+  {
+    "id": "charau_ka",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "yLhO5vUrPQF42Lh8",
+    "name": "Charau-ka",
+    "level": 1,
+    "art": "charau-ka.webp"
+  },
+  {
+    "id": "animated_dragonstorm",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "yrU0xi4eKBmcGudo",
+    "name": "Animated Dragonstorm",
+    "level": 18,
+    "art": "animated-dragonstorm.webp"
+  },
+  {
+    "id": "remnant_of_barzillai",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "z4rlpEsE2KgzpOCc",
+    "name": "Remnant of Barzillai",
+    "level": 10,
+    "art": "remnant-of-barzillai.webp"
   }
 ]
