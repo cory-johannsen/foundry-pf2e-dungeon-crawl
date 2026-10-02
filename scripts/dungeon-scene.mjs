@@ -48,6 +48,8 @@ import {
   findPriorityCollision,
   assignDoorSlotsWithPriority,
   outgoingDoorPlan,
+  routeEdgesTopologyAware,
+  makeRoutingFor,
 } from "./dungeon-layout.mjs";
 import { freeSpotInRect } from "./placement.mjs";
 import { generateEncounter } from "./encounter-generator.mjs";
@@ -366,6 +368,43 @@ function outgoingPlanFromState(seed, sourceId, { edges, hiddenEdges, layoutPosit
 }
 
 /**
+ * #427 (layoutVersion >= 3): the topology-aware router's result for the whole persisted layout, as the
+ * `routingFor(edgeId)` function `buildEdgeCorridor`/`outgoingMarginOffset`/`pendingForeignMarginOpenings` take
+ * (`undefined` below version 3, so v1/v2 build exactly as before). A pure function of the persisted graph, never
+ * stored; memoised on those inputs because every room build asks for it.
+ */
+const routingCache = new Map();
+export function routingFromState(state) {
+  const layoutVersion = state.layoutVersion ?? 1;
+  if (layoutVersion < 3) return undefined;
+  const key = JSON.stringify([
+    state.seed, state.layoutPositionByRoomId, state.layoutEdges, state.hiddenIncomingByRoomId, state.edges,
+    state.hiddenEdges ?? {}, state.incomingFaceByRoomId ?? {}, state.hiddenRooms ?? [],
+  ]);
+  if (routingCache.has(key)) return routingCache.get(key);
+  const positions = state.layoutPositionByRoomId;
+  const occupiedCells = {};
+  for (const [id, pos] of Object.entries(positions)) occupiedCells[`${pos.rank},${pos.col}`] = id;
+  const faces = state.incomingFaceByRoomId ?? {};
+  const hiddenRooms = new Set(state.hiddenRooms ?? []);
+  const plans = new Map();
+  const planFor = (sourceId) => {
+    if (!plans.has(sourceId)) plans.set(sourceId, outgoingPlanFromState(state.seed, sourceId, state));
+    return plans.get(sourceId);
+  };
+  const routingFor = makeRoutingFor(routeEdgesTopologyAware({
+    seed: state.seed, positionByRoomId: positions, occupiedCells, incomingFaceByRoomId: faces, planFor,
+    slotsForRoom: (toId) => incomingSlotsV3(state.seed, toId, positions[toId], {
+      layoutEdges: state.layoutEdges, hiddenIncomingByRoomId: state.hiddenIncomingByRoomId, positionByRoomId: positions,
+      occupiedCells, incomingFace: faces[toId] ?? 'north', planFor, detour: hiddenRooms.has(toId),
+    }).map(({ sourceId, slot }) => ({ sourceId, slot })),
+  }));
+  if (routingCache.size >= 8) routingCache.clear();
+  routingCache.set(key, routingFor);
+  return routingFor;
+}
+
+/**
  * #93 — manual/live-verification checklist (no Foundry test harness exists
  * for this file, same existing boundary the old linear-slot room builder
  * always had). Run this against a real Foundry
@@ -425,6 +464,8 @@ export async function buildRoomAtGraphNode(
     // #415: run-state `layoutVersion` (absent = 1 = legacy exit faces by child
     // index). Version 2 takes every outgoing door from outgoingDoorPlan.
     layoutVersion = 1, hiddenEdges = {},
+    // #427 (v3): the topology-aware router's routingFor(edgeId); undefined below version 3.
+    routingFor,
   },
 ) {
   const rect = roomRect(seed, roomId, rank, col);
@@ -520,7 +561,7 @@ export async function buildRoomAtGraphNode(
   const foreignOpenings = planned
     ? pendingForeignMarginOpenings(
       seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
-      layoutEdges, hiddenIncomingByRoomId, hiddenEdges, planFor, layoutVersion >= 3,
+      layoutEdges, hiddenIncomingByRoomId, hiddenEdges, planFor, layoutVersion >= 3, routingFor,
     )
     : pendingForeignMarginOpenings(
       seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
@@ -550,7 +591,7 @@ export async function buildRoomAtGraphNode(
       : undefined;
     const { offset, width } = outgoingMarginOffset(
       seed, roomId, childId, face, rect, { rank, col },
-      childPos ?? { rank: NaN, col: NaN }, occupiedCells, childIncomingFace, exitDoor, realToSlot,
+      childPos ?? { rank: NaN, col: NaN }, occupiedCells, childIncomingFace, exitDoor, realToSlot, routingFor,
     );
     openingsBySide[face].push({ offset, width });
   }
@@ -1243,6 +1284,8 @@ export async function buildPopulateAndUnlockGraphNode(
   const planFor = layoutVersion >= 2
     ? (sourceId) => outgoingPlanFromState(state.seed, sourceId, state)
     : undefined;
+  // #427 (layoutVersion >= 3): the whole layout's topology-aware routing; undefined below version 3.
+  const routingFor = routingFromState(state);
 
   // #93 pre-flight fix (merge-door redesign): every real parent this room
   // has (usually 1, more for a merge room), plus a shortcut's hidden extra
@@ -1286,6 +1329,7 @@ export async function buildPopulateAndUnlockGraphNode(
         hiddenIncomingByRoomId: state.hiddenIncomingByRoomId,
         layoutVersion,
         hiddenEdges: state.hiddenEdges ?? {},
+        routingFor,
       },
     );
 
@@ -1336,7 +1380,7 @@ export async function buildPopulateAndUnlockGraphNode(
       // (findCorridorPath) a route around any other room's own occupied
       // cell instead of assuming a direct/single-corner connection.
       const { doorWall, revealDoorWall, plainWalls, corridorSegments, transitCells } =
-        buildEdgeCorridor(state.seed, sourceId, room.id, sourceRect, rect, sourcePos, { rank, col }, exitFaceFromSource, toSlot, occupiedCells, incomingFace, plannedExit);
+        buildEdgeCorridor(state.seed, sourceId, room.id, sourceRect, rect, sourcePos, { rank, col }, exitFaceFromSource, toSlot, occupiedCells, incomingFace, plannedExit, routingFor?.(`${sourceId}->${room.id}`));
       if (hidden) {
         // #156: sealed until Task 9's reveal step explicitly promotes it
         // (both doorWall and revealDoorWall share the SAME

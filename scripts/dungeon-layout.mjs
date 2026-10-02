@@ -627,8 +627,12 @@ function sourceFaceCapWalls(fromRect, exitFace, exitPoint) {
 }
 
 /**
- * `routing` (#427, layoutVersion >= 3, optional trailing): `{ blockedCells }`, cells `findCorridorPath` must avoid
- * (the topology-aware router's re-route). Absent, today's behavior exactly.
+ * `routing` (#427, layoutVersion >= 3, optional trailing; `makeRoutingFor(result)(edgeId)` builds it from the
+ * topology-aware router): `{ blockedCells }` cells `findCorridorPath` must avoid (a re-route); `{ lanes }` this
+ * edge's placed lane, a Map "rank,col" -> `{ entrySide, exitSide, entryPoint, exitPoint }` whose points replace the
+ * seeded/projected crossing points of each transit cell; `{ unresolvable: true }` the router found no
+ * non-crossing route, so the edge takes the null-path fallback (no transit cells, never shared floor). Absent (or all
+ * members undefined), today's behavior exactly.
  *
  * `exitDoor` (#415, optional): a planned outgoing door
  * `{ exitPoint: {x,y}, doorSpan }` (an `outgoingDoorPlan` entry works as is).
@@ -644,7 +648,7 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
   const exitDoor = exitDoorArg?.exitPoint ? exitDoorArg : undefined;
   // #415: any plan entry (even a single-door face's, whose exitPoint is null)
   // marks a planned exit, so the path may not start by crossing the source room.
-  const path = findCorridorPath(fromPos, toPos, occupiedCells, {
+  const path = routing?.unresolvable ? null : findCorridorPath(fromPos, toPos, occupiedCells, {
     fromRoomId, toRoomId, incomingFace, exitFace: exitDoorArg ? exitFace : undefined, blockedCells: routing?.blockedCells,
   });
   const slotSpan = incomingFace === 'west' ? (toSlot.y2 - toSlot.y1) : (toSlot.x2 - toSlot.x1);
@@ -725,14 +729,19 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
       const entrySide = directionBetween(cell, path[i - 1]);
       const exitSide = directionBetween(cell, path[i + 1]);
       const isLast = i === path.length - 2;
-      const forcedEntryPoint = projectOntoSide(cellRect, entrySide, chainAnchor);
+      // #427: a placed lane (same sides as this build's path) supplies both crossing points of its cell.
+      const lane = routing?.lanes?.get(`${cell.rank},${cell.col}`);
+      const laneFits = lane && lane.entrySide === entrySide && lane.exitSide === exitSide;
+      const forcedEntryPoint = laneFits ? lane.entryPoint : projectOntoSide(cellRect, entrySide, chainAnchor);
       // #225 I1: a non-last, non-corner (entry/exit on OPPOSITE sides)
       // "straight through" cell shares the same forced axis on both its
       // entry and exit — it has no free perpendicular axis at all, so its
       // exit must be forced too, not independently reseeded. Only a
       // genuine corner cell (entry/exit on ADJACENT sides) still has a
       // free axis left to randomize.
-      const forcedExitPoint = isLast
+      const forcedExitPoint = laneFits
+        ? lane.exitPoint
+        : isLast
         ? projectOntoSide(cellRect, exitSide, chainEndAnchor)
         : OPPOSITE_SIDE[entrySide] === exitSide
         ? projectOntoSide(cellRect, exitSide, forcedEntryPoint)
@@ -1443,7 +1452,7 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
  * per-connection slot (this assumption doesn't know about) is a
  * separate, already-tracked residual — #231 — not solved here.
  */
-export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells, incomingFace = 'north', exitDoorArg, realToSlot) {
+export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromRect, fromPos, toPos, occupiedCells, incomingFace = 'north', exitDoorArg, realToSlot, routingFor) {
   const exitDoor = exitDoorArg?.exitPoint ? exitDoorArg : undefined;
   if (exitFace !== 'south' && exitFace !== 'east') {
     // West never takes buildEdgeCorridor's offset-based branch — always
@@ -1453,8 +1462,10 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
     return { offset: fromRect.gh / 2 - DOOR_WIDTH, width: DOOR_WIDTH };
   }
   const aligned = exitFace === 'south' ? fromPos.col === toPos.col : fromPos.rank === toPos.rank;
-  const path = aligned
-    ? findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace, exitFace: exitDoorArg ? exitFace : undefined })
+  // #427 (layoutVersion >= 3): the router's routing for this edge decides the branch (an unresolvable edge is a null path).
+  const routing = routingFor?.(`${fromRoomId}->${toRoomId}`);
+  const path = aligned && !routing?.unresolvable
+    ? findCorridorPath(fromPos, toPos, occupiedCells, { fromRoomId, toRoomId, incomingFace, exitFace: exitDoorArg ? exitFace : undefined, blockedCells: routing?.blockedCells })
     : null;
   const usesOffsetBasedExit = aligned && (!path || path.length <= 2);
   // South's offset runs along the room's own width (gw); east's runs
@@ -1478,7 +1489,7 @@ export function outgoingMarginOffset(seed, fromRoomId, toRoomId, exitFace, fromR
   // #427 (v3): `realToSlot` is the connection's actual door slot; v1/v2 assume one full-width slot (#231).
   const toSlot = realToSlot ?? doorSlotsForFace(toRect, 1, incomingFace)[0];
   const { corridorSegments } = buildEdgeCorridor(
-    seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace, exitDoor,
+    seed, fromRoomId, toRoomId, fromRect, toRect, fromPos, toPos, exitFace, toSlot, occupiedCells, incomingFace, exitDoor, routing,
   );
   const seg = corridorSegments[0];
   return exitFace === 'south'
@@ -1790,7 +1801,7 @@ export function incomingSlotsV3(seed, targetId, targetPos, {
  * edges` falls back to `edges` itself, which equals `layoutEdges` for
  * every non-detour room).
  */
-export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells, layoutEdges, hiddenIncomingByRoomId = {}, hiddenEdges = {}, planFor, orderedIncoming = false) {
+export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells, layoutEdges, hiddenIncomingByRoomId = {}, hiddenEdges = {}, planFor, orderedIncoming = false, routingFor) {
   const result = { east: [], south: [] };
   // #415: with a plan, hidden edges are scanned too (legacy ignores them) and
   // each edge's face/door come from the source's plan, not its child index.
@@ -1854,7 +1865,7 @@ export function pendingForeignMarginOpenings(seed, roomId, rank, col, edges, lay
         : doorSlotsForFace(targetRect, 1, targetIncomingFace)[0];
       const { foreignOpening } = buildEdgeCorridor(
         seed, sourceId, childId, sourceRect, targetRect, sourcePos, targetPos,
-        exitFace, toSlot, occupiedCells, targetIncomingFace, exitDoor,
+        exitFace, toSlot, occupiedCells, targetIncomingFace, exitDoor, routingFor?.(`${sourceId}->${childId}`),
       );
       if (foreignOpening && foreignOpening.roomId === roomId) {
         result[foreignOpening.side].push({ offset: foreignOpening.offset, width: foreignOpening.width });
@@ -3008,4 +3019,18 @@ export function routeEdgesTopologyAware({
   }
   unresolvable.sort();
   return { lanes, blockedByEdge, unresolvable, stats };
+}
+
+/**
+ * The router result as the `routingFor(edgeId)` function the scene and the layout helpers share: an unresolvable edge
+ * gets `{ unresolvable: true }`, a placed edge `{ blockedCells, lanes }` (`blockedCells` undefined when it kept its
+ * shortest path), every other edge `undefined` (built exactly as before).
+ */
+export function makeRoutingFor({ lanes, blockedByEdge, unresolvable }) {
+  const bad = new Set(unresolvable);
+  return (edgeId) => {
+    if (bad.has(edgeId)) return { unresolvable: true };
+    const edgeLanes = lanes.get(edgeId);
+    return edgeLanes ? { blockedCells: blockedByEdge.get(edgeId), lanes: edgeLanes } : undefined;
+  };
 }

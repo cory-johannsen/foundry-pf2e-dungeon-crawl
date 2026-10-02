@@ -244,3 +244,27 @@ describe('passage planner sweep (500 seeds, v3 geometry)', () => {
     expect(total.residualSoleChild / total.residual).toBeGreaterThan(0.95);
   });
 });
+
+// Chunk 3 (#427): the same planner on the geometry the v3 scene now builds, i.e. with the topology-aware router
+// applied: the router's unresolvable edges are null-class passage targets (`needsPassage` takes `unresolvable`).
+// The lane wiring (Tasks 2.4/2.5) is deferred; these are the re-measured numbers it will start from. The two
+// sweeps above stay on the order-only geometry (the lane oracle compares against the real scene, which now routes).
+const ROUTED_TARGETS_CEILING = 1282;
+const ROUTED_SERVED_FLOOR = 206;
+const ROUTED_RESIDUAL_CEILING = 1076;
+describe('passage planner sweep on routed v3 geometry (500 seeds)', () => {
+  const total = Array.from({ length: 500 }, (_, i) => measurePlan(buildSweepLayout(i, { layoutVersion: 3 }), { routed: true }).m).reduce(sumPlan, ZERO_PLAN());
+  it('targets are the v3 overlap edges plus the router\'s unresolvable edges that cross a room; served only rises', () => {
+    expect(total.served + total.residual).toBe(total.targets);
+    expect(total.targets).toBeLessThanOrEqual(ROUTED_TARGETS_CEILING);
+    expect(total.served).toBeGreaterThanOrEqual(ROUTED_SERVED_FLOOR);
+    expect(total.served).toBeGreaterThanOrEqual(K10_FLOOR);
+    expect(total.residual).toBeLessThanOrEqual(ROUTED_RESIDUAL_CEILING);
+  });
+  it('lanes are still not tours, and the residual sole-child share is what the unresolvable edges leave (about 90%)', () => {
+    expect(total.servedTiles).toBeLessThanOrEqual(1.15 * total.servedManhattan);
+    expect(total.over2xManhattan).toBeLessThanOrEqual(0.05 * total.served);
+    expect(total.maxExcessCrossings).toBeLessThanOrEqual(2);
+    expect(total.residualSoleChild / total.residual).toBeGreaterThan(0.89);
+  });
+});

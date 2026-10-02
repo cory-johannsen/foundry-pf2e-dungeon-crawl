@@ -11,10 +11,10 @@ const area = (a, b) => Math.max(0, Math.min(a.gx + a.gw, b.gx + b.gw) - Math.max
   * Math.max(0, Math.min(a.gy + a.gh, b.gy + b.gh) - Math.max(a.gy, b.gy));
 
 /** One record per built edge, in `visitEdges` order, with the passage trigger already evaluated. */
-export function passageEdges(layout, { unresolvableIds = new Set() } = {}) {
+export function passageEdges(layout, { unresolvableIds = new Set(), routed = false } = {}) {
   const { pos, occ, rect } = layout;
   const edges = [];
-  visitEdges(layout, ({ sourceId, toId, face, sel, res }) => {
+  visitEdges(layout, ({ sourceId, toId, face, sel, res, routing }) => {
     const path = findCorridorPath(pos[sourceId], pos[toId], occ,
       { fromRoomId: sourceId, toRoomId: toId, incomingFace: face, exitFace: sel.face });
     const floors = [...res.corridorSegments, ...res.transitCells.flatMap((c) => c.corridorSegments)];
@@ -24,9 +24,9 @@ export function passageEdges(layout, { unresolvableIds = new Set() } = {}) {
       edgeId, sourceId, toId, floors, res, sel, srcFace: sel.face, dstFace: face,
       srcMouth: mouthTile(res.doorWall, sel.face), dstMouth: mouthTile(res.revealDoorWall, face),
       nullPath: !path, overlapsOther,
-      passage: needsPassage({ nullPath: !path, fallbackOverlapsOtherRoom: overlapsOther, unresolvable: unresolvableIds.has(edgeId) }),
+      passage: needsPassage({ nullPath: !path, fallbackOverlapsOtherRoom: overlapsOther, unresolvable: unresolvableIds.has(edgeId) || routing?.unresolvable === true }),
     });
-  });
+  }, { routed });
   return edges;
 }
 
@@ -50,8 +50,8 @@ export const ZERO_PLAN = () => ({
 export const sumPlan = (a, b) => Object.fromEntries(Object.keys(a).map((k) => [k, k === 'maxCrossings' || k === 'maxExcessCrossings' ? Math.max(a[k], b[k]) : a[k] + b[k]]));
 
 /** Plans a layout and counts what it serves. */
-export function measurePlan(layout) {
-  const edges = passageEdges(layout);
+export function measurePlan(layout, { routed = false } = {}) {
+  const edges = passageEdges(layout, { routed });
   const lanes = planPassageLanes(passageInput(layout, edges));
   const m = ZERO_PLAN();
   for (const e of edges.filter((x) => x.passage)) {

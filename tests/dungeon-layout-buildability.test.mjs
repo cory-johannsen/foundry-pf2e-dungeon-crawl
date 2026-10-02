@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { buildSweepLayout, planSelector } from './helpers/layout-sweep.mjs';
 import { measureBuildability, sumMeasures, visitEdges } from './helpers/buildability.mjs';
 import { buildFloorModel } from './helpers/floor-oracle.mjs';
+import { routingForLayout } from './helpers/router-layout.mjs';
 import { transitCellContainmentWalls, pendingForeignMarginOpenings, incomingSlotsV3 } from '../scripts/dungeon-layout.mjs';
 
 const SEEDS = 500;
@@ -90,7 +91,7 @@ describe('measureBuildability reproduces the spec baseline on layoutVersion 1 (#
 const V3_INTERMEDIATE_OVERLAP_CEILING = 1097;
 describe('layoutVersion 3 buildability: incoming door order only (#427)', () => {
   const layouts = Array.from({ length: SEEDS }, (_, i) => buildSweepLayout(i, { layoutVersion: 3 }));
-  const total = layouts.map((l) => measureBuildability(l)).reduce(sumMeasures);
+  const total = layouts.map((l) => measureBuildability(l, { routed: false })).reduce(sumMeasures);
   it('holds every v2 invariant', () => {
     expect(total.edges).toBe(9498);
     expect(total.interOverlapFound).toBe(0);
@@ -111,15 +112,16 @@ describe('layoutVersion 3 buildability: incoming door order only (#427)', () => 
     let doglegs = 0;
     for (const L of layouts) {
       const planFor = planSelector.planFor(L);
+      const routingFor = routingForLayout(L);
       visitEdges(L, ({ res }) => {
         const fo = res.foreignOpening;
         if (!fo) return;
         doglegs += 1;
         const { rank, col } = L.pos[fo.roomId];
         const open = pendingForeignMarginOpenings(L.seed, fo.roomId, rank, col, L.edges, L.pos, L.incFace, L.occ,
-          L.layoutEdges, L.hiddenIncomingByRoomId, L.hiddenEdges, planFor, true);
+          L.layoutEdges, L.hiddenIncomingByRoomId, L.hiddenEdges, planFor, true, routingFor);
         expect(open[fo.side]).toContainEqual({ offset: fo.offset, width: fo.width });
-      });
+      }, { routed: true });
     }
     expect(doglegs).toBeGreaterThan(300);
   });
@@ -143,5 +145,40 @@ describe('layoutVersion 3 buildability: incoming door order only (#427)', () => 
     const v2 = Array.from({ length: SEEDS }, (_, i) => measureBuildability(buildSweepLayout(i, { layoutVersion: 2 }))).reduce(sumMeasures);
     expect(v2.interOverlap).toBe(1132);
     expect(v2.cutOccurrences).toBe(814);
+  });
+});
+
+// layoutVersion 3, Task 3.2 (#427): the topology-aware router applied (the geometry the v3 scene builds). Placed
+// edges have no cut and no floor crossing. The router's unresolvable edges join the boxed-in class (Q-A): they are
+// drawn as null paths, so the null-path ratchet is the COMBINED count (null + unresolvable), and their fallback
+// lines' overlaps are tracked in their own counters while the plain counters keep their v3 baselines.
+// Measured on the 500-seed sweep: nullPath 2,052 + unresolvable 185 = 2,237 boxed in (the router prototype's 185);
+// interOverlap 1,097 + 136 on unresolvable lines; deep target overlap 160 + 56.
+const ROUTED_NULL_PATH_CEILING = 2052;
+const ROUTED_UNRESOLVABLE_CEILING = 185;
+const ROUTED_BOXED_IN_CEILING = ROUTED_NULL_PATH_CEILING + ROUTED_UNRESOLVABLE_CEILING;
+const ROUTED_INTER_OVERLAP_UNRESOLVABLE_CEILING = 136;
+const ROUTED_DEEP_OVERLAP_UNRESOLVABLE_CEILING = 56;
+describe('layoutVersion 3 buildability: topology-aware routing (#427)', () => {
+  const layouts = Array.from({ length: SEEDS }, (_, i) => buildSweepLayout(i, { layoutVersion: 3 }));
+  const total = layouts.map((l) => measureBuildability(l, { routed: true })).reduce(sumMeasures);
+  it('placed edges have no cut and no floor crossing; found paths never overlap another room', () => {
+    expect(total.edges).toBe(9498);
+    expect(total.cutEdges).toBe(0);
+    expect(total.cutOccurrences).toBe(0);
+    expect(total.floorCrossings).toBe(0);
+    expect(total.interOverlapFound).toBe(0);
+    expect(total.targetDoorCovered).toBe(0);
+    expect(total.chainMismatch).toBe(0);
+    expect(total.sourceOverlap).toBe(0);
+  });
+  it('the combined boxed-in count (null + unresolvable) only falls; every other ratchet holds', () => {
+    expect(total.nullPath).toBeLessThanOrEqual(ROUTED_NULL_PATH_CEILING);
+    expect(total.unresolvable).toBeLessThanOrEqual(ROUTED_UNRESOLVABLE_CEILING);
+    expect(total.nullPath + total.unresolvable).toBeLessThanOrEqual(ROUTED_BOXED_IN_CEILING);
+    expect(total.interOverlap).toBeLessThanOrEqual(V3_INTERMEDIATE_OVERLAP_CEILING);
+    expect(total.interOverlapUnresolvable).toBeLessThanOrEqual(ROUTED_INTER_OVERLAP_UNRESOLVABLE_CEILING);
+    expect(total.targetOverlapDeep).toBeLessThanOrEqual(DEEP_TARGET_OVERLAP_CEILING);
+    expect(total.targetOverlapDeepUnresolvable).toBeLessThanOrEqual(ROUTED_DEEP_OVERLAP_UNRESOLVABLE_CEILING);
   });
 });

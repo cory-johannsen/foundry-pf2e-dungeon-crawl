@@ -1,6 +1,7 @@
 // tests/helpers/router-layout.mjs
 // #427 Chunk 3: inputs for routeEdgesTopologyAware, and the real wall/floor check on its lanes.
 import {
+  routeEdgesTopologyAware, makeRoutingFor,
   roomRect, outgoingDoorPlan, incomingSlotsV3, incomingFaceFor, parentRoomIdsFor,
   transitCellCrossing, transitCellContainmentWalls,
 } from '../../scripts/dungeon-layout.mjs';
@@ -75,4 +76,12 @@ export function checkLanes(seed, lanes) {
     }
   }
   return { floorCrossings, cutOccurrences, cellsShared };
+}
+
+const routingCache = new WeakMap();
+/** The router's result for a sweep layout as the `routingFor(edgeId)` function the scene and `buildEdgeCorridor` use
+ * (memoised per layout object). */
+export function routingForLayout(layout) {
+  if (!routingCache.has(layout)) routingCache.set(layout, makeRoutingFor(routeEdgesTopologyAware(routerInputsFor(layout))));
+  return routingCache.get(layout);
 }

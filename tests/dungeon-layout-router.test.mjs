@@ -2,7 +2,8 @@
 // blockedCells option. See docs/superpowers/specs/2026-10-01-topology-aware-corridor-routing-design.md.
 import { describe, it, expect } from 'vitest';
 import {
-  routeEdgesTopologyAware, makeLanePlacer, findCorridorPath, cellBounds, COLUMN_STRIDE,
+  routeEdgesTopologyAware, makeLanePlacer, makeRoutingFor, findCorridorPath, cellBounds, COLUMN_STRIDE,
+  buildEdgeCorridor, outgoingMarginOffset, roomRect,
 } from '../scripts/dungeon-layout.mjs';
 import { buildSweepLayout } from './helpers/layout-sweep.mjs';
 import { fixtureInputs, routerInputsFor, checkLanes } from './helpers/router-layout.mjs';
@@ -129,6 +130,71 @@ describe('routeEdgesTopologyAware: hand-built grids (#427)', () => {
     expect(cells.map(([k]) => k)).toEqual(['1,0', '2,0']);
     expect(cells[0][1]).toMatchObject({ entrySide: 'north', exitSide: 'south' });
     expect(cells[0][1].exitPoint).toEqual(cells[1][1].entryPoint);
+  });
+});
+
+describe('buildEdgeCorridor routing parameter and makeRoutingFor (#427, layoutVersion 3)', () => {
+  const pos = { p: { rank: 0, col: 0 }, m: { rank: 3, col: 0 } };
+  const inputs = fixtureInputs(pos, { p: ['m'] });
+  const seed = inputs.seed;
+  const plan = inputs.planFor('p').get('m');
+  const slot = inputs.slotsForRoom('m')[0].slot;
+  const rect = (id) => roomRect(seed, id, pos[id].rank, pos[id].col);
+  const build = (routing) => buildEdgeCorridor(seed, 'p', 'm', rect('p'), rect('m'), pos.p, pos.m, plan.face, slot, inputs.occupiedCells, 'north', plan, routing);
+
+  it('no routing, an empty one and a routing with only undefined members build the same geometry', () => {
+    const plain = build(undefined);
+    expect(build({})).toEqual(plain);
+    expect(build({ blockedCells: undefined, lanes: undefined })).toEqual(plain);
+    expect(plain.transitCells.map((c) => `${c.rank},${c.col}`)).toEqual(['1,0', '2,0']);
+  });
+  it('lanes force each transit cell\'s entry and exit points', () => {
+    const routed = routeEdgesTopologyAware(inputs);
+    const lanes = routed.lanes.get('p->m');
+    // move the chain's free coordinate is impossible (straight), so shift a corner chain: two parents with a corner
+    const res = build({ lanes });
+    expect(res.transitCells.map((c) => [c.entryPoint, c.exitPoint])).toEqual([...lanes.values()].map((l) => [l.entryPoint, l.exitPoint]));
+  });
+  it('a lane map on a corner chain is honoured cell by cell and the chain stays continuous', () => {
+    const pos2 = { a: { rank: 0, col: 0 }, b: { rank: 2, col: 1 } };
+    const inputs2 = fixtureInputs(pos2, { a: ['b'] });
+    const routed = routeEdgesTopologyAware(inputs2);
+    const lanes = routed.lanes.get('a->b');
+    expect(lanes).toBeDefined();
+    const r = (id) => roomRect(inputs2.seed, id, pos2[id].rank, pos2[id].col);
+    const plan2 = inputs2.planFor('a').get('b');
+    const res = buildEdgeCorridor(inputs2.seed, 'a', 'b', r('a'), r('b'), pos2.a, pos2.b, plan2.face, inputs2.slotsForRoom('b')[0].slot,
+      inputs2.occupiedCells, 'north', plan2, { lanes });
+    for (let i = 0; i + 1 < res.transitCells.length; i += 1) expect(res.transitCells[i].exitPoint).toEqual(res.transitCells[i + 1].entryPoint);
+    expect(res.transitCells.map((c) => [c.entryPoint, c.exitPoint])).toEqual([...lanes.values()].map((l) => [l.entryPoint, l.exitPoint]));
+  });
+  it('blockedCells re-route the path; `unresolvable` draws the null-path fallback instead (no transit cells)', () => {
+    const blocked = build({ blockedCells: ['1,0'] });
+    expect(blocked.transitCells.some((c) => c.rank === 1 && c.col === 0)).toBe(false);
+    const fallback = build({ unresolvable: true });
+    expect(fallback.transitCells).toEqual([]);
+    expect(fallback.corridorSegments.length).toBeGreaterThan(0);
+  });
+  it('makeRoutingFor: placed edges get { blockedCells, lanes }, unresolvable ones { unresolvable: true }, others undefined', () => {
+    const routed = {
+      lanes: new Map([['a->b', new Map([['1,0', {}]])], ['c->d', new Map([['1,1', {}]])]]),
+      blockedByEdge: new Map([['c->d', ['1,0']]]), unresolvable: ['e->f'],
+    };
+    const routingFor = makeRoutingFor(routed);
+    expect(routingFor('a->b')).toEqual({ blockedCells: undefined, lanes: routed.lanes.get('a->b') });
+    expect(routingFor('c->d')).toEqual({ blockedCells: ['1,0'], lanes: routed.lanes.get('c->d') });
+    expect(routingFor('e->f')).toEqual({ unresolvable: true });
+    expect(routingFor('g->h')).toBeUndefined();
+  });
+  it('outgoingMarginOffset reads the routed geometry: an unresolvable aligned edge uses the offset-based fallback span', () => {
+    const routingFor = (id) => (id === 'p->m' ? { unresolvable: true } : undefined);
+    const fallback = build({ unresolvable: true });
+    const seg = fallback.corridorSegments[0];
+    const viaRouting = outgoingMarginOffset(seed, 'p', 'm', plan.face, rect('p'), pos.p, pos.m, inputs.occupiedCells, 'north', plan, slot, routingFor);
+    expect(viaRouting).toEqual({ offset: seg.gx - rect('p').gx, width: seg.gw });
+    // without it the planned (path-independent) door is reported, as before
+    expect(outgoingMarginOffset(seed, 'p', 'm', plan.face, rect('p'), pos.p, pos.m, inputs.occupiedCells, 'north', plan, slot))
+      .toEqual(outgoingMarginOffset(seed, 'p', 'm', plan.face, rect('p'), pos.p, pos.m, inputs.occupiedCells, 'north', plan, slot, () => undefined));
   });
 });
 

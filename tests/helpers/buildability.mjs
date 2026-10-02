@@ -5,6 +5,7 @@ import {
   incomingConnectionsFor, incomingDoorOrder, cellBounds, transitCellContainmentWalls,
 } from '../../scripts/dungeon-layout.mjs';
 import { planSelector } from './layout-sweep.mjs';
+import { routingForLayout } from './router-layout.mjs';
 
 const area = (a, b) => Math.max(0, Math.min(a.gx + a.gw, b.gx + b.gw) - Math.max(a.gx, b.gx))
   * Math.max(0, Math.min(a.gy + a.gh, b.gy + b.gh) - Math.max(a.gy, b.gy));
@@ -16,7 +17,7 @@ const cuts = (w, f) => (w.y1 === w.y2
 export const ZERO = () => ({
   edges: 0, nullPath: 0, interOverlap: 0, interOverlapFound: 0, targetOverlapDeep: 0,
   multi: 0, sharedCells: 0, cutOccurrences: 0, cutEdges: 0, floorCrossings: 0, targetDoorCovered: 0,
-  chainMismatch: 0, sourceOverlap: 0,
+  chainMismatch: 0, sourceOverlap: 0, unresolvable: 0, interOverlapUnresolvable: 0, targetOverlapDeepUnresolvable: 0,
 });
 export const sumMeasures = (a, b) => Object.fromEntries(Object.keys(a).map((k) => [k, a[k] + b[k]]));
 
@@ -26,8 +27,10 @@ export const sumMeasures = (a, b) => Object.fromEntries(Object.keys(a).map((k) =
  * assignment: a north face west to east by source column (a west face top to bottom by source rank), ties by
  * the other axis then id, hidden last. It is the planarity-consistent slot order a v3 incoming door plan
  * would impose (the incoming twin of outgoingDoorPlan's compareTargets). Default 'plan' is today's order. */
-export function visitEdges(layout, visit, { slotOrder = 'plan' } = {}) {
+export function visitEdges(layout, visit, { slotOrder = 'plan', routed = false } = {}) {
   const { seed, rooms, layoutEdges, hiddenIncomingByRoomId, hiddenRooms, pos, occ, rect, incFace } = layout;
+  // #427 Chunk 3 (`routed`, layoutVersion >= 3 only): the topology-aware router's result, as the scene applies it.
+  const routingFor = routed && (layout.layoutVersion ?? 1) >= 3 ? routingForLayout(layout) : () => undefined;
   const planFor = planSelector.planFor(layout);
   for (const toId of Object.keys(rooms)) {
     const isDetour = hiddenRooms.includes(toId);
@@ -49,29 +52,37 @@ export function visitEdges(layout, visit, { slotOrder = 'plan' } = {}) {
     const slots = assignDoorSlotsWithPriority(seed, rect[toId], ordered, face, collision);
     ordered.forEach(({ sourceId }, k) => {
       const sel = planSelector(layout, { sourceId, toId });
+      const routing = routingFor(`${sourceId}->${toId}`);
       const res = buildEdgeCorridor(seed, sourceId, toId, rect[sourceId], rect[toId], pos[sourceId], pos[toId],
-        sel.face, slots[k], occ, face, sel.exitDoor);
+        sel.face, slots[k], occ, face, sel.exitDoor, routing);
       const build = (occOverride = occ) => buildEdgeCorridor(seed, sourceId, toId, rect[sourceId], rect[toId], pos[sourceId], pos[toId],
-        sel.face, slots[k], occOverride, face, sel.exitDoor);
-      visit({ sourceId, toId, face, sel, slot: slots[k], res, build });
+        sel.face, slots[k], occOverride, face, sel.exitDoor, routing);
+      visit({ sourceId, toId, face, sel, slot: slots[k], res, build, routing });
     });
   }
 }
 
-export function measureBuildability(layout, { cellUse = new Map(), slotOrder = 'plan' } = {}) {
+export function measureBuildability(layout, { cellUse = new Map(), slotOrder = 'plan', routed = false } = {}) {
   // `cellUse` (optional, filled): "rank,col" -> [{ id, c }], every edge's transit-cell crossing; the
   // oracle test reads it.
   const m = ZERO();
   const { pos, occ, rect } = layout;
-  visitEdges(layout, ({ sourceId, toId, face, sel, res }) => {
+  visitEdges(layout, ({ sourceId, toId, face, sel, res, routing }) => {
       const segs = [...res.corridorSegments, ...res.transitCells.flatMap((c) => c.corridorSegments)];
       const path = findCorridorPath(pos[sourceId], pos[toId], occ,
         { fromRoomId: sourceId, toRoomId: toId, incomingFace: face, exitFace: sel.face });
       m.edges += 1;
-      if (!path) m.nullPath += 1;
+      // A router-unresolvable edge is drawn as a null path (#427 Q-A): counted apart, never as a found path.
+      const unresolvable = routing?.unresolvable === true;
+      if (unresolvable) m.unresolvable += 1;
+      else if (!path) m.nullPath += 1;
       const inter = Object.entries(rect).some(([id, r]) => id !== sourceId && id !== toId && segs.some((s) => overlap(s, r)));
-      if (inter) { m.interOverlap += 1; if (path) m.interOverlapFound += 1; }
-      if (segs.some((s) => area(s, rect[toId]) >= 2)) m.targetOverlapDeep += 1;
+      // Their fallback lines are tracked apart (the combined boxed-in class); the plain counters keep their meaning.
+      if (inter) {
+        if (unresolvable) m.interOverlapUnresolvable += 1;
+        else { m.interOverlap += 1; if (path) m.interOverlapFound += 1; }
+      }
+      if (segs.some((s) => area(s, rect[toId]) >= 2)) m[unresolvable ? 'targetOverlapDeepUnresolvable' : 'targetOverlapDeep'] += 1;
       if (segs.some((s) => overlap(s, rect[sourceId]))) m.sourceOverlap += 1;
       if (res.transitCells.length) {
         m.multi += 1;
@@ -95,7 +106,7 @@ export function measureBuildability(layout, { cellUse = new Map(), slotOrder = '
           cellUse.get(key).push({ id: `${sourceId}->${toId}`, c });
         }
       }
-  }, { slotOrder });
+  }, { slotOrder, routed });
   const cutEdges = new Set();
   for (const [key, uses] of cellUse) {
     const [rank, col] = key.split(',').map(Number);

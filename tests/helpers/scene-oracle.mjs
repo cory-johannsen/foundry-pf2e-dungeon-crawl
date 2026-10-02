@@ -75,6 +75,13 @@ const overlapsOnLine = (w, d) => {
   return a === x1 && c === x1 && Math.max(Math.min(b, e), Math.min(y1, y2)) < Math.min(Math.max(b, e), Math.max(y1, y2));
 };
 
+/** The `from->to` edge id a door wall belongs to, from its flags (real gate/reveal doors and hidden ones). */
+export function doorEdge(flags) {
+  if (flags.dungeonHiddenDoorForEdge) return flags.dungeonHiddenDoorForEdge;
+  const to = flags.dungeonDoorToRoomId ?? flags.dungeonRevealDoorForSlot;
+  return flags.dungeonDoorFromRoomId && to ? `${flags.dungeonDoorFromRoomId}->${to}` : null;
+}
+
 /** Door walls whose span is covered, even partly, by a collinear SOLID wall (the door cannot be walked
  * through in full): `{ doors, sealed, byFlag }`. */
 export function sealedDoors(scene) {
@@ -84,6 +91,6 @@ export function sealedDoors(scene) {
   return {
     doors: doors.length,
     sealed: sealed.length,
-    sealedDoorWalls: sealed.map((d) => ({ coords: d.c, flags: d.flags?.[MODULE_ID] ?? {} })),
+    sealedDoorWalls: sealed.map((d) => ({ coords: d.c, flags: d.flags?.[MODULE_ID] ?? {}, edge: doorEdge(d.flags?.[MODULE_ID] ?? {}) })),
   };
 }

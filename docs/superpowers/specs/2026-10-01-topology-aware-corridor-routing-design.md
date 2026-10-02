@@ -205,3 +205,24 @@ candidate that becomes null is skipped), and `outgoingMarginOffset` for a planne
 transit cell), which runs through the source's own margin band; that is checked at the scene level in Task 3.2 (sealed-door
 oracle). The option `keepFirstHop` (re-routes may not change the first transit cell) removes the question by construction:
 14 re-routed, 199 unresolvable (+7.6% over 185, within K8's +25%), +20 cells.
+
+## 12. Scene wiring measurements (Task 3.2, layoutVersion 3)
+
+`buildEdgeCorridor`'s trailing `routing` parameter carries `{ blockedCells, lanes, unresolvable }` (built by
+`makeRoutingFor(result)(edgeId)`); `outgoingMarginOffset` and `pendingForeignMarginOpenings` take the same `routingFor`
+function so a forced-null edge's margin opening and dogleg opening are derived from its real geometry. The scene computes the
+result once per layout (`routingFromState`, memoised, pure function of the persisted graph). Door slots still come from
+`incomingSlotsV3` on plain occupancy, which is also what the router consumes (no circularity).
+
+500-seed sweep, layoutVersion 3, router applied (real `buildEdgeCorridor` geometry): placed edges cutEdges 501 -> 0,
+cutOccurrences 814 -> 0, floorCrossings 484 -> 0; found-path intermediate overlap 0; targetDoorCovered, chainMismatch,
+sourceOverlap 0. Boxed in (null + unresolvable): 2,052 + 185 = 2,237. The 185 unresolvable edges are drawn as null paths,
+so their fallback lines are counted in their own buckets (plain counters keep their v3 baselines): intermediate overlap 1,097 +
+136, deep target overlap 160 + 56.
+
+**K8, scene level.** Of 60 doors that are sealed in the routed scene and not in the order-only scene (200 seeds), 58 are
+reveal doors of unresolvable edges and 2 are not on a routed edge; re-routed and placed edges add 0, so the 20 first-hop
+changes are harmless and `keepFirstHop` is not needed (default off, 185 unresolvable). Sealed-door oracle, 200 seeds: 619
+before the router (all doors) -> 605 on every edge but the unresolvable ones, plus 70 on the unresolvable ones (14 of the old
+619 were their doors): total 675. A null edge no longer crosses the transit cell north/west of its target, whose containment
+wall then covers the target door: the existing null-class residual, now inherited by 185 more edges.
