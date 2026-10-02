@@ -25766,5 +25766,469 @@
     "name": "Orcish Throat Slitters",
     "level": 6,
     "art": "orcish-throat-slitters.webp"
+  },
+  {
+    "id": "maralictor_petra_fidena",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "08AsM66FZV6yII9l",
+    "name": "Maralictor Petra Fidena",
+    "level": 4,
+    "art": "maralictor-petra-fidena.webp"
+  },
+  {
+    "id": "maralictor_petra_fidena_5_6",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "9ypN5dFE6uYKeoLQ",
+    "name": "Maralictor Petra Fidena (5-6)",
+    "level": 6,
+    "art": "maralictor-petra-fidena.webp"
+  },
+  {
+    "id": "lesser_poracha",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "0fQp2UdHBSzo3LuU",
+    "name": "Lesser Poracha",
+    "level": 1,
+    "art": "poracha.webp"
+  },
+  {
+    "id": "tired_dockhand",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "0wxHVbaEm9GDm8Bd",
+    "name": "Tired Dockhand",
+    "level": -1,
+    "art": "tired-dockhand.webp"
+  },
+  {
+    "id": "derakni",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "140xmHy6DP8rtpde",
+    "name": "Derakni",
+    "level": 8,
+    "art": "derakni.webp"
+  },
+  {
+    "id": "lenore_toriasti",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "76h3UluxYrlG8HEf",
+    "name": "Lenore Toriasti",
+    "level": 6,
+    "art": "lenore-toriasti.webp"
+  },
+  {
+    "id": "lenore_toriasti_7_8",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "15NwnvKbxu5KoJxP",
+    "name": "Lenore Toriasti (7-8)",
+    "level": 8,
+    "art": "lenore-toriasti.webp"
+  },
+  {
+    "id": "blood_soaked_flytrap",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "1C7g3TZ5gnIS3mSK",
+    "name": "Blood-Soaked Flytrap",
+    "level": 3,
+    "art": "blood-soaked-flytrap.webp"
+  },
+  {
+    "id": "giant_stinkbug",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "1QbFbWrktddZbNp5",
+    "name": "Giant Stinkbug",
+    "level": 1,
+    "art": "giant-stinkbug.webp"
+  },
+  {
+    "id": "azlanti_altered_tiger",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "1sUmGns35zHA3nyu",
+    "name": "Azlanti-Altered Tiger (Additional Head)",
+    "level": 4,
+    "art": "azlanti-altered-tiger.webp"
+  },
+  {
+    "id": "azlanti_altered_tiger_additional_legs",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "qmn4OTfp1olFDDfR",
+    "name": "Azlanti-Altered Tiger (Additional Legs)",
+    "level": 4,
+    "art": "azlanti-altered-tiger.webp"
+  },
+  {
+    "id": "azlanti_altered_tiger_armor_plating",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "b0QDFxRb41HUcG0C",
+    "name": "Azlanti-Altered Tiger (Armor Plating)",
+    "level": 4,
+    "art": "azlanti-altered-tiger.webp"
+  },
+  {
+    "id": "azlanti_altered_tiger_chameleon_fur",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "MlCk8CjQzR1e1s5g",
+    "name": "Azlanti-Altered Tiger (Chameleon Fur)",
+    "level": 4,
+    "art": "azlanti-altered-tiger.webp"
+  },
+  {
+    "id": "barbed_stegosaurus",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "1wvqdMZwCF2ntdG6",
+    "name": "Barbed Stegosaurus",
+    "level": 7,
+    "art": "barbed-stegosaurus.webp"
+  },
+  {
+    "id": "pure_legionnaire",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "72ZEXaw4QCM202yA",
+    "name": "Pure Legionnaire",
+    "level": 3,
+    "art": "pure-legionnaire.webp"
+  },
+  {
+    "id": "veteran_pure_legionnaire",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "27yJTjs9sYFcgblg",
+    "name": "Veteran Pure Legionnaire",
+    "level": 5,
+    "art": "pure-legionnaire.webp"
+  },
+  {
+    "id": "powered_curio",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "2duRi0Kj5dBsASGf",
+    "name": "Powered Curio",
+    "level": 1,
+    "art": "powered-curio.webp"
+  },
+  {
+    "id": "dread_zombie_leshy",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "2rOmFfbnsOfhAVcD",
+    "name": "Dread Zombie Leshy",
+    "level": 3,
+    "art": "dread-zombie-leshy.webp"
+  },
+  {
+    "id": "dispatch_disciple_captain",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "2tM7T7EaZVqmKixj",
+    "name": "Dispatch Disciple Captain",
+    "level": 5,
+    "art": "dispatch-disciple-captain.webp"
+  },
+  {
+    "id": "ascending_xalreonshin",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "3E6bMrxNxfDF7vWr",
+    "name": "Ascending Xalreonshin",
+    "level": 9,
+    "art": "ascending-xalreonshin.webp"
+  },
+  {
+    "id": "oloranvis_elvanna",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "3U1KJ6V66m2gFhp2",
+    "name": "Oloranvis Elvanna",
+    "level": 2,
+    "art": "oloranvis-elvanna.webp"
+  },
+  {
+    "id": "disillusioned_oloranvis_elvanna",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "XGSqFbDTaJBb7rMe",
+    "name": "Disillusioned Oloranvis Elvanna",
+    "level": 4,
+    "art": "oloranvis-elvanna.webp"
+  },
+  {
+    "id": "chelaxian_rogue",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "3d6bixaJDeFwliue",
+    "name": "Chelaxian Rogue",
+    "level": 6,
+    "art": "chelaxian-rogue.webp"
+  },
+  {
+    "id": "sparking_zombie_brute",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "4yxeIIJLH2NM2HSX",
+    "name": "Sparking Zombie Brute",
+    "level": 7,
+    "art": "zombie-brute.webp"
+  },
+  {
+    "id": "whippoorwill_giant_moray_eel",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "6GZUw1QR7YejAwgb",
+    "name": "Whippoorwill Giant Moray Eel",
+    "level": 4,
+    "art": "giant-moray-eel.webp"
+  },
+  {
+    "id": "metal_scamp_quest_22",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "8DejTZwbkY0PKoPQ",
+    "name": "Metal Scamp (Quest 22)",
+    "level": 1,
+    "art": "metal-scamp-lob.webp"
+  },
+  {
+    "id": "weak_wood_scamp",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "qnvKhJ7BP2BWPkVo",
+    "name": "Weak Wood Scamp",
+    "level": -1,
+    "art": "wood-scamp-lob.webp"
+  },
+  {
+    "id": "wood_scamp_quest_22",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "AG5aG5TmtxAzIERA",
+    "name": "Wood Scamp (Quest 22)",
+    "level": 1,
+    "art": "wood-scamp-lob.webp"
+  },
+  {
+    "id": "elite_wood_scamp",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "hcHtUbPVInjQ5TEb",
+    "name": "Elite Wood Scamp",
+    "level": 2,
+    "art": "wood-scamp-lob.webp"
+  },
+  {
+    "id": "trained_triceratops",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "BNvBCw181QoQDxg5",
+    "name": "Trained Triceratops",
+    "level": 11,
+    "art": "triceratops.webp"
+  },
+  {
+    "id": "greater_kithangian",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "CsbINrVidSV6GTsH",
+    "name": "Greater Kithangian",
+    "level": 10,
+    "art": "kithangian.webp"
+  },
+  {
+    "id": "lesser_jinkin",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "D7XibY38wx9AjopU",
+    "name": "Lesser Jinkin",
+    "level": -1,
+    "art": "jinkin.webp"
+  },
+  {
+    "id": "whippoorwill_con_rit",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "ERU2OJ2i7lgfTmrt",
+    "name": "Whippoorwill Con Rit",
+    "level": 6,
+    "art": "con-rit.webp"
+  },
+  {
+    "id": "veteran_bodyguard",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "GVFgXDC2Fk1giIca",
+    "name": "Veteran Bodyguard",
+    "level": 3,
+    "art": "bodyguard.webp"
+  },
+  {
+    "id": "master_bodyguard",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "zJ24rasnJtU3vcMS",
+    "name": "Master Bodyguard",
+    "level": 5,
+    "art": "bodyguard.webp"
+  },
+  {
+    "id": "lesser_pusk",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "ION9Qymy2bqQlFnK",
+    "name": "Lesser Pusk",
+    "level": 0,
+    "art": "pusk.webp"
+  },
+  {
+    "id": "pusk_pfs_6_00",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "VG1sSOR0MB0vZmWg",
+    "name": "Pusk (PFS 6-00)",
+    "level": 2,
+    "art": "pusk.webp"
+  },
+  {
+    "id": "weak_water_wisp",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "Jfes5xCt2seO5TKw",
+    "name": "Weak Water Wisp",
+    "level": -1,
+    "art": "water-wisp.webp"
+  },
+  {
+    "id": "weak_bottlenose_dolphin",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "KTS6S6yZP9nwnUk3",
+    "name": "Weak Bottlenose Dolphin",
+    "level": -1,
+    "art": "bottlenose-dolphin.webp"
+  },
+  {
+    "id": "weak_wood_wisp",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "REm50Q5OP9JAAYQm",
+    "name": "Weak Wood Wisp",
+    "level": -1,
+    "art": "wood-wisp-lob.webp"
+  },
+  {
+    "id": "hatched_shemhazian",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "UjJWeKnLso56k10X",
+    "name": "Hatched Shemhazian",
+    "level": 13,
+    "art": "shemhazian.webp"
+  },
+  {
+    "id": "weak_gluttonous_geode",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "qLD4CzztZ0CMaRCj",
+    "name": "Weak Gluttonous Geode",
+    "level": -1,
+    "art": "gluttonous-geode-lob.webp"
+  },
+  {
+    "id": "gluttonous_geode_quest_22",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "WxH0CPkr7mrYCiI0",
+    "name": "Gluttonous Geode (Quest 22)",
+    "level": 1,
+    "art": "gluttonous-geode-lob.webp"
+  },
+  {
+    "id": "levaloch_pfs_6_17",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "ZAEuKrX5JWPa5BQ0",
+    "name": "Levaloch (PFS 6-17)",
+    "level": 7,
+    "art": "levaloch.webp"
+  },
+  {
+    "id": "shard_empowered_levaloch",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "qCzKxO1U3BU3nQ9G",
+    "name": "Shard-Empowered Levaloch",
+    "level": 8,
+    "art": "levaloch.webp"
+  },
+  {
+    "id": "young_giant_viper",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "f8UBHh3tE7o8S1PO",
+    "name": "Young Giant Viper",
+    "level": 2,
+    "art": "giant-viper.webp"
+  },
+  {
+    "id": "feral_krooth",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "fHXgHHLZflSCIhST",
+    "name": "Feral Krooth",
+    "level": 10,
+    "art": "krooth.webp"
+  },
+  {
+    "id": "experienced_homunculus",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "kqHN0yMndnO0DEOx",
+    "name": "Experienced Homunculus",
+    "level": 1,
+    "art": "homunculus.webp"
+  },
+  {
+    "id": "whippoorwill_electric_eel",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "lah4OEZMkM9WiU5y",
+    "name": "Whippoorwill Electric Eel",
+    "level": -1,
+    "art": "electric-eel.webp"
+  },
+  {
+    "id": "soggy_zombie_hulk",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "nYdtvmLEAtJUb7KJ",
+    "name": "Soggy Zombie Hulk",
+    "level": 5,
+    "art": "zombie-hulk.webp"
+  },
+  {
+    "id": "shambling_plague_zombie",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "yzjhDo3qgfusAvAx",
+    "name": "Shambling Plague Zombie",
+    "level": 1,
+    "art": "plague-zombie.webp"
+  },
+  {
+    "id": "festering_plague_zombie",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "xVZek4WCH0yXoIgX",
+    "name": "Festering Plague Zombie",
+    "level": 3,
+    "art": "plague-zombie.webp"
+  },
+  {
+    "id": "sparking_plague_zombie",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "ogfjUqhTTo8SUdE7",
+    "name": "Sparking Plague Zombie",
+    "level": 5,
+    "art": "plague-zombie.webp"
+  },
+  {
+    "id": "elite_air_scamp",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "qtBfm3UKMcpiv4ed",
+    "name": "Elite Air Scamp",
+    "level": 1,
+    "art": "air-scamp.webp"
+  },
+  {
+    "id": "weak_air_scamp",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "vNpdG9bYOWnUXKNb",
+    "name": "Weak Air Scamp",
+    "level": 1,
+    "art": "air-scamp.webp"
+  },
+  {
+    "id": "adolescent_kirin",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "thscSKqSGJbbgPD2",
+    "name": "Adolescent Kirin",
+    "level": 3,
+    "art": "kirin.webp"
+  },
+  {
+    "id": "shard_empowered_vordine",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "vY7nZRovbjgArGDg",
+    "name": "Shard-Empowered Vordine",
+    "level": 6,
+    "art": "vordine.webp"
+  },
+  {
+    "id": "loyal_ort",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "xDegX7V0Zbugwtwf",
+    "name": "Loyal Ort",
+    "level": 0,
+    "art": "ort.webp"
   }
 ]
