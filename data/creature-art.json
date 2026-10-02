@@ -26902,5 +26902,197 @@
     "name": "Greater Gargarthezul",
     "level": 3,
     "art": "gargarthezul.webp"
+  },
+  {
+    "id": "rasping_cicada",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "KmOpv1ryOX4OejIi",
+    "name": "Rasping Cicada",
+    "level": 1,
+    "art": "rasping-cicada.webp"
+  },
+  {
+    "id": "plaguetooth",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "VwytDjcbWViZhMxX",
+    "name": "Plaguetooth",
+    "level": -1,
+    "art": "plaguetooth.webp"
+  },
+  {
+    "id": "mischievous_plaguetooth",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "M4NSaP7zb8ABBYA0",
+    "name": "Mischievous Plaguetooth",
+    "level": 1,
+    "art": "plaguetooth.webp"
+  },
+  {
+    "id": "jinkin_quest_20",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "MU8oL7P1AX4P4kKB",
+    "name": "Jinkin (Quest 20) (1-2)",
+    "level": 1,
+    "art": "jinkin-quest-20.webp"
+  },
+  {
+    "id": "penumbra",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "Mg8gzA54MY5DMHZk",
+    "name": "Penumbra",
+    "level": 11,
+    "art": "penumbra.webp"
+  },
+  {
+    "id": "penumbra_11_12",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "cyOOXZliztAjS9YM",
+    "name": "Penumbra (11-12)",
+    "level": 11,
+    "art": "penumbra.webp"
+  },
+  {
+    "id": "silver_devil_hooligan",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "XRecLPsSrHHFwWHI",
+    "name": "Silver Devil Hooligan",
+    "level": 1,
+    "art": "silver-devil-hooligan.webp"
+  },
+  {
+    "id": "elite_silver_devil_hooligan",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "MjckZs5NKL35d8QL",
+    "name": "Elite Silver Devil Hooligan",
+    "level": 2,
+    "art": "silver-devil-hooligan.webp"
+  },
+  {
+    "id": "king_rimesnap",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "MuYMHGLDgd3qBaMB",
+    "name": "King Rimesnap",
+    "level": 4,
+    "art": "king-rimesnap.webp"
+  },
+  {
+    "id": "aspis_associate",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "qt7WLTqW424KmjdR",
+    "name": "Inexperienced Aspis Associate",
+    "level": -1,
+    "art": "aspis-associate.webp"
+  },
+  {
+    "id": "aspis_associate_n14qh",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "N14qhRPMqnsM0ceO",
+    "name": "Aspis Associate",
+    "level": 1,
+    "art": "aspis-associate.webp"
+  },
+  {
+    "id": "experienced_aspis_associate",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "uQ42lfpepHBLDCwo",
+    "name": "Experienced Aspis Associate",
+    "level": 3,
+    "art": "aspis-associate.webp"
+  },
+  {
+    "id": "puddles_ghoul",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "N3g4YMUkWLbTQi2Q",
+    "name": "Puddles Ghoul",
+    "level": 0,
+    "art": "puddles-ghoul.webp"
+  },
+  {
+    "id": "tough_puddles_ghoul",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "paezJxvz50prfuKw",
+    "name": "Tough Puddles Ghoul",
+    "level": 2,
+    "art": "puddles-ghoul.webp"
+  },
+  {
+    "id": "hobgoblin_mercenary",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "NvtcMnREnPrHEUjA",
+    "name": "Hobgoblin Mercenary",
+    "level": 4,
+    "art": "hobgoblin-mercenary.webp"
+  },
+  {
+    "id": "damned_greater_gargarthezul",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "O1fBhe8jHo27UZ5o",
+    "name": "Damned Greater Gargarthezul",
+    "level": 4,
+    "art": "gargarthezul.webp"
+  },
+  {
+    "id": "wasp",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "PGjgD9cUVhc3INmX",
+    "name": "Hatched Wasp",
+    "level": 1,
+    "art": "wasp.webp"
+  },
+  {
+    "id": "zombie_burster",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "VczDV0wLZupaCSzW",
+    "name": "Zombie Burster",
+    "level": 4,
+    "art": "zombie-burster.webp"
+  },
+  {
+    "id": "pestilent_zombie_burster",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "PV5wq4CBnLqBXbJe",
+    "name": "Pestilent Zombie Burster",
+    "level": 5,
+    "art": "zombie-burster.webp"
+  },
+  {
+    "id": "dispatch_disciple_veteran",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "PZ1WB6dsaMqzdVsv",
+    "name": "Dispatch Disciple Veteran",
+    "level": 3,
+    "art": "dispatch-disciple-veteran.webp"
+  },
+  {
+    "id": "shredder_tyrannosaurus",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "PuGfVTomgFJO4vcS",
+    "name": "Shredder Tyrannosaurus",
+    "level": 10,
+    "art": "shredder-tyrannosaurus.webp"
+  },
+  {
+    "id": "the_caretaker",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "R508fb5fUA5CIMHd",
+    "name": "The Caretaker",
+    "level": 3,
+    "art": "the-caretaker.webp"
+  },
+  {
+    "id": "shadow_lesolethe",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "Rp8njnRbTcxIL1EQ",
+    "name": "Shadow Lesolethe",
+    "level": 6,
+    "art": "shadow-lesolethe.webp"
+  },
+  {
+    "id": "empowered_shadow_lesolethe",
+    "pack": "pf2e.pfs-season-6-bestiary",
+    "docId": "yK21Z5gW12GLJmvZ",
+    "name": "Empowered Shadow Lesolethe",
+    "level": 8,
+    "art": "shadow-lesolethe.webp"
   }
 ]
