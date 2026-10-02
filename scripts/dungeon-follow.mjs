@@ -223,9 +223,15 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
     // possibly mid-animation `x`/`y` -- see sourcePosition's own doc
     // comment above.
     const leaderCell = tokenCell(sourcePosition(leaderToken), gridSize);
-    const occupied = scene.tokens.map((t) =>
-      footprint({ ...sourcePosition(t), width: t.width, height: t.height }, gridSize),
-    );
+    // #365: loot-type tokens (corpses/piles) are `passable` -- they don't
+    // block follower pathing, though destinations still avoid them.
+    const occupied = scene.tokens.map((t) => ({
+      ...footprint(
+        { ...sourcePosition(t), width: t.width, height: t.height },
+        gridSize,
+      ),
+      ...(t.actor?.type === "loot" ? { passable: true } : {}),
+    }));
 
     // #181: chain-following — the first follower in marching order
     // targets the leader, exactly as before; every follower after it
@@ -236,20 +242,10 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
     // to be "near the leader" at once, instead of every follower
     // independently failing to path past whoever's already closest.
     //
-    // Known limitation (#181 final review, tracked as a follow-up, not
-    // fixed here): findFollowMove's own findPath call is wall-aware but
-    // token-occupancy-blind (a pre-existing property of pathfinding.mjs,
-    // not introduced by chain-following itself). Reordering the marching
-    // order WHILE the party is mid-transit through a corridor can
-    // therefore have a follower's computed path cut straight through
-    // another token's square -- including the leader's -- landing it
-    // briefly on the far side. This was unreachable before this feature's
-    // reorder UI existed, since nothing previously gave a player a reason
-    // to retarget mid-corridor. Fixing it properly means making
-    // findFollowMove/findPath occupancy-aware generally, which is a wider
-    // change than marching order's own scope (it would affect every
-    // follow/pathfinding call site, not just this one) -- filed as #365
-    // rather than expanding this branch.
+    // #365: findFollowMove's path is occupancy-aware (non-loot tokens
+    // block it), so a follower can no longer cut through another token --
+    // including the leader's -- e.g. after a mid-corridor marching-order
+    // reorder. Fixed; this used to be a known limitation of #181.
     let referenceCell = leaderCell;
     for (const actorId of aiControlledIds) {
       const token = scene.tokens.find((t) => t.actor?.id === actorId);

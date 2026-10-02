@@ -197,3 +197,86 @@ describe("tokenCell / sceneBounds (#20)", () => {
     );
   });
 });
+
+// #365: pathing is occupancy-aware -- a follower can't path through (and so
+// can't leapfrog) another token.
+describe("findFollowMove occupancy-aware pathing (#365)", () => {
+  // 1-wide corridor along y=5, x in [0,20]; everything else is wall.
+  const corridorBlocked = (_a, b) => b.gy !== 5 || b.gx < 0 || b.gx > 20;
+  const tok = (gx, gy, extra = {}) => ({ gx, gy, gw: 1, gh: 1, ...extra });
+
+  it("cannot leapfrog a token in a 1-wide corridor", () => {
+    // Follower at 0, blocker at 3, leader at 10; the free cells next to
+    // the leader are only reachable through the blocker, so the follower
+    // may only settle short of it (ring expansion reaches x=2), never past.
+    const result = findFollowMove(
+      { gx: 0, gy: 5 },
+      { gx: 10, gy: 5 },
+      [tok(3, 5), tok(10, 5)],
+      corridorBlocked,
+      null,
+    );
+    expect(result.status).toBe("move");
+    expect(result.to.gx).toBeLessThan(3);
+  });
+
+  it("routes around the same token in an open room", () => {
+    const result = findFollowMove(
+      { gx: 0, gy: 5 },
+      { gx: 10, gy: 5 },
+      [tok(3, 5), tok(10, 5)],
+      noWalls(),
+      null,
+    );
+    expect(result.status).toBe("move");
+  });
+
+  it("a passable (loot) footprint does not block the corridor", () => {
+    const result = findFollowMove(
+      { gx: 0, gy: 5 },
+      { gx: 10, gy: 5 },
+      [tok(3, 5, { passable: true }), tok(10, 5)],
+      corridorBlocked,
+      null,
+    );
+    expect(result).toEqual({ status: "move", to: { gx: 9, gy: 5 } });
+  });
+
+  it("the leader's own cell blocks pathing through it", () => {
+    // Leader at 5, follower at 0; free cell on far side (6) is only
+    // reachable through the leader, but 4 is reachable -- must pick 4.
+    const result = findFollowMove(
+      { gx: 0, gy: 5 },
+      { gx: 5, gy: 5 },
+      [tok(5, 5)],
+      corridorBlocked,
+      null,
+    );
+    expect(result).toEqual({ status: "move", to: { gx: 4, gy: 5 } });
+  });
+
+  it("a 2x2 mover is blocked by a token in its swept cells", () => {
+    const big = { gw: 2, gh: 2 };
+    // 2-wide corridor y in [5,6].
+    const wide = (_a, b) => b.gy < 5 || b.gy > 6 || b.gx < 0 || b.gx > 20;
+    const blocked = findFollowMove(
+      { gx: 0, gy: 5 },
+      { gx: 10, gy: 5 },
+      [tok(4, 6), { gx: 10, gy: 5, gw: 2, gh: 2 }],
+      wide,
+      null,
+      big,
+    );
+    expect(blocked.status).toBe("move");
+    expect(blocked.to.gx + 1).toBeLessThan(4);
+    const clear = findFollowMove(
+      { gx: 0, gy: 5 },
+      { gx: 10, gy: 5 },
+      [{ gx: 10, gy: 5, gw: 2, gh: 2 }],
+      wide,
+      null,
+      big,
+    );
+    expect(clear.status).toBe("move");
+  });
+});
