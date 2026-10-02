@@ -68,9 +68,9 @@ describe('analysis helpers', () => {
 describe('routeFor', () => {
   const rules = { keywords: ['owlbear'], kinds: ['hybrid'], kindVariants: ['dragon/young'] };
   it('routes keyword, kind and kind/variant matches to gemini, everything else to comfyui', () => {
-    expect(routeFor('Irriseni Owlbear', rules)).toMatchObject({ backend: 'gemini' });
-    expect(routeFor('Pixiu', rules)).toMatchObject({ backend: 'gemini' });
-    expect(routeFor('Sea Dragon (Young)', rules)).toMatchObject({ backend: 'gemini' });
+    expect(routeFor('Irriseni Owlbear', rules)).toMatchObject({ backend: 'openrouter' });
+    expect(routeFor('Pixiu', rules)).toMatchObject({ backend: 'openrouter' });
+    expect(routeFor('Sea Dragon (Young)', rules)).toMatchObject({ backend: 'openrouter' });
     expect(routeFor('Silt Frog', rules)).toMatchObject({ backend: 'comfyui' });
     expect(routeFor('Bog Dragon (Young, Spellcaster)', rules)).toMatchObject({ backend: 'comfyui' });
   });
@@ -108,14 +108,14 @@ describe('history enrichment', () => {
 describe('data/token-art-routing.json', () => {
   const rules = JSON.parse(readFileSync(new URL('../data/token-art-routing.json', import.meta.url), 'utf8'));
   it('routes storm/sky concepts, hybrids and young dragons to gemini, ordinary creatures to comfyui', () => {
-    expect(routeFor('Stormcrown Dragon (Young, Spellcaster)', rules).backend).toBe('gemini');
-    expect(routeFor('Cloud Dragon (Young)', rules).backend).toBe('gemini');
-    expect(routeFor('Pixiu', rules).backend).toBe('gemini');
-    expect(routeFor('Sea Dragon (Young)', rules).backend).toBe('gemini');
+    expect(routeFor('Stormcrown Dragon (Young, Spellcaster)', rules).backend).toBe('openrouter');
+    expect(routeFor('Cloud Dragon (Young)', rules).backend).toBe('openrouter');
+    expect(routeFor('Pixiu', rules).backend).toBe('openrouter');
+    expect(routeFor('Sea Dragon (Young)', rules).backend).toBe('openrouter');
     expect(routeFor('Silt Frog', rules).backend).toBe('comfyui');
-    expect(routeFor('Vorpal Dragon (Young, Spellcaster)', rules).backend).toBe('gemini');
-    expect(routeFor('Rime Dragon (Adult, Spellcaster)', rules).backend).toBe('gemini');
-    expect(routeFor('Rime Dragon (Adult)', rules).backend).toBe('gemini');
+    expect(routeFor('Vorpal Dragon (Young, Spellcaster)', rules).backend).toBe('openrouter');
+    expect(routeFor('Rime Dragon (Adult, Spellcaster)', rules).backend).toBe('openrouter');
+    expect(routeFor('Rime Dragon (Adult)', rules).backend).toBe('openrouter');
   });
 });
 
@@ -144,5 +144,34 @@ describe('Gemini-first rows are excluded from ComfyUI flag rates', () => {
   });
   it('classifies nue as a hybrid', () => {
     expect(kindOf('Nue')).toBe('hybrid');
+  });
+});
+
+describe('enforced routing (persistent ComfyUI failure classes)', () => {
+  const real = JSON.parse(readFileSync(new URL('../data/token-art-routing.json', import.meta.url), 'utf8'));
+
+  it('sends catalogued failure classes to openrouter, never comfyui', () => {
+    for (const [name, id] of [
+      ['Centaur Scout', 'centaur-scout'], ['Winged Owlbear', 'winged-owlbear'], ['Death Drider', 'death-drider'],
+      ['Hooktongue Hydra', 'hooktongue-hydra'], ['Headless Xulgath', 'headless-xulgath'], ['Faceless Butcher', 'faceless-butcher'],
+      ['Cyclops Zombie', 'cyclops-zombie'], ['Luminous Ooze', 'luminous-ooze'], ['Ghostly Guard', 'ghostly-guard'],
+      ['Xae', 'xae'], ['Nihiris', 'nihiris'],
+    ]) expect(routeFor(name, real, id).backend, name).toBe('openrouter');
+  });
+
+  it('leaves ordinary creatures on comfyui', () => {
+    expect(routeFor('Silt Frog', real, 'silt-frog').backend).toBe('comfyui');
+    expect(routeFor('Casino Bouncer', real, 'casino-bouncer').backend).toBe('comfyui');
+  });
+
+  it('matches by explicit id even when the name carries no keyword', () => {
+    expect(routeFor('Binumir', real, 'binumir')).toMatchObject({ backend: 'openrouter' });
+  });
+
+  it('is actually enforced by the generator (not just advisory)', () => {
+    const src = readFileSync(new URL('../tools/generate-token-art.mjs', import.meta.url), 'utf8');
+    expect(src).toContain("import { routeFor } from './art-failure-lib.mjs'");
+    expect(src).toMatch(/routeFor\(s\.id\.replace/);
+    expect(src).toMatch(/--backend=comfyui overrides this/);
   });
 });
