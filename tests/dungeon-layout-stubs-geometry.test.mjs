@@ -1,6 +1,6 @@
 // #427 Chunk 6: stub geometry (pure) and the shared inputs it needs.
 import { describe, it, expect } from 'vitest';
-import { plannedMarginOpenings, cellMarginWalls, roomRect, stubGeometry } from '../scripts/dungeon-layout.mjs';
+import { plannedMarginOpenings, cellMarginWalls, roomRect, stubGeometry, layoutEdgeGeometry } from '../scripts/dungeon-layout.mjs';
 import { buildSweepScene } from './helpers/scene-oracle.mjs';
 import { outgoingPlanFor } from './helpers/layout-sweep.mjs';
 
@@ -29,6 +29,39 @@ describe('plannedMarginOpenings agrees with the scene (the stub planner reuses i
       }
     }
     expect(rooms).toBeGreaterThan(300);
+  }, 120000);
+});
+
+describe('layoutEdgeGeometry agrees with the scene (stub obstacles must be the floors the scene really lays)', () => {
+  // The scene tiles a connection's segments cell by cell (#555: v3 tiles a widened segment across its whole width).
+  const tilesOf = (segments) => {
+    const out = [];
+    for (const s of segments) {
+      const vertical = s.gh >= s.gw;
+      const length = vertical ? s.gh : s.gw;
+      const cross = Math.max(1, Math.round(vertical ? s.gw : s.gh));
+      for (let ci = 0; ci < cross; ci += 1) {
+        for (let ti = 0; ti < length; ti += 1) out.push(`${Math.floor(s.gx) + (vertical ? ci : ti)},${Math.floor(s.gy) + (vertical ? ti : ci)}`);
+      }
+    }
+    return out;
+  };
+
+  it('the corridor tiles of every connection equal the tiles the built v3 scene holds (40 seeds)', async () => {
+    let edges = 0;
+    for (let i = 0; i < 40; i += 1) {
+      const { layout: L, scene } = await buildSweepScene(i, 3);
+      const planFor = (src) => outgoingPlanFor(L, src);
+      const geo = layoutEdgeGeometry({
+        seed: L.seed, positionByRoomId: L.pos, occupiedCells: L.occ, layoutEdges: L.layoutEdges, hiddenRooms: L.hiddenRooms,
+        hiddenIncomingByRoomId: L.hiddenIncomingByRoomId, incomingFaceByRoomId: L.incFace, planFor,
+      });
+      const expected = geo.flatMap(({ result }) => tilesOf(result.corridorSegments)).sort();
+      const built = scene.tiles.filter((t) => !t.flags?.[MODULE_ID]).map((t) => `${Math.round(t.x / 100 - 0.5)},${Math.round(t.y / 100 - 0.5)}`).sort();
+      expect(built, L.seed).toEqual(expected);
+      edges += geo.length;
+    }
+    expect(edges).toBeGreaterThan(300);
   }, 120000);
 });
 

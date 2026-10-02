@@ -54,7 +54,7 @@ import {
 } from "../dungeon-combat.mjs";
 import { getGenerator } from "../generator-registry.mjs";
 import { retreatStateFor, retreatUiFor } from "../dungeon-retreat.mjs";
-import { computeRanks,computeColumns, parentRoomIdsFor, incomingFaceFor, pruneConflictingShortcuts, NEW_RUN_LAYOUT_VERSION } from "../dungeon-layout.mjs";
+import { computeRanks,computeColumns, parentRoomIdsFor, incomingFaceFor, pruneConflictingShortcuts, stubStateFor, NEW_RUN_LAYOUT_VERSION } from "../dungeon-layout.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -135,7 +135,7 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
   // resolved, keyed by id now that state.rooms is a dict (#93).
   const preState = getRunState(scene.id);
   const currentRoom = preState?.rooms[preState.currentRoomId];
-  const { state, effectKey, revealedRoomId } = await markRoomOutcome(
+  const { state, effectKey, revealedRoomId, revealedStubId } = await markRoomOutcome(
     { sceneId: scene.id, succeeded },
     {
       puzzleSetpieceIds: setpieces
@@ -192,6 +192,7 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
       maxRank: preState.maxRank,
       isGoal: currentRoom.isGoal,
       revealedRoomId,
+      revealedStubId,
     });
   }
   // #93 pre-flight fix (found during Task 9's review): the CURRENT code
@@ -343,7 +344,7 @@ export async function grantTreasureReward(
 
 async function applyRoomEffect(
   effectKey,
-  { scene, seed, roomId, rank, maxRank, isGoal, revealedRoomId },
+  { scene, seed, roomId, rank, maxRank, isGoal, revealedRoomId, revealedStubId },
 ) {
   const api = makeFoundryApi();
   const partyMembers = (game.actors?.party?.members ?? []).filter(
@@ -432,6 +433,10 @@ async function applyRoomEffect(
       if (revealedRoomId) {
         await unsealHiddenDoorFromRoom(scene, roomId, revealedRoomId);
       }
+      // #427: a revealed false shortcut (a hidden dead-end stub) opens its door but never joins state.edges.
+      if (revealedStubId) {
+        await unsealHiddenDoorFromRoom(scene, roomId, revealedStubId);
+      }
       return;
     }
     default:
@@ -494,7 +499,7 @@ export async function startDungeonRun({
   // fromId (see the Task 3 addendum), so the rest room has to already
   // exist in the graph by the time attachHiddenPaths does its own
   // eligibility scan.
-  const { rooms, edges } = getGenerator().insertRestRoom({
+  const { rooms, edges: edgesBeforeStubs } = getGenerator().insertRestRoom({
     rooms: generated.rooms,
     edges: generated.edges,
     seed: state.seed,
@@ -502,7 +507,7 @@ export async function startDungeonRun({
   });
   const { hiddenRooms, hiddenEdges: attachedHiddenEdges, layoutEdges, hiddenIncomingByRoomId: attachedHiddenIncoming } =
     getGenerator().attachHiddenPaths({
-      rooms, edges, seed: state.seed,
+      rooms, edges: edgesBeforeStubs, seed: state.seed,
       // #93 post-merge fix (Task 3 addendum): a revealed detour room needs
       // real content the same way a main-graph room does.
       puzzleSetpieceIds, trapSetpieceIds, narrativeSetpieceIds, treasureSetpieceIds,
@@ -519,7 +524,7 @@ export async function startDungeonRun({
   // would share an outgoing face lane with another of their source's edges. Shortcuts
   // add no layout node, so positions above stay valid; must precede the incoming faces.
   const { hiddenEdges, hiddenIncomingByRoomId } = pruneConflictingShortcuts({
-    edges, hiddenRooms, hiddenEdges: attachedHiddenEdges, hiddenIncomingByRoomId: attachedHiddenIncoming,
+    edges: edgesBeforeStubs, hiddenRooms, hiddenEdges: attachedHiddenEdges, hiddenIncomingByRoomId: attachedHiddenIncoming,
   }, layoutPositionByRoomId);
   // #174 follow-up (incoming-face redesign): choose each room's incoming
   // face once, from the fully precomputed layout, before any room's
@@ -538,6 +543,13 @@ export async function startDungeonRun({
       return [id, incomingFaceFor(id, layoutPositionByRoomId, occupiedCellsForIncomingFace, legitimateSourceIds)];
     }),
   );
+  // #427 (layoutVersion >= 3, once NEW_RUN_STUBS_ENABLED): edges that cannot be routed and may safely be dead ends
+  // become stubs. They leave the progression graph (`edges`) but stay in `layoutEdges`, so no room moves.
+  const { edges, stubEdges } = stubStateFor(NEW_RUN_LAYOUT_VERSION, {
+    seed: state.seed, rooms, positionByRoomId: layoutPositionByRoomId, occupiedCells: occupiedCellsForIncomingFace,
+    edges: edgesBeforeStubs, layoutEdges, hiddenEdges, hiddenRooms: [...hiddenRooms], hiddenIncomingByRoomId,
+    incomingFaceByRoomId,
+  });
   const maxRank = Math.max(...Object.values(ranks));
   const maxCol = Math.max(...Object.values(columns));
 
@@ -552,6 +564,7 @@ export async function startDungeonRun({
     ...stateWithoutLegacyFields,
     rooms,
     edges,
+    ...(stubEdges ? { stubEdges } : {}),
     layoutEdges,
     hiddenRooms: [...hiddenRooms],
     hiddenEdges,
