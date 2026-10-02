@@ -25470,5 +25470,173 @@
     "name": "Toxic Sewer Gator",
     "level": 8,
     "art": "sewer-gator.webp"
+  },
+  {
+    "id": "287_s_powerful_ghost",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "alX5zVLIXBQPzKdJ",
+    "name": "287'S Powerful Ghost",
+    "level": 11,
+    "art": "287-s-powerful-ghost.webp"
+  },
+  {
+    "id": "fey_table_hound",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "bdI2vXouliAWxlUx",
+    "name": "Fey Table Hound",
+    "level": -1,
+    "art": "fey-table-hound.webp"
+  },
+  {
+    "id": "topiary_monster",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "d8C8aBd2ZrG3i0o5",
+    "name": "Topiary Monster",
+    "level": 3,
+    "art": "topiary-monster.webp"
+  },
+  {
+    "id": "void_zombie_adventurer",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "eWYkgj6FV8D2IUhT",
+    "name": "Void Zombie Adventurer",
+    "level": 5,
+    "art": "void-zombie-adventurer.webp"
+  },
+  {
+    "id": "captain_shenga_heartrender",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "ek6ZStljRFLc6VoU",
+    "name": "Captain Shenga Heartrender",
+    "level": 8,
+    "art": "captain-shenga-heartrender.webp"
+  },
+  {
+    "id": "arisen_umbral_pixie",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "umxjQH7AV65Eftfc",
+    "name": "Arisen Umbral Pixie",
+    "level": 3,
+    "art": "arisen-umbral-pixie.webp"
+  },
+  {
+    "id": "elite_arisen_umbral_pixie",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "ep7eL4vrN4F6YCdd",
+    "name": "Elite Arisen Umbral Pixie",
+    "level": 4,
+    "art": "arisen-umbral-pixie.webp"
+  },
+  {
+    "id": "corrosive_slime",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "fOQBZNOeaFAVstc7",
+    "name": "Corrosive Slime",
+    "level": 3,
+    "art": "corrosive-slime.webp"
+  },
+  {
+    "id": "acrid_corrosive_slime",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "ziIkenoVDHSAyUC2",
+    "name": "Acrid Corrosive Slime",
+    "level": 5,
+    "art": "corrosive-slime.webp"
+  },
+  {
+    "id": "goldmonger",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "mfyZrC0GcyUcGZJK",
+    "name": "Goldmonger",
+    "level": -1,
+    "art": "goldmonger.webp"
+  },
+  {
+    "id": "experienced_goldmonger",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "fY2KwMmfdKUtkCvx",
+    "name": "Experienced Goldmonger",
+    "level": 1,
+    "art": "goldmonger.webp"
+  },
+  {
+    "id": "burning_sun_warrior",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "gEbWlDgtGTmKEmfT",
+    "name": "Burning Sun Warrior",
+    "level": 7,
+    "art": "burning-sun-warrior.webp"
+  },
+  {
+    "id": "hyacinth_lamprey",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "heClAqkkmCgPvm1K",
+    "name": "Hyacinth Lamprey",
+    "level": -1,
+    "art": "hyacinth-lamprey.webp"
+  },
+  {
+    "id": "enlightened_div_worshipper",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "jHtXyQDDZLdytpqk",
+    "name": "Weak \"Enlightened\" Div Worshipper",
+    "level": 1,
+    "art": "enlightened-div-worshipper.webp"
+  },
+  {
+    "id": "enlightened_div_worshipper_u74d5",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "u74d5wQNBJLVHB7m",
+    "name": "\"Enlightened\" Div Worshipper",
+    "level": 3,
+    "art": "enlightened-div-worshipper.webp"
+  },
+  {
+    "id": "ghostknife_gardener",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "jJd5gZmxg7py26eU",
+    "name": "Ghostknife Gardener",
+    "level": 1,
+    "art": "ghostknife-gardener.webp"
+  },
+  {
+    "id": "tough_ghostknife_gardener",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "qO1pjZGoRZfjALiO",
+    "name": "Tough Ghostknife Gardener",
+    "level": 3,
+    "art": "ghostknife-gardener.webp"
+  },
+  {
+    "id": "draugr_captain",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "k59XSuksLe81FTRe",
+    "name": "Draugr Captain",
+    "level": 3,
+    "art": "draugr-captain.webp"
+  },
+  {
+    "id": "giant_er_mouse",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "kRkz56GsYjnowfSR",
+    "name": "Weak Giant-er Mouse",
+    "level": 1,
+    "art": "giant-er-mouse.webp"
+  },
+  {
+    "id": "giant_er_mouse_yrqto",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "yrQTOX05SXnpvEYL",
+    "name": "Giant-er Mouse",
+    "level": 2,
+    "art": "giant-er-mouse.webp"
+  },
+  {
+    "id": "azlanti_sorcerer",
+    "pack": "pf2e.pfs-season-5-bestiary",
+    "docId": "kpphDMUvWHsTSFZk",
+    "name": "Azlanti Sorcerer",
+    "level": 6,
+    "art": "azlanti-sorcerer.webp"
   }
 ]
