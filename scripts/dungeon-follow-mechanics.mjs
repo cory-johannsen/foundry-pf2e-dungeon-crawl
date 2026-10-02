@@ -57,6 +57,15 @@ function chebyshev(a, b) {
 // while still keeping a genuinely stranded follower's "no-route" honest.
 const MAX_FOLLOW_SEARCH_RADIUS = 10;
 
+function cellInFootprint(cell, f) {
+  return (
+    cell.gx >= f.gx &&
+    cell.gx < f.gx + f.gw &&
+    cell.gy >= f.gy &&
+    cell.gy < f.gy + f.gh
+  );
+}
+
 /** Every free cell in a `radius`-ring around `center` (its own Chebyshev
  * perimeter only, not the filled square inside it -- radius 1 is the
  * classic 8-neighborhood). */
@@ -150,8 +159,15 @@ export function findFollowMove(
     occupiedFootprints,
     footprint,
   );
+  // #365: a step into a cell covered by any blocking footprint is blocked
+  // too, so a path can't run through (and leapfrog) another token.
+  // Footprints flagged `passable` (e.g. loot piles/corpses) don't block the
+  // path, though freeCellsNear still avoids them as destinations.
+  const blockers = occupiedFootprints.filter((f) => !f.passable);
+  const pathBlocked = (a, b) =>
+    isBlocked(a, b) || blockers.some((f) => cellInFootprint(b, f));
   for (const target of candidates) {
-    const path = findPath(fromCell, target, isBlocked, bounds, 20000, footprint);
+    const path = findPath(fromCell, target, pathBlocked, bounds, 20000, footprint);
     if (path && path.length > 1) return { status: "move", to: target };
   }
   return { status: "no-route" };
