@@ -29758,5 +29758,125 @@
     "name": "Ghastly Bear",
     "level": 9,
     "art": "ghastly-bear.webp"
+  },
+  {
+    "id": "tixitog",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "Oqj8XIWBb29NZ8QX",
+    "name": "Tixitog",
+    "level": 3,
+    "art": "tixitog.webp"
+  },
+  {
+    "id": "mialari_docur",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "QKkvnlqrhgLHuP1t",
+    "name": "Mialari Docur",
+    "level": 10,
+    "art": "mialari-docur.webp"
+  },
+  {
+    "id": "malarunk",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "SVLUUPOXDINbKyFL",
+    "name": "Malarunk",
+    "level": 5,
+    "art": "malarunk.webp"
+  },
+  {
+    "id": "scarlet_triad_boss",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "SVh7cPwyGgmZORVz",
+    "name": "Scarlet Triad Boss",
+    "level": 17,
+    "art": "scarlet-triad-boss.webp"
+  },
+  {
+    "id": "charau_ka_dragon_priest",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "T3UVfAfcvAMe9rih",
+    "name": "Charau-ka Dragon Priest",
+    "level": 6,
+    "art": "charau-ka-dragon-priest.webp"
+  },
+  {
+    "id": "saggorak_poltergeist",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "U2QGjhcg5QFFkHwv",
+    "name": "Saggorak Poltergeist",
+    "level": 12,
+    "art": "saggorak-poltergeist.webp"
+  },
+  {
+    "id": "voz_lirayne",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "UD7EwTQG2Sbl4d8R",
+    "name": "Voz Lirayne",
+    "level": 5,
+    "art": "voz-lirayne.webp"
+  },
+  {
+    "id": "gerhard_pendergrast",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "UQDxkvqXKg03ESTQ",
+    "name": "Gerhard Pendergrast",
+    "level": 8,
+    "art": "gerhard-pendergrast.webp"
+  },
+  {
+    "id": "carnivorous_crystal",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "WouSA1UsIzvBTOix",
+    "name": "Carnivorous Crystal",
+    "level": 11,
+    "art": "carnivorous-crystal.webp"
+  },
+  {
+    "id": "grippli_greenspeaker",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "X2edjYEqAHsdQc6L",
+    "name": "Grippli Greenspeaker",
+    "level": 5,
+    "art": "grippli-greenspeaker.webp"
+  },
+  {
+    "id": "xotani_the_firebleeder",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "X4oeJnv1KcpHFO6i",
+    "name": "Xotani, The Firebleeder",
+    "level": 20,
+    "art": "xotani-the-firebleeder.webp"
+  },
+  {
+    "id": "dragonshard_guardian",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "X6TTBlHIfJZ43OqR",
+    "name": "Dragonshard Guardian",
+    "level": 22,
+    "art": "dragonshard-guardian.webp"
+  },
+  {
+    "id": "teyam_ishtori",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "X7zSx8LFh2ZDnOYy",
+    "name": "Teyam Ishtori",
+    "level": 19,
+    "art": "teyam-ishtori.webp"
+  },
+  {
+    "id": "ilssrah_embermead",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "XHJC4G6bfPiVXGKE",
+    "name": "Ilssrah Embermead",
+    "level": 15,
+    "art": "ilssrah-embermead.webp"
+  },
+  {
+    "id": "zuferian",
+    "pack": "pf2e.age-of-ashes-bestiary",
+    "docId": "XNso2IMnhnfHcMCn",
+    "name": "Zuferian",
+    "level": 15,
+    "art": "zuferian.webp"
   }
 ]
