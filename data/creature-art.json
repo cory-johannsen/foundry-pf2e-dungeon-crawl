@@ -31302,5 +31302,157 @@
     "name": "Drow Bodyguard Golem",
     "level": 14,
     "art": "drow-bodyguard-golem.webp"
+  },
+  {
+    "id": "mother_venom",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "07AGJt4ZRjwH85Xp",
+    "name": "Mother Venom",
+    "level": 17,
+    "art": "mother-venom.webp"
+  },
+  {
+    "id": "baatamidar",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "0UbehYHzOGlNK8Hc",
+    "name": "Baatamidar",
+    "level": 21,
+    "art": "baatamidar.webp"
+  },
+  {
+    "id": "casino_bouncer",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "0ti3f4fdcB5D2bLB",
+    "name": "Casino Bouncer",
+    "level": 8,
+    "art": "casino-bouncer.webp"
+  },
+  {
+    "id": "barnacle_ghoul",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "10fEM7T48FUZRo6l",
+    "name": "Barnacle Ghoul",
+    "level": 9,
+    "art": "barnacle-ghoul.webp"
+  },
+  {
+    "id": "grunka",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "181ucNY1zpp2Lz3x",
+    "name": "Grunka",
+    "level": -1,
+    "art": "grunka.webp"
+  },
+  {
+    "id": "amateur_chemist",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "1G4OdEHRPF8GMHK8",
+    "name": "Amateur Chemist",
+    "level": 5,
+    "art": "amateur-chemist.webp"
+  },
+  {
+    "id": "excorion_paragon",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "1UtsScuNjmgwMZRn",
+    "name": "Excorion Paragon",
+    "level": 18,
+    "art": "excorion-paragon.webp"
+  },
+  {
+    "id": "obrousian",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "1bPc2rjR4MghbMwD",
+    "name": "Obrousian",
+    "level": 14,
+    "art": "obrousian-lob.webp"
+  },
+  {
+    "id": "eberark",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "1eMDYXXf2leLTYHV",
+    "name": "Eberark",
+    "level": 10,
+    "art": "eberark.webp"
+  },
+  {
+    "id": "shatterling",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "1xGAktpj6N2Ugh0r",
+    "name": "Shatterling",
+    "level": 14,
+    "art": "shatterling.webp"
+  },
+  {
+    "id": "pulping_golem",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "2uxm1SxZXaG0ynCp",
+    "name": "Pulping Golem",
+    "level": 14,
+    "art": "pulping-golem.webp"
+  },
+  {
+    "id": "graem",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "3GNq4Vy40vk9zwMQ",
+    "name": "Graem",
+    "level": 16,
+    "art": "graem.webp"
+  },
+  {
+    "id": "hegessik",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "3If8bjsXeA2413dB",
+    "name": "Hegessik",
+    "level": 15,
+    "art": "hegessik.webp"
+  },
+  {
+    "id": "kolo_harvan",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "3JEiwAFwkEjCDEYa",
+    "name": "Kolo Harvan",
+    "level": 2,
+    "art": "kolo-harvan.webp"
+  },
+  {
+    "id": "twisted_jack",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "4BXo2a305RHmspMX",
+    "name": "Twisted Jack",
+    "level": 17,
+    "art": "twisted-jack.webp"
+  },
+  {
+    "id": "sad_liza",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "4TB1eo3O22khMyDU",
+    "name": "Sad Liza",
+    "level": 17,
+    "art": "sad-liza.webp"
+  },
+  {
+    "id": "excorion",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "SgkV5RtcK72d0HwI",
+    "name": "Excorion",
+    "level": 7,
+    "art": "excorion-lob.webp"
+  },
+  {
+    "id": "shredskin",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "eQc0ADMuHl1JzL8z",
+    "name": "Shredskin",
+    "level": 2,
+    "art": "shredskin-lob.webp"
+  },
+  {
+    "id": "almiraj",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "gsn4NsJLwZCQUwgf",
+    "name": "Almiraj",
+    "level": 1,
+    "art": "almiraj-lob.webp"
   }
 ]
