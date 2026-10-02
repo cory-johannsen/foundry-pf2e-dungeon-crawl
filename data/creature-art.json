@@ -32070,5 +32070,125 @@
     "name": "Il'setsya Wyrmtouched",
     "level": 19,
     "art": "il-setsya-wyrmtouched.webp"
+  },
+  {
+    "id": "norgorberite_poisoner",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "cQMM2Ld0IBM9GcDo",
+    "name": "Norgorberite Poisoner",
+    "level": 11,
+    "art": "norgorberite-poisoner.webp"
+  },
+  {
+    "id": "gage_carlyle",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "eqwAdGsAk5JZKxUY",
+    "name": "Gage Carlyle",
+    "level": 11,
+    "art": "gage-carlyle.webp"
+  },
+  {
+    "id": "clockwork_assassin",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "fV5VIoXMtixmI3Wc",
+    "name": "Clockwork Assassin",
+    "level": 13,
+    "art": "clockwork-assassin.webp"
+  },
+  {
+    "id": "binumir",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "fvOjtzuRNpmpEHXA",
+    "name": "Binumir",
+    "level": 3,
+    "art": "binumir.webp"
+  },
+  {
+    "id": "jonis_flakfatter",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "gIcReNQOZceZBBlw",
+    "name": "Jonis Flakfatter",
+    "level": 15,
+    "art": "jonis-flakfatter.webp"
+  },
+  {
+    "id": "grospek_lavarsus",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "gd0sVQtCHbhP8iHI",
+    "name": "Grospek Lavarsus",
+    "level": 7,
+    "art": "grospek-lavarsus.webp"
+  },
+  {
+    "id": "daemonic_infector",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "gkRxUi9VrbPWOPGC",
+    "name": "Daemonic Infector",
+    "level": 22,
+    "art": "daemonic-infector.webp"
+  },
+  {
+    "id": "hendrid_pratchett",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "jJ1UTNLiRCoN1O3i",
+    "name": "Hendrid Pratchett",
+    "level": 6,
+    "art": "hendrid-pratchett.webp"
+  },
+  {
+    "id": "rhevanna",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "kcvU9CatCyBUJRr2",
+    "name": "Rhevanna",
+    "level": 22,
+    "art": "rhevanna.webp"
+  },
+  {
+    "id": "daemonic_skinner",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "lgbJbeSeC1f8otvH",
+    "name": "Daemonic Skinner",
+    "level": 20,
+    "art": "daemonic-skinner.webp"
+  },
+  {
+    "id": "lyrma_swampwalker",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "lzmGdArS3kjJOqT6",
+    "name": "Lyrma Swampwalker",
+    "level": 2,
+    "art": "lyrma-swampwalker.webp"
+  },
+  {
+    "id": "skebs",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "nTn2szBbqQNdXhOr",
+    "name": "Skebs",
+    "level": -1,
+    "art": "skebs.webp"
+  },
+  {
+    "id": "lusca",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "oFCgiGFipWeit9sl",
+    "name": "Lusca",
+    "level": 17,
+    "art": "lusca.webp"
+  },
+  {
+    "id": "shristi_melipdra",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "oTa25rAxytm03T3X",
+    "name": "Shristi Melipdra",
+    "level": 7,
+    "art": "shristi-melipdra.webp"
+  },
+  {
+    "id": "pelmo",
+    "pack": "pf2e.agents-of-edgewatch-bestiary",
+    "docId": "oWASKud0jwlGSfJg",
+    "name": "Pelmo",
+    "level": -1,
+    "art": "pelmo.webp"
   }
 ]
