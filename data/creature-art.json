@@ -27862,5 +27862,157 @@
     "name": "Hellknight Armiger",
     "level": 4,
     "art": "hellknight-armiger-lob.webp"
+  },
+  {
+    "id": "athamaru_swab",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "KQw3ainrnnbfxb86",
+    "name": "Athamaru Swab",
+    "level": 3,
+    "art": "athamaru-swab.webp"
+  },
+  {
+    "id": "athamaru_pirate",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "KjqPYeN3FDw1aZc0",
+    "name": "Athamaru Pirate",
+    "level": 3,
+    "art": "athamaru-pirate.webp"
+  },
+  {
+    "id": "skeleton_coven_aspirant",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "LVAxa9rEgnO2jmKi",
+    "name": "Skeleton Coven Aspirant",
+    "level": 2,
+    "art": "skeleton-coven-aspirant.webp"
+  },
+  {
+    "id": "undead_hellknight",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "j0iZU9FnWCtVP9nl",
+    "name": "Undead Hellknight",
+    "level": 4,
+    "art": "undead-hellknight.webp"
+  },
+  {
+    "id": "undead_hellknight_7_12",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "MqHvumFPh1rQkBgY",
+    "name": "Undead Hellknight (7-12)",
+    "level": 5,
+    "art": "undead-hellknight.webp"
+  },
+  {
+    "id": "skeleton_wolfguard",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "NxCNW4zGHP63dEH6",
+    "name": "Skeleton Wolfguard",
+    "level": 0,
+    "art": "skeleton-wolfguard.webp"
+  },
+  {
+    "id": "adma_heavenstriker",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "SELkdgFucYgJI3tF",
+    "name": "Adma Heavenstriker",
+    "level": 8,
+    "art": "adma-heavenstriker.webp"
+  },
+  {
+    "id": "lyari_zinfeld",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "SnoWbBMVQdoAKJA9",
+    "name": "Lyari Zinfeld",
+    "level": 1,
+    "art": "lyari-zinfeld.webp"
+  },
+  {
+    "id": "lyari_zinfeld_3_4",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "vngxFO3AQdnBivra",
+    "name": "Lyari Zinfeld (3-4)",
+    "level": 3,
+    "art": "lyari-zinfeld.webp"
+  },
+  {
+    "id": "naiad_water_guardian",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "UEz33lWdku8n0Mhr",
+    "name": "Naiad Water Guardian",
+    "level": 5,
+    "art": "naiad-water-guardian.webp"
+  },
+  {
+    "id": "kizrech",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "W2puJUeo61CLMMxQ",
+    "name": "Kizrech",
+    "level": 9,
+    "art": "kizrech.webp"
+  },
+  {
+    "id": "kizrech_11_12",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "xyT4zCZjAbnAgDLV",
+    "name": "Kizrech (11-12)",
+    "level": 11,
+    "art": "kizrech.webp"
+  },
+  {
+    "id": "kizrech_7_22",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "qvagIV8gqF0g3m3l",
+    "name": "Kizrech (7-22)",
+    "level": 11,
+    "art": "kizrech.webp"
+  },
+  {
+    "id": "the_scourge_of_woodsedge",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "WQAvsiKjcjbIEgf6",
+    "name": "The Scourge of Woodsedge",
+    "level": 15,
+    "art": "the-scourge-of-woodsedge.webp"
+  },
+  {
+    "id": "claws_of_choral",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "WzBMIigC3lfvZyhJ",
+    "name": "Claws of Choral",
+    "level": 6,
+    "art": "claws-of-choral.webp"
+  },
+  {
+    "id": "king_pirate_gorilla",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "ZjHP9Z61Hymx6TKv",
+    "name": "King Pirate Gorilla",
+    "level": 3,
+    "art": "king-pirate-gorilla.webp"
+  },
+  {
+    "id": "withered_leaf_of_talhindir",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "ckZ7eHNCFNP6ddiO",
+    "name": "Withered Leaf of Talhindir",
+    "level": 0,
+    "art": "withered-leaf-of-talhindir.webp"
+  },
+  {
+    "id": "howling_terror",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "clCZt9Kcl6Zn94ZG",
+    "name": "Howling Terror",
+    "level": 4,
+    "art": "howling-terror.webp"
+  },
+  {
+    "id": "kalagemmon_decayed_cyclops",
+    "pack": "pf2e.pfs-season-7-bestiary",
+    "docId": "e4nlM9X0JKwLQu4r",
+    "name": "Kalagemmon, Decayed Cyclops",
+    "level": 1,
+    "art": "kalagemmon-decayed-cyclops.webp"
   }
 ]
