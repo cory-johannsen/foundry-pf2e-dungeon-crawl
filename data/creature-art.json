@@ -28150,5 +28150,149 @@
     "name": "Swamp Ooze",
     "level": 1,
     "art": "swamp-ooze.webp"
+  },
+  {
+    "id": "phistophilus_3qyqh",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "3QyqHIuAXE3YVLUh",
+    "name": "Phistophilus",
+    "level": 10,
+    "art": "phistophilus.webp"
+  },
+  {
+    "id": "meliosa_s_leshy",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "3oCs4xRge4oXjQC4",
+    "name": "Meliosa's Leshy",
+    "level": 2,
+    "art": "meliosa-s-leshy.webp"
+  },
+  {
+    "id": "meliosa_s_leshy_golden_bamboo_leshy",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "vTJkvG8rDs0O8HzF",
+    "name": "Meliosa's Leshy (Golden Bamboo Leshy)",
+    "level": 2,
+    "art": "meliosa-s-leshy.webp"
+  },
+  {
+    "id": "meliosa_s_leshy_minkaian_honeysuckle_leshy",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "ds8kPHp9yV6F34oX",
+    "name": "Meliosa's Leshy (Minkaian Honeysuckle Leshy)",
+    "level": 2,
+    "art": "meliosa-s-leshy.webp"
+  },
+  {
+    "id": "meliosa_s_leshy_mint_leshy",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "Aw74KaHNvnWG349N",
+    "name": "Meliosa's Leshy (Mint Leshy)",
+    "level": 2,
+    "art": "meliosa-s-leshy.webp"
+  },
+  {
+    "id": "meliosa_s_leshy_wisteria_leshy",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "YkHZ8FMeZ7uxsDJ4",
+    "name": "Meliosa's Leshy (Wisteria Leshy)",
+    "level": 2,
+    "art": "meliosa-s-leshy.webp"
+  },
+  {
+    "id": "scented_candle_homunculus",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "8BMVxqhcdNtdStUj",
+    "name": "Scented Candle Homunculus",
+    "level": 1,
+    "art": "scented-candle-homunculus.webp"
+  },
+  {
+    "id": "princess_sunset",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "BFTodEMAuiYhte03",
+    "name": "Princess Sunset",
+    "level": 2,
+    "art": "princess-sunset.webp"
+  },
+  {
+    "id": "yrdris_master_of_the_fanespire",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "I00S3LWnDJfCn4zv",
+    "name": "Yrdris, Master of the Fanespire",
+    "level": 7,
+    "art": "yrdris-master-of-the-fanespire.webp"
+  },
+  {
+    "id": "vilm",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "I9nJltbnjRRTKjoj",
+    "name": "Vilm",
+    "level": 1,
+    "art": "vilm.webp"
+  },
+  {
+    "id": "darius",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "ODOBHqugzvfGkZVS",
+    "name": "Darius",
+    "level": 3,
+    "art": "darius.webp"
+  },
+  {
+    "id": "lawn_crawfish",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "OPaV3fwegwyQY48m",
+    "name": "Lawn Crawfish",
+    "level": 1,
+    "art": "lawn-crawfish.webp"
+  },
+  {
+    "id": "cultist_of_alocer",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "OvM1oLgQ7V2qa3vy",
+    "name": "Cultist of Alocer",
+    "level": 3,
+    "art": "cultist-of-alocer.webp"
+  },
+  {
+    "id": "giant_pirate_skeleton",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "PbCcYOGqsDU96a4y",
+    "name": "Giant Pirate Skeleton",
+    "level": 8,
+    "art": "giant-pirate-skeleton.webp"
+  },
+  {
+    "id": "zikritrax",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "QB0wbfOVhiZqJtYP",
+    "name": "Zikritrax",
+    "level": 13,
+    "art": "zikritrax.webp"
+  },
+  {
+    "id": "pairaka_one_shot_4",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "RGcXNLz4TaziTInr",
+    "name": "Pairaka (One-Shot #4)",
+    "level": 7,
+    "art": "pairaka.webp"
+  },
+  {
+    "id": "doatara_the_poisoner",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "SoSFKK1TmqMqtnuR",
+    "name": "Doatara the Poisoner",
+    "level": 7,
+    "art": "doatara-the-poisoner.webp"
+  },
+  {
+    "id": "doatara_the_priest",
+    "pack": "pf2e.one-shot-bestiary",
+    "docId": "T2lqHFAnZ1u6Z6MD",
+    "name": "Doatara the Priest",
+    "level": 7,
+    "art": "doatara-the-priest.webp"
   }
 ]
