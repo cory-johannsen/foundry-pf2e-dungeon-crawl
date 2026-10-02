@@ -953,3 +953,26 @@ any semantics (opt/strict/truth/union) regresses vs the stub-free scene. Code: `
 Dead edges left unstubbed (1311 of 2556): 892 target has no other walkable parent (rule 1; 468 of them in an already
 unreachable zone), 184 other graph rule (rule 3), 211 no free door tile in the source's south margin row, 24 dropped by
 the verify step. 70 null-path fallback edges are walkable by the oracle and stay as today.
+
+## #603 findings: sealed doors after routing (measurement only, no runtime change)
+
+Pinned by `tests/dungeon-sealed-door-causes.test.mjs` (500 seeds, shipped pipeline). Of the 1,704 dead edges of the stub-free
+layouts, 1,201 are sealed doors and 501 are cut corridors. **A sealed door is a symptom of a null-path edge**: 1,191 of the 1,201
+(99%) are edges the scene draws as a fallback line (1,040 gate-held, 122 router-unresolvable, 29 no path); 10 are found paths.
+The covering wall is the co-parent's cell-margin wall (898), a foreign transit-cell margin (160) or an unflagged corridor flank (143).
+Gate-held shape: the second parent is east of a merge room whose north gate cell holds the first parent (dr1 490, dr2 494, dr3 44).
+
+| Prototype (test-only helpers in `tests/helpers/`) | Result |
+|---|---|
+| exact-span opening in the covering wall (`opening-prototype.mjs`) | 1 of 1,201 walkable; the fallback line crosses 4+ more walls |
+| re-slot / do not generate the door | no gain: the path is null whichever slot; not generating is today's wall fallback |
+| path-aware north/west incoming face (`face-prototype.mjs pathaware`, 100 seeds) | base dead 313 -> 310 (the west cell has no path for 70% of the nulls) |
+| merge room placed east of its parents (`column-prototype.mjs`, 100 seeds, no reseed) | null-path edges 402 -> 7 but dead edges 480 -> 629: the router cannot place two edges converging on one gate cell (385 unresolvable) |
+| best-of-K reseed by live branching (`candidate-scores.mjs`, 500 seeds) | rooms with 2+ exits 1,171 -> 1,286 (K4) / 1,383 (K8) / 1,567 (K20); stubs +4..+16%; run creation 0.12 s -> 0.18 / 0.34 / 0.86 s mean |
+| best-of-K, no lost rooms first (K8 / K20) | 2+ exits 1,329 / 1,507; unreachable non-goal rooms 209 -> 81 / 15; walls 250 -> 120 / 42; stubs 1,466 -> 1,510 / 1,611 |
+
+**Ceiling** (`upper-bound.mjs`): if every sealed door were fixed, rooms with 2+ live exits go 1,164 -> 1,218 (graph ceiling
+1,241), because the generator's own graph is that linear; what a fix buys is dead-end rooms 1,293 -> 434, lost rooms
+313 -> 50, live exits +18%. The cause-level fix is the margin-band lane for the corner branch (option B above) plus a router that
+places two edges converging on one gate cell; that is the design fork, not a contained change. The oracle sees tile floor and wall
+unit edges only: not token collision beyond the flood, lane width, door state or sight.
