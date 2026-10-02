@@ -23878,5 +23878,141 @@
     "name": "Ambush Raider",
     "level": 5,
     "art": "ambush-raider-lob.webp"
+  },
+  {
+    "id": "thisnabel_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "gApYWrEZpYI0fOnk",
+    "name": "Thisnabel (1-2)",
+    "level": -1,
+    "art": "thisnabel-lob.webp"
+  },
+  {
+    "id": "thisnabel_3_4_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "TMiMJVvmOhZVQkVW",
+    "name": "Thisnabel (3-4)",
+    "level": 2,
+    "art": "thisnabel-lob.webp"
+  },
+  {
+    "id": "elven_torchbearer_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "U5pmX9DX9Xk7zrJj",
+    "name": "Elven Torchbearer",
+    "level": 0,
+    "art": "elven-torchbearer-lob.webp"
+  },
+  {
+    "id": "aslynn_s_eye_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "UCLaNgaKG3vXzXiB",
+    "name": "Aslynn's Eye",
+    "level": 4,
+    "art": "aslynn-s-eye-lob.webp"
+  },
+  {
+    "id": "bugbear_creeper_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "VXAsqEVmE2Gi8ZHk",
+    "name": "Bugbear Creeper",
+    "level": -1,
+    "art": "bugbear-creeper-lob.webp"
+  },
+  {
+    "id": "bloody_barber_thief_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "WET7yEJxJmqQUMmn",
+    "name": "Bloody Barber Thief",
+    "level": 5,
+    "art": "bloody-barber-thief-lob.webp"
+  },
+  {
+    "id": "aslynn_s_sharper_eye_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "XSOh2n1QPwfSdejr",
+    "name": "Aslynn's Sharper Eye",
+    "level": 6,
+    "art": "aslynn-s-sharper-eye-lob.webp"
+  },
+  {
+    "id": "runt_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "XkoZF15KKDsz2m2x",
+    "name": "Runt (1-2)",
+    "level": 1,
+    "art": "runt-lob.webp"
+  },
+  {
+    "id": "runt_3_4_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "qkqL6iX7WRmOfNk7",
+    "name": "Runt (3-4)",
+    "level": 3,
+    "art": "runt-lob.webp"
+  },
+  {
+    "id": "bloody_barber_gang_leader_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "YcSoXBR5lacVKYzX",
+    "name": "Bloody Barber Gang Leader",
+    "level": 7,
+    "art": "bloody-barber-gang-leader-lob.webp"
+  },
+  {
+    "id": "elven_fence_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "ZWfXDI2Xy4HJroL8",
+    "name": "Elven Fence",
+    "level": 5,
+    "art": "elven-fence-lob.webp"
+  },
+  {
+    "id": "growling_shadow_drake_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "aOniinvqGZ6EUbyq",
+    "name": "Growling Shadow Drake",
+    "level": 1,
+    "art": "growling-shadow-drake-lob.webp"
+  },
+  {
+    "id": "fey_touched_great_wolf_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "ay3mb6lMokkgCxQL",
+    "name": "Fey-Touched Great Wolf",
+    "level": 7,
+    "art": "fey-touched-great-wolf-lob.webp"
+  },
+  {
+    "id": "possessed_clockwork_heap_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "c3YWo3zyPsybTYhC",
+    "name": "Possessed Clockwork Heap",
+    "level": 7,
+    "art": "possessed-clockwork-heap-lob.webp"
+  },
+  {
+    "id": "overtaxed_vrisk_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "cINSKPBcnWgzeTFx",
+    "name": "Overtaxed Vrisk",
+    "level": 2,
+    "art": "overtaxed-vrisk-lob.webp"
+  },
+  {
+    "id": "pups_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "cIa7Zdq9cUziEL3U",
+    "name": "Pups",
+    "level": 1,
+    "art": "pups-lob.webp"
+  },
+  {
+    "id": "fleshwarp_apprentice_lob",
+    "pack": "pf2e.pfs-season-4-bestiary",
+    "docId": "d50bL4eXBTXkcE8l",
+    "name": "Fleshwarp Apprentice",
+    "level": 1,
+    "art": "fleshwarp-apprentice-lob.webp"
   }
 ]
