@@ -34238,5 +34238,221 @@
     "name": "Kun",
     "level": 14,
     "art": "kun-lob.webp"
+  },
+  {
+    "id": "rai_sho_disciple",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "Ezm1FlUk4JXeqPlC",
+    "name": "Rai Sho Disciple",
+    "level": 16,
+    "art": "rai-sho-disciple.webp"
+  },
+  {
+    "id": "weapon_master",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "gSlkZ86P3QrbM874",
+    "name": "Weapon Master",
+    "level": 13,
+    "art": "weapon-master.webp"
+  },
+  {
+    "id": "weapon_master_under_the_pale_sun_dervishes",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "FWfKJ7e8UgbBXTkU",
+    "name": "Weapon Master (Under the Pale Sun Dervishes)",
+    "level": 13,
+    "art": "weapon-master.webp"
+  },
+  {
+    "id": "artus_rodrivan",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "FwIJpQn1FIpGgvIY",
+    "name": "Artus Rodrivan",
+    "level": 15,
+    "art": "artus-rodrivan.webp"
+  },
+  {
+    "id": "urnak_lostwind",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "H5koEzKL8qtfX4fK",
+    "name": "Urnak Lostwind",
+    "level": 14,
+    "art": "urnak-lostwind.webp"
+  },
+  {
+    "id": "jin_hae",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "HGtyyMucLkYlqZ8i",
+    "name": "Jin-hae",
+    "level": 18,
+    "art": "jin-hae.webp"
+  },
+  {
+    "id": "nai_yan_fei",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "HqN4nUnl75foBKLZ",
+    "name": "Nai Yan Fei",
+    "level": 20,
+    "art": "nai-yan-fei.webp"
+  },
+  {
+    "id": "old_man_statue",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "IGEht7ysUSZndtgp",
+    "name": "Old Man Statue",
+    "level": 14,
+    "art": "old-man-statue.webp"
+  },
+  {
+    "id": "syndara_the_sculptor",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "IlDWyCnxA6gS2UZm",
+    "name": "Syndara the Sculptor",
+    "level": 22,
+    "art": "syndara-the-sculptor.webp"
+  },
+  {
+    "id": "sigbin",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "KHPOm5KHtbMNzcx7",
+    "name": "Sigbin",
+    "level": 5,
+    "art": "sigbin.webp"
+  },
+  {
+    "id": "grandfather_mantis",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "KfpYMKJ1ka9volP6",
+    "name": "Grandfather Mantis",
+    "level": 15,
+    "art": "grandfather-mantis.webp"
+  },
+  {
+    "id": "tamikan",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "L2OWZ5Afvnmaif83",
+    "name": "Tamikan",
+    "level": 16,
+    "art": "tamikan.webp"
+  },
+  {
+    "id": "huldrin_skolsdottir",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "Lk4LPjGsidzuD6Vy",
+    "name": "Huldrin Skolsdottir",
+    "level": 14,
+    "art": "huldrin-skolsdottir.webp"
+  },
+  {
+    "id": "kannitri",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "Lsa0Q8aU8aPWjFYv",
+    "name": "Kannitri",
+    "level": 13,
+    "art": "kannitri.webp"
+  },
+  {
+    "id": "joon_seo",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "PhFDdGFXaaiLe4k4",
+    "name": "Joon-seo",
+    "level": 15,
+    "art": "joon-seo.webp"
+  },
+  {
+    "id": "planar_terra_cotta_soldier",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "PsipHKpczW9FT2Jk",
+    "name": "Planar Terra-cotta Soldier",
+    "level": 11,
+    "art": "planar-terra-cotta-soldier.webp"
+  },
+  {
+    "id": "ji_yook",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "Q6gjfL2rha7tRS0B",
+    "name": "Ji-yook (Level 9)",
+    "level": 9,
+    "art": "ji-yook.webp"
+  },
+  {
+    "id": "ji_yook_level_13",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "ghAlcSfpO03JLvwG",
+    "name": "Ji-yook (Level 13)",
+    "level": 13,
+    "art": "ji-yook.webp"
+  },
+  {
+    "id": "ji_yook_gumiho_form",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "ofYZYIZTkakVj2R0",
+    "name": "Ji-yook (Gumiho Form)",
+    "level": 18,
+    "art": "ji-yook.webp"
+  },
+  {
+    "id": "rai_sho_postulant",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "QhFUhlZl1bvUrtPs",
+    "name": "Rai Sho Postulant",
+    "level": 16,
+    "art": "rai-sho-postulant.webp"
+  },
+  {
+    "id": "hantu_belian",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "RCbSoJ0Kg6ovGnRG",
+    "name": "Hantu Belian",
+    "level": 11,
+    "art": "hantu-belian.webp"
+  },
+  {
+    "id": "blue_viper",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "RKkIczqYUJkij0Oh",
+    "name": "Blue Viper (Level 14)",
+    "level": 14,
+    "art": "blue-viper.webp"
+  },
+  {
+    "id": "blue_viper_level_16",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "SF6OlCfNiHvtJQjw",
+    "name": "Blue Viper (Level 16)",
+    "level": 16,
+    "art": "blue-viper.webp"
+  },
+  {
+    "id": "blue_viper_level_20",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "se8SrwtuaamXIEo5",
+    "name": "Blue Viper (Level 20)",
+    "level": 20,
+    "art": "blue-viper.webp"
+  },
+  {
+    "id": "syu_tak_nwa",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "Sx7Ob64O0e9aIhpO",
+    "name": "Syu Tak-nwa (Level 14)",
+    "level": 14,
+    "art": "syu-tak-nwa.webp"
+  },
+  {
+    "id": "syu_tak_nwa_level_16",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "aiiUNGDPljyMuFu2",
+    "name": "Syu Tak-nwa (Level 16)",
+    "level": 16,
+    "art": "syu-tak-nwa.webp"
+  },
+  {
+    "id": "syu_tak_nwa_level_20",
+    "pack": "pf2e.fists-of-the-ruby-phoenix-bestiary",
+    "docId": "fxukt1qqVaQG9KcY",
+    "name": "Syu Tak-nwa (Level 20)",
+    "level": 20,
+    "art": "syu-tak-nwa.webp"
   }
 ]
