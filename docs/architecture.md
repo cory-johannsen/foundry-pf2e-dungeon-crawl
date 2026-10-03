@@ -287,6 +287,7 @@ graph LR
   scripts_dungeon_reseed_mjs --> scripts_dungeon_stub_oracle_mjs
   scripts_dungeon_reseed_mjs --> scripts_dungeon_retreat_mjs
   scripts_dungeon_runner_mjs --> scripts_generator_registry_mjs
+  scripts_dungeon_runner_mjs --> scripts_dungeon_deck_mjs
   scripts_dungeon_runner_mjs --> scripts_dungeon_retreat_mjs
   scripts_dungeon_runner_mjs --> scripts_skill_challenge_mechanics_mjs
   scripts_dungeon_runner_mjs --> scripts_puzzle_mechanics_mjs

@@ -130,6 +130,23 @@ describe("initPuzzleState", () => {
     expect(state.stages[0].dc).toBe(20);
     expect(state.stages[1].dc).toBe(20);
   });
+  it("adds dcAdjustment to the party-level-scaled DC (#412)", () => {
+    const state = initPuzzleState({
+      hintChecks: HINT_CHECKS,
+      partyLevel: 5,
+      dcAdjustment: -5,
+    });
+    expect(state.stages.every((s) => s.dc === 15)).toBe(true);
+  });
+
+  it("leaves each hintCheck's own flat dc alone when partyLevel is null, even with an adjustment (#412)", () => {
+    const state = initPuzzleState({
+      hintChecks: HINT_CHECKS,
+      partyLevel: null,
+      dcAdjustment: 2,
+    });
+    expect(state.stages.map((s) => s.dc)).toEqual(HINT_CHECKS.map((c) => c.dc));
+  });
 });
 
 describe("applyPuzzleStageAttempt", () => {

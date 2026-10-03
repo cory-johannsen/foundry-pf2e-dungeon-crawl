@@ -72,11 +72,14 @@ import {
   markStubOpened,
 } from "./dungeon-runner.mjs";
 import { canRetreat, hasNoWayForward, roomDisplayLabel, roomTileName } from "./dungeon-retreat.mjs";
-import { depthBiasFor } from "./dungeon-deck.mjs";
+import { depthBiasFor, applyDifficultyCap } from "./dungeon-deck.mjs";
 import { startCombatForRoom } from "./dungeon-combat.mjs";
 import { playDoorSound } from "./dungeon-sound.mjs";
 import { loadDungeonSetpieces } from "./data-loader.mjs";
-import { selectSkillChallengeTemplate } from "./skill-challenge-mechanics.mjs";
+import {
+  selectSkillChallengeTemplate,
+  dcAdjustmentForTier,
+} from "./skill-challenge-mechanics.mjs";
 import { isValidNarrativeTemplate } from "./narrative-mechanics.mjs";
 import { makeFoundryApi } from "./foundry-api.mjs";
 import { selectTrap } from "./trap-library.mjs";
@@ -1316,6 +1319,12 @@ export async function moveTokensToRoom(
   );
 }
 
+/** #412: a room's depth bias with the run's difficulty cap applied. Drives
+ * combat's level band + XP ceiling and trap level offset. */
+export function effectiveRoomBias({ rank, maxRank, isGoal, difficulty }) {
+  return applyDifficultyCap(depthBiasFor({ rank, maxRank, isGoal }), difficulty);
+}
+
 /**
  * Build+populate+unlock one graph room (#93 replacement for the old
  * linear-slot builder, since deleted) — the function Tasks 11/12/13
@@ -1544,7 +1553,12 @@ export async function buildPopulateAndUnlockGraphNode(
 
   if (room.kind === "combat") {
     if (!isSlotPopulated(scene, room.id)) {
-      const depthBias = depthBiasFor({ rank, maxRank: state.maxRank, isGoal: room.isGoal });
+      const depthBias = effectiveRoomBias({
+        rank,
+        maxRank: state.maxRank,
+        isGoal: room.isGoal,
+        difficulty: state.difficulty,
+      });
       await populateSlotEncounter(scene, room.id, {
         rect,
         prefillTraits: state.traits,
@@ -1611,7 +1625,12 @@ export async function buildPopulateAndUnlockGraphNode(
       await populateSlotTrap(scene, room.id, {
         rect,
         partyLevel: await makeFoundryApi().partyLevel(),
-        levelOffsetBias: depthBiasFor({ rank, maxRank: state.maxRank, isGoal: room.isGoal }),
+        levelOffsetBias: effectiveRoomBias({
+          rank,
+          maxRank: state.maxRank,
+          isGoal: room.isGoal,
+          difficulty: state.difficulty,
+        }),
         locationTag: room.locationTag,
         seed: state.seed,
         roomId: room.id,
@@ -1625,6 +1644,7 @@ export async function buildPopulateAndUnlockGraphNode(
         partyLevel: await makeFoundryApi().partyLevel(),
         name: setpiece.name ?? null,
         summary: setpiece.summary ?? null,
+        dcAdjustment: dcAdjustmentForTier(state.difficulty),
       });
     }
     // #167: a narrative room's own selected content is attached here too

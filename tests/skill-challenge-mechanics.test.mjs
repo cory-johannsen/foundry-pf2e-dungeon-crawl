@@ -7,6 +7,7 @@ import {
   attemptBudgetForDepth,
   chooseSpecialtySkills,
   dcForAttempt,
+  dcAdjustmentForTier,
   initSkillChallengeState,
   applySkillChallengeAttempt,
   isValidSkillChallengeTemplate,
@@ -382,5 +383,24 @@ describe("applySkillChallengeAttempt", () => {
     expect(state.resolved).toBe("failure");
     const again = applySkillChallengeAttempt(state, "criticalSuccess");
     expect(again).toEqual(state);
+  });
+});
+
+describe("difficulty DC adjustment (#412)", () => {
+  it("maps each tier to its adjustment", () => {
+    expect(
+      ["trivial", "low", "moderate", "severe", "extreme"].map(dcAdjustmentForTier),
+    ).toEqual([-5, -2, -1, 0, 2]);
+  });
+
+  it("unknown or missing tier adjusts by 0 (Severe)", () => {
+    expect(dcAdjustmentForTier(undefined)).toBe(0);
+    expect(dcAdjustmentForTier("bogus")).toBe(0);
+  });
+
+  it("dcForAttempt adds the run's adjustment to the Simple DC", () => {
+    expect(dcForAttempt({ partyLevel: 5, difficulty: "trivial" })).toBe(15);
+    expect(dcForAttempt({ partyLevel: 5, difficulty: "extreme" })).toBe(22);
+    expect(dcForAttempt({ partyLevel: 5 })).toBe(20);
   });
 });

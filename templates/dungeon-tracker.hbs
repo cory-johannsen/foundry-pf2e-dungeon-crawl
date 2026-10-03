@@ -366,6 +366,16 @@
           value="{{defaultRoomCount}}"
         />
       </label>
+      <label>
+        {{localize "PF2EDC.Dungeon.DifficultyLabel"}}
+        <select name="difficulty">
+          <option value="trivial">{{localize "PF2EDC.Dungeon.Difficulty.Trivial"}}</option>
+          <option value="low">{{localize "PF2EDC.Dungeon.Difficulty.Low"}}</option>
+          <option value="moderate">{{localize "PF2EDC.Dungeon.Difficulty.Moderate"}}</option>
+          <option value="severe" selected>{{localize "PF2EDC.Dungeon.Difficulty.Severe"}}</option>
+          <option value="extreme">{{localize "PF2EDC.Dungeon.Difficulty.Extreme"}}</option>
+        </select>
+      </label>
       {{{traitsFieldHtml}}}
       {{{excludeTraitsFieldHtml}}}
       <footer>

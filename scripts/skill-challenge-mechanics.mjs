@@ -185,14 +185,30 @@ export function chooseSpecialtySkills(seed, roomId, locationTag) {
   return [...new Set([...themed, third])];
 }
 
+// #412: GM Core's difficulty adjustments (very easy -5, easy -2, hard +2);
+// Moderate -1 is an interpolation (the book has no -1 step). Applied to
+// every skill-challenge/puzzle DC in the run, since those DCs don't ramp
+// with depth.
+export const DC_ADJUSTMENT_BY_TIER = {
+  trivial: -5,
+  low: -2,
+  moderate: -1,
+  severe: 0,
+  extreme: 2,
+};
+
+/** The flat DC adjustment for a run's difficulty tier; unknown/missing -> 0. */
+export function dcAdjustmentForTier(tier) {
+  return DC_ADJUSTMENT_BY_TIER[tier] ?? 0;
+}
+
 /**
  * The DC for any attempt in a skill challenge at `partyLevel` — the room's
- * Simple DC. #553: only a challenge's own specialty skills can be attempted
- * (the UI offers nothing else and `#onAttemptSkillChallenge` rejects
- * anything else), so there is no non-specialty DC penalty anymore.
+ * Simple DC plus the run's difficulty adjustment (#412). Only a challenge's
+ * own specialty skills can be attempted (#553), so the skill never matters.
  */
-export function dcForAttempt({ partyLevel }) {
-  return simpleDcForLevel(partyLevel);
+export function dcForAttempt({ partyLevel, difficulty }) {
+  return simpleDcForLevel(partyLevel) + dcAdjustmentForTier(difficulty);
 }
 
 /**

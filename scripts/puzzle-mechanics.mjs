@@ -92,6 +92,7 @@ export function initPuzzleState({
   partyLevel = null,
   name = null,
   summary = null,
+  dcAdjustment = 0,
 }) {
   // #138: hand-authored hintChecks carry the source book's own flat DC
   // (10 for both real entries) with an explicit note to scale it to the
@@ -105,7 +106,8 @@ export function initPuzzleState({
   // room" convention — no real puzzle content differentiates stage
   // difficulty today. `null` (the default) leaves each hintCheck's own
   // flat `dc` alone, for a caller that hasn't resolved a party level yet.
-  const scaledDc = partyLevel != null ? simpleDcForLevel(partyLevel) : null;
+  const scaledDc =
+    partyLevel != null ? simpleDcForLevel(partyLevel) + dcAdjustment : null;
   const stages = hintChecks.map((c) => ({
     // Lowercased to PF2e's own skill-slug convention — confirmed live the
     // real hand-authored hintChecks carry Title Case ("Perception",

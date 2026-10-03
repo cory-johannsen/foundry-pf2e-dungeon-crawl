@@ -100,6 +100,32 @@ export function depthBiasFor({ rank, maxRank, isGoal }) {
   return Math.round(fraction * MAX_DEPTH_BIAS);
 }
 
+// #412: the player's max-difficulty choice from the Start Dungeon dialog.
+export const DIFFICULTY_TIERS = ["trivial", "low", "moderate", "severe", "extreme"];
+export const DEFAULT_DIFFICULTY = "severe"; // today's behavior
+
+/** Any missing/unknown value (old saved run, bad relayed arg) -> Severe. */
+export function normalizeDifficulty(value) {
+  return DIFFICULTY_TIERS.includes(value) ? value : DEFAULT_DIFFICULTY;
+}
+
+// Highest depth bias a tier allows. Extreme's ordinary cap equals Severe's;
+// its extra lift for the deepest rooms is handled in applyDifficultyCap.
+const DIFFICULTY_BIAS_CAP = { trivial: -1, low: 0, moderate: 1, severe: 2, extreme: 2 };
+
+/**
+ * #412: the effective depth bias for a room once the player's tier is
+ * applied on top of the depth ramp -- `min(depthBias, tier cap)`, so the tier
+ * only ever lowers what the ramp produced. The one exception is Extreme,
+ * which lifts a room already at the ramp's max (bias 2, goal room included)
+ * to 3, one past the normal ceiling.
+ */
+export function applyDifficultyCap(depthBias, tier) {
+  const t = normalizeDifficulty(tier);
+  if (t === "extreme" && depthBias >= MAX_DEPTH_BIAS) return MAX_DEPTH_BIAS + 1;
+  return Math.min(depthBias, DIFFICULTY_BIAS_CAP[t]);
+}
+
 // Placeholder heuristic, not a real treasure table — same disclosed-tunable
 // spirit as combat-rewards.mjs's LOOT_GP_PER_XP, until a real treasure-table
 // pass exists (#169).
