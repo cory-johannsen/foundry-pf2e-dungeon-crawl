@@ -899,6 +899,32 @@ describe("resnapTokenNow (#141)", () => {
     );
   });
 
+  it("rings out to a free cell when the rounded cell is occupied (#150)", async () => {
+    const token = makeToken({
+      id: "t-drifted",
+      x: 5.49 * GRID,
+      y: 1.49 * GRID,
+      actorId: "some-actor",
+    });
+    const blocker = makeToken({
+      id: "t-blocker",
+      x: 5 * GRID,
+      y: 1 * GRID,
+      actorId: "other-actor",
+    });
+    const scene = makeScene({ tokens: [token, blocker] });
+    installFoundryStubs();
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    await resnapTokenNow(SCENE_ID, "t-drifted");
+
+    expect(token.update).toHaveBeenCalledTimes(1);
+    const [{ x, y }] = token.update.mock.calls[0];
+    expect(x % GRID).toBe(0);
+    expect(y % GRID).toBe(0);
+    expect(x === 5 * GRID && y === GRID).toBe(false);
+  });
+
   it("does not call update on a token that's already grid-aligned", () => {
     const token = makeToken({
       id: "t-aligned",
