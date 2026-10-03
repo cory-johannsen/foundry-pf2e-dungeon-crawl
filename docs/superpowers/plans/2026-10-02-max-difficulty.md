@@ -39,7 +39,7 @@
 **Interfaces:**
 - Produces: `DIFFICULTY_TIERS` (string[]), `DEFAULT_DIFFICULTY` (`"severe"`), `normalizeDifficulty(value) -> tier string`, `applyDifficultyCap(depthBias:number, tier) -> number`.
 
-- [ ] **Step 1: Write the failing tests** — append to `tests/dungeon-deck.test.mjs`, and add `DIFFICULTY_TIERS, normalizeDifficulty, applyDifficultyCap` to its existing import list from `../scripts/dungeon-deck.mjs`:
+- [x] **Step 1: Write the failing tests** — append to `tests/dungeon-deck.test.mjs`, and add `DIFFICULTY_TIERS, normalizeDifficulty, applyDifficultyCap` to its existing import list from `../scripts/dungeon-deck.mjs`:
 
 ```js
 describe('difficulty tiers (#412)', () => {
@@ -85,12 +85,12 @@ describe('difficulty tiers (#412)', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs`
 Expected: FAIL (`applyDifficultyCap` / `normalizeDifficulty` is not a function).
 
-- [ ] **Step 3: Implement** — insert in `scripts/dungeon-deck.mjs` right after `depthBiasFor`:
+- [x] **Step 3: Implement** — insert in `scripts/dungeon-deck.mjs` right after `depthBiasFor`:
 
 ```js
 // #412: the player's max-difficulty choice from the Start Dungeon dialog.
@@ -120,12 +120,12 @@ export function applyDifficultyCap(depthBias, tier) {
 }
 ```
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-deck.mjs tests/dungeon-deck.test.mjs
