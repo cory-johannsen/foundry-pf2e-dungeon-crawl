@@ -37038,5 +37038,181 @@
     "name": "Ectoplasmic Amalgam",
     "level": 15,
     "art": "ectoplasmic-amalgam.webp"
+  },
+  {
+    "id": "glimmervine",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "16Ru7zfHAHD544xO",
+    "name": "Glimmervine",
+    "level": 4,
+    "art": "glimmervine.webp"
+  },
+  {
+    "id": "blackfrost_zombie",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "2mq2bKfkW7gtxKla",
+    "name": "Blackfrost Zombie",
+    "level": 6,
+    "art": "blackfrost-zombie.webp"
+  },
+  {
+    "id": "sickly_eshmok",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "41cLllp5tBGim7Cp",
+    "name": "Sickly Eshmok",
+    "level": 8,
+    "art": "sickly-eshmok.webp"
+  },
+  {
+    "id": "elder_thing_researcher",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "4LTBKID3ZcZgyOVw",
+    "name": "Elder Thing Researcher",
+    "level": 10,
+    "art": "elder-thing-researcher.webp"
+  },
+  {
+    "id": "jarvs",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "58GbVCENX813DbHw",
+    "name": "Jarvs",
+    "level": 3,
+    "art": "jarvs.webp"
+  },
+  {
+    "id": "blackfrost_prophet",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "5kcL1xtNY0apAwhO",
+    "name": "Blackfrost Prophet",
+    "level": 9,
+    "art": "blackfrost-prophet.webp"
+  },
+  {
+    "id": "crownbound_constellation",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "6HB8S40uMTxM9prV",
+    "name": "Crownbound Constellation",
+    "level": 8,
+    "art": "crownbound-constellation.webp"
+  },
+  {
+    "id": "protosoul",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "78E4gYNIFP3jd8Bt",
+    "name": "Protosoul",
+    "level": 11,
+    "art": "protosoul.webp"
+  },
+  {
+    "id": "kvernknurr",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "7LdB1zPPNiWX4Ji5",
+    "name": "Kvernknurr",
+    "level": 5,
+    "art": "kvernknurr.webp"
+  },
+  {
+    "id": "amelekana",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "7VoxPNp1BMlhGrss",
+    "name": "Amelekana",
+    "level": 4,
+    "art": "amelekana.webp"
+  },
+  {
+    "id": "dreamscraper",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "8typuC7n5nE01Gzu",
+    "name": "Dreamscraper",
+    "level": 7,
+    "art": "dreamscraper.webp"
+  },
+  {
+    "id": "capstan_swabbie",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "9pu5FhW9oW1mZaaC",
+    "name": "Capstan Swabbie",
+    "level": 7,
+    "art": "capstan-swabbie.webp"
+  },
+  {
+    "id": "myroga",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "A9gKXEQXwKb4U6wA",
+    "name": "Myroga",
+    "level": 6,
+    "art": "myroga.webp"
+  },
+  {
+    "id": "equendia",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "AeM32zT3kFOOAugS",
+    "name": "Equendia",
+    "level": 11,
+    "art": "equendia.webp"
+  },
+  {
+    "id": "cliffhunter_pteranodon",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "AihjWbZiorAJ80gE",
+    "name": "Cliffhunter Pteranodon",
+    "level": 2,
+    "art": "cliffhunter-pteranodon.webp"
+  },
+  {
+    "id": "skin_beetle",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "BlF4FiqivSuigBxy",
+    "name": "Skin Beetle",
+    "level": 3,
+    "art": "skin-beetle.webp"
+  },
+  {
+    "id": "desa_desa",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "CBCMrAi44SYguevM",
+    "name": "Desa-Desa",
+    "level": 2,
+    "art": "desa-desa.webp"
+  },
+  {
+    "id": "temagyr",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "DAfDg86y1mWHHQEy",
+    "name": "Temagyr",
+    "level": 1,
+    "art": "temagyr.webp"
+  },
+  {
+    "id": "snowy_owl",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "DP1XF7ygEPlBOdVB",
+    "name": "Snowy Owl",
+    "level": 7,
+    "art": "snowy-owl.webp"
+  },
+  {
+    "id": "stone_breasted_owl",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "DWT0VLHV9MCbbjbx",
+    "name": "Stone-Breasted Owl",
+    "level": 5,
+    "art": "stone-breasted-owl.webp"
+  },
+  {
+    "id": "ainamuuren",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "kgW2ycNTgQsMmkTC",
+    "name": "Ainamuuren",
+    "level": 12,
+    "art": "ainamuuren-lob.webp"
+  },
+  {
+    "id": "animate_dream_l64hy",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "l64HY5lbpITe0WHZ",
+    "name": "Animate Dream",
+    "level": 8,
+    "art": "animate-dream.webp"
   }
 ]
