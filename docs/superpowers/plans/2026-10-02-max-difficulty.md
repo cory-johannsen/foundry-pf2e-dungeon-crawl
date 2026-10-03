@@ -555,9 +555,9 @@ git commit -m "#412: apply the difficulty cap to combat and trap rooms"
 **Files:**
 - Modify: `module.json` (minor bump), `docs/architecture.md` (via the skill)
 
-- [ ] **Step 1:** Read the current `version` in `module.json` on `origin/main` (`git fetch && git show origin/main:module.json | grep '"version"'`), then set the next *minor* value (`x.Y+1.0`); never reuse a number.
-- [ ] **Step 2:** Run the `update-architecture-docs` skill (new edge `dungeon-runner.mjs → dungeon-deck.mjs`; check subsystem prose still holds) and commit the result.
-- [ ] **Step 3:** Run the full suite, saving the log (takes ~5-10 min; run in the background):
+- [x] **Step 1:** Read the current `version` in `module.json` on `origin/main` (`git fetch && git show origin/main:module.json | grep '"version"'`), then set the next *minor* value (`x.Y+1.0`); never reuse a number.
+- [x] **Step 2:** Run the `update-architecture-docs` skill (new edge `dungeon-runner.mjs → dungeon-deck.mjs`; check subsystem prose still holds) and commit the result.
+- [x] **Step 3:** Run the full suite, saving the log (takes ~5-10 min; run in the background):
   `npx vitest run > /tmp/full412.log 2>&1; grep -n FAIL /tmp/full412.log; tail -6 /tmp/full412.log`
   Expected: all files pass. A lone failure in `dungeon-reseed-sweep.test.mjs` (`maxMs < 5000`) is a known load-induced flake: rerun with nothing else running before judging it.
 - [ ] **Step 4:** Commit, push, open the PR (`Refs #412`, end the body with the standard Claude Code attribution line), then `gh pr merge <n> --squash --subject "#412: player max difficulty in Start Dungeon (#<n>)" --body "Refs #412"`.
