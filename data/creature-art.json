@@ -36350,5 +36350,165 @@
     "name": "Prince Doriel",
     "level": 10,
     "art": "prince-doriel.webp"
+  },
+  {
+    "id": "aquatic_ooze",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "FiY8hCD5XoZjp9yX",
+    "name": "Aquatic Ooze",
+    "level": 4,
+    "art": "aquatic-ooze.webp"
+  },
+  {
+    "id": "wheel_archon",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "FzEwUkw6SCgQ1YJg",
+    "name": "Wheel Archon",
+    "level": 16,
+    "art": "wheel-archon.webp"
+  },
+  {
+    "id": "teaching_assistant",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "GVIv3WxwbwztNmvD",
+    "name": "Teaching Assistant",
+    "level": 5,
+    "art": "teaching-assistant.webp"
+  },
+  {
+    "id": "zombie_rival_necromancer",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "HKH4GURuq59l0ag4",
+    "name": "Zombie Rival Necromancer",
+    "level": 16,
+    "art": "zombie-rival-necromancer.webp"
+  },
+  {
+    "id": "ghiasi",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "HNcBJFUhdLfOZxPS",
+    "name": "Ghiasi",
+    "level": 17,
+    "art": "ghiasi.webp"
+  },
+  {
+    "id": "skull_fairy",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "I9Nn9RsYdovSFiD6",
+    "name": "Skull Fairy",
+    "level": 3,
+    "art": "skull-fairy.webp"
+  },
+  {
+    "id": "bloodshroud",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "IXPZR1DTdT7Tu7UG",
+    "name": "Bloodshroud",
+    "level": 13,
+    "art": "bloodshroud.webp"
+  },
+  {
+    "id": "guloval",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "IeAy6hvDcnU1pCZr",
+    "name": "Guloval",
+    "level": 12,
+    "art": "guloval.webp"
+  },
+  {
+    "id": "necrohulk_smasher",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "JFB7wDTyG8nbihJD",
+    "name": "Necrohulk Smasher",
+    "level": 15,
+    "art": "necrohulk-smasher.webp"
+  },
+  {
+    "id": "nwanyian_archer",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "JiT7B2Y7yYG8G0ZL",
+    "name": "Nwanyian Archer",
+    "level": 7,
+    "art": "nwanyian-archer.webp"
+  },
+  {
+    "id": "vice_chancellor_vikroti_stroh",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "KJm77VlSLPNpukcI",
+    "name": "Vice-Chancellor Vikroti Stroh",
+    "level": 18,
+    "art": "vice-chancellor-vikroti-stroh.webp"
+  },
+  {
+    "id": "necromunculus",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "KQkouk6tku8akpmU",
+    "name": "Necromunculus",
+    "level": 0,
+    "art": "necromunculus.webp"
+  },
+  {
+    "id": "meat_guardian",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "Kq2dxvP4wqJJVzBr",
+    "name": "Meat Guardian",
+    "level": 5,
+    "art": "meat-guardian.webp"
+  },
+  {
+    "id": "shimmernewt",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "L30BKaq55auUhcPY",
+    "name": "Shimmernewt",
+    "level": 6,
+    "art": "shimmernewt.webp"
+  },
+  {
+    "id": "dirge_piper",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "LRHYWNJg7231HUOc",
+    "name": "Dirge Piper",
+    "level": 3,
+    "art": "dirge-piper.webp"
+  },
+  {
+    "id": "zombie_hound",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "LeJeFOI8P0L7pxxS",
+    "name": "Zombie Hound",
+    "level": -1,
+    "art": "zombie-hound.webp"
+  },
+  {
+    "id": "restored_doll",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "MKYtgU2G42jk2Dwo",
+    "name": "Restored Doll",
+    "level": 10,
+    "art": "restored-doll.webp"
+  },
+  {
+    "id": "rust_hag",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "N1VAU3XomX53b6HL",
+    "name": "Rust Hag",
+    "level": 8,
+    "art": "rust-hag.webp"
+  },
+  {
+    "id": "bone_shard_tough",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "N387myolfXJxWYvF",
+    "name": "Bone Shard Tough",
+    "level": 0,
+    "art": "bone-shard-tough.webp"
+  },
+  {
+    "id": "kemnebi_s_puppet",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "NiDaVEpAOgbuwnau",
+    "name": "Kemnebi's Puppet",
+    "level": 16,
+    "art": "kemnebi-s-puppet.webp"
   }
 ]
