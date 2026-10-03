@@ -35542,5 +35542,165 @@
     "name": "Chromatic Ooze",
     "level": 18,
     "art": "chromatic-ooze.webp"
+  },
+  {
+    "id": "alapolo",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "eY9eS7CIFXKxyq3q",
+    "name": "Alapolo",
+    "level": 17,
+    "art": "alapolo.webp"
+  },
+  {
+    "id": "abendego_priest",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "flVfkZzC1cse78Hn",
+    "name": "Abendego Priest",
+    "level": 11,
+    "art": "abendego-priest.webp"
+  },
+  {
+    "id": "screaming_sulfur",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "gIixylfr1NtCRdcK",
+    "name": "Screaming Sulfur",
+    "level": 10,
+    "art": "screaming-sulfur.webp"
+  },
+  {
+    "id": "karumzek",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "gS4cbmOHsVy4HGzF",
+    "name": "Karumzek",
+    "level": 4,
+    "art": "karumzek.webp"
+  },
+  {
+    "id": "crimson_acolyte",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "gegq5VUU7oBwwoWA",
+    "name": "Crimson Acolyte",
+    "level": 13,
+    "art": "crimson-acolyte.webp"
+  },
+  {
+    "id": "shobhad_enforcer",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "hVBzcyoDCdTCM4E6",
+    "name": "Shobhad Enforcer",
+    "level": 16,
+    "art": "shobhad-enforcer.webp"
+  },
+  {
+    "id": "formian_queen",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "i3xyq1muByR02dqa",
+    "name": "Formian Queen",
+    "level": 17,
+    "art": "formian-queen.webp"
+  },
+  {
+    "id": "living_sun_spire",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "ijo4aRSFVd7Bmzr2",
+    "name": "Living Sun-Spire",
+    "level": 13,
+    "art": "living-sun-spire.webp"
+  },
+  {
+    "id": "skartitch_chip_tooth",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "ip0htomE6BytVw5h",
+    "name": "Skartitch Chip-Tooth",
+    "level": 16,
+    "art": "skartitch-chip-tooth.webp"
+  },
+  {
+    "id": "salathiss",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "j1UkNX6saQfgGZpf",
+    "name": "Salathiss",
+    "level": 9,
+    "art": "salathiss.webp"
+  },
+  {
+    "id": "red_guard_ant",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "jDNrRPE2hTOssJcl",
+    "name": "Red Guard Ant",
+    "level": 15,
+    "art": "red-guard-ant.webp"
+  },
+  {
+    "id": "contemplative_meditant",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "jiCmtwIhbVrG9dB5",
+    "name": "Contemplative Meditant",
+    "level": 15,
+    "art": "contemplative-meditant.webp"
+  },
+  {
+    "id": "alate_ant",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "ju9lwJqoqLLPJswc",
+    "name": "Alate Ant",
+    "level": 16,
+    "art": "alate-ant.webp"
+  },
+  {
+    "id": "kolbo",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "l6EuZR6zCdqyCywW",
+    "name": "Kolbo",
+    "level": 6,
+    "art": "kolbo.webp"
+  },
+  {
+    "id": "froglegs",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "lCvJquCqvZJVnafy",
+    "name": "Froglegs",
+    "level": 8,
+    "art": "froglegs.webp"
+  },
+  {
+    "id": "terwa_chosen",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "lJUypzAZrt4OQUjv",
+    "name": "Terwa Chosen",
+    "level": 8,
+    "art": "terwa-chosen.webp"
+  },
+  {
+    "id": "yonsuu",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "lPZiWjIyk2YdhbOF",
+    "name": "Yonsuu",
+    "level": 11,
+    "art": "yonsuu.webp"
+  },
+  {
+    "id": "wereant_sentinel",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "lcxS04lmWsTMn0Te",
+    "name": "Wereant Sentinel",
+    "level": 19,
+    "art": "wereant-sentinel.webp"
+  },
+  {
+    "id": "taon",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "m842SrbNueOnkFZk",
+    "name": "Taon",
+    "level": 15,
+    "art": "taon.webp"
+  },
+  {
+    "id": "anadi_lurker",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "no9k3lpGXgF3uzUV",
+    "name": "Anadi Lurker",
+    "level": 3,
+    "art": "anadi-lurker.webp"
   }
 ]
