@@ -38462,5 +38462,165 @@
     "name": "Derhii",
     "level": 5,
     "art": "derhii.webp"
+  },
+  {
+    "id": "fabrina_the_spinster",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "TQXPhj5Adm4pfX31",
+    "name": "Fabrina The Spinster",
+    "level": 20,
+    "art": "fabrina-the-spinster.webp"
+  },
+  {
+    "id": "suvarden",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "UQabwMtqQucqBDsy",
+    "name": "Suvarden",
+    "level": 7,
+    "art": "suvarden.webp"
+  },
+  {
+    "id": "quoppopak_mummy",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "VCn8GC3XXCES5Cns",
+    "name": "Quoppopak Mummy",
+    "level": 13,
+    "art": "quoppopak-mummy.webp"
+  },
+  {
+    "id": "usilket",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "VoGTpuwRkzzqwMgS",
+    "name": "Usilket",
+    "level": 13,
+    "art": "usilket.webp"
+  },
+  {
+    "id": "diskrasia_the_sharp",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "WddCUSjH70mHmzK3",
+    "name": "Diskrasia The Sharp",
+    "level": 20,
+    "art": "diskrasia-the-sharp.webp"
+  },
+  {
+    "id": "uniila",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "WguseVujp1LjEzq4",
+    "name": "Uniila",
+    "level": 10,
+    "art": "uniila.webp"
+  },
+  {
+    "id": "raven_nicoletta",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "XJocGEuiyg9TJiti",
+    "name": "Raven Nicoletta",
+    "level": 20,
+    "art": "raven-nicoletta.webp"
+  },
+  {
+    "id": "raskus",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "Yg5xl1lu0211JVi7",
+    "name": "Raskus",
+    "level": 10,
+    "art": "raskus.webp"
+  },
+  {
+    "id": "fate_s_prophet",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "ZBMuaCCbIdv8euNx",
+    "name": "Fate's Prophet",
+    "level": 14,
+    "art": "fate-s-prophet.webp"
+  },
+  {
+    "id": "ndede",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "Zglw4NiZRVgmuI5x",
+    "name": "Ndede",
+    "level": 15,
+    "art": "ndede.webp"
+  },
+  {
+    "id": "storied_harrowkin",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "a3NvKzSDBQzPwCc4",
+    "name": "Storied Harrowkin",
+    "level": 10,
+    "art": "storied-harrowkin.webp"
+  },
+  {
+    "id": "torgral",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "a5B1GrGkM97l20Wk",
+    "name": "Torgral",
+    "level": 15,
+    "art": "torgral.webp"
+  },
+  {
+    "id": "the_prince_of_wolves",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "asagrj8H4W7ioops",
+    "name": "The Prince of Wolves",
+    "level": 19,
+    "art": "the-prince-of-wolves.webp"
+  },
+  {
+    "id": "bhanyada_scavenger",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "ax9j12x0JqBBPE5M",
+    "name": "Bhanyada Scavenger",
+    "level": 8,
+    "art": "bhanyada-scavenger.webp"
+  },
+  {
+    "id": "hurlilu",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "bmCBmw4pQeEIelkY",
+    "name": "Hurlilu",
+    "level": 11,
+    "art": "hurlilu.webp"
+  },
+  {
+    "id": "harpy_warbird",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "bsjCqkz0jIv9LOBS",
+    "name": "Harpy Warbird",
+    "level": 11,
+    "art": "harpy-warbird.webp"
+  },
+  {
+    "id": "svaryr_soldier",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "c5PsLzWosNiKXU6o",
+    "name": "Svaryr Soldier",
+    "level": 16,
+    "art": "svaryr-soldier.webp"
+  },
+  {
+    "id": "the_wanderer",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "cm2OW6wghO7xIC0R",
+    "name": "The Wanderer",
+    "level": 17,
+    "art": "the-wanderer.webp"
+  },
+  {
+    "id": "mivanian_soldier",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "d68XkPVTpU42q8Gj",
+    "name": "Mivanian Soldier",
+    "level": 8,
+    "art": "mivanian-soldier.webp"
+  },
+  {
+    "id": "the_teamster",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "dbzt5TU3fXSManTU",
+    "name": "The Teamster",
+    "level": 17,
+    "art": "the-teamster.webp"
   }
 ]
