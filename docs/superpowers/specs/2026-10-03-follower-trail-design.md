@@ -11,10 +11,10 @@ Trail source: **reconstruct with `findPath`** (chosen over `_movement.waypoints`
 ## Design
 
 ### 1. Trail state
-- Pure `extendTrail(trail, fromCell, toCell, isBlocked, bounds, maxLen)` in `dungeon-follow-mechanics.mjs`. Trail is newest-first: `trail[0]` is the leader's current cell. It runs `findPath(fromCell, toCell, ...)`, prepends the path's cells (excluding `fromCell`) newest-first, and trims to `maxLen`. `maxLen` = marching-order length + 3.
+- Pure `extendTrail(trail, toCell, isBlocked, bounds, maxLen)` (uses `trail[0]` as the previous cell) in `dungeon-follow-mechanics.mjs`. Trail is newest-first: `trail[0]` is the leader's current cell. It runs `findPath(trail[0], toCell, ...)`, prepends the path's cells (excluding `fromCell`) newest-first, and trims to `maxLen`. `maxLen` = marching-order length + 3.
 - No path (e.g. teleport) or no previous cell (first observation) resets the trail to `[toCell]`.
 - `dungeon-follow.mjs` holds a per-scene `Map` of trails (like `recentlyWrittenByUs`). `followLeaderIfDue` updates it on each leader `updateToken`, comparing the leader's `_source` cell with `trail[0]`. Only the GM client moves followers, and non-GM hosts relay there, so the Map lives on the GM client.
-- The trail is cleared on combat start, a new dungeon run, and scene change.
+- The trail is dropped lazily: on any leader/token position change seen during combat. A leader walking back over its own route collapses the trail. Run start and scene change self-heal (a stale trail either no-paths and resets, or keeps only the newest cells).
 
 ### 2. Follower targeting
 - In marching order, follower `i` (0-based) aims for `trail[i + 1]`.
