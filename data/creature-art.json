@@ -40158,5 +40158,37 @@
     "name": "Death Tower Necromancer",
     "level": 10,
     "art": "death-tower-necromancer.webp"
+  },
+  {
+    "id": "one_eye_phantom",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "x727noUHxyzpCDfb",
+    "name": "One Eye Phantom",
+    "level": 6,
+    "art": "one-eye-phantom.webp"
+  },
+  {
+    "id": "orc_hunter",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "xd35No1x2n1MDVCm",
+    "name": "Orc Hunter",
+    "level": 9,
+    "art": "orc-hunter.webp"
+  },
+  {
+    "id": "aurochs",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "y7LCTsOl0bTKl33q",
+    "name": "Aurochs",
+    "level": 3,
+    "art": "aurochs.webp"
+  },
+  {
+    "id": "bull_of_zagresh",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "z6pDCpT7WDIWTaKn",
+    "name": "Bull of Zagresh",
+    "level": 7,
+    "art": "bull-of-zagresh.webp"
   }
 ]

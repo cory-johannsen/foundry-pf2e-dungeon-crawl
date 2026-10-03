@@ -1810,3 +1810,7 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 188,floodslain-wolf,Floodslain Wolf,2,beast,accept,,comfyui,
 188,oracle-of-zagresh,Oracle of Zagresh,10,beast,accept,,comfyui,
 188,death-tower-necromancer,Death Tower Necromancer,10,beast,accept,,comfyui,
+189,one-eye-phantom,One Eye Phantom,6,beast,accept,,comfyui,
+189,orc-hunter,Orc Hunter,9,humanoid,accept,,comfyui,
+189,aurochs,Aurochs,3,beast,accept,,comfyui,
+189,bull-of-zagresh,Bull of Zagresh,7,beast,accept,,comfyui,
