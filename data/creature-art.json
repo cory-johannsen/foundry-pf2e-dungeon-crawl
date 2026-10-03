@@ -38302,5 +38302,165 @@
     "name": "Voricose",
     "level": 15,
     "art": "voricose.webp"
+  },
+  {
+    "id": "the_joke",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "EkPs0okirh66YKa0",
+    "name": "The Joke",
+    "level": 17,
+    "art": "the-joke.webp"
+  },
+  {
+    "id": "uniila_occultist",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "F902rCNyW8cVyBEp",
+    "name": "Uniila Occultist",
+    "level": 10,
+    "art": "uniila-occultist.webp"
+  },
+  {
+    "id": "the_unicorn",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "GF2jJ55guDQX3sWt",
+    "name": "The Unicorn",
+    "level": 17,
+    "art": "the-unicorn.webp"
+  },
+  {
+    "id": "the_betrayal",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "GzkJGkSYO512zr80",
+    "name": "The Betrayal",
+    "level": 20,
+    "art": "the-betrayal.webp"
+  },
+  {
+    "id": "the_fool",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "H1gnvsCIzt89left",
+    "name": "The Fool",
+    "level": 17,
+    "art": "the-fool.webp"
+  },
+  {
+    "id": "the_dance",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "HncSxwlRvg3gtlks",
+    "name": "The Dance",
+    "level": 17,
+    "art": "the-dance.webp"
+  },
+  {
+    "id": "shaldar_falls_far",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "IKlSxZfyN1wRZsQn",
+    "name": "Shaldar Falls-Far",
+    "level": 6,
+    "art": "shaldar-falls-far.webp"
+  },
+  {
+    "id": "the_keeper",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "Ig4g6cJOqCVOJiLv",
+    "name": "The Keeper",
+    "level": 21,
+    "art": "the-keeper.webp"
+  },
+  {
+    "id": "markish_aghayarea",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "J7QJMfQZlOd7DOq5",
+    "name": "Markish Aghayarea",
+    "level": 15,
+    "art": "markish-aghayarea.webp"
+  },
+  {
+    "id": "mighty_bul_gae",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "JkEOtgyLkiuw5Nod",
+    "name": "Mighty Bul-Gae",
+    "level": 17,
+    "art": "mighty-bul-gae.webp"
+  },
+  {
+    "id": "guardian_aluum",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "KPwAtJ0wFmMTFfWV",
+    "name": "Guardian Aluum",
+    "level": 13,
+    "art": "guardian-aluum.webp"
+  },
+  {
+    "id": "gegnir",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "KgwkUtJ8czIC0KFj",
+    "name": "Gegnir",
+    "level": 20,
+    "art": "gegnir.webp"
+  },
+  {
+    "id": "the_queen_mother",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "KxJBLDk06713Aupl",
+    "name": "The Queen Mother",
+    "level": 17,
+    "art": "the-queen-mother.webp"
+  },
+  {
+    "id": "bolti_sorrinson",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "LhyMBLVsJMaUKGME",
+    "name": "Bolti Sorrinson",
+    "level": 20,
+    "art": "bolti-sorrinson.webp"
+  },
+  {
+    "id": "the_trader",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "M8Ud2zb5KwfocEd2",
+    "name": "The Trader",
+    "level": 17,
+    "art": "the-trader.webp"
+  },
+  {
+    "id": "hala_the_rod",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "P604YfY14wo4Uu56",
+    "name": "Hala The Rod",
+    "level": 20,
+    "art": "hala-the-rod.webp"
+  },
+  {
+    "id": "the_courtesan",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "Q2LlaVrQAl5BxG0E",
+    "name": "The Courtesan",
+    "level": 17,
+    "art": "the-courtesan.webp"
+  },
+  {
+    "id": "sickened_doprillu",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "QiRja8LrBQUwh6St",
+    "name": "Sickened Doprillu",
+    "level": 14,
+    "art": "sickened-doprillu.webp"
+  },
+  {
+    "id": "mogaran",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "RLuLdBW6SSs9u2hL",
+    "name": "Mogaran",
+    "level": 17,
+    "art": "mogaran.webp"
+  },
+  {
+    "id": "derhii",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "Rb85EObfBTL5Q3tU",
+    "name": "Derhii",
+    "level": 5,
+    "art": "derhii.webp"
   }
 ]
