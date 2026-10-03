@@ -39262,5 +39262,165 @@
     "name": "Ulat-Kini Mindreaver",
     "level": 7,
     "art": "ulat-kini-mindreaver.webp"
+  },
+  {
+    "id": "ancestor_statue",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "igzgRlwFmL8LnO4x",
+    "name": "Ancestor Statue",
+    "level": 3,
+    "art": "ancestor-statue.webp"
+  },
+  {
+    "id": "ashrin",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "jJbVPd1M6RlZP8kA",
+    "name": "Ashrin",
+    "level": 9,
+    "art": "ashrin.webp"
+  },
+  {
+    "id": "skibrellon",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "jcd1gtnFTvQ3jzPS",
+    "name": "Skibrellon",
+    "level": 4,
+    "art": "skibrellon.webp"
+  },
+  {
+    "id": "gray_worm",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "lZQuFJzcKp6xXWm1",
+    "name": "Gray Worm",
+    "level": 11,
+    "art": "gray-worm.webp"
+  },
+  {
+    "id": "fazil",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "nZRBTydsYvrh40xu",
+    "name": "Fazil",
+    "level": 1,
+    "art": "fazil.webp"
+  },
+  {
+    "id": "hryngar_rager",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "oaVcYBWbsXKoIyjR",
+    "name": "Hryngar Rager",
+    "level": 6,
+    "art": "hryngar-rager.webp"
+  },
+  {
+    "id": "ulki",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "pxumZcF8zSjJ3B7g",
+    "name": "Ulki",
+    "level": 1,
+    "art": "ulki.webp"
+  },
+  {
+    "id": "dwarven_monster_hunter",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "rUZMrUyOucemrMrt",
+    "name": "Dwarven Monster Hunter",
+    "level": 6,
+    "art": "dwarven-monster-hunter.webp"
+  },
+  {
+    "id": "redcap_cavalry",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "rV042V7gXV9vzlXx",
+    "name": "Redcap Cavalry",
+    "level": 6,
+    "art": "redcap-cavalry.webp"
+  },
+  {
+    "id": "glacial_worm",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "rlIjgTlvztbgQwXw",
+    "name": "Glacial Worm",
+    "level": 16,
+    "art": "glacial-worm.webp"
+  },
+  {
+    "id": "sporeborn_sheep",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "sUSrjcHVQATWVNeV",
+    "name": "Sporeborn Sheep",
+    "level": 1,
+    "art": "sporeborn-sheep.webp"
+  },
+  {
+    "id": "hagegraf_royal_guard",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "snj3rBPBbhKNmRZT",
+    "name": "Hagegraf Royal Guard",
+    "level": 5,
+    "art": "hagegraf-royal-guard.webp"
+  },
+  {
+    "id": "caligni_assassin",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "vyzatSrJ5IAUJh7O",
+    "name": "Caligni Assassin",
+    "level": 8,
+    "art": "caligni-assassin.webp"
+  },
+  {
+    "id": "zivzeb",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "wakAqAhokUT6qYxR",
+    "name": "Zivzeb",
+    "level": 4,
+    "art": "zivzeb.webp"
+  },
+  {
+    "id": "flames_of_taargick",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "xbaQfH3eVSR1rGNd",
+    "name": "Flames of Taargick",
+    "level": 11,
+    "art": "flames-of-taargick.webp"
+  },
+  {
+    "id": "heldin_ulgincamp",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "xuKlDtvqQvbpGWt4",
+    "name": "Heldin Ulgincamp",
+    "level": 1,
+    "art": "heldin-ulgincamp.webp"
+  },
+  {
+    "id": "hryngar_forgepriest",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "y2avI1GGn9DAKo86",
+    "name": "Hryngar Forgepriest",
+    "level": 6,
+    "art": "hryngar-forgepriest.webp"
+  },
+  {
+    "id": "giant_bloodseeker",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "z6ppbqLxzV2yoVV8",
+    "name": "Giant Bloodseeker",
+    "level": 2,
+    "art": "giant-bloodseeker.webp"
+  },
+  {
+    "id": "hyphae_tyrant",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "zMoOfK6QSycciTaG",
+    "name": "Hyphae Tyrant",
+    "level": 4,
+    "art": "hyphae-tyrant.webp"
+  },
+  {
+    "id": "stonemaker",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "zWtfGN6uugDaRtcS",
+    "name": "Stonemaker",
+    "level": 5,
+    "art": "stonemaker.webp"
   }
 ]
