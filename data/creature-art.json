@@ -38142,5 +38142,165 @@
     "name": "Noppera-bo Occultist",
     "level": 2,
     "art": "noppera-bo-occultist.webp"
+  },
+  {
+    "id": "trexima_butoi",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "25cRUcUTP3rK5qjU",
+    "name": "Trexima Butoi",
+    "level": 16,
+    "art": "trexima-butoi.webp"
+  },
+  {
+    "id": "crystalline_sentinel",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "26mSMWZwuYBRDhBM",
+    "name": "Crystalline Sentinel",
+    "level": 11,
+    "art": "crystalline-sentinel.webp"
+  },
+  {
+    "id": "crystal_sentinel",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "2J1wbM7u7rU7yDzo",
+    "name": "Crystal Sentinel",
+    "level": 13,
+    "art": "crystal-sentinel.webp"
+  },
+  {
+    "id": "demongate_colossus",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "2crt0oeOnu3G3Nhw",
+    "name": "Demongate Colossus",
+    "level": 14,
+    "art": "demongate-colossus.webp"
+  },
+  {
+    "id": "xiuli_cachu",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "31xsWAhXQnk2jfIx",
+    "name": "Xiuli Cachu",
+    "level": 13,
+    "art": "xiuli-cachu.webp"
+  },
+  {
+    "id": "ephialtes",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "334vtiUd5J507PsX",
+    "name": "Ephialtes",
+    "level": 16,
+    "art": "ephialtes.webp"
+  },
+  {
+    "id": "endlo_kiver",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "3OE96zZHIAnMbYWj",
+    "name": "Endlo Kiver",
+    "level": 12,
+    "art": "endlo-kiver.webp"
+  },
+  {
+    "id": "the_crows",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "4kD2KUouTP95mkxy",
+    "name": "The Crows",
+    "level": 17,
+    "art": "the-crows.webp"
+  },
+  {
+    "id": "the_peacock",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "58rzKemMr1sFBTfv",
+    "name": "The Peacock",
+    "level": 17,
+    "art": "the-peacock.webp"
+  },
+  {
+    "id": "kannijo",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "590fsfQ1S0dF1C3Z",
+    "name": "Kannijo",
+    "level": 13,
+    "art": "kannijo.webp"
+  },
+  {
+    "id": "fabled_harrowkin",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "5jXQKIwhlOfs9F6e",
+    "name": "Fabled Harrowkin",
+    "level": 17,
+    "art": "fabled-harrowkin.webp"
+  },
+  {
+    "id": "the_twin",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "6aK7JsTs5zVTjyZN",
+    "name": "The Twin",
+    "level": 17,
+    "art": "the-twin.webp"
+  },
+  {
+    "id": "vehanezhad",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "6z5AD99UV8IWMtRU",
+    "name": "Vehanezhad",
+    "level": 18,
+    "art": "vehanezhad.webp"
+  },
+  {
+    "id": "simple_harrowkin",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "7SoxdXIjPQzUahDz",
+    "name": "Simple Harrowkin",
+    "level": 4,
+    "art": "simple-harrowkin.webp"
+  },
+  {
+    "id": "blade_magus",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "7ze52pL9OFjZBGWa",
+    "name": "Blade Magus",
+    "level": 11,
+    "art": "blade-magus.webp"
+  },
+  {
+    "id": "queen_kawlinawk",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "88n1uQqK5XbIGnUF",
+    "name": "Queen Kawlinawk",
+    "level": 13,
+    "art": "queen-kawlinawk.webp"
+  },
+  {
+    "id": "sonnorae",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "9CR1pTY23jFPi5Xn",
+    "name": "Sonnorae",
+    "level": 18,
+    "art": "sonnorae.webp"
+  },
+  {
+    "id": "ghalzarokh",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "9uUmyAyVVq3bowo7",
+    "name": "Ghalzarokh",
+    "level": 15,
+    "art": "ghalzarokh.webp"
+  },
+  {
+    "id": "dieral_myrnese",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "Bn7bG2gbyXYj7mzT",
+    "name": "Dieral Myrnese",
+    "level": 5,
+    "art": "dieral-myrnese.webp"
+  },
+  {
+    "id": "voricose",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "Cj0oleWD4YOmT1Mn",
+    "name": "Voricose",
+    "level": 15,
+    "art": "voricose.webp"
   }
 ]
