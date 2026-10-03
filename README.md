@@ -1,6 +1,6 @@
 # PF2e Dungeon Crawl
 
-Foundry VTT v13 module for Pathfinder 2E: procedurally sequenced dungeon
+Foundry VTT v14 module for Pathfinder 2E: procedurally sequenced dungeon
 rooms, encounter generation, traps, puzzles, skill challenges and
 GM-less-capable combat AI, driven by a swappable generator interface.
 
@@ -12,7 +12,7 @@ Install by manifest URL in Foundry:
 https://raw.githubusercontent.com/cory-johannsen/foundry-pf2e-dungeon-crawl/main/module.json
 ```
 
-Requires the `pf2e` system (minimum v6.0.0) and Foundry v13. No other
+Requires the `pf2e` system (minimum v6.0.0) and Foundry v14. No other
 module is required.
 
 ## Usage

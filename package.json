@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "description": "Foundry VTT v13 module: GM-less-capable dungeon crawl for Pathfinder 2E.",
+  "description": "Foundry VTT v14 module: GM-less-capable dungeon crawl for Pathfinder 2E.",
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",

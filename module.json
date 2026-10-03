@@ -2,9 +2,9 @@
   "id": "pf2e-dungeon-crawl",
   "title": "PF2e Dungeon Crawl",
   "description": "GM-less-capable dungeon-crawl subsystem for Pathfinder 2E: procedurally sequenced rooms, encounter generation, traps, puzzles, skill challenges and combat AI, driven by a swappable generator interface.",
-  "version": "0.55.11",
+  "version": "0.55.12",
   "compatibility": {
-    "minimum": "13",
+    "minimum": "14",
     "verified": "14"
   },
   "authors": [{ "name": "Cory Johannsen" }],
