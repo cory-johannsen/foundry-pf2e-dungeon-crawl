@@ -39422,5 +39422,181 @@
     "name": "Stonemaker",
     "level": 5,
     "art": "stonemaker.webp"
+  },
+  {
+    "id": "tallow_guardian",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "2D2sECCnlFT8X8OQ",
+    "name": "Tallow Guardian",
+    "level": 7,
+    "art": "tallow-guardian.webp"
+  },
+  {
+    "id": "dismemberment_table",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "4kAU6bQdEZYCqEh7",
+    "name": "Dismemberment Table",
+    "level": 5,
+    "art": "dismemberment-table.webp"
+  },
+  {
+    "id": "drazmorg_the_damned",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "BWOdyTjHnV153RDK",
+    "name": "Drazmorg The Damned",
+    "level": 8,
+    "art": "drazmorg-the-damned.webp"
+  },
+  {
+    "id": "id_ooze",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "C5t3ypLIiJGSUMg6",
+    "name": "Id Ooze",
+    "level": 7,
+    "art": "id-ooze.webp"
+  },
+  {
+    "id": "vargouille_erw2p",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "Erw2pHatcQgUmqop",
+    "name": "Vargouille",
+    "level": 2,
+    "art": "vargouille.webp"
+  },
+  {
+    "id": "the_disciples",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "IYrz3P4rsRr0TnmK",
+    "name": "The Disciples",
+    "level": 7,
+    "art": "the-disciples.webp"
+  },
+  {
+    "id": "ygrik",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "IZ34VEavH7xRaaeI",
+    "name": "Ygrik",
+    "level": 2,
+    "art": "ygrik.webp"
+  },
+  {
+    "id": "grick_labut",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "LAButypiGYfsrGis",
+    "name": "Grick",
+    "level": 3,
+    "art": "grick.webp"
+  },
+  {
+    "id": "narlynark",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "LYSdv8QlMgV0U5Zq",
+    "name": "Narlynark",
+    "level": 5,
+    "art": "narlynark.webp"
+  },
+  {
+    "id": "edgrin_galesong",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "NGofilVufDzya0uJ",
+    "name": "Edgrin Galesong",
+    "level": 2,
+    "art": "edgrin-galesong.webp"
+  },
+  {
+    "id": "kapmek",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "QbV3wJXAyLz4Drad",
+    "name": "Kapmek",
+    "level": 4,
+    "art": "kapmek.webp"
+  },
+  {
+    "id": "lekmek",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "QhJH546TLP0aQKiR",
+    "name": "Lekmek",
+    "level": 3,
+    "art": "lekmek.webp"
+  },
+  {
+    "id": "cilios",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "QkoVg6ETUr2XMueM",
+    "name": "Cilios",
+    "level": 6,
+    "art": "cilios.webp"
+  },
+  {
+    "id": "darkmantle",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "T4ZhpGRLsNT1bKoS",
+    "name": "Darkmantle",
+    "level": 1,
+    "art": "darkmantle.webp"
+  },
+  {
+    "id": "ashen_guardian",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "Wem1kZUef1ZlG79G",
+    "name": "Ashen Guardian",
+    "level": 4,
+    "art": "ashen-guardian.webp"
+  },
+  {
+    "id": "ulizmila_s_cauldron",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "WukFzZnikG2vg57F",
+    "name": "Ulizmila's Cauldron",
+    "level": 2,
+    "art": "ulizmila-s-cauldron.webp"
+  },
+  {
+    "id": "grimbal",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "XH1Wqnxy8Cq9Z5Cn",
+    "name": "Grimbal",
+    "level": 6,
+    "art": "grimbal.webp"
+  },
+  {
+    "id": "foolish_hunter",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "btIGNqj5SqOAKPbS",
+    "name": "Foolish Hunter",
+    "level": -1,
+    "art": "foolish-hunter.webp"
+  },
+  {
+    "id": "gurtlekep",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "bwJ79rNvV7Elia5Q",
+    "name": "Gurtlekep",
+    "level": 2,
+    "art": "gurtlekep.webp"
+  },
+  {
+    "id": "albino_giant_bat",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "cRD9K6jsJCF4ZfDh",
+    "name": "Albino Giant Bat",
+    "level": 5,
+    "art": "albino-giant-bat.webp"
+  },
+  {
+    "id": "jekkajak",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "dcuPAoJUTKSSFx93",
+    "name": "Jekkajak",
+    "level": 4,
+    "art": "jekkajak.webp"
+  },
+  {
+    "id": "hymmir_urath",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "gGtA1Dhiai4jOTte",
+    "name": "Hymmir Urath",
+    "level": 5,
+    "art": "hymmir-urath.webp"
   }
 ]
