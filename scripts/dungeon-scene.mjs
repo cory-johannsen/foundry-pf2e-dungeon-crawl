@@ -71,7 +71,7 @@ import {
   retreatTo,
   markStubOpened,
 } from "./dungeon-runner.mjs";
-import { canRetreat, hasNoWayForward, roomDisplayLabel, roomTileName } from "./dungeon-retreat.mjs";
+import { canRetreat, hasNoWayForward, roomDisplayLabel, roomTileName, openChildren } from "./dungeon-retreat.mjs";
 import { depthBiasFor, applyDifficultyCap } from "./dungeon-deck.mjs";
 import { startCombatForRoom } from "./dungeon-combat.mjs";
 import { playDoorSound } from "./dungeon-sound.mjs";
@@ -871,6 +871,44 @@ export async function relockDoorFromRoom(scene, fromRoomId, toRoomId) {
       w.getFlag(MODULE_ID, "dungeonDoorFromRoomId") === fromRoomId,
   );
   if (revealWall) await revealWall.update({ ds: CONST.WALL_DOOR_STATES.CLOSED });
+}
+
+// #175: shared by relockSiblingDoors / reopenSiblingDoors -- sets the progress-gate
+// door (`dungeonDoorFromRoomId` -> `dungeonDoorToRoomId`) of each target. Matches both
+// ends of the edge, like unlockDoorsFromRoom. Hidden doors and stub doors never come
+// through here (callers pass real, open children only).
+async function setGateDoorState(scene, fromRoomId, toRoomIds, ds, sound) {
+  for (const toId of toRoomIds) {
+    const wall = scene.walls.find(
+      (w) =>
+        w.getFlag(MODULE_ID, "dungeonDoorToRoomId") === toId &&
+        w.getFlag(MODULE_ID, "dungeonDoorFromRoomId") === fromRoomId,
+    );
+    if (wall) {
+      await wall.update({ ds });
+      playDoorSound(sound);
+    }
+  }
+}
+
+/** #175: once the party commits to `keepRoomId` out of `parentId`, the parent's other
+ * still-open children must stop being physically openable -- their reveal is only ever
+ * resolved against the party's CURRENT room, so an unlocked sibling door would open
+ * with nothing happening. `siblingIds` is the parent's open children
+ * (dungeon-retreat.mjs `openChildren`); `keepRoomId` is filtered out defensively since
+ * a run without a retreatPath doesn't count the entered room as spent. Retreat
+ * (`retreatToFork`) and undo (`undoRoomEntry`) hand these doors back with
+ * `reopenSiblingDoors`. */
+export async function relockSiblingDoors(scene, parentId, keepRoomId, siblingIds) {
+  const targets = siblingIds.filter((id) => id !== keepRoomId);
+  await setGateDoorState(scene, parentId, targets, CONST.WALL_DOOR_STATES.LOCKED, "lock");
+}
+
+/** #175: inverse of relockSiblingDoors -- closes (unlocks) the gate doors of
+ * `siblingIds` out of `parentId`. Unlike unlockDoorsFromRoom it leaves the parent's stub
+ * doors alone. */
+export async function reopenSiblingDoors(scene, parentId, siblingIds) {
+  await setGateDoorState(scene, parentId, siblingIds, CONST.WALL_DOOR_STATES.CLOSED, "unlock");
 }
 
 /**
@@ -1826,7 +1864,10 @@ export async function handleDungeonDoorOpened(sceneId, wallId, deps = {}) {
       (state.history ?? []).some((h) => h.roomId === roomId)
     ) {
       playDoorSound("open");
-      await advanceToRoom({ sceneId, roomId, revealedTokenIds: [] });
+      const revisit = await advanceToRoom({ sceneId, roomId, revealedTokenIds: [] });
+      if (revisit.ok) {
+        await relockSiblingDoors(scene, state.currentRoomId, roomId, openChildren(revisit.state, state.currentRoomId));
+      }
       const { rank, col } = state.layoutPositionByRoomId[roomId];
       focusCameraOnRoom(scene, roomId, rank, col, state.seed);
       return { autoOpenTracker: false };
@@ -1851,6 +1892,10 @@ export async function handleDungeonDoorOpened(sceneId, wallId, deps = {}) {
       roomId,
       revealedTokenIds,
     });
+    // #175: the party has committed to this branch -- lock its unchosen siblings.
+    if (ok) {
+      await relockSiblingDoors(scene, state.currentRoomId, roomId, openChildren(advancedState, state.currentRoomId));
+    }
     const { rank, col } = state.layoutPositionByRoomId[roomId];
     focusCameraOnRoom(scene, roomId, rank, col, state.seed);
 
@@ -1961,7 +2006,8 @@ export async function announceNoWayForward(scene, state, deps = {}) {
 
 /** #439: turn the party back to the nearest fork. Tokens are teleported
  * FIRST and the run state persisted AFTER, so a failed move leaves the run
- * in the dead end with the button still showing. Never unlocks doors. */
+ * in the dead end with the button still showing. Re-opens (#175) the still-open
+ * children of the fork it returns to, which advancing into the other branch had locked. */
 export async function retreatToFork(
   sceneId,
   { runnerRetreatTo = retreatTo } = {},
@@ -2004,6 +2050,7 @@ export async function retreatToFork(
     combatActive: sceneHasActiveCombat(scene),
   });
   if (!result.ok) return { ok: false, reason: result.reason };
+  await reopenSiblingDoors(scene, target, openChildren(result.state, target));
   focusCameraOnRoom(scene, target, rank, col, state.seed);
   const walled = (state.stubEdges?.[state.currentRoomId] ?? []).length === 0;
   await ChatMessage.create({
@@ -2030,6 +2077,12 @@ export async function undoRoomEntry(sceneId) {
   const entry = state.lastAutoEntry;
   await hideTokens(scene, entry.revealedTokenIds);
   await relockDoorFromRoom(scene, entry.fromRoomId, entry.roomId);
+  // #175: the entry had re-locked the parent's other open children; hand them back.
+  await reopenSiblingDoors(
+    scene,
+    entry.fromRoomId,
+    openChildren(state, entry.fromRoomId).filter((id) => id !== entry.roomId),
+  );
 
   const previousRoomId = entry.fromRoomId;
   const { rank, col } = state.layoutPositionByRoomId[previousRoomId];

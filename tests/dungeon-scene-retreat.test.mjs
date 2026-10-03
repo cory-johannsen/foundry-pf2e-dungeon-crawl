@@ -14,7 +14,7 @@ globalThis.foundry = {
   applications: { api: { ApplicationV2: class {}, HandlebarsApplicationMixin: (Base) => Base } },
   utils: { escapeHTML: (s) => String(s) },
 };
-const { moveTokensToRoom, handleDungeonDoorOpened, retreatToFork, announceNoWayForward } = await import('../scripts/dungeon-scene.mjs');
+const { moveTokensToRoom, handleDungeonDoorOpened, retreatToFork, announceNoWayForward, undoRoomEntry } = await import('../scripts/dungeon-scene.mjs');
 const { replaceRunState, getRunState } = await import('../scripts/dungeon-runner.mjs');
 const { DUNGEON_ACTIONS } = await import('../scripts/dungeon-remote.mjs');
 const { isAuthorizedRequest } = await import('../scripts/dungeon-permissions.mjs');
@@ -26,10 +26,12 @@ const MODULE_ID = 'pf2e-dungeon-crawl';
 const SID = 's';
 
 function makeScene({ walls = [], tokens = [], log = [], failMove = false } = {}) {
-  const wallMap = new Map(walls.map((w) => [w.id, w]));
+  // Like Foundry's collection: iterable / find()-able, plus a Map-style get (#175's
+  // sibling re-lock walks scene.walls).
+  const wallList = Object.assign([...walls], { get: (id) => walls.find((w) => w.id === id) });
   const scene = {
     id: SID,
-    walls: wallMap,
+    walls: wallList,
     tokens: Object.assign([...tokens], {}),
     updates: [],
     async updateEmbeddedDocuments(type, updates, options) {
@@ -77,6 +79,7 @@ function installGlobals({ isGM = true, combats = [], party = [] } = {}) {
     combats,
     actors: { party: { members: party.map((id) => ({ id })) } },
   };
+  globalThis.CONST = { WALL_DOOR_STATES: { CLOSED: 0, OPEN: 1, LOCKED: 2 } };
   globalThis.ChatMessage = { create: async (d) => { chat.push(d); } };
   globalThis.ui = { notifications: { warn: (m) => warns.push(m), error: () => {} } };
 }
@@ -390,5 +393,103 @@ describe('a rest room whose every exit was walled announces the dead end (#585)'
     expect(texts[0]).toBe('PF2EDC.Dungeon.Retreat.NoWayForward');
     expect(chat[1].flags[MODULE_ID].retreatCard).toEqual({ sceneId: SID });
     expect(getRunState(SID).currentRoomId).toBe('r');
+  });
+});
+
+describe('unchosen sibling gate doors lock/unlock with the path (#175)', () => {
+  const LOCKED = 2; // CONST.WALL_DOOR_STATES.LOCKED
+  const CLOSED = 0;
+  // A gate (progress) door from `from` into `to`, with an update spy.
+  const gate = (id, from, to) => {
+    const w = wall(id, { dungeonDoorToRoomId: to, dungeonDoorFromRoomId: from });
+    w.update = vi.fn(async () => {});
+    return w;
+  };
+  const hiddenGate = (id, from, to) => {
+    const w = wall(id, { dungeonDoorToRoomId: to, dungeonDoorFromRoomId: from, dungeonHiddenDoorForEdge: `${from}->${to}` });
+    w.update = vi.fn(async () => {});
+    return w;
+  };
+  const stub = (id, from, to) => {
+    const w = wall(id, { dungeonStubDoorFor: to, dungeonDoorFromRoomId: from });
+    w.update = vi.fn(async () => {});
+    return w;
+  };
+  const sceneWith = (walls, extra = {}) => makeScene({ walls, ...extra });
+  const states = (w) => w.update.mock.calls.map(([c]) => c.ds);
+  beforeEach(() => installGlobals({ party: ['human'] }));
+
+  it('advancing into one child re-locks the other open child of the same parent', async () => {
+    const gA = gate('g-a', 'f', 'a');
+    const gB = gate('g-b', 'f', 'b');
+    const revealB = wall('w-b', { dungeonRevealDoorForSlot: 'b' });
+    scenes.set(SID, sceneWith([gA, gB, revealB]));
+    await seed(v3State({ currentRoomId: 'f', retreatPath: ['room-entry', 'f'], history: [{ roomId: 'f' }] }));
+    await handleDungeonDoorOpened(SID, 'w-b');
+    expect(states(gA)).toEqual([LOCKED]);
+    expect(gB.update).not.toHaveBeenCalled();
+    expect(getRunState(SID).currentRoomId).toBe('b');
+  });
+
+  it('leaves a hidden sibling door and the parent stub doors alone', async () => {
+    const gA = gate('g-a', 'f', 'a');
+    const hidden = hiddenGate('g-h', 'f', 'h');
+    const stubDoor = stub('s-1', 'f', 'g');
+    const revealB = wall('w-b', { dungeonRevealDoorForSlot: 'b' });
+    scenes.set(SID, sceneWith([gA, hidden, stubDoor, revealB]));
+    await seed(v3State({ currentRoomId: 'f', retreatPath: ['room-entry', 'f'], history: [{ roomId: 'f' }] }));
+    await handleDungeonDoorOpened(SID, 'w-b');
+    expect(states(gA)).toEqual([LOCKED]);
+    expect(hidden.update).not.toHaveBeenCalled();
+    expect(stubDoor.update).not.toHaveBeenCalled();
+  });
+
+  it('does not re-lock a sibling that was already judged', async () => {
+    const gA = gate('g-a', 'f', 'a');
+    const revealB = wall('w-b', { dungeonRevealDoorForSlot: 'b' });
+    scenes.set(SID, sceneWith([gA, revealB]));
+    // a was entered and judged before a retreat brought the party back to f
+    await seed(v3State({ currentRoomId: 'f', retreatPath: ['room-entry', 'f'] }));
+    await handleDungeonDoorOpened(SID, 'w-b');
+    expect(gA.update).not.toHaveBeenCalled();
+  });
+
+  it('retreating to a fork re-unlocks only that fork\'s still-open children', async () => {
+    const gA = gate('g-a', 'f', 'a'); // a is judged: stays locked
+    const gB = gate('g-b', 'f', 'b'); // b is open: re-unlocked
+    scenes.set(SID, sceneWith([gA, gB], { tokens: [token('t-h', 'human')] }));
+    await seed(v3State({ stubsOpened: { 'd->g': 1 } }));
+    const res = await retreatToFork(SID);
+    expect(res).toEqual({ ok: true });
+    expect(states(gB)).toEqual([CLOSED]);
+    expect(gA.update).not.toHaveBeenCalled();
+  });
+
+  it('undoing an entry re-unlocks the siblings the entry had re-locked', async () => {
+    const gA = gate('g-a', 'f', 'a');
+    const gB = gate('g-b', 'f', 'b');
+    scenes.set(SID, sceneWith([gA, gB], { tokens: [token('t-h', 'human')] }));
+    await seed(v3State({
+      currentRoomId: 'b', retreatPath: ['room-entry', 'f', 'b'], history: [{ roomId: 'f' }],
+      lastAutoEntry: { roomId: 'b', fromRoomId: 'f', toRoomId: 'b', revealedTokenIds: [] },
+    }));
+    await undoRoomEntry(SID);
+    expect(states(gB)).toEqual([LOCKED]); // relockDoorFromRoom: the entered door
+    expect(states(gA)).toEqual([CLOSED]); // sibling re-opened
+    expect(getRunState(SID).currentRoomId).toBe('f');
+  });
+
+  it('a legacy run without a retreatPath still re-locks siblings but never the entered room', async () => {
+    const gA = gate('g-a', 'f', 'a');
+    const gB = gate('g-b', 'f', 'b');
+    const revealB = wall('w-b', { dungeonRevealDoorForSlot: 'b' });
+    scenes.set(SID, sceneWith([gA, gB, revealB]));
+    const legacy = v3State({ currentRoomId: 'f', history: [{ roomId: 'f' }], layoutVersion: 2 });
+    delete legacy.retreatVersion;
+    delete legacy.retreatPath;
+    await seed(legacy);
+    await handleDungeonDoorOpened(SID, 'w-b');
+    expect(states(gA)).toEqual([LOCKED]);
+    expect(gB.update).not.toHaveBeenCalled();
   });
 });
