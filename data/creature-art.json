@@ -39838,5 +39838,165 @@
     "name": "Troll",
     "level": 5,
     "art": "troll.webp"
+  },
+  {
+    "id": "trighoul",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "JT4zmVuqpKgchInM",
+    "name": "Trighoul",
+    "level": 8,
+    "art": "trighoul.webp"
+  },
+  {
+    "id": "orc_raider",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "K4NtIq73z5X8geQp",
+    "name": "Orc Raider",
+    "level": 8,
+    "art": "orc-raider.webp"
+  },
+  {
+    "id": "wingripper_wyvern_rider",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "K4RHacsVSD3J8i2f",
+    "name": "Wingripper Wyvern Rider",
+    "level": 9,
+    "art": "wingripper-wyvern-rider.webp"
+  },
+  {
+    "id": "otehika_cinder_eater",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "LNFxdtZ3kNteHM1q",
+    "name": "Otehika Cinder Eater",
+    "level": 9,
+    "art": "otehika-cinder-eater.webp"
+  },
+  {
+    "id": "fattened_war_pig",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "M4eyOb9OzF5zO79O",
+    "name": "Fattened War Pig",
+    "level": 6,
+    "art": "fattened-war-pig.webp"
+  },
+  {
+    "id": "porphyry_shield_bearer",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "MR4vpL5yRpNIRc16",
+    "name": "Porphyry Shield Bearer",
+    "level": 5,
+    "art": "porphyry-shield-bearer.webp"
+  },
+  {
+    "id": "zombie_brown_bear",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "MzRUR9y9Iw0blcgl",
+    "name": "Zombie Brown Bear",
+    "level": 3,
+    "art": "zombie-brown-bear.webp"
+  },
+  {
+    "id": "hold_sergeant",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "OsTGE1vwaCTo23Gl",
+    "name": "Hold Sergeant",
+    "level": 5,
+    "art": "hold-sergeant.webp"
+  },
+  {
+    "id": "murshek",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "P9ZEvhySGN9IlsSK",
+    "name": "Murshek",
+    "level": 6,
+    "art": "murshek.webp"
+  },
+  {
+    "id": "flood_ghoul",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "PHF1RyQPb7mrXrr8",
+    "name": "Flood Ghoul",
+    "level": 2,
+    "art": "flood-ghoul.webp"
+  },
+  {
+    "id": "shadefield_spirit",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "QgBvV33i9waJx11D",
+    "name": "Shadefield Spirit",
+    "level": 5,
+    "art": "shadefield-spirit.webp"
+  },
+  {
+    "id": "zdagren_half_ear",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "Qr5yy7M7VJaT0CUi",
+    "name": "Zdagren Half-Ear",
+    "level": 8,
+    "art": "zdagren-half-ear.webp"
+  },
+  {
+    "id": "sklar_quah_warrior",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "VTUgE1F9PblxUebx",
+    "name": "Sklar-Quah Warrior",
+    "level": 8,
+    "art": "sklar-quah-warrior.webp"
+  },
+  {
+    "id": "k_zaard_the_drover",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "XYItaez8M433qfWt",
+    "name": "K'zaard The Drover",
+    "level": 6,
+    "art": "k-zaard-the-drover.webp"
+  },
+  {
+    "id": "blisterwell_oathrisen",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "YQscYvcO7gRiZ6px",
+    "name": "Blisterwell Oathrisen",
+    "level": 7,
+    "art": "blisterwell-oathrisen.webp"
+  },
+  {
+    "id": "old_marrow",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "YhHRxLsSYEwz9mvq",
+    "name": "Old Marrow",
+    "level": 9,
+    "art": "old-marrow.webp"
+  },
+  {
+    "id": "war_auroch",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "Yqv9J9FXRolHhGZ4",
+    "name": "War Auroch",
+    "level": 9,
+    "art": "war-auroch.webp"
+  },
+  {
+    "id": "deathless_zealot_of_zagresh",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "ZAUOoAMR8IfO57jp",
+    "name": "Deathless Zealot of Zagresh",
+    "level": 9,
+    "art": "deathless-zealot-of-zagresh.webp"
+  },
+  {
+    "id": "tooth_fairy_leader",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "ZvzaKiKCmwZ52UJP",
+    "name": "Tooth Fairy Leader",
+    "level": 2,
+    "art": "tooth-fairy-leader.webp"
+  },
+  {
+    "id": "orc_rampager",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "cFDq44ryClce5JYE",
+    "name": "Orc Rampager",
+    "level": 4,
+    "art": "orc-rampager.webp"
   }
 ]
