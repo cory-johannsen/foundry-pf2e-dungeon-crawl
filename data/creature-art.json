@@ -37934,5 +37934,165 @@
     "name": "Silsyche",
     "level": 6,
     "art": "silsyche.webp"
+  },
+  {
+    "id": "phantom_wolf",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "R805QpID53EycZ5E",
+    "name": "Phantom Wolf",
+    "level": 1,
+    "art": "phantom-wolf.webp"
+  },
+  {
+    "id": "sojiruh",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "TVi4RDeqw7GDsxp0",
+    "name": "Sojiruh",
+    "level": 4,
+    "art": "sojiruh.webp"
+  },
+  {
+    "id": "silkwasp_bandit",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "UIdOFWDyWh9ER1RZ",
+    "name": "Silkwasp Bandit",
+    "level": 6,
+    "art": "silkwasp-bandit.webp"
+  },
+  {
+    "id": "animated_axe",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "V67VC975O8iC1Yq2",
+    "name": "Animated Axe",
+    "level": 5,
+    "art": "animated-axe.webp"
+  },
+  {
+    "id": "heart_eating_vulture",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "WenuepXKIpftu95Z",
+    "name": "Heart-Eating Vulture",
+    "level": 4,
+    "art": "heart-eating-vulture.webp"
+  },
+  {
+    "id": "guhdggi",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "Z97fXdQ6kTe7PUIr",
+    "name": "Guhdggi",
+    "level": 5,
+    "art": "guhdggi.webp"
+  },
+  {
+    "id": "corpse_sugi",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "ZzKbQTDlUuyCd0PF",
+    "name": "Corpse Sugi",
+    "level": 12,
+    "art": "corpse-sugi.webp"
+  },
+  {
+    "id": "ghost",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "aWoT0eOTpr7Ugexm",
+    "name": "Ghost",
+    "level": 4,
+    "art": "ghost.webp"
+  },
+  {
+    "id": "algriever",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "amLD0YfFcG8ejrME",
+    "name": "Algriever",
+    "level": 9,
+    "art": "algriever.webp"
+  },
+  {
+    "id": "phantom_raven",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "dGKC9fWrGLTI7zP3",
+    "name": "Phantom Raven",
+    "level": -1,
+    "art": "phantom-raven.webp"
+  },
+  {
+    "id": "mo_douqiu_the_hedonist",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "dP5gbdIHXsYFJCvi",
+    "name": "Mo Douqiu the Hedonist",
+    "level": 2,
+    "art": "mo-douqiu-the-hedonist.webp"
+  },
+  {
+    "id": "meokdan",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "k77t59tuHjiDEXRm",
+    "name": "Meokdan",
+    "level": 2,
+    "art": "meokdan.webp"
+  },
+  {
+    "id": "kalen_bray",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "m9A7aYawYu0zkSFY",
+    "name": "Kalen Bray",
+    "level": 2,
+    "art": "kalen-bray.webp"
+  },
+  {
+    "id": "kugaptee_s_blessing",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "nkayyo1O9RFVBvCW",
+    "name": "Kugaptee's Blessing",
+    "level": 2,
+    "art": "kugaptee-s-blessing.webp"
+  },
+  {
+    "id": "shrine_maiden",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "oai45noF4GX3LZvX",
+    "name": "Shrine Maiden",
+    "level": 9,
+    "art": "shrine-maiden.webp"
+  },
+  {
+    "id": "shrine_caretaker",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "oe7BIYlQXZas3TNE",
+    "name": "Shrine Caretaker",
+    "level": 3,
+    "art": "shrine-caretaker.webp"
+  },
+  {
+    "id": "akashti",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "ozi0MnBHVjQQbfNJ",
+    "name": "Akashti",
+    "level": 10,
+    "art": "akashti.webp"
+  },
+  {
+    "id": "zoudou_the_zealous",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "rYUegSA59suduHs4",
+    "name": "Zoudou the Zealous",
+    "level": 3,
+    "art": "zoudou-the-zealous.webp"
+  },
+  {
+    "id": "mago_kai",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "skJTZHJZgIAZ9oGN",
+    "name": "Mago Kai",
+    "level": 11,
+    "art": "mago-kai.webp"
+  },
+  {
+    "id": "zhi_hui",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "uFg1TnTBpXNYGF9o",
+    "name": "Zhi Hui",
+    "level": 7,
+    "art": "zhi-hui.webp"
   }
 ]
