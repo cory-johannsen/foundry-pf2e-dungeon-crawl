@@ -38094,5 +38094,53 @@
     "name": "Zhi Hui",
     "level": 7,
     "art": "zhi-hui.webp"
+  },
+  {
+    "id": "yuni",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "uQG6HB7OIXaPCwtD",
+    "name": "Yuni",
+    "level": 7,
+    "art": "yuni.webp"
+  },
+  {
+    "id": "kugaptee_s_centipede",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "vY66lXcqlGgwaWah",
+    "name": "Kugaptee's Centipede",
+    "level": 9,
+    "art": "kugaptee-s-centipede.webp"
+  },
+  {
+    "id": "mercenary_enforcer",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "wFcdatjBVDsVzbDO",
+    "name": "Mercenary Enforcer",
+    "level": 6,
+    "art": "mercenary-enforcer.webp"
+  },
+  {
+    "id": "rin",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "xxx8mtBmNnwrGUGO",
+    "name": "Rin",
+    "level": 8,
+    "art": "rin.webp"
+  },
+  {
+    "id": "exorcist",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "z1FBK5Mi6nWxvkn2",
+    "name": "Exorcist",
+    "level": 8,
+    "art": "exorcist.webp"
+  },
+  {
+    "id": "noppera_bo_occultist",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "zhw2TOrXkWyvle5S",
+    "name": "Noppera-bo Occultist",
+    "level": 2,
+    "art": "noppera-bo-occultist.webp"
   }
 ]
