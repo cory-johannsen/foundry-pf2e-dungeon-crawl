@@ -39598,5 +39598,45 @@
     "name": "Hymmir Urath",
     "level": 5,
     "art": "hymmir-urath.webp"
+  },
+  {
+    "id": "kieragan_skross",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "qIOi43L0KcLoqCu6",
+    "name": "Kieragan Skross",
+    "level": 8,
+    "art": "kieragan-skross.webp"
+  },
+  {
+    "id": "thoqqua",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "rWweGgOu9uJVlnra",
+    "name": "Thoqqua",
+    "level": 2,
+    "art": "thoqqua.webp"
+  },
+  {
+    "id": "kerrdremak",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "s2XZc2b1FaZQDnhN",
+    "name": "Kerrdremak",
+    "level": 1,
+    "art": "kerrdremak.webp"
+  },
+  {
+    "id": "dark_talon_kobold",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "x5UScdVKs3e9rsgb",
+    "name": "Dark Talon Kobold",
+    "level": 2,
+    "art": "dark-talon-kobold.webp"
+  },
+  {
+    "id": "king_merlokrep",
+    "pack": "pf2e.crown-of-the-kobold-king-bestiary",
+    "docId": "xDF9jeMsYjrRvuE5",
+    "name": "King Merlokrep",
+    "level": 8,
+    "art": "king-merlokrep.webp"
   }
 ]
