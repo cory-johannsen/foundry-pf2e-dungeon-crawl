@@ -551,10 +551,11 @@ describe("depth-scaled XP ceiling (#293)", () => {
     });
 
   it("maps depth bias to a ceiling tier", () => {
+    expect(xpCeilingTierForDepth(-1)).toBe("trivial");
     expect(xpCeilingTierForDepth(0)).toBe("low");
     expect(xpCeilingTierForDepth(1)).toBe("moderate");
     expect(xpCeilingTierForDepth(2)).toBe("severe");
-    expect(xpCeilingTierForDepth(3)).toBe("severe");
+    expect(xpCeilingTierForDepth(3)).toBe("extreme");
     expect(xpCeilingTierForDepth(null)).toBe("severe");
     expect(xpCeilingTierForDepth(undefined)).toBe("severe");
   });
@@ -581,6 +582,18 @@ describe("depth-scaled XP ceiling (#293)", () => {
     expect((await run({ partySize: 4, depthBias: 0 })).approxXp).toBe(40);
     expect((await run({ partySize: 4, depthBias: 1 })).approxXp).toBe(80);
     expect((await run({ partySize: 4, depthBias: 2 })).approxXp).toBe(120);
+  });
+
+  it("depthBias -1 (Trivial) keeps one creature and names Trivial (#412)", async () => {
+    const roster = await run({ partySize: 4, depthBias: -1 });
+    expect(roster.foes.length).toBeGreaterThanOrEqual(1);
+    expect(roster.approxXp).toBe(40);
+    expect(roster.warnings[0]).toMatch(/capped at Trivial/);
+  });
+
+  it("depthBias 3 (Extreme) admits more than the Severe ceiling (#412)", async () => {
+    const roster = await run({ partySize: 4, depthBias: 3 });
+    expect(roster.approxXp).toBe(160);
   });
 
   it("still always accepts the first slot even above the Low ceiling", async () => {

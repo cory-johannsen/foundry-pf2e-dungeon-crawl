@@ -84,17 +84,20 @@ export function xpBudget(tier, partySize) {
 }
 
 /**
- * The XP ceiling tier for a dungeon room's depth bias (#293): the shallow
- * rooms (bias 0) cap at Low, the middle ones (bias 1) at Moderate, and
- * everything deeper (bias >= 2, the goal room included) at Severe. A missing
+ * The XP ceiling tier for a dungeon room's (effective) depth bias (#293,
+ * extended by #412): below 0 caps at Trivial, 0 at Low, 1 at Moderate, 2 at
+ * Severe, and 3 or more at Extreme (only reachable via the player's Extreme
+ * max-difficulty lift, dungeon-deck.mjs's applyDifficultyCap). A missing
  * depth (`null`/`undefined`, e.g. the standalone macro) keeps the historical
  * Severe cap.
  */
 export function xpCeilingTierForDepth(bias) {
   if (bias == null) return "severe";
-  if (bias <= 0) return "low";
+  if (bias < 0) return "trivial";
+  if (bias === 0) return "low";
   if (bias === 1) return "moderate";
-  return "severe";
+  if (bias === 2) return "severe";
+  return "extreme";
 }
 
 /**
@@ -185,8 +188,8 @@ async function pickCreature({
  * party size to check against.
  *
  * `depthBias` (#293), when given, scales the ceiling with dungeon depth via
- * `xpCeilingTierForDepth`: 0 -> Low, 1 -> Moderate, >= 2 -> Severe, so early
- * rooms stay easy instead of every room being allowed up to Severe. `null`
+ * `xpCeilingTierForDepth`: -1 -> Trivial, 0 -> Low, 1 -> Moderate, 2 -> Severe, 3 -> Extreme,
+ * so early rooms stay easy instead of every room being allowed up to Severe. `null`
  * (the default) keeps the Severe cap. It is deliberately separate from
  * `levelOffsetBias`, which defaults to 0 for standalone callers and would
  * otherwise silently tighten them to Low. The first-slot-always-accepted rule
