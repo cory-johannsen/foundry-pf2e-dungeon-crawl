@@ -144,7 +144,7 @@ git commit -m "#412: difficulty tier helpers (applyDifficultyCap)"
 - Consumes: nothing from Task 1 (takes a plain numeric bias).
 - Produces: `xpCeilingTierForDepth(bias)`: `null/undefined -> "severe"`, `<0 -> "trivial"`, `0 -> "low"`, `1 -> "moderate"`, `2 -> "severe"`, `>=3 -> "extreme"`.
 
-- [ ] **Step 1: Update/add tests** in `tests/encounter-roster.test.mjs`. Replace the `it("maps depth bias to a ceiling tier", ...)` body with:
+- [x] **Step 1: Update/add tests** in `tests/encounter-roster.test.mjs`. Replace the `it("maps depth bias to a ceiling tier", ...)` body with:
 
 ```js
   it("maps depth bias to a ceiling tier", () => {
@@ -174,12 +174,12 @@ and add inside the same `describe("depth-scaled XP ceiling (#293)", ...)` block,
   });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `npx vitest run tests/encounter-roster.test.mjs`
 Expected: FAIL (`-1` gives `"low"`, `3` gives `"severe"`).
 
-- [ ] **Step 3: Implement** — replace `xpCeilingTierForDepth` and its comment:
+- [x] **Step 3: Implement** — replace `xpCeilingTierForDepth` and its comment:
 
 ```js
 /**
@@ -202,12 +202,12 @@ export function xpCeilingTierForDepth(bias) {
 
 Also update the `depthBias` paragraph in `resolveEncounterRoster`'s doc comment (~line 187-188): replace "`0 -> Low, 1 -> Moderate, >= 2 -> Severe`" with "`-1 -> Trivial, 0 -> Low, 1 -> Moderate, 2 -> Severe, 3 -> Extreme`".
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `npx vitest run tests/encounter-roster.test.mjs`
 Expected: PASS (all existing cap tests still pass: biases 0, 1, 2 unchanged).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/encounter-roster.mjs tests/encounter-roster.test.mjs
