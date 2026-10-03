@@ -34870,5 +34870,197 @@
     "name": "Yarrika Mulandez",
     "level": 15,
     "art": "yarrika-mulandez.webp"
+  },
+  {
+    "id": "anadi_fateweaver",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "0Gnj7jlSf4WLY0lA",
+    "name": "Anadi Fateweaver",
+    "level": 5,
+    "art": "anadi-fateweaver.webp"
+  },
+  {
+    "id": "reborn_sun_warrior",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "0QsSJ1LbSRrmRgHL",
+    "name": "Reborn Sun Warrior",
+    "level": 11,
+    "art": "reborn-sun-warrior.webp"
+  },
+  {
+    "id": "gbahali",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "0Ve1reLmo36JXnCT",
+    "name": "Gbahali",
+    "level": 9,
+    "art": "gbahali.webp"
+  },
+  {
+    "id": "contemplative_mentor",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "0WFxanYfGdS7DSEK",
+    "name": "Contemplative Mentor",
+    "level": 18,
+    "art": "contemplative-mentor.webp"
+  },
+  {
+    "id": "abendego_jailer",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "0WgS1WgvVtJbYU4r",
+    "name": "Abendego Jailer",
+    "level": 10,
+    "art": "abendego-jailer.webp"
+  },
+  {
+    "id": "mashkudu_the_bully",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "1EvapUGyK4aG29Co",
+    "name": "Mashkudu The Bully",
+    "level": 5,
+    "art": "mashkudu-the-bully.webp"
+  },
+  {
+    "id": "reborn_sun_mage",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "1GNNvFjOH3mlJiRF",
+    "name": "Reborn Sun Mage",
+    "level": 11,
+    "art": "reborn-sun-mage.webp"
+  },
+  {
+    "id": "gluttonworm",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "1NcuNcLoCg0AaAYO",
+    "name": "Gluttonworm",
+    "level": 19,
+    "art": "gluttonworm.webp"
+  },
+  {
+    "id": "cookie",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "3858pExfJPbMo4Vf",
+    "name": "Cookie",
+    "level": 16,
+    "art": "cookie.webp"
+  },
+  {
+    "id": "formian_mageslayer",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "3oxQdcu3bKHKQCDA",
+    "name": "Formian Mageslayer",
+    "level": 16,
+    "art": "formian-mageslayer.webp"
+  },
+  {
+    "id": "gold_defender",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "3vLu5145ORD6vcCJ",
+    "name": "Gold Defender",
+    "level": 13,
+    "art": "gold-defender.webp"
+  },
+  {
+    "id": "tatterthread",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "4AQPyk3UaGjqmmXx",
+    "name": "Tatterthread",
+    "level": 20,
+    "art": "tatterthread.webp"
+  },
+  {
+    "id": "great_grodair",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "6RJ0yESu2Bp2KDbw",
+    "name": "Great Grodair",
+    "level": 7,
+    "art": "great-grodair.webp"
+  },
+  {
+    "id": "thiarvo_the_quick",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "6W8aW2Pw1j8d0Y4g",
+    "name": "Thiarvo the Quick",
+    "level": 9,
+    "art": "thiarvo-the-quick.webp"
+  },
+  {
+    "id": "nairu",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "6pPolNZycfDiOl2I",
+    "name": "Nairu",
+    "level": 8,
+    "art": "nairu.webp"
+  },
+  {
+    "id": "spellskein",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "TAUFXoZgSrZwQsor",
+    "name": "Spellskein",
+    "level": 0,
+    "art": "spellskein.webp"
+  },
+  {
+    "id": "spellskein_consecrate",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "9bv6UWHz66TRwP4H",
+    "name": "Spellskein (Consecrate)",
+    "level": 0,
+    "art": "spellskein.webp"
+  },
+  {
+    "id": "spellskein_control_weather",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "7aqbEcMv3d1ZVBEz",
+    "name": "Spellskein (Control Weather)",
+    "level": 0,
+    "art": "spellskein.webp"
+  },
+  {
+    "id": "spellskein_heroes_feast",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "ZBG4tyw04lsISbHL",
+    "name": "Spellskein (Heroes' Feast)",
+    "level": 0,
+    "art": "spellskein.webp"
+  },
+  {
+    "id": "scrit",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "91gGjbogGut3S3pg",
+    "name": "Scrit",
+    "level": 0,
+    "art": "scrit.webp"
+  },
+  {
+    "id": "aspect_of_immortality",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "9FsNuksdQSYN7Cpu",
+    "name": "Aspect of Immortality",
+    "level": 21,
+    "art": "aspect-of-immortality.webp"
+  },
+  {
+    "id": "kiru",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "9J0htPG44kLwWFcj",
+    "name": "Kiru",
+    "level": 3,
+    "art": "kiru.webp"
+  },
+  {
+    "id": "dwandek",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "9cyXSTXSsqOYXZtB",
+    "name": "Dwandek",
+    "level": 17,
+    "art": "dwandek.webp"
+  },
+  {
+    "id": "pugwampi_sot",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "gOiaU4B29galdmu2",
+    "name": "Pugwampi (SoT)",
+    "level": 0,
+    "art": "pugwampi.webp"
   }
 ]
