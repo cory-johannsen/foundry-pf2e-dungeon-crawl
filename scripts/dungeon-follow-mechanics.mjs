@@ -233,3 +233,46 @@ export function chooseResnapCell({
     ? { gx: spot.gx, gy: spot.gy, valid: true }
     : { gx: rounded.gx, gy: rounded.gy, valid: false };
 }
+
+/** #610: the leader's recent route as a newest-first list of cells
+ * (`trail[0]` is its current cell). Extended per leader move by running
+ * the wall-aware `findPath` from the previous cell to the new one -- a
+ * reconstruction, so it may differ slightly from the exact route a player
+ * dragged. Unchanged cell -> unchanged trail; walking back over the
+ * trail collapses it (no repeated cells); no path (teleport) or an empty
+ * trail resets to `[toCell]`. Trimmed to `maxLen`, newest kept. */
+export function extendTrail(trail, toCell, isBlocked, bounds, maxLen) {
+  if (!trail.length) return [{ gx: toCell.gx, gy: toCell.gy }];
+  if (trail[0].gx === toCell.gx && trail[0].gy === toCell.gy) return trail;
+  const seen = trail.findIndex((c) => c.gx === toCell.gx && c.gy === toCell.gy);
+  if (seen !== -1) return trail.slice(seen);
+  const path = findPath(trail[0], toCell, isBlocked, bounds);
+  if (!path || path.length < 2) return [{ gx: toCell.gx, gy: toCell.gy }];
+  const fresh = path.slice(1).reverse();
+  return [...fresh, ...trail].slice(0, maxLen);
+}
+
+/** #610: the move for a 1x1 follower to its assigned `trailCell`.
+ * Returns `null` whenever the caller should fall back to `findFollowMove`
+ * (no trail cell, follower larger than 1x1, destination occupied, or no
+ * path). `{status:"already-near"}` when already on/adjacent to it. Same
+ * result shape as `findFollowMove` otherwise. Occupancy handling mirrors
+ * `findFollowMove`: non-passable footprints also block the path. */
+export function findTrailMove(
+  fromCell,
+  trailCell,
+  occupiedFootprints,
+  isBlocked,
+  bounds,
+  footprint = { gw: 1, gh: 1 },
+) {
+  if (!trailCell || footprint.gw !== 1 || footprint.gh !== 1) return null;
+  if (chebyshev(fromCell, trailCell) <= 1) return { status: "already-near" };
+  if (occupiedFootprints.some((f) => cellInFootprint(trailCell, f))) return null;
+  const blockers = occupiedFootprints.filter((f) => !f.passable);
+  const pathBlocked = (a, b) =>
+    isBlocked(a, b) || blockers.some((f) => cellInFootprint(b, f));
+  const path = findPath(fromCell, trailCell, pathBlocked, bounds, 20000, footprint);
+  if (!path || path.length < 2) return null;
+  return { status: "move", to: trailCell, steps: path.slice(1) };
+}
