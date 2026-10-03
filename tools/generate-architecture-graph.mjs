@@ -79,6 +79,7 @@ const GROUPS = [
       [
         "scripts/dungeon-follow.mjs",
         "scripts/dungeon-follow-mechanics.mjs",
+        "scripts/token-walk.mjs",
       ].includes(p),
   },
   {

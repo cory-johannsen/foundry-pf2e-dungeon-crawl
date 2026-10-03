@@ -15,6 +15,7 @@ import { getRunState, effectiveMarchingOrder } from "./dungeon-runner.mjs";
 import { requestDungeonAction } from "./dungeon-remote.mjs";
 import { blockedEdgesFromWalls } from "./pathfinding.mjs";
 import { footprint } from "./placement.mjs";
+import { walkTokenThroughSteps } from "./token-walk.mjs";
 import {
   findFollowMove,
   tokenCell,
@@ -328,17 +329,12 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
         gw: moverFootprint.gw,
         gh: moverFootprint.gh,
       });
-      markRecentlyWritten(token.id);
-      await token.update(
-        {
-          x: result.to.gx * gridSize,
-          y: result.to.gy * gridSize,
-        },
-        { teleport: true },
+      // #610: walk the path one cell at a time (each hop still
+      // { teleport: true }, #87/#141/#361), re-marking the #87 suppression
+      // window around every hop's write.
+      await walkTokenThroughSteps(token, result.steps, gridSize, () =>
+        markRecentlyWritten(token.id),
       );
-      // #87 (round 6): re-mark after the await resolves too -- see the
-      // inline #86 snap's own comment above for why.
-      markRecentlyWritten(token.id);
       referenceCell = result.to;
     }
   } finally {
