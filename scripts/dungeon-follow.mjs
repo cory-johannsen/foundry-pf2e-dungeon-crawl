@@ -343,15 +343,16 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
       );
       const myFootprint =
         myIndex !== -1 ? occupied.splice(myIndex, 1)[0] : null;
+      const trailResult = findTrailMove(
+        fromCell,
+        trail[slot] ?? null,
+        occupied,
+        isBlocked,
+        bounds,
+        moverFootprint,
+      );
       const result =
-        findTrailMove(
-          fromCell,
-          trail[slot] ?? null,
-          occupied,
-          isBlocked,
-          bounds,
-          moverFootprint,
-        ) ??
+        trailResult ??
         findFollowMove(
           fromCell,
           referenceCell,
@@ -370,6 +371,15 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
         // #181: this follower didn't move — the next one in the chain
         // still targets wherever it currently is.
         referenceCell = fromCell;
+        // #610: a follower staying put on a farther trail cell than its
+        // slot (near a corner) must not let the next follower aim between
+        // it and the leader -- that would walk past it and invert order.
+        if (trailResult?.status === "already-near") {
+          const k = trail.findIndex(
+            (c) => c.gx === fromCell.gx && c.gy === fromCell.gy,
+          );
+          if (k > slot) slot = k;
+        }
         continue;
       }
       occupied.push({

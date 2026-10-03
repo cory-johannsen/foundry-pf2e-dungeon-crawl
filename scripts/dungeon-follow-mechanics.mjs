@@ -282,8 +282,9 @@ function straightSegment(from, to, isBlocked, bounds) {
  * (`trail[0]` is its current cell). Extended per leader move by running
  * the wall-aware `findPath` from the previous cell to the new one -- a
  * reconstruction, so it may differ slightly from the exact route a player
- * dragged. Unchanged cell -> unchanged trail; walking back over the
- * trail collapses it (no repeated cells); no path (teleport) or an empty
+ * dragged. Unchanged cell -> unchanged trail; walking back onto a trail
+ * cell collapses the trail (a detour may still revisit cells; the
+ * occupancy fallback prevents stacking); no path (teleport) or an empty
  * trail resets to `[toCell]`. Trimmed to `maxLen`, newest kept. */
 export function extendTrail(trail, toCell, isBlocked, bounds, maxLen) {
   if (!trail.length) return [{ gx: toCell.gx, gy: toCell.gy }];

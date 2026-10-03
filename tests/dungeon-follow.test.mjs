@@ -29,6 +29,7 @@ vi.mock("../scripts/dungeon-remote.mjs", () => ({
 // one test can leak into and silently suppress a later, unrelated test.
 beforeEach(() => {
   __clearRecentWritesForTests();
+  __clearLeaderTrailsForTests();
 });
 
 const GRID = 100;
@@ -901,6 +902,40 @@ describe("follower trail-following (#610)", () => {
     await settle();
     expect(cellOf(a)).toEqual({ gx: 5, gy: 2 });
     expect(cellOf(b)).toEqual({ gx: 4, gy: 2 });
+  });
+
+  it("keeps followers in marching order around leader corners (no slot inversion)", async () => {
+    vi.useFakeTimers();
+    const f = [0, 1, 2].map((i) =>
+      makeToken({ id: `t-f${i}`, x: (3 - i) * GRID, y: 2 * GRID, actorId: `actor-f${i}` }),
+    );
+    const { leader } = setup({ followers: f, leaderCell: { gx: 4, gy: 2 } });
+    followLeaderIfDue(leader, { x: leader.x, y: leader.y });
+    const route = [];
+    for (let x = 5; x <= 9; x++) route.push([x, 2]);
+    for (let y = 3; y <= 9; y++) route.push([9, y]);
+    for (let x = 8; x >= 4; x--) route.push([x, 9]);
+    let step = 0;
+    for (const [gx, gy] of route) {
+      step++;
+      await moveLeader(leader, gx, gy);
+      await settle();
+      const trail = __getLeaderTrailForTests(SCENE_ID);
+      const idx = f.map((t) => {
+        const c = cellOf(t);
+        return trail.findIndex((tc) => tc.gx === c.gx && tc.gy === c.gy);
+      });
+      const msg = `step ${step} (${gx},${gy}) idx=${JSON.stringify(idx)}`;
+      const onTrail = idx.filter((i) => i !== -1);
+      expect(onTrail, msg).toEqual([...onTrail].sort((a, b) => a - b));
+      if (step >= 6) {
+        // off-trail is only tolerable when the follower ahead already sits on
+        // the trail's last cell (nothing left to aim at; fallback keeps it adjacent)
+        idx.forEach((i, n) => {
+          if (i === -1) expect(idx[n - 1], msg).toBe(trail.length - 1);
+        });
+      }
+    }
   });
 
   it("does not record trail cells from a non-leader token's move", async () => {
