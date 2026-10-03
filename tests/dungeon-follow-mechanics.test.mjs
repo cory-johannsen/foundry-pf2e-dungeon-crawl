@@ -4,6 +4,8 @@ import {
   tokenCell,
   sceneBounds,
   chooseResnapCell,
+  extendTrail,
+  findTrailMove,
 } from "../scripts/dungeon-follow-mechanics.mjs";
 
 function noWalls() {
@@ -365,5 +367,112 @@ describe("chooseResnapCell (#150)", () => {
     expect(
       chooseResnapCell({ x: 502, y: 301, gridSize: G, occupied: everything }),
     ).toEqual({ gx: 5, gy: 3, valid: false });
+  });
+});
+
+describe("extendTrail (#610)", () => {
+  it("starts a trail at the leader's cell when empty", () => {
+    expect(extendTrail([], { gx: 2, gy: 2 }, noWalls(), null, 5)).toEqual([{ gx: 2, gy: 2 }]);
+  });
+
+  it("prepends the path cells newest-first for a straight run", () => {
+    expect(extendTrail([{ gx: 2, gy: 2 }], { gx: 6, gy: 2 }, noWalls(), null, 10)).toEqual([
+      { gx: 6, gy: 2 },
+      { gx: 5, gy: 2 },
+      { gx: 4, gy: 2 },
+      { gx: 3, gy: 2 },
+      { gx: 2, gy: 2 },
+    ]);
+  });
+
+  it("a diagonal jump is exactly the diagonal", () => {
+    expect(extendTrail([{ gx: 2, gy: 2 }], { gx: 5, gy: 5 }, noWalls(), null, 10)).toEqual([
+      { gx: 5, gy: 5 },
+      { gx: 4, gy: 4 },
+      { gx: 3, gy: 3 },
+      { gx: 2, gy: 2 },
+    ]);
+  });
+
+  it("falls back to findPath when the straight run crosses a blocked edge", () => {
+    const blocked = (a, b) => a.gx === 3 && a.gy === 2 && b.gx === 4 && b.gy === 2;
+    const t = extendTrail([{ gx: 2, gy: 2 }], { gx: 6, gy: 2 }, blocked, null, 10);
+    expect(t[0]).toEqual({ gx: 6, gy: 2 });
+    expect(t.at(-1)).toEqual({ gx: 2, gy: 2 });
+    expect(t.some((c) => c.gy !== 2)).toBe(true); // detoured around the blocked edge
+  });
+
+  it("routes around a wall using findPath", () => {
+    // block the direct edge (2,2)->(3,2)
+    const blocked = (a, b) => a.gx === 2 && a.gy === 2 && b.gx === 3 && b.gy === 2;
+    const t = extendTrail([{ gx: 2, gy: 2 }], { gx: 3, gy: 2 }, blocked, null, 10);
+    expect(t[0]).toEqual({ gx: 3, gy: 2 });
+    expect(t.at(-1)).toEqual({ gx: 2, gy: 2 });
+    expect(t.length).toBeGreaterThan(2);
+  });
+
+  it("resets to the new cell when no path exists (teleport)", () => {
+    const wall = () => true;
+    const t = extendTrail([{ gx: 0, gy: 0 }], { gx: 8, gy: 8 }, wall, null, 10);
+    expect(t).toEqual([{ gx: 8, gy: 8 }]);
+  });
+
+  it("leaves the trail unchanged when the leader's cell did not change", () => {
+    const trail = [{ gx: 4, gy: 2 }, { gx: 3, gy: 2 }];
+    expect(extendTrail(trail, { gx: 4, gy: 2 }, noWalls(), null, 10)).toEqual(trail);
+  });
+
+  it("collapses the trail when the leader walks back over its own route", () => {
+    const trail = [{ gx: 5, gy: 2 }, { gx: 4, gy: 2 }, { gx: 3, gy: 2 }, { gx: 2, gy: 2 }];
+    const t = extendTrail(trail, { gx: 3, gy: 2 }, noWalls(), null, 10);
+    expect(t).toEqual([{ gx: 3, gy: 2 }, { gx: 2, gy: 2 }]);
+  });
+
+  it("trims to maxLen keeping the newest cells", () => {
+    const t = extendTrail([{ gx: 0, gy: 0 }], { gx: 9, gy: 0 }, noWalls(), null, 4);
+    expect(t).toEqual([
+      { gx: 9, gy: 0 },
+      { gx: 8, gy: 0 },
+      { gx: 7, gy: 0 },
+      { gx: 6, gy: 0 },
+    ]);
+    expect(t).not.toContainEqual({ gx: 0, gy: 0 });
+  });
+});
+
+describe("findTrailMove (#610)", () => {
+  const one = { gw: 1, gh: 1 };
+
+  it("returns null with no trail cell (caller falls back)", () => {
+    expect(findTrailMove({ gx: 0, gy: 0 }, null, [], noWalls(), null, one)).toBeNull();
+  });
+
+  it("returns already-near when on or adjacent to the trail cell", () => {
+    expect(findTrailMove({ gx: 4, gy: 3 }, { gx: 4, gy: 2 }, [], noWalls(), null, one)).toEqual({
+      status: "already-near",
+    });
+  });
+
+  it("returns the walk to the trail cell as steps", () => {
+    const r = findTrailMove({ gx: 0, gy: 2 }, { gx: 4, gy: 2 }, [], noWalls(), null, one);
+    expect(r.status).toBe("move");
+    expect(r.to).toEqual({ gx: 4, gy: 2 });
+    expect(r.steps.at(-1)).toEqual({ gx: 4, gy: 2 });
+    expect(r.steps).not.toContainEqual({ gx: 0, gy: 2 });
+  });
+
+  it("returns null when the trail cell is occupied", () => {
+    const occ = [{ gx: 4, gy: 2, gw: 1, gh: 1 }];
+    expect(findTrailMove({ gx: 0, gy: 2 }, { gx: 4, gy: 2 }, occ, noWalls(), null, one)).toBeNull();
+  });
+
+  it("returns null for a follower larger than 1x1", () => {
+    expect(
+      findTrailMove({ gx: 0, gy: 2 }, { gx: 4, gy: 2 }, [], noWalls(), null, { gw: 2, gh: 2 }),
+    ).toBeNull();
+  });
+
+  it("returns null when no path reaches the trail cell", () => {
+    expect(findTrailMove({ gx: 0, gy: 2 }, { gx: 4, gy: 2 }, [], () => true, null, one)).toBeNull();
   });
 });

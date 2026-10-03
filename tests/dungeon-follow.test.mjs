@@ -6,6 +6,8 @@ import {
   resnapDriftedTokens,
   resnapTokenNow,
   __clearRecentWritesForTests,
+  __clearLeaderTrailsForTests,
+  __getLeaderTrailForTests,
 } from "../scripts/dungeon-follow.mjs";
 import { requestDungeonAction } from "../scripts/dungeon-remote.mjs";
 
@@ -27,6 +29,7 @@ vi.mock("../scripts/dungeon-remote.mjs", () => ({
 // one test can leak into and silently suppress a later, unrelated test.
 beforeEach(() => {
   __clearRecentWritesForTests();
+  __clearLeaderTrailsForTests();
 });
 
 const GRID = 100;
@@ -837,6 +840,158 @@ describe("moveFollowersToward stepwise walking (#610)", () => {
     }
     const stepDelays = spy.mock.calls.filter((c) => c[1] === 900);
     expect(stepDelays).toHaveLength(calls.length - 1);
+  });
+});
+
+describe("follower trail-following (#610)", () => {
+  beforeEach(() => {
+    __clearLeaderTrailsForTests();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function setup({ followers, leaderCell = { gx: 2, gy: 2 }, combats = [] }) {
+    const leader = makeToken({
+      id: "t-leader",
+      x: leaderCell.gx * GRID,
+      y: leaderCell.gy * GRID,
+      actorId: LEADER_ACTOR_ID,
+    });
+    const tokens = [leader, ...followers];
+    const scene = makeScene({ tokens });
+    scene.width = 12 * GRID;
+    scene.height = 12 * GRID;
+    const ids = followers.map((f) => f.actor.id);
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: { hostUserId: HOST_USER_ID, aiControlledActorIds: ids, marchingOrder: ids },
+      },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+    game.combats = combats;
+    return { leader, scene };
+  }
+
+  async function moveLeader(leader, gx, gy) {
+    await leader.update({ x: gx * GRID, y: gy * GRID });
+    followLeaderIfDue(leader, { x: leader.x, y: leader.y });
+  }
+
+  const cellOf = (t) => ({ gx: t._source.x / GRID, gy: t._source.y / GRID });
+
+  it("lines followers up along the leader's route, not the nearest free cell", async () => {
+    vi.useFakeTimers();
+    const a = makeToken({ id: "t-a", x: 6 * GRID, y: 6 * GRID, actorId: "actor-a" });
+    const b = makeToken({ id: "t-b", x: 7 * GRID, y: 7 * GRID, actorId: "actor-b" });
+    const { leader } = setup({ followers: [a, b] });
+    followLeaderIfDue(leader, { x: leader.x, y: leader.y }); // seeds trail at (2,2)
+    for (const gx of [3, 4, 5, 6]) await moveLeader(leader, gx, 2); // one cell per move, like a real drag
+    await settle();
+    expect(cellOf(a)).toEqual({ gx: 5, gy: 2 });
+    expect(cellOf(b)).toEqual({ gx: 4, gy: 2 });
+  });
+
+  it("a single multi-cell leader jump still yields a straight trail", async () => {
+    vi.useFakeTimers();
+    const a = makeToken({ id: "t-a", x: 6 * GRID, y: 6 * GRID, actorId: "actor-a" });
+    const b = makeToken({ id: "t-b", x: 7 * GRID, y: 7 * GRID, actorId: "actor-b" });
+    const { leader } = setup({ followers: [a, b] });
+    followLeaderIfDue(leader, { x: leader.x, y: leader.y });
+    await moveLeader(leader, 6, 2);
+    await settle();
+    expect(cellOf(a)).toEqual({ gx: 5, gy: 2 });
+    expect(cellOf(b)).toEqual({ gx: 4, gy: 2 });
+  });
+
+  it("keeps followers in marching order around leader corners (no slot inversion)", async () => {
+    vi.useFakeTimers();
+    const f = [0, 1, 2].map((i) =>
+      makeToken({ id: `t-f${i}`, x: (3 - i) * GRID, y: 2 * GRID, actorId: `actor-f${i}` }),
+    );
+    const { leader } = setup({ followers: f, leaderCell: { gx: 4, gy: 2 } });
+    followLeaderIfDue(leader, { x: leader.x, y: leader.y });
+    const route = [];
+    for (let x = 5; x <= 9; x++) route.push([x, 2]);
+    for (let y = 3; y <= 9; y++) route.push([9, y]);
+    for (let x = 8; x >= 4; x--) route.push([x, 9]);
+    let step = 0;
+    for (const [gx, gy] of route) {
+      step++;
+      await moveLeader(leader, gx, gy);
+      await settle();
+      const trail = __getLeaderTrailForTests(SCENE_ID);
+      const idx = f.map((t) => {
+        const c = cellOf(t);
+        return trail.findIndex((tc) => tc.gx === c.gx && tc.gy === c.gy);
+      });
+      const msg = `step ${step} (${gx},${gy}) idx=${JSON.stringify(idx)}`;
+      const onTrail = idx.filter((i) => i !== -1);
+      expect(onTrail, msg).toEqual([...onTrail].sort((a, b) => a - b));
+      if (step >= 6) {
+        // off-trail is only tolerable when the follower ahead already sits on
+        // the trail's last cell (nothing left to aim at; fallback keeps it adjacent)
+        idx.forEach((i, n) => {
+          if (i === -1) expect(idx[n - 1], msg).toBe(trail.length - 1);
+        });
+      }
+    }
+  });
+
+  it("does not record trail cells from a non-leader token's move", async () => {
+    vi.useFakeTimers();
+    const a = makeToken({ id: "t-a", x: 6 * GRID, y: 6 * GRID, actorId: "actor-a" });
+    const { leader } = setup({ followers: [a] });
+    followLeaderIfDue(leader, { x: leader.x, y: leader.y });
+    await a.update({ x: 9 * GRID, y: 9 * GRID });
+    followLeaderIfDue(a, { x: a.x, y: a.y });
+    expect(__getLeaderTrailForTests(SCENE_ID)).toEqual([{ gx: 2, gy: 2 }]);
+  });
+
+  it("a follower with no token does not consume a trail slot", async () => {
+    vi.useFakeTimers();
+    const b = makeToken({ id: "t-b", x: 7 * GRID, y: 7 * GRID, actorId: "actor-b" });
+    const { leader, scene } = setup({ followers: [b] });
+    // marching order lists a ghost actor first; it has no token on the scene
+    game.settings.get = (_m, key) =>
+      key === "dungeonRuns"
+        ? {
+            [SCENE_ID]: {
+              hostUserId: HOST_USER_ID,
+              aiControlledActorIds: ["actor-ghost", "actor-b"],
+              marchingOrder: ["actor-ghost", "actor-b"],
+            },
+          }
+        : {};
+    expect(scene.tokens.find((t) => t.actor?.id === "actor-ghost")).toBeUndefined();
+    followLeaderIfDue(leader, { x: leader.x, y: leader.y });
+    for (const gx of [3, 4, 5, 6]) await moveLeader(leader, gx, 2);
+    await settle();
+    expect(cellOf(b)).toEqual({ gx: 5, gy: 2 });
+  });
+
+  it("drops the trail when a position change is seen during combat", async () => {
+    vi.useFakeTimers();
+    const a = makeToken({ id: "t-a", x: 6 * GRID, y: 6 * GRID, actorId: "actor-a" });
+    const { leader } = setup({ followers: [a] });
+    followLeaderIfDue(leader, { x: leader.x, y: leader.y });
+    expect(__getLeaderTrailForTests(SCENE_ID)).toHaveLength(1);
+    game.combats = [{ started: true, scene: { id: SCENE_ID } }];
+    await moveLeader(leader, 6, 2);
+    expect(__getLeaderTrailForTests(SCENE_ID)).toBeUndefined();
+  });
+
+  it("falls back to the old near-the-leader logic for a 2x2 follower", async () => {
+    vi.useFakeTimers();
+    const big = makeToken({ id: "t-big", x: 6 * GRID, y: 6 * GRID, actorId: "actor-a", width: 2, height: 2 });
+    const { leader } = setup({ followers: [big] });
+    followLeaderIfDue(leader, { x: leader.x, y: leader.y });
+    await moveLeader(leader, 6, 2);
+    await settle();
+    expect(big.update).toHaveBeenCalled();
+    const c = cellOf(big);
+    // the trail slot for a 1x1 here would be (5,2); only the fallback lands on (5,3)
+    expect(c).toEqual({ gx: 5, gy: 3 });
   });
 });
 
