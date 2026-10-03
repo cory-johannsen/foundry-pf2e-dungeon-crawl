@@ -40334,5 +40334,109 @@
     "name": "Dretch",
     "level": 2,
     "art": "dretch.webp"
+  },
+  {
+    "id": "aliriel",
+    "pack": "pf2e.shadows-at-sundown-bestiary",
+    "docId": "0jAkZcP5559iO0wo",
+    "name": "Aliriel",
+    "level": 15,
+    "art": "aliriel.webp"
+  },
+  {
+    "id": "bishop_keppira_d_bear",
+    "pack": "pf2e.shadows-at-sundown-bestiary",
+    "docId": "6RVzMyC9c61J616H",
+    "name": "Bishop Keppira D'Bear",
+    "level": 11,
+    "art": "bishop-keppira-d-bear.webp"
+  },
+  {
+    "id": "scarlet_walker",
+    "pack": "pf2e.shadows-at-sundown-bestiary",
+    "docId": "8oeuD5h4OzXsxZS5",
+    "name": "Scarlet Walker",
+    "level": 12,
+    "art": "scarlet-walker.webp"
+  },
+  {
+    "id": "profane_ghoul",
+    "pack": "pf2e.shadows-at-sundown-bestiary",
+    "docId": "8optIXEiVUjfY0ph",
+    "name": "Profane Ghoul",
+    "level": 10,
+    "art": "profane-ghoul.webp"
+  },
+  {
+    "id": "lorthact",
+    "pack": "pf2e.shadows-at-sundown-bestiary",
+    "docId": "JzoZZ0SurEHMeAPR",
+    "name": "Lorthact",
+    "level": 16,
+    "art": "lorthact.webp"
+  },
+  {
+    "id": "strigoi_servant",
+    "pack": "pf2e.shadows-at-sundown-bestiary",
+    "docId": "OsRWaQVTonZBmZo1",
+    "name": "Strigoi Servant",
+    "level": 10,
+    "art": "strigoi-servant.webp"
+  },
+  {
+    "id": "ibrique",
+    "pack": "pf2e.shadows-at-sundown-bestiary",
+    "docId": "PRw22TOw6Z7ke5yp",
+    "name": "Ibrique",
+    "level": 13,
+    "art": "ibrique.webp"
+  },
+  {
+    "id": "acolyte_of_pharasma",
+    "pack": "pf2e.shadows-at-sundown-bestiary",
+    "docId": "Ry6Sih9K9iyhAN5C",
+    "name": "Acolyte of Pharasma",
+    "level": 1,
+    "art": "acolyte-of-pharasma.webp"
+  },
+  {
+    "id": "yniesse_zenderholm",
+    "pack": "pf2e.shadows-at-sundown-bestiary",
+    "docId": "km4jIE3xBRZoY9o7",
+    "name": "Yniesse Zenderholm",
+    "level": 7,
+    "art": "yniesse-zenderholm.webp"
+  },
+  {
+    "id": "abridan_ashau",
+    "pack": "pf2e.shadows-at-sundown-bestiary",
+    "docId": "litxGHyUUR64CWQJ",
+    "name": "Abridan Ashau",
+    "level": 10,
+    "art": "abridan-ashau.webp"
+  },
+  {
+    "id": "loreavor",
+    "pack": "pf2e.shadows-at-sundown-bestiary",
+    "docId": "sEss0ea0kYrkkti8",
+    "name": "Loreavor",
+    "level": 9,
+    "art": "loreavor.webp"
+  },
+  {
+    "id": "ileosa_s_shell",
+    "pack": "pf2e.shadows-at-sundown-bestiary",
+    "docId": "sawfqpGNObMA41at",
+    "name": "Ileosa's Shell",
+    "level": 13,
+    "art": "ileosa-s-shell.webp"
+  },
+  {
+    "id": "strigoi_progenitor",
+    "pack": "pf2e.shadows-at-sundown-bestiary",
+    "docId": "wCztuDEePLs9ZsEl",
+    "name": "Strigoi Progenitor",
+    "level": 13,
+    "art": "strigoi-progenitor.webp"
   }
 ]
