@@ -3,6 +3,7 @@ import {
   findFollowMove,
   tokenCell,
   sceneBounds,
+  chooseResnapCell,
 } from "../scripts/dungeon-follow-mechanics.mjs";
 
 function noWalls() {
@@ -278,5 +279,73 @@ describe("findFollowMove occupancy-aware pathing (#365)", () => {
       big,
     );
     expect(clear.status).toBe("move");
+  });
+});
+
+describe("chooseResnapCell (#150)", () => {
+  const G = 100;
+  // vertical wall on the boundary between gx=4 and gx=5, all rows
+  const wallBetween4and5 = (a, b) =>
+    a.gy === b.gy && Math.max(a.gx, b.gx) === 5;
+
+  it("uses the rounded cell when it's free and unwalled", () => {
+    expect(
+      chooseResnapCell({ x: 550, y: 330, gridSize: G }),
+    ).toEqual({ gx: 6, gy: 3, valid: true });
+  });
+
+  it("keeps a rounded cell on the same side of a wall as the drifted center", () => {
+    expect(
+      chooseResnapCell({ x: 451, y: 300, gridSize: G, isBlocked: wallBetween4and5 }),
+    ).toMatchObject({ gx: 5, valid: true });
+  });
+
+  it("rings out when the rounded cell is occupied", () => {
+    const r = chooseResnapCell({
+      x: 502,
+      y: 301,
+      gridSize: G,
+      occupied: [{ gx: 5, gy: 3, gw: 1, gh: 1 }],
+    });
+    expect(r.valid).toBe(true);
+    expect(r).not.toMatchObject({ gx: 5, gy: 3 });
+    expect(Math.max(Math.abs(r.gx - 5), Math.abs(r.gy - 3))).toBe(1);
+  });
+
+  it("avoids ring cells behind a wall", () => {
+    // occupied rounded cell (5,3); wall on 4|5 boundary; origin cell is 5,
+    // so cells at gx=4 are across the wall and must be skipped
+    const r = chooseResnapCell({
+      x: 500,
+      y: 300,
+      gridSize: G,
+      occupied: [{ gx: 5, gy: 3, gw: 1, gh: 1 }],
+      isBlocked: wallBetween4and5,
+    });
+    expect(r.valid).toBe(true);
+    expect(r.gx).toBeGreaterThanOrEqual(5);
+  });
+
+  it("requires the whole footprint to be free for a Large token", () => {
+    const r = chooseResnapCell({
+      x: 500,
+      y: 300,
+      gridSize: G,
+      gw: 2,
+      gh: 2,
+      occupied: [{ gx: 6, gy: 4, gw: 1, gh: 1 }],
+    });
+    expect(r.valid).toBe(true);
+    const spot = { gx: r.gx, gy: r.gy, gw: 2, gh: 2 };
+    expect(
+      spot.gx < 7 && spot.gx + 2 > 6 && spot.gy < 5 && spot.gy + 2 > 4,
+    ).toBe(false);
+  });
+
+  it("falls back to the plain rounded cell, flagged invalid, if nothing fits", () => {
+    const everything = [{ gx: 0, gy: 0, gw: 100, gh: 100 }];
+    expect(
+      chooseResnapCell({ x: 502, y: 301, gridSize: G, occupied: everything }),
+    ).toEqual({ gx: 5, gy: 3, valid: false });
   });
 });

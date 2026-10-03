@@ -7,8 +7,8 @@
  * caller and the one place that translates real Foundry state into these
  * plain shapes.
  */
-import { findPath } from "./pathfinding.mjs";
-import { overlaps } from "./placement.mjs";
+import { findPath, hasLineOfSight } from "./pathfinding.mjs";
+import { overlaps, freeSpot } from "./placement.mjs";
 
 /** The `"gx,gy"` string key used to store/compare grid cells in a Set —
  * the one place this format is spelled out, so dungeon-follow.mjs's own
@@ -171,4 +171,61 @@ export function findFollowMove(
     if (path && path.length > 1) return { status: "move", to: target };
   }
   return { status: "no-route" };
+}
+
+/** #150: the cell a drifted (off-grid) token should be corrected to.
+ * Nearest-cell rounding stays the first candidate, but it's only accepted
+ * if the token's footprint there overlaps no `occupied` footprint (the
+ * token's own must already be excluded by the caller) and no wall/door
+ * edge (`isBlocked`, same predicate findPath uses) lies on the straight
+ * line from the cell the token's drifted center actually sits in to the
+ * candidate's own center cell. Otherwise the nearest valid cell within
+ * `maxRing` rings (placement.mjs's freeSpot) is used. If nothing valid is
+ * found, falls back to the plain rounded cell with `valid: false` --
+ * the pre-#150 behavior, never worse. Pure: `x`/`y` are the drifted pixel
+ * position, `gw`/`gh` the token's footprint in squares. */
+export function chooseResnapCell({
+  x,
+  y,
+  gridSize,
+  gw = 1,
+  gh = 1,
+  occupied = [],
+  isBlocked = () => false,
+  maxRing = 3,
+}) {
+  const rounded = {
+    gx: Math.round(x / gridSize),
+    gy: Math.round(y / gridSize),
+    gw,
+    gh,
+  };
+  const origin = {
+    gx: Math.floor((x + (gw * gridSize) / 2) / gridSize),
+    gy: Math.floor((y + (gh * gridSize) / 2) / gridSize),
+  };
+  const accept = (spot) =>
+    hasLineOfSight(
+      origin,
+      {
+        gx: spot.gx + Math.floor(gw / 2),
+        gy: spot.gy + Math.floor(gh / 2),
+      },
+      isBlocked,
+    );
+  if (!occupied.some((o) => overlaps(rounded, o)) && accept(rounded)) {
+    return { gx: rounded.gx, gy: rounded.gy, valid: true };
+  }
+  const spot = freeSpot({
+    occupied,
+    gx: rounded.gx,
+    gy: rounded.gy,
+    gw,
+    gh,
+    maxRing,
+    accept,
+  });
+  return spot
+    ? { gx: spot.gx, gy: spot.gy, valid: true }
+    : { gx: rounded.gx, gy: rounded.gy, valid: false };
 }

@@ -19,6 +19,7 @@ import {
   findFollowMove,
   tokenCell,
   sceneBounds,
+  chooseResnapCell,
 } from "./dungeon-follow-mechanics.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -522,9 +523,32 @@ export async function resnapTokenNow(sceneId, tokenId) {
     if (!token) return;
     const gridSize = scene.grid?.size ?? 100;
     const { x, y } = sourcePosition(token);
-    const snappedX = Math.round(x / gridSize) * gridSize;
-    const snappedY = Math.round(y / gridSize) * gridSize;
-    if (x !== snappedX || y !== snappedY) {
+    if (x % gridSize !== 0 || y % gridSize !== 0) {
+      // #150: validate the rounded cell (occupancy, walls, footprint)
+      // instead of trusting it blindly; the token's own footprint is
+      // excluded from `occupied` so it can't block its own correction.
+      const fp = footprint({ x, y, width: token.width, height: token.height }, gridSize);
+      const occupied = scene.tokens
+        .filter((t) => t.id !== tokenId)
+        .map((t) =>
+          footprint({ ...sourcePosition(t), width: t.width, height: t.height }, gridSize),
+        );
+      const cell = chooseResnapCell({
+        x,
+        y,
+        gridSize,
+        gw: fp.gw,
+        gh: fp.gh,
+        occupied,
+        isBlocked: movementBlockedEdges(scene, gridSize),
+      });
+      if (!cell.valid) {
+        console.warn(
+          `${MODULE_ID} | dungeon-follow: resnapTokenNow found no free valid cell near token ${tokenId}; using nearest-cell rounding`,
+        );
+      }
+      const snappedX = cell.gx * gridSize;
+      const snappedY = cell.gy * gridSize;
       markRecentlyWritten(tokenId);
       await token.update({ x: snappedX, y: snappedY }, { teleport: true });
       // #87 (round 6): re-mark after the await resolves too -- see the
@@ -569,11 +593,10 @@ export async function resnapTokenNow(sceneId, tokenId) {
  * independently) -- a prior version of this comment claimed no guard was
  * necessary; live evidence disproved that.
  *
- * Known limitation (tracked as a follow-up, not fixed here): this snaps
- * to the *nearest* grid cell, which isn't necessarily the cell this
- * module originally intended — a drifted token could round to a cell
- * across a wall, or one already occupied. `snapTokenToGrid` shares this
- * same limitation; this hook just applies it more broadly. `getRunState`
+ * #150: the correction (`resnapTokenNow`) validates the rounded cell
+ * against occupancy/walls/footprint and ring-searches for a valid one
+ * (`chooseResnapCell`), falling back to plain rounding if none exists.
+ * Combat's `snapTokenToGrid` still uses plain nearest-cell rounding. `getRunState`
  * also keeps returning a completed (not just active) run's data until
  * `abandonRun` clears it, so this stays live on a finished run's scene
  * too — harmless (still the same square-grid dungeon scene) but worth

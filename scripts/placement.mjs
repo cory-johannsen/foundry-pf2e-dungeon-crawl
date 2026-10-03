@@ -42,15 +42,18 @@ export function footprint(token, grid) {
  * Returns null when nothing within `maxRing` fits, which the caller should
  * treat as "put it where it was going to go anyway": a creature placed on top
  * of something is still better than a card that silently does nothing.
+ *
+ * `accept`, if given, is an extra predicate a free spot must also satisfy
+ * (#150: the resnap's own wall check) -- rejected spots are skipped.
  */
-export function freeSpot({ occupied = [], gx, gy, gw = 1, gh = 1, maxRing = 8 } = {}) {
+export function freeSpot({ occupied = [], gx, gy, gw = 1, gh = 1, maxRing = 8, accept = null } = {}) {
   for (let r = 1; r <= maxRing; r += 1) {
     for (let dy = -r; dy <= r; dy += 1) {
       for (let dx = -r; dx <= r; dx += 1) {
         // The ring's edge only; its interior was covered by a smaller r.
         if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
         const spot = { gx: gx + dx, gy: gy + dy, gw, gh };
-        if (!occupied.some((o) => overlaps(spot, o))) return spot;
+        if (!occupied.some((o) => overlaps(spot, o)) && (!accept || accept(spot))) return spot;
       }
     }
   }
