@@ -40438,5 +40438,189 @@
     "name": "Strigoi Progenitor",
     "level": 13,
     "art": "strigoi-progenitor.webp"
+  },
+  {
+    "id": "coloxus",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "0AZQuyXUAnVkNArl",
+    "name": "Coloxus",
+    "level": 12,
+    "art": "coloxus.webp"
+  },
+  {
+    "id": "iazmilor",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "1G19uNYMSU79P2f9",
+    "name": "Iazmilor",
+    "level": 8,
+    "art": "iazmilor.webp"
+  },
+  {
+    "id": "gurlunk",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "39EWaqeCNzeAmsGd",
+    "name": "Gurlunk",
+    "level": 4,
+    "art": "gurlunk.webp"
+  },
+  {
+    "id": "ziondriel",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "4p34LdwvJY2m3k7t",
+    "name": "Ziondriel",
+    "level": 9,
+    "art": "ziondriel.webp"
+  },
+  {
+    "id": "scarhorn",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "54wzV6OQLqhO7Tgl",
+    "name": "Scarhorn",
+    "level": 14,
+    "art": "scarhorn.webp"
+  },
+  {
+    "id": "nualia",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "5eXjcdgKFvAsl89G",
+    "name": "Nualia",
+    "level": 10,
+    "art": "nualia.webp"
+  },
+  {
+    "id": "wolgur_wrabs",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "6KhRRlIrLHvNDIlN",
+    "name": "Wolgur Wrabs",
+    "level": 5,
+    "art": "wolgur-wrabs.webp"
+  },
+  {
+    "id": "geist",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "6zMzd6ICd3p1Ye4q",
+    "name": "Geist",
+    "level": 9,
+    "art": "geist-lob.webp"
+  },
+  {
+    "id": "ascended_disciple",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "7IvOx8nHMt8am77E",
+    "name": "Ascended Disciple",
+    "level": 5,
+    "art": "ascended-disciple.webp"
+  },
+  {
+    "id": "divine_warden_of_haagenti",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "DcVyPHFvzrUhC7EV",
+    "name": "Divine Warden Of Haagenti",
+    "level": 4,
+    "art": "divine-warden-of-haagenti.webp"
+  },
+  {
+    "id": "mnoghoth",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "EB8SG2RSeEwfrOKb",
+    "name": "Mnoghoth",
+    "level": 9,
+    "art": "mnoghoth.webp"
+  },
+  {
+    "id": "adimar_scarnetti",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "FHxjkYIzoQ53mYp7",
+    "name": "Adimar Scarnetti",
+    "level": 8,
+    "art": "adimar-scarnetti.webp"
+  },
+  {
+    "id": "aliver_pillbug_podiker",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "HTZ1zAQlKfjV2b12",
+    "name": "Aliver \"Pillbug\" Podiker",
+    "level": 7,
+    "art": "aliver-pillbug-podiker.webp"
+  },
+  {
+    "id": "vekensvok_s_lampad",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "KcS0KzOTJHcHfFQA",
+    "name": "Vekensvok's Lampad",
+    "level": 5,
+    "art": "vekensvok-s-lampad.webp"
+  },
+  {
+    "id": "arika_avertin",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "LKg7AOq8OsUp0Ulm",
+    "name": "Arika Avertin",
+    "level": 6,
+    "art": "arika-avertin.webp"
+  },
+  {
+    "id": "red_bishop",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "M0hm5JzkOkUCVSFL",
+    "name": "Red Bishop",
+    "level": 14,
+    "art": "red-bishop.webp"
+  },
+  {
+    "id": "vizmivool",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "NhY79A94IYUUKDgj",
+    "name": "Vizmivool",
+    "level": 9,
+    "art": "vizmivool.webp"
+  },
+  {
+    "id": "ghast_cultist",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "NpUHRQUpRJWYAtdc",
+    "name": "Ghast Cultist",
+    "level": 7,
+    "art": "ghast-cultist.webp"
+  },
+  {
+    "id": "kanker",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "PNW9oNEgOacBTAVm",
+    "name": "Kanker",
+    "level": 12,
+    "art": "kanker-lob.webp"
+  },
+  {
+    "id": "tiluatchek",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "PmE8OOm1BnYGW8VR",
+    "name": "Tiluatchek",
+    "level": 12,
+    "art": "tiluatchek.webp"
+  },
+  {
+    "id": "ziradini",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "PmQtJ1LBy45ulUpG",
+    "name": "Ziradini",
+    "level": 8,
+    "art": "ziradini.webp"
+  },
+  {
+    "id": "narlo_nyrell",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "QY6YXMOIbcwNNAsf",
+    "name": "Narlo Nyrell",
+    "level": 8,
+    "art": "narlo-nyrell.webp"
+  },
+  {
+    "id": "greedspawn_xoh5j",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "xoh5JAue3PtjH6dS",
+    "name": "Greedspawn",
+    "level": 2,
+    "art": "greedspawn.webp"
   }
 ]
