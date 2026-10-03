@@ -37542,5 +37542,221 @@
     "name": "Green Monkey",
     "level": 3,
     "art": "green-monkey.webp"
+  },
+  {
+    "id": "hu_ban_niang",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "0QfL4oXQrDfhfZDs",
+    "name": "Hu Ban-Niang",
+    "level": 5,
+    "art": "hu-ban-niang.webp"
+  },
+  {
+    "id": "kagekuma",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "183L006AcuLnHJbY",
+    "name": "Kagekuma",
+    "level": 8,
+    "art": "kagekuma.webp"
+  },
+  {
+    "id": "argyrzei",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "1zClr6JrKhMo2xCu",
+    "name": "Argyrzei",
+    "level": 13,
+    "art": "argyrzei.webp"
+  },
+  {
+    "id": "taunting_monk_s_skull",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "2FOiW8VcaDyd8EIz",
+    "name": "Taunting Monk's Skull",
+    "level": 6,
+    "art": "taunting-monk-s-skull.webp"
+  },
+  {
+    "id": "iogaka",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "2a0uJf5XIt6z2R0Y",
+    "name": "Iogaka",
+    "level": 5,
+    "art": "iogaka.webp"
+  },
+  {
+    "id": "path_maiden",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "USMiwD8crKdeFybh",
+    "name": "Path Maiden",
+    "level": 12,
+    "art": "path-maiden.webp"
+  },
+  {
+    "id": "path_maiden_spring_s_path",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "3Hwt7nNXIBlDovJi",
+    "name": "Path Maiden (Spring's Path)",
+    "level": 12,
+    "art": "path-maiden.webp"
+  },
+  {
+    "id": "noppera_bo_impersonator",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "QSa1PbcvbgDv8Zpr",
+    "name": "Noppera-Bo Impersonator (Arcane)",
+    "level": 6,
+    "art": "noppera-bo-impersonator.webp"
+  },
+  {
+    "id": "noppera_bo_impersonator_divine",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "dqsQutshiegWaFPQ",
+    "name": "Noppera-Bo Impersonator (Divine)",
+    "level": 6,
+    "art": "noppera-bo-impersonator.webp"
+  },
+  {
+    "id": "noppera_bo_impersonator_martial",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "AsfjgDmWkUxPI6m8",
+    "name": "Noppera-Bo Impersonator (Martial)",
+    "level": 6,
+    "art": "noppera-bo-impersonator.webp"
+  },
+  {
+    "id": "noppera_bo_impersonator_occult",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "Mt053Q3jCVLXp6us",
+    "name": "Noppera-Bo Impersonator (Occult)",
+    "level": 6,
+    "art": "noppera-bo-impersonator.webp"
+  },
+  {
+    "id": "noppera_bo_impersonator_primal",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "6UkZJRICusE2EOhS",
+    "name": "Noppera-Bo Impersonator (Primal)",
+    "level": 6,
+    "art": "noppera-bo-impersonator.webp"
+  },
+  {
+    "id": "noppera_bo_impersonator_skilled",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "3KNblm2fWM6XLiS7",
+    "name": "Noppera-Bo Impersonator (Skilled)",
+    "level": 6,
+    "art": "noppera-bo-impersonator.webp"
+  },
+  {
+    "id": "stingy",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "43fI9XHecCCvirYr",
+    "name": "Stingy",
+    "level": 1,
+    "art": "stingy.webp"
+  },
+  {
+    "id": "jinkin_4fqfy",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "4fQfYZY6N9oUC9Ws",
+    "name": "Jinkin",
+    "level": 1,
+    "art": "jinkin.webp"
+  },
+  {
+    "id": "stone_spider",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "4iZxxQFySmU6EOfn",
+    "name": "Stone Spider",
+    "level": 5,
+    "art": "stone-spider.webp"
+  },
+  {
+    "id": "noppera_bo_grunt",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "52dTAJPXCnE48a5a",
+    "name": "Noppera-bo Grunt",
+    "level": 0,
+    "art": "noppera-bo-grunt.webp"
+  },
+  {
+    "id": "shinigami",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "5GZ9o5DlIQIZgLb8",
+    "name": "Shinigami",
+    "level": 17,
+    "art": "shinigami.webp"
+  },
+  {
+    "id": "the_chewer",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "5UCe00Rh9yGBElYT",
+    "name": "The Chewer",
+    "level": 6,
+    "art": "the-chewer.webp"
+  },
+  {
+    "id": "thatchling",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "7Fua7064VlF0Y14D",
+    "name": "Thatchling",
+    "level": 0,
+    "art": "thatchling.webp"
+  },
+  {
+    "id": "noppera_bo_trickster",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "APu2EqTJ4QdHkwtR",
+    "name": "Noppera-bo Trickster",
+    "level": 1,
+    "art": "noppera-bo-trickster.webp"
+  },
+  {
+    "id": "bakeneko",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "BK4gQmGPX4BW4hyb",
+    "name": "Bakeneko",
+    "level": 3,
+    "art": "bakeneko.webp"
+  },
+  {
+    "id": "variant_dread_wraith",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "BQvtFFZIfICblybJ",
+    "name": "Variant Dread Wraith",
+    "level": 9,
+    "art": "variant-dread-wraith.webp"
+  },
+  {
+    "id": "monk_of_kugaptee",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "Cc1BuVVrQ5nGG2Hs",
+    "name": "Monk of Kugaptee",
+    "level": 6,
+    "art": "monk-of-kugaptee.webp"
+  },
+  {
+    "id": "very_drunken_jinkin",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "Cxe6UXbm4kHLNRyC",
+    "name": "Very Drunken Jinkin",
+    "level": -1,
+    "art": "very-drunken-jinkin.webp"
+  },
+  {
+    "id": "gray_butcher",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "E1jJ13PVNqcXNWzW",
+    "name": "Gray Butcher",
+    "level": 2,
+    "art": "gray-butcher.webp"
+  },
+  {
+    "id": "dalgyal_gwishin",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "ELmJu6nt0nW1hvqz",
+    "name": "Dalgyal Gwishin",
+    "level": 5,
+    "art": "dalgyal-gwishin.webp"
   }
 ]
