@@ -143,13 +143,6 @@
                     </li>
                   {{/each}}
                 </ul>
-              {{else}}
-                <p class="hint">
-                  {{localize "PF2EDC.Dungeon.SkillChallenge.SpecialtyHint"}}
-                  {{#each challenge.specialtySkills}}{{this.label}}{{#unless
-                      @last
-                    }}, {{/unless}}{{/each}}
-                </p>
               {{/if}}
               <form class="pf2edc-dungeon__skill-challenge-form">
                 <label>
@@ -163,10 +156,8 @@
                 <label>
                   {{localize "PF2EDC.Dungeon.SkillChallenge.SkillLabel"}}
                   <select name="skill">
-                    {{#each challenge.allSkills}}
-                      <option value="{{this.slug}}">{{this.label}}{{#if
-                          this.isSpecialty
-                        }} *{{/if}}</option>
+                    {{#each challenge.specialtySkills}}
+                      <option value="{{this.slug}}">{{this.label}}</option>
                     {{/each}}
                   </select>
                 </label>

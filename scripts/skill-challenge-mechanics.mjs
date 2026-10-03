@@ -77,11 +77,6 @@ export function simpleDcForLevel(level) {
   return SIMPLE_DC_BY_LEVEL[clamped] ?? 20;
 }
 
-// Attempting a non-specialty skill is still allowed (GM Core: "any
-// character can attempt an alternative skill, but the DC is higher") —
-// simplified here to a flat bump rather than a second DC table.
-export const NON_SPECIALTY_DC_BUMP = 2;
-
 // GM Core's own standard per-check VP table.
 export const VP_DELTA_BY_OUTCOME = {
   criticalSuccess: 2,
@@ -191,13 +186,13 @@ export function chooseSpecialtySkills(seed, roomId, locationTag) {
 }
 
 /**
- * The DC for attempting `skill` in a challenge with `specialtySkills`, at
- * `partyLevel` — the room's Simple DC, +`NON_SPECIALTY_DC_BUMP` if `skill`
- * isn't one of the challenge's own specialties.
+ * The DC for any attempt in a skill challenge at `partyLevel` — the room's
+ * Simple DC. #553: only a challenge's own specialty skills can be attempted
+ * (the UI offers nothing else and `#onAttemptSkillChallenge` rejects
+ * anything else), so there is no non-specialty DC penalty anymore.
  */
-export function dcForAttempt({ partyLevel, skill, specialtySkills }) {
-  const base = simpleDcForLevel(partyLevel);
-  return specialtySkills.includes(skill) ? base : base + NON_SPECIALTY_DC_BUMP;
+export function dcForAttempt({ partyLevel }) {
+  return simpleDcForLevel(partyLevel);
 }
 
 /**
