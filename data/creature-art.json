@@ -39102,5 +39102,165 @@
     "name": "Jinkin",
     "level": 1,
     "art": "jinkin.webp"
+  },
+  {
+    "id": "hhrulkaz",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "R6l06STZR7MOuYDR",
+    "name": "Hhrulkaz",
+    "level": 3,
+    "art": "hhrulkaz.webp"
+  },
+  {
+    "id": "hryngar_officer",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "RWXhwi8R7t3l7T1k",
+    "name": "Hryngar Officer",
+    "level": 6,
+    "art": "hryngar-officer.webp"
+  },
+  {
+    "id": "sporeborn_myceloid",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "SiBC7HLCaxDeOTt6",
+    "name": "Sporeborn Myceloid",
+    "level": 4,
+    "art": "sporeborn-myceloid.webp"
+  },
+  {
+    "id": "alchemist_ivy",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "T4hNSZSA9XGokGL0",
+    "name": "Alchemist Ivy",
+    "level": 3,
+    "art": "alchemist-ivy.webp"
+  },
+  {
+    "id": "tuom_molgrade",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "VAxAbzTdnwo7lS1Y",
+    "name": "Tuom Molgrade",
+    "level": 5,
+    "art": "tuom-molgrade.webp"
+  },
+  {
+    "id": "hryngar_veteran",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "VW3r97IFCEGZwHo5",
+    "name": "Hryngar Veteran",
+    "level": 7,
+    "art": "hryngar-veteran.webp"
+  },
+  {
+    "id": "heartbroken_dream",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "WDvKBcA5rQKzEwqH",
+    "name": "Heartbroken Dream",
+    "level": 8,
+    "art": "heartbroken-dream.webp"
+  },
+  {
+    "id": "sporeborn_skull",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "YZAlF4mBzvVB4WBU",
+    "name": "Sporeborn Skull",
+    "level": 2,
+    "art": "sporeborn-skull.webp"
+  },
+  {
+    "id": "narseigus_wormcaller",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "Z5xBjISvZVz6tXkq",
+    "name": "Narseigus Wormcaller",
+    "level": 11,
+    "art": "narseigus-wormcaller.webp"
+  },
+  {
+    "id": "veavieve",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "b5yZ3LIkGWcS2uhO",
+    "name": "Veavieve",
+    "level": 6,
+    "art": "veavieve.webp"
+  },
+  {
+    "id": "hryngar_assassin",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "cYn4N6B5GStHjcRb",
+    "name": "Hryngar Assassin",
+    "level": 7,
+    "art": "hryngar-assassin.webp"
+  },
+  {
+    "id": "anarchic_living_graffiti",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "cz1RF98nyHhEj3MN",
+    "name": "Anarchic Living Graffiti",
+    "level": 0,
+    "art": "anarchic-living-graffiti.webp"
+  },
+  {
+    "id": "alkepsur",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "eqTcqD5Abi2TtOtk",
+    "name": "Alkepsur",
+    "level": 1,
+    "art": "alkepsur.webp"
+  },
+  {
+    "id": "stoneriver",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "f9LUTY5IXXZorYZG",
+    "name": "Stoneriver",
+    "level": 12,
+    "art": "stoneriver.webp"
+  },
+  {
+    "id": "toilforged_sentinel",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "fDHdZFb8u3beJixJ",
+    "name": "Toilforged Sentinel",
+    "level": 8,
+    "art": "toilforged-sentinel.webp"
+  },
+  {
+    "id": "mumkuh",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "fK40GM0evzpqR8IX",
+    "name": "Mumkuh",
+    "level": 4,
+    "art": "mumkuh.webp"
+  },
+  {
+    "id": "ether_sprite",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "g1tWmlBEnltpFK6m",
+    "name": "Ether Sprite",
+    "level": -1,
+    "art": "ether-sprite.webp"
+  },
+  {
+    "id": "dream",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "g7rVihECWjZ7ehDc",
+    "name": "Enraged Dream",
+    "level": 8,
+    "art": "dream.webp"
+  },
+  {
+    "id": "blacknoon_apprentice",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "gPJhsS9xmNKK0ysU",
+    "name": "Blacknoon Apprentice",
+    "level": 2,
+    "art": "blacknoon-apprentice.webp"
+  },
+  {
+    "id": "ulat_kini_mindreaver",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "gl7jMlFgJW1iKJM3",
+    "name": "Ulat-Kini Mindreaver",
+    "level": 7,
+    "art": "ulat-kini-mindreaver.webp"
   }
 ]
