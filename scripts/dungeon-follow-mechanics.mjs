@@ -234,6 +234,50 @@ export function chooseResnapCell({
     : { gx: rounded.gx, gy: rounded.gy, valid: false };
 }
 
+/** #610: the straight (Bresenham-style, one cell per step) run from `from`
+ * to `to`, excluding `from`, or null if any step is out of bounds, crosses a
+ * blocked edge, or cuts a blocked corner (same flank rules as findPath for a
+ * 1x1 mover). findPath's tie-breaking zigzags, so extendTrail tries this
+ * first. */
+function straightSegment(from, to, isBlocked, bounds) {
+  const n = Math.max(Math.abs(to.gx - from.gx), Math.abs(to.gy - from.gy));
+  const cells = [];
+  let prev = from;
+  for (let i = 1; i <= n; i++) {
+    const next = {
+      gx: from.gx + Math.round(((to.gx - from.gx) * i) / n),
+      gy: from.gy + Math.round(((to.gy - from.gy) * i) / n),
+    };
+    if (
+      bounds &&
+      !(
+        next.gx >= bounds.gx0 &&
+        next.gx <= bounds.gx1 &&
+        next.gy >= bounds.gy0 &&
+        next.gy <= bounds.gy1
+      )
+    )
+      return null;
+    if (isBlocked(prev, next)) return null;
+    const dx = next.gx - prev.gx;
+    const dy = next.gy - prev.gy;
+    if (dx !== 0 && dy !== 0) {
+      const a = { gx: prev.gx + dx, gy: prev.gy };
+      const b = { gx: prev.gx, gy: prev.gy + dy };
+      if (
+        isBlocked(prev, a) ||
+        isBlocked(prev, b) ||
+        isBlocked(a, next) ||
+        isBlocked(b, next)
+      )
+        return null;
+    }
+    cells.push(next);
+    prev = next;
+  }
+  return cells;
+}
+
 /** #610: the leader's recent route as a newest-first list of cells
  * (`trail[0]` is its current cell). Extended per leader move by running
  * the wall-aware `findPath` from the previous cell to the new one -- a
@@ -246,6 +290,8 @@ export function extendTrail(trail, toCell, isBlocked, bounds, maxLen) {
   if (trail[0].gx === toCell.gx && trail[0].gy === toCell.gy) return trail;
   const seen = trail.findIndex((c) => c.gx === toCell.gx && c.gy === toCell.gy);
   if (seen !== -1) return trail.slice(seen);
+  const straight = straightSegment(trail[0], toCell, isBlocked, bounds);
+  if (straight) return [...straight.reverse(), ...trail].slice(0, maxLen);
   const path = findPath(trail[0], toCell, isBlocked, bounds);
   if (!path || path.length < 2) return [{ gx: toCell.gx, gy: toCell.gy }];
   const fresh = path.slice(1).reverse();

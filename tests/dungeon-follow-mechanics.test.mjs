@@ -376,10 +376,30 @@ describe("extendTrail (#610)", () => {
   });
 
   it("prepends the path cells newest-first for a straight run", () => {
-    const t = extendTrail([{ gx: 2, gy: 2 }], { gx: 5, gy: 2 }, noWalls(), null, 10);
-    expect(t[0]).toEqual({ gx: 5, gy: 2 });
+    expect(extendTrail([{ gx: 2, gy: 2 }], { gx: 6, gy: 2 }, noWalls(), null, 10)).toEqual([
+      { gx: 6, gy: 2 },
+      { gx: 5, gy: 2 },
+      { gx: 4, gy: 2 },
+      { gx: 3, gy: 2 },
+      { gx: 2, gy: 2 },
+    ]);
+  });
+
+  it("a diagonal jump is exactly the diagonal", () => {
+    expect(extendTrail([{ gx: 2, gy: 2 }], { gx: 5, gy: 5 }, noWalls(), null, 10)).toEqual([
+      { gx: 5, gy: 5 },
+      { gx: 4, gy: 4 },
+      { gx: 3, gy: 3 },
+      { gx: 2, gy: 2 },
+    ]);
+  });
+
+  it("falls back to findPath when the straight run crosses a blocked edge", () => {
+    const blocked = (a, b) => a.gx === 3 && a.gy === 2 && b.gx === 4 && b.gy === 2;
+    const t = extendTrail([{ gx: 2, gy: 2 }], { gx: 6, gy: 2 }, blocked, null, 10);
+    expect(t[0]).toEqual({ gx: 6, gy: 2 });
     expect(t.at(-1)).toEqual({ gx: 2, gy: 2 });
-    expect(t.length).toBe(4);
+    expect(t.some((c) => c.gy !== 2)).toBe(true); // detoured around the blocked edge
   });
 
   it("routes around a wall using findPath", () => {
@@ -410,10 +430,13 @@ describe("extendTrail (#610)", () => {
 
   it("trims to maxLen keeping the newest cells", () => {
     const t = extendTrail([{ gx: 0, gy: 0 }], { gx: 9, gy: 0 }, noWalls(), null, 4);
-    expect(t[0]).toEqual({ gx: 9, gy: 0 });
-    expect(t.length).toBe(4);
-    // With a 10-node straight path from {0,0} to {9,0}, keeping only 4 newest cells
-    // gives us the first 4 from the reversed path: {9,0}, {8,0}, {7,0}, {6,0}
+    expect(t).toEqual([
+      { gx: 9, gy: 0 },
+      { gx: 8, gy: 0 },
+      { gx: 7, gy: 0 },
+      { gx: 6, gy: 0 },
+    ]);
+    expect(t).not.toContainEqual({ gx: 0, gy: 0 });
   });
 });
 

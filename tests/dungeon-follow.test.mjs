@@ -891,6 +891,18 @@ describe("follower trail-following (#610)", () => {
     expect(cellOf(b)).toEqual({ gx: 4, gy: 2 });
   });
 
+  it("a single multi-cell leader jump still yields a straight trail", async () => {
+    vi.useFakeTimers();
+    const a = makeToken({ id: "t-a", x: 6 * GRID, y: 6 * GRID, actorId: "actor-a" });
+    const b = makeToken({ id: "t-b", x: 7 * GRID, y: 7 * GRID, actorId: "actor-b" });
+    const { leader } = setup({ followers: [a, b] });
+    followLeaderIfDue(leader, { x: leader.x, y: leader.y });
+    await moveLeader(leader, 6, 2);
+    await settle();
+    expect(cellOf(a)).toEqual({ gx: 5, gy: 2 });
+    expect(cellOf(b)).toEqual({ gx: 4, gy: 2 });
+  });
+
   it("does not record trail cells from a non-leader token's move", async () => {
     vi.useFakeTimers();
     const a = makeToken({ id: "t-a", x: 6 * GRID, y: 6 * GRID, actorId: "actor-a" });
@@ -943,7 +955,8 @@ describe("follower trail-following (#610)", () => {
     await settle();
     expect(big.update).toHaveBeenCalled();
     const c = cellOf(big);
-    expect(Math.max(Math.abs(c.gx - 6), Math.abs(c.gy - 2))).toBeLessThanOrEqual(3);
+    // the trail slot for a 1x1 here would be (5,2); only the fallback lands on (5,3)
+    expect(c).toEqual({ gx: 5, gy: 3 });
   });
 });
 
