@@ -40622,5 +40622,165 @@
     "name": "Greedspawn",
     "level": 2,
     "art": "greedspawn.webp"
+  },
+  {
+    "id": "statue_of_alaznist",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "RM9NdjSOuLqKwWPn",
+    "name": "Statue of Alaznist",
+    "level": 5,
+    "art": "statue-of-alaznist.webp"
+  },
+  {
+    "id": "false_devil",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "RRXHzISbHxLnvQ3q",
+    "name": "False Devil",
+    "level": 8,
+    "art": "false-devil.webp"
+  },
+  {
+    "id": "ripnugget",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "SeLGzSRvXzRiaUGJ",
+    "name": "Ripnugget",
+    "level": 6,
+    "art": "ripnugget.webp"
+  },
+  {
+    "id": "gorlak",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "TUJQ4TlTlwCX8YMY",
+    "name": "Gorlak",
+    "level": 7,
+    "art": "gorlak.webp"
+  },
+  {
+    "id": "goblin_ghoul",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "U77Y6dfaQb4pPNpU",
+    "name": "Goblin Ghoul",
+    "level": 1,
+    "art": "goblin-ghoul.webp"
+  },
+  {
+    "id": "jervis_stoot",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "UqQwDPkaVhh3Ehht",
+    "name": "Jervis Stoot",
+    "level": 11,
+    "art": "jervis-stoot.webp"
+  },
+  {
+    "id": "asmerelli",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "XALtVzQ35vGHYTnk",
+    "name": "Asmerelli",
+    "level": 6,
+    "art": "asmerelli.webp"
+  },
+  {
+    "id": "clockwork_serpent",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "Yvz9ZflXUS0SU3fR",
+    "name": "Clockwork Serpent",
+    "level": 8,
+    "art": "clockwork-serpent.webp"
+  },
+  {
+    "id": "serpentfolk_cultist",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "acGApO7HwzXQVlTU",
+    "name": "Serpentfolk Cultist",
+    "level": 7,
+    "art": "serpentfolk-cultist.webp"
+  },
+  {
+    "id": "minargul",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "fCPf4Vl39OxXHvCA",
+    "name": "Minargul",
+    "level": 6,
+    "art": "minargul.webp"
+  },
+  {
+    "id": "sicklefang_longlegs",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "hp3uUqKvGfKOxFGu",
+    "name": "Sicklefang Longlegs",
+    "level": 6,
+    "art": "sicklefang-longlegs.webp"
+  },
+  {
+    "id": "isphinn",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "ht4d7kCdhjnsF2CQ",
+    "name": "Isphinn",
+    "level": 7,
+    "art": "isphinn.webp"
+  },
+  {
+    "id": "stickfoot",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "iOJqWQMDoqBqmmCg",
+    "name": "Stickfoot",
+    "level": 1,
+    "art": "stickfoot.webp"
+  },
+  {
+    "id": "jordus_munt",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "icF60MINRdmMu5Li",
+    "name": "Jordus Munt",
+    "level": 8,
+    "art": "jordus-munt.webp"
+  },
+  {
+    "id": "chertus_jheed",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "ir0rdqJJw6dn4RHb",
+    "name": "Chertus Jheed",
+    "level": 7,
+    "art": "chertus-jheed.webp"
+  },
+  {
+    "id": "pthuminin",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "m221Ars4KPC1j7VT",
+    "name": "Pthuminin",
+    "level": 11,
+    "art": "pthuminin.webp"
+  },
+  {
+    "id": "fungus_tyrant",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "nUnZtlm7PneSF8ww",
+    "name": "Fungus Tyrant",
+    "level": 9,
+    "art": "fungus-tyrant.webp"
+  },
+  {
+    "id": "abstalar_zantus",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "pnLPdcv5ROaICESe",
+    "name": "Abstalar Zantus",
+    "level": 7,
+    "art": "abstalar-zantus.webp"
+  },
+  {
+    "id": "kaleb_valdemar_s_body",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "r0iaWrjaSiCrxrMg",
+    "name": "Kaleb Valdemar's Body",
+    "level": 12,
+    "art": "kaleb-valdemar-s-body.webp"
+  },
+  {
+    "id": "glorkus",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "ru2uTJxf6RTUzJ1p",
+    "name": "Glorkus",
+    "level": 4,
+    "art": "glorkus.webp"
   }
 ]
