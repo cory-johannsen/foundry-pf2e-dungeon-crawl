@@ -40190,5 +40190,149 @@
     "name": "Bull of Zagresh",
     "level": 7,
     "art": "bull-of-zagresh.webp"
+  },
+  {
+    "id": "trygve",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "1oVJFDY5BJQxO3k9",
+    "name": "Trygve",
+    "level": 2,
+    "art": "trygve.webp"
+  },
+  {
+    "id": "knurr_ragnulf",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "5WblkuUbhqpFk7iu",
+    "name": "Knurr Ragnulf",
+    "level": 2,
+    "art": "knurr-ragnulf.webp"
+  },
+  {
+    "id": "rustsworn_initiate",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "ARjMJb6LCtwdNDM6",
+    "name": "Rustsworn Initiate",
+    "level": -1,
+    "art": "rustsworn-initiate.webp"
+  },
+  {
+    "id": "severed_head_bxs36",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "BXS36BprDgzSnXuZ",
+    "name": "Severed Head",
+    "level": -1,
+    "art": "severed-head.webp"
+  },
+  {
+    "id": "clockwork_serpent_spy",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "DetuCfGXs1UGdVdz",
+    "name": "Clockwork Serpent Spy",
+    "level": 1,
+    "art": "clockwork-serpent-spy.webp"
+  },
+  {
+    "id": "meitremar",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "FPIjWBVNisjWRXHp",
+    "name": "Meitremar",
+    "level": 3,
+    "art": "meitremar.webp"
+  },
+  {
+    "id": "primordial_envy",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "FUxaVKVEV8eOuTVB",
+    "name": "Primordial Envy",
+    "level": 3,
+    "art": "primordial-envy.webp"
+  },
+  {
+    "id": "glutu",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "GtI25Mqe9uQxandy",
+    "name": "Glutu",
+    "level": 3,
+    "art": "glutu.webp"
+  },
+  {
+    "id": "vanda",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "H3Ma71C2ZEku2RdG",
+    "name": "Vanda",
+    "level": 2,
+    "art": "vanda.webp"
+  },
+  {
+    "id": "fallen_acolyte",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "LeN4l03TAmPiAjdK",
+    "name": "Fallen Acolyte",
+    "level": 0,
+    "art": "fallen-acolyte.webp"
+  },
+  {
+    "id": "theiltemar",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "RnqXo9fN1ST0kOZ5",
+    "name": "Theiltemar",
+    "level": 4,
+    "art": "theiltemar.webp"
+  },
+  {
+    "id": "rust_zombie",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "UMDbYqoMhnLZQ2gf",
+    "name": "Rust Zombie",
+    "level": 1,
+    "art": "rust-zombie.webp"
+  },
+  {
+    "id": "vlorian_cythnigot",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "heYhZGnVa9XSFuUN",
+    "name": "Vlorian Cythnigot",
+    "level": 3,
+    "art": "vlorian-cythnigot.webp"
+  },
+  {
+    "id": "starving_werebat",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "otBXbd41vVLZW1xv",
+    "name": "Starving Werebat",
+    "level": 2,
+    "art": "starving-werebat.webp"
+  },
+  {
+    "id": "clockwork_belimarius",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "romVSuOVkSVFwsN4",
+    "name": "Clockwork Belimarius",
+    "level": 4,
+    "art": "clockwork-belimarius.webp"
+  },
+  {
+    "id": "zaiox",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "vQeUoEfY80yBs0Bb",
+    "name": "Zaiox",
+    "level": 4,
+    "art": "zaiox.webp"
+  },
+  {
+    "id": "ordwi",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "ye8Niis34NfY30TS",
+    "name": "Ordwi",
+    "level": 2,
+    "art": "ordwi.webp"
+  },
+  {
+    "id": "dretch",
+    "pack": "pf2e.rusthenge-bestiary",
+    "docId": "yscVNbJvyotk9NLG",
+    "name": "Dretch",
+    "level": 2,
+    "art": "dretch.webp"
   }
 ]
