@@ -37758,5 +37758,181 @@
     "name": "Dalgyal Gwishin",
     "level": 5,
     "art": "dalgyal-gwishin.webp"
+  },
+  {
+    "id": "xin_yue",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "ExTKQvgLI72XGk98",
+    "name": "Xin Yue",
+    "level": 7,
+    "art": "xin-yue.webp"
+  },
+  {
+    "id": "gurglegut",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "F7Bqz4kI1rhm4AzW",
+    "name": "Gurglegut",
+    "level": 3,
+    "art": "gurglegut.webp"
+  },
+  {
+    "id": "gurglegut_level_12",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "QZcSgUKKxaBe8OM1",
+    "name": "Gurglegut (Level 12)",
+    "level": 12,
+    "art": "gurglegut.webp"
+  },
+  {
+    "id": "warty",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "GMJrIpVi1ZskXVu1",
+    "name": "Warty",
+    "level": 2,
+    "art": "warty.webp"
+  },
+  {
+    "id": "willowshore_waldgeist",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "HSozUsLp1ufDkJIr",
+    "name": "Willowshore Waldgeist",
+    "level": 7,
+    "art": "willowshore-waldgeist.webp"
+  },
+  {
+    "id": "false_governor",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "HxgtQw1rldkMf83o",
+    "name": "False Governor",
+    "level": 12,
+    "art": "false-governor.webp"
+  },
+  {
+    "id": "phantom_boar",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "I9BbG4LH6LP4zlhK",
+    "name": "Phantom Boar",
+    "level": 2,
+    "art": "phantom-boar.webp"
+  },
+  {
+    "id": "familiar_shadow",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "IdbrdikgvRguKYNE",
+    "name": "Familiar Shadow",
+    "level": 4,
+    "art": "familiar-shadow.webp"
+  },
+  {
+    "id": "imprecasia",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "K68BqK1Ero3x8NsK",
+    "name": "Imprecasia",
+    "level": 11,
+    "art": "imprecasia.webp"
+  },
+  {
+    "id": "matsuki_shou",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "KhGtAbhgupqJyqET",
+    "name": "Matsuki Shou",
+    "level": 5,
+    "art": "matsuki-shou.webp"
+  },
+  {
+    "id": "kugaptee_s_drakauthix",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "L0IUMSl4uON0zV65",
+    "name": "Kugaptee's Drakauthix",
+    "level": 9,
+    "art": "kugaptee-s-drakauthix.webp"
+  },
+  {
+    "id": "shisagishin",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "MNqc1mJwPOOfjoVr",
+    "name": "Shisagishin",
+    "level": 12,
+    "art": "shisagishin.webp"
+  },
+  {
+    "id": "red_hooded_thatchling",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "N69YhHyRWfpfvESy",
+    "name": "Red-Hooded Thatchling",
+    "level": 2,
+    "art": "red-hooded-thatchling.webp"
+  },
+  {
+    "id": "ren_mei_li",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "ONN4yz1NzvvCGBUv",
+    "name": "Ren Mei Li",
+    "level": 16,
+    "art": "ren-mei-li.webp"
+  },
+  {
+    "id": "phantom_gecko",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "OV671fn8SuClbJip",
+    "name": "Phantom Gecko",
+    "level": 1,
+    "art": "phantom-gecko.webp"
+  },
+  {
+    "id": "shimmerthief",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "OoTnmIkunSTCPet3",
+    "name": "Shimmerthief",
+    "level": 7,
+    "art": "shimmerthief.webp"
+  },
+  {
+    "id": "fan_hongrui",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "OqE7v9KwZNEO3zHp",
+    "name": "Fan Hongrui",
+    "level": 2,
+    "art": "fan-hongrui.webp"
+  },
+  {
+    "id": "hong_meigui",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "P6BnwxID1zxZlt9D",
+    "name": "Hong Meigui",
+    "level": 10,
+    "art": "hong-meigui.webp"
+  },
+  {
+    "id": "heh_shan_bao",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "bIoWSQbvs2yeL7PG",
+    "name": "Heh Shan-Bao",
+    "level": 9,
+    "art": "heh-shan-bao.webp"
+  },
+  {
+    "id": "heh_shan_bao_level_13",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "PLV1wW0Aa5SNUQM4",
+    "name": "Heh Shan-Bao (Level 13)",
+    "level": 13,
+    "art": "heh-shan-bao.webp"
+  },
+  {
+    "id": "ijda",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "QCTOHTwnEo6eq82T",
+    "name": "Ijda",
+    "level": 6,
+    "art": "ijda.webp"
+  },
+  {
+    "id": "silsyche",
+    "pack": "pf2e.season-of-ghosts-bestiary",
+    "docId": "Qmg2GRJivmrKxJ4C",
+    "name": "Silsyche",
+    "level": 6,
+    "art": "silsyche.webp"
   }
 ]
