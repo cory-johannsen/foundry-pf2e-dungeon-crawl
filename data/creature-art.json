@@ -36190,5 +36190,165 @@
     "name": "Kapoacinth",
     "level": 4,
     "art": "kapoacinth.webp"
+  },
+  {
+    "id": "floating_femur",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "6I4ZtQJPT0ToITvq",
+    "name": "Floating Femur",
+    "level": -1,
+    "art": "floating-femur.webp"
+  },
+  {
+    "id": "ghiasi_s_double",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "7Ah4NAOuhPqMQ5e7",
+    "name": "Ghiasi's Double",
+    "level": 14,
+    "art": "ghiasi-s-double.webp"
+  },
+  {
+    "id": "harmony_in_agony",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "7BqiEDwmEPDwGMAn",
+    "name": "Harmony In Agony",
+    "level": 13,
+    "art": "harmony-in-agony.webp"
+  },
+  {
+    "id": "nydazuul",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "8I2hoMYo2hXVYZZ0",
+    "name": "Nydazuul",
+    "level": 11,
+    "art": "nydazuul.webp"
+  },
+  {
+    "id": "ancient_skaveling",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "9yd6jVPcLusk4BX1",
+    "name": "Ancient Skaveling",
+    "level": 15,
+    "art": "ancient-skaveling.webp"
+  },
+  {
+    "id": "facetbound_nullifier",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "A3joovUPMBOVDpVz",
+    "name": "Facetbound Nullifier",
+    "level": 15,
+    "art": "facetbound-nullifier.webp"
+  },
+  {
+    "id": "nwanyian_defender",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "A8jGRgn97x59cJn8",
+    "name": "Nwanyian Defender",
+    "level": 5,
+    "art": "nwanyian-defender.webp"
+  },
+  {
+    "id": "facetbound_cascader",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "AvF72rXp6bcQHPdo",
+    "name": "Facetbound Cascader",
+    "level": 16,
+    "art": "facetbound-cascader.webp"
+  },
+  {
+    "id": "necrohulk_flailer",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "BiJxQ9mMOGxS6XnA",
+    "name": "Necrohulk Flailer",
+    "level": 13,
+    "art": "necrohulk-flailer.webp"
+  },
+  {
+    "id": "ghoul_gnawer",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "CMQu4nHDLH7tt6yu",
+    "name": "Ghoul Gnawer",
+    "level": 11,
+    "art": "ghoul-gnawer.webp"
+  },
+  {
+    "id": "scrabbling_ribcage",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "CVBM8oY76Yw4IxN5",
+    "name": "Scrabbling Ribcage",
+    "level": 1,
+    "art": "scrabbling-ribcage.webp"
+  },
+  {
+    "id": "weeping_jack",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "CWg8NX6XHv2sEVlg",
+    "name": "Weeping Jack",
+    "level": 13,
+    "art": "weeping-jack.webp"
+  },
+  {
+    "id": "graelar_the_whisper",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "Cq2Dy62tDzOApDrE",
+    "name": "Graelar the Whisper",
+    "level": 18,
+    "art": "graelar-the-whisper.webp"
+  },
+  {
+    "id": "animated_fireplace",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "DIDEV6UK5S5jQunK",
+    "name": "Animated Fireplace",
+    "level": 5,
+    "art": "animated-fireplace.webp"
+  },
+  {
+    "id": "shabti_slayer",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "DInkix6cy2NgjpJd",
+    "name": "Shabti Slayer",
+    "level": 16,
+    "art": "shabti-slayer.webp"
+  },
+  {
+    "id": "decrosia",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "DunLW2kBqOpE0pkL",
+    "name": "Decrosia",
+    "level": 8,
+    "art": "decrosia.webp"
+  },
+  {
+    "id": "tenebric_giant",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "EUr4hJvZf5lRQSKu",
+    "name": "Tenebric Giant",
+    "level": 17,
+    "art": "tenebric-giant.webp"
+  },
+  {
+    "id": "theater_phantasm",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "EqO67DHLlB88vSJZ",
+    "name": "Theater Phantasm",
+    "level": 16,
+    "art": "theater-phantasm.webp"
+  },
+  {
+    "id": "shadow_worm",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "Eu7KtTDs6ia5ijUK",
+    "name": "Shadow Worm",
+    "level": 20,
+    "art": "shadow-worm.webp"
+  },
+  {
+    "id": "prince_doriel",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "FVBJjBbvITVpHiec",
+    "name": "Prince Doriel",
+    "level": 10,
+    "art": "prince-doriel.webp"
   }
 ]
