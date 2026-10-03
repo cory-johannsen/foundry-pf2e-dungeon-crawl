@@ -36830,5 +36830,165 @@
     "name": "Bellator Mortus Soldier",
     "level": 15,
     "art": "bellator-mortus-soldier.webp"
+  },
+  {
+    "id": "vanth_warrior",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "oQzwF5Wwn2w8POgS",
+    "name": "Vanth Warrior",
+    "level": 14,
+    "art": "vanth-warrior.webp"
+  },
+  {
+    "id": "kelganth",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "oVqkX1LugEW4qoXN",
+    "name": "Kelganth",
+    "level": 19,
+    "art": "kelganth.webp"
+  },
+  {
+    "id": "ghast_outlaw",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "p6wud30R7C5OAFGz",
+    "name": "Ghast Outlaw",
+    "level": 9,
+    "art": "ghast-outlaw.webp"
+  },
+  {
+    "id": "yshula",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "pHiRAXi3YxFhBeLi",
+    "name": "Yshula",
+    "level": 8,
+    "art": "yshula.webp"
+  },
+  {
+    "id": "crooked_coffin_brewer",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "pJ9Pfo3DCsV97GYO",
+    "name": "Crooked Coffin Brewer",
+    "level": 1,
+    "art": "crooked-coffin-brewer.webp"
+  },
+  {
+    "id": "zuntishan_guard",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "pQJbY3PTeHNYbkho",
+    "name": "Zuntishan Guard",
+    "level": 6,
+    "art": "zuntishan-guard.webp"
+  },
+  {
+    "id": "grace_the_rhino_owano",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "pg4YAN1whVZsnLKf",
+    "name": "Grace \"The Rhino\" Owano",
+    "level": 10,
+    "art": "grace-the-rhino-owano.webp"
+  },
+  {
+    "id": "shadow_leydroth",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "ppFL3vBBYT4EXQom",
+    "name": "Shadow Leydroth",
+    "level": 17,
+    "art": "shadow-leydroth.webp"
+  },
+  {
+    "id": "urbulinex",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "pqlqDWVOtPxJ2oRn",
+    "name": "Urbulinex",
+    "level": 18,
+    "art": "urbulinex.webp"
+  },
+  {
+    "id": "basiri_wellspring_keeper",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "rAKazZKUhWdwPQBx",
+    "name": "Basiri, Wellspring Keeper",
+    "level": 19,
+    "art": "basiri-wellspring-keeper.webp"
+  },
+  {
+    "id": "sorvinaesen",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "sJRDLWLc7F6ZCc31",
+    "name": "Sorvinaesen",
+    "level": 17,
+    "art": "sorvinaesen.webp"
+  },
+  {
+    "id": "vampire_guardian",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "syFR3SChA5KCx8OA",
+    "name": "Vampire Guardian",
+    "level": 10,
+    "art": "vampire-guardian.webp"
+  },
+  {
+    "id": "sallowdrudge",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "sySkOlAi825RpRrj",
+    "name": "Sallowdrudge",
+    "level": 1,
+    "art": "sallowdrudge.webp"
+  },
+  {
+    "id": "pesgahi_the_poisoner",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "t92NDPmfXnOke88G",
+    "name": "Pesgahi the Poisoner",
+    "level": 4,
+    "art": "pesgahi-the-poisoner.webp"
+  },
+  {
+    "id": "seldeg_bheldis",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "tu9Y0LJ6ghOpkJTX",
+    "name": "Seldeg Bheldis",
+    "level": 17,
+    "art": "seldeg-bheldis.webp"
+  },
+  {
+    "id": "charghar",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "vUv8SR7Pa5fONiuN",
+    "name": "Charghar",
+    "level": 4,
+    "art": "charghar.webp"
+  },
+  {
+    "id": "zombie_horse",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "woGNg9IcqOtEy9hb",
+    "name": "Zombie Horse",
+    "level": 1,
+    "art": "zombie-horse.webp"
+  },
+  {
+    "id": "agorron_guard",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "wqnc9i6hDS9FP8IO",
+    "name": "Agorron Guard",
+    "level": 15,
+    "art": "agorron-guard.webp"
+  },
+  {
+    "id": "rumin_purgo",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "xtDVxT49QGCo78yp",
+    "name": "Rumin Purgo",
+    "level": 11,
+    "art": "rumin-purgo.webp"
+  },
+  {
+    "id": "umbraex",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "yQHyvoLOi6HxUTfe",
+    "name": "Umbraex",
+    "level": 21,
+    "art": "umbraex.webp"
   }
 ]
