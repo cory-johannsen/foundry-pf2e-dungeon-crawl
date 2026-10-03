@@ -13,7 +13,6 @@ import {
   selectSkillChallengeTemplate,
   ALL_SKILLS,
   VP_TARGET,
-  NON_SPECIALTY_DC_BUMP,
 } from "../scripts/skill-challenge-mechanics.mjs";
 import { MAX_DEPTH_BIAS } from "../scripts/dungeon-deck.mjs";
 
@@ -138,10 +137,10 @@ describe("dcForAttempt", () => {
     ).toBe(20);
   });
 
-  it("adds NON_SPECIALTY_DC_BUMP for a non-specialty skill", () => {
+  it("ignores which skill is used -- no non-specialty penalty (#553)", () => {
     expect(
       dcForAttempt({ partyLevel: 5, skill: "athletics", specialtySkills }),
-    ).toBe(20 + NON_SPECIALTY_DC_BUMP);
+    ).toBe(20);
   });
 });
 

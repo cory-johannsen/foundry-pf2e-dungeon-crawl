@@ -26,7 +26,7 @@ import { makeFoundryApi, drawTreasureItem } from "../foundry-api.mjs";
 import { xpFor } from "../encounter-roster.mjs";
 import { rollSkillChallengeAttempt } from "../skill-challenge.mjs";
 import { rollPuzzleStageAttempt } from "../puzzle.mjs";
-import { ALL_SKILLS, dcForAttempt } from "../skill-challenge-mechanics.mjs";
+import { dcForAttempt } from "../skill-challenge-mechanics.mjs";
 import {
   traitFieldHtml,
   wireTraitPickerButtons,
@@ -970,11 +970,6 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
           label: skillLabel(slug),
           flavor: raw.skillFlavor?.[slug] ?? null,
         })),
-        allSkills: ALL_SKILLS.map((slug) => ({
-          slug,
-          label: skillLabel(slug),
-          isSpecialty: raw.specialtySkills.includes(slug),
-        })),
       };
     }
 
@@ -1374,11 +1369,11 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const skill = form?.querySelector('[name="skill"]')?.value;
     const actor = actorId ? game.actors.get(actorId) : null;
     if (!actor || !skill) return;
+    // #553: only the challenge's own specialty skills are attemptable.
+    if (!currentRoom.challenge.specialtySkills.includes(skill)) return;
 
     const dc = dcForAttempt({
       partyLevel: await makeFoundryApi().partyLevel(),
-      skill,
-      specialtySkills: currentRoom.challenge.specialtySkills,
     });
     const result = await rollSkillChallengeAttempt(actor, skill, dc);
     if (!result) return;
