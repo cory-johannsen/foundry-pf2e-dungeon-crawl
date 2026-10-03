@@ -126,7 +126,8 @@ executes, and acks back. Nearly every mutating action in `dungeon-app.mjs`
 already routes through this. `dungeon-follow.mjs` didn't, until #65 fixed
 it today — see Party-follow below.
 
-**Party-follow** (`dungeon-follow.mjs`, `dungeon-follow-mechanics.mjs`) —
+**Party-follow** (`dungeon-follow.mjs`, `dungeon-follow-mechanics.mjs`,
+`token-walk.mjs`) —
 moves AI-controlled party members toward the leader's token between
 fights. The pure half computes a single step of pathfinding-aware
 movement; the glue half hooks `updateToken`/`updateWall` and, since #65,
@@ -136,7 +137,11 @@ each follower's own target is whoever is immediately ahead of it in the
 run's `marchingOrder` (`dungeon-runner.mjs`'s `effectiveMarchingOrder`),
 not always the leader directly — this chain-following is what lets
 followers queue single-file through a corridor too narrow for more than
-one of them to be near the leader at once.
+one of them to be near the leader at once. Since #610, a follower walks its
+found path one cell per `{teleport: true}` update with the
+`movementStepDelayMs` pause between hops, via `token-walk.mjs` — the leaf
+module (shared with `dungeon-combat.mjs`, #479) that owns that hop-by-hop
+write loop, so neither file imports the other.
 
 **Run state & UI** (`dungeon-runner.mjs`, `module.mjs`,
 `scripts/ui/dungeon-app.mjs`, `world-macros.mjs`) — `dungeon-runner.mjs`
@@ -185,6 +190,7 @@ graph LR
   subgraph "Party-follow"
     scripts_dungeon_follow_mechanics_mjs["dungeon-follow-mechanics.mjs"]
     scripts_dungeon_follow_mjs["dungeon-follow.mjs"]
+    scripts_token_walk_mjs["token-walk.mjs"]
   end
   subgraph "Combat automation (in-module heuristic)"
     scripts_agent_candidates_mjs["agent-candidates.mjs"]
@@ -249,6 +255,7 @@ graph LR
   scripts_dungeon_combat_mjs --> scripts_agent_candidates_mjs
   scripts_dungeon_combat_mjs --> scripts_pathfinding_mjs
   scripts_dungeon_combat_mjs --> scripts_placement_mjs
+  scripts_dungeon_combat_mjs --> scripts_token_walk_mjs
   scripts_dungeon_combat_mjs --> scripts_treasure_mjs
   scripts_dungeon_combat_mjs --> scripts_cover_items_mjs
   scripts_dungeon_combat_mjs --> scripts_dungeon_sound_mjs
@@ -266,6 +273,7 @@ graph LR
   scripts_dungeon_follow_mjs --> scripts_dungeon_remote_mjs
   scripts_dungeon_follow_mjs --> scripts_pathfinding_mjs
   scripts_dungeon_follow_mjs --> scripts_placement_mjs
+  scripts_dungeon_follow_mjs --> scripts_token_walk_mjs
   scripts_dungeon_follow_mjs --> scripts_dungeon_follow_mechanics_mjs
   scripts_dungeon_layout_mjs --> scripts_prng_mjs
   scripts_dungeon_remote_mjs --> scripts_player_choice_mjs
