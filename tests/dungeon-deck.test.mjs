@@ -24,7 +24,10 @@ import {
   TREASURE_ROOM_CATEGORY_WEIGHTS,
   EXIT_COUNT_WEIGHTS,
   exitCountAt,
-  revealTravelTimeEffect
+  revealTravelTimeEffect,
+  DIFFICULTY_TIERS,
+  normalizeDifficulty,
+  applyDifficultyCap
 } from '../scripts/dungeon-deck.mjs';
 import { nthLevelTableName, VALUABLE_TIERS } from '../scripts/treasure.mjs';
 
@@ -887,5 +890,47 @@ describe('insertRestRoom', () => {
     const b = buildRoomGraph({ seed: 's5', roomCount: 11 });
     expect(insertRestRoom({ ...a, seed: 's5', roomCount: 11 }))
       .toEqual(insertRestRoom({ ...b, seed: 's5', roomCount: 11 }));
+  });
+});
+
+describe('difficulty tiers (#412)', () => {
+  it('lists the five tiers in order', () => {
+    expect(DIFFICULTY_TIERS).toEqual(['trivial', 'low', 'moderate', 'severe', 'extreme']);
+  });
+
+  it('normalizes missing or unknown values to severe', () => {
+    expect(normalizeDifficulty(undefined)).toBe('severe');
+    expect(normalizeDifficulty(null)).toBe('severe');
+    expect(normalizeDifficulty('nightmare')).toBe('severe');
+    expect(normalizeDifficulty('low')).toBe('low');
+  });
+
+  it('severe is the identity on the 0..2 ramp', () => {
+    for (const b of [0, 1, 2]) expect(applyDifficultyCap(b, 'severe')).toBe(b);
+  });
+
+  it('a missing or unknown tier behaves as severe', () => {
+    for (const b of [0, 1, 2]) {
+      expect(applyDifficultyCap(b, undefined)).toBe(b);
+      expect(applyDifficultyCap(b, 'bogus')).toBe(b);
+    }
+  });
+
+  it('low clamps every room to 0, moderate to at most 1', () => {
+    for (const b of [0, 1, 2]) expect(applyDifficultyCap(b, 'low')).toBe(0);
+    expect([0, 1, 2].map((b) => applyDifficultyCap(b, 'moderate'))).toEqual([0, 1, 1]);
+  });
+
+  it('trivial is -1 for every room, goal room included', () => {
+    for (const b of [0, 1, 2]) expect(applyDifficultyCap(b, 'trivial')).toBe(-1);
+  });
+
+  it('extreme matches severe except rooms at ramp bias 2, which lift to 3', () => {
+    expect([0, 1, 2].map((b) => applyDifficultyCap(b, 'extreme'))).toEqual([0, 1, 3]);
+  });
+
+  it('extreme still lifts the goal room of the shortest dungeon', () => {
+    const bias = depthBiasFor({ rank: 1, maxRank: 1, isGoal: true });
+    expect(applyDifficultyCap(bias, 'extreme')).toBe(3);
   });
 });
