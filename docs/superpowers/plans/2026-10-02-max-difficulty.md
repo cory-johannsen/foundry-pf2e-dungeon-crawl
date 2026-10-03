@@ -362,7 +362,7 @@ git commit -m "#412: DC adjustment by difficulty for skill challenges and puzzle
 - Consumes: `normalizeDifficulty` from `scripts/dungeon-deck.mjs` (Task 1).
 - Produces: `createRun({..., difficulty})` stores `state.difficulty` (normalized); `startDungeonRun({..., difficulty})`.
 
-- [ ] **Step 1: Write failing tests** — append to `tests/dungeon-runner.test.mjs`:
+- [x] **Step 1: Write failing tests** — append to `tests/dungeon-runner.test.mjs`:
 
 ```js
 describe("createRun difficulty (#412)", () => {
@@ -395,12 +395,12 @@ describe("createRun difficulty (#412)", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `npx vitest run tests/dungeon-runner.test.mjs`
 Expected: FAIL (`state.difficulty` is `undefined`).
 
-- [ ] **Step 3: Implement.**
+- [x] **Step 3: Implement.**
 
 `scripts/dungeon-runner.mjs`: add `import { normalizeDifficulty } from "./dungeon-deck.mjs";` with the other imports; add `difficulty = null,` to `createRun`'s first-argument destructuring (after `hostUserId = null,`); and in the `state` literal, after `excludeTraits,` add:
 
@@ -445,12 +445,12 @@ and add `difficulty,` to both the `startDungeonRun({...})` args and the `request
   "PF2EDC.Dungeon.Difficulty.Extreme": "Extreme (deep rooms and the goal)",
 ```
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `npx vitest run tests/dungeon-runner.test.mjs && node -e "JSON.parse(require('fs').readFileSync('lang/en.json'))"`
 Expected: PASS, no JSON error.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts templates lang tests

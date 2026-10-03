@@ -18,6 +18,7 @@
  * party progresses.
  */
 import { getGenerator } from "./generator-registry.mjs";
+import { normalizeDifficulty } from "./dungeon-deck.mjs";
 import {
   withEntry,
   withUndoneEntry,
@@ -151,6 +152,7 @@ export async function createRun(
     seed = null,
     previousSceneId = null,
     hostUserId = null,
+    difficulty = null,
   },
   {
     settingsRef = defaultSettingsRef(),
@@ -194,6 +196,9 @@ export async function createRun(
     createdAt: Date.now(),
     traits,
     excludeTraits,
+    // #412: the player's max-difficulty tier, fixed for the whole run.
+    // Normalized so a bad relayed value (or an old caller) reads as Severe.
+    difficulty: normalizeDifficulty(difficulty),
     rooms,
     currentIndex: 0,
     currentRoomId: rooms[0].id,

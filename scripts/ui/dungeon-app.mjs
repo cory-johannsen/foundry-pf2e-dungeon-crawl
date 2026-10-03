@@ -456,6 +456,7 @@ export async function startDungeonRun({
   excludeTraits,
   previousSceneId,
   hostUserId,
+  difficulty,
 }) {
   const scene = await createDungeonScene();
   const setpieces = await loadDungeonSetpieces();
@@ -482,6 +483,7 @@ export async function startDungeonRun({
       excludeTraits,
       previousSceneId,
       hostUserId,
+      difficulty,
     },
     {
       puzzleSetpieceIds,
@@ -1288,6 +1290,8 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     );
     const traits = readTraitField(this.element, "traits");
     const excludeTraits = readTraitField(this.element, "excludeTraits");
+    const difficulty =
+      form?.querySelector('[name="difficulty"]')?.value ?? "severe";
     // Wherever the GM/party were right before starting — teardownDungeonRun
     // (ITEM-18) sends them back here if this run is later abandoned.
     const previousSceneId = canvas?.scene?.id ?? null;
@@ -1307,6 +1311,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
           excludeTraits,
           previousSceneId,
           hostUserId: null,
+          difficulty,
         });
       } else {
         await requestDungeonAction(
@@ -1316,6 +1321,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
             traits,
             excludeTraits,
             previousSceneId,
+            difficulty,
           },
           { timeoutMs: 60_000 },
         );
