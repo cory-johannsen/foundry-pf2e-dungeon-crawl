@@ -35862,5 +35862,125 @@
     "name": "Crawling Slurry",
     "level": 16,
     "art": "crawling-slurry.webp"
+  },
+  {
+    "id": "serpentfolk_granitescale",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "vVjsaFfYREz7bflO",
+    "name": "Serpentfolk Granitescale",
+    "level": 6,
+    "art": "serpentfolk-granitescale.webp"
+  },
+  {
+    "id": "abendego_brute",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "vjmhpWfL8hvK2nzO",
+    "name": "Abendego Brute",
+    "level": 8,
+    "art": "abendego-brute.webp"
+  },
+  {
+    "id": "ikeshti_brood_minder",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "wCmTtkeVjPILP7Vl",
+    "name": "Ikeshti Brood-Minder",
+    "level": 2,
+    "art": "ikeshti-brood-minder.webp"
+  },
+  {
+    "id": "norgorberite_spy",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "wTjcudppfZi0lsJa",
+    "name": "Norgorberite Spy",
+    "level": 10,
+    "art": "norgorberite-spy.webp"
+  },
+  {
+    "id": "cyclops_bully",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "wemtTy7ikoRXvguh",
+    "name": "Cyclops Bully",
+    "level": 9,
+    "art": "cyclops-bully.webp"
+  },
+  {
+    "id": "aspect_of_hunger",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "wz2788pDzWe52BBE",
+    "name": "Aspect of Hunger",
+    "level": 19,
+    "art": "aspect-of-hunger.webp"
+  },
+  {
+    "id": "thorn_guardian",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "xFzKEbOTulrhOsF4",
+    "name": "Thorn Guardian",
+    "level": 16,
+    "art": "thorn-guardian.webp"
+  },
+  {
+    "id": "golgopo",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "xJPpzTfTABmT5C4i",
+    "name": "Golgopo",
+    "level": 8,
+    "art": "golgopo.webp"
+  },
+  {
+    "id": "unshadowed_anchor_root",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "yBIeXuLhBROG84Ca",
+    "name": "Unshadowed Anchor Root",
+    "level": 18,
+    "art": "unshadowed-anchor-root.webp"
+  },
+  {
+    "id": "drenchdead",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "ybYXRItLGKw7oHsO",
+    "name": "Drenchdead",
+    "level": 12,
+    "art": "drenchdead.webp"
+  },
+  {
+    "id": "unshadowed_koride",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "yqZqz9sMK8LNolIB",
+    "name": "Unshadowed Koride",
+    "level": 19,
+    "art": "unshadowed-koride.webp"
+  },
+  {
+    "id": "giant_silverfish",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "z5hb3oj58QKMfGPk",
+    "name": "Giant Silverfish",
+    "level": 0,
+    "art": "giant-silverfish.webp"
+  },
+  {
+    "id": "worknesh",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "zfo1oFWRg3A2BxTQ",
+    "name": "Worknesh",
+    "level": 16,
+    "art": "worknesh.webp"
+  },
+  {
+    "id": "kurshkin",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "zgd9SvS7CyWTHlBs",
+    "name": "Kurshkin",
+    "level": 3,
+    "art": "kurshkin.webp"
+  },
+  {
+    "id": "anadi_seeker",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "zy69GWkQ4xS5y5O3",
+    "name": "Anadi Seeker",
+    "level": 1,
+    "art": "anadi-seeker.webp"
   }
 ]
