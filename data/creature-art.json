@@ -40782,5 +40782,53 @@
     "name": "Glorkus",
     "level": 4,
     "art": "glorkus.webp"
+  },
+  {
+    "id": "tunch",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "sLFSXmv8NereWm15",
+    "name": "Tunch",
+    "level": 5,
+    "art": "tunch.webp"
+  },
+  {
+    "id": "charn_scarnetti",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "tlduVEwwd5zQaGGJ",
+    "name": "Charn Scarnetti",
+    "level": 3,
+    "art": "charn-scarnetti.webp"
+  },
+  {
+    "id": "cruncher",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "vLaHGDJu2xsqAxuq",
+    "name": "Cruncher",
+    "level": 6,
+    "art": "cruncher.webp"
+  },
+  {
+    "id": "giant_longlegs",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "vzEP8QvlJm0OZVWv",
+    "name": "Giant Longlegs",
+    "level": 3,
+    "art": "giant-longlegs.webp"
+  },
+  {
+    "id": "zoog",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "w4dc94Yzxw9LtxMM",
+    "name": "Zoog",
+    "level": 1,
+    "art": "zoog.webp"
+  },
+  {
+    "id": "devil_s_disciple",
+    "pack": "pf2e.seven-dooms-for-sandpoint-bestiary",
+    "docId": "xwM0EVgxGtbvPd0i",
+    "name": "Devil's Disciple",
+    "level": 2,
+    "art": "devil-s-disciple.webp"
   }
 ]
