@@ -35382,5 +35382,165 @@
     "name": "Giant Goliath Beetle",
     "level": 3,
     "art": "giant-goliath-beetle.webp"
+  },
+  {
+    "id": "biloko_reaver",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "U6EEfdbaodpYZfU6",
+    "name": "Biloko Reaver",
+    "level": 10,
+    "art": "biloko-reaver.webp"
+  },
+  {
+    "id": "giant_mining_bee",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "U6LMDSZqlzAap72K",
+    "name": "Giant Mining Bee",
+    "level": 2,
+    "art": "giant-mining-bee.webp"
+  },
+  {
+    "id": "red_commander_ant",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "UOXavVdqiOPyB6xa",
+    "name": "Red Commander Ant",
+    "level": 17,
+    "art": "red-commander-ant.webp"
+  },
+  {
+    "id": "spawn_of_taon",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "UXLNinUscHZ22cHD",
+    "name": "Spawn of Taon",
+    "level": 11,
+    "art": "spawn-of-taon.webp"
+  },
+  {
+    "id": "mutated_sewer_ooze",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "VUad8HXC87nC9OrZ",
+    "name": "Mutated Sewer Ooze",
+    "level": 6,
+    "art": "mutated-sewer-ooze.webp"
+  },
+  {
+    "id": "serpentfolk_venom_caller",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "WMeRC4WHogtHXnGG",
+    "name": "Serpentfolk Venom Caller",
+    "level": 7,
+    "art": "serpentfolk-venom-caller.webp"
+  },
+  {
+    "id": "boggard_hunter",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "X1uJ0zSQ8TdHpBS5",
+    "name": "Boggard Hunter",
+    "level": 7,
+    "art": "boggard-hunter.webp"
+  },
+  {
+    "id": "gambulami",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "XqifZ5APrSc8PqhP",
+    "name": "Gambulami",
+    "level": 11,
+    "art": "gambulami.webp"
+  },
+  {
+    "id": "ba_aupa_mdoudu",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "XsLYAnDjzpPeICkL",
+    "name": "Ba'aupa Mdoudu",
+    "level": 13,
+    "art": "ba-aupa-mdoudu.webp"
+  },
+  {
+    "id": "ajbal_kimon",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "YsBSkW3aFwU1bl3w",
+    "name": "Ajbal Kimon",
+    "level": 13,
+    "art": "ajbal-kimon.webp"
+  },
+  {
+    "id": "onyiji",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "Z6BxAmAcOywNrwPE",
+    "name": "Onyiji",
+    "level": 8,
+    "art": "onyiji.webp"
+  },
+  {
+    "id": "ixam",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "a7jc4LYwEzgdCP7H",
+    "name": "Ixam\u00e8",
+    "level": 10,
+    "art": "ixam.webp"
+  },
+  {
+    "id": "dajermube",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "aGRGTryl2gymNRHS",
+    "name": "Dajermube",
+    "level": 16,
+    "art": "dajermube.webp"
+  },
+  {
+    "id": "reborn_sun_hunter",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "aQH62hiGUoOscc4i",
+    "name": "Reborn Sun Hunter",
+    "level": 11,
+    "art": "reborn-sun-hunter.webp"
+  },
+  {
+    "id": "fire_pot_ubanu",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "bhmO8fRIHvD7b1lk",
+    "name": "Fire-pot Ubanu",
+    "level": 8,
+    "art": "fire-pot-ubanu.webp"
+  },
+  {
+    "id": "binji",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "c3vJuzMqHptfpi1d",
+    "name": "Binji",
+    "level": -1,
+    "art": "binji.webp"
+  },
+  {
+    "id": "stone_ghost",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "caOhluoshxMJwGoE",
+    "name": "Stone Ghost",
+    "level": 5,
+    "art": "stone-ghost.webp"
+  },
+  {
+    "id": "thasteron_khefak",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "caSI33WvJJlF6qpb",
+    "name": "Thasteron Khefak",
+    "level": 3,
+    "art": "thasteron-khefak.webp"
+  },
+  {
+    "id": "khefak_scuttler",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "eKKp33z9z6U8alo9",
+    "name": "Khefak Scuttler",
+    "level": -1,
+    "art": "khefak-scuttler.webp"
+  },
+  {
+    "id": "chromatic_ooze",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "eWCArhCIUv1SvIyD",
+    "name": "Chromatic Ooze",
+    "level": 18,
+    "art": "chromatic-ooze.webp"
   }
 ]
