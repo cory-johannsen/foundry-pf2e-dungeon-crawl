@@ -18,6 +18,8 @@ import { footprint } from "./placement.mjs";
 import { walkTokenThroughSteps } from "./token-walk.mjs";
 import {
   findFollowMove,
+  extendTrail,
+  findTrailMove,
   tokenCell,
   sceneBounds,
   chooseResnapCell,
@@ -166,6 +168,33 @@ function wasRecentlyWrittenByUs(tokenId) {
 }
 
 const pendingByScene = new Map(); // sceneId -> setTimeout handle
+
+// #610: sceneId -> the leader's recent route, newest-first (see
+// extendTrail). Lives on the GM client, the only one that moves followers.
+const leaderTrails = new Map();
+const TRAIL_EXTRA_CELLS = 3;
+
+export function __clearLeaderTrailsForTests() {
+  leaderTrails.clear();
+}
+export function __getLeaderTrailForTests(sceneId) {
+  return leaderTrails.get(sceneId);
+}
+
+function recordLeaderMove(scene, leaderToken, followerCount) {
+  const gridSize = scene.grid?.size ?? 100;
+  const cell = tokenCell(sourcePosition(leaderToken), gridSize);
+  leaderTrails.set(
+    scene.id,
+    extendTrail(
+      leaderTrails.get(scene.id) ?? [],
+      cell,
+      movementBlockedEdges(scene, gridSize),
+      sceneBounds(scene, gridSize),
+      followerCount + TRAIL_EXTRA_CELLS,
+    ),
+  );
+}
 const warnedNoLeaderForScene = new Set();
 const inFlightScenes = new Set();
 
@@ -249,9 +278,20 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
     // including the leader's -- e.g. after a mid-corridor marching-order
     // reorder. Fixed; this used to be a known limitation of #181.
     let referenceCell = leaderCell;
+    // #610: use the trail only while it still starts at the leader's real
+    // cell (a door-open retry may run with a stale one).
+    const storedTrail = leaderTrails.get(scene.id) ?? [];
+    const trail =
+      storedTrail[0] &&
+      storedTrail[0].gx === leaderCell.gx &&
+      storedTrail[0].gy === leaderCell.gy
+        ? storedTrail
+        : [];
+    let slot = 0;
     for (const actorId of aiControlledIds) {
       const token = scene.tokens.find((t) => t.actor?.id === actorId);
       if (!token) continue;
+      slot += 1;
       // #86: correct a follower's own off-grid position (e.g. from a
       // manual, unsnapped drag in Foundry's own UI) before
       // findFollowMove's "already-near" status can skip straight past it
@@ -303,14 +343,23 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
       );
       const myFootprint =
         myIndex !== -1 ? occupied.splice(myIndex, 1)[0] : null;
-      const result = findFollowMove(
-        fromCell,
-        referenceCell,
-        occupied,
-        isBlocked,
-        bounds,
-        moverFootprint,
-      );
+      const result =
+        findTrailMove(
+          fromCell,
+          trail[slot] ?? null,
+          occupied,
+          isBlocked,
+          bounds,
+          moverFootprint,
+        ) ??
+        findFollowMove(
+          fromCell,
+          referenceCell,
+          occupied,
+          isBlocked,
+          bounds,
+          moverFootprint,
+        );
       if (result.status === "already-near" || result.status === "no-route") {
         if (myFootprint) occupied.push(myFootprint);
         if (result.status === "no-route") {
@@ -420,7 +469,11 @@ export function followLeaderIfDue(tokenDoc, changes) {
   if (!isPositionChange(changes)) return;
   const scene = tokenDoc.parent;
   if (!scene) return;
-  if (hasActiveCombat(scene)) return;
+  if (hasActiveCombat(scene)) {
+    // #610: a trail must not span a fight; the next leader move rebuilds it.
+    leaderTrails.delete(scene.id);
+    return;
+  }
 
   const run = getRunState(scene.id);
   const aiControlledIds = effectiveMarchingOrder(run);
@@ -439,6 +492,7 @@ export function followLeaderIfDue(tokenDoc, changes) {
   if (leaderToken.id !== tokenDoc.id) return;
 
   if (game.user.isGM) {
+    recordLeaderMove(scene, leaderToken, aiControlledIds.length);
     scheduleFollowMove(scene, leaderToken, aiControlledIds);
     return;
   }
