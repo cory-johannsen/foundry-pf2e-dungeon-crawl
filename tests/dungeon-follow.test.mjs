@@ -131,6 +131,22 @@ function makeDoorWall({ ds }) {
   };
 }
 
+// #610: followers now walk their path one cell per update() with a
+// movementStepDelayMs pause between hops, so a test has to run the fake
+// timers well past the 250ms debounce for the whole walk to finish.
+// With a `watch` token, stops as soon as one 600ms step passes with no new
+// update() on it, so the clock never runs far past the final hop (the #87
+// suppression window is only RECENT_WRITE_SUPPRESS_MS wide).
+async function settle(watch) {
+  await vi.advanceTimersByTimeAsync(300);
+  if (!watch) return vi.advanceTimersByTimeAsync(60000);
+  let seen = -1;
+  while (watch.update.mock.calls.length !== seen) {
+    seen = watch.update.mock.calls.length;
+    await vi.advanceTimersByTimeAsync(600);
+  }
+}
+
 describe("followLeaderOnDoorOpened (#39)", () => {
   afterEach(() => {
     vi.useRealTimers();
@@ -165,10 +181,10 @@ describe("followLeaderOnDoorOpened (#39)", () => {
     });
 
     followLeaderOnDoorOpened(door, { ds: CONST.WALL_DOOR_STATES.OPEN });
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
 
-    expect(follower.update).toHaveBeenCalledTimes(1);
-    const [{ x, y }] = follower.update.mock.calls[0];
+    expect(follower.update).toHaveBeenCalled();
+    const [{ x, y }] = follower.update.mock.calls.at(-1);
     const followerGx = x / GRID;
     const followerGy = y / GRID;
     const chebyshev = Math.max(
@@ -205,7 +221,7 @@ describe("followLeaderOnDoorOpened (#39)", () => {
     });
 
     followLeaderOnDoorOpened(door, { ds: CONST.WALL_DOOR_STATES.CLOSED });
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
 
     expect(follower.update).not.toHaveBeenCalled();
   });
@@ -239,7 +255,7 @@ describe("followLeaderOnDoorOpened (#39)", () => {
     });
 
     followLeaderOnDoorOpened(door, { ds: CONST.WALL_DOOR_STATES.OPEN });
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
 
     expect(follower.update).not.toHaveBeenCalled();
     expect(requestDungeonAction).not.toHaveBeenCalled();
@@ -274,7 +290,7 @@ describe("followLeaderOnDoorOpened (#39)", () => {
     });
 
     followLeaderOnDoorOpened(door, { ds: CONST.WALL_DOOR_STATES.OPEN });
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
 
     // The actual move happens on whichever client receives and executes
     // the relayed request, not this one -- this client only ever asks.
@@ -322,9 +338,9 @@ describe("followLeaderIfDue (#65)", () => {
     });
 
     followLeaderIfDue(leader, { x: leader.x, y: leader.y });
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
 
-    expect(follower.update).toHaveBeenCalledTimes(1);
+    expect(follower.update).toHaveBeenCalled();
   });
 
   it("does nothing when the moved token isn't the leader's own", async () => {
@@ -340,7 +356,7 @@ describe("followLeaderIfDue (#65)", () => {
     });
 
     followLeaderIfDue(follower, { x: follower.x, y: follower.y });
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
 
     expect(follower.update).not.toHaveBeenCalled();
     expect(requestDungeonAction).not.toHaveBeenCalled();
@@ -359,7 +375,7 @@ describe("followLeaderIfDue (#65)", () => {
     });
 
     followLeaderIfDue(leader, { elevation: 0 });
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
 
     expect(follower.update).not.toHaveBeenCalled();
   });
@@ -394,9 +410,9 @@ describe("followLeaderIfDue (#65)", () => {
         method: "keyboard",
       },
     });
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
 
-    expect(follower.update).toHaveBeenCalledTimes(1);
+    expect(follower.update).toHaveBeenCalled();
   });
 
   it("does nothing when the current client is neither GM nor the run's host", async () => {
@@ -414,7 +430,7 @@ describe("followLeaderIfDue (#65)", () => {
     });
 
     followLeaderIfDue(leader, { x: leader.x, y: leader.y });
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
 
     expect(follower.update).not.toHaveBeenCalled();
     expect(requestDungeonAction).not.toHaveBeenCalled();
@@ -435,7 +451,7 @@ describe("followLeaderIfDue (#65)", () => {
     });
 
     followLeaderIfDue(leader, { x: leader.x, y: leader.y });
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
 
     expect(follower.update).not.toHaveBeenCalled();
     expect(requestDungeonAction).toHaveBeenCalledTimes(1);
@@ -477,9 +493,9 @@ describe("runFollowMoveNow (#65)", () => {
     game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
 
     runFollowMoveNow(SCENE_ID);
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
 
-    expect(follower.update).toHaveBeenCalledTimes(1);
+    expect(follower.update).toHaveBeenCalled();
   });
 
   it("is a no-op for a scene with no matching run", async () => {
@@ -489,7 +505,7 @@ describe("runFollowMoveNow (#65)", () => {
     game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
 
     expect(() => runFollowMoveNow(SCENE_ID)).not.toThrow();
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
   });
 
   // #87: a follower stuck at the previous room's far side of a single-row
@@ -577,10 +593,10 @@ describe("runFollowMoveNow (#65)", () => {
     game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
 
     runFollowMoveNow(SCENE_ID);
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
 
-    expect(follower.update).toHaveBeenCalledTimes(1);
-    const [{ x, y }, moveOptions] = follower.update.mock.calls[0];
+    expect(follower.update).toHaveBeenCalled();
+    const [{ x, y }, moveOptions] = follower.update.mock.calls.at(-1);
     expect({ gx: x / GRID, gy: y / GRID }).not.toEqual({ gx: 6, gy: 1 });
     // #87 (2026-10-01, round 7): see the inline #86 snap's own teleport
     // assertion below for why this matters.
@@ -623,9 +639,9 @@ describe("runFollowMoveNow (#65)", () => {
     game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
 
     runFollowMoveNow(SCENE_ID);
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
 
-    expect(follower.update).toHaveBeenCalledTimes(1);
+    expect(follower.update).toHaveBeenCalled();
     expect(follower.x % GRID).toBe(0);
     expect(follower.y % GRID).toBe(0);
     // #87 (2026-10-01, round 7): every write this module makes must pass
@@ -635,7 +651,7 @@ describe("runFollowMoveNow (#65)", () => {
     // position than the one requested if the straight-line path to it
     // clips a wall (live-confirmed; see this file's module-level comment
     // above `RECENT_WRITE_SUPPRESS_MS`).
-    expect(follower.update.mock.calls[0][1]).toEqual({ teleport: true });
+    expect(follower.update.mock.calls.at(-1)[1]).toEqual({ teleport: true });
   });
 
   // #87 (2026-10-01, round 3): this inline snap reads the follower's own
@@ -680,7 +696,7 @@ describe("runFollowMoveNow (#65)", () => {
     game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
 
     runFollowMoveNow(SCENE_ID);
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
 
     expect(follower.update).not.toHaveBeenCalled();
   });
@@ -725,10 +741,10 @@ describe("moveFollowersToward footprint-awareness (#140)", () => {
     game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
 
     runFollowMoveNow(SCENE_ID);
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
 
-    expect(follower.update).toHaveBeenCalledTimes(1);
-    const [{ x, y }] = follower.update.mock.calls[0];
+    expect(follower.update).toHaveBeenCalled();
+    const [{ x, y }] = follower.update.mock.calls.at(-1);
     const gx = x / GRID;
     const gy = y / GRID;
     const overlapsLeader = gx <= 5 && gx + 2 > 5 && gy <= 1 && gy + 2 > 1;
@@ -769,15 +785,58 @@ describe("moveFollowersToward footprint-awareness (#140)", () => {
     game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
 
     runFollowMoveNow(SCENE_ID);
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
 
-    expect(follower.update).toHaveBeenCalledTimes(1);
-    const [{ x, y }] = follower.update.mock.calls[0];
+    expect(follower.update).toHaveBeenCalled();
+    const [{ x, y }] = follower.update.mock.calls.at(-1);
     // Verified independently by running findFollowMove directly: with
     // the follower's own footprint wrongly counted as an obstacle to
     // itself, the result is {gx:4,gy:6} -- one square worse (farther
     // from the follower's own start) than the correct {gx:5,gy:6}.
     expect({ gx: x / GRID, gy: y / GRID }).toEqual({ gx: 5, gy: 6 });
+  });
+});
+
+describe("moveFollowersToward stepwise walking (#610)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("walks a follower one cell per teleport update with the step delay between hops", async () => {
+    vi.useFakeTimers();
+    const leader = makeToken({ id: "t-leader", x: 5 * GRID, y: 0, actorId: LEADER_ACTOR_ID });
+    const follower = makeToken({ id: "t-f", x: 0, y: 0, actorId: "actor-f" });
+    const scene = makeScene({ tokens: [leader, follower] });
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: ["actor-f"],
+          marchingOrder: ["actor-f"],
+        },
+      },
+    });
+    const baseGet = game.settings.get;
+    game.settings = {
+      get: (m, key) => (key === "movementStepDelayMs" ? 900 : baseGet(m, key)),
+    };
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+    const spy = vi.spyOn(globalThis, "setTimeout");
+
+    runFollowMoveNow(SCENE_ID);
+    await settle();
+
+    const calls = follower.update.mock.calls;
+    expect(calls.length).toBeGreaterThan(1);
+    let prev = { gx: 0, gy: 0 };
+    for (const [{ x, y }, opts] of calls) {
+      expect(opts).toEqual({ teleport: true });
+      const cell = { gx: x / GRID, gy: y / GRID };
+      expect(Math.max(Math.abs(cell.gx - prev.gx), Math.abs(cell.gy - prev.gy))).toBe(1);
+      prev = cell;
+    }
+    const stepDelays = spy.mock.calls.filter((c) => c[1] === 900);
+    expect(stepDelays).toHaveLength(calls.length - 1);
   });
 });
 
@@ -850,7 +909,7 @@ describe("moveFollowersToward chain-following (#181)", () => {
     // regardless of cycle count.
     for (let i = 0; i < 6; i += 1) {
       runFollowMoveNow(SCENE_ID);
-      await vi.advanceTimersByTimeAsync(300);
+      await settle();
       expect(followerA.y).toBeGreaterThanOrEqual(followerB.y);
       expect(followerB.y).toBeGreaterThanOrEqual(followerC.y);
     }
@@ -874,7 +933,7 @@ describe("moveFollowersToward chain-following (#181)", () => {
     game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
 
     expect(() => runFollowMoveNow(SCENE_ID)).not.toThrow();
-    await vi.advanceTimersByTimeAsync(300);
+    await settle();
   });
 });
 
@@ -1327,9 +1386,10 @@ describe("moveFollowersToward + resnapDriftedTokens interaction (#87)", () => {
     game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
 
     runFollowMoveNow(SCENE_ID);
-    await vi.advanceTimersByTimeAsync(300);
+    await settle(follower);
 
-    expect(follower.update).toHaveBeenCalledTimes(1);
+    expect(follower.update).toHaveBeenCalled();
+    const hopsBefore = follower.update.mock.calls.length;
     const destination = follower.__destination;
 
     // Simulate Foundry's updateToken hook firing reactively while the
@@ -1339,7 +1399,7 @@ describe("moveFollowersToward + resnapDriftedTokens interaction (#87)", () => {
     // the real destination, so this must be a genuine no-op.
     await resnapDriftedTokens(follower, { x: follower.x, y: follower.y });
 
-    expect(follower.update).toHaveBeenCalledTimes(1);
+    expect(follower.update).toHaveBeenCalledTimes(hopsBefore);
     expect(follower._source.x).toBe(destination.x);
     expect(follower._source.y).toBe(destination.y);
   });
@@ -1385,15 +1445,16 @@ describe("moveFollowersToward + resnapDriftedTokens interaction (#87)", () => {
     game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
 
     runFollowMoveNow(SCENE_ID);
-    await vi.advanceTimersByTimeAsync(300);
+    await settle(follower);
 
-    expect(follower.update).toHaveBeenCalledTimes(1);
+    expect(follower.update).toHaveBeenCalled();
+    const hopsBefore = follower.update.mock.calls.length;
 
     // Fires immediately after, well within the suppression window --
     // must be skipped entirely, without even reading the (deliberately
     // wrong) _source value.
     await resnapDriftedTokens(follower, { x: follower.x, y: follower.y });
 
-    expect(follower.update).toHaveBeenCalledTimes(1);
+    expect(follower.update).toHaveBeenCalledTimes(hopsBefore);
   });
 });

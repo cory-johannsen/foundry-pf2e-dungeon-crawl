@@ -119,7 +119,9 @@ function freeCellsNear(
  * - `{status: "already-near"}` — within one tile already, nothing to do.
  * - `{status: "no-route"}` — every adjacent cell is occupied, or no path
  *   exists to any free adjacent cell (walls in the way on every candidate).
- * - `{status: "move", to: {gx, gy}}` — the destination cell to move to.
+ * - `{status: "move", to: {gx, gy}, steps}` — the destination cell to move
+ *   to, and `steps` (#610), the ordered cells to walk through to reach it
+ *   (not including `fromCell`).
  *
  * `occupiedCells` is a `Set` of `"gx,gy"` keys the destination must avoid.
  * `isBlocked`/`bounds` are passed straight through to `findPath`.
@@ -168,7 +170,9 @@ export function findFollowMove(
     isBlocked(a, b) || blockers.some((f) => cellInFootprint(b, f));
   for (const target of candidates) {
     const path = findPath(fromCell, target, pathBlocked, bounds, 20000, footprint);
-    if (path && path.length > 1) return { status: "move", to: target };
+    // #610: `steps` is the path minus its start cell, for hop-by-hop walking.
+    if (path && path.length > 1)
+      return { status: "move", to: target, steps: path.slice(1) };
   }
   return { status: "no-route" };
 }

@@ -11,6 +11,24 @@ function noWalls() {
 }
 
 describe("findFollowMove", () => {
+  it("returns the path minus its start cell as `steps`, ending at `to` (#610)", () => {
+    const result = findFollowMove(
+      { gx: 0, gy: 0 },
+      { gx: 5, gy: 0 },
+      [],
+      noWalls(),
+      null,
+    );
+    expect(result.status).toBe("move");
+    expect(result.steps).not.toContainEqual({ gx: 0, gy: 0 });
+    expect(result.steps.at(-1)).toEqual(result.to);
+    let prev = { gx: 0, gy: 0 };
+    for (const c of result.steps) {
+      expect(Math.max(Math.abs(c.gx - prev.gx), Math.abs(c.gy - prev.gy))).toBe(1);
+      prev = c;
+    }
+  });
+
   it("returns already-near when within one tile of the leader", () => {
     const result = findFollowMove(
       { gx: 5, gy: 5 },
@@ -53,7 +71,7 @@ describe("findFollowMove", () => {
       noWalls(),
       null,
     );
-    expect(result).toEqual({ status: "move", to: { gx: 4, gy: 6 } });
+    expect(result).toMatchObject({ status: "move", to: { gx: 4, gy: 6 } });
   });
 
   // #87 (third round): the leader's own immediate 8-neighborhood being
@@ -240,7 +258,7 @@ describe("findFollowMove occupancy-aware pathing (#365)", () => {
       corridorBlocked,
       null,
     );
-    expect(result).toEqual({ status: "move", to: { gx: 9, gy: 5 } });
+    expect(result).toMatchObject({ status: "move", to: { gx: 9, gy: 5 } });
   });
 
   it("the leader's own cell blocks pathing through it", () => {
@@ -253,7 +271,7 @@ describe("findFollowMove occupancy-aware pathing (#365)", () => {
       corridorBlocked,
       null,
     );
-    expect(result).toEqual({ status: "move", to: { gx: 4, gy: 5 } });
+    expect(result).toMatchObject({ status: "move", to: { gx: 4, gy: 5 } });
   });
 
   it("a 2x2 mover is blocked by a token in its swept cells", () => {

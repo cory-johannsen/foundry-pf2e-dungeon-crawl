@@ -40,6 +40,7 @@ import {
   hasLineOfSight as sightLineClear,
 } from "./pathfinding.mjs";
 import { footprint, overlaps } from "./placement.mjs";
+import { readPacingSetting, walkTokenThroughSteps } from "./token-walk.mjs";
 import { LOOTABLE_ITEM_TYPES } from "./treasure.mjs";
 import { coverBlocksLineOfFire, COVER_EFFECT_DATA } from "./cover-items.mjs";
 import {
@@ -546,17 +547,6 @@ export function maybeResolveCombatForCombatant(combatant, changes) {
 // --- ITEM-8: automating a non-player combatant's own turn ---------------
 
 const AUTO_PLAY_DELAY_MS = 700;
-// #479: how long each individual grid-square hop of an AI-controlled
-// combatant's movement pauses before the next one, so players can
-// actually see it move instead of it jumping straight to its
-// destination. Every hop still writes via { teleport: true } -- this
-// paces the write-by-write sequence, it does not reintroduce Foundry's
-// own animated movement pipeline (see #87/#141/#361: that pipeline's own
-// wall-collision check silently relocates a token to the wrong cell;
-// { teleport: true } bypasses it on every single hop, same as before).
-// DEFAULT value (ms); the live value is the world setting
-// `movementStepDelayMs`, read at call time by movementStepDelayMs().
-const MOVEMENT_STEP_DELAY_MS = 600;
 // #479: how long an agent-controlled combatant's turn pauses between one
 // applied action and the next decision, on both the agent-decision path
 // (runAgentDecisionLoop) and the heuristic fallback (playHeuristicTurn) --
@@ -568,17 +558,6 @@ const MOVEMENT_STEP_DELAY_MS = 600;
 // `actionPaceDelayMs`, read at call time by actionPaceDelayMs().
 const ACTION_PACE_DELAY_MS = 1200;
 
-function readPacingSetting(key, fallback) {
-  try {
-    const v = game.settings.get(MODULE_ID, key);
-    if (typeof v === "number" && Number.isFinite(v) && v >= 0) return v;
-  } catch {
-    // settings unavailable or key unregistered: use the default
-  }
-  return fallback;
-}
-const movementStepDelayMs = () =>
-  readPacingSetting("movementStepDelayMs", MOVEMENT_STEP_DELAY_MS);
 const actionPaceDelayMs = () =>
   readPacingSetting("actionPaceDelayMs", ACTION_PACE_DELAY_MS);
 
@@ -2159,24 +2138,6 @@ function posturePath(
     if (path && path.length > 1) return path;
   }
   return null;
-}
-
-/** Writes `token`'s position through each cell in `steps` in order (an
- * ordered list of {gx, gy} cells, not including the token's own starting
- * cell -- see walkPath's own updated return shape), each still via
- * { teleport: true } so Foundry's wall-collision check never relocates a
- * single hop (#87/#141/#361), with MOVEMENT_STEP_DELAY_MS between each
- * write except after the last one. */
-async function walkTokenThroughSteps(token, steps, gridSize) {
-  for (let i = 0; i < steps.length; i += 1) {
-    await token.update(
-      { x: steps[i].gx * gridSize, y: steps[i].gy * gridSize },
-      { teleport: true },
-    );
-    if (i < steps.length - 1) {
-      await new Promise((resolve) => setTimeout(resolve, movementStepDelayMs()));
-    }
-  }
 }
 
 /**
