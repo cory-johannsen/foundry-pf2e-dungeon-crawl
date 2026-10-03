@@ -35062,5 +35062,165 @@
     "name": "Pugwampi (SoT)",
     "level": 0,
     "art": "pugwampi.webp"
+  },
+  {
+    "id": "unshadowed_okoro",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "9dsDwOspNTaUGoem",
+    "name": "Unshadowed Okoro",
+    "level": 18,
+    "art": "unshadowed-okoro.webp"
+  },
+  {
+    "id": "mpeshi",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "AYHh9p9ZJFM0ELK1",
+    "name": "Mpeshi",
+    "level": 6,
+    "art": "mpeshi.webp"
+  },
+  {
+    "id": "shianshi_waymaker",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "BBY1kxjWhzLDtF8c",
+    "name": "Shianshi Waymaker",
+    "level": 18,
+    "art": "shianshi-waymaker.webp"
+  },
+  {
+    "id": "slana",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "BUzNkswA1EOAtL0z",
+    "name": "Slana",
+    "level": 20,
+    "art": "slana.webp"
+  },
+  {
+    "id": "clockwork_clock_tower",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "BkBwYuqaYBbIsp1b",
+    "name": "Clockwork Clock Tower",
+    "level": 20,
+    "art": "clockwork-clock-tower.webp"
+  },
+  {
+    "id": "unshadowed_haibram",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "BsXzS2fooPorzqsV",
+    "name": "Unshadowed Haibram",
+    "level": 18,
+    "art": "unshadowed-haibram.webp"
+  },
+  {
+    "id": "giant_tsetse_fly",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "CUkPnLXw1H0e5NMe",
+    "name": "Giant Tsetse Fly",
+    "level": 2,
+    "art": "giant-tsetse-fly.webp"
+  },
+  {
+    "id": "cataclysm_beetle",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "CXtkMa5cGeAD8uvm",
+    "name": "Cataclysm Beetle",
+    "level": 18,
+    "art": "cataclysm-beetle.webp"
+  },
+  {
+    "id": "dimari_diji",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "Cj0ra2zasTZCBRjJ",
+    "name": "Dimari-Diji",
+    "level": 25,
+    "art": "dimari-diji.webp"
+  },
+  {
+    "id": "hivebound_arboreal",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "EYAcaqkQajIbvtLB",
+    "name": "Hivebound Arboreal",
+    "level": 19,
+    "art": "hivebound-arboreal.webp"
+  },
+  {
+    "id": "grippli_skirmisher",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "ErJQcWKeBm1aZ7Np",
+    "name": "Grippli Skirmisher",
+    "level": 4,
+    "art": "grippli-skirmisher.webp"
+  },
+  {
+    "id": "sunburst_corpse",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "EyRDvDy5hWX7fUFR",
+    "name": "Sunburst Corpse",
+    "level": 14,
+    "art": "sunburst-corpse.webp"
+  },
+  {
+    "id": "urbel",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "FlnxHvFneYttMJ7y",
+    "name": "Urbel",
+    "level": 4,
+    "art": "urbel.webp"
+  },
+  {
+    "id": "sparkeater",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "GDEJworKvYKhniBU",
+    "name": "Sparkeater",
+    "level": 14,
+    "art": "sparkeater.webp"
+  },
+  {
+    "id": "i_iko_dragon",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "JajzgeWF1H0Ks6ON",
+    "name": "I'iko Dragon",
+    "level": 6,
+    "art": "i-iko-dragon.webp"
+  },
+  {
+    "id": "ssumzili",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "KJA0II9Qdgx989MA",
+    "name": "Ssumzili",
+    "level": 12,
+    "art": "ssumzili.webp"
+  },
+  {
+    "id": "takulu_ot",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "LA5VHAp0urzMEdsH",
+    "name": "Takulu Ot",
+    "level": 4,
+    "art": "takulu-ot.webp"
+  },
+  {
+    "id": "grouloop",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "LBIK0gw2TzcLIDaJ",
+    "name": "Grouloop",
+    "level": 9,
+    "art": "grouloop.webp"
+  },
+  {
+    "id": "bramble_champion_construct",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "LZTr8YH6JGRGc8Fz",
+    "name": "Bramble Champion Construct",
+    "level": 3,
+    "art": "bramble-champion-construct.webp"
+  },
+  {
+    "id": "mpondo",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "LdD9lYH5p8QTpcOV",
+    "name": "Mpondo",
+    "level": 15,
+    "art": "mpondo.webp"
   }
 ]
