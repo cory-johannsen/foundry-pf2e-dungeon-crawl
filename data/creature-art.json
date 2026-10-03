@@ -35222,5 +35222,165 @@
     "name": "Mpondo",
     "level": 15,
     "art": "mpondo.webp"
+  },
+  {
+    "id": "grippli_jinxer",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "M2YAGc36xzy8SAL7",
+    "name": "Grippli Jinxer",
+    "level": 6,
+    "art": "grippli-jinxer.webp"
+  },
+  {
+    "id": "red_queen",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "MAy066x8JPjIRWyW",
+    "name": "Red Queen",
+    "level": 18,
+    "art": "red-queen.webp"
+  },
+  {
+    "id": "nkiruka",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "MLCRss7LhVEE0HHy",
+    "name": "Nkiruka",
+    "level": 14,
+    "art": "nkiruka.webp"
+  },
+  {
+    "id": "formian_worker",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "MtaFBwBwpvoTC1PH",
+    "name": "Formian Worker",
+    "level": 1,
+    "art": "formian-worker.webp"
+  },
+  {
+    "id": "iobane_magus",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "NJclJai0QoEiR8wC",
+    "name": "Iobane Magus",
+    "level": 13,
+    "art": "iobane-magus.webp"
+  },
+  {
+    "id": "unshadowed_mariama",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "NVeGEMmia7sVq7uj",
+    "name": "Unshadowed Mariama",
+    "level": 18,
+    "art": "unshadowed-mariama.webp"
+  },
+  {
+    "id": "wereant_disciple",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "NfDN83AupuDwk33L",
+    "name": "Wereant Disciple",
+    "level": 16,
+    "art": "wereant-disciple.webp"
+  },
+  {
+    "id": "sicklehand_construct",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "NufNRseaGG62SrjR",
+    "name": "Sicklehand Construct",
+    "level": 0,
+    "art": "sicklehand-construct.webp"
+  },
+  {
+    "id": "damibwa",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "OC9ttUM3xalAJWSM",
+    "name": "Damibwa",
+    "level": 4,
+    "art": "damibwa.webp"
+  },
+  {
+    "id": "ancient_rivener",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "OPLok0VMnWsmhF7K",
+    "name": "Ancient Rivener",
+    "level": 14,
+    "art": "ancient-rivener.webp"
+  },
+  {
+    "id": "jackal_guard",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "OjqCx6nMwDuVLoqA",
+    "name": "Jackal Guard",
+    "level": 10,
+    "art": "jackal-guard.webp"
+  },
+  {
+    "id": "bog_mummy_amalgamation",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "QMCaqMDvOrmLftM6",
+    "name": "Bog Mummy Amalgamation",
+    "level": 9,
+    "art": "bog-mummy-amalgamation.webp"
+  },
+  {
+    "id": "umbo",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "QkT3Yr6mdnhVNJE8",
+    "name": "Umbo",
+    "level": 3,
+    "art": "umbo.webp"
+  },
+  {
+    "id": "shobhad_sniper",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "RJKVH3fxPEiTCwt5",
+    "name": "Shobhad Sniper",
+    "level": 17,
+    "art": "shobhad-sniper.webp"
+  },
+  {
+    "id": "tollvych",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "RNMbzphC2QEr5LFt",
+    "name": "Tollvych",
+    "level": 15,
+    "art": "tollvych.webp"
+  },
+  {
+    "id": "contemplative",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "ST4oQnNs5ePZIrZc",
+    "name": "Contemplative",
+    "level": 2,
+    "art": "contemplative.webp"
+  },
+  {
+    "id": "halbrux_far_sight",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "SU6Y9fwxjwGgMuJK",
+    "name": "Halbrux Far-sight",
+    "level": 11,
+    "art": "halbrux-far-sight.webp"
+  },
+  {
+    "id": "riding_frog",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "SvOEczaYVWrASvSm",
+    "name": "Riding Frog",
+    "level": 2,
+    "art": "riding-frog.webp"
+  },
+  {
+    "id": "ta_apundo",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "T4e7jLh98B40c55m",
+    "name": "Ta'apundo",
+    "level": 19,
+    "art": "ta-apundo.webp"
+  },
+  {
+    "id": "giant_goliath_beetle",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "TQyF26t10xdoqPWp",
+    "name": "Giant Goliath Beetle",
+    "level": 3,
+    "art": "giant-goliath-beetle.webp"
   }
 ]
