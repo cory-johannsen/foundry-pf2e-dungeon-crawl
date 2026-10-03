@@ -93,6 +93,7 @@ export function xpBudget(tier, partySize) {
  */
 export function xpCeilingTierForDepth(bias) {
   if (bias == null) return "severe";
+  if (!Number.isFinite(bias)) return "severe";
   if (bias < 0) return "trivial";
   if (bias === 0) return "low";
   if (bias === 1) return "moderate";
@@ -237,14 +238,16 @@ export async function resolveEncounterRoster({
     });
 
   // Cap-aware pick (#293): with a cap, the largest relative level `d` (at
-  // most the nominal slot level, at least -4) whose XP for `count` creatures
+  // most the nominal slot level capped at +4 — GM Core's table maximum, where
+  // xpFor stops clamping, so a bigger offset would be undercharged — at least
+  // -4) whose XP for `count` creatures
   // fits the remaining budget. The pick is then limited to creatures whose
   // REAL level is <= partyLevel + d (no upward tolerance), so what is
   // charged is never below what spawns. Nothing fits even at -4 -> skipped
   // (null), except into an empty roster, which takes -4 rather than nothing.
   const fitOffset = (slotOffset, count) => {
     const nominal = slotOffset + levelOffsetBias;
-    for (let d = nominal; d >= -4; d -= 1) {
+    for (let d = Math.min(nominal, 4); d >= -4; d -= 1) {
       if (approxXp + xpFor(d) * count <= xpCap) return d;
     }
     return approxXp === 0 ? -4 : null;

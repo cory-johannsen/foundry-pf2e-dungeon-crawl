@@ -558,6 +558,7 @@ describe("depth-scaled XP ceiling (#293)", () => {
     expect(xpCeilingTierForDepth(3)).toBe("extreme");
     expect(xpCeilingTierForDepth(null)).toBe("severe");
     expect(xpCeilingTierForDepth(undefined)).toBe("severe");
+    expect(xpCeilingTierForDepth(NaN)).toBe("severe");
   });
 
   for (const partySize of [1, 3, 4, 5, 6]) {
@@ -665,6 +666,20 @@ describe("depth XP cap clamps real creature levels (#293 follow-up)", () => {
     expect(roster.foes).toHaveLength(1);
     expect(realXp(roster, 1)).toBeLessThanOrEqual(xpBudget("moderate", 5));
     expect(roster.approxXp).toBeLessThanOrEqual(xpBudget("moderate", 5));
+  });
+
+  it("Extreme bias on a +2 slot never spawns above party+4 (the xpFor clamp)", async () => {
+    const roster = await resolveEncounterRoster({
+      resolved: { foes: slots([2]) },
+      api: makeStubApi(ladderPool()),
+      partyLevel: 5,
+      rng: () => 0.99,
+      levelOffsetBias: 3,
+      partySize: 4,
+      depthBias: 3,
+    });
+    expect(roster.foes).toHaveLength(1);
+    expect(roster.foes[0].level).toBeLessThanOrEqual(9);
   });
 
   it("does not let level tolerance pick a creature above the counted level", async () => {

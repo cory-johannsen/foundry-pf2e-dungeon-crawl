@@ -100,7 +100,7 @@
   "PF2EDC.Dungeon.Difficulty.Low": "Low",
   "PF2EDC.Dungeon.Difficulty.Moderate": "Moderate",
   "PF2EDC.Dungeon.Difficulty.Severe": "Severe (default)",
-  "PF2EDC.Dungeon.Difficulty.Extreme": "Extreme (deep rooms and the goal)",
+  "PF2EDC.Dungeon.Difficulty.Extreme": "Extreme (harder checks; deepest rooms and the goal)",
   "PF2EDC.Dungeon.RoomTile.Generic": "Room",
   "PF2EDC.Dungeon.RoomTile.Goal": "Goal",
   "PF2EDC.Dungeon.RoomTile.Kind.combat": "Combat",
