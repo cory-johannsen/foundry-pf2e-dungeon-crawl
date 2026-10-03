@@ -39638,5 +39638,205 @@
     "name": "King Merlokrep",
     "level": 8,
     "art": "king-merlokrep.webp"
+  },
+  {
+    "id": "hold_warrior",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "u2xrjniEMLW7pWCw",
+    "name": "Hold Warrior",
+    "level": 3,
+    "art": "hold-warrior.webp"
+  },
+  {
+    "id": "hold_warrior_forge",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "1FpfTDRKrAIwTiPs",
+    "name": "Hold Warrior (Forge)",
+    "level": 3,
+    "art": "hold-warrior.webp"
+  },
+  {
+    "id": "marguk_cleftneck",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "24ct8EZHwtv3O8bY",
+    "name": "Marguk Cleftneck",
+    "level": 7,
+    "art": "marguk-cleftneck.webp"
+  },
+  {
+    "id": "graveknight_umbra",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "2IFaNuCUbLvWB2QU",
+    "name": "Graveknight (Umbra)",
+    "level": 10,
+    "art": "graveknight.webp"
+  },
+  {
+    "id": "blisterwell_gaoler",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "2lWCzCOPItvA8PmY",
+    "name": "Blisterwell Gaoler",
+    "level": 5,
+    "art": "blisterwell-gaoler.webp"
+  },
+  {
+    "id": "azorena",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "5LLyMwwkGjf8QnYW",
+    "name": "Azorena",
+    "level": 7,
+    "art": "azorena.webp"
+  },
+  {
+    "id": "blisterwell_warrior",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "5mcpG3ay4SgNIX93",
+    "name": "Blisterwell Warrior",
+    "level": 4,
+    "art": "blisterwell-warrior.webp"
+  },
+  {
+    "id": "spite_screamer",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "6kkf6KKqdepx7PSD",
+    "name": "Spite-Screamer",
+    "level": 5,
+    "art": "spite-screamer.webp"
+  },
+  {
+    "id": "great_ironbill",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "79GS1x0EcQ8CKfoE",
+    "name": "Great Ironbill",
+    "level": 5,
+    "art": "great-ironbill.webp"
+  },
+  {
+    "id": "palpares",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "7TdImfQS3LkCvKyK",
+    "name": "Palpares",
+    "level": 11,
+    "art": "palpares.webp"
+  },
+  {
+    "id": "molog",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "7UR30qeUnnBwY9XE",
+    "name": "Molog",
+    "level": 11,
+    "art": "molog.webp"
+  },
+  {
+    "id": "orc_child",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "8E0hQDhuyub3w1OR",
+    "name": "Orc Child",
+    "level": -1,
+    "art": "orc-child.webp"
+  },
+  {
+    "id": "wight_spell_sniper",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "8J79PxxX2ZmWwkcS",
+    "name": "Wight Spell Sniper",
+    "level": 7,
+    "art": "wight-spell-sniper.webp"
+  },
+  {
+    "id": "verthok_the_reaper",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "8XXU1rRGS7U5ki0Q",
+    "name": "Verthok the Reaper",
+    "level": 10,
+    "art": "verthok-the-reaper.webp"
+  },
+  {
+    "id": "champion_of_zagresh",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "AIyuKgeR13MkSFkJ",
+    "name": "Champion of Zagresh",
+    "level": 8,
+    "art": "champion-of-zagresh.webp"
+  },
+  {
+    "id": "floodslain_orc",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "AjJojjUbSMjcjUDr",
+    "name": "Floodslain Orc",
+    "level": 3,
+    "art": "floodslain-orc.webp"
+  },
+  {
+    "id": "skeletal_drummer",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "B2ulbcq6lrWXFe0G",
+    "name": "Skeletal Drummer",
+    "level": 3,
+    "art": "skeletal-drummer.webp"
+  },
+  {
+    "id": "ankhrav_hive_mother_d8apn",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "D8Apne4jJQ0oa7NV",
+    "name": "Ankhrav Hive Mother",
+    "level": 8,
+    "art": "ankhrav-hive-mother.webp"
+  },
+  {
+    "id": "magical_forge",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "EBpwhiVtWKqi8M3n",
+    "name": "Magical Forge",
+    "level": 9,
+    "art": "magical-forge.webp"
+  },
+  {
+    "id": "yagrekash",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "FW5k5xBi3YkAsZd9",
+    "name": "Yagrekash",
+    "level": 10,
+    "art": "yagrekash.webp"
+  },
+  {
+    "id": "porphyry_guard",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "ID0WGY0jfBLI1QvB",
+    "name": "Porphyry Guard",
+    "level": 5,
+    "art": "porphyry-guard.webp"
+  },
+  {
+    "id": "orc_doomsayer",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "IHtnqHDC2rlfnv0n",
+    "name": "Orc Doomsayer",
+    "level": 5,
+    "art": "orc-doomsayer.webp"
+  },
+  {
+    "id": "nakasha",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "JCI80JSSHICBMi22",
+    "name": "Nakasha",
+    "level": 8,
+    "art": "nakasha.webp"
+  },
+  {
+    "id": "ankhrav_wiyb0",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "WIyB0Bgud8kL2BCh",
+    "name": "Ankhrav",
+    "level": 3,
+    "art": "ankhrav.webp"
+  },
+  {
+    "id": "troll_ifch6",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "iFCh60rD3GIZ6Dva",
+    "name": "Troll",
+    "level": 5,
+    "art": "troll.webp"
   }
 ]
