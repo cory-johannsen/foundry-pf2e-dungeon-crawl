@@ -38782,5 +38782,37 @@
     "name": "Scaleseed Nagaji",
     "level": 7,
     "art": "scaleseed-nagaji.webp"
+  },
+  {
+    "id": "zashuvin",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "u5o9uU9Saweij7mF",
+    "name": "Zashuvin",
+    "level": 11,
+    "art": "zashuvin.webp"
+  },
+  {
+    "id": "arzuu",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "vooxDReQX3ztMXNj",
+    "name": "Arzuu",
+    "level": 13,
+    "art": "arzuu.webp"
+  },
+  {
+    "id": "nornhound",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "zsITxVss3vTQHISh",
+    "name": "Nornhound",
+    "level": 18,
+    "art": "nornhound.webp"
+  },
+  {
+    "id": "blood_pear_tree",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "zw2JQhb4cHkDk2zb",
+    "name": "Blood-Pear Tree",
+    "level": 17,
+    "art": "blood-pear-tree.webp"
   }
 ]
