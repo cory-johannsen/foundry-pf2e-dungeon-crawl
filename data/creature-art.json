@@ -37214,5 +37214,173 @@
     "name": "Animate Dream",
     "level": 8,
     "art": "animate-dream.webp"
+  },
+  {
+    "id": "captain_salah",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "EfoaqozIWUdm8unh",
+    "name": "Captain Salah",
+    "level": 3,
+    "art": "captain-salah.webp"
+  },
+  {
+    "id": "the_guest",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "FGOMsKi1Z0a7uJJy",
+    "name": "The Guest",
+    "level": 7,
+    "art": "the-guest.webp"
+  },
+  {
+    "id": "symbiotic_amoeba",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "HypIeplCDn0Phqs4",
+    "name": "Symbiotic Amoeba",
+    "level": 4,
+    "art": "symbiotic-amoeba.webp"
+  },
+  {
+    "id": "alkoasha",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "JrMv2lQ1hRTpMumk",
+    "name": "Alkoasha",
+    "level": 6,
+    "art": "alkoasha.webp"
+  },
+  {
+    "id": "arctic_bloom",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "MiOTuSswwDadkxoq",
+    "name": "Arctic Bloom",
+    "level": 8,
+    "art": "arctic-bloom.webp"
+  },
+  {
+    "id": "oaksteward_enforcer",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "kneoApQfhlRhhp1R",
+    "name": "Oaksteward Enforcer",
+    "level": 0,
+    "art": "oaksteward-enforcer.webp"
+  },
+  {
+    "id": "oaksteward_enforcer_gatehouse",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "MmyFD8SI0IvzCTuR",
+    "name": "Oaksteward Enforcer (Gatehouse)",
+    "level": 0,
+    "art": "oaksteward-enforcer.webp"
+  },
+  {
+    "id": "etward_ritalson",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "MnOXwpGD3vJIFydk",
+    "name": "Etward Ritalson",
+    "level": 9,
+    "art": "etward-ritalson.webp"
+  },
+  {
+    "id": "ilverani_sentry",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "N659rGqG2uyI2gp5",
+    "name": "Ilverani Sentry",
+    "level": 7,
+    "art": "ilverani-sentry.webp"
+  },
+  {
+    "id": "demontangle",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "NeNIMJO0P1KA8KCM",
+    "name": "Demontangle",
+    "level": 5,
+    "art": "demontangle.webp"
+  },
+  {
+    "id": "deniigi",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "Ol3XPxYXHmSHYlk8",
+    "name": "Deniigi",
+    "level": 4,
+    "art": "deniigi.webp"
+  },
+  {
+    "id": "ilakni",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "PAQHiQqCcfFo8koZ",
+    "name": "Ilakni",
+    "level": 11,
+    "art": "ilakni.webp"
+  },
+  {
+    "id": "ocluai",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "RwdczmexMQkSckwL",
+    "name": "Ocluai",
+    "level": 3,
+    "art": "ocluai.webp"
+  },
+  {
+    "id": "demonic_muckrager",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "SbJe7zmuevvBFhad",
+    "name": "Demonic Muckrager",
+    "level": 4,
+    "art": "demonic-muckrager.webp"
+  },
+  {
+    "id": "ulikuq",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "WY4QIzNxE69QH2yd",
+    "name": "Ulikuq",
+    "level": 4,
+    "art": "ulikuq.webp"
+  },
+  {
+    "id": "immolis",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "X7ScCatwncmk5P9o",
+    "name": "Immolis",
+    "level": 3,
+    "art": "immolis.webp"
+  },
+  {
+    "id": "blackfrost_guecubu",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "Yy2DDehhj47BMWgP",
+    "name": "Blackfrost Guecubu",
+    "level": 8,
+    "art": "blackfrost-guecubu.webp"
+  },
+  {
+    "id": "kaneepo_the_slim",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "ZzVs5T27LnLhRZ5u",
+    "name": "Kaneepo the Slim",
+    "level": 4,
+    "art": "kaneepo-the-slim.webp"
+  },
+  {
+    "id": "ancient_tupilaq",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "bnKUnG9XzsKzIUxK",
+    "name": "Ancient Tupilaq",
+    "level": 11,
+    "art": "ancient-tupilaq.webp"
+  },
+  {
+    "id": "delphon",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "bz5OjD8rYMm1M4EC",
+    "name": "Delphon",
+    "level": 0,
+    "art": "delphon.webp"
+  },
+  {
+    "id": "innumma",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "cFXimh6v7f02kWri",
+    "name": "Innumma",
+    "level": 4,
+    "art": "innumma.webp"
   }
 ]
