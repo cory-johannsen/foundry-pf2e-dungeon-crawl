@@ -76,7 +76,10 @@ import { depthBiasFor } from "./dungeon-deck.mjs";
 import { startCombatForRoom } from "./dungeon-combat.mjs";
 import { playDoorSound } from "./dungeon-sound.mjs";
 import { loadDungeonSetpieces } from "./data-loader.mjs";
-import { selectSkillChallengeTemplate } from "./skill-challenge-mechanics.mjs";
+import {
+  selectSkillChallengeTemplate,
+  dcAdjustmentForTier,
+} from "./skill-challenge-mechanics.mjs";
 import { isValidNarrativeTemplate } from "./narrative-mechanics.mjs";
 import { makeFoundryApi } from "./foundry-api.mjs";
 import { selectTrap } from "./trap-library.mjs";
@@ -1625,6 +1628,7 @@ export async function buildPopulateAndUnlockGraphNode(
         partyLevel: await makeFoundryApi().partyLevel(),
         name: setpiece.name ?? null,
         summary: setpiece.summary ?? null,
+        dcAdjustment: dcAdjustmentForTier(state.difficulty),
       });
     }
     // #167: a narrative room's own selected content is attached here too

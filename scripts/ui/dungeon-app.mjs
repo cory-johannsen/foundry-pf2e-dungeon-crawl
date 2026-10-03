@@ -1374,6 +1374,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const dc = dcForAttempt({
       partyLevel: await makeFoundryApi().partyLevel(),
+      difficulty: state.difficulty,
     });
     const result = await rollSkillChallengeAttempt(actor, skill, dc);
     if (!result) return;

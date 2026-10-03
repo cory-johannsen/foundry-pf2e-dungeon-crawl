@@ -229,7 +229,7 @@ git commit -m "#412: xpCeilingTierForDepth covers Trivial and Extreme"
 **Interfaces:**
 - Produces: `DC_ADJUSTMENT_BY_TIER`, `dcAdjustmentForTier(tier) -> number` (unknown/missing -> 0); `dcForAttempt({ partyLevel, difficulty })`; `initPuzzleState({..., dcAdjustment = 0})`; `ensurePuzzleState(sceneId, roomId, {..., dcAdjustment = 0})`.
 
-- [ ] **Step 1: Write failing tests.**
+- [x] **Step 1: Write failing tests.**
 
 In `tests/skill-challenge-mechanics.test.mjs`, add `dcAdjustmentForTier` to the import list and append:
 
@@ -276,12 +276,12 @@ In `tests/puzzle-mechanics.test.mjs`, inside `describe("initPuzzleState", ...)` 
   });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `npx vitest run tests/skill-challenge-mechanics.test.mjs tests/puzzle-mechanics.test.mjs`
 Expected: FAIL (`dcAdjustmentForTier` is not a function; puzzle DC unadjusted).
 
-- [ ] **Step 3: Implement.**
+- [x] **Step 3: Implement.**
 
 In `scripts/skill-challenge-mechanics.mjs`, replace `dcForAttempt` with:
 
@@ -333,12 +333,12 @@ In `scripts/ui/dungeon-app.mjs` `#onAttemptSkillChallenge`, change the DC call t
 
 In `scripts/dungeon-scene.mjs`, the `ensurePuzzleState(scene.id, room.id, {...})` call: add `dcAdjustment: dcAdjustmentForTier(state.difficulty),` and extend the existing `import { selectSkillChallengeTemplate } from "./skill-challenge-mechanics.mjs";` (line ~79) to `import { selectSkillChallengeTemplate, dcAdjustmentForTier } from "./skill-challenge-mechanics.mjs";`.
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `npx vitest run tests/skill-challenge-mechanics.test.mjs tests/puzzle-mechanics.test.mjs tests/dungeon-runner.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts tests

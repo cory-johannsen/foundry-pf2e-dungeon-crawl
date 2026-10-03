@@ -792,6 +792,7 @@ export async function ensurePuzzleState(
     partyLevel = null,
     name = null,
     summary = null,
+    dcAdjustment = 0,
   },
   { settingsRef = defaultSettingsRef() } = {},
 ) {
@@ -806,6 +807,7 @@ export async function ensurePuzzleState(
       partyLevel,
       name,
       summary,
+      dcAdjustment,
     }),
     customization: { status: "pending" },
   };
