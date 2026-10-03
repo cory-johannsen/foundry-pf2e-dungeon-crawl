@@ -18,6 +18,14 @@ import { request as httpsRequest } from "node:https";
  * the only thing that can end this request early. */
 export function nodeFetch(url, { method = "GET", headers = {}, body, signal } = {}) {
   return new Promise((resolve, reject) => {
+    // #161: several paths can end this request (response end, response
+    // error/premature close, request error, abort); only the first counts.
+    let settled = false;
+    const settle = (fn, value) => {
+      if (settled) return;
+      settled = true;
+      fn(value);
+    };
     const target = new URL(url);
     const transport = target.protocol === "https:" ? httpsRequest : httpRequest;
     const req = transport(target, { method, headers }, (res) => {
@@ -25,27 +33,42 @@ export function nodeFetch(url, { method = "GET", headers = {}, body, signal } = 
       res.on("data", (chunk) => chunks.push(chunk));
       res.on("end", () => {
         const text = Buffer.concat(chunks).toString("utf8");
-        resolve({
+        settle(resolve, {
           ok: res.statusCode >= 200 && res.statusCode < 300,
           status: res.statusCode,
           text: async () => text,
           json: async () => JSON.parse(text),
         });
       });
+      // #161: once headers have arrived, req's own "error" no longer covers
+      // the body -- a stalled or reset body used to leave this promise
+      // pending forever, past the caller's AbortSignal.timeout.
+      res.on("error", (err) => settle(reject, err));
+      res.on("close", () => {
+        if (!res.complete) {
+          settle(reject, new Error("nodeFetch: response ended prematurely"));
+        }
+      });
     });
     req.on("error", (err) => {
       if (signal?.aborted) {
-        reject(new Error("nodeFetch: request timed out"));
+        settle(reject, new Error("nodeFetch: request timed out"));
       } else {
-        reject(err);
+        settle(reject, err);
       }
     });
     if (signal) {
-      if (signal.aborted) {
+      // Reject straight from the abort, whether or not a response has
+      // started, rather than relying on the destroyed request to surface it.
+      const onAbort = () => {
+        settle(reject, new Error("nodeFetch: request timed out"));
         req.destroy();
+      };
+      if (signal.aborted) {
+        onAbort();
         return;
       }
-      signal.addEventListener("abort", () => req.destroy(), { once: true });
+      signal.addEventListener("abort", onAbort, { once: true });
     }
     if (body) req.write(body);
     req.end();
