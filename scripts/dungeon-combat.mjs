@@ -735,8 +735,30 @@ function combatantAllies(combat, combatant) {
  * squares — matches how this module already measures everything else
  * (dungeon-layout.mjs's grid-unit geometry), not true PF2e diagonal-cost
  * movement rules. */
-function chebyshevSquares(a, b, gridSize) {
-  return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)) / gridSize;
+export function chebyshevSquares(a, b, gridSize) {
+  // #551: footprint-aware -- nearest-cell distance between the two tokens'
+  // rectangles (width/height in cells, default 1). For two 1x1 tokens this
+  // equals the old |top-left delta| / gridSize exactly.
+  const axis = (aPos, aSize, bPos, bSize) => {
+    const aMin = aPos / gridSize;
+    const bMin = bPos / gridSize;
+    const aMax = aMin + ((aSize ?? 1) - 1);
+    const bMax = bMin + ((bSize ?? 1) - 1);
+    return Math.max(aMin - bMax, bMin - aMax);
+  };
+  const dx = axis(a.x, a.width, b.x, b.width);
+  const dy = axis(a.y, a.height, b.y, b.height);
+  return Math.max(dx, dy, 0);
+}
+
+const REACH_EPSILON = 1e-6;
+
+/** #551: whether `action` can reach `target` from `combatant`'s current
+ * footprint-aware position. */
+function strikeInReach(combatant, target, action, gridSize, gridDistanceFt) {
+  const distance = chebyshevSquares(combatant.token, target.token, gridSize);
+  const reach = actionReachSquares(action, gridDistanceFt);
+  return { inReach: distance <= reach + REACH_EPSILON, distance, reach };
 }
 
 /**
@@ -2272,6 +2294,58 @@ export async function reportMoveOverlap({
   }
 }
 
+/** #551 diagnostic: an agent Strike was about to roll but the target is
+ * beyond the action's reach. Warns and whispers the GM once; never throws. */
+async function reportStrikeOutOfReach({
+  combat,
+  combatant,
+  target,
+  candidate,
+  distance,
+  reach,
+}) {
+  try {
+    const tok = (c) => ({
+      id: c.id,
+      name: c.name ?? c.token?.name ?? null,
+      x: c.token?.x,
+      y: c.token?.y,
+      width: c.token?.width,
+      height: c.token?.height,
+    });
+    const payload = {
+      attacker: tok(combatant),
+      target: tok(target),
+      candidateId: candidate.id,
+      actionSlug: candidate.actionSlug,
+      distance,
+      reach,
+      round: combat.round ?? null,
+      turn: combat.turn ?? null,
+    };
+    console.warn(
+      "pf2e-dungeon-crawl | strike skipped: target out of reach",
+      payload,
+    );
+    const esc = (t) =>
+      String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const gmIds = ChatMessage.getWhisperRecipients("GM").map((u) => u.id);
+    await ChatMessage.create({
+      content:
+        `<p>Diagnostic #551: ${esc(payload.attacker.name ?? payload.attacker.id)} ` +
+        `tried ${esc(candidate.actionSlug)} vs ` +
+        `${esc(payload.target.name ?? payload.target.id)} but the target is ` +
+        `${distance} squares away (reach ${reach}) — strike skipped</p>` +
+        `<details><summary>Payload</summary><pre>${esc(
+          JSON.stringify(payload, null, 2),
+        )}</pre></details>`,
+      whisper: gmIds,
+    });
+  } catch (err) {
+    console.debug("pf2e-dungeon-crawl | reportStrikeOutOfReach failed", err);
+  }
+}
+
 /** #554 diagnostic: the pre-move variant of reportMoveOverlap, called right
  * after a mover function's own snapTokenToGrid and before any early return
  * can fire -- catches an overlap that already existed or that the snap
@@ -2790,9 +2864,16 @@ async function drawCriticalCardForStrike(
  * target.token}` as the roll target works with no dependency on which scene
  * is currently rendered on this client's canvas.
  */
-async function rollAndApplyStrike(combat, combatant, target) {
+export async function rollAndApplyStrike(combat, combatant, target) {
+  // #551: only a strike whose reach covers the current distance may roll;
+  // out of reach after a short/blocked move is normal here, so stay silent.
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
   const strike = combatant.actor?.system?.actions?.find(
-    (a) => a.type === "strike" && a.ready !== false,
+    (a) =>
+      a.type === "strike" &&
+      a.ready !== false &&
+      strikeInReach(combatant, target, a, gridSize, gridDistanceFt).inReach,
   );
   if (!strike) return null;
 
@@ -4910,14 +4991,36 @@ export async function applyAgentDecision(
     const target = combatantOpponents(combat, combatant).find(
       (c) => c.id === candidate.targetId,
     );
-    if (target)
-      await rollAndApplyStrikeAtVariant(
-        combat,
-        combatant,
-        target,
-        candidate.actionSlug,
-        candidate.variantIndex,
+    if (target) {
+      const gridSize = combat.scene?.grid?.size ?? 100;
+      const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+      const action = (combatant.actor?.system?.actions ?? []).find(
+        (a) =>
+          a.type === "strike" &&
+          (a.item?.slug ?? a.slug ?? a.label) === candidate.actionSlug,
       );
+      const check = action
+        ? strikeInReach(combatant, target, action, gridSize, gridDistanceFt)
+        : null;
+      if (check && !check.inReach) {
+        await reportStrikeOutOfReach({
+          combat,
+          combatant,
+          target,
+          candidate,
+          distance: check.distance,
+          reach: check.reach,
+        });
+      } else {
+        await rollAndApplyStrikeAtVariant(
+          combat,
+          combatant,
+          target,
+          candidate.actionSlug,
+          candidate.variantIndex,
+        );
+      }
+    }
   } else if (candidate.type === "cast") {
     const target = combatantOpponents(combat, combatant).find(
       (c) => c.id === candidate.targetId,
