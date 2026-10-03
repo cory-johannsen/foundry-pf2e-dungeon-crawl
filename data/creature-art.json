@@ -37382,5 +37382,165 @@
     "name": "Innumma",
     "level": 4,
     "art": "innumma.webp"
+  },
+  {
+    "id": "the_looksee_man",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "cgCENLL4fwwGxvzo",
+    "name": "The Looksee Man",
+    "level": 4,
+    "art": "the-looksee-man.webp"
+  },
+  {
+    "id": "kitari_lambossa",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "eR1tzQX7WrTsJMb3",
+    "name": "Kitari Lambossa",
+    "level": 6,
+    "art": "kitari-lambossa.webp"
+  },
+  {
+    "id": "aspect_of_ruun",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "eRRWMgdYHwNIm6zp",
+    "name": "Aspect of Ruun",
+    "level": 5,
+    "art": "aspect-of-ruun.webp"
+  },
+  {
+    "id": "valmar",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "f1Wpj3sqUrfr4m6K",
+    "name": "Valmar",
+    "level": 6,
+    "art": "valmar.webp"
+  },
+  {
+    "id": "gokeki",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "h5S6ayqQTa7r6p8w",
+    "name": "Gokeki",
+    "level": 3,
+    "art": "gokeki.webp"
+  },
+  {
+    "id": "quarry_construct",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "itAkkjCM3EUQ4heC",
+    "name": "Quarry Construct",
+    "level": 2,
+    "art": "quarry-construct.webp"
+  },
+  {
+    "id": "ogmunzorius",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "m1M7f4Rd5zuBRVDe",
+    "name": "Ogmunzorius",
+    "level": 11,
+    "art": "ogmunzorius.webp"
+  },
+  {
+    "id": "pholebis",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "mcNpKicW6L1E327u",
+    "name": "Pholebis",
+    "level": 7,
+    "art": "pholebis.webp"
+  },
+  {
+    "id": "yaiafineti",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "piLAtgB51zXEHmFt",
+    "name": "Yaiafineti",
+    "level": 8,
+    "art": "yaiafineti.webp"
+  },
+  {
+    "id": "mindmoppet",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "qbTNd1UeIxYEihNs",
+    "name": "Mindmoppet",
+    "level": 5,
+    "art": "mindmoppet.webp"
+  },
+  {
+    "id": "bolan_nogasso",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "qsRrYCsKLiMwZ1I9",
+    "name": "Bolan Nogasso",
+    "level": 2,
+    "art": "bolan-nogasso.webp"
+  },
+  {
+    "id": "ghodrak_the_quick",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "rrMtTABR1587fJGU",
+    "name": "Ghodrak the Quick",
+    "level": 5,
+    "art": "ghodrak-the-quick.webp"
+  },
+  {
+    "id": "elder_thing",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "tjDGU0T5RYZG49EN",
+    "name": "Elder Thing",
+    "level": 5,
+    "art": "elder-thing.webp"
+  },
+  {
+    "id": "creeping_evil",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "u1VUKkC4mBDhi7YZ",
+    "name": "Creeping Evil",
+    "level": 8,
+    "art": "creeping-evil.webp"
+  },
+  {
+    "id": "apothecary_s_cabinet",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "uTaGZT1vl7UG9tdf",
+    "name": "Apothecary's Cabinet",
+    "level": 6,
+    "art": "apothecary-s-cabinet.webp"
+  },
+  {
+    "id": "sakuachi",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "wdeje31VJ7Ivcdd6",
+    "name": "Sakuachi",
+    "level": 4,
+    "art": "sakuachi.webp"
+  },
+  {
+    "id": "vhisa_resgrido",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "wt9kH6AwMRuSeGBV",
+    "name": "Vhisa Resgrido",
+    "level": 3,
+    "art": "vhisa-resgrido.webp"
+  },
+  {
+    "id": "leiko",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "xZjA4N72SIQ2zosk",
+    "name": "Leiko",
+    "level": 4,
+    "art": "leiko.webp"
+  },
+  {
+    "id": "kareq",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "yJSqKx1kBbadhQX6",
+    "name": "Kareq",
+    "level": 5,
+    "art": "kareq.webp"
+  },
+  {
+    "id": "green_monkey",
+    "pack": "pf2e.gatewalkers-bestiary",
+    "docId": "yTREQiKhDqp16UeO",
+    "name": "Green Monkey",
+    "level": 3,
+    "art": "green-monkey.webp"
   }
 ]
