@@ -36990,5 +36990,53 @@
     "name": "Umbraex",
     "level": 21,
     "art": "umbraex.webp"
+  },
+  {
+    "id": "shadowbound_monk_statue",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "yfyh7TkvcQuyWyie",
+    "name": "Shadowbound Monk Statue",
+    "level": 7,
+    "art": "shadowbound-monk-statue.webp"
+  },
+  {
+    "id": "pokmit_bloody_pike",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "yydyiiBoUGrzPu2v",
+    "name": "Pokmit Bloody-Pike",
+    "level": 18,
+    "art": "pokmit-bloody-pike.webp"
+  },
+  {
+    "id": "afziaka_brute",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "zEPIkUw9ZlXi5Jzb",
+    "name": "Afziaka Brute",
+    "level": 6,
+    "art": "afziaka-brute.webp"
+  },
+  {
+    "id": "ghoul_crocodile",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "zYY1lFk4tole9Lx5",
+    "name": "Ghoul Crocodile",
+    "level": 4,
+    "art": "ghoul-crocodile.webp"
+  },
+  {
+    "id": "iron_taviah",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "zrMBLTlxPCIwtwGo",
+    "name": "Iron Taviah",
+    "level": 6,
+    "art": "iron-taviah.webp"
+  },
+  {
+    "id": "ectoplasmic_amalgam",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "zw1uj88nmUrCf7iS",
+    "name": "Ectoplasmic Amalgam",
+    "level": 15,
+    "art": "ectoplasmic-amalgam.webp"
   }
 ]
