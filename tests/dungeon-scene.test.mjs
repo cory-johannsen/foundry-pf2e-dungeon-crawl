@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildRoomAtGraphNode, buildPopulateAndUnlockGraphNode } from '../scripts/dungeon-scene.mjs';
+import { effectiveRoomBias, buildRoomAtGraphNode, buildPopulateAndUnlockGraphNode } from '../scripts/dungeon-scene.mjs';
 import {
   pendingForeignMarginOpenings, cellMarginWalls, roomRect, cellBounds,
   buildEdgeCorridor, doorSlotsForFace, findPriorityCollision, assignDoorSlotsWithPriority,
@@ -517,5 +517,27 @@ describe('buildPopulateAndUnlockGraphNode — corridor floor tile grid alignment
       expect(t.texture.anchorX).toBe(0.5);
       expect(t.texture.anchorY).toBe(0.5);
     }
+  });
+});
+
+describe('effectiveRoomBias (#412)', () => {
+  const room = { rank: 3, maxRank: 6, isGoal: false }; // ramp bias 1
+  const goal = { rank: 6, maxRank: 6, isGoal: true }; // ramp bias 2
+
+  it('severe and a missing difficulty equal the raw depth ramp', () => {
+    expect(effectiveRoomBias({ ...room, difficulty: 'severe' })).toBe(1);
+    expect(effectiveRoomBias({ ...room })).toBe(1);
+    expect(effectiveRoomBias({ ...goal, difficulty: undefined })).toBe(2);
+  });
+
+  it('low flattens the ramp, trivial goes below zero everywhere', () => {
+    expect(effectiveRoomBias({ ...goal, difficulty: 'low' })).toBe(0);
+    expect(effectiveRoomBias({ ...goal, difficulty: 'trivial' })).toBe(-1);
+    expect(effectiveRoomBias({ ...room, difficulty: 'trivial' })).toBe(-1);
+  });
+
+  it('extreme lifts only the deepest rooms', () => {
+    expect(effectiveRoomBias({ ...room, difficulty: 'extreme' })).toBe(1);
+    expect(effectiveRoomBias({ ...goal, difficulty: 'extreme' })).toBe(3);
   });
 });

@@ -469,7 +469,7 @@ git commit -m "#412: persist difficulty on run state; Start Dungeon selector"
 - Consumes: `applyDifficultyCap` (Task 1), `depthBiasFor` (existing), `state.difficulty` (Task 4).
 - Produces: `effectiveRoomBias({ rank, maxRank, isGoal, difficulty }) -> number` exported from `dungeon-scene.mjs`.
 
-- [ ] **Step 1: Write failing tests** — add `effectiveRoomBias` to the existing `../scripts/dungeon-scene.mjs` import in `tests/dungeon-scene.test.mjs` and append:
+- [x] **Step 1: Write failing tests** — add `effectiveRoomBias` to the existing `../scripts/dungeon-scene.mjs` import in `tests/dungeon-scene.test.mjs` and append:
 
 ```js
 describe('effectiveRoomBias (#412)', () => {
@@ -495,12 +495,12 @@ describe('effectiveRoomBias (#412)', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `npx vitest run tests/dungeon-scene.test.mjs`
 Expected: FAIL (`effectiveRoomBias` is not a function).
 
-- [ ] **Step 3: Implement** in `scripts/dungeon-scene.mjs`:
+- [x] **Step 3: Implement** in `scripts/dungeon-scene.mjs`:
 
 Change line ~75 to `import { depthBiasFor, applyDifficultyCap } from "./dungeon-deck.mjs";` and add (near the other exported helpers, above the function that builds a room):
 
@@ -536,12 +536,12 @@ In the `room.kind === "combat"` branch replace the `depthBias` computation with:
 
 Leave the `ensureSkillChallenge` call's `depthBias: depthBiasFor(...)` exactly as is (Global Constraints).
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `npx vitest run tests/dungeon-scene.test.mjs tests/encounter-roster.test.mjs tests/dungeon-deck.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-scene.test.mjs
