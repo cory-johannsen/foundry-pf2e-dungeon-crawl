@@ -38622,5 +38622,165 @@
     "name": "The Teamster",
     "level": 17,
     "art": "the-teamster.webp"
+  },
+  {
+    "id": "the_inquisitor",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "dr6JPHvDMs9YavIq",
+    "name": "The Inquisitor",
+    "level": 17,
+    "art": "the-inquisitor.webp"
+  },
+  {
+    "id": "bhanyada_behemoth",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "eF3ndkXtyeMHpzZb",
+    "name": "Bhanyada Behemoth",
+    "level": 12,
+    "art": "bhanyada-behemoth.webp"
+  },
+  {
+    "id": "vincuvicar",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "fcMf5NrHPZS54Hkd",
+    "name": "Vincuvicar",
+    "level": 18,
+    "art": "vincuvicar.webp"
+  },
+  {
+    "id": "the_cricket",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "gmY1qb5fZFsc80d0",
+    "name": "The Cricket",
+    "level": 17,
+    "art": "the-cricket.webp"
+  },
+  {
+    "id": "ildamir",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "hqnAjx8pamSAzAmb",
+    "name": "Ildamir",
+    "level": 20,
+    "art": "ildamir.webp"
+  },
+  {
+    "id": "the_shadow_prince",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "jXjo59pIAMteUtUD",
+    "name": "The Shadow Prince",
+    "level": 11,
+    "art": "the-shadow-prince.webp"
+  },
+  {
+    "id": "ticktock",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "jYHPxFsTUS6jGY4a",
+    "name": "Ticktock",
+    "level": 16,
+    "art": "ticktock.webp"
+  },
+  {
+    "id": "aquatic_viper_vine",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "lJnVbE89rKEYJ3Hw",
+    "name": "Aquatic Viper Vine",
+    "level": 13,
+    "art": "aquatic-viper-vine.webp"
+  },
+  {
+    "id": "oppali",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "mJyUqZYPGrCx13oT",
+    "name": "Oppali",
+    "level": 10,
+    "art": "oppali.webp"
+  },
+  {
+    "id": "speaker_of_svaryr",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "mcCHcnMN1gYBHbqA",
+    "name": "Speaker Of Svaryr",
+    "level": 20,
+    "art": "speaker-of-svaryr.webp"
+  },
+  {
+    "id": "vharnev_the_butcher",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "mgFca9LCxEI3pqc7",
+    "name": "Vharnev the Butcher",
+    "level": 10,
+    "art": "vharnev-the-butcher.webp"
+  },
+  {
+    "id": "drustan",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "nBhR5WE7M1cp1fEm",
+    "name": "Drustan",
+    "level": 14,
+    "art": "drustan.webp"
+  },
+  {
+    "id": "the_winged_serpent",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "o8DGfZKaz1TELyzU",
+    "name": "The Winged Serpent",
+    "level": 17,
+    "art": "the-winged-serpent.webp"
+  },
+  {
+    "id": "arodeth",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "oWFqioYktqayWFlS",
+    "name": "Arodeth",
+    "level": 14,
+    "art": "arodeth.webp"
+  },
+  {
+    "id": "all_seeing_hajeck",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "okLgvERf3ul8JxKk",
+    "name": "All-Seeing Hajeck",
+    "level": 12,
+    "art": "all-seeing-hajeck.webp"
+  },
+  {
+    "id": "mercenary_assassin",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "pFs3lFkXrwNNUsDf",
+    "name": "Mercenary Assassin",
+    "level": 9,
+    "art": "mercenary-assassin.webp"
+  },
+  {
+    "id": "blade_mercenary",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "pLbDF5JJoF93vgwL",
+    "name": "Blade Mercenary",
+    "level": 9,
+    "art": "blade-mercenary.webp"
+  },
+  {
+    "id": "svaryr_commander",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "qHCZeqTMADZcqqBp",
+    "name": "Svaryr Commander",
+    "level": 19,
+    "art": "svaryr-commander.webp"
+  },
+  {
+    "id": "zellara_esmeranda",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "sl9QX8iAen1Aquyp",
+    "name": "Zellara Esmeranda",
+    "level": 14,
+    "art": "zellara-esmeranda.webp"
+  },
+  {
+    "id": "scaleseed_nagaji",
+    "pack": "pf2e.stolen-fate-bestiary",
+    "docId": "tVZ7ijV3W1HmMwzz",
+    "name": "Scaleseed Nagaji",
+    "level": 7,
+    "art": "scaleseed-nagaji.webp"
   }
 ]
