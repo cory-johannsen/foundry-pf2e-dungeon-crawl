@@ -35982,5 +35982,213 @@
     "name": "Anadi Seeker",
     "level": 1,
     "art": "anadi-seeker.webp"
+  },
+  {
+    "id": "ghoul_antipaladin",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "0PJ75DaIe8x5ynp1",
+    "name": "Ghoul Antipaladin",
+    "level": 9,
+    "art": "ghoul-antipaladin.webp"
+  },
+  {
+    "id": "ghoul_razorclaw",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "0a2d830uaGnBN2OS",
+    "name": "Ghoul Razorclaw",
+    "level": 13,
+    "art": "ghoul-razorclaw.webp"
+  },
+  {
+    "id": "pyrogeist",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "0iZHpYIbxquRDd8E",
+    "name": "Pyrogeist",
+    "level": 10,
+    "art": "pyrogeist.webp"
+  },
+  {
+    "id": "arboreal_snag",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "YZf8zp3ylEoAFyBX",
+    "name": "Arboreal Snag",
+    "level": 3,
+    "art": "arboreal-snag.webp"
+  },
+  {
+    "id": "arboreal_snag_axan_wood",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "0vCny4bIzIKehi5u",
+    "name": "Arboreal Snag (Axan Wood)",
+    "level": 3,
+    "art": "arboreal-snag.webp"
+  },
+  {
+    "id": "rotbomber",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "1EOyUGMELVUIxFeB",
+    "name": "Rotbomber",
+    "level": 12,
+    "art": "rotbomber.webp"
+  },
+  {
+    "id": "rival_corpsekiller",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "1Hc1BLc9LIXLuBdg",
+    "name": "Rival Corpsekiller",
+    "level": 16,
+    "art": "rival-corpsekiller.webp"
+  },
+  {
+    "id": "straugh",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "1KDrm9ErOHyMsDUP",
+    "name": "Straugh",
+    "level": 10,
+    "art": "straugh.webp"
+  },
+  {
+    "id": "rival_necromancer",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "1McAtOIMRIVOa0lf",
+    "name": "Rival Necromancer",
+    "level": 16,
+    "art": "rival-necromancer.webp"
+  },
+  {
+    "id": "princess_kerinza",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "1YdRAByWMiyUIXwt",
+    "name": "Princess Kerinza",
+    "level": 10,
+    "art": "princess-kerinza.webp"
+  },
+  {
+    "id": "matron_uldrula",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "1igzK6SDdQkv8NXb",
+    "name": "Matron Uldrula",
+    "level": 19,
+    "art": "matron-uldrula.webp"
+  },
+  {
+    "id": "terrorguard",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "2DhycjxPVPIAftM3",
+    "name": "Terrorguard",
+    "level": 14,
+    "art": "terrorguard.webp"
+  },
+  {
+    "id": "mummy_valet",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "2ZpYVlsDigX5ZQR6",
+    "name": "Mummy Valet",
+    "level": 6,
+    "art": "mummy-valet.webp"
+  },
+  {
+    "id": "sulvik",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "2p9BaMPkI0HiTWyC",
+    "name": "Sulvik",
+    "level": 9,
+    "art": "sulvik.webp"
+  },
+  {
+    "id": "intellect_assemblage",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "3Yi3PBesesksFZi6",
+    "name": "Intellect Assemblage",
+    "level": 19,
+    "art": "intellect-assemblage.webp"
+  },
+  {
+    "id": "hyrune_loxenna",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "3t57lJmLz6qQPqoD",
+    "name": "Hyrune Loxenna",
+    "level": 15,
+    "art": "hyrune-loxenna.webp"
+  },
+  {
+    "id": "drowned_mummy",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "49cAFgzk6Zok82Y2",
+    "name": "Drowned Mummy",
+    "level": 17,
+    "art": "drowned-mummy.webp"
+  },
+  {
+    "id": "creeping_crone",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "4Z704FJ69DWl71vP",
+    "name": "Creeping Crone",
+    "level": 11,
+    "art": "creeping-crone.webp"
+  },
+  {
+    "id": "kepgeda_the_hag_nailed",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "5pfU6ZAyAWq3VEdq",
+    "name": "Kepgeda the Hag-Nailed",
+    "level": 5,
+    "art": "kepgeda-the-hag-nailed.webp"
+  },
+  {
+    "id": "prachalla",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "624fuRv6nLi31THS",
+    "name": "Prachalla",
+    "level": 10,
+    "art": "prachalla.webp"
+  },
+  {
+    "id": "seldeg_s_steed",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "6DRyViLYSsw2sYBy",
+    "name": "Seldeg's Steed",
+    "level": 13,
+    "art": "seldeg-s-steed.webp"
+  },
+  {
+    "id": "mithral_golem_ptakd",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "PTAKDBMDrm1JJTYC",
+    "name": "Mithral Golem",
+    "level": 16,
+    "art": "mithral-golem.webp"
+  },
+  {
+    "id": "aeolaeka_b8iae",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "b8IAeHndW8YVEzDM",
+    "name": "Aeolaeka",
+    "level": 12,
+    "art": "aeolaeka.webp"
+  },
+  {
+    "id": "bulette_fokls",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "fOklsDO2EB5CHuLF",
+    "name": "Bulette",
+    "level": 8,
+    "art": "bulette.webp"
+  },
+  {
+    "id": "terra_cotta_soldier_glq0a",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "glq0AJMjNAB0R2Ke",
+    "name": "Terra-cotta Soldier",
+    "level": 6,
+    "art": "terra-cotta-soldier.webp"
+  },
+  {
+    "id": "kapoacinth_vymwn",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "vYMWNYvaKYxKm2Jh",
+    "name": "Kapoacinth",
+    "level": 4,
+    "art": "kapoacinth.webp"
   }
 ]
