@@ -38814,5 +38814,293 @@
     "name": "Blood-Pear Tree",
     "level": 17,
     "art": "blood-pear-tree.webp"
+  },
+  {
+    "id": "lady_shimmersnip",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "0VMod1UuV6GIQozy",
+    "name": "Lady Shimmersnip",
+    "level": 2,
+    "art": "lady-shimmersnip.webp"
+  },
+  {
+    "id": "voxnia",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "4xXCpXL4ChSGykq0",
+    "name": "Voxnia",
+    "level": 7,
+    "art": "voxnia.webp"
+  },
+  {
+    "id": "ulat_kini_initiate",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "5pQzgnjebx0GXDi6",
+    "name": "Ulat-Kini Initiate",
+    "level": 4,
+    "art": "ulat-kini-initiate.webp"
+  },
+  {
+    "id": "unfeeling_empath",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "8cV7dqtctcMuKAZN",
+    "name": "Unfeeling Empath",
+    "level": 2,
+    "art": "unfeeling-empath.webp"
+  },
+  {
+    "id": "giant_leech_8mpof",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "8mPOfXAKoc5FcPVI",
+    "name": "Giant Leech",
+    "level": 2,
+    "art": "giant-leech.webp"
+  },
+  {
+    "id": "soulbound_mauler",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "sRo7iGYaeXlvrYaf",
+    "name": "Soulbound Mauler (Chaotic Evil)",
+    "level": 4,
+    "art": "soulbound-mauler.webp"
+  },
+  {
+    "id": "soulbound_mauler_chaotic_good",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "pgmACk7oSLLzcKFk",
+    "name": "Soulbound Mauler (Chaotic Good)",
+    "level": 4,
+    "art": "soulbound-mauler.webp"
+  },
+  {
+    "id": "soulbound_mauler_chaotic_neutral",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "F6bKfTVlILogO1FT",
+    "name": "Soulbound Mauler (Chaotic Neutral)",
+    "level": 4,
+    "art": "soulbound-mauler.webp"
+  },
+  {
+    "id": "soulbound_mauler_lawful_evil",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "MkruJ1HB32levPMm",
+    "name": "Soulbound Mauler (Lawful Evil)",
+    "level": 4,
+    "art": "soulbound-mauler.webp"
+  },
+  {
+    "id": "soulbound_mauler_lawful_good",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "NxheQz4Kx8NJMARD",
+    "name": "Soulbound Mauler (Lawful Good)",
+    "level": 4,
+    "art": "soulbound-mauler.webp"
+  },
+  {
+    "id": "soulbound_mauler_lawful_neutral",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "WLrvwmPwZ21Upsvk",
+    "name": "Soulbound Mauler (Lawful Neutral)",
+    "level": 4,
+    "art": "soulbound-mauler.webp"
+  },
+  {
+    "id": "soulbound_mauler_neutral_evil",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "cZyEE1iypPSNqVpx",
+    "name": "Soulbound Mauler (Neutral Evil)",
+    "level": 4,
+    "art": "soulbound-mauler.webp"
+  },
+  {
+    "id": "soulbound_mauler_neutral_good",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "AOPgGVm9Az7AdCm8",
+    "name": "Soulbound Mauler (Neutral Good)",
+    "level": 4,
+    "art": "soulbound-mauler.webp"
+  },
+  {
+    "id": "soulbound_mauler_neutral",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "TpyiGFLgdJkl2aos",
+    "name": "Soulbound Mauler (Neutral)",
+    "level": 4,
+    "art": "soulbound-mauler.webp"
+  },
+  {
+    "id": "corrupted_blade_spirit",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "AngiDlZ45l632ZrI",
+    "name": "Corrupted Blade Spirit",
+    "level": 4,
+    "art": "corrupted-blade-spirit.webp"
+  },
+  {
+    "id": "bronwyl_holloward",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "B4292QvNu2lKOyFU",
+    "name": "Bronwyl Holloward",
+    "level": 8,
+    "art": "bronwyl-holloward.webp"
+  },
+  {
+    "id": "krohan_veldollow",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "BHt2io7RgVXm8Vk7",
+    "name": "Krohan Veldollow",
+    "level": 3,
+    "art": "krohan-veldollow.webp"
+  },
+  {
+    "id": "hrungul_ironeye",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "BT7q8vR1yMC7KduO",
+    "name": "Hrungul Ironeye",
+    "level": 8,
+    "art": "hrungul-ironeye.webp"
+  },
+  {
+    "id": "juvenile_cave_worm",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "cl4km3px8OJAniju",
+    "name": "Juvenile Cave Worm (Azure)",
+    "level": 8,
+    "art": "juvenile-cave-worm.webp"
+  },
+  {
+    "id": "juvenile_cave_worm_crimson",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "C12Xc3oWuku0aBKx",
+    "name": "Juvenile Cave Worm (Crimson)",
+    "level": 8,
+    "art": "juvenile-cave-worm.webp"
+  },
+  {
+    "id": "juvenile_cave_worm_glacial",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "eGNnA8XCvSgEsrkp",
+    "name": "Juvenile Cave Worm (Glacial)",
+    "level": 8,
+    "art": "juvenile-cave-worm.webp"
+  },
+  {
+    "id": "juvenile_cave_worm_gray",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "RVdRHveFJmeCscI6",
+    "name": "Juvenile Cave Worm (Gray)",
+    "level": 8,
+    "art": "juvenile-cave-worm.webp"
+  },
+  {
+    "id": "juvenile_cave_worm_rock",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "K3ntlNb93mpukeZJ",
+    "name": "Juvenile Cave Worm (Rock)",
+    "level": 8,
+    "art": "juvenile-cave-worm.webp"
+  },
+  {
+    "id": "algerschmick",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "F3l4OxG2u3z7G41E",
+    "name": "Algerschmick",
+    "level": 3,
+    "art": "algerschmick.webp"
+  },
+  {
+    "id": "crimson_worm_statue",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "FQwprKNkOjmqYQCO",
+    "name": "Crimson Worm Statue",
+    "level": 7,
+    "art": "crimson-worm-statue.webp"
+  },
+  {
+    "id": "hryngar_battlepriest",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "JPkWLkjB5uZGb1l7",
+    "name": "Hryngar Battlepriest",
+    "level": 9,
+    "art": "hryngar-battlepriest.webp"
+  },
+  {
+    "id": "slime_puppeteer",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "KR4E8k1kmBKVRDyV",
+    "name": "Slime Puppeteer",
+    "level": 6,
+    "art": "slime-puppeteer.webp"
+  },
+  {
+    "id": "ferghaz",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "LTLXgj0Dl2tIuy2o",
+    "name": "Ferghaz",
+    "level": 1,
+    "art": "ferghaz.webp"
+  },
+  {
+    "id": "krohan",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "LjBz0fe7txNp37Cv",
+    "name": "Krohan (Possessed)",
+    "level": 4,
+    "art": "krohan.webp"
+  },
+  {
+    "id": "hryngar_skull_collector",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "MhJrVjr9SjFv9WZy",
+    "name": "Hryngar Skull Collector",
+    "level": 6,
+    "art": "hryngar-skull-collector.webp"
+  },
+  {
+    "id": "hryngar_king_s_agent",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "OWVg3LYOdGHOYUHt",
+    "name": "Hryngar King's Agent",
+    "level": 5,
+    "art": "hryngar-king-s-agent.webp"
+  },
+  {
+    "id": "four_tooth",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "Ov0poDlLDxWkyJ9w",
+    "name": "Four-Tooth",
+    "level": 7,
+    "art": "four-tooth.webp"
+  },
+  {
+    "id": "ancestral_echo",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "P3KHHlVZW9O8H5gS",
+    "name": "Ancestral Echo",
+    "level": 1,
+    "art": "ancestral-echo.webp"
+  },
+  {
+    "id": "soulbound_doll_sky_king_s_tomb",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "S8Y8Wj9EPYcFacI2",
+    "name": "Soulbound Doll (Sky King's Tomb)",
+    "level": 2,
+    "art": "soulbound-doll-brave.webp"
+  },
+  {
+    "id": "plague_zombie_l61ld",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "l61LDYRBzhgJAKUL",
+    "name": "Plague Zombie",
+    "level": 1,
+    "art": "plague-zombie.webp"
+  },
+  {
+    "id": "jinkin_l9hdk",
+    "pack": "pf2e.sky-kings-tomb-bestiary",
+    "docId": "l9HDkLKtWVBwwJ6t",
+    "name": "Jinkin",
+    "level": 1,
+    "art": "jinkin.webp"
   }
 ]
