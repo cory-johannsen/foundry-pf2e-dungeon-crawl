@@ -36670,5 +36670,165 @@
     "name": "Shabti Votary",
     "level": 18,
     "art": "shabti-votary.webp"
+  },
+  {
+    "id": "granite_vulture",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "aZMbCNaUnmqIVoyA",
+    "name": "Granite Vulture",
+    "level": 2,
+    "art": "granite-vulture.webp"
+  },
+  {
+    "id": "lasheeli",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "bZPLaHBF66XuRQlv",
+    "name": "Lasheeli",
+    "level": 10,
+    "art": "lasheeli.webp"
+  },
+  {
+    "id": "ghiono",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "bblPYqxgXeRmR4Bi",
+    "name": "Ghiono",
+    "level": 18,
+    "art": "ghiono.webp"
+  },
+  {
+    "id": "arghun_the_annihilator",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "btuLRbWKuZK7ozti",
+    "name": "Arghun the Annihilator",
+    "level": -1,
+    "art": "arghun-the-annihilator.webp"
+  },
+  {
+    "id": "mechanical_laborer",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "c8OrFlroChWV6ad4",
+    "name": "Mechanical Laborer",
+    "level": 5,
+    "art": "mechanical-laborer.webp"
+  },
+  {
+    "id": "kerinza",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "cUUyIZ3Y8VAbfI9P",
+    "name": "Kerinza",
+    "level": 12,
+    "art": "kerinza.webp"
+  },
+  {
+    "id": "solar_glass_golem",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "dEUFmId6fuT97MFg",
+    "name": "Solar Glass Golem",
+    "level": 11,
+    "art": "solar-glass-golem.webp"
+  },
+  {
+    "id": "ruby",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "dUl7C2wT4mT3mAGH",
+    "name": "Ruby",
+    "level": 17,
+    "art": "ruby.webp"
+  },
+  {
+    "id": "firebrand_bastion",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "dmUBlUsO6AoxjgxL",
+    "name": "Firebrand Bastion",
+    "level": 17,
+    "art": "firebrand-bastion.webp"
+  },
+  {
+    "id": "hollow_husk",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "duqhXs5SXmvSC1uI",
+    "name": "Hollow Husk",
+    "level": 5,
+    "art": "hollow-husk.webp"
+  },
+  {
+    "id": "yulthruk",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "e5iMWebwtUQrOtPB",
+    "name": "Yulthruk",
+    "level": 11,
+    "art": "yulthruk.webp"
+  },
+  {
+    "id": "virulak_necromancer",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "epfj3ZAwLHMlYlF3",
+    "name": "Virulak Necromancer",
+    "level": 7,
+    "art": "virulak-necromancer.webp"
+  },
+  {
+    "id": "sahni_bride_of_the_sea",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "hQwP2F2CZfH1ZA0N",
+    "name": "Sahni Bride-Of-The-Sea",
+    "level": 7,
+    "art": "sahni-bride-of-the-sea.webp"
+  },
+  {
+    "id": "animated_tea_cart",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "iVzVgK6igRZ8hkCu",
+    "name": "Animated Tea Cart",
+    "level": 8,
+    "art": "animated-tea-cart.webp"
+  },
+  {
+    "id": "skeletal_knight",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "l5jzqFVpGEg6Mj3e",
+    "name": "Skeletal Knight",
+    "level": 8,
+    "art": "skeletal-knight.webp"
+  },
+  {
+    "id": "drusilla",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "mfBLoIaSYNbmmtht",
+    "name": "Drusilla",
+    "level": 7,
+    "art": "drusilla.webp"
+  },
+  {
+    "id": "dead_faine",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "mqHULEf9atfBObra",
+    "name": "Dead Faine",
+    "level": 17,
+    "art": "dead-faine.webp"
+  },
+  {
+    "id": "mosghuta_boss_cow",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "nmv3qAignhfl1in2",
+    "name": "Mosghuta, Boss Cow",
+    "level": 3,
+    "art": "mosghuta-boss-cow.webp"
+  },
+  {
+    "id": "yurgak",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "noCFIy7gHIaaQEdJ",
+    "name": "Yurgak",
+    "level": 14,
+    "art": "yurgak.webp"
+  },
+  {
+    "id": "bellator_mortus_soldier",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "nzY0BPNKt4NF1Nhq",
+    "name": "Bellator Mortus Soldier",
+    "level": 15,
+    "art": "bellator-mortus-soldier.webp"
   }
 ]
