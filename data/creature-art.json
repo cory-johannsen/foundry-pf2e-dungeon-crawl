@@ -36510,5 +36510,165 @@
     "name": "Kemnebi's Puppet",
     "level": 16,
     "art": "kemnebi-s-puppet.webp"
+  },
+  {
+    "id": "soul_slime",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "NoOG4QIbIEBWKk1I",
+    "name": "Soul Slime",
+    "level": 18,
+    "art": "soul-slime.webp"
+  },
+  {
+    "id": "grave_hag",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "O0jtf0qQnuSTrNUp",
+    "name": "Grave Hag",
+    "level": 9,
+    "art": "grave-hag.webp"
+  },
+  {
+    "id": "afziaka_stalker",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "OgaEYZJaxGXPnhcz",
+    "name": "Afziaka Stalker",
+    "level": 12,
+    "art": "afziaka-stalker.webp"
+  },
+  {
+    "id": "sahreg_the_dirge_screamer",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "OhJ4yePPE1zQ8JNL",
+    "name": "Sahreg the Dirge Screamer",
+    "level": 2,
+    "art": "sahreg-the-dirge-screamer.webp"
+  },
+  {
+    "id": "azmakian_effigy",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "OuiTvUpfZVNlIIQV",
+    "name": "Azmakian Effigy",
+    "level": 7,
+    "art": "azmakian-effigy.webp"
+  },
+  {
+    "id": "chattering_jaws",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "PCGYst9QySIxsjDK",
+    "name": "Chattering Jaws",
+    "level": -1,
+    "art": "chattering-jaws.webp"
+  },
+  {
+    "id": "clockwork_rifler",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "PFAxHAnorkDmvi26",
+    "name": "Clockwork Rifler",
+    "level": 6,
+    "art": "clockwork-rifler.webp"
+  },
+  {
+    "id": "virulak_villager",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "PJ9O7J5MWhxvYnPW",
+    "name": "Virulak Villager",
+    "level": 3,
+    "art": "virulak-villager.webp"
+  },
+  {
+    "id": "hungering_growth",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "Q7Mfkogemi5D9LJh",
+    "name": "Hungering Growth",
+    "level": 7,
+    "art": "hungering-growth.webp"
+  },
+  {
+    "id": "vampire_taviah",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "RIKDtmwVQQeJUZKg",
+    "name": "Vampire Taviah",
+    "level": 12,
+    "art": "vampire-taviah.webp"
+  },
+  {
+    "id": "vampire_rival_necromancer",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "RpFpcfMqD6wqIHfE",
+    "name": "Vampire Rival Necromancer",
+    "level": 16,
+    "art": "vampire-rival-necromancer.webp"
+  },
+  {
+    "id": "skeleton_rival_corpsekiller",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "S1rfj73uV1ZUBCJ3",
+    "name": "Skeleton Rival Corpsekiller",
+    "level": 16,
+    "art": "skeleton-rival-corpsekiller.webp"
+  },
+  {
+    "id": "opkherab",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "SSFzb5JBZDG6sr9B",
+    "name": "Opkherab",
+    "level": 3,
+    "art": "opkherab.webp"
+  },
+  {
+    "id": "zombie_chuul",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "SUTCBq10R5kEdvon",
+    "name": "Zombie Chuul",
+    "level": 7,
+    "art": "zombie-chuul.webp"
+  },
+  {
+    "id": "shadowforged_guardian",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "UT5B2LCirpTgaEEx",
+    "name": "Shadowforged Guardian",
+    "level": 10,
+    "art": "shadowforged-guardian.webp"
+  },
+  {
+    "id": "tombstone_troll",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "Wh9Rr5uiYgMc55s9",
+    "name": "Tombstone Troll",
+    "level": 1,
+    "art": "tombstone-troll.webp"
+  },
+  {
+    "id": "skeleton_rival_necromancer",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "X6bu6VmaXgtQMBTY",
+    "name": "Skeleton Rival Necromancer",
+    "level": 16,
+    "art": "skeleton-rival-necromancer.webp"
+  },
+  {
+    "id": "kemnebi",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "X9Sz3ttieDhYSlvB",
+    "name": "Kemnebi",
+    "level": 21,
+    "art": "kemnebi.webp"
+  },
+  {
+    "id": "blaanlool",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "XWb7V3dkiDlBD8Bn",
+    "name": "Blaanlool",
+    "level": 8,
+    "art": "blaanlool.webp"
+  },
+  {
+    "id": "shabti_votary",
+    "pack": "pf2e.blood-lords-bestiary",
+    "docId": "ZDrt7yX9seyY3lCC",
+    "name": "Shabti Votary",
+    "level": 18,
+    "art": "shabti-votary.webp"
   }
 ]
