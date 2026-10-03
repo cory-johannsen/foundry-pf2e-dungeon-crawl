@@ -1,6 +1,6 @@
 # Follower Trail-Following Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Out-of-combat followers queue single-file along the leader's route instead of fanning out diagonally (#610 part 2).
 
@@ -40,7 +40,7 @@
 **Interfaces:**
 - Produces: `extendTrail(trail: {gx,gy}[], toCell: {gx,gy}, isBlocked, bounds, maxLen: number): {gx,gy}[]` and `findTrailMove(fromCell, trailCell: {gx,gy}|null, occupiedFootprints, isBlocked, bounds, footprint = {gw:1,gh:1}): null | {status:"already-near"} | {status:"move", to, steps}`.
 
-- [ ] **Step 1: Write the failing tests** — append to `tests/dungeon-follow-mechanics.test.mjs` (add `extendTrail, findTrailMove` to the import list):
+- [x] **Step 1: Write the failing tests** — append to `tests/dungeon-follow-mechanics.test.mjs` (add `extendTrail, findTrailMove` to the import list):
 
 ```js
 describe("extendTrail (#610)", () => {
@@ -133,12 +133,12 @@ describe("findTrailMove (#610)", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `npx vitest run tests/dungeon-follow-mechanics.test.mjs`
 Expected: FAIL — `extendTrail`/`findTrailMove` are not exported.
 
-- [ ] **Step 3: Implement** — add after `findFollowMove` in `scripts/dungeon-follow-mechanics.mjs`:
+- [x] **Step 3: Implement** — add after `findFollowMove` in `scripts/dungeon-follow-mechanics.mjs`:
 
 ```js
 /** #610: the leader's recent route as a newest-first list of cells
@@ -185,12 +185,12 @@ export function findTrailMove(
 }
 ```
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `npx vitest run tests/dungeon-follow-mechanics.test.mjs`
 Expected: PASS. If the wall-detour or reset test fails because of `findPath`'s default parameters, read `scripts/pathfinding.mjs`'s `findPath` signature and adjust only the test's blocker, not the implementation contract.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-follow-mechanics.mjs tests/dungeon-follow-mechanics.test.mjs
@@ -209,7 +209,7 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 - Consumes: `extendTrail`, `findTrailMove` from Task 1.
 - Produces: `__clearLeaderTrailsForTests()`, `__getLeaderTrailForTests(sceneId)` (test-only exports, same style as `__clearRecentWritesForTests`).
 
-- [ ] **Step 1: Write the failing tests** — in `tests/dungeon-follow.test.mjs`, add `__clearLeaderTrailsForTests, __getLeaderTrailForTests` to the import from `../scripts/dungeon-follow.mjs`, then add this describe before `describe("moveFollowersToward chain-following (#181)"`:
+- [x] **Step 1: Write the failing tests** — in `tests/dungeon-follow.test.mjs`, add `__clearLeaderTrailsForTests, __getLeaderTrailForTests` to the import from `../scripts/dungeon-follow.mjs`, then add this describe before `describe("moveFollowersToward chain-following (#181)"`:
 
 ```js
 describe("follower trail-following (#610)", () => {
@@ -318,12 +318,12 @@ describe("follower trail-following (#610)", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `npx vitest run tests/dungeon-follow.test.mjs -t "trail-following"`
 Expected: FAIL — the test-only exports don't exist yet.
 
-- [ ] **Step 3: Implement** — in `scripts/dungeon-follow.mjs`:
+- [x] **Step 3: Implement** — in `scripts/dungeon-follow.mjs`:
 
 1. Import: add `extendTrail, findTrailMove` to the `./dungeon-follow-mechanics.mjs` import list.
 2. Near `const pendingByScene = new Map();` add:
@@ -412,12 +412,12 @@ In the loop, right after `if (!token) continue;` add `slot += 1;`. Replace `cons
         );
 ```
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `npx vitest run tests/dungeon-follow.test.mjs tests/dungeon-follow-mechanics.test.mjs`
 Expected: PASS, including every pre-existing follow test (their leaders never seed a trail, so `trail` is `[]` and behavior is unchanged).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-follow.mjs tests/dungeon-follow.test.mjs
@@ -431,8 +431,8 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 **Files:**
 - Modify: `docs/architecture.md` (Party-follow prose), `module.json` (version)
 
-- [ ] **Step 1:** Run the `update-architecture-docs` skill. No new files or imports expected, so the graph should not change; add one sentence to the Party-follow paragraph: since #610 part 2, each follower aims for its slot on the leader's reconstructed trail, falling back to chain-following.
-- [ ] **Step 2:** `git fetch`, rebase on `origin/main`, bump `module.json` `version` to one patch above `origin/main`'s (never reuse).
-- [ ] **Step 3:** Run the full suite: `npm test` (takes ~5 minutes; run in the background and wait). Expected: all pass.
-- [ ] **Step 4:** Push, open PR with `Refs #610` and no closing keyword (the issue stays open for a live playtest of a real multi-cell drag), automerge with an explicit `--subject/--body`.
-- [ ] **Step 5:** Comment on #610 with terse status (PR ref, awaiting live playtest), and remove the `in progress` label.
+- [x] **Step 1:** Run the `update-architecture-docs` skill. No new files or imports expected, so the graph should not change; add one sentence to the Party-follow paragraph: since #610 part 2, each follower aims for its slot on the leader's reconstructed trail, falling back to chain-following.
+- [x] **Step 2:** `git fetch`, rebase on `origin/main`, bump `module.json` `version` to one patch above `origin/main`'s (never reuse).
+- [x] **Step 3:** Run the full suite: `npm test` (takes ~5 minutes; run in the background and wait). Expected: all pass.
+- [x] **Step 4:** Push, open PR with `Refs #610` and no closing keyword (the issue stays open for a live playtest of a real multi-cell drag), automerge with an explicit `--subject/--body`.
+- [x] **Step 5:** Comment on #610 with terse status (PR ref, awaiting live playtest), and remove the `in progress` label.

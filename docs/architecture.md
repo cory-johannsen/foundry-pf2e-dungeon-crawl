@@ -142,6 +142,11 @@ found path one cell per `{teleport: true}` update with the
 `movementStepDelayMs` pause between hops, via `token-walk.mjs` — the leaf
 module (shared with `dungeon-combat.mjs`, #479) that owns that hop-by-hop
 write loop, so neither file imports the other.
+Also since #610, each follower aims for its own slot on the leader's
+reconstructed route (`extendTrail`/`findTrailMove` in
+`dungeon-follow-mechanics.mjs`; a per-scene trail kept by
+`dungeon-follow.mjs`) instead of the nearest free cell near the one ahead,
+falling back to that chain-following whenever the trail can't place it.
 
 **Run state & UI** (`dungeon-runner.mjs`, `module.mjs`,
 `scripts/ui/dungeon-app.mjs`, `world-macros.mjs`) — `dungeon-runner.mjs`
