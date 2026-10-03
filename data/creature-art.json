@@ -39998,5 +39998,165 @@
     "name": "Orc Rampager",
     "level": 4,
     "art": "orc-rampager.webp"
+  },
+  {
+    "id": "old_herok",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "cZ3wMHWjWpUwZTQb",
+    "name": "Old Herok",
+    "level": 10,
+    "art": "old-herok.webp"
+  },
+  {
+    "id": "war_pig",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "eFVEVzJI9BtyEQ9r",
+    "name": "War Pig",
+    "level": 6,
+    "art": "war-pig.webp"
+  },
+  {
+    "id": "warcat_of_rull",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "fWYJqg0v8CXMTuit",
+    "name": "Warcat of Rull",
+    "level": 13,
+    "art": "warcat-of-rull.webp"
+  },
+  {
+    "id": "ungukk_fleshdredge",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "hHNljlTtIhwNgY5q",
+    "name": "Ungukk Fleshdredge",
+    "level": 11,
+    "art": "ungukk-fleshdredge.webp"
+  },
+  {
+    "id": "skinslough",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "hNvjRDhIuef4po3N",
+    "name": "Skinslough",
+    "level": 4,
+    "art": "skinslough.webp"
+  },
+  {
+    "id": "floodslain_mage",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "igzD3pYQ0MEHP3zs",
+    "name": "Floodslain Mage",
+    "level": 5,
+    "art": "floodslain-mage.webp"
+  },
+  {
+    "id": "kar",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "j86Opjp9z2cDKSNA",
+    "name": "Kar",
+    "level": -1,
+    "art": "kar.webp"
+  },
+  {
+    "id": "stormblood_tiger",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "jFd0TSmaZLYLNjRE",
+    "name": "Stormblood Tiger",
+    "level": 7,
+    "art": "stormblood-tiger.webp"
+  },
+  {
+    "id": "the_carcass_man",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "m7jh421DG0ArTQMh",
+    "name": "The Carcass Man",
+    "level": 13,
+    "art": "the-carcass-man.webp"
+  },
+  {
+    "id": "paskis_nine_knives",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "mysIREGVTa57nQHF",
+    "name": "Paskis Nine-Knives",
+    "level": 11,
+    "art": "paskis-nine-knives.webp"
+  },
+  {
+    "id": "orc_vagabond",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "nqWKcbMnyIpvtf4T",
+    "name": "Orc Vagabond",
+    "level": 3,
+    "art": "orc-vagabond.webp"
+  },
+  {
+    "id": "orc_spinecracker",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "pDKT31HwKQLU6tJl",
+    "name": "Orc Spinecracker",
+    "level": 7,
+    "art": "orc-spinecracker.webp"
+  },
+  {
+    "id": "bristle_boar",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "phCMinhQbRR4uB31",
+    "name": "Bristle Boar",
+    "level": 3,
+    "art": "bristle-boar.webp"
+  },
+  {
+    "id": "moonstalker",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "qWluB0kAHf4hYfew",
+    "name": "Moonstalker",
+    "level": 7,
+    "art": "moonstalker.webp"
+  },
+  {
+    "id": "diskah_night_watcher",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "rCXzdhq2CTuhuZty",
+    "name": "Diskah Night Watcher",
+    "level": 9,
+    "art": "diskah-night-watcher.webp"
+  },
+  {
+    "id": "bugark",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "rMY7Ga6VM1sWXgDv",
+    "name": "Bugark",
+    "level": 12,
+    "art": "bugark.webp"
+  },
+  {
+    "id": "bloodwing",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "rpYUkuc0J2go6YnL",
+    "name": "Bloodwing",
+    "level": 9,
+    "art": "bloodwing.webp"
+  },
+  {
+    "id": "floodslain_wolf",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "vyWDZoZ6TVIVBB0e",
+    "name": "Floodslain Wolf",
+    "level": 2,
+    "art": "floodslain-wolf.webp"
+  },
+  {
+    "id": "oracle_of_zagresh",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "wTgZk9k7tt4fISoO",
+    "name": "Oracle of Zagresh",
+    "level": 10,
+    "art": "oracle-of-zagresh.webp"
+  },
+  {
+    "id": "death_tower_necromancer",
+    "pack": "pf2e.triumph-of-the-tusk-bestiary",
+    "docId": "wqtgtNDhc3by8WBD",
+    "name": "Death Tower Necromancer",
+    "level": 10,
+    "art": "death-tower-necromancer.webp"
   }
 ]
