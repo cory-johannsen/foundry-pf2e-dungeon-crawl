@@ -35702,5 +35702,165 @@
     "name": "Anadi Lurker",
     "level": 3,
     "art": "anadi-lurker.webp"
+  },
+  {
+    "id": "terwa_star_reader",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "np82jquWwQRzRdEp",
+    "name": "Terwa Star Reader",
+    "level": 7,
+    "art": "terwa-star-reader.webp"
+  },
+  {
+    "id": "reth",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "ooMCMjhvmIsOghH1",
+    "name": "Reth",
+    "level": 7,
+    "art": "reth.webp"
+  },
+  {
+    "id": "ravager_of_tindalos",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "oy6o6rJbmpduNyvA",
+    "name": "Ravager Of Tindalos",
+    "level": 18,
+    "art": "ravager-of-tindalos.webp"
+  },
+  {
+    "id": "giant_worker_bee",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "pJiD1DAiCFdVvnys",
+    "name": "Giant Worker Bee",
+    "level": 0,
+    "art": "giant-worker-bee.webp"
+  },
+  {
+    "id": "yorulu",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "pjnTEh0NVd1DB6jI",
+    "name": "Yorulu",
+    "level": 4,
+    "art": "yorulu.webp"
+  },
+  {
+    "id": "ironclad_annihilator_beetle",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "q6PegBHxW3orhjyw",
+    "name": "Ironclad Annihilator Beetle",
+    "level": 21,
+    "art": "ironclad-annihilator-beetle.webp"
+  },
+  {
+    "id": "bharlen_sajor",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "r5lXWv7Xd2ur4fmT",
+    "name": "Bharlen Sajor",
+    "level": 11,
+    "art": "bharlen-sajor.webp"
+  },
+  {
+    "id": "shieldbearer_construct",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "rGZsMD3loampnRRo",
+    "name": "Shieldbearer Construct",
+    "level": 2,
+    "art": "shieldbearer-construct.webp"
+  },
+  {
+    "id": "grave_karina",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "rJQx7C5BGqslgr4x",
+    "name": "Grave Karina",
+    "level": 11,
+    "art": "grave-karina.webp"
+  },
+  {
+    "id": "kreekoss",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "rtEPMrf6yPf8lsHp",
+    "name": "Kreekoss",
+    "level": 6,
+    "art": "kreekoss.webp"
+  },
+  {
+    "id": "lignified_adamantine_golem",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "ryvb9GPRLh3Qz3xZ",
+    "name": "Lignified Adamantine Golem",
+    "level": 17,
+    "art": "lignified-adamantine-golem.webp"
+  },
+  {
+    "id": "wereant_poisoner",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "sxOuLaNH5VNsRFZf",
+    "name": "Wereant Poisoner",
+    "level": 17,
+    "art": "wereant-poisoner.webp"
+  },
+  {
+    "id": "aspect_of_insects",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "t5ir38Oait0lziq2",
+    "name": "Aspect of Insects",
+    "level": 20,
+    "art": "aspect-of-insects.webp"
+  },
+  {
+    "id": "avatar_of_walkena",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "tNDYjNXMWk4VoxGm",
+    "name": "Avatar Of Walkena",
+    "level": 17,
+    "art": "avatar-of-walkena.webp"
+  },
+  {
+    "id": "kilia_mwibo",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "tvDUeXGTZWKUHr3V",
+    "name": "Kilia Mwibo",
+    "level": 15,
+    "art": "kilia-mwibo.webp"
+  },
+  {
+    "id": "terwa_prodigy",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "tvgIPWALeCP3DXOb",
+    "name": "Terwa Prodigy",
+    "level": 6,
+    "art": "terwa-prodigy.webp"
+  },
+  {
+    "id": "gnagrif",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "u9QNYbml4fF3htyZ",
+    "name": "Gnagrif",
+    "level": 2,
+    "art": "gnagrif.webp"
+  },
+  {
+    "id": "loakan",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "uCmJpDlKY4s9CBiC",
+    "name": "Loakan",
+    "level": 6,
+    "art": "loakan.webp"
+  },
+  {
+    "id": "old_thrasher",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "uO8X1xEciIBuiL1C",
+    "name": "Old Thrasher",
+    "level": 8,
+    "art": "old-thrasher.webp"
+  },
+  {
+    "id": "crawling_slurry",
+    "pack": "pf2e.strength-of-thousands-bestiary",
+    "docId": "vTETJgwDLVK6bKQt",
+    "name": "Crawling Slurry",
+    "level": 16,
+    "art": "crawling-slurry.webp"
   }
 ]
