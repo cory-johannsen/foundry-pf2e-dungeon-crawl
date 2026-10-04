@@ -34,7 +34,7 @@
 
 **Interfaces:** None — this task only tests `scripts/prng.mjs`'s existing exports (`splitmix32`, `seedFromString`, `shuffle`); nothing else in this plan depends on it.
 
-- [ ] **Step 1: Write the test file**
+- [x] **Step 1: Write the test file**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -135,12 +135,12 @@ describe("shuffle", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test file**
+- [x] **Step 2: Run the test file**
 
 Run: `npx vitest run tests/prng.test.mjs`
 Expected: PASS (all tests) — this is pure new-coverage work against already-correct, unmodified production code, so there's no "make it fail first" step; the test should pass on the first run.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/prng.test.mjs
