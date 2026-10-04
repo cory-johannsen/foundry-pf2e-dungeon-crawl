@@ -44366,5 +44366,205 @@
     "name": "Orc Commander",
     "level": 2,
     "art": "orc-commander.webp"
+  },
+  {
+    "id": "amnerion",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "1XFBOXGEkiXDXhil",
+    "name": "Amnerion",
+    "level": 22,
+    "art": "amnerion.webp"
+  },
+  {
+    "id": "mythic_phoenix_flame",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "2La4fXp6iq11vQpP",
+    "name": "Mythic Phoenix Flame",
+    "level": 4,
+    "art": "mythic-phoenix-flame.webp"
+  },
+  {
+    "id": "bee_borer",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "2LfQ6wT7DiFFVCba",
+    "name": "Bee Borer",
+    "level": 3,
+    "art": "bee-borer.webp"
+  },
+  {
+    "id": "neshkefru",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "3QSevJzuQHz0RwCz",
+    "name": "Neshkefru",
+    "level": 8,
+    "art": "neshkefru.webp"
+  },
+  {
+    "id": "sedacthy_scout_4lgtf",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "4LgTFSnxHQWmI4AT",
+    "name": "Sedacthy Scout",
+    "level": 2,
+    "art": "sedacthy-scout.webp"
+  },
+  {
+    "id": "gigantic_bee_royal_guardian",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "5KuPNI76rCa4P0iC",
+    "name": "Gigantic Bee Royal Guardian",
+    "level": 6,
+    "art": "gigantic-bee-royal-guardian.webp"
+  },
+  {
+    "id": "skeletal_champion_7bjqu",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "7BJqud5bQ0VySlB4",
+    "name": "Skeletal Champion",
+    "level": 2,
+    "art": "skeletal-champion.webp"
+  },
+  {
+    "id": "molted_reefclaw",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "9mKeryELAjGj7agY",
+    "name": "Molted Reefclaw",
+    "level": 1,
+    "art": "molted-reefclaw.webp"
+  },
+  {
+    "id": "leviathan_louse",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "DAdoAVeJNyH1dgcg",
+    "name": "Leviathan Louse",
+    "level": 8,
+    "art": "leviathan-louse.webp"
+  },
+  {
+    "id": "pteios",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "DCxybi9yVMw1rhBq",
+    "name": "Pteios",
+    "level": 11,
+    "art": "pteios.webp"
+  },
+  {
+    "id": "living_statue",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "EWiCbl82e6BMvcPG",
+    "name": "Living Statue",
+    "level": 5,
+    "art": "living-statue.webp"
+  },
+  {
+    "id": "ulshuk",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "FHntBv0y5ymW1Ith",
+    "name": "Ulshuk",
+    "level": 8,
+    "art": "ulshuk.webp"
+  },
+  {
+    "id": "lava_spitter",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "GNWqtXXqZEWDwe8w",
+    "name": "Lava Spitter",
+    "level": 4,
+    "art": "lava-spitter.webp"
+  },
+  {
+    "id": "withered_flame_drake",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "GVS0dJk0HGq9trLs",
+    "name": "Withered Flame Drake",
+    "level": 5,
+    "art": "withered-flame-drake.webp"
+  },
+  {
+    "id": "pyrefowl",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "InXSzKdj4MgbciIb",
+    "name": "Pyrefowl",
+    "level": 1,
+    "art": "pyrefowl.webp"
+  },
+  {
+    "id": "pyrkaion",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "KTG7qtxnTG81QQ2W",
+    "name": "Pyrkaion",
+    "level": 8,
+    "art": "pyrkaion.webp"
+  },
+  {
+    "id": "forgotten_dead",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "N7MaaL14TiOlyoqK",
+    "name": "Forgotten Dead",
+    "level": 4,
+    "art": "forgotten-dead.webp"
+  },
+  {
+    "id": "firehoof_minotaur",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "Nt6kwOSCwfRsWm3u",
+    "name": "Firehoof Minotaur",
+    "level": 7,
+    "art": "firehoof-minotaur.webp"
+  },
+  {
+    "id": "cyclops_seeker",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "NwCK6g2Hq8Bz3pnw",
+    "name": "Cyclops Seeker",
+    "level": 10,
+    "art": "cyclops-seeker.webp"
+  },
+  {
+    "id": "painted_landscape",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "OeFnLt97mzHjSnbG",
+    "name": "Painted Landscape",
+    "level": 10,
+    "art": "painted-landscape.webp"
+  },
+  {
+    "id": "painted_ram",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "QZLmUDNMqo1JpV5i",
+    "name": "Painted Ram",
+    "level": 8,
+    "art": "painted-ram.webp"
+  },
+  {
+    "id": "coralclaw",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "QeY9MqsQ5EDAd0Zd",
+    "name": "Coralclaw",
+    "level": 2,
+    "art": "coralclaw.webp"
+  },
+  {
+    "id": "metal_scamp",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "X5VGzifC2pKuttRq",
+    "name": "Metal Scamp",
+    "level": 1,
+    "art": "metal-scamp-lob.webp"
+  },
+  {
+    "id": "merfolk_wavecaller_xxwsv",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "XXWSvVIZ4HuAFGTX",
+    "name": "Merfolk Wavecaller",
+    "level": 7,
+    "art": "merfolk-wavecaller.webp"
+  },
+  {
+    "id": "vengeful_shade",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "hQzumh6iXsKEnGd7",
+    "name": "Vengeful Shade",
+    "level": 10,
+    "art": "shade-dead-vault.webp"
   }
 ]
