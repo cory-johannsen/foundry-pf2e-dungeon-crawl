@@ -515,12 +515,38 @@ async function autoResolveIfDecided(combat) {
   }
 }
 
+/** The module's own combat currently involving `actorId`, if any — shared
+ * by every hook target below that needs to find "is this actor's combat
+ * decided yet" from something other than the Combat/Combatant document
+ * itself. */
+function findModuleCombatForActor(actorId) {
+  return game.combats.find(
+    (c) => isModuleCombat(c) && c.combatants.some((cb) => cb.actorId === actorId),
+  );
+}
+
 /** Hook target for `updateActor` — module.mjs registers this. */
 export function maybeResolveCombatForActor(actor) {
-  const combat = game.combats.find(
-    (c) =>
-      isModuleCombat(c) && c.combatants.some((cb) => cb.actorId === actor.id),
-  );
+  const combat = findModuleCombatForActor(actor.id);
+  return combat ? autoResolveIfDecided(combat) : null;
+}
+
+/** Hook target for `createItem` — module.mjs registers this, for every
+ * item creation in the game, not just combat-relevant ones; filtered to
+ * condition items before doing anything else. #580: a downed PC's
+ * dying/unconscious condition is applied as a brand-new embedded Item on
+ * its actor (`actor.increaseCondition`) -- confirmed live that this fires
+ * Foundry's `createItem` hook, never `updateActor` (0 events observed for
+ * the latter, 4 for the former, in a direct live test before this plan
+ * was written). Without this hook, `combatSideStatus`'s Task 1 fix is
+ * correct but never actually re-checked at the moment a PC goes down --
+ * nothing else in this module calls `autoResolveIfDecided` on a plain
+ * condition change. */
+export function maybeResolveCombatForCondition(item) {
+  if (item.type !== "condition") return null;
+  const actor = item.parent;
+  if (!actor) return null;
+  const combat = findModuleCombatForActor(actor.id);
   return combat ? autoResolveIfDecided(combat) : null;
 }
 
