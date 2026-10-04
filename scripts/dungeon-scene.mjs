@@ -1924,6 +1924,16 @@ export async function handleDungeonDoorOpened(sceneId, wallId, deps = {}) {
     // below is the Review Focus item 1 safety net for the uncommon case
     // where it wasn't, not the normal path.
     if (room?.kind === "safe_rest" && ok) {
+      // #613: actually apply PF2e's Rest for the Night; a failure is
+      // reported but must never strand the party in the room.
+      try {
+        await restPartyForTheNight();
+      } catch (err) {
+        console.error(`${MODULE_ID} | Rest for the Night failed`, err);
+        ui.notifications?.error(
+          game.i18n.localize("PF2EDC.Dungeon.RestForTheNightFailedError"),
+        );
+      }
       const { state: resolvedState } = await markRoomOutcome({
         sceneId,
         succeeded: true,

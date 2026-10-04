@@ -135,7 +135,7 @@ git commit -m "Add restPartyForTheNight() helper calling PF2e's real Rest for th
 **Interfaces:**
 - Consumes: `restPartyForTheNight()` from Task 1.
 
-- [ ] **Step 1: Add the new lang key**
+- [x] **Step 1: Add the new lang key**
 
 In `lang/en.json`, alongside the existing `"PF2EDC.Dungeon.RoomBuildFailedError"` key (~line 96), add:
 
@@ -143,7 +143,7 @@ In `lang/en.json`, alongside the existing `"PF2EDC.Dungeon.RoomBuildFailedError"
   "PF2EDC.Dungeon.RestForTheNightFailedError": "Dungeon Crawl: Rest for the Night failed to apply — see console for details.",
 ```
 
-- [ ] **Step 2: Add the call inside the `safe_rest` branch**
+- [x] **Step 2: Add the call inside the `safe_rest` branch**
 
 In `scripts/dungeon-scene.mjs`, inside `handleDungeonDoorOpened`'s `if (room?.kind === "safe_rest" && ok) {` block (~line 1864), as the very first statement (before the existing `markRoomOutcome` call):
 
@@ -164,12 +164,12 @@ In `scripts/dungeon-scene.mjs`, inside `handleDungeonDoorOpened`'s `if (room?.ki
       // ... rest of the existing branch, unchanged ...
 ```
 
-- [ ] **Step 3: Run the full test suite**
+- [x] **Step 3: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS — no existing test constructs a `room.kind === "safe_rest"` scenario and drives it through `handleDungeonDoorOpened` end-to-end (confirmed via `grep -rln "handleDungeonDoorOpened" tests/*.test.mjs`, which only finds `tests/dungeon-scene-retreat.test.mjs`, covering the stub-door/retreat branch, not this one), so nothing exercises this new call path in the automated suite yet — that's what Task 3's live verification is for.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs lang/en.json
