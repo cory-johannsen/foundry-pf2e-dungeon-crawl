@@ -2004,3 +2004,5 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 200,weykoward,Weykoward,10,beast,accept,,comfyui,
 200,ardissa-prendergant,Ardissa Prendergant,3,beast,accept,,comfyui,
 200,hobji,Hobji,3,beast,accept,,comfyui,
+201,rhino-warriors,Rhino Warriors,4,humanoid,accept,,comfyui,
+201,venexus,Venexus,9,beast,accept,,comfyui,

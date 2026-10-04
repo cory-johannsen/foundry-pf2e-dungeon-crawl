@@ -41886,5 +41886,21 @@
     "name": "Hobji",
     "level": 3,
     "art": "hobji.webp"
+  },
+  {
+    "id": "rhino_warriors",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "yAYQeZI1W7XGeoMf",
+    "name": "Rhino Warriors",
+    "level": 4,
+    "art": "rhino-warriors.webp"
+  },
+  {
+    "id": "venexus",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "zXTacktEPpjUlYr3",
+    "name": "Venexus",
+    "level": 9,
+    "art": "venexus.webp"
   }
 ]
