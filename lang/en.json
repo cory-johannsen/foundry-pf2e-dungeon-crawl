@@ -94,6 +94,7 @@
   "PF2EDC.Dungeon.Retreat.Turned": "The way is choked with rubble. The party turns back to {target}.",
   "PF2EDC.Dungeon.Retreat.TurnedNoWay": "The party turns back to {target}.",
   "PF2EDC.Dungeon.RoomBuildFailedError": "Dungeon Crawl: failed to prepare the next room — see console for details.",
+  "PF2EDC.Dungeon.RestForTheNightFailedError": "Dungeon Crawl: Rest for the Night failed to apply — see console for details.",
   "PF2EDC.Dungeon.RoomCountLabel": "Number of rooms (including the goal room)",
   "PF2EDC.Dungeon.DifficultyLabel": "Maximum difficulty",
   "PF2EDC.Dungeon.Difficulty.Trivial": "Trivial",

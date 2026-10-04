@@ -394,6 +394,54 @@ describe('a rest room whose every exit was walled announces the dead end (#585)'
     expect(chat[1].flags[MODULE_ID].retreatCard).toEqual({ sceneId: SID });
     expect(getRunState(SID).currentRoomId).toBe('r');
   });
+
+  // #613: the rest room triggers PF2e's real Rest for the Night for the party.
+  async function setUpRestRoom() {
+    installGlobals({ party: ['pc1', 'pc2'] });
+    globalThis.game.pf2e = { actions: { restForTheNight: vi.fn().mockResolvedValue([]) } };
+    registerGenerator(DefaultGenerator);
+    const reveal = wall('w-r', { dungeonRevealDoorForSlot: 'r' });
+    const restScene = makeScene({ walls: [reveal] });
+    restScene.walls = Object.assign([reveal], { get: (id) => (id === 'w-r' ? reveal : undefined) });
+    scenes.set(SID, restScene);
+    const rooms = Object.fromEntries(['room-entry', 'f', 'r', 'b', 'g'].map((id) => [id, {
+      id, isGoal: id === 'g', kind: id === 'r' ? 'safe_rest' : 'combat', name: `Room ${id}`, outcomeSlotId: null,
+    }]));
+    await seed(v3State({
+      rooms, edges: { 'room-entry': ['f'], f: ['r', 'b'], r: [], b: ['g'], g: [] }, stubEdges: {}, walledEdges: { r: ['g'] },
+      deadEdgeWalls: true, hiddenEdges: {},
+      layoutPositionByRoomId: { 'room-entry': { rank: 0, col: 0 }, f: { rank: 1, col: 0 }, r: { rank: 2, col: 0 }, b: { rank: 2, col: 1 }, g: { rank: 3, col: 1 } },
+      history: [{ roomId: 'f' }], currentRoomId: 'f', retreatPath: ['room-entry', 'f'],
+    }));
+  }
+
+  it('calls PF2e Rest for the Night once for the party (skipDialog) and still resolves the room (#613)', async () => {
+    await setUpRestRoom();
+    await handleDungeonDoorOpened(SID, 'w-r');
+    expect(game.pf2e.actions.restForTheNight).toHaveBeenCalledTimes(1);
+    expect(game.pf2e.actions.restForTheNight).toHaveBeenCalledWith({
+      actors: game.actors.party.members,
+      skipDialog: true,
+    });
+    expect(getRunState(SID).currentRoomId).toBe('r');
+  });
+
+  it('a failing Rest for the Night is reported but never blocks the room (#613)', async () => {
+    await setUpRestRoom();
+    game.pf2e.actions.restForTheNight.mockRejectedValue(new Error('boom'));
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const notifyError = vi.fn();
+    globalThis.ui.notifications.error = notifyError;
+    try {
+      await expect(handleDungeonDoorOpened(SID, 'w-r')).resolves.toBeDefined();
+      expect(notifyError).toHaveBeenCalledWith('PF2EDC.Dungeon.RestForTheNightFailedError');
+      expect(errorSpy).toHaveBeenCalled();
+      expect(getRunState(SID).currentRoomId).toBe('r');
+      expect(chat.map((c) => c.content)).toContain('PF2EDC.Dungeon.Retreat.NoWayForward');
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
 });
 
 describe('unchosen sibling gate doors lock/unlock with the path (#175)', () => {
