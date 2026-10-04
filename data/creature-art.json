@@ -41718,5 +41718,173 @@
     "name": "Desiak",
     "level": 8,
     "art": "desiak.webp"
+  },
+  {
+    "id": "jesseri_the_hailstorm",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "hNHljzF0xpUBKiA9",
+    "name": "Jesseri The Hailstorm",
+    "level": 10,
+    "art": "jesseri-the-hailstorm.webp"
+  },
+  {
+    "id": "corrupted_elder_tree",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "haLAebehr7ppMlPn",
+    "name": "Corrupted Elder Tree",
+    "level": 8,
+    "art": "corrupted-elder-tree.webp"
+  },
+  {
+    "id": "loblobi",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "hh9uR1teglhRRhY8",
+    "name": "Loblobi",
+    "level": 1,
+    "art": "loblobi.webp"
+  },
+  {
+    "id": "giant_tapir",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "tgUdk3pTQ6yHHLTH",
+    "name": "Giant Tapir",
+    "level": 2,
+    "art": "giant-tapir.webp"
+  },
+  {
+    "id": "giant_tapir_snared",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "iEOeCyL10neiaShj",
+    "name": "Giant Tapir (Snared)",
+    "level": 2,
+    "art": "giant-tapir.webp"
+  },
+  {
+    "id": "lagofir",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "jNv046Jhoq4yEMey",
+    "name": "Lagofir",
+    "level": 3,
+    "art": "lagofir.webp"
+  },
+  {
+    "id": "gathganara",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "kNMrvb2zDm7tKjVP",
+    "name": "Gathganara",
+    "level": 1,
+    "art": "gathganara.webp"
+  },
+  {
+    "id": "turkek",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "kOLKFJ4Llso96HiD",
+    "name": "Turkek",
+    "level": 7,
+    "art": "turkek.webp"
+  },
+  {
+    "id": "burning_mammoth_hunter",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "koxcnymhEMtf0Uye",
+    "name": "Burning Mammoth Hunter",
+    "level": 0,
+    "art": "burning-mammoth-hunter.webp"
+  },
+  {
+    "id": "calcifda",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "kxO7gXbpcmY1pi7p",
+    "name": "Calcifda",
+    "level": 10,
+    "art": "calcifda.webp"
+  },
+  {
+    "id": "zombie_megaloceros",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "lJJ81JBAIuI72Fq2",
+    "name": "Zombie Megaloceros",
+    "level": 4,
+    "art": "zombie-megaloceros.webp"
+  },
+  {
+    "id": "metuak",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "nBoysLyDYIZaaAHP",
+    "name": "Metuak",
+    "level": 13,
+    "art": "metuak.webp"
+  },
+  {
+    "id": "venexus_s_wyrmling",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "nwbgz8PNXaHPU5tg",
+    "name": "Venexus's Wyrmling",
+    "level": 5,
+    "art": "venexus-s-wyrmling.webp"
+  },
+  {
+    "id": "long_horned_bison_beheaded",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "o5apaaqJlL7A48N8",
+    "name": "Long-horned Bison Beheaded",
+    "level": 2,
+    "art": "long-horned-bison-beheaded.webp"
+  },
+  {
+    "id": "roru",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "ovrQ2R9HJJhC1Yij",
+    "name": "Roru",
+    "level": 7,
+    "art": "roru.webp"
+  },
+  {
+    "id": "azi",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "pQMgLVlFeGjScENC",
+    "name": "Azi",
+    "level": 8,
+    "art": "azi.webp"
+  },
+  {
+    "id": "burning_mammoth_commando",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "vEfQXwx3qetnYcSI",
+    "name": "Burning Mammoth Commando",
+    "level": 7,
+    "art": "burning-mammoth-commando.webp"
+  },
+  {
+    "id": "summer_hora_queen",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "vQXmk2oNlfVsYK0P",
+    "name": "Summer Hora Queen",
+    "level": 13,
+    "art": "summer-hora-queen.webp"
+  },
+  {
+    "id": "weykoward",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "wuV8k7N1cEJBYNbK",
+    "name": "Weykoward",
+    "level": 10,
+    "art": "weykoward.webp"
+  },
+  {
+    "id": "ardissa_prendergant",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "xDZMFbTuDu4OFgj8",
+    "name": "Ardissa Prendergant",
+    "level": 3,
+    "art": "ardissa-prendergant.webp"
+  },
+  {
+    "id": "hobji",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "xp9lr0RN2TYqgP5M",
+    "name": "Hobji",
+    "level": 3,
+    "art": "hobji.webp"
   }
 ]
