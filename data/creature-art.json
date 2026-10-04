@@ -41550,5 +41550,173 @@
     "name": "Animated Blade",
     "level": -1,
     "art": "animated-blade-lob.webp"
+  },
+  {
+    "id": "syarstik_painted_tiger",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "OpPfAFkJ1ctWAWdq",
+    "name": "Syarstik Painted-Tiger",
+    "level": 5,
+    "art": "syarstik-painted-tiger.webp"
+  },
+  {
+    "id": "bone_warrior",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "PsRObxHMe71zJi8d",
+    "name": "Bone Warrior",
+    "level": 4,
+    "art": "bone-warrior.webp"
+  },
+  {
+    "id": "lomok",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "QC2noL9T0y8Ny5eU",
+    "name": "Lomok",
+    "level": 11,
+    "art": "lomok.webp"
+  },
+  {
+    "id": "everburning_mammoth",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "QdDoqb0RSy1Mer5Q",
+    "name": "Everburning Mammoth",
+    "level": 8,
+    "art": "everburning-mammoth.webp"
+  },
+  {
+    "id": "idovik",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "RPXXt5bgFCqKibZ3",
+    "name": "Idovik",
+    "level": 7,
+    "art": "idovik.webp"
+  },
+  {
+    "id": "tar_ooze",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "RuVQUpUOLAE2x2tY",
+    "name": "Tar Ooze",
+    "level": 10,
+    "art": "tar-ooze.webp"
+  },
+  {
+    "id": "groplit",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "T0AapaQCmo5pBSQq",
+    "name": "Groplit",
+    "level": 0,
+    "art": "groplit.webp"
+  },
+  {
+    "id": "ashen_swale",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "TbVMaYNvcXUI5aY8",
+    "name": "Ashen Swale",
+    "level": 7,
+    "art": "ashen-swale.webp"
+  },
+  {
+    "id": "graylok_artillerist",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "TlYG0Hyxh7gI7Jd8",
+    "name": "Graylok Artillerist",
+    "level": 8,
+    "art": "graylok-artillerist.webp"
+  },
+  {
+    "id": "beaver",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "UFKiRCIj9ETec46r",
+    "name": "Beaver",
+    "level": -1,
+    "art": "beaver.webp"
+  },
+  {
+    "id": "ivarsa",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "UGB689LLMK5Vi0Nc",
+    "name": "Ivarsa",
+    "level": 12,
+    "art": "ivarsa.webp"
+  },
+  {
+    "id": "graylok_ambusher",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "VA2L044R2WXupQl4",
+    "name": "Graylok Ambusher",
+    "level": 8,
+    "art": "graylok-ambusher.webp"
+  },
+  {
+    "id": "fiendish_arboreal",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "VyXYqiIWYpyx9QJm",
+    "name": "Fiendish Arboreal",
+    "level": 4,
+    "art": "fiendish-arboreal.webp"
+  },
+  {
+    "id": "long_horned_bison",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "XxKWVyq21NGiDCaR",
+    "name": "Long-horned Bison",
+    "level": 6,
+    "art": "long-horned-bison.webp"
+  },
+  {
+    "id": "tar_zombie_snatcher",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "Z637TaszmZsJTmBZ",
+    "name": "Tar Zombie Snatcher",
+    "level": 6,
+    "art": "tar-zombie-snatcher.webp"
+  },
+  {
+    "id": "pakano",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "r9RTeZGlX8Asicku",
+    "name": "Pakano",
+    "level": 4,
+    "art": "pakano.webp"
+  },
+  {
+    "id": "pakano_level_12",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "ZKxZgklb78PULu10",
+    "name": "Pakano (Level 12)",
+    "level": 12,
+    "art": "pakano.webp"
+  },
+  {
+    "id": "megaloceros",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "ZZkuo6mOh0SQWC3T",
+    "name": "Megaloceros",
+    "level": 4,
+    "art": "megaloceros.webp"
+  },
+  {
+    "id": "venexus_s_chosen",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "ZxKGQpbkXVLI7lab",
+    "name": "Venexus's Chosen",
+    "level": 6,
+    "art": "venexus-s-chosen.webp"
+  },
+  {
+    "id": "arboreal_tar_tree",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "cnTAIcjKu01I7eJ0",
+    "name": "Arboreal Tar Tree",
+    "level": 9,
+    "art": "arboreal-tar-tree.webp"
+  },
+  {
+    "id": "desiak",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "dPJxDpVcDFDQqwWO",
+    "name": "Desiak",
+    "level": 8,
+    "art": "desiak.webp"
   }
 ]
