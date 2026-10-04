@@ -233,7 +233,18 @@ export function unpauseIfGmLessRun(sceneId) {
   }
 }
 
-/** `{ hostilesDefeated, partyDefeated }` — both false while the fight's still going. */
+/** `{ hostilesDefeated, partyDefeated }` — both false while the fight's
+ * still going. A party combatant counts as defeated here once it's
+ * actually `isDefeated` OR (#580) incapacitated via `isDownedCharacter`
+ * (dying/unconscious) -- a downed PC deliberately never gets `isDefeated`
+ * set (so a GM can still stabilize them), but once #410 stopped hostile
+ * AI from ever attacking a downed PC again, waiting for actual death left
+ * combat stalled forever the moment every PC went down -- the state is
+ * already terminal from there, since nothing else in this module can
+ * change it. A non-character party member (e.g. a summoned ally) still
+ * needs the real `isDefeated` flag, same as today -- the dying/
+ * stabilization nuance is specific to PF2e player characters, same
+ * scoping `isDownedCharacter` itself already uses. */
 export function combatSideStatus(combat) {
   const groups = { hostile: [], party: [] };
   for (const c of combat.combatants)
@@ -242,7 +253,8 @@ export function combatSideStatus(combat) {
     hostilesDefeated:
       groups.hostile.length > 0 && groups.hostile.every((c) => c.isDefeated),
     partyDefeated:
-      groups.party.length > 0 && groups.party.every((c) => c.isDefeated),
+      groups.party.length > 0 &&
+      groups.party.every((c) => c.isDefeated || isDownedCharacter(c)),
   };
 }
 
