@@ -41046,5 +41046,213 @@
     "name": "Misery Siktempora",
     "level": 12,
     "art": "misery-siktempora.webp"
+  },
+  {
+    "id": "risen_runelord",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "tPakDjrVu0H8MF9K",
+    "name": "Risen Runelord (Envy)",
+    "level": 11,
+    "art": "risen-runelord.webp"
+  },
+  {
+    "id": "risen_runelord_gluttony",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "XvtYOHs2ICT8jPCU",
+    "name": "Risen Runelord (Gluttony)",
+    "level": 11,
+    "art": "risen-runelord.webp"
+  },
+  {
+    "id": "risen_runelord_greed",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "oziRsLtjxQ8cQNYp",
+    "name": "Risen Runelord (Greed)",
+    "level": 11,
+    "art": "risen-runelord.webp"
+  },
+  {
+    "id": "risen_runelord_lust",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "O7X3Qg3HSfdHCSdB",
+    "name": "Risen Runelord (Lust)",
+    "level": 11,
+    "art": "risen-runelord.webp"
+  },
+  {
+    "id": "risen_runelord_pride",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "KSxYIYQdeMj4f8Vd",
+    "name": "Risen Runelord (Pride)",
+    "level": 11,
+    "art": "risen-runelord.webp"
+  },
+  {
+    "id": "risen_runelord_sloth",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "aG1BdKptb1CLXqvY",
+    "name": "Risen Runelord (Sloth)",
+    "level": 11,
+    "art": "risen-runelord.webp"
+  },
+  {
+    "id": "risen_runelord_wrath",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "QAc6oh8MP7a7NYA7",
+    "name": "Risen Runelord (Wrath)",
+    "level": 11,
+    "art": "risen-runelord.webp"
+  },
+  {
+    "id": "czaresia",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "MSMKOjqW07pyCvxJ",
+    "name": "Czaresia",
+    "level": 18,
+    "art": "czaresia.webp"
+  },
+  {
+    "id": "abysium_sentinel",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "PfLXgBatvTJlrOfk",
+    "name": "Abysium Sentinel",
+    "level": 18,
+    "art": "abysium-sentinel.webp"
+  },
+  {
+    "id": "bittersweet_sister",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "QpqjeI8noCOqDlPJ",
+    "name": "Bittersweet Sister",
+    "level": 17,
+    "art": "bittersweet-sister.webp"
+  },
+  {
+    "id": "risen_runelord_of_envy",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "TCnACzhKgO1NB0Zv",
+    "name": "Risen Runelord of Envy (Prison)",
+    "level": 16,
+    "art": "risen-runelord-of-envy.webp"
+  },
+  {
+    "id": "javownir",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "TZcpflDA27pF7S8b",
+    "name": "Javownir",
+    "level": 14,
+    "art": "javownir.webp"
+  },
+  {
+    "id": "ayavah",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "TttCvtb147urbMi1",
+    "name": "Ayavah",
+    "level": 11,
+    "art": "ayavah.webp"
+  },
+  {
+    "id": "the_ashen_man",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "U32Vush39MP50jhu",
+    "name": "The Ashen Man",
+    "level": 23,
+    "art": "the-ashen-man.webp"
+  },
+  {
+    "id": "risen_runelord_xirie",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "UEOWzm594hZ33Eqj",
+    "name": "Risen Runelord Xirie",
+    "level": 16,
+    "art": "risen-runelord-xirie.webp"
+  },
+  {
+    "id": "liralarue",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "UPvIOjp41CCwoz3Z",
+    "name": "Liralarue",
+    "level": 20,
+    "art": "liralarue.webp"
+  },
+  {
+    "id": "crypt",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "VT3IYCG7bdDgZG3U",
+    "name": "Ravenous Crypt",
+    "level": 14,
+    "art": "crypt.webp"
+  },
+  {
+    "id": "baolen",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "VwXQStpbtRju6TRg",
+    "name": "Baolen",
+    "level": 18,
+    "art": "baolen.webp"
+  },
+  {
+    "id": "risen_runelord_alaznist",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "VzbJJXwyySpyPD2p",
+    "name": "Risen Runelord Alaznist",
+    "level": 20,
+    "art": "risen-runelord-alaznist.webp"
+  },
+  {
+    "id": "pyroclastic_mukradi",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "WHkCAhi5PQ5oyZnr",
+    "name": "Pyroclastic Mukradi",
+    "level": 15,
+    "art": "pyroclastic-mukradi.webp"
+  },
+  {
+    "id": "kandirvek",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "YQti84LNgXtaYASl",
+    "name": "Kandirvek",
+    "level": 14,
+    "art": "kandirvek.webp"
+  },
+  {
+    "id": "jandelay_tolokand",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "aLAvOKIN2zRaJRFe",
+    "name": "Jandelay Tolokand",
+    "level": 16,
+    "art": "jandelay-tolokand.webp"
+  },
+  {
+    "id": "lograsi",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "bWqwwzOECcOmXLQD",
+    "name": "Lograsi",
+    "level": 18,
+    "art": "lograsi.webp"
+  },
+  {
+    "id": "knight_of_malice",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "bwpKnfGrRdLrSEyJ",
+    "name": "Knight of Malice",
+    "level": 16,
+    "art": "knight-of-malice.webp"
+  },
+  {
+    "id": "runelord_xanderghul",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "dQCxG9v2LE0niYEp",
+    "name": "Runelord Xanderghul",
+    "level": 25,
+    "art": "runelord-xanderghul.webp"
+  },
+  {
+    "id": "risen_runelord_karzoug",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "fJM5suUaAEe000s2",
+    "name": "Risen Runelord Karzoug",
+    "level": 18,
+    "art": "risen-runelord-karzoug.webp"
   }
 ]
