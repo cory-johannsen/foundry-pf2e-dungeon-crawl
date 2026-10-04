@@ -177,7 +177,7 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
     const trapLevel = trapToken?.actor?.system?.details?.level?.value;
     const levelOffset =
       trapLevel != null ? trapLevel - (await makeFoundryApi().partyLevel()) : 0;
-    await makeFoundryApi().grantPartyXp(xpFor(levelOffset));
+    await makeFoundryApi().grantPartyXp(xpFor(levelOffset), "trap");
   }
   if (currentRoom && effectKey) {
     // #93 pre-flight fix (found during Task 9's review): Task 9's own
@@ -688,7 +688,7 @@ export async function recordSkillChallengeOutcome(sceneId, roomId, outcome) {
   const newState = await recordSkillChallengeAttempt(sceneId, roomId, outcome);
   const resolved = newState?.rooms[roomId]?.challenge?.resolved;
   if (resolved === "success") {
-    await makeFoundryApi().grantPartyXp(xpFor(0));
+    await makeFoundryApi().grantPartyXp(xpFor(0), "skillChallenge");
   }
   if (resolved)
     await resolveCurrentRoom(resolved === "success", {
@@ -710,7 +710,7 @@ export async function recordPuzzleStageOutcome(
   );
   const resolved = newState?.rooms[roomId]?.puzzle?.resolved;
   if (resolved === "success") {
-    await makeFoundryApi().grantPartyXp(xpFor(0));
+    await makeFoundryApi().grantPartyXp(xpFor(0), "puzzle");
   }
   if (resolved)
     await resolveCurrentRoom(resolved === "success", {

@@ -142,6 +142,17 @@ describe("resolveCombat XP safety net (#476)", () => {
     expect(grants[0]).toBe(totalCombatXp([3], 3));
   });
 
+  it("names combat as the XP source so the party is told where it came from (#626)", async () => {
+    const npc = makeCombatant({ id: "n1", actorId: "a1", hp: 0, level: 3 });
+    install(makeCombat([npc]));
+    const sources = [];
+    await resolveSlotCombat({ id: "scene1" }, 1, "victory", {
+      partyLevel: async () => 3,
+      grantPartyXp: async (_xp, source) => sources.push(source),
+    });
+    expect(sources).toEqual(["combat"]);
+  });
+
   it("grants no XP for a living unflagged hostile (party fled)", async () => {
     const npc = makeCombatant({ id: "n1", actorId: "a1", hp: 7, level: 3 });
     install(makeCombat([npc]));
