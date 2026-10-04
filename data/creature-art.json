@@ -41366,5 +41366,189 @@
     "name": "Eron of Jandelay",
     "level": 13,
     "art": "eron-of-jandelay.webp"
+  },
+  {
+    "id": "throttled_blindheim",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "0GArHVfN0VxejVZp",
+    "name": "Throttled Blindheim",
+    "level": 2,
+    "art": "throttled-blindheim.webp"
+  },
+  {
+    "id": "zombie_mammoth",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "0KrkQLsLX2PPUus7",
+    "name": "Zombie Mammoth",
+    "level": 8,
+    "art": "zombie-mammoth-lob.webp"
+  },
+  {
+    "id": "ardissa_s_porter",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "2nnCyf8LBxLAWKRE",
+    "name": "Ardissa's Porter",
+    "level": 0,
+    "art": "ardissa-s-porter.webp"
+  },
+  {
+    "id": "skeletal_woolly_rhinoceros",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "3uWNAMSPf0y2Bx0g",
+    "name": "Skeletal Woolly Rhinoceros",
+    "level": 5,
+    "art": "skeletal-woolly-rhinoceros.webp"
+  },
+  {
+    "id": "cairn_wight_g4",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "6yYVpWETVv3vFHvP",
+    "name": "Cairn Wight (G4)",
+    "level": 4,
+    "art": "cairn-wight.webp"
+  },
+  {
+    "id": "hegremon",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "7yanFrY21w21ZNFP",
+    "name": "Hegremon",
+    "level": 13,
+    "art": "hegremon.webp"
+  },
+  {
+    "id": "kadlaka",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "8kGAwppxApSa6vyl",
+    "name": "Kadlaka",
+    "level": 4,
+    "art": "kadlaka.webp"
+  },
+  {
+    "id": "yana_no_trail",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "8qtTf1FvvBrcEypA",
+    "name": "Yana No-trail",
+    "level": 7,
+    "art": "yana-no-trail.webp"
+  },
+  {
+    "id": "castoroides",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "9LKXjZrmeSjeGseL",
+    "name": "Castoroides",
+    "level": 3,
+    "art": "castoroides.webp"
+  },
+  {
+    "id": "necrohusk",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "9znaKK6OeZnQ03Wc",
+    "name": "Necrohusk",
+    "level": 5,
+    "art": "necrohusk.webp"
+  },
+  {
+    "id": "summer_hora",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "B7O9nFwhHMmCWbQg",
+    "name": "Summer Hora",
+    "level": 6,
+    "art": "summer-hora.webp"
+  },
+  {
+    "id": "rime_sludge",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "EWT9OXxBuKQLQMHj",
+    "name": "Rime Sludge",
+    "level": 1,
+    "art": "rime-sludge.webp"
+  },
+  {
+    "id": "graylok_gatebreaker",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "EyyCB9QBJKpsap5b",
+    "name": "Graylok Gatebreaker",
+    "level": 8,
+    "art": "graylok-gatebreaker.webp"
+  },
+  {
+    "id": "burnbearer",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "F4bNgQx2NLOwSlBR",
+    "name": "Burnbearer",
+    "level": -1,
+    "art": "burnbearer.webp"
+  },
+  {
+    "id": "tar_zombie_mammoth",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "HCtfUGao82L0sVBo",
+    "name": "Tar Zombie Mammoth",
+    "level": 9,
+    "art": "tar-zombie-mammoth.webp"
+  },
+  {
+    "id": "elk",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "IP3fGAEz3Nw1TzDD",
+    "name": "Elk",
+    "level": 1,
+    "art": "elk.webp"
+  },
+  {
+    "id": "burning_mammoth_longshield",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "JGvGPeoie5k1fGkv",
+    "name": "Burning Mammoth Longshield",
+    "level": 1,
+    "art": "burning-mammoth-longshield.webp"
+  },
+  {
+    "id": "varilyn_vare_eridge",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "KeOKPlxxBw5m2wly",
+    "name": "Varilyn \"Vare\" Eridge",
+    "level": 4,
+    "art": "varilyn-vare-eridge.webp"
+  },
+  {
+    "id": "tar_zombie_predator",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "L3PGythRjyCdM322",
+    "name": "Tar Zombie Predator",
+    "level": 7,
+    "art": "tar-zombie-predator.webp"
+  },
+  {
+    "id": "bargott",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "LL3XklJHogUKWDfh",
+    "name": "Bargott",
+    "level": 3,
+    "art": "bargott.webp"
+  },
+  {
+    "id": "burning_mammoth_reaver",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "O87CB2RiM0WCDz8P",
+    "name": "Burning Mammoth Reaver",
+    "level": 2,
+    "art": "burning-mammoth-reaver.webp"
+  },
+  {
+    "id": "glyptodon",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "OeJlR7ZSSc0azABd",
+    "name": "Glyptodon",
+    "level": 5,
+    "art": "glyptodon.webp"
+  },
+  {
+    "id": "animated_blade",
+    "pack": "pf2e.quest-for-the-frozen-flame-bestiary",
+    "docId": "fnpv7Dg7QJWSdz6z",
+    "name": "Animated Blade",
+    "level": -1,
+    "art": "animated-blade-lob.webp"
   }
 ]
