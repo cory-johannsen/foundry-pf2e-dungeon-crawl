@@ -376,7 +376,7 @@ git commit -m "Add randomized/invariant test for findFollowMove (#295)"
 
 **Interfaces:** None new — consumes the existing `overlaps`, `freeSpot`, `freeSpotInRect` exports already imported at the top of this file.
 
-- [ ] **Step 1: Add the new property tests**
+- [x] **Step 1: Add the new property tests**
 
 Add the import at the top of `tests/placement.test.mjs`, alongside the existing one:
 
@@ -457,17 +457,17 @@ describe('freeSpotInRect property tests', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test file**
+- [x] **Step 2: Run the test file**
 
 Run: `npx vitest run tests/placement.test.mjs`
 Expected: PASS (every pre-existing test plus the two new ones)
 
-- [ ] **Step 3: Run the full suite to confirm no regressions anywhere**
+- [x] **Step 3: Run the full suite to confirm no regressions anywhere**
 
 Run: `npx vitest run`
 Expected: PASS — this plan never touches production code, so the only way this step could fail is a mistake in one of the four new/modified test files themselves.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tests/placement.test.mjs
