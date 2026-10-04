@@ -27,8 +27,9 @@ clamp with the shift (not offer both) and set the dialog default to Moderate.
   (#412). Anything lower would put creatures/traps at levels where candidates
   may not exist and would need its own verification. Trivial keeps meaning −1
   everywhere, exactly as shipped.
-- **Dialog default is Moderate** (preselected). The *code* default for a missing
-  or unknown tier stays **Severe** — see "Defaults" below.
+- **Moderate is the one default**, in the dialog (preselected) *and* in code: a
+  missing or unknown tier reads as Moderate everywhere (accepted by Cory
+  2026-10-04) — see "Defaults" below.
 
 ## Non-goals
 
@@ -64,8 +65,14 @@ Trivial are unchanged.
   (`{ trivial: −3, low: −2, moderate: −1, severe: 0, extreme: 1 }`) and
   `applyDifficultyShift(depthBias, tier)` returning
   `Math.max(−1, Math.min(3, depthBias + DIFFICULTY_BIAS_OFFSET[normalized]))`.
-  Update the doc comments. `DIFFICULTY_TIERS`, `DEFAULT_DIFFICULTY` and
-  `normalizeDifficulty` are unchanged.
+  `DEFAULT_DIFFICULTY` changes from `"severe"` to `"moderate"` (and its comment
+  from "today's behavior"); `normalizeDifficulty` is otherwise unchanged and is
+  the single place a missing/unknown tier is resolved. Update the doc comments.
+- `scripts/skill-challenge-mechanics.mjs`: `dcAdjustmentForTier` resolves its
+  argument through `normalizeDifficulty` (it currently falls back to 0 on its
+  own, which after this change would leave a missing tier at Severe for DCs but
+  Moderate for rooms).
+  The module already imports from `dungeon-deck.mjs`, so no new import edge.
 - `scripts/dungeon-scene.mjs`: `effectiveRoomBias` calls `applyDifficultyShift`;
   update the import and its doc comment. The two call sites (combat, trap) do
   not change.
@@ -84,32 +91,49 @@ Trivial are unchanged.
 
 ### Defaults
 
-Two different defaults, deliberately:
+One default, everywhere: **Moderate**.
 
-- **Dialog / `#onStart` fallback: Moderate** — what a player gets by clicking
-  Start without touching the control.
-- **Code default (`DEFAULT_DIFFICULTY`, `normalizeDifficulty`, `createRun`'s
-  missing arg): Severe** — the offset-0 identity. A run saved before #412 has no
-  `difficulty` and was generated with the raw ramp; reading it as Severe keeps
-  its DCs and any later-built content identical to what it always was, and a bad
-  relayed value cannot silently make a run easier.
+- The dialog preselects Moderate, and `#onStart`'s fallback (form value
+  missing) is `"moderate"`.
+- `DEFAULT_DIFFICULTY` / `normalizeDifficulty` resolve a missing, null or unknown
+  tier to Moderate: `createRun`'s absent argument, a bad relayed value, a run
+  saved before #412, and any legacy caller of `effectiveRoomBias` or
+  `dcAdjustmentForTier`.
+
+Trade-off accepted: a missing/unknown tier is now one step *easier* than the raw
+ramp (rooms) and −1 on DCs, where it used to mean "raw ramp". A garbage relayed
+value therefore yields a Moderate run, not an unaltered one.
 
 ### Effect on existing runs
 
-Rooms are built eagerly at run start, so a run in progress keeps its content.
-Skill-challenge DCs are computed at attempt time from the saved tier and puzzle
-DCs were baked at creation; neither depends on the cap/shift change (DC offsets
-are unchanged). So changing the semantics has no mid-run effect on any run
-already started.
+Rooms are built eagerly at run start, so a run already in progress keeps its
+content. A run created before #412 has no saved tier and now reads as Moderate:
+its already-built rooms are unaffected, its already-created puzzles keep their
+baked DCs, and only skill-challenge DCs computed *at attempt time* shift by −1
+(Moderate's adjustment) from then on. Runs created since #412 have an explicit
+saved tier and keep it; the only change for them is the new shift meaning of
+that tier for any content built after the upgrade (none, since building is
+eager).
 
 ## Testing
 
 - `applyDifficultyShift`: every tier × ramp biases 0/1/2 against the table
-  above; Severe identity; missing/unknown tier behaves as Severe; the result is
-  always within −1..3 (sweep tiers × biases −2..5 to pin the clamp at both ends);
-  Extreme on the shortest dungeon's goal room (bias 2) is 3.
+  above; Severe identity; missing/unknown tier behaves as **Moderate**; the
+  result is always within −1..3 (sweep tiers × biases −2..5 to pin the clamp at
+  both ends); Extreme on the shortest dungeon's goal room (bias 2) is 3.
+- `normalizeDifficulty(undefined | null | 'bogus')` is `"moderate"`
+  (`tests/dungeon-deck.test.mjs`, replacing the #412 "severe" assertions).
+- `createRun` defaults the tier to `"moderate"` and normalizes an unknown tier
+  to `"moderate"` (`tests/dungeon-runner.test.mjs`, replacing the #412
+  "severe" assertions).
+- `dcAdjustmentForTier(undefined | 'bogus')` is −1 and
+  `dcForAttempt({ partyLevel: 5 })` is 19, not 20
+  (`tests/skill-challenge-mechanics.test.mjs`, replacing the #412 "0"/20
+  assertions); `initPuzzleState`'s existing `dcAdjustment` tests are unaffected
+  (they pass the adjustment explicitly).
 - `effectiveRoomBias` (`tests/dungeon-scene.test.mjs`): the existing #412 cases
-  rewritten to the new table, including Moderate and Low goal rooms.
+  rewritten to the new table, including Moderate and Low goal rooms; a missing
+  difficulty now equals Moderate, not the raw ramp.
 - Dialog default: a small test that reads `templates/dungeon-tracker.hbs` as
   text and asserts the `difficulty` select has `selected` on the Moderate option
   and on no other option (the repo has no hbs rendering harness, so a text
@@ -123,5 +147,5 @@ already started.
 ## Release
 
 Minor `module.json` bump: this changes the meaning of every tier except Trivial
-and Severe, and changes the dialog default. No import edges change; no
+and Severe, changes the dialog default, and changes what a missing tier means. No import edges change; no
 architecture-doc update expected.
