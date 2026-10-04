@@ -44566,5 +44566,173 @@
     "name": "Vengeful Shade",
     "level": 10,
     "art": "shade-dead-vault.webp"
+  },
+  {
+    "id": "yasmenei",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "QlCcGokzOoADjdRd",
+    "name": "Yasmenei",
+    "level": 5,
+    "art": "yasmenei.webp"
+  },
+  {
+    "id": "eumenid",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "RQ1qKmIXI6bycpBi",
+    "name": "Eumenid",
+    "level": 6,
+    "art": "eumenid.webp"
+  },
+  {
+    "id": "mythic_hippogriff",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "RY0MnAujnmPgvNWA",
+    "name": "Mythic Hippogriff",
+    "level": 2,
+    "art": "mythic-hippogriff.webp"
+  },
+  {
+    "id": "deathless_pirate",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "TWGzMOvxDIbYkuIb",
+    "name": "Deathless Pirate",
+    "level": 7,
+    "art": "deathless-pirate.webp"
+  },
+  {
+    "id": "pendidia",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "TyM7RUMDIqGQtYr0",
+    "name": "Pendidia",
+    "level": 10,
+    "art": "pendidia.webp"
+  },
+  {
+    "id": "eylthia_s_basilisk",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "UkO1E2yzPQdk2i5r",
+    "name": "Eylthia's Basilisk",
+    "level": 7,
+    "art": "eylthia-s-basilisk.webp"
+  },
+  {
+    "id": "spirit",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "UtrPweFaxQSDsST9",
+    "name": "Enraged Spirit",
+    "level": 0,
+    "art": "spirit.webp"
+  },
+  {
+    "id": "iblydan_hind",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "V5Nzox1vB1Rregr6",
+    "name": "Iblydan Hind",
+    "level": 4,
+    "art": "iblydan-hind.webp"
+  },
+  {
+    "id": "gigantic_bee_guard",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "VRcAuDdgpdF3LD9C",
+    "name": "Gigantic Bee Guard",
+    "level": 4,
+    "art": "gigantic-bee-guard.webp"
+  },
+  {
+    "id": "torcheater",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "VfL5YJzRiUxldUTg",
+    "name": "Torcheater",
+    "level": 2,
+    "art": "torcheater.webp"
+  },
+  {
+    "id": "kerinelopas",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "XWAaTLLlikpz4rTH",
+    "name": "Kerinelopas",
+    "level": 9,
+    "art": "kerinelopas.webp"
+  },
+  {
+    "id": "eylthia",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "YsPt2EAK2zbzEhVD",
+    "name": "Eylthia",
+    "level": 10,
+    "art": "eylthia.webp"
+  },
+  {
+    "id": "omorphos",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "Z1xYR3t3US8jEIVI",
+    "name": "Omorphos",
+    "level": 8,
+    "art": "omorphos.webp"
+  },
+  {
+    "id": "vornen",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "ZVmikyAJb9SUuvoN",
+    "name": "Vornen",
+    "level": 5,
+    "art": "vornen.webp"
+  },
+  {
+    "id": "sappil",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "Zt0HcZjRrzo1zz4y",
+    "name": "Sappil",
+    "level": 1,
+    "art": "sappil.webp"
+  },
+  {
+    "id": "painted_pontifex",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "arh4LFUHcHsPyJoP",
+    "name": "Painted Pontifex",
+    "level": 9,
+    "art": "painted-pontifex.webp"
+  },
+  {
+    "id": "exthenios",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "asmbTctJbSc7L36y",
+    "name": "Exthenios",
+    "level": 9,
+    "art": "exthenios.webp"
+  },
+  {
+    "id": "gigantic_bee_drone",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "bD71wWdS3PMpt7k2",
+    "name": "Gigantic Bee Drone",
+    "level": 4,
+    "art": "gigantic-bee-drone.webp"
+  },
+  {
+    "id": "ekleios",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "bkaucqFMNbV5V7fJ",
+    "name": "Ekleios",
+    "level": 2,
+    "art": "ekleios.webp"
+  },
+  {
+    "id": "painted_soldier",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "cD92QPlLxCIXN6mn",
+    "name": "Painted Soldier",
+    "level": 7,
+    "art": "painted-soldier.webp"
+  },
+  {
+    "id": "painted_soldier_ominous_graffiti",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "byFpFNAiClHVHnSJ",
+    "name": "Painted Soldier (Ominous Graffiti)",
+    "level": 7,
+    "art": "painted-soldier.webp"
   }
 ]
