@@ -7,6 +7,8 @@ import {
   extendTrail,
   findTrailMove,
 } from "../scripts/dungeon-follow-mechanics.mjs";
+import { overlaps } from "../scripts/placement.mjs";
+import { splitmix32, seedFromString } from "../scripts/prng.mjs";
 
 function noWalls() {
   return () => false;
@@ -474,5 +476,63 @@ describe("findTrailMove (#610)", () => {
 
   it("returns null when no path reaches the trail cell", () => {
     expect(findTrailMove({ gx: 0, gy: 2 }, { gx: 4, gy: 2 }, [], () => true, null, one)).toBeNull();
+  });
+});
+
+describe("findFollowMove property tests", () => {
+  it("property: a 'move' result's target is never occupied, and its steps form a valid, unblocked path ending there", () => {
+    const GRID = 12;
+    const ADJACENT_DIRS = [{ dx: 1, dy: 0 }, { dx: 0, dy: 1 }, { dx: 1, dy: 1 }, { dx: 1, dy: -1 }];
+    let foundAtLeastOneMove = false;
+    for (let trial = 0; trial < 300; trial += 1) {
+      const rand = splitmix32(seedFromString(`findFollowMove-${trial}`));
+      const randCell = () => ({ gx: Math.floor(rand() * GRID), gy: Math.floor(rand() * GRID) });
+      const leaderCell = randCell();
+      const fromCell = randCell();
+      // Sparse occupants and walls -- enough to exercise real contention
+      // without making a "move" result the rare case (see Review Focus).
+      const occupiedFootprints = Array.from({ length: Math.floor(rand() * 4) }, () => ({
+        ...randCell(),
+        gw: 1,
+        gh: 1,
+      }));
+      const blocked = new Set();
+      for (let i = 0; i < 20; i += 1) {
+        const a = randCell();
+        const { dx, dy } = ADJACENT_DIRS[Math.floor(rand() * ADJACENT_DIRS.length)];
+        blocked.add(`${a.gx},${a.gy}|${a.gx + dx},${a.gy + dy}`);
+      }
+      const isBlocked = (a, b) => {
+        const k1 = `${a.gx},${a.gy}|${b.gx},${b.gy}`;
+        const k2 = `${b.gx},${b.gy}|${a.gx},${a.gy}`;
+        return blocked.has(k1) || blocked.has(k2);
+      };
+      const bounds = { gx0: 0, gy0: 0, gx1: GRID - 1, gy1: GRID - 1 };
+
+      const result = findFollowMove(fromCell, leaderCell, occupiedFootprints, isBlocked, bounds);
+      if (result.status !== "move") continue; // already-near / no-route: nothing to check here
+
+      foundAtLeastOneMove = true;
+      const targetFootprint = { gx: result.to.gx, gy: result.to.gy, gw: 1, gh: 1 };
+      for (const occ of occupiedFootprints) {
+        expect(overlaps(targetFootprint, occ)).toBe(false);
+      }
+
+      expect(result.steps.at(-1)).toEqual(result.to);
+      for (const cell of result.steps) {
+        for (const occ of occupiedFootprints) {
+          expect(overlaps({ gx: cell.gx, gy: cell.gy, gw: 1, gh: 1 }, occ)).toBe(false);
+        }
+      }
+      let prev = fromCell;
+      for (const cell of result.steps) {
+        const dx = Math.abs(cell.gx - prev.gx);
+        const dy = Math.abs(cell.gy - prev.gy);
+        expect(Math.max(dx, dy)).toBe(1);
+        expect(isBlocked(prev, cell)).toBe(false);
+        prev = cell;
+      }
+    }
+    expect(foundAtLeastOneMove).toBe(true);
   });
 });

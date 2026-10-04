@@ -289,7 +289,7 @@ git commit -m "Add randomized/invariant tests for pathfinding.mjs (#295)"
 
 **Interfaces:** Consumes `overlaps` from `scripts/placement.mjs` (new import in this test file only — `findFollowMove` itself already imports and uses `overlaps` internally; this test imports it separately to check the invariant from the outside, not to reuse any internal state).
 
-- [ ] **Step 1: Add the new property test**
+- [x] **Step 1: Add the new property test**
 
 Add the import at the top of `tests/dungeon-follow-mechanics.test.mjs`, alongside the existing ones:
 
@@ -355,12 +355,12 @@ describe("findFollowMove property tests", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test file**
+- [x] **Step 2: Run the test file**
 
 Run: `npx vitest run tests/dungeon-follow-mechanics.test.mjs`
 Expected: PASS (every pre-existing test plus the new one)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/dungeon-follow-mechanics.test.mjs
