@@ -43310,5 +43310,165 @@
     "name": "Anvaca",
     "level": 9,
     "art": "anvaca.webp"
+  },
+  {
+    "id": "amphibious_chupacabra",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "lv37YXdRoPLyR90O",
+    "name": "Amphibious Chupacabra",
+    "level": 3,
+    "art": "amphibious-chupacabra.webp"
+  },
+  {
+    "id": "okoa",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "mqrzYkPJxLv4pFGD",
+    "name": "Okoa",
+    "level": 9,
+    "art": "okoa.webp"
+  },
+  {
+    "id": "firitula",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "n27nM6GoGJT7OrtR",
+    "name": "Firitula",
+    "level": 7,
+    "art": "firitula.webp"
+  },
+  {
+    "id": "clockwork_sentry",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "n7NcIxT3kfhZjDL1",
+    "name": "Clockwork Sentry",
+    "level": 8,
+    "art": "clockwork-sentry.webp"
+  },
+  {
+    "id": "geff",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "nAnpWKPONGmbe5jp",
+    "name": "Geff",
+    "level": 6,
+    "art": "geff.webp"
+  },
+  {
+    "id": "deg",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "nq70qRFWZOyJkmDC",
+    "name": "Deg",
+    "level": 9,
+    "art": "deg.webp"
+  },
+  {
+    "id": "grusk_the_pusk",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "o5TPuCVrjk5WeIEb",
+    "name": "Grusk the Pusk",
+    "level": 4,
+    "art": "grusk-the-pusk.webp"
+  },
+  {
+    "id": "ogenni",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "oF8CT64EiII7Jvu6",
+    "name": "Ogenni",
+    "level": 7,
+    "art": "ogenni.webp"
+  },
+  {
+    "id": "miranette",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "obnOPigZBszDZu77",
+    "name": "Miranette",
+    "level": 7,
+    "art": "miranette.webp"
+  },
+  {
+    "id": "vinn_karskell",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "ow29BvvTX38mYIdU",
+    "name": "Vinn Karskell",
+    "level": 6,
+    "art": "vinn-karskell.webp"
+  },
+  {
+    "id": "vampire_nettle",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "pc4ZQaxSYoHWxYTP",
+    "name": "Vampire Nettle",
+    "level": 2,
+    "art": "vampire-nettle.webp"
+  },
+  {
+    "id": "viper_bat",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "qlm7EK85hTcHbSCc",
+    "name": "Viper Bat",
+    "level": 7,
+    "art": "viper-bat.webp"
+  },
+  {
+    "id": "nizca_iricol",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "qzhjVB9Pp4sV2mNu",
+    "name": "Nizca Iricol",
+    "level": 11,
+    "art": "nizca-iricol.webp"
+  },
+  {
+    "id": "fogfisher",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "tRD9nT9535e4p1oH",
+    "name": "Fogfisher",
+    "level": 4,
+    "art": "fogfisher.webp"
+  },
+  {
+    "id": "shadow_scamp",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "tX6i3kDDxV14T5uk",
+    "name": "Lesser Shadow Scamp",
+    "level": 0,
+    "art": "shadow-scamp.webp"
+  },
+  {
+    "id": "clockwork_corpse",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "to8imCECPsArwlE2",
+    "name": "Clockwork Corpse",
+    "level": 5,
+    "art": "clockwork-corpse.webp"
+  },
+  {
+    "id": "hiss_beetle",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "uu1vOPgc0ZJ3AuRE",
+    "name": "Hiss Beetle",
+    "level": -1,
+    "art": "hiss-beetle.webp"
+  },
+  {
+    "id": "losko",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "vJAoejqZeIlf27Mw",
+    "name": "Losko",
+    "level": 5,
+    "art": "losko.webp"
+  },
+  {
+    "id": "morlock_thrall",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "vUpWo3El3a3xfzdF",
+    "name": "Morlock Thrall",
+    "level": 4,
+    "art": "morlock-thrall.webp"
+  },
+  {
+    "id": "danva",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "vu6NVlTlomKNghZM",
+    "name": "Danva",
+    "level": 6,
+    "art": "danva.webp"
   }
 ]
