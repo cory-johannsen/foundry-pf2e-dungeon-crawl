@@ -42886,5 +42886,85 @@
     "name": "Phoebe Demetrias",
     "level": 7,
     "art": "phoebe-demetrias.webp"
+  },
+  {
+    "id": "coarti_spy",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "bZINUegee7ALoT7H",
+    "name": "Coarti Spy",
+    "level": 7,
+    "art": "coarti-spy.webp"
+  },
+  {
+    "id": "sephone_haugini",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "brSuPkzSWIR97HcL",
+    "name": "Sephone Haugini",
+    "level": 9,
+    "art": "sephone-haugini.webp"
+  },
+  {
+    "id": "warshard_wight",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "c7Q4geXnB0FD8D8E",
+    "name": "Warshard Wight",
+    "level": 5,
+    "art": "warshard-wight.webp"
+  },
+  {
+    "id": "gredress_tilnanos",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "lxCHRvzbqZEzwCI4",
+    "name": "Gredress Tilnanos",
+    "level": 7,
+    "art": "gredress-tilnanos.webp"
+  },
+  {
+    "id": "aurocan",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "mTV00QmO0FhuVRy0",
+    "name": "Aurocan",
+    "level": 8,
+    "art": "aurocan.webp"
+  },
+  {
+    "id": "sarcovalt",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "nhBdtlaAg5QAoAlU",
+    "name": "Sarcovalt",
+    "level": 5,
+    "art": "sarcovalt.webp"
+  },
+  {
+    "id": "godclaw_hellcrown",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "ojpc5dqFyNexGMiY",
+    "name": "Godclaw Hellcrown",
+    "level": 7,
+    "art": "godclaw-hellcrown.webp"
+  },
+  {
+    "id": "false_hellbreaker",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "pjEz149NBKw1h96g",
+    "name": "False Hellbreaker",
+    "level": 1,
+    "art": "false-hellbreaker.webp"
+  },
+  {
+    "id": "viro_ahala",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "t4FFJKVeYLagjBYs",
+    "name": "Viro Ahala",
+    "level": 5,
+    "art": "viro-ahala.webp"
+  },
+  {
+    "id": "adiutor",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "vAL0lOiR0keXNG7T",
+    "name": "Adiutor",
+    "level": 5,
+    "art": "adiutor.webp"
   }
 ]
