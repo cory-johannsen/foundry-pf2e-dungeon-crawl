@@ -42238,5 +42238,165 @@
     "name": "Gilded Gunner Safecracker",
     "level": 4,
     "art": "gilded-gunner-safecracker.webp"
+  },
+  {
+    "id": "chemical_zombie",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "TLF3QsSKubSBsSOG",
+    "name": "Chemical Zombie",
+    "level": 6,
+    "art": "chemical-zombie.webp"
+  },
+  {
+    "id": "sabora_sharkosa",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "TfyWBoNpR1iNBcLV",
+    "name": "Sabora Sharkosa",
+    "level": 7,
+    "art": "sabora-sharkosa.webp"
+  },
+  {
+    "id": "vewslog",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "UdgI6p5FlE7Xcrl7",
+    "name": "Vewslog",
+    "level": 9,
+    "art": "vewslog.webp"
+  },
+  {
+    "id": "smog_wraith",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "UgaIxXmbPe7qcrNk",
+    "name": "Smog Wraith",
+    "level": 9,
+    "art": "smog-wraith.webp"
+  },
+  {
+    "id": "clockwork_shambler",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "V3la31QNaidyHUnU",
+    "name": "Clockwork Shambler",
+    "level": -1,
+    "art": "clockwork-shambler.webp"
+  },
+  {
+    "id": "swee_pup",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "VfFt5YAVe7d9fonE",
+    "name": "Swee Pup",
+    "level": 2,
+    "art": "swee-pup.webp"
+  },
+  {
+    "id": "ambrost_mugland",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "Wr08A69Iu5pXNWXj",
+    "name": "Ambrost Mugland",
+    "level": 8,
+    "art": "ambrost-mugland.webp"
+  },
+  {
+    "id": "drela",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "WtpeHbOQdK5CiaLf",
+    "name": "Drela",
+    "level": 7,
+    "art": "drela.webp"
+  },
+  {
+    "id": "rust_ooze",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "X4tOSkr3WLvh0NIN",
+    "name": "Rust Ooze",
+    "level": 3,
+    "art": "rust-ooze.webp"
+  },
+  {
+    "id": "i",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "YsSpSUB1jeLSifFg",
+    "name": "I",
+    "level": 7,
+    "art": "i.webp"
+  },
+  {
+    "id": "gilded_gunner_goon",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "aJCzNXYDKsTGyaaN",
+    "name": "Gilded Gunner Goon",
+    "level": 4,
+    "art": "gilded-gunner-goon.webp"
+  },
+  {
+    "id": "pyronite_ooze",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "aT6c5oEPV8U5zfRD",
+    "name": "Pyronite Ooze",
+    "level": 10,
+    "art": "pyronite-ooze.webp"
+  },
+  {
+    "id": "atticus",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "c1v4Xb3x6nvpFmth",
+    "name": "Atticus",
+    "level": 7,
+    "art": "atticus.webp"
+  },
+  {
+    "id": "mutant_desert_drake",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "ceKqkc0c86gh6cI1",
+    "name": "Mutant Desert Drake",
+    "level": 9,
+    "art": "mutant-desert-drake.webp"
+  },
+  {
+    "id": "clockwork_puppeteer",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "dPVX37fMzAzb3mkv",
+    "name": "Clockwork Puppeteer",
+    "level": 12,
+    "art": "clockwork-puppeteer.webp"
+  },
+  {
+    "id": "clockwork_fabricator",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "e2YnAE6qJUkGRS6p",
+    "name": "Clockwork Fabricator",
+    "level": 4,
+    "art": "clockwork-fabricator.webp"
+  },
+  {
+    "id": "lucky_lanks",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "eBM6yUAHDyEp8Ewi",
+    "name": "\"Lucky\" Lanks",
+    "level": 5,
+    "art": "lucky-lanks.webp"
+  },
+  {
+    "id": "headless_rustler",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "hm6S6xdvn0pL2t3D",
+    "name": "Headless Rustler",
+    "level": 7,
+    "art": "headless-rustler.webp"
+  },
+  {
+    "id": "cranium_preserver",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "irkdc3CACxbhd2MN",
+    "name": "Cranium Preserver",
+    "level": 10,
+    "art": "cranium-preserver.webp"
+  },
+  {
+    "id": "spellscar_sky_marauder",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "jXiIATJxyBLgjkm7",
+    "name": "Spellscar Sky Marauder",
+    "level": 5,
+    "art": "spellscar-sky-marauder.webp"
   }
 ]
