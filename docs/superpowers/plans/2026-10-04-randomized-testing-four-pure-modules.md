@@ -34,7 +34,7 @@
 
 **Interfaces:** None — this task only tests `scripts/prng.mjs`'s existing exports (`splitmix32`, `seedFromString`, `shuffle`); nothing else in this plan depends on it.
 
-- [ ] **Step 1: Write the test file**
+- [x] **Step 1: Write the test file**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -135,12 +135,12 @@ describe("shuffle", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test file**
+- [x] **Step 2: Run the test file**
 
 Run: `npx vitest run tests/prng.test.mjs`
 Expected: PASS (all tests) — this is pure new-coverage work against already-correct, unmodified production code, so there's no "make it fail first" step; the test should pass on the first run.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/prng.test.mjs
@@ -156,7 +156,7 @@ git commit -m "Add randomized/invariant tests for prng.mjs (#295)"
 
 **Interfaces:** None new — consumes the existing `findPath`, `blockedEdgesFromWalls`, `hasLineOfSight` exports already imported at the top of this file.
 
-- [ ] **Step 1: Add the new property tests**
+- [x] **Step 1: Add the new property tests**
 
 Append to `tests/pathfinding.test.mjs` (add the import alongside the existing ones at the top, and these new `describe` blocks at the end of the file):
 
@@ -268,12 +268,12 @@ describe("hasLineOfSight property tests", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test file**
+- [x] **Step 2: Run the test file**
 
 Run: `npx vitest run tests/pathfinding.test.mjs`
 Expected: PASS (every pre-existing test plus the new ones)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/pathfinding.test.mjs
@@ -289,7 +289,7 @@ git commit -m "Add randomized/invariant tests for pathfinding.mjs (#295)"
 
 **Interfaces:** Consumes `overlaps` from `scripts/placement.mjs` (new import in this test file only — `findFollowMove` itself already imports and uses `overlaps` internally; this test imports it separately to check the invariant from the outside, not to reuse any internal state).
 
-- [ ] **Step 1: Add the new property test**
+- [x] **Step 1: Add the new property test**
 
 Add the import at the top of `tests/dungeon-follow-mechanics.test.mjs`, alongside the existing ones:
 
@@ -355,12 +355,12 @@ describe("findFollowMove property tests", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test file**
+- [x] **Step 2: Run the test file**
 
 Run: `npx vitest run tests/dungeon-follow-mechanics.test.mjs`
 Expected: PASS (every pre-existing test plus the new one)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/dungeon-follow-mechanics.test.mjs
@@ -376,7 +376,7 @@ git commit -m "Add randomized/invariant test for findFollowMove (#295)"
 
 **Interfaces:** None new — consumes the existing `overlaps`, `freeSpot`, `freeSpotInRect` exports already imported at the top of this file.
 
-- [ ] **Step 1: Add the new property tests**
+- [x] **Step 1: Add the new property tests**
 
 Add the import at the top of `tests/placement.test.mjs`, alongside the existing one:
 
@@ -457,17 +457,17 @@ describe('freeSpotInRect property tests', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test file**
+- [x] **Step 2: Run the test file**
 
 Run: `npx vitest run tests/placement.test.mjs`
 Expected: PASS (every pre-existing test plus the two new ones)
 
-- [ ] **Step 3: Run the full suite to confirm no regressions anywhere**
+- [x] **Step 3: Run the full suite to confirm no regressions anywhere**
 
 Run: `npx vitest run`
 Expected: PASS — this plan never touches production code, so the only way this step could fail is a mistake in one of the four new/modified test files themselves.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tests/placement.test.mjs
