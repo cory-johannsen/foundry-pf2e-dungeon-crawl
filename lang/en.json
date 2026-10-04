@@ -161,6 +161,8 @@
   "PF2EDC.Settings.AgentServiceUrlLabel": "Agent Service URL",
   "PF2EDC.Settings.AutoRetreat.Hint": "When the party opens the last door of a dead end, move them straight back to the last fork instead of posting a Turn back button.",
   "PF2EDC.Settings.AutoRetreat.Name": "Turn back automatically at a dead end",
+  "PF2EDC.Settings.FollowerStepDelayMs.Hint": "Milliseconds followers pause between squares when following the leader outside combat.",
+  "PF2EDC.Settings.FollowerStepDelayMs.Name": "Followers: pause between movement steps (ms)",
   "PF2EDC.Settings.MovementStepDelayMs.Hint": "Milliseconds AI-controlled tokens pause between each square they move. Paces AI-controlled combat.",
   "PF2EDC.Settings.MovementStepDelayMs.Name": "AI combat: pause between movement steps (ms)"
 }
