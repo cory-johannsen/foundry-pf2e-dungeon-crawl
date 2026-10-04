@@ -43150,5 +43150,165 @@
     "name": "Strigoi Progenitor",
     "level": 13,
     "art": "strigoi-progenitor.webp"
+  },
+  {
+    "id": "vool",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "NDX3PsmoxgHuLdVN",
+    "name": "Vool",
+    "level": 4,
+    "art": "vool.webp"
+  },
+  {
+    "id": "glormungost",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "OUnOwGyGysTtnVqG",
+    "name": "Glormungost",
+    "level": 6,
+    "art": "glormungost.webp"
+  },
+  {
+    "id": "vikandian",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "PdbSy7QbpzOL6TaZ",
+    "name": "Vikandian",
+    "level": 8,
+    "art": "vikandian.webp"
+  },
+  {
+    "id": "hurkum",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "Q1i0OGqwbugkgoET",
+    "name": "Hurkum",
+    "level": 7,
+    "art": "hurkum.webp"
+  },
+  {
+    "id": "kalakaigh",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "RopMrASCznNypjlK",
+    "name": "Kalakaigh",
+    "level": 6,
+    "art": "kalakaigh.webp"
+  },
+  {
+    "id": "batkin_guard",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "RtNr5A739WpvpEEG",
+    "name": "Batkin Guard",
+    "level": 1,
+    "art": "batkin-guard.webp"
+  },
+  {
+    "id": "anoreth_zorillen",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "UrRajhTDwYg40Rms",
+    "name": "Anoreth Zorillen",
+    "level": 8,
+    "art": "anoreth-zorillen.webp"
+  },
+  {
+    "id": "creeping_clot",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "UuXREGQxhDv8KQFq",
+    "name": "Creeping Clot",
+    "level": 5,
+    "art": "creeping-clot.webp"
+  },
+  {
+    "id": "shankfingers",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "VP6HU7O12njtQ0Id",
+    "name": "Shankfingers",
+    "level": 5,
+    "art": "shankfingers.webp"
+  },
+  {
+    "id": "zovi",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "VVDuJAwbwUjKZ5SD",
+    "name": "Zovi",
+    "level": 7,
+    "art": "zovi.webp"
+  },
+  {
+    "id": "conductor",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "Y1uFZHLnPjMyLvHS",
+    "name": "Conductor",
+    "level": 9,
+    "art": "conductor.webp"
+  },
+  {
+    "id": "freileth",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "YSSDO5sjftfy90gk",
+    "name": "Freileth",
+    "level": 9,
+    "art": "freileth.webp"
+  },
+  {
+    "id": "auzmere",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "aX9sC59BYbnUg9Tb",
+    "name": "Auzmere",
+    "level": 4,
+    "art": "auzmere.webp"
+  },
+  {
+    "id": "werebat_warrior",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "aZrvsgKfSkitGMVk",
+    "name": "Werebat Warrior",
+    "level": 3,
+    "art": "werebat-warrior.webp"
+  },
+  {
+    "id": "dero_sentry",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "exHroW4CMNK2pnKv",
+    "name": "Dero Sentry",
+    "level": 5,
+    "art": "dero-sentry.webp"
+  },
+  {
+    "id": "living_guard",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "eynyUDgJhj1kbcTR",
+    "name": "Living Guard",
+    "level": 4,
+    "art": "living-guard.webp"
+  },
+  {
+    "id": "romi_bracken",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "fna0PpG2G6wEZA2m",
+    "name": "Romi Bracken",
+    "level": 4,
+    "art": "romi-bracken.webp"
+  },
+  {
+    "id": "tokainen",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "gmtDRDr7C0IzYtrY",
+    "name": "Tokainen",
+    "level": 9,
+    "art": "tokainen.webp"
+  },
+  {
+    "id": "shadow_tainted_pachycephalosaurus",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "jWZwy2R1Aif0QJL5",
+    "name": "Shadow-Tainted Pachycephalosaurus",
+    "level": 3,
+    "art": "shadow-tainted-pachycephalosaurus.webp"
+  },
+  {
+    "id": "anvaca",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "kTTnDtBuAnfdJwoW",
+    "name": "Anvaca",
+    "level": 9,
+    "art": "anvaca.webp"
   }
 ]
