@@ -44270,5 +44270,101 @@
     "name": "Magnetic Skink",
     "level": 0,
     "art": "magnetic-skink.webp"
+  },
+  {
+    "id": "brimstone_rat",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "3Pa5JoY9PYdV5x1e",
+    "name": "Brimstone Rat",
+    "level": -1,
+    "art": "brimstone-rat.webp"
+  },
+  {
+    "id": "kurnugian_jackal",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "4GZsTkvuYADpcdmV",
+    "name": "Kurnugian Jackal",
+    "level": 6,
+    "art": "kurnugian-jackal.webp"
+  },
+  {
+    "id": "bugbear_marauder",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "5iOgKbhW9zVnV1cr",
+    "name": "Bugbear Marauder",
+    "level": 2,
+    "art": "bugbear-marauder.webp"
+  },
+  {
+    "id": "hargrit_leadbuster",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "6Ut7YjjLZADMU7NY",
+    "name": "Hargrit Leadbuster",
+    "level": 4,
+    "art": "hargrit-leadbuster.webp"
+  },
+  {
+    "id": "orc_scrapper_mti29",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "MTI298bhLGYktyZX",
+    "name": "Orc Scrapper",
+    "level": 1,
+    "art": "orc-scrapper.webp"
+  },
+  {
+    "id": "kotgar_leadbuster",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "PhLxqnAIhCovfcXy",
+    "name": "Kotgar Leadbuster",
+    "level": 4,
+    "art": "kotgar-leadbuster.webp"
+  },
+  {
+    "id": "stinkweed_shambler",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "TIX9yDasefwJ4PxI",
+    "name": "Stinkweed Shambler",
+    "level": 2,
+    "art": "stinkweed-shambler.webp"
+  },
+  {
+    "id": "kobold_trapmaster_fhitd",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "fhItdltCmcAZkvcI",
+    "name": "Kobold Trapmaster",
+    "level": 2,
+    "art": "kobold-trapmaster.webp"
+  },
+  {
+    "id": "scalliwing",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "l7wng1EXY7np8Hcu",
+    "name": "Scalliwing",
+    "level": 3,
+    "art": "scalliwing.webp"
+  },
+  {
+    "id": "morgrym_leadbuster",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "lTVgdXuSv2B0yVVW",
+    "name": "Morgrym Leadbuster",
+    "level": 4,
+    "art": "morgrym-leadbuster.webp"
+  },
+  {
+    "id": "omblin_leadbuster",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "m4jitI3J1QkjJq3H",
+    "name": "Omblin Leadbuster",
+    "level": 2,
+    "art": "omblin-leadbuster.webp"
+  },
+  {
+    "id": "orc_commander_rrsiq",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "rRSIqZ5g3QRfaAQ0",
+    "name": "Orc Commander",
+    "level": 2,
+    "art": "orc-commander.webp"
   }
 ]
