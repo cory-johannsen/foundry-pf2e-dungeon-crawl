@@ -41254,5 +41254,117 @@
     "name": "Risen Runelord Karzoug",
     "level": 18,
     "art": "risen-runelord-karzoug.webp"
+  },
+  {
+    "id": "areelu_vorlesh",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "igeNfVBZBcIkCzcZ",
+    "name": "Areelu Vorlesh",
+    "level": 20,
+    "art": "areelu-vorlesh.webp"
+  },
+  {
+    "id": "erzgeist",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "j4hKLFhLQrvC96EN",
+    "name": "Erzgeist",
+    "level": 19,
+    "art": "erzgeist.webp"
+  },
+  {
+    "id": "lythazossa",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "jcWh8ro0ZSDmVw3N",
+    "name": "Lythazossa",
+    "level": 20,
+    "art": "lythazossa.webp"
+  },
+  {
+    "id": "watcher",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "lATJpd52KTOa4QTe",
+    "name": "Watcher",
+    "level": 22,
+    "art": "watcher.webp"
+  },
+  {
+    "id": "kraken_caller",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "lY8sJYRA3P6Honx4",
+    "name": "Kraken Caller",
+    "level": 11,
+    "art": "kraken-caller.webp"
+  },
+  {
+    "id": "runic_warmaw",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "rELMTgvh9e5GHVDL",
+    "name": "Runic Warmaw",
+    "level": 16,
+    "art": "runic-warmaw.webp"
+  },
+  {
+    "id": "maddenmist",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "s8avDK6SPRvsY9eI",
+    "name": "Maddenmist",
+    "level": 14,
+    "art": "maddenmist.webp"
+  },
+  {
+    "id": "vogorond",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "sUGjEmOq1cW5hK4D",
+    "name": "Vogorond",
+    "level": 18,
+    "art": "vogorond.webp"
+  },
+  {
+    "id": "risen_runelord_kaliphesta",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "sd6fJzg7eHYv5p4v",
+    "name": "Risen Runelord Kaliphesta",
+    "level": 16,
+    "art": "risen-runelord-kaliphesta.webp"
+  },
+  {
+    "id": "risen_runelord_jurah",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "tctIDvrYBryBhgxX",
+    "name": "Risen Runelord Jurah",
+    "level": 18,
+    "art": "risen-runelord-jurah.webp"
+  },
+  {
+    "id": "dream_aethusa",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "uv0pb5o8phryeL4z",
+    "name": "Dream Aethusa",
+    "level": 18,
+    "art": "dream-aethusa.webp"
+  },
+  {
+    "id": "belimarius",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "w0tzpjuIi18Q2I0K",
+    "name": "Belimarius",
+    "level": 19,
+    "art": "belimarius.webp"
+  },
+  {
+    "id": "gavergash",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "wZ4GXG48jC06ceCu",
+    "name": "Gavergash",
+    "level": 14,
+    "art": "gavergash.webp"
+  },
+  {
+    "id": "eron_of_jandelay",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "y8wrYOUeEADpSDt9",
+    "name": "Eron of Jandelay",
+    "level": 13,
+    "art": "eron-of-jandelay.webp"
   }
 ]
