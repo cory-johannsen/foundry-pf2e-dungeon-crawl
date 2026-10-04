@@ -42398,5 +42398,149 @@
     "name": "Spellscar Sky Marauder",
     "level": 5,
     "art": "spellscar-sky-marauder.webp"
+  },
+  {
+    "id": "compromised_door_warden",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "jaJxIGaNxmcLZ0jK",
+    "name": "Compromised Door Warden",
+    "level": 4,
+    "art": "compromised-door-warden.webp"
+  },
+  {
+    "id": "captured_dezullon",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "kJNnY2a4bu0Q7hnl",
+    "name": "Captured Dezullon",
+    "level": 10,
+    "art": "captured-dezullon.webp"
+  },
+  {
+    "id": "glaz_nixbrix",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "ktnfNng6W5Welsn3",
+    "name": "Glaz Nixbrix",
+    "level": 4,
+    "art": "glaz-nixbrix.webp"
+  },
+  {
+    "id": "clockwork_sphinx",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "lM7vowMNtvLnz8Q6",
+    "name": "Clockwork Sphinx",
+    "level": 8,
+    "art": "clockwork-sphinx.webp"
+  },
+  {
+    "id": "vivielle_ramslay",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "nFON8nzSt6wTcK9A",
+    "name": "Vivielle Ramslay",
+    "level": 4,
+    "art": "vivielle-ramslay.webp"
+  },
+  {
+    "id": "clockwork_gunner",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "o2nLVCZVOacqkWus",
+    "name": "Clockwork Gunner",
+    "level": 8,
+    "art": "clockwork-gunner.webp"
+  },
+  {
+    "id": "glass_buccaneer",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "omcS9Zvq7ZDd35A2",
+    "name": "Glass Buccaneer",
+    "level": 9,
+    "art": "glass-buccaneer.webp"
+  },
+  {
+    "id": "clockwork_buccaneer",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "oriWalYkx3CUSPdN",
+    "name": "Clockwork Buccaneer",
+    "level": 9,
+    "art": "clockwork-buccaneer.webp"
+  },
+  {
+    "id": "disgorged_zombie",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "pgYXyo7Qs9b84bQh",
+    "name": "Disgorged Zombie",
+    "level": 6,
+    "art": "disgorged-zombie.webp"
+  },
+  {
+    "id": "scarecophagus",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "q7bUVljOk9Xy55Bt",
+    "name": "Scarecophagus",
+    "level": 6,
+    "art": "scarecophagus.webp"
+  },
+  {
+    "id": "hansin",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "rN4Q66R0601txrHg",
+    "name": "Hansin",
+    "level": 7,
+    "art": "hansin.webp"
+  },
+  {
+    "id": "yeast_ooze",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "sUleYLWZG3O9LlKC",
+    "name": "Yeast Ooze",
+    "level": 2,
+    "art": "yeast-ooze.webp"
+  },
+  {
+    "id": "glass_elephant",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "t60zBqM2apOZtOaC",
+    "name": "Glass Elephant",
+    "level": 12,
+    "art": "glass-elephant.webp"
+  },
+  {
+    "id": "gold_tank_investor",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "vnZFO1jNZSJieqpo",
+    "name": "Gold Tank Investor",
+    "level": -1,
+    "art": "gold-tank-investor.webp"
+  },
+  {
+    "id": "chimeric_manticore",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "wHbf1jbqcHFY6rnj",
+    "name": "Chimeric Manticore",
+    "level": 7,
+    "art": "chimeric-manticore.webp"
+  },
+  {
+    "id": "akrida",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "zLy98F3VPHwJPgih",
+    "name": "Akrida",
+    "level": 4,
+    "art": "akrida.webp"
+  },
+  {
+    "id": "leadsmith",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "zNlQRFJcijptkQQ4",
+    "name": "Leadsmith",
+    "level": 5,
+    "art": "leadsmith.webp"
+  },
+  {
+    "id": "daelum",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "zUHMrJZKcKIv6IpM",
+    "name": "Daelum",
+    "level": 4,
+    "art": "daelum.webp"
   }
 ]
