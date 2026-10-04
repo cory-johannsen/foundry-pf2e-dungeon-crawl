@@ -31,6 +31,7 @@ import {
 } from "./dungeon-scene.mjs";
 import {
   maybeResolveCombatForActor,
+  maybeResolveCombatForCondition,
   autoDefeatZeroHpNpcs,
   maybeResolveCombatForCombatant,
   autoPlayCombatantTurnIfDue,
@@ -401,6 +402,9 @@ async function onCombatAutoResolved(result) {
 Hooks.on("updateActor", async (actor) => {
   await autoDefeatZeroHpNpcs(actor);
   onCombatAutoResolved(await maybeResolveCombatForActor(actor));
+});
+Hooks.on("createItem", async (item) => {
+  onCombatAutoResolved(await maybeResolveCombatForCondition(item));
 });
 Hooks.on("updateCombatant", async (combatant, changes) =>
   onCombatAutoResolved(

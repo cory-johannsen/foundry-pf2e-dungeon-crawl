@@ -1,6 +1,6 @@
 # Resolve Combat on Party Incapacitation Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Combat resolves as a defeat as soon as every party combatant is incapacitated (dying, unconscious, or actually dead) instead of waiting forever for literal death — which, since #410 stopped hostile AI from ever attacking a downed PC again, can never happen on its own.
 
@@ -37,7 +37,7 @@
 - Consumes: the existing, unchanged, module-private `isDownedCharacter(combatant)` (`scripts/dungeon-combat.mjs:681-686`) — `true` when `combatant.actor?.type === "character"` and its conditions include `"unconscious"` or `"dying"`.
 - Produces: `combatSideStatus(combat): { hostilesDefeated, partyDefeated }` — same exported signature as today; only the `partyDefeated` computation changes. `autoResolveIfDecided` (the only real caller) needs no changes at all — it already just destructures these two booleans.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/dungeon-combat-side-status.test.mjs`:
 
@@ -145,12 +145,12 @@ describe("combatSideStatus", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify the new cases fail**
+- [x] **Step 2: Run test to verify the new cases fail**
 
 Run: `npx vitest run tests/dungeon-combat-side-status.test.mjs`
 Expected: FAIL — the two `#580` tests and the non-character-ally test fail (`partyDefeated` is currently `false` whenever no party combatant has `isDefeated: true`, regardless of conditions); the other tests already pass today (they pin pre-existing behavior).
 
-- [ ] **Step 3: Update `combatSideStatus`**
+- [x] **Step 3: Update `combatSideStatus`**
 
 In `scripts/dungeon-combat.mjs`, replace:
 
@@ -200,17 +200,17 @@ export function combatSideStatus(combat) {
 
 (`isDownedCharacter` is a `function` declaration later in the same file — hoisted, so this call works regardless of declaration order; no import or reordering needed.)
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run tests/dungeon-combat-side-status.test.mjs`
 Expected: PASS (all 7 tests)
 
-- [ ] **Step 5: Run the full suite to check for regressions**
+- [x] **Step 5: Run the full suite to check for regressions**
 
 Run: `npx vitest run`
 Expected: PASS — no other test imports or asserts on `combatSideStatus` (confirmed via `grep -rln "combatSideStatus" tests/*.test.mjs` returning nothing prior to this task's own new file).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-side-status.test.mjs
@@ -231,7 +231,7 @@ git commit -m "Resolve party defeat on incapacitation, not just isDefeated (#580
 
 **No unit test for this task.** `maybeResolveCombatForActor` and `maybeResolveCombatForCombatant` — the two existing, already-shipped functions this one is directly modeled on — have zero unit tests today (confirmed: `grep -rln "maybeResolveCombatForActor\|maybeResolveCombatForCombatant" tests/*.test.mjs` finds nothing). This class of thin Foundry-hook-routing glue (look up the combat for a document, call through to `autoResolveIfDecided`, a module-private function with no exported seam to inject) is live-verified in this codebase, not unit-tested — same precedent `module.mjs`'s own Hooks-wired code and `tools/agent-service`'s hosted endpoints already follow throughout this project. Task 3 is where this gets real verification; Task 1's tests already prove the one piece of genuinely new *logic* (the incapacitation check) in isolation.
 
-- [ ] **Step 1: Extract the shared combat-lookup helper and add the new function**
+- [x] **Step 1: Extract the shared combat-lookup helper and add the new function**
 
 In `scripts/dungeon-combat.mjs`, replace:
 
@@ -285,7 +285,7 @@ export function maybeResolveCombatForCondition(item) {
 }
 ```
 
-- [ ] **Step 2: Register the new hook**
+- [x] **Step 2: Register the new hook**
 
 In `scripts/module.mjs`, add alongside the existing `updateActor`/`updateCombatant` registrations (~line 401-409):
 
@@ -297,12 +297,12 @@ Hooks.on("createItem", async (item) => {
 
 Add `maybeResolveCombatForCondition` to the existing import list from `dungeon-combat.mjs` at the top of `module.mjs`, alongside `maybeResolveCombatForActor`/`maybeResolveCombatForCombatant`.
 
-- [ ] **Step 3: Run the full suite**
+- [x] **Step 3: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS — this task adds no new test file; Task 1's suite (and every other existing test) should be unaffected, since `module.mjs`'s `Hooks.on("init"/"ready", ...)` top-level registration code is never imported by the test suite at all (confirmed by this project's own established precedent for Foundry-wiring code — see the #105/#141 plans' own notes on this).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs scripts/module.mjs
