@@ -43614,5 +43614,661 @@
     "name": "Zridi",
     "level": 8,
     "art": "zridi.webp"
+  },
+  {
+    "id": "shulzara",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "1IfAjRfF1ro6DMLo",
+    "name": "Shulzara",
+    "level": 2,
+    "art": "shulzara.webp"
+  },
+  {
+    "id": "viper_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "1uVwkGlqYzyWaDMy",
+    "name": "Viper (BB)",
+    "level": -1,
+    "art": "viper.webp"
+  },
+  {
+    "id": "kobold_trapmaster",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "4Axci50gPQArPg7d",
+    "name": "Kobold Trapmaster (BB)",
+    "level": 2,
+    "art": "kobold-trapmaster.webp"
+  },
+  {
+    "id": "xulgath_warrior_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "5vBG8a8dnJfmVd3Y",
+    "name": "Xulgath Warrior (BB)",
+    "level": 1,
+    "art": "xulgath-warrior.webp"
+  },
+  {
+    "id": "twigjack_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "6T8gVU03wdpYdPgg",
+    "name": "Twigjack (BB)",
+    "level": 3,
+    "art": "twigjack.webp"
+  },
+  {
+    "id": "shadow_priest",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "7LqIIpSmN3kqghLj",
+    "name": "Shadow Priest",
+    "level": 4,
+    "art": "shadow-priest.webp"
+  },
+  {
+    "id": "severed_head_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "7c0XJLfVKw8EMmKy",
+    "name": "Severed Head (BB)",
+    "level": -1,
+    "art": "severed-head.webp"
+  },
+  {
+    "id": "xulgath_leader_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "7w1w7VTnIWMBdFux",
+    "name": "Xulgath Leader (BB)",
+    "level": 3,
+    "art": "xulgath-leader.webp"
+  },
+  {
+    "id": "kobold_mage",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "R9eoGwQ2tudxUKxS",
+    "name": "Kobold Mage (Black, BB)",
+    "level": 2,
+    "art": "kobold-mage.webp"
+  },
+  {
+    "id": "kobold_mage_blue_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "93hZtLl9pRRfqI05",
+    "name": "Kobold Mage (Blue, BB)",
+    "level": 2,
+    "art": "kobold-mage.webp"
+  },
+  {
+    "id": "kobold_mage_green_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "QaldZV2p9RpMXzzn",
+    "name": "Kobold Mage (Green, BB)",
+    "level": 2,
+    "art": "kobold-mage.webp"
+  },
+  {
+    "id": "kobold_mage_red_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "CJuHwIRCAgTB1SEl",
+    "name": "Kobold Mage (Red, BB)",
+    "level": 2,
+    "art": "kobold-mage.webp"
+  },
+  {
+    "id": "kobold_mage_white_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "kCRfBZqCugMQmdpd",
+    "name": "Kobold Mage (White, BB)",
+    "level": 2,
+    "art": "kobold-mage.webp"
+  },
+  {
+    "id": "sewer_ooze_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "9InGpxq5xbbHaL9f",
+    "name": "Sewer Ooze (BB)",
+    "level": 1,
+    "art": "sewer-ooze.webp"
+  },
+  {
+    "id": "caligni_skulker_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "9YPFqikAmURwcTEO",
+    "name": "Caligni Skulker (BB)",
+    "level": 2,
+    "art": "caligni-skulker.webp"
+  },
+  {
+    "id": "bugbear_prowler_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "9cBuzDV8seJqhNKJ",
+    "name": "Bugbear Prowler (BB)",
+    "level": 2,
+    "art": "bugbear-prowler.webp"
+  },
+  {
+    "id": "giant_spider",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "A4VgQIHsqJKssQOM",
+    "name": "Giant Spider (BB)",
+    "level": 1,
+    "art": "giant-spider.webp"
+  },
+  {
+    "id": "giant_viper_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "AJ5LuNMVPLCydryP",
+    "name": "Giant Viper (BB)",
+    "level": 2,
+    "art": "giant-viper.webp"
+  },
+  {
+    "id": "caligni_hunter_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "AcUb8s5fiktYw8Fx",
+    "name": "Caligni Hunter (BB)",
+    "level": 4,
+    "art": "caligni-hunter.webp"
+  },
+  {
+    "id": "doppelganger_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "AdQVjlOWB6rmBRVp",
+    "name": "Doppelganger (BB)",
+    "level": 3,
+    "art": "doppelganger.webp"
+  },
+  {
+    "id": "kobold_boss_zolgran",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "AleeS0IRqT4tUphB",
+    "name": "Kobold Boss Zolgran (BB)",
+    "level": 2,
+    "art": "kobold-boss-zolgran.webp"
+  },
+  {
+    "id": "bugbear_tormentor_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "B1c59la6OoRiWMmX",
+    "name": "Bugbear Tormentor (BB)",
+    "level": 3,
+    "art": "bugbear-tormentor.webp"
+  },
+  {
+    "id": "kobold_warrior_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "BIZfjoz8DZt75EDn",
+    "name": "Kobold Warrior (BB)",
+    "level": -1,
+    "art": "kobold-warrior.webp"
+  },
+  {
+    "id": "wolf_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "BN5Lb6IsQ9Wyu3rL",
+    "name": "Wolf (BB)",
+    "level": 1,
+    "art": "wolf.webp"
+  },
+  {
+    "id": "mimic_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "Br1AtKUHe3nbzjnY",
+    "name": "Mimic (BB)",
+    "level": 4,
+    "art": "mimic.webp"
+  },
+  {
+    "id": "animated_armor_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "CFlx1tkRxKC9qAC7",
+    "name": "Animated Armor (BB)",
+    "level": 2,
+    "art": "animated-armor.webp"
+  },
+  {
+    "id": "wight_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "DBTbqI9QQRtlJwWh",
+    "name": "Wight (BB)",
+    "level": 3,
+    "art": "wight.webp"
+  },
+  {
+    "id": "umbral_gnome_warrior_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "EAe2ISTvkgpOxAS1",
+    "name": "Umbral Gnome Warrior (BB)",
+    "level": 2,
+    "art": "umbral-gnome-warrior.webp"
+  },
+  {
+    "id": "drow_priestess_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "FaBHkmFGuEIqIYM1",
+    "name": "Drow Priestess (BB)",
+    "level": 3,
+    "art": "drow-priestess.webp"
+  },
+  {
+    "id": "umbral_gnome_rockwarden_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "GJDXVSXJrhT3jpXY",
+    "name": "Umbral Gnome Rockwarden (BB)",
+    "level": 5,
+    "art": "umbral-gnome-rockwarden.webp"
+  },
+  {
+    "id": "brine_shark_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "H7z7VHzlHlEFev1r",
+    "name": "Brine Shark (BB)",
+    "level": 3,
+    "art": "brine-shark.webp"
+  },
+  {
+    "id": "boar_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "IyhbcdTVmkV4pSju",
+    "name": "Boar (BB)",
+    "level": 2,
+    "art": "boar.webp"
+  },
+  {
+    "id": "goblin_igniter",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "Ky5eNRvN71O0tY9l",
+    "name": "Goblin Igniter (BB)",
+    "level": 1,
+    "art": "goblin-igniter.webp"
+  },
+  {
+    "id": "ghost_commoner_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "N98ug9jQHqeFoK1N",
+    "name": "Ghost Commoner (BB)",
+    "level": 4,
+    "art": "ghost-commoner.webp"
+  },
+  {
+    "id": "giant_centipede_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "NRBgcu0LkXXp8mtp",
+    "name": "Giant Centipede (BB)",
+    "level": -1,
+    "art": "giant-centipede.webp"
+  },
+  {
+    "id": "hobgoblin_soldier_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "NW68bxCLC6oDHxL9",
+    "name": "Hobgoblin Soldier (BB)",
+    "level": 1,
+    "art": "hobgoblin-soldier.webp"
+  },
+  {
+    "id": "orc_commander_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "PLZk6zY5iwccPTPS",
+    "name": "Orc Commander (BB)",
+    "level": 2,
+    "art": "orc-commander.webp"
+  },
+  {
+    "id": "kobold_scout_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "PcHQDmPTztw32PhL",
+    "name": "Kobold Scout (BB)",
+    "level": 1,
+    "art": "kobold-scout.webp"
+  },
+  {
+    "id": "water_scamp_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "QN9Zv9l71Q1E9bCR",
+    "name": "Water Scamp (BB)",
+    "level": 1,
+    "art": "water-scamp.webp"
+  },
+  {
+    "id": "hell_hound_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "RTviEfjYnsXa0wkT",
+    "name": "Hell Hound (BB)",
+    "level": 3,
+    "art": "hell-hound.webp"
+  },
+  {
+    "id": "reefclaw_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "Rr1u6WvZEdPw1s6v",
+    "name": "Reefclaw (BB)",
+    "level": 1,
+    "art": "reefclaw.webp"
+  },
+  {
+    "id": "caligni_dancer_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "SZCf0IZkf36plwVd",
+    "name": "Caligni Dancer (BB)",
+    "level": 1,
+    "art": "caligni-dancer.webp"
+  },
+  {
+    "id": "shadow_bat",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "TUkD3aBPIQVux8aP",
+    "name": "Shadow Bat",
+    "level": 2,
+    "art": "shadow-bat.webp"
+  },
+  {
+    "id": "crawling_hand_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "TciT0K3eNqiTyxsr",
+    "name": "Crawling Hand (BB)",
+    "level": -1,
+    "art": "crawling-hand.webp"
+  },
+  {
+    "id": "ogre_warrior_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "Twvzy1yRo6m6dM8D",
+    "name": "Ogre Warrior (BB)",
+    "level": 3,
+    "art": "ogre-warrior.webp"
+  },
+  {
+    "id": "sea_hag_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "UhaXdA3NOoGKM109",
+    "name": "Sea Hag (BB)",
+    "level": 3,
+    "art": "sea-hag.webp"
+  },
+  {
+    "id": "orc_veteran_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "V90OYOMyyPLPJuod",
+    "name": "Orc Veteran (BB)",
+    "level": 1,
+    "art": "orc-veteran.webp"
+  },
+  {
+    "id": "sod_hound_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "VQPzDz3xnCQGFOGL",
+    "name": "Sod Hound (BB)",
+    "level": 3,
+    "art": "sod-hound.webp"
+  },
+  {
+    "id": "shadow_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "VotlWUsFKdOrHWF6",
+    "name": "Shadow (BB)",
+    "level": 4,
+    "art": "shadow.webp"
+  },
+  {
+    "id": "horned_dragon_juvenile_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "WPsgrCUSFCqgDvJi",
+    "name": "Horned Dragon (Juvenile, BB)",
+    "level": 4,
+    "art": "horned-dragon-young.webp"
+  },
+  {
+    "id": "owlbear_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "X03vq2RWi2jiA6Ri",
+    "name": "Owlbear (BB)",
+    "level": 4,
+    "art": "owlbear.webp"
+  },
+  {
+    "id": "zombie_shambler_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "Xo4IGzw28hivgMmM",
+    "name": "Zombie Shambler (BB)",
+    "level": -1,
+    "art": "zombie-shambler.webp"
+  },
+  {
+    "id": "orc_scrapper_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "YReM6QbqwUz3UTP7",
+    "name": "Orc Scrapper (BB)",
+    "level": 0,
+    "art": "orc-scrapper.webp"
+  },
+  {
+    "id": "lukahn",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "YYhD00fbaYCHjrDn",
+    "name": "Lukahn",
+    "level": 4,
+    "art": "lukahn.webp"
+  },
+  {
+    "id": "web_lurker_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "ZMr28tFTA5NUcBTi",
+    "name": "Web Lurker (BB)",
+    "level": 3,
+    "art": "web-lurker.webp"
+  },
+  {
+    "id": "pugwampi_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "aeOzCBpwnUVcpqxI",
+    "name": "Pugwampi (BB)",
+    "level": 0,
+    "art": "pugwampi.webp"
+  },
+  {
+    "id": "gargoyle_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "cvfIkEF6xmWn2soN",
+    "name": "Gargoyle (BB)",
+    "level": 4,
+    "art": "gargoyle.webp"
+  },
+  {
+    "id": "goblin_warrior_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "fLLKuOXwPq1Iq0U4",
+    "name": "Goblin Warrior (BB)",
+    "level": -1,
+    "art": "goblin-warrior.webp"
+  },
+  {
+    "id": "ferrous_butterfly_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "g9RxHRpIK4GFFjQv",
+    "name": "Ferrous Butterfly (BB)",
+    "level": 1,
+    "art": "ferrous-butterfly-lob.webp"
+  },
+  {
+    "id": "forest_troll_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "htK4dElL6YvFCLkz",
+    "name": "Forest Troll (BB)",
+    "level": 5,
+    "art": "forest-troll.webp"
+  },
+  {
+    "id": "giant_rat_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "iIJPJcDT8wlJ8z5M",
+    "name": "Giant Rat (BB)",
+    "level": -1,
+    "art": "giant-rat.webp"
+  },
+  {
+    "id": "ghoul_stalker_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "iLkQt8A99nQWUI8k",
+    "name": "Ghoul Stalker (BB)",
+    "level": 1,
+    "art": "ghoul-stalker.webp"
+  },
+  {
+    "id": "shadow_twigjack",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "iqQspEn4uxv0wVwb",
+    "name": "Shadow Twigjack",
+    "level": 2,
+    "art": "shadow-twigjack.webp"
+  },
+  {
+    "id": "leopard_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "kB7FNn3vosp6cqQg",
+    "name": "Leopard (BB)",
+    "level": 2,
+    "art": "leopard.webp"
+  },
+  {
+    "id": "giant_ant_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "mEZUTqNIgu0ASApu",
+    "name": "Giant Ant (BB)",
+    "level": 2,
+    "art": "giant-ant.webp"
+  },
+  {
+    "id": "basilisk_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "mX47c0W9rizbmMBM",
+    "name": "Basilisk (BB)",
+    "level": 5,
+    "art": "basilisk.webp"
+  },
+  {
+    "id": "shadow_gargoyle",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "oecsQwqLHKkDJz4G",
+    "name": "Shadow Gargoyle",
+    "level": 3,
+    "art": "shadow-gargoyle.webp"
+  },
+  {
+    "id": "umbral_gnome_scout_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "pp4ENWQbnafQDaRa",
+    "name": "Umbral Gnome Scout (BB)",
+    "level": 1,
+    "art": "umbral-gnome-scout.webp"
+  },
+  {
+    "id": "string_slime_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "r2uJWK5Vz7lJpfux",
+    "name": "String Slime (BB)",
+    "level": 3,
+    "art": "string-slime.webp"
+  },
+  {
+    "id": "hobgoblin_archer_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "rFgGjc3vR1klkxUs",
+    "name": "Hobgoblin Archer (BB)",
+    "level": 4,
+    "art": "hobgoblin-archer.webp"
+  },
+  {
+    "id": "goblin_commando_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "sA2dFdRUwiapo69Z",
+    "name": "Goblin Commando (BB)",
+    "level": 1,
+    "art": "goblin-commando.webp"
+  },
+  {
+    "id": "zephyr_hawk_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "sAfjpjAS56jtrUbi",
+    "name": "Zephyr Hawk (BB)",
+    "level": 3,
+    "art": "zephyr-hawk.webp"
+  },
+  {
+    "id": "skeletal_giant_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "sEgjgitJmwYYa4mV",
+    "name": "Skeletal Giant (BB)",
+    "level": 3,
+    "art": "skeletal-giant.webp"
+  },
+  {
+    "id": "drow_warrior",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "sW8koPLrSgHalAnq",
+    "name": "Drow Warrior (BB)",
+    "level": 1,
+    "art": "drow-warrior.webp"
+  },
+  {
+    "id": "giant_fly_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "t8mDlH0ELLKtm7WG",
+    "name": "Giant Fly (BB)",
+    "level": 1,
+    "art": "giant-fly.webp"
+  },
+  {
+    "id": "skeleton_guard_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "trchDxbDR2TiPMxT",
+    "name": "Skeleton Guard (BB)",
+    "level": -1,
+    "art": "skeleton-guard.webp"
+  },
+  {
+    "id": "harpy_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "uBNm3R9wbLTPrM9i",
+    "name": "Harpy (BB)",
+    "level": 5,
+    "art": "harpy.webp"
+  },
+  {
+    "id": "minotaur_hunter_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "vN2alMciNlKpBpKN",
+    "name": "Minotaur Hunter (BB)",
+    "level": 4,
+    "art": "minotaur-hunter.webp"
+  },
+  {
+    "id": "warg_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "x7Aa4Tvr9eBaHryF",
+    "name": "Warg (BB)",
+    "level": 2,
+    "art": "warg.webp"
+  },
+  {
+    "id": "drow_sneak",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "xKYIN88ULPFgSZmw",
+    "name": "Drow Sneak (BB)",
+    "level": 2,
+    "art": "drow-sneak.webp"
+  },
+  {
+    "id": "cinder_rat_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "xN5J9S485LxFZMkL",
+    "name": "Cinder Rat (BB)",
+    "level": 3,
+    "art": "cinder-rat.webp"
+  },
+  {
+    "id": "magnetic_skink",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "yb3ZUPctOGz3yQTS",
+    "name": "Magnetic Skink",
+    "level": 0,
+    "art": "magnetic-skink.webp"
   }
 ]
