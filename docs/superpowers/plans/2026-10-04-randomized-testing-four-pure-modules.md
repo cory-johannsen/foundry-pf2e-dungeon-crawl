@@ -156,7 +156,7 @@ git commit -m "Add randomized/invariant tests for prng.mjs (#295)"
 
 **Interfaces:** None new — consumes the existing `findPath`, `blockedEdgesFromWalls`, `hasLineOfSight` exports already imported at the top of this file.
 
-- [ ] **Step 1: Add the new property tests**
+- [x] **Step 1: Add the new property tests**
 
 Append to `tests/pathfinding.test.mjs` (add the import alongside the existing ones at the top, and these new `describe` blocks at the end of the file):
 
@@ -268,12 +268,12 @@ describe("hasLineOfSight property tests", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test file**
+- [x] **Step 2: Run the test file**
 
 Run: `npx vitest run tests/pathfinding.test.mjs`
 Expected: PASS (every pre-existing test plus the new ones)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/pathfinding.test.mjs

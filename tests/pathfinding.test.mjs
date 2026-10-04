@@ -4,6 +4,7 @@ import {
   blockedEdgesFromWalls,
   hasLineOfSight,
 } from "../scripts/pathfinding.mjs";
+import { splitmix32, seedFromString } from "../scripts/prng.mjs";
 
 const openField = () => false;
 
@@ -366,5 +367,118 @@ describe("hasLineOfSight (#91)", () => {
     expect(hasLineOfSight({ gx: 4, gy: 0 }, { gx: 0, gy: 0 }, isBlocked)).toBe(
       false,
     );
+  });
+});
+
+function edgeKey(a, b) {
+  // Order-independent key for an undirected adjacency pair -- a wall
+  // blocks movement both directions, so the key must not depend on which
+  // of a/b is "first".
+  const [lo, hi] = [`${a.gx},${a.gy}`, `${b.gx},${b.gy}`].sort();
+  return `${lo}|${hi}`;
+}
+
+describe("findPath property tests", () => {
+  it("property: a returned path never steps across a blocked edge, and always starts/ends exactly where asked", () => {
+    const BOUNDS = { gx0: 0, gy0: 0, gx1: 9, gy1: 9 };
+    const ADJACENT_DIRS = [{ dx: 1, dy: 0 }, { dx: 0, dy: 1 }, { dx: 1, dy: 1 }, { dx: 1, dy: -1 }];
+    let foundAtLeastOnePath = false;
+    for (let trial = 0; trial < 300; trial += 1) {
+      const rand = splitmix32(seedFromString(`findPath-${trial}`));
+      const randCell = () => ({ gx: Math.floor(rand() * 10), gy: Math.floor(rand() * 10) });
+      // A random scattering of blocked edges -- sparse enough (60 out of a
+      // ~300-edge-pair space on this 10x10 grid) that most trials still
+      // find a real path, which is the common case this test needs to
+      // actually exercise the "found a path" branch below.
+      const blocked = new Set();
+      for (let i = 0; i < 60; i += 1) {
+        const a = randCell();
+        const { dx, dy } = ADJACENT_DIRS[Math.floor(rand() * ADJACENT_DIRS.length)];
+        blocked.add(edgeKey(a, { gx: a.gx + dx, gy: a.gy + dy }));
+      }
+      const isBlocked = (a, b) => blocked.has(edgeKey(a, b));
+      const start = randCell();
+      const goal = randCell();
+
+      const path = findPath(start, goal, isBlocked, BOUNDS);
+      if (!path) continue; // no-route is a valid outcome for a given trial
+
+      foundAtLeastOnePath = true;
+      expect(path[0]).toEqual(start);
+      expect(path.at(-1)).toEqual(goal);
+      for (let i = 1; i < path.length; i += 1) {
+        expect(isBlocked(path[i - 1], path[i])).toBe(false);
+        const a = path[i - 1];
+        const d = path[i];
+        if (Math.abs(d.gx - a.gx) === 1 && Math.abs(d.gy - a.gy) === 1) {
+          // No corner-cutting: all four flanking orthogonal edges must be open.
+          const flankA = { gx: d.gx, gy: a.gy };
+          const flankB = { gx: a.gx, gy: d.gy };
+          expect(isBlocked(a, flankA)).toBe(false);
+          expect(isBlocked(a, flankB)).toBe(false);
+          expect(isBlocked(flankA, d)).toBe(false);
+          expect(isBlocked(flankB, d)).toBe(false);
+        }
+      }
+    }
+    // Guards against the generator being accidentally too hostile to ever
+    // produce a real path to check (see this plan's Review Focus).
+    expect(foundAtLeastOnePath).toBe(true);
+  });
+});
+
+describe("blockedEdgesFromWalls property tests", () => {
+  it("property: the predicate it builds is symmetric -- a wall blocks movement both directions", () => {
+    for (let trial = 0; trial < 200; trial += 1) {
+      const rand = splitmix32(seedFromString(`blockedEdgesFromWalls-${trial}`));
+      const GRID_SIZE = 100;
+      const walls = Array.from({ length: 1 + Math.floor(rand() * 10) }, () => {
+        const gx = Math.floor(rand() * 10);
+        const gy = Math.floor(rand() * 10);
+        return rand() < 0.5
+          ? { x1: gx * GRID_SIZE, y1: gy * GRID_SIZE, x2: gx * GRID_SIZE, y2: (gy + 1) * GRID_SIZE }
+          : { x1: gx * GRID_SIZE, y1: gy * GRID_SIZE, x2: (gx + 1) * GRID_SIZE, y2: gy * GRID_SIZE };
+      });
+      const isBlocked = blockedEdgesFromWalls(walls, GRID_SIZE);
+
+      for (let i = 0; i < 50; i += 1) {
+        const a = { gx: Math.floor(rand() * 10), gy: Math.floor(rand() * 10) };
+        const dirs = [{ dx: 1, dy: 0 }, { dx: 0, dy: 1 }, { dx: 1, dy: 1 }, { dx: 1, dy: -1 }];
+        const { dx, dy } = dirs[Math.floor(rand() * dirs.length)];
+        const b = { gx: a.gx + dx, gy: a.gy + dy };
+        expect(isBlocked(a, b)).toBe(isBlocked(b, a));
+      }
+    }
+  });
+});
+
+describe("hasLineOfSight property tests", () => {
+  it("property: always true over a fully open field (no walls), for any two points", () => {
+    const openField = () => false;
+    for (let trial = 0; trial < 200; trial += 1) {
+      const rand = splitmix32(seedFromString(`hasLineOfSight-open-${trial}`));
+      const start = { gx: Math.floor(rand() * 20) - 10, gy: Math.floor(rand() * 20) - 10 };
+      const goal = { gx: Math.floor(rand() * 20) - 10, gy: Math.floor(rand() * 20) - 10 };
+      expect(hasLineOfSight(start, goal, openField)).toBe(true);
+    }
+  });
+
+  it("property: a wall directly on the one-step edge between two orthogonally adjacent cells always blocks line of sight between them", () => {
+    // Orthogonal only, deliberately -- hasLineOfSight's diagonal-step check
+    // (see its own docblock) never consults isBlocked(a, b) for the
+    // diagonal pair itself, only the two flanking orthogonal edges around
+    // the corner. Blocking the exact diagonal pair the way this test does
+    // would not actually test anything for a diagonal start/goal; this
+    // property is specifically about the orthogonal case, where
+    // hasLineOfSight does check isBlocked(a, b) directly.
+    const ORTHOGONAL_DIRS = [{ dx: 1, dy: 0 }, { dx: 0, dy: 1 }, { dx: -1, dy: 0 }, { dx: 0, dy: -1 }];
+    for (let trial = 0; trial < 200; trial += 1) {
+      const rand = splitmix32(seedFromString(`hasLineOfSight-blocked-${trial}`));
+      const start = { gx: Math.floor(rand() * 10), gy: Math.floor(rand() * 10) };
+      const { dx, dy } = ORTHOGONAL_DIRS[Math.floor(rand() * ORTHOGONAL_DIRS.length)];
+      const goal = { gx: start.gx + dx, gy: start.gy + dy };
+      const isBlocked = (a, b) => edgeKey(a, b) === edgeKey(start, goal);
+      expect(hasLineOfSight(start, goal, isBlocked)).toBe(false);
+    }
   });
 });
