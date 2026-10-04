@@ -42070,5 +42070,173 @@
     "name": "Ioton (F6)",
     "level": 0,
     "art": "ioton.webp"
+  },
+  {
+    "id": "mutant_giant_toad",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "BO72SUjG83p8p9UU",
+    "name": "Mutant Giant Toad",
+    "level": 3,
+    "art": "mutant-giant-toad.webp"
+  },
+  {
+    "id": "clockwork_handler",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "BbTS7MMkz0Ob7qAF",
+    "name": "Clockwork Handler",
+    "level": 1,
+    "art": "clockwork-handler.webp"
+  },
+  {
+    "id": "corrupt_shieldmarshal",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "CNFAfmVoVebnj7bY",
+    "name": "Corrupt Shieldmarshal (Clan Pistol)",
+    "level": 7,
+    "art": "corrupt-shieldmarshal.webp"
+  },
+  {
+    "id": "corrupt_shieldmarshal_jezail",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "RpGReUxsaT8wCz2u",
+    "name": "Corrupt Shieldmarshal (Jezail)",
+    "level": 7,
+    "art": "corrupt-shieldmarshal.webp"
+  },
+  {
+    "id": "ibrium",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "ChBr4WYIeCnRUbHL",
+    "name": "Ibrium",
+    "level": 10,
+    "art": "ibrium.webp"
+  },
+  {
+    "id": "gunmarshal",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "EjQYuMP3t0J4OI3I",
+    "name": "Gunmarshal",
+    "level": 2,
+    "art": "gunmarshal.webp"
+  },
+  {
+    "id": "parsus",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "GmK9VzDtB1i7pmGI",
+    "name": "Parsus",
+    "level": 10,
+    "art": "parsus.webp"
+  },
+  {
+    "id": "irkem_dresh",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "GyrL5Q66shXthhZL",
+    "name": "Irkem Dresh",
+    "level": 3,
+    "art": "irkem-dresh.webp"
+  },
+  {
+    "id": "dewey_daystar",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "IX2EDNagTD0YEfS5",
+    "name": "Dewey Daystar",
+    "level": 2,
+    "art": "dewey-daystar.webp"
+  },
+  {
+    "id": "palzu",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "JuN7m62ohqdb4mL5",
+    "name": "Palzu",
+    "level": 8,
+    "art": "palzu.webp"
+  },
+  {
+    "id": "alethsia",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "KCnloN7xxY0UOhML",
+    "name": "Alethsia",
+    "level": 7,
+    "art": "alethsia.webp"
+  },
+  {
+    "id": "clockwork_brewer",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "Lck0FIlp4kLFeLfg",
+    "name": "Clockwork Brewer",
+    "level": 3,
+    "art": "clockwork-brewer.webp"
+  },
+  {
+    "id": "steaming_kingdom_bartender",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "LhjQnXhGFWhWVdmg",
+    "name": "Steaming Kingdom Bartender",
+    "level": 2,
+    "art": "steaming-kingdom-bartender.webp"
+  },
+  {
+    "id": "clearwater_cleaner",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "NR74QIX0qE7AeZmg",
+    "name": "Clearwater Cleaner",
+    "level": 0,
+    "art": "clearwater-cleaner.webp"
+  },
+  {
+    "id": "roxy",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "R9DlBcLJ5YbrXSuQ",
+    "name": "Roxy",
+    "level": 2,
+    "art": "roxy.webp"
+  },
+  {
+    "id": "clockwork_hunter",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "RNvLscZ5sMpYzExB",
+    "name": "Clockwork Hunter",
+    "level": 0,
+    "art": "clockwork-hunter.webp"
+  },
+  {
+    "id": "glass_sentry",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "RgGijwS8Z9fNFFO3",
+    "name": "Glass Sentry",
+    "level": 6,
+    "art": "glass-sentry.webp"
+  },
+  {
+    "id": "clockwork_disposer",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "RqV8n5CxdDQ6ZahH",
+    "name": "Clockwork Disposer",
+    "level": 5,
+    "art": "clockwork-disposer.webp"
+  },
+  {
+    "id": "shock_zombie",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "SuFVqL1LRxsGWB1B",
+    "name": "Shock Zombie",
+    "level": 6,
+    "art": "shock-zombie.webp"
+  },
+  {
+    "id": "masu",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "T9vLIrNIbcNkYx1M",
+    "name": "Masu",
+    "level": -1,
+    "art": "masu.webp"
+  },
+  {
+    "id": "gilded_gunner_safecracker",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "TDLiOXhnBxC0n3jr",
+    "name": "Gilded Gunner Safecracker",
+    "level": 4,
+    "art": "gilded-gunner-safecracker.webp"
   }
 ]
