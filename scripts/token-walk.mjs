@@ -29,15 +29,22 @@ export function readPacingSetting(key, fallback) {
 export const movementStepDelayMs = () =>
   readPacingSetting("movementStepDelayMs", MOVEMENT_STEP_DELAY_MS);
 
+// #689: out-of-combat followers pause less per square than AI combat
+// movers; the live value is the world setting `followerStepDelayMs`.
+export const FOLLOWER_STEP_DELAY_MS = 150;
+
+export const followerStepDelayMs = () =>
+  readPacingSetting("followerStepDelayMs", FOLLOWER_STEP_DELAY_MS);
+
 /** Writes `token`'s position through each cell in `steps` in order (an
  * ordered list of {gx, gy} cells, not including the token's own starting
  * cell), each still via { teleport: true } so Foundry's wall-collision
  * check never relocates a single hop (#87/#141/#361), with
- * movementStepDelayMs() between each write except after the last one.
+ * `delayMs` (default movementStepDelayMs(), #689) between each write except after the last one.
  * `onHop` (optional) is called immediately before and after every write
  * (#610: lets the follow module keep its #87 resnap-suppression window
  * covering each hop). */
-export async function walkTokenThroughSteps(token, steps, gridSize, onHop) {
+export async function walkTokenThroughSteps(token, steps, gridSize, onHop, delayMs) {
   for (let i = 0; i < steps.length; i += 1) {
     onHop?.();
     await token.update(
@@ -46,7 +53,7 @@ export async function walkTokenThroughSteps(token, steps, gridSize, onHop) {
     );
     onHop?.();
     if (i < steps.length - 1) {
-      await new Promise((resolve) => setTimeout(resolve, movementStepDelayMs()));
+      await new Promise((resolve) => setTimeout(resolve, delayMs ?? movementStepDelayMs()));
     }
   }
 }

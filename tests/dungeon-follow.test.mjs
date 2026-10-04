@@ -137,8 +137,8 @@ function makeDoorWall({ ds }) {
 // #610: followers now walk their path one cell per update() with a
 // movementStepDelayMs pause between hops, so a test has to run the fake
 // timers well past the 250ms debounce for the whole walk to finish.
-// With a `watch` token, stops as soon as one 600ms step passes with no new
-// update() on it, so the clock never runs far past the final hop (the #87
+// With a `watch` token, stops as soon as one 150ms step (#689: the follower
+// hop delay) passes with no new update() on it, so the clock never runs far past the final hop (the #87
 // suppression window is only RECENT_WRITE_SUPPRESS_MS wide).
 async function settle(watch) {
   await vi.advanceTimersByTimeAsync(300);
@@ -146,7 +146,7 @@ async function settle(watch) {
   let seen = -1;
   while (watch.update.mock.calls.length !== seen) {
     seen = watch.update.mock.calls.length;
-    await vi.advanceTimersByTimeAsync(600);
+    await vi.advanceTimersByTimeAsync(150);
   }
 }
 
@@ -821,7 +821,7 @@ describe("moveFollowersToward stepwise walking (#610)", () => {
     });
     const baseGet = game.settings.get;
     game.settings = {
-      get: (m, key) => (key === "movementStepDelayMs" ? 900 : baseGet(m, key)),
+      get: (m, key) => (key === "followerStepDelayMs" ? 900 : baseGet(m, key)),
     };
     game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
     const spy = vi.spyOn(globalThis, "setTimeout");
@@ -840,6 +840,97 @@ describe("moveFollowersToward stepwise walking (#610)", () => {
     }
     const stepDelays = spy.mock.calls.filter((c) => c[1] === 900);
     expect(stepDelays).toHaveLength(calls.length - 1);
+  });
+});
+
+describe("moveFollowersToward concurrent walking and pacing (#689)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  function twoFollowers({ settings = {} } = {}) {
+    const leader = makeToken({ id: "t-leader", x: 8 * GRID, y: 0, actorId: LEADER_ACTOR_ID });
+    const a = makeToken({ id: "t-a", x: 0, y: 0, actorId: "actor-a" });
+    const b = makeToken({ id: "t-b", x: 0, y: 2 * GRID, actorId: "actor-b" });
+    const scene = makeScene({ tokens: [leader, a, b] });
+    scene.width = 12 * GRID;
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: ["actor-a", "actor-b"],
+          marchingOrder: ["actor-a", "actor-b"],
+        },
+      },
+    });
+    const baseGet = game.settings.get;
+    game.settings = {
+      get: (m, key) => (key in settings ? settings[key] : baseGet(m, key)),
+    };
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+    return { leader, a, b, scene };
+  }
+
+  // Global order of update() calls across both followers.
+  function trackOrder(...tokens) {
+    const order = [];
+    for (const t of tokens) {
+      const orig = t.update;
+      t.update = vi.fn(async (...args) => {
+        order.push(t.id);
+        return orig(...args);
+      });
+    }
+    return order;
+  }
+
+  it("walks followers concurrently: B starts moving before A finishes", async () => {
+    vi.useFakeTimers();
+    const { a, b } = twoFollowers();
+    const order = trackOrder(a, b);
+    runFollowMoveNow(SCENE_ID);
+    await settle();
+    expect(a.update.mock.calls.length).toBeGreaterThan(2);
+    expect(b.update.mock.calls.length).toBeGreaterThan(2);
+    const firstB = order.indexOf("t-b");
+    const lastA = order.lastIndexOf("t-a");
+    expect(firstB).toBeLessThan(lastA);
+  });
+
+  it("uses followerStepDelayMs between hops, not movementStepDelayMs", async () => {
+    vi.useFakeTimers();
+    twoFollowers({ settings: { followerStepDelayMs: 333, movementStepDelayMs: 901 } });
+    const spy = vi.spyOn(globalThis, "setTimeout");
+    runFollowMoveNow(SCENE_ID);
+    await settle();
+    expect(spy.mock.calls.filter((c) => c[1] === 333).length).toBeGreaterThan(0);
+    expect(spy.mock.calls.filter((c) => c[1] === 901)).toHaveLength(0);
+  });
+
+  it("falls back to 150ms when followerStepDelayMs is unset or invalid", async () => {
+    vi.useFakeTimers();
+    twoFollowers({ settings: { followerStepDelayMs: "nope", movementStepDelayMs: 901 } });
+    const spy = vi.spyOn(globalThis, "setTimeout");
+    runFollowMoveNow(SCENE_ID);
+    await settle();
+    expect(spy.mock.calls.filter((c) => c[1] === 150).length).toBeGreaterThan(0);
+    expect(spy.mock.calls.filter((c) => c[1] === 901)).toHaveLength(0);
+  });
+
+  it("one rejected follower walk does not stop the others, and warns", async () => {
+    vi.useFakeTimers();
+    const { a, b } = twoFollowers();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    a.update = vi.fn(async () => {
+      throw new Error("boom");
+    });
+    runFollowMoveNow(SCENE_ID);
+    await settle();
+    expect(b.update.mock.calls.length).toBeGreaterThan(2);
+    expect(b._source.x).toBeGreaterThan(0);
+    const msgs = warn.mock.calls.map((c) => c.join(" "));
+    expect(msgs.some((m) => m.includes("pf2e-dungeon-crawl") && m.includes("actor-a"))).toBe(true);
   });
 });
 

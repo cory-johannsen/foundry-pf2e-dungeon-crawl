@@ -15,7 +15,7 @@ import { getRunState, effectiveMarchingOrder } from "./dungeon-runner.mjs";
 import { requestDungeonAction } from "./dungeon-remote.mjs";
 import { blockedEdgesFromWalls } from "./pathfinding.mjs";
 import { footprint } from "./placement.mjs";
-import { walkTokenThroughSteps } from "./token-walk.mjs";
+import { walkTokenThroughSteps, followerStepDelayMs } from "./token-walk.mjs";
 import {
   findFollowMove,
   extendTrail,
@@ -288,6 +288,9 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
         ? storedTrail
         : [];
     let slot = 0;
+    // #689: walks run concurrently; decisions above/below stay sequential.
+    const walks = [];
+    const walkOwners = [];
     for (const actorId of aiControlledIds) {
       const token = scene.tokens.find((t) => t.actor?.id === actorId);
       if (!token) continue;
@@ -391,11 +394,30 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
       // #610: walk the path one cell at a time (each hop still
       // { teleport: true }, #87/#141/#361), re-marking the #87 suppression
       // window around every hop's write.
-      await walkTokenThroughSteps(token, result.steps, gridSize, () =>
-        markRecentlyWritten(token.id),
+      // #689: not awaited here -- later followers' decisions use planned
+      // cells (referenceCell/occupied), so all walks can overlap.
+      walks.push(
+        walkTokenThroughSteps(
+          token,
+          result.steps,
+          gridSize,
+          () => markRecentlyWritten(token.id),
+          followerStepDelayMs(),
+        ),
       );
+      walkOwners.push({ actorId, tokenId: token.id });
       referenceCell = result.to;
     }
+    // inFlightScenes stays held until every walk settles.
+    const results = await Promise.allSettled(walks);
+    results.forEach((r, i) => {
+      if (r.status === "rejected") {
+        console.warn(
+          `${MODULE_ID} | dungeon-follow: walk failed for actor ${walkOwners[i].actorId} (token ${walkOwners[i].tokenId}):`,
+          r.reason,
+        );
+      }
+    });
   } finally {
     inFlightScenes.delete(scene.id);
   }

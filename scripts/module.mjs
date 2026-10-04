@@ -102,6 +102,16 @@ Hooks.once("init", () => {
     range: { min: 100, max: 3000, step: 50 },
     default: 600,
   });
+  // #689: pacing of out-of-combat followers.
+  game.settings.register(MODULE_ID, "followerStepDelayMs", {
+    name: "PF2EDC.Settings.FollowerStepDelayMs.Name",
+    hint: "PF2EDC.Settings.FollowerStepDelayMs.Hint",
+    scope: "world",
+    config: true,
+    type: Number,
+    range: { min: 50, max: 3000, step: 50 },
+    default: 150,
+  });
   game.settings.register(MODULE_ID, "actionPaceDelayMs", {
     name: "PF2EDC.Settings.ActionPaceDelayMs.Name",
     hint: "PF2EDC.Settings.ActionPaceDelayMs.Hint",
