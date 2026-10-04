@@ -42726,5 +42726,165 @@
     "name": "Redcap",
     "level": 5,
     "art": "redcap.webp"
+  },
+  {
+    "id": "hestlebeth",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "IZQYYIlFKU1e1sBu",
+    "name": "Hestlebeth",
+    "level": 3,
+    "art": "hestlebeth.webp"
+  },
+  {
+    "id": "illcayna_alonnor",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "IrlZUmKuUF8OqmYd",
+    "name": "Illcayna Alonnor",
+    "level": 9,
+    "art": "illcayna-alonnor.webp"
+  },
+  {
+    "id": "skeletal_hellknight_bonesinger",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "KCEdUHvPf4anTpnK",
+    "name": "Skeletal Hellknight Bonesinger",
+    "level": 8,
+    "art": "skeletal-hellknight-bonesinger.webp"
+  },
+  {
+    "id": "erinys_sister_wight",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "MB8uBxMtA9WJNrXq",
+    "name": "Erinys Sister Wight",
+    "level": 3,
+    "art": "erinys-sister-wight.webp"
+  },
+  {
+    "id": "ezio_gaeta",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "N55VqxzVwpGysvYy",
+    "name": "Ezio Gaeta",
+    "level": 7,
+    "art": "ezio-gaeta.webp"
+  },
+  {
+    "id": "alceo_demetrias",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "Nkmr1Sic5LpIsats",
+    "name": "Alceo Demetrias",
+    "level": 7,
+    "art": "alceo-demetrias.webp"
+  },
+  {
+    "id": "hecatinia",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "PYqZIgsj26WyJOlN",
+    "name": "Hecatinia",
+    "level": 3,
+    "art": "hecatinia.webp"
+  },
+  {
+    "id": "chelaxian_loyalist",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "SWUOiOIO3w8BOebM",
+    "name": "Chelaxian Loyalist",
+    "level": -1,
+    "art": "chelaxian-loyalist.webp"
+  },
+  {
+    "id": "chelaxian_loyalist_leader",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "SwY28t0BD69pQfTL",
+    "name": "Chelaxian Loyalist Leader",
+    "level": 1,
+    "art": "chelaxian-loyalist-leader.webp"
+  },
+  {
+    "id": "hedvend_vi",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "U3wRKxiFcCW7tcwR",
+    "name": "Hedvend VI",
+    "level": 5,
+    "art": "hedvend-vi.webp"
+  },
+  {
+    "id": "zombie_giant_bat",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "ULjbbnq7HdZhp2IF",
+    "name": "Zombie Giant Bat",
+    "level": 2,
+    "art": "zombie-giant-bat.webp"
+  },
+  {
+    "id": "instillo",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "Vb4cwJ494cUN6aIa",
+    "name": "Instillo",
+    "level": 8,
+    "art": "instillo.webp"
+  },
+  {
+    "id": "isgeri_slayer",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "WxKgmIXczBj7yDbb",
+    "name": "Isgeri Slayer",
+    "level": 2,
+    "art": "isgeri-slayer.webp"
+  },
+  {
+    "id": "varlario_demicci",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "XJXYmxLbn5gqtJLV",
+    "name": "Varlario Demicci",
+    "level": 8,
+    "art": "varlario-demicci.webp"
+  },
+  {
+    "id": "sister_of_the_golden_erinys",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "XshECARmwXjp0ncn",
+    "name": "Sister of the Golden Erinys",
+    "level": 2,
+    "art": "sister-of-the-golden-erinys.webp"
+  },
+  {
+    "id": "besunas",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "Y7Ntiz8PZYyqC75J",
+    "name": "Besunas",
+    "level": 8,
+    "art": "besunas.webp"
+  },
+  {
+    "id": "skirmancer_mage",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "ZSdPRhQGLI1LQKpM",
+    "name": "Skirmancer Mage",
+    "level": 5,
+    "art": "skirmancer-mage.webp"
+  },
+  {
+    "id": "hellknight_field_maralictor",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "ZZAxu68icExP415I",
+    "name": "Hellknight Field-Maralictor",
+    "level": 8,
+    "art": "hellknight-field-maralictor.webp"
+  },
+  {
+    "id": "drude",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "ZbG4M5osQ9sY607a",
+    "name": "Drude",
+    "level": 2,
+    "art": "drude.webp"
+  },
+  {
+    "id": "phoebe_demetrias",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "bVbBeO60civ7Ac7N",
+    "name": "Phoebe Demetrias",
+    "level": 7,
+    "art": "phoebe-demetrias.webp"
   }
 ]
