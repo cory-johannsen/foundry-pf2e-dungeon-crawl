@@ -627,8 +627,14 @@ export function makeFoundryApi(sceneRef = null) {
      * resolveCombat, extracted here so combat and the non-combat room kinds
      * (skill challenge, puzzle, trap) all go through one place instead of
      * three duplicated copies of this loop.
+     *
+     * #626: announces the grant in chat -- `source` (`combat`,
+     * `skillChallenge`, `puzzle` or `trap`) names where it came from, and
+     * the line states the total and the actual per-character share (an
+     * uneven total floors, so share * party size can be less than total).
+     * A zero grant is announced too. Says nothing with no party characters.
      */
-    async grantPartyXp(totalXp) {
+    async grantPartyXp(totalXp, source = null) {
       const party = (game.actors?.party?.members ?? []).filter(
         (m) => m.type === "character",
       );
@@ -639,6 +645,14 @@ export function makeFoundryApi(sceneRef = null) {
             (member.system.details.xp.value ?? 0) + share,
         });
       }
+      if (party.length === 0) return;
+      await ChatMessage.create({
+        content: game.i18n.format("PF2EDC.Dungeon.XpAwarded", {
+          source: game.i18n.localize(`PF2EDC.Dungeon.XpSource.${source ?? "other"}`),
+          total: totalXp,
+          share,
+        }),
+      });
     },
 
     /**

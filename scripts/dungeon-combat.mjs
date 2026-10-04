@@ -354,7 +354,7 @@ async function resolveCombat(combat, outcome, api) {
     );
     const partyLevel = await api.partyLevel();
     const totalXp = totalCombatXp(hostileLevels, partyLevel);
-    await api.grantPartyXp(totalXp);
+    await api.grantPartyXp(totalXp, "combat");
   }
   // #172: a defeated hostile's own gear (granted at spawn time — see
   // spawnCreatures) becomes real, player-lootable treasure instead of
