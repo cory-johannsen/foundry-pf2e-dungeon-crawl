@@ -245,6 +245,8 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
   if (hasActiveCombat(scene)) return;
   if (inFlightScenes.has(scene.id)) return;
   inFlightScenes.add(scene.id);
+  // #689: walks run concurrently; decisions stay sequential.
+  const walks = [];
   try {
     const gridSize = scene.grid?.size ?? 100;
     const bounds = sceneBounds(scene, gridSize);
@@ -288,9 +290,6 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
         ? storedTrail
         : [];
     let slot = 0;
-    // #689: walks run concurrently; decisions above/below stay sequential.
-    const walks = [];
-    const walkOwners = [];
     for (const actorId of aiControlledIds) {
       const token = scene.tokens.find((t) => t.actor?.id === actorId);
       if (!token) continue;
@@ -395,7 +394,12 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
       // { teleport: true }, #87/#141/#361), re-marking the #87 suppression
       // window around every hop's write.
       // #689: not awaited here -- later followers' decisions use planned
-      // cells (referenceCell/occupied), so all walks can overlap.
+      // cells (referenceCell/occupied), so all walks can overlap. A failed
+      // walk no longer aborts later followers (they were planned with its
+      // destination reserved), so in a rare failure a later follower can
+      // end on a failed follower's start cell. The rejection handler is
+      // attached at push time so an early failure is never unhandled while
+      // the decision loop is still awaiting later followers' snaps.
       walks.push(
         walkTokenThroughSteps(
           token,
@@ -403,22 +407,23 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
           gridSize,
           () => markRecentlyWritten(token.id),
           followerStepDelayMs(),
+        ).then(
+          () => null,
+          (e) => {
+            console.warn(
+              `${MODULE_ID} | dungeon-follow: walk failed for actor ${actorId} (token ${token.id}):`,
+              e,
+            );
+            return e;
+          },
         ),
       );
-      walkOwners.push({ actorId, tokenId: token.id });
       referenceCell = result.to;
     }
-    // inFlightScenes stays held until every walk settles.
-    const results = await Promise.allSettled(walks);
-    results.forEach((r, i) => {
-      if (r.status === "rejected") {
-        console.warn(
-          `${MODULE_ID} | dungeon-follow: walk failed for actor ${walkOwners[i].actorId} (token ${walkOwners[i].tokenId}):`,
-          r.reason,
-        );
-      }
-    });
   } finally {
+    // inFlightScenes stays held until every walk settles, on both the
+    // normal and the decision-loop-threw paths.
+    await Promise.allSettled(walks);
     inFlightScenes.delete(scene.id);
   }
 }

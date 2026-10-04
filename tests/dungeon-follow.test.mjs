@@ -934,6 +934,121 @@ describe("moveFollowersToward concurrent walking and pacing (#689)", () => {
   });
 });
 
+describe("moveFollowersToward walk lifecycle (#689 fix round 1)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  function setup(bOffGrid = true) {
+    const leader = makeToken({ id: "t-leader", x: 8 * GRID, y: 0, actorId: LEADER_ACTOR_ID });
+    const a = makeToken({ id: "t-a", x: 0, y: 0, actorId: "actor-a" });
+    const b = makeToken({ id: "t-b", x: 0, y: 2 * GRID + (bOffGrid ? 30 : 0), actorId: "actor-b" });
+    const scene = makeScene({ tokens: [leader, a, b] });
+    scene.width = 12 * GRID;
+    installFoundryStubs({
+      dungeonRuns: {
+        [SCENE_ID]: {
+          hostUserId: HOST_USER_ID,
+          aiControlledActorIds: ["actor-a", "actor-b"],
+          marchingOrder: ["actor-a", "actor-b"],
+        },
+      },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+    // Counts reads of the leader's _source: only the moveFollowersToward
+    // body (past the in-flight guard) reads it.
+    let reads = 0;
+    const src = leader._source;
+    Object.defineProperty(leader, "_source", {
+      get() {
+        reads += 1;
+        return src;
+      },
+    });
+    return { leader, a, b, reads: () => reads };
+  }
+
+  it("an early walk rejection while a later follower snaps is handled: no unhandled rejection, one warning, B still reaches its planned cell", async () => {
+    vi.useFakeTimers();
+    const { a, b } = setup(true);
+    const unhandled = [];
+    const onUnhandled = (e) => unhandled.push(e);
+    process.on("unhandledRejection", onUnhandled);
+    try {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      a.update = vi.fn(async () => {
+        throw new Error("boom");
+      });
+      const realB = b.update;
+      let first = true;
+      b.update = vi.fn(async (...args) => {
+        if (first) {
+          first = false;
+          await new Promise((r) => setTimeout(r, 50)); // snap round-trip
+        }
+        return realB(...args);
+      });
+      runFollowMoveNow(SCENE_ID);
+      await settle();
+      await vi.advanceTimersByTimeAsync(10);
+      expect(unhandled).toEqual([]);
+      const walkWarns = warn.mock.calls.filter((c) => String(c[0]).includes("walk failed"));
+      expect(walkWarns).toHaveLength(1);
+      expect(String(walkWarns[0][0])).toContain("actor-a");
+      expect(String(walkWarns[0][0])).toContain("t-a");
+      expect(b._source.x).toBeGreaterThan(0);
+      expect(b._source.x % GRID).toBe(0);
+    } finally {
+      process.off("unhandledRejection", onUnhandled);
+    }
+  });
+
+  it("holds inFlightScenes until A's walk settles even when the decision loop throws, then lets a new run proceed", async () => {
+    vi.useFakeTimers();
+    const { a, b, reads } = setup(true);
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    b.update = vi.fn(async () => {
+      throw new Error("snap failed");
+    });
+    runFollowMoveNow(SCENE_ID);
+    await vi.advanceTimersByTimeAsync(260); // run starts; A hopping, B's snap rejected
+    expect(a.update.mock.calls.length).toBeGreaterThan(0);
+    expect(b.update).toHaveBeenCalledTimes(1);
+    const aHopsAtStart = a.update.mock.calls.length;
+    const readsAtStart = reads();
+    runFollowMoveNow(SCENE_ID);
+    await vi.advanceTimersByTimeAsync(300); // second run fires mid-walk
+    expect(a._source.x).toBeLessThan(8 * GRID - GRID); // A still walking
+    expect(reads()).toBe(readsAtStart); // second run was a no-op
+    expect(b.update).toHaveBeenCalledTimes(1);
+    expect(a.update.mock.calls.length).toBeGreaterThan(aHopsAtStart);
+    await vi.advanceTimersByTimeAsync(60000); // A finishes
+    const readsAfter = reads();
+    runFollowMoveNow(SCENE_ID);
+    await vi.advanceTimersByTimeAsync(300);
+    expect(reads()).toBeGreaterThan(readsAfter); // new run proceeded
+    expect(b.update).toHaveBeenCalledTimes(2);
+  });
+
+  it("holds inFlightScenes until walks settle on the normal path", async () => {
+    vi.useFakeTimers();
+    const { a, reads } = setup(false);
+    runFollowMoveNow(SCENE_ID);
+    await vi.advanceTimersByTimeAsync(260);
+    const readsAtStart = reads();
+    runFollowMoveNow(SCENE_ID);
+    await vi.advanceTimersByTimeAsync(300);
+    expect(a._source.x).toBeLessThan(8 * GRID - GRID);
+    expect(reads()).toBe(readsAtStart);
+    await vi.advanceTimersByTimeAsync(60000);
+    const readsAfter = reads();
+    runFollowMoveNow(SCENE_ID);
+    await vi.advanceTimersByTimeAsync(300);
+    expect(reads()).toBeGreaterThan(readsAfter);
+  });
+});
+
 describe("follower trail-following (#610)", () => {
   beforeEach(() => {
     __clearLeaderTrailsForTests();
