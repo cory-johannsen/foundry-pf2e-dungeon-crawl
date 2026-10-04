@@ -41902,5 +41902,173 @@
     "name": "Venexus",
     "level": 9,
     "art": "venexus.webp"
+  },
+  {
+    "id": "follower_of_shumfallow",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "0hy54Fyobwdb7AGN",
+    "name": "Follower of Shumfallow",
+    "level": -1,
+    "art": "follower-of-shumfallow.webp"
+  },
+  {
+    "id": "gilded_gunner_assassin",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "2IjwfgmGutHhpg7B",
+    "name": "Gilded Gunner Assassin",
+    "level": 5,
+    "art": "gilded-gunner-assassin.webp"
+  },
+  {
+    "id": "mutant_bat",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "2o6t3FioEbPT3M6U",
+    "name": "Mutant Bat",
+    "level": 5,
+    "art": "mutant-bat.webp"
+  },
+  {
+    "id": "prairie_drake",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "34HKPYSau0ugfMTv",
+    "name": "Prairie Drake",
+    "level": 2,
+    "art": "prairie-drake.webp"
+  },
+  {
+    "id": "skeletal_crocodile",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "3BFECcR5ggVH69Gu",
+    "name": "Skeletal Crocodile",
+    "level": 7,
+    "art": "skeletal-crocodile.webp"
+  },
+  {
+    "id": "gold_tank_broker",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "3SvdfSjrr5jXMrjF",
+    "name": "Gold Tank Broker",
+    "level": 1,
+    "art": "gold-tank-broker.webp"
+  },
+  {
+    "id": "powderkeg_punk_bombardier",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "3dL5oBOLaFaAmDR4",
+    "name": "Powderkeg Punk Bombardier",
+    "level": 1,
+    "art": "powderkeg-punk-bombardier.webp"
+  },
+  {
+    "id": "the_claws_of_time",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "3ibFfE1X8thaWb8A",
+    "name": "The Claws of Time",
+    "level": 10,
+    "art": "the-claws-of-time.webp"
+  },
+  {
+    "id": "anjelique_loveless",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "4tXjSKUChH1W9I6P",
+    "name": "Anjelique Loveless",
+    "level": 11,
+    "art": "anjelique-loveless.webp"
+  },
+  {
+    "id": "shoma_lyzerius",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "5B6jpwqblxrqJHog",
+    "name": "Shoma Lyzerius",
+    "level": 3,
+    "art": "shoma-lyzerius.webp"
+  },
+  {
+    "id": "broken_centurion",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "5GgDdZKPHB0uJYEu",
+    "name": "Broken Centurion",
+    "level": 10,
+    "art": "broken-centurion.webp"
+  },
+  {
+    "id": "ogre_slug",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "5jRhf7NP9thQtYCe",
+    "name": "Ogre Slug",
+    "level": 4,
+    "art": "ogre-slug.webp"
+  },
+  {
+    "id": "clockwork_door_warden",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "661SdyR6HhzsmYJN",
+    "name": "Clockwork Door Warden",
+    "level": 4,
+    "art": "clockwork-door-warden.webp"
+  },
+  {
+    "id": "powderkeg_punk_gunner",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "7qaFFvXAYHp2G0CX",
+    "name": "Powderkeg Punk Gunner",
+    "level": 0,
+    "art": "powderkeg-punk-gunner.webp"
+  },
+  {
+    "id": "kreeth_ni",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "8KUB92Ljms7hS7vq",
+    "name": "Kreeth-Ni",
+    "level": 3,
+    "art": "kreeth-ni.webp"
+  },
+  {
+    "id": "brighite_herexen",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "8jYqoyei7X2Bikb0",
+    "name": "Brighite Herexen",
+    "level": 2,
+    "art": "brighite-herexen.webp"
+  },
+  {
+    "id": "sludgespine_killer",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "8zInanrJXHN6zmdq",
+    "name": "Sludgespine Killer",
+    "level": -1,
+    "art": "sludgespine-killer.webp"
+  },
+  {
+    "id": "bristlebane",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "9Fmj4LRJ40803rEK",
+    "name": "Bristlebane",
+    "level": 2,
+    "art": "bristlebane.webp"
+  },
+  {
+    "id": "slick",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "A1o0TVBwnrdFyKBz",
+    "name": "Slick",
+    "level": 3,
+    "art": "slick.webp"
+  },
+  {
+    "id": "smog_giant",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "AAkT7x3eYV1hn1I6",
+    "name": "Smog Giant",
+    "level": 7,
+    "art": "smog-giant.webp"
+  },
+  {
+    "id": "ioton_f6",
+    "pack": "pf2e.outlaws-of-alkenstar-bestiary",
+    "docId": "FMnoyAlVppHvcu8I",
+    "name": "Ioton (F6)",
+    "level": 0,
+    "art": "ioton.webp"
   }
 ]
