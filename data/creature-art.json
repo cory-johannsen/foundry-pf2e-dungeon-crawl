@@ -43470,5 +43470,53 @@
     "name": "Danva",
     "level": 6,
     "art": "danva.webp"
+  },
+  {
+    "id": "desmohund",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "wWG6YZdae68YNR3E",
+    "name": "Desmohund",
+    "level": 1,
+    "art": "desmohund.webp"
+  },
+  {
+    "id": "onak",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "x6s8rksF5BhZS2zs",
+    "name": "Onak",
+    "level": 3,
+    "art": "onak.webp"
+  },
+  {
+    "id": "tormonshild",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "yLDEDOpiBK8kEiqy",
+    "name": "Tormonshild",
+    "level": 1,
+    "art": "tormonshild.webp"
+  },
+  {
+    "id": "tormonwird",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "zjmH2o7EaajaQ7sQ",
+    "name": "Tormonwird",
+    "level": 5,
+    "art": "tormonwird.webp"
+  },
+  {
+    "id": "erissa",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "zsLGLqVmxIcRFMpU",
+    "name": "Erissa",
+    "level": 5,
+    "art": "erissa.webp"
+  },
+  {
+    "id": "nalushae_meronis",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "zzEDrDtpiwCaUfym",
+    "name": "Nalushae Meronis",
+    "level": 8,
+    "art": "nalushae-meronis.webp"
   }
 ]
