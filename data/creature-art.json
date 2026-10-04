@@ -42542,5 +42542,189 @@
     "name": "Daelum",
     "level": 4,
     "art": "daelum.webp"
+  },
+  {
+    "id": "kylix",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "0HqkraclIhcufOKV",
+    "name": "Kylix",
+    "level": 4,
+    "art": "kylix.webp"
+  },
+  {
+    "id": "velavi",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "0x0fDMdBkHKMy5lc",
+    "name": "Velavi",
+    "level": 2,
+    "art": "velavi.webp"
+  },
+  {
+    "id": "novice_hellknight_armiger",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "19qM1w33WRgEkWfs",
+    "name": "Novice Hellknight Armiger",
+    "level": 1,
+    "art": "novice-hellknight-armiger.webp"
+  },
+  {
+    "id": "brakknap",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "2M4b3A4z8pFhv3Yo",
+    "name": "Brakknap",
+    "level": 4,
+    "art": "brakknap.webp"
+  },
+  {
+    "id": "insidiator",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "2udvG4UPEhyHGNFC",
+    "name": "Insidiator",
+    "level": 1,
+    "art": "insidiator.webp"
+  },
+  {
+    "id": "nayren_allurajix",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "3hqzhMm73q6DW9O8",
+    "name": "Nayren Allurajix",
+    "level": 10,
+    "art": "nayren-allurajix.webp"
+  },
+  {
+    "id": "caeto_vulaunex",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "3uUi2rjOEzJGCBkW",
+    "name": "Caeto Vulaunex",
+    "level": 11,
+    "art": "caeto-vulaunex.webp"
+  },
+  {
+    "id": "spring_s_crown",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "4PqTl6r2Rhhy3VPG",
+    "name": "Spring's Crown",
+    "level": 8,
+    "art": "spring-s-crown.webp"
+  },
+  {
+    "id": "adjutant_hellknight_armiger",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "4VqBGT1lcnLJLx8p",
+    "name": "Adjutant Hellknight Armiger",
+    "level": 2,
+    "art": "adjutant-hellknight-armiger.webp"
+  },
+  {
+    "id": "gliding_river_snake",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "7Bi8RASEG7d3tJ3I",
+    "name": "Gliding River Snake",
+    "level": 0,
+    "art": "gliding-river-snake.webp"
+  },
+  {
+    "id": "lefranek_meyal",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "8AhnhoXS2sLBTuhQ",
+    "name": "Lefranek Meyal",
+    "level": 4,
+    "art": "lefranek-meyal.webp"
+  },
+  {
+    "id": "captain_lamperia_bane",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "9a0GH3YuaACzsyof",
+    "name": "Captain Lamperia Bane",
+    "level": 3,
+    "art": "captain-lamperia-bane.webp"
+  },
+  {
+    "id": "jordis_serelli",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "9kzG7LNaANR5KgPJ",
+    "name": "Jordis Serelli",
+    "level": 6,
+    "art": "jordis-serelli.webp"
+  },
+  {
+    "id": "fiendish_viro_ahala",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "9yEUbecGHPTC6g34",
+    "name": "Fiendish Viro Ahala",
+    "level": 7,
+    "art": "fiendish-viro-ahala.webp"
+  },
+  {
+    "id": "novitiate_of_the_golden_erinys",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "AD3fOtI0mYYbXjSJ",
+    "name": "Novitiate of the Golden Erinys",
+    "level": 1,
+    "art": "novitiate-of-the-golden-erinys.webp"
+  },
+  {
+    "id": "chelaxian_recruit",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "AcoAyXQwJiEv8Y9g",
+    "name": "Chelaxian Recruit",
+    "level": 0,
+    "art": "chelaxian-recruit.webp"
+  },
+  {
+    "id": "odvolos",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "CBHCri79DDf3I6jf",
+    "name": "Odvolos",
+    "level": 5,
+    "art": "odvolos.webp"
+  },
+  {
+    "id": "drunken_isgeri_slayer",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "DWBXx7VxRwG4puOu",
+    "name": "Drunken Isgeri Slayer",
+    "level": 1,
+    "art": "drunken-isgeri-slayer.webp"
+  },
+  {
+    "id": "draconic_fumecrux",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "Euq1c2U0FLOouYhM",
+    "name": "Draconic Fumecrux",
+    "level": 9,
+    "art": "draconic-fumecrux.webp"
+  },
+  {
+    "id": "sister_endreah",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "IAWxtdNmkufzBU0b",
+    "name": "Sister Endreah",
+    "level": 4,
+    "art": "sister-endreah.webp"
+  },
+  {
+    "id": "deathless_acolyte_of_urgathoa",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "erBM6OE5b4SBHWGb",
+    "name": "Deathless Acolyte of Urgathoa",
+    "level": 3,
+    "art": "deathless-acolyte-of-urgathoa-lob.webp"
+  },
+  {
+    "id": "elite_ort",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "fqBgGIySy1qFjzgK",
+    "name": "Elite Ort",
+    "level": 0,
+    "art": "ort.webp"
+  },
+  {
+    "id": "redcap_zxazt",
+    "pack": "pf2e.hellbreakers-bestiary",
+    "docId": "zxaZTLafp2kge1ww",
+    "name": "Redcap",
+    "level": 5,
+    "art": "redcap.webp"
   }
 ]
