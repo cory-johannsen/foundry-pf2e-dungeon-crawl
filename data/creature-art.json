@@ -42966,5 +42966,189 @@
     "name": "Adiutor",
     "level": 5,
     "art": "adiutor.webp"
+  },
+  {
+    "id": "netherworld_sprigjack",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "08mgjiQYW93wV8bw",
+    "name": "Netherworld Sprigjack",
+    "level": -1,
+    "art": "netherworld-sprigjack.webp"
+  },
+  {
+    "id": "ilnaphrae",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "0uwWDU01Ox58SysJ",
+    "name": "Ilnaphrae",
+    "level": 6,
+    "art": "ilnaphrae.webp"
+  },
+  {
+    "id": "web_grub",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "1xZBbOp6wBPjwTIf",
+    "name": "Web Grub",
+    "level": 0,
+    "art": "web-grub.webp"
+  },
+  {
+    "id": "idebilor",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "2CTbUmwKQUL2Wlqm",
+    "name": "Idebilor",
+    "level": 7,
+    "art": "idebilor.webp"
+  },
+  {
+    "id": "xarbaene",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "3W3H81R5UtM4C9jv",
+    "name": "Xarbaene",
+    "level": 6,
+    "art": "xarbaene.webp"
+  },
+  {
+    "id": "camazotz_cultist",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "5BdcWUKNe0Y8Jiaq",
+    "name": "Camazotz Cultist",
+    "level": 0,
+    "art": "camazotz-cultist.webp"
+  },
+  {
+    "id": "vye",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "5iDn7TxzmnOT21hZ",
+    "name": "Vye",
+    "level": 5,
+    "art": "vye.webp"
+  },
+  {
+    "id": "vampire_servitor_6pdx3",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "6Pdx3Ouodx6FzVn9",
+    "name": "Vampire Servitor",
+    "level": 4,
+    "art": "vampire-servitor.webp"
+  },
+  {
+    "id": "keeper_of_ancorato",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "6wYXYSOVgLZo7Mlm",
+    "name": "Keeper of Ancorato",
+    "level": 10,
+    "art": "keeper-of-ancorato.webp"
+  },
+  {
+    "id": "dero_punk",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "7xaJIYGhyJD31lfG",
+    "name": "Dero Punk",
+    "level": 0,
+    "art": "dero-punk.webp"
+  },
+  {
+    "id": "fulthrethu",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "9AbM3vYxqnbOKMXL",
+    "name": "Fulthrethu",
+    "level": 5,
+    "art": "fulthrethu.webp"
+  },
+  {
+    "id": "kaba",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "AXllRfXjM0MXErIL",
+    "name": "Kaba",
+    "level": 6,
+    "art": "kaba.webp"
+  },
+  {
+    "id": "bulbous_blood_ooze",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "CKm5mJeZJwRlOu27",
+    "name": "Bulbous Blood Ooze",
+    "level": 6,
+    "art": "bulbous-blood-ooze.webp"
+  },
+  {
+    "id": "rukh",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "CklGXXDkGeo1sHpZ",
+    "name": "Rukh",
+    "level": 9,
+    "art": "rukh.webp"
+  },
+  {
+    "id": "inizkar",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "DIJlAQAUQ6N5PwRO",
+    "name": "Inizkar",
+    "level": 4,
+    "art": "inizkar.webp"
+  },
+  {
+    "id": "alzira_mustanir",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "EgVCDx5HEUs7e0th",
+    "name": "Alzira Mustanir",
+    "level": 3,
+    "art": "alzira-mustanir.webp"
+  },
+  {
+    "id": "yobnobby",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "H9OOwT4rgim5axPk",
+    "name": "Yobnobby",
+    "level": 3,
+    "art": "yobnobby.webp"
+  },
+  {
+    "id": "tokainen_s_chosen",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "IBsOMXG5XrV20v7X",
+    "name": "Tokainen's Chosen",
+    "level": 5,
+    "art": "tokainen-s-chosen.webp"
+  },
+  {
+    "id": "vampire_servant",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "JJhhgVfwpHetVD8m",
+    "name": "Vampire Servant",
+    "level": 2,
+    "art": "vampire-servant.webp"
+  },
+  {
+    "id": "favored_thrall",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "K9GtagRQfD3GrMH1",
+    "name": "Favored Thrall",
+    "level": 4,
+    "art": "favored-thrall.webp"
+  },
+  {
+    "id": "zer",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "LJFUAEP9BA2SCc7J",
+    "name": "Zer",
+    "level": 6,
+    "art": "zer.webp"
+  },
+  {
+    "id": "strigoi_servant_osrwa",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "OsRWaQVTonZBmZo1",
+    "name": "Strigoi Servant",
+    "level": 10,
+    "art": "strigoi-servant.webp"
+  },
+  {
+    "id": "strigoi_progenitor_wcztu",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "wCztuDEePLs9ZsEl",
+    "name": "Strigoi Progenitor",
+    "level": 13,
+    "art": "strigoi-progenitor.webp"
   }
 ]
