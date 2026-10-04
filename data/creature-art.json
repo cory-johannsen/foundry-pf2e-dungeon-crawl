@@ -40830,5 +40830,221 @@
     "name": "Devil's Disciple",
     "level": 2,
     "art": "devil-s-disciple.webp"
+  },
+  {
+    "id": "peacock_phoenix",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "15TO8VpSxDgs10fh",
+    "name": "Peacock Phoenix",
+    "level": 17,
+    "art": "peacock-phoenix.webp"
+  },
+  {
+    "id": "ancient_one",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "rvkUJfaGLaMxdP4i",
+    "name": "Ancient One",
+    "level": 20,
+    "art": "ancient-one.webp"
+  },
+  {
+    "id": "ancient_one_the_ashen_man_s_anger",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "1o0nvZRwGkqxP1D9",
+    "name": "Ancient One (The Ashen Man's Anger)",
+    "level": 20,
+    "art": "ancient-one.webp"
+  },
+  {
+    "id": "goldgorger",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "1zkyfGLVOn3D1kBv",
+    "name": "Goldgorger",
+    "level": 18,
+    "art": "goldgorger.webp"
+  },
+  {
+    "id": "tormented_hero",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "2Sk4mzY8RSgOytMT",
+    "name": "Tormented Hero",
+    "level": 18,
+    "art": "tormented-hero.webp"
+  },
+  {
+    "id": "maze_weaver",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "2Trva9wzJsfYgUbI",
+    "name": "Maze-Weaver",
+    "level": 13,
+    "art": "maze-weaver.webp"
+  },
+  {
+    "id": "animate_nightmare",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "AJ5x96JQzEL1kxPc",
+    "name": "Animate Nightmare (Disaster)",
+    "level": 17,
+    "art": "animate-nightmare.webp"
+  },
+  {
+    "id": "animate_nightmare_disorder",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "MVvscUip8Qu7AgWl",
+    "name": "Animate Nightmare (Disorder)",
+    "level": 17,
+    "art": "animate-nightmare.webp"
+  },
+  {
+    "id": "animate_nightmare_famine",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "9m1zbd4EyWSYHOB3",
+    "name": "Animate Nightmare (Famine)",
+    "level": 17,
+    "art": "animate-nightmare.webp"
+  },
+  {
+    "id": "animate_nightmare_plague",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "3yq9O31OreSgxhux",
+    "name": "Animate Nightmare (Plague)",
+    "level": 17,
+    "art": "animate-nightmare.webp"
+  },
+  {
+    "id": "elder_shantak",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "4ybD5OG5HGvhEIfK",
+    "name": "Elder Shantak",
+    "level": 15,
+    "art": "elder-shantak.webp"
+  },
+  {
+    "id": "clockwork_whale",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "5vuhv7BQ7AsNCLXu",
+    "name": "Clockwork Whale",
+    "level": 17,
+    "art": "clockwork-whale.webp"
+  },
+  {
+    "id": "commander_yrasthura",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "7bMz3ppqOSnp4iMo",
+    "name": "Commander Yrasthura",
+    "level": 16,
+    "art": "commander-yrasthura.webp"
+  },
+  {
+    "id": "natbakh",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "8NoFgZU5BRlGQ6yV",
+    "name": "Natbakh",
+    "level": 14,
+    "art": "natbakh.webp"
+  },
+  {
+    "id": "adamantine_sentinel",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "AKJ3ZHpR5i7dOmKy",
+    "name": "Adamantine Sentinel",
+    "level": 15,
+    "art": "adamantine-sentinel.webp"
+  },
+  {
+    "id": "phantom_of_desire",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "AfmWLF5xxPJtrmua",
+    "name": "Phantom of Desire",
+    "level": 18,
+    "art": "phantom-of-desire.webp"
+  },
+  {
+    "id": "greedspawn_cpknc",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "CPkNCHW9cGAUq099",
+    "name": "Greedspawn",
+    "level": 10,
+    "art": "greedspawn.webp"
+  },
+  {
+    "id": "risen_runelord_aethusa_ii",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "D6LQmc3jwvoLf7gc",
+    "name": "Risen Runelord Aethusa II",
+    "level": 18,
+    "art": "risen-runelord-aethusa-ii.webp"
+  },
+  {
+    "id": "elemental_tsunami_drow3",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "DroW3AHUW6eXRspK",
+    "name": "Elemental Tsunami",
+    "level": 11,
+    "art": "elemental-tsunami.webp"
+  },
+  {
+    "id": "silent_devotee",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "E3MQAayLHyz1Cgm9",
+    "name": "Silent Devotee",
+    "level": 14,
+    "art": "silent-devotee.webp"
+  },
+  {
+    "id": "quoroc",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "EIExtvIGAnR420JB",
+    "name": "Quoroc",
+    "level": 15,
+    "art": "quoroc.webp"
+  },
+  {
+    "id": "pridespawn_sentinel",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "EsCu5ehBgpwRHKGZ",
+    "name": "Pridespawn Sentinel",
+    "level": 12,
+    "art": "pridespawn-sentinel.webp"
+  },
+  {
+    "id": "aethusa",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "GUxewaLEqttNr7Hg",
+    "name": "Aethusa",
+    "level": 15,
+    "art": "aethusa.webp"
+  },
+  {
+    "id": "vesinra",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "Gub2adEgrkMlWWrf",
+    "name": "Vesinra",
+    "level": 11,
+    "art": "vesinra.webp"
+  },
+  {
+    "id": "risen_runelord_haphrama",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "Hv6AOuRRRA2arzEt",
+    "name": "Risen Runelord Haphrama",
+    "level": 16,
+    "art": "risen-runelord-haphrama.webp"
+  },
+  {
+    "id": "trinity_initiate",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "KMQRSpWcxf7sXjp9",
+    "name": "Trinity Initiate",
+    "level": 8,
+    "art": "trinity-initiate.webp"
+  },
+  {
+    "id": "misery_siktempora_t9iis",
+    "pack": "pf2e.revenge-of-the-runelords-bestiary",
+    "docId": "T9iiSzluw5ITmbcL",
+    "name": "Misery Siktempora",
+    "level": 12,
+    "art": "misery-siktempora.webp"
   }
 ]
