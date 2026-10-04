@@ -1175,6 +1175,23 @@ function partyActorIds() {
   return new Set((game.actors?.party?.members ?? []).map((m) => m.id));
 }
 
+/** Triggers PF2e's own real Rest for the Night action (HP, spell slots,
+ * and other downtime recovery per PF2e's actual rules) for every current
+ * party member -- #613: a safe_rest room previously advanced the dungeon
+ * narratively with zero mechanical effect. `skipDialog: true` bypasses
+ * PF2e's own confirmation dialog -- required so a GM-less run (nobody
+ * watching to click it) doesn't hang forever waiting for an answer
+ * nobody can give, matching this room's existing "no GM click required"
+ * auto-resolve philosophy. A no-op when there's no party to rest; does
+ * NOT catch a rejection from restForTheNight itself -- the caller
+ * decides how to handle that (see handleDungeonDoorOpened's own
+ * try/catch around this call). */
+export async function restPartyForTheNight() {
+  const partyMembers = game.actors?.party?.members ?? [];
+  if (partyMembers.length === 0) return;
+  await game.pf2e.actions.restForTheNight({ actors: partyMembers, skipDialog: true });
+}
+
 /** An actor should only ever have one token in the world at a time (the party
  * moves as a unit between the dungeon and wherever they came from) — used by
  * both placePartyInRoom and teardownDungeonRun's return-trip placement. */

@@ -38,7 +38,7 @@
 **Interfaces:**
 - Produces: `restPartyForTheNight(): Promise<void>` (exported) — reads `game.actors?.party?.members ?? []` and calls `game.pf2e.actions.restForTheNight({ actors, skipDialog: true })`. Never throws — callers (Task 2) don't need their own try/catch around it, though Task 2 adds one anyway at the call site for defense-in-depth consistency with the surrounding function's own style. A no-op (never calls `restForTheNight` at all) when there are no party members.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/dungeon-scene-rest-for-the-night.test.mjs`:
 
@@ -84,12 +84,12 @@ describe("restPartyForTheNight", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run tests/dungeon-scene-rest-for-the-night.test.mjs`
 Expected: FAIL with "Cannot find module... restPartyForTheNight" (not exported yet)
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 In `scripts/dungeon-scene.mjs`, add near `partyActorIds()` (~line 1136):
 
@@ -112,12 +112,12 @@ export async function restPartyForTheNight() {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run tests/dungeon-scene-rest-for-the-night.test.mjs`
 Expected: PASS (all 3 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-scene-rest-for-the-night.test.mjs
