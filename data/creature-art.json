@@ -43518,5 +43518,101 @@
     "name": "Nalushae Meronis",
     "level": 8,
     "art": "nalushae-meronis.webp"
+  },
+  {
+    "id": "scorching_sun_cultist",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "257nqvaDItlttlG2",
+    "name": "Scorching Sun Cultist",
+    "level": 2,
+    "art": "scorching-sun-cultist.webp"
+  },
+  {
+    "id": "mechanical_assistant",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "5d0K1rXEMZkILjxu",
+    "name": "Mechanical Assistant",
+    "level": 5,
+    "art": "mechanical-assistant.webp"
+  },
+  {
+    "id": "krashk",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "CriBWDFr8l2SPDVO",
+    "name": "Krashk",
+    "level": 5,
+    "art": "krashk.webp"
+  },
+  {
+    "id": "seddek",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "TLA7lez6eCf2Qp8v",
+    "name": "Seddek",
+    "level": 8,
+    "art": "seddek.webp"
+  },
+  {
+    "id": "noolik",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "Ziy3L849K2Fayesa",
+    "name": "Noolik",
+    "level": 4,
+    "art": "noolik.webp"
+  },
+  {
+    "id": "sand_wolf",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "gBjrp5li1LCbIO8X",
+    "name": "Sand Wolf",
+    "level": 5,
+    "art": "sand-wolf.webp"
+  },
+  {
+    "id": "scrapborn",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "hKXwujYX7CDtsZ5P",
+    "name": "Scrapborn",
+    "level": 5,
+    "art": "scrapborn.webp"
+  },
+  {
+    "id": "vulpinal_twin",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "qsgUxFmUK9rohj0M",
+    "name": "Vulpinal Twin",
+    "level": 6,
+    "art": "vulpinal-twin.webp"
+  },
+  {
+    "id": "usij_cultist",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "rCbzflYQbsqxlmiG",
+    "name": "Usij Cultist",
+    "level": 3,
+    "art": "usij-cultist-lob.webp"
+  },
+  {
+    "id": "amar",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "uo8oScVY4NLRCuo2",
+    "name": "Amar",
+    "level": 6,
+    "art": "amar.webp"
+  },
+  {
+    "id": "jimbilin",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "xfc7t2z45drvafdK",
+    "name": "Jimbilin",
+    "level": 4,
+    "art": "jimbilin.webp"
+  },
+  {
+    "id": "zridi",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "xwEcqgkn9Fvrhpv7",
+    "name": "Zridi",
+    "level": 8,
+    "art": "zridi.webp"
   }
 ]
