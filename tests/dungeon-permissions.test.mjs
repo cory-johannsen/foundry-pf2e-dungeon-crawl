@@ -7,6 +7,7 @@ import {
   isAuthorizedRequest,
   ownsPartyCharacter,
   canRelayRoomFeature,
+  userMayAttemptTrapDisable,
 } from "../scripts/dungeon-permissions.mjs";
 
 const gm = { id: "gm-1", isGM: true };
@@ -251,5 +252,49 @@ describe("canRelayRoomFeature", () => {
   });
   it("true for an active non-GM owner", () => {
     expect(canRelayRoomFeature(user, owned)).toBe(true);
+  });
+});
+
+describe("isAuthorizedRequest: attemptTrapDisable (#754)", () => {
+  const opts = { ownsPartyCharacter: true };
+  it("authorizes a party-character owner with no host", () => {
+    expect(isAuthorizedRequest("attemptTrapDisable", "p", { hostUserId: null }, opts)).toBe(true);
+  });
+  it("authorizes the host without ownership", () => {
+    expect(isAuthorizedRequest("attemptTrapDisable", "h", { hostUserId: "h" })).toBe(true);
+  });
+  it("rejects a stranger", () => {
+    expect(isAuthorizedRequest("attemptTrapDisable", "p", { hostUserId: "h" })).toBe(false);
+  });
+  it("rejects a completed run and no run", () => {
+    expect(isAuthorizedRequest("attemptTrapDisable", "p", { completed: true }, opts)).toBe(false);
+    expect(isAuthorizedRequest("attemptTrapDisable", "p", null, opts)).toBe(false);
+  });
+  it("never authorizes a missing requestingUserId", () => {
+    expect(isAuthorizedRequest("attemptTrapDisable", undefined, { hostUserId: "h" }, opts)).toBe(false);
+  });
+});
+
+describe("userMayAttemptTrapDisable (#754)", () => {
+  const actor = { id: "a1", ownership: { p: 3 } };
+  const partyMembers = [{ id: "a1" }];
+  it("owner of a party actor may", () => {
+    expect(userMayAttemptTrapDisable({ userId: "p", actor, partyMembers })).toBe(true);
+  });
+  it("GM and host may", () => {
+    expect(userMayAttemptTrapDisable({ userId: "g", isGM: true, actor, partyMembers: [] })).toBe(true);
+    expect(userMayAttemptTrapDisable({ userId: "h", isHost: true, actor, partyMembers: [] })).toBe(true);
+  });
+  it("non-owner may not (even observer level)", () => {
+    expect(userMayAttemptTrapDisable({ userId: "x", actor, partyMembers })).toBe(false);
+    expect(userMayAttemptTrapDisable({ userId: "p", actor: { id: "a1", ownership: { p: 2 } }, partyMembers })).toBe(false);
+  });
+  it("non-party actor may not", () => {
+    expect(userMayAttemptTrapDisable({ userId: "p", actor, partyMembers: [{ id: "zz" }] })).toBe(false);
+    expect(userMayAttemptTrapDisable({ userId: "p", actor })).toBe(false);
+  });
+  it("missing actor or user may not", () => {
+    expect(userMayAttemptTrapDisable({ userId: "p", actor: null, partyMembers })).toBe(false);
+    expect(userMayAttemptTrapDisable({ actor, partyMembers })).toBe(false);
   });
 });

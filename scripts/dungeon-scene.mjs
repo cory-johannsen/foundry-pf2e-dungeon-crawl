@@ -88,6 +88,7 @@ import {
 import { isValidNarrativeTemplate } from "./narrative-mechanics.mjs";
 import { makeFoundryApi } from "./foundry-api.mjs";
 import { selectTrap } from "./trap-library.mjs";
+import { classifyTrap } from "./trap-combat.mjs";
 import { trapFootprintSize } from "./trap-mechanics.mjs";
 import { splitmix32, seedFromString } from "./prng.mjs";
 
@@ -1186,6 +1187,18 @@ export async function populateSlotTrap(
   );
   const actor = spawned && game.actors.get(spawned.actorId);
   if (actor) {
+    // #754: players can't read the hazard actor, so the click-to-disable
+    // prompt reads its options from the TOKEN's flags.
+    const hazardTokenDoc = scene.tokens.get(spawned.tokenId);
+    await hazardTokenDoc?.setFlag(
+      MODULE_ID,
+      "trapDisableChecks",
+      classifyTrap(actor).disableChecks.map(({ skill, dc, label }) => ({
+        skill,
+        dc,
+        label: label ?? skill,
+      })),
+    );
     await actor.setFlag(MODULE_ID, "trapCustomization", {
       status: "pending",
       locationTag,
