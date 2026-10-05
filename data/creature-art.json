@@ -46718,5 +46718,93 @@
     "name": "Ruzadoya Swiftmane",
     "level": 14,
     "art": "ruzadoya-swiftmane.webp"
+  },
+  {
+    "id": "tanglebones",
+    "pack": "pf2e.malevolence-bestiary",
+    "docId": "1XrwqxEW8rUr8238",
+    "name": "Tanglebones",
+    "level": 7,
+    "art": "tanglebones.webp"
+  },
+  {
+    "id": "ixirizmid",
+    "pack": "pf2e.malevolence-bestiary",
+    "docId": "1wb9Vi3V4GDeOBCt",
+    "name": "Ixirizmid",
+    "level": 8,
+    "art": "ixirizmid.webp"
+  },
+  {
+    "id": "undead_brain_collector",
+    "pack": "pf2e.malevolence-bestiary",
+    "docId": "JMXNSC7M2SRGZbhy",
+    "name": "Undead Brain Collector",
+    "level": 7,
+    "art": "undead-brain-collector.webp"
+  },
+  {
+    "id": "anitoli_nostraema",
+    "pack": "pf2e.malevolence-bestiary",
+    "docId": "Wkn2wZbsNSifAnBh",
+    "name": "Anitoli Nostraema",
+    "level": 6,
+    "art": "anitoli-nostraema.webp"
+  },
+  {
+    "id": "haunted_nosoi",
+    "pack": "pf2e.malevolence-bestiary",
+    "docId": "Y9GX6pST1P9Y3Okh",
+    "name": "Haunted Nosoi",
+    "level": 2,
+    "art": "haunted-nosoi.webp"
+  },
+  {
+    "id": "nils_kelveken",
+    "pack": "pf2e.malevolence-bestiary",
+    "docId": "YSL27Oq2xFIzrq9u",
+    "name": "Nils Kelveken",
+    "level": 5,
+    "art": "nils-kelveken.webp"
+  },
+  {
+    "id": "esobok_ghoul",
+    "pack": "pf2e.malevolence-bestiary",
+    "docId": "bEFdPjTLtNboaTg2",
+    "name": "Esobok Ghoul",
+    "level": 5,
+    "art": "esobok-ghoul.webp"
+  },
+  {
+    "id": "ioseff_xarwin",
+    "pack": "pf2e.malevolence-bestiary",
+    "docId": "n3taMFiViyEQ5JAi",
+    "name": "Ioseff Xarwin",
+    "level": 9,
+    "art": "ioseff-xarwin.webp"
+  },
+  {
+    "id": "yianyin",
+    "pack": "pf2e.malevolence-bestiary",
+    "docId": "sdpB7n2LbzVRqrnv",
+    "name": "Yianyin",
+    "level": 7,
+    "art": "yianyin.webp"
+  },
+  {
+    "id": "xarwin_s_manifestation",
+    "pack": "pf2e.malevolence-bestiary",
+    "docId": "vcFMNQf9vg7r11ca",
+    "name": "Xarwin's Manifestation",
+    "level": 7,
+    "art": "xarwin-s-manifestation.webp"
+  },
+  {
+    "id": "corrupted_nosoi",
+    "pack": "pf2e.malevolence-bestiary",
+    "docId": "x0RGlIHXDN9y0D08",
+    "name": "Corrupted Nosoi",
+    "level": 2,
+    "art": "corrupted-nosoi.webp"
   }
 ]
