@@ -54,7 +54,11 @@ import {
   planStubGeometries,
   routingForLayout,
 } from "./dungeon-layout.mjs";
-import { freeSpotInRect } from "./placement.mjs";
+import { freeSpotInRect, footprint } from "./placement.mjs";
+import {
+  buildRoomFeatureTokenActorData,
+  hasRoomFeatureToken,
+} from "./room-feature-tokens.mjs";
 import { generateEncounter } from "./encounter-generator.mjs";
 import {
   getRunState,
@@ -1054,6 +1058,32 @@ export async function populateSlotEncounter(
   });
 }
 
+/** Spawns one room-feature prop token (#611/#623) -- a player-targetable
+ * scene object for a treasure/puzzle/skill-challenge room. Idempotent: a
+ * rebuild of an already-built room must not duplicate the prop. */
+async function spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed }) {
+  const existing = scene.tokens.map((t) => t.flags?.[MODULE_ID]);
+  if (hasRoomFeatureToken(existing, roomId, kind)) return;
+  const rect = roomRect(seed, roomId, rank, col);
+  const occupied = scene.tokens.map((t) => footprint(t, GRID_SIZE));
+  const spot = freeSpotInRect({ occupied, rect, gw: 1, gh: 1 }) ?? {
+    gx: rect.gx,
+    gy: rect.gy,
+  };
+  const actorData = buildRoomFeatureTokenActorData(kind, roomId);
+  const [actor] = await Actor.createDocuments([actorData]);
+  const td = await actor.getTokenDocument({
+    x: toPixels(spot.gx),
+    y: toPixels(spot.gy),
+  });
+  // The flags live on the actor; a token document does NOT inherit actor
+  // flags (only prototypeToken flags), and both the targetToken hook and
+  // the idempotency check read the TOKEN's own flags -- so set them here.
+  const tokenData = td.toObject();
+  tokenData.flags = { ...tokenData.flags, ...actorData.flags };
+  await scene.createEmbeddedDocuments("Token", [tokenData]);
+}
+
 /**
  * Spawn a real trap-tagged hazard from `pf2e.hazards` inside slot's own
  * footprint (#135), for a `trap` room (#32; `buildPopulateAndUnlockGraphNode`'s
@@ -1712,6 +1742,11 @@ export async function buildPopulateAndUnlockGraphNode(
         depthBias: depthBiasFor({ rank, maxRank: state.maxRank, isGoal: room.isGoal }),
         template,
       });
+      await spawnRoomFeatureToken(scene, room.id, "skill_challenge", {
+        rank,
+        col,
+        seed: state.seed,
+      });
     }
     // #32: puzzle and trap are now decided up front as their own room kinds
     // (dungeon-deck.mjs's ROOM_KIND_WEIGHTS/roomKindAt), so this dispatches
@@ -1754,6 +1789,11 @@ export async function buildPopulateAndUnlockGraphNode(
         summary: setpiece.summary ?? null,
         dcAdjustment: dcAdjustmentForTier(state.difficulty),
       });
+      await spawnRoomFeatureToken(scene, room.id, "puzzle", {
+        rank,
+        col,
+        seed: state.seed,
+      });
     }
     // #167: a narrative room's own selected content is attached here too
     // (#165 gives it a setpieceId the same way a puzzle or trap room has
@@ -1784,6 +1824,11 @@ export async function buildPopulateAndUnlockGraphNode(
       const setpiece = setpieces.find((s) => s.id === room.setpieceId);
       if (setpiece?.kind === "treasure") {
         await ensureTreasureState(scene.id, room.id, { setpiece });
+        await spawnRoomFeatureToken(scene, room.id, "treasure", {
+          rank,
+          col,
+          seed: state.seed,
+        });
       }
     }
     if (unlock) await unlockDoorsFromRoom(scene, room.id, childIds, state.hiddenEdges[room.id] ?? []);

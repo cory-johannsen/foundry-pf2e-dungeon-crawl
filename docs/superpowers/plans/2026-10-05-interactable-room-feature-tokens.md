@@ -347,7 +347,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No unit test for this task: it's build-time glue creating real Foundry Actor/Token documents, the same category of code this codebase has consistently verified live rather than mocked (e.g. `populateSlotTrap`, `placePartyInRoom` have no unit tests of their own either). Verified live in Step 2 below.
 
-- [ ] **Step 1: Add the spawn helper and wire it into all three branches**
+- [x] **Step 1: Add the spawn helper and wire it into all three branches**
 
 Add this import to `scripts/dungeon-scene.mjs`'s existing import block:
 
@@ -438,7 +438,7 @@ echo 'return canvas.scene.tokens.filter(t => t.getFlag("pf2e-dungeon-crawl", "ro
 
 Expected: one entry per treasure/puzzle/skill-challenge room already built in that run, each `actorType: "loot"` with the right `kind`/`roomId`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs

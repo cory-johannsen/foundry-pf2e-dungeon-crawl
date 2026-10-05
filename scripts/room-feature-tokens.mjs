@@ -62,7 +62,14 @@ const moduleInFlight = new Set();
  */
 export async function runRoomFeatureAction(
   { sceneId, roomId, kind },
-  { getRunState, claimTreasureFor, revealRoomFeature, inFlight = moduleInFlight },
+  {
+    // MUST be the real SYNCHRONOUS getRunState: the in-flight lock's
+    // correctness relies on there being no await between plan and lock.
+    getRunState,
+    claimTreasureFor,
+    revealRoomFeature,
+    inFlight = moduleInFlight,
+  },
 ) {
   const plan = planRoomFeatureAction({ state: getRunState(sceneId), kind, roomId });
   if (!plan.ok) return { ok: false, reason: plan.reason };
@@ -93,4 +100,16 @@ export function routeTargetTokenEvent({ userId, gameUserId, targeted, flags, sce
   const roomId = flags.roomFeatureRoomId;
   if (!planRoomFeatureAction({ state, kind, roomId }).ok) return null;
   return { sceneId, roomId, kind };
+}
+
+/**
+ * Whether a prop for (roomId, kind) already exists. `flagsList` is an
+ * iterable of each scene token's `flags["pf2e-dungeon-crawl"]` object
+ * (possibly undefined). Pure; lets a rebuild skip spawning duplicates.
+ */
+export function hasRoomFeatureToken(flagsList, roomId, kind) {
+  for (const f of flagsList ?? []) {
+    if (f?.roomFeatureRoomId === roomId && f?.roomFeatureKind === kind) return true;
+  }
+  return false;
 }

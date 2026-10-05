@@ -5,6 +5,7 @@ import {
   planRoomFeatureAction,
   runRoomFeatureAction,
   routeTargetTokenEvent,
+  hasRoomFeatureToken,
 } from "../scripts/room-feature-tokens.mjs";
 
 describe("ROOM_FEATURE_TOKEN_TYPES", () => {
@@ -213,5 +214,24 @@ describe("routeTargetTokenEvent", () => {
     b.flags = { roomFeatureKind: kind, roomFeatureRoomId: "r1" };
     b.state = makeState({ rooms: { r1: { kind } } });
     expect(routeTargetTokenEvent(b)).toEqual({ sceneId: "s", roomId: "r1", kind });
+  });
+});
+
+describe("hasRoomFeatureToken", () => {
+  const list = [
+    undefined,
+    {},
+    { roomFeatureKind: "treasure", roomFeatureRoomId: "r1" },
+  ];
+  it("finds a matching room+kind", () => {
+    expect(hasRoomFeatureToken(list, "r1", "treasure")).toBe(true);
+  });
+  it("false for another room or another kind", () => {
+    expect(hasRoomFeatureToken(list, "r2", "treasure")).toBe(false);
+    expect(hasRoomFeatureToken(list, "r1", "puzzle")).toBe(false);
+  });
+  it("false for empty or missing input", () => {
+    expect(hasRoomFeatureToken([], "r1", "treasure")).toBe(false);
+    expect(hasRoomFeatureToken(undefined, "r1", "treasure")).toBe(false);
   });
 });
