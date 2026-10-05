@@ -236,12 +236,12 @@ Expected: `moved 0 files, <N> already at destination`, `rewrote <E> creature-art
 Run: `git status --short | head -20` and `git diff --stat | tail -5`
 Expected: entries show as `R` (rename) for the moved files, not separate `D`/`A` pairs — `git mv` plus unchanged file content is exactly what git's own rename detection is built for.
 
-- [ ] **Step 6: Run the existing asset-existence test to confirm every entry's new path actually resolves**
+- [x] **Step 6: Run the existing asset-existence test to confirm every entry's new path actually resolves**
 
 Run: `npx vitest run tests/creature-art-assets.test.mjs`
 Expected: PASS (one case per entry) — this test already does `existsSync(resolve(ART_DIR, art))` for every entry with zero changes needed; if the migration left any entry's `art` field pointing at a path that doesn't exist, this is exactly what catches it.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add tools/migrate-creature-art-sources.mjs assets/creature-art data/creature-art.json tools/generate-token-art.mjs
