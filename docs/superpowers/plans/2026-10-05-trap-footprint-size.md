@@ -233,7 +233,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No unit test: `populateSlotTrap` is Foundry-glue with no existing unit-test harness (confirmed by this codebase's own established precedent for this exact function). Verified live in Step 2.
 
-- [ ] **Step 1: Wire the roll into `populateSlotTrap`**
+- [x] **Step 1: Wire the roll into `populateSlotTrap`**
 
 Add `trapFootprintSize` to the existing import from `./trap-mechanics.mjs` in `scripts/dungeon-scene.mjs` (check the current import list first; add a new import line if none exists yet from that file).
 
@@ -276,7 +276,7 @@ to:
   );
 ```
 
-- [ ] **Step 2: Live-verify with `foundry-rest`**
+- [x] **Step 2: Live-verify with `foundry-rest`** (DEFERRED: controller verifies live)
 
 Generate several real dungeon runs (varying seeds) and, for each, read back every trap hazard token's own size:
 
@@ -286,7 +286,7 @@ echo 'const sizes = canvas.scene.tokens.filter(t => t.getFlag("pf2e-dungeon-craw
 
 Expected, across several real runs: a mix of `{1,1}`/`{2,1}`/`{1,2}`/`{2,2}` sizes in roughly the 70/20/10 proportions over enough samples, and every reported token actually exists on the scene at a real, sane position (no overlap with room geometry/walls — spot-check at least one 2×2 trap visually or via its own `x`/`y` against the room's own rect bounds). Confirm a trap placed in a visibly small/cramped room still produces a usable (even if awkwardly positioned) trap rather than erroring.
 
-- [ ] **Step 3: Bump module.json's version**
+- [x] **Step 3: Bump module.json's version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -296,7 +296,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **minor** bump (a real new mechanic), using whatever the fetch above shows as current.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs module.json
