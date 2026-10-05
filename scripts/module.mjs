@@ -379,26 +379,27 @@ Hooks.on("targetToken", (user, token, targeted) =>
   triggerRoomFeatureToken(user, token, targeted),
 );
 
-/** A plain left-click on a token only selects it (and does nothing at all on
- * a token the player doesn't own), so it never fires `targetToken`. Treat a
- * click on a room-feature prop as the interaction too. The original click
- * handler still runs, so selection/target-tool behavior is unchanged. */
-Hooks.once("ready", () => {
-  const proto = CONFIG.Token?.objectClass?.prototype;
-  const original = proto?._onClickLeft;
-  if (typeof original !== "function") return;
-  proto._onClickLeft = function (event, ...rest) {
-    try {
-      if (
-        game.activeTool !== "target" &&
-        this.document?.flags?.[MODULE_ID]?.roomFeatureKind
-      )
-        void triggerRoomFeatureToken(game.user, this, true);
-    } catch (err) {
-      console.error(`${MODULE_ID} | room-feature click failed`, err);
-    }
-    return original.call(this, event, ...rest);
-  };
+/** A plain left-click on a token only selects it, and Foundry never routes
+ * a click on a token the player doesn't own through its own click handlers,
+ * so nothing reaches `targetToken`. Bind a pointer listener straight on the
+ * prop's canvas object instead (independent of Foundry's permission gating)
+ * and treat a primary-button press as the interaction. Idempotent per token. */
+function bindRoomFeatureClick(token) {
+  if (!token?.document?.flags?.[MODULE_ID]?.roomFeatureKind) return;
+  if (token._pf2edcRoomFeatureBound || typeof token.on !== "function") return;
+  token._pf2edcRoomFeatureBound = true;
+  token.on("pointerdown", (event) => {
+    if (event?.button !== undefined && event.button !== 0) return;
+    if (game.activeTool === "target") return;
+    triggerRoomFeatureToken(game.user, token, true).catch((err) =>
+      console.error(`${MODULE_ID} | room-feature click failed`, err),
+    );
+  });
+}
+
+Hooks.on("drawToken", bindRoomFeatureClick);
+Hooks.on("canvasReady", () => {
+  for (const token of canvas.tokens?.placeables ?? []) bindRoomFeatureClick(token);
 });
 
 /** #439: binds the "Turn back" button on the retreat chat card (posted by
