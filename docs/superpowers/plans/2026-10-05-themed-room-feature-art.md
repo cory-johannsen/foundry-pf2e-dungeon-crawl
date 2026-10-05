@@ -700,7 +700,7 @@ git commit -m "#750: door walls take themed art from their room's theme"
 - Consumes: `ROOM_FEATURE_ART_THEMES`, `ROOM_FEATURE_ART_KINDS` (Task 1); the generator's existing subject shape `{ id, file, dir, icon, prompt, avoid }` and its `ALL` list.
 - Produces: `ROOM_FEATURE_ART` — 32 subjects with ids `rf-<theme>-<kind>`, `dir` `assets/room-features/<theme>`, `file` `<kind>`, `icon: true`; and `DOOR_SUBJECT`, the single door-description line Task 3 may edit.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `tests/room-feature-art-prompts.test.mjs`:
 
@@ -728,8 +728,8 @@ describe("ROOM_FEATURE_ART subjects", () => {
   });
   it("has no apostrophes in any prompt or avoid string", () => {
     for (const s of ROOM_FEATURE_ART) {
-      expect(s.prompt, s.id).not.toMatch(/['’]/);
-      expect(s.avoid ?? "", s.id).not.toMatch(/['’]/);
+      expect(s.prompt, s.id).not.toMatch(/[‘’]/);
+      expect(s.avoid ?? "", s.id).not.toMatch(/[‘’]/);
     }
   });
   it("asks for a plain empty background and names the theme and the object", () => {
@@ -741,12 +741,12 @@ describe("ROOM_FEATURE_ART subjects", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run tests/room-feature-art-prompts.test.mjs`
 Expected: FAIL (module not found).
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `tools/room-feature-art-prompts.mjs`:
 
@@ -811,12 +811,12 @@ In `tools/generate-token-art.mjs`, add `import { ROOM_FEATURE_ART } from './room
 
 (the line before it needs its trailing comma).
 
-- [ ] **Step 4: Run to verify it passes, then syntax-check the generator**
+- [x] **Step 4: Run to verify it passes, then syntax-check the generator**
 
 Run: `npx vitest run tests/room-feature-art-prompts.test.mjs && node --check tools/generate-token-art.mjs && node --check tools/room-feature-art-prompts.mjs`
 Expected: PASS, no syntax errors.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools/room-feature-art-prompts.mjs tools/generate-token-art.mjs tests/room-feature-art-prompts.test.mjs
