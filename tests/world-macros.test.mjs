@@ -62,11 +62,11 @@ describe("MACRO_DEFS", () => {
     expect(dungeonCrawlDef.name).toBe("Dungeon Crawl");
   });
 
-  it("leaves the generate-encounter macro's name untouched (out of #96's scope)", () => {
+  it("names the generate-encounter macro plainly, with no PF2EDC prefix (#770)", () => {
     const encounterDef = MACRO_DEFS.find((d) =>
       d.command.includes(".generateEncounter()"),
     );
-    expect(encounterDef.name).toBe("PF2EDC: Generate Encounter");
+    expect(encounterDef.name).toBe("Generate Encounter");
   });
 });
 
@@ -155,7 +155,7 @@ describe("ensureWorldMacros", () => {
     expect(Macro.createDocuments).toHaveBeenCalledTimes(1);
     const created = Macro.createDocuments.mock.calls[0][0];
     expect(created).toHaveLength(1);
-    expect(created[0].name).toBe("PF2EDC: Generate Encounter");
+    expect(created[0].name).toBe("Generate Encounter");
 
     expect(Macro.updateDocuments).toHaveBeenCalledTimes(1);
     const updated = Macro.updateDocuments.mock.calls[0][0];
@@ -163,6 +163,40 @@ describe("ensureWorldMacros", () => {
       expect.objectContaining({ _id: "stale-pf2edc", name: "Dungeon Crawl" }),
     ]);
     expect(result).toEqual({ created: 1, updated: 1 });
+  });
+
+  it('renames an existing generated macro still called "PF2EDC: Generate Encounter" in place, without creating a duplicate (#770)', async () => {
+    const encounterDef = MACRO_DEFS.find((d) =>
+      d.command.includes(".generateEncounter()"),
+    );
+    const stale = makeMacro({
+      id: "stale-encounter",
+      name: "PF2EDC: Generate Encounter",
+      command: encounterDef.command,
+      img: encounterDef.img,
+      generated: true,
+    });
+    const dungeonDef = MACRO_DEFS.find((d) =>
+      d.command.includes(".openDungeon()"),
+    );
+    const dungeonMacro = makeMacro({
+      id: "dungeon-1",
+      name: dungeonDef.name,
+      command: dungeonDef.command,
+      img: dungeonDef.img,
+      generated: true,
+    });
+    installFoundryStubs({ macros: [stale, dungeonMacro] });
+
+    const result = await ensureWorldMacros();
+
+    expect(Macro.createDocuments).not.toHaveBeenCalled();
+    expect(Macro.updateDocuments).toHaveBeenCalledTimes(1);
+    const updated = Macro.updateDocuments.mock.calls[0][0];
+    expect(updated).toEqual([
+      expect.objectContaining({ _id: "stale-encounter", name: "Generate Encounter" }),
+    ]);
+    expect(result).toEqual({ created: 0, updated: 1 });
   });
 
   it('does not match on name alone — a non-generated macro that happens to be named "Dungeon Crawl" is left untouched and a real one is still created', async () => {
