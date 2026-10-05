@@ -17,6 +17,7 @@ import {
   MID_DUNGEON_REST_THRESHOLD,
   ROOM_KIND_WEIGHTS,
   roomKindAt,
+  trapRollSucceeds,
   lootGpForTreasureRoom,
   TREASURE_GP_PER_LEVEL,
   seededPick,
@@ -929,5 +930,29 @@ describe('difficulty tiers (#412, #636)', () => {
   it('extreme still lifts the goal room of the shortest dungeon to 3', () => {
     const bias = depthBiasFor({ rank: 1, maxRank: 1, isGoal: true });
     expect(applyDifficultyShift(bias, 'extreme')).toBe(3);
+  });
+});
+
+describe('trapRollSucceeds (#754)', () => {
+  it('is deterministic for the same seed and roomId', () => {
+    expect(trapRollSucceeds('alpha', 'room-5')).toBe(trapRollSucceeds('alpha', 'room-5'));
+  });
+
+  it('is independent per room — different roomIds can roll differently under the same seed', () => {
+    const results = new Set();
+    for (let i = 0; i < 200; i += 1) results.add(trapRollSucceeds('alpha', `room-${i}`));
+    expect(results.has(true)).toBe(true);
+    expect(results.has(false)).toBe(true);
+  });
+
+  it('succeeds at approximately the same rate traps occurred at before #754 (~8.3%, weight 1 of 12)', () => {
+    let successes = 0;
+    const trials = 5000;
+    for (let i = 0; i < trials; i += 1) {
+      if (trapRollSucceeds('rate-probe-seed', `room-${i}`)) successes += 1;
+    }
+    const rate = successes / trials;
+    expect(rate).toBeGreaterThan(0.06);
+    expect(rate).toBeLessThan(0.11);
   });
 });

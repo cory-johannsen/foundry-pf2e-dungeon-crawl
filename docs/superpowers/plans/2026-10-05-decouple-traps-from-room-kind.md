@@ -598,7 +598,7 @@ At the site feeding `markRoomOutcome`'s options (confirmed this session, ~line 1
 
 At the site feeding `createRun`/`chooseRunLayout` (confirmed this session, ~line 470-510): remove the `const trapSetpieceIds = setpieces.filter((s) => s.kind === "trap").map((s) => s.id);` local, remove `trapSetpieceIds,` from the object passed to `createRun`, and remove `trap: trapSetpieceIds,` from the `setpieceIds` object passed to `chooseRunLayout`.
 
-- [ ] **Step 4: Run the full test suite**
+- [x] **Step 4: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS, every test in the repo green — this step is the real safety net for this task's otherwise untested mechanical deletions, since removing a now-unread parameter can't change any test's observable behavior if every actual consumer was already cleaned up correctly in Tasks 1-2.
@@ -625,7 +625,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `export function trapRollSucceeds(seed, roomId): boolean` (`scripts/dungeon-deck.mjs`) — consumed by `scripts/dungeon-scene.mjs`'s new build-time check.
 
-- [ ] **Step 1: Write the failing test for `trapRollSucceeds`**
+- [x] **Step 1: Write the failing test for `trapRollSucceeds`**
 
 Add to `tests/dungeon-deck.test.mjs`, in a new `describe` block:
 
@@ -655,12 +655,12 @@ describe('trapRollSucceeds (#754)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs -t "trapRollSucceeds"`
 Expected: FAIL — `trapRollSucceeds is not a function`.
 
-- [ ] **Step 3: Write `trapRollSucceeds`**
+- [x] **Step 3: Write `trapRollSucceeds`**
 
 In `scripts/dungeon-deck.mjs`, add directly after `ROOM_KIND_WEIGHTS`:
 
@@ -676,12 +676,12 @@ export function trapRollSucceeds(seed, roomId) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs -t "trapRollSucceeds"`
 Expected: PASS, all 3 tests green.
 
-- [ ] **Step 5: Commit the pure function**
+- [x] **Step 5: Commit the pure function**
 
 ```bash
 git add scripts/dungeon-deck.mjs tests/dungeon-deck.test.mjs

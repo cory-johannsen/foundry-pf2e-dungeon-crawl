@@ -38,6 +38,16 @@ export const ROOM_KIND_WEIGHTS = [
   { kind: 'treasure', weight: 2 }
 ];
 
+// #754: traps are no longer their own room kind — this independent roll
+// replaces the old weight-1-of-12 share (~8.3%), applied per-room
+// regardless of whichever kind the room actually is.
+const TRAP_CHANCE = 1 / 12;
+
+export function trapRollSucceeds(seed, roomId) {
+  const rand = splitmix32(seedFromString(`${seed}-trap-chance-${roomId}`));
+  return rand() < TRAP_CHANCE;
+}
+
 // Frequent branching, capped at 2 extra exits (3 total) — confirmed with
 // Cory during #93's design. Skewed toward 1-2 so most rooms still read as
 // a single path and full 3-way branches stay a genuine event.
