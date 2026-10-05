@@ -44862,5 +44862,117 @@
     "name": "Mutated Centaur",
     "level": 7,
     "art": "mutated-centaur.webp"
+  },
+  {
+    "id": "gray_gardener_assassin",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "7jALXqInrmh428DW",
+    "name": "Gray Gardener Assassin",
+    "level": 14,
+    "art": "gray-gardener-assassin.webp"
+  },
+  {
+    "id": "tumblak",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "9TmGRq1HjPwy1CLq",
+    "name": "Tumblak",
+    "level": 18,
+    "art": "tumblak.webp"
+  },
+  {
+    "id": "keznin_nevarmo",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "BWkN2cJBi6LtQJs3",
+    "name": "Keznin Nevarmo",
+    "level": 9,
+    "art": "keznin-nevarmo.webp"
+  },
+  {
+    "id": "gray_death",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "H2yR0dc1ztkwvOQl",
+    "name": "Gray Death",
+    "level": 20,
+    "art": "gray-death.webp"
+  },
+  {
+    "id": "mateena_lumlin",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "M2X9UUVefBA8x9gk",
+    "name": "Mateena Lumlin",
+    "level": 16,
+    "art": "mateena-lumlin.webp"
+  },
+  {
+    "id": "chakanaj",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "OVpZhrhP87gQiLGO",
+    "name": "Chakanaj",
+    "level": 14,
+    "art": "chakanaj.webp"
+  },
+  {
+    "id": "gray_gardener_director_general",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "aufhOvDz7EBjbxaQ",
+    "name": "Gray Gardener Director General",
+    "level": 16,
+    "art": "gray-gardener-director-general.webp"
+  },
+  {
+    "id": "guillotine_golem",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "dwOxqAJibYABcbW0",
+    "name": "Guillotine Golem",
+    "level": 18,
+    "art": "guillotine-golem.webp"
+  },
+  {
+    "id": "riekanoy",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "rxfr3POtEtwqg5F4",
+    "name": "Riekanoy",
+    "level": 19,
+    "art": "riekanoy.webp"
+  },
+  {
+    "id": "gray_gardener_enforcer",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "s7lkV69f0RRHwFEU",
+    "name": "Gray Gardener Enforcer",
+    "level": 17,
+    "art": "gray-gardener-enforcer.webp"
+  },
+  {
+    "id": "zintaya_calbieste",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "sBA27jit7zaH14tK",
+    "name": "Zintaya Calbieste",
+    "level": 14,
+    "art": "zintaya-calbieste.webp"
+  },
+  {
+    "id": "worm_prophet",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "vLhDuiBojzeLuWdo",
+    "name": "Worm Prophet",
+    "level": 18,
+    "art": "worm-prophet.webp"
+  },
+  {
+    "id": "conqueror_worm",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "vgWT4zQJkohRkuSI",
+    "name": "Conqueror Worm",
+    "level": 21,
+    "art": "conqueror-worm.webp"
+  },
+  {
+    "id": "miss_whisper",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "w7Y6zn3wRabuOdNv",
+    "name": "Miss Whisper",
+    "level": 9,
+    "art": "miss-whisper.webp"
   }
 ]
