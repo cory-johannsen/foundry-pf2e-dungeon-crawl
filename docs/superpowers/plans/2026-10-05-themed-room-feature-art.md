@@ -440,7 +440,7 @@ git commit -m "#750: door texture spike result and final door animation"
 - Consumes: `roomFeatureArtPath`, `doorAnimationFor` (Task 1), `loadRoomFeatureArt` (Task 1), the final `DOOR_ANIMATION` (Task 3).
 - Produces: exported `wallDoc(span, { door, ds, flags, art })` — `art` is a module-relative path or null; door walls with `art` carry `animation: doorAnimationFor(art)`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/dungeon-scene-door-art.test.mjs`:
 
@@ -613,12 +613,12 @@ describe("scene door wiring (#750)", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run tests/dungeon-scene-door-art.test.mjs`
 Expected: FAIL (`wallDoc` is not exported).
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `scripts/dungeon-scene.mjs`:
 
@@ -672,12 +672,12 @@ wallDoc(doorWall, { flags: { [MODULE_ID]: { dungeonDoorToRoomId: room.id, dungeo
 wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonRevealDoorForSlot: room.id, dungeonDoorFromRoomId: sourceId } }, ds: CONST.WALL_DOOR_STATES.CLOSED, door: CONST.WALL_DOOR_TYPES.DOOR, art: doorArt(room.locationTag) }),
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `npx vitest run tests/dungeon-scene-door-art.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the whole scene suite and commit**
+- [x] **Step 5: Run the whole scene suite and commit**
 
 Run: `npx vitest run tests/dungeon-scene.test.mjs tests/dungeon-scene-door-order.test.mjs tests/dungeon-scene-door-plan.test.mjs tests/dungeon-scene-stubs.test.mjs tests/dungeon-scene-sealed-edges.test.mjs`
 Expected: PASS (no existing door wall gains an `animation`, because the shipped manifest is `{}`).
