@@ -45310,5 +45310,141 @@
     "name": "Iravalinn Morgethai",
     "level": 14,
     "art": "iravalinn-morgethai.webp"
+  },
+  {
+    "id": "the_putrid",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "lUiOpNnV9Dd44T3n",
+    "name": "The Putrid",
+    "level": 15,
+    "art": "the-putrid.webp"
+  },
+  {
+    "id": "pukwudgie_scribe",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "lXy7rMV1QMT37xTp",
+    "name": "Pukwudgie Scribe",
+    "level": 15,
+    "art": "pukwudgie-scribe.webp"
+  },
+  {
+    "id": "ulugurnix",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "mp4ovsYcXGRncFCR",
+    "name": "Ulugurnix",
+    "level": 11,
+    "art": "ulugurnix.webp"
+  },
+  {
+    "id": "lukarazyll",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "nxXj4V7pFVXuRvre",
+    "name": "Lukarazyll",
+    "level": 14,
+    "art": "lukarazyll.webp"
+  },
+  {
+    "id": "irshandi",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "oD67tHbrjCnWFHMA",
+    "name": "Irshandi",
+    "level": 16,
+    "art": "irshandi.webp"
+  },
+  {
+    "id": "vixivax",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "phwez1DJLJcAVrG6",
+    "name": "Vixivax",
+    "level": 15,
+    "art": "vixivax.webp"
+  },
+  {
+    "id": "vamollaroth",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "q4Hwhap275qpm2iq",
+    "name": "Vamollaroth",
+    "level": 21,
+    "art": "vamollaroth.webp"
+  },
+  {
+    "id": "unrisen_slithermaw",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "rIoJXbPU9sqw9lm5",
+    "name": "Unrisen Slithermaw",
+    "level": 18,
+    "art": "unrisen-slithermaw.webp"
+  },
+  {
+    "id": "sporespawn_of_treerazer",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "rJ7yZpv0nUWMYEOF",
+    "name": "Sporespawn of Treerazer",
+    "level": 22,
+    "art": "sporespawn-of-treerazer.webp"
+  },
+  {
+    "id": "spore_queen_quilindra",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "rdh4wcn2nAKGGQIc",
+    "name": "Spore Queen Quilindra",
+    "level": 20,
+    "art": "spore-queen-quilindra.webp"
+  },
+  {
+    "id": "imvath",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "uND9uwnPoBVOU7jd",
+    "name": "Imvath",
+    "level": 19,
+    "art": "imvath.webp"
+  },
+  {
+    "id": "briargeist",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "y2EhtiAUEfUZNQH8",
+    "name": "Briargeist",
+    "level": 15,
+    "art": "briargeist.webp"
+  },
+  {
+    "id": "bhuta_servant",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "y9G71AEujaRmcjlu",
+    "name": "Bhuta Servant",
+    "level": 12,
+    "art": "bhuta-servant.webp"
+  },
+  {
+    "id": "tanglebriar_regent",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "yfmlWu7g3sk1svyc",
+    "name": "Tanglebriar Regent",
+    "level": 13,
+    "art": "tanglebriar-regent.webp"
+  },
+  {
+    "id": "tangle_khravgodon",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "ygVqLjDmjXaDq8xh",
+    "name": "Tangle Khravgodon",
+    "level": 14,
+    "art": "tangle-khravgodon.webp"
+  },
+  {
+    "id": "tithekeeper",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "zaFCdcwo2VDqqrNR",
+    "name": "Tithekeeper",
+    "level": 10,
+    "art": "tithekeeper.webp"
+  },
+  {
+    "id": "shalelu_andosana",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "zcW1w3ftmzL3XCuq",
+    "name": "Shalelu Andosana",
+    "level": 13,
+    "art": "shalelu-andosana.webp"
   }
 ]
