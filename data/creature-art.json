@@ -45150,5 +45150,165 @@
     "name": "Invidiak",
     "level": 7,
     "art": "invidiak.webp"
+  },
+  {
+    "id": "gruntch",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "XE9emvoqU0B3LT7k",
+    "name": "Gruntch",
+    "level": 18,
+    "art": "gruntch.webp"
+  },
+  {
+    "id": "sinmold",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "YsgZ2gFGBLVnmdCc",
+    "name": "Sinmold",
+    "level": 12,
+    "art": "sinmold.webp"
+  },
+  {
+    "id": "riftweasel",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "Yxsgcou341wjS8st",
+    "name": "Riftweasel",
+    "level": 19,
+    "art": "riftweasel.webp"
+  },
+  {
+    "id": "spawn_of_jeharlu",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "akkpxUPNsOTHcvSH",
+    "name": "Spawn of Jeharlu",
+    "level": 22,
+    "art": "spawn-of-jeharlu.webp"
+  },
+  {
+    "id": "zauglagaul",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "au8S1DLC5osnGgoX",
+    "name": "Zauglagaul",
+    "level": 19,
+    "art": "zauglagaul.webp"
+  },
+  {
+    "id": "root_rotter",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "blWhrVgjP5rIqb3q",
+    "name": "Root Rotter",
+    "level": 9,
+    "art": "root-rotter.webp"
+  },
+  {
+    "id": "fungal_abomination",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "bwU58Qns7TzR43Jj",
+    "name": "Fungal Abomination",
+    "level": 18,
+    "art": "fungal-abomination.webp"
+  },
+  {
+    "id": "fungal_marsh_giant",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "bytRrCmVh2g5FoQE",
+    "name": "Fungal Marsh Giant",
+    "level": 11,
+    "art": "fungal-marsh-giant.webp"
+  },
+  {
+    "id": "gruddunk",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "cHOXZyToRuM6gmGE",
+    "name": "Gruddunk",
+    "level": 15,
+    "art": "gruddunk.webp"
+  },
+  {
+    "id": "captain_talymir",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "d8N7y33UQ5jwLnR7",
+    "name": "Captain Talymir",
+    "level": 11,
+    "art": "captain-talymir.webp"
+  },
+  {
+    "id": "spore_tyrannosaurus",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "dJTwrxDR5cRySxvH",
+    "name": "Spore Tyrannosaurus",
+    "level": 13,
+    "art": "spore-tyrannosaurus.webp"
+  },
+  {
+    "id": "rift_pulper",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "dxJWRhwtdwxBI9Gn",
+    "name": "Rift Pulper",
+    "level": 17,
+    "art": "rift-pulper.webp"
+  },
+  {
+    "id": "tanglebriar_isqulug",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "e2qgJzVf0FpBXfBd",
+    "name": "Tanglebriar Isqulug",
+    "level": 12,
+    "art": "tanglebriar-isqulug.webp"
+  },
+  {
+    "id": "razmiri_blade_assassin",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "eRDf6xNphDUQ1Gox",
+    "name": "Razmiri Blade Assassin",
+    "level": 7,
+    "art": "razmiri-blade-assassin.webp"
+  },
+  {
+    "id": "the_python",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "ebdfXxEWYOCjgbb0",
+    "name": "The Python",
+    "level": 23,
+    "art": "the-python.webp"
+  },
+  {
+    "id": "vintalax_the_rotting_god",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "fxx3YStNyNBdT1sw",
+    "name": "Vintalax, The Rotting God",
+    "level": 14,
+    "art": "vintalax-the-rotting-god.webp"
+  },
+  {
+    "id": "degholau",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "gBVxdkJbuxR0dxt4",
+    "name": "Degholau",
+    "level": 13,
+    "art": "degholau.webp"
+  },
+  {
+    "id": "sporescout",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "iTT2eNlWdFIBeJr4",
+    "name": "Sporescout",
+    "level": 14,
+    "art": "sporescout.webp"
+  },
+  {
+    "id": "devasance",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "ixH0iXbdlCjGat2V",
+    "name": "Devasance",
+    "level": 16,
+    "art": "devasance.webp"
+  },
+  {
+    "id": "iravalinn_morgethai",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "j4Ge5IoJkVai7N2g",
+    "name": "Iravalinn Morgethai",
+    "level": 14,
+    "art": "iravalinn-morgethai.webp"
   }
 ]
