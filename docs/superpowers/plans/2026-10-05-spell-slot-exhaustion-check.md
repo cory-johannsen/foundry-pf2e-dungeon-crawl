@@ -37,7 +37,7 @@
 - Consumes: nothing new — only plain spell/entry object shapes already used elsewhere in this file (`spell.system.level.value`, `spell.system.location.heightenedLevel`, matching the shapes `hasSpellUsesRemaining` and `isSpellInScope` already read).
 - Produces: `export function hasSpellSlotRemaining(spell, entry): boolean` — consumed by Task 2.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Open `tests/agent-candidates.test.mjs`. Add `hasSpellSlotRemaining` to the import list at the top of the file (line 6, alongside `hasSpellUsesRemaining`):
 
@@ -224,12 +224,12 @@ describe('hasSpellSlotRemaining', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/agent-candidates.test.mjs -t hasSpellSlotRemaining`
 Expected: every new test FAILs with `hasSpellSlotRemaining is not a function` (or an import error), since the function doesn't exist yet.
 
-- [ ] **Step 3: Implement `hasSpellSlotRemaining`**
+- [x] **Step 3: Implement `hasSpellSlotRemaining`**
 
 In `scripts/agent-candidates.mjs`, insert this directly after `hasSpellUsesRemaining`'s closing `}` (line 578), before the `parseBreathWeaponEffect` docblock:
 
@@ -281,17 +281,17 @@ export function hasSpellSlotRemaining(spell, entry) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/agent-candidates.test.mjs -t hasSpellSlotRemaining`
 Expected: PASS, all 15 new tests green.
 
-- [ ] **Step 5: Run the full test file to confirm no regression**
+- [x] **Step 5: Run the full test file to confirm no regression**
 
 Run: `npx vitest run tests/agent-candidates.test.mjs`
 Expected: PASS, every existing test (including `hasSpellUsesRemaining`'s own block) still green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs tests/agent-candidates.test.mjs

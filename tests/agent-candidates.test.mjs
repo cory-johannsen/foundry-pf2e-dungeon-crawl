@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import {
   initAgentTurnState, buildMovementCandidates, buildStrikeCandidates, buildSpellCandidates,
   buildAreaSpellCandidates, buildAttackSpellCandidates, buildDebuffSpellCandidates,
-  parseConditionsByOutcome, hasSpellUsesRemaining,
+  parseConditionsByOutcome, hasSpellUsesRemaining, hasSpellSlotRemaining,
   parseBreathWeaponEffect, buildBreathWeaponCandidates,
   parseMultiStrikeBundle, buildMultiStrikeCandidates,
   parseChainHopDistance, buildChainSpellCandidates,
@@ -595,6 +595,181 @@ describe('hasSpellUsesRemaining', () => {
 
   it('is always true for a spell named "(Constant)", even with zero uses left', () => {
     expect(hasSpellUsesRemaining({ name: 'Truesight (Constant)', system: { location: { uses: { value: 0, max: 1 } } } })).toBe(true);
+  });
+});
+
+describe('hasSpellSlotRemaining', () => {
+  it('is true for a spontaneous entry whose rank slot still has value remaining', () => {
+    const spell = { id: 'spell1', system: { level: { value: 3 }, location: { heightenedLevel: 3 } } };
+    const entry = { system: { prepared: { value: 'spontaneous' }, slots: { slot3: { value: 3, max: 4, prepared: [] } } } };
+    expect(hasSpellSlotRemaining(spell, entry)).toBe(true);
+  });
+
+  it('is false for a spontaneous entry whose rank slot has zero value remaining', () => {
+    const spell = { id: 'spell1', system: { level: { value: 3 }, location: { heightenedLevel: 3 } } };
+    const entry = { system: { prepared: { value: 'spontaneous' }, slots: { slot3: { value: 0, max: 4, prepared: [] } } } };
+    expect(hasSpellSlotRemaining(spell, entry)).toBe(false);
+  });
+
+  it('is true for a spontaneous spell heightened above its base rank, checking the heightened rank slot', () => {
+    // Base rank 2 slot is exhausted, but the spell is actually cast at
+    // heightened rank 3, whose slot still has value remaining.
+    const spell = { id: 'dispelMagic', system: { level: { value: 2 }, location: { heightenedLevel: 3 } } };
+    const entry = {
+      system: {
+        prepared: { value: 'spontaneous' },
+        slots: {
+          slot2: { value: 0, max: 4, prepared: [] },
+          slot3: { value: 4, max: 4, prepared: [] },
+        },
+      },
+    };
+    expect(hasSpellSlotRemaining(spell, entry)).toBe(true);
+  });
+
+  it('is false for a spontaneous spell heightened above its base rank, when the heightened rank slot is exhausted', () => {
+    const spell = { id: 'dispelMagic', system: { level: { value: 2 }, location: { heightenedLevel: 3 } } };
+    const entry = {
+      system: {
+        prepared: { value: 'spontaneous' },
+        slots: {
+          slot2: { value: 4, max: 4, prepared: [] },
+          slot3: { value: 0, max: 4, prepared: [] },
+        },
+      },
+    };
+    expect(hasSpellSlotRemaining(spell, entry)).toBe(false);
+  });
+
+  it('is true for a prepared entry when this spell\'s own prepared-array instance is not expended', () => {
+    const spell = { id: 'visionsOfDanger', system: { level: { value: 7 }, location: {} } };
+    const entry = {
+      system: {
+        prepared: { value: 'prepared' },
+        slots: { slot7: { value: 0, max: 3, prepared: [{ id: 'visionsOfDanger', expended: false }] } },
+      },
+    };
+    expect(hasSpellSlotRemaining(spell, entry)).toBe(true);
+  });
+
+  it('is false for a prepared entry when this spell\'s own prepared-array instance is expended', () => {
+    const spell = { id: 'visionsOfDanger', system: { level: { value: 7 }, location: {} } };
+    const entry = {
+      system: {
+        prepared: { value: 'prepared' },
+        slots: { slot7: { value: 0, max: 3, prepared: [{ id: 'visionsOfDanger', expended: true }] } },
+      },
+    };
+    expect(hasSpellSlotRemaining(spell, entry)).toBe(false);
+  });
+
+  it('only checks the matching spell id, ignoring a different prepared spell\'s expended state at the same rank', () => {
+    const spell = { id: 'warpMind', system: { level: { value: 7 }, location: {} } };
+    const entry = {
+      system: {
+        prepared: { value: 'prepared' },
+        slots: {
+          slot7: {
+            value: 0,
+            max: 3,
+            prepared: [
+              { id: 'visionsOfDanger', expended: true },
+              { id: 'warpMind', expended: false },
+            ],
+          },
+        },
+      },
+    };
+    expect(hasSpellSlotRemaining(spell, entry)).toBe(true);
+  });
+
+  it('is true when the same spell is prepared into two slots and only one is expended', () => {
+    const spell = { id: 'fireball', system: { level: { value: 3 }, location: {} } };
+    const entry = {
+      system: {
+        prepared: { value: 'prepared' },
+        slots: {
+          slot3: {
+            value: 0,
+            max: 2,
+            prepared: [
+              { id: 'fireball', expended: true },
+              { id: 'fireball', expended: false },
+            ],
+          },
+        },
+      },
+    };
+    expect(hasSpellSlotRemaining(spell, entry)).toBe(true);
+  });
+
+  it('is false when the same spell is prepared into two slots and both are expended', () => {
+    const spell = { id: 'fireball', system: { level: { value: 3 }, location: {} } };
+    const entry = {
+      system: {
+        prepared: { value: 'prepared' },
+        slots: {
+          slot3: {
+            value: 0,
+            max: 2,
+            prepared: [
+              { id: 'fireball', expended: true },
+              { id: 'fireball', expended: true },
+            ],
+          },
+        },
+      },
+    };
+    expect(hasSpellSlotRemaining(spell, entry)).toBe(false);
+  });
+
+  it('fails open (true) when a prepared entry\'s rank slot has no array instance matching this spell at all', () => {
+    const spell = { id: 'missingFromPreparedArray', system: { level: { value: 3 }, location: {} } };
+    const entry = {
+      system: {
+        prepared: { value: 'prepared' },
+        slots: { slot3: { value: 0, max: 2, prepared: [{ id: 'someOtherSpell', expended: true }] } },
+      },
+    };
+    expect(hasSpellSlotRemaining(spell, entry)).toBe(true);
+  });
+
+  it('is always true for a rank-0 cantrip on a spontaneous entry, even though slot0 carries max: 0', () => {
+    const spell = { id: 'produceFlame', system: { level: { value: 0 }, location: { heightenedLevel: 0 } } };
+    const entry = {
+      system: { prepared: { value: 'spontaneous' }, slots: { slot0: { value: 0, max: 0, prepared: [] } } },
+    };
+    expect(hasSpellSlotRemaining(spell, entry)).toBe(true);
+  });
+
+  it('is always true for a rank-0 cantrip on a prepared entry, even though slot0 carries max: 0', () => {
+    const spell = { id: 'produceFlame', system: { level: { value: 0 }, location: {} } };
+    const entry = {
+      system: { prepared: { value: 'prepared' }, slots: { slot0: { value: 0, max: 0, prepared: [{ id: 'produceFlame', expended: true }] } } },
+    };
+    expect(hasSpellSlotRemaining(spell, entry)).toBe(true);
+  });
+
+  it('is always true for an innate entry, regardless of slot state (hasSpellUsesRemaining already governs innate)', () => {
+    const spell = { id: 'manifestation', system: { level: { value: 10 }, location: { heightenedLevel: 10, uses: { value: 0, max: 1 } } } };
+    const entry = {
+      system: { prepared: { value: 'innate' }, slots: { slot10: { value: 0, max: 1, prepared: [] } } },
+    };
+    expect(hasSpellSlotRemaining(spell, entry)).toBe(true);
+  });
+
+  it('is always true for a focus entry, regardless of slot state (out of #620 scope)', () => {
+    const spell = { id: 'ignite-ambition', system: { level: { value: 1 }, location: {} } };
+    const entry = {
+      system: { prepared: { value: 'focus' }, slots: { slot1: { value: 0, max: 0, prepared: [] } } },
+    };
+    expect(hasSpellSlotRemaining(spell, entry)).toBe(true);
+  });
+
+  it('is always true for an entry with no system.prepared at all (the Rituals pseudo-entry shape)', () => {
+    const spell = { id: 'callSpirit', system: { level: { value: 5 }, location: {} } };
+    const entry = { system: {} };
+    expect(hasSpellSlotRemaining(spell, entry)).toBe(true);
   });
 });
 
