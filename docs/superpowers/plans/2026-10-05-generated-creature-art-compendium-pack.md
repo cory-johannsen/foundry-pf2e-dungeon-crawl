@@ -54,7 +54,7 @@ An experiment on a scratch copy of the real data (all 5,904 entries against the 
 
 Exporting this one async orchestrator function is a deliberate, narrow departure from this repo's usual `tools/*.mjs` style (e.g. `tools/migrate-creature-art-sources.mjs` exports nothing and is tested as a pure black box) — there's nothing to black-box test here without it, since the real work is several async calls into `@foundryvtt/foundryvtt-cli` against directories that must be fixture-controlled per test run.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/build-creature-art-pack.test.mjs`:
 
@@ -289,18 +289,18 @@ describe("buildCreatureArtPack", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/build-creature-art-pack.test.mjs`
 Expected: FAIL — `Cannot find module '../tools/build-creature-art-pack.mjs'` (and `Cannot find package '@foundryvtt/foundryvtt-cli'` until Step 3's dependency install).
 
-- [ ] **Step 3: Install the new dependency**
+- [x] **Step 3: Install the new dependency**
 
 ```bash
 npm install --save-dev @foundryvtt/foundryvtt-cli@^3.0.4
 ```
 
-- [ ] **Step 4: Write `tools/build-creature-art-pack.mjs`**
+- [x] **Step 4: Write `tools/build-creature-art-pack.mjs`**
 
 ```js
 /**
@@ -411,12 +411,12 @@ if (isMain) {
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `npx vitest run tests/build-creature-art-pack.test.mjs`
 Expected: PASS, all 4 tests green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tools/build-creature-art-pack.mjs tests/build-creature-art-pack.test.mjs package.json package-lock.json
@@ -438,7 +438,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `tools/build-creature-art-pack.mjs`'s CLI entry point from Task 1.
 - Produces: `npm run packs:build`, the registered `generated-creature-art` pack — consumed by Task 4 (the real build) and by Foundry itself at runtime.
 
-- [ ] **Step 1: Add the npm script**
+- [x] **Step 1: Add the npm script**
 
 In `package.json`, add to `"scripts"` (alongside the existing `"art:normalize"`/`"validate:creature-art"` entries):
 
@@ -448,7 +448,7 @@ In `package.json`, add to `"scripts"` (alongside the existing `"art:normalize"`/
 
 (The `"@foundryvtt/foundryvtt-cli"` devDependency was already added by Task 1's `npm install`.)
 
-- [ ] **Step 2: Ignore the scratch directory**
+- [x] **Step 2: Ignore the scratch directory**
 
 Add to `.gitignore`:
 
@@ -456,7 +456,7 @@ Add to `.gitignore`:
 tools/.pack-build-scratch/
 ```
 
-- [ ] **Step 3: Register the pack in `module.json`**
+- [x] **Step 3: Register the pack in `module.json`**
 
 Change `"packs": []` to:
 
@@ -473,12 +473,12 @@ Change `"packs": []` to:
   ],
 ```
 
-- [ ] **Step 4: Confirm the JSON is still valid**
+- [x] **Step 4: Confirm the JSON is still valid**
 
 Run: `node -e "JSON.parse(require('fs').readFileSync('module.json', 'utf8')); JSON.parse(require('fs').readFileSync('package.json', 'utf8')); console.log('valid')"`
 Expected: prints `valid` with no error.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add package.json .gitignore module.json
@@ -496,7 +496,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 **Interfaces:** None — documentation-only change, read by every future agent session working in this repo.
 
-- [ ] **Step 1: Add the new rule**
+- [x] **Step 1: Add the new rule**
 
 In `CLAUDE.md`, directly after the existing `## Versioning` section's last bullet (the "Run the `update-architecture-docs` skill..." item), add a new subsection:
 
@@ -512,7 +512,7 @@ and must never be allowed to drift out of sync with it, the same way
 `module.json`'s version must never be left un-bumped after a merge.
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add CLAUDE.md
@@ -535,7 +535,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 This is the one task that can't be a fixture/synthetic run — it's the real build, against real data, producing what actually ships. Budget real wall-clock time: 44 source-pack extractions plus 5,904 document writes plus one `compilePack` run. `log: true` (already wired into the CLI entry point in Task 1) prints progress for both phases.
 
-- [ ] **Step 1: Confirm the local pf2e system packs path is present**
+- [x] **Step 1: Confirm the local pf2e system packs path is present**
 
 ```bash
 ls "${PF2E_SYSTEM_PACKS_DIR:-/srv/foundry/data/Data/systems/pf2e/packs}" | head -5
@@ -543,7 +543,7 @@ ls "${PF2E_SYSTEM_PACKS_DIR:-/srv/foundry/data/Data/systems/pf2e/packs}" | head 
 
 Expected: lists real pack directory names (e.g. `pathfinder-monster-core`). If this is empty or the path doesn't exist, set `PF2E_SYSTEM_PACKS_DIR` to the correct path for the machine running this step before continuing.
 
-- [ ] **Step 2: Run the real build**
+- [x] **Step 2: Run the real build**
 
 ```bash
 npm run packs:build
@@ -551,7 +551,7 @@ npm run packs:build
 
 Expected: runs to completion printing one `extractPack`/entry log line per source pack and creature, ending with `Done.` and no thrown error. If it throws `docId "..." not found in extracted pack "..."` or `Failed to extract source pack...`, that is a real data-integrity finding (a stale `data/creature-art.json` entry or a missing/renamed system pack) — investigate and resolve it rather than suppressing the error, since this is exactly the drift this feature exists to catch.
 
-- [ ] **Step 3: Verify the output**
+- [x] **Step 3: Verify the output**
 
 ```bash
 ls packs/generated-creature-art/_source/ | wc -l
@@ -560,7 +560,7 @@ ls packs/generated-creature-art/
 
 Expected: the first command prints `5904` (one `_source/*.json` file per `data/creature-art.json` entry); the second lists real LevelDB files (`CURRENT`, `LOCK`, `LOG`, `MANIFEST-*`, one or more `*.ldb` files).
 
-- [ ] **Step 4: Bump `module.json`'s version**
+- [x] **Step 4 (SKIPPED per controller instruction): Bump `module.json`'s version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -570,7 +570,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **minor** bump (architecture-level change — new compendium pack subsystem), e.g. `0.58.4` → `0.59.0`, using whatever the fetch above shows as current.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packs/generated-creature-art module.json
