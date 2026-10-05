@@ -43310,5 +43310,2213 @@
     "name": "Anvaca",
     "level": 9,
     "art": "anvaca.webp"
+  },
+  {
+    "id": "amphibious_chupacabra",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "lv37YXdRoPLyR90O",
+    "name": "Amphibious Chupacabra",
+    "level": 3,
+    "art": "amphibious-chupacabra.webp"
+  },
+  {
+    "id": "okoa",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "mqrzYkPJxLv4pFGD",
+    "name": "Okoa",
+    "level": 9,
+    "art": "okoa.webp"
+  },
+  {
+    "id": "firitula",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "n27nM6GoGJT7OrtR",
+    "name": "Firitula",
+    "level": 7,
+    "art": "firitula.webp"
+  },
+  {
+    "id": "clockwork_sentry",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "n7NcIxT3kfhZjDL1",
+    "name": "Clockwork Sentry",
+    "level": 8,
+    "art": "clockwork-sentry.webp"
+  },
+  {
+    "id": "geff",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "nAnpWKPONGmbe5jp",
+    "name": "Geff",
+    "level": 6,
+    "art": "geff.webp"
+  },
+  {
+    "id": "deg",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "nq70qRFWZOyJkmDC",
+    "name": "Deg",
+    "level": 9,
+    "art": "deg.webp"
+  },
+  {
+    "id": "grusk_the_pusk",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "o5TPuCVrjk5WeIEb",
+    "name": "Grusk the Pusk",
+    "level": 4,
+    "art": "grusk-the-pusk.webp"
+  },
+  {
+    "id": "ogenni",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "oF8CT64EiII7Jvu6",
+    "name": "Ogenni",
+    "level": 7,
+    "art": "ogenni.webp"
+  },
+  {
+    "id": "miranette",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "obnOPigZBszDZu77",
+    "name": "Miranette",
+    "level": 7,
+    "art": "miranette.webp"
+  },
+  {
+    "id": "vinn_karskell",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "ow29BvvTX38mYIdU",
+    "name": "Vinn Karskell",
+    "level": 6,
+    "art": "vinn-karskell.webp"
+  },
+  {
+    "id": "vampire_nettle",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "pc4ZQaxSYoHWxYTP",
+    "name": "Vampire Nettle",
+    "level": 2,
+    "art": "vampire-nettle.webp"
+  },
+  {
+    "id": "viper_bat",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "qlm7EK85hTcHbSCc",
+    "name": "Viper Bat",
+    "level": 7,
+    "art": "viper-bat.webp"
+  },
+  {
+    "id": "nizca_iricol",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "qzhjVB9Pp4sV2mNu",
+    "name": "Nizca Iricol",
+    "level": 11,
+    "art": "nizca-iricol.webp"
+  },
+  {
+    "id": "fogfisher",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "tRD9nT9535e4p1oH",
+    "name": "Fogfisher",
+    "level": 4,
+    "art": "fogfisher.webp"
+  },
+  {
+    "id": "shadow_scamp",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "tX6i3kDDxV14T5uk",
+    "name": "Lesser Shadow Scamp",
+    "level": 0,
+    "art": "shadow-scamp.webp"
+  },
+  {
+    "id": "clockwork_corpse",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "to8imCECPsArwlE2",
+    "name": "Clockwork Corpse",
+    "level": 5,
+    "art": "clockwork-corpse.webp"
+  },
+  {
+    "id": "hiss_beetle",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "uu1vOPgc0ZJ3AuRE",
+    "name": "Hiss Beetle",
+    "level": -1,
+    "art": "hiss-beetle.webp"
+  },
+  {
+    "id": "losko",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "vJAoejqZeIlf27Mw",
+    "name": "Losko",
+    "level": 5,
+    "art": "losko.webp"
+  },
+  {
+    "id": "morlock_thrall",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "vUpWo3El3a3xfzdF",
+    "name": "Morlock Thrall",
+    "level": 4,
+    "art": "morlock-thrall.webp"
+  },
+  {
+    "id": "danva",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "vu6NVlTlomKNghZM",
+    "name": "Danva",
+    "level": 6,
+    "art": "danva.webp"
+  },
+  {
+    "id": "desmohund",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "wWG6YZdae68YNR3E",
+    "name": "Desmohund",
+    "level": 1,
+    "art": "desmohund.webp"
+  },
+  {
+    "id": "onak",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "x6s8rksF5BhZS2zs",
+    "name": "Onak",
+    "level": 3,
+    "art": "onak.webp"
+  },
+  {
+    "id": "tormonshild",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "yLDEDOpiBK8kEiqy",
+    "name": "Tormonshild",
+    "level": 1,
+    "art": "tormonshild.webp"
+  },
+  {
+    "id": "tormonwird",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "zjmH2o7EaajaQ7sQ",
+    "name": "Tormonwird",
+    "level": 5,
+    "art": "tormonwird.webp"
+  },
+  {
+    "id": "erissa",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "zsLGLqVmxIcRFMpU",
+    "name": "Erissa",
+    "level": 5,
+    "art": "erissa.webp"
+  },
+  {
+    "id": "nalushae_meronis",
+    "pack": "pf2e.shades-of-blood-bestiary",
+    "docId": "zzEDrDtpiwCaUfym",
+    "name": "Nalushae Meronis",
+    "level": 8,
+    "art": "nalushae-meronis.webp"
+  },
+  {
+    "id": "scorching_sun_cultist",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "257nqvaDItlttlG2",
+    "name": "Scorching Sun Cultist",
+    "level": 2,
+    "art": "scorching-sun-cultist.webp"
+  },
+  {
+    "id": "mechanical_assistant",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "5d0K1rXEMZkILjxu",
+    "name": "Mechanical Assistant",
+    "level": 5,
+    "art": "mechanical-assistant.webp"
+  },
+  {
+    "id": "krashk",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "CriBWDFr8l2SPDVO",
+    "name": "Krashk",
+    "level": 5,
+    "art": "krashk.webp"
+  },
+  {
+    "id": "seddek",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "TLA7lez6eCf2Qp8v",
+    "name": "Seddek",
+    "level": 8,
+    "art": "seddek.webp"
+  },
+  {
+    "id": "noolik",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "Ziy3L849K2Fayesa",
+    "name": "Noolik",
+    "level": 4,
+    "art": "noolik.webp"
+  },
+  {
+    "id": "sand_wolf",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "gBjrp5li1LCbIO8X",
+    "name": "Sand Wolf",
+    "level": 5,
+    "art": "sand-wolf.webp"
+  },
+  {
+    "id": "scrapborn",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "hKXwujYX7CDtsZ5P",
+    "name": "Scrapborn",
+    "level": 5,
+    "art": "scrapborn.webp"
+  },
+  {
+    "id": "vulpinal_twin",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "qsgUxFmUK9rohj0M",
+    "name": "Vulpinal Twin",
+    "level": 6,
+    "art": "vulpinal-twin.webp"
+  },
+  {
+    "id": "usij_cultist",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "rCbzflYQbsqxlmiG",
+    "name": "Usij Cultist",
+    "level": 3,
+    "art": "usij-cultist-lob.webp"
+  },
+  {
+    "id": "amar",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "uo8oScVY4NLRCuo2",
+    "name": "Amar",
+    "level": 6,
+    "art": "amar.webp"
+  },
+  {
+    "id": "jimbilin",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "xfc7t2z45drvafdK",
+    "name": "Jimbilin",
+    "level": 4,
+    "art": "jimbilin.webp"
+  },
+  {
+    "id": "zridi",
+    "pack": "pf2e.the-enmity-cycle-bestiary",
+    "docId": "xwEcqgkn9Fvrhpv7",
+    "name": "Zridi",
+    "level": 8,
+    "art": "zridi.webp"
+  },
+  {
+    "id": "shulzara",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "1IfAjRfF1ro6DMLo",
+    "name": "Shulzara",
+    "level": 2,
+    "art": "shulzara.webp"
+  },
+  {
+    "id": "viper_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "1uVwkGlqYzyWaDMy",
+    "name": "Viper (BB)",
+    "level": -1,
+    "art": "viper.webp"
+  },
+  {
+    "id": "kobold_trapmaster",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "4Axci50gPQArPg7d",
+    "name": "Kobold Trapmaster (BB)",
+    "level": 2,
+    "art": "kobold-trapmaster.webp"
+  },
+  {
+    "id": "xulgath_warrior_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "5vBG8a8dnJfmVd3Y",
+    "name": "Xulgath Warrior (BB)",
+    "level": 1,
+    "art": "xulgath-warrior.webp"
+  },
+  {
+    "id": "twigjack_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "6T8gVU03wdpYdPgg",
+    "name": "Twigjack (BB)",
+    "level": 3,
+    "art": "twigjack.webp"
+  },
+  {
+    "id": "shadow_priest",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "7LqIIpSmN3kqghLj",
+    "name": "Shadow Priest",
+    "level": 4,
+    "art": "shadow-priest.webp"
+  },
+  {
+    "id": "severed_head_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "7c0XJLfVKw8EMmKy",
+    "name": "Severed Head (BB)",
+    "level": -1,
+    "art": "severed-head.webp"
+  },
+  {
+    "id": "xulgath_leader_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "7w1w7VTnIWMBdFux",
+    "name": "Xulgath Leader (BB)",
+    "level": 3,
+    "art": "xulgath-leader.webp"
+  },
+  {
+    "id": "kobold_mage",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "R9eoGwQ2tudxUKxS",
+    "name": "Kobold Mage (Black, BB)",
+    "level": 2,
+    "art": "kobold-mage.webp"
+  },
+  {
+    "id": "kobold_mage_blue_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "93hZtLl9pRRfqI05",
+    "name": "Kobold Mage (Blue, BB)",
+    "level": 2,
+    "art": "kobold-mage.webp"
+  },
+  {
+    "id": "kobold_mage_green_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "QaldZV2p9RpMXzzn",
+    "name": "Kobold Mage (Green, BB)",
+    "level": 2,
+    "art": "kobold-mage.webp"
+  },
+  {
+    "id": "kobold_mage_red_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "CJuHwIRCAgTB1SEl",
+    "name": "Kobold Mage (Red, BB)",
+    "level": 2,
+    "art": "kobold-mage.webp"
+  },
+  {
+    "id": "kobold_mage_white_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "kCRfBZqCugMQmdpd",
+    "name": "Kobold Mage (White, BB)",
+    "level": 2,
+    "art": "kobold-mage.webp"
+  },
+  {
+    "id": "sewer_ooze_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "9InGpxq5xbbHaL9f",
+    "name": "Sewer Ooze (BB)",
+    "level": 1,
+    "art": "sewer-ooze.webp"
+  },
+  {
+    "id": "caligni_skulker_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "9YPFqikAmURwcTEO",
+    "name": "Caligni Skulker (BB)",
+    "level": 2,
+    "art": "caligni-skulker.webp"
+  },
+  {
+    "id": "bugbear_prowler_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "9cBuzDV8seJqhNKJ",
+    "name": "Bugbear Prowler (BB)",
+    "level": 2,
+    "art": "bugbear-prowler.webp"
+  },
+  {
+    "id": "giant_spider",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "A4VgQIHsqJKssQOM",
+    "name": "Giant Spider (BB)",
+    "level": 1,
+    "art": "giant-spider.webp"
+  },
+  {
+    "id": "giant_viper_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "AJ5LuNMVPLCydryP",
+    "name": "Giant Viper (BB)",
+    "level": 2,
+    "art": "giant-viper.webp"
+  },
+  {
+    "id": "caligni_hunter_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "AcUb8s5fiktYw8Fx",
+    "name": "Caligni Hunter (BB)",
+    "level": 4,
+    "art": "caligni-hunter.webp"
+  },
+  {
+    "id": "doppelganger_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "AdQVjlOWB6rmBRVp",
+    "name": "Doppelganger (BB)",
+    "level": 3,
+    "art": "doppelganger.webp"
+  },
+  {
+    "id": "kobold_boss_zolgran",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "AleeS0IRqT4tUphB",
+    "name": "Kobold Boss Zolgran (BB)",
+    "level": 2,
+    "art": "kobold-boss-zolgran.webp"
+  },
+  {
+    "id": "bugbear_tormentor_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "B1c59la6OoRiWMmX",
+    "name": "Bugbear Tormentor (BB)",
+    "level": 3,
+    "art": "bugbear-tormentor.webp"
+  },
+  {
+    "id": "kobold_warrior_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "BIZfjoz8DZt75EDn",
+    "name": "Kobold Warrior (BB)",
+    "level": -1,
+    "art": "kobold-warrior.webp"
+  },
+  {
+    "id": "wolf_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "BN5Lb6IsQ9Wyu3rL",
+    "name": "Wolf (BB)",
+    "level": 1,
+    "art": "wolf.webp"
+  },
+  {
+    "id": "mimic_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "Br1AtKUHe3nbzjnY",
+    "name": "Mimic (BB)",
+    "level": 4,
+    "art": "mimic.webp"
+  },
+  {
+    "id": "animated_armor_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "CFlx1tkRxKC9qAC7",
+    "name": "Animated Armor (BB)",
+    "level": 2,
+    "art": "animated-armor.webp"
+  },
+  {
+    "id": "wight_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "DBTbqI9QQRtlJwWh",
+    "name": "Wight (BB)",
+    "level": 3,
+    "art": "wight.webp"
+  },
+  {
+    "id": "umbral_gnome_warrior_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "EAe2ISTvkgpOxAS1",
+    "name": "Umbral Gnome Warrior (BB)",
+    "level": 2,
+    "art": "umbral-gnome-warrior.webp"
+  },
+  {
+    "id": "drow_priestess_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "FaBHkmFGuEIqIYM1",
+    "name": "Drow Priestess (BB)",
+    "level": 3,
+    "art": "drow-priestess.webp"
+  },
+  {
+    "id": "umbral_gnome_rockwarden_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "GJDXVSXJrhT3jpXY",
+    "name": "Umbral Gnome Rockwarden (BB)",
+    "level": 5,
+    "art": "umbral-gnome-rockwarden.webp"
+  },
+  {
+    "id": "brine_shark_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "H7z7VHzlHlEFev1r",
+    "name": "Brine Shark (BB)",
+    "level": 3,
+    "art": "brine-shark.webp"
+  },
+  {
+    "id": "boar_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "IyhbcdTVmkV4pSju",
+    "name": "Boar (BB)",
+    "level": 2,
+    "art": "boar.webp"
+  },
+  {
+    "id": "goblin_igniter",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "Ky5eNRvN71O0tY9l",
+    "name": "Goblin Igniter (BB)",
+    "level": 1,
+    "art": "goblin-igniter.webp"
+  },
+  {
+    "id": "ghost_commoner_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "N98ug9jQHqeFoK1N",
+    "name": "Ghost Commoner (BB)",
+    "level": 4,
+    "art": "ghost-commoner.webp"
+  },
+  {
+    "id": "giant_centipede_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "NRBgcu0LkXXp8mtp",
+    "name": "Giant Centipede (BB)",
+    "level": -1,
+    "art": "giant-centipede.webp"
+  },
+  {
+    "id": "hobgoblin_soldier_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "NW68bxCLC6oDHxL9",
+    "name": "Hobgoblin Soldier (BB)",
+    "level": 1,
+    "art": "hobgoblin-soldier.webp"
+  },
+  {
+    "id": "orc_commander_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "PLZk6zY5iwccPTPS",
+    "name": "Orc Commander (BB)",
+    "level": 2,
+    "art": "orc-commander.webp"
+  },
+  {
+    "id": "kobold_scout_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "PcHQDmPTztw32PhL",
+    "name": "Kobold Scout (BB)",
+    "level": 1,
+    "art": "kobold-scout.webp"
+  },
+  {
+    "id": "water_scamp_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "QN9Zv9l71Q1E9bCR",
+    "name": "Water Scamp (BB)",
+    "level": 1,
+    "art": "water-scamp.webp"
+  },
+  {
+    "id": "hell_hound_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "RTviEfjYnsXa0wkT",
+    "name": "Hell Hound (BB)",
+    "level": 3,
+    "art": "hell-hound.webp"
+  },
+  {
+    "id": "reefclaw_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "Rr1u6WvZEdPw1s6v",
+    "name": "Reefclaw (BB)",
+    "level": 1,
+    "art": "reefclaw.webp"
+  },
+  {
+    "id": "caligni_dancer_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "SZCf0IZkf36plwVd",
+    "name": "Caligni Dancer (BB)",
+    "level": 1,
+    "art": "caligni-dancer.webp"
+  },
+  {
+    "id": "shadow_bat",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "TUkD3aBPIQVux8aP",
+    "name": "Shadow Bat",
+    "level": 2,
+    "art": "shadow-bat.webp"
+  },
+  {
+    "id": "crawling_hand_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "TciT0K3eNqiTyxsr",
+    "name": "Crawling Hand (BB)",
+    "level": -1,
+    "art": "crawling-hand.webp"
+  },
+  {
+    "id": "ogre_warrior_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "Twvzy1yRo6m6dM8D",
+    "name": "Ogre Warrior (BB)",
+    "level": 3,
+    "art": "ogre-warrior.webp"
+  },
+  {
+    "id": "sea_hag_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "UhaXdA3NOoGKM109",
+    "name": "Sea Hag (BB)",
+    "level": 3,
+    "art": "sea-hag.webp"
+  },
+  {
+    "id": "orc_veteran_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "V90OYOMyyPLPJuod",
+    "name": "Orc Veteran (BB)",
+    "level": 1,
+    "art": "orc-veteran.webp"
+  },
+  {
+    "id": "sod_hound_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "VQPzDz3xnCQGFOGL",
+    "name": "Sod Hound (BB)",
+    "level": 3,
+    "art": "sod-hound.webp"
+  },
+  {
+    "id": "shadow_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "VotlWUsFKdOrHWF6",
+    "name": "Shadow (BB)",
+    "level": 4,
+    "art": "shadow.webp"
+  },
+  {
+    "id": "horned_dragon_juvenile_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "WPsgrCUSFCqgDvJi",
+    "name": "Horned Dragon (Juvenile, BB)",
+    "level": 4,
+    "art": "horned-dragon-young.webp"
+  },
+  {
+    "id": "owlbear_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "X03vq2RWi2jiA6Ri",
+    "name": "Owlbear (BB)",
+    "level": 4,
+    "art": "owlbear.webp"
+  },
+  {
+    "id": "zombie_shambler_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "Xo4IGzw28hivgMmM",
+    "name": "Zombie Shambler (BB)",
+    "level": -1,
+    "art": "zombie-shambler.webp"
+  },
+  {
+    "id": "orc_scrapper_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "YReM6QbqwUz3UTP7",
+    "name": "Orc Scrapper (BB)",
+    "level": 0,
+    "art": "orc-scrapper.webp"
+  },
+  {
+    "id": "lukahn",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "YYhD00fbaYCHjrDn",
+    "name": "Lukahn",
+    "level": 4,
+    "art": "lukahn.webp"
+  },
+  {
+    "id": "web_lurker_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "ZMr28tFTA5NUcBTi",
+    "name": "Web Lurker (BB)",
+    "level": 3,
+    "art": "web-lurker.webp"
+  },
+  {
+    "id": "pugwampi_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "aeOzCBpwnUVcpqxI",
+    "name": "Pugwampi (BB)",
+    "level": 0,
+    "art": "pugwampi.webp"
+  },
+  {
+    "id": "gargoyle_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "cvfIkEF6xmWn2soN",
+    "name": "Gargoyle (BB)",
+    "level": 4,
+    "art": "gargoyle.webp"
+  },
+  {
+    "id": "goblin_warrior_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "fLLKuOXwPq1Iq0U4",
+    "name": "Goblin Warrior (BB)",
+    "level": -1,
+    "art": "goblin-warrior.webp"
+  },
+  {
+    "id": "ferrous_butterfly_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "g9RxHRpIK4GFFjQv",
+    "name": "Ferrous Butterfly (BB)",
+    "level": 1,
+    "art": "ferrous-butterfly-lob.webp"
+  },
+  {
+    "id": "forest_troll_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "htK4dElL6YvFCLkz",
+    "name": "Forest Troll (BB)",
+    "level": 5,
+    "art": "forest-troll.webp"
+  },
+  {
+    "id": "giant_rat_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "iIJPJcDT8wlJ8z5M",
+    "name": "Giant Rat (BB)",
+    "level": -1,
+    "art": "giant-rat.webp"
+  },
+  {
+    "id": "ghoul_stalker_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "iLkQt8A99nQWUI8k",
+    "name": "Ghoul Stalker (BB)",
+    "level": 1,
+    "art": "ghoul-stalker.webp"
+  },
+  {
+    "id": "shadow_twigjack",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "iqQspEn4uxv0wVwb",
+    "name": "Shadow Twigjack",
+    "level": 2,
+    "art": "shadow-twigjack.webp"
+  },
+  {
+    "id": "leopard_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "kB7FNn3vosp6cqQg",
+    "name": "Leopard (BB)",
+    "level": 2,
+    "art": "leopard.webp"
+  },
+  {
+    "id": "giant_ant_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "mEZUTqNIgu0ASApu",
+    "name": "Giant Ant (BB)",
+    "level": 2,
+    "art": "giant-ant.webp"
+  },
+  {
+    "id": "basilisk_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "mX47c0W9rizbmMBM",
+    "name": "Basilisk (BB)",
+    "level": 5,
+    "art": "basilisk.webp"
+  },
+  {
+    "id": "shadow_gargoyle",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "oecsQwqLHKkDJz4G",
+    "name": "Shadow Gargoyle",
+    "level": 3,
+    "art": "shadow-gargoyle.webp"
+  },
+  {
+    "id": "umbral_gnome_scout_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "pp4ENWQbnafQDaRa",
+    "name": "Umbral Gnome Scout (BB)",
+    "level": 1,
+    "art": "umbral-gnome-scout.webp"
+  },
+  {
+    "id": "string_slime_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "r2uJWK5Vz7lJpfux",
+    "name": "String Slime (BB)",
+    "level": 3,
+    "art": "string-slime.webp"
+  },
+  {
+    "id": "hobgoblin_archer_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "rFgGjc3vR1klkxUs",
+    "name": "Hobgoblin Archer (BB)",
+    "level": 4,
+    "art": "hobgoblin-archer.webp"
+  },
+  {
+    "id": "goblin_commando_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "sA2dFdRUwiapo69Z",
+    "name": "Goblin Commando (BB)",
+    "level": 1,
+    "art": "goblin-commando.webp"
+  },
+  {
+    "id": "zephyr_hawk_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "sAfjpjAS56jtrUbi",
+    "name": "Zephyr Hawk (BB)",
+    "level": 3,
+    "art": "zephyr-hawk.webp"
+  },
+  {
+    "id": "skeletal_giant_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "sEgjgitJmwYYa4mV",
+    "name": "Skeletal Giant (BB)",
+    "level": 3,
+    "art": "skeletal-giant.webp"
+  },
+  {
+    "id": "drow_warrior",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "sW8koPLrSgHalAnq",
+    "name": "Drow Warrior (BB)",
+    "level": 1,
+    "art": "drow-warrior.webp"
+  },
+  {
+    "id": "giant_fly_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "t8mDlH0ELLKtm7WG",
+    "name": "Giant Fly (BB)",
+    "level": 1,
+    "art": "giant-fly.webp"
+  },
+  {
+    "id": "skeleton_guard_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "trchDxbDR2TiPMxT",
+    "name": "Skeleton Guard (BB)",
+    "level": -1,
+    "art": "skeleton-guard.webp"
+  },
+  {
+    "id": "harpy_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "uBNm3R9wbLTPrM9i",
+    "name": "Harpy (BB)",
+    "level": 5,
+    "art": "harpy.webp"
+  },
+  {
+    "id": "minotaur_hunter_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "vN2alMciNlKpBpKN",
+    "name": "Minotaur Hunter (BB)",
+    "level": 4,
+    "art": "minotaur-hunter.webp"
+  },
+  {
+    "id": "warg_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "x7Aa4Tvr9eBaHryF",
+    "name": "Warg (BB)",
+    "level": 2,
+    "art": "warg.webp"
+  },
+  {
+    "id": "drow_sneak",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "xKYIN88ULPFgSZmw",
+    "name": "Drow Sneak (BB)",
+    "level": 2,
+    "art": "drow-sneak.webp"
+  },
+  {
+    "id": "cinder_rat_bb",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "xN5J9S485LxFZMkL",
+    "name": "Cinder Rat (BB)",
+    "level": 3,
+    "art": "cinder-rat.webp"
+  },
+  {
+    "id": "magnetic_skink",
+    "pack": "pf2e.menace-under-otari-bestiary",
+    "docId": "yb3ZUPctOGz3yQTS",
+    "name": "Magnetic Skink",
+    "level": 0,
+    "art": "magnetic-skink.webp"
+  },
+  {
+    "id": "brimstone_rat",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "3Pa5JoY9PYdV5x1e",
+    "name": "Brimstone Rat",
+    "level": -1,
+    "art": "brimstone-rat.webp"
+  },
+  {
+    "id": "kurnugian_jackal",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "4GZsTkvuYADpcdmV",
+    "name": "Kurnugian Jackal",
+    "level": 6,
+    "art": "kurnugian-jackal.webp"
+  },
+  {
+    "id": "bugbear_marauder",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "5iOgKbhW9zVnV1cr",
+    "name": "Bugbear Marauder",
+    "level": 2,
+    "art": "bugbear-marauder.webp"
+  },
+  {
+    "id": "hargrit_leadbuster",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "6Ut7YjjLZADMU7NY",
+    "name": "Hargrit Leadbuster",
+    "level": 4,
+    "art": "hargrit-leadbuster.webp"
+  },
+  {
+    "id": "orc_scrapper_mti29",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "MTI298bhLGYktyZX",
+    "name": "Orc Scrapper",
+    "level": 1,
+    "art": "orc-scrapper.webp"
+  },
+  {
+    "id": "kotgar_leadbuster",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "PhLxqnAIhCovfcXy",
+    "name": "Kotgar Leadbuster",
+    "level": 4,
+    "art": "kotgar-leadbuster.webp"
+  },
+  {
+    "id": "stinkweed_shambler",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "TIX9yDasefwJ4PxI",
+    "name": "Stinkweed Shambler",
+    "level": 2,
+    "art": "stinkweed-shambler.webp"
+  },
+  {
+    "id": "kobold_trapmaster_fhitd",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "fhItdltCmcAZkvcI",
+    "name": "Kobold Trapmaster",
+    "level": 2,
+    "art": "kobold-trapmaster.webp"
+  },
+  {
+    "id": "scalliwing",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "l7wng1EXY7np8Hcu",
+    "name": "Scalliwing",
+    "level": 3,
+    "art": "scalliwing.webp"
+  },
+  {
+    "id": "morgrym_leadbuster",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "lTVgdXuSv2B0yVVW",
+    "name": "Morgrym Leadbuster",
+    "level": 4,
+    "art": "morgrym-leadbuster.webp"
+  },
+  {
+    "id": "omblin_leadbuster",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "m4jitI3J1QkjJq3H",
+    "name": "Omblin Leadbuster",
+    "level": 2,
+    "art": "omblin-leadbuster.webp"
+  },
+  {
+    "id": "orc_commander_rrsiq",
+    "pack": "pf2e.troubles-in-otari-bestiary",
+    "docId": "rRSIqZ5g3QRfaAQ0",
+    "name": "Orc Commander",
+    "level": 2,
+    "art": "orc-commander.webp"
+  },
+  {
+    "id": "amnerion",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "1XFBOXGEkiXDXhil",
+    "name": "Amnerion",
+    "level": 22,
+    "art": "amnerion.webp"
+  },
+  {
+    "id": "mythic_phoenix_flame",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "2La4fXp6iq11vQpP",
+    "name": "Mythic Phoenix Flame",
+    "level": 4,
+    "art": "mythic-phoenix-flame.webp"
+  },
+  {
+    "id": "bee_borer",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "2LfQ6wT7DiFFVCba",
+    "name": "Bee Borer",
+    "level": 3,
+    "art": "bee-borer.webp"
+  },
+  {
+    "id": "neshkefru",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "3QSevJzuQHz0RwCz",
+    "name": "Neshkefru",
+    "level": 8,
+    "art": "neshkefru.webp"
+  },
+  {
+    "id": "sedacthy_scout_4lgtf",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "4LgTFSnxHQWmI4AT",
+    "name": "Sedacthy Scout",
+    "level": 2,
+    "art": "sedacthy-scout.webp"
+  },
+  {
+    "id": "gigantic_bee_royal_guardian",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "5KuPNI76rCa4P0iC",
+    "name": "Gigantic Bee Royal Guardian",
+    "level": 6,
+    "art": "gigantic-bee-royal-guardian.webp"
+  },
+  {
+    "id": "skeletal_champion_7bjqu",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "7BJqud5bQ0VySlB4",
+    "name": "Skeletal Champion",
+    "level": 2,
+    "art": "skeletal-champion.webp"
+  },
+  {
+    "id": "molted_reefclaw",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "9mKeryELAjGj7agY",
+    "name": "Molted Reefclaw",
+    "level": 1,
+    "art": "molted-reefclaw.webp"
+  },
+  {
+    "id": "leviathan_louse",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "DAdoAVeJNyH1dgcg",
+    "name": "Leviathan Louse",
+    "level": 8,
+    "art": "leviathan-louse.webp"
+  },
+  {
+    "id": "pteios",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "DCxybi9yVMw1rhBq",
+    "name": "Pteios",
+    "level": 11,
+    "art": "pteios.webp"
+  },
+  {
+    "id": "living_statue",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "EWiCbl82e6BMvcPG",
+    "name": "Living Statue",
+    "level": 5,
+    "art": "living-statue.webp"
+  },
+  {
+    "id": "ulshuk",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "FHntBv0y5ymW1Ith",
+    "name": "Ulshuk",
+    "level": 8,
+    "art": "ulshuk.webp"
+  },
+  {
+    "id": "lava_spitter",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "GNWqtXXqZEWDwe8w",
+    "name": "Lava Spitter",
+    "level": 4,
+    "art": "lava-spitter.webp"
+  },
+  {
+    "id": "withered_flame_drake",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "GVS0dJk0HGq9trLs",
+    "name": "Withered Flame Drake",
+    "level": 5,
+    "art": "withered-flame-drake.webp"
+  },
+  {
+    "id": "pyrefowl",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "InXSzKdj4MgbciIb",
+    "name": "Pyrefowl",
+    "level": 1,
+    "art": "pyrefowl.webp"
+  },
+  {
+    "id": "pyrkaion",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "KTG7qtxnTG81QQ2W",
+    "name": "Pyrkaion",
+    "level": 8,
+    "art": "pyrkaion.webp"
+  },
+  {
+    "id": "forgotten_dead",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "N7MaaL14TiOlyoqK",
+    "name": "Forgotten Dead",
+    "level": 4,
+    "art": "forgotten-dead.webp"
+  },
+  {
+    "id": "firehoof_minotaur",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "Nt6kwOSCwfRsWm3u",
+    "name": "Firehoof Minotaur",
+    "level": 7,
+    "art": "firehoof-minotaur.webp"
+  },
+  {
+    "id": "cyclops_seeker",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "NwCK6g2Hq8Bz3pnw",
+    "name": "Cyclops Seeker",
+    "level": 10,
+    "art": "cyclops-seeker.webp"
+  },
+  {
+    "id": "painted_landscape",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "OeFnLt97mzHjSnbG",
+    "name": "Painted Landscape",
+    "level": 10,
+    "art": "painted-landscape.webp"
+  },
+  {
+    "id": "painted_ram",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "QZLmUDNMqo1JpV5i",
+    "name": "Painted Ram",
+    "level": 8,
+    "art": "painted-ram.webp"
+  },
+  {
+    "id": "coralclaw",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "QeY9MqsQ5EDAd0Zd",
+    "name": "Coralclaw",
+    "level": 2,
+    "art": "coralclaw.webp"
+  },
+  {
+    "id": "metal_scamp",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "X5VGzifC2pKuttRq",
+    "name": "Metal Scamp",
+    "level": 1,
+    "art": "metal-scamp-lob.webp"
+  },
+  {
+    "id": "merfolk_wavecaller_xxwsv",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "XXWSvVIZ4HuAFGTX",
+    "name": "Merfolk Wavecaller",
+    "level": 7,
+    "art": "merfolk-wavecaller.webp"
+  },
+  {
+    "id": "vengeful_shade",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "hQzumh6iXsKEnGd7",
+    "name": "Vengeful Shade",
+    "level": 10,
+    "art": "shade-dead-vault.webp"
+  },
+  {
+    "id": "yasmenei",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "QlCcGokzOoADjdRd",
+    "name": "Yasmenei",
+    "level": 5,
+    "art": "yasmenei.webp"
+  },
+  {
+    "id": "eumenid",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "RQ1qKmIXI6bycpBi",
+    "name": "Eumenid",
+    "level": 6,
+    "art": "eumenid.webp"
+  },
+  {
+    "id": "mythic_hippogriff",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "RY0MnAujnmPgvNWA",
+    "name": "Mythic Hippogriff",
+    "level": 2,
+    "art": "mythic-hippogriff.webp"
+  },
+  {
+    "id": "deathless_pirate",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "TWGzMOvxDIbYkuIb",
+    "name": "Deathless Pirate",
+    "level": 7,
+    "art": "deathless-pirate.webp"
+  },
+  {
+    "id": "pendidia",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "TyM7RUMDIqGQtYr0",
+    "name": "Pendidia",
+    "level": 10,
+    "art": "pendidia.webp"
+  },
+  {
+    "id": "eylthia_s_basilisk",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "UkO1E2yzPQdk2i5r",
+    "name": "Eylthia's Basilisk",
+    "level": 7,
+    "art": "eylthia-s-basilisk.webp"
+  },
+  {
+    "id": "spirit",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "UtrPweFaxQSDsST9",
+    "name": "Enraged Spirit",
+    "level": 0,
+    "art": "spirit.webp"
+  },
+  {
+    "id": "iblydan_hind",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "V5Nzox1vB1Rregr6",
+    "name": "Iblydan Hind",
+    "level": 4,
+    "art": "iblydan-hind.webp"
+  },
+  {
+    "id": "gigantic_bee_guard",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "VRcAuDdgpdF3LD9C",
+    "name": "Gigantic Bee Guard",
+    "level": 4,
+    "art": "gigantic-bee-guard.webp"
+  },
+  {
+    "id": "torcheater",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "VfL5YJzRiUxldUTg",
+    "name": "Torcheater",
+    "level": 2,
+    "art": "torcheater.webp"
+  },
+  {
+    "id": "kerinelopas",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "XWAaTLLlikpz4rTH",
+    "name": "Kerinelopas",
+    "level": 9,
+    "art": "kerinelopas.webp"
+  },
+  {
+    "id": "eylthia",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "YsPt2EAK2zbzEhVD",
+    "name": "Eylthia",
+    "level": 10,
+    "art": "eylthia.webp"
+  },
+  {
+    "id": "omorphos",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "Z1xYR3t3US8jEIVI",
+    "name": "Omorphos",
+    "level": 8,
+    "art": "omorphos.webp"
+  },
+  {
+    "id": "vornen",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "ZVmikyAJb9SUuvoN",
+    "name": "Vornen",
+    "level": 5,
+    "art": "vornen.webp"
+  },
+  {
+    "id": "sappil",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "Zt0HcZjRrzo1zz4y",
+    "name": "Sappil",
+    "level": 1,
+    "art": "sappil.webp"
+  },
+  {
+    "id": "painted_pontifex",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "arh4LFUHcHsPyJoP",
+    "name": "Painted Pontifex",
+    "level": 9,
+    "art": "painted-pontifex.webp"
+  },
+  {
+    "id": "exthenios",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "asmbTctJbSc7L36y",
+    "name": "Exthenios",
+    "level": 9,
+    "art": "exthenios.webp"
+  },
+  {
+    "id": "gigantic_bee_drone",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "bD71wWdS3PMpt7k2",
+    "name": "Gigantic Bee Drone",
+    "level": 4,
+    "art": "gigantic-bee-drone.webp"
+  },
+  {
+    "id": "ekleios",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "bkaucqFMNbV5V7fJ",
+    "name": "Ekleios",
+    "level": 2,
+    "art": "ekleios.webp"
+  },
+  {
+    "id": "painted_soldier",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "cD92QPlLxCIXN6mn",
+    "name": "Painted Soldier",
+    "level": 7,
+    "art": "painted-soldier.webp"
+  },
+  {
+    "id": "painted_soldier_ominous_graffiti",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "byFpFNAiClHVHnSJ",
+    "name": "Painted Soldier (Ominous Graffiti)",
+    "level": 7,
+    "art": "painted-soldier.webp"
+  },
+  {
+    "id": "mammoth_squid",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "dmf1SRd2NIKUpgci",
+    "name": "Mammoth Squid",
+    "level": 14,
+    "art": "mammoth-squid.webp"
+  },
+  {
+    "id": "akki",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "ga1l2gjdrnb1ctRS",
+    "name": "Akki (Level 2)",
+    "level": 2,
+    "art": "akki.webp"
+  },
+  {
+    "id": "akki_level_8",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "uqdf6Fx5Z6IWyWed",
+    "name": "Akki (Level 8)",
+    "level": 8,
+    "art": "akki.webp"
+  },
+  {
+    "id": "painted_griffon",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "gqPkwINHB1EwVfpq",
+    "name": "Painted Griffon",
+    "level": 5,
+    "art": "painted-griffon.webp"
+  },
+  {
+    "id": "keribos",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "jXTKQSMyTpQ2LoIV",
+    "name": "Keribos",
+    "level": 6,
+    "art": "keribos.webp"
+  },
+  {
+    "id": "bristled_reef_shark",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "kOiU62ShG0Hyhznx",
+    "name": "Bristled Reef Shark",
+    "level": 1,
+    "art": "bristled-reef-shark.webp"
+  },
+  {
+    "id": "iapholi",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "kgEjYU9fTiIs6HMU",
+    "name": "Iapholi",
+    "level": 7,
+    "art": "iapholi.webp"
+  },
+  {
+    "id": "encymion",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "ln3pXptaxdchTkiU",
+    "name": "Encymion",
+    "level": 9,
+    "art": "encymion.webp"
+  },
+  {
+    "id": "animated_panoply",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "o2O3dPdWCCgRcIO3",
+    "name": "Animated Panoply",
+    "level": 2,
+    "art": "animated-panoply.webp"
+  },
+  {
+    "id": "xenia_spirit",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "sA9LeJ1wDJr9lEeo",
+    "name": "Xenia Spirit",
+    "level": 4,
+    "art": "xenia-spirit.webp"
+  },
+  {
+    "id": "deianire",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "uAEbmbXpPckpuz0N",
+    "name": "Deianire",
+    "level": 7,
+    "art": "deianire.webp"
+  },
+  {
+    "id": "deck_crew",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "xJShFpURsiQQHKWD",
+    "name": "Deck Crew",
+    "level": 6,
+    "art": "deck-crew.webp"
+  },
+  {
+    "id": "phermeina",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "xsICRSnP7T0CP6jJ",
+    "name": "Phermeina",
+    "level": 1,
+    "art": "phermeina.webp"
+  },
+  {
+    "id": "tsemone",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "yuvHEsdaVru2YsUk",
+    "name": "Tsemone",
+    "level": 8,
+    "art": "tsemone.webp"
+  },
+  {
+    "id": "ungkore_bounty_hunter",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "zBkMFaZZAHvivVnh",
+    "name": "Ungkore Bounty Hunter",
+    "level": 8,
+    "art": "ungkore-bounty-hunter.webp"
+  },
+  {
+    "id": "mutated_centaur",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "zZhpf01YcgrIRyVF",
+    "name": "Mutated Centaur",
+    "level": 7,
+    "art": "mutated-centaur.webp"
+  },
+  {
+    "id": "gray_gardener_assassin",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "7jALXqInrmh428DW",
+    "name": "Gray Gardener Assassin",
+    "level": 14,
+    "art": "gray-gardener-assassin.webp"
+  },
+  {
+    "id": "tumblak",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "9TmGRq1HjPwy1CLq",
+    "name": "Tumblak",
+    "level": 18,
+    "art": "tumblak.webp"
+  },
+  {
+    "id": "keznin_nevarmo",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "BWkN2cJBi6LtQJs3",
+    "name": "Keznin Nevarmo",
+    "level": 9,
+    "art": "keznin-nevarmo.webp"
+  },
+  {
+    "id": "gray_death",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "H2yR0dc1ztkwvOQl",
+    "name": "Gray Death",
+    "level": 20,
+    "art": "gray-death.webp"
+  },
+  {
+    "id": "mateena_lumlin",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "M2X9UUVefBA8x9gk",
+    "name": "Mateena Lumlin",
+    "level": 16,
+    "art": "mateena-lumlin.webp"
+  },
+  {
+    "id": "chakanaj",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "OVpZhrhP87gQiLGO",
+    "name": "Chakanaj",
+    "level": 14,
+    "art": "chakanaj.webp"
+  },
+  {
+    "id": "gray_gardener_director_general",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "aufhOvDz7EBjbxaQ",
+    "name": "Gray Gardener Director General",
+    "level": 16,
+    "art": "gray-gardener-director-general.webp"
+  },
+  {
+    "id": "guillotine_golem",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "dwOxqAJibYABcbW0",
+    "name": "Guillotine Golem",
+    "level": 18,
+    "art": "guillotine-golem.webp"
+  },
+  {
+    "id": "riekanoy",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "rxfr3POtEtwqg5F4",
+    "name": "Riekanoy",
+    "level": 19,
+    "art": "riekanoy.webp"
+  },
+  {
+    "id": "gray_gardener_enforcer",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "s7lkV69f0RRHwFEU",
+    "name": "Gray Gardener Enforcer",
+    "level": 17,
+    "art": "gray-gardener-enforcer.webp"
+  },
+  {
+    "id": "zintaya_calbieste",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "sBA27jit7zaH14tK",
+    "name": "Zintaya Calbieste",
+    "level": 14,
+    "art": "zintaya-calbieste.webp"
+  },
+  {
+    "id": "worm_prophet",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "vLhDuiBojzeLuWdo",
+    "name": "Worm Prophet",
+    "level": 18,
+    "art": "worm-prophet.webp"
+  },
+  {
+    "id": "conqueror_worm",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "vgWT4zQJkohRkuSI",
+    "name": "Conqueror Worm",
+    "level": 21,
+    "art": "conqueror-worm.webp"
+  },
+  {
+    "id": "miss_whisper",
+    "pack": "pf2e.night-of-the-gray-death-bestiary",
+    "docId": "w7Y6zn3wRabuOdNv",
+    "name": "Miss Whisper",
+    "level": 9,
+    "art": "miss-whisper.webp"
+  },
+  {
+    "id": "second_spawn",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "0Ky23VSAdJO4izI0",
+    "name": "Second Spawn",
+    "level": 21,
+    "art": "second-spawn.webp"
+  },
+  {
+    "id": "mugrisant_qlippoth",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "1XvwOmLR49yRe1Ae",
+    "name": "Mugrisant Qlippoth",
+    "level": 15,
+    "art": "mugrisant-qlippoth.webp"
+  },
+  {
+    "id": "shroud_moss",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "4VNR5BjSTspzsVYC",
+    "name": "Shroud Moss",
+    "level": 18,
+    "art": "shroud-moss.webp"
+  },
+  {
+    "id": "fungal_flytrap",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "67FHrUbWeN8uZva9",
+    "name": "Fungal Flytrap",
+    "level": 10,
+    "art": "fungal-flytrap.webp"
+  },
+  {
+    "id": "miastrilek",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "91y5Jhr5sePXKdLX",
+    "name": "Miastrilek",
+    "level": 11,
+    "art": "miastrilek.webp"
+  },
+  {
+    "id": "alzarius",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "9QYCWXVN2B9ssayl",
+    "name": "Alzarius",
+    "level": 11,
+    "art": "alzarius.webp"
+  },
+  {
+    "id": "delvarnis",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "9iIj6SLuJplNBGlQ",
+    "name": "Delvarnis",
+    "level": 11,
+    "art": "delvarnis.webp"
+  },
+  {
+    "id": "tanglebriar_bhuta",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "B1jjtLZy9B7iEaGw",
+    "name": "Tanglebriar Bhuta",
+    "level": 11,
+    "art": "tanglebriar-bhuta.webp"
+  },
+  {
+    "id": "crowded_veil",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "CFgNOjwPo1o5ChPg",
+    "name": "Crowded Veil",
+    "level": 14,
+    "art": "crowded-veil.webp"
+  },
+  {
+    "id": "spore_thrall",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "CiStkehlrG3IBcSX",
+    "name": "Spore Thrall",
+    "level": 10,
+    "art": "spore-thrall.webp"
+  },
+  {
+    "id": "tanglebriar_creeper",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "DBJgwqVDuM44Wd7Z",
+    "name": "Tanglebriar Creeper",
+    "level": 15,
+    "art": "tanglebriar-creeper.webp"
+  },
+  {
+    "id": "fungal_amalgamite",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "DS74YwOb9IOJPsF3",
+    "name": "Fungal Amalgamite",
+    "level": 13,
+    "art": "fungal-amalgamite.webp"
+  },
+  {
+    "id": "boggard_cultist_e976i",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "E976If3eDLtsZfdB",
+    "name": "Boggard Cultist",
+    "level": 15,
+    "art": "boggard-cultist.webp"
+  },
+  {
+    "id": "eshmok",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "F3cUooitFUS4nX1e",
+    "name": "Eshmok",
+    "level": 9,
+    "art": "eshmok.webp"
+  },
+  {
+    "id": "swamp_blight",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "Gu4ItQtKIgtQ7ZRB",
+    "name": "Swamp Blight",
+    "level": 17,
+    "art": "swamp-blight.webp"
+  },
+  {
+    "id": "forger_of_tanglebriar",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "QbzfloiHZrxBLYDK",
+    "name": "Forger of Tanglebriar",
+    "level": 16,
+    "art": "forger-of-tanglebriar.webp"
+  },
+  {
+    "id": "ziberae",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "RwO6fC7hIap6cKoM",
+    "name": "Ziberae",
+    "level": 20,
+    "art": "ziberae.webp"
+  },
+  {
+    "id": "queen_telandia_edasseril",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "SxcJlOBouEOuH0AJ",
+    "name": "Queen Telandia Edasseril",
+    "level": 17,
+    "art": "queen-telandia-edasseril.webp"
+  },
+  {
+    "id": "grizzer",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "THRmSpcf3FvVDXhj",
+    "name": "Grizzer",
+    "level": 10,
+    "art": "grizzer.webp"
+  },
+  {
+    "id": "rotting_cultist",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "WJwsn0t40hD8UvGe",
+    "name": "Rotting Cultist",
+    "level": 8,
+    "art": "rotting-cultist.webp"
+  },
+  {
+    "id": "vansidieth",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "WQRJdpOzcnBsgbnp",
+    "name": "Vansidieth",
+    "level": 18,
+    "art": "vansidieth.webp"
+  },
+  {
+    "id": "invidiak_hy1vn",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "hy1VNv553PryLGbu",
+    "name": "Invidiak",
+    "level": 7,
+    "art": "invidiak.webp"
+  },
+  {
+    "id": "gruntch",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "XE9emvoqU0B3LT7k",
+    "name": "Gruntch",
+    "level": 18,
+    "art": "gruntch.webp"
+  },
+  {
+    "id": "sinmold",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "YsgZ2gFGBLVnmdCc",
+    "name": "Sinmold",
+    "level": 12,
+    "art": "sinmold.webp"
+  },
+  {
+    "id": "riftweasel",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "Yxsgcou341wjS8st",
+    "name": "Riftweasel",
+    "level": 19,
+    "art": "riftweasel.webp"
+  },
+  {
+    "id": "spawn_of_jeharlu",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "akkpxUPNsOTHcvSH",
+    "name": "Spawn of Jeharlu",
+    "level": 22,
+    "art": "spawn-of-jeharlu.webp"
+  },
+  {
+    "id": "zauglagaul",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "au8S1DLC5osnGgoX",
+    "name": "Zauglagaul",
+    "level": 19,
+    "art": "zauglagaul.webp"
+  },
+  {
+    "id": "root_rotter",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "blWhrVgjP5rIqb3q",
+    "name": "Root Rotter",
+    "level": 9,
+    "art": "root-rotter.webp"
+  },
+  {
+    "id": "fungal_abomination",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "bwU58Qns7TzR43Jj",
+    "name": "Fungal Abomination",
+    "level": 18,
+    "art": "fungal-abomination.webp"
+  },
+  {
+    "id": "fungal_marsh_giant",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "bytRrCmVh2g5FoQE",
+    "name": "Fungal Marsh Giant",
+    "level": 11,
+    "art": "fungal-marsh-giant.webp"
+  },
+  {
+    "id": "gruddunk",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "cHOXZyToRuM6gmGE",
+    "name": "Gruddunk",
+    "level": 15,
+    "art": "gruddunk.webp"
+  },
+  {
+    "id": "captain_talymir",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "d8N7y33UQ5jwLnR7",
+    "name": "Captain Talymir",
+    "level": 11,
+    "art": "captain-talymir.webp"
+  },
+  {
+    "id": "spore_tyrannosaurus",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "dJTwrxDR5cRySxvH",
+    "name": "Spore Tyrannosaurus",
+    "level": 13,
+    "art": "spore-tyrannosaurus.webp"
+  },
+  {
+    "id": "rift_pulper",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "dxJWRhwtdwxBI9Gn",
+    "name": "Rift Pulper",
+    "level": 17,
+    "art": "rift-pulper.webp"
+  },
+  {
+    "id": "tanglebriar_isqulug",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "e2qgJzVf0FpBXfBd",
+    "name": "Tanglebriar Isqulug",
+    "level": 12,
+    "art": "tanglebriar-isqulug.webp"
+  },
+  {
+    "id": "razmiri_blade_assassin",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "eRDf6xNphDUQ1Gox",
+    "name": "Razmiri Blade Assassin",
+    "level": 7,
+    "art": "razmiri-blade-assassin.webp"
+  },
+  {
+    "id": "the_python",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "ebdfXxEWYOCjgbb0",
+    "name": "The Python",
+    "level": 23,
+    "art": "the-python.webp"
+  },
+  {
+    "id": "vintalax_the_rotting_god",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "fxx3YStNyNBdT1sw",
+    "name": "Vintalax, The Rotting God",
+    "level": 14,
+    "art": "vintalax-the-rotting-god.webp"
+  },
+  {
+    "id": "degholau",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "gBVxdkJbuxR0dxt4",
+    "name": "Degholau",
+    "level": 13,
+    "art": "degholau.webp"
+  },
+  {
+    "id": "sporescout",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "iTT2eNlWdFIBeJr4",
+    "name": "Sporescout",
+    "level": 14,
+    "art": "sporescout.webp"
+  },
+  {
+    "id": "devasance",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "ixH0iXbdlCjGat2V",
+    "name": "Devasance",
+    "level": 16,
+    "art": "devasance.webp"
+  },
+  {
+    "id": "iravalinn_morgethai",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "j4Ge5IoJkVai7N2g",
+    "name": "Iravalinn Morgethai",
+    "level": 14,
+    "art": "iravalinn-morgethai.webp"
+  },
+  {
+    "id": "the_putrid",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "lUiOpNnV9Dd44T3n",
+    "name": "The Putrid",
+    "level": 15,
+    "art": "the-putrid.webp"
+  },
+  {
+    "id": "pukwudgie_scribe",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "lXy7rMV1QMT37xTp",
+    "name": "Pukwudgie Scribe",
+    "level": 15,
+    "art": "pukwudgie-scribe.webp"
+  },
+  {
+    "id": "ulugurnix",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "mp4ovsYcXGRncFCR",
+    "name": "Ulugurnix",
+    "level": 11,
+    "art": "ulugurnix.webp"
+  },
+  {
+    "id": "lukarazyll",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "nxXj4V7pFVXuRvre",
+    "name": "Lukarazyll",
+    "level": 14,
+    "art": "lukarazyll.webp"
+  },
+  {
+    "id": "irshandi",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "oD67tHbrjCnWFHMA",
+    "name": "Irshandi",
+    "level": 16,
+    "art": "irshandi.webp"
+  },
+  {
+    "id": "vixivax",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "phwez1DJLJcAVrG6",
+    "name": "Vixivax",
+    "level": 15,
+    "art": "vixivax.webp"
+  },
+  {
+    "id": "vamollaroth",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "q4Hwhap275qpm2iq",
+    "name": "Vamollaroth",
+    "level": 21,
+    "art": "vamollaroth.webp"
+  },
+  {
+    "id": "unrisen_slithermaw",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "rIoJXbPU9sqw9lm5",
+    "name": "Unrisen Slithermaw",
+    "level": 18,
+    "art": "unrisen-slithermaw.webp"
+  },
+  {
+    "id": "sporespawn_of_treerazer",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "rJ7yZpv0nUWMYEOF",
+    "name": "Sporespawn of Treerazer",
+    "level": 22,
+    "art": "sporespawn-of-treerazer.webp"
+  },
+  {
+    "id": "spore_queen_quilindra",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "rdh4wcn2nAKGGQIc",
+    "name": "Spore Queen Quilindra",
+    "level": 20,
+    "art": "spore-queen-quilindra.webp"
+  },
+  {
+    "id": "imvath",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "uND9uwnPoBVOU7jd",
+    "name": "Imvath",
+    "level": 19,
+    "art": "imvath.webp"
+  },
+  {
+    "id": "briargeist",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "y2EhtiAUEfUZNQH8",
+    "name": "Briargeist",
+    "level": 15,
+    "art": "briargeist.webp"
+  },
+  {
+    "id": "bhuta_servant",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "y9G71AEujaRmcjlu",
+    "name": "Bhuta Servant",
+    "level": 12,
+    "art": "bhuta-servant.webp"
+  },
+  {
+    "id": "tanglebriar_regent",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "yfmlWu7g3sk1svyc",
+    "name": "Tanglebriar Regent",
+    "level": 13,
+    "art": "tanglebriar-regent.webp"
+  },
+  {
+    "id": "tangle_khravgodon",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "ygVqLjDmjXaDq8xh",
+    "name": "Tangle Khravgodon",
+    "level": 14,
+    "art": "tangle-khravgodon.webp"
+  },
+  {
+    "id": "tithekeeper",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "zaFCdcwo2VDqqrNR",
+    "name": "Tithekeeper",
+    "level": 10,
+    "art": "tithekeeper.webp"
+  },
+  {
+    "id": "shalelu_andosana",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "zcW1w3ftmzL3XCuq",
+    "name": "Shalelu Andosana",
+    "level": 13,
+    "art": "shalelu-andosana.webp"
+  },
+  {
+    "id": "croakchief_globblit_skink_eater",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "6U8P0ITf4gkJfeKD",
+    "name": "Croakchief Globblit Skink-eater",
+    "level": 5,
+    "art": "croakchief-globblit-skink-eater.webp"
+  },
+  {
+    "id": "aspis_technician",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "Fd9l3UtiMLIRAjhO",
+    "name": "Aspis Technician",
+    "level": 7,
+    "art": "aspis-technician.webp"
+  },
+  {
+    "id": "aspis_guard",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "GyBkJWmMHfNQtAFw",
+    "name": "Aspis Guard",
+    "level": 5,
+    "art": "aspis-guard-lob.webp"
+  },
+  {
+    "id": "paga_nikohian",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "MQI0uQKurpprJQtT",
+    "name": "Paga Nikohian",
+    "level": 9,
+    "art": "paga-nikohian.webp"
+  },
+  {
+    "id": "cursebreaker",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "PugTH4pasVxBB7Pn",
+    "name": "Cursebreaker",
+    "level": 9,
+    "art": "cursebreaker.webp"
+  },
+  {
+    "id": "angazhani_cultist",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "TFrOAM5u8Jk8hB69",
+    "name": "Angazhani Cultist",
+    "level": 4,
+    "art": "angazhani-cultist.webp"
+  },
+  {
+    "id": "fuming_sludge",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "ZXpX1TWooxGkIOuu",
+    "name": "Fuming Sludge",
+    "level": 7,
+    "art": "fuming-sludge.webp"
+  },
+  {
+    "id": "nyamat_mshwe",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "nz6ldwPZm0WWCCYV",
+    "name": "Nyamat Mshwe",
+    "level": 6,
+    "art": "nyamat-mshwe.webp"
+  },
+  {
+    "id": "ahvothian",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "wgeuaYe2fbGNg42z",
+    "name": "Ahvothian",
+    "level": 7,
+    "art": "ahvothian.webp"
   }
 ]
