@@ -175,6 +175,7 @@ describe("ensureWorldMacros", () => {
       command: encounterDef.command,
       img: encounterDef.img,
       generated: true,
+      ownership: { default: 3 }, // #773: already correctly owned
     });
     const dungeonDef = MACRO_DEFS.find((d) =>
       d.command.includes(".openDungeon()"),
@@ -185,6 +186,7 @@ describe("ensureWorldMacros", () => {
       command: dungeonDef.command,
       img: dungeonDef.img,
       generated: true,
+      ownership: { default: 3 }, // #773: already correctly owned
     });
     installFoundryStubs({ macros: [stale, dungeonMacro] });
 
