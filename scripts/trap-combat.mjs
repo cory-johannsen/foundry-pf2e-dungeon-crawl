@@ -165,6 +165,11 @@ export async function triggerTrap(hazardActor, target) {
   });
 }
 
+/** Posts a localized public chat line for a trap event (#753). */
+async function announceTrap(key, data) {
+  await ChatMessage.create({ content: game.i18n.format(key, data) });
+}
+
 /** Hazard actor ids with a trap check in flight (#753). Taken synchronously
  * before any await so two quick `updateToken` events can't both fire. */
 const trapChecksInFlight = new Set();
@@ -185,6 +190,7 @@ export async function handleTrapTokenMove(tokenDoc, changes, deps = {}) {
   const isParty = deps.isPartyActor ?? isPartyActor;
   const trigger = deps.triggerTrap ?? triggerTrap;
   const detect = deps.rollTrapDetection ?? rollTrapDetection;
+  const announce = deps.announce ?? announceTrap;
 
   if (!isPositionChange(changes)) return;
   if (!isGM()) return;
@@ -211,6 +217,10 @@ export async function handleTrapTokenMove(tokenDoc, changes, deps = {}) {
         const disabled = hazardActor.getFlag(MODULE_ID, "trapDisabled");
         await hazardActor.setFlag(MODULE_ID, "trapTriggered", true);
         if (!disabled) {
+          await announce("PF2EDC.Dungeon.Trap.TriggeredChat", {
+            name: tokenDoc.name ?? tokenDoc.actor.name,
+            trap: hazardActor.name,
+          });
           await trigger(hazardActor, {
             actor: tokenDoc.actor,
             token: tokenDoc.object,
@@ -222,6 +232,10 @@ export async function handleTrapTokenMove(tokenDoc, changes, deps = {}) {
         if (result?.detected) {
           await hazardActor.setFlag(MODULE_ID, "trapDetected", true);
           if (hazardToken.hidden) await hazardToken.update({ hidden: false });
+          await announce("PF2EDC.Dungeon.Trap.DetectedChat", {
+            name: tokenDoc.name ?? tokenDoc.actor.name,
+            trap: hazardActor.name,
+          });
         }
       }
     } finally {
@@ -236,7 +250,12 @@ export async function handleTrapTokenMove(tokenDoc, changes, deps = {}) {
  * rollTrapDisableAttempt) the actor lacks the skill. The one function both
  * the direct UI path and the relay path call, mirroring
  * claimTreasureFor(sceneId)'s own shape. */
-export async function attemptTrapDisableForScene(sceneId, actorId, skill) {
+export async function attemptTrapDisableForScene(
+  sceneId,
+  actorId,
+  skill,
+  deps = {},
+) {
   const trapScene = game.scenes.get(sceneId);
   const hazardToken = trapScene?.tokens.find(
     (t) =>
@@ -246,7 +265,18 @@ export async function attemptTrapDisableForScene(sceneId, actorId, skill) {
   const hazardActor = hazardToken?.actor;
   const actor = actorId ? game.actors.get(actorId) : null;
   if (!hazardActor || !actor) return null;
-  return rollTrapDisableAttempt(hazardActor, actor, skill);
+  const roll = deps.rollTrapDisableAttempt ?? rollTrapDisableAttempt;
+  const announce = deps.announce ?? announceTrap;
+  const result = await roll(hazardActor, actor, skill);
+  if (result) {
+    await announce(
+      result.disabled
+        ? "PF2EDC.Dungeon.Trap.DisableSuccessChat"
+        : "PF2EDC.Dungeon.Trap.DisableFailureChat",
+      { name: actor.name, trap: hazardActor.name },
+    );
+  }
+  return result;
 }
 
 // --- #136: external agent customization of a trap's narrative flavor ----
