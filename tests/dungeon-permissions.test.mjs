@@ -5,6 +5,7 @@ import {
   decideOpenDungeon,
   decideGmLessBroadcast,
   isAuthorizedRequest,
+  ownsPartyCharacter,
 } from "../scripts/dungeon-permissions.mjs";
 
 const gm = { id: "gm-1", isGM: true };
@@ -165,5 +166,66 @@ describe("isAuthorizedRequest", () => {
     expect(isAuthorizedRequest("startRun", undefined, null)).toBe(false);
     const hosted = { sceneId: "scene-1", hostUserId: player.id };
     expect(isAuthorizedRequest("startRun", null, hosted)).toBe(false);
+  });
+});
+
+describe("isAuthorizedRequest: roomFeatureInteract (#611/#623)", () => {
+  const opts = { ownsPartyCharacter: true };
+  it("authorizes a party-character owner with no host", () => {
+    expect(isAuthorizedRequest("roomFeatureInteract", "p", { hostUserId: null }, opts)).toBe(true);
+  });
+  it("rejects a user who owns no party character", () => {
+    expect(isAuthorizedRequest("roomFeatureInteract", "p", { hostUserId: null })).toBe(false);
+  });
+  it("rejects a completed run even for an owner", () => {
+    expect(isAuthorizedRequest("roomFeatureInteract", "p", { completed: true }, opts)).toBe(false);
+  });
+  it("rejects when there is no run", () => {
+    expect(isAuthorizedRequest("roomFeatureInteract", "p", null, opts)).toBe(false);
+    expect(isAuthorizedRequest("roomFeatureInteract", "p", undefined, opts)).toBe(false);
+  });
+  it("still authorizes the host without ownership", () => {
+    expect(isAuthorizedRequest("roomFeatureInteract", "h", { hostUserId: "h" })).toBe(true);
+  });
+  it("rejects a non-host non-owner when a host exists", () => {
+    expect(isAuthorizedRequest("roomFeatureInteract", "p", { hostUserId: "h" })).toBe(false);
+  });
+  it("never authorizes a missing requestingUserId", () => {
+    expect(isAuthorizedRequest("roomFeatureInteract", undefined, { hostUserId: "h" }, opts)).toBe(false);
+    expect(isAuthorizedRequest("roomFeatureInteract", "", { hostUserId: "" }, opts)).toBe(false);
+  });
+  it.each(["claimTreasure", "resolveRoom", "startRun"])(
+    "ownership grants nothing for %s (host-only rule unchanged)",
+    (action) => {
+      const run = { hostUserId: "h" };
+      expect(isAuthorizedRequest(action, "p", run, opts)).toBe(false);
+      expect(isAuthorizedRequest(action, "h", run, opts)).toBe(true);
+    },
+  );
+  it("claimTreasure by an owner is false with no host", () => {
+    expect(isAuthorizedRequest("claimTreasure", "p", { hostUserId: null }, opts)).toBe(false);
+  });
+});
+
+describe("ownsPartyCharacter", () => {
+  const member = (type, ownership) => ({ type, ownership });
+  it.each([3, 4, 5])("ownership level %i counts", (lvl) => {
+    expect(ownsPartyCharacter("u", [member("character", { u: lvl })])).toBe(true);
+  });
+  it.each([0, 1, 2])("level %i does not count", (lvl) => {
+    expect(ownsPartyCharacter("u", [member("character", { u: lvl })])).toBe(false);
+  });
+  it("ignores other users' ownership and missing ownership", () => {
+    expect(ownsPartyCharacter("u", [member("character", { v: 3 }), member("character")])).toBe(false);
+  });
+  it("ignores non-character members", () => {
+    expect(ownsPartyCharacter("u", [member("npc", { u: 3 }), member("loot", { u: 3 })])).toBe(false);
+  });
+  it("true if any one character qualifies", () => {
+    expect(ownsPartyCharacter("u", [member("character", { u: 1 }), member("character", { u: 3 })])).toBe(true);
+  });
+  it("false for empty/undefined party", () => {
+    expect(ownsPartyCharacter("u", [])).toBe(false);
+    expect(ownsPartyCharacter("u", undefined)).toBe(false);
   });
 });

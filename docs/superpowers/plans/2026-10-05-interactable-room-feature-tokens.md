@@ -50,7 +50,7 @@
 **Interfaces:**
 - Produces: `export const ROOM_FEATURE_TOKEN_TYPES` (object keyed by `"treasure" | "puzzle" | "skill_challenge"`, each `{name, img}`); `export function buildRoomFeatureTokenActorData(kind, roomId)` returning the full Actor-creation payload. Consumed by Task 3.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/room-feature-tokens.test.mjs`:
 
@@ -111,12 +111,12 @@ describe("buildRoomFeatureTokenActorData", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/room-feature-tokens.test.mjs`
 Expected: FAIL — `Cannot find module '../scripts/room-feature-tokens.mjs'`.
 
-- [ ] **Step 3: Write `scripts/room-feature-tokens.mjs`**
+- [x] **Step 3: Write `scripts/room-feature-tokens.mjs`**
 
 ```js
 /**
@@ -154,12 +154,12 @@ export function buildRoomFeatureTokenActorData(kind, roomId) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/room-feature-tokens.test.mjs`
 Expected: PASS, all 6 tests green.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/room-feature-tokens.mjs tests/room-feature-tokens.test.mjs
@@ -180,7 +180,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `getRunState`, `persist`, `defaultSettingsRef` (already imported/defined in this file, same as `ensureSkillChallenge` uses).
 - Produces: `export async function revealRoomFeature(sceneId, roomId, kind, {settingsRef = defaultSettingsRef()} = {})` — returns the new state (or the unchanged state on a no-op, or `null` if no run exists). Consumed by Task 4.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 In `tests/dungeon-runner.test.mjs`, add `revealRoomFeature` to the existing import list from `../scripts/dungeon-runner.mjs` (alongside `ensureSkillChallenge`/`ensurePuzzleState`), then add this new `describe` block after the existing `describe("ensureSkillChallenge / recordSkillChallengeAttempt", ...)` block:
 
@@ -267,12 +267,12 @@ describe("revealRoomFeature", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-runner.test.mjs -t revealRoomFeature`
 Expected: FAIL — `revealRoomFeature is not a function` (or an import error).
 
-- [ ] **Step 3: Write `revealRoomFeature`**
+- [x] **Step 3: Write `revealRoomFeature`**
 
 In `scripts/dungeon-runner.mjs`, insert this directly after `ensurePuzzleState`'s closing `}` (before its teardown counterpart's own docblock):
 
@@ -313,17 +313,17 @@ export async function revealRoomFeature(
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-runner.test.mjs -t revealRoomFeature`
 Expected: PASS, all 5 new tests green.
 
-- [ ] **Step 5: Run the full test file to confirm no regression**
+- [x] **Step 5: Run the full test file to confirm no regression**
 
 Run: `npx vitest run tests/dungeon-runner.test.mjs`
 Expected: PASS, every existing test still green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-runner.mjs tests/dungeon-runner.test.mjs
