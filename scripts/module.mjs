@@ -379,37 +379,59 @@ Hooks.on("targetToken", (user, token, targeted) =>
   triggerRoomFeatureToken(user, token, targeted),
 );
 
-/** A plain left-click on a token only selects it, and Foundry never routes
- * a click on a token the player doesn't own through its own click handlers,
- * so nothing reaches `targetToken`. A listener bound on the token itself is
- * stripped when Foundry sets the token's interaction up, so listen on the
- * canvas stage in the capture phase instead and walk from the pressed
- * display object up to its Token. Primary button only; the Target tool keeps
- * its own `targetToken` route. Idempotent per stage. */
-function roomFeatureTokenFromEvent(event) {
-  for (let o = event?.target; o; o = o.parent) {
-    if (o.document?.flags?.[MODULE_ID]?.roomFeatureKind) return o;
-  }
-  return null;
+/** A plain left-click on a token only selects it, and Foundry never routes a
+ * click on a token the player doesn't own to it -- listeners bound on the
+ * token (or the stage) don't see it either. Door clicks work for every
+ * player because Foundry's DoorControl is not a placeable: it is a
+ * standalone display object on the controls layer with its own pointerdown
+ * handler. Do the same for room-feature props: one invisible, clickable
+ * control per prop token, positioned over it. Rebuilt wholesale whenever
+ * the canvas is ready or a prop token is created, moved or deleted. */
+let roomFeatureControls = [];
+
+function clearRoomFeatureControls() {
+  for (const c of roomFeatureControls) c.destroy?.({ children: true });
+  roomFeatureControls = [];
 }
 
-function bindRoomFeatureClick() {
-  const stage = canvas?.stage;
-  if (!stage || stage._pf2edcRoomFeatureBound) return;
-  stage._pf2edcRoomFeatureBound = true;
-  stage.on("pointerdowncapture", (event) => {
-    if (event?.button !== undefined && event.button !== 0) return;
-    if (game.activeTool === "target") return;
-    const token = roomFeatureTokenFromEvent(event);
-    if (!token) return;
-    triggerRoomFeatureToken(game.user, token, true).catch((err) =>
-      console.error(`${MODULE_ID} | room-feature click failed`, err),
-    );
+function syncRoomFeatureControls() {
+  clearRoomFeatureControls();
+  const layer = canvas?.controls;
+  const scene = canvas?.scene;
+  if (!layer || !scene) return;
+  const size = canvas.grid?.size ?? 100;
+  for (const doc of scene.tokens) {
+    if (!doc.flags?.[MODULE_ID]?.roomFeatureKind) continue;
+    const control = new PIXI.Graphics();
+    const w = (doc.width || 1) * size;
+    const h = (doc.height || 1) * size;
+    control.beginFill(0xffffff, 0.001);
+    control.drawRect(0, 0, w, h);
+    control.endFill();
+    control.hitArea = new PIXI.Rectangle(0, 0, w, h);
+    control.position.set(doc.x, doc.y);
+    control.eventMode = "static";
+    control.cursor = "pointer";
+    control.on("pointerdown", (event) => {
+      if (event?.button !== undefined && event.button !== 0) return;
+      event.stopPropagation?.();
+      triggerRoomFeatureToken(game.user, { document: doc }, true).catch((err) =>
+        console.error(`${MODULE_ID} | room-feature click failed`, err),
+      );
+    });
+    layer.addChild(control);
+    roomFeatureControls.push(control);
+  }
+}
+
+Hooks.on("canvasReady", syncRoomFeatureControls);
+Hooks.on("canvasTearDown", clearRoomFeatureControls);
+for (const hook of ["createToken", "updateToken", "deleteToken"]) {
+  Hooks.on(hook, (doc) => {
+    if (doc?.parent?.id === canvas?.scene?.id && doc.flags?.[MODULE_ID]?.roomFeatureKind !== undefined)
+      syncRoomFeatureControls();
   });
 }
-
-Hooks.on("canvasReady", bindRoomFeatureClick);
-Hooks.once("ready", bindRoomFeatureClick);
 
 /** #439: binds the "Turn back" button on the retreat chat card (posted by
  * dungeon-scene.mjs's announceRetreatIfAvailable). Disabled, not removed, for a
