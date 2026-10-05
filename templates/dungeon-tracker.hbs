@@ -321,37 +321,6 @@
               {{/if}}
             </div>
           {{else}}
-            {{#if trap.hasHazard}}
-              <div class="pf2edc-dungeon__trap">
-                {{#if interactive}}
-                  {{#if trap.detected}}
-                    <form class="pf2edc-dungeon__trap-disable-form">
-                      <label>
-                        {{localize "PF2EDC.Dungeon.Trap.WhoLabel"}}
-                        <select name="actorId">
-                          {{#each partyMembers}}
-                            <option value="{{this.id}}">{{this.name}}</option>
-                          {{/each}}
-                        </select>
-                      </label>
-                      <label>
-                        {{localize "PF2EDC.Dungeon.Trap.SkillLabel"}}
-                        <select name="skill">
-                          {{#each trap.disableChecks}}
-                            <option value="{{this.skill}}">{{this.label}}</option>
-                          {{/each}}
-                        </select>
-                      </label>
-                      <button type="button" data-action="attemptTrapDisable">{{localize
-                          "PF2EDC.Dungeon.Trap.DisableButton"
-                        }}</button>
-                    </form>
-                  {{else}}
-                    <p class="hint">{{localize "PF2EDC.Dungeon.Trap.NotDetectedHint"}}</p>
-                  {{/if}}
-                {{/if}}
-              </div>
-            {{/if}}
             {{#unless currentRoomResolved}}
               <footer>
                 <button type="button" data-action="succeed">{{localize

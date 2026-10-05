@@ -76,10 +76,13 @@ export const DUNGEON_ACTIONS = {
   chooseNarrativeOption: (args) =>
     chooseNarrativeOption(args.sceneId, args.optionIndex),
   claimTreasure: (args) => claimTreasureFor(args.sceneId),
-  // #753: a disable attempt against the room's detected trap. Host-only by
-  // the default isAuthorizedRequest rule.
+  // #753/#754: a disable attempt against the room's detected trap. Widened
+  // to party-character owners like roomFeatureInteract; the handler
+  // re-checks that the requester owns the chosen actor.
   attemptTrapDisable: (args) =>
-    attemptTrapDisableForScene(args.sceneId, args.actorId, args.skill),
+    attemptTrapDisableForScene(args.sceneId, args.actorId, args.skill, {
+      requestingUserId: args.requestingUserId,
+    }),
   // #611/#623: a player targeting a room-feature prop token. The runner
   // re-validates everything GM-side (authoritative, idempotent).
   roomFeatureInteract: (args) =>
@@ -161,10 +164,11 @@ export function registerDungeonActionSocket() {
       msg.actionName === "startRun"
         ? findActiveHostedRun()
         : getRunState(msg.args?.sceneId);
-    // #611/#623: only roomFeatureInteract widens authorization, to active
-    // non-GM owners of a party character.
+    // #611/#623/#754: only roomFeatureInteract and attemptTrapDisable widen
+    // authorization, to active non-GM owners of a party character.
     const ownsPartyCharacter =
-      msg.actionName === "roomFeatureInteract" &&
+      (msg.actionName === "roomFeatureInteract" ||
+        msg.actionName === "attemptTrapDisable") &&
       canRelayRoomFeature(
         game.users.get(msg.requestingUserId),
         game.actors?.party?.members ?? [],

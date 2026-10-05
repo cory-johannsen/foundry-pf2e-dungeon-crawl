@@ -12,7 +12,8 @@ import {
   isSimpleAutomatableTrap,
   classifyTrapMove,
 } from "./trap-mechanics.mjs";
-import { applyTrapRoomState } from "./dungeon-runner.mjs";
+import { applyTrapRoomState, getRunState } from "./dungeon-runner.mjs";
+import { userMayAttemptTrapDisable } from "./dungeon-permissions.mjs";
 import { footprint, isPositionChange } from "./placement.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -170,6 +171,12 @@ async function announceTrap(key, data) {
   await ChatMessage.create({ content: game.i18n.format(key, data) });
 }
 
+/** #754: marks a hazard TOKEN spent (disabled or triggered). Players can't
+ * read the hazard actor, so the click control keys off this token flag. */
+export async function markTrapSpent(hazardToken) {
+  await hazardToken?.setFlag?.(MODULE_ID, "trapSpent", true);
+}
+
 /** Hazard actor ids with a trap check in flight (#753). Taken synchronously
  * before any await so two quick `updateToken` events can't both fire. */
 const trapChecksInFlight = new Set();
@@ -226,6 +233,7 @@ export async function handleTrapTokenMove(tokenDoc, changes, deps = {}) {
             token: tokenDoc.object,
           });
         }
+        await markTrapSpent(hazardToken);
         if (hazardToken.hidden) await hazardToken.update({ hidden: false });
       } else if (!hazardActor.getFlag(MODULE_ID, "trapDetected")) {
         const result = await detect(hazardActor, tokenDoc.actor);
@@ -244,12 +252,13 @@ export async function handleTrapTokenMove(tokenDoc, changes, deps = {}) {
   }
 }
 
-/** Shared entry point for a disable attempt (#753) -- finds the scene's own
- * live, not-yet-triggered trap hazard and rolls against it. Returns null
- * when there is no such hazard, no such actor, or (via
- * rollTrapDisableAttempt) the actor lacks the skill. The one function both
- * the direct UI path and the relay path call, mirroring
- * claimTreasureFor(sceneId)'s own shape. */
+/** Shared entry point for a disable attempt (#753/#754) -- finds the scene's
+ * own live, unspent trap hazard and rolls against it. Returns null when
+ * there is no such hazard/actor, the requester is not allowed (only checked
+ * when `deps.requestingUserId` is given; omitted means a trusted direct
+ * GM-client call), or (via rollTrapDisableAttempt) the actor lacks the
+ * skill. Critical failure triggers the trap on the attempter; success marks
+ * it spent; failure leaves it clickable. */
 export async function attemptTrapDisableForScene(
   sceneId,
   actorId,
@@ -260,22 +269,66 @@ export async function attemptTrapDisableForScene(
   const hazardToken = trapScene?.tokens.find(
     (t) =>
       t.getFlag(MODULE_ID, "trapHazard") &&
+      !t.getFlag(MODULE_ID, "trapSpent") &&
       !t.actor?.getFlag(MODULE_ID, "trapTriggered"),
   );
   const hazardActor = hazardToken?.actor;
   const actor = actorId ? game.actors.get(actorId) : null;
   if (!hazardActor || !actor) return null;
+
+  if (deps.requestingUserId !== undefined) {
+    const userId = deps.requestingUserId;
+    const isHost = deps.isHost
+      ? deps.isHost(sceneId, userId)
+      : !!userId && getRunState(sceneId)?.hostUserId === userId;
+    const allowed = userMayAttemptTrapDisable({
+      userId,
+      isGM: !!game.users?.get(userId)?.isGM,
+      isHost,
+      actor,
+      partyMembers: game.actors?.party?.members ?? [],
+    });
+    if (!allowed) return null;
+  }
+  if (trapChecksInFlight.has(hazardActor.id)) return null;
+
   const roll = deps.rollTrapDisableAttempt ?? rollTrapDisableAttempt;
   const announce = deps.announce ?? announceTrap;
+  const trigger = deps.triggerTrap ?? triggerTrap;
   const result = await roll(hazardActor, actor, skill);
-  if (result) {
-    await announce(
-      result.disabled
-        ? "PF2EDC.Dungeon.Trap.DisableSuccessChat"
-        : "PF2EDC.Dungeon.Trap.DisableFailureChat",
-      { name: actor.name, trap: hazardActor.name },
-    );
+  if (!result) return result;
+
+  if (result.outcome === "criticalFailure") {
+    // Same in-flight lock as the walk-over trigger so the two can't both fire.
+    if (trapChecksInFlight.has(hazardActor.id)) return result;
+    if (hazardActor.getFlag(MODULE_ID, "trapTriggered")) return result;
+    trapChecksInFlight.add(hazardActor.id);
+    try {
+      await hazardActor.setFlag(MODULE_ID, "trapTriggered", true);
+      await markTrapSpent(hazardToken);
+      await announce("PF2EDC.Dungeon.Trap.TriggeredChat", {
+        name: actor.name,
+        trap: hazardActor.name,
+      });
+      const attempterToken = trapScene.tokens.find(
+        (t) => t.actor?.id === actor.id,
+      );
+      if (attempterToken?.object) {
+        await trigger(hazardActor, { actor, token: attempterToken.object });
+      }
+    } finally {
+      trapChecksInFlight.delete(hazardActor.id);
+    }
+    return result;
   }
+
+  if (result.disabled) await markTrapSpent(hazardToken);
+  await announce(
+    result.disabled
+      ? "PF2EDC.Dungeon.Trap.DisableSuccessChat"
+      : "PF2EDC.Dungeon.Trap.DisableFailureChat",
+    { name: actor.name, trap: hazardActor.name },
+  );
   return result;
 }
 

@@ -77,8 +77,8 @@ export function isAuthorizedRequest(
   if (actionName === "startRun") {
     return !run || run.hostUserId === requestingUserId;
   }
-  if (actionName === "roomFeatureInteract") {
-    // #611/#623: room-feature prop tokens may be triggered by any non-GM
+  if (actionName === "roomFeatureInteract" || actionName === "attemptTrapDisable") {
+    // #611/#623 (+ #754 attemptTrapDisable): room-feature prop tokens may be triggered by any non-GM
     // player who owns a party character (relay computes the flag), or the host.
     return (
       !!run &&
@@ -104,4 +104,20 @@ export function ownsPartyCharacter(userId, partyMembers) {
 export function canRelayRoomFeature(user, partyMembers) {
   if (!user || !user.active || user.isGM) return false;
   return ownsPartyCharacter(user.id, partyMembers);
+}
+
+/** #754: whether `userId` may roll a trap-disable attempt as `actor`. The
+ * GM or run host may use anyone; otherwise the user must own the actor
+ * (OWNER, 3) and the actor must be in `partyMembers`. Pure. */
+export function userMayAttemptTrapDisable({
+  userId,
+  isGM = false,
+  isHost = false,
+  actor,
+  partyMembers = [],
+} = {}) {
+  if (!userId || !actor) return false;
+  if (isGM || isHost) return true;
+  if (!(partyMembers ?? []).some((m) => m?.id === actor.id)) return false;
+  return (actor.ownership?.[userId] ?? 0) >= 3;
 }

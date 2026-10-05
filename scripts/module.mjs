@@ -61,7 +61,9 @@ import {
   getPendingTrapCustomization,
   applyTrapCustomization,
   handleTrapTokenMove,
+  attemptTrapDisableForScene,
 } from "./trap-combat.mjs";
+import { promptTrapDisable } from "./ui/trap-disable-dialog.mjs";
 import { registerGenerator } from "./generator-registry.mjs";
 import { DefaultGenerator } from "./default-generator.mjs";
 import { ensureWorldMacros } from "./world-macros.mjs";
@@ -395,6 +397,49 @@ function clearRoomFeatureControls() {
   roomFeatureControls = [];
 }
 
+/** #754: token ids with a disable prompt currently open (no double dialogs). */
+const trapDisableInFlight = new Set();
+
+/** #754: click on a detected trap token. Reads only token-document data --
+ * non-GM clients can't read the hazard actor. */
+async function triggerTrapDisableClick(doc) {
+  if (trapDisableInFlight.has(doc.id)) return;
+  trapDisableInFlight.add(doc.id);
+  try {
+    const sceneId = doc.parent?.id;
+    const characters = (game.actors?.party?.members ?? []).filter(
+      (actor) =>
+        actor.type === "character" && (game.user.isGM || actor.isOwner),
+    );
+    if (!characters.length) {
+      ui.notifications.warn(
+        game.i18n.localize("PF2EDC.Dungeon.Trap.DisableNoCharacters"),
+      );
+      return;
+    }
+    const checks = doc.flags?.[MODULE_ID]?.trapDisableChecks;
+    if (!Array.isArray(checks) || checks.length === 0) {
+      ui.notifications.warn(
+        game.i18n.localize("PF2EDC.Dungeon.Trap.CannotDisable"),
+      );
+      return;
+    }
+    const choice = await promptTrapDisable(checks, characters);
+    if (!choice?.actorId || !choice?.skill) return;
+    if (game.user.isGM) {
+      await attemptTrapDisableForScene(sceneId, choice.actorId, choice.skill);
+    } else {
+      await requestDungeonAction("attemptTrapDisable", {
+        sceneId,
+        actorId: choice.actorId,
+        skill: choice.skill,
+      });
+    }
+  } finally {
+    trapDisableInFlight.delete(doc.id);
+  }
+}
+
 function syncRoomFeatureControls() {
   clearRoomFeatureControls();
   const layer = canvas?.controls;
@@ -402,7 +447,10 @@ function syncRoomFeatureControls() {
   if (!layer || !scene) return;
   const size = canvas.grid?.size ?? 100;
   for (const doc of scene.tokens) {
-    if (!doc.flags?.[MODULE_ID]?.roomFeatureKind) continue;
+    const flags = doc.flags?.[MODULE_ID];
+    const isFeature = !!flags?.roomFeatureKind;
+    const isTrap = !!flags?.trapHazard && !doc.hidden && !flags?.trapSpent;
+    if (!isFeature && !isTrap) continue;
     const control = new PIXI.Graphics();
     const w = (doc.width || 1) * size;
     const h = (doc.height || 1) * size;
@@ -416,6 +464,12 @@ function syncRoomFeatureControls() {
     control.on("pointerdown", (event) => {
       if (event?.button !== undefined && event.button !== 0) return;
       event.stopPropagation?.();
+      if (!isFeature) {
+        triggerTrapDisableClick(doc).catch((err) =>
+          console.error(`${MODULE_ID} | trap disable click failed`, err),
+        );
+        return;
+      }
       triggerRoomFeatureToken(game.user, { document: doc }, true).catch((err) =>
         console.error(`${MODULE_ID} | room-feature click failed`, err),
       );
@@ -429,7 +483,13 @@ Hooks.on("canvasReady", syncRoomFeatureControls);
 Hooks.on("canvasTearDown", clearRoomFeatureControls);
 for (const hook of ["createToken", "updateToken", "deleteToken"]) {
   Hooks.on(hook, (doc) => {
-    if (doc?.parent?.id === canvas?.scene?.id && doc.flags?.[MODULE_ID]?.roomFeatureKind !== undefined)
+    // `doc` is the full document (updateToken's 2nd arg is only the changes),
+    // so hidden / trapSpent changes on a trap token are covered by trapHazard.
+    const f = doc?.flags?.[MODULE_ID];
+    if (
+      doc?.parent?.id === canvas?.scene?.id &&
+      (f?.roomFeatureKind !== undefined || f?.trapHazard !== undefined)
+    )
       syncRoomFeatureControls();
   });
 }

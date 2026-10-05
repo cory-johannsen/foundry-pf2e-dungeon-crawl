@@ -257,6 +257,7 @@ graph LR
   end
   subgraph "Other"
     scripts_pathfinding_mjs["pathfinding.mjs"]
+    scripts_ui_trap_disable_dialog_mjs["ui/trap-disable-dialog.mjs"]
   end
   scripts_combat_rewards_mjs --> scripts_encounter_roster_mjs
   scripts_cover_items_mjs --> scripts_prng_mjs
@@ -321,6 +322,7 @@ graph LR
   scripts_dungeon_scene_mjs --> scripts_narrative_mechanics_mjs
   scripts_dungeon_scene_mjs --> scripts_foundry_api_mjs
   scripts_dungeon_scene_mjs --> scripts_trap_library_mjs
+  scripts_dungeon_scene_mjs --> scripts_trap_combat_mjs
   scripts_dungeon_scene_mjs --> scripts_trap_mechanics_mjs
   scripts_dungeon_scene_mjs --> scripts_prng_mjs
   scripts_dungeon_sound_mjs --> scripts_audio_mjs
@@ -352,6 +354,7 @@ graph LR
   scripts_module_mjs --> scripts_dungeon_combat_mjs
   scripts_module_mjs --> scripts_dungeon_follow_mjs
   scripts_module_mjs --> scripts_trap_combat_mjs
+  scripts_module_mjs --> scripts_ui_trap_disable_dialog_mjs
   scripts_module_mjs --> scripts_generator_registry_mjs
   scripts_module_mjs --> scripts_default_generator_mjs
   scripts_module_mjs --> scripts_world_macros_mjs
@@ -361,6 +364,7 @@ graph LR
   scripts_skill_challenge_mechanics_mjs --> scripts_dungeon_deck_mjs
   scripts_trap_combat_mjs --> scripts_trap_mechanics_mjs
   scripts_trap_combat_mjs --> scripts_dungeon_runner_mjs
+  scripts_trap_combat_mjs --> scripts_dungeon_permissions_mjs
   scripts_trap_combat_mjs --> scripts_placement_mjs
   scripts_trap_mechanics_mjs --> scripts_prng_mjs
   scripts_ui_dungeon_app_mjs --> scripts_data_loader_mjs
@@ -374,7 +378,6 @@ graph LR
   scripts_ui_dungeon_app_mjs --> scripts_encounter_roster_mjs
   scripts_ui_dungeon_app_mjs --> scripts_skill_challenge_mjs
   scripts_ui_dungeon_app_mjs --> scripts_puzzle_mjs
-  scripts_ui_dungeon_app_mjs --> scripts_trap_combat_mjs
   scripts_ui_dungeon_app_mjs --> scripts_skill_challenge_mechanics_mjs
   scripts_ui_dungeon_app_mjs --> scripts_trait_picker_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_scene_mjs

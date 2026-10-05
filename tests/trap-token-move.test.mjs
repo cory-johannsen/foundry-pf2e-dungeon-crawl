@@ -26,7 +26,11 @@ function makeHazard({ x, y, hidden = true, actorFlags = {} } = {}) {
     height: 1,
     hidden,
     actor,
-    getFlag: (m, k) => (m === MODULE_ID && k === "trapHazard" ? true : undefined),
+    flags: {},
+    getFlag: (m, k) => (m === MODULE_ID && k === "trapHazard" ? true : tok.flags[k]),
+    setFlag: vi.fn(async (m, k, v) => {
+      tok.flags[k] = v;
+    }),
     update: vi.fn(async (u) => Object.assign(tok, u)),
   };
   return tok;
@@ -109,6 +113,18 @@ describe("handleTrapTokenMove", () => {
     await handleTrapTokenMove(makeMover([h]), MOVE, base);
     expect(triggerTrap).not.toHaveBeenCalled();
     expect(h.actor.flags.trapTriggered).toBe(true);
+  });
+
+  it("a walk-over trigger marks the hazard token spent (#754)", async () => {
+    const h = makeHazard({ x: 100, y: 100 });
+    await handleTrapTokenMove(makeMover([h]), MOVE, base);
+    expect(h.flags.trapSpent).toBe(true);
+  });
+
+  it("detection alone does not mark the token spent (#754)", async () => {
+    const h = makeHazard({ x: 200, y: 100 });
+    await handleTrapTokenMove(makeMover([h]), MOVE, base);
+    expect(h.flags.trapSpent).toBeUndefined();
   });
 
   it("skips an already-triggered trap", async () => {
