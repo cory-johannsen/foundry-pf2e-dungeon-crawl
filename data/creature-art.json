@@ -45710,5 +45710,165 @@
     "name": "Girtablilu Sentry",
     "level": 8,
     "art": "girtablilu-sentry.webp"
+  },
+  {
+    "id": "fenton_vilorgo",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "N5sypiEac4BKyeQb",
+    "name": "Fenton Vilorgo",
+    "level": 17,
+    "art": "fenton-vilorgo.webp"
+  },
+  {
+    "id": "mask_of_father_skinsaw",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "NWgVQNeDHnjSxOiK",
+    "name": "Mask of Father Skinsaw",
+    "level": 16,
+    "art": "mask-of-father-skinsaw.webp"
+  },
+  {
+    "id": "egarhowl",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "NmzB37eKJpmflJIl",
+    "name": "Egarhowl",
+    "level": 17,
+    "art": "egarhowl.webp"
+  },
+  {
+    "id": "oriole",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "NpIoefm1VZTTnR8h",
+    "name": "Oriole",
+    "level": 14,
+    "art": "oriole.webp"
+  },
+  {
+    "id": "vorens",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "OG0soHK46kY5I5QH",
+    "name": "Vorens",
+    "level": 14,
+    "art": "vorens.webp"
+  },
+  {
+    "id": "princess_sweetie",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "P0UJuYR6jKrV60k6",
+    "name": "Princess Sweetie",
+    "level": 6,
+    "art": "princess-sweetie.webp"
+  },
+  {
+    "id": "echopsyvne",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "RB1DZPTjSC0mnw95",
+    "name": "Echopsyvne",
+    "level": 18,
+    "art": "echopsyvne.webp"
+  },
+  {
+    "id": "razorbones",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "RPE2rcJvkcGwM5r6",
+    "name": "Razorbones",
+    "level": 20,
+    "art": "razorbones.webp"
+  },
+  {
+    "id": "risen_nemesis",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "RUuUJtm8jAJ66z0Q",
+    "name": "Risen Nemesis",
+    "level": 20,
+    "art": "risen-nemesis.webp"
+  },
+  {
+    "id": "animated_boiler",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "SGWcXt1bqMh09qab",
+    "name": "Animated Boiler",
+    "level": 18,
+    "art": "animated-boiler.webp"
+  },
+  {
+    "id": "girtablilu_guardian",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "TPyca1apEDuunvzZ",
+    "name": "Girtablilu Guardian",
+    "level": 10,
+    "art": "girtablilu-guardian.webp"
+  },
+  {
+    "id": "blackfingers",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "VOtMQkKzvL7nMGcX",
+    "name": "Blackfingers",
+    "level": 20,
+    "art": "blackfingers.webp"
+  },
+  {
+    "id": "living_nightmare",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "WFZpAABKj85MK8y8",
+    "name": "Living Nightmare",
+    "level": 8,
+    "art": "living-nightmare.webp"
+  },
+  {
+    "id": "mask_of_blackfingers",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "WS3KRvmJMbftLbdV",
+    "name": "Mask of Blackfingers",
+    "level": 16,
+    "art": "mask-of-blackfingers.webp"
+  },
+  {
+    "id": "emriss",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "XZLHAUd4Yce1t6O7",
+    "name": "Emriss",
+    "level": 12,
+    "art": "emriss.webp"
+  },
+  {
+    "id": "niallana",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "XlEHPOxIIvne6oxe",
+    "name": "Niallana",
+    "level": 15,
+    "art": "niallana.webp"
+  },
+  {
+    "id": "fenton_s_faithful",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "ZaT4rd3bTIfECkCd",
+    "name": "Fenton's Faithful",
+    "level": 13,
+    "art": "fenton-s-faithful.webp"
+  },
+  {
+    "id": "grandmama",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "aMPcSiJMjxnqqvgT",
+    "name": "Grandmama",
+    "level": 10,
+    "art": "grandmama.webp"
+  },
+  {
+    "id": "honor_guard",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "aYilwFsxQZkdqv6z",
+    "name": "Honor Guard",
+    "level": 9,
+    "art": "honor-guard.webp"
+  },
+  {
+    "id": "delaraius_solzakarr",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "ar9K6cpiG6G3v2wZ",
+    "name": "Delaraius Solzakarr",
+    "level": 20,
+    "art": "delaraius-solzakarr.webp"
   }
 ]
