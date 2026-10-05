@@ -45446,5 +45446,77 @@
     "name": "Shalelu Andosana",
     "level": 13,
     "art": "shalelu-andosana.webp"
+  },
+  {
+    "id": "croakchief_globblit_skink_eater",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "6U8P0ITf4gkJfeKD",
+    "name": "Croakchief Globblit Skink-eater",
+    "level": 5,
+    "art": "croakchief-globblit-skink-eater.webp"
+  },
+  {
+    "id": "aspis_technician",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "Fd9l3UtiMLIRAjhO",
+    "name": "Aspis Technician",
+    "level": 7,
+    "art": "aspis-technician.webp"
+  },
+  {
+    "id": "aspis_guard",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "GyBkJWmMHfNQtAFw",
+    "name": "Aspis Guard",
+    "level": 5,
+    "art": "aspis-guard-lob.webp"
+  },
+  {
+    "id": "paga_nikohian",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "MQI0uQKurpprJQtT",
+    "name": "Paga Nikohian",
+    "level": 9,
+    "art": "paga-nikohian.webp"
+  },
+  {
+    "id": "cursebreaker",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "PugTH4pasVxBB7Pn",
+    "name": "Cursebreaker",
+    "level": 9,
+    "art": "cursebreaker.webp"
+  },
+  {
+    "id": "angazhani_cultist",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "TFrOAM5u8Jk8hB69",
+    "name": "Angazhani Cultist",
+    "level": 4,
+    "art": "angazhani-cultist.webp"
+  },
+  {
+    "id": "fuming_sludge",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "ZXpX1TWooxGkIOuu",
+    "name": "Fuming Sludge",
+    "level": 7,
+    "art": "fuming-sludge.webp"
+  },
+  {
+    "id": "nyamat_mshwe",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "nz6ldwPZm0WWCCYV",
+    "name": "Nyamat Mshwe",
+    "level": 6,
+    "art": "nyamat-mshwe.webp"
+  },
+  {
+    "id": "ahvothian",
+    "pack": "pf2e.the-slithering-bestiary",
+    "docId": "wgeuaYe2fbGNg42z",
+    "name": "Ahvothian",
+    "level": 7,
+    "art": "ahvothian.webp"
   }
 ]
