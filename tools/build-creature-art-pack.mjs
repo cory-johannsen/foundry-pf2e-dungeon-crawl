@@ -45,14 +45,23 @@ const REPO_ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
 const isInside = (child, parent) => child.startsWith(parent.endsWith(sep) ? parent : parent + sep);
 
-/** Throws before anything is deleted if the output paths could clobber
+/** Pure guard (string comparison only, never touches the filesystem):
+ * throws before anything is deleted if the output paths could clobber
  * something that is not ours. */
-function assertSafeOutputDirs({ packOutDir, sourceOutDir, systemPacksDir }) {
+export function assertSafeOutputDirs({
+  packOutDir,
+  sourceOutDir,
+  systemPacksDir,
+  repoRoot = REPO_ROOT,
+}) {
+  packOutDir = resolve(packOutDir);
+  sourceOutDir = resolve(sourceOutDir);
   const systemDir = resolve(systemPacksDir);
-  const forbidden = [parse(packOutDir).root, REPO_ROOT, systemDir, dirname(systemDir)];
+  const repo = resolve(repoRoot);
+  const forbidden = [parse(packOutDir).root, repo, systemDir, dirname(systemDir)];
   for (const [label, dir] of [["packOutDir", packOutDir], ["sourceOutDir", sourceOutDir]]) {
-    if (forbidden.includes(dir) || forbidden.some((f) => f !== parse(f).root && isInside(f, dir))) {
-      throw new Error(`Refusing to build: ${label} ${dir} is the filesystem root, the repo root, or the system packs dir (or contains it)`);
+    if (forbidden.includes(dir) || forbidden.some((f) => isInside(f, dir))) {
+      throw new Error(`Refusing to build: ${label} ${dir} is the filesystem root, the repo root, the system packs dir, its parent, or contains one of them`);
     }
   }
   if (packOutDir === sourceOutDir || isInside(packOutDir, sourceOutDir)) {
@@ -68,9 +77,9 @@ export async function buildCreatureArtPack({
   packOutDir,
   log = false,
 }) {
+  assertSafeOutputDirs({ packOutDir, sourceOutDir, systemPacksDir });
   packOutDir = resolve(packOutDir);
   sourceOutDir = resolve(sourceOutDir);
-  assertSafeOutputDirs({ packOutDir, sourceOutDir, systemPacksDir });
   const entries = JSON.parse(readFileSync(creatureArtPath, "utf8"));
   const dirOf = readPackDirectories(systemPacksDir);
   const entriesByPack = new Map();

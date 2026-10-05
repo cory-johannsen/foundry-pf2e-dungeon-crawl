@@ -7,7 +7,7 @@ import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { compilePack, extractPack } from "@foundryvtt/foundryvtt-cli";
-import { buildCreatureArtPack } from "../tools/build-creature-art-pack.mjs";
+import { buildCreatureArtPack, assertSafeOutputDirs } from "../tools/build-creature-art-pack.mjs";
 
 const ART = "modules/pf2e-dungeon-crawl/assets/creature-art/";
 let root;
@@ -326,5 +326,48 @@ describe("buildCreatureArtPack", () => {
       ).rejects.toThrow(/Refusing/);
     }
     expect(hashTree(join(root, "sys"))).toBe(before);
+  });
+});
+
+describe("assertSafeOutputDirs (pure; string paths only, nothing on disk)", () => {
+  const repoRoot = "/fake/work/repo";
+  const systemPacksDir = "/fake/srv/foundry/systems/pf2e/packs";
+  const good = {
+    packOutDir: `${repoRoot}/packs/generated-creature-art`,
+    sourceOutDir: `${repoRoot}/packs/generated-creature-art/_source`,
+  };
+  const guard = (o) => assertSafeOutputDirs({ systemPacksDir, repoRoot, ...good, ...o });
+
+  const refusals = {
+    "packOutDir is /": { packOutDir: "/" },
+    "sourceOutDir is /": { sourceOutDir: "/" },
+    "packOutDir is the repo root": { packOutDir: repoRoot },
+    "packOutDir is an ancestor of the repo root": { packOutDir: "/fake/work" },
+    "packOutDir is the system packs dir": { packOutDir: systemPacksDir },
+    "packOutDir is the system packs dir's parent": { packOutDir: "/fake/srv/foundry/systems/pf2e" },
+    "packOutDir is an ancestor of the system dir": { packOutDir: "/fake/srv" },
+    "sourceOutDir contains the system dir": { sourceOutDir: "/fake/srv/foundry" },
+    "sourceOutDir is the repo root": { sourceOutDir: repoRoot },
+    "packOutDir equals sourceOutDir": { sourceOutDir: good.packOutDir },
+    "packOutDir lies inside sourceOutDir": {
+      packOutDir: `${repoRoot}/packs/a/pack`,
+      sourceOutDir: `${repoRoot}/packs/a`,
+    },
+  };
+  for (const [name, override] of Object.entries(refusals)) {
+    it(`refuses when ${name}`, () => {
+      expect(() => guard(override)).toThrow(/^Refusing/);
+    });
+  }
+
+  it("allows the normal layout", () => {
+    expect(() => guard({})).not.toThrow();
+  });
+
+  it("allows non-normalized equivalents of the normal layout", () => {
+    expect(() => guard({ sourceOutDir: `${good.sourceOutDir}/` })).not.toThrow();
+    expect(() => guard({ sourceOutDir: `${good.packOutDir}/./_source` })).not.toThrow();
+    expect(() => guard({ sourceOutDir: `${good.packOutDir}/x/../_source` })).not.toThrow();
+    expect(() => guard({ packOutDir: `${good.packOutDir}/` })).not.toThrow();
   });
 });
