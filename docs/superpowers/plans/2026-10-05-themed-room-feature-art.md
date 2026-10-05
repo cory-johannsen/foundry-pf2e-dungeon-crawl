@@ -838,7 +838,7 @@ Operational task (no new code beyond the manifest and its coverage test). Run in
 - Consumes: the `rf-<theme>-<kind>` subjects (Task 5), `tools/make-bg-transparent.mjs`, the final door format (Task 3).
 - Produces: the shipped manifest `{ "<theme>": ["door", "treasure", "puzzle", "skill_challenge"], ... }` for all 8 themes.
 
-- [ ] **Step 1: Write the coverage test (fails until the art and manifest exist)**
+- [x] **Step 1: Write the coverage test (fails until the art and manifest exist)**
 
 `tests/room-feature-art-coverage.test.mjs`:
 
@@ -892,7 +892,7 @@ describe("room-feature art manifest", () => {
 Run: `npx vitest run tests/room-feature-art-coverage.test.mjs`
 Expected: FAIL on "lists every theme and kind" (the manifest is `{}`).
 
-- [ ] **Step 2: Generate the 24 token images (treasure, puzzle, skill_challenge)**
+- [x] **Step 2: Generate the 24 token images (treasure, puzzle, skill_challenge)**
 
 In bash (`bash -c`, not zsh word-splitting):
 
@@ -906,7 +906,7 @@ nohup node tools/generate-token-art.mjs $(cat /tmp/rf_tokens.txt) > /tmp/rf_toke
 
 Poll `ls assets/room-features/*/ | wc -l` and `/tmp/rf_tokens.log` until 24 `.webp` files exist.
 
-- [ ] **Step 3: Key backgrounds to transparent and review**
+- [x] **Step 3: Key backgrounds to transparent and review**
 
 ```bash
 for f in assets/room-features/*/{treasure,puzzle,skill_challenge}.webp; do node tools/make-bg-transparent.mjs "$f"; done
@@ -914,11 +914,11 @@ for f in assets/room-features/*/{treasure,puzzle,skill_challenge}.webp; do node 
 
 Build a contact sheet (`<sheet tool>` of your choice, for example the `.venv` Pillow tiling script used for creature art) and review every image against its kind and theme: the object is recognizably a chest / puzzle mechanism / trial standard, in the right theme, centered, with no frame, ring, pedestal, floor, scenery or creature. Redo a failing one by editing only that subject's wording (not the shared `AVOID`), then `node tools/generate-token-art.mjs --force rf-<theme>-<kind>` and re-key it. Repeat until all 24 pass.
 
-- [ ] **Step 4: Generate, key and review the 8 door images**
+- [x] **Step 4: Generate, key and review the 8 door images**
 
 Generate `rf-<theme>-door` for the 8 themes the same way, key with `make-bg-transparent.mjs`, and review against the spike's door format (aspect ratio and viewpoint). If the aspect ratio differs from the square generation, crop or pad the keyed image with Pillow to the ratio the spike recorded before keeping it.
 
-- [ ] **Step 5: Register all 32 in the manifest**
+- [x] **Step 5: Register all 32 in the manifest**
 
 Write `data/room-feature-art.json`:
 
@@ -937,12 +937,12 @@ Write `data/room-feature-art.json`:
 
 (Remove any theme/kind that failed review and could not be redone, and list it in `INTENTIONAL_GAPS` in the test instead, with a one-line reason; never ship a manifest entry without its file.)
 
-- [ ] **Step 6: Run the coverage test and the whole suite**
+- [x] **Step 6: Run the coverage test and the whole suite**
 
 Run: `npx vitest run tests/room-feature-art-coverage.test.mjs && npm test`
 Expected: PASS.
 
-- [ ] **Step 7: Commit (explicit paths only)**
+- [x] **Step 7: Commit (explicit paths only)**
 
 ```bash
 git add assets/room-features data/room-feature-art.json tests/room-feature-art-coverage.test.mjs
@@ -952,6 +952,8 @@ git commit -m "#750: themed door and room-feature art (32 images) and manifest"
 Commit in batches (tokens first, doors second) if the diff is large; each batch must keep the coverage test green by listing the not-yet-generated pairs in `INTENTIONAL_GAPS` and removing them as they land.
 
 ---
+
+> **As built:** `tools/make-bg-transparent.mjs` ate the objects' dark metal (dark vignetted backgrounds), so the cutout uses `tools/cutout-room-feature-art.py` (rembg in `.venv`) instead; doors stay opaque, rotated and squashed to a 768x154 strip. See that script's header.
 
 ### Task 7: Live verification, docs and release
 
