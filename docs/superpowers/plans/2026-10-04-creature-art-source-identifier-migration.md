@@ -15,7 +15,7 @@
 - Source identifier = that entry's `pack` value with the universal `pf2e.` prefix stripped (every one of the 44 distinct pack values shares it) — never invented vocabulary, never a hand-maintained mapping table.
 - A file referenced by `data/creature-art.json` entries from more than one distinct `pack` value goes in `assets/creature-art/shared/`, not duplicated into multiple source folders — measured at spec time as 166 of 4,787 distinct files, and 220 of 5,190 on 2026-10-05 (the share grows with the Art chunks; do not hard-code it).
 - Filenames themselves stay bare (`<slug>.webp`) — the source identifier lives in the directory only, not duplicated into the filename too (spec's own explicit deviation from the issue's literal "both filename and folder" ask, already reviewed and approved).
-- `id` becomes `<source_with_dashes_to_underscores>__<old_id_with_any_trailing_"_lob"_stripped>` — e.g. `pfs_season_1_bestiary__boggard_swampseer_pfs_1_24`. A `shared/` entry's id prefix is `shared__`.
+- `id` becomes `<source_with_dashes_to_underscores>__<old_id_with_any_trailing_"_lob"_stripped>` — e.g. `pfs_season_1_bestiary__boggard_swampseer_pfs_1_24`. A `shared/` entry's id prefix is `shared__<its OWN pack source, dashes to underscores>__` (e.g. `shared__pfs_season_1_bestiary__guard`) — NOT a bare `shared__`: two entries in different packs can share one art file and differ only by the stripped `_lob` suffix (`guard` / `guard_lob`; 25 such pairs found at execution time), which would collide on `shared__guard`.
 - The rename is a scripted `git mv` pass, not manual file moves — git must recognize each move as a rename (unchanged content, moved path), not a delete+add, so the history stays readable.
 - **Counts are a moving target.** The Art sessions kept merging chunks after this plan was first written (4,787 files / 5,414 entries / 166 shared / 44 packs), and a re-measure on 2026-10-05 found **5,190 files, 5,904 entries, 220 shared files, 57 distinct packs**. Do NOT trust any hard-coded number: Task 1's dry-run must instead satisfy these invariants against whatever the repo holds at run time — (a) `distinct art files == files on disk` (zero orphans, zero missing); (b) `moved + already-at-destination == distinct art files`; (c) `creature-art.json entries rewritten == entry count`; (d) `generator entries rewritten + left unmatched == entries still carrying the literal flat dir: 'assets/creature-art'`; (e) destination directories == `distinct packs + 1` (the `shared/` folder). If any invariant fails, stop and find out why.
 - **Added by Cory's decision (option A, 2026-10-05): a re-runnable normalizer, not a one-time fix.** The Art workflow lives OUTSIDE this repo (`~/src/art-tools/*.py` append flat-`dir` generator table entries and wire flat `art` values into `creature-art.json`), and the Art session that ran it has terminated. So `node tools/migrate-creature-art-sources.mjs` is the supported path for any new or leftover flat art — it must stay idempotent and handle flat entries added after the first run (Task 1), be reachable as `npm run art:normalize`, and be named in the validator/test failure messages (Task 2b).
@@ -157,7 +157,13 @@ const updatedEntries = creatureArt.map((e) => {
   const newRelative = newRelativePath.get(basename);
   const source = newRelative.split("/")[0];
   const underscoredSource = source.replace(/-/g, "_");
-  const expectedPrefix = `${underscoredSource}__`;
+  // A shared/ file serves several packs whose entries can differ only by a
+  // stripped "_lob" suffix ("guard" vs "guard_lob"), so a shared entry's id
+  // also carries its OWN pack's source to stay unique (#628).
+  const expectedPrefix =
+    source === "shared"
+      ? `shared__${deriveSource(e.pack).replace(/-/g, "_")}__`
+      : `${underscoredSource}__`;
   const bareId = e.id.startsWith(expectedPrefix)
     ? e.id.slice(expectedPrefix.length)
     : stripLobSuffix(e.id);
@@ -398,10 +404,18 @@ describe("creature-art layout (#628)", () => {
     expect(bad.map((e) => `${e.id}: ${e.art}`)).toEqual([]);
   });
 
-  it(`every id is prefixed by its folder (dashes to underscores) and has no _lob suffix (${HINT})`, () => {
+  it(`ids are unique, so shared-file entries from different packs never collide (${HINT})`, () => {
+    const seen = new Map();
+    for (const e of entries) seen.set(e.id, (seen.get(e.id) ?? 0) + 1);
+    expect([...seen].filter(([, n]) => n > 1).map(([id]) => id)).toEqual([]);
+  });
+
+  it(`every id is prefixed by its folder (dashes to underscores; shared/ also by the entry's own pack source) and has no _lob suffix (${HINT})`, () => {
     const bad = entries.filter((e) => {
       const folder = e.art.split("/")[0];
-      return !e.id.startsWith(`${folder.replace(/-/g, "_")}__`) || e.id.endsWith("_lob");
+      const packSource = e.pack.replace(/^pf2e\./, "").replace(/-/g, "_");
+      const prefix = folder === "shared" ? `shared__${packSource}__` : `${folder.replace(/-/g, "_")}__`;
+      return !e.id.startsWith(prefix) || e.id.endsWith("_lob");
     });
     expect(bad.map((e) => `${e.id}: ${e.art}`)).toEqual([]);
   });
