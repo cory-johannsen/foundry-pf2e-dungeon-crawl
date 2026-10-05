@@ -1,5 +1,15 @@
 const MODULE_ID = "pf2e-dungeon-crawl";
 
+// #773: a document created with no explicit `ownership` defaults to
+// "creator owns it, nobody else" -- if ensureWorldMacros() happens to run
+// on a client connected as the foundry-rest relay's own bot user (rather
+// than the real GM's own browser), the resulting macro is invisible to
+// everyone else. A literal number here, not CONST.DOCUMENT_OWNERSHIP_LEVELS
+// (confirmed live this value is 3/OWNER) -- this file is imported by
+// tests/world-macros.test.mjs before any Foundry global exists, so a
+// CONST reference at module-evaluation time would throw.
+const GENERATED_MACRO_OWNERSHIP = { default: 3 };
+
 // #96: dropped the "DOMMT:"/"PF2EDC:" prefix from the dungeon-crawl macro's
 // display name. Scoped to just this one macro — "PF2EDC: Generate Encounter"
 // keeps its prefix for now.
@@ -48,13 +58,15 @@ async function ensureWorldMacros({ force = false } = {}) {
         force ||
         existing.name !== def.name ||
         existing.command !== def.command ||
-        existing.img !== def.img
+        existing.img !== def.img ||
+        existing.ownership?.default !== GENERATED_MACRO_OWNERSHIP.default
       ) {
         toUpdate.push({
           _id: existing.id,
           name: def.name,
           command: def.command,
           img: def.img,
+          ownership: GENERATED_MACRO_OWNERSHIP,
         });
       }
     } else {
@@ -64,6 +76,7 @@ async function ensureWorldMacros({ force = false } = {}) {
         img: def.img,
         command: def.command,
         scope: "global",
+        ownership: GENERATED_MACRO_OWNERSHIP,
         flags: { [MODULE_ID]: { generated: true } },
       });
     }
