@@ -37,7 +37,7 @@
 - Consumes: nothing new.
 - Produces: `grantPartyXp(totalXp, source)` now writes `totalXp` to every party character's XP directly. No other file calls `xpPerSurvivor` after this task (confirmed via this session's own repo-wide search — `scripts/combat-rewards.mjs:14` is its only definition and `scripts/foundry-api.mjs:49/664` its only use).
 
-- [ ] **Step 1: Update the failing tests first**
+- [x] **Step 1: Update the failing tests first**
 
 Replace `tests/foundry-api-grant-party-xp.test.mjs`'s five tests with:
 
@@ -116,12 +116,12 @@ describe("grantPartyXp announcement (#626, #782)", () => {
 
 Remove `tests/combat-rewards.test.mjs`'s `describe('xpPerSurvivor', ...)` block (lines 22-34) and its now-unused `xpPerSurvivor` import on line 2 (keep `totalCombatXp`).
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/foundry-api-grant-party-xp.test.mjs`
 Expected: FAIL — `a.system.details.xp.value`/`b.system.details.xp.value` are still `20` (40 split two ways), and the chat content still includes a `"share"` field.
 
-- [ ] **Step 3: Remove `xpPerSurvivor`**
+- [x] **Step 3: Remove `xpPerSurvivor`**
 
 In `scripts/combat-rewards.mjs`, delete:
 
@@ -131,7 +131,7 @@ export function xpPerSurvivor(totalXp, partySize) {
 }
 ```
 
-- [ ] **Step 4: Stop dividing in `grantPartyXp`**
+- [x] **Step 4: Stop dividing in `grantPartyXp`**
 
 In `scripts/foundry-api.mjs`, remove the now-dead import:
 
@@ -218,7 +218,7 @@ to:
      */
 ```
 
-- [ ] **Step 5: Update the locale string**
+- [x] **Step 5: Update the locale string**
 
 In `lang/en.json`, change:
 
@@ -232,17 +232,17 @@ to:
   "PF2EDC.Dungeon.XpAwarded": "{source}: each party member earns {total} XP.",
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `npx vitest run tests/foundry-api-grant-party-xp.test.mjs tests/combat-rewards.test.mjs`
 Expected: PASS, all tests green.
 
-- [ ] **Step 7: Run the full test suite to confirm no regression**
+- [x] **Step 7: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS — in particular `tests/dungeon-combat-auto-defeat.test.mjs` (the other file this session's search found referencing `grantPartyXp`) stays green, since it exercises `resolveCombat`'s call site, not the division logic itself.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/foundry-api.mjs scripts/combat-rewards.mjs lang/en.json tests/foundry-api-grant-party-xp.test.mjs tests/combat-rewards.test.mjs
@@ -268,7 +268,7 @@ With a real party in a live world, run a short combat (or read back a recent one
 echo 'const party = (game.actors?.party?.members ?? []).filter(m => m.type === "character"); return party.map(c => ({ name: c.name, xp: c.system.details.xp.value }));' | .claude/skills/foundry-rest/foundry-exec.sh
 ```
 
-- [ ] **Step 2: Bump module.json's version**
+- [x] **Step 2: Bump module.json's version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -278,13 +278,13 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **patch** bump (routine fix), using whatever the fetch above shows as current.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json
 git commit -m "chore(#782): bump version for full-party XP fix
 
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+Co-Authored-By: Claude Haiku 4.5 <noreply@anthropic.com>"
 ```
 
 ---

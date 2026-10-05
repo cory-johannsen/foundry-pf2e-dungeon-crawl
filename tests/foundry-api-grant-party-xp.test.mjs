@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { makeFoundryApi } from "../scripts/foundry-api.mjs";
 
-// #626: grantPartyXp announces what it granted. The write path itself (split
-// across party characters, add to system.details.xp.value) predates this.
+// #626: grantPartyXp announces what it granted. #782: PF2e awards the full
+// XP total to every character, not a split.
 function member(id, type = "character", xp = 0) {
   return {
     id,
@@ -27,27 +27,26 @@ function install(members) {
   globalThis.ChatMessage = { create: vi.fn(async (d) => chat.push(d)) };
 }
 
-describe("grantPartyXp announcement (#626)", () => {
+describe("grantPartyXp announcement (#626, #782)", () => {
   beforeEach(() => install([]));
 
-  it("posts one chat line naming the source, the total and the per-character share", async () => {
+  it("grants the full total to every party character, not a split", async () => {
     const a = member("a");
     const b = member("b");
     install([a, b, member("npc", "npc")]);
     await makeFoundryApi().grantPartyXp(40, "skillChallenge");
-    expect(a.system.details.xp.value).toBe(20);
-    expect(b.system.details.xp.value).toBe(20);
+    expect(a.system.details.xp.value).toBe(40);
+    expect(b.system.details.xp.value).toBe(40);
     expect(chat).toHaveLength(1);
     expect(chat[0].content).toBe(
-      'PF2EDC.Dungeon.XpAwarded|{"source":"PF2EDC.Dungeon.XpSource.skillChallenge","total":40,"share":20}',
+      'PF2EDC.Dungeon.XpAwarded|{"source":"PF2EDC.Dungeon.XpSource.skillChallenge","total":40}',
     );
   });
 
-  it("reports the actual per-character share when the total doesn't divide evenly", async () => {
+  it("grants the same full total regardless of party size", async () => {
     install([member("a"), member("b"), member("c")]);
     await makeFoundryApi().grantPartyXp(10, "combat");
     expect(chat[0].content).toContain('"total":10');
-    expect(chat[0].content).toContain('"share":3');
   });
 
   it("still announces a zero grant (e.g. a victory over nothing actually defeated)", async () => {
@@ -55,7 +54,6 @@ describe("grantPartyXp announcement (#626)", () => {
     await makeFoundryApi().grantPartyXp(0, "combat");
     expect(chat).toHaveLength(1);
     expect(chat[0].content).toContain('"total":0');
-    expect(chat[0].content).toContain('"share":0');
   });
 
   it("does nothing, and says nothing, with no party characters", async () => {
