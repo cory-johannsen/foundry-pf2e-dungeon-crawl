@@ -46966,5 +46966,109 @@
     "name": "Gorumite Warpriest",
     "level": 12,
     "art": "gorumite-warpriest.webp"
+  },
+  {
+    "id": "frost_roc",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "hmBLWazkYpUVtykK",
+    "name": "Frost Roc",
+    "level": 14,
+    "art": "frost-roc.webp"
+  },
+  {
+    "id": "temperbrand",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "hsfuajOsakdZrZFZ",
+    "name": "Temperbrand",
+    "level": 18,
+    "art": "temperbrand.webp"
+  },
+  {
+    "id": "vofnir",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "hu3uoNg2dgUsl81R",
+    "name": "Vofnir",
+    "level": 12,
+    "art": "vofnir.webp"
+  },
+  {
+    "id": "shirota",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "iuXHPFyiSVV9F1fG",
+    "name": "Shirota",
+    "level": 16,
+    "art": "shirota.webp"
+  },
+  {
+    "id": "vatumledor",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "kPZZQwWPQo9QBPjM",
+    "name": "Vatumledor",
+    "level": 16,
+    "art": "vatumledor.webp"
+  },
+  {
+    "id": "roc_rider",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "ll6U1Rcxz6LBLfId",
+    "name": "Roc Rider",
+    "level": 14,
+    "art": "roc-rider.webp"
+  },
+  {
+    "id": "rage_rider",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "ou2jlElpMdz63bM7",
+    "name": "Rage Rider",
+    "level": 10,
+    "art": "rage-rider.webp"
+  },
+  {
+    "id": "mantis_keeper",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "p6ybCIixFTDnjS57",
+    "name": "Mantis Keeper",
+    "level": 17,
+    "art": "mantis-keeper.webp"
+  },
+  {
+    "id": "gorumite_veteran",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "rlnxG2z11YJY6bbt",
+    "name": "Gorumite Veteran",
+    "level": 12,
+    "art": "gorumite-veteran.webp"
+  },
+  {
+    "id": "saint_fang",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "sCXNeaJBoVUqvjG0",
+    "name": "Saint Fang",
+    "level": 18,
+    "art": "saint-fang.webp"
+  },
+  {
+    "id": "berserker_ordulf",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "tKqmm3jB9aZBJYHN",
+    "name": "Berserker Ordulf",
+    "level": 16,
+    "art": "berserker-ordulf.webp"
+  },
+  {
+    "id": "silver_saber",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "x96ZPVfaaamn0gjg",
+    "name": "Silver Saber",
+    "level": 18,
+    "art": "silver-saber.webp"
+  },
+  {
+    "id": "the_promised_one",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "zKEvKKRpQUc5xtVa",
+    "name": "The Promised One",
+    "level": 15,
+    "art": "the-promised-one.webp"
   }
 ]
