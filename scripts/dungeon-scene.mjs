@@ -80,7 +80,7 @@ import { depthBiasFor, applyDifficultyShift } from "./dungeon-deck.mjs";
 import { startCombatForRoom } from "./dungeon-combat.mjs";
 import { playDoorSound } from "./dungeon-sound.mjs";
 import { loadDungeonSetpieces, loadRoomFeatureArt } from "./data-loader.mjs";
-import { roomFeatureArtPath, doorAnimationFor } from "./room-feature-art.mjs";
+import { roomFeatureArtPath, doorAnimationFor, DOOR_TEXTURE_WIDTH_PX } from "./room-feature-art.mjs";
 import {
   selectSkillChallengeTemplate,
   dcAdjustmentForTier,
@@ -146,13 +146,23 @@ export function wallDoc(
   } = {},
 ) {
   const animation = door !== CONST.WALL_DOOR_TYPES.NONE ? doorAnimationFor(art) : null;
+  // #800: keep the door strip's aspect ratio (see DOOR_TEXTURE_WIDTH_PX).
+  const wallFlags = animation
+    ? {
+        ...flags,
+        core: {
+          ...flags?.core,
+          textureGridSize: DOOR_TEXTURE_WIDTH_PX / Math.hypot(x2 - x1, y2 - y1),
+        },
+      }
+    : flags;
   return {
     c: [toPixels(x1), toPixels(y1), toPixels(x2), toPixels(y2)],
     door,
     ds,
     sight: CONST.WALL_SENSE_TYPES.NORMAL,
     move: CONST.WALL_MOVEMENT_TYPES.NORMAL,
-    ...(flags ? { flags } : {}),
+    ...(wallFlags ? { flags: wallFlags } : {}),
     ...(animation ? { animation } : {}),
   };
 }
