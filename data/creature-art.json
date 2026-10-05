@@ -46166,5 +46166,37 @@
     "name": "Onturat",
     "level": 19,
     "art": "onturat.webp"
+  },
+  {
+    "id": "chained_norn",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "rjV4XOnJemV8lKJu",
+    "name": "Chained Norn",
+    "level": 20,
+    "art": "chained-norn.webp"
+  },
+  {
+    "id": "zombie_bear",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "sWoLuDXZoGO9Ld4n",
+    "name": "Zombie Bear",
+    "level": 3,
+    "art": "zombie-bear.webp"
+  },
+  {
+    "id": "commander_arsiella_dei",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "tMqtId1TKVUXe4tN",
+    "name": "Commander Arsiella Dei",
+    "level": 9,
+    "art": "commander-arsiella-dei.webp"
+  },
+  {
+    "id": "priest_of_iomedae",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "uhTMcy0blrxpP6aZ",
+    "name": "Priest of Iomedae",
+    "level": 7,
+    "art": "priest-of-iomedae.webp"
   }
 ]
