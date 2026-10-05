@@ -1295,6 +1295,26 @@ export async function sweepLooseNpcActors(scene, { deleteTokens = true } = {}) {
   return npcActorIds.length;
 }
 
+/** #617: fully heals and clears every active condition from every current
+ * party member -- called at both dungeon-run-ending points
+ * (teardownDungeonRun's Abandon path, sweepCompletedDungeonScene's
+ * goal-room-completion path) so neither leaves the party however
+ * battered the run left them. Deliberately a stronger, simpler reset
+ * than #613's restPartyForTheNight -- unconditional, not bound by PF2e's
+ * own Rest for the Night rules about what does/doesn't clear; the two
+ * don't share an implementation. `api` is test-only dependency
+ * injection, same idiom as runAgentDecisionLoop's deps -- production
+ * callers never pass it. */
+export async function healAndClearPartyConditions(api = makeFoundryApi()) {
+  const partyIds = partyActorIds();
+  const partyMembers = (game.actors?.party?.members ?? []).filter((m) =>
+    partyIds.has(m.id),
+  );
+  for (const member of partyMembers) {
+    await api.healAndClearConditions(member.id);
+  }
+}
+
 /**
  * Sweeps any #172 corpse (or plain leftover NPC) still on `scene` once a
  * dungeon run completes normally — the goal room resolved, not the party
@@ -1304,9 +1324,14 @@ export async function sweepLooseNpcActors(scene, { deleteTokens = true } = {}) {
  * exploring or looting, not something to be yanked out of automatically.
  * Before this, only `teardownDungeonRun`'s Abandon-time sweep ever cleaned
  * these up — a party that *wins* and walks away left every un-looted corpse
- * behind indefinitely (#204).
+ * behind indefinitely (#204). Also fully heals and clears conditions from
+ * the party first (#617), via `healAndClearPartyConditions`.
  */
-export async function sweepCompletedDungeonScene(scene) {
+export async function sweepCompletedDungeonScene(
+  scene,
+  { healAndClearParty = healAndClearPartyConditions } = {},
+) {
+  await healAndClearParty();
   return sweepLooseNpcActors(scene);
 }
 
@@ -1316,11 +1341,13 @@ export async function sweepCompletedDungeonScene(scene) {
  * dungeon-runner.mjs's createRun) if that scene still exists, or Foundry's
  * own built-in "Foundry Virtual Tabletop" default scene otherwise. Sweeps
  * every non-party actor this run's encounters ever spawned (see
- * `sweepLooseNpcActors`), then deletes the dungeon scene itself.
+ * `sweepLooseNpcActors`), then deletes the dungeon scene itself. Also fully
+ * heals and clears conditions from the party (#617), via
+ * `healAndClearPartyConditions`, just before the NPC sweep.
  */
 export async function teardownDungeonRun(
   scene,
-  { previousSceneId = null } = {},
+  { previousSceneId = null, healAndClearParty = healAndClearPartyConditions } = {},
 ) {
   const partyIds = partyActorIds();
   const partyMembers = (game.actors?.party?.members ?? []).filter((m) =>
@@ -1337,6 +1364,7 @@ export async function teardownDungeonRun(
     await destScene.activate();
   }
 
+  await healAndClearParty();
   const deletedNpcActorCount = await sweepLooseNpcActors(scene);
   await scene.delete();
 
