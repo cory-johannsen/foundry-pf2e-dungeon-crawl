@@ -94,6 +94,13 @@ implementing; never use it just to mean "someone has this".
   editing code, not while still drafting the spec or the plan. Remove
   `planned` when this happens, and remove `in progress` when paused or
   done.
+- `verification` marks an issue whose PR has merged but which is still
+  pending in-game testing. When the PR merges and the work still needs a
+  live playtest, apply `verification` (create it if missing), remove
+  `in progress` and `claimed`, and keep the issue **open** — merge with
+  an explicit `--subject/--body` so no closing keyword auto-closes it. It
+  is closed only after the in-game test confirms the fix; if the test
+  fails, remove `verification` and re-claim the issue.
 - A multi-session effort's issue (like ITEM-18, #16) is the resumable
   source of truth for whoever — or whichever agent — picks it up next. A
   stale table misleads them.
