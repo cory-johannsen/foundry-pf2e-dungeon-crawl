@@ -319,6 +319,7 @@ graph LR
   scripts_dungeon_scene_mjs --> scripts_narrative_mechanics_mjs
   scripts_dungeon_scene_mjs --> scripts_foundry_api_mjs
   scripts_dungeon_scene_mjs --> scripts_trap_library_mjs
+  scripts_dungeon_scene_mjs --> scripts_trap_mechanics_mjs
   scripts_dungeon_scene_mjs --> scripts_prng_mjs
   scripts_dungeon_sound_mjs --> scripts_audio_mjs
   scripts_dungeon_stub_oracle_mjs --> scripts_dungeon_layout_mjs
@@ -359,6 +360,7 @@ graph LR
   scripts_trap_combat_mjs --> scripts_trap_mechanics_mjs
   scripts_trap_combat_mjs --> scripts_dungeon_runner_mjs
   scripts_trap_combat_mjs --> scripts_placement_mjs
+  scripts_trap_mechanics_mjs --> scripts_prng_mjs
   scripts_ui_dungeon_app_mjs --> scripts_data_loader_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_runner_mjs
   scripts_ui_dungeon_app_mjs --> scripts_room_feature_tokens_mjs
