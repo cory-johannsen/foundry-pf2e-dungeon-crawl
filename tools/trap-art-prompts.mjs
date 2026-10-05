@@ -70,7 +70,7 @@ export const TRAP_ART = [
       + 'its surface, suspended alone in the dark, nothing else in the frame',
     avoid: 'wall, trip wire visible, person, kettle, factory, machine room' },
   { id: 'drowning-pit', file: 'drowning-pit', dir: 'assets/creature-art/hazards', shapeless: true,
-    prompt: 'A carved stone spout shaped like a snarling beast\'s open mouth, water gushing '
+    prompt: 'A carved stone spout with a wide gaping mouth opening, water gushing '
       + 'forcefully from within, slick wet stone pitted with age, suspended alone in the dark, '
       + 'nothing else in the frame',
     avoid: 'wall, pit, person drowning, fountain, garden, waterfall scenery, pool' },
