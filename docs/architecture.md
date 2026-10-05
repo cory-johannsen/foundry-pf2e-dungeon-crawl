@@ -359,6 +359,7 @@ graph LR
   scripts_trap_combat_mjs --> scripts_dungeon_runner_mjs
   scripts_ui_dungeon_app_mjs --> scripts_data_loader_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_runner_mjs
+  scripts_ui_dungeon_app_mjs --> scripts_room_feature_tokens_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_permissions_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_customization_fulfillment_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_remote_mjs
