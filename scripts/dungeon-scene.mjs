@@ -1188,10 +1188,15 @@ export async function populateSlotTrap(
   }
 }
 
-/** Un-hides slot's tagged tokens (discovery). Returns the ids revealed. */
+/** Un-hides slot's tagged tokens (discovery). Returns the ids revealed.
+ * Trap hazard tokens (#753) are skipped: they stay hidden until detected or
+ * triggered (handleTrapTokenMove), not merely because the door opened. */
 export async function revealSlotTokens(scene, slot) {
   const tokens = scene.tokens.filter(
-    (t) => t.getFlag(MODULE_ID, "dungeonSlot") === slot && t.hidden,
+    (t) =>
+      t.getFlag(MODULE_ID, "dungeonSlot") === slot &&
+      t.hidden &&
+      !t.getFlag(MODULE_ID, "trapHazard"),
   );
   const ids = tokens.map((t) => t.id);
   if (ids.length)

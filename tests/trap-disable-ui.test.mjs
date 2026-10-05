@@ -46,6 +46,10 @@ describe("#753 trap disable template", () => {
 
   it.each([
     "DisableButton",
+    "DetectedChat",
+    "DisableSuccessChat",
+    "DisableFailureChat",
+    "TriggeredChat",
     "NotDetectedHint",
     "SkillLabel",
     "WhoLabel",
@@ -54,6 +58,15 @@ describe("#753 trap disable template", () => {
     expect(typeof v).toBe("string");
     expect(v.length).toBeGreaterThan(0);
   });
+
+  it.each(["DetectedChat", "DisableSuccessChat", "DisableFailureChat", "TriggeredChat"])(
+    "%s uses only the {name} and {trap} placeholders the code passes",
+    (k) => {
+      const v = lang[`PF2EDC.Dungeon.Trap.${k}`];
+      const used = [...v.matchAll(/\{(\w+)\}/g)].map((m) => m[1]);
+      expect(used.sort()).toEqual(["name", "trap"]);
+    },
+  );
 });
 
 describe("#753 wiring", () => {
@@ -105,5 +118,39 @@ describe("attemptTrapDisableForScene", () => {
   });
   it("null (no throw) when the actor lacks the skill / no disable check", async () => {
     expect(await attemptTrapDisableForScene("s1", "a1", "thievery")).toBeNull();
+  });
+
+  describe("disable announcements", () => {
+    const run = async (result) => {
+      const announce = vi.fn(async () => {});
+      hazardActor.name = "Spiked Pit";
+      globalThis.game.actors.get = () => ({ id: "a1", name: "Amiri", skills: {} });
+      const out = await attemptTrapDisableForScene("s1", "a1", "thievery", {
+        rollTrapDisableAttempt: async () => result,
+        announce,
+      });
+      return { out, announce };
+    };
+
+    it("announces success", async () => {
+      const { out, announce } = await run({ disabled: true });
+      expect(out).toEqual({ disabled: true });
+      expect(announce).toHaveBeenCalledWith("PF2EDC.Dungeon.Trap.DisableSuccessChat", {
+        name: "Amiri",
+        trap: "Spiked Pit",
+      });
+    });
+    it("announces failure", async () => {
+      const { announce } = await run({ disabled: false });
+      expect(announce).toHaveBeenCalledWith("PF2EDC.Dungeon.Trap.DisableFailureChat", {
+        name: "Amiri",
+        trap: "Spiked Pit",
+      });
+    });
+    it("a null result posts nothing", async () => {
+      const { out, announce } = await run(null);
+      expect(out).toBeNull();
+      expect(announce).not.toHaveBeenCalled();
+    });
   });
 });

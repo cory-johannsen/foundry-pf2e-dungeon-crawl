@@ -18,7 +18,7 @@ function fakeFlagged(initial = {}) {
 }
 
 function makeHazard({ x, y, hidden = true, actorFlags = {} } = {}) {
-  const actor = Object.assign(fakeFlagged(actorFlags), { id: "haz1" });
+  const actor = Object.assign(fakeFlagged(actorFlags), { id: "haz1", name: "Spiked Pit" });
   const tok = {
     x,
     y,
@@ -35,14 +35,16 @@ function makeHazard({ x, y, hidden = true, actorFlags = {} } = {}) {
 function makeMover(hazards, { x = 100, y = 100 } = {}) {
   const scene = { grid: { size: 100 }, tokens: hazards };
   scene.tokens.filter = Array.prototype.filter.bind(hazards);
-  return { x, y, width: 1, height: 1, parent: scene, actor: { id: "pc1" }, object: { id: "tokobj" } };
+  return { x, y, width: 1, height: 1, parent: scene, name: "Valeros", actor: { id: "pc1", name: "Valeros" }, object: { id: "tokobj" } };
 }
 
-let triggerTrap, rollTrapDetection, base;
+let triggerTrap, rollTrapDetection, base, announce;
 beforeEach(() => {
   triggerTrap = vi.fn(async () => "success");
   rollTrapDetection = vi.fn(async () => ({ detected: true }));
+  announce = vi.fn(async () => {});
   base = {
+    announce,
     isGM: () => true,
     isPartyActor: () => true,
     triggerTrap,
@@ -124,5 +126,37 @@ describe("handleTrapTokenMove", () => {
     h.actor.flags.trapTriggered = false;
     await handleTrapTokenMove(makeMover([h]), MOVE, base);
     expect(triggerTrap).toHaveBeenCalledTimes(2);
+  });
+
+  it("announces a successful detection by seeker and trap name", async () => {
+    const h = makeHazard({ x: 200, y: 100 });
+    await handleTrapTokenMove(makeMover([h]), MOVE, base);
+    expect(announce).toHaveBeenCalledOnce();
+    expect(announce).toHaveBeenCalledWith("PF2EDC.Dungeon.Trap.DetectedChat", {
+      name: "Valeros",
+      trap: "Spiked Pit",
+    });
+  });
+
+  it("failed detection announces nothing", async () => {
+    rollTrapDetection.mockResolvedValue({ detected: false });
+    const h = makeHazard({ x: 200, y: 100 });
+    await handleTrapTokenMove(makeMover([h]), MOVE, base);
+    expect(announce).not.toHaveBeenCalled();
+  });
+
+  it("announces a trap being set off", async () => {
+    const h = makeHazard({ x: 100, y: 100 });
+    await handleTrapTokenMove(makeMover([h]), MOVE, base);
+    expect(announce).toHaveBeenCalledWith("PF2EDC.Dungeon.Trap.TriggeredChat", {
+      name: "Valeros",
+      trap: "Spiked Pit",
+    });
+  });
+
+  it("a disabled trap sets nothing off, so no announcement", async () => {
+    const h = makeHazard({ x: 100, y: 100, actorFlags: { trapDisabled: true } });
+    await handleTrapTokenMove(makeMover([h]), MOVE, base);
+    expect(announce).not.toHaveBeenCalled();
   });
 });
