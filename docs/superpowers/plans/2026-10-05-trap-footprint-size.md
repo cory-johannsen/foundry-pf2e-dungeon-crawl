@@ -164,7 +164,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing from Task 1 directly (this task is independent plumbing).
 - Produces: `spawnCreatures(entries, options)` now also reads `entry.tokenSize` (shape `{width, height}`, optional) per entry. Consumed by Task 3.
 
-- [ ] **Step 1: Check for existing test coverage**
+- [x] **Step 1: Check for existing test coverage**
 
 ```bash
 grep -rln "spawnCreatures" tests/
@@ -172,7 +172,7 @@ grep -rln "spawnCreatures" tests/
 
 If a test file covers `spawnCreatures` directly with a real stub/fixture harness, add a new test there asserting that an entry with `tokenSize: {width: 2, height: 1}` produces a created actor whose `prototypeToken.width`/`.height` match, and that an entry WITHOUT `tokenSize` is completely unaffected (still defaults to whatever the source document's own prototypeToken size already was). If no such file/harness exists, skip to Step 2 and rely on Task 3's live verification instead.
 
-- [ ] **Step 2: Add the override**
+- [x] **Step 2: Add the override**
 
 In `scripts/foundry-api.mjs`, change:
 
@@ -205,12 +205,12 @@ to:
         };
 ```
 
-- [ ] **Step 3: Run the full test suite to confirm no regression**
+- [x] **Step 3: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS, every test in the repo green — in particular, every existing `spawnCreatures` call site (combat encounters, cover items, summons) passes no `tokenSize` on any entry, so this change is additive-only for them.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/foundry-api.mjs
