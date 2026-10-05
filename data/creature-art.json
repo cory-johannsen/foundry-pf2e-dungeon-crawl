@@ -46358,5 +46358,165 @@
     "name": "Inrik Vanderholl",
     "level": 3,
     "art": "inrik-vanderholl.webp"
+  },
+  {
+    "id": "phytomancer_ghost",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "Lbeii1aQcByS3oKV",
+    "name": "Phytomancer Ghost",
+    "level": 13,
+    "art": "phytomancer-ghost.webp"
+  },
+  {
+    "id": "silene",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "M7iUWn7SDzSDFidX",
+    "name": "Silene",
+    "level": 8,
+    "art": "silene.webp"
+  },
+  {
+    "id": "bee_covered_ohancanu",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "MWwgjlNph9kqsGjo",
+    "name": "Bee Covered Ohancanu",
+    "level": 5,
+    "art": "bee-covered-ohancanu.webp"
+  },
+  {
+    "id": "reborn_devotee",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "N0LZl2XaP8pFByuq",
+    "name": "Reborn Devotee",
+    "level": 11,
+    "art": "reborn-devotee.webp"
+  },
+  {
+    "id": "hateful_hodag",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "N8YG3THrSgSwtzIn",
+    "name": "Hateful Hodag",
+    "level": 6,
+    "art": "hateful-hodag.webp"
+  },
+  {
+    "id": "old_thornbarker",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "PpKV5h6ZQALfgJKY",
+    "name": "Old Thornbarker",
+    "level": 12,
+    "art": "old-thornbarker.webp"
+  },
+  {
+    "id": "sigrid_jandevik",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "RKj2Ovrwcz7bCGF4",
+    "name": "Sigrid Jandevik",
+    "level": 7,
+    "art": "sigrid-jandevik.webp"
+  },
+  {
+    "id": "avathrael_realmshaper",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "SscxN3m8bRuXhgWk",
+    "name": "Avathrael Realmshaper",
+    "level": 12,
+    "art": "avathrael-realmshaper.webp"
+  },
+  {
+    "id": "lloyd_the_leaper",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "TJ7fH93NWXXMyM8m",
+    "name": "Lloyd The Leaper",
+    "level": 8,
+    "art": "lloyd-the-leaper.webp"
+  },
+  {
+    "id": "zasir",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "W0XeFUfyvJdQLKQY",
+    "name": "Zasir",
+    "level": 8,
+    "art": "zasir.webp"
+  },
+  {
+    "id": "otis",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "WHvAA8nScHw3448B",
+    "name": "Otis",
+    "level": 5,
+    "art": "otis.webp"
+  },
+  {
+    "id": "khasprickle",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "YU2EwouEWCKNcjGK",
+    "name": "Khasprickle",
+    "level": 9,
+    "art": "khasprickle.webp"
+  },
+  {
+    "id": "druulbach",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "YqDrvGRd3dmXoC2T",
+    "name": "Druulbach",
+    "level": 12,
+    "art": "druulbach.webp"
+  },
+  {
+    "id": "bystander",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "aUSYu3w1TSufTlLP",
+    "name": "Bystander",
+    "level": 1,
+    "art": "bystander.webp"
+  },
+  {
+    "id": "shadow_sage",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "b5aessbWq2CWlBAk",
+    "name": "Shadow Sage",
+    "level": 7,
+    "art": "shadow-sage.webp"
+  },
+  {
+    "id": "thrailorn",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "bqNDx6G7OVyeu7Kg",
+    "name": "Thrailorn",
+    "level": 6,
+    "art": "thrailorn.webp"
+  },
+  {
+    "id": "drinesh",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "cNy6Zt9zImma5aPQ",
+    "name": "Drinesh",
+    "level": 10,
+    "art": "drinesh.webp"
+  },
+  {
+    "id": "usher",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "dkg9CbjEjjOlpCkX",
+    "name": "Usher",
+    "level": 7,
+    "art": "usher.webp"
+  },
+  {
+    "id": "ardande_ghost",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "ec7JXhGV8mqrS4tn",
+    "name": "Ardande Ghost",
+    "level": 11,
+    "art": "ardande-ghost.webp"
+  },
+  {
+    "id": "wraithvine",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "ibgHT0HBOi6eB26U",
+    "name": "Wraithvine",
+    "level": 7,
+    "art": "wraithvine.webp"
   }
 ]
