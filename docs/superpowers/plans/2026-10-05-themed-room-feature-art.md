@@ -47,7 +47,7 @@
 - Produces: `ROOM_FEATURE_ART_THEMES: string[]`, `ROOM_FEATURE_ART_KINDS: string[]`, `ROOM_FEATURE_ART_DIR: string`, `roomFeatureArtPath({ theme, kind, manifest }): string | null`, `DOOR_ANIMATION: { type: string }`, `doorAnimationFor(art): object | null`; `loadRoomFeatureArt(): Promise<object>` (never rejects, returns `{}` on any failure).
 - Consumes: nothing from earlier tasks.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `tests/room-feature-art.test.mjs`:
 
@@ -163,12 +163,12 @@ describe("loadRoomFeatureArt", () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/room-feature-art.test.mjs tests/data-loader-room-feature-art.test.mjs`
 Expected: FAIL (module `../scripts/room-feature-art.mjs` not found / `loadRoomFeatureArt` is not a function).
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `scripts/room-feature-art.mjs`:
 
@@ -238,12 +238,12 @@ export async function loadRoomFeatureArt() {
 
 and add `ROOM_FEATURE_ART_CACHE = null;` inside `invalidateCaches()`.
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/room-feature-art.test.mjs tests/data-loader-room-feature-art.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/room-feature-art.mjs data/room-feature-art.json scripts/data-loader.mjs tests/room-feature-art.test.mjs tests/data-loader-room-feature-art.test.mjs
