@@ -6,6 +6,7 @@ import {
   decideGmLessBroadcast,
   isAuthorizedRequest,
   ownsPartyCharacter,
+  canRelayRoomFeature,
 } from "../scripts/dungeon-permissions.mjs";
 
 const gm = { id: "gm-1", isGM: true };
@@ -227,5 +228,28 @@ describe("ownsPartyCharacter", () => {
   it("false for empty/undefined party", () => {
     expect(ownsPartyCharacter("u", [])).toBe(false);
     expect(ownsPartyCharacter("u", undefined)).toBe(false);
+  });
+});
+
+describe("canRelayRoomFeature", () => {
+  const owned = [{ type: "character", ownership: { u: 3 } }];
+  const user = { id: "u", active: true, isGM: false };
+  it("false for a null user", () => {
+    expect(canRelayRoomFeature(null, owned)).toBe(false);
+  });
+  it("false for an inactive user", () => {
+    expect(canRelayRoomFeature({ ...user, active: false }, owned)).toBe(false);
+  });
+  it("false for a GM", () => {
+    expect(canRelayRoomFeature({ ...user, isGM: true }, owned)).toBe(false);
+  });
+  it("false for a non-owner", () => {
+    expect(canRelayRoomFeature(user, [{ type: "character", ownership: { v: 3 } }])).toBe(false);
+  });
+  it("false for observer-only ownership", () => {
+    expect(canRelayRoomFeature(user, [{ type: "character", ownership: { u: 2 } }])).toBe(false);
+  });
+  it("true for an active non-GM owner", () => {
+    expect(canRelayRoomFeature(user, owned)).toBe(true);
   });
 });

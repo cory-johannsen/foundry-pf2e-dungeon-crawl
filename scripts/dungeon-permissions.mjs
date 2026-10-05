@@ -97,3 +97,11 @@ export function ownsPartyCharacter(userId, partyMembers) {
     (m) => m?.type === "character" && (m.ownership?.[userId] ?? 0) >= 3,
   );
 }
+
+/** Whether the relay should treat `user` ({ id, active, isGM } or null) as
+ * a party-character owner for `roomFeatureInteract`: must exist, be active,
+ * not be a GM, and own a party character. Pure. */
+export function canRelayRoomFeature(user, partyMembers) {
+  if (!user || !user.active || user.isGM) return false;
+  return ownsPartyCharacter(user.id, partyMembers);
+}

@@ -461,7 +461,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No unit test: this is a live-document/socket dispatch hook, the same category this codebase always verifies live (e.g. `updateWall`'s `handleDungeonDoorOpened` wiring has no unit test either). Verified live in Step 3.
 
-- [ ] **Step 1: Add the new imports**
+- [x] **Step 1: Add the new imports**
 
 In `scripts/module.mjs`, change:
 
@@ -501,7 +501,7 @@ import {
 } from "./dungeon-remote.mjs";
 ```
 
-- [ ] **Step 2: Add the hook**
+- [x] **Step 2: Add the hook**
 
 Add this registration directly after the existing `Hooks.on("updateWall", ...)` block in `scripts/module.mjs`:
 
@@ -555,7 +555,7 @@ Hooks.on("targetToken", async (user, token, targeted) => {
 
 (If `MODULE_ID` is already declared elsewhere at the top of `scripts/module.mjs`, reuse that existing declaration instead of redeclaring it here — check with `grep -n "const MODULE_ID" scripts/module.mjs` before adding a duplicate.)
 
-- [ ] **Step 3: Register the remote action**
+- [x] **Step 3: Register the remote action**
 
 In `scripts/dungeon-remote.mjs`, add `revealRoomFeature` to the existing import from `./dungeon-runner.mjs` (alongside whatever that file already imports there), then add this entry to the action registry directly after the existing `claimTreasure` entry:
 
@@ -600,7 +600,7 @@ Expected: `grew: true` (or inspect whatever this world's actual party-currency f
 
 For the stale-room guard: create a second prop token with a `roomFeatureRoomId` that does **not** equal `getRunState(scene.id).currentRoomId` (e.g. copy an existing prop token's data and edit its flag), target it, and confirm no gold change and no error.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/module.mjs scripts/dungeon-remote.mjs

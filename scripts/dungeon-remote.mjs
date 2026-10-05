@@ -15,8 +15,13 @@ import {
   findActiveHostedRun,
   setMarchingOrder,
   resetRetreatPath,
+  revealRoomFeature,
 } from "./dungeon-runner.mjs";
-import { isAuthorizedRequest } from "./dungeon-permissions.mjs";
+import {
+  isAuthorizedRequest,
+  canRelayRoomFeature,
+} from "./dungeon-permissions.mjs";
+import { runRoomFeatureAction } from "./room-feature-tokens.mjs";
 import {
   startDungeonRun,
   resolveCurrentRoom,
@@ -70,6 +75,13 @@ export const DUNGEON_ACTIONS = {
   chooseNarrativeOption: (args) =>
     chooseNarrativeOption(args.sceneId, args.optionIndex),
   claimTreasure: (args) => claimTreasureFor(args.sceneId),
+  // #611/#623: a player targeting a room-feature prop token. The runner
+  // re-validates everything GM-side (authoritative, idempotent).
+  roomFeatureInteract: (args) =>
+    runRoomFeatureAction(
+      { sceneId: args.sceneId, roomId: args.roomId, kind: args.kind },
+      { getRunState, claimTreasureFor, revealRoomFeature },
+    ),
   // #65: a non-GM host's own dungeon-follow.mjs hooks can't move followers
   // directly, so they request it — this is the one entry point that
   // actually runs on whichever client receives and executes the request.
@@ -144,10 +156,20 @@ export function registerDungeonActionSocket() {
       msg.actionName === "startRun"
         ? findActiveHostedRun()
         : getRunState(msg.args?.sceneId);
+    // #611/#623: only roomFeatureInteract widens authorization, to active
+    // non-GM owners of a party character.
+    const ownsPartyCharacter =
+      msg.actionName === "roomFeatureInteract" &&
+      canRelayRoomFeature(
+        game.users.get(msg.requestingUserId),
+        game.actors?.party?.members ?? [],
+      );
     let ok = false;
     if (
       handler &&
-      isAuthorizedRequest(msg.actionName, msg.requestingUserId, run)
+      isAuthorizedRequest(msg.actionName, msg.requestingUserId, run, {
+        ownsPartyCharacter,
+      })
     ) {
       try {
         await handler({ ...msg.args, requestingUserId: msg.requestingUserId });
