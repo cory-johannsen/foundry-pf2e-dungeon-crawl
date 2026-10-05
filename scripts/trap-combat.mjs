@@ -10,8 +10,10 @@ import {
   parseDisableChecks,
   trapDetectionDC,
   isSimpleAutomatableTrap,
+  classifyTrapMove,
 } from "./trap-mechanics.mjs";
 import { applyTrapRoomState } from "./dungeon-runner.mjs";
+import { footprint, isPositionChange } from "./placement.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 
@@ -161,6 +163,71 @@ export async function triggerTrap(hazardActor, target) {
     }
     return outcome;
   });
+}
+
+/** Hazard actor ids with a trap check in flight (#753). Taken synchronously
+ * before any await so two quick `updateToken` events can't both fire. */
+const trapChecksInFlight = new Set();
+
+function isPartyActor(actor) {
+  if (!actor) return false;
+  return (game.actors?.party?.members ?? []).some((m) => m.id === actor.id);
+}
+
+/** Hook target for `updateToken` (module.mjs, #753). Acts only on a GM
+ * client and only for party tokens. Checks every not-yet-triggered trap
+ * hazard on the token's scene against the mover's new footprint: overlap
+ * triggers it (a disabled trap is marked triggered but doesn't attack),
+ * adjacency detects it. The hazard token unhides the moment it's either
+ * detected or triggered. `deps` is injectable for tests. */
+export async function handleTrapTokenMove(tokenDoc, changes, deps = {}) {
+  const isGM = deps.isGM ?? (() => game.user.isGM);
+  const isParty = deps.isPartyActor ?? isPartyActor;
+  const trigger = deps.triggerTrap ?? triggerTrap;
+  const detect = deps.rollTrapDetection ?? rollTrapDetection;
+
+  if (!isPositionChange(changes)) return;
+  if (!isGM()) return;
+  if (!isParty(tokenDoc.actor)) return;
+  const scene = tokenDoc.parent;
+  if (!scene) return;
+  const moverFootprint = footprint(tokenDoc, scene.grid.size);
+
+  const hazardTokens = scene.tokens.filter((t) =>
+    t.getFlag(MODULE_ID, "trapHazard"),
+  );
+  for (const hazardToken of hazardTokens) {
+    const hazardActor = hazardToken.actor;
+    if (!hazardActor || hazardActor.getFlag(MODULE_ID, "trapTriggered")) continue;
+    if (trapChecksInFlight.has(hazardActor.id)) continue;
+
+    const trapFootprint = footprint(hazardToken, scene.grid.size);
+    const classification = classifyTrapMove(trapFootprint, moverFootprint);
+    if (classification === "none") continue;
+
+    trapChecksInFlight.add(hazardActor.id);
+    try {
+      if (classification === "trigger") {
+        const disabled = hazardActor.getFlag(MODULE_ID, "trapDisabled");
+        await hazardActor.setFlag(MODULE_ID, "trapTriggered", true);
+        if (!disabled) {
+          await trigger(hazardActor, {
+            actor: tokenDoc.actor,
+            token: tokenDoc.object,
+          });
+        }
+        if (hazardToken.hidden) await hazardToken.update({ hidden: false });
+      } else if (!hazardActor.getFlag(MODULE_ID, "trapDetected")) {
+        const result = await detect(hazardActor, tokenDoc.actor);
+        if (result?.detected) {
+          await hazardActor.setFlag(MODULE_ID, "trapDetected", true);
+          if (hazardToken.hidden) await hazardToken.update({ hidden: false });
+        }
+      }
+    } finally {
+      trapChecksInFlight.delete(hazardActor.id);
+    }
+  }
 }
 
 // --- #136: external agent customization of a trap's narrative flavor ----
