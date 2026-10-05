@@ -1842,7 +1842,10 @@ export async function buildPopulateAndUnlockGraphNode(
         });
       }
     }
-    if (unlock) await unlockDoorsFromRoom(scene, room.id, childIds, state.hiddenEdges[room.id] ?? []);
+    // #740: treasure/puzzle/skill_challenge doors stay locked until the room
+    // is actually resolved; resolveCurrentRoom's own unlock then opens them.
+    if (unlock && !["treasure", "puzzle", "skill_challenge"].includes(room.kind))
+      await unlockDoorsFromRoom(scene, room.id, childIds, state.hiddenEdges[room.id] ?? []);
   }
 }
 
