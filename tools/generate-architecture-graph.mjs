@@ -153,6 +153,7 @@ const GROUPS = [
         "scripts/dungeon-runner.mjs",
         "scripts/module.mjs",
         "scripts/ui/dungeon-app.mjs",
+        "scripts/ui/sound-preview-app.mjs",
         "scripts/world-macros.mjs",
       ].includes(p),
   },

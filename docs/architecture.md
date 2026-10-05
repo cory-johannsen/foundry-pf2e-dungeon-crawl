@@ -149,7 +149,8 @@ reconstructed route (`extendTrail`/`findTrailMove` in
 falling back to that chain-following whenever the trail can't place it.
 
 **Run state & UI** (`dungeon-runner.mjs`, `module.mjs`,
-`scripts/ui/dungeon-app.mjs`, `world-macros.mjs`) — `dungeon-runner.mjs`
+`scripts/ui/dungeon-app.mjs`, `scripts/ui/sound-preview-app.mjs`,
+`world-macros.mjs`) — `dungeon-runner.mjs`
 reads/writes the `dungeonRuns` world setting (the durable record of an
 in-progress run); `module.mjs` is the Foundry module's own entry point
 (hook registration, `game.modules.get(...).api` surface); `dungeon-app.mjs`
@@ -161,6 +162,10 @@ world macros in place by matching on their own `flags.<MODULE_ID>.generated`
 marker rather than by (renameable) name — small and isolated enough from
 the rest of `module.mjs`'s heavy import graph to carry real unit test
 coverage despite touching `game.macros`/`Macro`.
+
+`ui/sound-preview-app.mjs` (#600) is the GM-only settings-menu form, registered
+by `module.mjs`, that lists every sound from `dungeon-sound.mjs` and plays it
+locally (never broadcast) through `audio.mjs`.
 
 ## Dependency graph
 
@@ -245,6 +250,7 @@ graph LR
     scripts_dungeon_runner_mjs["dungeon-runner.mjs"]
     scripts_module_mjs["module.mjs"]
     scripts_ui_dungeon_app_mjs["ui/dungeon-app.mjs"]
+    scripts_ui_sound_preview_app_mjs["ui/sound-preview-app.mjs"]
     scripts_world_macros_mjs["world-macros.mjs"]
   end
   subgraph "Other"
@@ -329,6 +335,7 @@ graph LR
   scripts_foundry_api_mjs --> scripts_combat_rewards_mjs
   scripts_module_mjs --> scripts_encounter_generator_mjs
   scripts_module_mjs --> scripts_ui_dungeon_app_mjs
+  scripts_module_mjs --> scripts_ui_sound_preview_app_mjs
   scripts_module_mjs --> scripts_dungeon_retreat_mjs
   scripts_module_mjs --> scripts_dungeon_runner_mjs
   scripts_module_mjs --> scripts_dungeon_permissions_mjs
@@ -364,6 +371,8 @@ graph LR
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_retreat_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_layout_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_reseed_mjs
+  scripts_ui_sound_preview_app_mjs --> scripts_dungeon_sound_mjs
+  scripts_ui_sound_preview_app_mjs --> scripts_audio_mjs
   tools_agent_service_customization_generator_mjs --> tools_agent_service_node_fetch_mjs
   tools_agent_service_customization_generator_mjs --> tools_agent_service_env_mjs
   tools_agent_service_customization_generator_mjs --> tools_agent_service_tier_selection_mjs
