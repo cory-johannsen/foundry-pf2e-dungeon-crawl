@@ -620,7 +620,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No unit test: this codebase has no template-testing harness anywhere (confirmed: no test file imports/renders any `.hbs`). Verified live in Step 2.
 
-- [ ] **Step 1: Wrap each control**
+- [x] **Step 1: Wrap each control**
 
 Change the skill-challenge form (currently):
 
@@ -704,7 +704,7 @@ to:
 
 (`../puzzle.revealed` because this branch is nested inside `{{#each puzzle.stages}}` — this file's own puzzle-stage form already reaches outside the loop the identical way, via `../partyMembers`, at its existing `{{#each ../partyMembers}}` line.)
 
-- [ ] **Step 2: Add the two new lang keys**
+- [x] **Step 2: Add the two new lang keys**
 
 In `lang/en.json`, add (placed alphabetically near the existing `PF2EDC.Dungeon.SkillChallenge.*`/`PF2EDC.Dungeon.Puzzle.*` keys — re-check the file fresh for the exact current surrounding keys before inserting, since concurrent sessions push to this repo):
 
@@ -717,7 +717,7 @@ In `lang/en.json`, add (placed alphabetically near the existing `PF2EDC.Dungeon.
 
 With a real dungeon run that has a puzzle or skill-challenge room built and not yet revealed, open `DungeonApp` as the GM and confirm the "not revealed" hint shows instead of the Attempt form; then call `revealRoomFeature` directly (or target the real prop token, confirming Task 4's wiring) and re-render; confirm the Attempt form now shows. Confirm a treasure room's Claim Treasure button is absent entirely when rendering as a non-GM user (there's no second real player account on this world to log in as — confirm instead by temporarily reading the rendered HTML with `isGM` forced false via a direct call to the app's own `_prepareContext()` override, or by code-reading the final template to confirm the `{{#if isGM}}` wrapping is syntactically correct and matches every other `{{#if isGM}}` block already working elsewhere in this same file).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add templates/dungeon-tracker.hbs lang/en.json

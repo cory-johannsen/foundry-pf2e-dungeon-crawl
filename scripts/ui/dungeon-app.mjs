@@ -967,6 +967,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
         attemptsRemaining: raw.attemptBudget - raw.attemptsUsed,
         templateName: raw.name,
         templateSummary: raw.summary,
+        revealed: !!raw.revealed,
         specialtySkills: raw.specialtySkills.map((slug) => ({
           slug,
           label: skillLabel(slug),
@@ -1001,6 +1002,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
         summary: raw.summary,
         playerDescription: raw.playerDescription,
         requiredSuccesses: raw.requiredSuccesses,
+        revealed: !!raw.revealed,
         successes: raw.successes,
         resolved: raw.resolved,
         // Narrative payoff shown once solved, never during play — #137's

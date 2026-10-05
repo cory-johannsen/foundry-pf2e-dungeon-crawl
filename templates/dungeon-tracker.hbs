@@ -144,6 +144,8 @@
                   {{/each}}
                 </ul>
               {{/if}}
+              {{#if interactive}}
+              {{#if challenge.revealed}}
               <form class="pf2edc-dungeon__skill-challenge-form">
                 <label>
                   {{localize "PF2EDC.Dungeon.SkillChallenge.WhoLabel"}}
@@ -168,6 +170,12 @@
                     "PF2EDC.Dungeon.SkillChallenge.AttemptButton"
                   }}</button>
               </form>
+              {{else}}
+                <p class="hint">{{localize
+                    "PF2EDC.Dungeon.SkillChallenge.NotRevealedHint"
+                  }}</p>
+              {{/if}}
+              {{/if}}
             </div>
           {{else if isNarrativeRoom}}
             <div class="pf2edc-dungeon__narrative">
@@ -227,11 +235,13 @@
                     "PF2EDC.Dungeon.Treasure.Placeholder"
                   }}</p>
               {{/unless}}
+              {{#if interactive}}
               <footer>
                 <button type="button" data-action="claimTreasure">{{localize
                     "PF2EDC.Dungeon.Treasure.ClaimButton"
                   }}</button>
               </footer>
+              {{/if}}
             </div>
           {{else if isPuzzleRoom}}
             <div class="pf2edc-dungeon__puzzle">
@@ -258,6 +268,8 @@
                           }}</span>
                       {{/if}}
                     {{else}}
+                      {{#if interactive}}
+                      {{#if ../puzzle.revealed}}
                       <form
                         class="pf2edc-dungeon__puzzle-stage-form"
                         data-stage-index="{{this.index}}"
@@ -279,6 +291,12 @@
                           data-stage-index="{{this.index}}"
                         >{{localize "PF2EDC.Dungeon.Puzzle.AttemptButton"}}</button>
                       </form>
+                      {{else}}
+                      <p class="hint">{{localize
+                          "PF2EDC.Dungeon.Puzzle.NotRevealedHint"
+                        }}</p>
+                      {{/if}}
+                      {{/if}}
                     {{/if}}
                   </li>
                 {{/each}}
