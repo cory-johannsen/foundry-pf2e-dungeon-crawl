@@ -19,7 +19,7 @@ across the module rather than being a one-off pattern:
 - A **pure-logic** file with no Foundry dependency at all — plain
   functions over plain data, fully unit-testable without a live world.
   `dungeon-deck.mjs`, `trap-mechanics.mjs`, `puzzle-mechanics.mjs`,
-  `skill-challenge-mechanics.mjs`, `treasure.mjs`, `agent-candidates.mjs`,
+  `skill-challenge-mechanics.mjs`, `treasure.mjs`, `room-feature-tokens.mjs`, `agent-candidates.mjs`,
   `combat-rewards.mjs`, `dungeon-follow-mechanics.mjs`, `cover-items.mjs`,
   `encounter-deck.mjs`, `dungeon-layout.mjs`, and `dungeon-retreat.mjs` are all this shape.
 - A **Foundry-glue** file that touches `game`/`Actor`/`ChatMessage`/`Scene`
@@ -108,7 +108,7 @@ content pending, rather than waiting on an interactive session to check in).
 (`puzzle-mechanics.mjs`+`puzzle.mjs`,
 `trap-mechanics.mjs`+`trap-combat.mjs`+`trap-library.mjs`,
 `skill-challenge-mechanics.mjs`+`skill-challenge.mjs`, `treasure.mjs`,
-`narrative-mechanics.mjs`) — one pure/glue pair per room-kind mechanic
+`narrative-mechanics.mjs`, `room-feature-tokens.mjs`) — one pure/glue pair per room-kind mechanic
 (see the convention above), each built from real PF2e compendium content
 (`pf2e.hazards`, `pf2e.rollable-tables`) rather than inventing new game
 data.
@@ -213,6 +213,7 @@ graph LR
     scripts_narrative_mechanics_mjs["narrative-mechanics.mjs"]
     scripts_puzzle_mechanics_mjs["puzzle-mechanics.mjs"]
     scripts_puzzle_mjs["puzzle.mjs"]
+    scripts_room_feature_tokens_mjs["room-feature-tokens.mjs"]
     scripts_skill_challenge_mechanics_mjs["skill-challenge-mechanics.mjs"]
     scripts_skill_challenge_mjs["skill-challenge.mjs"]
     scripts_trap_combat_mjs["trap-combat.mjs"]
@@ -290,6 +291,7 @@ graph LR
   scripts_dungeon_remote_mjs --> scripts_player_choice_mjs
   scripts_dungeon_remote_mjs --> scripts_dungeon_runner_mjs
   scripts_dungeon_remote_mjs --> scripts_dungeon_permissions_mjs
+  scripts_dungeon_remote_mjs --> scripts_room_feature_tokens_mjs
   scripts_dungeon_remote_mjs --> scripts_ui_dungeon_app_mjs
   scripts_dungeon_remote_mjs --> scripts_dungeon_scene_mjs
   scripts_dungeon_remote_mjs --> scripts_dungeon_follow_mjs
@@ -304,6 +306,7 @@ graph LR
   scripts_dungeon_runner_mjs --> scripts_puzzle_mechanics_mjs
   scripts_dungeon_scene_mjs --> scripts_dungeon_layout_mjs
   scripts_dungeon_scene_mjs --> scripts_placement_mjs
+  scripts_dungeon_scene_mjs --> scripts_room_feature_tokens_mjs
   scripts_dungeon_scene_mjs --> scripts_encounter_generator_mjs
   scripts_dungeon_scene_mjs --> scripts_dungeon_runner_mjs
   scripts_dungeon_scene_mjs --> scripts_dungeon_retreat_mjs
@@ -340,6 +343,7 @@ graph LR
   scripts_module_mjs --> scripts_dungeon_runner_mjs
   scripts_module_mjs --> scripts_dungeon_permissions_mjs
   scripts_module_mjs --> scripts_dungeon_remote_mjs
+  scripts_module_mjs --> scripts_room_feature_tokens_mjs
   scripts_module_mjs --> scripts_dungeon_scene_mjs
   scripts_module_mjs --> scripts_dungeon_combat_mjs
   scripts_module_mjs --> scripts_dungeon_follow_mjs

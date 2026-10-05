@@ -106,6 +106,7 @@ const GROUPS = [
         "scripts/skill-challenge.mjs",
         "scripts/treasure.mjs",
         "scripts/narrative-mechanics.mjs",
+        "scripts/room-feature-tokens.mjs",
       ].includes(p),
   },
   {
