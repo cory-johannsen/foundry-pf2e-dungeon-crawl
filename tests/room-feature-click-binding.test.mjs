@@ -44,7 +44,9 @@ describe("trap click-to-disable control (#754)", () => {
     expect(src).toContain("trapDisableInFlight");
     expect(src).toContain("attemptTrapDisableForScene(");
     expect(src).toContain('requestDungeonAction("attemptTrapDisable"');
-    expect(src).toContain("actor.isOwner");
+    // the whole party is offered, like the tracker skill checks
+    expect(src).not.toContain("actor.isOwner");
+    expect(src).toContain('actor.type === "character"');
     expect(src).toContain("trapDisableChecks");
   });
 });

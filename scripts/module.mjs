@@ -407,9 +407,10 @@ async function triggerTrapDisableClick(doc) {
   trapDisableInFlight.add(doc.id);
   try {
     const sceneId = doc.parent?.id;
+    // The whole party, like the tracker's other skill checks; the GM-side
+    // handler re-checks that the requester may roll for the party.
     const characters = (game.actors?.party?.members ?? []).filter(
-      (actor) =>
-        actor.type === "character" && (game.user.isGM || actor.isOwner),
+      (actor) => actor.type === "character",
     );
     if (!characters.length) {
       ui.notifications.warn(

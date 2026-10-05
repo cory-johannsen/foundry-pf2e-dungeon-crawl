@@ -276,25 +276,29 @@ describe("isAuthorizedRequest: attemptTrapDisable (#754)", () => {
 });
 
 describe("userMayAttemptTrapDisable (#754)", () => {
-  const actor = { id: "a1", ownership: { p: 3 } };
-  const partyMembers = [{ id: "a1" }];
-  it("owner of a party actor may", () => {
-    expect(userMayAttemptTrapDisable({ userId: "p", actor, partyMembers })).toBe(true);
+  // Any party member may be chosen, like the tracker's other skill checks.
+  const mine = { id: "a1", type: "character", ownership: { p: 3 } };
+  const other = { id: "a2", type: "character", ownership: { q: 3 } };
+  const partyMembers = [mine, other];
+  it("a party-character owner may roll as any party member", () => {
+    expect(userMayAttemptTrapDisable({ userId: "p", actor: mine, partyMembers })).toBe(true);
+    expect(userMayAttemptTrapDisable({ userId: "p", actor: other, partyMembers })).toBe(true);
   });
-  it("GM and host may", () => {
-    expect(userMayAttemptTrapDisable({ userId: "g", isGM: true, actor, partyMembers: [] })).toBe(true);
-    expect(userMayAttemptTrapDisable({ userId: "h", isHost: true, actor, partyMembers: [] })).toBe(true);
+  it("GM and host may roll as any party member", () => {
+    expect(userMayAttemptTrapDisable({ userId: "g", isGM: true, actor: other, partyMembers })).toBe(true);
+    expect(userMayAttemptTrapDisable({ userId: "h", isHost: true, actor: other, partyMembers })).toBe(true);
   });
-  it("non-owner may not (even observer level)", () => {
-    expect(userMayAttemptTrapDisable({ userId: "x", actor, partyMembers })).toBe(false);
-    expect(userMayAttemptTrapDisable({ userId: "p", actor: { id: "a1", ownership: { p: 2 } }, partyMembers })).toBe(false);
+  it("a user who owns no party character may not", () => {
+    expect(userMayAttemptTrapDisable({ userId: "x", actor: mine, partyMembers })).toBe(false);
+    expect(userMayAttemptTrapDisable({ userId: "p", actor: { ...mine, ownership: { p: 2 } }, partyMembers: [{ ...mine, ownership: { p: 2 } }] })).toBe(false);
   });
-  it("non-party actor may not", () => {
-    expect(userMayAttemptTrapDisable({ userId: "p", actor, partyMembers: [{ id: "zz" }] })).toBe(false);
-    expect(userMayAttemptTrapDisable({ userId: "p", actor })).toBe(false);
+  it("an actor outside the party may not be used, even by the GM", () => {
+    expect(userMayAttemptTrapDisable({ userId: "p", actor: { id: "zz", type: "character" }, partyMembers })).toBe(false);
+    expect(userMayAttemptTrapDisable({ userId: "g", isGM: true, actor: { id: "zz" }, partyMembers })).toBe(false);
+    expect(userMayAttemptTrapDisable({ userId: "p", actor: mine })).toBe(false);
   });
   it("missing actor or user may not", () => {
     expect(userMayAttemptTrapDisable({ userId: "p", actor: null, partyMembers })).toBe(false);
-    expect(userMayAttemptTrapDisable({ actor, partyMembers })).toBe(false);
+    expect(userMayAttemptTrapDisable({ actor: mine, partyMembers })).toBe(false);
   });
 });
