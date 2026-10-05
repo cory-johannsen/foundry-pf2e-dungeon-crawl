@@ -364,7 +364,7 @@ git commit -m "Enforce and scan the new per-source creature-art layout (#628)"
 
 **Interfaces:** None new. Consumes the post-Task-1 data shape; produces the `npm run art:normalize` entry point that Task 3 and future Art work call.
 
-- [ ] **Step 1: Add the npm script**
+- [x] **Step 1: Add the npm script**
 
 In `package.json` `scripts`, next to `"validate:creature-art"`, add:
 
@@ -372,7 +372,7 @@ In `package.json` `scripts`, next to `"validate:creature-art"`, add:
     "art:normalize": "node tools/migrate-creature-art-sources.mjs",
 ```
 
-- [ ] **Step 2: Point validator failures at it**
+- [x] **Step 2: Point validator failures at it**
 
 In `tools/validate-creature-art.mjs`, define once near the top (after `const root = ...`):
 
@@ -382,7 +382,7 @@ const NORMALIZE_HINT = 'Run `npm run art:normalize` (tools/migrate-creature-art-
 
 and print `NORMALIZE_HINT` (via `console.error`) immediately before each of the two `process.exit(1)` paths that concern the `art` path: the schema-failure block (only when any `err.instancePath` ends with `/art`) and the `folderMismatches` block added in Task 2 Step 3. Leave the duplicate-id and duplicate-key blocks unchanged.
 
-- [ ] **Step 3: Write the layout test (new, permanent CI enforcement)**
+- [x] **Step 3: Write the layout test (new, permanent CI enforcement)**
 
 Create `tests/creature-art-layout.test.mjs`:
 
@@ -444,7 +444,7 @@ describe("creature-art layout (#628)", () => {
 
 (`import.meta.dirname` needs Node 20.11+; the repo already runs on Node 20 — if the suite's Node rejects it, use `dirname(fileURLToPath(import.meta.url))` like the tools do.)
 
-- [ ] **Step 4: README note**
+- [x] **Step 4: README note**
 
 In `README.md`, directly under the existing "### Regenerating token art" code block, add:
 
@@ -459,12 +459,12 @@ until it has been run. Note: tokens already placed in an existing world keep the
 old flat path and show broken images until recreated; new spawns use the new path.
 ```
 
-- [ ] **Step 5: Run the checks**
+- [x] **Step 5: Run the checks**
 
 Run: `npx vitest run tests/creature-art-layout.test.mjs tests/creature-art-assets.test.mjs tests/creature-art.test.mjs && node tools/validate-creature-art.mjs`
 Expected: PASS and all validator lines OK. Then prove the normalizer is the fix path: in a scratch copy is NOT needed — instead verify by reading that `NORMALIZE_HINT` is printed on the failure paths (`grep -n NORMALIZE_HINT tools/validate-creature-art.mjs` shows the definition plus both uses).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add package.json tools/validate-creature-art.mjs README.md tests/creature-art-layout.test.mjs
