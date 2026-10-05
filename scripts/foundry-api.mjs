@@ -46,7 +46,6 @@ import { splitmix32, seedFromString } from "./prng.mjs";
 import { buildCoverItemActorData, MODULE_ID } from "./cover-items.mjs";
 import { classifyTrap } from "./trap-combat.mjs";
 import { isTreasureEligible, rollNpcTreasure } from "./treasure.mjs";
-import { xpPerSurvivor } from "./combat-rewards.mjs";
 
 export const CREATURE_PACK_PATTERN =
   /bestiary|monster-core|npc-core|npc-gallery/i;
@@ -644,28 +643,27 @@ export function makeFoundryApi(sceneRef = null) {
     },
 
     /**
-     * Splits `totalXp` evenly across every party character actor and adds
-     * each share to `system.details.xp.value` (#30) — the same write-path
-     * combat's own XP grant already used inline in dungeon-combat.mjs's
-     * resolveCombat, extracted here so combat and the non-combat room kinds
-     * (skill challenge, puzzle, trap) all go through one place instead of
-     * three duplicated copies of this loop.
+     * Adds `totalXp` to every party character actor's `system.details.xp.value`
+     * (#30) — the same write-path combat's own XP grant already used inline in
+     * dungeon-combat.mjs's resolveCombat, extracted here so combat and the
+     * non-combat room kinds (skill challenge, puzzle, trap) all go through one
+     * place instead of three duplicated copies of this loop.
      *
-     * #626: announces the grant in chat -- `source` (`combat`,
-     * `skillChallenge`, `puzzle` or `trap`) names where it came from, and
-     * the line states the total and the actual per-character share (an
-     * uneven total floors, so share * party size can be less than total).
-     * A zero grant is announced too. Says nothing with no party characters.
+     * #626/#782: announces the grant in chat -- `source` (`combat`,
+     * `skillChallenge`, `puzzle` or `trap`) names where it came from. PF2e
+     * awards an encounter's full XP to every character, not a split
+     * (#782) -- `totalXp` is added to each party character's own XP
+     * unchanged. A zero grant is announced too. Says nothing with no party
+     * characters.
      */
     async grantPartyXp(totalXp, source = null) {
       const party = (game.actors?.party?.members ?? []).filter(
         (m) => m.type === "character",
       );
-      const share = xpPerSurvivor(totalXp, party.length);
       for (const member of party) {
         await member.update({
           "system.details.xp.value":
-            (member.system.details.xp.value ?? 0) + share,
+            (member.system.details.xp.value ?? 0) + totalXp,
         });
       }
       if (party.length === 0) return;
@@ -673,7 +671,6 @@ export function makeFoundryApi(sceneRef = null) {
         content: game.i18n.format("PF2EDC.Dungeon.XpAwarded", {
           source: game.i18n.localize(`PF2EDC.Dungeon.XpSource.${source ?? "other"}`),
           total: totalXp,
-          share,
         }),
       });
     },
