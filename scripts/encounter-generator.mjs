@@ -1,5 +1,5 @@
 /**
- * GM-facing orchestration for "PF2EDC: Generate Encounter" — dialog-driven,
+ * GM-facing orchestration for "Generate Encounter" — dialog-driven,
  * modelled on scene-divination.mjs's direct-call style rather than the
  * card-effects plan/replay system. That machinery exists to make a single,
  * irreversible draw from the shared depleting play deck previewable; this
@@ -180,7 +180,7 @@ export async function generateEncounter({
   // "Start Dungeon" and reused unchanged for every room (ITEM-1's own
   // design), not just a prefill suggestion — so it skips straight to
   // dealing the encounter instead of asking for the same traits again (ITEM-21).
-  // The standalone "PF2EDC: Generate Encounter" macro has no such prior
+  // The standalone "Generate Encounter" macro has no such prior
   // context, so it always shows the dialog (skipThemeDialog defaults false).
   const theme = skipThemeDialog
     ? { traits: prefillTraits, excludeTraits: prefillExcludeTraits }
