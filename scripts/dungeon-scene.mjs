@@ -1311,7 +1311,32 @@ export async function healAndClearPartyConditions(api = makeFoundryApi()) {
     partyIds.has(m.id),
   );
   for (const member of partyMembers) {
-    await api.healAndClearConditions(member.id);
+    const name = member.name ?? member.id;
+    try {
+      await api.healAndClearConditions(member.id);
+    } catch (err) {
+      console.error(
+        `${MODULE_ID} | failed to heal/clear ${name} at run end`,
+        err,
+      );
+      ui.notifications?.error(
+        game.i18n.format("PF2EDC.Dungeon.PartyHealFailedError", { name }),
+      );
+    }
+  }
+}
+
+/** #617: nothing the (injectable) party heal does may block run cleanup. */
+async function runPartyHealSafely(healAndClearParty) {
+  try {
+    await healAndClearParty();
+  } catch (err) {
+    console.error(`${MODULE_ID} | party heal at run end failed`, err);
+    ui.notifications?.error(
+      game.i18n.format("PF2EDC.Dungeon.PartyHealFailedError", {
+        name: game.i18n.localize("PF2EDC.Dungeon.PartyHealFailedPartyName"),
+      }),
+    );
   }
 }
 
@@ -1331,7 +1356,7 @@ export async function sweepCompletedDungeonScene(
   scene,
   { healAndClearParty = healAndClearPartyConditions } = {},
 ) {
-  await healAndClearParty();
+  await runPartyHealSafely(healAndClearParty);
   return sweepLooseNpcActors(scene);
 }
 
@@ -1364,7 +1389,7 @@ export async function teardownDungeonRun(
     await destScene.activate();
   }
 
-  await healAndClearParty();
+  await runPartyHealSafely(healAndClearParty);
   const deletedNpcActorCount = await sweepLooseNpcActors(scene);
   await scene.delete();
 
