@@ -31,3 +31,66 @@ export function buildRoomFeatureTokenActorData(kind, roomId) {
     },
   };
 }
+
+/**
+ * Authoritative guard for a room-feature interaction (#611/#623). Pure.
+ * Check order (first failing wins): no-state, unknown-kind, run-completed,
+ * missing room (-> room-kind-mismatch), not-current-room,
+ * room-kind-mismatch, already-resolved.
+ */
+export function planRoomFeatureAction({ state, kind, roomId }) {
+  if (!state) return { ok: false, reason: "no-state" };
+  if (!ROOM_FEATURE_TOKEN_TYPES[kind]) return { ok: false, reason: "unknown-kind" };
+  if (state.completed) return { ok: false, reason: "run-completed" };
+  const room = state.rooms?.[roomId];
+  if (!room) return { ok: false, reason: "room-kind-mismatch" };
+  if (roomId !== state.currentRoomId) return { ok: false, reason: "not-current-room" };
+  if (room.kind !== kind) return { ok: false, reason: "room-kind-mismatch" };
+  if ((state.history ?? []).some((h) => h.roomId === roomId)) {
+    return { ok: false, reason: "already-resolved" };
+  }
+  return { ok: true, room };
+}
+
+const moduleInFlight = new Set();
+
+/**
+ * GM-side executor: re-reads state, plans, takes a per-room lock
+ * synchronously after the plan check (no await in between, so two
+ * simultaneous callers cannot both pass), then acts. All collaborators
+ * are injected so this stays Foundry-free.
+ */
+export async function runRoomFeatureAction(
+  { sceneId, roomId, kind },
+  { getRunState, claimTreasureFor, revealRoomFeature, inFlight = moduleInFlight },
+) {
+  const plan = planRoomFeatureAction({ state: getRunState(sceneId), kind, roomId });
+  if (!plan.ok) return { ok: false, reason: plan.reason };
+  const key = `${sceneId}:${roomId}`;
+  if (inFlight.has(key)) return { ok: false, reason: "in-flight" };
+  inFlight.add(key);
+  try {
+    if (kind === "treasure") await claimTreasureFor(sceneId);
+    else await revealRoomFeature(sceneId, roomId, kind);
+    return { ok: true };
+  } finally {
+    inFlight.delete(key);
+  }
+}
+
+/**
+ * Pure decision for the `targetToken` hook: null (no-op) or the route to
+ * run. Guard order: targeted, user-id, flag, sceneId, state, plan.
+ * `flags` is the token's `flags["pf2e-dungeon-crawl"]` (may be undefined).
+ */
+export function routeTargetTokenEvent({ userId, gameUserId, targeted, flags, sceneId, state }) {
+  if (!targeted) return null;
+  if (userId !== gameUserId) return null;
+  if (!flags?.roomFeatureKind) return null;
+  if (!sceneId) return null;
+  if (!state) return null;
+  const kind = flags.roomFeatureKind;
+  const roomId = flags.roomFeatureRoomId;
+  if (!planRoomFeatureAction({ state, kind, roomId }).ok) return null;
+  return { sceneId, roomId, kind };
+}
