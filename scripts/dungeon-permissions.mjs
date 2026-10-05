@@ -106,9 +106,11 @@ export function canRelayRoomFeature(user, partyMembers) {
   return ownsPartyCharacter(user.id, partyMembers);
 }
 
-/** #754: whether `userId` may roll a trap-disable attempt as `actor`. The
- * GM or run host may use anyone; otherwise the user must own the actor
- * (OWNER, 3) and the actor must be in `partyMembers`. Pure. */
+/** #754: whether `userId` may roll a trap-disable attempt as `actor`. Like
+ * the tracker's other skill checks, any party member may be chosen: the
+ * actor must be in `partyMembers`, and the requester must be the GM, the
+ * run host, or own at least one party character (so a stranger can't roll).
+ * Pure. */
 export function userMayAttemptTrapDisable({
   userId,
   isGM = false,
@@ -117,7 +119,6 @@ export function userMayAttemptTrapDisable({
   partyMembers = [],
 } = {}) {
   if (!userId || !actor) return false;
-  if (isGM || isHost) return true;
   if (!(partyMembers ?? []).some((m) => m?.id === actor.id)) return false;
-  return (actor.ownership?.[userId] ?? 0) >= 3;
+  return isGM || isHost || ownsPartyCharacter(userId, partyMembers);
 }

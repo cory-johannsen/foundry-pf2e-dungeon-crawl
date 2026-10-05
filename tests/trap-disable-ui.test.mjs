@@ -140,7 +140,7 @@ describe("attemptTrapDisableForScene", () => {
 describe("#754 attemptTrapDisableForScene outcomes and authorization", () => {
   let hazardActor, hazardToken, scene, pcToken, flags;
   const announce = vi.fn(async () => {});
-  const pc = { id: "a1", name: "Amiri", skills: {}, ownership: { u1: 3 } };
+  const pc = { id: "a1", name: "Amiri", type: "character", skills: {}, ownership: { u1: 3 } };
   beforeEach(() => {
     announce.mockClear();
     flags = {};
@@ -239,6 +239,14 @@ describe("#754 attemptTrapDisableForScene outcomes and authorization", () => {
   it("relayed owner of a party character is allowed", async () => {
     const { out } = await go({ disabled: true, outcome: "success" }, { requestingUserId: "u1", isHost: () => false });
     expect(out).not.toBeNull();
+  });
+
+  it("a relayed party-character owner may roll as ANY party member (whole-party dropdown)", async () => {
+    const pal = { id: "a9", name: "Pal", type: "character", skills: {}, ownership: { u2: 3 } };
+    globalThis.game.actors.party.members = [pc, pal];
+    const { out, rollTrapDisableAttempt } = await go({ disabled: true, outcome: "success" }, { requestingUserId: "u2", isHost: () => false });
+    expect(out).not.toBeNull();
+    expect(rollTrapDisableAttempt).toHaveBeenCalled();
   });
 
   it("relayed non-owner is refused: null and no roll", async () => {
