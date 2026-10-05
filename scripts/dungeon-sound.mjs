@@ -46,12 +46,36 @@ export const DUNGEON_SOUND_FILES = {
 
 // Spell hit/miss reuse existing card sounds -- no new asset needed, and both
 // are already thematically arcane.
-const SPELL_HIT_SOUND = `${SOUND_DIR}/card-arcane.ogg`;
-const SPELL_MISS_SOUND = `${SOUND_DIR}/card-query.ogg`;
+export const SPELL_HIT_SOUND = `${SOUND_DIR}/card-arcane.ogg`;
+export const SPELL_MISS_SOUND = `${SOUND_DIR}/card-query.ogg`;
 
-function soundPath(key) {
+export function soundPath(key) {
   const file = DUNGEON_SOUND_FILES[key];
   return file ? `${SOUND_DIR}/${file}` : null;
+}
+
+/** One row per previewable sound (#600) -- every DUNGEON_SOUND_FILES key
+ * plus the two spell-outcome sounds that reuse card assets, each resolved
+ * to its real playable path and a humanized label derived from its own
+ * camelCase key (no per-sound localization entry -- 16 one-off lang keys
+ * for an internal GM preview list isn't worth the upkeep). Derived from
+ * DUNGEON_SOUND_FILES directly (not a separate hardcoded list) so a sound
+ * added to the catalog later is automatically previewable too. */
+export function soundPreviewEntries() {
+  const fromCatalog = Object.keys(DUNGEON_SOUND_FILES).map((key) => ({
+    key,
+    label: humanizeSoundKey(key),
+    path: soundPath(key),
+  }));
+  return [
+    ...fromCatalog,
+    { key: "spellHit", label: "Spell Hit", path: SPELL_HIT_SOUND },
+    { key: "spellMiss", label: "Spell Miss", path: SPELL_MISS_SOUND },
+  ];
+}
+
+function humanizeSoundKey(key) {
+  return key.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase());
 }
 
 /** Ranged weapon groups this generator gives their own sound. Everything

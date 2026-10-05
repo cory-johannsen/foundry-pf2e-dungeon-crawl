@@ -38,7 +38,7 @@
 - Consumes: the existing `DUNGEON_SOUND_FILES` object and `SOUND_DIR` const already in this file.
 - Produces: `export function soundPreviewEntries(): Array<{key: string, label: string, path: string}>` — consumed by Task 2.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Open `tests/dungeon-sound.test.mjs`. Add `soundPreviewEntries` to the existing import at the top of the file:
 
@@ -99,12 +99,12 @@ describe("soundPreviewEntries", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-sound.test.mjs -t soundPreviewEntries`
 Expected: every new test FAILs with `soundPreviewEntries is not a function` (or an import error), since the function doesn't exist yet.
 
-- [ ] **Step 3: Implement `soundPreviewEntries` and export its dependencies**
+- [x] **Step 3: Implement `soundPreviewEntries` and export its dependencies**
 
 In `scripts/dungeon-sound.mjs`, change lines 49-52 from:
 
@@ -152,17 +152,17 @@ function humanizeSoundKey(key) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-sound.test.mjs -t soundPreviewEntries`
 Expected: PASS, all 5 new tests green.
 
-- [ ] **Step 5: Run the full test file to confirm no regression**
+- [x] **Step 5: Run the full test file to confirm no regression**
 
 Run: `npx vitest run tests/dungeon-sound.test.mjs`
 Expected: PASS, every existing test (including the `existsSync`-per-catalog-key block and `strikeHitSoundKey`/`spellSaveSoundPath`/`spellAttackSoundPath` blocks) still green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-sound.mjs tests/dungeon-sound.test.mjs
