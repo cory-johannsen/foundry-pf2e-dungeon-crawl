@@ -58,7 +58,7 @@ for path in sys.argv[1:]:
 print(json.dumps(out))
 `;
 
-const files = dirs.flatMap((dir) => (existsSync(dir) ? readdirSync(dir) : [])
+const files = dirs.flatMap((dir) => (existsSync(dir) ? readdirSync(dir, { recursive: true }) : [])
   .filter((f) => f.endsWith('.webp')).map((f) => join(dir, f)));
 if (!files.length) { console.log('no tokens yet'); process.exit(0); }
 const stats = JSON.parse(execFileSync(PY, ['-c', script, ...files], { encoding: 'utf8' }));

@@ -7,6 +7,7 @@ import addFormats from 'ajv-formats';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, '..');
+const NORMALIZE_HINT = 'Run `npm run art:normalize` (tools/migrate-creature-art-sources.mjs) to move new/flat art into its per-source folder and fix ids.';
 
 const schema = JSON.parse(readFileSync(resolve(root, 'data/schema/creature-art.schema.json'), 'utf8'));
 const creatureArt = JSON.parse(readFileSync(resolve(root, 'data/creature-art.json'), 'utf8'));
@@ -21,6 +22,7 @@ if (!ok) {
   for (const err of validate.errors) {
     console.error(`  ${err.instancePath} ${err.message}`);
   }
+  if (validate.errors.some((err) => err.instancePath.endsWith('/art'))) console.error(NORMALIZE_HINT);
   process.exit(1);
 }
 console.log(`OK: ${creatureArt.length} creature-art entries validate against schema`);
@@ -40,3 +42,45 @@ if (dupeKeys.length) {
 }
 
 console.log(`${creatureArt.length} unique creature-art entries, no duplicate lookup keys`);
+
+const folderMismatches = [];
+const artToPacksForValidation = new Map();
+for (const entry of creatureArt) {
+  if (!artToPacksForValidation.has(entry.art)) artToPacksForValidation.set(entry.art, new Set());
+  artToPacksForValidation.get(entry.art).add(entry.pack);
+}
+for (const entry of creatureArt) {
+  const [folder] = entry.art.split('/');
+  const expectedSource = entry.pack.replace(/^pf2e\./, '');
+  const packsForThisArt = artToPacksForValidation.get(entry.art);
+  const isGenuinelyShared = packsForThisArt.size > 1;
+  if (isGenuinelyShared) {
+    if (folder !== 'shared') {
+      folderMismatches.push(`${entry.id}: art "${entry.art}" is referenced by ${packsForThisArt.size} distinct packs but isn't under shared/`);
+    }
+  } else if (folder !== expectedSource) {
+    folderMismatches.push(`${entry.id}: art "${entry.art}" is in "${folder}/" but its pack (${entry.pack}) derives source "${expectedSource}/"`);
+  }
+}
+if (folderMismatches.length) {
+  console.error(`Folder/pack mismatches:\n  ${folderMismatches.join('\n  ')}`);
+  console.error(NORMALIZE_HINT);
+  process.exit(1);
+}
+console.log(`${creatureArt.length} entries' art paths agree with their own pack's derived source (or shared/)`);
+
+const idPrefixMismatches = [];
+for (const entry of creatureArt) {
+  const folder = entry.art.split('/')[0];
+  const packSource = entry.pack.replace(/^pf2e\./, '').replace(/-/g, '_');
+  const prefix = folder === 'shared' ? `shared__${packSource}__` : `${folder.replace(/-/g, '_')}__`;
+  if (!entry.id.startsWith(prefix) || entry.id.endsWith('_lob')) {
+    idPrefixMismatches.push(`${entry.id}: expected prefix "${prefix}" and no _lob suffix (art ${entry.art})`);
+  }
+}
+if (idPrefixMismatches.length) {
+  console.error(`Id prefix mismatches:\n  ${idPrefixMismatches.join('\n  ')}`);
+  console.error(NORMALIZE_HINT);
+  process.exit(1);
+}
+console.log(`${creatureArt.length} ids carry their folder prefix and no _lob suffix`);

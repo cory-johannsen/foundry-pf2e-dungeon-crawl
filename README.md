@@ -73,6 +73,15 @@ npm run tokens          # generate missing entries
 npm run tokens:check    # verify existing entries
 ```
 
+Art files live in per-source folders: `assets/creature-art/<source>/<slug>.webp`
+(`<source>` = the entry's compendium `pack` without `pf2e.`; a file used by more
+than one pack goes in `shared/`), and `data/creature-art.json` ids are prefixed
+`<source>__` (`shared__<pack source>__` for files in `shared/`). New or flat art added by other tooling is normalized into that
+layout with `npm run art:normalize` (idempotent; safe to re-run), and
+`npm run validate:creature-art` plus `tests/creature-art-layout.test.mjs` fail
+until it has been run. Note: tokens already placed in an existing world keep the
+old flat path and show broken images until recreated; new spawns use the new path.
+
 ### GM-less combat AI (hosted agent service)
 
 GM-less combat decisions and flavor-text customization are served by a

@@ -8,6 +8,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "validate:dungeon": "node tools/validate-dungeon-setpieces.mjs",
+    "art:normalize": "node tools/migrate-creature-art-sources.mjs",
     "validate:creature-art": "node tools/validate-creature-art.mjs",
     "validate:decision-model": "node tools/agent-service/validate-decision-model.mjs",
     "tokens": "node tools/generate-token-art.mjs",

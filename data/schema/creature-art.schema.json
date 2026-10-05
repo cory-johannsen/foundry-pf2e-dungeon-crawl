@@ -21,8 +21,8 @@
         "level": { "type": "integer" },
         "art": {
           "type": "string",
-          "pattern": "^[a-z][a-z0-9-]*\\.webp$",
-          "description": "Bare filename under assets/creature-art/, not a full module path."
+          "pattern": "^[a-z][a-z0-9-]*/[a-z0-9][a-z0-9-]*\\.webp$",
+          "description": "Path relative to assets/creature-art/, as <source>/<filename>.webp or shared/<filename>.webp -- never a bare filename (#628)."
         }
       }
     }
