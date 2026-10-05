@@ -35,7 +35,7 @@
 
 **Interfaces:** None — no new exports, no signature changes to `ensureWorldMacros`/`MACRO_DEFS`.
 
-- [ ] **Step 1: Update the test helper's default to simulate today's real bug**
+- [x] **Step 1: Update the test helper's default to simulate today's real bug**
 
 In `tests/world-macros.test.mjs`, change `makeMacro`'s signature from:
 
@@ -100,7 +100,7 @@ to:
   };
 ```
 
-- [ ] **Step 2: Fix the two "already up to date" fixtures, which would otherwise now spuriously need an update**
+- [x] **Step 2: Fix the two "already up to date" fixtures, which would otherwise now spuriously need an update**
 
 Change both the `"leaves a correctly-named, up-to-date generated macro alone"` test and the `"force:true updates every matching generated macro even when already in sync"` test's `upToDate` construction from:
 
@@ -133,7 +133,7 @@ to:
 
 (This appears twice in the file — once per test. Apply the same change both times.)
 
-- [ ] **Step 3: Write the new failing tests**
+- [x] **Step 3: Write the new failing tests**
 
 Add this to the `describe("ensureWorldMacros", ...)` block, directly after the `"creates every macro on a fresh world with none of its own macros yet"` test:
 
@@ -202,7 +202,7 @@ Add this to the same `describe` block, directly after the `"leaves a correctly-n
   });
 ```
 
-- [ ] **Step 4: Run tests to verify they fail**
+- [x] **Step 4: Run tests to verify they fail**
 
 Run: `npx vitest run tests/world-macros.test.mjs -t "773"`
 Expected: FAIL — the create-time test fails because `created[0].ownership` is `undefined`, not `{default: 3}`; the update-time test fails because `Macro.updateDocuments` is never called at all (today's code sees `name`/`command`/`img` all already matching and skips both macros entirely).
@@ -212,7 +212,7 @@ Also run the full file to confirm the two fixture-updated tests still pass on th
 Run: `npx vitest run tests/world-macros.test.mjs -t "up-to-date"`
 Expected: PASS (these two were already correct fixtures before the production change; Step 2 just keeps them correct after it).
 
-- [ ] **Step 5: Make the production change**
+- [x] **Step 5: Make the production change**
 
 In `scripts/world-macros.mjs`, add this constant directly after `const MODULE_ID = "pf2e-dungeon-crawl";`:
 
@@ -291,17 +291,17 @@ to:
     }
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `npx vitest run tests/world-macros.test.mjs -t "773"`
 Expected: PASS, both new tests green.
 
-- [ ] **Step 7: Run the full test file to confirm no regression**
+- [x] **Step 7: Run the full test file to confirm no regression**
 
 Run: `npx vitest run tests/world-macros.test.mjs`
 Expected: PASS, every test in the file green — including every pre-existing rename/duplicate/force/multiple-matches test, whose own assertions only check a subset of each update payload's fields via `expect.objectContaining` (confirmed by reading the file: none of them assert the payload's *exact* full shape), so adding `ownership` to the real payload doesn't break them.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/world-macros.mjs tests/world-macros.test.mjs
