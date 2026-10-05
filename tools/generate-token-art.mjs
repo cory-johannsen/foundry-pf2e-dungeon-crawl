@@ -17,6 +17,7 @@
  */
 import { writeFileSync, readFileSync, existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { openrouterModels, runFallbackChain } from './image-fallback.mjs';
+import { ROOM_FEATURE_ART } from './room-feature-art-prompts.mjs';
 import { routeFor } from './art-failure-lib.mjs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -11131,7 +11132,8 @@ const ALL = [
   ...SUBJECTS.map((s) => ({ ...s, file: `warrior-${s.id}` })),
   ...CREATURES.map((c) => ({ ...c, file: c.file })),
   ...MONSTER_ART,
-  ...ICONS
+  ...ICONS,
+  ...ROOM_FEATURE_ART
 ];
 
 /** Tokens go to assets/tokens; a subject may name somewhere else. */

@@ -108,7 +108,7 @@ content pending, rather than waiting on an interactive session to check in).
 (`puzzle-mechanics.mjs`+`puzzle.mjs`,
 `trap-mechanics.mjs`+`trap-combat.mjs`+`trap-library.mjs`,
 `skill-challenge-mechanics.mjs`+`skill-challenge.mjs`, `treasure.mjs`,
-`narrative-mechanics.mjs`, `room-feature-tokens.mjs`) — one pure/glue pair per room-kind mechanic
+`narrative-mechanics.mjs`, `room-feature-tokens.mjs`, `room-feature-art.mjs`) — one pure/glue pair per room-kind mechanic
 (see the convention above), each built from real PF2e compendium content
 (`pf2e.hazards`, `pf2e.rollable-tables`) rather than inventing new game
 data.
@@ -213,6 +213,7 @@ graph LR
     scripts_narrative_mechanics_mjs["narrative-mechanics.mjs"]
     scripts_puzzle_mechanics_mjs["puzzle-mechanics.mjs"]
     scripts_puzzle_mjs["puzzle.mjs"]
+    scripts_room_feature_art_mjs["room-feature-art.mjs"]
     scripts_room_feature_tokens_mjs["room-feature-tokens.mjs"]
     scripts_skill_challenge_mechanics_mjs["skill-challenge-mechanics.mjs"]
     scripts_skill_challenge_mjs["skill-challenge.mjs"]
@@ -315,6 +316,7 @@ graph LR
   scripts_dungeon_scene_mjs --> scripts_dungeon_combat_mjs
   scripts_dungeon_scene_mjs --> scripts_dungeon_sound_mjs
   scripts_dungeon_scene_mjs --> scripts_data_loader_mjs
+  scripts_dungeon_scene_mjs --> scripts_room_feature_art_mjs
   scripts_dungeon_scene_mjs --> scripts_skill_challenge_mechanics_mjs
   scripts_dungeon_scene_mjs --> scripts_narrative_mechanics_mjs
   scripts_dungeon_scene_mjs --> scripts_foundry_api_mjs

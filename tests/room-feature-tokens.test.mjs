@@ -249,3 +249,29 @@ describe("showRoomFeatureFallback (#611/#623)", () => {
     expect(showRoomFeatureFallback({ interactive: false, isGM: false, tokenPresent: false })).toBe(false);
   });
 });
+
+describe("buildRoomFeatureTokenActorData themed art (#750)", () => {
+  it("uses the themed art for img and the prototype token texture", () => {
+    const art = "modules/pf2e-dungeon-crawl/assets/room-features/undead/treasure.webp";
+    const data = buildRoomFeatureTokenActorData("treasure", "room-1", { art });
+    expect(data.img).toBe(art);
+    expect(data.prototypeToken.texture.src).toBe(art);
+  });
+  it("falls back to the core icon with no art, null art or no options", () => {
+    const core = ROOM_FEATURE_TOKEN_TYPES.puzzle.img;
+    expect(buildRoomFeatureTokenActorData("puzzle", "r").img).toBe(core);
+    expect(buildRoomFeatureTokenActorData("puzzle", "r", {}).img).toBe(core);
+    expect(buildRoomFeatureTokenActorData("puzzle", "r", { art: null }).img).toBe(core);
+    expect(buildRoomFeatureTokenActorData("puzzle", "r", { art: null }).prototypeToken.texture.src).toBe(core);
+  });
+  it("keeps the name and room-feature flags unchanged when themed", () => {
+    const art = "modules/pf2e-dungeon-crawl/assets/room-features/fiend/skill_challenge.webp";
+    const data = buildRoomFeatureTokenActorData("skill_challenge", "room-9", { art });
+    expect(data.name).toBe(ROOM_FEATURE_TOKEN_TYPES.skill_challenge.name);
+    expect(data.type).toBe("loot");
+    expect(data.flags["pf2e-dungeon-crawl"]).toEqual({
+      roomFeatureKind: "skill_challenge",
+      roomFeatureRoomId: "room-9",
+    });
+  });
+});

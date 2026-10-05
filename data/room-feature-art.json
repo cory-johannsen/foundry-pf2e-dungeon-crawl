@@ -1,0 +1,10 @@
+{
+  "aberration": ["door", "treasure", "puzzle", "skill_challenge"],
+  "beast": ["door", "treasure", "puzzle", "skill_challenge"],
+  "construct": ["door", "treasure", "puzzle", "skill_challenge"],
+  "dragon": ["door", "treasure", "puzzle", "skill_challenge"],
+  "elemental": ["door", "treasure", "puzzle", "skill_challenge"],
+  "fiend": ["door", "treasure", "puzzle", "skill_challenge"],
+  "plant": ["door", "treasure", "puzzle", "skill_challenge"],
+  "undead": ["door", "treasure", "puzzle", "skill_challenge"]
+}
