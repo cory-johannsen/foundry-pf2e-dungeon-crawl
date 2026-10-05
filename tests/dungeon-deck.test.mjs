@@ -709,9 +709,8 @@ describe('attachHiddenPaths detour content (#93 post-merge fix)', () => {
     expect(sawDetour).toBe(true);
   });
 
-  it('a puzzle/trap/narrative/treasure detour room gets a real setpieceId when pools are provided', () => {
+  it('a puzzle/narrative/treasure detour room gets a real setpieceId when pools are provided (#754: never trap)', () => {
     const puzzleSetpieceIds = ['p1', 'p2'];
-    const trapSetpieceIds = ['t1', 't2'];
     const narrativeSetpieceIds = ['n1', 'n2'];
     const treasureSetpieceIds = ['tr1', 'tr2'];
     let sawContentKind = false;
@@ -720,11 +719,12 @@ describe('attachHiddenPaths detour content (#93 post-merge fix)', () => {
       const { rooms, edges } = buildRoomGraph({ seed, roomCount: 10 });
       const attached = attachHiddenPaths({
         rooms, edges, seed,
-        puzzleSetpieceIds, trapSetpieceIds, narrativeSetpieceIds, treasureSetpieceIds,
+        puzzleSetpieceIds, narrativeSetpieceIds, treasureSetpieceIds,
       });
       for (const roomId of attached.hiddenRooms) {
         const room = attached.rooms[roomId];
-        if (['puzzle', 'trap', 'narrative', 'treasure'].includes(room.kind)) {
+        expect(room.kind).not.toBe('trap');
+        if (['puzzle', 'narrative', 'treasure'].includes(room.kind)) {
           sawContentKind = true;
           expect(room.setpieceId).not.toBeNull();
         }

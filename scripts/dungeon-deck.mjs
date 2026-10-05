@@ -244,7 +244,7 @@ export function outcomeSlotAt(seed, index) {
 /**
  * The set-piece for the Nth occurrence of a given kind's room encountered in
  * a run (0 indexed by occurrence, not by absolute room index) — used for
- * puzzle, trap and narrative rooms alike, each with its own occurrence
+ * puzzle, narrative and treasure rooms alike, each with its own occurrence
  * counter, its own `setpieceIds` pool and its own `salt` so the three draws
  * are fully independent of one another. `setpieceIds` is shuffled once per
  * seed+salt, then cycled by occurrence, so a short dungeon rarely repeats a
@@ -275,7 +275,6 @@ export function buildRoomSequence({
   seed,
   roomCount,
   puzzleSetpieceIds = [],
-  trapSetpieceIds = [],
   narrativeSetpieceIds = [],
   treasureSetpieceIds = []
 }) {
@@ -295,18 +294,16 @@ export function buildRoomSequence({
   // around it rather than the rest landing right before the goal.
   const restAfterIndex = roomCount > MID_DUNGEON_REST_THRESHOLD ? Math.floor((roomCount - 2) / 2) : -1;
   let puzzleOccurrence = 0;
-  let trapOccurrence = 0;
   let narrativeOccurrence = 0;
   let treasureOccurrence = 0;
   for (let i = 0; i < roomCount - 1; i += 1) {
     const kind = roomKindAt(seed, i);
-    // #32/#165/#89: puzzle, trap, narrative and treasure rooms each get a
+    // #32/#165/#89: puzzle, narrative and treasure rooms each get a
     // set-piece from their own pool — a separate occurrence counter and a
     // separate salted shuffle per kind, so drawing one never depends on or
     // exhausts another kind's pool.
     const setpieceId =
       kind === 'puzzle' ? setpieceAt(seed, puzzleOccurrence++, puzzleSetpieceIds, 'puzzle-setpiece-order')
-      : kind === 'trap' ? setpieceAt(seed, trapOccurrence++, trapSetpieceIds, 'trap-setpiece-order')
       : kind === 'narrative' ? setpieceAt(seed, narrativeOccurrence++, narrativeSetpieceIds, 'narrative-setpiece-order')
       : kind === 'treasure' ? setpieceAt(seed, treasureOccurrence++, treasureSetpieceIds, 'treasure-setpiece-order')
       : null;
@@ -364,7 +361,6 @@ export function applySequenceMutation(
   {
     seed,
     puzzleSetpieceIds = [],
-    trapSetpieceIds = [],
     narrativeSetpieceIds = [],
     treasureSetpieceIds = []
   } = {}
@@ -380,7 +376,6 @@ export function applySequenceMutation(
     const outcomeTemplate = pickAt(seed, `${salt}-outcome`, OUTCOME_SLOT_TEMPLATES);
     const setpieceId =
       kind === 'puzzle' ? setpieceAt(seed, rooms.length, puzzleSetpieceIds, 'puzzle-setpiece-order')
-      : kind === 'trap' ? setpieceAt(seed, rooms.length, trapSetpieceIds, 'trap-setpiece-order')
       : kind === 'narrative' ? setpieceAt(seed, rooms.length, narrativeSetpieceIds, 'narrative-setpiece-order')
       : kind === 'treasure' ? setpieceAt(seed, rooms.length, treasureSetpieceIds, 'treasure-setpiece-order')
       : null;
@@ -412,7 +407,6 @@ export function buildRoomGraph({
   seed,
   roomCount,
   puzzleSetpieceIds = [],
-  trapSetpieceIds = [],
   narrativeSetpieceIds = [],
   treasureSetpieceIds = [],
 }) {
@@ -423,7 +417,6 @@ export function buildRoomGraph({
   const rooms = {};
   const edges = {};
   let puzzleOccurrence = 0;
-  let trapOccurrence = 0;
   let narrativeOccurrence = 0;
   let treasureOccurrence = 0;
   let built = 0; // non-entry, non-goal rooms built so far
@@ -439,7 +432,6 @@ export function buildRoomGraph({
     const kind = roomKindAt(seed, salt);
     const setpieceId =
       kind === 'puzzle' ? setpieceAt(seed, puzzleOccurrence++, puzzleSetpieceIds, 'puzzle-setpiece-order')
-      : kind === 'trap' ? setpieceAt(seed, trapOccurrence++, trapSetpieceIds, 'trap-setpiece-order')
       : kind === 'narrative' ? setpieceAt(seed, narrativeOccurrence++, narrativeSetpieceIds, 'narrative-setpiece-order')
       : kind === 'treasure' ? setpieceAt(seed, treasureOccurrence++, treasureSetpieceIds, 'treasure-setpiece-order')
       : null;
@@ -618,7 +610,6 @@ export const HIDDEN_PATH_CHANCE = 0.2;
 export function attachHiddenPaths({
   rooms, edges, seed,
   puzzleSetpieceIds = [],
-  trapSetpieceIds = [],
   narrativeSetpieceIds = [],
   treasureSetpieceIds = [],
 }) {
@@ -634,7 +625,6 @@ export function attachHiddenPaths({
   // and a main-graph room drawing from the same pool must never collide
   // on the exact same setpiece.
   let detourPuzzleOccurrence = 0;
-  let detourTrapOccurrence = 0;
   let detourNarrativeOccurrence = 0;
   let detourTreasureOccurrence = 0;
 
@@ -669,7 +659,6 @@ export function attachHiddenPaths({
       // so this pool draw stays independent of makeRoom's own.
       const setpieceId =
         kind === 'puzzle' ? setpieceAt(seed, detourPuzzleOccurrence++, puzzleSetpieceIds, 'detour-puzzle-setpiece-order')
-        : kind === 'trap' ? setpieceAt(seed, detourTrapOccurrence++, trapSetpieceIds, 'detour-trap-setpiece-order')
         : kind === 'narrative' ? setpieceAt(seed, detourNarrativeOccurrence++, narrativeSetpieceIds, 'detour-narrative-setpiece-order')
         : kind === 'treasure' ? setpieceAt(seed, detourTreasureOccurrence++, treasureSetpieceIds, 'detour-treasure-setpiece-order')
         : null;

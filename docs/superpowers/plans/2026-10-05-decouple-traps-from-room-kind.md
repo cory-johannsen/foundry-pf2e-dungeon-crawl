@@ -157,7 +157,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 **Interfaces:** None — removes a parameter from four existing exported functions; no behavior for puzzle/narrative/treasure changes.
 
-- [ ] **Step 1: Delete/update the tests that exercised trap-setpiece assignment**
+- [x] **Step 1: Delete/update the tests that exercised trap-setpiece assignment**
 
 In `tests/dungeon-deck.test.mjs`, **delete** this entire test (its own premise — a dedicated trap room with a setpiece — no longer exists):
 
@@ -279,12 +279,12 @@ to:
   });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs -t "754"`
 Expected: FAIL — `buildRoomSequence`/`attachHiddenPaths` still accept and act on `trapSetpieceIds`, so the updated assertions (no `'trap'` kind, no trap pool) don't yet hold... actually since Task 1 already removed `trap` from `ROOM_KIND_WEIGHTS`, these rooms can never be kind `'trap'` already — re-run to confirm these specific tests already pass post-Task-1 (if so, that's fine: it means Task 1 alone already satisfies the *kind* assertions here, and this task is purely the *dead-parameter cleanup*, not a second behavior fix). Either way, proceed to Step 3 to remove the now-fully-dead parameters.
 
-- [ ] **Step 3: Delete the dead code from `buildRoomSequence`**
+- [x] **Step 3: Delete the dead code from `buildRoomSequence`**
 
 In `scripts/dungeon-deck.mjs`, change:
 
@@ -349,7 +349,7 @@ to:
       : null;
 ```
 
-- [ ] **Step 4: Delete the dead code from `applySequenceMutation`**
+- [x] **Step 4: Delete the dead code from `applySequenceMutation`**
 
 Change:
 
@@ -405,7 +405,7 @@ to:
       : null;
 ```
 
-- [ ] **Step 5: Delete the dead code from `buildRoomGraph`**
+- [x] **Step 5: Delete the dead code from `buildRoomGraph`**
 
 Change:
 
@@ -470,7 +470,7 @@ to:
       : null;
 ```
 
-- [ ] **Step 6: Delete the dead code from `attachHiddenPaths`**
+- [x] **Step 6: Delete the dead code from `attachHiddenPaths`**
 
 Change:
 
@@ -533,12 +533,12 @@ to:
         : null;
 ```
 
-- [ ] **Step 7: Run tests to verify they pass**
+- [x] **Step 7: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs`
 Expected: PASS, every test in the file green — including every test untouched by this plan (puzzle/narrative/treasure assertions unaffected).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/dungeon-deck.mjs tests/dungeon-deck.test.mjs
