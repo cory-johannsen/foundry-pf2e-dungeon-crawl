@@ -908,7 +908,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
         // end of that method once the await resolves -- a plain instance
         // field survives across the two render() calls that bracket it.
         generating: this.generating ?? false,
-        defaultRoomCount: 6,
+        defaultRoomCount: 20,
         availableTraits,
         traitsFieldHtml: traitFieldHtml({
           name: "traits",
@@ -1318,7 +1318,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const form = this.element.querySelector("form");
     const roomCount = Math.max(
       2,
-      parseInt(form?.querySelector('[name="roomCount"]')?.value ?? "6", 10),
+      parseInt(form?.querySelector('[name="roomCount"]')?.value ?? "20", 10),
     );
     const traits = readTraitField(this.element, "traits");
     const excludeTraits = readTraitField(this.element, "excludeTraits");
