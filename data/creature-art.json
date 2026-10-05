@@ -44734,5 +44734,133 @@
     "name": "Painted Soldier (Ominous Graffiti)",
     "level": 7,
     "art": "painted-soldier.webp"
+  },
+  {
+    "id": "mammoth_squid",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "dmf1SRd2NIKUpgci",
+    "name": "Mammoth Squid",
+    "level": 14,
+    "art": "mammoth-squid.webp"
+  },
+  {
+    "id": "akki",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "ga1l2gjdrnb1ctRS",
+    "name": "Akki (Level 2)",
+    "level": 2,
+    "art": "akki.webp"
+  },
+  {
+    "id": "akki_level_8",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "uqdf6Fx5Z6IWyWed",
+    "name": "Akki (Level 8)",
+    "level": 8,
+    "art": "akki.webp"
+  },
+  {
+    "id": "painted_griffon",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "gqPkwINHB1EwVfpq",
+    "name": "Painted Griffon",
+    "level": 5,
+    "art": "painted-griffon.webp"
+  },
+  {
+    "id": "keribos",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "jXTKQSMyTpQ2LoIV",
+    "name": "Keribos",
+    "level": 6,
+    "art": "keribos.webp"
+  },
+  {
+    "id": "bristled_reef_shark",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "kOiU62ShG0Hyhznx",
+    "name": "Bristled Reef Shark",
+    "level": 1,
+    "art": "bristled-reef-shark.webp"
+  },
+  {
+    "id": "iapholi",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "kgEjYU9fTiIs6HMU",
+    "name": "Iapholi",
+    "level": 7,
+    "art": "iapholi.webp"
+  },
+  {
+    "id": "encymion",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "ln3pXptaxdchTkiU",
+    "name": "Encymion",
+    "level": 9,
+    "art": "encymion.webp"
+  },
+  {
+    "id": "animated_panoply",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "o2O3dPdWCCgRcIO3",
+    "name": "Animated Panoply",
+    "level": 2,
+    "art": "animated-panoply.webp"
+  },
+  {
+    "id": "xenia_spirit",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "sA9LeJ1wDJr9lEeo",
+    "name": "Xenia Spirit",
+    "level": 4,
+    "art": "xenia-spirit.webp"
+  },
+  {
+    "id": "deianire",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "uAEbmbXpPckpuz0N",
+    "name": "Deianire",
+    "level": 7,
+    "art": "deianire.webp"
+  },
+  {
+    "id": "deck_crew",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "xJShFpURsiQQHKWD",
+    "name": "Deck Crew",
+    "level": 6,
+    "art": "deck-crew.webp"
+  },
+  {
+    "id": "phermeina",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "xsICRSnP7T0CP6jJ",
+    "name": "Phermeina",
+    "level": 1,
+    "art": "phermeina.webp"
+  },
+  {
+    "id": "tsemone",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "yuvHEsdaVru2YsUk",
+    "name": "Tsemone",
+    "level": 8,
+    "art": "tsemone.webp"
+  },
+  {
+    "id": "ungkore_bounty_hunter",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "zBkMFaZZAHvivVnh",
+    "name": "Ungkore Bounty Hunter",
+    "level": 8,
+    "art": "ungkore-bounty-hunter.webp"
+  },
+  {
+    "id": "mutated_centaur",
+    "pack": "pf2e.myth-speaker-bestiary",
+    "docId": "zZhpf01YcgrIRyVF",
+    "name": "Mutated Centaur",
+    "level": 7,
+    "art": "mutated-centaur.webp"
   }
 ]
