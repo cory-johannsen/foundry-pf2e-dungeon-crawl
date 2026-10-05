@@ -42,7 +42,7 @@
 **Interfaces:**
 - Produces: `DEFAULT_DIFFICULTY` (now `"moderate"`), `normalizeDifficulty(value)` (unchanged signature, now defaults to Moderate), `applyDifficultyShift(depthBias:number, tier) -> number in [-1, 3]` (replaces `applyDifficultyCap`), `effectiveRoomBias({ rank, maxRank, isGoal, difficulty })` (unchanged signature, new semantics).
 
-- [ ] **Step 1: Rewrite the tests to the new semantics (they must fail first)**
+- [x] **Step 1: Rewrite the tests to the new semantics (they must fail first)**
 
 In `tests/dungeon-deck.test.mjs`: in the import list from `../scripts/dungeon-deck.mjs`, replace `applyDifficultyCap` with `applyDifficultyShift`. Replace the whole `describe('difficulty tiers (#412)', ...)` block with:
 
@@ -138,12 +138,12 @@ describe('effectiveRoomBias (#412, #636)', () => {
 
 In `tests/dungeon-runner.test.mjs`, in `describe("createRun difficulty (#412)", ...)`: rename the first test to `"defaults to moderate"` and change its assertion to `expect(state.difficulty).toBe("moderate");`; rename the third to `"normalizes an unknown tier to moderate"` and change its assertion to `expect(state.difficulty).toBe("moderate");`. Leave the "stores a valid tier" test as is.
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs tests/dungeon-scene.test.mjs tests/dungeon-runner.test.mjs`
 Expected: FAIL (`applyDifficultyShift` is not a function / not exported; `normalizeDifficulty(undefined)` still returns `'severe'`).
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `scripts/dungeon-deck.mjs`, replace the block from the `// #412: the player's max-difficulty choice...` comment through the end of `applyDifficultyCap` (everything between `depthBiasFor` and the `// Placeholder heuristic, not a real treasure table` comment) with:
 
@@ -190,12 +190,12 @@ export function effectiveRoomBias({ rank, maxRank, isGoal, difficulty }) {
 
 In `scripts/encounter-roster.mjs`, in `xpCeilingTierForDepth`'s doc comment, change the single line ` * max-difficulty lift, dungeon-deck.mjs's applyDifficultyCap). A missing` to ` * difficulty shift, dungeon-deck.mjs's applyDifficultyShift). A missing` (leave every other comment line alone).
 
-- [ ] **Step 4: Run to verify they pass**
+- [x] **Step 4: Run to verify they pass**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs tests/dungeon-scene.test.mjs tests/dungeon-runner.test.mjs tests/encounter-roster.test.mjs`
 Expected: PASS. Also run `grep -rn "applyDifficultyCap\|DIFFICULTY_BIAS_CAP" scripts tests` — expected: no matches.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-deck.mjs scripts/dungeon-scene.mjs scripts/encounter-roster.mjs tests/dungeon-deck.test.mjs tests/dungeon-scene.test.mjs tests/dungeon-runner.test.mjs

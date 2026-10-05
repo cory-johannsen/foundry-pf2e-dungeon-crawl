@@ -100,30 +100,33 @@ export function depthBiasFor({ rank, maxRank, isGoal }) {
   return Math.round(fraction * MAX_DEPTH_BIAS);
 }
 
-// #412: the player's max-difficulty choice from the Start Dungeon dialog.
+// #412/#636: the player's difficulty choice from the Start Dungeon dialog.
 export const DIFFICULTY_TIERS = ["trivial", "low", "moderate", "severe", "extreme"];
-export const DEFAULT_DIFFICULTY = "severe"; // today's behavior
+export const DEFAULT_DIFFICULTY = "moderate";
 
-/** Any missing/unknown value (old saved run, bad relayed arg) -> Severe. */
+/** Any missing/unknown value (old saved run, bad relayed arg) -> Moderate. */
 export function normalizeDifficulty(value) {
   return DIFFICULTY_TIERS.includes(value) ? value : DEFAULT_DIFFICULTY;
 }
 
-// Highest depth bias a tier allows. Extreme's ordinary cap equals Severe's;
-// its extra lift for the deepest rooms is handled in applyDifficultyCap.
-const DIFFICULTY_BIAS_CAP = { trivial: -1, low: 0, moderate: 1, severe: 2, extreme: 2 };
+// #636: how far each tier shifts the WHOLE depth ramp. Severe is the identity.
+const DIFFICULTY_BIAS_OFFSET = { trivial: -3, low: -2, moderate: -1, severe: 0, extreme: 1 };
+// The effective bias stays inside the range the combat XP ceiling
+// (xpCeilingTierForDepth), creature level band and trap level window already
+// support and test: Trivial's -1 up to Extreme's 3 (one past the ramp's max).
+const MIN_EFFECTIVE_BIAS = -1;
+const MAX_EFFECTIVE_BIAS = MAX_DEPTH_BIAS + 1;
 
 /**
- * #412: the effective depth bias for a room once the player's tier is
- * applied on top of the depth ramp -- `min(depthBias, tier cap)`, so the tier
- * only ever lowers what the ramp produced. The one exception is Extreme,
- * which lifts a room already at the ramp's max (bias 2, goal room included)
- * to 3, one past the normal ceiling.
+ * #636 (replacing #412's clamp): the effective depth bias for a room once the
+ * player's tier shifts the depth ramp -- `clamp(depthBias + tier offset,
+ * -1, 3)`. Extreme raises every room one step, Moderate/Low/Trivial lower them
+ * by one/two/three, Severe leaves the ramp alone. A missing or unknown tier
+ * reads as Moderate (normalizeDifficulty).
  */
-export function applyDifficultyCap(depthBias, tier) {
-  const t = normalizeDifficulty(tier);
-  if (t === "extreme" && depthBias >= MAX_DEPTH_BIAS) return MAX_DEPTH_BIAS + 1;
-  return Math.min(depthBias, DIFFICULTY_BIAS_CAP[t]);
+export function applyDifficultyShift(depthBias, tier) {
+  const shifted = depthBias + DIFFICULTY_BIAS_OFFSET[normalizeDifficulty(tier)];
+  return Math.max(MIN_EFFECTIVE_BIAS, Math.min(MAX_EFFECTIVE_BIAS, shifted));
 }
 
 // Placeholder heuristic, not a real treasure table — same disclosed-tunable
