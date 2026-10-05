@@ -46006,5 +46006,165 @@
     "name": "Graverobber",
     "level": 11,
     "art": "graverobber.webp"
+  },
+  {
+    "id": "chernasardo_ranger",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "0mllbU5aBEcVUj3E",
+    "name": "Chernasardo Ranger",
+    "level": 7,
+    "art": "chernasardo-ranger.webp"
+  },
+  {
+    "id": "oceanius_and_glory_arcely",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "2plKfPwYPE6yHBZw",
+    "name": "Oceanius and Glory Arcely",
+    "level": 18,
+    "art": "oceanius-and-glory-arcely.webp"
+  },
+  {
+    "id": "brumesgarth",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "ElTYWqGvup7okvC5",
+    "name": "Brumesgarth",
+    "level": 19,
+    "art": "brumesgarth.webp"
+  },
+  {
+    "id": "divine_warden_of_arazni",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "IOzVkKmHQvHdmO90",
+    "name": "Divine Warden of Arazni",
+    "level": 16,
+    "art": "divine-warden-of-arazni.webp"
+  },
+  {
+    "id": "seldeg_bhedlis",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "Kqd7MVuRRYvvZQ0g",
+    "name": "Seldeg Bhedlis",
+    "level": 20,
+    "art": "seldeg-bhedlis.webp"
+  },
+  {
+    "id": "omelia",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "M2Co6b3pKO3TOWQj",
+    "name": "Omelia",
+    "level": 5,
+    "art": "omelia.webp"
+  },
+  {
+    "id": "zombie_desecrator",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "NzhVuwCmMTPUQPAB",
+    "name": "Zombie Desecrator",
+    "level": 17,
+    "art": "zombie-desecrator.webp"
+  },
+  {
+    "id": "stelemora",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "OZRvOYnkvEVlTx90",
+    "name": "Stelemora",
+    "level": 7,
+    "art": "stelemora.webp"
+  },
+  {
+    "id": "mirmicette",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "OlBw2JqWcb3aBfKf",
+    "name": "Mirmicette",
+    "level": 6,
+    "art": "mirmicette.webp"
+  },
+  {
+    "id": "tallusian",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "Q0ASK7LvvRXfJe7v",
+    "name": "Tallusian",
+    "level": 5,
+    "art": "tallusian.webp"
+  },
+  {
+    "id": "splinter_officer",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "RiB74rq2dsKATghi",
+    "name": "Splinter Officer",
+    "level": 19,
+    "art": "splinter-officer.webp"
+  },
+  {
+    "id": "divine_warden_of_iomedae",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "U6kC8ohP723gydUI",
+    "name": "Divine Warden of Iomedae",
+    "level": 16,
+    "art": "divine-warden-of-iomedae.webp"
+  },
+  {
+    "id": "engerra",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "ZUkMXxPyOJ9sPRvN",
+    "name": "Engerra",
+    "level": 9,
+    "art": "engerra.webp"
+  },
+  {
+    "id": "radiant_veranallia",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "ZcrucwbmzI5J5jvk",
+    "name": "Radiant Veranallia",
+    "level": 20,
+    "art": "radiant-veranallia.webp"
+  },
+  {
+    "id": "lady_siccale",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "aEBup6SntDIOlTtY",
+    "name": "Lady Siccale",
+    "level": 19,
+    "art": "lady-siccale.webp"
+  },
+  {
+    "id": "ossuary_warden",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "fF04YIUUzwQlK1TW",
+    "name": "Ossuary Warden",
+    "level": 19,
+    "art": "ossuary-warden.webp"
+  },
+  {
+    "id": "moldering_steed",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "hXEFhS8iL5d6MqdD",
+    "name": "Moldering Steed",
+    "level": 16,
+    "art": "moldering-steed.webp"
+  },
+  {
+    "id": "knight_reclaimant",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "jSE16N2ASzN3qlN1",
+    "name": "Knight Reclaimant",
+    "level": 8,
+    "art": "knight-reclaimant.webp"
+  },
+  {
+    "id": "garrholdion",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "mGTK0uSZiQY0vsCf",
+    "name": "Garrholdion",
+    "level": 20,
+    "art": "garrholdion.webp"
+  },
+  {
+    "id": "onturat",
+    "pack": "pf2e.claws-of-the-tyrant-bestiary",
+    "docId": "rPp9nA89lSDrxEyq",
+    "name": "Onturat",
+    "level": 19,
+    "art": "onturat.webp"
   }
 ]
