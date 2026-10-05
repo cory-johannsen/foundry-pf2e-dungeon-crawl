@@ -3,6 +3,7 @@ import {
   parseDisableChecks,
   trapDetectionDC,
   isSimpleAutomatableTrap,
+  classifyTrapMove,
 } from "../scripts/trap-mechanics.mjs";
 
 describe("parseDisableChecks", () => {
@@ -94,5 +95,34 @@ describe("isSimpleAutomatableTrap", () => {
 
   it("is false with no parseable disable check", () => {
     expect(isSimpleAutomatableTrap({ ...base, disableChecks: [] })).toBe(false);
+  });
+});
+
+describe("classifyTrapMove", () => {
+  const trap = { gx: 5, gy: 5, gw: 1, gh: 1 };
+
+  it("is 'trigger' when the mover's footprint overlaps the trap's own cell", () => {
+    expect(classifyTrapMove(trap, { gx: 5, gy: 5, gw: 1, gh: 1 })).toBe("trigger");
+  });
+
+  it("is 'trigger' for a larger mover footprint that still overlaps", () => {
+    expect(classifyTrapMove(trap, { gx: 4, gy: 5, gw: 2, gh: 1 })).toBe("trigger");
+  });
+
+  it("is 'detect' for a mover orthogonally adjacent (not overlapping)", () => {
+    expect(classifyTrapMove(trap, { gx: 6, gy: 5, gw: 1, gh: 1 })).toBe("detect");
+  });
+
+  it("is 'detect' for a mover diagonally adjacent (not overlapping)", () => {
+    expect(classifyTrapMove(trap, { gx: 6, gy: 6, gw: 1, gh: 1 })).toBe("detect");
+  });
+
+  it("is 'none' for a mover two squares away", () => {
+    expect(classifyTrapMove(trap, { gx: 7, gy: 5, gw: 1, gh: 1 })).toBe("none");
+  });
+
+  it("is 'trigger' (not 'detect') when both overlap and would also count as adjacent", () => {
+    // Overlap always wins over the weaker adjacency signal.
+    expect(classifyTrapMove(trap, { gx: 5, gy: 5, gw: 2, gh: 2 })).toBe("trigger");
   });
 });

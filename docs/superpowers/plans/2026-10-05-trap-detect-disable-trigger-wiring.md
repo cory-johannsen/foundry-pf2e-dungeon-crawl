@@ -38,7 +38,7 @@
 **Interfaces:**
 - Produces: `export function classifyTrapMove(trapFootprint, moverFootprint): "trigger" | "detect" | "none"` — `trapFootprint`/`moverFootprint` are plain `{gx, gy, gw, gh}` objects (the same shape `scripts/placement.mjs`'s `footprint()` already produces). Consumed by Task 2.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -74,12 +74,12 @@ describe("classifyTrapMove", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/trap-mechanics.test.mjs -t classifyTrapMove`
 Expected: FAIL — `classifyTrapMove is not a function` (or an import error).
 
-- [ ] **Step 3: Write `classifyTrapMove`**
+- [x] **Step 3: Write `classifyTrapMove`**
 
 In `scripts/trap-mechanics.mjs`, insert directly after `trapDetectionDC`'s closing `}`:
 
@@ -114,17 +114,17 @@ export function classifyTrapMove(trapFootprint, moverFootprint) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/trap-mechanics.test.mjs -t classifyTrapMove`
 Expected: PASS, all 6 tests green.
 
-- [ ] **Step 5: Run the full test file to confirm no regression**
+- [x] **Step 5: Run the full test file to confirm no regression**
 
 Run: `npx vitest run tests/trap-mechanics.test.mjs`
 Expected: PASS, every existing test in this file (if any already existed) still green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/trap-mechanics.mjs tests/trap-mechanics.test.mjs
