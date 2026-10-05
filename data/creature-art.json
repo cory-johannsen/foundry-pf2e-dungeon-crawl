@@ -45518,5 +45518,197 @@
     "name": "Ahvothian",
     "level": 7,
     "art": "ahvothian.webp"
+  },
+  {
+    "id": "facade",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "0ynDv96qQZpZc0J8",
+    "name": "Facade",
+    "level": 15,
+    "art": "facade.webp"
+  },
+  {
+    "id": "gray_master",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "1eX4Csnv3psAsfLf",
+    "name": "Gray Master",
+    "level": 20,
+    "art": "gray-master.webp"
+  },
+  {
+    "id": "furnerico",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "3tYqfg9qhrtyTbvq",
+    "name": "Furnerico",
+    "level": 14,
+    "art": "furnerico.webp"
+  },
+  {
+    "id": "hellshadow",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "58QVgNXmRsI7p8xq",
+    "name": "Hellshadow",
+    "level": 13,
+    "art": "hellshadow.webp"
+  },
+  {
+    "id": "simandu",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "6guVWljIlk02aam7",
+    "name": "Simandu",
+    "level": 19,
+    "art": "simandu.webp"
+  },
+  {
+    "id": "mask_of_gray_master",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "6s7h25mjQAsVEkcY",
+    "name": "Mask of Gray Master",
+    "level": 16,
+    "art": "mask-of-gray-master.webp"
+  },
+  {
+    "id": "zimiezek",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "7vC2VnYOgqpkYeNi",
+    "name": "Zimiezek",
+    "level": 18,
+    "art": "zimiezek.webp"
+  },
+  {
+    "id": "augusta_wormwood",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "8L1GpUj3eJgaeFUk",
+    "name": "Augusta Wormwood",
+    "level": 14,
+    "art": "augusta-wormwood.webp"
+  },
+  {
+    "id": "prince_of_propaganda",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "8VjUGaYgDutmaYjk",
+    "name": "Prince of Propaganda",
+    "level": 20,
+    "art": "prince-of-propaganda.webp"
+  },
+  {
+    "id": "karumzek_priest",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "BgPshRvqaBvy4ulr",
+    "name": "Karumzek Priest (Dispel Magic)",
+    "level": 15,
+    "art": "karumzek-priest.webp"
+  },
+  {
+    "id": "karumzek_priest_divine_immolation",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "9qFTRSaEYnrYDVHH",
+    "name": "Karumzek Priest (Divine Immolation)",
+    "level": 15,
+    "art": "karumzek-priest.webp"
+  },
+  {
+    "id": "karumzek_priest_eclipse_burst",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "REOHdavtL7k20KQc",
+    "name": "Karumzek Priest (Eclipse Burst)",
+    "level": 15,
+    "art": "karumzek-priest.webp"
+  },
+  {
+    "id": "anguish_siktempora",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "A1MdmLZnbanM5CZi",
+    "name": "Anguish Siktempora",
+    "level": 13,
+    "art": "anguish-siktempora.webp"
+  },
+  {
+    "id": "mask_of_the_reaper",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "AIcxTXQjR0Y70oNE",
+    "name": "Mask of the Reaper",
+    "level": 16,
+    "art": "mask-of-the-reaper.webp"
+  },
+  {
+    "id": "masque_mannequin",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "AOCjBM0drUBjGUIE",
+    "name": "Masque Mannequin",
+    "level": 15,
+    "art": "masque-mannequin.webp"
+  },
+  {
+    "id": "miavri",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "Co5OLOIXjbsWxsiy",
+    "name": "Miavri",
+    "level": 13,
+    "art": "miavri.webp"
+  },
+  {
+    "id": "waxen_effigy",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "DBr25IAKQHwz69YD",
+    "name": "Waxen Effigy",
+    "level": 18,
+    "art": "waxen-effigy.webp"
+  },
+  {
+    "id": "izhkarial",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "HGCOaH2EJ2AyVYJO",
+    "name": "Izhkarial",
+    "level": 16,
+    "art": "izhkarial.webp"
+  },
+  {
+    "id": "reaper_of_reputation",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "HiJBqmjbRp7MmPUW",
+    "name": "Reaper of Reputation",
+    "level": 20,
+    "art": "reaper-of-reputation.webp"
+  },
+  {
+    "id": "rusalka_jye1g",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "JYE1gsB9D12crx5C",
+    "name": "Rusalka",
+    "level": 12,
+    "art": "rusalka.webp"
+  },
+  {
+    "id": "rezzelki",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "Jakh8SGsZvj9oaRW",
+    "name": "Rezzelki",
+    "level": 10,
+    "art": "rezzelki.webp"
+  },
+  {
+    "id": "fallenta",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "LIxnoH1iC1vEP5xq",
+    "name": "Fallenta",
+    "level": 11,
+    "art": "fallenta.webp"
+  },
+  {
+    "id": "skinsaw_trophy",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "Mmg3SDdcpcgX311I",
+    "name": "Skinsaw Trophy",
+    "level": 14,
+    "art": "skinsaw-trophy.webp"
+  },
+  {
+    "id": "girtablilu_sentry_ri8ve",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "rI8VEh3yN07RBDaX",
+    "name": "Girtablilu Sentry",
+    "level": 8,
+    "art": "girtablilu-sentry.webp"
   }
 ]
