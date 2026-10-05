@@ -87,7 +87,7 @@ export function xpBudget(tier, partySize) {
  * The XP ceiling tier for a dungeon room's (effective) depth bias (#293,
  * extended by #412): below 0 caps at Trivial, 0 at Low, 1 at Moderate, 2 at
  * Severe, and 3 or more at Extreme (only reachable via the player's Extreme
- * max-difficulty lift, dungeon-deck.mjs's applyDifficultyCap). A missing
+ * difficulty shift, dungeon-deck.mjs's applyDifficultyShift). A missing
  * depth (`null`/`undefined`, e.g. the standalone macro) keeps the historical
  * Severe cap.
  */

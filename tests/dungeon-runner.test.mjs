@@ -2589,13 +2589,13 @@ describe('retreat (#439)', () => {
 });
 
 describe("createRun difficulty (#412)", () => {
-  it("defaults to severe", async () => {
+  it("defaults to moderate", async () => {
     const settingsRef = makeSettingsStub();
     const state = await createRun(
       { sceneId: "scene-1", roomCount: 5 },
       { settingsRef },
     );
-    expect(state.difficulty).toBe("severe");
+    expect(state.difficulty).toBe("moderate");
   });
 
   it("stores a valid tier", async () => {
@@ -2607,12 +2607,12 @@ describe("createRun difficulty (#412)", () => {
     expect(state.difficulty).toBe("trivial");
   });
 
-  it("normalizes an unknown tier to severe", async () => {
+  it("normalizes an unknown tier to moderate", async () => {
     const settingsRef = makeSettingsStub();
     const state = await createRun(
       { sceneId: "scene-1", roomCount: 5, difficulty: "nightmare" },
       { settingsRef },
     );
-    expect(state.difficulty).toBe("severe");
+    expect(state.difficulty).toBe("moderate");
   });
 });

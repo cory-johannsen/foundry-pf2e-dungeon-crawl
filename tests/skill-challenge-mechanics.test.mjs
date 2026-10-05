@@ -134,13 +134,13 @@ describe("dcForAttempt", () => {
 
   it("uses the room's Simple DC for a specialty skill", () => {
     expect(
-      dcForAttempt({ partyLevel: 5, skill: "religion", specialtySkills }),
+      dcForAttempt({ partyLevel: 5, difficulty: "severe", skill: "religion", specialtySkills }),
     ).toBe(20);
   });
 
   it("ignores which skill is used -- no non-specialty penalty (#553)", () => {
     expect(
-      dcForAttempt({ partyLevel: 5, skill: "athletics", specialtySkills }),
+      dcForAttempt({ partyLevel: 5, difficulty: "severe", skill: "athletics", specialtySkills }),
     ).toBe(20);
   });
 });
@@ -393,14 +393,15 @@ describe("difficulty DC adjustment (#412)", () => {
     ).toEqual([-5, -2, -1, 0, 2]);
   });
 
-  it("unknown or missing tier adjusts by 0 (Severe)", () => {
-    expect(dcAdjustmentForTier(undefined)).toBe(0);
-    expect(dcAdjustmentForTier("bogus")).toBe(0);
+  it("unknown or missing tier adjusts like Moderate (-1), matching the room default (#636)", () => {
+    expect(dcAdjustmentForTier(undefined)).toBe(-1);
+    expect(dcAdjustmentForTier(null)).toBe(-1);
+    expect(dcAdjustmentForTier("bogus")).toBe(-1);
   });
 
   it("dcForAttempt adds the run's adjustment to the Simple DC", () => {
     expect(dcForAttempt({ partyLevel: 5, difficulty: "trivial" })).toBe(15);
     expect(dcForAttempt({ partyLevel: 5, difficulty: "extreme" })).toBe(22);
-    expect(dcForAttempt({ partyLevel: 5 })).toBe(20);
+    expect(dcForAttempt({ partyLevel: 5 })).toBe(19);
   });
 });

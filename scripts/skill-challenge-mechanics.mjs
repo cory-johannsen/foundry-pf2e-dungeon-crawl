@@ -35,7 +35,7 @@
  *     table.
  */
 import { splitmix32, seedFromString } from "./prng.mjs";
-import { MAX_DEPTH_BIAS } from "./dungeon-deck.mjs";
+import { MAX_DEPTH_BIAS, normalizeDifficulty } from "./dungeon-deck.mjs";
 
 // PF2e's own "Simple DC" table (GM Core) by character/party level. Same
 // confidence level as encounter-roster.mjs's RELATIVE_XP table — a stable,
@@ -197,9 +197,11 @@ export const DC_ADJUSTMENT_BY_TIER = {
   extreme: 2,
 };
 
-/** The flat DC adjustment for a run's difficulty tier; unknown/missing -> 0. */
+/** The flat DC adjustment for a run's difficulty tier; a missing/unknown tier
+ * reads as Moderate (-1), the same default the room bias uses
+ * (dungeon-deck.mjs normalizeDifficulty, #636). */
 export function dcAdjustmentForTier(tier) {
-  return DC_ADJUSTMENT_BY_TIER[tier] ?? 0;
+  return DC_ADJUSTMENT_BY_TIER[normalizeDifficulty(tier)];
 }
 
 /**

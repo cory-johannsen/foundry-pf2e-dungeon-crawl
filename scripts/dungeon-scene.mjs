@@ -72,7 +72,7 @@ import {
   markStubOpened,
 } from "./dungeon-runner.mjs";
 import { canRetreat, hasNoWayForward, roomDisplayLabel, roomTileName, openChildren } from "./dungeon-retreat.mjs";
-import { depthBiasFor, applyDifficultyCap } from "./dungeon-deck.mjs";
+import { depthBiasFor, applyDifficultyShift } from "./dungeon-deck.mjs";
 import { startCombatForRoom } from "./dungeon-combat.mjs";
 import { playDoorSound } from "./dungeon-sound.mjs";
 import { loadDungeonSetpieces } from "./data-loader.mjs";
@@ -1374,10 +1374,10 @@ export async function moveTokensToRoom(
   );
 }
 
-/** #412: a room's depth bias with the run's difficulty cap applied. Drives
- * combat's level band + XP ceiling and trap level offset. */
+/** #412/#636: a room's depth bias with the run's difficulty shift applied.
+ * Drives combat's level band + XP ceiling and trap level offset. */
 export function effectiveRoomBias({ rank, maxRank, isGoal, difficulty }) {
-  return applyDifficultyCap(depthBiasFor({ rank, maxRank, isGoal }), difficulty);
+  return applyDifficultyShift(depthBiasFor({ rank, maxRank, isGoal }), difficulty);
 }
 
 /**
