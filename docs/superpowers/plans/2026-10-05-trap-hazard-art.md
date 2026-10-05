@@ -462,7 +462,7 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 - Consumes: `loadCreatureArt()` (`scripts/data-loader.mjs`, already exported, parameterless, cached), `findCreatureArt(list, {pack, id})` / `creatureArtPath(filename)` (`scripts/creature-art.mjs`, already exported).
 - Produces: nothing further in this plan consumes it — this is the feature's final wiring, mirroring `scripts/encounter-generator.mjs`'s own `resolveArt`/`withArt` pattern exactly (confirmed current, lines 90-96 and 116).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Check `tests/dungeon-scene.test.mjs`'s existing top-of-file mocks first (its `vi.mock` calls and fixture helpers) and match its conventions exactly. Add a new `describe('populateSlotTrap art', ...)` block using the file's own existing Foundry-stub/fixture style. Two cases:
 
@@ -500,12 +500,12 @@ describe('populateSlotTrap art', () => {
 
 Adapt the exact mock/fixture mechanics (scene stub, `api.spawnCreatures` spy, `selectTrap` stub) to however this file's existing `populateSlotTrap` tests (if any) or its sibling `populateSlotEncounter`/combat-room tests already do it — reuse the established harness rather than inventing a new one.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-scene.test.mjs -t "populateSlotTrap art"`
 Expected: FAIL — no `imgFallback` is set on the spawned entry today.
 
-- [ ] **Step 3: Wire the art lookup**
+- [x] **Step 3: Wire the art lookup**
 
 Add to the existing `data-loader.mjs` import in `scripts/dungeon-scene.mjs` (currently `import { loadDungeonSetpieces } from "./data-loader.mjs";`):
 
@@ -560,17 +560,17 @@ to:
 
 This mirrors `encounter-generator.mjs`'s own `resolveArt`/`withArt` exactly, including its `null`-safe behavior on a miss — `spawnCreatures`'s existing per-entry override logic (confirmed current, `scripts/foundry-api.mjs`) already treats a falsy `imgFallback` as "use the compendium's own default art", so a hazard with no art entry yet is unaffected.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-scene.test.mjs -t "populateSlotTrap art"`
 Expected: PASS, both cases green.
 
-- [ ] **Step 5: Run the full test file to confirm no regression**
+- [x] **Step 5: Run the full test file to confirm no regression**
 
 Run: `npx vitest run tests/dungeon-scene.test.mjs`
 Expected: PASS, every existing test in this file still green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-scene.test.mjs

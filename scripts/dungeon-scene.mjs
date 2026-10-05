@@ -79,7 +79,8 @@ import { canRetreat, hasNoWayForward, roomDisplayLabel, roomTileName, openChildr
 import { depthBiasFor, applyDifficultyShift } from "./dungeon-deck.mjs";
 import { startCombatForRoom } from "./dungeon-combat.mjs";
 import { playDoorSound } from "./dungeon-sound.mjs";
-import { loadDungeonSetpieces, loadRoomFeatureArt } from "./data-loader.mjs";
+import { loadDungeonSetpieces, loadRoomFeatureArt, loadCreatureArt } from "./data-loader.mjs";
+import { findCreatureArt, creatureArtPath } from "./creature-art.mjs";
 import { roomFeatureArtPath, doorAnimationFor } from "./room-feature-art.mjs";
 import {
   selectSkillChallengeTemplate,
@@ -1171,8 +1172,13 @@ export async function populateSlotTrap(
     return;
   }
   const tokenSize = trapFootprintSize(seed, roomId);
+  // #759: generated hazard art; a miss (null) leaves the compendium default.
+  const artFilename = findCreatureArt(await loadCreatureArt(), { pack: trap.pack, id: trap.id });
+  const imgFallback = artFilename
+    ? `modules/${MODULE_ID}/assets/${creatureArtPath(artFilename)}`
+    : null;
   const [spawned] = await api.spawnCreatures(
-    [{ pack: trap.pack, id: trap.id, tokenSize }],
+    [{ pack: trap.pack, id: trap.id, tokenSize, imgFallback }],
     {
       originArea: {
         x: toPixels(rect.gx),
