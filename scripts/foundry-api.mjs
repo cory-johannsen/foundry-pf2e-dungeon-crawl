@@ -609,6 +609,29 @@ export function makeFoundryApi(sceneRef = null) {
       return existing.update({ "system.value.value": current - value });
     },
 
+    /**
+     * Fully heals `actorId` and removes every active condition (#617) --
+     * called at both dungeon-run-ending points so neither leaves the
+     * party however battered the run left them. Confirmed live that PF2e
+     * exposes no bulk condition-clear of its own (no clearConditions/
+     * resetConditions/removeConditions on a real Actor document) --
+     * deleting every itemTypes.condition entry directly is the real
+     * mechanism, the same fallback shape decreaseCondition already uses
+     * for a single named condition. Deliberately reads actor.conditions
+     * (the derived getter) nowhere -- it can report a different size
+     * than the actual embedded Item count and isn't what's actually
+     * deletable.
+     */
+    async healAndClearConditions(actorId) {
+      const actor = getActor(actorId);
+      const conditionItemIds = (actor.itemTypes?.condition ?? []).map((c) => c.id);
+      if (conditionItemIds.length) {
+        await actor.deleteEmbeddedDocuments("Item", conditionItemIds);
+      }
+      const maxHp = actor.system?.attributes?.hp?.max ?? 0;
+      await actor.update({ "system.attributes.hp.value": maxHp });
+    },
+
     async createEffect(actorId, effectData) {
       return getActor(actorId).createEmbeddedDocuments("Item", [effectData]);
     },

@@ -95,6 +95,8 @@
   "PF2EDC.Dungeon.Retreat.TurnedNoWay": "The party turns back to {target}.",
   "PF2EDC.Dungeon.RoomBuildFailedError": "Dungeon Crawl: failed to prepare the next room — see console for details.",
   "PF2EDC.Dungeon.RestForTheNightFailedError": "Dungeon Crawl: Rest for the Night failed to apply — see console for details.",
+  "PF2EDC.Dungeon.PartyHealFailedError": "Dungeon Crawl: failed to fully heal and clear conditions for {name} — see console for details.",
+  "PF2EDC.Dungeon.PartyHealFailedPartyName": "the party",
   "PF2EDC.Dungeon.XpAwarded": "{source}: the party earns {total} XP ({share} each).",
   "PF2EDC.Dungeon.XpSource.combat": "Combat victory",
   "PF2EDC.Dungeon.XpSource.skillChallenge": "Skill challenge",

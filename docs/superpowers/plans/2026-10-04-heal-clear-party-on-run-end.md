@@ -36,7 +36,7 @@
 **Interfaces:**
 - Produces: `api.healAndClearConditions(actorId): Promise<void>` on the object `makeFoundryApi()` returns — looks up the actor via the same `getActor` every other method in this file already uses (throws `No actor: <id>` for an unknown id, inherited unchanged).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/foundry-api-heal-clear-conditions.test.mjs`:
 
@@ -102,12 +102,12 @@ describe("healAndClearConditions (#617)", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run tests/foundry-api-heal-clear-conditions.test.mjs`
 Expected: FAIL with "healAndClearConditions is not a function" (not added yet)
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 In `scripts/foundry-api.mjs`, add after `decreaseCondition` (~line 608):
 
@@ -136,12 +136,12 @@ In `scripts/foundry-api.mjs`, add after `decreaseCondition` (~line 608):
     },
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run tests/foundry-api-heal-clear-conditions.test.mjs`
 Expected: PASS (all 4 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/foundry-api.mjs tests/foundry-api-heal-clear-conditions.test.mjs
@@ -160,7 +160,7 @@ git commit -m "Add healAndClearConditions to the Foundry API (#617)"
 - Consumes: `makeFoundryApi` (already imported in `dungeon-scene.mjs`, line 84); `healAndClearConditions(actorId)` from Task 1.
 - Produces: `healAndClearPartyConditions(api?): Promise<void>` (exported) — calls `api.healAndClearConditions(member.id)` for every current party member. `teardownDungeonRun`'s and `sweepCompletedDungeonScene`'s existing signatures both gain an optional `healAndClearParty` dependency (defaulting to this real function) in their existing options object — test-only injection, production callers never pass it, same idiom as `runAgentDecisionLoop`'s `deps`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/dungeon-scene-heal-party-on-run-end.test.mjs`:
 
@@ -235,12 +235,12 @@ describe("teardownDungeonRun calls the party heal/clear (#617)", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run tests/dungeon-scene-heal-party-on-run-end.test.mjs`
 Expected: FAIL — `healAndClearPartyConditions` isn't exported yet; `sweepCompletedDungeonScene`/`teardownDungeonRun` don't accept or call a `healAndClearParty` option yet.
 
-- [ ] **Step 3: Add the shared helper**
+- [x] **Step 3: Add the shared helper**
 
 In `scripts/dungeon-scene.mjs`, add near `sweepLooseNpcActors` (~line 1283):
 
@@ -266,7 +266,7 @@ export async function healAndClearPartyConditions(api = makeFoundryApi()) {
 }
 ```
 
-- [ ] **Step 4: Wire it into `sweepCompletedDungeonScene`**
+- [x] **Step 4: Wire it into `sweepCompletedDungeonScene`**
 
 Change:
 
@@ -288,7 +288,7 @@ export async function sweepCompletedDungeonScene(
 }
 ```
 
-- [ ] **Step 5: Wire it into `teardownDungeonRun`**
+- [x] **Step 5: Wire it into `teardownDungeonRun`**
 
 Change the signature and add the call:
 
@@ -310,7 +310,7 @@ export async function teardownDungeonRun(
 
 and add `await healAndClearParty();` right before the existing `const deletedNpcActorCount = await sweepLooseNpcActors(scene);` line.
 
-- [ ] **Step 6: Run test to verify it passes**
+- [x] **Step 6: Run test to verify it passes**
 
 Run: `npx vitest run tests/dungeon-scene-heal-party-on-run-end.test.mjs`
 Expected: PASS (all 4 tests)
@@ -320,7 +320,7 @@ Expected: PASS (all 4 tests)
 Run: `npx vitest run`
 Expected: PASS — no existing test called `teardownDungeonRun`/`sweepCompletedDungeonScene` before this task (confirmed: `grep -rln "teardownDungeonRun\|sweepCompletedDungeonScene" tests/*.test.mjs` found nothing prior to this task's own new file), so there's no pre-existing call site whose behavior this new optional parameter could change.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-scene-heal-party-on-run-end.test.mjs
