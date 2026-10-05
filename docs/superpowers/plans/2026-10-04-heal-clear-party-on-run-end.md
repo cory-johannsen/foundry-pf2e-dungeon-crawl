@@ -36,7 +36,7 @@
 **Interfaces:**
 - Produces: `api.healAndClearConditions(actorId): Promise<void>` on the object `makeFoundryApi()` returns — looks up the actor via the same `getActor` every other method in this file already uses (throws `No actor: <id>` for an unknown id, inherited unchanged).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/foundry-api-heal-clear-conditions.test.mjs`:
 
@@ -102,12 +102,12 @@ describe("healAndClearConditions (#617)", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run tests/foundry-api-heal-clear-conditions.test.mjs`
 Expected: FAIL with "healAndClearConditions is not a function" (not added yet)
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 In `scripts/foundry-api.mjs`, add after `decreaseCondition` (~line 608):
 
@@ -136,12 +136,12 @@ In `scripts/foundry-api.mjs`, add after `decreaseCondition` (~line 608):
     },
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run tests/foundry-api-heal-clear-conditions.test.mjs`
 Expected: PASS (all 4 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/foundry-api.mjs tests/foundry-api-heal-clear-conditions.test.mjs
