@@ -103,3 +103,12 @@ Before generating art, on a throwaway wall in the live world: set `animation.tex
 - **No corridor door.** Every door the code builds (stub, hidden gate/reveal, real gate/reveal) sits on a room face, so `corridor/door` has no call site. Themes are the 8 `locationTag` values; the art set is **32** files, not 33.
 - **Generator integration.** Instead of a new `tools/generate-room-feature-art.mjs`, prompts live in `tools/room-feature-art-prompts.mjs` as a `ROOM_FEATURE_ART` subject list spread into the existing generator's `ALL` list (ids `rf-<theme>-<kind>`). This reuses its backends and skip-if-exists logic with less risk than importing internals into a new tool.
 - **Wiring detail.** `wallDoc` is exported and takes `art`; the manifest is loaded once per build via `loadRoomFeatureArt()` in `scripts/data-loader.mjs`, which never rejects.
+
+## Spike result (2026-10-05, live, Foundry 14.368)
+
+Throwaway scene with five door walls (one per animation type), each carrying a room-floor image as `animation.texture`:
+
+- **Type:** `swing` is the right one for a dungeon door. It pivots about the wall's SW end through 90 degrees clockwise. All five types open and close on click, and the door control still works.
+- **Scaling:** the texture is drawn with its width equal to the wall segment's length, keeps its own aspect ratio, and is centered on the wall midpoint (the door control icon sits at its center). A square image therefore covers a square as wide as the door.
+- **Door art format:** a hinged door leaf seen from directly above, a long flat horizontal strip. Because it keeps its aspect ratio, a wide strip draws as a thin leaf along the wall. Task 6 crops each generated door to a wide strip (about 6:1) after keying the background transparent.
+- `DOOR_ANIMATION` stays `{ type: "swing" }`.
