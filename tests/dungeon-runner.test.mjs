@@ -17,6 +17,7 @@ import {
   getPendingSkillChallengeCustomization,
   applySkillChallengeCustomization,
   ensurePuzzleState,
+  revealRoomFeature,
   recordPuzzleStageAttempt,
   clearPuzzleState,
   getPendingPuzzleCustomization,
@@ -2614,5 +2615,86 @@ describe("createRun difficulty (#412)", () => {
       { settingsRef },
     );
     expect(state.difficulty).toBe("moderate");
+  });
+});
+
+describe("revealRoomFeature", () => {
+  it("sets revealed on a skill_challenge room's own challenge state", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createDictRun(
+      { sceneId: "s", roomCount: 5, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.roomOrder[1];
+    await ensureSkillChallenge(
+      "s",
+      roomId,
+      { seed: "fixed", locationTag: "undead", partySize: 4 },
+      { settingsRef },
+    );
+    const state = await revealRoomFeature("s", roomId, "skill_challenge", {
+      settingsRef,
+    });
+    expect(state.rooms[roomId].challenge.revealed).toBe(true);
+  });
+
+  it("sets revealed on a puzzle room's own puzzle state, without touching resolved/successes", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createDictRun(
+      { sceneId: "s", roomCount: 5, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.roomOrder[1];
+    await ensurePuzzleState(
+      "s",
+      roomId,
+      { hintChecks: [{ skill: "arcana", dc: 15 }] },
+      { settingsRef },
+    );
+    const state = await revealRoomFeature("s", roomId, "puzzle", { settingsRef });
+    expect(state.rooms[roomId].puzzle.revealed).toBe(true);
+    expect(state.rooms[roomId].puzzle.resolved).toBeNull();
+    expect(state.rooms[roomId].puzzle.successes).toBe(0);
+  });
+
+  it("is a no-op if the room's feature is already revealed", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createDictRun(
+      { sceneId: "s", roomCount: 5, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.roomOrder[1];
+    await ensureSkillChallenge(
+      "s",
+      roomId,
+      { seed: "fixed", locationTag: "undead", partySize: 4 },
+      { settingsRef },
+    );
+    const first = await revealRoomFeature("s", roomId, "skill_challenge", {
+      settingsRef,
+    });
+    const second = await revealRoomFeature("s", roomId, "skill_challenge", {
+      settingsRef,
+    });
+    expect(second.rooms[roomId].challenge).toEqual(first.rooms[roomId].challenge);
+  });
+
+  it("is a no-op if the room has no matching feature state at all", async () => {
+    const settingsRef = makeSettingsStub();
+    const created = await createDictRun(
+      { sceneId: "s", roomCount: 5, seed: "fixed" },
+      { settingsRef },
+    );
+    const roomId = created.roomOrder[1];
+    const state = await revealRoomFeature("s", roomId, "puzzle", { settingsRef });
+    expect(state.rooms[roomId].puzzle).toBeUndefined();
+  });
+
+  it("is a no-op with no run at all", async () => {
+    const settingsRef = makeSettingsStub();
+    const result = await revealRoomFeature("nope", "room-x", "puzzle", {
+      settingsRef,
+    });
+    expect(result).toBeNull();
   });
 });

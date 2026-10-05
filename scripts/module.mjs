@@ -3,12 +3,14 @@ import {
   DungeonApp,
   resolveCurrentRoom,
   retreatFromCard,
+  claimTreasureFor,
 } from "./ui/dungeon-app.mjs";
 import { SoundPreviewApp } from "./ui/sound-preview-app.mjs";
 import { retreatCardActionFor } from "./dungeon-retreat.mjs";
 import {
   abandonRun,
   getRunState,
+  revealRoomFeature,
   findActiveHostedRun,
   findHostedRunForBroadcast,
   getPendingSkillChallengeCustomization,
@@ -24,7 +26,14 @@ import {
   decideOpenDungeon,
   decideGmLessBroadcast,
 } from "./dungeon-permissions.mjs";
-import { registerDungeonActionSocket } from "./dungeon-remote.mjs";
+import {
+  registerDungeonActionSocket,
+  requestDungeonAction,
+} from "./dungeon-remote.mjs";
+import {
+  routeTargetTokenEvent,
+  runRoomFeatureAction,
+} from "./room-feature-tokens.mjs";
 import {
   handleDungeonDoorOpened,
   teardownDungeonRun,
@@ -331,6 +340,39 @@ Hooks.on("updateWall", async (wall, changes) => {
     wall.id,
   );
   if (autoOpenTracker) openDungeonTrackerIfNotOpen();
+});
+
+/** #611/#623: a player targeting a room-feature prop token triggers its
+ * room's treasure claim / puzzle or challenge reveal. Thin wrapper: the
+ * decision is the pure routeTargetTokenEvent; a GM client runs the
+ * authoritative runRoomFeatureAction itself, anyone else relays it.
+ * `token` is the canvas Token placeable -- flags and scene come from its
+ * document (`token.document`), with `token.*` fallbacks for a document. */
+Hooks.on("targetToken", async (user, token, targeted) => {
+  const doc = token?.document ?? token;
+  const sceneId = doc?.parent?.id ?? token?.scene?.id;
+  const route = routeTargetTokenEvent({
+    userId: user?.id,
+    gameUserId: game.user?.id,
+    targeted,
+    flags: doc?.flags?.[MODULE_ID],
+    sceneId,
+    state: sceneId ? getRunState(sceneId) : null,
+  });
+  if (!route) return;
+  if (game.user.isGM) {
+    try {
+      await runRoomFeatureAction(route, {
+        getRunState,
+        claimTreasureFor,
+        revealRoomFeature,
+      });
+    } catch (err) {
+      console.error(`${MODULE_ID} | room-feature interaction failed`, err);
+    }
+  } else {
+    await requestDungeonAction("roomFeatureInteract", route);
+  }
 });
 
 /** #439: binds the "Turn back" button on the retreat chat card (posted by

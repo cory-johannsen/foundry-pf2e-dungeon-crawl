@@ -39,7 +39,7 @@ Players see **only** the in-scene token; the GM still sees and can use the exist
 
 ## Who may trigger it (user decision, 2026-10-05)
 
-Any connected player — matches this module's GM-less design goal and the existing sidebar buttons' own permission model (any player can already click those today).
+Any player who owns a character in the party (Cory, 2026-10-05, after the original wording proved wrong). The original premise — that this "matches the existing sidebar buttons' permission model" — is false: `isAuthorizedRequest` only honors a relayed action from the run's `hostUserId`, and a non-GM player's dungeon window is read-only unless they host. So the relay gets ONE new action, `roomFeatureInteract`, authorized for non-GM, active users who own a party character (plus the host/GM as before); every other action keeps its host-only rule. The GM-side handler re-checks everything authoritatively (current room, room kind, not already resolved) and takes a per-room in-flight lock, so two players targeting at once cannot double-grant treasure. See the plan's Amendments.
 
 ## Idempotency
 
@@ -78,3 +78,12 @@ Plus a pure `buildRoomFeatureTokenActorData(kind, roomId)` returning the full Ac
 - Blocking room progression on token interaction — filed as #740.
 - Custom art for the prop tokens — Foundry's own core icons are used; a GM can retune art later same as any other actor.
 - A dialog-based "choose actor/skill at the moment of interaction" flow for puzzle/skill-challenge (which would let the token fully replace the sidebar form instead of only revealing it) — not requested by either issue, and the per-kind visibility-split decision (GM-only sidebar) already means a player never needs that dialog at all; only the GM ever fills the form, already able to do so today.
+
+
+## Amendments from execution (2026-10-05/06)
+
+- **Authorization:** non-GM owners of a party character may trigger a token through a new `roomFeatureInteract` relay action; all other actions unchanged (see "Who may trigger it" above and the plan's Amendment 1).
+- **Authoritative, idempotent GM-side action:** `planRoomFeatureAction` + `runRoomFeatureAction` (injected collaborators, per-room in-flight lock) are the single path for both the GM's own client and relayed requests; client-side `targetToken` guards are only an optimization.
+- **Template context:** `revealed` must be added to the `challenge` and `puzzle` objects `_prepareContext` builds, or the GM's Attempt forms never unlock.
+- **Pure router:** the `targetToken` decision logic lives in a unit-tested pure function; the hook only dispatches.
+- **Visibility gate:** the sidebar controls stay visible to whoever is `interactive` (GM or the run's host) — NOT `isGM` only. The original `isGM` wrapper would have locked a GM-less host out of the Attempt forms (nobody could attempt a puzzle/skill challenge). Non-interactive players already get a read-only panel, so "players see only the token" holds unchanged. Only the `revealed` gate is new.

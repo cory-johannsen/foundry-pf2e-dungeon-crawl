@@ -67,10 +67,41 @@ export function decideGmLessBroadcast(
  * returned (world-wide, not scene-specific, since the scene doesn't exist
  * yet when this fires).
  */
-export function isAuthorizedRequest(actionName, requestingUserId, run) {
+export function isAuthorizedRequest(
+  actionName,
+  requestingUserId,
+  run,
+  { ownsPartyCharacter = false } = {},
+) {
   if (!requestingUserId) return false;
   if (actionName === "startRun") {
     return !run || run.hostUserId === requestingUserId;
   }
+  if (actionName === "roomFeatureInteract") {
+    // #611/#623: room-feature prop tokens may be triggered by any non-GM
+    // player who owns a party character (relay computes the flag), or the host.
+    return (
+      !!run &&
+      !run.completed &&
+      (ownsPartyCharacter ||
+        (!!run.hostUserId && run.hostUserId === requestingUserId))
+    );
+  }
   return !!run?.hostUserId && run.hostUserId === requestingUserId;
+}
+
+/** Whether `userId` owns (OWNER level, 3) at least one `character` actor in
+ * the party's member list. Pure; the relay supplies the members. */
+export function ownsPartyCharacter(userId, partyMembers) {
+  return (partyMembers ?? []).some(
+    (m) => m?.type === "character" && (m.ownership?.[userId] ?? 0) >= 3,
+  );
+}
+
+/** Whether the relay should treat `user` ({ id, active, isGM } or null) as
+ * a party-character owner for `roomFeatureInteract`: must exist, be active,
+ * not be a GM, and own a party character. Pure. */
+export function canRelayRoomFeature(user, partyMembers) {
+  if (!user || !user.active || user.isGM) return false;
+  return ownsPartyCharacter(user.id, partyMembers);
 }

@@ -13,7 +13,9 @@ import {
   resetRetreatPath,
   effectiveMarchingOrder,
   setMarchingOrder,
+  revealRoomFeature,
 } from "../dungeon-runner.mjs";
+import { runRoomFeatureAction } from "../room-feature-tokens.mjs";
 import { canActOnDungeon } from "../dungeon-permissions.mjs";
 import { fulfillPendingCustomizations } from "../dungeon-customization-fulfillment.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
@@ -845,6 +847,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       continueNarrative: DungeonApp.#onContinueNarrative,
       chooseNarrativeOption: DungeonApp.#onChooseNarrativeOption,
       claimTreasure: DungeonApp.#onClaimTreasure,
+      revealRoomFeature: DungeonApp.#onRevealRoomFeature,
       moveMarchingOrderUp: DungeonApp.#onMoveMarchingOrderUp,
       moveMarchingOrderDown: DungeonApp.#onMoveMarchingOrderDown,
     },
@@ -967,6 +970,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
         attemptsRemaining: raw.attemptBudget - raw.attemptsUsed,
         templateName: raw.name,
         templateSummary: raw.summary,
+        revealed: !!raw.revealed,
         specialtySkills: raw.specialtySkills.map((slug) => ({
           slug,
           label: skillLabel(slug),
@@ -1001,6 +1005,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
         summary: raw.summary,
         playerDescription: raw.playerDescription,
         requiredSuccesses: raw.requiredSuccesses,
+        revealed: !!raw.revealed,
         successes: raw.successes,
         resolved: raw.resolved,
         // Narrative payoff shown once solved, never during play — #137's
@@ -1512,6 +1517,29 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       await claimTreasureFor(sceneId);
     } else {
       await requestDungeonAction("claimTreasure", { sceneId });
+    }
+    this.render();
+  }
+
+  /**
+   * #611/#623 operator override: reveals the current room's puzzle /
+   * skill-challenge forms without a player targeting the prop token (for a
+   * run with no token). Same authoritative path the token uses: a GM runs
+   * runRoomFeatureAction directly, anyone else (the GM-less host) relays it.
+   */
+  static async #onRevealRoomFeature(event, target) {
+    const sceneId = canvas?.scene?.id;
+    const kind = target?.dataset?.kind;
+    if (!sceneId || !kind) return;
+    const roomId = getRunState(sceneId)?.currentRoomId;
+    if (!roomId) return;
+    if (game.user.isGM) {
+      await runRoomFeatureAction(
+        { sceneId, roomId, kind },
+        { getRunState, claimTreasureFor, revealRoomFeature },
+      );
+    } else {
+      await requestDungeonAction("roomFeatureInteract", { sceneId, roomId, kind });
     }
     this.render();
   }

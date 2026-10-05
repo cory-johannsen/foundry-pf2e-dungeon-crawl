@@ -29,6 +29,20 @@
 
 ---
 
+## Amendments (controller, 2026-10-05/06 — found by checking the plan against the code; these SUPERSEDE any conflicting text in the Global Constraints and Tasks below)
+
+1. **Authorization (Cory's decision, via AskUserQuestion): any NON-GM player who OWNS a character in the party may trigger a room-feature token — and nobody else new.** The spec said "any connected player ... matches the sidebar's permission model"; that premise is false: `isAuthorizedRequest` (`scripts/dungeon-permissions.mjs`) honors a relayed action only from the run's `hostUserId`, so with a GM present (no host) every player request is silently rejected, and in a GM-less run only the host could act. Fix: ONE new relay action `roomFeatureInteract` with args `{ sceneId, roomId, kind }` (replaces the plan's `claimTreasure`-for-tokens use and its separate `revealRoomFeature` registry entry; the sidebar's existing `claimTreasure` entry is untouched). Extend `isAuthorizedRequest(actionName, requestingUserId, run, { ownsPartyCharacter = false } = {})`: for `actionName === "roomFeatureInteract"` return `!!run && !run.completed && (ownsPartyCharacter || (!!run.hostUserId && run.hostUserId === requestingUserId))`; every other action keeps today's host-only rule unchanged. In `dungeon-remote.mjs`'s socket handler compute `ownsPartyCharacter` for the requester: the requesting user (`game.users.get(msg.requestingUserId)`) exists, is active, is NOT a GM, and owns (`ownership[userId] >= 3`, the OWNER level `dungeon-follow.mjs` already uses) at least one `type === "character"` member of `game.actors.party` — then pass it as the 4th argument. Pure, unit-tested in the existing permissions test file (or a new one) with injected data.
+2. **The GM-side action is AUTHORITATIVE and idempotent — never trust the client's guards.** A relayed request is the trust boundary, and `claimTreasureFor` has no resolved-check of its own (a second grant before the first resolves would double-pay). New pure helper `planRoomFeatureAction({ state, kind, roomId })` in `scripts/room-feature-tokens.mjs` returning `{ ok: true, room }` or `{ ok: false, reason }` with reasons `"no-state"`, `"unknown-kind"`, `"run-completed"`, `"not-current-room"`, `"room-kind-mismatch"` (token kind `treasure|puzzle|skill_challenge` must equal `state.rooms[roomId].kind`), `"already-resolved"` (`state.history.some(h => h.roomId === roomId)`). New async `runRoomFeatureAction({ sceneId, roomId, kind }, { getRunState, claimTreasureFor, revealRoomFeature, inFlight = moduleLevelSet })` in the same module (all collaborators injected, so it stays Foundry-free and testable): re-reads state via `getRunState(sceneId)`, runs `planRoomFeatureAction`, and if ok takes a per-`${sceneId}:${roomId}` in-flight lock (a second concurrent call for the same room returns `{ ok: false, reason: "in-flight" }` WITHOUT acting; lock released in `finally`) then for `treasure` calls `claimTreasureFor(sceneId)`, for `puzzle`/`skill_challenge` calls `revealRoomFeature(sceneId, roomId, kind)`; returns `{ ok: true }`. The dungeon-remote registry entry is `roomFeatureInteract: (args) => runRoomFeatureAction(args, { getRunState, claimTreasureFor, revealRoomFeature })`, and a GM client's own `targetToken` handler calls the SAME `runRoomFeatureAction` directly (no separate GM path). Tests: each reason; two concurrent treasure calls => `claimTreasureFor` called ONCE; the lock is released after a throw; puzzle/challenge only ever call `revealRoomFeature` (never `claimTreasureFor`).
+3. **Extract the `targetToken` decision logic into a pure function and unit-test it** (the plan's Review Focus promises tests for these cases that its Task 4 never wrote): `routeTargetTokenEvent({ userId, gameUserId, targeted, flags, sceneId, state })` in `scripts/room-feature-tokens.mjs` returns `null` (no-op) or `{ sceneId, roomId, kind }`; null for: `targeted` false (un-target is a no-op), `userId !== gameUserId` (another client's broadcast), no `roomFeatureKind` flag, no `sceneId`, no `state`, `roomFeatureRoomId !== state.currentRoomId` (stale token of a room the party left), or the room already resolved (use `planRoomFeatureAction`; a false plan => null). The `Hooks.on("targetToken", ...)` in `module.mjs` becomes a thin wrapper: compute the route, then `game.user.isGM ? runRoomFeatureAction(route, realDeps) : requestDungeonAction("roomFeatureInteract", route)`. Spec guards still hold (user-id guard first).
+4. **Template context must expose `revealed` or the GM's forms are locked FOREVER.** `_prepareContext` in `scripts/ui/dungeon-app.mjs` builds `challenge = { vp, vpTarget, attemptsRemaining, templateName, templateSummary, specialtySkills }` and `puzzle = { name, summary, ..., stages }` from the raw room state and neither carries `revealed`, so Task 5's `{{#if challenge.revealed}}` / `{{#if ../puzzle.revealed}}` would always be false. Add `revealed: !!raw.revealed` to BOTH context objects (Task 5). Verify live (render with the flag false then true).
+5. **Cleanup and passability need no work** (verified): `sweepLooseNpcActors` already deletes every non-party actor on the scene at teardown/completion, so the prop actors are swept; `dungeon-follow.mjs` already treats `loot`-type tokens as `passable`.
+6. **Architecture docs:** the new module and its imports require the `update-architecture-docs` skill (new edges: `dungeon-scene -> room-feature-tokens`, `module -> room-feature-tokens`, `dungeon-remote -> room-feature-tokens`, possibly `ui/dungeon-app`); add a final commit. **Version:** minor bump (re-check main at release; 0.59.1 at amendment time). **Commit trailers:** `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
+7. **Execution split:** Dispatch A = the logic/tests (Task 1 + the new pure helpers/`runRoomFeatureAction`/authorization/router + Task 2); Dispatch B = the Foundry glue (Task 3 spawn, Task 4 hook + dungeon-remote entry + relay ownership computation, Task 5 template + context + lang, architecture docs). Live verification (Tasks 3-5) needs a started run and the world updated: the controller does it with Cory.
+
+8. **Template visibility gate is `interactive`, NOT `isGM` (found in Dispatch A's pre-flight of Task 5).** `_prepareContext` already computes `interactive = canActOnDungeon(state)` (GM or the run's host) and the template already hides the control panel from everyone else (`{{#unless interactive}}` read-only banner at the top, `{{#if interactive}}` sections). Wrapping the Claim button and Attempt forms in `{{#if isGM}}` (Task 5 as written) would ALSO hide them from a GM-less run's HOST (a non-GM player who operates the dungeon) — and for puzzle/skill-challenge rooms nobody could then submit the Attempt form (deadlock). So Task 5 must NOT add `isGM` wrappers: first read the template and confirm the Claim Treasure button and the skill-challenge / puzzle Attempt forms already sit inside the `interactive` gate (if any does not, wrap it in `{{#if interactive}}`, never `isGM`). The only new gating is the `revealed` gate for puzzle/skill-challenge (`{{#if challenge.revealed}} form {{else}} NotRevealedHint {{/if}}`, and `../puzzle.revealed` inside the stages loop) plus Amendment 4's `revealed` in the context objects. The treasure button simply stays as the operator's redundant fallback alongside the token. Players who are not interactive still see only the token (read-only panel), exactly as the spec intends.
+
+---
+
 ### Task 1: `scripts/room-feature-tokens.mjs` — pure data + builder
 
 **Files:**
@@ -38,7 +52,7 @@
 **Interfaces:**
 - Produces: `export const ROOM_FEATURE_TOKEN_TYPES` (object keyed by `"treasure" | "puzzle" | "skill_challenge"`, each `{name, img}`); `export function buildRoomFeatureTokenActorData(kind, roomId)` returning the full Actor-creation payload. Consumed by Task 3.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/room-feature-tokens.test.mjs`:
 
@@ -99,12 +113,12 @@ describe("buildRoomFeatureTokenActorData", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/room-feature-tokens.test.mjs`
 Expected: FAIL — `Cannot find module '../scripts/room-feature-tokens.mjs'`.
 
-- [ ] **Step 3: Write `scripts/room-feature-tokens.mjs`**
+- [x] **Step 3: Write `scripts/room-feature-tokens.mjs`**
 
 ```js
 /**
@@ -142,12 +156,12 @@ export function buildRoomFeatureTokenActorData(kind, roomId) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/room-feature-tokens.test.mjs`
 Expected: PASS, all 6 tests green.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/room-feature-tokens.mjs tests/room-feature-tokens.test.mjs
@@ -168,7 +182,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `getRunState`, `persist`, `defaultSettingsRef` (already imported/defined in this file, same as `ensureSkillChallenge` uses).
 - Produces: `export async function revealRoomFeature(sceneId, roomId, kind, {settingsRef = defaultSettingsRef()} = {})` — returns the new state (or the unchanged state on a no-op, or `null` if no run exists). Consumed by Task 4.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 In `tests/dungeon-runner.test.mjs`, add `revealRoomFeature` to the existing import list from `../scripts/dungeon-runner.mjs` (alongside `ensureSkillChallenge`/`ensurePuzzleState`), then add this new `describe` block after the existing `describe("ensureSkillChallenge / recordSkillChallengeAttempt", ...)` block:
 
@@ -255,12 +269,12 @@ describe("revealRoomFeature", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-runner.test.mjs -t revealRoomFeature`
 Expected: FAIL — `revealRoomFeature is not a function` (or an import error).
 
-- [ ] **Step 3: Write `revealRoomFeature`**
+- [x] **Step 3: Write `revealRoomFeature`**
 
 In `scripts/dungeon-runner.mjs`, insert this directly after `ensurePuzzleState`'s closing `}` (before its teardown counterpart's own docblock):
 
@@ -301,17 +315,17 @@ export async function revealRoomFeature(
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-runner.test.mjs -t revealRoomFeature`
 Expected: PASS, all 5 new tests green.
 
-- [ ] **Step 5: Run the full test file to confirm no regression**
+- [x] **Step 5: Run the full test file to confirm no regression**
 
 Run: `npx vitest run tests/dungeon-runner.test.mjs`
 Expected: PASS, every existing test still green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-runner.mjs tests/dungeon-runner.test.mjs
@@ -333,7 +347,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No unit test for this task: it's build-time glue creating real Foundry Actor/Token documents, the same category of code this codebase has consistently verified live rather than mocked (e.g. `populateSlotTrap`, `placePartyInRoom` have no unit tests of their own either). Verified live in Step 2 below.
 
-- [ ] **Step 1: Add the spawn helper and wire it into all three branches**
+- [x] **Step 1: Add the spawn helper and wire it into all three branches**
 
 Add this import to `scripts/dungeon-scene.mjs`'s existing import block:
 
@@ -424,7 +438,7 @@ echo 'return canvas.scene.tokens.filter(t => t.getFlag("pf2e-dungeon-crawl", "ro
 
 Expected: one entry per treasure/puzzle/skill-challenge room already built in that run, each `actorType: "loot"` with the right `kind`/`roomId`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs
@@ -435,7 +449,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 ---
 
-### Task 4: `targetToken` hook dispatch + remote-action registration
+### Task 4: `targetToken` hook dispatch + remote-action registration (see Amendments 1-3: one `roomFeatureInteract` action, pure router, authoritative runner)
 
 **Files:**
 - Modify: `scripts/module.mjs` (new imports: `claimTreasureFor` from `./ui/dungeon-app.mjs`, `revealRoomFeature` from `./dungeon-runner.mjs`, `requestDungeonAction` from `./dungeon-remote.mjs`; new `Hooks.on("targetToken", ...)` registration)
@@ -447,7 +461,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No unit test: this is a live-document/socket dispatch hook, the same category this codebase always verifies live (e.g. `updateWall`'s `handleDungeonDoorOpened` wiring has no unit test either). Verified live in Step 3.
 
-- [ ] **Step 1: Add the new imports**
+- [x] **Step 1: Add the new imports**
 
 In `scripts/module.mjs`, change:
 
@@ -487,7 +501,7 @@ import {
 } from "./dungeon-remote.mjs";
 ```
 
-- [ ] **Step 2: Add the hook**
+- [x] **Step 2: Add the hook**
 
 Add this registration directly after the existing `Hooks.on("updateWall", ...)` block in `scripts/module.mjs`:
 
@@ -541,7 +555,7 @@ Hooks.on("targetToken", async (user, token, targeted) => {
 
 (If `MODULE_ID` is already declared elsewhere at the top of `scripts/module.mjs`, reuse that existing declaration instead of redeclaring it here — check with `grep -n "const MODULE_ID" scripts/module.mjs` before adding a duplicate.)
 
-- [ ] **Step 3: Register the remote action**
+- [x] **Step 3: Register the remote action**
 
 In `scripts/dungeon-remote.mjs`, add `revealRoomFeature` to the existing import from `./dungeon-runner.mjs` (alongside whatever that file already imports there), then add this entry to the action registry directly after the existing `claimTreasure` entry:
 
@@ -586,7 +600,7 @@ Expected: `grew: true` (or inspect whatever this world's actual party-currency f
 
 For the stale-room guard: create a second prop token with a `roomFeatureRoomId` that does **not** equal `getRunState(scene.id).currentRoomId` (e.g. copy an existing prop token's data and edit its flag), target it, and confirm no gold change and no error.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/module.mjs scripts/dungeon-remote.mjs
@@ -606,7 +620,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No unit test: this codebase has no template-testing harness anywhere (confirmed: no test file imports/renders any `.hbs`). Verified live in Step 2.
 
-- [ ] **Step 1: Wrap each control**
+- [x] **Step 1: Wrap each control**
 
 Change the skill-challenge form (currently):
 
@@ -690,7 +704,7 @@ to:
 
 (`../puzzle.revealed` because this branch is nested inside `{{#each puzzle.stages}}` — this file's own puzzle-stage form already reaches outside the loop the identical way, via `../partyMembers`, at its existing `{{#each ../partyMembers}}` line.)
 
-- [ ] **Step 2: Add the two new lang keys**
+- [x] **Step 2: Add the two new lang keys**
 
 In `lang/en.json`, add (placed alphabetically near the existing `PF2EDC.Dungeon.SkillChallenge.*`/`PF2EDC.Dungeon.Puzzle.*` keys — re-check the file fresh for the exact current surrounding keys before inserting, since concurrent sessions push to this repo):
 
@@ -703,7 +717,7 @@ In `lang/en.json`, add (placed alphabetically near the existing `PF2EDC.Dungeon.
 
 With a real dungeon run that has a puzzle or skill-challenge room built and not yet revealed, open `DungeonApp` as the GM and confirm the "not revealed" hint shows instead of the Attempt form; then call `revealRoomFeature` directly (or target the real prop token, confirming Task 4's wiring) and re-render; confirm the Attempt form now shows. Confirm a treasure room's Claim Treasure button is absent entirely when rendering as a non-GM user (there's no second real player account on this world to log in as — confirm instead by temporarily reading the rendered HTML with `isGM` forced false via a direct call to the app's own `_prepareContext()` override, or by code-reading the final template to confirm the `{{#if isGM}}` wrapping is syntactically correct and matches every other `{{#if isGM}}` block already working elsewhere in this same file).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add templates/dungeon-tracker.hbs lang/en.json
