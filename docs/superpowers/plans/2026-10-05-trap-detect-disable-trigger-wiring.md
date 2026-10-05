@@ -148,7 +148,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No unit test: real Foundry Token/Actor/Scene glue, the same category this codebase has consistently verified live rather than mocked (`followLeaderIfDue`/`resnapDriftedTokens`, the exact pattern this mirrors, have no unit tests of their own either). Verified live in Step 3.
 
-- [ ] **Step 1: Export `isPositionChange`**
+- [x] **Step 1: Export `isPositionChange`**
 
 In `scripts/dungeon-follow.mjs`, change:
 
@@ -162,7 +162,7 @@ to:
 export function isPositionChange(changes) {
 ```
 
-- [ ] **Step 2: Write `handleTrapTokenMove`**
+- [x] **Step 2: Write `handleTrapTokenMove`**
 
 Add this to `scripts/trap-combat.mjs`, importing what it needs at the top of the file:
 
@@ -219,7 +219,7 @@ export async function handleTrapTokenMove(tokenDoc, changes) {
 
 Note `target.token` in the existing `triggerTrap(hazardActor, target)` signature expects a real Token *object* (the placeable), not a TokenDocument — `tokenDoc.object` (confirmed by `triggerTrap`'s own docblock: "a bare Actor resolves to `target: null`... needs that document to actually be a Token"). `tokenDoc` here is the Token*Document* the `updateToken` hook hands us; `tokenDoc.object` is its live placeable.
 
-- [ ] **Step 3: Register the hook**
+- [x] **Step 3: Register the hook**
 
 In `scripts/module.mjs`, add directly after the existing `Hooks.on("updateToken", resnapDriftedTokens);`:
 
@@ -231,7 +231,7 @@ Hooks.on("updateToken", handleTrapTokenMove);
 
 Add `handleTrapTokenMove` to the existing import from `./trap-combat.mjs` (check the current import list with `grep -n "from \"./trap-combat.mjs\"" scripts/module.mjs` first — add it to whatever's already there, or add a new import line if none exists yet).
 
-- [ ] **Step 4: Live-verify with `foundry-rest`**
+- [x] **Step 4: Live-verify with `foundry-rest`** (deferred to controller per R6)
 
 With a real dungeon run that has a trap room built (confirm via `scene.tokens.filter(t => t.getFlag("pf2e-dungeon-crawl", "trapHazard"))`), move a party token one square adjacent to the trap's own cell (not onto it), then confirm:
 
@@ -249,7 +249,7 @@ echo 'const hazard = canvas.scene.tokens.find(t => t.getFlag("pf2e-dungeon-crawl
 
 Expected: `triggered: true`. Then move the token off and back onto the same cell again (or just update its own x/y to the same value, forcing another `updateToken` event) and confirm no new attack-roll chat message was created the second time (no double-fire) — check `game.messages.contents.at(-1)` didn't change.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-follow.mjs scripts/trap-combat.mjs scripts/module.mjs
