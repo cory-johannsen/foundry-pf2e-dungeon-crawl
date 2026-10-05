@@ -275,7 +275,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No unit test: UI/template glue (no `.hbs`-testing harness anywhere in this codebase). Verified live in Step 5.
 
-- [ ] **Step 1: Write `attemptTrapDisableForScene`**
+- [x] **Step 1: Write `attemptTrapDisableForScene`**
 
 Add to `scripts/trap-combat.mjs`, directly after `handleTrapTokenMove`:
 
@@ -298,7 +298,7 @@ export async function attemptTrapDisableForScene(sceneId, actorId, skill) {
 }
 ```
 
-- [ ] **Step 2: Extend `_prepareContext` and add the action handler**
+- [x] **Step 2: Extend `_prepareContext` and add the action handler**
 
 In `scripts/ui/dungeon-app.mjs`, add `classifyTrap` to the existing import from `../trap-combat.mjs` (check the current import list with `grep -n "from \"../trap-combat.mjs\"" scripts/ui/dungeon-app.mjs` first — add it to whatever's already imported there, or add a new import line if none exists yet; also add `attemptTrapDisableForScene`).
 
@@ -359,7 +359,7 @@ Add this new action handler, directly after `#onAttemptPuzzleStage`'s closing `}
 
 Add `attemptTrapDisable: DungeonApp.#onAttemptTrapDisable,` to the class's existing `static DEFAULT_OPTIONS.actions` object (alongside `attemptPuzzleStage`/`attemptSkillChallenge`).
 
-- [ ] **Step 3: Register the remote action**
+- [x] **Step 3: Register the remote action**
 
 In `scripts/dungeon-remote.mjs`, add `attemptTrapDisableForScene` to the existing import from `./trap-combat.mjs` (or add a new import line), then add this entry to the action registry, directly after the existing `claimTreasure` entry:
 
@@ -368,7 +368,7 @@ In `scripts/dungeon-remote.mjs`, add `attemptTrapDisableForScene` to the existin
     attemptTrapDisableForScene(args.sceneId, args.actorId, args.skill),
 ```
 
-- [ ] **Step 4: Add the template branch and lang keys**
+- [x] **Step 4: Add the template branch and lang keys**
 
 In `templates/dungeon-tracker.hbs`, add a new branch directly after the existing `{{else if isPuzzleRoom}}...{{/if}}` block's own content, before whichever `{{else if ...}}`/`{{else}}` comes next (re-locate the exact surrounding structure fresh before editing):
 
@@ -414,11 +414,11 @@ Add to `lang/en.json` (placed alphabetically near the existing `PF2EDC.Dungeon.T
 "PF2EDC.Dungeon.Trap.WhoLabel": "Who attempts?",
 ```
 
-- [ ] **Step 5: Live-verify with `foundry-rest`**
+- [x] **Step 5: Live-verify with `foundry-rest`** (deferred to controller per R6)
 
 With a trap already detected (per Task 2's own live verification), open `DungeonApp` as the GM and confirm the disable form renders with the trap's real parsed disable-check options in the skill dropdown. Submit it with a party actor who genuinely has that skill and confirm either a success (hazard actor's `trapDisabled` flag becomes `true`) or failure chat message appears. Separately, confirm submitting with a party actor who does NOT have the chosen skill statistic at all does not throw (the form simply has no visible effect — `rollTrapDisableAttempt` returns `null` for a missing skill stat, unmodified).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/trap-combat.mjs scripts/ui/dungeon-app.mjs scripts/dungeon-remote.mjs templates/dungeon-tracker.hbs lang/en.json

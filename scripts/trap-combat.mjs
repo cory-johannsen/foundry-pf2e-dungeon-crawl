@@ -230,6 +230,25 @@ export async function handleTrapTokenMove(tokenDoc, changes, deps = {}) {
   }
 }
 
+/** Shared entry point for a disable attempt (#753) -- finds the scene's own
+ * live, not-yet-triggered trap hazard and rolls against it. Returns null
+ * when there is no such hazard, no such actor, or (via
+ * rollTrapDisableAttempt) the actor lacks the skill. The one function both
+ * the direct UI path and the relay path call, mirroring
+ * claimTreasureFor(sceneId)'s own shape. */
+export async function attemptTrapDisableForScene(sceneId, actorId, skill) {
+  const trapScene = game.scenes.get(sceneId);
+  const hazardToken = trapScene?.tokens.find(
+    (t) =>
+      t.getFlag(MODULE_ID, "trapHazard") &&
+      !t.actor?.getFlag(MODULE_ID, "trapTriggered"),
+  );
+  const hazardActor = hazardToken?.actor;
+  const actor = actorId ? game.actors.get(actorId) : null;
+  if (!hazardActor || !actor) return null;
+  return rollTrapDisableAttempt(hazardActor, actor, skill);
+}
+
 // --- #136: external agent customization of a trap's narrative flavor ----
 
 /**

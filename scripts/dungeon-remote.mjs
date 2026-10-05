@@ -35,6 +35,7 @@ import {
   claimTreasureFor,
 } from "./ui/dungeon-app.mjs";
 import { undoRoomEntry, retreatToFork } from "./dungeon-scene.mjs";
+import { attemptTrapDisableForScene } from "./trap-combat.mjs";
 import { runFollowMoveNow, resnapTokenNow } from "./dungeon-follow.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -75,6 +76,10 @@ export const DUNGEON_ACTIONS = {
   chooseNarrativeOption: (args) =>
     chooseNarrativeOption(args.sceneId, args.optionIndex),
   claimTreasure: (args) => claimTreasureFor(args.sceneId),
+  // #753: a disable attempt against the room's detected trap. Host-only by
+  // the default isAuthorizedRequest rule.
+  attemptTrapDisable: (args) =>
+    attemptTrapDisableForScene(args.sceneId, args.actorId, args.skill),
   // #611/#623: a player targeting a room-feature prop token. The runner
   // re-validates everything GM-side (authoritative, idempotent).
   roomFeatureInteract: (args) =>
