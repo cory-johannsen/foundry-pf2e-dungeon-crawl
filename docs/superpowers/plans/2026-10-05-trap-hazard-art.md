@@ -38,7 +38,7 @@
 **Interfaces:**
 - Produces: `export const TRAP_ART` — an array of `{id, file, dir, shapeless, prompt, avoid}` objects, in the exact same shape `MONSTER_ART` entries already use. Consumed by Task 1's own edit to `ALL`, and by Task 4's live generation run.
 
-- [ ] **Step 1: Create `tools/trap-art-prompts.mjs`**
+- [x] **Step 1: Create `tools/trap-art-prompts.mjs`**
 
 ```js
 /**
@@ -179,7 +179,7 @@ export const TRAP_ART = [
 ];
 ```
 
-- [ ] **Step 2: Splice `TRAP_ART` into `generate-token-art.mjs`'s `ALL`**
+- [x] **Step 2: Splice `TRAP_ART` into `generate-token-art.mjs`'s `ALL`**
 
 Add the import near the top of `tools/generate-token-art.mjs`, alongside its other local imports:
 
@@ -210,12 +210,12 @@ const ALL = [
 ];
 ```
 
-- [ ] **Step 3: Confirm the whole repo still runs clean**
+- [x] **Step 3: Confirm the whole repo still runs clean**
 
 Run: `npx vitest run`
 Expected: PASS — `generate-token-art.mjs` has no existing unit-test coverage (confirmed: no test file in `tests/` references it or `MONSTER_ART`), so this step is a regression check on the rest of the suite, not new coverage for this file.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tools/trap-art-prompts.mjs tools/generate-token-art.mjs
