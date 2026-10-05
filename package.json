@@ -11,6 +11,8 @@
     "art:normalize": "node tools/migrate-creature-art-sources.mjs",
     "validate:creature-art": "node tools/validate-creature-art.mjs",
     "validate:decision-model": "node tools/agent-service/validate-decision-model.mjs",
+    "packs:build": "node tools/build-creature-art-pack.mjs",
+    "packs:check": "node tools/check-creature-art-pack.mjs",
     "tokens": "node tools/generate-token-art.mjs",
     "tokens:check": "node tools/check-token-art.mjs",
     "tokens:import": "node tools/import-token.mjs",
@@ -20,8 +22,10 @@
     "format": "prettier --write ."
   },
   "devDependencies": {
+    "@foundryvtt/foundryvtt-cli": "^3.0.4",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
+    "classic-level": "^3.0.0",
     "prettier": "^3.3.3",
     "vitest": "^2.1.4"
   }

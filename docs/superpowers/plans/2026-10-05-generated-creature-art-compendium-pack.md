@@ -13,9 +13,9 @@
 ## Global Constraints
 
 - Every merge to `main` bumps `module.json`'s `version` (CLAUDE.md). Architecture-level change (new pack-building subsystem): minor bump. Current version at plan-writing time is `0.58.4` — re-check immediately before committing, since concurrent sessions push to this repo.
-- `PF2E_SYSTEM_PACKS_DIR` defaults to `/srv/foundry/data/Data/systems/pf2e/packs` (this host's confirmed real layout) but must be overridable via `process.env.PF2E_SYSTEM_PACKS_DIR` — no `dotenv` dependency, matching this repo's existing convention (`tools/agent-service/validate-decision-model.mjs` reads `process.env` directly).
+- `PF2E_SYSTEM_PACKS_DIR` defaults to `/srv/foundry/data/Data/systems/pf2e/packs` (this host's confirmed real layout) but must be overridable via `process.env.PF2E_SYSTEM_PACKS_DIR` — no `dotenv` dependency. Pack directories are resolved via the system's `system.json` (Amendment 2) and extraction is from a COPY (Amendment 1).
 - `extractPack`'s own real file-naming convention (confirmed by reading `@foundryvtt/foundryvtt-cli@3.0.4`'s source) is `${getSafeFilename(doc.name)}_${doc._id}.json`, never a predictable `<id>.json` — every extracted-pack lookup in this plan joins by parsing each file's own `_id` field, never by constructing a filename from an id.
-- Each new pack actor's own `_id` reuses its `data/creature-art.json` entry's `docId` unchanged (pack-scoped ids, no collision risk, keeps the join key this codebase already uses everywhere else).
+- ~~Each new pack actor's own `_id` reuses its entry's `docId`~~ SUPERSEDED by Amendment 3: the `_id` is a derived, unique id; the join back to `data/creature-art.json` is `flags["pf2e-dungeon-crawl"].artEntryId`.
 - `tools/.pack-build-scratch/` (intermediate `extractPack` output, regenerated every run) must never be committed.
 - `packs/generated-creature-art/_source/*.json` and the compiled `packs/generated-creature-art/` LevelDB output ARE committed to git — this module ships via a raw branch-zip download with no separate release-build step.
 
@@ -26,6 +26,20 @@
 - **The art-override must replace, not merge onto, any existing `prototypeToken.texture.src`** — a source actor's own prototype token data must not leak through partially. Covered by Task 1's override assertion checking the full resulting value, not just that the key changed.
 - **Re-running the build must be idempotent** — `tools/.pack-build-scratch/` from a prior run must not leave stale extracted files that get matched against the wrong creature-art entry on a second run. Covered by Task 1's "scratch directory is cleared before each pack's extraction" step and test.
 - **The CLAUDE.md rule must actually name the exact command and exact paths to commit**, not just "keep it in sync" — a vague rule is not enforceable by a future agent. Covered by Task 3's exact rule text.
+
+---
+
+## Amendments (controller, 2026-10-05 — found by measuring the real build; these SUPERSEDE any conflicting text in the Global Constraints and Tasks below)
+
+An experiment on a scratch copy of the real data (all 5,904 entries against the real pf2e 8.5.0 packs on this host) found four design defects and one cost problem the original plan did not account for. The corrected approach compiled all 5,904 actors in ~15 s (115 MB source JSON, one 61 MB compiled LevelDB file).
+
+1. **Never extract from the live system packs in place — copy first.** A running Foundry process holds `/srv/foundry/data/Data/systems/pf2e/packs/*` open (memory-mapped `.ldb` files, LevelDB `LOCK`). Opening a LevelDB there either fails on the lock or rewrites the system's own `LOG`/`MANIFEST` files. For each source pack: `cpSync(sourceDir, scratch/copies/<packName>, { recursive: true, filter: (s) => basename(s) !== "LOCK" })`, then `extractPack` from the COPY. A test must assert the original source directory is byte-for-byte untouched after a build.
+2. **Resolve a pack's directory from the system's own `system.json`, not by stripping `pf2e.`.** `system.json`'s `packs[]` maps `name -> path` and 10 packs have a name different from their directory (e.g. `fall-of-plaguestone-bestiary -> packs/fall-of-plaguestone`, which the art data references). `systemPacksDir` stays the packs directory (default `/srv/foundry/data/Data/systems/pf2e/packs`, overridable via `PF2E_SYSTEM_PACKS_DIR`); read `join(systemPacksDir, "..", "system.json")` and build `name -> path`; the directory for `entry.pack` is `join(systemPacksDir, "..", map[entry.pack.replace(/^pf2e\./, "")])`. An art entry whose pack is not declared in `system.json`, or whose declared directory is missing, must throw naming the pack.
+3. **The new actor's `_id` is NOT `docId`.** 64 `docId`s appear in more than one source pack across the art entries (5,840 distinct docIds for 5,904 entries; e.g. a Monster Core creature and its Menace Under Otari copy share an id), so reusing `docId` as `_id` / `_source/<docId>.json` silently collapses entries into each other. Use `newId = base64(sha1(`${entry.pack}:${entry.docId}`)).replace(/[^A-Za-z0-9]/g, "").slice(0, 16)` (stable, unique because `{pack, docId}` is unique per entry, same shape as a Foundry id). Output file `_source/<newId>.json`. Throw on any derived-id collision. Rewrite the doc's `_key` to `!actors!<newId>`, every embedded item's `_key` to `!actors.items!<newId>.<item._id>` and every embedded effect's `_key` to `!actors.effects!<newId>.<effect._id>` (these embed the actor id). Traceability moves to flags: set `flags["pf2e-dungeon-crawl"] = { artEntryId: entry.id, sourcePack: entry.pack, sourceDocId: entry.docId }` (merged with any existing flags); the extracted `_stats.compendiumSource` already records the original UUID and is kept. Set `folder: null` (the source folder id doesn't exist in the new pack).
+4. **De-duplicate embedded items by `_id`, keeping the first.** Two real pf2e actors (`Shobhad Hunter (7-8)`, `Shobhad Sniper`) list the same embedded item `_id` twice in their `items`; `compilePack` throws "An entry with key ... was already packed". The duplicates are the same stored document, so dropping later ones is lossless. Count and `log` the drops.
+5. **Fixtures need `_key`.** Real extracted docs carry `_key`; the plan's fixture docs must too (`"_key": "!actors!<id>"`, and for embedded items `!actors.items!<actorId>.<itemId>`) — and the fixture "system" must include a `system.json` with a `packs` array so the directory lookup is exercised, including at least one pack whose name differs from its directory.
+6. **Sync policy changed (Cory's decision, 2026-10-05, after seeing the cost): rebuild at BATCH BOUNDARIES, not on every PR, plus a staleness check.** Measured: a rebuild after adding only 20 entries produced a compiled pack sharing NO file with the previous one, i.e. every rebuild adds ~61 MB of incompressible history (the first commit also adds ~21.5 MB compressed for `_source`; `.git` is already ~650 MB). So: (a) the compiled pack and `_source` ARE committed once now; (b) the new CLAUDE.md rule (Task 3) says to run `npm run packs:build` and commit the result when an art batch/series finishes or before a minor version bump — NOT on every PR touching `data/creature-art.json`; (c) add `npm run packs:check` (Task 2), an OFFLINE staleness report that needs no pf2e install: it compares `data/creature-art.json` entries against `packs/generated-creature-art/_source/*.json` by `flags["pf2e-dungeon-crawl"].artEntryId` and prints how many entries are missing from the pack / how many pack docs are stale (art entry removed or its `art` path changed); exit 0 normally, exit 1 with `--strict`.
+7. **Release/docs:** minor version bump (re-check main at release time; 0.58.6 at amendment time); README gets a short "Compendium pack" note (what it is, `npm run packs:build` needs a local pf2e install via `PF2E_SYSTEM_PACKS_DIR`, `npm run packs:check`, the cadence rule); the build must not modify anything under `PF2E_SYSTEM_PACKS_DIR`; commit trailers use `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
 
 ---
 
@@ -40,7 +54,7 @@
 
 Exporting this one async orchestrator function is a deliberate, narrow departure from this repo's usual `tools/*.mjs` style (e.g. `tools/migrate-creature-art-sources.mjs` exports nothing and is tested as a pure black box) — there's nothing to black-box test here without it, since the real work is several async calls into `@foundryvtt/foundryvtt-cli` against directories that must be fixture-controlled per test run.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/build-creature-art-pack.test.mjs`:
 
@@ -275,18 +289,18 @@ describe("buildCreatureArtPack", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/build-creature-art-pack.test.mjs`
 Expected: FAIL — `Cannot find module '../tools/build-creature-art-pack.mjs'` (and `Cannot find package '@foundryvtt/foundryvtt-cli'` until Step 3's dependency install).
 
-- [ ] **Step 3: Install the new dependency**
+- [x] **Step 3: Install the new dependency**
 
 ```bash
 npm install --save-dev @foundryvtt/foundryvtt-cli@^3.0.4
 ```
 
-- [ ] **Step 4: Write `tools/build-creature-art-pack.mjs`**
+- [x] **Step 4: Write `tools/build-creature-art-pack.mjs`**
 
 ```js
 /**
@@ -397,12 +411,12 @@ if (isMain) {
 }
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `npx vitest run tests/build-creature-art-pack.test.mjs`
 Expected: PASS, all 4 tests green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tools/build-creature-art-pack.mjs tests/build-creature-art-pack.test.mjs package.json package-lock.json
@@ -424,7 +438,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `tools/build-creature-art-pack.mjs`'s CLI entry point from Task 1.
 - Produces: `npm run packs:build`, the registered `generated-creature-art` pack — consumed by Task 4 (the real build) and by Foundry itself at runtime.
 
-- [ ] **Step 1: Add the npm script**
+- [x] **Step 1: Add the npm script**
 
 In `package.json`, add to `"scripts"` (alongside the existing `"art:normalize"`/`"validate:creature-art"` entries):
 
@@ -434,7 +448,7 @@ In `package.json`, add to `"scripts"` (alongside the existing `"art:normalize"`/
 
 (The `"@foundryvtt/foundryvtt-cli"` devDependency was already added by Task 1's `npm install`.)
 
-- [ ] **Step 2: Ignore the scratch directory**
+- [x] **Step 2: Ignore the scratch directory**
 
 Add to `.gitignore`:
 
@@ -442,7 +456,7 @@ Add to `.gitignore`:
 tools/.pack-build-scratch/
 ```
 
-- [ ] **Step 3: Register the pack in `module.json`**
+- [x] **Step 3: Register the pack in `module.json`**
 
 Change `"packs": []` to:
 
@@ -459,12 +473,12 @@ Change `"packs": []` to:
   ],
 ```
 
-- [ ] **Step 4: Confirm the JSON is still valid**
+- [x] **Step 4: Confirm the JSON is still valid**
 
 Run: `node -e "JSON.parse(require('fs').readFileSync('module.json', 'utf8')); JSON.parse(require('fs').readFileSync('package.json', 'utf8')); console.log('valid')"`
 Expected: prints `valid` with no error.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add package.json .gitignore module.json
@@ -482,7 +496,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 **Interfaces:** None — documentation-only change, read by every future agent session working in this repo.
 
-- [ ] **Step 1: Add the new rule**
+- [x] **Step 1: Add the new rule**
 
 In `CLAUDE.md`, directly after the existing `## Versioning` section's last bullet (the "Run the `update-architecture-docs` skill..." item), add a new subsection:
 
@@ -498,7 +512,7 @@ and must never be allowed to drift out of sync with it, the same way
 `module.json`'s version must never be left un-bumped after a merge.
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add CLAUDE.md
@@ -521,7 +535,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 This is the one task that can't be a fixture/synthetic run — it's the real build, against real data, producing what actually ships. Budget real wall-clock time: 44 source-pack extractions plus 5,904 document writes plus one `compilePack` run. `log: true` (already wired into the CLI entry point in Task 1) prints progress for both phases.
 
-- [ ] **Step 1: Confirm the local pf2e system packs path is present**
+- [x] **Step 1: Confirm the local pf2e system packs path is present**
 
 ```bash
 ls "${PF2E_SYSTEM_PACKS_DIR:-/srv/foundry/data/Data/systems/pf2e/packs}" | head -5
@@ -529,7 +543,7 @@ ls "${PF2E_SYSTEM_PACKS_DIR:-/srv/foundry/data/Data/systems/pf2e/packs}" | head 
 
 Expected: lists real pack directory names (e.g. `pathfinder-monster-core`). If this is empty or the path doesn't exist, set `PF2E_SYSTEM_PACKS_DIR` to the correct path for the machine running this step before continuing.
 
-- [ ] **Step 2: Run the real build**
+- [x] **Step 2: Run the real build**
 
 ```bash
 npm run packs:build
@@ -537,7 +551,7 @@ npm run packs:build
 
 Expected: runs to completion printing one `extractPack`/entry log line per source pack and creature, ending with `Done.` and no thrown error. If it throws `docId "..." not found in extracted pack "..."` or `Failed to extract source pack...`, that is a real data-integrity finding (a stale `data/creature-art.json` entry or a missing/renamed system pack) — investigate and resolve it rather than suppressing the error, since this is exactly the drift this feature exists to catch.
 
-- [ ] **Step 3: Verify the output**
+- [x] **Step 3: Verify the output**
 
 ```bash
 ls packs/generated-creature-art/_source/ | wc -l
@@ -546,7 +560,7 @@ ls packs/generated-creature-art/
 
 Expected: the first command prints `5904` (one `_source/*.json` file per `data/creature-art.json` entry); the second lists real LevelDB files (`CURRENT`, `LOCK`, `LOG`, `MANIFEST-*`, one or more `*.ldb` files).
 
-- [ ] **Step 4: Bump `module.json`'s version**
+- [x] **Step 4 (SKIPPED per controller instruction): Bump `module.json`'s version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -556,7 +570,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **minor** bump (architecture-level change — new compendium pack subsystem), e.g. `0.58.4` → `0.59.0`, using whatever the fetch above shows as current.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packs/generated-creature-art module.json
