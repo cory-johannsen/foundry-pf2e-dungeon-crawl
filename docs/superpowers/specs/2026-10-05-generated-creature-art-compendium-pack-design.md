@@ -90,3 +90,14 @@ This is a real, named architectural choice, not an oversight: this build script'
 - **Any change to which creatures have generated art, or new art generation.** This is purely a redistribution step for art that already exists.
 - **Multiple packs split by source book.** A single `generated-creature-art` pack holds everything; Foundry's compendium sidebar already supports searching/filtering a large pack, and splitting into 44 packs (one per source) would multiply every piece of this design (44 `module.json` entries, 44 build-script loops) for no concrete benefit identified.
 - **Updating this pack's actors at runtime if a GM's world already has a token spawned from the *old* (pre-pack) flow.** Those existing world-actor copies are untouched by this spec; this only affects what a GM sees browsing the compendium sidebar or dragging a *fresh* copy onto a scene.
+
+
+## Amendments from execution (2026-10-05)
+
+Measuring the real build (all 5,904 entries against the real pf2e 8.5.0 packs) changed these parts of the design; see the plan's "Amendments" section for the exact rules:
+
+- **Extract from a copy, never in place** (a live Foundry process holds the system packs open; opening them in place fails on the LevelDB lock or modifies system files).
+- **Directory resolution via `system.json`** (`packs[].name -> path`), not `pack.replace("pf2e.", "")` (10 packs differ; one is referenced by the art data: `fall-of-plaguestone-bestiary -> packs/fall-of-plaguestone`).
+- **The output actor `_id` is a derived unique id, not `docId`** (64 docIds are shared across source packs; reusing them collapses entries). Traceability: `flags["pf2e-dungeon-crawl"].artEntryId/sourcePack/sourceDocId` and the kept `_stats.compendiumSource`.
+- **Embedded items are de-duplicated by `_id`** (two real pf2e actors list the same item twice, which `compilePack` rejects).
+- **Sync policy:** the "every PR touching `data/creature-art.json`" rule is replaced by **rebuild at batch boundaries (an art batch/series finishing, or before a minor version bump) plus an offline `npm run packs:check` staleness report**, because a rebuild shares no file with the previous compiled pack (~61 MB of new git history each; Cory's decision after seeing the numbers). Measured totals: 5,904 actors, 115 MB source JSON (~21.5 MB compressed), one 61 MB compiled LevelDB file, ~15 s to build.
