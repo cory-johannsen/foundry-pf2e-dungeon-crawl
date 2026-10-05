@@ -36,6 +36,7 @@
  * entries in `pf2e.hazards` are non-complex; this boundary is deliberately
  * scoped to the common case, not every possible hazard shape.
  */
+import { splitmix32, seedFromString } from "./prng.mjs";
 
 const DISABLE_CHECK_PATTERN =
   /@Check\[([\w-]+)\|dc:(\d+)(?:\|name:([^\]|]+))?/g;
@@ -64,6 +65,50 @@ export function parseDisableChecks(disableHtml) {
  */
 export function trapDetectionDC(stealthValue) {
   return 10 + (stealthValue ?? 0);
+}
+
+/** #757: a trap's footprint size -- PF2e's own hazard data never
+ * specifies one larger than 1x1 (confirmed live against all 53
+ * pf2e.hazards entries), so this is a module-invented, seeded
+ * convention for visual/tactical variety: 70% stay 1x1, 20% become an
+ * elongated 2x1 or 1x2 (even split), 10% become 2x2. */
+export function trapFootprintSize(seed, roomId) {
+  const rand = splitmix32(seedFromString(`${seed}-trap-footprint-${roomId}`));
+  const roll = rand();
+  if (roll < 0.7) return { width: 1, height: 1 };
+  if (roll < 0.9) {
+    return rand() < 0.5 ? { width: 2, height: 1 } : { width: 1, height: 2 };
+  }
+  return { width: 2, height: 2 };
+}
+
+/** #753: what a party token's new position means for a not-yet-triggered
+ * trap at `trapFootprint` -- "trigger" if the mover's own new footprint
+ * actually overlaps the trap's (stepped onto it), "detect" if merely
+ * Chebyshev-adjacent (one square away, including diagonally -- close
+ * enough to notice without having walked onto it), otherwise "none".
+ * Pure geometry only -- the caller (trap-combat.mjs) is responsible for
+ * actually checking/setting trapDisabled/trapDetected/trapTriggered
+ * actor flags; this function has no notion of trap state at all. */
+export function classifyTrapMove(trapFootprint, moverFootprint) {
+  const overlaps =
+    trapFootprint.gx < moverFootprint.gx + moverFootprint.gw &&
+    trapFootprint.gx + trapFootprint.gw > moverFootprint.gx &&
+    trapFootprint.gy < moverFootprint.gy + moverFootprint.gh &&
+    trapFootprint.gy + trapFootprint.gh > moverFootprint.gy;
+  if (overlaps) return "trigger";
+
+  const dx = Math.max(
+    trapFootprint.gx - (moverFootprint.gx + moverFootprint.gw - 1),
+    moverFootprint.gx - (trapFootprint.gx + trapFootprint.gw - 1),
+    0,
+  );
+  const dy = Math.max(
+    trapFootprint.gy - (moverFootprint.gy + moverFootprint.gh - 1),
+    moverFootprint.gy - (trapFootprint.gy + trapFootprint.gh - 1),
+    0,
+  );
+  return Math.max(dx, dy) <= 1 ? "detect" : "none";
 }
 
 /**

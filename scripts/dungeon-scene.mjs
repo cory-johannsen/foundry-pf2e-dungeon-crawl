@@ -88,6 +88,7 @@ import {
 import { isValidNarrativeTemplate } from "./narrative-mechanics.mjs";
 import { makeFoundryApi } from "./foundry-api.mjs";
 import { selectTrap } from "./trap-library.mjs";
+import { trapFootprintSize } from "./trap-mechanics.mjs";
 import { splitmix32, seedFromString } from "./prng.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -1168,8 +1169,9 @@ export async function populateSlotTrap(
     );
     return;
   }
+  const tokenSize = trapFootprintSize(seed, roomId);
   const [spawned] = await api.spawnCreatures(
-    [{ pack: trap.pack, id: trap.id }],
+    [{ pack: trap.pack, id: trap.id, tokenSize }],
     {
       originArea: {
         x: toPixels(rect.gx),
@@ -1198,10 +1200,15 @@ export async function populateSlotTrap(
   }
 }
 
-/** Un-hides slot's tagged tokens (discovery). Returns the ids revealed. */
+/** Un-hides slot's tagged tokens (discovery). Returns the ids revealed.
+ * Trap hazard tokens (#753) are skipped: they stay hidden until detected or
+ * triggered (handleTrapTokenMove), not merely because the door opened. */
 export async function revealSlotTokens(scene, slot) {
   const tokens = scene.tokens.filter(
-    (t) => t.getFlag(MODULE_ID, "dungeonSlot") === slot && t.hidden,
+    (t) =>
+      t.getFlag(MODULE_ID, "dungeonSlot") === slot &&
+      t.hidden &&
+      !t.getFlag(MODULE_ID, "trapHazard"),
   );
   const ids = tokens.map((t) => t.id);
   if (ids.length)

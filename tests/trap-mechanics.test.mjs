@@ -3,6 +3,8 @@ import {
   parseDisableChecks,
   trapDetectionDC,
   isSimpleAutomatableTrap,
+  classifyTrapMove,
+  trapFootprintSize,
 } from "../scripts/trap-mechanics.mjs";
 
 describe("parseDisableChecks", () => {
@@ -94,5 +96,93 @@ describe("isSimpleAutomatableTrap", () => {
 
   it("is false with no parseable disable check", () => {
     expect(isSimpleAutomatableTrap({ ...base, disableChecks: [] })).toBe(false);
+  });
+});
+
+describe("classifyTrapMove", () => {
+  const trap = { gx: 5, gy: 5, gw: 1, gh: 1 };
+
+  it("is 'trigger' when the mover's footprint overlaps the trap's own cell", () => {
+    expect(classifyTrapMove(trap, { gx: 5, gy: 5, gw: 1, gh: 1 })).toBe("trigger");
+  });
+
+  it("is 'trigger' for a larger mover footprint that still overlaps", () => {
+    expect(classifyTrapMove(trap, { gx: 4, gy: 5, gw: 2, gh: 1 })).toBe("trigger");
+  });
+
+  it("is 'detect' for a mover orthogonally adjacent (not overlapping)", () => {
+    expect(classifyTrapMove(trap, { gx: 6, gy: 5, gw: 1, gh: 1 })).toBe("detect");
+  });
+
+  it("is 'detect' for a mover diagonally adjacent (not overlapping)", () => {
+    expect(classifyTrapMove(trap, { gx: 6, gy: 6, gw: 1, gh: 1 })).toBe("detect");
+  });
+
+  it("is 'none' for a mover two squares away", () => {
+    expect(classifyTrapMove(trap, { gx: 7, gy: 5, gw: 1, gh: 1 })).toBe("none");
+  });
+
+  it("is 'trigger' (not 'detect') when both overlap and would also count as adjacent", () => {
+    // Overlap always wins over the weaker adjacency signal.
+    expect(classifyTrapMove(trap, { gx: 5, gy: 5, gw: 2, gh: 2 })).toBe("trigger");
+  });
+});
+
+describe('trapFootprintSize', () => {
+  it('is deterministic for the same seed and roomId', () => {
+    expect(trapFootprintSize('alpha', 'room-5')).toEqual(trapFootprintSize('alpha', 'room-5'));
+  });
+
+  it('is always one of 1x1, 2x1, 1x2, or 2x2', () => {
+    const valid = [
+      { width: 1, height: 1 },
+      { width: 2, height: 1 },
+      { width: 1, height: 2 },
+      { width: 2, height: 2 },
+    ];
+    for (let i = 0; i < 500; i += 1) {
+      const size = trapFootprintSize('sweep-seed', `room-${i}`);
+      expect(valid).toContainEqual(size);
+    }
+  });
+
+  it('stays 1x1 at approximately 70% across a large sample', () => {
+    let ones = 0;
+    const trials = 5000;
+    for (let i = 0; i < trials; i += 1) {
+      const size = trapFootprintSize('rate-seed', `room-${i}`);
+      if (size.width === 1 && size.height === 1) ones += 1;
+    }
+    const rate = ones / trials;
+    expect(rate).toBeGreaterThan(0.65);
+    expect(rate).toBeLessThan(0.75);
+  });
+
+  it('splits the elongated case roughly evenly between 2x1 and 1x2', () => {
+    let wide = 0;
+    let tall = 0;
+    const trials = 5000;
+    for (let i = 0; i < trials; i += 1) {
+      const size = trapFootprintSize('orientation-seed', `room-${i}`);
+      if (size.width === 2 && size.height === 1) wide += 1;
+      if (size.width === 1 && size.height === 2) tall += 1;
+    }
+    expect(wide).toBeGreaterThan(0);
+    expect(tall).toBeGreaterThan(0);
+    const ratio = wide / (wide + tall);
+    expect(ratio).toBeGreaterThan(0.35);
+    expect(ratio).toBeLessThan(0.65);
+  });
+
+  it('produces 2x2 at approximately 10% across a large sample', () => {
+    let squares = 0;
+    const trials = 5000;
+    for (let i = 0; i < trials; i += 1) {
+      const size = trapFootprintSize('square-rate-seed', `room-${i}`);
+      if (size.width === 2 && size.height === 2) squares += 1;
+    }
+    const rate = squares / trials;
+    expect(rate).toBeGreaterThan(0.07);
+    expect(rate).toBeLessThan(0.13);
   });
 });

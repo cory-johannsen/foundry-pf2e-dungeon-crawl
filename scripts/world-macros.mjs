@@ -1,11 +1,23 @@
 const MODULE_ID = "pf2e-dungeon-crawl";
 
-// #96: dropped the "DOMMT:"/"PF2EDC:" prefix from the dungeon-crawl macro's
-// display name. Scoped to just this one macro — "PF2EDC: Generate Encounter"
-// keeps its prefix for now.
+// #773: a document created with no explicit `ownership` defaults to
+// "creator owns it, nobody else" -- if ensureWorldMacros() happens to run
+// on a client connected as the foundry-rest relay's own bot user (rather
+// than the real GM's own browser), the resulting macro is invisible to
+// everyone else. A literal number here, not CONST.DOCUMENT_OWNERSHIP_LEVELS
+// (confirmed live this value is 3/OWNER) -- this file is imported by
+// tests/world-macros.test.mjs before any Foundry global exists, so a
+// CONST reference at module-evaluation time would throw.
+const GENERATED_MACRO_OWNERSHIP = { default: 3 };
+
+// #96/#770: dropped the "DOMMT:"/"PF2EDC:" prefix from both macros' display
+// names. (#770 also investigated a reported "DOMMT: Dungeon Crawl" macro
+// surviving in a live world — it belongs to a different, separately
+// installed module (deck-of-many-more-things), flagged under its own
+// namespace, not a bug in this module's own rename-in-place logic below.)
 export const MACRO_DEFS = [
   {
-    name: "PF2EDC: Generate Encounter",
+    name: "Generate Encounter",
     img: `modules/${MODULE_ID}/assets/icons/macro-encounter.webp`,
     command: `game.modules.get('${MODULE_ID}').api.generateEncounter();`,
   },
@@ -48,13 +60,15 @@ async function ensureWorldMacros({ force = false } = {}) {
         force ||
         existing.name !== def.name ||
         existing.command !== def.command ||
-        existing.img !== def.img
+        existing.img !== def.img ||
+        existing.ownership?.default !== GENERATED_MACRO_OWNERSHIP.default
       ) {
         toUpdate.push({
           _id: existing.id,
           name: def.name,
           command: def.command,
           img: def.img,
+          ownership: GENERATED_MACRO_OWNERSHIP,
         });
       }
     } else {
@@ -64,6 +78,7 @@ async function ensureWorldMacros({ force = false } = {}) {
         img: def.img,
         command: def.command,
         scope: "global",
+        ownership: GENERATED_MACRO_OWNERSHIP,
         flags: { [MODULE_ID]: { generated: true } },
       });
     }

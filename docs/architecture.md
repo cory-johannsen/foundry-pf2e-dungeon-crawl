@@ -295,6 +295,7 @@ graph LR
   scripts_dungeon_remote_mjs --> scripts_room_feature_tokens_mjs
   scripts_dungeon_remote_mjs --> scripts_ui_dungeon_app_mjs
   scripts_dungeon_remote_mjs --> scripts_dungeon_scene_mjs
+  scripts_dungeon_remote_mjs --> scripts_trap_combat_mjs
   scripts_dungeon_remote_mjs --> scripts_dungeon_follow_mjs
   scripts_dungeon_reseed_mjs --> scripts_dungeon_layout_mjs
   scripts_dungeon_reseed_mjs --> scripts_dungeon_scene_mjs
@@ -320,6 +321,7 @@ graph LR
   scripts_dungeon_scene_mjs --> scripts_narrative_mechanics_mjs
   scripts_dungeon_scene_mjs --> scripts_foundry_api_mjs
   scripts_dungeon_scene_mjs --> scripts_trap_library_mjs
+  scripts_dungeon_scene_mjs --> scripts_trap_mechanics_mjs
   scripts_dungeon_scene_mjs --> scripts_prng_mjs
   scripts_dungeon_sound_mjs --> scripts_audio_mjs
   scripts_dungeon_stub_oracle_mjs --> scripts_dungeon_layout_mjs
@@ -359,6 +361,8 @@ graph LR
   scripts_skill_challenge_mechanics_mjs --> scripts_dungeon_deck_mjs
   scripts_trap_combat_mjs --> scripts_trap_mechanics_mjs
   scripts_trap_combat_mjs --> scripts_dungeon_runner_mjs
+  scripts_trap_combat_mjs --> scripts_placement_mjs
+  scripts_trap_mechanics_mjs --> scripts_prng_mjs
   scripts_ui_dungeon_app_mjs --> scripts_data_loader_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_runner_mjs
   scripts_ui_dungeon_app_mjs --> scripts_room_feature_tokens_mjs
@@ -370,6 +374,7 @@ graph LR
   scripts_ui_dungeon_app_mjs --> scripts_encounter_roster_mjs
   scripts_ui_dungeon_app_mjs --> scripts_skill_challenge_mjs
   scripts_ui_dungeon_app_mjs --> scripts_puzzle_mjs
+  scripts_ui_dungeon_app_mjs --> scripts_trap_combat_mjs
   scripts_ui_dungeon_app_mjs --> scripts_skill_challenge_mechanics_mjs
   scripts_ui_dungeon_app_mjs --> scripts_trait_picker_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_scene_mjs

@@ -60,6 +60,7 @@ import {
 import {
   getPendingTrapCustomization,
   applyTrapCustomization,
+  handleTrapTokenMove,
 } from "./trap-combat.mjs";
 import { registerGenerator } from "./generator-registry.mjs";
 import { DefaultGenerator } from "./default-generator.mjs";
@@ -538,6 +539,9 @@ Hooks.on("updateToken", followLeaderIfDue);
  * `followLeaderIfDue` on the same hook, not gated to the leader/followers
  * or to outside-combat only. */
 Hooks.on("updateToken", resnapDriftedTokens);
+/** #753: detect/trigger a trap when a party token approaches or steps
+ * onto its footprint. */
+Hooks.on("updateToken", (tokenDoc, changes) => handleTrapTokenMove(tokenDoc, changes));
 
 /** #202: reactive/triggered NPC abilities (ranged-Strike-triggered Reactive
  * Strike/Attack of Opportunity). */

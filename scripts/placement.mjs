@@ -102,3 +102,29 @@ export function partyLevelFrom(members) {
   if (!levels.length) return null;
   return Math.round(levels.reduce((a, b) => a + b, 0) / levels.length);
 }
+
+/** Whether `changes` (an `updateToken` hook payload) represents an actual
+ * position-changing update, on either of two payload shapes:
+ * - pre-v14 (and still possible on v14): top-level `changes.x`/`changes.y`.
+ * - v14's newer ruler/pathfinding-driven movement pipeline (#87, reopened
+ *   after #100): confirmed live on a v14.368 world that a moved token's
+ *   `_movement` carries `origin`/`destination`/`waypoints`/`method` (e.g.
+ *   `_movement.method: "keyboard"` with full waypoint data). Foundry's own
+ *   docs show `TokenDocument#move()` is otherwise equivalent to `update()`
+ *   with top-level x/y, so `_movement` is believed to be *additive*
+ *   alongside x/y rather than a replacement for it — but that couldn't be
+ *   confirmed against a live v14 world (relay access ended before a real
+ *   payload could be captured, see #87), so this checks for `_movement`'s
+ *   presence too rather than betting entirely on x/y still being there.
+ *   This function doesn't need to read a position out of `_movement`
+ *   itself: `moveFollowersToward` always re-reads the leader token's own
+ *   committed `_source` position off the scene at the time it actually
+ *   runs (debounced by FOLLOW_DEBOUNCE_MS), so it's correct however many
+ *   separate
+ *   `updateToken` calls a single leader move ends up split across, as long
+ *   as at least one of them is recognized here as "a move happened" and
+ *   re-arms the debounce. */
+export function isPositionChange(changes) {
+  if (changes.x !== undefined || changes.y !== undefined) return true;
+  return changes._movement !== undefined;
+}

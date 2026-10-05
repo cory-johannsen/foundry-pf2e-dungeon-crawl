@@ -12,6 +12,12 @@ function makeMacro({
   img,
   generated = false,
   extraFlags = {},
+  // #773: Foundry's own default for a document created with no explicit
+  // ownership is "creator owns it, nobody else" -- {default: NONE (0)}.
+  // Defaulting every test fixture to this exact shape means an existing
+  // test that doesn't care about ownership still accurately represents
+  // today's real bug, rather than accidentally pre-fixing itself.
+  ownership = { default: 0 },
 }) {
   const flags = generated
     ? { [MODULE_ID]: { generated: true, ...extraFlags } }
@@ -22,6 +28,7 @@ function makeMacro({
     command,
     img,
     flags,
+    ownership,
     getFlag(scope, key) {
       return this.flags?.[scope]?.[key];
     },
@@ -55,11 +62,11 @@ describe("MACRO_DEFS", () => {
     expect(dungeonCrawlDef.name).toBe("Dungeon Crawl");
   });
 
-  it("leaves the generate-encounter macro's name untouched (out of #96's scope)", () => {
+  it("names the generate-encounter macro plainly, with no PF2EDC prefix (#770)", () => {
     const encounterDef = MACRO_DEFS.find((d) =>
       d.command.includes(".generateEncounter()"),
     );
-    expect(encounterDef.name).toBe("PF2EDC: Generate Encounter");
+    expect(encounterDef.name).toBe("Generate Encounter");
   });
 });
 
@@ -82,6 +89,17 @@ describe("ensureWorldMacros", () => {
     expect(result).toEqual({ created: MACRO_DEFS.length, updated: 0 });
   });
 
+  it("creates every macro with ownership.default set so every connected user can run it (#773)", async () => {
+    installFoundryStubs({ macros: [] });
+
+    await ensureWorldMacros();
+
+    const created = Macro.createDocuments.mock.calls[0][0];
+    for (const c of created) {
+      expect(c.ownership).toEqual({ default: 3 });
+    }
+  });
+
   it('renames an existing generated macro still called "DOMMT: Dungeon Crawl" in place, without creating a duplicate', async () => {
     const dungeonDef = MACRO_DEFS.find((d) =>
       d.command.includes(".openDungeon()"),
@@ -102,6 +120,7 @@ describe("ensureWorldMacros", () => {
       command: encounterDef.command,
       img: encounterDef.img,
       generated: true,
+      ownership: { default: 3 }, // #773: already correctly owned
     });
     installFoundryStubs({ macros: [stale, encounterMacro] });
 
@@ -136,7 +155,7 @@ describe("ensureWorldMacros", () => {
     expect(Macro.createDocuments).toHaveBeenCalledTimes(1);
     const created = Macro.createDocuments.mock.calls[0][0];
     expect(created).toHaveLength(1);
-    expect(created[0].name).toBe("PF2EDC: Generate Encounter");
+    expect(created[0].name).toBe("Generate Encounter");
 
     expect(Macro.updateDocuments).toHaveBeenCalledTimes(1);
     const updated = Macro.updateDocuments.mock.calls[0][0];
@@ -144,6 +163,42 @@ describe("ensureWorldMacros", () => {
       expect.objectContaining({ _id: "stale-pf2edc", name: "Dungeon Crawl" }),
     ]);
     expect(result).toEqual({ created: 1, updated: 1 });
+  });
+
+  it('renames an existing generated macro still called "PF2EDC: Generate Encounter" in place, without creating a duplicate (#770)', async () => {
+    const encounterDef = MACRO_DEFS.find((d) =>
+      d.command.includes(".generateEncounter()"),
+    );
+    const stale = makeMacro({
+      id: "stale-encounter",
+      name: "PF2EDC: Generate Encounter",
+      command: encounterDef.command,
+      img: encounterDef.img,
+      generated: true,
+      ownership: { default: 3 }, // #773: already correctly owned
+    });
+    const dungeonDef = MACRO_DEFS.find((d) =>
+      d.command.includes(".openDungeon()"),
+    );
+    const dungeonMacro = makeMacro({
+      id: "dungeon-1",
+      name: dungeonDef.name,
+      command: dungeonDef.command,
+      img: dungeonDef.img,
+      generated: true,
+      ownership: { default: 3 }, // #773: already correctly owned
+    });
+    installFoundryStubs({ macros: [stale, dungeonMacro] });
+
+    const result = await ensureWorldMacros();
+
+    expect(Macro.createDocuments).not.toHaveBeenCalled();
+    expect(Macro.updateDocuments).toHaveBeenCalledTimes(1);
+    const updated = Macro.updateDocuments.mock.calls[0][0];
+    expect(updated).toEqual([
+      expect.objectContaining({ _id: "stale-encounter", name: "Generate Encounter" }),
+    ]);
+    expect(result).toEqual({ created: 0, updated: 1 });
   });
 
   it('does not match on name alone — a non-generated macro that happens to be named "Dungeon Crawl" is left untouched and a real one is still created', async () => {
@@ -175,6 +230,7 @@ describe("ensureWorldMacros", () => {
         command: def.command,
         img: def.img,
         generated: true,
+        ownership: { default: 3 }, // #773: already correctly owned
       }),
     );
     installFoundryStubs({ macros: upToDate });
@@ -186,6 +242,51 @@ describe("ensureWorldMacros", () => {
     expect(result).toEqual({ created: 0, updated: 0 });
   });
 
+  it("fixes an otherwise-correct generated macro's wrong ownership, without touching its name/command/img (#773)", async () => {
+    const dungeonDef = MACRO_DEFS.find((d) =>
+      d.command.includes(".openDungeon()"),
+    );
+    const encounterDef = MACRO_DEFS.find((d) =>
+      d.command.includes(".generateEncounter()"),
+    );
+    // Both macros are otherwise perfectly correct (right name, right
+    // command, right img) -- only ownership is wrong (makeMacro's own
+    // default, simulating today's real bug: created while the
+    // foundry-rest relay's own bot user was the active client).
+    const dungeonMacro = makeMacro({
+      id: "dungeon-1",
+      name: dungeonDef.name,
+      command: dungeonDef.command,
+      img: dungeonDef.img,
+      generated: true,
+    });
+    const encounterMacro = makeMacro({
+      id: "encounter-1",
+      name: encounterDef.name,
+      command: encounterDef.command,
+      img: encounterDef.img,
+      generated: true,
+    });
+    installFoundryStubs({ macros: [dungeonMacro, encounterMacro] });
+
+    const result = await ensureWorldMacros();
+
+    expect(Macro.createDocuments).not.toHaveBeenCalled();
+    expect(Macro.updateDocuments).toHaveBeenCalledTimes(1);
+    const updated = Macro.updateDocuments.mock.calls[0][0];
+    expect(updated).toHaveLength(2);
+    for (const u of updated) {
+      expect(u.ownership).toEqual({ default: 3 });
+    }
+    expect(updated.find((u) => u._id === "dungeon-1").name).toBe(
+      dungeonDef.name,
+    );
+    expect(updated.find((u) => u._id === "encounter-1").name).toBe(
+      encounterDef.name,
+    );
+    expect(result).toEqual({ created: 0, updated: 2 });
+  });
+
   it("force:true updates every matching generated macro even when already in sync", async () => {
     const upToDate = MACRO_DEFS.map((def, i) =>
       makeMacro({
@@ -194,6 +295,7 @@ describe("ensureWorldMacros", () => {
         command: def.command,
         img: def.img,
         generated: true,
+        ownership: { default: 3 }, // #773: already correctly owned
       }),
     );
     installFoundryStubs({ macros: upToDate });

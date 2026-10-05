@@ -38,7 +38,7 @@
 **Interfaces:**
 - Produces: `export function classifyTrapMove(trapFootprint, moverFootprint): "trigger" | "detect" | "none"` — `trapFootprint`/`moverFootprint` are plain `{gx, gy, gw, gh}` objects (the same shape `scripts/placement.mjs`'s `footprint()` already produces). Consumed by Task 2.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -74,12 +74,12 @@ describe("classifyTrapMove", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/trap-mechanics.test.mjs -t classifyTrapMove`
 Expected: FAIL — `classifyTrapMove is not a function` (or an import error).
 
-- [ ] **Step 3: Write `classifyTrapMove`**
+- [x] **Step 3: Write `classifyTrapMove`**
 
 In `scripts/trap-mechanics.mjs`, insert directly after `trapDetectionDC`'s closing `}`:
 
@@ -114,17 +114,17 @@ export function classifyTrapMove(trapFootprint, moverFootprint) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/trap-mechanics.test.mjs -t classifyTrapMove`
 Expected: PASS, all 6 tests green.
 
-- [ ] **Step 5: Run the full test file to confirm no regression**
+- [x] **Step 5: Run the full test file to confirm no regression**
 
 Run: `npx vitest run tests/trap-mechanics.test.mjs`
 Expected: PASS, every existing test in this file (if any already existed) still green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/trap-mechanics.mjs tests/trap-mechanics.test.mjs
@@ -148,7 +148,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No unit test: real Foundry Token/Actor/Scene glue, the same category this codebase has consistently verified live rather than mocked (`followLeaderIfDue`/`resnapDriftedTokens`, the exact pattern this mirrors, have no unit tests of their own either). Verified live in Step 3.
 
-- [ ] **Step 1: Export `isPositionChange`**
+- [x] **Step 1: Export `isPositionChange`**
 
 In `scripts/dungeon-follow.mjs`, change:
 
@@ -162,7 +162,7 @@ to:
 export function isPositionChange(changes) {
 ```
 
-- [ ] **Step 2: Write `handleTrapTokenMove`**
+- [x] **Step 2: Write `handleTrapTokenMove`**
 
 Add this to `scripts/trap-combat.mjs`, importing what it needs at the top of the file:
 
@@ -219,7 +219,7 @@ export async function handleTrapTokenMove(tokenDoc, changes) {
 
 Note `target.token` in the existing `triggerTrap(hazardActor, target)` signature expects a real Token *object* (the placeable), not a TokenDocument — `tokenDoc.object` (confirmed by `triggerTrap`'s own docblock: "a bare Actor resolves to `target: null`... needs that document to actually be a Token"). `tokenDoc` here is the Token*Document* the `updateToken` hook hands us; `tokenDoc.object` is its live placeable.
 
-- [ ] **Step 3: Register the hook**
+- [x] **Step 3: Register the hook**
 
 In `scripts/module.mjs`, add directly after the existing `Hooks.on("updateToken", resnapDriftedTokens);`:
 
@@ -231,7 +231,7 @@ Hooks.on("updateToken", handleTrapTokenMove);
 
 Add `handleTrapTokenMove` to the existing import from `./trap-combat.mjs` (check the current import list with `grep -n "from \"./trap-combat.mjs\"" scripts/module.mjs` first — add it to whatever's already there, or add a new import line if none exists yet).
 
-- [ ] **Step 4: Live-verify with `foundry-rest`**
+- [x] **Step 4: Live-verify with `foundry-rest`** (deferred to controller per R6)
 
 With a real dungeon run that has a trap room built (confirm via `scene.tokens.filter(t => t.getFlag("pf2e-dungeon-crawl", "trapHazard"))`), move a party token one square adjacent to the trap's own cell (not onto it), then confirm:
 
@@ -249,7 +249,7 @@ echo 'const hazard = canvas.scene.tokens.find(t => t.getFlag("pf2e-dungeon-crawl
 
 Expected: `triggered: true`. Then move the token off and back onto the same cell again (or just update its own x/y to the same value, forcing another `updateToken` event) and confirm no new attack-roll chat message was created the second time (no double-fire) — check `game.messages.contents.at(-1)` didn't change.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-follow.mjs scripts/trap-combat.mjs scripts/module.mjs
@@ -275,7 +275,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No unit test: UI/template glue (no `.hbs`-testing harness anywhere in this codebase). Verified live in Step 5.
 
-- [ ] **Step 1: Write `attemptTrapDisableForScene`**
+- [x] **Step 1: Write `attemptTrapDisableForScene`**
 
 Add to `scripts/trap-combat.mjs`, directly after `handleTrapTokenMove`:
 
@@ -298,7 +298,7 @@ export async function attemptTrapDisableForScene(sceneId, actorId, skill) {
 }
 ```
 
-- [ ] **Step 2: Extend `_prepareContext` and add the action handler**
+- [x] **Step 2: Extend `_prepareContext` and add the action handler**
 
 In `scripts/ui/dungeon-app.mjs`, add `classifyTrap` to the existing import from `../trap-combat.mjs` (check the current import list with `grep -n "from \"../trap-combat.mjs\"" scripts/ui/dungeon-app.mjs` first — add it to whatever's already imported there, or add a new import line if none exists yet; also add `attemptTrapDisableForScene`).
 
@@ -359,7 +359,7 @@ Add this new action handler, directly after `#onAttemptPuzzleStage`'s closing `}
 
 Add `attemptTrapDisable: DungeonApp.#onAttemptTrapDisable,` to the class's existing `static DEFAULT_OPTIONS.actions` object (alongside `attemptPuzzleStage`/`attemptSkillChallenge`).
 
-- [ ] **Step 3: Register the remote action**
+- [x] **Step 3: Register the remote action**
 
 In `scripts/dungeon-remote.mjs`, add `attemptTrapDisableForScene` to the existing import from `./trap-combat.mjs` (or add a new import line), then add this entry to the action registry, directly after the existing `claimTreasure` entry:
 
@@ -368,7 +368,7 @@ In `scripts/dungeon-remote.mjs`, add `attemptTrapDisableForScene` to the existin
     attemptTrapDisableForScene(args.sceneId, args.actorId, args.skill),
 ```
 
-- [ ] **Step 4: Add the template branch and lang keys**
+- [x] **Step 4: Add the template branch and lang keys**
 
 In `templates/dungeon-tracker.hbs`, add a new branch directly after the existing `{{else if isPuzzleRoom}}...{{/if}}` block's own content, before whichever `{{else if ...}}`/`{{else}}` comes next (re-locate the exact surrounding structure fresh before editing):
 
@@ -414,11 +414,11 @@ Add to `lang/en.json` (placed alphabetically near the existing `PF2EDC.Dungeon.T
 "PF2EDC.Dungeon.Trap.WhoLabel": "Who attempts?",
 ```
 
-- [ ] **Step 5: Live-verify with `foundry-rest`**
+- [x] **Step 5: Live-verify with `foundry-rest`** (deferred to controller per R6)
 
 With a trap already detected (per Task 2's own live verification), open `DungeonApp` as the GM and confirm the disable form renders with the trap's real parsed disable-check options in the skill dropdown. Submit it with a party actor who genuinely has that skill and confirm either a success (hazard actor's `trapDisabled` flag becomes `true`) or failure chat message appears. Separately, confirm submitting with a party actor who does NOT have the chosen skill statistic at all does not throw (the form simply has no visible effect — `rollTrapDisableAttempt` returns `null` for a missing skill stat, unmodified).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/trap-combat.mjs scripts/ui/dungeon-app.mjs scripts/dungeon-remote.mjs templates/dungeon-tracker.hbs lang/en.json
