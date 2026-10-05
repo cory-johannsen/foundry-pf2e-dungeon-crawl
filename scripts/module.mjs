@@ -4,6 +4,7 @@ import {
   resolveCurrentRoom,
   retreatFromCard,
 } from "./ui/dungeon-app.mjs";
+import { SoundPreviewApp } from "./ui/sound-preview-app.mjs";
 import { retreatCardActionFor } from "./dungeon-retreat.mjs";
 import {
   abandonRun,
@@ -121,6 +122,16 @@ Hooks.once("init", () => {
     type: Number,
     range: { min: 0, max: 5000, step: 100 },
     default: 1200,
+  });
+  // #600: lets a GM audition every dungeon-crawl sound effect without
+  // triggering the real game event each one is tied to.
+  game.settings.registerMenu(MODULE_ID, "soundPreview", {
+    name: "PF2EDC.SoundPreview.Title",
+    label: "PF2EDC.Settings.SoundPreview.Label",
+    hint: "PF2EDC.Settings.SoundPreview.Hint",
+    icon: "fa-solid fa-volume-high",
+    type: SoundPreviewApp,
+    restricted: true,
   });
 });
 

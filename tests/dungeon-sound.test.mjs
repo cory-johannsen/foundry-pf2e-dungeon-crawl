@@ -7,6 +7,7 @@ import {
   strikeSoundPath,
   spellSaveSoundPath,
   spellAttackSoundPath,
+  soundPreviewEntries,
 } from "../scripts/dungeon-sound.mjs";
 
 const assetsDir = fileURLToPath(
@@ -159,5 +160,47 @@ describe("spellAttackSoundPath", () => {
 
   it("returns null for an unrecognized outcome", () => {
     expect(spellAttackSoundPath(null)).toBeNull();
+  });
+});
+
+describe("soundPreviewEntries", () => {
+  const SOUND_DIR = "modules/pf2e-dungeon-crawl/assets/sounds";
+
+  it("returns one row per DUNGEON_SOUND_FILES key plus the two spell-outcome sounds", () => {
+    expect(soundPreviewEntries()).toHaveLength(
+      Object.keys(DUNGEON_SOUND_FILES).length + 2,
+    );
+  });
+
+  it("every row's path resolves to a file that actually exists on disk", () => {
+    for (const { path } of soundPreviewEntries()) {
+      expect(existsSync(path.replace(SOUND_DIR, assetsDir.replace(/\/$/, "")))).toBe(
+        true,
+      );
+    }
+  });
+
+  it("humanizes a camelCase catalog key into a spaced, capitalized label", () => {
+    const row = soundPreviewEntries().find((r) => r.key === "strikeHitBludgeoning");
+    expect(row.label).toBe("Strike Hit Bludgeoning");
+  });
+
+  it("resolves a catalog key's row to the same path strikeSoundPath-style resolution would give", () => {
+    const row = soundPreviewEntries().find((r) => r.key === "doorOpen");
+    expect(row.path).toBe(`${SOUND_DIR}/door-open.ogg`);
+  });
+
+  it("includes the two spell-outcome sounds with their own keys and real card-sound paths", () => {
+    const entries = soundPreviewEntries();
+    expect(entries.find((r) => r.key === "spellHit")).toEqual({
+      key: "spellHit",
+      label: "Spell Hit",
+      path: `${SOUND_DIR}/card-arcane.ogg`,
+    });
+    expect(entries.find((r) => r.key === "spellMiss")).toEqual({
+      key: "spellMiss",
+      label: "Spell Miss",
+      path: `${SOUND_DIR}/card-query.ogg`,
+    });
   });
 });

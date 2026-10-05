@@ -31,3 +31,8 @@
 .pf2edc-encounter__hint { font-size: 0.85em; font-style: italic; opacity: 0.8; margin: 0.2rem 0 0; }
 .pf2edc-encounter__warnings { color: #b5651d; font-size: 0.85em; }
 .pf2edc-encounter__severity { font-weight: 600; margin-top: 0.3rem; }
+
+/* ----- Sound preview (GM settings menu) ----- */
+.pf2edc-sound-preview__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+.pf2edc-sound-preview__row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.pf2edc-sound-preview__label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

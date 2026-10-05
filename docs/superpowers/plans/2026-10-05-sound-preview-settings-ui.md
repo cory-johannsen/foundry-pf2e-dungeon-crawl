@@ -38,7 +38,7 @@
 - Consumes: the existing `DUNGEON_SOUND_FILES` object and `SOUND_DIR` const already in this file.
 - Produces: `export function soundPreviewEntries(): Array<{key: string, label: string, path: string}>` — consumed by Task 2.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Open `tests/dungeon-sound.test.mjs`. Add `soundPreviewEntries` to the existing import at the top of the file:
 
@@ -99,12 +99,12 @@ describe("soundPreviewEntries", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-sound.test.mjs -t soundPreviewEntries`
 Expected: every new test FAILs with `soundPreviewEntries is not a function` (or an import error), since the function doesn't exist yet.
 
-- [ ] **Step 3: Implement `soundPreviewEntries` and export its dependencies**
+- [x] **Step 3: Implement `soundPreviewEntries` and export its dependencies**
 
 In `scripts/dungeon-sound.mjs`, change lines 49-52 from:
 
@@ -152,17 +152,17 @@ function humanizeSoundKey(key) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-sound.test.mjs -t soundPreviewEntries`
 Expected: PASS, all 5 new tests green.
 
-- [ ] **Step 5: Run the full test file to confirm no regression**
+- [x] **Step 5: Run the full test file to confirm no regression**
 
 Run: `npx vitest run tests/dungeon-sound.test.mjs`
 Expected: PASS, every existing test (including the `existsSync`-per-catalog-key block and `strikeHitSoundKey`/`spellSaveSoundPath`/`spellAttackSoundPath` blocks) still green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-sound.mjs tests/dungeon-sound.test.mjs
@@ -183,7 +183,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `soundPreviewEntries()` (Task 1) from `../dungeon-sound.mjs`; `playSound(src, {volume, broadcast})` (already exported, unmodified) from `../audio.mjs`.
 - Produces: `export class SoundPreviewApp extends HandlebarsApplicationMixin(ApplicationV2)` — consumed by Task 3's `registerMenu` call.
 
-- [ ] **Step 1: Create the template**
+- [x] **Step 1: Create the template**
 
 Create `templates/sound-preview.hbs`:
 
@@ -202,7 +202,7 @@ Create `templates/sound-preview.hbs`:
 </section>
 ```
 
-- [ ] **Step 2: Create the application class**
+- [x] **Step 2: Create the application class**
 
 Create `scripts/ui/sound-preview-app.mjs`:
 
@@ -248,7 +248,7 @@ export class SoundPreviewApp extends HandlebarsApplicationMixin(ApplicationV2) {
 }
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/ui/sound-preview-app.mjs templates/sound-preview.hbs
@@ -272,7 +272,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `SoundPreviewApp` from Task 2.
 - Produces: a working, GM-restricted entry in Foundry's own Settings UI — consumed (verified) by Task 4.
 
-- [ ] **Step 1: Add the import and registration to `scripts/module.mjs`**
+- [x] **Step 1: Add the import and registration to `scripts/module.mjs`**
 
 Change the top import block (lines 2-6) from:
 
@@ -335,7 +335,7 @@ to:
 });
 ```
 
-- [ ] **Step 2: Add the new keys to `lang/en.json`**
+- [x] **Step 2: Add the new keys to `lang/en.json`**
 
 Change the file's last two lines (173-174) from:
 
@@ -355,7 +355,7 @@ to:
 }
 ```
 
-- [ ] **Step 3: Add the stylesheet section**
+- [x] **Step 3: Add the stylesheet section**
 
 Append to the end of `styles/dungeon.css`:
 
@@ -367,12 +367,12 @@ Append to the end of `styles/dungeon.css`:
 .pf2edc-sound-preview__label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 ```
 
-- [ ] **Step 4: Confirm the JSON is still valid**
+- [x] **Step 4: Confirm the JSON is still valid**
 
 Run: `node -e "JSON.parse(require('fs').readFileSync('lang/en.json', 'utf8')); console.log('valid')"`
 Expected: prints `valid` with no error.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/module.mjs lang/en.json styles/dungeon.css

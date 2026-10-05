@@ -1,0 +1,12 @@
+<section class="pf2edc-sound-preview">
+  <ul class="pf2edc-sound-preview__list">
+    {{#each sounds}}
+      <li class="pf2edc-sound-preview__row">
+        <span class="pf2edc-sound-preview__label">{{this.label}}</span>
+        <button type="button" data-action="play" data-sound-path="{{this.path}}">{{localize
+            "PF2EDC.SoundPreview.PlayButtonLabel"
+          }}</button>
+      </li>
+    {{/each}}
+  </ul>
+</section>
