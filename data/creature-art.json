@@ -45870,5 +45870,141 @@
     "name": "Delaraius Solzakarr",
     "level": 20,
     "art": "delaraius-solzakarr.webp"
+  },
+  {
+    "id": "nemesis",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "d4uqDeZ03CKl43zF",
+    "name": "Nemesis",
+    "level": 13,
+    "art": "nemesis.webp"
+  },
+  {
+    "id": "silverhand_salvo",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "ftKv0WsRlX7uasez",
+    "name": "Silverhand Salvo",
+    "level": 14,
+    "art": "silverhand-salvo.webp"
+  },
+  {
+    "id": "venomfist",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "gkRngSHpJl1I2MFf",
+    "name": "Venomfist",
+    "level": 22,
+    "art": "venomfist.webp"
+  },
+  {
+    "id": "skurg",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "h2ibApkyVasD995i",
+    "name": "Skurg",
+    "level": 12,
+    "art": "skurg.webp"
+  },
+  {
+    "id": "operatic_stone_bulwark",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "iaQrKM85V4hWWmxw",
+    "name": "Operatic Stone Bulwark",
+    "level": 11,
+    "art": "operatic-stone-bulwark.webp"
+  },
+  {
+    "id": "kimingio",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "jyKGV1HeXcLF1E5f",
+    "name": "Kimingio",
+    "level": 20,
+    "art": "kimingio.webp"
+  },
+  {
+    "id": "father_skinsaw",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "m3VQLbUy5rKWJOyA",
+    "name": "Father Skinsaw",
+    "level": 20,
+    "art": "father-skinsaw.webp"
+  },
+  {
+    "id": "agadaz",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "mNrZV72eUg7lfmqc",
+    "name": "Agadaz",
+    "level": 4,
+    "art": "agadaz.webp"
+  },
+  {
+    "id": "operatic_emissary",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "nR3CaOtmBVFTekO3",
+    "name": "Operatic Emissary",
+    "level": 14,
+    "art": "operatic-emissary.webp"
+  },
+  {
+    "id": "arshean_warden",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "oWXuMRAy2BP0z0uO",
+    "name": "Arshean Warden",
+    "level": 12,
+    "art": "arshean-warden.webp"
+  },
+  {
+    "id": "rooftop_guardian",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "q7jRJq8kl9JXDPWY",
+    "name": "Rooftop Guardian",
+    "level": 13,
+    "art": "rooftop-guardian.webp"
+  },
+  {
+    "id": "jorogumo_disciple",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "qsXi69M1nGMOLZC5",
+    "name": "Jorogumo Disciple",
+    "level": 16,
+    "art": "jorogumo-disciple.webp"
+  },
+  {
+    "id": "ockomlire",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "tf3SNBb3jkrgVPLL",
+    "name": "Ockomlire",
+    "level": 13,
+    "art": "ockomlire.webp"
+  },
+  {
+    "id": "shanty_chanter",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "xUGrCX72cv1BO49f",
+    "name": "Shanty Chanter",
+    "level": 10,
+    "art": "shanty-chanter.webp"
+  },
+  {
+    "id": "the_final_herald",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "yBd3PYNJoUTrJVgM",
+    "name": "The Final Herald",
+    "level": 12,
+    "art": "the-final-herald.webp"
+  },
+  {
+    "id": "azarpal",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "yNkLAeHXYRtrPdz5",
+    "name": "Azarpal",
+    "level": 13,
+    "art": "azarpal.webp"
+  },
+  {
+    "id": "graverobber",
+    "pack": "pf2e.curtain-call-bestiary",
+    "docId": "ylAEACovrsq8XaOa",
+    "name": "Graverobber",
+    "level": 11,
+    "art": "graverobber.webp"
   }
 ]
