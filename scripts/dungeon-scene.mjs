@@ -87,6 +87,7 @@ import {
 import { isValidNarrativeTemplate } from "./narrative-mechanics.mjs";
 import { makeFoundryApi } from "./foundry-api.mjs";
 import { selectTrap } from "./trap-library.mjs";
+import { trapFootprintSize } from "./trap-mechanics.mjs";
 import { splitmix32, seedFromString } from "./prng.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -1158,8 +1159,9 @@ export async function populateSlotTrap(
     );
     return;
   }
+  const tokenSize = trapFootprintSize(seed, roomId);
   const [spawned] = await api.spawnCreatures(
-    [{ pack: trap.pack, id: trap.id }],
+    [{ pack: trap.pack, id: trap.id, tokenSize }],
     {
       originArea: {
         x: toPixels(rect.gx),

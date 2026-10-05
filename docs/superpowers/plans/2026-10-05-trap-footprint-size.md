@@ -36,7 +36,7 @@
 **Interfaces:**
 - Produces: `export function trapFootprintSize(seed, roomId): {width: number, height: number}`. Consumed by Task 3.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/trap-mechanics.test.mjs` (add `trapFootprintSize` to the existing import from `../scripts/trap-mechanics.mjs`):
 
@@ -101,12 +101,12 @@ describe('trapFootprintSize', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/trap-mechanics.test.mjs -t "trapFootprintSize"`
 Expected: FAIL — `trapFootprintSize is not a function`.
 
-- [ ] **Step 3: Write `trapFootprintSize`**
+- [x] **Step 3: Write `trapFootprintSize`**
 
 Add this import to the top of `scripts/trap-mechanics.mjs` (currently has no imports at all):
 
@@ -133,17 +133,17 @@ export function trapFootprintSize(seed, roomId) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/trap-mechanics.test.mjs -t "trapFootprintSize"`
 Expected: PASS, all 5 tests green.
 
-- [ ] **Step 5: Run the full test file to confirm no regression**
+- [x] **Step 5: Run the full test file to confirm no regression**
 
 Run: `npx vitest run tests/trap-mechanics.test.mjs`
 Expected: PASS, every existing test in this file still green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/trap-mechanics.mjs tests/trap-mechanics.test.mjs
@@ -164,7 +164,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing from Task 1 directly (this task is independent plumbing).
 - Produces: `spawnCreatures(entries, options)` now also reads `entry.tokenSize` (shape `{width, height}`, optional) per entry. Consumed by Task 3.
 
-- [ ] **Step 1: Check for existing test coverage**
+- [x] **Step 1: Check for existing test coverage**
 
 ```bash
 grep -rln "spawnCreatures" tests/
@@ -172,7 +172,7 @@ grep -rln "spawnCreatures" tests/
 
 If a test file covers `spawnCreatures` directly with a real stub/fixture harness, add a new test there asserting that an entry with `tokenSize: {width: 2, height: 1}` produces a created actor whose `prototypeToken.width`/`.height` match, and that an entry WITHOUT `tokenSize` is completely unaffected (still defaults to whatever the source document's own prototypeToken size already was). If no such file/harness exists, skip to Step 2 and rely on Task 3's live verification instead.
 
-- [ ] **Step 2: Add the override**
+- [x] **Step 2: Add the override**
 
 In `scripts/foundry-api.mjs`, change:
 
@@ -205,12 +205,12 @@ to:
         };
 ```
 
-- [ ] **Step 3: Run the full test suite to confirm no regression**
+- [x] **Step 3: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS, every test in the repo green — in particular, every existing `spawnCreatures` call site (combat encounters, cover items, summons) passes no `tokenSize` on any entry, so this change is additive-only for them.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/foundry-api.mjs
@@ -233,7 +233,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No unit test: `populateSlotTrap` is Foundry-glue with no existing unit-test harness (confirmed by this codebase's own established precedent for this exact function). Verified live in Step 2.
 
-- [ ] **Step 1: Wire the roll into `populateSlotTrap`**
+- [x] **Step 1: Wire the roll into `populateSlotTrap`**
 
 Add `trapFootprintSize` to the existing import from `./trap-mechanics.mjs` in `scripts/dungeon-scene.mjs` (check the current import list first; add a new import line if none exists yet from that file).
 
@@ -276,7 +276,7 @@ to:
   );
 ```
 
-- [ ] **Step 2: Live-verify with `foundry-rest`**
+- [x] **Step 2: Live-verify with `foundry-rest`** (DEFERRED: controller verifies live)
 
 Generate several real dungeon runs (varying seeds) and, for each, read back every trap hazard token's own size:
 
@@ -286,7 +286,7 @@ echo 'const sizes = canvas.scene.tokens.filter(t => t.getFlag("pf2e-dungeon-craw
 
 Expected, across several real runs: a mix of `{1,1}`/`{2,1}`/`{1,2}`/`{2,2}` sizes in roughly the 70/20/10 proportions over enough samples, and every reported token actually exists on the scene at a real, sane position (no overlap with room geometry/walls — spot-check at least one 2×2 trap visually or via its own `x`/`y` against the room's own rect bounds). Confirm a trap placed in a visibly small/cramped room still produces a usable (even if awkwardly positioned) trap rather than erroring.
 
-- [ ] **Step 3: Bump module.json's version**
+- [x] **Step 3: Bump module.json's version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -296,7 +296,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **minor** bump (a real new mechanic), using whatever the fetch above shows as current.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs module.json

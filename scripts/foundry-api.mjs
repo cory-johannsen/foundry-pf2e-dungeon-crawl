@@ -876,6 +876,15 @@ export function makeFoundryApi(sceneRef = null) {
           "system.details.alliance": alliance,
           "prototypeToken.disposition": disposition,
           ...(art ? { img: art, "prototypeToken.texture.src": art } : {}),
+          // #757: an entry-level footprint-size override, mirroring the
+          // existing per-entry img/imgFallback convention just above --
+          // entries that don't set it are completely unaffected.
+          ...(entry.tokenSize
+            ? {
+                "prototypeToken.width": entry.tokenSize.width,
+                "prototypeToken.height": entry.tokenSize.height,
+              }
+            : {}),
         };
         const [actor] = await Actor.createDocuments([
           foundry.utils.mergeObject(doc.toObject(), overrides),
