@@ -33,6 +33,22 @@ binary blobs to git history. Run
 `npm run packs:check` (offline, add `-- --strict` to exit 1 when stale) to
 see how far the pack lags `data/creature-art.json`.
 
+## Worktrees
+
+Every session and subagent MUST do its work in its own git worktree, never
+in the main checkout (`~/src/foundry-pf2e-dungeon-crawl`). Concurrent
+sessions share that checkout, so edits, branch switches, or uncommitted
+files there pollute `main` for everyone else.
+
+- Create a worktree off `origin/main` before touching any file
+  (`git worktree add ../wt-<slug> -b <branch> origin/main`, or the
+  `EnterWorktree` tool / `isolation: "worktree"` for subagents).
+- Read-only work (searching, `gh` queries) can happen in the main checkout;
+  anything that edits, commits, or runs tooling that writes files cannot.
+- Copy `.env` into the worktree before live-testing, and use `npm ci` —
+  never symlink `node_modules`.
+- Remove the worktree and delete the branch after the PR merges.
+
 ## Pull requests
 
 Always automerge PRs once opened, unless the user has instructed otherwise
