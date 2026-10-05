@@ -58,11 +58,11 @@
 - Consumes: token flags from Task 1; relay action `attemptTrapDisable {sceneId, actorId, skill}`; `attemptTrapDisableForScene(sceneId, actorId, skill)` for a GM client.
 - Produces: nothing consumed later.
 
-- [ ] **Step 1: Failing tests** — `buildTrapDisableChoices`: one option per check with skill label and DC; characters list as given; empty checks → `null`/empty (caller shows notice). Text tests: `syncRoomFeatureControls` also creates controls for tokens flagged `trapHazard` that are `!hidden` and not `trapSpent`; pointerdown primary button only; rebuild hooks fire for `trapHazard`/`trapSpent` token changes; no read of `doc.actor` for the trap path.
-- [ ] **Step 2: Run, confirm failure**
-- [ ] **Step 3: Implement.** Click: characters = party members (`game.actors.party.members`) of type `character` that `game.user` owns (`actor.isOwner`), GM: all of them. No characters → notice, stop. Checks from `doc.flags[MODULE_ID].trapDisableChecks`; missing/empty → localized notice, stop. After the prompt: GM client calls `attemptTrapDisableForScene` directly, others `requestDungeonAction("attemptTrapDisable", ...)`. Dialog shows skill + DC per option. Guard against double-open with an in-flight flag per token.
-- [ ] **Step 4: Run affected tests, confirm green**
-- [ ] **Step 5: Commit**
+- [x] **Step 1: Failing tests** — `buildTrapDisableChoices`: one option per check with skill label and DC; characters list as given; empty checks → `null`/empty (caller shows notice). Text tests: `syncRoomFeatureControls` also creates controls for tokens flagged `trapHazard` that are `!hidden` and not `trapSpent`; pointerdown primary button only; rebuild hooks fire for `trapHazard`/`trapSpent` token changes; no read of `doc.actor` for the trap path.
+- [x] **Step 2: Run, confirm failure**
+- [x] **Step 3: Implement.** Click: characters = party members (`game.actors.party.members`) of type `character` that `game.user` owns (`actor.isOwner`), GM: all of them. No characters → notice, stop. Checks from `doc.flags[MODULE_ID].trapDisableChecks`; missing/empty → localized notice, stop. After the prompt: GM client calls `attemptTrapDisableForScene` directly, others `requestDungeonAction("attemptTrapDisable", ...)`. Dialog shows skill + DC per option. Guard against double-open with an in-flight flag per token.
+- [x] **Step 4: Run affected tests, confirm green**
+- [x] **Step 5: Commit**
 
 ### Task 3: Remove the #753 tracker disable form
 

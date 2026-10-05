@@ -23,3 +23,28 @@ describe("room-feature prop click control (#611/#623)", () => {
     for (const h of ["createToken", "updateToken", "deleteToken"]) expect(src).toContain(`"${h}"`);
   });
 });
+
+describe("trap click-to-disable control (#754)", () => {
+  it("creates controls for visible, unspent trapHazard tokens from token data only", () => {
+    expect(src).toContain("trapHazard");
+    expect(src).toContain("trapSpent");
+    expect(src).toContain("doc.hidden");
+    const start = src.indexOf("function syncRoomFeatureControls");
+    const end = src.indexOf('Hooks.on("canvasReady", syncRoomFeatureControls)');
+    expect(src.slice(start, end)).not.toContain("doc.actor");
+  });
+  it("rebuild hook also fires for trapHazard tokens", () => {
+    const i = src.indexOf('for (const hook of ["createToken"');
+    const block = src.slice(i, i + 500);
+    expect(block).toContain("roomFeatureKind");
+    expect(block).toContain("trapHazard");
+  });
+  it("click handler: primary button, in-flight guard, relay vs GM direct", () => {
+    expect(src).toContain("promptTrapDisable");
+    expect(src).toContain("trapDisableInFlight");
+    expect(src).toContain("attemptTrapDisableForScene(");
+    expect(src).toContain('requestDungeonAction("attemptTrapDisable"');
+    expect(src).toContain("actor.isOwner");
+    expect(src).toContain("trapDisableChecks");
+  });
+});
