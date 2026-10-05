@@ -12,7 +12,16 @@
   "esmodules": ["scripts/module.mjs"],
   "styles": ["styles/dungeon.css"],
   "languages": [{ "lang": "en", "name": "English", "path": "lang/en.json" }],
-  "packs": [],
+  "packs": [
+    {
+      "name": "generated-creature-art",
+      "label": "Generated Creature Art",
+      "path": "packs/generated-creature-art",
+      "type": "Actor",
+      "system": "pf2e",
+      "ownership": { "PLAYER": "LIMITED", "ASSISTANT": "OWNER" }
+    }
+  ],
   "relationships": {
     "systems": [
       {

@@ -12,3 +12,4 @@ coverage/
 /*.png
 /*.ogg
 .preview-*.png
+tools/.pack-build-scratch/
