@@ -214,7 +214,7 @@ git commit -m "#636: difficulty shifts the whole ramp; Moderate is the code defa
 - Consumes: `normalizeDifficulty` from `scripts/dungeon-deck.mjs` (Task 1: missing/unknown → `"moderate"`).
 - Produces: `dcAdjustmentForTier(tier)` — missing/unknown now → −1 (Moderate); `dcForAttempt({ partyLevel, difficulty })` unchanged signature.
 
-- [ ] **Step 1: Update the tests (they must fail first)**
+- [x] **Step 1: Update the tests (they must fail first)**
 
 In `tests/skill-challenge-mechanics.test.mjs`, in `describe("difficulty DC adjustment (#412)", ...)`: replace the test `"unknown or missing tier adjusts by 0 (Severe)"` with:
 
@@ -228,12 +228,12 @@ In `tests/skill-challenge-mechanics.test.mjs`, in `describe("difficulty DC adjus
 
 and in the `"dcForAttempt adds the run's adjustment to the Simple DC"` test change the last assertion to `expect(dcForAttempt({ partyLevel: 5 })).toBe(19);` (Moderate's −1 on the level-5 Simple DC of 20).
 
-- [ ] **Step 2: Run to verify they fail**
+- [x] **Step 2: Run to verify they fail**
 
 Run: `npx vitest run tests/skill-challenge-mechanics.test.mjs`
 Expected: FAIL (`dcAdjustmentForTier(undefined)` returns 0; `dcForAttempt({partyLevel:5})` returns 20).
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `scripts/skill-challenge-mechanics.mjs`: change `import { MAX_DEPTH_BIAS } from "./dungeon-deck.mjs";` to `import { MAX_DEPTH_BIAS, normalizeDifficulty } from "./dungeon-deck.mjs";` and replace `dcAdjustmentForTier` and its comment with:
 
@@ -246,12 +246,12 @@ export function dcAdjustmentForTier(tier) {
 }
 ```
 
-- [ ] **Step 4: Run to verify they pass**
+- [x] **Step 4: Run to verify they pass**
 
 Run: `npx vitest run tests/skill-challenge-mechanics.test.mjs tests/puzzle-mechanics.test.mjs`
 Expected: PASS (puzzle tests pass `dcAdjustment` explicitly, so are unaffected).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/skill-challenge-mechanics.mjs tests/skill-challenge-mechanics.test.mjs
