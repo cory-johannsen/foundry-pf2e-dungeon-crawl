@@ -35,7 +35,7 @@
 
 **Interfaces:** None — this is a self-contained conditional change inside an existing function; no new exports.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add this new `describe` block to `tests/dungeon-scene.test.mjs` (after the existing `describe('buildPopulateAndUnlockGraphNode — #297 Round 2 (slot priority)', ...)` block is a reasonable place, but anywhere in the file works):
 
@@ -107,14 +107,14 @@ describe('buildPopulateAndUnlockGraphNode — #740 deferred unlock for treasure/
 
 (`installFoundryStubs`, `makeFakeScene`, `MODULE_ID`, `CONST`, and the imports of `buildPopulateAndUnlockGraphNode` already exist at the top of this file — no new imports needed.)
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-scene.test.mjs -t "#740"`
 Expected: the three target-kind tests (`treasure`/`puzzle`/`skill_challenge`) FAIL — `door.ds` currently reads `CLOSED` (the existing unconditional unlock), not the expected `LOCKED`. The `narrative` control test PASSes already (unaffected, confirming the fixture itself is correct before changing any production code).
 
 If instead `door` is `undefined` (no matching wall found at all) for every case, the fixture's field mapping needs adjusting — treat this as a real signal to fix the fixture, not the production code, since the control (`narrative`) case not finding a door either would mean the test setup itself is wrong, not the feature.
 
-- [ ] **Step 3: Make the one-line change**
+- [x] **Step 3: Make the one-line change**
 
 In `scripts/dungeon-scene.mjs`, change:
 
@@ -129,17 +129,17 @@ to:
       await unlockDoorsFromRoom(scene, room.id, childIds, state.hiddenEdges[room.id] ?? []);
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-scene.test.mjs -t "#740"`
 Expected: PASS, all 4 tests green.
 
-- [ ] **Step 5: Run the full test file to confirm no regression**
+- [x] **Step 5: Run the full test file to confirm no regression**
 
 Run: `npx vitest run tests/dungeon-scene.test.mjs`
 Expected: PASS, every existing test in this file (including every `combat`-kind and other-kind scenario already covered elsewhere in it) still green — in particular, confirm no existing test happens to build a `combat`-kind room through this same code path and expect it unlocked at this exact line (it shouldn't, since combat's own unlock is the separate, untouched branch at line ~1726, but this is the concrete check that assumption holds).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-scene.test.mjs

@@ -520,6 +520,82 @@ describe('buildPopulateAndUnlockGraphNode — corridor floor tile grid alignment
   });
 });
 
+describe('buildPopulateAndUnlockGraphNode — #740 deferred unlock for treasure/puzzle/skill_challenge', () => {
+  const seed = 'defer-unlock-seed-0';
+  const S = 'room-s';
+  const A = 'room-a';
+  const H = 'room-h';
+  const layoutPositionByRoomId = {
+    [S]: { rank: 0, col: 2 }, [A]: { rank: 1, col: 2 }, [H]: { rank: 2, col: 0 },
+  };
+  const incomingFaceByRoomId = { [S]: 'north', [A]: 'north', [H]: 'north' };
+  const edges = { [S]: [A] };
+  const layoutEdges = { [S]: [A, H] };
+  const hiddenIncomingByRoomId = { [H]: [S] };
+
+  function buildState() {
+    return {
+      seed, layoutPositionByRoomId, incomingFaceByRoomId, hiddenRooms: [],
+      edges, layoutEdges, hiddenIncomingByRoomId, hiddenEdges: {},
+    };
+  }
+
+  // Door walls are created when the TARGET room builds, so build both
+  // children first (unlock:false), then the source room with unlock:true.
+  async function buildScene(kind) {
+    installFoundryStubs();
+    globalThis.game = { actors: { party: { members: [] } }, settings: { get: () => ({}) } };
+    globalThis.fetch = async () => ({ json: async () => [] });
+    globalThis.Actor = {
+      createDocuments: async () => [{
+        getTokenDocument: async () => { throw new Error('no token docs in fake'); },
+        delete: async () => {},
+      }],
+    };
+    const scene = makeFakeScene();
+    // combat: an already-populated slot, so the fixture never needs the real encounter generator.
+    scene.tokens = [{ getFlag: (m, k) => (k === 'dungeonSlot' ? S : undefined), flags: {} }];
+    const state = buildState();
+    const mk = (id) => ({ id, kind: 'narrative', isGoal: false, locationTag: null, artVariant: 0, setpieceId: null });
+    await buildPopulateAndUnlockGraphNode(scene, state, mk(A), { rank: 1, col: 2, childIds: [], unlock: false });
+    await buildPopulateAndUnlockGraphNode(scene, state, mk(H), { rank: 2, col: 0, childIds: [], unlock: false });
+    await buildPopulateAndUnlockGraphNode(scene, state, { ...mk(S), kind }, {
+      rank: 0, col: 2, childIds: [A], hiddenChildId: H, unlock: true,
+    });
+    return scene;
+  }
+
+  const doorTo = (scene, id) => scene.walls.find(
+    (w) => w.getFlag(MODULE_ID, 'dungeonDoorToRoomId') === id &&
+      w.getFlag(MODULE_ID, 'dungeonDoorFromRoomId') === S,
+  );
+
+  for (const kind of ['treasure', 'puzzle', 'skill_challenge']) {
+    it(`a ${kind} room's own outgoing door stays LOCKED even with unlock:true`, async () => {
+      const door = doorTo(await buildScene(kind), A);
+      expect(door).toBeDefined();
+      expect(door.ds).toBe(CONST.WALL_DOOR_STATES.LOCKED);
+    });
+  }
+
+  for (const kind of ['narrative', 'combat', 'trap']) {
+    it(`a ${kind} room (control, unaffected) still unlocks immediately`, async () => {
+      const door = doorTo(await buildScene(kind), A);
+      expect(door).toBeDefined();
+      expect(door.ds).toBe(CONST.WALL_DOOR_STATES.CLOSED);
+    });
+  }
+
+  it('a hidden child door is never unlocked, for a target kind or a control kind', async () => {
+    for (const kind of ['treasure', 'narrative']) {
+      const scene = await buildScene(kind);
+      const hidden = scene.walls.filter((w) => w.getFlag(MODULE_ID, 'dungeonHiddenDoorForEdge') === `${S}->${H}`);
+      expect(hidden.length).toBeGreaterThan(0);
+      for (const w of hidden) expect(w.ds).toBe(CONST.WALL_DOOR_STATES.LOCKED);
+    }
+  });
+});
+
 describe('effectiveRoomBias (#412, #636)', () => {
   const room = { rank: 3, maxRank: 6, isGoal: false }; // ramp bias 1
   const goal = { rank: 6, maxRank: 6, isGoal: true }; // ramp bias 2
