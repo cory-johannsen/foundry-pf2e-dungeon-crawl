@@ -46518,5 +46518,165 @@
     "name": "Wraithvine",
     "level": 7,
     "art": "wraithvine.webp"
+  },
+  {
+    "id": "phytohydra",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "j39LXy9R6i6y4coq",
+    "name": "Phytohydra",
+    "level": 12,
+    "art": "phytohydra.webp"
+  },
+  {
+    "id": "durnolith",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "kGZ9TvZWq4eOG9hk",
+    "name": "Durnolith",
+    "level": 9,
+    "art": "durnolith.webp"
+  },
+  {
+    "id": "shadebound_pixie_guard",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "lAQZ903Y1psxFAcT",
+    "name": "Shadebound Pixie Guard",
+    "level": 6,
+    "art": "shadebound-pixie-guard.webp"
+  },
+  {
+    "id": "gritblight",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "lHAK5I1ksuuhZsRu",
+    "name": "Gritblight",
+    "level": 13,
+    "art": "gritblight.webp"
+  },
+  {
+    "id": "emorga_all_seer",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "lPePtLExbp8sqNoo",
+    "name": "Emorga All-Seer",
+    "level": 9,
+    "art": "emorga-all-seer.webp"
+  },
+  {
+    "id": "unaasi",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "m05K0hO2UL5VIuyh",
+    "name": "Unaasi",
+    "level": 11,
+    "art": "unaasi.webp"
+  },
+  {
+    "id": "woodweave_caterpillar",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "mPLImUv6yvOKgSNY",
+    "name": "Woodweave Caterpillar",
+    "level": 12,
+    "art": "woodweave-caterpillar.webp"
+  },
+  {
+    "id": "arboreal_shepherd",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "mnuaGhIOwPNUoXYF",
+    "name": "Arboreal Shepherd",
+    "level": 5,
+    "art": "arboreal-shepherd.webp"
+  },
+  {
+    "id": "splintershank",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "oFZvM54qFh9OVctJ",
+    "name": "Splintershank",
+    "level": 6,
+    "art": "splintershank.webp"
+  },
+  {
+    "id": "stormdrinker",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "qyQnrF170l8bpwWi",
+    "name": "Stormdrinker",
+    "level": 7,
+    "art": "stormdrinker.webp"
+  },
+  {
+    "id": "primal_warden_of_zibik",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "s2oc6zKIGTyJkOlA",
+    "name": "Primal Warden of Zibik",
+    "level": 12,
+    "art": "primal-warden-of-zibik.webp"
+  },
+  {
+    "id": "sylvarindarian",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "sEQfFPOrdCiSddtV",
+    "name": "Sylvarindarian",
+    "level": 7,
+    "art": "sylvarindarian.webp"
+  },
+  {
+    "id": "hateful_bear",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "uctziqpGJSJU50rl",
+    "name": "Hateful Bear",
+    "level": 6,
+    "art": "hateful-bear.webp"
+  },
+  {
+    "id": "hateful_logger",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "upP0w940TKNkLO1k",
+    "name": "Hateful Logger",
+    "level": 4,
+    "art": "hateful-logger.webp"
+  },
+  {
+    "id": "putrifer",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "v7Atpv0BQql0XB7W",
+    "name": "Putrifer",
+    "level": 9,
+    "art": "putrifer.webp"
+  },
+  {
+    "id": "timberweb",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "vKdkG4JJSfzTz2RK",
+    "name": "Timberweb",
+    "level": 14,
+    "art": "timberweb.webp"
+  },
+  {
+    "id": "timber_titan",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "vOeCcqkOZsYalDol",
+    "name": "Timber Titan",
+    "level": 7,
+    "art": "timber-titan.webp"
+  },
+  {
+    "id": "ogre_bully",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "vVzhD0o96ivHjKMj",
+    "name": "Ogre Bully",
+    "level": 7,
+    "art": "ogre-bully.webp"
+  },
+  {
+    "id": "wildwood_sentry",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "vougIGMOqsn85wqx",
+    "name": "Wildwood Sentry",
+    "level": 9,
+    "art": "wildwood-sentry.webp"
+  },
+  {
+    "id": "luruvin",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "wxtJK9oRXGE61CLn",
+    "name": "Luruvin",
+    "level": 7,
+    "art": "luruvin.webp"
   }
 ]
