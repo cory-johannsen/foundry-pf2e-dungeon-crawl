@@ -1291,7 +1291,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const traits = readTraitField(this.element, "traits");
     const excludeTraits = readTraitField(this.element, "excludeTraits");
     const difficulty =
-      form?.querySelector('[name="difficulty"]')?.value ?? "severe";
+      form?.querySelector('[name="difficulty"]')?.value ?? "moderate";
     // Wherever the GM/party were right before starting — teardownDungeonRun
     // (ITEM-18) sends them back here if this run is later abandoned.
     const previousSceneId = canvas?.scene?.id ?? null;

@@ -272,7 +272,7 @@ git commit -m "#636: skill-challenge DC adjustment defaults to Moderate like the
 - Consumes: the five tier values and `"moderate"` default from Tasks 1-2.
 - Produces: nothing other tasks use.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/difficulty-dialog-defaults.test.mjs`:
 
@@ -324,12 +324,12 @@ describe("Start Dungeon difficulty dialog defaults (#636)", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run tests/difficulty-dialog-defaults.test.mjs`
 Expected: FAIL (Severe is `selected`; Severe still says "(default)"; label still "Maximum difficulty"; fallback still `"severe"`).
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `templates/dungeon-tracker.hbs`, in the `<select name="difficulty">`, remove `selected` from the Severe option and add it to the Moderate option, so the options read:
 
@@ -359,12 +359,12 @@ In `lang/en.json`, replace the six `Difficulty*` lines with (keep the surroundin
   "PF2EDC.Dungeon.Difficulty.Extreme": "Extreme (every room one step harder, tougher checks)",
 ```
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `npx vitest run tests/difficulty-dialog-defaults.test.mjs && node -e "JSON.parse(require('fs').readFileSync('lang/en.json'))"`
 Expected: PASS, no JSON error.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add templates/dungeon-tracker.hbs scripts/ui/dungeon-app.mjs lang/en.json tests/difficulty-dialog-defaults.test.mjs
