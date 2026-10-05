@@ -44974,5 +44974,181 @@
     "name": "Miss Whisper",
     "level": 9,
     "art": "miss-whisper.webp"
+  },
+  {
+    "id": "second_spawn",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "0Ky23VSAdJO4izI0",
+    "name": "Second Spawn",
+    "level": 21,
+    "art": "second-spawn.webp"
+  },
+  {
+    "id": "mugrisant_qlippoth",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "1XvwOmLR49yRe1Ae",
+    "name": "Mugrisant Qlippoth",
+    "level": 15,
+    "art": "mugrisant-qlippoth.webp"
+  },
+  {
+    "id": "shroud_moss",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "4VNR5BjSTspzsVYC",
+    "name": "Shroud Moss",
+    "level": 18,
+    "art": "shroud-moss.webp"
+  },
+  {
+    "id": "fungal_flytrap",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "67FHrUbWeN8uZva9",
+    "name": "Fungal Flytrap",
+    "level": 10,
+    "art": "fungal-flytrap.webp"
+  },
+  {
+    "id": "miastrilek",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "91y5Jhr5sePXKdLX",
+    "name": "Miastrilek",
+    "level": 11,
+    "art": "miastrilek.webp"
+  },
+  {
+    "id": "alzarius",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "9QYCWXVN2B9ssayl",
+    "name": "Alzarius",
+    "level": 11,
+    "art": "alzarius.webp"
+  },
+  {
+    "id": "delvarnis",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "9iIj6SLuJplNBGlQ",
+    "name": "Delvarnis",
+    "level": 11,
+    "art": "delvarnis.webp"
+  },
+  {
+    "id": "tanglebriar_bhuta",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "B1jjtLZy9B7iEaGw",
+    "name": "Tanglebriar Bhuta",
+    "level": 11,
+    "art": "tanglebriar-bhuta.webp"
+  },
+  {
+    "id": "crowded_veil",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "CFgNOjwPo1o5ChPg",
+    "name": "Crowded Veil",
+    "level": 14,
+    "art": "crowded-veil.webp"
+  },
+  {
+    "id": "spore_thrall",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "CiStkehlrG3IBcSX",
+    "name": "Spore Thrall",
+    "level": 10,
+    "art": "spore-thrall.webp"
+  },
+  {
+    "id": "tanglebriar_creeper",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "DBJgwqVDuM44Wd7Z",
+    "name": "Tanglebriar Creeper",
+    "level": 15,
+    "art": "tanglebriar-creeper.webp"
+  },
+  {
+    "id": "fungal_amalgamite",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "DS74YwOb9IOJPsF3",
+    "name": "Fungal Amalgamite",
+    "level": 13,
+    "art": "fungal-amalgamite.webp"
+  },
+  {
+    "id": "boggard_cultist_e976i",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "E976If3eDLtsZfdB",
+    "name": "Boggard Cultist",
+    "level": 15,
+    "art": "boggard-cultist.webp"
+  },
+  {
+    "id": "eshmok",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "F3cUooitFUS4nX1e",
+    "name": "Eshmok",
+    "level": 9,
+    "art": "eshmok.webp"
+  },
+  {
+    "id": "swamp_blight",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "Gu4ItQtKIgtQ7ZRB",
+    "name": "Swamp Blight",
+    "level": 17,
+    "art": "swamp-blight.webp"
+  },
+  {
+    "id": "forger_of_tanglebriar",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "QbzfloiHZrxBLYDK",
+    "name": "Forger of Tanglebriar",
+    "level": 16,
+    "art": "forger-of-tanglebriar.webp"
+  },
+  {
+    "id": "ziberae",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "RwO6fC7hIap6cKoM",
+    "name": "Ziberae",
+    "level": 20,
+    "art": "ziberae.webp"
+  },
+  {
+    "id": "queen_telandia_edasseril",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "SxcJlOBouEOuH0AJ",
+    "name": "Queen Telandia Edasseril",
+    "level": 17,
+    "art": "queen-telandia-edasseril.webp"
+  },
+  {
+    "id": "grizzer",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "THRmSpcf3FvVDXhj",
+    "name": "Grizzer",
+    "level": 10,
+    "art": "grizzer.webp"
+  },
+  {
+    "id": "rotting_cultist",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "WJwsn0t40hD8UvGe",
+    "name": "Rotting Cultist",
+    "level": 8,
+    "art": "rotting-cultist.webp"
+  },
+  {
+    "id": "vansidieth",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "WQRJdpOzcnBsgbnp",
+    "name": "Vansidieth",
+    "level": 18,
+    "art": "vansidieth.webp"
+  },
+  {
+    "id": "invidiak_hy1vn",
+    "pack": "pf2e.spore-war-bestiary",
+    "docId": "hy1VNv553PryLGbu",
+    "name": "Invidiak",
+    "level": 7,
+    "art": "invidiak.webp"
   }
 ]
