@@ -46198,5 +46198,165 @@
     "name": "Priest of Iomedae",
     "level": 7,
     "art": "priest-of-iomedae.webp"
+  },
+  {
+    "id": "tumbo",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "0KhATx3SL7qpqJJ0",
+    "name": "Tumbo",
+    "level": 2,
+    "art": "tumbo.webp"
+  },
+  {
+    "id": "coiled_conifer",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "24Mybh3pBJN5mQ7R",
+    "name": "Coiled Conifer",
+    "level": 13,
+    "art": "coiled-conifer.webp"
+  },
+  {
+    "id": "koata_inuu",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "316J8ZDsHytVX162",
+    "name": "Koata Inuu",
+    "level": 7,
+    "art": "koata-inuu.webp"
+  },
+  {
+    "id": "ruzadoya_s_chosen",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "3ZpG9ukdfGQlBb0H",
+    "name": "Ruzadoya's Chosen",
+    "level": 7,
+    "art": "ruzadoya-s-chosen.webp"
+  },
+  {
+    "id": "zibik",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "4l5JArUXizR8CdMM",
+    "name": "Zibik",
+    "level": 24,
+    "art": "zibik.webp"
+  },
+  {
+    "id": "ohancanu",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "5GbRsrENVq0SjqBH",
+    "name": "Ohancanu",
+    "level": 5,
+    "art": "ohancanu.webp"
+  },
+  {
+    "id": "alyce_quinley",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "6EFWsv18TiO3uNRb",
+    "name": "Alyce Quinley",
+    "level": 6,
+    "art": "alyce-quinley.webp"
+  },
+  {
+    "id": "arboreal_sapstriker",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "6JBIKvCygSaYISNA",
+    "name": "Arboreal Sapstriker",
+    "level": 6,
+    "art": "arboreal-sapstriker.webp"
+  },
+  {
+    "id": "chetamog",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "6j0rhjMwsLCYMvwI",
+    "name": "Chetamog",
+    "level": 2,
+    "art": "chetamog.webp"
+  },
+  {
+    "id": "spitting_sawfly",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "6lPHKb53ZG98ZTLL",
+    "name": "Spitting Sawfly",
+    "level": 10,
+    "art": "spitting-sawfly.webp"
+  },
+  {
+    "id": "izurran",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "7ZtPLXR6jw1ZWLJc",
+    "name": "Izurran",
+    "level": 9,
+    "art": "izurran.webp"
+  },
+  {
+    "id": "rootridden",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "8ikKo7zxWm0rjoUu",
+    "name": "Rootridden",
+    "level": 8,
+    "art": "rootridden.webp"
+  },
+  {
+    "id": "arboreal_sapling",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "9qCcLskO4Z3nkBD6",
+    "name": "Arboreal Sapling",
+    "level": 2,
+    "art": "arboreal-sapling.webp"
+  },
+  {
+    "id": "primal_mantis",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "BiNtR3JSahC0Yv07",
+    "name": "Primal Mantis",
+    "level": 11,
+    "art": "primal-mantis.webp"
+  },
+  {
+    "id": "eyelet",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "C0aQ8ndBb5hr32HS",
+    "name": "Eyelet",
+    "level": 1,
+    "art": "eyelet.webp"
+  },
+  {
+    "id": "cythnophorian",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "CBDVKK0zhmcS8Pxn",
+    "name": "Cythnophorian",
+    "level": 8,
+    "art": "cythnophorian.webp"
+  },
+  {
+    "id": "azhana",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "CMw41oIFKvdTgd0m",
+    "name": "Azhana",
+    "level": 3,
+    "art": "azhana.webp"
+  },
+  {
+    "id": "verdant_swordkeeper",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "Cqojdf1w1uPitolZ",
+    "name": "Verdant Swordkeeper",
+    "level": 10,
+    "art": "verdant-swordkeeper.webp"
+  },
+  {
+    "id": "caustic_wraith",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "EdZm8SanOd6pJXUs",
+    "name": "Caustic Wraith",
+    "level": 9,
+    "art": "caustic-wraith.webp"
+  },
+  {
+    "id": "inrik_vanderholl",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "Jp7g8OKgIkrhVmsI",
+    "name": "Inrik Vanderholl",
+    "level": 3,
+    "art": "inrik-vanderholl.webp"
   }
 ]
