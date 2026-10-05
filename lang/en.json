@@ -157,6 +157,7 @@
   "PF2EDC.Encounter.ChooseTraitsButton": "Choose traits…",
   "PF2EDC.Encounter.ExcludeTraitsLabel": "Traits to exclude",
   "PF2EDC.Encounter.FoeHeader": "Foes",
+  "PF2EDC.Encounter.FriendAnnounceChat": "{name} is here to help — an ally, fighting on the party's side!",
   "PF2EDC.Encounter.FriendLabel": "Friend:",
   "PF2EDC.Encounter.GenerateButton": "Generate",
   "PF2EDC.Encounter.GmOnlyWarning": "Only the GM can generate an encounter.",

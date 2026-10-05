@@ -36,7 +36,7 @@
 - Consumes: `api.spawnCreatures(entries, opts)`'s existing return shape `[{name, actorId, tokenId}]` (confirmed current, `scripts/foundry-api.mjs:945-958`), `api.postChatCard({content, whisperGM?})` (confirmed current, `scripts/foundry-api.mjs:1111-1118`).
 - Produces: nothing further in this plan consumes it — this is the feature's final wiring.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add `makeFoundryApi` to this test file's own import (currently only `generateEncounter` is imported from `encounter-generator.mjs`; add a new import line for the mocked `makeFoundryApi`):
 
@@ -103,12 +103,12 @@ it("does not crash and posts no Friend message when nothing is spawned", async (
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/encounter-generator.test.mjs -t "Friend"`
 Expected: FAIL — `postChatCard` is never called for the Friend today (`friendCall` is `undefined` in the first test).
 
-- [ ] **Step 3: Add the locale key**
+- [x] **Step 3: Add the locale key**
 
 In `lang/en.json`, add a new key near the existing `PF2EDC.Encounter.FriendLabel` entry (line 160):
 
@@ -116,7 +116,7 @@ In `lang/en.json`, add a new key near the existing `PF2EDC.Encounter.FriendLabel
   "PF2EDC.Encounter.FriendAnnounceChat": "{name} is here to help — an ally, fighting on the party's side!",
 ```
 
-- [ ] **Step 4: Wire the announcement**
+- [x] **Step 4: Wire the announcement**
 
 In `scripts/encounter-generator.mjs`, change the `roster.friend` branch (currently):
 
@@ -150,12 +150,12 @@ to:
   }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npx vitest run tests/encounter-generator.test.mjs -t "Friend"`
 Expected: PASS, both new tests green.
 
-- [ ] **Step 6: Run the full test file and suite to confirm no regression**
+- [x] **Step 6: Run the full test file and suite to confirm no regression**
 
 Run: `npx vitest run tests/encounter-generator.test.mjs && npx vitest run`
 Expected: PASS — in particular, the two existing `describe("generateEncounter (no approval gate)", ...)` tests stay green (they spawn no Friend, so the new branch's `if (spawned)` never fires for them).
@@ -170,7 +170,7 @@ echo 'return game.messages.contents.slice(-5).map(m => ({ content: m.content, wh
 
 Expected: the Friend's message has an empty/absent `whisper` array (public), distinct from the roster card's own GM-only whisper.
 
-- [ ] **Step 8: Bump module.json's version**
+- [x] **Step 8: Bump module.json's version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -180,7 +180,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **patch** bump (routine UX fix), using whatever the fetch above shows as current.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add scripts/encounter-generator.mjs lang/en.json tests/encounter-generator.test.mjs module.json

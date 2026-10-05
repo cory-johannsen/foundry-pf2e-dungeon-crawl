@@ -55,13 +55,17 @@ vi.mock("../scripts/cover-items.mjs", () => ({
   chooseCoverItemTypes: vi.fn(() => []),
 }));
 
+const { makeFoundryApi } = await import("../scripts/foundry-api.mjs");
 const { generateEncounter } = await import("../scripts/encounter-generator.mjs");
 
 function installFoundryStubs({ dialogShownRef }) {
   globalThis.renderTemplate = vi.fn(async () => "<div></div>");
   globalThis.game = {
     user: { isGM: true },
-    i18n: { localize: (k) => k },
+    i18n: {
+      localize: (k) => k,
+      format: (k, data) => `${k}:${data?.name ?? ""}`,
+    },
     actors: { party: { members: [{ id: "actor1", type: "character" }] } },
   };
   globalThis.canvas = {
@@ -127,5 +131,66 @@ describe("generateEncounter (no approval gate)", () => {
     // (i.e. no second, preview dialog) invokes DialogV2.wait afterwards.
     expect(globalThis.foundry.applications.api.DialogV2.wait).toHaveBeenCalledTimes(1);
     expect(generateEncounterRoster).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("generateEncounter Friend announcement (#768)", () => {
+  const friendRoster = (id) => ({
+    foes: [],
+    friend: { pack: "pf2e.pathfinder-monster-core-2", id },
+    twins: null,
+    lurker: null,
+  });
+  const apiWith = (postChatCard, spawnCreatures) => ({
+    partyLevel: vi.fn(async () => 3),
+    postChatCard,
+    spawnCreatures,
+    spawnCoverItems: vi.fn(async () => {}),
+    listCreatureTraits: vi.fn(async () => []),
+  });
+
+  it("announces a drawn Friend in a public chat message naming it", async () => {
+    installFoundryStubs({ dialogShownRef: { shown: false } });
+    generateEncounterRoster.mockResolvedValueOnce(friendRoster("abc123"));
+    const postChatCard = vi.fn(async () => {});
+    makeFoundryApi.mockReturnValueOnce(
+      apiWith(
+        postChatCard,
+        vi.fn(async (entries, opts) =>
+          opts.disposition === 1
+            ? [{ name: "Clockwork Spy", actorId: "a1", tokenId: "t1" }]
+            : [],
+        ),
+      ),
+    );
+
+    await generateEncounter({ skipThemeDialog: true, scene: { id: "scene1" } });
+
+    const friendCall = postChatCard.mock.calls.find((c) =>
+      c[0].content.includes("Clockwork Spy"),
+    );
+    expect(friendCall).toBeTruthy();
+    expect(friendCall[0].content).toContain("PF2EDC.Encounter.FriendAnnounceChat");
+    expect(friendCall[0].whisperGM).toBeFalsy();
+  });
+
+  it("does not crash and posts no Friend message when nothing is spawned", async () => {
+    installFoundryStubs({ dialogShownRef: { shown: false } });
+    generateEncounterRoster.mockResolvedValueOnce(friendRoster("missing"));
+    const postChatCard = vi.fn(async () => {});
+    makeFoundryApi.mockReturnValueOnce(
+      apiWith(postChatCard, vi.fn(async () => [])),
+    );
+
+    await expect(
+      generateEncounter({ skipThemeDialog: true, scene: { id: "scene1" } }),
+    ).resolves.not.toThrow();
+    // The GM-only roster card is still posted; only the Friend announcement
+    // must be absent.
+    expect(
+      postChatCard.mock.calls.some((c) =>
+        c[0].content.includes("PF2EDC.Encounter.FriendAnnounceChat"),
+      ),
+    ).toBe(false);
   });
 });
