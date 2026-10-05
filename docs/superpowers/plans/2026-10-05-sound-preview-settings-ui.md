@@ -183,7 +183,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `soundPreviewEntries()` (Task 1) from `../dungeon-sound.mjs`; `playSound(src, {volume, broadcast})` (already exported, unmodified) from `../audio.mjs`.
 - Produces: `export class SoundPreviewApp extends HandlebarsApplicationMixin(ApplicationV2)` — consumed by Task 3's `registerMenu` call.
 
-- [ ] **Step 1: Create the template**
+- [x] **Step 1: Create the template**
 
 Create `templates/sound-preview.hbs`:
 
@@ -202,7 +202,7 @@ Create `templates/sound-preview.hbs`:
 </section>
 ```
 
-- [ ] **Step 2: Create the application class**
+- [x] **Step 2: Create the application class**
 
 Create `scripts/ui/sound-preview-app.mjs`:
 
@@ -248,7 +248,7 @@ export class SoundPreviewApp extends HandlebarsApplicationMixin(ApplicationV2) {
 }
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/ui/sound-preview-app.mjs templates/sound-preview.hbs
