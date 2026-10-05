@@ -32,7 +32,6 @@ import { makeFoundryApi, drawTreasureItem } from "../foundry-api.mjs";
 import { xpFor } from "../encounter-roster.mjs";
 import { rollSkillChallengeAttempt } from "../skill-challenge.mjs";
 import { rollPuzzleStageAttempt } from "../puzzle.mjs";
-import { classifyTrap, attemptTrapDisableForScene } from "../trap-combat.mjs";
 import { dcForAttempt } from "../skill-challenge-mechanics.mjs";
 import {
   traitFieldHtml,
@@ -849,7 +848,6 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       hide: DungeonApp.#onHide,
       attemptSkillChallenge: DungeonApp.#onAttemptSkillChallenge,
       attemptPuzzleStage: DungeonApp.#onAttemptPuzzleStage,
-      attemptTrapDisable: DungeonApp.#onAttemptTrapDisable,
       continueNarrative: DungeonApp.#onContinueNarrative,
       chooseNarrativeOption: DungeonApp.#onChooseNarrativeOption,
       claimTreasure: DungeonApp.#onClaimTreasure,
@@ -1049,24 +1047,9 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     let trap = null;
     if (isTrapRoom && currentRoom.trap) {
       const raw = currentRoom.trap;
-      const trapScene = game.scenes.get(sceneId);
-      const trapHazardToken = trapScene?.tokens.find(
-        (t) =>
-          t.getFlag(MODULE_ID, "trapHazard") &&
-          !t.actor?.getFlag(MODULE_ID, "trapTriggered"),
-      );
-      const trapHazardActor = trapHazardToken?.actor;
       trap = {
         name: raw.name,
         description: raw.description,
-        hasHazard: !!trapHazardActor,
-        detected: trapHazardActor?.getFlag(MODULE_ID, "trapDetected") ?? false,
-        disableChecks: trapHazardActor
-          ? classifyTrap(trapHazardActor).disableChecks.map((c) => ({
-              skill: c.skill,
-              label: c.label ?? c.skill,
-            }))
-          : [],
       };
     }
 
@@ -1207,8 +1190,8 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       // plain Succeed/Fail buttons.
       isPuzzleRoom,
       puzzle,
-      // #753: a trap room keeps its Succeed/Fail footer; this only adds the
-      // disable-attempt form once the party has detected the trap.
+      // A trap room keeps its Succeed/Fail footer; disabling is done by
+      // clicking the trap token (#754), not from this tracker.
       isTrapRoom,
       trap,
       // #163: a narrative room's own "direction for the rest of the run" —
@@ -1462,24 +1445,6 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * actor from. A no-op if the stage doesn't exist, was already
    * attempted, or the form has no actor selected.
    */
-  static async #onAttemptTrapDisable() {
-    const sceneId = canvas?.scene?.id;
-    if (!sceneId) return;
-    const form = this.element.querySelector(".pf2edc-dungeon__trap-disable-form");
-    const actorId = form?.querySelector('[name="actorId"]')?.value;
-    const skill = form?.querySelector('[name="skill"]')?.value;
-    if (!actorId || !skill) return;
-
-    // A null result (no hazard, or the actor lacks that skill) is a quiet
-    // no-op: the re-render below simply shows nothing changed.
-    if (game.user.isGM) {
-      await attemptTrapDisableForScene(sceneId, actorId, skill);
-    } else {
-      await requestDungeonAction("attemptTrapDisable", { sceneId, actorId, skill });
-    }
-    this.render();
-  }
-
   static async #onAttemptPuzzleStage(event, target) {
     const sceneId = canvas?.scene?.id;
     const state = sceneId ? getRunState(sceneId) : null;

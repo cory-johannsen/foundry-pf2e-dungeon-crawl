@@ -69,7 +69,7 @@
 **Files:**
 - Modify: `templates/dungeon-tracker.hbs`, `scripts/ui/dungeon-app.mjs`, `lang/en.json`, `tests/trap-disable-ui.test.mjs`
 
-- [ ] **Step 1:** Delete the trap block in the template (`pf2edc-dungeon__trap` / disable form), the `#onAttemptTrapDisable` handler + its `actions` registration, the `trap.hasHazard/detected/disableChecks` context additions (keep `isTrapRoom`/`trap.name`/`trap.description` display behavior unchanged), and the now-unused lang keys (`DisableButton`, `NotDetectedHint`, `SkillLabel`, `WhoLabel`) — keep keys still used elsewhere (grep first).
-- [ ] **Step 2:** Update tests: delete assertions for the removed form; add assertions that the removed strings/handler no longer appear.
-- [ ] **Step 3:** Run affected tests (dungeon-app*, trap*, lang tests), confirm green.
-- [ ] **Step 4:** Commit; bump `module.json` (minor) if not already bumped in this branch.
+- [x] **Step 1:** Delete the trap block in the template (`pf2edc-dungeon__trap` / disable form), the `#onAttemptTrapDisable` handler + its `actions` registration, the `trap.hasHazard/detected/disableChecks` context additions (keep `isTrapRoom`/`trap.name`/`trap.description` display behavior unchanged), and the now-unused lang keys (`DisableButton`, `NotDetectedHint`, `SkillLabel`, `WhoLabel`) — keep keys still used elsewhere (grep first).
+- [x] **Step 2:** Update tests: delete assertions for the removed form; add assertions that the removed strings/handler no longer appear.
+- [x] **Step 3:** Run affected tests (dungeon-app*, trap*, lang tests), confirm green.
+- [x] **Step 4:** Commit; bump `module.json` (minor) if not already bumped in this branch.

@@ -374,7 +374,6 @@ graph LR
   scripts_ui_dungeon_app_mjs --> scripts_encounter_roster_mjs
   scripts_ui_dungeon_app_mjs --> scripts_skill_challenge_mjs
   scripts_ui_dungeon_app_mjs --> scripts_puzzle_mjs
-  scripts_ui_dungeon_app_mjs --> scripts_trap_combat_mjs
   scripts_ui_dungeon_app_mjs --> scripts_skill_challenge_mechanics_mjs
   scripts_ui_dungeon_app_mjs --> scripts_trait_picker_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_scene_mjs

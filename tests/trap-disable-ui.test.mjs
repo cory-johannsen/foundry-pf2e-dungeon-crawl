@@ -12,64 +12,41 @@ const remoteSource = read("../scripts/dungeon-remote.mjs");
 const MODULE_ID = "pf2e-dungeon-crawl";
 const { attemptTrapDisableForScene } = await import("../scripts/trap-combat.mjs");
 
-describe("#753 trap disable template", () => {
-  const formAt = template.indexOf('class="pf2edc-dungeon__trap-disable-form"');
-  const before = template.slice(0, formAt);
-
-  it("has the trap block and form", () => {
-    expect(formAt).toBeGreaterThan(-1);
-    expect(template).toContain('data-action="attemptTrapDisable"');
-  });
-
-  it("form sits inside an interactive gate (not isGM) and a trap.detected gate", () => {
-    expect(template.match(/\{\{#if isGM\}\}/g)?.length ?? 0).toBe(1);
-    const blockStart = before.lastIndexOf('<div class="pf2edc-dungeon__trap">');
-    expect(blockStart).toBeGreaterThan(-1);
-    const inBlock = before.slice(blockStart);
-    expect(inBlock).toContain("{{#if interactive}}");
-    expect(inBlock).toContain("{{#if trap.detected}}");
-    expect(inBlock.indexOf("{{#if interactive}}")).toBeLessThan(
-      inBlock.indexOf("{{#if trap.detected}}"),
-    );
-  });
-
-  it("not-detected hint renders in the else of trap.detected", () => {
-    const hint = template.indexOf("PF2EDC.Dungeon.Trap.NotDetectedHint");
-    expect(hint).toBeGreaterThan(formAt);
-    expect(template.slice(formAt, hint)).toContain("{{else}}");
+describe("#754 tracker disable form removed", () => {
+  it("template has no trap block, form or action", () => {
+    expect(template).not.toContain("pf2edc-dungeon__trap-disable-form");
+    expect(template).not.toContain('<div class="pf2edc-dungeon__trap">');
+    expect(template).not.toContain("attemptTrapDisable");
+    expect(template).not.toContain("trap.hasHazard");
+    expect(template).not.toContain("trap.detected");
+    expect(template).not.toContain("trap.disableChecks");
   });
 
   it("trap rooms keep the Succeed/Fail footer", () => {
-    const trapBlock = template.indexOf('<div class="pf2edc-dungeon__trap">');
-    expect(template.indexOf('data-action="succeed"')).toBeGreaterThan(trapBlock);
+    expect(template).toContain('data-action="succeed"');
+    expect(template).toContain('data-action="fail"');
   });
 
-  it.each([
-    "DisableButton",
-    "DetectedChat",
-    "DisableSuccessChat",
-    "DisableFailureChat",
-    "TriggeredChat",
-    "NotDetectedHint",
-    "SkillLabel",
-    "WhoLabel",
-  ])("lang has non-empty PF2EDC.Dungeon.Trap.%s", (k) => {
-    const v = lang[`PF2EDC.Dungeon.Trap.${k}`];
-    expect(typeof v).toBe("string");
-    expect(v.length).toBeGreaterThan(0);
-  });
+  it.each(["DisableButton", "NotDetectedHint", "SkillLabel", "WhoLabel"])(
+    "removed lang key PF2EDC.Dungeon.Trap.%s is gone",
+    (k) => {
+      expect(lang[`PF2EDC.Dungeon.Trap.${k}`]).toBeUndefined();
+    },
+  );
 
   it.each(["DetectedChat", "DisableSuccessChat", "DisableFailureChat", "TriggeredChat"])(
-    "%s uses only the {name} and {trap} placeholders the code passes",
+    "lang keeps PF2EDC.Dungeon.Trap.%s and uses only {name}/{trap}",
     (k) => {
       const v = lang[`PF2EDC.Dungeon.Trap.${k}`];
+      expect(typeof v).toBe("string");
+      expect(v.length).toBeGreaterThan(0);
       const used = [...v.matchAll(/\{(\w+)\}/g)].map((m) => m[1]);
       expect(used.sort()).toEqual(["name", "trap"]);
     },
   );
 });
 
-describe("#753 wiring", () => {
+describe("#753 remote wiring", () => {
   it("dungeon-remote registers attemptTrapDisable routed to attemptTrapDisableForScene", () => {
     expect(remoteSource).toMatch(
       /attemptTrapDisable:\s*\(args\)\s*=>\s*attemptTrapDisableForScene\(args\.sceneId, args\.actorId, args\.skill, \{\s*requestingUserId: args\.requestingUserId,?\s*\}\)/,
@@ -79,12 +56,14 @@ describe("#753 wiring", () => {
     );
   });
 
-  it("dungeon-app registers the action, handler gates null results safely", () => {
-    expect(appSource).toContain("attemptTrapDisable: DungeonApp.#onAttemptTrapDisable");
-    // the handler never dereferences the (possibly null) roll result
-    const h = appSource.slice(appSource.indexOf("static async #onAttemptTrapDisable"));
-    const body = h.slice(0, h.indexOf("static async #onAttemptPuzzleStage"));
-    expect(body).not.toMatch(/result\./);
+  it("dungeon-app no longer has the tracker handler, action or imports", () => {
+    expect(appSource).not.toContain("onAttemptTrapDisable");
+    expect(appSource).not.toContain("attemptTrapDisable");
+    expect(appSource).not.toContain("attemptTrapDisableForScene");
+    expect(appSource).not.toContain("classifyTrap");
+    expect(appSource).not.toContain("hasHazard");
+    expect(appSource).toContain("isTrapRoom");
+    expect(appSource).toMatch(/name: raw\.name,\s*description: raw\.description,/);
   });
 });
 
