@@ -174,10 +174,12 @@
                 <p class="hint">{{localize
                     "PF2EDC.Dungeon.SkillChallenge.NotRevealedHint"
                   }}</p>
+                {{#if showRoomFeatureFallback}}
                 <button
                   type="button"
                   data-action="revealRoomFeature" data-kind="skill_challenge"
                 >{{localize "PF2EDC.Dungeon.RoomFeature.RevealButton"}}</button>
+                {{/if}}
               {{/if}}
               {{/if}}
             </div>
@@ -239,7 +241,7 @@
                     "PF2EDC.Dungeon.Treasure.Placeholder"
                   }}</p>
               {{/unless}}
-              {{#if interactive}}
+              {{#if showRoomFeatureFallback}}
               <footer>
                 <button type="button" data-action="claimTreasure">{{localize
                     "PF2EDC.Dungeon.Treasure.ClaimButton"
@@ -263,10 +265,12 @@
                   <p class="hint">{{localize
                       "PF2EDC.Dungeon.Puzzle.NotRevealedHint"
                     }}</p>
+                  {{#if showRoomFeatureFallback}}
                   <button
                     type="button"
                     data-action="revealRoomFeature" data-kind="puzzle"
                   >{{localize "PF2EDC.Dungeon.RoomFeature.RevealButton"}}</button>
+                  {{/if}}
                 {{/unless}}
               {{/if}}
               <ul class="pf2edc-dungeon__puzzle-stages">

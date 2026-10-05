@@ -348,7 +348,7 @@ Hooks.on("updateWall", async (wall, changes) => {
  * authoritative runRoomFeatureAction itself, anyone else relays it.
  * `token` is the canvas Token placeable -- flags and scene come from its
  * document (`token.document`), with `token.*` fallbacks for a document. */
-Hooks.on("targetToken", async (user, token, targeted) => {
+async function triggerRoomFeatureToken(user, token, targeted) {
   const doc = token?.document ?? token;
   const sceneId = doc?.parent?.id ?? token?.scene?.id;
   const route = routeTargetTokenEvent({
@@ -373,6 +373,32 @@ Hooks.on("targetToken", async (user, token, targeted) => {
   } else {
     await requestDungeonAction("roomFeatureInteract", route);
   }
+}
+
+Hooks.on("targetToken", (user, token, targeted) =>
+  triggerRoomFeatureToken(user, token, targeted),
+);
+
+/** A plain left-click on a token only selects it (and does nothing at all on
+ * a token the player doesn't own), so it never fires `targetToken`. Treat a
+ * click on a room-feature prop as the interaction too. The original click
+ * handler still runs, so selection/target-tool behavior is unchanged. */
+Hooks.once("ready", () => {
+  const proto = CONFIG.Token?.objectClass?.prototype;
+  const original = proto?._onClickLeft;
+  if (typeof original !== "function") return;
+  proto._onClickLeft = function (event, ...rest) {
+    try {
+      if (
+        game.activeTool !== "target" &&
+        this.document?.flags?.[MODULE_ID]?.roomFeatureKind
+      )
+        void triggerRoomFeatureToken(game.user, this, true);
+    } catch (err) {
+      console.error(`${MODULE_ID} | room-feature click failed`, err);
+    }
+    return original.call(this, event, ...rest);
+  };
 });
 
 /** #439: binds the "Turn back" button on the retreat chat card (posted by

@@ -235,3 +235,17 @@ describe("hasRoomFeatureToken", () => {
     expect(hasRoomFeatureToken(undefined, "r1", "treasure")).toBe(false);
   });
 });
+
+import { showRoomFeatureFallback } from "../scripts/room-feature-tokens.mjs";
+describe("showRoomFeatureFallback (#611/#623)", () => {
+  it("hides sidebar controls from a non-GM host when a prop token exists", () => {
+    expect(showRoomFeatureFallback({ interactive: true, isGM: false, tokenPresent: true })).toBe(false);
+  });
+  it("keeps them for the GM, and as the fallback when no prop exists", () => {
+    expect(showRoomFeatureFallback({ interactive: true, isGM: true, tokenPresent: true })).toBe(true);
+    expect(showRoomFeatureFallback({ interactive: true, isGM: false, tokenPresent: false })).toBe(true);
+  });
+  it("never shows them to a non-interactive viewer", () => {
+    expect(showRoomFeatureFallback({ interactive: false, isGM: false, tokenPresent: false })).toBe(false);
+  });
+});

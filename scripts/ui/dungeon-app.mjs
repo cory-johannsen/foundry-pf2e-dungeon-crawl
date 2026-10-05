@@ -15,7 +15,11 @@ import {
   setMarchingOrder,
   revealRoomFeature,
 } from "../dungeon-runner.mjs";
-import { runRoomFeatureAction } from "../room-feature-tokens.mjs";
+import {
+  hasRoomFeatureToken,
+  runRoomFeatureAction,
+  showRoomFeatureFallback,
+} from "../room-feature-tokens.mjs";
 import { canActOnDungeon } from "../dungeon-permissions.mjs";
 import { fulfillPendingCustomizations } from "../dungeon-customization-fulfillment.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
@@ -1108,11 +1112,27 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       isLast: index === marchingOrderIds.length - 1,
     }));
 
+    // #611/#623: a player (even the run's host) uses the in-scene prop when
+    // one exists; the sidebar claim/reveal controls remain for the GM and as
+    // a fallback when the room has no prop token.
+    const featureScene = game.scenes.get(sceneId);
+    const kindForRoom = currentRoom?.kind;
+    const roomFeatureTokenPresent = hasRoomFeatureToken(
+      [...(featureScene?.tokens ?? [])].map((t) => t.flags?.[MODULE_ID]),
+      currentRoom?.id,
+      kindForRoom,
+    );
+
     return {
       hasScene: true,
       hasRun: true,
       isGM: game.user.isGM,
       interactive,
+      showRoomFeatureFallback: showRoomFeatureFallback({
+        interactive,
+        isGM: game.user.isGM,
+        tokenPresent: roomFeatureTokenPresent,
+      }),
       hostName,
       sceneId,
       currentRoomId: currentRoom?.id ?? null,

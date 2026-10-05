@@ -34,8 +34,9 @@ describe("room-feature reveal gating", () => {
   });
 
   it("claim, challenge and puzzle controls sit inside an interactive gate", () => {
+    // claim button: gated by showRoomFeatureFallback (= interactive AND
+    // (GM or no prop token)), asserted below
     for (const marker of [
-      'data-action="claimTreasure"',
       'class="pf2edc-dungeon__skill-challenge-form"',
       'class="pf2edc-dungeon__puzzle-stage-form"',
     ]) {
@@ -46,6 +47,20 @@ describe("room-feature reveal gating", () => {
         before.lastIndexOf("{{else if is"),
       );
     }
+  });
+
+  it("claim and reveal buttons sit inside the showRoomFeatureFallback gate", () => {
+    for (const marker of [
+      'data-action="claimTreasure"',
+      'data-action="revealRoomFeature" data-kind="skill_challenge"',
+      'data-action="revealRoomFeature" data-kind="puzzle"',
+    ]) {
+      const before = template.slice(0, template.indexOf(marker));
+      expect(before.lastIndexOf("{{#if showRoomFeatureFallback}}")).toBeGreaterThan(
+        before.lastIndexOf("{{else if is"),
+      );
+    }
+    expect(appSource).toContain("showRoomFeatureFallback({");
   });
 
   it("context exposes revealed on both challenge and puzzle", () => {

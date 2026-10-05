@@ -113,3 +113,13 @@ export function hasRoomFeatureToken(flagsList, roomId, kind) {
   }
   return false;
 }
+
+/**
+ * #611/#623: whether the tracker shows the sidebar claim/reveal controls.
+ * The GM always does; a non-GM operator (the run's host) only when the room
+ * has no prop token to interact with, so a prop-less room is never a dead end.
+ */
+export function showRoomFeatureFallback({ interactive, isGM, tokenPresent }) {
+  if (!interactive) return false;
+  return !!isGM || !tokenPresent;
+}
