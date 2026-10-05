@@ -822,6 +822,41 @@ export async function ensurePuzzleState(
   return newState;
 }
 
+const ROOM_FEATURE_STATE_KEY = {
+  puzzle: "puzzle",
+  skill_challenge: "challenge",
+};
+
+/**
+ * Marks a room's puzzle/skill-challenge state as `revealed` (#611/#623) —
+ * the room-feature token's own interaction sets this, unlocking the GM's
+ * existing Attempt form in the sidebar. Deliberately only ever touches
+ * `revealed`: the actual attempt (and its `resolved`/`successes`/`vp`
+ * fields) still needs a player-chosen actor (and, for a skill challenge, a
+ * skill) that a token interaction can't carry — this never attempts
+ * anything on the room's behalf.
+ */
+export async function revealRoomFeature(
+  sceneId,
+  roomId,
+  kind,
+  { settingsRef = defaultSettingsRef() } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  const room = state.rooms[roomId];
+  const stateKey = ROOM_FEATURE_STATE_KEY[kind];
+  const feature = room?.[stateKey];
+  if (!feature || feature.revealed) return state;
+  const rooms = {
+    ...state.rooms,
+    [roomId]: { ...room, [stateKey]: { ...feature, revealed: true } },
+  };
+  const newState = { ...state, rooms };
+  await persist(sceneId, newState, settingsRef);
+  return newState;
+}
+
 /**
  * Teardown counterpart to `ensurePuzzleState` above (#62 mutation
  * reconciliation) — clears `roomId`'s own `puzzle` state back to `null` so
