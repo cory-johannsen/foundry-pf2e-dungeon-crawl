@@ -259,7 +259,7 @@ git commit -m "Migrate creature-art files/ids to per-source directories (#628)"
 
 **Interfaces:** None new — this task only tightens validation of the data Task 1 already produced.
 
-- [ ] **Step 1: Update the schema's `art` pattern and description**
+- [x] **Step 1: Update the schema's `art` pattern and description**
 
 In `data/schema/creature-art.schema.json`, change:
 
@@ -281,12 +281,12 @@ to:
         }
 ```
 
-- [ ] **Step 2: Run the existing validator to confirm the post-migration data passes the tightened schema**
+- [x] **Step 2: Run the existing validator to confirm the post-migration data passes the tightened schema**
 
 Run: `node tools/validate-creature-art.mjs`
 Expected: `OK: <E> creature-art entries validate against schema` and `<E> unique creature-art entries, no duplicate lookup keys` — both already-existing checks, now exercised against the new `<source>/<filename>.webp` shape.
 
-- [ ] **Step 3: Add the folder/pack-agreement check**
+- [x] **Step 3: Add the folder/pack-agreement check**
 
 In `tools/validate-creature-art.mjs`, add after the existing duplicate-key check (the file's last block):
 
@@ -317,12 +317,12 @@ if (folderMismatches.length) {
 console.log(`${creatureArt.length} entries' art paths agree with their own pack's derived source (or shared/)`);
 ```
 
-- [ ] **Step 4: Run the validator again to confirm the new check passes on the real, migrated data**
+- [x] **Step 4: Run the validator again to confirm the new check passes on the real, migrated data**
 
 Run: `node tools/validate-creature-art.mjs`
 Expected: all four checks print OK, including the new `entries' art paths agree...` line.
 
-- [ ] **Step 5: Make `check-token-art.mjs`'s directory scan recursive**
+- [x] **Step 5: Make `check-token-art.mjs`'s directory scan recursive**
 
 In `tools/check-token-art.mjs`, change:
 
@@ -340,12 +340,12 @@ const files = dirs.flatMap((dir) => (existsSync(dir) ? readdirSync(dir, { recurs
 
 (`readdirSync`'s `{ recursive: true }` option, available since Node 18.17, returns paths relative to `dir` including any subdirectory — `join(dir, f)` already handles that correctly with no further change needed.)
 
-- [ ] **Step 6: Confirm the recursive scan finds the same total count as an independent `find`**
+- [x] **Step 6: Confirm the recursive scan finds the same total count as an independent `find`**
 
 Run: `node -e "const {readdirSync}=require('node:fs'); console.log(readdirSync('assets/creature-art',{recursive:true}).filter(f=>f.endsWith('.webp')).length)"` and separately `find assets/creature-art -name '*.webp' | wc -l`
 Expected: both report the same number, equal to Task 1's `<N>`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add data/schema/creature-art.schema.json tools/validate-creature-art.mjs tools/check-token-art.mjs
