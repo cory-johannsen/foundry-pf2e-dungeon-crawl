@@ -47070,5 +47070,165 @@
     "name": "The Promised One",
     "level": 15,
     "art": "the-promised-one.webp"
+  },
+  {
+    "id": "giant_lightning_serpent",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "1Nr9cgWHMn8KtiXe",
+    "name": "Giant Lightning Serpent",
+    "level": 2,
+    "art": "giant-lightning-serpent.webp"
+  },
+  {
+    "id": "stone_horse",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "23kCcF391RtapbfJ",
+    "name": "Stone Horse",
+    "level": 2,
+    "art": "stone-horse.webp"
+  },
+  {
+    "id": "lord_nar",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "3h9BvfzrIU6fNxch",
+    "name": "Lord Nar",
+    "level": 4,
+    "art": "lord-nar.webp"
+  },
+  {
+    "id": "fiery_leopard",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "9dUSCjehW90dZalE",
+    "name": "Fiery Leopard",
+    "level": 1,
+    "art": "fiery-leopard.webp"
+  },
+  {
+    "id": "drunken_farmer",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "BgBTntoz1qQ3h1X5",
+    "name": "Drunken Farmer",
+    "level": -1,
+    "art": "drunken-farmer.webp"
+  },
+  {
+    "id": "bloodlash_bush",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "C7Wb70xpG2PvTslg",
+    "name": "Bloodlash Bush",
+    "level": 2,
+    "art": "bloodlash-bush.webp"
+  },
+  {
+    "id": "icy_rat",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "EhtODTbFdElXSyXX",
+    "name": "Icy Rat",
+    "level": 0,
+    "art": "icy-rat.webp"
+  },
+  {
+    "id": "vilree",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "Er9kW7JtUX4zf15Q",
+    "name": "Vilree",
+    "level": 5,
+    "art": "vilree.webp"
+  },
+  {
+    "id": "hallod",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "H4yGpC6VuQpszlUl",
+    "name": "Hallod",
+    "level": 3,
+    "art": "hallod.webp"
+  },
+  {
+    "id": "the_behemoth",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "IU4Gx9vHKMT2KYDq",
+    "name": "The Behemoth",
+    "level": 3,
+    "art": "the-behemoth.webp"
+  },
+  {
+    "id": "caustic_wolf",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "PFBclNHc78MqYjBB",
+    "name": "Caustic Wolf",
+    "level": 2,
+    "art": "caustic-wolf.webp"
+  },
+  {
+    "id": "mutant_wolf",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "WV8sdgARGVUb39WM",
+    "name": "Mutant Wolf",
+    "level": 3,
+    "art": "mutant-wolf.webp"
+  },
+  {
+    "id": "orc_alchemist",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "X0AJV2Zfj2d6rab5",
+    "name": "Orc Alchemist",
+    "level": 2,
+    "art": "orc-alchemist-lob.webp"
+  },
+  {
+    "id": "ooze",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "b2PXIdbqdzlkGkeX",
+    "name": "Blood Ooze",
+    "level": 4,
+    "art": "ooze.webp"
+  },
+  {
+    "id": "the_sculptor",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "h9b23NJBKSACAkWa",
+    "name": "The Sculptor",
+    "level": 4,
+    "art": "the-sculptor.webp"
+  },
+  {
+    "id": "mangy_wolf",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "kZI5UjgXcJjrOIR8",
+    "name": "Mangy Wolf",
+    "level": -1,
+    "art": "mangy-wolf.webp"
+  },
+  {
+    "id": "the_amalgam",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "lPHwAyFAeAhHLNnU",
+    "name": "The Amalgam",
+    "level": 4,
+    "art": "the-amalgam.webp"
+  },
+  {
+    "id": "graytusk",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "mTVzzdrinwHbsvqu",
+    "name": "Graytusk",
+    "level": 3,
+    "art": "graytusk.webp"
+  },
+  {
+    "id": "vine_lasher",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "wBCpq9pX4NZFXE0T",
+    "name": "Vine Lasher",
+    "level": 0,
+    "art": "vine-lasher.webp"
+  },
+  {
+    "id": "alchemical_drudge",
+    "pack": "pf2e.fall-of-plaguestone-bestiary",
+    "docId": "yFfT9yPbUzldlhxN",
+    "name": "Alchemical Drudge",
+    "level": 2,
+    "art": "alchemical-drudge.webp"
   }
 ]
