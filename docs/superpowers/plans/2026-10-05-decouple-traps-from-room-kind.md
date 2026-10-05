@@ -690,7 +690,7 @@ git commit -m "feat(#754): add trapRollSucceeds independent placement check
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ```
 
-- [ ] **Step 6: Replace the kind-gated trap branch in `dungeon-scene.mjs`**
+- [x] **Step 6: Replace the kind-gated trap branch in `dungeon-scene.mjs`**
 
 Import `trapRollSucceeds` from `./dungeon-deck.mjs` at the top of `scripts/dungeon-scene.mjs` (add to whatever existing import from that file is already there, or add a new import line if none exists).
 
@@ -759,7 +759,7 @@ Add this new, kind-agnostic check at the point where both the `combat` branch an
   }
 ```
 
-- [ ] **Step 7: Run the full test suite to confirm no regression**
+- [x] **Step 7: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS, every test in the repo green.
@@ -774,7 +774,7 @@ echo 'const state = game.settings.get("pf2e-dungeon-crawl", "dungeonRuns")[canva
 
 Expected, across several real runs: traps now appear in rooms of multiple different kinds (not only a dedicated `trap` kind, which no longer exists at all), never in a `safe_entry`/`safe_rest`/goal room, and at a rate in the same rough ballpark as `trapRollSucceeds`'s own confirmed ~8.3%. For any run that happens to include a `combat`-kind room with a trap, confirm the trap hazard token's own position doesn't overlap any of that room's encounter tokens (read both sets of tokens' `x`/`y`/`width`/`height` and check for overlap) — this is the one scenario Task 2's own unit tests can't exercise (`populateSlotTrap`'s real occupied-avoidance logic only runs against a live scene's real token positions).
 
-- [ ] **Step 9: Bump module.json's version**
+- [x] **Step 9: Bump module.json's version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -784,7 +784,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **minor** bump (a real behavioral change to room generation), e.g. `0.61.1` → `0.62.0`, using whatever the fetch above shows as current.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs module.json
