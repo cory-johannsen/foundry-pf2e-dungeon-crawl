@@ -36,6 +36,7 @@
  * entries in `pf2e.hazards` are non-complex; this boundary is deliberately
  * scoped to the common case, not every possible hazard shape.
  */
+import { splitmix32, seedFromString } from "./prng.mjs";
 
 const DISABLE_CHECK_PATTERN =
   /@Check\[([\w-]+)\|dc:(\d+)(?:\|name:([^\]|]+))?/g;
@@ -64,6 +65,21 @@ export function parseDisableChecks(disableHtml) {
  */
 export function trapDetectionDC(stealthValue) {
   return 10 + (stealthValue ?? 0);
+}
+
+/** #757: a trap's footprint size -- PF2e's own hazard data never
+ * specifies one larger than 1x1 (confirmed live against all 53
+ * pf2e.hazards entries), so this is a module-invented, seeded
+ * convention for visual/tactical variety: 70% stay 1x1, 20% become an
+ * elongated 2x1 or 1x2 (even split), 10% become 2x2. */
+export function trapFootprintSize(seed, roomId) {
+  const rand = splitmix32(seedFromString(`${seed}-trap-footprint-${roomId}`));
+  const roll = rand();
+  if (roll < 0.7) return { width: 1, height: 1 };
+  if (roll < 0.9) {
+    return rand() < 0.5 ? { width: 2, height: 1 } : { width: 1, height: 2 };
+  }
+  return { width: 2, height: 2 };
 }
 
 /** #753: what a party token's new position means for a not-yet-triggered

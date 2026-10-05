@@ -36,7 +36,7 @@
 **Interfaces:**
 - Produces: `export function trapFootprintSize(seed, roomId): {width: number, height: number}`. Consumed by Task 3.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/trap-mechanics.test.mjs` (add `trapFootprintSize` to the existing import from `../scripts/trap-mechanics.mjs`):
 
@@ -101,12 +101,12 @@ describe('trapFootprintSize', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/trap-mechanics.test.mjs -t "trapFootprintSize"`
 Expected: FAIL — `trapFootprintSize is not a function`.
 
-- [ ] **Step 3: Write `trapFootprintSize`**
+- [x] **Step 3: Write `trapFootprintSize`**
 
 Add this import to the top of `scripts/trap-mechanics.mjs` (currently has no imports at all):
 
@@ -133,17 +133,17 @@ export function trapFootprintSize(seed, roomId) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/trap-mechanics.test.mjs -t "trapFootprintSize"`
 Expected: PASS, all 5 tests green.
 
-- [ ] **Step 5: Run the full test file to confirm no regression**
+- [x] **Step 5: Run the full test file to confirm no regression**
 
 Run: `npx vitest run tests/trap-mechanics.test.mjs`
 Expected: PASS, every existing test in this file still green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/trap-mechanics.mjs tests/trap-mechanics.test.mjs
