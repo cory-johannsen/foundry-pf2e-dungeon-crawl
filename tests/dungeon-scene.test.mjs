@@ -520,24 +520,29 @@ describe('buildPopulateAndUnlockGraphNode — corridor floor tile grid alignment
   });
 });
 
-describe('effectiveRoomBias (#412)', () => {
+describe('effectiveRoomBias (#412, #636)', () => {
   const room = { rank: 3, maxRank: 6, isGoal: false }; // ramp bias 1
   const goal = { rank: 6, maxRank: 6, isGoal: true }; // ramp bias 2
 
-  it('severe and a missing difficulty equal the raw depth ramp', () => {
+  it('severe equals the raw depth ramp', () => {
     expect(effectiveRoomBias({ ...room, difficulty: 'severe' })).toBe(1);
-    expect(effectiveRoomBias({ ...room })).toBe(1);
-    expect(effectiveRoomBias({ ...goal, difficulty: undefined })).toBe(2);
+    expect(effectiveRoomBias({ ...goal, difficulty: 'severe' })).toBe(2);
   });
 
-  it('low flattens the ramp, trivial goes below zero everywhere', () => {
+  it('a missing difficulty reads as moderate, one step below the ramp', () => {
+    expect(effectiveRoomBias({ ...room })).toBe(0);
+    expect(effectiveRoomBias({ ...goal, difficulty: undefined })).toBe(1);
+  });
+
+  it('low and trivial shift the whole ramp down, never below -1', () => {
+    expect(effectiveRoomBias({ ...room, difficulty: 'low' })).toBe(-1);
     expect(effectiveRoomBias({ ...goal, difficulty: 'low' })).toBe(0);
-    expect(effectiveRoomBias({ ...goal, difficulty: 'trivial' })).toBe(-1);
     expect(effectiveRoomBias({ ...room, difficulty: 'trivial' })).toBe(-1);
+    expect(effectiveRoomBias({ ...goal, difficulty: 'trivial' })).toBe(-1);
   });
 
-  it('extreme lifts only the deepest rooms', () => {
-    expect(effectiveRoomBias({ ...room, difficulty: 'extreme' })).toBe(1);
+  it('extreme shifts every room up one, topping out at 3', () => {
+    expect(effectiveRoomBias({ ...room, difficulty: 'extreme' })).toBe(2);
     expect(effectiveRoomBias({ ...goal, difficulty: 'extreme' })).toBe(3);
   });
 });

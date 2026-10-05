@@ -27,7 +27,7 @@ import {
   revealTravelTimeEffect,
   DIFFICULTY_TIERS,
   normalizeDifficulty,
-  applyDifficultyCap
+  applyDifficultyShift
 } from '../scripts/dungeon-deck.mjs';
 import { nthLevelTableName, VALUABLE_TIERS } from '../scripts/treasure.mjs';
 
@@ -893,44 +893,59 @@ describe('insertRestRoom', () => {
   });
 });
 
-describe('difficulty tiers (#412)', () => {
+describe('difficulty tiers (#412, #636)', () => {
   it('lists the five tiers in order', () => {
     expect(DIFFICULTY_TIERS).toEqual(['trivial', 'low', 'moderate', 'severe', 'extreme']);
   });
 
-  it('normalizes missing or unknown values to severe', () => {
-    expect(normalizeDifficulty(undefined)).toBe('severe');
-    expect(normalizeDifficulty(null)).toBe('severe');
-    expect(normalizeDifficulty('nightmare')).toBe('severe');
-    expect(normalizeDifficulty('low')).toBe('low');
+  it('normalizes missing or unknown values to moderate and keeps every valid tier as-is', () => {
+    expect(normalizeDifficulty(undefined)).toBe('moderate');
+    expect(normalizeDifficulty(null)).toBe('moderate');
+    expect(normalizeDifficulty('nightmare')).toBe('moderate');
+    for (const tier of DIFFICULTY_TIERS) expect(normalizeDifficulty(tier)).toBe(tier);
   });
 
-  it('severe is the identity on the 0..2 ramp', () => {
-    for (const b of [0, 1, 2]) expect(applyDifficultyCap(b, 'severe')).toBe(b);
-  });
-
-  it('a missing or unknown tier behaves as severe', () => {
-    for (const b of [0, 1, 2]) {
-      expect(applyDifficultyCap(b, undefined)).toBe(b);
-      expect(applyDifficultyCap(b, 'bogus')).toBe(b);
+  it('shifts the whole ramp by the tier offset (early / middle / deep room)', () => {
+    const table = {
+      trivial: [-1, -1, -1],
+      low: [-1, -1, 0],
+      moderate: [-1, 0, 1],
+      severe: [0, 1, 2],
+      extreme: [1, 2, 3],
+    };
+    for (const [tier, expected] of Object.entries(table)) {
+      expect([0, 1, 2].map((b) => applyDifficultyShift(b, tier))).toEqual(expected);
     }
   });
 
-  it('low clamps every room to 0, moderate to at most 1', () => {
-    for (const b of [0, 1, 2]) expect(applyDifficultyCap(b, 'low')).toBe(0);
-    expect([0, 1, 2].map((b) => applyDifficultyCap(b, 'moderate'))).toEqual([0, 1, 1]);
+  it('severe is the identity on the 0..2 ramp', () => {
+    for (const b of [0, 1, 2]) expect(applyDifficultyShift(b, 'severe')).toBe(b);
   });
 
-  it('trivial is -1 for every room, goal room included', () => {
-    for (const b of [0, 1, 2]) expect(applyDifficultyCap(b, 'trivial')).toBe(-1);
+  it('a missing or unknown tier behaves as moderate', () => {
+    for (const b of [0, 1, 2]) {
+      expect(applyDifficultyShift(b, undefined)).toBe(applyDifficultyShift(b, 'moderate'));
+      expect(applyDifficultyShift(b, 'bogus')).toBe(applyDifficultyShift(b, 'moderate'));
+    }
   });
 
-  it('extreme matches severe except rooms at ramp bias 2, which lift to 3', () => {
-    expect([0, 1, 2].map((b) => applyDifficultyCap(b, 'extreme'))).toEqual([0, 1, 3]);
+  it('always lands within -1..3, even for biases outside the 0..2 ramp', () => {
+    for (const tier of DIFFICULTY_TIERS) {
+      for (let b = -2; b <= 5; b += 1) {
+        const r = applyDifficultyShift(b, tier);
+        expect(r).toBeGreaterThanOrEqual(-1);
+        expect(r).toBeLessThanOrEqual(3);
+      }
+    }
   });
 
-  it('extreme still lifts the goal room of the shortest dungeon', () => {
+  it('clamps at both ends', () => {
+    expect(applyDifficultyShift(-5, 'trivial')).toBe(-1);
+    expect(applyDifficultyShift(5, 'extreme')).toBe(3);
+  });
+
+  it('extreme still lifts the goal room of the shortest dungeon to 3', () => {
     const bias = depthBiasFor({ rank: 1, maxRank: 1, isGoal: true });
-    expect(applyDifficultyCap(bias, 'extreme')).toBe(3);
+    expect(applyDifficultyShift(bias, 'extreme')).toBe(3);
   });
 });
