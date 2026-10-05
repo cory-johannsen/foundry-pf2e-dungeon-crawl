@@ -172,5 +172,9 @@
   "PF2EDC.Settings.FollowerStepDelayMs.Hint": "Milliseconds followers pause between squares when following the leader outside combat.",
   "PF2EDC.Settings.FollowerStepDelayMs.Name": "Followers: pause between movement steps (ms)",
   "PF2EDC.Settings.MovementStepDelayMs.Hint": "Milliseconds AI-controlled tokens pause between each square they move. Paces AI-controlled combat.",
-  "PF2EDC.Settings.MovementStepDelayMs.Name": "AI combat: pause between movement steps (ms)"
+  "PF2EDC.Settings.MovementStepDelayMs.Name": "AI combat: pause between movement steps (ms)",
+  "PF2EDC.Settings.SoundPreview.Hint": "Audition this module's sound effects without triggering the game event each one is tied to.",
+  "PF2EDC.Settings.SoundPreview.Label": "Open Sound Preview",
+  "PF2EDC.SoundPreview.PlayButtonLabel": "Play",
+  "PF2EDC.SoundPreview.Title": "Sound Preview"
 }

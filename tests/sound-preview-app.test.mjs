@@ -44,3 +44,17 @@ describe("SoundPreviewApp", () => {
     expect(ctx.sounds).toHaveLength(Object.keys(DUNGEON_SOUND_FILES).length + 2);
   });
 });
+
+describe("settings-menu registration", () => {
+  it("module.mjs registers the soundPreview menu GM-restricted with SoundPreviewApp", () => {
+    const src = readFileSync(
+      fileURLToPath(new URL("../scripts/module.mjs", import.meta.url)),
+      "utf8",
+    );
+    const start = src.indexOf('registerMenu(MODULE_ID, "soundPreview"');
+    expect(start).toBeGreaterThan(-1);
+    const block = src.slice(start, src.indexOf("});", start));
+    expect(block).toContain("restricted: true");
+    expect(block).toContain("type: SoundPreviewApp");
+  });
+});

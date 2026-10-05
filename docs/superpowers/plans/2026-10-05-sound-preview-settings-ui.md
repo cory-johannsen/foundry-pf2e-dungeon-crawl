@@ -272,7 +272,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `SoundPreviewApp` from Task 2.
 - Produces: a working, GM-restricted entry in Foundry's own Settings UI — consumed (verified) by Task 4.
 
-- [ ] **Step 1: Add the import and registration to `scripts/module.mjs`**
+- [x] **Step 1: Add the import and registration to `scripts/module.mjs`**
 
 Change the top import block (lines 2-6) from:
 
@@ -335,7 +335,7 @@ to:
 });
 ```
 
-- [ ] **Step 2: Add the new keys to `lang/en.json`**
+- [x] **Step 2: Add the new keys to `lang/en.json`**
 
 Change the file's last two lines (173-174) from:
 
@@ -355,7 +355,7 @@ to:
 }
 ```
 
-- [ ] **Step 3: Add the stylesheet section**
+- [x] **Step 3: Add the stylesheet section**
 
 Append to the end of `styles/dungeon.css`:
 
@@ -367,12 +367,12 @@ Append to the end of `styles/dungeon.css`:
 .pf2edc-sound-preview__label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 ```
 
-- [ ] **Step 4: Confirm the JSON is still valid**
+- [x] **Step 4: Confirm the JSON is still valid**
 
 Run: `node -e "JSON.parse(require('fs').readFileSync('lang/en.json', 'utf8')); console.log('valid')"`
 Expected: prints `valid` with no error.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/module.mjs lang/en.json styles/dungeon.css
