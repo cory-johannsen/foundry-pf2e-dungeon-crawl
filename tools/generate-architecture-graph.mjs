@@ -107,6 +107,7 @@ const GROUPS = [
         "scripts/treasure.mjs",
         "scripts/narrative-mechanics.mjs",
         "scripts/room-feature-tokens.mjs",
+        "scripts/room-feature-art.mjs",
       ].includes(p),
   },
   {
