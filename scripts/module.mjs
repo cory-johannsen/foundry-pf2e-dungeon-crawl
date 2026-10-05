@@ -381,26 +381,35 @@ Hooks.on("targetToken", (user, token, targeted) =>
 
 /** A plain left-click on a token only selects it, and Foundry never routes
  * a click on a token the player doesn't own through its own click handlers,
- * so nothing reaches `targetToken`. Bind a pointer listener straight on the
- * prop's canvas object instead (independent of Foundry's permission gating)
- * and treat a primary-button press as the interaction. Idempotent per token. */
-function bindRoomFeatureClick(token) {
-  if (!token?.document?.flags?.[MODULE_ID]?.roomFeatureKind) return;
-  if (token._pf2edcRoomFeatureBound || typeof token.on !== "function") return;
-  token._pf2edcRoomFeatureBound = true;
-  token.on("pointerdown", (event) => {
+ * so nothing reaches `targetToken`. A listener bound on the token itself is
+ * stripped when Foundry sets the token's interaction up, so listen on the
+ * canvas stage in the capture phase instead and walk from the pressed
+ * display object up to its Token. Primary button only; the Target tool keeps
+ * its own `targetToken` route. Idempotent per stage. */
+function roomFeatureTokenFromEvent(event) {
+  for (let o = event?.target; o; o = o.parent) {
+    if (o.document?.flags?.[MODULE_ID]?.roomFeatureKind) return o;
+  }
+  return null;
+}
+
+function bindRoomFeatureClick() {
+  const stage = canvas?.stage;
+  if (!stage || stage._pf2edcRoomFeatureBound) return;
+  stage._pf2edcRoomFeatureBound = true;
+  stage.on("pointerdowncapture", (event) => {
     if (event?.button !== undefined && event.button !== 0) return;
     if (game.activeTool === "target") return;
+    const token = roomFeatureTokenFromEvent(event);
+    if (!token) return;
     triggerRoomFeatureToken(game.user, token, true).catch((err) =>
       console.error(`${MODULE_ID} | room-feature click failed`, err),
     );
   });
 }
 
-Hooks.on("drawToken", bindRoomFeatureClick);
-Hooks.on("canvasReady", () => {
-  for (const token of canvas.tokens?.placeables ?? []) bindRoomFeatureClick(token);
-});
+Hooks.on("canvasReady", bindRoomFeatureClick);
+Hooks.once("ready", bindRoomFeatureClick);
 
 /** #439: binds the "Turn back" button on the retreat chat card (posted by
  * dungeon-scene.mjs's announceRetreatIfAvailable). Disabled, not removed, for a
