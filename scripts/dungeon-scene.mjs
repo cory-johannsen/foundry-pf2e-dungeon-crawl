@@ -1072,16 +1072,27 @@ async function spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed }) {
   };
   const actorData = buildRoomFeatureTokenActorData(kind, roomId);
   const [actor] = await Actor.createDocuments([actorData]);
-  const td = await actor.getTokenDocument({
-    x: toPixels(spot.gx),
-    y: toPixels(spot.gy),
-  });
-  // The flags live on the actor; a token document does NOT inherit actor
-  // flags (only prototypeToken flags), and both the targetToken hook and
-  // the idempotency check read the TOKEN's own flags -- so set them here.
-  const tokenData = td.toObject();
-  tokenData.flags = { ...tokenData.flags, ...actorData.flags };
-  await scene.createEmbeddedDocuments("Token", [tokenData]);
+  // A prop failure must never block room building, nor leave an orphan
+  // actor behind; the tracker's operator reveal button is the recourse.
+  try {
+    const td = await actor.getTokenDocument({
+      x: toPixels(spot.gx),
+      y: toPixels(spot.gy),
+    });
+    // The flags live on the actor; a token document does NOT inherit actor
+    // flags (only prototypeToken flags), and both the targetToken hook and
+    // the idempotency check read the TOKEN's own flags -- so set them here.
+    const tokenData = td.toObject();
+    tokenData.flags = { ...tokenData.flags, ...actorData.flags };
+    await scene.createEmbeddedDocuments("Token", [tokenData]);
+  } catch (err) {
+    console.error(`${MODULE_ID} | spawning ${kind} prop token failed`, err);
+    try {
+      await actor.delete();
+    } catch (delErr) {
+      console.error(`${MODULE_ID} | cleaning up prop actor failed`, delErr);
+    }
+  }
 }
 
 /**

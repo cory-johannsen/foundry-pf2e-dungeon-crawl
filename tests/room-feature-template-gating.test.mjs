@@ -51,4 +51,37 @@ describe("room-feature reveal gating", () => {
   it("context exposes revealed on both challenge and puzzle", () => {
     expect(appSource.split("revealed: !!raw.revealed").length - 1).toBeGreaterThanOrEqual(2);
   });
+
+  describe("operator reveal override", () => {
+    const count = (hay, needle) => hay.split(needle).length - 1;
+    const BTN = "PF2EDC.Dungeon.RoomFeature.RevealButton";
+
+    it("lang has a non-empty reveal button label", () => {
+      expect(typeof lang[BTN]).toBe("string");
+      expect(lang[BTN].length).toBeGreaterThan(0);
+    });
+
+    it.each(["skill_challenge", "puzzle"])("%s has a reveal button inside an interactive gate", (kind) => {
+      const marker = `data-action="revealRoomFeature" data-kind="${kind}"`;
+      expect(template).toContain(marker);
+      const before = template.slice(0, template.indexOf(marker));
+      expect(before.lastIndexOf("{{#if interactive}}")).toBeGreaterThan(
+        before.lastIndexOf("{{else if is"),
+      );
+    });
+
+    it("reveal button key appears exactly twice; puzzle hint exactly once", () => {
+      expect(count(template, BTN)).toBe(2);
+      expect(count(template, "PF2EDC.Dungeon.Puzzle.NotRevealedHint")).toBe(1);
+    });
+
+    it("dungeon-app registers and implements the handler via the authoritative path", () => {
+      expect(appSource).toContain("revealRoomFeature: DungeonApp.#onRevealRoomFeature");
+      const start = appSource.indexOf("static async #onRevealRoomFeature");
+      expect(start).toBeGreaterThan(-1);
+      const body = appSource.slice(start, start + 1200);
+      expect(body).toContain("runRoomFeatureAction(");
+      expect(body).toContain('requestDungeonAction("roomFeatureInteract"');
+    });
+  });
 });

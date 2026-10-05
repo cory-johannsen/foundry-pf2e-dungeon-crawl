@@ -59,6 +59,7 @@
   "PF2EDC.Dungeon.Outcome.failed": "Failed",
   "PF2EDC.Dungeon.Outcome.succeeded": "Succeeded",
   "PF2EDC.Dungeon.ProgressLabel": "Room {n} of {total}",
+  "PF2EDC.Dungeon.RoomFeature.RevealButton": "Reveal it myself (no marker needed)",
   "PF2EDC.Dungeon.Puzzle.AttemptButton": "Attempt",
   "PF2EDC.Dungeon.Puzzle.NotRevealedHint": "Waiting for a player to interact with this room's puzzle marker.",
   "PF2EDC.Dungeon.Puzzle.Progress": "Progress: {successes} / {target} checks solved",

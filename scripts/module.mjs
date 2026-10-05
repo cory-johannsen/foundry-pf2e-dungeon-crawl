@@ -361,11 +361,15 @@ Hooks.on("targetToken", async (user, token, targeted) => {
   });
   if (!route) return;
   if (game.user.isGM) {
-    await runRoomFeatureAction(route, {
-      getRunState,
-      claimTreasureFor,
-      revealRoomFeature,
-    });
+    try {
+      await runRoomFeatureAction(route, {
+        getRunState,
+        claimTreasureFor,
+        revealRoomFeature,
+      });
+    } catch (err) {
+      console.error(`${MODULE_ID} | room-feature interaction failed`, err);
+    }
   } else {
     await requestDungeonAction("roomFeatureInteract", route);
   }
