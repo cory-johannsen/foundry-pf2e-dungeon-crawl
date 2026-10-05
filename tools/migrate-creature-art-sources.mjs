@@ -11,13 +11,13 @@
  * destination (gone from the old flat path) is skipped, not re-moved or
  * erroring, so an interrupted run can be resumed.
  */
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const root = resolve(__dirname, "..");
+const root = process.env.ART_MIGRATE_ROOT ? resolve(process.env.ART_MIGRATE_ROOT) : resolve(__dirname, "..");
 const ART_DIR = resolve(root, "assets/creature-art");
 const DATA_PATH = resolve(root, "data/creature-art.json");
 const GENERATOR_PATH = resolve(root, "tools/generate-token-art.mjs");
@@ -61,19 +61,37 @@ for (const [basename, packs] of artToPacks) {
   }
 }
 
-// Safety (#628): every referenced file must exist at its old flat path OR
-// already at its destination. A file at neither would otherwise be silently
-// counted as "already moved" -- abort before touching anything.
-const missing = [];
-for (const [basename, newRelative] of newRelativePath) {
-  if (!existsSync(resolve(ART_DIR, basename)) && !existsSync(resolve(ART_DIR, newRelative))) {
-    missing.push(basename);
+// Locate every referenced file (#628): index ALL .webp under ART_DIR (flat or
+// nested) by basename. A file's CURRENT location is its single existing path;
+// it may be flat (new art), nested at its destination (already migrated), or
+// nested elsewhere (about to be promoted to shared/). Abort before moving
+// anything if a basename is missing or exists at more than one path.
+const existingByBasename = new Map();
+if (existsSync(ART_DIR)) {
+  for (const rel of readdirSync(ART_DIR, { recursive: true })) {
+    const relPosix = rel.split("\\").join("/");
+    if (!relPosix.endsWith(".webp")) continue;
+    const b = basenameOf(relPosix);
+    if (!existingByBasename.has(b)) existingByBasename.set(b, []);
+    existingByBasename.get(b).push(relPosix);
   }
 }
-if (missing.length) {
-  console.error(`${missing.length} creature-art.json entries reference files that exist at neither the flat path nor the new path (first 20): ${missing.slice(0, 20).join(", ")}`);
-  process.exit(1);
+const currentPath = new Map(); // basename -> current relative path
+const missing = [];
+const duplicated = [];
+for (const basename of newRelativePath.keys()) {
+  const found = existingByBasename.get(basename) ?? [];
+  if (found.length === 0) missing.push(basename);
+  else if (found.length > 1) duplicated.push(`${basename}: ${found.join(", ")}`);
+  else currentPath.set(basename, found[0]);
 }
+if (missing.length) {
+  console.error(`${missing.length} creature-art.json entries reference files that exist nowhere under assets/creature-art (first 20): ${missing.slice(0, 20).join(", ")}`);
+}
+if (duplicated.length) {
+  console.error(`${duplicated.length} referenced files exist at more than one path -- resolve manually, nothing was moved (first 20):\n  ${duplicated.slice(0, 20).join("\n  ")}`);
+}
+if (missing.length || duplicated.length) process.exit(1);
 
 const sharedCount = [...artToPacks.values()].filter((packs) => packs.size > 1).length;
 console.log(`${DRY_RUN ? "[dry-run] " : ""}${artToPacks.size} distinct art files, ${sharedCount} shared across packs`);
@@ -82,14 +100,15 @@ console.log(`${DRY_RUN ? "[dry-run] " : ""}${artToPacks.size} distinct art files
 let moved = 0;
 let alreadyMoved = 0;
 for (const [basename, newRelative] of newRelativePath) {
-  const oldAbsolute = resolve(ART_DIR, basename); // the flat, pre-migration location
-  const newAbsolute = resolve(ART_DIR, newRelative);
-  if (!existsSync(oldAbsolute)) {
+  const current = currentPath.get(basename);
+  if (current === newRelative) {
     alreadyMoved += 1;
     continue;
   }
+  const oldAbsolute = resolve(ART_DIR, current);
+  const newAbsolute = resolve(ART_DIR, newRelative);
   if (DRY_RUN) {
-    console.log(`git mv ${basename} -> ${newRelative}`);
+    console.log(`git mv ${current} -> ${newRelative}`);
     moved += 1;
     continue;
   }
@@ -119,9 +138,17 @@ const updatedEntries = creatureArt.map((e) => {
     source === "shared"
       ? `shared__${deriveSource(e.pack).replace(/-/g, "_")}__`
       : `${underscoredSource}__`;
-  const bareId = e.id.startsWith(expectedPrefix)
-    ? e.id.slice(expectedPrefix.length)
-    : stripLobSuffix(e.id);
+  // Strip exactly the entry's CURRENT prefix (derived from its own current
+  // art location, no guessing), then a trailing _lob, then add the new one.
+  const [currentFolder, ...currentRest] = e.art.split("/");
+  let currentPrefix = "";
+  if (currentRest.length) {
+    currentPrefix = currentFolder === "shared"
+      ? `shared__${deriveSource(e.pack).replace(/-/g, "_")}__`
+      : `${currentFolder.replace(/-/g, "_")}__`;
+  }
+  const unprefixed = currentPrefix && e.id.startsWith(currentPrefix) ? e.id.slice(currentPrefix.length) : e.id;
+  const bareId = stripLobSuffix(unprefixed);
   return {
     ...e,
     id: `${expectedPrefix}${bareId}`,

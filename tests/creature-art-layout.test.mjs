@@ -50,4 +50,12 @@ describe("creature-art layout (#628)", () => {
     const flat = readdirSync(ART_DIR).filter((f) => f.endsWith(".webp") && statSync(resolve(ART_DIR, f)).isFile());
     expect(flat).toEqual([]);
   });
+
+  it(`every .webp under assets/creature-art/ is referenced by an entry, so no orphan survives a move (${HINT})`, () => {
+    const referenced = new Set(entries.map((e) => e.art));
+    const orphans = readdirSync(ART_DIR, { recursive: true })
+      .map((f) => f.split("\\").join("/"))
+      .filter((f) => f.endsWith(".webp") && !referenced.has(f));
+    expect(orphans).toEqual([]);
+  });
 });

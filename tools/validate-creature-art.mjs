@@ -68,3 +68,19 @@ if (folderMismatches.length) {
   process.exit(1);
 }
 console.log(`${creatureArt.length} entries' art paths agree with their own pack's derived source (or shared/)`);
+
+const idPrefixMismatches = [];
+for (const entry of creatureArt) {
+  const folder = entry.art.split('/')[0];
+  const packSource = entry.pack.replace(/^pf2e\./, '').replace(/-/g, '_');
+  const prefix = folder === 'shared' ? `shared__${packSource}__` : `${folder.replace(/-/g, '_')}__`;
+  if (!entry.id.startsWith(prefix) || entry.id.endsWith('_lob')) {
+    idPrefixMismatches.push(`${entry.id}: expected prefix "${prefix}" and no _lob suffix (art ${entry.art})`);
+  }
+}
+if (idPrefixMismatches.length) {
+  console.error(`Id prefix mismatches:\n  ${idPrefixMismatches.join('\n  ')}`);
+  console.error(NORMALIZE_HINT);
+  process.exit(1);
+}
+console.log(`${creatureArt.length} ids carry their folder prefix and no _lob suffix`);
