@@ -97,3 +97,9 @@ Before generating art, on a throwaway wall in the live world: set `animation.tex
 - Changing how tokens are targeted or interacted with, or door/lock/unlock behavior.
 - Art for traps, cover items or anything else; creature token art (#16/#229).
 - Letting a GM pick custom art per room.
+
+## Amendments from planning (2026-10-05)
+
+- **No corridor door.** Every door the code builds (stub, hidden gate/reveal, real gate/reveal) sits on a room face, so `corridor/door` has no call site. Themes are the 8 `locationTag` values; the art set is **32** files, not 33.
+- **Generator integration.** Instead of a new `tools/generate-room-feature-art.mjs`, prompts live in `tools/room-feature-art-prompts.mjs` as a `ROOM_FEATURE_ART` subject list spread into the existing generator's `ALL` list (ids `rf-<theme>-<kind>`). This reuses its backends and skip-if-exists logic with less risk than importing internals into a new tool.
+- **Wiring detail.** `wallDoc` is exported and takes `art`; the manifest is loaded once per build via `loadRoomFeatureArt()` in `scripts/data-loader.mjs`, which never rejects.
