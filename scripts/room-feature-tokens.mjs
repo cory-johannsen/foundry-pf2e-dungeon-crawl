@@ -18,14 +18,15 @@ const MODULE_ID = "pf2e-dungeon-crawl";
  * actor (needs no HP/combat schema, confirmed live), flagged with its own
  * kind and room id so module.mjs's `targetToken` handler can tell which
  * room/feature was interacted with without any further lookup. */
-export function buildRoomFeatureTokenActorData(kind, roomId) {
+export function buildRoomFeatureTokenActorData(kind, roomId, { art } = {}) {
   const type = ROOM_FEATURE_TOKEN_TYPES[kind];
   if (!type) throw new Error(`Unknown room-feature kind: ${kind}`);
+  const img = art ?? type.img;
   return {
     name: type.name,
     type: "loot",
-    img: type.img,
-    prototypeToken: { texture: { src: type.img } },
+    img,
+    prototypeToken: { texture: { src: img } },
     flags: {
       [MODULE_ID]: { roomFeatureKind: kind, roomFeatureRoomId: roomId },
     },

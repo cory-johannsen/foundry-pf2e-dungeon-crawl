@@ -79,7 +79,8 @@ import { canRetreat, hasNoWayForward, roomDisplayLabel, roomTileName, openChildr
 import { depthBiasFor, applyDifficultyShift } from "./dungeon-deck.mjs";
 import { startCombatForRoom } from "./dungeon-combat.mjs";
 import { playDoorSound } from "./dungeon-sound.mjs";
-import { loadDungeonSetpieces } from "./data-loader.mjs";
+import { loadDungeonSetpieces, loadRoomFeatureArt } from "./data-loader.mjs";
+import { roomFeatureArtPath } from "./room-feature-art.mjs";
 import {
   selectSkillChallengeTemplate,
   dcAdjustmentForTier,
@@ -1061,7 +1062,7 @@ export async function populateSlotEncounter(
 /** Spawns one room-feature prop token (#611/#623) -- a player-targetable
  * scene object for a treasure/puzzle/skill-challenge room. Idempotent: a
  * rebuild of an already-built room must not duplicate the prop. */
-async function spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed }) {
+async function spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed, theme }) {
   const existing = scene.tokens.map((t) => t.flags?.[MODULE_ID]);
   if (hasRoomFeatureToken(existing, roomId, kind)) return;
   const rect = roomRect(seed, roomId, rank, col);
@@ -1070,7 +1071,8 @@ async function spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed }) {
     gx: rect.gx,
     gy: rect.gy,
   };
-  const actorData = buildRoomFeatureTokenActorData(kind, roomId);
+  const art = roomFeatureArtPath({ theme, kind, manifest: await loadRoomFeatureArt() });
+  const actorData = buildRoomFeatureTokenActorData(kind, roomId, { art });
   const [actor] = await Actor.createDocuments([actorData]);
   // A prop failure must never block room building, nor leave an orphan
   // actor behind; the tracker's operator reveal button is the recourse.
@@ -1757,6 +1759,7 @@ export async function buildPopulateAndUnlockGraphNode(
         rank,
         col,
         seed: state.seed,
+        theme: room.locationTag,
       });
     }
     // #32: puzzle and trap are now decided up front as their own room kinds
@@ -1804,6 +1807,7 @@ export async function buildPopulateAndUnlockGraphNode(
         rank,
         col,
         seed: state.seed,
+        theme: room.locationTag,
       });
     }
     // #167: a narrative room's own selected content is attached here too
@@ -1839,6 +1843,7 @@ export async function buildPopulateAndUnlockGraphNode(
           rank,
           col,
           seed: state.seed,
+          theme: room.locationTag,
         });
       }
     }

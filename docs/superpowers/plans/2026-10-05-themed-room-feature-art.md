@@ -263,7 +263,7 @@ git commit -m "#750: themed room-feature art lookup, manifest and loader"
 - Consumes: `roomFeatureArtPath`, `loadRoomFeatureArt` (Task 1).
 - Produces: `buildRoomFeatureTokenActorData(kind, roomId, { art } = {})` — `art` is a module-relative image path or null/undefined; `spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed, theme })`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/room-feature-tokens.test.mjs`:
 
@@ -295,12 +295,12 @@ describe("buildRoomFeatureTokenActorData themed art (#750)", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run tests/room-feature-tokens.test.mjs -t "themed art"`
 Expected: FAIL (themed `img` still equals the core icon).
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `scripts/room-feature-tokens.mjs`, replace the head of `buildRoomFeatureTokenActorData` so it reads:
 
@@ -343,12 +343,12 @@ async function spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed, the
 (the rest of the function is unchanged).
 3. At the three call sites (`"skill_challenge"`, `"puzzle"`, `"treasure"`), add `theme: room.locationTag,` to the options object next to `seed: state.seed,`.
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `npx vitest run tests/room-feature-tokens.test.mjs`
 Expected: PASS (all earlier cases too).
 
-- [ ] **Step 5: Run the wider scene tests and commit**
+- [x] **Step 5: Run the wider scene tests and commit**
 
 Run: `npx vitest run tests/dungeon-scene.test.mjs`
 Expected: PASS.
