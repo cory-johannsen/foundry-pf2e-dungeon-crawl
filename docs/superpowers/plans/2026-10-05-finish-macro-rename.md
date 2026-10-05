@@ -31,7 +31,7 @@
 
 **Interfaces:** None — no new exports, no signature changes.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 In `tests/world-macros.test.mjs`, change the existing test:
 
@@ -93,12 +93,12 @@ Add this new test to the `describe("ensureWorldMacros", ...)` block, directly af
   });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/world-macros.test.mjs -t "770"`
 Expected: FAIL — the renamed assertion expects `"Generate Encounter"` but `MACRO_DEFS` still has `"PF2EDC: Generate Encounter"`; the new rename-in-place test fails the same way.
 
-- [ ] **Step 3: Make the rename**
+- [x] **Step 3: Make the rename**
 
 In `scripts/world-macros.mjs`, change:
 
@@ -134,17 +134,17 @@ to:
 // namespace, not a bug in this module's own rename-in-place logic below.)
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/world-macros.test.mjs -t "770"`
 Expected: PASS, both tests green.
 
-- [ ] **Step 5: Run the full test file to confirm no regression**
+- [x] **Step 5: Run the full test file to confirm no regression**
 
 Run: `npx vitest run tests/world-macros.test.mjs`
 Expected: PASS, every existing test (including every stale-rename/duplicate/force scenario) still green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/world-macros.mjs tests/world-macros.test.mjs
@@ -180,7 +180,7 @@ echo 'const m = game.macros.get("SMvjmSXTWqbF9nBk"); return m ? {name: m.name, f
 
 Expected: unchanged — still named `"DOMMT: Dungeon Crawl"`, still flagged only under `deck-of-many-more-things`.
 
-- [ ] **Step 3: Bump module.json's version**
+- [x] **Step 3: Bump module.json's version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -190,7 +190,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a patch bump (e.g. `0.60.7` → `0.60.8`, using whatever the fetch above shows as current).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add module.json
