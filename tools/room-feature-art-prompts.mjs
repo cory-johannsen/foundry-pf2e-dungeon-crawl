@@ -5,7 +5,7 @@
  * ComfyUI-first / OpenRouter-fallback backends and skip-if-exists behavior
  * apply unchanged. Ids are `rf-<theme>-<kind>`, e.g.
  *   node tools/generate-token-art.mjs rf-undead-treasure
- * Run each result through tools/make-bg-transparent.mjs afterwards.
+ * Then cut each result out with tools/cutout-room-feature-art.py (rembg).
  * No apostrophes in any string here; the generator builds JS strings from them.
  */
 import { ROOM_FEATURE_ART_THEMES, ROOM_FEATURE_ART_KINDS } from '../scripts/room-feature-art.mjs';
@@ -22,8 +22,8 @@ const THEME_FLAVOR = {
   undead: 'old bone, grave stone, cobwebs, pale green ghostlight, tattered cloth',
 };
 
-/** The object each kind shows. DOOR_SUBJECT is the one line Task 3 may edit
- * once the live spike has fixed the door image viewpoint and shape. */
+/** The object each kind shows. DOOR_SUBJECT is the one line to edit if the
+ * door image viewpoint or shape needs to change. */
 export const DOOR_SUBJECT = 'a single heavy wooden dungeon door slab standing alone, straight-on view, vertical planks with iron bands, hinges and a handle, no wall, no stone archway, no doorframe';
 const KIND_SUBJECT = {
   door: DOOR_SUBJECT,

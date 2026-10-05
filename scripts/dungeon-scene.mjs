@@ -1508,7 +1508,8 @@ export async function buildPopulateAndUnlockGraphNode(
   { rank, col, childIds = [], hiddenChildId = null, unlock = true } = {},
 ) {
   const alreadyBuilt = isSlotBuilt(scene, room.id);
-  // #750: themed door art for every door this room's own walls carry.
+  // #750: themed door art for this room's connection doors (the gate takes
+  // the source room's theme, the reveal door this room's).
   const doorArtManifest = await loadRoomFeatureArt();
   const doorArt = (theme) => roomFeatureArtPath({ theme, kind: "door", manifest: doorArtManifest });
   const rect = roomRect(state.seed, room.id, rank, col);

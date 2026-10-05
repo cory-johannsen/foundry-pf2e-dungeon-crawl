@@ -24,8 +24,8 @@ export function roomFeatureArtPath({ theme, kind, manifest } = {}) {
   return `${ROOM_FEATURE_ART_DIR}/${theme}/${kind}.webp`;
 }
 
-/** Foundry wall `animation` defaults for a themed door. Task 3's live spike
- * fixes the final values; `texture` is always the themed image. */
+/** Foundry wall `animation` defaults for a themed door. The live spike chose
+ * `swing` (see the spec's Spike result); `texture` is always the themed image. */
 export const DOOR_ANIMATION = { type: "swing" };
 
 /** The wall `animation` object for a themed door, or null with no art. */

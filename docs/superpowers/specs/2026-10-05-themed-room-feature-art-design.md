@@ -112,3 +112,5 @@ Throwaway scene with five door walls (one per animation type), each carrying a r
 - **Scaling:** the texture is drawn with its width equal to the wall segment's length, keeps its own aspect ratio, and is centered on the wall midpoint (the door control icon sits at its center). A square image therefore covers a square as wide as the door.
 - **Door art format:** a hinged door leaf seen from directly above, a long flat horizontal strip. Because it keeps its aspect ratio, a wide strip draws as a thin leaf along the wall. Task 6 crops each generated door to a wide strip (about 6:1) after keying the background transparent.
 - `DOOR_ANIMATION` stays `{ type: "swing" }`.
+
+**As built:** the generator only produced straight-on door slabs, so each door is cropped, turned and squashed to an opaque 768x154 (5:1) strip by `tools/cutout-room-feature-art.py`. Tokens are cut out with rembg for the same script (the flood-fill keyer erased dark metal). Better door art is #764.
