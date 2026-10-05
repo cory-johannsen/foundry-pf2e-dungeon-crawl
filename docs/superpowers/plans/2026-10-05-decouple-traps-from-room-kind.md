@@ -36,7 +36,7 @@
 
 **Interfaces:** None — no new exports, no signature changes.
 
-- [ ] **Step 1: Update the two existing tests that assert trap's own weight/presence**
+- [x] **Step 1: Update the two existing tests that assert trap's own weight/presence**
 
 In `tests/dungeon-deck.test.mjs`, change the `describe('ROOM_KIND_WEIGHTS', ...)` block's two trap-specific tests from:
 
@@ -98,12 +98,12 @@ to:
   });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs -t "754"`
 Expected: FAIL — `ROOM_KIND_WEIGHTS` still contains a `trap` entry with weight 1 and a total of 12, and `roomKindAt` can still produce `'trap'`.
 
-- [ ] **Step 3: Remove the `trap` entry**
+- [x] **Step 3: Remove the `trap` entry**
 
 In `scripts/dungeon-deck.mjs`, change:
 
@@ -133,12 +133,12 @@ export const ROOM_KIND_WEIGHTS = [
 ];
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs -t "754"`
 Expected: PASS, all tests from Step 1 green.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-deck.mjs tests/dungeon-deck.test.mjs

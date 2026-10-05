@@ -27,11 +27,13 @@ import {
 // into two independent kinds, decided up front like every other room kind
 // — an even 1/1 split (confirmed with the user), keeping the combined
 // weight (and so the overall room-kind mix) unchanged from before the split.
+// #754: trap is no longer its own mutually-exclusive room kind — a trap
+// can now appear independently within any other kind's own room, decided
+// by its own separate roll, not by this table.
 export const ROOM_KIND_WEIGHTS = [
   { kind: 'combat', weight: 5 },
   { kind: 'skill_challenge', weight: 2 },
   { kind: 'puzzle', weight: 1 },
-  { kind: 'trap', weight: 1 },
   { kind: 'narrative', weight: 1 },
   { kind: 'treasure', weight: 2 }
 ];

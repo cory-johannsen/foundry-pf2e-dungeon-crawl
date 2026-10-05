@@ -1,6 +1,6 @@
 // #427: the topology-aware router in the v3 run pipeline, gated by the run-state flag `topologyRouting`.
 // What must NOT change (v1/v2 geometry, a v3 run without the flag) is pinned by golden digests computed on main before
-// this change; what changes (a flagged run) is proved edge by edge and by tests/dungeon-router-pipeline-sweep.test.mjs.
+// this change (the v3 digest was re-pinned in #754: it hashes the layout, which carries room kinds, and trap left the kind table); what changes (a flagged run) is proved edge by edge and by tests/dungeon-router-pipeline-sweep.test.mjs.
 import { describe, it, expect } from 'vitest';
 import { createHash } from 'node:crypto';
 import * as deck from '../scripts/dungeon-deck.mjs';
@@ -41,7 +41,7 @@ describe('runs without the routing flag keep their geometry exactly (#427)', () 
       h.update(JSON.stringify(chosen.layout));
       digestScene(h, (await buildSceneForLayout(sweepShapeOfRunLayout(chosen.layout), 3)).scene);
     }
-    expect(h.digest('hex')).toBe('207168d90ac18b8a5c147c909e6286202ab9c1ba60e5457c70c8eb5812fd84b2');
+    expect(h.digest('hex')).toBe('93561df2b1fa7dfd527d3f7d89b71fe879319d69b7bfc78af5bb124ad08f3fc3');
   }, 300000);
 });
 
