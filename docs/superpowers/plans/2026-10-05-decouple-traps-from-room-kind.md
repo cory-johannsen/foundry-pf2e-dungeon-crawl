@@ -560,7 +560,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 This is mechanical deletion with no new logic; no new test is needed beyond Task 2's own full-suite pass already confirming nothing broke. Re-locate each site fresh via your editor before editing (concurrent sessions push to this repo constantly) — do not rely solely on the line numbers below.
 
-- [ ] **Step 1: `scripts/dungeon-runner.mjs`**
+- [x] **Step 1: `scripts/dungeon-runner.mjs`**
 
 Remove `trapSetpieceIds = [],` from both of this file's own option-destructuring blocks that currently have it (confirmed this session at two separate locations: one around the `startDungeonRun`-adjacent legacy `buildRoomSequence`-calling path, one in `markRoomOutcome`'s own options). Remove the corresponding `trapSetpieceIds,` entry from whichever object literal passes it onward (e.g. into `getGenerator().buildRoomSequence({...})`).
 
@@ -574,7 +574,7 @@ Note: confirmed this session that `markRoomOutcome`'s own `trapSetpieceIds` (alo
     // but removing those is out of this issue's own scope.
 ```
 
-- [ ] **Step 2: `scripts/dungeon-reseed.mjs`**
+- [x] **Step 2: `scripts/dungeon-reseed.mjs`**
 
 Change `computeRunLayout`'s own destructuring/bundling from:
 
@@ -592,7 +592,7 @@ to:
 
 Also update this function's own docblock comment (`` `setpieceIds` is `{ puzzle, trap, narrative, treasure }` ``) to drop `trap` from the listed shape.
 
-- [ ] **Step 3: `scripts/ui/dungeon-app.mjs`**
+- [x] **Step 3: `scripts/ui/dungeon-app.mjs`**
 
 At the site feeding `markRoomOutcome`'s options (confirmed this session, ~line 147-161), remove the `trapSetpieceIds: setpieces.filter((s) => s.kind === "trap").map((s) => s.id),` entry (keep the puzzle/narrative/treasure ones, which are still genuinely consumed by other callers even though this specific `markRoomOutcome` call never reads them, per Task 3 Step 1's own finding).
 
@@ -603,7 +603,7 @@ At the site feeding `createRun`/`chooseRunLayout` (confirmed this session, ~line
 Run: `npx vitest run`
 Expected: PASS, every test in the repo green — this step is the real safety net for this task's otherwise untested mechanical deletions, since removing a now-unread parameter can't change any test's observable behavior if every actual consumer was already cleaned up correctly in Tasks 1-2.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-runner.mjs scripts/dungeon-reseed.mjs scripts/ui/dungeon-app.mjs

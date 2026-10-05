@@ -83,13 +83,13 @@ export async function selectSeed({ seed, evaluate, maxTries = RESEED_MAX_TRIES, 
 /**
  * The layout precompute of `startDungeonRun` for `seed`: room graph, rest room, hidden paths, positions, incoming faces
  * Stub-free (`planRunLayoutStubs` adds the stub plan). Pure; `generator` is `getGenerator()` (or the dungeon-deck module).
- * `setpieceIds` is `{ puzzle, trap, narrative, treasure }`, each an id list.
+ * `setpieceIds` is `{ puzzle, narrative, treasure }`, each an id list.
  */
 export function computeRunLayout({
   generator, seed, roomCount, setpieceIds = {}, layoutVersion = NEW_RUN_LAYOUT_VERSION, topologyRouting = false,
 }) {
-  const { puzzle: puzzleSetpieceIds, trap: trapSetpieceIds, narrative: narrativeSetpieceIds, treasure: treasureSetpieceIds } = setpieceIds;
-  const sets = { puzzleSetpieceIds, trapSetpieceIds, narrativeSetpieceIds, treasureSetpieceIds };
+  const { puzzle: puzzleSetpieceIds, narrative: narrativeSetpieceIds, treasure: treasureSetpieceIds } = setpieceIds;
+  const sets = { puzzleSetpieceIds, narrativeSetpieceIds, treasureSetpieceIds };
   const generated = generator.buildRoomGraph({ seed, roomCount, ...sets });
   // The rest room goes in BEFORE attachHiddenPaths (#93): a hidden path must never pick it as its source.
   const { rooms, edges: edgesBeforeStubs } = generator.insertRestRoom({
