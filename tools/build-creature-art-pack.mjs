@@ -17,7 +17,7 @@
 import {
   readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, cpSync, existsSync,
 } from "node:fs";
-import { join, basename } from "node:path";
+import { join, basename, resolve, dirname, sep, parse } from "node:path";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { compilePack, extractPack } from "@foundryvtt/foundryvtt-cli";
@@ -41,6 +41,25 @@ function readPackDirectories(systemPacksDir) {
   return new Map((system.packs ?? []).map((p) => [p.name, p.path]));
 }
 
+const REPO_ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
+
+const isInside = (child, parent) => child.startsWith(parent.endsWith(sep) ? parent : parent + sep);
+
+/** Throws before anything is deleted if the output paths could clobber
+ * something that is not ours. */
+function assertSafeOutputDirs({ packOutDir, sourceOutDir, systemPacksDir }) {
+  const systemDir = resolve(systemPacksDir);
+  const forbidden = [parse(packOutDir).root, REPO_ROOT, systemDir, dirname(systemDir)];
+  for (const [label, dir] of [["packOutDir", packOutDir], ["sourceOutDir", sourceOutDir]]) {
+    if (forbidden.includes(dir) || forbidden.some((f) => f !== parse(f).root && isInside(f, dir))) {
+      throw new Error(`Refusing to build: ${label} ${dir} is the filesystem root, the repo root, or the system packs dir (or contains it)`);
+    }
+  }
+  if (packOutDir === sourceOutDir || isInside(packOutDir, sourceOutDir)) {
+    throw new Error(`Refusing to build: packOutDir ${packOutDir} must not be or lie inside sourceOutDir ${sourceOutDir}`);
+  }
+}
+
 export async function buildCreatureArtPack({
   creatureArtPath,
   systemPacksDir,
@@ -49,6 +68,9 @@ export async function buildCreatureArtPack({
   packOutDir,
   log = false,
 }) {
+  packOutDir = resolve(packOutDir);
+  sourceOutDir = resolve(sourceOutDir);
+  assertSafeOutputDirs({ packOutDir, sourceOutDir, systemPacksDir });
   const entries = JSON.parse(readFileSync(creatureArtPath, "utf8"));
   const dirOf = readPackDirectories(systemPacksDir);
   const entriesByPack = new Map();
@@ -153,7 +175,7 @@ export async function buildCreatureArtPack({
   // previously compiled LevelDB files, never the freshly written _source.
   if (existsSync(packOutDir)) {
     for (const name of readdirSync(packOutDir)) {
-      if (join(packOutDir, name) === sourceOutDir) continue;
+      if (resolve(packOutDir, name) === sourceOutDir) continue;
       rmSync(join(packOutDir, name), { recursive: true, force: true });
     }
   }

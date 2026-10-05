@@ -97,8 +97,10 @@ npm run packs:check    # offline staleness report (add -- --strict to exit 1 if 
 `packs:build` reads the pf2e system packs from `PF2E_SYSTEM_PACKS_DIR`
 (default `/srv/foundry/data/Data/systems/pf2e/packs`); it copies them first
 and never modifies the install. Rebuild and commit the result when an art
-batch finishes or before a minor version bump, not on every PR (each rebuild
-adds about 61 MB to git history).
+batch finishes or before a minor version bump, not on every PR (the
+`_source/*.json` files are unchanged across rebuilds, but the compiled LevelDB
+file is rewritten completely, so each rebuild adds about 61 MB of new binary
+blobs to git history).
 
 ### GM-less combat AI (hosted agent service)
 

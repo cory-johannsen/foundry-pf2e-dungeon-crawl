@@ -26,8 +26,10 @@ change as an update.  Every agent MUST bump the version.  NEVER reuse a version 
 hand-edit it. Regenerate it with `npm run packs:build` (needs a local pf2e
 install; see `PF2E_SYSTEM_PACKS_DIR` in the README) and commit the result
 when an art batch/series finishes or before a minor version bump -- NOT on
-every PR that touches `data/creature-art.json`: each rebuild shares no
-files with the previous one and adds about 61 MB to git history. Run
+every PR that touches `data/creature-art.json`: the `_source/*.json` files
+are unchanged across rebuilds (git dedupes them) but the compiled LevelDB
+file is rewritten completely, so each rebuild adds about 61 MB of new
+binary blobs to git history. Run
 `npm run packs:check` (offline, add `-- --strict` to exit 1 when stale) to
 see how far the pack lags `data/creature-art.json`.
 

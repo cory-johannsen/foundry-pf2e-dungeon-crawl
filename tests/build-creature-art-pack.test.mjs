@@ -156,11 +156,11 @@ describe("buildCreatureArtPack", () => {
 
     declared = [{ name: "other", path: "packs/other" }];
     writeSystemJson();
-    await expect(run([entry("ghost-pack", "dddddddddddddddd", "G", "x.webp")])).rejects.toThrow(/pf2e\.ghost-pack/);
+    await expect(run([entry("ghost-pack", "dddddddddddddddd", "G", "x.webp")])).rejects.toThrow(/"pf2e\.ghost-pack" is not declared/);
 
     declared = [{ name: "ghost-pack", path: "packs/nowhere" }];
     writeSystemJson();
-    await expect(run([entry("ghost-pack", "dddddddddddddddd", "G", "x.webp")])).rejects.toThrow(/ghost-pack/);
+    await expect(run([entry("ghost-pack", "dddddddddddddddd", "G", "x.webp")])).rejects.toThrow(/"pf2e\.ghost-pack" declares directory .*does not exist/);
   });
 
   it("throws naming the docId when it is absent from the pack", async () => {
@@ -218,7 +218,7 @@ describe("buildCreatureArtPack", () => {
     }
     const out = readOut(paths.sourceOutDir, `${newIdOf("dupe", "dddddddddddddd01")}.json`);
     expect(out.items.map((i) => i.name)).toEqual(["First", "Other"]);
-    expect(logs.join("\n")).toMatch(/1 duplicate/i);
+    expect(logs.join("\n")).toMatch(/\b1 duplicate/i);
   });
 
   it("leaves the system directory byte-for-byte untouched and copies no LOCK file", async () => {
@@ -240,14 +240,20 @@ describe("buildCreatureArtPack", () => {
 
   it("clears stale scratch before extraction", async () => {
     await fixturePack("fixture-one", "fixture-one", [actor("aaaaaaaaaaaaaaaa", "Goblin")]);
-    const stale = join(root, "scratch", "fixture-one");
-    mkdirSync(stale, { recursive: true });
-    writeFileSync(join(stale, "leftover.json"), JSON.stringify(actor("leftoverleftover", "Leftover")));
-    mkdirSync(join(root, "scratch", "copies", "fixture-one"), { recursive: true });
-    writeFileSync(join(root, "scratch", "copies", "fixture-one", "junk.ldb"), "junk");
+    const staleExtract = join(root, "scratch", "extract", "fixture-one");
+    mkdirSync(staleExtract, { recursive: true });
+    writeFileSync(join(staleExtract, "leftover.json"), JSON.stringify(actor("leftoverleftover", "Leftover")));
+    const staleCopy = join(root, "scratch", "copies", "fixture-one");
+    mkdirSync(staleCopy, { recursive: true });
+    writeFileSync(join(staleCopy, "junk.ldb"), "junk");
     const paths = await run([entry("fixture-one", "aaaaaaaaaaaaaaaa", "Goblin", "x.webp")]);
-    expect(readdirSync(paths.sourceOutDir)).toHaveLength(1);
-    expect(existsSync(join(paths.scratchDir, "copies", "fixture-one", "junk.ldb"))).toBe(false);
+    expect(existsSync(join(staleExtract, "leftover.json"))).toBe(false);
+    expect(existsSync(join(staleCopy, "junk.ldb"))).toBe(false);
+    const files = readdirSync(paths.sourceOutDir);
+    expect(files).toEqual([`${newIdOf("fixture-one", "aaaaaaaaaaaaaaaa")}.json`]);
+    const back = join(root, "readback");
+    await extractPack(paths.packOutDir, back, { log: false });
+    expect(readdirSync(back).map((f) => readOut(back, f).name)).toEqual(["Goblin"]);
   });
 
   it("is idempotent: two runs yield identical _source content", async () => {
@@ -261,5 +267,64 @@ describe("buildCreatureArtPack", () => {
     const h1 = hashTree(p1.sourceOutDir);
     const p2 = await run(entries);
     expect(hashTree(p2.sourceOutDir)).toBe(h1);
+  });
+
+  it("throws on a derived-id collision (identical pack and docId)", async () => {
+    await fixturePack("fixture-one", "fixture-one", [actor("aaaaaaaaaaaaaaaa", "Goblin")]);
+    await expect(
+      run([
+        entry("fixture-one", "aaaaaaaaaaaaaaaa", "Goblin", "a.webp", "e1"),
+        entry("fixture-one", "aaaaaaaaaaaaaaaa", "Goblin", "b.webp", "e2"),
+      ]),
+    ).rejects.toThrow(/Derived id collision/);
+  });
+
+  it("removes a stale _source doc from a previous build and compiles only fresh docs", async () => {
+    await fixturePack("fixture-one", "fixture-one", [actor("aaaaaaaaaaaaaaaa", "Goblin")]);
+    const sourceOutDir = join(root, "out", "_source");
+    mkdirSync(sourceOutDir, { recursive: true });
+    writeFileSync(
+      join(sourceOutDir, "staleid000000000.json"),
+      JSON.stringify(actor("staleid000000000", "Stale")),
+    );
+    const paths = await run([entry("fixture-one", "aaaaaaaaaaaaaaaa", "Goblin", "x.webp")]);
+    expect(existsSync(join(paths.sourceOutDir, "staleid000000000.json"))).toBe(false);
+    const back = join(root, "readback");
+    await extractPack(paths.packOutDir, back, { log: false });
+    expect(readdirSync(back).map((f) => readOut(back, f).name)).toEqual(["Goblin"]);
+  });
+
+  it("keeps _source inside packOutDir even when sourceOutDir is not normalized", async () => {
+    await fixturePack("fixture-one", "fixture-one", [actor("aaaaaaaaaaaaaaaa", "Goblin")]);
+    const packOutDir = join(root, "shipped", "pack");
+    mkdirSync(packOutDir, { recursive: true });
+    writeFileSync(join(packOutDir, "old.ldb"), "old");
+    for (const sourceOutDir of [
+      join(packOutDir, "_source") + "/",
+      join(packOutDir, "x", "..", "_source"),
+      join(packOutDir, ".", "_source"),
+    ]) {
+      await run([entry("fixture-one", "aaaaaaaaaaaaaaaa", "Goblin", "x.webp")], {
+        packOutDir,
+        sourceOutDir,
+      });
+      expect(readdirSync(join(packOutDir, "_source"))).toHaveLength(1);
+      expect(existsSync(join(packOutDir, "CURRENT"))).toBe(true);
+      expect(existsSync(join(packOutDir, "old.ldb"))).toBe(false);
+    }
+  });
+
+  it("refuses a packOutDir that is the system packs dir or its parent, deleting nothing", async () => {
+    await fixturePack("fixture-one", "fixture-one", [actor("aaaaaaaaaaaaaaaa", "Goblin")]);
+    const before = hashTree(join(root, "sys"));
+    for (const packOutDir of [join(root, "sys", "packs"), join(root, "sys")]) {
+      await expect(
+        run([entry("fixture-one", "aaaaaaaaaaaaaaaa", "Goblin", "x.webp")], {
+          packOutDir,
+          sourceOutDir: join(root, "out", "_source"),
+        }),
+      ).rejects.toThrow(/Refusing/);
+    }
+    expect(hashTree(join(root, "sys"))).toBe(before);
   });
 });
