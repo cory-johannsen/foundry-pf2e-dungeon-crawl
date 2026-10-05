@@ -2445,3 +2445,7 @@ chunk,slug,name,level,kind,first_pass,failure_tags,final_backend,note
 227,knight-reclaimant,Knight Reclaimant,8,humanoid,accept,,comfyui,
 227,garrholdion,Garrholdion,20,beast,accept,,comfyui,
 227,onturat,Onturat,19,beast,accept,,comfyui,
+228,chained-norn,Chained Norn,20,beast,accept,,comfyui,
+228,zombie-bear,Zombie Bear,3,undead,accept,,comfyui,
+228,commander-arsiella-dei,Commander Arsiella Dei,9,beast,accept,,comfyui,
+228,priest-of-iomedae,Priest of Iomedae,7,beast,accept,,comfyui,
