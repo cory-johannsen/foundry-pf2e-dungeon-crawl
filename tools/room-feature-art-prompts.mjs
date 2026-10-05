@@ -6,6 +6,9 @@
  * apply unchanged. Ids are `rf-<theme>-<kind>`, e.g.
  *   node tools/generate-token-art.mjs rf-undead-treasure
  * Then cut each result out with tools/cutout-room-feature-art.py (rembg).
+ * Door art is the exception: ComfyUI cannot draw a strict top-down view, so the
+ * shipped doors were hand-generated in Gemini from DOOR_SUBJECT plus the theme
+ * flavor, on a plain white background, and cut out by the same script.
  * No apostrophes in any string here; the generator builds JS strings from them.
  */
 import { ROOM_FEATURE_ART_THEMES, ROOM_FEATURE_ART_KINDS } from '../scripts/room-feature-art.mjs';
@@ -24,7 +27,7 @@ const THEME_FLAVOR = {
 
 /** The object each kind shows. DOOR_SUBJECT is the one line to edit if the
  * door image viewpoint or shape needs to change. */
-export const DOOR_SUBJECT = 'a single heavy wooden dungeon door slab standing alone, straight-on view, vertical planks with iron bands, hinges and a handle, no wall, no stone archway, no doorframe';
+export const DOOR_SUBJECT = 'a single heavy wooden dungeon door lying flat, seen from directly above in strict orthographic plan view like a battle map door symbol, a long narrow horizontal rectangle of vertical planks with two iron hinge straps at the left end and a ring handle and lock plate near the right end, flat 2D painted illustration, no perspective, no side view, no wall, no archway, no door frame, no shadow, the door filling the frame edge to edge as one wide strip, aspect ratio 5:1';
 const KIND_SUBJECT = {
   door: DOOR_SUBJECT,
   treasure: 'a closed treasure chest with a lid and a lock, seen from a three-quarter angle',
