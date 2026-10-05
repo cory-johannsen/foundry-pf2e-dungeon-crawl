@@ -24,6 +24,7 @@ import {
   buildDecisionContext,
   parseConditionsByOutcome,
   hasSpellUsesRemaining,
+  hasSpellSlotRemaining,
   parseBreathWeaponEffect,
   parseMultiStrikeBundle,
   parseChainHopDistance,
@@ -3095,6 +3096,7 @@ export async function getPendingAgentTurn(combat) {
       (entry.spells?.contents ?? [])
         .filter(isSpellInScope)
         .filter(hasSpellUsesRemaining)
+        .filter((spell) => hasSpellSlotRemaining(spell, entry))
         .map((spell) => {
           const rangeSquares = spellRangeSquares(spell, gridDistanceFt);
           if (rangeSquares == null) return null;
@@ -3119,6 +3121,7 @@ export async function getPendingAgentTurn(combat) {
       (entry.spells?.contents ?? [])
         .filter(isVariableCostSpellInScope)
         .filter(hasSpellUsesRemaining)
+        .filter((spell) => hasSpellSlotRemaining(spell, entry))
         .map((spell) => {
           const cost = minimumVariableCost(spell);
           const rangeSquares = minimumTierRangeSquares(spell, gridDistanceFt);
@@ -3141,7 +3144,8 @@ export async function getPendingAgentTurn(combat) {
   for (const entry of combatant.actor?.spellcasting?.contents ?? []) {
     for (const spell of (entry.spells?.contents ?? [])
       .filter(isAreaSpellInScope)
-      .filter(hasSpellUsesRemaining)) {
+      .filter(hasSpellUsesRemaining)
+      .filter((spell) => hasSpellSlotRemaining(spell, entry))) {
       const radiusFeet = spell.system.area.value ?? 0;
       const centers =
         spell.system.area.type === "emanation"
@@ -3187,7 +3191,8 @@ export async function getPendingAgentTurn(combat) {
   for (const entry of combatant.actor?.spellcasting?.contents ?? []) {
     for (const spell of (entry.spells?.contents ?? [])
       .filter(isTierScalingAreaSpellInScope)
-      .filter(hasSpellUsesRemaining)) {
+      .filter(hasSpellUsesRemaining)
+      .filter((spell) => hasSpellSlotRemaining(spell, entry))) {
       const tiers = resolveAreaSpellTiers(spell);
       const centers =
         spell.system.area.type === "emanation"
@@ -3241,7 +3246,8 @@ export async function getPendingAgentTurn(combat) {
   for (const entry of combatant.actor?.spellcasting?.contents ?? []) {
     for (const spell of (entry.spells?.contents ?? [])
       .filter(isAutoHitAreaSpellInScope)
-      .filter(hasSpellUsesRemaining)) {
+      .filter(hasSpellUsesRemaining)
+      .filter((spell) => hasSpellSlotRemaining(spell, entry))) {
       const tiers = resolveAutoHitAreaTiers(spell);
       const isSquare = spell.system.area.type === "square";
       const centers =
@@ -3307,6 +3313,7 @@ export async function getPendingAgentTurn(combat) {
       (entry.spells?.contents ?? [])
         .filter(isAttackSpellInScope)
         .filter(hasSpellUsesRemaining)
+        .filter((spell) => hasSpellSlotRemaining(spell, entry))
         .map((spell) => {
           const rangeSquares = spellRangeSquares(spell, gridDistanceFt);
           if (rangeSquares == null) return null;
@@ -3327,6 +3334,7 @@ export async function getPendingAgentTurn(combat) {
       (entry.spells?.contents ?? [])
         .filter(isDebuffSpellInScope)
         .filter(hasSpellUsesRemaining)
+        .filter((spell) => hasSpellSlotRemaining(spell, entry))
         .map((spell) => {
           const rangeSquares = spellRangeSquares(spell, gridDistanceFt);
           if (rangeSquares == null) return null;
@@ -3353,6 +3361,7 @@ export async function getPendingAgentTurn(combat) {
       (entry.spells?.contents ?? [])
         .filter(isChainSpellInScope)
         .filter(hasSpellUsesRemaining)
+        .filter((spell) => hasSpellSlotRemaining(spell, entry))
         .map((spell) => {
           const rangeSquares = spellRangeSquares(spell, gridDistanceFt);
           if (rangeSquares == null) return null;
@@ -3410,6 +3419,7 @@ export async function getPendingAgentTurn(combat) {
       (entry.spells?.contents ?? [])
         .filter(isHealSpellInScope)
         .filter(hasSpellUsesRemaining)
+        .filter((spell) => hasSpellSlotRemaining(spell, entry))
         .map((spell) => {
           const rangeSquares = healSpellRangeSquares(spell, gridDistanceFt);
           if (rangeSquares == null) return null;
@@ -3430,6 +3440,7 @@ export async function getPendingAgentTurn(combat) {
       (entry.spells?.contents ?? [])
         .filter(isBuffSpellInScope)
         .filter(hasSpellUsesRemaining)
+        .filter((spell) => hasSpellSlotRemaining(spell, entry))
         .map((spell) => {
           const rangeSquares = spellRangeSquares(spell, gridDistanceFt);
           if (rangeSquares == null) return null;
@@ -3471,6 +3482,7 @@ export async function getPendingAgentTurn(combat) {
       (entry.spells?.contents ?? [])
         .filter(isDualNatureTieredSpellInScope)
         .filter(hasSpellUsesRemaining)
+        .filter((spell) => hasSpellSlotRemaining(spell, entry))
         .map((spell) => {
           const tiers = parseActionGlyphTiers(
             spell.system.description?.value ?? "",
@@ -3566,6 +3578,7 @@ export async function getPendingAgentTurn(combat) {
       (entry.spells?.contents ?? [])
         .filter(isTargetCountSpellInScope)
         .filter(hasSpellUsesRemaining)
+        .filter((spell) => hasSpellSlotRemaining(spell, entry))
         .map((spell) => {
           const formula = parseTargetCountFormula(
             spell.system.target?.value ?? "",

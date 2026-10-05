@@ -312,7 +312,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `hasSpellSlotRemaining(spell, entry)` from Task 1.
 - Produces: nothing new consumed by a later task — this is the final wiring.
 
-- [ ] **Step 1: Add the import**
+- [x] **Step 1: Add the import**
 
 In `scripts/dungeon-combat.mjs`, in the existing `import { ... } from "./agent-candidates.mjs";` block (lines 20-36), add `hasSpellSlotRemaining` directly after `hasSpellUsesRemaining` on line 26:
 
@@ -321,7 +321,7 @@ In `scripts/dungeon-combat.mjs`, in the existing `import { ... } from "./agent-c
   hasSpellSlotRemaining,
 ```
 
-- [ ] **Step 2: Wire the 9 `.flatMap((entry) => ...)` sites**
+- [x] **Step 2: Wire the 9 `.flatMap((entry) => ...)` sites**
 
 Each of these 9 sites has the shape `.flatMap((entry) => (entry.spells?.contents ?? []).filter(<scopeFn>).filter(hasSpellUsesRemaining).map(...))`. In each, add a new `.filter((spell) => hasSpellSlotRemaining(spell, entry))` line immediately after the existing `.filter(hasSpellUsesRemaining)` line. The 9 sites, identified by their scope-filter function name and current `hasSpellUsesRemaining` line number (re-locate each via your editor — line numbers shift after Task 1's insertion into `agent-candidates.mjs` does NOT affect this file, but verify before editing in case a concurrent commit landed):
 
@@ -347,7 +347,7 @@ Example diff, shown for `readySpells` (apply the equivalent one-line insertion a
          .map((spell) => {
 ```
 
-- [ ] **Step 3: Wire the 3 `for (const entry of ...) { for (const spell of ...)` sites**
+- [x] **Step 3: Wire the 3 `for (const entry of ...) { for (const spell of ...)` sites**
 
 Each of these 3 sites has the shape:
 
@@ -380,7 +380,7 @@ Example diff, shown for `readyAreaSpells` (apply the equivalent one-line inserti
 Run: `npx vitest run`
 Expected: PASS, every existing test still green (this file's own candidate-building logic has no unit tests — see Task 3 for its verification — but every other test file, especially `tests/agent-candidates.test.mjs` and any test that imports `scripts/dungeon-combat.mjs`, must still pass).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs
