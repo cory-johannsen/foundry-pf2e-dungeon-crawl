@@ -40,7 +40,7 @@
 **Interfaces:**
 - Produces: a one-shot CLI tool, `node tools/migrate-creature-art-sources.mjs [--dry-run]`. No exports consumed by anything else — this is a migration tool, not reusable production logic (matching this repo's own existing precedent: none of `tools/generate-token-art.mjs`/`tools/check-token-art.mjs`/`tools/validate-creature-art.mjs` export anything either; each is verified by its effect on the real data, not by unit-testing its internals).
 
-- [ ] **Step 1: Write the script**
+- [x] **Step 1: Write the script**
 
 ```js
 #!/usr/bin/env node
@@ -206,7 +206,7 @@ if (DRY_RUN) {
 }
 ```
 
-- [ ] **Step 2: Run in dry-run mode and confirm the counts match this plan's own pre-verified numbers**
+- [x] **Step 2: Run in dry-run mode and confirm the counts match this plan's own pre-verified numbers**
 
 Run: `node tools/migrate-creature-art-sources.mjs --dry-run`
 
@@ -219,19 +219,19 @@ Expected output (numbers are whatever the repo holds right now — check the inv
 
 Record the measured numbers in the report. If any invariant fails, or the numbers differ wildly from the 2026-10-05 snapshot (5,190 / 5,904 / 220 / 57), stop and find out why before proceeding.
 
-- [ ] **Step 3: Run for real**
+- [x] **Step 3: Run for real**
 
 Run: `node tools/migrate-creature-art-sources.mjs`
 
 Expected: the same numbers as Step 2's dry-run, without the `[dry-run]` prefix, and the three real effects: files physically moved via `git mv`, `data/creature-art.json` rewritten, `tools/generate-token-art.mjs` rewritten.
 
-- [ ] **Step 4: Confirm idempotency by re-running immediately**
+- [x] **Step 4: Confirm idempotency by re-running immediately**
 
 Run: `node tools/migrate-creature-art-sources.mjs`
 
 Expected: `moved 0 files, <N> already at destination`, `rewrote <E> creature-art.json entries` (re-deriving the same already-correct ids/paths is harmless — this line always "succeeds" since it recomputes from the already-updated `art` field, which still resolves correctly through the same `newRelativePath` map), and `rewrote 0 generate-token-art.mjs dir: entries` (the literal string `dir: 'assets/creature-art'` the regex matches on no longer exists anywhere in the file after Step 3 rewrote it — nothing left to match, not an error).
 
-- [ ] **Step 5: Confirm git recognizes these as renames, not delete+add**
+- [x] **Step 5: Confirm git recognizes these as renames, not delete+add**
 
 Run: `git status --short | head -20` and `git diff --stat | tail -5`
 Expected: entries show as `R` (rename) for the moved files, not separate `D`/`A` pairs — `git mv` plus unchanged file content is exactly what git's own rename detection is built for.
