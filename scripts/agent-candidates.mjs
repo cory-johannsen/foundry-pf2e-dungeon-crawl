@@ -578,6 +578,52 @@ export function hasSpellUsesRemaining(spell) {
 }
 
 /**
+ * False once a prepared or spontaneous caster's rank-matched slot pool is
+ * exhausted — the gap #620 found: `hasSpellUsesRemaining` only guards
+ * innate casting's own `location.uses` field, so a leveled prepared/
+ * spontaneous spell stayed in every candidate list indefinitely even after
+ * its slots ran dry, since nothing read the spellcasting entry's own
+ * `system.slots.slotN.{value,max}`. Confirmed live (PF2e 8.5.0, Lamia
+ * Matriarch/Omen Dragon compendium NPCs) that `entry.cast()` decrements
+ * `slots.slotN.value` for a spontaneous entry's SHARED rank pool, but for a
+ * prepared entry `slots.slotN.value` never changes at all (confirmed `0`
+ * on every rank of three different fresh, fully-prepared NPCs regardless
+ * of `max`/`prepared.length`) — a prepared entry instead flips
+ * `expended: true` on the one `slots.slotN.prepared[]` item whose `id`
+ * matches the cast spell's own id, so each spell must be checked by its
+ * own id, not the slot's aggregate value. Innate casting
+ * (`prepared.value === "innate"`) and focus casting (`prepared.value ===
+ * "focus"`) both carry a populated-looking `slots` object too, but neither
+ * is governed by it — innate exhaustion is entirely `location.uses`-driven
+ * (already `hasSpellUsesRemaining`'s job) and focus exhaustion is a
+ * separate, unimplemented focus-point mechanic (out of #620's scope) — so
+ * this function only ever applies to `"prepared"`/`"spontaneous"` entries
+ * and returns `true` for every other casting type (including the
+ * Rituals pseudo-entry, which has no `system.prepared` at all), same as
+ * before this fix existed. Cantrips (rank 0) are always available —
+ * confirmed live every entry's own `slots.slot0` carries `max: 0`
+ * regardless of casting type, so a literal rank-0 slot lookup would always
+ * read as exhausted — matching `hasSpellUsesRemaining`'s own cantrip
+ * carve-out. The rank consulted is `location.heightenedLevel ??
+ * level.value`, since a spontaneous caster's own "cast at a higher rank"
+ * build choice (confirmed live on Lamia Matriarch's Dispel Magic:
+ * `level.value: 2`, `location.heightenedLevel: 3`) consumes a slot at the
+ * HEIGHTENED rank, not the spell's base rank.
+ */
+export function hasSpellSlotRemaining(spell, entry) {
+  const castingType = entry?.system?.prepared?.value;
+  if (castingType !== "prepared" && castingType !== "spontaneous") return true;
+  const rank = spell.system?.location?.heightenedLevel ?? spell.system?.level?.value ?? 0;
+  if (!rank) return true;
+  const slot = entry.system?.slots?.[`slot${rank}`];
+  if (!slot) return true;
+  if (castingType === "spontaneous") return (slot.value ?? 0) > 0;
+  const instances = (slot.prepared ?? []).filter((p) => p.id === spell.id);
+  if (!instances.length) return true;
+  return instances.some((p) => !p.expended);
+}
+
+/**
  * The mechanical effect of a non-spell NPC action (a breath weapon, for
  * #123's v1 scope), extracted from its raw description text — unlike a
  * spell, an action item has no structured system.damage/defense/area
