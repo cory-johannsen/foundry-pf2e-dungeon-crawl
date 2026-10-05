@@ -46806,5 +46806,165 @@
     "name": "Corrupted Nosoi",
     "level": 2,
     "art": "corrupted-nosoi.webp"
+  },
+  {
+    "id": "divine_living_rune",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "3j34FTWLjUIE5lCV",
+    "name": "Divine Living Rune",
+    "level": 13,
+    "art": "divine-living-rune.webp"
+  },
+  {
+    "id": "agent_of_taraksun",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "40uSe7QRh13lfQUj",
+    "name": "Agent of Taraksun",
+    "level": 14,
+    "art": "agent-of-taraksun.webp"
+  },
+  {
+    "id": "red_mantis_conspirator",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "4Fn8PNUU5ClaenZ9",
+    "name": "Red Mantis Conspirator",
+    "level": 14,
+    "art": "red-mantis-conspirator.webp"
+  },
+  {
+    "id": "talaro",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "7IMAsoCGLJo9r8kK",
+    "name": "Talaro",
+    "level": 15,
+    "art": "talaro.webp"
+  },
+  {
+    "id": "red_mantis_assassin",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "9MkqNYpvYvuBEDOA",
+    "name": "Red Mantis Assassin",
+    "level": 11,
+    "art": "red-mantis-assassin.webp"
+  },
+  {
+    "id": "rhysaphine",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "CYCW0cTo1Ycgy44F",
+    "name": "Rhysaphine",
+    "level": 18,
+    "art": "rhysaphine.webp"
+  },
+  {
+    "id": "frostripper",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "EId3hG8apXxXXKd4",
+    "name": "Frostripper",
+    "level": 13,
+    "art": "frostripper.webp"
+  },
+  {
+    "id": "dronuk",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "HGjUK9tbspkWVkYs",
+    "name": "Dronuk",
+    "level": 17,
+    "art": "dronuk.webp"
+  },
+  {
+    "id": "alktherisa_and_omprisgor",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "HY9CxgBtWQv7nYob",
+    "name": "Alktherisa and Omprisgor",
+    "level": 19,
+    "art": "alktherisa-and-omprisgor.webp"
+  },
+  {
+    "id": "zaiho",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "HYb2Rjl1PaYqFKn0",
+    "name": "Zaiho",
+    "level": 16,
+    "art": "zaiho.webp"
+  },
+  {
+    "id": "valkyrie_of_gorum",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "JONtxbGJqM0Vpake",
+    "name": "Valkyrie of Gorum",
+    "level": 12,
+    "art": "valkyrie-of-gorum.webp"
+  },
+  {
+    "id": "bloody_hands",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "JuL2zaUaQLWhCzdY",
+    "name": "Bloody Hands",
+    "level": 16,
+    "art": "bloody-hands.webp"
+  },
+  {
+    "id": "niesha",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "KQxkuDXkMv4JueTd",
+    "name": "Niesha",
+    "level": 16,
+    "art": "niesha.webp"
+  },
+  {
+    "id": "sister_maeri",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "MWO2vF8WchOdQl7s",
+    "name": "Sister Maeri",
+    "level": 16,
+    "art": "sister-maeri.webp"
+  },
+  {
+    "id": "saviya",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "O0RkhEkF2Ba7lBBo",
+    "name": "Saviya",
+    "level": 19,
+    "art": "saviya.webp"
+  },
+  {
+    "id": "celasik",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "R4joDeUkjhfQQzL5",
+    "name": "Celasik",
+    "level": 13,
+    "art": "celasik.webp"
+  },
+  {
+    "id": "the_first_blade",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "TUIJIAnhjA3Hz2jn",
+    "name": "The First Blade",
+    "level": 15,
+    "art": "the-first-blade.webp"
+  },
+  {
+    "id": "bloodfog",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "WauAMtDTNY9fxlER",
+    "name": "Bloodfog",
+    "level": 17,
+    "art": "bloodfog.webp"
+  },
+  {
+    "id": "ordulf_bladecaller",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "aCMI3wIUpJ3DxhSY",
+    "name": "Ordulf Bladecaller",
+    "level": 16,
+    "art": "ordulf-bladecaller.webp"
+  },
+  {
+    "id": "gorumite_warpriest",
+    "pack": "pf2e.prey-for-death-bestiary",
+    "docId": "cdLWZaBUpy8N1xcV",
+    "name": "Gorumite Warpriest",
+    "level": 12,
+    "art": "gorumite-warpriest.webp"
   }
 ]
