@@ -46678,5 +46678,45 @@
     "name": "Luruvin",
     "level": 7,
     "art": "luruvin.webp"
+  },
+  {
+    "id": "wraithvine_offshoot",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "xV8QIBCeKOm2GQXL",
+    "name": "Wraithvine Offshoot",
+    "level": 4,
+    "art": "wraithvine-offshoot.webp"
+  },
+  {
+    "id": "bonebleacher_bugbear",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "xf2V2i0J3oJlXMnF",
+    "name": "Bonebleacher Bugbear",
+    "level": 12,
+    "art": "bonebleacher-bugbear.webp"
+  },
+  {
+    "id": "redwood_leshy",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "z8bNDLO8O4BhPVRl",
+    "name": "Redwood Leshy",
+    "level": 10,
+    "art": "redwood-leshy.webp"
+  },
+  {
+    "id": "blighted_speaker_in_spores",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "zH0xAdq6qxv5ARSO",
+    "name": "Blighted Speaker in Spores",
+    "level": 13,
+    "art": "blighted-speaker-in-spores.webp"
+  },
+  {
+    "id": "ruzadoya_swiftmane",
+    "pack": "pf2e.wardens-of-wildwood-bestiary",
+    "docId": "zjJn0DDIMxt4L77S",
+    "name": "Ruzadoya Swiftmane",
+    "level": 14,
+    "art": "ruzadoya-swiftmane.webp"
   }
 ]
