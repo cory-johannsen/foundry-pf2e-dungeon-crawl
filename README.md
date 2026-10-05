@@ -82,6 +82,24 @@ layout with `npm run art:normalize` (idempotent; safe to re-run), and
 until it has been run. Note: tokens already placed in an existing world keep the
 old flat path and show broken images until recreated; new spawns use the new path.
 
+### Compendium pack
+
+`packs/generated-creature-art/` is a shipped Actor compendium ("Generated
+Creature Art") holding one copy of each pf2e creature in
+`data/creature-art.json` with its generated art applied. It is derived data:
+never edit it by hand.
+
+```bash
+npm run packs:build    # rebuild; needs a local pf2e install
+npm run packs:check    # offline staleness report (add -- --strict to exit 1 if stale)
+```
+
+`packs:build` reads the pf2e system packs from `PF2E_SYSTEM_PACKS_DIR`
+(default `/srv/foundry/data/Data/systems/pf2e/packs`); it copies them first
+and never modifies the install. Rebuild and commit the result when an art
+batch finishes or before a minor version bump, not on every PR (each rebuild
+adds about 61 MB to git history).
+
 ### GM-less combat AI (hosted agent service)
 
 GM-less combat decisions and flavor-text customization are served by a
