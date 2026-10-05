@@ -66,6 +66,35 @@ export function trapDetectionDC(stealthValue) {
   return 10 + (stealthValue ?? 0);
 }
 
+/** #753: what a party token's new position means for a not-yet-triggered
+ * trap at `trapFootprint` -- "trigger" if the mover's own new footprint
+ * actually overlaps the trap's (stepped onto it), "detect" if merely
+ * Chebyshev-adjacent (one square away, including diagonally -- close
+ * enough to notice without having walked onto it), otherwise "none".
+ * Pure geometry only -- the caller (trap-combat.mjs) is responsible for
+ * actually checking/setting trapDisabled/trapDetected/trapTriggered
+ * actor flags; this function has no notion of trap state at all. */
+export function classifyTrapMove(trapFootprint, moverFootprint) {
+  const overlaps =
+    trapFootprint.gx < moverFootprint.gx + moverFootprint.gw &&
+    trapFootprint.gx + trapFootprint.gw > moverFootprint.gx &&
+    trapFootprint.gy < moverFootprint.gy + moverFootprint.gh &&
+    trapFootprint.gy + trapFootprint.gh > moverFootprint.gy;
+  if (overlaps) return "trigger";
+
+  const dx = Math.max(
+    trapFootprint.gx - (moverFootprint.gx + moverFootprint.gw - 1),
+    moverFootprint.gx - (trapFootprint.gx + trapFootprint.gw - 1),
+    0,
+  );
+  const dy = Math.max(
+    trapFootprint.gy - (moverFootprint.gy + moverFootprint.gh - 1),
+    moverFootprint.gy - (trapFootprint.gy + trapFootprint.gh - 1),
+    0,
+  );
+  return Math.max(dx, dy) <= 1 ? "detect" : "none";
+}
+
 /**
  * Whether a trap-tagged hazard's own data is one this file's v1 automation
  * can actually run end-to-end: non-complex, exactly one ready strike-shaped
