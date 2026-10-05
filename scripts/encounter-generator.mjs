@@ -125,7 +125,18 @@ async function spawnEncounterTokens(
     const entries = [
       withArt({ pack: roster.friend.pack, id: roster.friend.id }),
     ];
-    await api.spawnCreatures(entries, { ...place(false), disposition: 1 });
+    const [spawned] =
+      (await api.spawnCreatures(entries, {
+        ...place(false),
+        disposition: 1,
+      })) ?? [];
+    if (spawned) {
+      await api.postChatCard({
+        content: game.i18n.format("PF2EDC.Encounter.FriendAnnounceChat", {
+          name: spawned.name,
+        }),
+      });
+    }
   }
   if (roster.twins) {
     const entries = roster.twins.map((t) =>
