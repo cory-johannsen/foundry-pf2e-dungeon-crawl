@@ -47230,5 +47230,197 @@
     "name": "Alchemical Drudge",
     "level": 2,
     "art": "fall-of-plaguestone-bestiary/alchemical-drudge.webp"
+  },
+  {
+    "id": "hazards__fireball_rune",
+    "pack": "pf2e.hazards",
+    "docId": "2GAOUxDfoA48uCWP",
+    "name": "Fireball Rune",
+    "level": 5,
+    "art": "hazards/fireball-rune.webp"
+  },
+  {
+    "id": "hazards__electric_latch_rune",
+    "pack": "pf2e.hazards",
+    "docId": "491qhVbjsHnOuMZW",
+    "name": "Electric Latch Rune",
+    "level": 3,
+    "art": "hazards/electric-latch-rune.webp"
+  },
+  {
+    "id": "hazards__slamming_door",
+    "pack": "pf2e.hazards",
+    "docId": "4O7wKZdeAemTEbvG",
+    "name": "Slamming Door",
+    "level": 1,
+    "art": "hazards/slamming-door.webp"
+  },
+  {
+    "id": "hazards__scythe_blades",
+    "pack": "pf2e.hazards",
+    "docId": "7VqibTAEXXX6PIhh",
+    "name": "Scythe Blades",
+    "level": 4,
+    "art": "hazards/scythe-blades.webp"
+  },
+  {
+    "id": "hazards__telekinetic_swarm_trap",
+    "pack": "pf2e.hazards",
+    "docId": "AM3YY2Zfe2ChJHd7",
+    "name": "Telekinetic Swarm Trap",
+    "level": 12,
+    "art": "hazards/telekinetic-swarm-trap.webp"
+  },
+  {
+    "id": "hazards__hidden_pit",
+    "pack": "pf2e.hazards",
+    "docId": "BHq5wpQU8hQEke8D",
+    "name": "Hidden Pit",
+    "level": 0,
+    "art": "hazards/hidden-pit.webp"
+  },
+  {
+    "id": "hazards__wheel_of_misery",
+    "pack": "pf2e.hazards",
+    "docId": "H2GX04CQXLPQHT8h",
+    "name": "Wheel Of Misery",
+    "level": 6,
+    "art": "hazards/wheel-of-misery.webp"
+  },
+  {
+    "id": "hazards__polymorph_trap",
+    "pack": "pf2e.hazards",
+    "docId": "H8CPGJn81JSTCRNx",
+    "name": "Polymorph Trap",
+    "level": 12,
+    "art": "hazards/polymorph-trap.webp"
+  },
+  {
+    "id": "hazards__spinning_blade_pillar",
+    "pack": "pf2e.hazards",
+    "docId": "HnPd9Vqh5NHKEdRq",
+    "name": "Spinning Blade Pillar",
+    "level": 4,
+    "art": "hazards/spinning-blade-pillar.webp"
+  },
+  {
+    "id": "hazards__vorpal_executioner",
+    "pack": "pf2e.hazards",
+    "docId": "J4YChuob7MIPT5Mq",
+    "name": "Vorpal Executioner",
+    "level": 19,
+    "art": "hazards/vorpal-executioner.webp"
+  },
+  {
+    "id": "hazards__steam_vents",
+    "pack": "pf2e.hazards",
+    "docId": "OSPYSuckHhHl4Cr9",
+    "name": "Steam Vents",
+    "level": 4,
+    "art": "hazards/steam-vents.webp"
+  },
+  {
+    "id": "hazards__drowning_pit",
+    "pack": "pf2e.hazards",
+    "docId": "OekigjNLNp9XENjx",
+    "name": "Drowning Pit",
+    "level": 3,
+    "art": "hazards/drowning-pit.webp"
+  },
+  {
+    "id": "hazards__web_lurker_noose",
+    "pack": "pf2e.hazards",
+    "docId": "Or0jjL8xS3GyiMq0",
+    "name": "Web Lurker Noose",
+    "level": 2,
+    "art": "hazards/web-lurker-noose.webp"
+  },
+  {
+    "id": "hazards__poisoned_dart_gallery",
+    "pack": "pf2e.hazards",
+    "docId": "lVqVDjXnHboMif7F",
+    "name": "Poisoned Dart Gallery",
+    "level": 8,
+    "art": "hazards/poisoned-dart-gallery.webp"
+  },
+  {
+    "id": "hazards__pharaohs_ward",
+    "pack": "pf2e.hazards",
+    "docId": "m4PRYxFq9ojcwesh",
+    "name": "Pharaoh's Ward",
+    "level": 7,
+    "art": "hazards/pharaohs-ward.webp"
+  },
+  {
+    "id": "hazards__insistent_privacy_fence",
+    "pack": "pf2e.hazards",
+    "docId": "mWhmhYBHH9X1Ebb9",
+    "name": "Insistent Privacy Fence",
+    "level": 8,
+    "art": "hazards/insistent-privacy-fence.webp"
+  },
+  {
+    "id": "hazards__summoning_rune",
+    "pack": "pf2e.hazards",
+    "docId": "nO4osrBRnpWKFCMP",
+    "name": "Summoning Rune",
+    "level": 1,
+    "art": "hazards/summoning-rune.webp"
+  },
+  {
+    "id": "hazards__lava_flume_tube",
+    "pack": "pf2e.hazards",
+    "docId": "oNLgR1iq6MVvNRWo",
+    "name": "Lava Flume Tube",
+    "level": 10,
+    "art": "hazards/lava-flume-tube.webp"
+  },
+  {
+    "id": "hazards__hammer_of_forbiddance",
+    "pack": "pf2e.hazards",
+    "docId": "tbwGr6FIr5WpvQ6l",
+    "name": "Hammer Of Forbiddance",
+    "level": 11,
+    "art": "hazards/hammer-of-forbiddance.webp"
+  },
+  {
+    "id": "hazards__hallucination_powder_trap",
+    "pack": "pf2e.hazards",
+    "docId": "uEZ4Jv2wNyukJTRL",
+    "name": "Hallucination Powder Trap",
+    "level": 6,
+    "art": "hazards/hallucination-powder-trap.webp"
+  },
+  {
+    "id": "hazards__poisoned_lock",
+    "pack": "pf2e.hazards",
+    "docId": "v2xIxZ9ZZ6fJyATF",
+    "name": "Poisoned Lock",
+    "level": 1,
+    "art": "hazards/poisoned-lock.webp"
+  },
+  {
+    "id": "hazards__spear_launcher",
+    "pack": "pf2e.hazards",
+    "docId": "vlMuFskctUvjJe8X",
+    "name": "Spear Launcher",
+    "level": 2,
+    "art": "hazards/spear-launcher.webp"
+  },
+  {
+    "id": "hazards__bottomless_pit",
+    "pack": "pf2e.hazards",
+    "docId": "xkqjwu1ox0pQLOnb",
+    "name": "Bottomless Pit",
+    "level": 9,
+    "art": "hazards/bottomless-pit.webp"
+  },
+  {
+    "id": "hazards__planar_rift",
+    "pack": "pf2e.hazards",
+    "docId": "yM4G2LvMwvkIRx0G",
+    "name": "Planar Rift",
+    "level": 13,
+    "art": "hazards/planar-rift.webp"
   }
 ]

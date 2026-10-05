@@ -237,7 +237,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No test file: `data/creature-art.json` already has `npm run validate:creature-art` (ajv schema) as its one standing check, exercised in Step 2 below — adding a Vitest test around a plain data file this module already schema-validates on every run would duplicate that check, not add coverage.
 
-- [ ] **Step 1: Append the 24 entries**
+- [x] **Step 1: Append the 24 entries**
 
 Open `data/creature-art.json`. It is a flat JSON array; insert these 24 objects before the final closing `]`, each separated by a comma exactly like the file's existing entries:
 
@@ -436,18 +436,18 @@ Open `data/creature-art.json`. It is a flat JSON array; insert these 24 objects 
   }
 ```
 
-- [ ] **Step 2: Validate the schema**
+- [x] **Step 2: Validate the schema**
 
 Run: `npm run validate:creature-art`
 Expected: PASS — all 24 new entries satisfy `data/schema/creature-art.schema.json` (`id` pattern, `pack` pattern, `art` pattern, `level` integer).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add data/creature-art.json
 git commit -m "feat(#759): register trap hazard art entries in creature-art.json
 
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
