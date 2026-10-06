@@ -23,6 +23,7 @@
   "PF2EDC.Dungeon.Combat.StartCombatButton": "Start Combat",
   "PF2EDC.Dungeon.Combat.StealthNoticedChat": "<p><strong>{name}</strong> tries to avoid notice (Stealth {result}), but {observers} spotted them.</p>",
   "PF2EDC.Dungeon.Combat.SeekChat": "<p><strong>{hostile}</strong> seeks and finds <strong>{name}</strong> ({state}).</p>",
+  "PF2EDC.Dungeon.Combat.StealthRevealedChat": "<p><strong>{name}</strong> gives away their position by attacking.</p>",
   "PF2EDC.Dungeon.Combat.StealthUnnoticedChat": "<p><strong>{name}</strong> slips in unnoticed (Stealth {result}).</p>",
   "PF2EDC.Dungeon.Combat.ToggleAgentControlLabel": "Toggle Agent Control",
   "PF2EDC.Dungeon.Completed": "Dungeon complete",

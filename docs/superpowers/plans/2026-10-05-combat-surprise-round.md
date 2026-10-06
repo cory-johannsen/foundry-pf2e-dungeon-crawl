@@ -116,11 +116,11 @@
 - Consumes: Task 1 `afterAttack`/`uniformCondition`, Task 2's helpers.
 - Produces: `export async function handleStealthBreakMessage(message, deps)` registered on `createChatMessage` (GM client only): when a message's PF2e context type is an attack roll (`attack-roll` / `spell-attack-roll`) made by an actor that is a sneaker in the active combat's matrix, apply `afterAttack`, refresh that sneaker's display condition, post a chat line.
 
-- [ ] **Step 1:** Failing tests: a sneaker's attack roll message turns its unnoticed/undetected pairs to hidden and leaves observed pairs and other sneakers untouched; a hostile's attack message and a non-sneaker party attack never alter the matrix; non-attack messages ignored; non-GM client ignored; no active combat ignored; condition refreshed (removed when no longer uniform).
-- [ ] **Step 2:** Run, confirm failures.
-- [ ] **Step 3:** Implement and register.
-- [ ] **Step 4:** Run affected tests, confirm green.
-- [ ] **Step 5:** Commit.
+- [x] **Step 1:** Failing tests: a sneaker's attack roll message turns its unnoticed/undetected pairs to hidden and leaves observed pairs and other sneakers untouched; a hostile's attack message and a non-sneaker party attack never alter the matrix; non-attack messages ignored; non-GM client ignored; no active combat ignored; condition refreshed (removed when no longer uniform).
+- [x] **Step 2:** Run, confirm failures.
+- [x] **Step 3:** Implement and register.
+- [x] **Step 4:** Run affected tests, confirm green.
+- [x] **Step 5:** Commit.
 
 ### Task 6: Docs, version, full verification
 

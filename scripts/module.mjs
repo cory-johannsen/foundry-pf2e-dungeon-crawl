@@ -52,6 +52,7 @@ import {
   handleManualStrikeDamage,
   offerReactiveStrikesAgainst,
   clearDetection,
+  handleStealthBreakMessage,
 } from "./dungeon-combat.mjs";
 import {
   followLeaderIfDue,
@@ -624,6 +625,9 @@ Hooks.on("deleteCombat", async (combat) => {
   if (!(game.users?.activeGM?.isSelf ?? game.user?.isGM)) return;
   await clearDetection(combat);
 });
+
+/** #616: a sneaker's attack roll reveals it (active GM only, handled inside). */
+Hooks.on("createChatMessage", handleStealthBreakMessage);
 
 Hooks.on("getSceneControlButtons", (controls) => {
   const tokenControl =

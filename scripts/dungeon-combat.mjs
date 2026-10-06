@@ -73,6 +73,7 @@ import {
   hostileAwareness,
   initialDetection,
   stateFor,
+  afterAttack,
   uniformCondition,
 } from "./stealth-detection.mjs";
 
@@ -413,6 +414,42 @@ export async function performSeek(combat, hostile, deps = {}) {
     });
   }
   return results;
+}
+
+const STEALTH_BREAK_TYPES = new Set(["attack-roll", "spell-attack-roll"]);
+
+/**
+ * #616: a sneaker's own attack roll (Strike or spell attack) reveals its
+ * position: its unnoticed/undetected pairs become hidden (`afterAttack`);
+ * observed pairs and other sneakers are untouched, and a hostile Seek can
+ * later upgrade hidden again. Acts only on the active GM client, only for a
+ * sneaker (a key of the detection matrix) in a module combat; a hostile's or
+ * non-sneaker's attack, a non-attack message, or no active combat is a no-op
+ * with no matrix write. Posts a chat line only when something changed.
+ */
+export async function handleStealthBreakMessage(message, deps = {}) {
+  const d = { ...stealthDefaults, ...deps };
+  const isGm = d.isActiveGm ?? (game.users?.activeGM?.isSelf ?? game.user?.isGM);
+  if (!isGm) return;
+  if (!STEALTH_BREAK_TYPES.has(message?.flags?.pf2e?.context?.type)) return;
+  const actorId = message.actor?.id ?? message.speaker?.actor;
+  if (!actorId) return;
+  const combats = d.combats ?? game.combats?.contents ?? [];
+  for (const combat of combats) {
+    if (!isModuleCombat(combat)) continue;
+    const matrix = combat.getFlag?.(MODULE_ID, "detection");
+    if (!matrix) continue;
+    const sneaker = combat.combatants.find(
+      (c) => c.actor?.id === actorId && Object.hasOwn(matrix, c.id),
+    );
+    if (!sneaker) continue;
+    const next = afterAttack(matrix, sneaker.id);
+    if (JSON.stringify(next) === JSON.stringify(matrix)) return;
+    await combat.setFlag(MODULE_ID, "detection", next);
+    await refreshDisplayCondition(combat, sneaker, next, d);
+    await d.chat("PF2EDC.Dungeon.Combat.StealthRevealedChat", { name: sneaker.name });
+    return;
+  }
 }
 
 /** Flips a single combatant's agentControlled flag — the GM's per-combatant
