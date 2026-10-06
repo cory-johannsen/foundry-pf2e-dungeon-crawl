@@ -682,7 +682,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No unit test: this task is the image-generation run, manifest update, and live verification, not code.
 
-- [ ] **Step 1: Generate the 40 images**
+- [x] **Step 1: Generate the 40 images**
 
 ```bash
 node tools/generate-token-art.mjs \
@@ -700,11 +700,11 @@ node tools/generate-token-art.mjs \
 
 Per #750's own documented precedent (its spec's "As built" note): the generator produces straight-on/flat results needing the same `tools/cutout-room-feature-art.py` post-process (crop/turn/squash for doors to the established 5:1 strip; rembg cutout for tokens) — run it the same way #750's own batch did.
 
-- [ ] **Step 2: Review every image**
+- [x] **Step 2: Review every image**
 
 Per #750's own established review discipline (its spec's "Review" section): check each image against its kind (a locked door reads as barred/chained, an open chest reads as emptied, a solved puzzle reads as settled/quiescent, a spent challenge marker reads as lowered/still) and its theme, with no stray frames, rings, pedestals, or scenery. Redo (via `--force --reroll=N`) any that fail.
 
-- [ ] **Step 3: Update the manifest**
+- [x] **Step 3: Update the manifest**
 
 Add the new entries to each theme's object in `data/room-feature-art.json` — for example, `undead` becomes:
 
@@ -774,3 +774,5 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ---
 
 Plan complete and saved to `docs/superpowers/plans/2026-10-05-room-feature-art-variants.md`.
+
+> **As built:** the 10 doors (8 `door_locked`, undead `door-1`/`door-2`) were generated through OpenRouter (`--backend=openrouter`, `meta/muse-image`, ~$0.01 each) using a door-specific `systemPrompt` (top-down strip), and cut out by `tools/cutout-room-feature-art.py` (black background keyed from the border, kept opaque, resized to 1200 px wide). The 30 token images were generated on ComfyUI and cut out with rembg. Only the undead theme got floor variants 1/2 (the plan's proof batch); other themes' variants are a follow-up.
