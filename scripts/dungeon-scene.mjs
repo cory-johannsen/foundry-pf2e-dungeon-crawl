@@ -1245,6 +1245,20 @@ export async function revealSlotTokens(scene, slot) {
       "Token",
       ids.map((id) => ({ _id: id, hidden: false })),
     );
+  // #810: an encounter's Friend ally spawns hidden during full dungeon
+  // pregeneration (#93) and is announced HERE, when its room is revealed.
+  // `alliance: "party"` on a non-`character` actor is how spawnCreatures
+  // marks a Friend-type ally.
+  for (const token of tokens) {
+    const actor = token.actor;
+    if (actor?.alliance === "party" && actor.type !== "character") {
+      await ChatMessage.create({
+        content: game.i18n.format("PF2EDC.Encounter.FriendAnnounceChat", {
+          name: actor.name,
+        }),
+      });
+    }
+  }
   return ids;
 }
 

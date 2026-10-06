@@ -125,12 +125,18 @@ async function spawnEncounterTokens(
     const entries = [
       withArt({ pack: roster.friend.pack, id: roster.friend.id }),
     ];
+    const placement = place(false);
     const [spawned] =
       (await api.spawnCreatures(entries, {
-        ...place(false),
+        ...placement,
         disposition: 1,
       })) ?? [];
-    if (spawned) {
+    // #810: a Friend spawned hidden (full dungeon pregeneration, #93) is
+    // announced later, when its room is revealed (dungeon-scene.mjs's
+    // revealSlotTokens), not here -- that would spoil every ally in the
+    // dungeon at once. A non-hidden Friend (standalone macro) is still
+    // announced immediately.
+    if (spawned && !placement.hidden) {
       await api.postChatCard({
         content: game.i18n.format("PF2EDC.Encounter.FriendAnnounceChat", {
           name: spawned.name,
