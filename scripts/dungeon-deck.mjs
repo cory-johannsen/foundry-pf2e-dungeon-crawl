@@ -48,6 +48,14 @@ export function trapRollSucceeds(seed, roomId) {
   return rand() < TRAP_CHANCE;
 }
 
+/** #779: a corridor's own independent trap roll, same rate and convention as
+ * trapRollSucceeds but keyed by edge id (`${fromRoomId}->${toRoomId}`) with a
+ * distinct salt, so a corridor's roll never aliases a room's. */
+export function corridorTrapRollSucceeds(seed, edgeId) {
+  const rand = splitmix32(seedFromString(`${seed}-corridor-trap-chance-${edgeId}`));
+  return rand() < TRAP_CHANCE;
+}
+
 // Frequent branching, capped at 2 extra exits (3 total) — confirmed with
 // Cory during #93's design. Skewed toward 1-2 so most rooms still read as
 // a single path and full 3-way branches stay a genuine event.

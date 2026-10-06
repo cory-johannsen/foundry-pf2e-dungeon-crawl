@@ -173,8 +173,12 @@ export function wallDoc(
  * shared by a connection's own corridor and a #174 Task 5 transit cell's
  * own crossing, both of which lay tile-per-grid-square the same way the
  * old linear-slot builder's single corridorRect loop always did. */
-function corridorTilesForSegments(segments, { fullWidth = false } = {}) {
+export function corridorTilesForSegments(segments, { fullWidth = false } = {}) {
   const tiles = [];
+  // #779: parallel to `tiles` (same order): the grid cell each tile occupies,
+  // so corridor trap placement can pick a real floor cell without redoing the
+  // baseGx/baseGy flooring (#324) by hand.
+  const cells = [];
   for (const segment of segments) {
     const vertical = segment.gh >= segment.gw;
     const length = vertical ? segment.gh : segment.gw;
@@ -205,6 +209,7 @@ function corridorTilesForSegments(segments, { fullWidth = false } = {}) {
       const dx = vertical ? ci : ti;
       const dy = vertical ? ti : ci;
       const { variant, rotation } = corridorTileVariant(ti, length, vertical);
+      cells.push({ gx: baseGx + dx, gy: baseGy + dy });
       tiles.push({
         // anchorX/anchorY: 0.5 (center) -- NOT top-left. Room floor art
         // (above, roomArtPath's own Tile) uses anchor 0/0 + top-left x/y,
@@ -237,7 +242,7 @@ function corridorTilesForSegments(segments, { fullWidth = false } = {}) {
     }
     }
   }
-  return tiles;
+  return { tiles, cells };
 }
 
 /** #427: the floor tiles of one dead-end stub, door tile first and the collapsed-rubble cap (#438) on the far end.
@@ -297,7 +302,8 @@ async function buildTransitCellIfNeeded(scene, cell) {
   );
   if (alreadyBuilt) return;
 
-  const tiles = corridorTilesForSegments(cell.corridorSegments).map((t) => ({
+  const { tiles: rawTiles } = corridorTilesForSegments(cell.corridorSegments);
+  const tiles = rawTiles.map((t) => ({
     ...t,
     flags: { [MODULE_ID]: { dungeonTransitCellCrossing: marker } },
   }));
@@ -1750,7 +1756,8 @@ export async function buildPopulateAndUnlockGraphNode(
       // variant/rotation logic the old linear-slot builder's single-corridorRect
       // loop always used, just offset by each segment's own gx/gy instead
       // of a single shared corridorRect's.
-      tiles.push(...corridorTilesForSegments(corridorSegments, { fullWidth: layoutVersion >= 3 }));
+      const { tiles: edgeTiles } = corridorTilesForSegments(corridorSegments, { fullWidth: layoutVersion >= 3 });
+      tiles.push(...edgeTiles);
       placeholderIdsToDelete.push(...placeholderIdsByConnection[i]);
 
       // #174 Task 4/5: every intermediate, empty cell this connection's

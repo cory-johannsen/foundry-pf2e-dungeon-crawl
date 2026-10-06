@@ -39,7 +39,7 @@
 **Interfaces:**
 - Produces: `corridorTrapRollSucceeds(seed, edgeId): boolean` (mirrors `trapRollSucceeds(seed, roomId)` exactly). `corridorTilesForSegments(segments, opts)` now returns `{tiles, cells}` instead of a bare tile array — `cells` is `[{gx, gy}, ...]`, one entry per tile, in the same order. Consumed by Task 2.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/dungeon-deck.test.mjs`, alongside its existing `trapRollSucceeds` tests (mirror their exact style):
 
@@ -74,12 +74,12 @@ describe('corridorTrapRollSucceeds', () => {
 
 Find `corridorTilesForSegments`'s own existing test coverage (if any) via `grep -rln "corridorTilesForSegments" tests/`; if it's only exercised indirectly through a room/corridor-building integration test (likely, since it's a local, unexported function), add a new assertion to whichever integration test already builds a real corridor, confirming the SAME number of cells as tiles are produced, each cell's `{gx, gy}` matching the tile it corresponds to (derivable from that test's own existing tile-position assertions, if any — otherwise add a minimal new one).
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs -t "corridorTrapRollSucceeds"`
 Expected: FAIL — not a function yet.
 
-- [ ] **Step 3: Write `corridorTrapRollSucceeds`**
+- [x] **Step 3: Write `corridorTrapRollSucceeds`**
 
 In `scripts/dungeon-deck.mjs`, add directly after `trapRollSucceeds`:
 
@@ -95,7 +95,7 @@ export function corridorTrapRollSucceeds(seed, edgeId) {
 }
 ```
 
-- [ ] **Step 4: Refactor `corridorTilesForSegments` to also return cells**
+- [x] **Step 4: Refactor `corridorTilesForSegments` to also return cells**
 
 In `scripts/dungeon-scene.mjs`, change (confirmed current, lines 175-240):
 
@@ -168,7 +168,7 @@ to:
 
 The main edge site is Task 2's own concern (it needs `cells`, not just `tiles`) — leave its exact rewrite to Task 2's Step 1 so both changes land together and can be tested as one unit.
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs tests/dungeon-scene.test.mjs`
 Expected: PASS.
@@ -178,7 +178,7 @@ Expected: PASS.
 Run: `npx vitest run`
 Expected: PASS — in particular, every existing caller/test of `corridorTilesForSegments` (via whichever integration tests exercise corridor building) stays green once updated to the new `{tiles, cells}` return shape.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-deck.mjs scripts/dungeon-scene.mjs tests/dungeon-deck.test.mjs
