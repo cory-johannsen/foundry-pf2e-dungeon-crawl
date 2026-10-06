@@ -110,6 +110,7 @@ const GROUPS = [
         "scripts/narrative-mechanics.mjs",
         "scripts/room-feature-tokens.mjs",
         "scripts/room-feature-art.mjs",
+        "scripts/room-feature-check.mjs",
       ].includes(p),
   },
   {
@@ -158,6 +159,9 @@ const GROUPS = [
         "scripts/module.mjs",
         "scripts/ui/dungeon-app.mjs",
         "scripts/ui/sound-preview-app.mjs",
+        "scripts/ui/trap-disable-dialog.mjs",
+        "scripts/ui/puzzle-stage-dialog.mjs",
+        "scripts/ui/skill-challenge-dialog.mjs",
         "scripts/world-macros.mjs",
       ].includes(p),
   },
