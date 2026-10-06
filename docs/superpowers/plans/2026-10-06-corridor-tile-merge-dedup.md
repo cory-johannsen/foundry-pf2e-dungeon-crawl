@@ -1,3 +1,5 @@
+> **SUPERSEDED (2026-10-06):** replaced by `2026-10-06-corridor-joins-and-corner.md`. This plan's merge-room dedup was implemented and reviewed: it changed nothing on the live pipeline (layout v3 + topology routing), because the live stacked tiles come from the transit-cell site and from repeated end caps at joins and bends, not from merge rooms. Do not implement this plan.
+
 # Corridor Tile Merge-Room Dedup Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
