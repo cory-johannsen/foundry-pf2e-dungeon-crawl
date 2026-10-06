@@ -100,11 +100,11 @@
 - Consumes: Task 1 `hostileAwareness`/`applySeekOutcome`, Task 2/3 matrix + filter.
 - Produces: `export async function performSeek(combat, hostileCombatant, deps)` → rolls `hostile.actor.perception.roll({ dc: { value: targetStealthDC }, createMessage: true })` (under `withDialogsSuppressed`) against each seekable sneaker's `actor.skills.stealth.dc.value`, updates the matrix per RAW, refreshes display conditions, posts a chat line on a change, returns outcome summary; `seek` candidate `{ id: "seek", type: "seek", cost: 1, summary }` offered only when `hostileAwareness(...).seekable` is non-empty.
 
-- [ ] **Step 1:** Failing tests: `seek` candidate offered iff the hostile has seekable sneakers (and never when it has targetable PCs it prefers? — offered **alongside** attacks only when there is no targetable PC; with targetable PCs present it is not offered); `performSeek` outcome table via injected roll (crit success → observed; success undetected→hidden, hidden→observed; failure unchanged; matrix updated for that pair only); unaware hostile (all unnoticed): agent path with empty candidates ends the turn (`nextTurn`) without calling the agent service and without hanging; heuristic path likewise ends the turn; a hostile that Seeks and finds someone may then act with remaining actions (matrix refreshed before candidate rebuild).
-- [ ] **Step 2:** Run, confirm failures.
-- [ ] **Step 3:** Implement per spec.
-- [ ] **Step 4:** Run affected tests (`dungeon-combat*`, `agent-candidates*`, `stealth*`), confirm green.
-- [ ] **Step 5:** Commit.
+- [x] **Step 1:** Failing tests: `seek` candidate offered iff the hostile has seekable sneakers (and never when it has targetable PCs it prefers? — offered **alongside** attacks only when there is no targetable PC; with targetable PCs present it is not offered); `performSeek` outcome table via injected roll (crit success → observed; success undetected→hidden, hidden→observed; failure unchanged; matrix updated for that pair only); unaware hostile (all unnoticed): agent path with empty candidates ends the turn (`nextTurn`) without calling the agent service and without hanging; heuristic path likewise ends the turn; a hostile that Seeks and finds someone may then act with remaining actions (matrix refreshed before candidate rebuild).
+- [x] **Step 2:** Run, confirm failures.
+- [x] **Step 3:** Implement per spec.
+- [x] **Step 4:** Run affected tests (`dungeon-combat*`, `agent-candidates*`, `stealth*`), confirm green.
+- [x] **Step 5:** Commit.
 
 ### Task 5: Breaking stealth
 

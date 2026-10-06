@@ -943,13 +943,23 @@ export function buildBuffSpellCandidates({ readyBuffSpells, allies, actionsRemai
   return candidates;
 }
 
+/** #616: Seek for hidden/undetected sneakers. Only offered when the hostile has
+ * no targetable (observed) opponent, so it never competes with attacking. */
+export function buildSeekCandidates({ seekTargets = [], opponents, actionsRemaining }) {
+  if (!seekTargets.length || opponents.length || actionsRemaining < 1) return [];
+  return [{
+    id: 'seek', type: 'seek', cost: 1,
+    summary: `Seek (${seekTargets.map((t) => t.name).join(', ')})`
+  }];
+}
+
 /** Always available — lets the agent stop spending actions early. */
 export function endTurnCandidate() {
   return { id: 'endTurn', type: 'endTurn', cost: 0, summary: 'End turn' };
 }
 
 /** Full candidate list for one decision iteration. */
-export function buildCandidateList({ opponents, readyActions, readySpells = [], readyAreaSpells = [], readyAttackSpells = [], readyDebuffSpells = [], readyBreathWeapons = [], readyMultiStrikeBundles = [], readyChainSpells = [], readyHealSpells = [], readyBuffSpells = [], readyTierScalingAreaSpells = [], readyDualNatureSpells = [], readyTargetCountSpells = [], readyAutoHitAreaSpells = [], allies = [], turnState, hazard = null, hasRangedOrReach = false }) {
+export function buildCandidateList({ opponents, readyActions, readySpells = [], readyAreaSpells = [], readyAttackSpells = [], readyDebuffSpells = [], readyBreathWeapons = [], readyMultiStrikeBundles = [], readyChainSpells = [], readyHealSpells = [], readyBuffSpells = [], readyTierScalingAreaSpells = [], readyDualNatureSpells = [], readyTargetCountSpells = [], readyAutoHitAreaSpells = [], allies = [], seekTargets = [], turnState, hazard = null, hasRangedOrReach = false }) {
   if (turnState.actionsRemaining <= 0) return [endTurnCandidate()];
   return [
     ...buildMovementCandidates({ opponents, hazard, hasRangedOrReach }),
@@ -967,6 +977,7 @@ export function buildCandidateList({ opponents, readyActions, readySpells = [], 
     ...buildDualNatureSpellCandidates({ readyDualNatureSpells, actionsRemaining: turnState.actionsRemaining }),
     ...buildTargetCountSpellCandidates({ readyTargetCountSpells, actionsRemaining: turnState.actionsRemaining }),
     ...buildAutoHitAreaSpellCandidates({ readyAutoHitAreaSpells, actionsRemaining: turnState.actionsRemaining }),
+    ...buildSeekCandidates({ seekTargets, opponents, actionsRemaining: turnState.actionsRemaining }),
     endTurnCandidate()
   ];
 }
