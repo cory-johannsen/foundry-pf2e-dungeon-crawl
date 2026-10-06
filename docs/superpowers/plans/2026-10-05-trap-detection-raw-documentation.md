@@ -67,6 +67,6 @@
 
 **Files:** `module.json`; `docs/architecture.md` only if imports changed (run `node tools/generate-architecture-graph.mjs`, replace the mermaid block verbatim).
 
-- [ ] **Step 1:** Run the full suite once (`npx vitest run`; known flaky `tests/dungeon-reseed-sweep.test.mjs` timing, passes alone) and fix anything legitimately broken.
-- [ ] **Step 2:** Architecture graph check; bump `module.json` minor above `origin/main`; commit.
+- [x] **Step 1:** Run the full suite once (`npx vitest run`; known flaky `tests/dungeon-reseed-sweep.test.mjs` timing, passes alone) and fix anything legitimately broken.
+- [x] **Step 2:** Architecture graph check; bump `module.json` minor above `origin/main`; commit.
 - [ ] **Step 3 (controller, live):** with the party in a run: a min-proficiency trap is NOT found by a non-Searching party but is found by a Searching Trained+ character within 30 ft (secret roll: no public card; GM whisper present; public line only on success); a no-minimum trap gets one automatic roll per character; repeated movement does not re-roll; combat suppresses rolls; click-to-disable and walk-over trigger still work.
