@@ -45,10 +45,10 @@ describe('runs without the routing flag keep their geometry exactly (#427)', () 
     return { walls: walls.digest('hex'), tiles: tiles.digest('hex') };
   };
   it('layoutVersion 2 builds the same walls and (re-pinned, #823) tiles (40 seeds)', async () => {
-    expect(await sceneDigests(2)).toEqual({ walls: 'eeedfa994be105aaab4a7ffd66ab885251aa65b53f015c7369f6d1e2ea935d39', tiles: 'd6ab4a5baeba5932faebfd78b4a0df45f5e73fddc6a1d984e6391c677de78195' });
+    expect(await sceneDigests(2)).toEqual({ walls: 'eeedfa994be105aaab4a7ffd66ab885251aa65b53f015c7369f6d1e2ea935d39', tiles: 'beb78ef5ec6552697a48b6acfe397a18fcb7b603dcb28d297a9e49edfae8cd39' });
   }, 120000);
   it('layoutVersion 1 builds the same walls and (re-pinned, #823) tiles (40 seeds)', async () => {
-    expect(await sceneDigests(1)).toEqual({ walls: 'c3432f24940373854c6eebc2cbc582c387cae91b547e1963592b407dd1b74836', tiles: 'b4810286d8ceaa1862e115bc5c015a86938fe5c2b572d2f683e965bcf9c4a15f' });
+    expect(await sceneDigests(1)).toEqual({ walls: 'c3432f24940373854c6eebc2cbc582c387cae91b547e1963592b407dd1b74836', tiles: 'be0de9a5cb8b0c259e7b927fc093a0971421b21d934ff9185c9d88edc14dcb32' });
   }, 120000);
   it('a v3 run without the flag: the whole pipeline (reseed, stubs, walls) is unchanged; tiles re-pinned (#823) (40 seeds)', async () => {
     const walls = createHash('sha256');

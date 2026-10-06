@@ -803,6 +803,8 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // solved here — a real fix needs either findCorridorPath (Task 1)
     // preferring an endpoint's margined sides, or a margin-aware crossing
     // point next to a room's own cell, both bigger than this task's scope.
+    // (#860 since handled the WEST-face entry case: toWestFace keeps its corner and final
+    // leg one cell west of the room; the north-face case above is still the open one.)
     const corridorSegments = [
       ...cornerConnector(exitPoint, firstCellPoint, { toSide: transitCells[0].entrySide, coverFromCell }),
       ...cornerConnector(lastCellPoint, entryPoint, {
@@ -1419,7 +1421,8 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     corridorSegments: [
       // #555: heading west, include the door's own cell (see cornerConnector's coverFromCell).
       { gx: Math.min(exitPoint.x, corner.x), gy: Math.min(exitPoint.y, corner.y), gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - exitPoint.x)) + (coverFromCell && corner.x < exitPoint.x ? CORRIDOR_LEN : 0) + (incomingFace === 'west' && corner.x > exitPoint.x ? CORRIDOR_LEN : 0), gh: CORRIDOR_LEN },
-      { gx: Math.min(corner.x, entryPoint.x), gy: Math.min(corner.y, entryPoint.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(entryPoint.y - corner.y)) }
+      // #860: a west door's row is entryPoint.y itself; from the north the leg must include it.
+      { gx: Math.min(corner.x, entryPoint.x), gy: Math.min(corner.y, entryPoint.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(entryPoint.y - corner.y)) + (incomingFace === 'west' && corner.y < entryPoint.y ? CORRIDOR_LEN : 0) }
     ],
     transitCells: [],
     foreignOpening: null,
@@ -1985,7 +1988,8 @@ function cornerConnector(from, to, { fromSide, toSide, toWestFace = false, cover
   const leg2Gx = toSide === 'east' ? to.x - CORRIDOR_LEN : Math.min(corner.x, to.x);
   return [
     { gx: Math.min(from.x, corner.x), gy: leg1Gy, gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - from.x)) + westExtra + eastExtra, gh: CORRIDOR_LEN },
-    { gx: leg2Gx, gy: Math.min(corner.y, to.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(to.y - corner.y)) },
+    // #860: a west door's row is `to.y` itself, so a leg arriving from the north (corner.y < to.y) must include that row.
+    { gx: leg2Gx, gy: Math.min(corner.y, to.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(to.y - corner.y)) + (toWestFace && corner.y < to.y ? CORRIDOR_LEN : 0) },
   ];
 }
 

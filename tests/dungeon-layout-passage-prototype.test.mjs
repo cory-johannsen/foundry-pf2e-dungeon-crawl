@@ -16,7 +16,7 @@ describe('passage lane prototype (#427 Phase 4, test-only)', () => {
 
   it('serves a non-trivial share of the boxed-in edges and never routes through a room', () => {
     // #860: west-face legs no longer overlap the destination room, so fewer edges count as boxed-in (now exactly 20, was >20).
-    expect(approach.boxedIn).toBeGreaterThanOrEqual(20);
+    expect(approach.boxedIn).toBe(20);
     expect(approach.served).toBeGreaterThan(0);
     expect(approach.served + approach.residual).toBe(approach.boxedIn);
     expect(approach.overlapsOwnRooms).toBe(0);

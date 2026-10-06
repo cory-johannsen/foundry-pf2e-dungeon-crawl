@@ -170,9 +170,9 @@ describe('#823 corridor joins (100 routed v3 seeds, through the real scene build
     // (none in routed v3), bend cells now drawn with the corner piece, and the documented cross-edge overlap (sweep-51:
     // a hidden detour crosses another corridor; first wins, 2 cells open toward a cell the other corridor owns).
     expect([t.newPairs, t.newDoorEnds, t.newExcluded, t.newWide, t.corners, t.newCrossEdgeCells])
-      .toEqual([20083, 2480, 0, 0, 1259, 2]);
-    // #860: pairs 20196 -> 20083, corners 1269 -> 1259 (west-face detour corner and final leg moved one cell west, off the room).
-    // One tile per distinct cell: 22889 old tiles (incl. stacked duplicates) -> 21507 flagged corridor tiles (#860: west-face detour legs moved off the destination room's first column; was 22877 -> 21620).
-    expect([t.oldTiles, t.corridorTiles]).toEqual([22889, 21507]);
+      .toEqual([20095, 2480, 0, 0, 1259, 2]);
+    // #860: pairs 20196 -> 20095 (incl. the cell in front of each north-approached west door), corners 1269 -> 1259 (west-face detour corner and final leg moved one cell west, off the room).
+    // One tile per distinct cell: 22901 old tiles (incl. stacked duplicates) -> 21519 flagged corridor tiles (#860: west-face detour legs moved off the destination room's first column; was 22877 -> 21620).
+    expect([t.oldTiles, t.corridorTiles]).toEqual([22901, 21519]);
   }, 600000);
 });
