@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   DETECTION,
   avoidingNoticeActorIds,
+  actorIdsWithExplorationActivity,
   initialDetection,
   canTargetState,
   stateFor,
@@ -223,5 +224,17 @@ describe("initialDetection hasObservedNonSneaker (#616)", () => {
   });
   it("no hostiles: nothing to alarm", () => {
     expect(initialDetection({ sneakers: [{ id: "s", result: 1 }], hostiles: [], hasObservedNonSneaker: true })).toEqual({ s: {} });
+  });
+});
+
+describe("actorIdsWithExplorationActivity (#755)", () => {
+  it("matches the requested slug among selected activities only", () => {
+    const actors = [
+      { id: "a", exploration: ["i1"], items: [{ id: "i1", slug: "search" }] },
+      { id: "b", exploration: [], items: [{ id: "i2", slug: "search" }] },
+      { id: "c", exploration: ["i3"], items: [{ id: "i3", slug: "avoid-notice" }] },
+    ];
+    expect(actorIdsWithExplorationActivity(actors, "search")).toEqual(["a"]);
+    expect(actorIdsWithExplorationActivity(actors, "avoid-notice")).toEqual(["c"]);
   });
 });

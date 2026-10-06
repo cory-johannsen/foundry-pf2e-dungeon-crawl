@@ -11,7 +11,11 @@ import {
   trapDetectionDC,
   isSimpleAutomatableTrap,
   classifyTrapMove,
+  trapMinProficiencyRank,
+  detectionEligibility,
+  withinSearchRange,
 } from "./trap-mechanics.mjs";
+import { actorIdsWithExplorationActivity } from "./stealth-detection.mjs";
 import { applyTrapRoomState, getRunState } from "./dungeon-runner.mjs";
 import { userMayAttemptTrapDisable } from "./dungeon-permissions.mjs";
 import { footprint, isPositionChange } from "./placement.mjs";
@@ -66,21 +70,43 @@ export async function withDialogsSuppressed(fn) {
   }
 }
 
+/** PF2e degreeOfSuccess (0 crit failure .. 3 crit success) -> outcome slug. */
+const DEGREE_OUTCOMES = ["criticalFailure", "failure", "success", "criticalSuccess"];
+
 /**
- * Rolls Perception for `seeker` against `hazardActor`'s own detection DC
- * (its Stealth value converted the standard way). Returns
- * `{detected, dc, outcome}` — confirmed live: `actor.perception.roll(...)`
- * is a real, callable PF2e API, same shape as every other check/save roll
- * already used elsewhere in this module.
+ * #755: the SECRET Perception check against a hazard's Stealth DC (10 + its
+ * Stealth modifier). Per PF2e RAW (Hazards / Search: "the GM will attempt a
+ * free secret check"), no roll card is created (`createMessage: false`);
+ * the caller whispers the result to GMs. The outcome is read from the
+ * returned roll's `degreeOfSuccess` (set because a dc is passed), never from
+ * the last chat message. If `degreeOfSuccess` is missing, fall back to
+ * comparing `roll.total` with the DC (>= DC success, >= DC+10 critical
+ * success, <= DC-10 critical failure). Returns
+ * `{detected, dc, outcome, total}`. See
+ * docs/superpowers/specs/2026-10-06-trap-detection-raw-design.md.
  */
-export async function rollTrapDetection(hazardActor, seeker) {
+export async function rollTrapDetection(hazardActor, seeker, deps = {}) {
+  const suppress = deps.suppress ?? withDialogsSuppressed;
   const dc = trapDetectionDC(hazardActor.system?.attributes?.stealth?.value);
-  return withDialogsSuppressed(async () => {
-    await seeker.perception.roll({ dc: { value: dc }, createMessage: true });
-    const outcome =
-      game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
+  return suppress(async () => {
+    const roll = await seeker.perception.roll({
+      dc: { value: dc },
+      createMessage: false,
+    });
+    const total = roll?.total ?? null;
+    let outcome = DEGREE_OUTCOMES[roll?.degreeOfSuccess] ?? null;
+    if (outcome === null && total !== null) {
+      outcome =
+        total >= dc + 10
+          ? "criticalSuccess"
+          : total >= dc
+            ? "success"
+            : total <= dc - 10
+              ? "criticalFailure"
+              : "failure";
+    }
     const detected = outcome === "success" || outcome === "criticalSuccess";
-    return { detected, dc, outcome };
+    return { detected, dc, outcome, total };
   });
 }
 
@@ -171,6 +197,43 @@ async function announceTrap(key, data) {
   await ChatMessage.create({ content: game.i18n.format(key, data) });
 }
 
+/** #755: whispers a localized line to every GM. */
+async function whisperGMChat(key, data) {
+  await ChatMessage.create({
+    content: game.i18n.format(key, data),
+    whisper: ChatMessage.getWhisperRecipients("GM"),
+  });
+}
+
+/** #755: whether one of this module's own combats is running on `scene`
+ * (same flag test as dungeon-combat.mjs's private `isModuleCombat`, inlined
+ * here because dungeon-combat.mjs already imports this file). */
+function moduleCombatActive(scene) {
+  return (globalThis.game?.combats?.contents ?? []).some(
+    (c) =>
+      c.scene?.id === scene?.id &&
+      (c.getFlag?.(MODULE_ID, "dungeonSlot") != null ||
+        c.getFlag?.(MODULE_ID, "encounterId") != null),
+  );
+}
+
+/** #755: whether `actor` has the Search exploration activity selected (an
+ * owned item with slug `search` whose id is in `system.exploration`). */
+function isSearching(actor) {
+  return (
+    actorIdsWithExplorationActivity(
+      [
+        {
+          id: actor.id,
+          exploration: actor.system?.exploration ?? [],
+          items: Array.from(actor.items ?? []).map((i) => ({ id: i.id, slug: i.slug })),
+        },
+      ],
+      "search",
+    ).length > 0
+  );
+}
+
 /** #754: marks a hazard TOKEN spent (disabled or triggered). Players can't
  * read the hazard actor, so the click control keys off this token flag. */
 export async function markTrapSpent(hazardToken) {
@@ -189,15 +252,30 @@ function isPartyActor(actor) {
 /** Hook target for `updateToken` (module.mjs, #753). Acts only on a GM
  * client and only for party tokens. Checks every not-yet-triggered trap
  * hazard on the token's scene against the mover's new footprint: overlap
- * triggers it (a disabled trap is marked triggered but doesn't attack),
- * adjacency detects it. The hazard token unhides the moment it's either
- * detected or triggered. `deps` is injectable for tests. */
+ * triggers it (a disabled trap is marked triggered but doesn't attack).
+ *
+ * #755 detection follows PF2e rules as written: each character gets ONE
+ * secret Perception check per hazard, the first time they are within 30 ft
+ * (`30 / scene.grid.distance` squares) of it while exploring (no module
+ * combat). A hazard listing a minimum proficiency in its Stealth details is
+ * checked only for a character who has the Search exploration activity
+ * selected and meets the rank; an ineligible character does not consume
+ * their roll. "Already rolled" lives on the hazard actor's
+ * `trapDetectionRolls` flag (GM client only). Every roll is whispered to
+ * GMs; only a success is public, and it unhides the token for everyone.
+ * Named out of scope: the Seek action during encounters (no rolls while a
+ * module combat is active), XP for hazards, and complex-hazard
+ * initiative-Stealth nuances (the `10 + modifier` DC is kept). Spec:
+ * docs/superpowers/specs/2026-10-06-trap-detection-raw-design.md.
+ * `deps` is injectable for tests. */
 export async function handleTrapTokenMove(tokenDoc, changes, deps = {}) {
   const isGM = deps.isGM ?? (() => game.user.isGM);
   const isParty = deps.isPartyActor ?? isPartyActor;
   const trigger = deps.triggerTrap ?? triggerTrap;
   const detect = deps.rollTrapDetection ?? rollTrapDetection;
   const announce = deps.announce ?? announceTrap;
+  const whisperGM = deps.whisperGM ?? whisperGMChat;
+  const combatActive = deps.isCombatActive ?? moduleCombatActive;
 
   if (!isPositionChange(changes)) return;
   if (!isGM()) return;
@@ -216,11 +294,33 @@ export async function handleTrapTokenMove(tokenDoc, changes, deps = {}) {
 
     const trapFootprint = footprint(hazardToken, scene.grid.size);
     const classification = classifyTrapMove(trapFootprint, moverFootprint);
-    if (classification === "none") continue;
+    const isTrigger = classification === "trigger";
+    let detectionActor = null;
+    let minRank = null;
+    if (!isTrigger) {
+      // #755: cheap pre-checks before taking the lock.
+      if (hazardActor.getFlag(MODULE_ID, "trapDetected")) continue;
+      if (combatActive(scene)) continue;
+      const mover = tokenDoc.actor;
+      const already = hazardActor.getFlag(MODULE_ID, "trapDetectionRolls") ?? [];
+      if (already.includes(mover.id)) continue;
+      const rangeSquares = 30 / (scene.grid.distance || 5);
+      if (!withinSearchRange(trapFootprint, moverFootprint, rangeSquares)) continue;
+      minRank = trapMinProficiencyRank(
+        hazardActor.system?.attributes?.stealth?.details,
+      );
+      const eligible = detectionEligibility({
+        minRank,
+        searching: isSearching(mover),
+        perceptionRank: mover.perception?.rank ?? 0,
+      });
+      if (!eligible) continue;
+      detectionActor = mover;
+    }
 
     trapChecksInFlight.add(hazardActor.id);
     try {
-      if (classification === "trigger") {
+      if (isTrigger) {
         const disabled = hazardActor.getFlag(MODULE_ID, "trapDisabled");
         await hazardActor.setFlag(MODULE_ID, "trapTriggered", true);
         if (!disabled) {
@@ -235,13 +335,27 @@ export async function handleTrapTokenMove(tokenDoc, changes, deps = {}) {
         }
         await markTrapSpent(hazardToken);
         if (hazardToken.hidden) await hazardToken.update({ hidden: false });
-      } else if (!hazardActor.getFlag(MODULE_ID, "trapDetected")) {
-        const result = await detect(hazardActor, tokenDoc.actor);
+      } else {
+        const prior = hazardActor.getFlag(MODULE_ID, "trapDetectionRolls") ?? [];
+        // Record before rolling so a re-entrant move can never roll twice.
+        await hazardActor.setFlag(MODULE_ID, "trapDetectionRolls", [
+          ...prior,
+          detectionActor.id,
+        ]);
+        const name = tokenDoc.name ?? detectionActor.name;
+        const result = await detect(hazardActor, detectionActor);
+        await whisperGM("PF2EDC.Dungeon.Trap.DetectionRollGM", {
+          name,
+          trap: hazardActor.name,
+          total: result?.total ?? "?",
+          dc: result?.dc ?? "?",
+          outcome: result?.outcome ?? "?",
+        });
         if (result?.detected) {
           await hazardActor.setFlag(MODULE_ID, "trapDetected", true);
           if (hazardToken.hidden) await hazardToken.update({ hidden: false });
           await announce("PF2EDC.Dungeon.Trap.DetectedChat", {
-            name: tokenDoc.name ?? tokenDoc.actor.name,
+            name,
             trap: hazardActor.name,
           });
         }
