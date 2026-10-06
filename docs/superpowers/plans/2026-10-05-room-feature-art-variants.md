@@ -570,7 +570,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 **Interfaces:** None — pure content, consumed by Task 5's generation run via the existing `generate-token-art.mjs` pipeline (unchanged import/splice mechanism, confirmed current from #750).
 
-- [ ] **Step 1: Add the 4 new state-kind subjects**
+- [x] **Step 1: Add the 4 new state-kind subjects**
 
 In `tools/room-feature-art-prompts.mjs`, change the import and `KIND_SUBJECT`/generation list:
 
@@ -657,12 +657,12 @@ export const ROOM_FEATURE_ART = [
 
 (`baseKindSubject`'s extraction is a pure refactor of the existing single-line prompt-building expression — same text, reused for both the original 32 and the new proof-batch entries, since a floor-variant image describes the identical object/theme as variant 0, just a different roll of the same prompt — the generator's own per-attempt seed, confirmed current in `generate-token-art.mjs`, already produces a different image per distinct `id`.)
 
-- [ ] **Step 2: Run the full test suite to confirm no regression**
+- [x] **Step 2: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS — `tools/room-feature-art-prompts.mjs` has no dedicated unit test (confirmed, matching #750's own precedent for this exact file and `generate-token-art.mjs`'s own content arrays generally); this is a regression check on the rest of the suite.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tools/room-feature-art-prompts.mjs
