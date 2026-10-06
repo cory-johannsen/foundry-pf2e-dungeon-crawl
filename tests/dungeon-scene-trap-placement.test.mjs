@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // #754: build-time trap placement is independent of room kind.
-const roll = vi.hoisted(() => ({ succeeds: true }));
-const calls = vi.hoisted(() => ({ order: [] }));
+const roll = vi.hoisted(() => ({ succeeds: true, corridor: false }));
+const calls = vi.hoisted(() => ({ order: [], spawns: [], selects: [], origFootprint: null }));
 
 vi.mock("../scripts/dungeon-deck.mjs", async (importOriginal) => ({
   ...(await importOriginal()),
   trapRollSucceeds: vi.fn(() => roll.succeeds),
+  corridorTrapRollSucceeds: vi.fn(() => roll.corridor),
 }));
 vi.mock("../scripts/encounter-generator.mjs", () => ({
   generateEncounter: vi.fn(async ({ scene, extraFlags }) => {
@@ -15,13 +16,19 @@ vi.mock("../scripts/encounter-generator.mjs", () => ({
   }),
 }));
 vi.mock("../scripts/trap-library.mjs", () => ({
-  selectTrap: vi.fn(async () => ({ pack: "pf2e.hazards", id: "trap1" })),
+  selectTrap: vi.fn(async (args) => { calls.selects.push(args); return { pack: "pf2e.hazards", id: "trap1" }; }),
 }));
+vi.mock("../scripts/trap-mechanics.mjs", async (importOriginal) => {
+  const orig = await importOriginal();
+  calls.origFootprint = orig.trapFootprintSize;
+  return { ...orig, trapFootprintSize: vi.fn((...a) => orig.trapFootprintSize(...a)) };
+});
 vi.mock("../scripts/foundry-api.mjs", () => ({
   makeFoundryApi: (scene) => ({
     partyLevel: async () => 3,
-    spawnCreatures: async (_specs, { extraFlags }) => {
+    spawnCreatures: async (specs, { extraFlags, originArea }) => {
       calls.order.push("trap");
+      calls.spawns.push({ specs, originArea });
       scene?.addToken({ ...extraFlags["pf2e-dungeon-crawl"] });
       return [{ actorId: "no-such-actor", tokenId: "t" }];
     },
@@ -29,7 +36,10 @@ vi.mock("../scripts/foundry-api.mjs", () => ({
 }));
 
 import { buildPopulateAndUnlockGraphNode } from "../scripts/dungeon-scene.mjs";
-import { trapRollSucceeds } from "../scripts/dungeon-deck.mjs";
+import { trapRollSucceeds, corridorTrapRollSucceeds, depthBiasFor, applyDifficultyShift } from "../scripts/dungeon-deck.mjs";
+import { trapFootprintSize } from "../scripts/trap-mechanics.mjs";
+import { corridorTilesForSegments, populateSlotTrap, effectiveRoomBias } from "../scripts/dungeon-scene.mjs";
+import { buildEdgeCorridor, roomRect, doorSlotsForFace } from "../scripts/dungeon-layout.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 
@@ -68,7 +78,12 @@ const trapsIn = (scene) => scene.tokens.filter((t) => t.getFlag(MODULE_ID, "trap
 
 beforeEach(() => {
   roll.succeeds = true;
+  roll.corridor = false;
   calls.order.length = 0;
+  calls.spawns.length = 0;
+  calls.selects.length = 0;
+  vi.mocked(corridorTrapRollSucceeds).mockClear();
+  vi.mocked(trapFootprintSize).mockReset().mockImplementation((...a) => calls.origFootprint(...a));
   vi.mocked(trapRollSucceeds).mockClear();
   globalThis.CONST = {
     WALL_DOOR_TYPES: { NONE: 0, DOOR: 1, SECRET: 2 },
@@ -140,5 +155,138 @@ describe("buildPopulateAndUnlockGraphNode — #754 kind-agnostic trap placement"
     expect(trapsIn(scene)).toHaveLength(0);
     await build(scene, mk("combat"));
     expect(calls.order).toEqual(["encounter", "encounter", "trap"]);
+  });
+});
+
+// ---- #779: corridor traps -------------------------------------------------
+const F = "room-f";
+const EDGE = `${F}->${S}`;
+const cState = (extra = {}) => {
+  const edges = { [F]: [S] };
+  return {
+    seed: "corridor-trap-seed", maxRank: 3, difficulty: "standard", hiddenRooms: [],
+    layoutPositionByRoomId: { [F]: { rank: 0, col: 2 }, [S]: { rank: 1, col: 2 } },
+    incomingFaceByRoomId: { [F]: "north", [S]: "north" },
+    edges, layoutEdges: edges, hiddenIncomingByRoomId: {}, hiddenEdges: {},
+    ...extra,
+  };
+};
+const cBuild = (scene, st = cState(), room = mk("narrative")) =>
+  buildPopulateAndUnlockGraphNode(scene, st, room, { rank: 1, col: 2, childIds: [], unlock: false });
+const corridorTraps = (scene) =>
+  scene.tokens.filter((t) => t.getFlag(MODULE_ID, "trapHazard") && t.getFlag(MODULE_ID, "dungeonSlot") === EDGE);
+
+/** The edge's own main-segment cells, derived independently via the pure layout function. */
+function edgeCells(st = cState()) {
+  const fromRect = roomRect(st.seed, F, 0, 2);
+  const toRect = roomRect(st.seed, S, 1, 2);
+  const toSlot = doorSlotsForFace(toRect, 1, "north")[0];
+  const { corridorSegments } = buildEdgeCorridor(
+    st.seed, F, S, fromRect, toRect, { rank: 0, col: 2 }, { rank: 1, col: 2 },
+    "south", toSlot, { "0,2": F, "1,2": S }, "north",
+  );
+  return corridorTilesForSegments(corridorSegments).cells;
+}
+
+describe("buildPopulateAndUnlockGraphNode — #779 corridor trap placement", () => {
+  it("a roll-success edge gets exactly one corridor trap, keyed by the edge id", async () => {
+    roll.succeeds = false;
+    roll.corridor = true;
+    const scene = makeScene();
+    await cBuild(scene);
+    expect(corridorTraps(scene)).toHaveLength(1);
+    expect(trapsIn(scene)).toHaveLength(0);
+    expect(corridorTrapRollSucceeds).toHaveBeenCalledWith("corridor-trap-seed", EDGE);
+  });
+
+  it("a roll-failure edge gets no corridor trap", async () => {
+    roll.succeeds = false;
+    const scene = makeScene();
+    await cBuild(scene);
+    expect(corridorTraps(scene)).toHaveLength(0);
+    expect(calls.spawns).toHaveLength(0);
+  });
+
+  it("a hidden edge never gets a corridor trap, even on roll success", async () => {
+    roll.succeeds = false;
+    roll.corridor = true;
+    const scene = makeScene();
+    await cBuild(scene, cState({ hiddenRooms: [S] }));
+    expect(corridorTraps(scene)).toHaveLength(0);
+    expect(calls.spawns).toHaveLength(0);
+  });
+
+  it("rebuilding the same room never gives the edge a second trap", async () => {
+    roll.succeeds = false;
+    roll.corridor = true;
+    const scene = makeScene();
+    await cBuild(scene);
+    await cBuild(scene);
+    expect(corridorTraps(scene)).toHaveLength(1);
+  });
+
+  it("the corridor trap is forced to 1x1 even when the seeded footprint roll says 2x2, and lands on one of the edge's own main-segment cells", async () => {
+    roll.succeeds = false;
+    roll.corridor = true;
+    vi.mocked(trapFootprintSize).mockReturnValue({ width: 2, height: 2 });
+    const scene = makeScene();
+    await cBuild(scene);
+    expect(calls.spawns).toHaveLength(1);
+    const { specs, originArea } = calls.spawns[0];
+    expect(specs[0].tokenSize).toEqual({ width: 1, height: 1 });
+    expect(originArea.width).toBe(100);
+    expect(originArea.height).toBe(100);
+    const cells = edgeCells();
+    expect(cells.length).toBeGreaterThan(0);
+    expect(cells.some((c) => c.gx * 100 === originArea.x && c.gy * 100 === originArea.y)).toBe(true);
+  });
+
+  it("the corridor trap's level bias is the receiving room's effectiveRoomBias, not 0", async () => {
+    roll.succeeds = false;
+    roll.corridor = true;
+    const st = cState({ difficulty: "extreme", maxRank: 1 });
+    const scene = makeScene();
+    await cBuild(scene, st);
+    const expected = effectiveRoomBias({ rank: 1, maxRank: 1, isGoal: false, difficulty: "extreme" });
+    expect(expected).toBe(applyDifficultyShift(depthBiasFor({ rank: 1, maxRank: 1, isGoal: false }), "extreme"));
+    expect(expected).toBeGreaterThan(0);
+    expect(calls.selects).toHaveLength(1);
+    expect(calls.selects[0].levelOffsetBias).toBe(expected);
+  });
+
+  it("a room-level trap in the same room still uses its seeded footprint (corridor override does not leak)", async () => {
+    vi.mocked(trapFootprintSize).mockReturnValue({ width: 2, height: 1 });
+    roll.corridor = true;
+    const scene = makeScene();
+    await cBuild(scene);
+    const sizes = calls.spawns.map((c) => c.specs[0].tokenSize);
+    expect(sizes).toContainEqual({ width: 1, height: 1 });
+    expect(sizes).toContainEqual({ width: 2, height: 1 });
+  });
+
+  it("does not change the corridor floor tiles (same count/x/y/rotation/art with or without a trap)", async () => {
+    const strip = (scene) => scene.tiles.map(({ id, getFlag, update, ...r }) => r);
+    roll.succeeds = false;
+    const without = makeScene();
+    await cBuild(without);
+    roll.corridor = true;
+    const withTrap = makeScene();
+    await cBuild(withTrap);
+    expect(corridorTraps(withTrap)).toHaveLength(1);
+    expect(strip(withTrap)).toEqual(strip(without));
+  });
+});
+
+describe("populateSlotTrap — #779 tokenSize override", () => {
+  const rect = { gx: 3, gy: 3, gw: 1, gh: 1 };
+  it("defaults to the seeded trapFootprintSize roll (every existing room caller)", async () => {
+    vi.mocked(trapFootprintSize).mockReturnValue({ width: 2, height: 2 });
+    await populateSlotTrap(makeScene(), "room-x", { rect, partyLevel: 3, seed: "s", roomId: "room-x" });
+    expect(calls.spawns[0].specs[0].tokenSize).toEqual({ width: 2, height: 2 });
+  });
+  it("uses an explicit tokenSize without consulting the seeded roll", async () => {
+    await populateSlotTrap(makeScene(), "a->b", { rect, partyLevel: 3, seed: "s", roomId: "a->b", tokenSize: { width: 1, height: 1 } });
+    expect(calls.spawns[0].specs[0].tokenSize).toEqual({ width: 1, height: 1 });
+    expect(trapFootprintSize).not.toHaveBeenCalled();
   });
 });

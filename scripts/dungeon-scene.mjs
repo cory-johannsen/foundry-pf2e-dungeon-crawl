@@ -76,7 +76,7 @@ import {
   markStubOpened,
 } from "./dungeon-runner.mjs";
 import { canRetreat, hasNoWayForward, roomDisplayLabel, roomTileName, openChildren } from "./dungeon-retreat.mjs";
-import { depthBiasFor, applyDifficultyShift, trapRollSucceeds } from "./dungeon-deck.mjs";
+import { depthBiasFor, applyDifficultyShift, trapRollSucceeds, corridorTrapRollSucceeds } from "./dungeon-deck.mjs";
 import { startCombatForRoom } from "./dungeon-combat.mjs";
 import { playDoorSound } from "./dungeon-sound.mjs";
 import { loadDungeonSetpieces, loadRoomFeatureArt, loadCreatureArt } from "./data-loader.mjs";
@@ -1176,7 +1176,7 @@ async function spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed, the
 export async function populateSlotTrap(
   scene,
   slot,
-  { rect, partyLevel, levelOffsetBias = 0, locationTag = null, seed = "", roomId } = {},
+  { rect, partyLevel, levelOffsetBias = 0, locationTag = null, seed = "", roomId, tokenSize = null } = {},
 ) {
   const api = makeFoundryApi(scene);
   const rng = splitmix32(seedFromString(`${seed}-trap-${slot}`));
@@ -1187,14 +1187,16 @@ export async function populateSlotTrap(
     );
     return;
   }
-  const tokenSize = trapFootprintSize(seed, roomId);
+  // #779: a corridor trap forces 1x1 (a 1-cell corridor rect can't hold a bigger footprint); every
+  // room caller omits `tokenSize` and keeps the #757 seeded roll.
+  const trapTokenSize = tokenSize ?? trapFootprintSize(seed, roomId);
   // #759: generated hazard art; a miss (null) leaves the compendium default.
   const artFilename = findCreatureArt(await loadCreatureArt(), { pack: trap.pack, id: trap.id });
   const imgFallback = artFilename
     ? `modules/${MODULE_ID}/assets/${creatureArtPath(artFilename)}`
     : null;
   const [spawned] = await api.spawnCreatures(
-    [{ pack: trap.pack, id: trap.id, tokenSize, imgFallback }],
+    [{ pack: trap.pack, id: trap.id, tokenSize: trapTokenSize, imgFallback }],
     {
       originArea: {
         x: toPixels(rect.gx),
@@ -1756,8 +1758,38 @@ export async function buildPopulateAndUnlockGraphNode(
       // variant/rotation logic the old linear-slot builder's single-corridorRect
       // loop always used, just offset by each segment's own gx/gy instead
       // of a single shared corridorRect's.
-      const { tiles: edgeTiles } = corridorTilesForSegments(corridorSegments, { fullWidth: layoutVersion >= 3 });
+      const { tiles: edgeTiles, cells: edgeCells } = corridorTilesForSegments(corridorSegments, { fullWidth: layoutVersion >= 3 });
       tiles.push(...edgeTiles);
+      // #779: independent per-edge trap roll, one level down from #754's room roll. Only a real
+      // (non-hidden) edge's own main-segment cells are candidates (never a transit/detour cell).
+      // The edge id stands in for a room id: populateSlotTrap's ensureTrapState / trapCustomization
+      // mirror find no state.rooms[edgeId] and no-op (pinned by tests/trap-edge-id-state.test.mjs;
+      // #820 tracks real customization parity). Forced 1x1 so it can't spill out of the corridor.
+      const edgeId = `${sourceId}->${room.id}`;
+      if (
+        !hidden &&
+        scene.tokens &&
+        edgeCells.length > 0 &&
+        !hasTrapInRoom(scene, edgeId) &&
+        corridorTrapRollSucceeds(state.seed, edgeId)
+      ) {
+        const pickRand = splitmix32(seedFromString(`${state.seed}-corridor-trap-cell-${edgeId}`));
+        const trapCell = edgeCells[Math.floor(pickRand() * edgeCells.length)];
+        await populateSlotTrap(scene, edgeId, {
+          rect: { gx: trapCell.gx, gy: trapCell.gy, gw: 1, gh: 1 },
+          partyLevel: await makeFoundryApi().partyLevel(),
+          levelOffsetBias: effectiveRoomBias({
+            rank,
+            maxRank: state.maxRank,
+            isGoal: room.isGoal,
+            difficulty: state.difficulty,
+          }),
+          locationTag: room.locationTag,
+          seed: state.seed,
+          roomId: edgeId,
+          tokenSize: { width: 1, height: 1 },
+        });
+      }
       placeholderIdsToDelete.push(...placeholderIdsByConnection[i]);
 
       // #174 Task 4/5: every intermediate, empty cell this connection's

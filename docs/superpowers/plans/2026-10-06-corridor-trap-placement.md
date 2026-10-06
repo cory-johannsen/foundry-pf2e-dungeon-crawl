@@ -173,7 +173,7 @@ The main edge site is Task 2's own concern (it needs `cells`, not just `tiles`) 
 Run: `npx vitest run tests/dungeon-deck.test.mjs tests/dungeon-scene.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full test suite to confirm no regression**
+- [x] **Step 6: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS — in particular, every existing caller/test of `corridorTilesForSegments` (via whichever integration tests exercise corridor building) stays green once updated to the new `{tiles, cells}` return shape.
@@ -198,7 +198,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: `corridorTrapRollSucceeds` and `corridorTilesForSegments`'s new `cells` (Task 1), `hasTrapInRoom` and `populateSlotTrap` (both confirmed current, unchanged).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/dungeon-scene-trap-placement.test.mjs`, reusing its exact existing `makeScene`/`state`/mocks (extend `state.edges`/`incomingFaceByRoomId`/etc. minimally as needed to exercise a real incoming connection — read `buildEdgeCorridor`'s own required inputs first to build the smallest viable fixture, matching whatever this file's own author would have had to do had corridor coverage been in scope for #754's own PR):
 
@@ -229,12 +229,12 @@ describe("buildPopulateAndUnlockGraphNode — #779 corridor trap placement", () 
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-scene-trap-placement.test.mjs -t "corridor trap"`
 Expected: FAIL.
 
-- [ ] **Step 3: Wire the placement**
+- [x] **Step 3: Wire the placement**
 
 In `scripts/dungeon-scene.mjs`'s `buildPopulateAndUnlockGraphNode`, inside the `for (let i = 0; i < incomingConnections.length; i += 1)` loop (confirmed current, starting line 1655), change the tile-push line (confirmed current, line 1733):
 
@@ -283,17 +283,17 @@ to:
 
 (`hasTrapInRoom`, `corridorTrapRollSucceeds`, `splitmix32`, `seedFromString`, `makeFoundryApi`, and `populateSlotTrap` are all already imported/defined in this file — confirmed current; add `corridorTrapRollSucceeds` to the existing `from "./dungeon-deck.mjs"` import line alongside `trapRollSucceeds`.)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-scene-trap-placement.test.mjs`
 Expected: PASS, old and new cases green.
 
-- [ ] **Step 5: Run the full test suite to confirm no regression**
+- [x] **Step 5: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 6: Live-verify via `foundry-rest`**
+- [ ] **Step 6: Live-verify via `foundry-rest`** (DEFERRED: controller verifies live)
 
 Generate several real dungeon runs (varying seeds) and confirm:
 
@@ -303,7 +303,7 @@ echo 'const hazards = canvas.scene.tokens.filter(t => t.getFlag("pf2e-dungeon-cr
 
 Expected: some `dungeonSlot` values are edge-shaped (`"<roomId>-><roomId>"`) rather than a bare room id, confirming a corridor trap actually placed across a real multi-run sample. For one such corridor trap: confirm it's detected on approach (walk a party token adjacent to it), can be disabled via the click-to-disable dialog, and — on a fresh one — triggers and damages the walking-over character exactly like a room trap. Confirm its chat announcements use its own default compendium name (no customization applied, matching this plan's own scope decision).
 
-- [ ] **Step 7: Bump module.json's version**
+- [x] **Step 7: Bump module.json's version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -313,7 +313,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **minor** bump (a real new mechanic), using whatever the fetch above shows as current.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-scene-trap-placement.test.mjs module.json
