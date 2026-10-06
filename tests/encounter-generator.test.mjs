@@ -132,6 +132,58 @@ describe("generateEncounter (no approval gate)", () => {
     expect(globalThis.foundry.applications.api.DialogV2.wait).toHaveBeenCalledTimes(1);
     expect(generateEncounterRoster).toHaveBeenCalledTimes(1);
   });
+
+  it("#831: passes the chosen difficulty tier through as the encounter's own depth bias", async () => {
+    installFoundryStubs({ dialogShownRef: { shown: false } });
+    globalThis.foundry.applications.api.DialogV2.wait = vi.fn(async () => ({
+      traits: [],
+      excludeTraits: [],
+      difficulty: "trivial",
+    }));
+
+    await generateEncounter({ scene: { id: "scene1" } });
+
+    expect(generateEncounterRoster).toHaveBeenCalledWith(
+      expect.objectContaining({ depthBias: -1 }),
+    );
+  });
+
+  it("#831: defaults to moderate when the dialog's difficulty field is absent or moderate", async () => {
+    installFoundryStubs({ dialogShownRef: { shown: false } });
+    globalThis.foundry.applications.api.DialogV2.wait = vi.fn(async () => ({
+      traits: [],
+      excludeTraits: [],
+      difficulty: "moderate",
+    }));
+    await generateEncounter({ scene: { id: "scene1" } });
+    expect(generateEncounterRoster).toHaveBeenLastCalledWith(
+      expect.objectContaining({ depthBias: 1 }),
+    );
+
+    globalThis.foundry.applications.api.DialogV2.wait = vi.fn(async () => ({
+      traits: [],
+      excludeTraits: [],
+    }));
+    await generateEncounter({ scene: { id: "scene1" } });
+    expect(generateEncounterRoster).toHaveBeenLastCalledWith(
+      expect.objectContaining({ depthBias: 1 }),
+    );
+  });
+
+  it("#831: a dungeon room (skipThemeDialog) keeps using its own supplied depthBias, never the macro's selector", async () => {
+    installFoundryStubs({ dialogShownRef: { shown: false } });
+
+    await generateEncounter({
+      skipThemeDialog: true,
+      scene: { id: "scene1" },
+      depthBias: 2,
+    });
+
+    expect(globalThis.foundry.applications.api.DialogV2.wait).not.toHaveBeenCalled();
+    expect(generateEncounterRoster).toHaveBeenCalledWith(
+      expect.objectContaining({ depthBias: 2 }),
+    );
+  });
 });
 
 describe("generateEncounter Friend announcement (#768)", () => {

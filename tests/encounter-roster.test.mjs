@@ -4,6 +4,7 @@ import {
   xpFor,
   xpBudget,
   xpCeilingTierForDepth,
+  depthBiasForDifficultyTier,
 } from "../scripts/encounter-roster.mjs";
 
 function makeStubApi(pool) {
@@ -624,6 +625,28 @@ describe("depth-scaled XP ceiling (#293)", () => {
   it("names the actual tier in the cap warning", async () => {
     const roster = await run({ partySize: 4, depthBias: 0 });
     expect(roster.warnings[0]).toMatch(/capped at Low/);
+  });
+});
+
+describe('depthBiasForDifficultyTier', () => {
+  it('is the exact inverse of xpCeilingTierForDepth for every real tier', () => {
+    for (const tier of ['trivial', 'low', 'moderate', 'severe', 'extreme']) {
+      expect(xpCeilingTierForDepth(depthBiasForDifficultyTier(tier))).toBe(tier);
+    }
+  });
+
+  it('maps each tier to its documented bias', () => {
+    expect(depthBiasForDifficultyTier('trivial')).toBe(-1);
+    expect(depthBiasForDifficultyTier('low')).toBe(0);
+    expect(depthBiasForDifficultyTier('moderate')).toBe(1);
+    expect(depthBiasForDifficultyTier('severe')).toBe(2);
+    expect(depthBiasForDifficultyTier('extreme')).toBe(3);
+  });
+
+  it('falls back to moderate for an unrecognized or missing tier', () => {
+    expect(depthBiasForDifficultyTier('nonsense')).toBe(1);
+    expect(depthBiasForDifficultyTier(undefined)).toBe(1);
+    expect(depthBiasForDifficultyTier(null)).toBe(1);
   });
 });
 

@@ -168,6 +168,22 @@ export function wallDoc(
   };
 }
 
+/** #779: the corridor cells a trap may occupy. corridorTilesForSegments can overshoot one cell past the real
+ * corridor into an adjacent room (fractional segment length), harmless for floor art (the room tile covers it)
+ * but not for a trap token. Drops every cell inside any of `rects` ({gx,gy,gw,gh}) and de-duplicates. */
+export function corridorTrapCandidateCells(cells, rects) {
+  const seen = new Set();
+  const out = [];
+  for (const c of cells) {
+    const key = `${c.gx},${c.gy}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (rects.some((r) => c.gx >= r.gx && c.gx < r.gx + r.gw && c.gy >= r.gy && c.gy < r.gy + r.gh)) continue;
+    out.push(c);
+  }
+  return out;
+}
+
 /** Corridor floor Tile data for every 1x1 square in `segments` (a
  * `buildEdgeCorridor`/`transitCellCrossing` `corridorSegments` array) —
  * shared by a connection's own corridor and a #174 Task 5 transit cell's
@@ -1843,15 +1859,16 @@ export async function buildPopulateAndUnlockGraphNode(
       // mirror find no state.rooms[edgeId] and no-op (pinned by tests/trap-edge-id-state.test.mjs;
       // #820 tracks real customization parity). Forced 1x1 so it can't spill out of the corridor.
       const edgeId = `${sourceId}->${room.id}`;
+      const trapCandidates = corridorTrapCandidateCells(edgeCells, [sourceRect, rect]);
       if (
         !hidden &&
         scene.tokens &&
-        edgeCells.length > 0 &&
+        trapCandidates.length > 0 &&
         !hasTrapInRoom(scene, edgeId) &&
         corridorTrapRollSucceeds(state.seed, edgeId)
       ) {
         const pickRand = splitmix32(seedFromString(`${state.seed}-corridor-trap-cell-${edgeId}`));
-        const trapCell = edgeCells[Math.floor(pickRand() * edgeCells.length)];
+        const trapCell = trapCandidates[Math.floor(pickRand() * trapCandidates.length)];
         await populateSlotTrap(scene, edgeId, {
           rect: { gx: trapCell.gx, gy: trapCell.gy, gw: 1, gh: 1 },
           partyLevel: await makeFoundryApi().partyLevel(),

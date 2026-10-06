@@ -19,6 +19,7 @@ import {
 } from "./trait-picker.mjs";
 import { startCombatForEncounterId } from "./dungeon-combat.mjs";
 import { chooseCoverItemTypes } from "./cover-items.mjs";
+import { depthBiasForDifficultyTier } from "./encounter-roster.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 
@@ -37,6 +38,16 @@ async function chooseThemeAndSize({
     window: { title: game.i18n.localize("PF2EDC.Encounter.Title") },
     content: `
       <form>
+        <label>
+          ${game.i18n.localize("PF2EDC.Encounter.DifficultyLabel")}
+          <select name="difficulty">
+            <option value="trivial">${game.i18n.localize("PF2EDC.Encounter.Difficulty.Trivial")}</option>
+            <option value="low">${game.i18n.localize("PF2EDC.Encounter.Difficulty.Low")}</option>
+            <option value="moderate" selected>${game.i18n.localize("PF2EDC.Encounter.Difficulty.Moderate")}</option>
+            <option value="severe">${game.i18n.localize("PF2EDC.Encounter.Difficulty.Severe")}</option>
+            <option value="extreme">${game.i18n.localize("PF2EDC.Encounter.Difficulty.Extreme")}</option>
+          </select>
+        </label>
         ${traitFieldHtml({
           name: "traits",
           label: game.i18n.localize("PF2EDC.Encounter.ThemeLabel"),
@@ -59,6 +70,9 @@ async function chooseThemeAndSize({
         callback: (_event, _button, dialog) => ({
           traits: readTraitField(dialog.element, "traits"),
           excludeTraits: readTraitField(dialog.element, "excludeTraits"),
+          // A <select> with a `selected` default option always has a value,
+          // so this only ever matters if the element is somehow missing.
+          difficulty: dialog.element.querySelector('[name="difficulty"]')?.value ?? "moderate",
         }),
       },
       { action: "cancel", label: "Cancel" },
@@ -203,6 +217,12 @@ export async function generateEncounter({
     ? { traits: prefillTraits, excludeTraits: prefillExcludeTraits }
     : await chooseThemeAndSize({ api, prefillTraits, prefillExcludeTraits });
   if (!theme || theme === "cancel") return;
+  // #831: a dungeon room (skipThemeDialog) already supplies its own real
+  // depth-based bias; the standalone macro has none, so its own dialog's
+  // difficulty choice drives the identical cap mechanism instead.
+  const effectiveDepthBias = skipThemeDialog
+    ? depthBias
+    : depthBiasForDifficultyTier(theme.difficulty);
 
   const seed = freshSeed();
   const deckSlots = buildEncounterDeck({ seed });
@@ -220,7 +240,7 @@ export async function generateEncounter({
     requireTrait: locationTag,
     partySize,
     isBoss,
-    depthBias,
+    depthBias: effectiveDepthBias,
   });
 
   await postEncounterChatCard(api, roster);
