@@ -297,7 +297,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No code changes in this task — verification and the version bump only.
 
-- [x] **Step 1: Live-verify via `foundry-rest`**
+- [ ] **Step 1: Live-verify via `foundry-rest`**
 
 In a real GM-less (hosted) run, close the tracker on a non-host player's client, then advance into a treasure room: confirm it stays closed on that client (and on the host's, and the GM's). Advance into a narrative or rest room: confirm it still auto-(re)opens as a read-only instance for a non-host player, unchanged from today. With the tracker already open on a non-host client, advance into an excluded-kind room: confirm the open tracker keeps updating (doesn't freeze or close). Finally, resolve the run's goal room (any kind) and confirm every client's tracker still closes.
 
@@ -305,7 +305,7 @@ In a real GM-less (hosted) run, close the tracker on a non-host player's client,
 echo 'return !!foundry.applications.instances.get("pf2edc-dungeon-app");' | .claude/skills/foundry-rest/foundry-exec.sh
 ```
 
-- [ ] **Step 2: Bump module.json's version**
+- [x] **Step 2: Bump module.json's version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -315,7 +315,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **patch** bump (a behavioral fix), using whatever the fetch above shows as current.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json
