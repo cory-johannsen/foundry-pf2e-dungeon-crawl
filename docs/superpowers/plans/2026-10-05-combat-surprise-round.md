@@ -83,11 +83,11 @@
 - Consumes: Task 1 `canTargetState`/`stateFor`, Task 2's stored matrix.
 - Produces: `combatantTargets(combat, combatant)` omits party combatants whose state vs this hostile is not `observed`; a single helper `resolveOpponentForTurn(combat, combatant, id)` used by every branch of `applyAgentDecision` that currently resolves opponents by id from the unfiltered list.
 
-- [ ] **Step 1:** Failing tests: a hostile's `combatantTargets` excludes an unnoticed/undetected/hidden sneaker but includes an observed one and non-sneaker party members; a party combatant's (agent-controlled) targets are unaffected; `getPendingAgentTurn` produces no strike/spell/area/breath/target-count candidate for an unobserved PC (use the line-of-sight test as template); `applyAgentDecision` given a stale candidate id for an unobserved PC does not resolve it (no strike executed); reactive-strike opportunity search does not offer an unobserved PC; physical-blocking helpers (`hostileFootprints`, `otherCombatantFootprints`) still see all tokens.
-- [ ] **Step 2:** Run, confirm failures.
-- [ ] **Step 3:** Implement the filter and helper (keep physical-blocking uses unfiltered).
-- [ ] **Step 4:** Run affected tests (`dungeon-combat*`, `agent-candidates*`), confirm green.
-- [ ] **Step 5:** Commit.
+- [x] **Step 1:** Failing tests: a hostile's `combatantTargets` excludes an unnoticed/undetected/hidden sneaker but includes an observed one and non-sneaker party members; a party combatant's (agent-controlled) targets are unaffected; `getPendingAgentTurn` produces no strike/spell/area/breath/target-count candidate for an unobserved PC (use the line-of-sight test as template); `applyAgentDecision` given a stale candidate id for an unobserved PC does not resolve it (no strike executed); reactive-strike opportunity search does not offer an unobserved PC; physical-blocking helpers (`hostileFootprints`, `otherCombatantFootprints`) still see all tokens.
+- [x] **Step 2:** Run, confirm failures.
+- [x] **Step 3:** Implement the filter and helper (keep physical-blocking uses unfiltered).
+- [x] **Step 4:** Run affected tests (`dungeon-combat*`, `agent-candidates*`), confirm green.
+- [x] **Step 5:** Commit.
 
 ### Task 4: Seek and the unaware hostile
 

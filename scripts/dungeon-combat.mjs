@@ -68,7 +68,9 @@ import { withDialogsSuppressed } from "./trap-combat.mjs";
 import {
   DETECTION,
   avoidingNoticeActorIds,
+  canTargetState,
   initialDetection,
+  stateFor,
   uniformCondition,
 } from "./stealth-detection.mjs";
 
@@ -862,9 +864,31 @@ function isDownedCharacter(combatant) {
  * choose to attack/target. Physical presence (blocking, landing) must keep
  * using the unfiltered `combatantOpponents`. */
 function combatantTargets(combat, combatant) {
-  return combatantOpponents(combat, combatant).filter(
+  return detectableOpponents(combat, combatant).filter(
     (c) => !isDownedCharacter(c),
   );
+}
+
+/** #616: `combatantOpponents` minus any opponent that `combatant` has not
+ * observed per the combat's stealth detection matrix (keyed sneaker id ->
+ * hostile id). Combatants absent from the matrix are always observed, so a
+ * no-sneaker combat is unchanged and party-side targeting of hostiles is
+ * unaffected. Targeting only: physical blocking must keep using the
+ * unfiltered `combatantOpponents`. */
+function detectableOpponents(combat, combatant) {
+  const matrix = combat.getFlag?.(MODULE_ID, "detection");
+  const opponents = combatantOpponents(combat, combatant);
+  if (!matrix) return opponents;
+  return opponents.filter((c) =>
+    canTargetState(stateFor(matrix, c.id, combatant.id)),
+  );
+}
+
+/** #616: re-resolve an opponent by id for executing an agent decision, under
+ * the same detection filter that built the candidates, so a stale candidate
+ * id can never resolve to an unobserved PC. */
+function resolveOpponentForTurn(combat, combatant, id) {
+  return detectableOpponents(combat, combatant).find((c) => c.id === id);
 }
 
 /** Every other still-alive combatant on `combatant`'s own side — the
@@ -5111,9 +5135,7 @@ export async function applyAgentDecision(
   await postAgentDecisionChat(combatant, candidate, rationale);
   if (candidate.type === "stride") {
     let target = candidate.targetId
-      ? combatantOpponents(combat, combatant).find(
-          (c) => c.id === candidate.targetId,
-        )
+      ? resolveOpponentForTurn(combat, combatant, candidate.targetId)
       : null;
     if (candidate.posture === "reposition") {
       // No real combatant to look up (#103) - a synthetic target whose
@@ -5134,9 +5156,7 @@ export async function applyAgentDecision(
     const status = await strideByPosture(combat, combatant, candidate.posture, target);
     await postMoveStalledChat(combatant, status);
   } else if (candidate.type === "strike") {
-    const target = combatantOpponents(combat, combatant).find(
-      (c) => c.id === candidate.targetId,
-    );
+    const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target) {
       const gridSize = combat.scene?.grid?.size ?? 100;
       const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
@@ -5168,9 +5188,7 @@ export async function applyAgentDecision(
       }
     }
   } else if (candidate.type === "cast") {
-    const target = combatantOpponents(combat, combatant).find(
-      (c) => c.id === candidate.targetId,
-    );
+    const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target)
       await castSpellAndApplySave(
         combatant,
@@ -5180,7 +5198,7 @@ export async function applyAgentDecision(
         candidate.save,
       );
   } else if (candidate.type === "castArea") {
-    const targets = combatantOpponents(combat, combatant).filter((c) =>
+    const targets = detectableOpponents(combat, combatant).filter((c) =>
       candidate.affectedIds.includes(c.id),
     );
     if (targets.length)
@@ -5192,9 +5210,7 @@ export async function applyAgentDecision(
         candidate.save,
       );
   } else if (candidate.type === "castAttack") {
-    const target = combatantOpponents(combat, combatant).find(
-      (c) => c.id === candidate.targetId,
-    );
+    const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target)
       await castAttackSpellAndApplyRoll(
         combatant,
@@ -5203,9 +5219,7 @@ export async function applyAgentDecision(
         candidate.entryId,
       );
   } else if (candidate.type === "castDebuff") {
-    const target = combatantOpponents(combat, combatant).find(
-      (c) => c.id === candidate.targetId,
-    );
+    const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target)
       await castDebuffSpellAndApplyCondition(
         combatant,
@@ -5216,7 +5230,7 @@ export async function applyAgentDecision(
         candidate.conditionsByOutcome,
       );
   } else if (candidate.type === "breathWeapon") {
-    const targets = combatantOpponents(combat, combatant).filter((c) =>
+    const targets = detectableOpponents(combat, combatant).filter((c) =>
       candidate.affectedIds.includes(c.id),
     );
     if (targets.length)
@@ -5232,9 +5246,7 @@ export async function applyAgentDecision(
         candidate.rechargeFormula,
       );
   } else if (candidate.type === "multiStrike") {
-    const target = combatantOpponents(combat, combatant).find(
-      (c) => c.id === candidate.targetId,
-    );
+    const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target) {
       // Re-resolved fresh here (not trusted from candidate-build time)
       // since the turn's mapIncrement is this decision's own starting MAP
@@ -5251,7 +5263,7 @@ export async function applyAgentDecision(
     }
   } else if (candidate.type === "castChain") {
     const opponentsById = new Map(
-      combatantOpponents(combat, combatant).map((c) => [c.id, c]),
+      detectableOpponents(combat, combatant).map((c) => [c.id, c]),
     );
     const orderedTargets = [candidate.targetId, ...candidate.chainedIds]
       .map((id) => opponentsById.get(id))
@@ -5287,7 +5299,7 @@ export async function applyAgentDecision(
         candidate.entryId,
       );
   } else if (candidate.type === "castAreaTier") {
-    const targets = combatantOpponents(combat, combatant).filter((c) =>
+    const targets = detectableOpponents(combat, combatant).filter((c) =>
       candidate.affectedIds.includes(c.id),
     );
     if (targets.length)
@@ -5306,9 +5318,7 @@ export async function applyAgentDecision(
     // its damage roll applies correctly through the standard IWR-
     // respecting path regardless of which spell/creature-type combination
     // produced it.
-    const target = combatantOpponents(combat, combatant).find(
-      (c) => c.id === candidate.targetId,
-    );
+    const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target)
       await castSpellAndApplySave(
         combatant,
@@ -5335,7 +5345,7 @@ export async function applyAgentDecision(
     // text) - harmIds/healIds may each contain a mix of opponent and
     // ally ids.
     const allNearby = [
-      ...combatantOpponents(combat, combatant),
+      ...detectableOpponents(combat, combatant),
       ...combatantAllies(combat, combatant),
     ];
     const harmTargets = allNearby.filter((c) =>
@@ -5359,7 +5369,7 @@ export async function applyAgentDecision(
     // dispatch doesn't need to know which - searching both is cheap and
     // correct regardless.
     const allNearby = [
-      ...combatantOpponents(combat, combatant),
+      ...detectableOpponents(combat, combatant),
       ...combatantAllies(combat, combatant),
     ];
     const targets = allNearby.filter((c) => candidate.targetIds.includes(c.id));
@@ -5372,7 +5382,7 @@ export async function applyAgentDecision(
         candidate.save,
       );
   } else if (candidate.type === "castAutoHitAreaTier") {
-    const targets = combatantOpponents(combat, combatant).filter((c) =>
+    const targets = detectableOpponents(combat, combatant).filter((c) =>
       candidate.affectedIds.includes(c.id),
     );
     if (targets.length)
