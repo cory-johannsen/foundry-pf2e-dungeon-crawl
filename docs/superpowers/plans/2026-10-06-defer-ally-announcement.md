@@ -1,6 +1,6 @@
 # Defer Ally Announcement Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Fix #810 — an encounter's Friend ally is announced to the party only when its room is actually revealed, not at full-dungeon-pregeneration time.
 
@@ -39,7 +39,7 @@
 **Interfaces:**
 - Produces: `revealSlotTokens(scene, slot)`'s own existing return value (`ids`) is unchanged; it now also has the side effect of announcing any revealed Friend-type ally. No new exported function.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/encounter-generator.test.mjs`, inside the existing `describe("generateEncounter Friend announcement (#768)", ...)` block (reusing its own `friendRoster`/`apiWith` fixtures exactly):
 
@@ -116,12 +116,12 @@ describe("revealSlotTokens ally announcement (#810)", () => {
 
 (Add `beforeEach` to this file's existing `import` line from `vitest` if not already present — confirmed current, it already imports `describe, it, expect, vi`, add `beforeEach`.)
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/encounter-generator.test.mjs tests/reveal-slot-tokens-trap.test.mjs -t "#810"`
 Expected: FAIL — the hidden-Friend case still announces today; `revealSlotTokens` never calls `ChatMessage.create` at all today.
 
-- [ ] **Step 3: Gate the immediate announcement on hidden state**
+- [x] **Step 3: Gate the immediate announcement on hidden state**
 
 In `scripts/encounter-generator.mjs`, change the `roster.friend` branch (currently):
 
@@ -172,7 +172,7 @@ to:
   }
 ```
 
-- [ ] **Step 4: Announce a revealed Friend from `revealSlotTokens`**
+- [x] **Step 4: Announce a revealed Friend from `revealSlotTokens`**
 
 In `scripts/dungeon-scene.mjs`, change `revealSlotTokens` (currently, confirmed current lines 1235-1249):
 
@@ -232,17 +232,17 @@ export async function revealSlotTokens(scene, slot) {
 }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npx vitest run tests/encounter-generator.test.mjs tests/reveal-slot-tokens-trap.test.mjs`
 Expected: PASS, old and new cases green — in particular, the pre-existing `"announces a drawn Friend in a public chat message naming it"` test (confirmed current, no `forceHidden` passed, so `placement.hidden` is `false`) still passes unchanged.
 
-- [ ] **Step 6: Run the full test suite to confirm no regression**
+- [x] **Step 6: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/encounter-generator.mjs scripts/dungeon-scene.mjs tests/encounter-generator.test.mjs tests/reveal-slot-tokens-trap.test.mjs
@@ -270,7 +270,7 @@ echo 'return game.messages.contents.map(m => m.content);' | .claude/skills/found
 
 Then open doors room by room until a Friend-containing combat room is revealed, confirming the announcement appears at that moment (and only then), naming the real spawned ally. Also run the standalone "Generate Encounter" macro directly (not through a dungeon room) and confirm its own Friend is still announced immediately, unchanged from #768's original behavior.
 
-- [ ] **Step 2: Bump module.json's version**
+- [x] **Step 2: Bump module.json's version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -280,7 +280,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **patch** bump (a behavioral fix to an already-shipped feature), using whatever the fetch above shows as current.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json
