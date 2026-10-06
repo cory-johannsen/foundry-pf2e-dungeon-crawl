@@ -4,6 +4,7 @@ import {
   canActOnDungeon,
   decideOpenDungeon,
   decideGmLessBroadcast,
+  broadcastAutoOpenAllowed,
   isAuthorizedRequest,
   ownsPartyCharacter,
   canRelayRoomFeature,
@@ -117,6 +118,117 @@ describe("decideGmLessBroadcast", () => {
     expect(
       decideGmLessBroadcast(null, false, { userRef: otherPlayer }),
     ).toEqual({ action: "none" });
+  });
+
+  it("#845: does not open a fresh instance for the host when the current room excludes auto-open", () => {
+    const hosted = { sceneId: "scene-1", hostUserId: player.id };
+    expect(
+      decideGmLessBroadcast(hosted, false, { userRef: player, autoOpenAllowed: false }),
+    ).toEqual({ action: "none" });
+  });
+
+  it("#845: does not open a fresh read-only instance for another player either, when excluded", () => {
+    const hosted = { sceneId: "scene-1", hostUserId: player.id };
+    expect(
+      decideGmLessBroadcast(hosted, false, { userRef: otherPlayer, autoOpenAllowed: false }),
+    ).toEqual({ action: "none" });
+  });
+
+  it("#845: still re-renders an already-open instance even when the current room excludes auto-open", () => {
+    const hosted = { sceneId: "scene-1", hostUserId: player.id };
+    expect(
+      decideGmLessBroadcast(hosted, true, { userRef: otherPlayer, autoOpenAllowed: false }),
+    ).toEqual({ action: "render" });
+    expect(
+      decideGmLessBroadcast(hosted, true, { userRef: player, autoOpenAllowed: false }),
+    ).toEqual({ action: "render" });
+  });
+
+  it("#845: still closes on run end regardless of autoOpenAllowed", () => {
+    expect(
+      decideGmLessBroadcast(null, true, { userRef: otherPlayer, autoOpenAllowed: false }),
+    ).toEqual({ action: "close" });
+  });
+
+  it("#845: non-host still gets the read-only auto-open when the kind is allowed", () => {
+    const hosted = { sceneId: "scene-1", hostUserId: player.id };
+    expect(
+      decideGmLessBroadcast(hosted, false, { userRef: otherPlayer, autoOpenAllowed: true }),
+    ).toEqual({ action: "open" });
+  });
+
+  it("#845: defaults autoOpenAllowed to true (every existing caller/test is unaffected)", () => {
+    const hosted = { sceneId: "scene-1", hostUserId: player.id };
+    expect(decideGmLessBroadcast(hosted, false, { userRef: otherPlayer })).toEqual({
+      action: "open",
+    });
+  });
+});
+
+describe("broadcastAutoOpenAllowed (#845)", () => {
+  const hosted = { sceneId: "scene-1", hostUserId: player.id };
+  // the real shared rule, as module.mjs injects it
+  const rule = (kind) => !["combat", "treasure", "skill_challenge", "puzzle"].includes(kind);
+  const withKind = (kind) => ({
+    getRunState: (sceneId) => {
+      expect(sceneId).toBe("scene-1");
+      return { currentRoomId: "r2", rooms: { r1: { kind: "combat" }, r2: { kind } } };
+    },
+    roomKindAllowsTrackerAutoOpen: rule,
+  });
+
+  it.each(["treasure", "puzzle", "skill_challenge", "combat"])(
+    "is not allowed for a current %s room",
+    (kind) => {
+      expect(broadcastAutoOpenAllowed(hosted, withKind(kind))).toBe(false);
+    },
+  );
+
+  it.each(["narrative", "safe_rest", "safe_entry", "trap", "something_new", undefined])(
+    "is allowed for a current %s room",
+    (kind) => {
+      expect(broadcastAutoOpenAllowed(hosted, withKind(kind))).toBe(true);
+    },
+  );
+
+  it("reads the CURRENT room, not another one", () => {
+    const deps = {
+      getRunState: () => ({ currentRoomId: "r1", rooms: { r1: { kind: "narrative" }, r2: { kind: "treasure" } } }),
+      roomKindAllowsTrackerAutoOpen: rule,
+    };
+    expect(broadcastAutoOpenAllowed(hosted, deps)).toBe(true);
+  });
+
+  it("is allowed when state, rooms, current room or hosted run is missing", () => {
+    const base = { roomKindAllowsTrackerAutoOpen: rule };
+    expect(broadcastAutoOpenAllowed(hosted, { ...base, getRunState: () => null })).toBe(true);
+    expect(broadcastAutoOpenAllowed(hosted, { ...base, getRunState: () => ({}) })).toBe(true);
+    expect(
+      broadcastAutoOpenAllowed(hosted, { ...base, getRunState: () => ({ currentRoomId: "zz", rooms: {} }) }),
+    ).toBe(true);
+    expect(broadcastAutoOpenAllowed(null, { ...base, getRunState: () => { throw new Error("no"); } })).toBe(true);
+  });
+
+  it("is allowed when the state lookup throws", () => {
+    expect(
+      broadcastAutoOpenAllowed(hosted, {
+        getRunState: () => { throw new Error("boom"); },
+        roomKindAllowsTrackerAutoOpen: rule,
+      }),
+    ).toBe(true);
+  });
+
+  it("composes with decideGmLessBroadcast: excluded room blocks open for host and non-host on both entry paths, never close/render", () => {
+    const deps = withKind("treasure");
+    const allowed = broadcastAutoOpenAllowed(hosted, deps);
+    for (const userRef of [player, otherPlayer]) {
+      expect(decideGmLessBroadcast(hosted, false, { userRef, autoOpenAllowed: allowed })).toEqual({ action: "none" });
+      expect(decideGmLessBroadcast(hosted, true, { userRef, autoOpenAllowed: allowed })).toEqual({ action: "render" });
+    }
+    // run ended: no hosted run -> allowed true, and close still happens
+    expect(
+      decideGmLessBroadcast(null, true, { userRef: otherPlayer, autoOpenAllowed: broadcastAutoOpenAllowed(null, deps) }),
+    ).toEqual({ action: "close" });
   });
 });
 

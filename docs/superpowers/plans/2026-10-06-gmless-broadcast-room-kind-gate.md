@@ -41,7 +41,7 @@
 **Interfaces:**
 - Produces: `export function roomKindAllowsTrackerAutoOpen(kind): boolean` — `true` for every kind except `"combat"`, `"treasure"`, `"skill_challenge"`, `"puzzle"`. Consumed by Task 2.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add a new small test block (in `tests/dungeon-scene-retreat.test.mjs`, or wherever reads most naturally alongside this file's own existing `#771` tests — check that file's own import line first and add `roomKindAllowsTrackerAutoOpen` to it):
 
@@ -63,12 +63,12 @@ describe('roomKindAllowsTrackerAutoOpen (#845)', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-scene-retreat.test.mjs -t "roomKindAllowsTrackerAutoOpen"`
 Expected: FAIL — not exported yet.
 
-- [ ] **Step 3: Extract the function**
+- [x] **Step 3: Extract the function**
 
 In `scripts/dungeon-scene.mjs`, add directly above `handleDungeonDoorOpened` (confirmed current function start, around line 2170):
 
@@ -102,17 +102,17 @@ to:
       autoOpenTracker: roomKindAllowsTrackerAutoOpen(room?.kind),
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-scene-retreat.test.mjs -t "roomKindAllowsTrackerAutoOpen"`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full test suite to confirm no regression**
+- [x] **Step 5: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS — in particular, every existing #771 test in this file (the ones exercising `handleDungeonDoorOpened`'s own `autoOpenTracker` value) stays green, confirming the extraction is behavior-preserving.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-scene-retreat.test.mjs
@@ -133,7 +133,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `decideGmLessBroadcast(hostedRun, hasOpenInstance, {userRef, autoOpenAllowed = true})` — the new third option, defaulting `true` so every existing call/test keeps its current behavior unless it explicitly opts into the new gate.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/dungeon-permissions.test.mjs`, inside the existing `describe("decideGmLessBroadcast", ...)` block (confirmed current, reusing its own `gm`/`player`/`otherPlayer` fixtures exactly):
 
@@ -185,12 +185,12 @@ Add to `tests/dungeon-permissions.test.mjs`, inside the existing `describe("deci
   });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-permissions.test.mjs -t "#845"`
 Expected: FAIL.
 
-- [ ] **Step 3: Add the gate**
+- [x] **Step 3: Add the gate**
 
 In `scripts/dungeon-permissions.mjs`, change `decideGmLessBroadcast` (confirmed current, lines 48-57):
 
@@ -230,7 +230,7 @@ export function decideGmLessBroadcast(
 }
 ```
 
-- [ ] **Step 4: Wire the real room-kind check into the broadcast sync**
+- [x] **Step 4: Wire the real room-kind check into the broadcast sync**
 
 In `scripts/module.mjs`, add `roomKindAllowsTrackerAutoOpen` to the existing multi-line import from `./dungeon-scene.mjs` (confirmed current, ends line 42). Change `syncGmLessDungeonBroadcast` (confirmed current, lines 533-542):
 
@@ -269,17 +269,17 @@ function syncGmLessDungeonBroadcast() {
 
 (`getRunState` is already imported in this file, confirmed current — no new import needed for it.)
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-permissions.test.mjs`
 Expected: PASS, old and new cases green.
 
-- [ ] **Step 6: Run the full test suite to confirm no regression**
+- [x] **Step 6: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-permissions.mjs scripts/module.mjs tests/dungeon-permissions.test.mjs
@@ -305,7 +305,7 @@ In a real GM-less (hosted) run, close the tracker on a non-host player's client,
 echo 'return !!foundry.applications.instances.get("pf2edc-dungeon-app");' | .claude/skills/foundry-rest/foundry-exec.sh
 ```
 
-- [ ] **Step 2: Bump module.json's version**
+- [x] **Step 2: Bump module.json's version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -315,7 +315,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **patch** bump (a behavioral fix), using whatever the fetch above shows as current.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json

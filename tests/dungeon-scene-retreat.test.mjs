@@ -14,7 +14,7 @@ globalThis.foundry = {
   applications: { api: { ApplicationV2: class {}, HandlebarsApplicationMixin: (Base) => Base } },
   utils: { escapeHTML: (s) => String(s) },
 };
-const { moveTokensToRoom, handleDungeonDoorOpened, retreatToFork, announceNoWayForward, undoRoomEntry } = await import('../scripts/dungeon-scene.mjs');
+const { roomKindAllowsTrackerAutoOpen, moveTokensToRoom, handleDungeonDoorOpened, retreatToFork, announceNoWayForward, undoRoomEntry } = await import('../scripts/dungeon-scene.mjs');
 const { replaceRunState, getRunState } = await import('../scripts/dungeon-runner.mjs');
 const { DUNGEON_ACTIONS } = await import('../scripts/dungeon-remote.mjs');
 const { isAuthorizedRequest } = await import('../scripts/dungeon-permissions.mjs');
@@ -567,5 +567,15 @@ describe('unchosen sibling gate doors lock/unlock with the path (#175)', () => {
     await handleDungeonDoorOpened(SID, 'w-b');
     expect(states(gA)).toEqual([LOCKED]);
     expect(gB.update).not.toHaveBeenCalled();
+  });
+});
+
+describe('roomKindAllowsTrackerAutoOpen (#845)', () => {
+  it.each(['combat', 'treasure', 'skill_challenge', 'puzzle'])('excludes %s', (kind) => {
+    expect(roomKindAllowsTrackerAutoOpen(kind)).toBe(false);
+  });
+
+  it.each(['narrative', 'safe_rest', 'safe_entry', 'trap', undefined, null])('allows %s', (kind) => {
+    expect(roomKindAllowsTrackerAutoOpen(kind)).toBe(true);
   });
 });

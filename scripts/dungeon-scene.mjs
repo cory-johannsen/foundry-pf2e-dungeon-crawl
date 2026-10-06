@@ -2156,6 +2156,18 @@ export async function resizeSceneForLayout(scene, { maxRank, maxCol }) {
 // this function.
 const roomsBeingOpened = new Set();
 
+/** #771/#845: the room kinds that never auto-open the Dungeon Tracker on
+ * entry -- #611/#623 gave treasure/puzzle/skill-challenge their own
+ * interactable room-feature token, and combat already draws attention
+ * through Foundry's native Combat Tracker, so none of the four need the
+ * Dungeon Tracker popping up uninvited. The single source both the
+ * GM-side door-open path (below) and the GM-less broadcast path
+ * (module.mjs's syncGmLessDungeonBroadcast, #845) read, so they can never
+ * drift apart into two different rules for the same thing. */
+export function roomKindAllowsTrackerAutoOpen(kind) {
+  return !["combat", "treasure", "skill_challenge", "puzzle"].includes(kind);
+}
+
 /**
  * Called from module.mjs's `updateWall` hook whenever any door's state
  * changes to OPEN — ignores anything that isn't the true reveal door
@@ -2334,9 +2346,7 @@ export async function handleDungeonDoorOpened(sceneId, wallId, deps = {}) {
     }
 
     return {
-      autoOpenTracker: !["combat", "treasure", "skill_challenge", "puzzle"].includes(
-        room?.kind,
-      ),
+      autoOpenTracker: roomKindAllowsTrackerAutoOpen(room?.kind),
     };
   } finally {
     roomsBeingOpened.delete(roomId);
