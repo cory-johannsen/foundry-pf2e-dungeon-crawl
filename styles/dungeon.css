@@ -13,6 +13,16 @@
 .pf2edc-dungeon__marching-order-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pf2edc-dungeon__marching-order-controls { display: flex; gap: 0.2rem; flex: 0 0 auto; }
 .pf2edc-dungeon__marching-order-controls button { width: 1.8em; height: 1.8em; padding: 0; line-height: 1; }
+/* #829: let each narrative choice button grow to fit its full label + consequence text (Foundry's own default button is a fixed 28px tall, so wrapped text spilled outside it). Stacked, with a gap between the two choices. */
+.pf2edc-dungeon__narrative-options { display: flex; flex-direction: column; gap: 0.4rem; }
+.pf2edc-dungeon__narrative-options button {
+  height: auto;
+  min-height: 28px;
+  white-space: normal;
+  text-align: left;
+  line-height: 1.3;
+  padding: 0.4rem 0.6rem;
+}
 .pf2edc-dungeon__generating { text-align: center; font-style: italic; opacity: 0.8; padding: 1.5rem 0; }
 
 /* ----- Trait picker (encounter theme + dungeon-start forms) ----- */
