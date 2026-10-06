@@ -1,5 +1,5 @@
 // #427: the topology-aware router in the v3 run pipeline, gated by the run-state flag `topologyRouting`.
-// What must NOT change (v1/v2 geometry, a v3 run without the flag) is pinned by golden digests computed on main before
+// What must NOT change (v1/v2 geometry, a v3 run without the flag) is pinned by golden digests (walls: computed on main before
 // this change (the v3 digest was re-pinned in #754: it hashes the layout, which carries room kinds, and trap left the kind table); what changes (a flagged run) is proved edge by edge and by tests/dungeon-router-pipeline-sweep.test.mjs.
 import { describe, it, expect } from 'vitest';
 import { createHash } from 'node:crypto';
@@ -16,32 +16,50 @@ import { sweepShapeOfRunLayout } from './helpers/walkability-oracle.mjs';
 installFoundryStubs();
 const MODULE_ID = 'pf2e-dungeon-crawl';
 
-function digestScene(h, scene) {
+function digestWalls(h, scene) {
   for (const w of scene.walls) h.update(`W${JSON.stringify([w.c, w.door ?? 0, w.ds ?? 0, w.flags?.[MODULE_ID] ?? null])}\n`);
+}
+function digestTiles(h, scene) {
   for (const t of scene.tiles) h.update(`T${JSON.stringify([t.x, t.y, t.width, t.height, t.rotation ?? 0, t.texture?.src ?? null])}\n`);
 }
+function digestScene(h, scene) {
+  digestWalls(h, scene);
+  digestTiles(h, scene);
+}
 
+// #823 re-pin: corridor TILES changed on purpose (an openings-based piece per distinct cell: join and bend cells get a
+// different art file/rotation, a bend gets the new corner piece, stacked duplicate tiles are gone). Tiles are visual
+// only, so every WALL digest below is the value computed on the pre-#823 code (8428daad) and is UNCHANGED; only the
+// tile digests were re-pinned. (The pre-#823 combined walls+tiles digests were 8743a565..., 7c040a14... and 93561df2...)
 describe('runs without the routing flag keep their geometry exactly (#427)', () => {
-  const sceneDigest = async (layoutVersion) => {
-    const h = createHash('sha256');
-    for (let i = 0; i < 40; i += 1) digestScene(h, (await buildSweepScene(i, layoutVersion)).scene);
-    return h.digest('hex');
+  const sceneDigests = async (layoutVersion) => {
+    const walls = createHash('sha256');
+    const tiles = createHash('sha256');
+    for (let i = 0; i < 40; i += 1) {
+      const { scene } = await buildSweepScene(i, layoutVersion);
+      digestWalls(walls, scene);
+      digestTiles(tiles, scene);
+    }
+    return { walls: walls.digest('hex'), tiles: tiles.digest('hex') };
   };
-  it('layoutVersion 2 builds the same walls and tiles as before (40 seeds)', async () => {
-    expect(await sceneDigest(2)).toBe('8743a565e9b3d2b039ce0824540a789542ef002e5931e6490d1df868a67c2c02');
+  it('layoutVersion 2 builds the same walls and (re-pinned, #823) tiles (40 seeds)', async () => {
+    expect(await sceneDigests(2)).toEqual({ walls: 'eeedfa994be105aaab4a7ffd66ab885251aa65b53f015c7369f6d1e2ea935d39', tiles: '1e8076b7f46fe6e3050e8b2b0bf13cfbc0c1cde02e7d6da9faa2b316a0d1838f' });
   }, 120000);
-  it('layoutVersion 1 builds the same walls and tiles as before (40 seeds)', async () => {
-    expect(await sceneDigest(1)).toBe('7c040a14c59a253658de7088caf43b062d822cbb425a9c33d5ebe9163a24bd45');
+  it('layoutVersion 1 builds the same walls and (re-pinned, #823) tiles (40 seeds)', async () => {
+    expect(await sceneDigests(1)).toEqual({ walls: 'c3432f24940373854c6eebc2cbc582c387cae91b547e1963592b407dd1b74836', tiles: '1678396a948ef627db21138836038144953cbc6ebb995f65e231e27a06c9a407' });
   }, 120000);
-  it('a v3 run without the flag: the whole pipeline (reseed, stubs, walls) and its scene are unchanged (40 seeds)', async () => {
-    const h = createHash('sha256');
+  it('a v3 run without the flag: the whole pipeline (reseed, stubs, walls) is unchanged; tiles re-pinned (#823) (40 seeds)', async () => {
+    const walls = createHash('sha256');
+    const tiles = createHash('sha256');
     for (let i = 0; i < 40; i += 1) {
       const chosen = await chooseRunLayout({ generator: deck, seed: `sweep-${i}`, roomCount: 6 + (i % 15) });
       expect(chosen.layout.topologyRouting).toBeUndefined();
-      h.update(JSON.stringify(chosen.layout));
-      digestScene(h, (await buildSceneForLayout(sweepShapeOfRunLayout(chosen.layout), 3)).scene);
+      walls.update(JSON.stringify(chosen.layout));
+      const { scene } = await buildSceneForLayout(sweepShapeOfRunLayout(chosen.layout), 3);
+      digestWalls(walls, scene);
+      digestTiles(tiles, scene);
     }
-    expect(h.digest('hex')).toBe('93561df2b1fa7dfd527d3f7d89b71fe879319d69b7bfc78af5bb124ad08f3fc3');
+    expect({ walls: walls.digest('hex'), tiles: tiles.digest('hex') }).toEqual({ walls: 'a5721e874f506919d21f179ffcf16970e7e502eee1f3dc7a19be74da385d03aa', tiles: '02556513fd52bb8d385039220de8533911e4b5dc6705bf2c752146217212d5ef' });
   }, 300000);
 });
 

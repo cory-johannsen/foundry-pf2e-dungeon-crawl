@@ -94,10 +94,15 @@ describe('#585: dead edges that cannot be stubs are walled (500 seeds, retreat o
     // Measured: 1279 walls in 313 dungeons (max 15); 2 more than the static count of dead edges after the stub plan (1277)
     // because walling re-slots siblings and kills 2 more; goal-unreachable dungeons 271 -> 266 (the stubs' doing).
     expect([t.walled, t.walledDungeons, t.maxWalled, t.lostFlagged]).toEqual([1279, 313, 15, 1]);
-    // Against the shipped (stubs, dead edges built) scene: corridor tiles sharing a cell 15066 -> 5437, tiles inside a room
-    // 7909 -> 2572 (the dead edges' straight-line fallback corridors are gone), uncovered progression doors 130 -> 0.
+    // Against the shipped (stubs, dead edges built) scene: corridor tiles sharing a cell, tiles inside a room
+    // (the dead edges' straight-line fallback corridors are gone), uncovered progression doors 130 -> 0.
+    // #823 re-pin (tile identity only): the scene now lays ONE corridor tile per distinct cell (a cross-corridor guard
+    // plus per-corridor dedup), so cells holding stacked tiles drop 15066 -> 19 (shipped scene; all 19 are the documented
+    // keepOne case, two crossings of one cell that must each keep a marker tile) and 5437 -> 0 (walled scene), and tiles inside some room's rect drop 7909 -> 6163 / 2572 -> 1987 (the duplicates that sat in rooms
+    // are gone; the single overshoot tile per cell stays, deliberately out of scope). doorMismatch (130 -> 0) reads
+    // walls/doors only, so it is unchanged; so are the walled/lost counts above.
     expect([t.dupBefore, t.dupAfter, t.inRoomBefore, t.inRoomAfter, t.doorMismatchBefore, t.doorMismatchAfter])
-      .toEqual([15066, 5437, 7909, 2572, 130, 0]);
+      .toEqual([19, 0, 6163, 1987, 130, 0]);
     expect([t.unreachBefore, t.unreachAfter, t.goalLostBefore, t.goalLostAfter]).toEqual([2305, 2259, 271, 266]);
   }, 900000);
 });

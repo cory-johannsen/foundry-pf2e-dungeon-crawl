@@ -42,13 +42,15 @@ unit test that would mostly just be testing the mock.
 ## Subsystems
 
 **Dungeon generation / sequencing** (`dungeon-deck.mjs`,
-`dungeon-layout.mjs`, `dungeon-reseed.mjs`, `dungeon-stub-oracle.mjs`, `dungeon-retreat.mjs`, `prng.mjs`) — the abstract room sequence (kind,
+`dungeon-layout.mjs`, `dungeon-reseed.mjs`, `dungeon-stub-oracle.mjs`, `dungeon-retreat.mjs`, `corridor-pieces.mjs`, `prng.mjs`) — the abstract room sequence (kind,
 order, which setpiece each room draws) and the grid-unit room geometry,
 both fully deterministic from a seed, both Foundry-free. (`dungeon-reseed.mjs`, #490, is the exception: it builds
 each new run's layout and, if the goal is unreachable, retries seeds `<seed>~r1..r20` by checking a scratch scene
 built with `dungeon-scene.mjs`; `dungeon-stub-oracle.mjs`, #427 Chunk 7, finds the edges that scene cannot walk and plans the
 rubble stubs that replace them. A run stamped `topologyRouting` (#427, new v3 runs) also has its corridors routed around
-each other by `routeEdgesTopologyAware`; the scene, the reseed and the stub/wall planner all read the one `routingForLayout`.)
+each other by `routeEdgesTopologyAware`; the scene, the reseed and the stub/wall planner all read the one `routingForLayout`.
+`corridor-pieces.mjs`, #823, is a pure lookup the scene reads: it picks each corridor cell's art piece (single / end / mid / corner)
+from which of its sides continue to another cell of the same corridor, so joints and bends never draw a wall across an open corridor.)
 
 **Foundry scene building** (`dungeon-scene.mjs`, `foundry-api.mjs`,
 `placement.mjs`, `data-loader.mjs`, `dungeon-sound.mjs`/`audio.mjs`) —
@@ -251,6 +253,7 @@ graph LR
     scripts_trait_picker_mjs["trait-picker.mjs"]
   end
   subgraph "Dungeon generation / sequencing"
+    scripts_corridor_pieces_mjs["corridor-pieces.mjs"]
     scripts_dungeon_deck_mjs["dungeon-deck.mjs"]
     scripts_dungeon_layout_mjs["dungeon-layout.mjs"]
     scripts_dungeon_reseed_mjs["dungeon-reseed.mjs"]
@@ -348,6 +351,7 @@ graph LR
   scripts_dungeon_scene_mjs --> scripts_trap_combat_mjs
   scripts_dungeon_scene_mjs --> scripts_trap_mechanics_mjs
   scripts_dungeon_scene_mjs --> scripts_prng_mjs
+  scripts_dungeon_scene_mjs --> scripts_corridor_pieces_mjs
   scripts_dungeon_sound_mjs --> scripts_audio_mjs
   scripts_dungeon_stub_oracle_mjs --> scripts_dungeon_layout_mjs
   scripts_encounter_deck_mjs --> scripts_prng_mjs
