@@ -56,9 +56,19 @@ describe('layoutEdgeGeometry agrees with the scene (stub obstacles must be the f
         seed: L.seed, positionByRoomId: L.pos, occupiedCells: L.occ, layoutEdges: L.layoutEdges, hiddenRooms: L.hiddenRooms,
         hiddenIncomingByRoomId: L.hiddenIncomingByRoomId, incomingFaceByRoomId: L.incFace, planFor,
       });
-      const expected = geo.flatMap(({ result }) => tilesOf(result.corridorSegments)).sort();
-      const built = scene.tiles.filter((t) => !t.flags?.[MODULE_ID]).map((t) => `${Math.round(t.x / 100 - 0.5)},${Math.round(t.y / 100 - 0.5)}`).sort();
-      expect(built, L.seed).toEqual(expected);
+      // #823 re-pin (tile identity only): the scene now lays ONE tile per distinct corridor cell (where two segments of
+      // a corridor shared a cell, e.g. an L-bend's corner, the old scene stacked two tiles, so the old multiset
+      // comparison held a duplicate), and every corridor tile carries a `dungeonCorridorEdge` flag (the old filter
+      // `!t.flags` selected main-leg tiles because only transit crossings and stubs were flagged). So: compare CELL SETS.
+      // (1) every cell the connections' own segments cover holds a corridor tile (a cell a main leg shares with a
+      // transit crossing is owned by the crossing's tile); (2) the main-leg tiles sit only on those cells.
+      const expected = [...new Set(geo.flatMap(({ result }) => tilesOf(result.corridorSegments)))].sort();
+      const cellOfTile = (t) => `${Math.round(t.x / 100 - 0.5)},${Math.round(t.y / 100 - 0.5)}`;
+      const corridorTiles = scene.tiles.filter((t) => t.flags?.[MODULE_ID]?.dungeonCorridorEdge);
+      const builtAll = new Set(corridorTiles.map(cellOfTile));
+      const builtMain = [...new Set(corridorTiles.filter((t) => !t.flags[MODULE_ID].dungeonTransitCellCrossing).map(cellOfTile))].sort();
+      expect(expected.filter((c) => !builtAll.has(c)), L.seed).toEqual([]);
+      expect(builtMain.filter((c) => !expected.includes(c)), L.seed).toEqual([]);
       edges += geo.length;
     }
     expect(edges).toBeGreaterThan(300);

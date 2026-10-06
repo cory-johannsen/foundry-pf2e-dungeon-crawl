@@ -60,11 +60,11 @@ Live examples confirmed by the owner: tile `DcaNm4P48nlp0HZ0` (`corridor-end@90`
 
 Pieces for reference (top-down view; viewed by the planner): `corridor.webp` = walls on all four sides; `corridor-end.webp` = U, walls N+W+E, open S; `corridor-mid.webp` = walls W+E, open N+S (rotate 90° for E–W). The floor slab pattern is continuous through the open sides.
 
-- [ ] **Step 1: Set up the tooling**
+- [x] **Step 1: Set up the tooling**
 
 Pillow is not installed. In the worktree: `python3 -m venv .venv && .venv/bin/pip install pillow numpy` (`.venv/` is gitignored — confirm with `git check-ignore .venv`; never commit it). If network is unavailable, stop and report BLOCKED.
 
-- [ ] **Step 2: Write `tools/make-corridor-corner.py`**
+- [x] **Step 2: Write `tools/make-corridor-corner.py`**
 
 Compose the corner deterministically from the existing pieces (no image generation — a fresh generation would not match the existing style). Baseline algorithm (iterate visually, see Step 3): load `corridor.webp` (S), `corridor-mid.webp` (M), `corridor-end.webp` (E); build four 256×256 quadrants of the output:
 - top-left from S (it has both the N and W walls and their meeting corner),
@@ -125,7 +125,7 @@ if __name__ == "__main__":
 
 (The code above is the **baseline only**. The pixel-level result is subjective; Step 3 iterates it. Replace the naive per-pixel `putpixel` loops with array operations (numpy or `Image.paste` with a mask) if they are slow.)
 
-- [ ] **Step 3: Generate, look, iterate (max 6 rounds)**
+- [x] **Step 3: Generate, look, iterate (max 6 rounds)**
 
 Run `.venv/bin/python tools/make-corridor-corner.py --preview /tmp/<scratchpad>/corner-preview.png`, then LOOK at the preview image (the Read tool shows images). Acceptance criteria, all required:
 1. Walls are present ONLY on the N and W sides; the S and E sides are open floor, with no wall strip or bevel remnants.
@@ -134,14 +134,14 @@ Run `.venv/bin/python tools/make-corridor-corner.py --preview /tmp/<scratchpad>/
 4. The four rotations in the contact sheet look like the same piece turned, not four different assets.
 Fix the script and re-run until all four hold. If after 6 rounds it still shows seams, STOP and report NEEDS_CONTEXT with the preview; do not invent a different approach.
 
-- [ ] **Step 4: Add the asset test**
+- [x] **Step 4: Add the asset test**
 
 In `tests/dungeon-room-art.test.mjs`, add `'corridor-corner.webp'` to the asset list the test checks (look at how `corridor-end.webp`/`corridor-mid.webp` are listed and mirror it). Also add a size check if that file does one for the other corridor pieces.
 
 Run: `npx vitest run tests/dungeon-room-art.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit, then OWNER APPROVAL GATE**
+- [x] **Step 5: Commit, then OWNER APPROVAL GATE**
 
 ```bash
 git add tools/make-corridor-corner.py assets/dungeon-rooms/corridor-corner.webp tests/dungeon-room-art.test.mjs
@@ -163,7 +163,7 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `PIECE_OPENINGS` (table above, keyed `variant@rotation`), `corridorPieceForOpenings(openings: Iterable<'N'|'E'|'S'|'W'>): {variant: 'single'|'end'|'mid'|'corner', rotation: 0|90|180|270}`, `openingsOf(cell: {gx,gy}, cellSet: Set<string>): Array<'N'|'E'|'S'|'W'>`, `cellKey({gx,gy}): string` (`"gx,gy"`), `hasBlock2x2(cellSet): boolean`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 import { describe, it, expect } from 'vitest';
@@ -233,12 +233,12 @@ describe('openingsOf / hasBlock2x2', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `npx vitest run tests/corridor-pieces.test.mjs`
 Expected: FAIL — module does not exist.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 /**
@@ -310,12 +310,12 @@ export function corridorPieceForOpenings(openings) {
 
 Note the `CORNER_ROTATION_BY_PAIR` keys use the alphabetically sorted pair: `['S','E']` sorts to `ES`, `['S','W']` to `SW`, `['N','W']` to `NW`, `['N','E']` to `EN`. Verify against the tests before committing.
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `npx vitest run tests/corridor-pieces.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/corridor-pieces.mjs tests/corridor-pieces.test.mjs
@@ -336,11 +336,11 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 - Consumes: `corridorPieceForOpenings`, `openingsOf`, `cellKey`, `hasBlock2x2` (Task 2); the existing `corridorTilesForSegments(segments, {fullWidth})`.
 - Produces: `corridorTileAt(gx, gy, variant, rotation)` — the exact tile object `corridorTilesForSegments` builds today for one cell (centre-anchored, 100×100, `texture.src = CORRIDOR_ART_BY_VARIANT[variant]`); `corridorEdgeTiles({corridorSegments, transitCells}, {fullWidth}): {main: Tile[], transit: Tile[][], mainCells: Cell[], legacy: boolean}` — `transit[i]` are the tiles for `transitCells[i]` (same order); `mainCells` is the UNFILTERED cell list from `corridorTilesForSegments(corridorSegments)` (what #779's trap picks keep reading); `legacy` is true when a 2×2 block was found and today's pieces were returned unchanged.
 
-- [ ] **Step 1: Refactor for reuse (no behaviour change)**
+- [x] **Step 1: Refactor for reuse (no behaviour change)**
 
 In `corridorTilesForSegments`, extract the tile-object literal (centre anchor, `x/y = toPixels(cell)+toPixels(1)/2`, size `toPixels(1)`, `rotation`, `texture.src = CORRIDOR_ART_BY_VARIANT[variant]`, `anchorX/anchorY: 0.5`) into `export function corridorTileAt(gx, gy, variant, rotation)` and call it from the segment loop. Keep every comment about the centre anchor (#324) on the extracted function. Add `corner: \`${ROOM_ART_DIR}/corridor-corner.webp\`` to `CORRIDOR_ART_BY_VARIANT`. Run the existing suite for this file: `npx vitest run tests/dungeon-scene.test.mjs` — must stay green with NO change (pure refactor).
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 ```js
 import { describe, it, expect } from 'vitest';
@@ -440,12 +440,12 @@ describe('corridorEdgeTiles (#823)', () => {
 
 (Adjust the segment fixtures if `corridorTilesForSegments` derives `vertical`/`length` differently from the sketch — read it and make the fixtures real. The assertions describe the required outcomes; the cell coordinates are the part to verify.)
 
-- [ ] **Step 3: Run to verify failure**
+- [x] **Step 3: Run to verify failure**
 
 Run: `npx vitest run tests/dungeon-scene-corridor-edge-tiles.test.mjs`
 Expected: FAIL — `corridorEdgeTiles` is not exported.
 
-- [ ] **Step 4: Implement `corridorEdgeTiles`**
+- [x] **Step 4: Implement `corridorEdgeTiles`**
 
 In `scripts/dungeon-scene.mjs` (imports: `corridorPieceForOpenings, openingsOf, cellKey, hasBlock2x2` from `./corridor-pieces.mjs`):
 
@@ -509,12 +509,12 @@ export function corridorEdgeTiles({ corridorSegments, transitCells = [] }, { ful
 }
 ```
 
-- [ ] **Step 5: Run to verify pass**
+- [x] **Step 5: Run to verify pass**
 
 Run: `npx vitest run tests/dungeon-scene-corridor-edge-tiles.test.mjs tests/dungeon-scene.test.mjs`
 Expected: PASS (the refactor left every existing test green).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-scene-corridor-edge-tiles.test.mjs
@@ -535,7 +535,7 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 - Consumes: `corridorEdgeTiles` (Task 3).
 - Produces: `corridorCellKeyOfTile(tile): string|null` (`"gx,gy"` from a corridor tile's centre x/y, null for non-corridor art), `skipClaimedCorridorTiles(tiles, claimed: Set<string>, {keepOne = false}): Tile[]` — returns the tiles whose cell is not already in `claimed` (and adds the kept cells to `claimed`); with `keepOne`, if EVERY tile would be dropped, the first is kept anyway. New tile flag `dungeonCorridorEdge: <edgeId>` (the same `src->dst` id string the transit marker uses) on every tile this builder creates, so tests and tooling can group tiles by corridor.
 
-- [ ] **Step 1: Write the failing guard tests** (append to `tests/dungeon-scene-corridor-edge-tiles.test.mjs`)
+- [x] **Step 1: Write the failing guard tests** (append to `tests/dungeon-scene-corridor-edge-tiles.test.mjs`)
 
 ```js
 import { corridorCellKeyOfTile, skipClaimedCorridorTiles } from '../scripts/dungeon-scene.mjs';
@@ -568,12 +568,12 @@ describe('skipClaimedCorridorTiles (#823 cross-edge guard)', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `npx vitest run tests/dungeon-scene-corridor-edge-tiles.test.mjs -t "skipClaimedCorridorTiles"`
 Expected: FAIL — not exported.
 
-- [ ] **Step 3: Implement the guard helpers**
+- [x] **Step 3: Implement the guard helpers**
 
 ```js
 const CORRIDOR_TILE_SRC = /\/corridor(?:-[a-z]+)?\.webp$/;
@@ -606,7 +606,7 @@ export function skipClaimedCorridorTiles(tiles, claimed, { keepOne = false } = {
 
 Run: `npx vitest run tests/dungeon-scene-corridor-edge-tiles.test.mjs` — expect PASS.
 
-- [ ] **Step 4: Wire the room-build loop**
+- [x] **Step 4: Wire the room-build loop**
 
 In `buildPopulateAndUnlockGraphNode`'s `incomingConnections` loop (verify anchors by content), replace the per-edge `corridorTilesForSegments(...)` + `tiles.push(...)` and the per-crossing `buildTransitCellIfNeeded(scene, cell)` calls with one `corridorEdgeTiles` call per incoming connection:
 
@@ -619,7 +619,7 @@ In `buildPopulateAndUnlockGraphNode`'s `incomingConnections` loop (verify anchor
 Run: `npx vitest run tests/dungeon-scene.test.mjs tests/dungeon-scene-trap-placement.test.mjs tests/dungeon-scene-corridor-edge-tiles.test.mjs`
 Expected: PASS apart from tests that pin tile counts/digests (re-pinned in Task 5). List which tests fail and why before touching any of them.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-scene-corridor-edge-tiles.test.mjs
@@ -637,7 +637,7 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 - Modify (re-pin, with explanations): `tests/dungeon-router-pipeline.test.mjs` (~30-44 digests), `tests/dungeon-walled-sweep.test.mjs` (~97-99 counts), `tests/dungeon-layout-stubs-geometry.test.mjs` (~50-63, multiset→set comparison), `tests/dungeon-scene.test.mjs` (~339-352 `expectedTileCount` → distinct cells)
 - Modify: `docs/architecture.md`, `tools/generate-architecture-graph.mjs` (group `corridor-pieces.mjs`), `module.json`
 
-- [ ] **Step 1: Write the sweep test against the real pipeline**
+- [x] **Step 1: Write the sweep test against the real pipeline**
 
 Reuse the harness `tests/dungeon-router-pipeline.test.mjs` and `tests/dungeon-walled-sweep.test.mjs` use (`tests/helpers/scene-oracle.mjs`: `buildSceneForLayout`, `installFoundryStubs`, `buildSweepScene`; routed layout = `computeRunLayout({topologyRouting:true})` → `planRunLayoutStubs(…,{retreatAvailable:true})` → `buildSceneForLayout(…, 3)`; seeds `sweep-0..99`, `roomCount 6+(i%15)`). For each scene group the corridor tiles by their `dungeonCorridorEdge` flag, map each to its openings with `PIECE_OPENINGS`, and assert:
 - **I0:** no cell holds two corridor tiles (ratchet to 0 for routed v3; if a documented rare transit-marker stack remains, assert `<=` its measured count and name the seed).
@@ -649,15 +649,15 @@ Measured baselines to compare against (100 routed seeds, origin/main): I1 1,102 
 
 Run: `npx vitest run tests/dungeon-corridor-joins-sweep.test.mjs` — expect PASS; if I0/I1/I2 fail, fix the code (Tasks 3-4), never the invariant.
 
-- [ ] **Step 2: Re-pin the golden tests, explaining each**
+- [x] **Step 2: Re-pin the golden tests, explaining each**
 
 Run each affected test, read the failure, and update ONLY with an explanation in a comment: what the digest/count covers, why the piece change legitimately moves it. The v1/v2/v3 scene digests hash tile `x/y/rotation/src`: they MUST change (rotation and src of join/bend cells change, stacked tiles disappear). Split the digest into tiles and walls if it is not already, and show the WALL digests are unchanged (tiles are visual only). Walled-sweep counts (`[15066,5437,7909,2572,…]`): `dupAfter`/`inRoomAfter` must drop to the new measured values; the `<=` ratchets must still hold. `dungeon-layout-stubs-geometry`: change multiset equality to cell-set equality (a duplicate cell is now deliberately removed). `dungeon-scene.test.mjs` `expectedTileCount`: count distinct cells. Do not weaken any assertion that is not about tile identity.
 
-- [ ] **Step 3: Architecture docs**
+- [x] **Step 3: Architecture docs**
 
 Run the `update-architecture-docs` skill (`.claude/skills/update-architecture-docs/SKILL.md`): regenerate the graph, place `scripts/corridor-pieces.mjs` in the best-fitting `GROUPS` entry, add one subsystem-prose sentence, re-check the circular-imports section.
 
-- [ ] **Step 4: Version bump (minor), full suite, commit**
+- [x] **Step 4: Version bump (minor), full suite, commit**
 
 Bump `module.json` per Global Constraints. Run `npm test` (known wall-clock flake `tests/dungeon-reseed-sweep.test.mjs`, issue #787: if it is the only failure, re-run it alone).
 
