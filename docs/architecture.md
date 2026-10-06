@@ -64,8 +64,8 @@ against the live PF2e bestiary into real creatures, behind a swappable
 `generator-registry.mjs` contract so another module could supply its own
 sequencing/roster logic without this one caring.
 
-**Combat automation** (`dungeon-combat.mjs`, `combat-rewards.mjs`,
-`agent-candidates.mjs`, `dungeon-strike-riders.mjs`,
+**Combat automation** (`dungeon-combat.mjs`, `stealth-detection.mjs`,
+`combat-rewards.mjs`, `agent-candidates.mjs`, `dungeon-strike-riders.mjs`,
 `dungeon-critical-deck.mjs`, `flanking-indicator.mjs`) — wires a spawned encounter into a real PF2e
 `Combat`, and auto-applies whatever Critical Hit/Fumble Deck directives
 parse cleanly. For an `agentControlled` combatant's turn,
@@ -76,7 +76,11 @@ hosted agent service (below) directly over `fetch()`. If the service
 doesn't answer in time, errors, or isn't configured, the timeout fires and
 `playHeuristicTurn` (pure candidate-scoring logic, no LLM) takes the turn
 instead — the module always has a working fallback with no hardcoded LLM
-dependency of its own. `flanking-indicator.mjs` (#769) is separate from
+dependency of its own. `stealth-detection.mjs` (#616, pure) holds the PF2e
+rules for Stealth initiative and per-hostile detection (unnoticed /
+undetected / hidden / observed, Seek outcomes); `startCombat` stores the
+resulting matrix on the Combat document and `combatantTargets` filters
+hostile targeting through it. `flanking-indicator.mjs` (#769) is separate from
 that turn-taking path: a client-side, write-nothing "Flanked" badge drawn
 on flanked tokens in a started combat, using PF2e's own `Token#isFlanking`.
 
@@ -211,6 +215,7 @@ graph LR
     scripts_dungeon_critical_deck_mjs["dungeon-critical-deck.mjs"]
     scripts_dungeon_strike_riders_mjs["dungeon-strike-riders.mjs"]
     scripts_flanking_indicator_mjs["flanking-indicator.mjs"]
+    scripts_stealth_detection_mjs["stealth-detection.mjs"]
   end
   subgraph "Puzzle / trap / skill-challenge / treasure mechanics"
     scripts_narrative_mechanics_mjs["narrative-mechanics.mjs"]
@@ -279,6 +284,8 @@ graph LR
   scripts_dungeon_combat_mjs --> scripts_dungeon_strike_riders_mjs
   scripts_dungeon_combat_mjs --> scripts_dungeon_critical_deck_mjs
   scripts_dungeon_combat_mjs --> scripts_agent_service_client_mjs
+  scripts_dungeon_combat_mjs --> scripts_trap_combat_mjs
+  scripts_dungeon_combat_mjs --> scripts_stealth_detection_mjs
   scripts_dungeon_customization_fulfillment_mjs --> scripts_agent_service_client_mjs
   scripts_dungeon_customization_fulfillment_mjs --> scripts_trap_combat_mjs
   scripts_dungeon_customization_fulfillment_mjs --> scripts_dungeon_runner_mjs

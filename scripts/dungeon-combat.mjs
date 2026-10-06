@@ -64,6 +64,18 @@ import {
   fumbleDeckCategory,
 } from "./dungeon-critical-deck.mjs";
 import { fetchCombatDecision } from "./agent-service-client.mjs";
+import { withDialogsSuppressed } from "./trap-combat.mjs";
+import {
+  DETECTION,
+  applySeekOutcome,
+  avoidingNoticeActorIds,
+  canTargetState,
+  hostileAwareness,
+  initialDetection,
+  stateFor,
+  afterAttack,
+  uniformCondition,
+} from "./stealth-detection.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 // #361 revert of #141's own fix -- see dungeon-follow.mjs's own matching
@@ -159,13 +171,322 @@ async function startCombat(scene, flagKey, flagValue) {
         : {}),
     })),
   );
-  await combat.rollInitiative(
-    combatants.map((c) => c.id),
-    { skipDialog: true },
-  );
+  await rollStealthInitiativeAndDetect(combat, combatants, { partyIds });
   await combat.startCombat();
   unpauseIfGmLessRun(scene.id);
   return combat;
+}
+
+/** #616: display conditions this module applies to a sneaker. */
+const DISPLAY_CONDITIONS = new Set([DETECTION.UNNOTICED, DETECTION.UNDETECTED]);
+
+const stealthDefaults = {
+  rollStealth: (actor) =>
+    withDialogsSuppressed(() => actor.skills.stealth.roll({ createMessage: true })),
+  hasCondition: (actor, slug) =>
+    Boolean(actor.hasCondition?.(slug) ?? actor.conditions?.bySlug?.(slug)?.length),
+  // #616: Statistic#roll resolves to the CheckRoll, which carries
+  // degreeOfSuccess (0 crit fail .. 3 crit success). Falling back to the last
+  // chat message's context outcome is racy under concurrent rolls, so it is
+  // only used when the roll result itself is unavailable.
+  rollPerception: (actor, dc) =>
+    withDialogsSuppressed(async () => {
+      const roll = await actor.perception.roll({ dc: { value: dc }, createMessage: true });
+      const byDegree = ["criticalFailure", "failure", "success", "criticalSuccess"];
+      if (byDegree[roll?.degreeOfSuccess]) return byDegree[roll.degreeOfSuccess];
+      // Fallback only when the roll carried no degree AND the newest chat
+      // message is this actor's own roll (racy otherwise).
+      const last = game.messages?.contents?.at(-1);
+      const speakerActor = last?.actor?.id ?? last?.speaker?.actor;
+      return speakerActor === actor.id
+        ? (last?.flags?.pf2e?.context?.outcome ?? "failure")
+        : "failure";
+    }),
+  setCondition: async (actor, slug, active) => {
+    if (active) await actor.increaseCondition(slug);
+    else await actor.decreaseCondition(slug, { forceRemove: true });
+  },
+  chat: async (key, data) => {
+    const esc = (s) => foundry.utils.escapeHTML?.(String(s)) ?? String(s);
+    const safe = Object.fromEntries(
+      Object.entries(data ?? {}).map(([k, v]) => [k, esc(v)]),
+    );
+    await ChatMessage.create({ content: game.i18n.format(key, safe) });
+  },
+};
+
+/**
+ * #616: Rolls initiative for a freshly created combat. Party members who are
+ * Avoiding Notice roll Stealth (PF2e "Initiative with Stealth"); everyone else
+ * goes through `combat.rollInitiative` exactly as before. With no sneaker this
+ * is a single unchanged `rollInitiative(allIds, {skipDialog:true})` call and
+ * nothing else. Otherwise it stores the detection matrix
+ * (`flags[MODULE_ID].detection`) and, for display, applies the `unnoticed` /
+ * `undetected` condition when uniform across hostiles (recorded in
+ * `appliedConditions` so `clearDetection` removes only what we added).
+ */
+export async function rollStealthInitiativeAndDetect(combat, combatants, deps = {}) {
+  const d = { ...stealthDefaults, ...deps };
+  const partyIds = d.partyIds ?? partyActorIds();
+  const allIds = combatants.map((c) => c.id);
+
+  const partyCombatants = combatants.filter((c) => partyIds.has(c.actor?.id));
+  const sneakingActorIds = new Set(
+    avoidingNoticeActorIds(
+      partyCombatants.map((c) => ({
+        id: c.actor.id,
+        exploration: c.actor.system?.exploration ?? [],
+        items: Array.from(c.actor.items ?? []).map((i) => ({ id: i.id, slug: i.slug })),
+      })),
+    ),
+  );
+  const sneakers = partyCombatants.filter(
+    (c) => sneakingActorIds.has(c.actor.id) && c.actor.skills?.stealth,
+  );
+  if (!sneakers.length) {
+    await combat.rollInitiative(allIds, { skipDialog: true });
+    return;
+  }
+
+  const sneakerIds = new Set(sneakers.map((c) => c.id));
+  const others = allIds.filter((id) => !sneakerIds.has(id));
+  if (others.length) await combat.rollInitiative(others, { skipDialog: true });
+
+  const rolled = [];
+  for (const c of sneakers) {
+    const roll = await d.rollStealth(c.actor);
+    rolled.push({ combatant: c, result: Number(roll?.total ?? 0) });
+  }
+  await combat.setMultipleInitiatives(
+    rolled.map((r) => ({ id: r.combatant.id, value: r.result, statistic: "stealth" })),
+  );
+
+  // Observers are the sneakers' opponents by token disposition (the same rule
+  // `combatantOpponents` uses), not "everyone outside the party": a friendly
+  // encounter Friend or neutral NPC never notices/alarms.
+  const sneakerSides = new Set(sneakers.map((c) => c.token?.disposition));
+  const hostiles = combatants.filter(
+    (c) =>
+      !sneakerIds.has(c.id) &&
+      !partyIds.has(c.actor?.id) &&
+      [...sneakerSides].some((side) => c.token?.disposition !== side),
+  );
+  const hasObservedNonSneaker = partyCombatants.some(
+    (c) => !sneakerIds.has(c.id) && !c.isDefeated,
+  );
+  const matrix = initialDetection({
+    hasObservedNonSneaker,
+    sneakers: rolled.map((r) => ({ id: r.combatant.id, result: r.result })),
+    hostiles: hostiles.map((h) => ({
+      id: h.id,
+      // A hostile with no readable Perception DC is treated as noticing
+      // (safe: it can then fight instead of stalling the combat unaware).
+      dc: h.actor?.perception?.dc?.value ?? Infinity,
+    })),
+  });
+  await combat.setFlag(MODULE_ID, "detection", matrix);
+
+  const applied = {};
+  for (const r of rolled) {
+    const slug = uniformCondition(matrix, r.combatant.id);
+    if (!DISPLAY_CONDITIONS.has(slug)) continue;
+    if (d.hasCondition(r.combatant.actor, slug)) continue;
+    await d.setCondition(r.combatant.actor, slug, true);
+    applied[r.combatant.id] = { actorId: r.combatant.actor.id, slug };
+  }
+  await combat.setFlag(MODULE_ID, "appliedConditions", applied);
+
+  for (const r of rolled) {
+    const row = matrix[r.combatant.id] ?? {};
+    const observers = hostiles
+      .filter((h) => row[h.id] === DETECTION.OBSERVED)
+      .map((h) => h.name);
+    if (observers.length) {
+      await d.chat("PF2EDC.Dungeon.Combat.StealthNoticedChat", {
+        name: r.combatant.name,
+        result: r.result,
+        observers: observers.join(", "),
+      });
+    } else {
+      await d.chat("PF2EDC.Dungeon.Combat.StealthUnnoticedChat", {
+        name: r.combatant.name,
+        result: r.result,
+      });
+    }
+  }
+}
+
+/**
+ * #616: `deleteCombat` cleanup. Removes only the display conditions this
+ * module recorded in `appliedConditions` (never one the actor already had)
+ * and clears the detection flags.
+ */
+export async function clearDetection(combat, deps = {}) {
+  const d = { ...stealthDefaults, ...deps };
+  const applied = combat.getFlag?.(MODULE_ID, "appliedConditions");
+  if (applied) {
+    for (const [combatantId, rec] of Object.entries(applied)) {
+      const actor =
+        combat.combatants?.get?.(combatantId)?.actor ?? game.actors?.get?.(rec.actorId);
+      if (!actor) continue;
+      await d.setCondition(actor, rec.slug, false);
+    }
+  }
+  // No unsetFlag: this runs from `deleteCombat`, when the document is already
+  // gone (the update would be rejected) and its flags go with it.
+}
+
+/**
+ * #616: what a hostile knows about the party under the stealth matrix, or
+ * `null` when there is no matrix (nothing to do: today's behavior). Downed
+ * and defeated opponents are ignored (they are not valid targets anyway).
+ */
+function stealthAwarenessFor(combat, combatant) {
+  const matrix = combat.getFlag?.(MODULE_ID, "detection");
+  if (!matrix) return null;
+  const ids = combatantOpponents(combat, combatant)
+    .filter((c) => !isDownedCharacter(c))
+    .map((c) => c.id);
+  return hostileAwareness(matrix, combatant.id, ids);
+}
+
+/** #616: true when every sneaker is unnoticed by this hostile (it takes no offensive action). */
+function isUnawareHostile(combat, combatant) {
+  return Boolean(stealthAwarenessFor(combat, combatant)?.unaware);
+}
+
+/** #616: ids of sneakers this hostile may Seek: only when it has no observed target. */
+function seekableSneakerIds(combat, combatant) {
+  const awareness = stealthAwarenessFor(combat, combatant);
+  if (!awareness || awareness.targetable.length) return [];
+  return awareness.seekable;
+}
+
+/** #616: an unaware hostile ends its turn at once (no agent call, no timeout wait). */
+async function endUnawareTurn(combat, combatant) {
+  if (game.combats.has(combat.id) && combat.combatant?.id === combatant.id) {
+    await combat.nextTurn();
+  }
+}
+
+/**
+ * #616: re-derive one sneaker's display condition from the current matrix.
+ * Removes a condition this module applied if it no longer matches, applies the
+ * new uniform one when the actor lacks it (recorded in `appliedConditions`),
+ * and never touches a condition the actor already had from elsewhere.
+ */
+export async function refreshDisplayCondition(combat, sneakerCombatant, matrix, deps = {}) {
+  const d = { ...stealthDefaults, ...deps };
+  const actor = sneakerCombatant.actor;
+  if (!actor) return;
+  const applied = { ...(combat.getFlag?.(MODULE_ID, "appliedConditions") ?? {}) };
+  const desired = uniformCondition(matrix, sneakerCombatant.id);
+  const wanted = DISPLAY_CONDITIONS.has(desired) ? desired : null;
+  const ours = applied[sneakerCombatant.id];
+  if (ours && ours.slug === wanted) return;
+  let changed = false;
+  if (ours) {
+    await d.setCondition(actor, ours.slug, false);
+    delete applied[sneakerCombatant.id];
+    changed = true;
+  }
+  if (wanted && !d.hasCondition(actor, wanted)) {
+    await d.setCondition(actor, wanted, true);
+    applied[sneakerCombatant.id] = { actorId: actor.id, slug: wanted };
+    changed = true;
+  }
+  if (changed) await combat.setFlag(MODULE_ID, "appliedConditions", applied);
+}
+
+/**
+ * #616: one Seek action by `hostile`: Perception vs each seekable sneaker's
+ * Stealth DC (RAW outcomes via applySeekOutcome). Only that (sneaker, hostile)
+ * pair changes. Refreshes display conditions and posts a chat line per change.
+ * Returns [{ sneakerId, dc, outcome, from, to }].
+ */
+export async function performSeek(combat, hostile, deps = {}) {
+  const d = { ...stealthDefaults, ...deps };
+  const results = [];
+  const seekIds = seekableSneakerIds(combat, hostile);
+  if (!seekIds.length) return results;
+  let matrix = combat.getFlag?.(MODULE_ID, "detection") ?? {};
+  for (const sneakerId of seekIds) {
+    const sneaker = combat.combatants.find((c) => c.id === sneakerId);
+    const dc = sneaker?.actor?.skills?.stealth?.dc?.value;
+    if (dc === undefined || dc === null) continue;
+    const outcome = await d.rollPerception(hostile.actor, dc);
+    const from = stateFor(matrix, sneakerId, hostile.id);
+    const to = applySeekOutcome(from, outcome);
+    results.push({ sneakerId, dc, outcome, from, to });
+    if (to === from) continue;
+    matrix = { ...matrix, [sneakerId]: { ...matrix[sneakerId], [hostile.id]: to } };
+    await combat.setFlag(MODULE_ID, "detection", matrix);
+    await refreshDisplayCondition(combat, sneaker, matrix, d);
+    await d.chat("PF2EDC.Dungeon.Combat.SeekChat", {
+      hostile: hostile.name,
+      name: sneaker.name,
+      state: to,
+    });
+  }
+  return results;
+}
+
+const STEALTH_BREAK_TYPES = new Set(["attack-roll", "spell-attack-roll"]);
+
+/** #616: a spell card (no attack roll) with a hostile effect: it has a save/
+ * defense or deals damage, and is not a healing spell. Needs the cast item on
+ * the message; without enough data it is NOT hostile (never breaks stealth). */
+function isHostileSpellCard(message) {
+  if (message?.flags?.pf2e?.origin?.type !== "spell") return false;
+  const spell = message.item;
+  if (!spell) return false;
+  const traits = spell.traits ?? spell.system?.traits?.value;
+  const hasTrait = (t) => (traits?.has ? traits.has(t) : Array.isArray(traits) && traits.includes(t));
+  if (hasTrait("healing")) return false;
+  const hasSave = Boolean(spell.system?.defense?.save?.statistic);
+  const kinds = spell.damageKinds;
+  const hasDamage = kinds?.has
+    ? kinds.has("damage")
+    : Object.keys(spell.system?.damage ?? {}).length > 0;
+  return hasSave || hasDamage;
+}
+
+/**
+ * #616: a sneaker's own attack roll (Strike or spell attack) reveals its
+ * position: its unnoticed/undetected pairs become hidden (`afterAttack`);
+ * observed pairs and other sneakers are untouched, and a hostile Seek can
+ * later upgrade hidden again. Acts only on the active GM client, only for a
+ * sneaker (a key of the detection matrix) in a module combat; a hostile's or
+ * non-sneaker's attack, a non-attack message, or no active combat is a no-op
+ * with no matrix write. Posts a chat line only when something changed.
+ */
+export async function handleStealthBreakMessage(message, deps = {}) {
+  const d = { ...stealthDefaults, ...deps };
+  const isGm = d.isActiveGm ?? (game.users?.activeGM?.isSelf ?? game.user?.isGM);
+  if (!isGm) return;
+  if (
+    !STEALTH_BREAK_TYPES.has(message?.flags?.pf2e?.context?.type) &&
+    !isHostileSpellCard(message)
+  )
+    return;
+  const actorId = message.actor?.id ?? message.speaker?.actor;
+  if (!actorId) return;
+  const combats = d.combats ?? game.combats?.contents ?? [];
+  for (const combat of combats) {
+    if (!isModuleCombat(combat)) continue;
+    const matrix = combat.getFlag?.(MODULE_ID, "detection");
+    if (!matrix) continue;
+    const sneaker = combat.combatants.find(
+      (c) => c.actor?.id === actorId && Object.hasOwn(matrix, c.id),
+    );
+    if (!sneaker) continue;
+    const next = afterAttack(matrix, sneaker.id);
+    if (JSON.stringify(next) === JSON.stringify(matrix)) return;
+    await combat.setFlag(MODULE_ID, "detection", next);
+    await refreshDisplayCondition(combat, sneaker, next, d);
+    await d.chat("PF2EDC.Dungeon.Combat.StealthRevealedChat", { name: sneaker.name });
+    return;
+  }
 }
 
 /** Flips a single combatant's agentControlled flag — the GM's per-combatant
@@ -671,6 +992,12 @@ export async function runAgentDecisionLoop(
 
   let pending = await getPending(combat);
   while (pending) {
+    // #616: an unaware hostile has nothing to decide; end its turn now rather
+    // than asking the agent service (or waiting out the fallback timeout).
+    if (isUnawareHostile(combat, combatant)) {
+      await endUnawareTurn(combat, combatant);
+      return;
+    }
     let decision;
     try {
       // actorProfile is reserved for future actor-complexity tiering; the
@@ -728,9 +1055,31 @@ function isDownedCharacter(combatant) {
  * choose to attack/target. Physical presence (blocking, landing) must keep
  * using the unfiltered `combatantOpponents`. */
 function combatantTargets(combat, combatant) {
-  return combatantOpponents(combat, combatant).filter(
+  return detectableOpponents(combat, combatant).filter(
     (c) => !isDownedCharacter(c),
   );
+}
+
+/** #616: `combatantOpponents` minus any opponent that `combatant` has not
+ * observed per the combat's stealth detection matrix (keyed sneaker id ->
+ * hostile id). Combatants absent from the matrix are always observed, so a
+ * no-sneaker combat is unchanged and party-side targeting of hostiles is
+ * unaffected. Targeting only: physical blocking must keep using the
+ * unfiltered `combatantOpponents`. */
+function detectableOpponents(combat, combatant) {
+  const matrix = combat.getFlag?.(MODULE_ID, "detection");
+  const opponents = combatantOpponents(combat, combatant);
+  if (!matrix) return opponents;
+  return opponents.filter((c) =>
+    canTargetState(stateFor(matrix, c.id, combatant.id)),
+  );
+}
+
+/** #616: re-resolve an opponent by id for executing an agent decision, under
+ * the same detection filter that built the candidates, so a stale candidate
+ * id can never resolve to an unobserved PC. */
+function resolveOpponentForTurn(combat, combatant, id) {
+  return detectableOpponents(combat, combatant).find((c) => c.id === id);
 }
 
 /** Every other still-alive combatant on `combatant`'s own side — the
@@ -1486,7 +1835,14 @@ export function findReactiveStrikeOpportunities(
   gridDistanceFt,
 ) {
   const opportunities = [];
-  for (const reactor of combatantTargets(combat, mover)) {
+  // #616: a reactor must have OBSERVED the mover (the mover is the matrix
+  // row, the reactor the column) -- not the reverse, which is what
+  // `combatantTargets(combat, mover)` filters on.
+  const matrix = combat.getFlag?.(MODULE_ID, "detection");
+  const reactors = combatantOpponents(combat, mover)
+    .filter((c) => !isDownedCharacter(c))
+    .filter((c) => canTargetState(stateFor(matrix, mover.id, c.id)));
+  for (const reactor of reactors) {
     if (!reactor.getFlag(MODULE_ID, "agentControlled")) continue;
     if (getReactionUsed(combat, reactor.id, combat.round)) continue;
     const item = (reactor.actor?.items ?? []).find(isReactiveStrikeInScope);
@@ -2989,6 +3345,13 @@ export async function autoPlayCombatantTurnIfDue(combat) {
     return;
   }
 
+  // #616: every sneaker unnoticed -> no offensive action; end the turn at once
+  // on both paths (agent path must not call the service or arm the timeout).
+  if (isUnawareHostile(combat, combatant)) {
+    await endUnawareTurn(combat, combatant);
+    return;
+  }
+
   if (combatant.getFlag(MODULE_ID, "agentControlled")) {
     // Not awaited — arms a background timeout and returns immediately, same
     // fire-and-forget style module.mjs's own updateCombat hook already uses
@@ -3018,13 +3381,32 @@ export async function autoPlayCombatantTurnIfDue(combat) {
 export async function playHeuristicTurn(
   combat,
   combatant,
-  { move = stepToward, strike = rollAndApplyStrike, delayMs } = {},
+  { move = stepToward, strike = rollAndApplyStrike, seek = performSeek, delayMs } = {},
 ) {
-  const target = nearestOpponent(combat, combatant);
+  const pace = () =>
+    new Promise((resolve) => setTimeout(resolve, delayMs ?? actionPaceDelayMs()));
+  // #616: an unaware hostile does nothing; a hostile with no observed target
+  // but hidden/undetected sneakers Seeks (one action each, up to its 3).
+  if (isUnawareHostile(combat, combatant)) {
+    await endUnawareTurn(combat, combatant);
+    return;
+  }
+  let actionsLeft = 3;
+  let target = nearestOpponent(combat, combatant);
+  while (!target && actionsLeft > 0 && seekableSneakerIds(combat, combatant).length) {
+    await seek(combat, combatant);
+    actionsLeft -= 1;
+    target = nearestOpponent(combat, combatant);
+    if (!target && actionsLeft > 0) await pace();
+  }
   if (target) {
-    await move(combat, combatant, target.combatant, target.distanceSquares);
-    await new Promise((resolve) => setTimeout(resolve, delayMs ?? actionPaceDelayMs()));
-    await strike(combat, combatant, target.combatant);
+    // Unchanged behavior at a full 3 actions (move + strike). After Seeking,
+    // a single action left is spent on the strike if adjacent, else the move.
+    const canMove = actionsLeft >= 2 || target.distanceSquares > 1;
+    const canStrike = actionsLeft >= 2 || target.distanceSquares <= 1;
+    if (canMove) await move(combat, combatant, target.combatant, target.distanceSquares);
+    if (canMove && canStrike) await pace();
+    if (canStrike) await strike(combat, combatant, target.combatant);
   }
   if (game.combats.has(combat.id) && combat.combatant?.id === combatant.id) {
     await combat.nextTurn();
@@ -3701,7 +4083,12 @@ export async function getPendingAgentTurn(combat) {
     ),
   };
 
+  const seekTargets = seekableSneakerIds(combat, combatant).map((id) => ({
+    id,
+    name: combat.combatants.find((c) => c.id === id)?.name ?? id,
+  }));
   const candidates = buildCandidateList({
+    seekTargets,
     opponents,
     readyActions,
     readySpells: [...readySpells, ...readyVariableCostSpells],
@@ -4977,9 +5364,7 @@ export async function applyAgentDecision(
   await postAgentDecisionChat(combatant, candidate, rationale);
   if (candidate.type === "stride") {
     let target = candidate.targetId
-      ? combatantOpponents(combat, combatant).find(
-          (c) => c.id === candidate.targetId,
-        )
+      ? resolveOpponentForTurn(combat, combatant, candidate.targetId)
       : null;
     if (candidate.posture === "reposition") {
       // No real combatant to look up (#103) - a synthetic target whose
@@ -4999,10 +5384,12 @@ export async function applyAgentDecision(
     }
     const status = await strideByPosture(combat, combatant, candidate.posture, target);
     await postMoveStalledChat(combatant, status);
+  } else if (candidate.type === "seek") {
+    // #616: matrix/conditions refresh inside performSeek, so the next
+    // getPendingAgentTurn (below) rebuilds candidates from the new matrix.
+    await performSeek(combat, combatant);
   } else if (candidate.type === "strike") {
-    const target = combatantOpponents(combat, combatant).find(
-      (c) => c.id === candidate.targetId,
-    );
+    const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target) {
       const gridSize = combat.scene?.grid?.size ?? 100;
       const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
@@ -5034,9 +5421,7 @@ export async function applyAgentDecision(
       }
     }
   } else if (candidate.type === "cast") {
-    const target = combatantOpponents(combat, combatant).find(
-      (c) => c.id === candidate.targetId,
-    );
+    const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target)
       await castSpellAndApplySave(
         combatant,
@@ -5046,7 +5431,7 @@ export async function applyAgentDecision(
         candidate.save,
       );
   } else if (candidate.type === "castArea") {
-    const targets = combatantOpponents(combat, combatant).filter((c) =>
+    const targets = detectableOpponents(combat, combatant).filter((c) =>
       candidate.affectedIds.includes(c.id),
     );
     if (targets.length)
@@ -5058,9 +5443,7 @@ export async function applyAgentDecision(
         candidate.save,
       );
   } else if (candidate.type === "castAttack") {
-    const target = combatantOpponents(combat, combatant).find(
-      (c) => c.id === candidate.targetId,
-    );
+    const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target)
       await castAttackSpellAndApplyRoll(
         combatant,
@@ -5069,9 +5452,7 @@ export async function applyAgentDecision(
         candidate.entryId,
       );
   } else if (candidate.type === "castDebuff") {
-    const target = combatantOpponents(combat, combatant).find(
-      (c) => c.id === candidate.targetId,
-    );
+    const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target)
       await castDebuffSpellAndApplyCondition(
         combatant,
@@ -5082,7 +5463,7 @@ export async function applyAgentDecision(
         candidate.conditionsByOutcome,
       );
   } else if (candidate.type === "breathWeapon") {
-    const targets = combatantOpponents(combat, combatant).filter((c) =>
+    const targets = detectableOpponents(combat, combatant).filter((c) =>
       candidate.affectedIds.includes(c.id),
     );
     if (targets.length)
@@ -5098,9 +5479,7 @@ export async function applyAgentDecision(
         candidate.rechargeFormula,
       );
   } else if (candidate.type === "multiStrike") {
-    const target = combatantOpponents(combat, combatant).find(
-      (c) => c.id === candidate.targetId,
-    );
+    const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target) {
       // Re-resolved fresh here (not trusted from candidate-build time)
       // since the turn's mapIncrement is this decision's own starting MAP
@@ -5117,7 +5496,7 @@ export async function applyAgentDecision(
     }
   } else if (candidate.type === "castChain") {
     const opponentsById = new Map(
-      combatantOpponents(combat, combatant).map((c) => [c.id, c]),
+      detectableOpponents(combat, combatant).map((c) => [c.id, c]),
     );
     const orderedTargets = [candidate.targetId, ...candidate.chainedIds]
       .map((id) => opponentsById.get(id))
@@ -5153,7 +5532,7 @@ export async function applyAgentDecision(
         candidate.entryId,
       );
   } else if (candidate.type === "castAreaTier") {
-    const targets = combatantOpponents(combat, combatant).filter((c) =>
+    const targets = detectableOpponents(combat, combatant).filter((c) =>
       candidate.affectedIds.includes(c.id),
     );
     if (targets.length)
@@ -5172,9 +5551,7 @@ export async function applyAgentDecision(
     // its damage roll applies correctly through the standard IWR-
     // respecting path regardless of which spell/creature-type combination
     // produced it.
-    const target = combatantOpponents(combat, combatant).find(
-      (c) => c.id === candidate.targetId,
-    );
+    const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target)
       await castSpellAndApplySave(
         combatant,
@@ -5201,7 +5578,7 @@ export async function applyAgentDecision(
     // text) - harmIds/healIds may each contain a mix of opponent and
     // ally ids.
     const allNearby = [
-      ...combatantOpponents(combat, combatant),
+      ...detectableOpponents(combat, combatant),
       ...combatantAllies(combat, combatant),
     ];
     const harmTargets = allNearby.filter((c) =>
@@ -5225,7 +5602,7 @@ export async function applyAgentDecision(
     // dispatch doesn't need to know which - searching both is cheap and
     // correct regardless.
     const allNearby = [
-      ...combatantOpponents(combat, combatant),
+      ...detectableOpponents(combat, combatant),
       ...combatantAllies(combat, combatant),
     ];
     const targets = allNearby.filter((c) => candidate.targetIds.includes(c.id));
@@ -5238,7 +5615,7 @@ export async function applyAgentDecision(
         candidate.save,
       );
   } else if (candidate.type === "castAutoHitAreaTier") {
-    const targets = combatantOpponents(combat, combatant).filter((c) =>
+    const targets = detectableOpponents(combat, combatant).filter((c) =>
       candidate.affectedIds.includes(c.id),
     );
     if (targets.length)

@@ -87,6 +87,7 @@ const GROUPS = [
     match: (p) =>
       [
         "scripts/dungeon-combat.mjs",
+        "scripts/stealth-detection.mjs",
         "scripts/combat-rewards.mjs",
         "scripts/agent-candidates.mjs",
         "scripts/dungeon-strike-riders.mjs",

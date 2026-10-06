@@ -1292,3 +1292,32 @@ describe('buildDecisionContext', () => {
     expect(context.allies).toEqual([{ id: 'ally1', name: 'Cleric', distanceSquares: 1, hp: 40, maxHp: 100 }]);
   });
 });
+
+describe('seek candidate (#616)', () => {
+  const turnState = { actionsRemaining: 3, mapIncrement: 0 };
+  const seekTargets = [{ id: 'pc1', name: 'Rogue' }];
+  const ids = (list) => list.map((c) => c.id);
+
+  it('is offered, cost 1, when the hostile has seekable sneakers and no targetable opponent', () => {
+    const list = buildCandidateList({ opponents: [], readyActions: [], seekTargets, turnState });
+    const seek = list.find((c) => c.id === 'seek');
+    expect(seek).toMatchObject({ type: 'seek', cost: 1 });
+    expect(seek.summary).toContain('Rogue');
+  });
+
+  it('is not offered when there are no seekable sneakers', () => {
+    expect(ids(buildCandidateList({ opponents: [], readyActions: [], turnState }))).not.toContain('seek');
+  });
+
+  it('is not offered when a targetable opponent exists', () => {
+    const opponents = [{ id: 'o', name: 'Fighter', distanceSquares: 1, hp: 10, hasLineOfSight: true }];
+    expect(ids(buildCandidateList({ opponents, readyActions: [], seekTargets, turnState }))).not.toContain('seek');
+  });
+
+  it('is not offered with no actions left, and costs one action when applied', () => {
+    const none = buildCandidateList({ opponents: [], readyActions: [], seekTargets, turnState: { actionsRemaining: 0, mapIncrement: 0 } });
+    expect(ids(none)).toEqual(['endTurn']);
+    const seek = { id: 'seek', type: 'seek', cost: 1 };
+    expect(applyCandidateToTurnState(turnState, seek)).toEqual({ actionsRemaining: 2, mapIncrement: 0 });
+  });
+});

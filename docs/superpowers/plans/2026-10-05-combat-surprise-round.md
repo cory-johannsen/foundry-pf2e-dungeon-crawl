@@ -1,610 +1,132 @@
-# Combat Surprise Round Implementation Plan
+# Stealth Initiative and Detection Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** A combat room's opening door gives the party a real chance at a surprise round — hostiles who weren't noticed get no action in round 1 — by letting the real `pf2e-avoid-notice` module do the actual Stealth-vs-Perception detection math, and adding new bridge logic to translate its results into a skipped hostile turn.
+**Goal:** PF2e-faithful Stealth initiative and per-hostile detection at combat start (replaces the withdrawn "surprise round" design): party members Avoiding Notice roll Stealth for initiative, each is compared with every hostile's Perception DC, and hostiles can only target characters they have noticed — otherwise they Seek, or (if unaware) do nothing.
 
-**Architecture:** `startCombat()` (`scripts/dungeon-combat.mjs`) temporarily grants each party actor the real "Avoid Notice" item and forces Stealth-for-initiative, rolls initiative as usual (now Stealth-aware for the party), starts combat (triggering `pf2e-avoid-notice`'s own detection logic as a side effect), waits a tunable delay, reads the resulting PF2e conditions off each party actor, and flags every hostile combatant `surprised` if the party's own aggregation rule says so — then reverts every temporary change regardless of outcome. `autoPlayCombatantTurnIfDue` skips a surprised hostile's round-1 turn via the combat's existing turn-skip mechanism.
+**Architecture:** A pure module (`scripts/stealth-detection.mjs`) owns the rules (states, comparison, alarm rule, Seek outcomes, awareness). `startCombat` (`scripts/dungeon-combat.mjs`) uses it to roll Stealth initiative and store a detection matrix on the Combat document. `combatantTargets` (the existing single targeting choke point) filters by that matrix; a new `seek` candidate and heuristic branch let hostiles Seek; a chat hook breaks stealth when a sneaker attacks. No third-party module, no actor-data mutation.
 
-**Tech Stack:** Vanilla ES modules, Vitest for the one pure-logic piece, the `foundry-rest` skill for every Foundry-glue task, the third-party `pf2e-avoid-notice` Foundry module (new dependency).
+**Tech Stack:** Vanilla ES modules, Vitest (dependency-injected fake-Foundry tests), PF2e system APIs (`Statistic#roll`, `Combat#setMultipleInitiatives`, condition API).
 
-**Spec:** `docs/superpowers/specs/2026-10-05-combat-surprise-round-design.md`
+**Spec:** `docs/superpowers/specs/2026-10-05-combat-surprise-round-design.md` (read it first; it carries the rules text and the named simplifications).
 
 ## Global Constraints
 
-- Every merge to `main` bumps `module.json`'s `version` (CLAUDE.md). This adds a new cross-system dependency and a genuine new combat mechanic: minor bump. Current version at plan-writing time is `0.59.2` — re-check immediately before committing, since concurrent sessions push to this repo.
-- The aggregation rule is fixed (already approved, not re-litigated here): the party achieves surprise iff **no** party member ends up with the `observed` condition. `unnoticed`/`undetected`/`hidden`/no-condition-at-all all count toward achieving surprise.
-- The `surprised` flag (`flags["pf2e-dungeon-crawl"].surprised`) is only ever set on hostile combatants, never party combatants.
-- Every temporary change to a party actor (`system.exploration`, `system.initiative.statistic`, a granted Avoid Notice item) must be reverted after the surprise check resolves, regardless of whether surprise succeeded — restoring each actor's own original values, never a shared default.
-- `pf2e-avoid-notice` is not installed in this world today. Task 2's first step installs it — nothing in Tasks 2-4 can be live-verified before that.
+- Every merge to `main` bumps `module.json`'s `version`: a real new combat mechanic is a **minor** bump above whatever `origin/main` has at commit time. **No new `relationships` entry** — no third-party dependency.
+- If no party combatant is Avoiding Notice, `startCombat` behaves **exactly as today** (same calls, same arguments, same order). Regression-test this.
+- `scripts/stealth-detection.mjs` is pure: no Foundry globals, no imports of Foundry-dependent modules.
+- Detection state is stored only on the Combat document flag `flags["pf2e-dungeon-crawl"].detection` (`{ [sneakerCombatantId]: { [hostileCombatantId]: "unnoticed"|"undetected"|"hidden"|"observed" } }`); never on actors. Display conditions applied to sneaker actors must be tracked (flag `appliedConditions` on the Combat) and removed when the combat is deleted.
+- Detection states and rules are exactly the spec's (observed targetable; hidden/undetected/unnoticed not targetable by hostiles; Seek outcomes: critical success → observed; success → undetected→hidden, hidden→observed; failure → unchanged). Hostiles never sneak.
+- Never touch live Foundry in implementer tasks; the controller verifies live.
+- Existing behavior of party-controlled/human combatants is untouched; only the hostile side's targeting changes.
 
 ## Review Focus
 
-- **A party actor that already owns a real "Avoid Notice" item must not get a second, duplicate copy** — and the revert step must never delete an item the actor already legitimately owned before this feature touched it. Covered by Task 2's explicit "actor already owns Avoid Notice" test.
-- **`system.exploration`'s original contents must come back exactly as they were**, including when it already held other activities — confirmed live this session that a real party member's array is never empty by default. Covered by Task 2's explicit non-empty-array round-trip test.
-- **The revert must run even if something after the grant step throws** — a party actor must never get stuck with a permanently-forced Stealth initiative statistic because, say, `rollInitiative` failed. Covered by Task 2's explicit "revert still runs after an error" test, via try/finally.
-- **A hostile that's `defeated` before its own surprised round-1 turn comes up must still go through the existing `isDefeated` branch first**, not the new surprised check — order matters, since a defeated surprised combatant should still be skipped for the right (defeated) reason, not silently fall through either check. Covered by Task 4's explicit ordering test.
-- **Round 2 must play normally even for a combatant that was surprised in round 1** — the flag must never need explicit clearing, but this needs its own live check to confirm `combat.round` actually reads `2` by the time that combatant's turn comes up again, not still `1` due to some off-by-one in Foundry's own round numbering. Covered by Task 4's explicit round-2 live check.
+- **No-sneaker combat must be byte-for-byte today's behavior** (same `rollInitiative` call and args, no new flags/conditions, no extra chat).
+- **A hostile must never get a strike/spell/area/breath/reactive candidate against a party member that is not `observed` by it** — covered at the shared `combatantTargets` choke point AND defense-in-depth in `applyAgentDecision`'s id lookups (a stale candidate id must not resolve to an unobserved PC).
+- **An unaware hostile (all sneakers unnoticed) must end its turn without stalling the combat** — the agent path requires non-empty candidates and has a 45 s fallback, so an empty candidate list must be handled explicitly (no hang, no error).
+- **Seek must change state only per the RAW outcomes** and must update the matrix for that (hostile, sneaker) pair only.
+- **Conditions applied for display must be removed** on `deleteCombat`, and never stack on repeat; a sneaker that already had the condition from elsewhere must not lose it.
+- **A sneaker's own attack must not break stealth for observed pairs or for non-sneakers**, and a hostile's attack must never touch the matrix.
 
 ---
 
-### Task 1: `determinePartySurprise` — the pure aggregation rule
+### Task 1: Pure rules module `scripts/stealth-detection.mjs`
 
 **Files:**
-- Create: `scripts/surprise-round.mjs`
-- Test: `tests/surprise-round.test.mjs`
+- Create: `scripts/stealth-detection.mjs`
+- Test: `tests/stealth-detection.test.mjs`
+
+**Interfaces (Produces — consumed by Tasks 2–5; keep these exact names/signatures):**
+- `export const DETECTION = { UNNOTICED: "unnoticed", UNDETECTED: "undetected", HIDDEN: "hidden", OBSERVED: "observed" }`
+- `avoidingNoticeActorIds(actors)` — `actors: [{ id, exploration: [itemId], items: [{ id, slug }] }]` → array of actor ids whose `exploration` includes an item whose `slug === "avoid-notice"`.
+- `initialDetection({ sneakers: [{ id, result }], hostiles: [{ id, dc }] })` → matrix `{ [sneakerId]: { [hostileId]: state } }`: `result >= dc` → `unnoticed`, else `observed`; then the **alarm rule**: if any pair is `observed`, every `unnoticed` pair becomes `undetected`.
+- `canTargetState(state)` → `true` only for `observed` (undefined/missing state = `true`, i.e. non-sneakers are always targetable).
+- `stateFor(matrix, sneakerId, hostileId)` → state or `observed` when absent.
+- `afterAttack(matrix, sneakerId)` → new matrix (immutable): that sneaker's `unnoticed`/`undetected` pairs become `hidden`; `observed`/`hidden` unchanged; other sneakers untouched.
+- `applySeekOutcome(state, outcome)` → `outcome` in `"criticalSuccess"|"success"|"failure"|"criticalFailure"`; `observed` is returned unchanged for every outcome (only `hidden`/`undetected` are seeked); `unnoticed` unchanged (cannot be sought); crit success: hidden/undetected → observed; success: undetected → hidden, hidden → observed; failure/crit failure: unchanged.
+- `hostileAwareness(matrix, hostileId, partyCombatantIds)` → `{ targetable: [ids observed by hostile], seekable: [ids hidden|undetected], unaware: boolean }` where `unaware` is true when there is at least one sneaker in the matrix, none targetable, none seekable (all unnoticed). Party ids not in the matrix are targetable.
+- `uniformCondition(matrix, sneakerId)` → `"unnoticed"` if every hostile's state for the sneaker is `unnoticed`; `"undetected"` if every state is `undetected`; `"hidden"` if every state is `hidden`; else `null`.
+
+- [x] **Step 1:** Write failing tests for every function above, covering at least: equal result vs DC is `unnoticed` (meets or exceeds), one below is `observed`; the alarm rule (one observed pair converts unnoticed → undetected, observed stays; all unnoticed stays unnoticed); `afterAttack` immutability and scope; every Seek outcome row incl. observed/unnoticed unchanged; `hostileAwareness` for unaware / seekable / targetable / mixed / no sneakers / unknown party ids; `uniformCondition` uniform vs mixed; `avoidingNoticeActorIds` with and without the item, with the item owned but not selected in `exploration`.
+- [x] **Step 2:** Run `npx vitest run tests/stealth-detection.test.mjs`, confirm failures are for the right reason.
+- [x] **Step 3:** Implement the module.
+- [x] **Step 4:** Run the test file, confirm green.
+- [x] **Step 5:** Commit.
+
+### Task 2: Stealth initiative and detection in `startCombat`
+
+**Files:**
+- Modify: `scripts/dungeon-combat.mjs` (`startCombat`, a new `deleteCombat` cleanup entry point)
+- Modify: `scripts/trap-combat.mjs` (export `withDialogsSuppressed`)
+- Modify: `scripts/module.mjs` (register the `deleteCombat` hook)
+- Modify: `lang/en.json` (chat keys)
+- Test: `tests/dungeon-combat-stealth-start.test.mjs` (new)
 
 **Interfaces:**
-- Produces: `export function determinePartySurprise(conditionSlugs: Array<string|null>): boolean`. Consumed by Task 3.
+- Consumes: Task 1 exports.
+- Produces: Combat flag `detection` and `appliedConditions`; `export async function rollStealthInitiativeAndDetect(combat, combatants, deps)` (dependency-injected: `rollStealth(actor) → {total}`, `setCondition(actor, slug, active)`, `chat(key, data)`); `export async function clearDetection(combat, deps)` for `deleteCombat`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1:** Write failing tests (DI/fake-Foundry style; template `tests/dungeon-combat-agent-turn-line-of-sight.test.mjs`): no sneakers → `startCombat` calls `rollInitiative` exactly as before and sets no detection flag; one sneaker → Stealth rolled for it only, other combatants go through `rollInitiative`, `setMultipleInitiatives` called with `statistic: "stealth"` and the Stealth total, matrix stored per Task 1 against each hostile's `perception.dc.value`, party members not avoiding notice rolled normally; condition `unnoticed`/`undetected` applied only when uniform and recorded in `appliedConditions`; chat lines posted; `clearDetection` removes only recorded conditions and the flags; an actor that already had the condition keeps it.
+- [x] **Step 2:** Run, confirm failures.
+- [x] **Step 3:** Implement. Order inside `startCombat`: create combatants → split sneakers (using `avoidingNoticeActorIds` over party actors' `system.exploration` and their `items` slugs) → `rollInitiative` for non-sneakers (same args as today) → Stealth rolls for sneakers (`actor.skills.stealth.roll({ createMessage: true })` under `withDialogsSuppressed`; use the returned Roll's `total`) → `combat.setMultipleInitiatives([...])` → compute/store matrix and apply display conditions → `combat.startCombat()` as today. Register `Hooks.on("deleteCombat", …)` calling `clearDetection`.
+- [x] **Step 4:** Run affected tests (`dungeon-combat*`, `trap*`, `stealth*`), confirm green.
+- [x] **Step 5:** Commit.
 
-Create `tests/surprise-round.test.mjs`:
-
-```js
-import { describe, it, expect } from "vitest";
-import { determinePartySurprise } from "../scripts/surprise-round.mjs";
-
-describe("determinePartySurprise", () => {
-  it("is true when every party member is unnoticed", () => {
-    expect(determinePartySurprise(["unnoticed", "unnoticed"])).toBe(true);
-  });
-
-  it("is true for a mix of unnoticed/undetected/hidden", () => {
-    expect(determinePartySurprise(["unnoticed", "undetected", "hidden"])).toBe(
-      true,
-    );
-  });
-
-  it("is false if even one party member ends up observed", () => {
-    expect(determinePartySurprise(["unnoticed", "observed"])).toBe(false);
-  });
-
-  it("is false if every party member ends up observed", () => {
-    expect(determinePartySurprise(["observed", "observed"])).toBe(false);
-  });
-
-  it("treats a null/no-condition entry as achieving surprise (not an observed failure)", () => {
-    expect(determinePartySurprise(["unnoticed", null])).toBe(true);
-  });
-
-  it("is true for an empty party (vacuously -- no one was observed)", () => {
-    expect(determinePartySurprise([])).toBe(true);
-  });
-});
-```
-
-- [ ] **Step 2: Run tests to verify they fail**
-
-Run: `npx vitest run tests/surprise-round.test.mjs`
-Expected: FAIL — `Cannot find module '../scripts/surprise-round.mjs'`.
-
-- [ ] **Step 3: Write `scripts/surprise-round.mjs`**
-
-```js
-/**
- * The party's own aggregation rule for #616: pf2e-avoid-notice applies one
- * of unnoticed/undetected/hidden/observed per party member (never a single
- * party-wide result -- PF2e itself has no one rule for that), so this
- * module decides what "the party achieved surprise" means from those
- * individual results. Deliberately simple and all-or-nothing: surprise
- * succeeds only if nobody in the party was flatly `observed` -- any of
- * unnoticed/undetected/hidden (or no condition at all, e.g. a party member
- * who wasn't avoiding notice) counts as achieving it. A real, named
- * simplification of RAW's actual per-character-vs-per-enemy granularity
- * (see the design spec) -- not an attempt at full fidelity.
- */
-export function determinePartySurprise(conditionSlugs) {
-  return !conditionSlugs.includes("observed");
-}
-```
-
-- [ ] **Step 4: Run tests to verify they pass**
-
-Run: `npx vitest run tests/surprise-round.test.mjs`
-Expected: PASS, all 6 tests green.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add scripts/surprise-round.mjs tests/surprise-round.test.mjs
-git commit -m "feat(#616): add determinePartySurprise aggregation rule
-
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
-```
-
----
-
-### Task 2: Grant Avoid Notice + force Stealth initiative, with revert
+### Task 3: Hostile targeting honors detection
 
 **Files:**
-- Modify: `scripts/dungeon-combat.mjs` (new functions `grantAvoidNotice`/`revertAvoidNotice`, wired into `startCombat`, lines ~143-169 — re-locate via your editor before editing)
+- Modify: `scripts/dungeon-combat.mjs` (`combatantTargets`, `applyAgentDecision` lookups via one helper)
+- Test: `tests/dungeon-combat-stealth-targeting.test.mjs` (new)
 
 **Interfaces:**
-- Consumes: nothing from earlier tasks.
-- Produces: `grantAvoidNotice(partyActors)` returning an array of revert-record objects `{actor, originalExploration, originalInitiativeStatistic, createdItemId}`; `revertAvoidNotice(records)` undoing them. Consumed by Task 3's wiring (both called from inside `startCombat`, in the same task's own code — Task 3 only adds what happens *between* the grant and the revert).
+- Consumes: Task 1 `canTargetState`/`stateFor`, Task 2's stored matrix.
+- Produces: `combatantTargets(combat, combatant)` omits party combatants whose state vs this hostile is not `observed`; a single helper `resolveOpponentForTurn(combat, combatant, id)` used by every branch of `applyAgentDecision` that currently resolves opponents by id from the unfiltered list.
 
-No unit test: this is real Foundry-document-mutating glue (actor updates, embedded item creation/deletion) with no existing unit-test harness anywhere in this file. Verified live in Step 2.
+- [x] **Step 1:** Failing tests: a hostile's `combatantTargets` excludes an unnoticed/undetected/hidden sneaker but includes an observed one and non-sneaker party members; a party combatant's (agent-controlled) targets are unaffected; `getPendingAgentTurn` produces no strike/spell/area/breath/target-count candidate for an unobserved PC (use the line-of-sight test as template); `applyAgentDecision` given a stale candidate id for an unobserved PC does not resolve it (no strike executed); reactive-strike opportunity search does not offer an unobserved PC; physical-blocking helpers (`hostileFootprints`, `otherCombatantFootprints`) still see all tokens.
+- [x] **Step 2:** Run, confirm failures.
+- [x] **Step 3:** Implement the filter and helper (keep physical-blocking uses unfiltered).
+- [x] **Step 4:** Run affected tests (`dungeon-combat*`, `agent-candidates*`), confirm green.
+- [x] **Step 5:** Commit.
 
-- [ ] **Step 1: Install `pf2e-avoid-notice` in this world**
-
-This is a real prerequisite, not yet done — confirmed this session's active-modules list does not include it. In the Foundry world's Setup → Add-on Modules screen (or via the manifest URL from its listing at https://foundryvtt.com/packages/pf2e-avoid-notice), install and activate `pf2e-avoid-notice`. Confirm it's active:
-
-```bash
-echo 'return Array.from(game.modules.entries()).filter(([id,m]) => m.active).map(([id]) => id);' | .claude/skills/foundry-rest/foundry-exec.sh
-```
-
-Expected: the returned list now includes `"pf2e-avoid-notice"` (its own dependency, `socketlib`, is already active on this world).
-
-- [ ] **Step 2: Write `grantAvoidNotice`/`revertAvoidNotice`**
-
-Add to `scripts/dungeon-combat.mjs`, directly above `startCombat`:
-
-```js
-const AVOID_NOTICE_PACK = "pf2e.actionspf2e";
-const AVOID_NOTICE_SLUG = "avoid-notice";
-
-/**
- * Temporarily sets up each party actor to roll Stealth for initiative and
- * be recognized by pf2e-avoid-notice as avoiding notice (#616) -- grants
- * the real "Avoid Notice" item (unless the actor already owns one) and
- * points `system.exploration` at it, forces `system.initiative.statistic`
- * to "stealth". Returns one revert record per actor; `revertAvoidNotice`
- * undoes exactly this and nothing else.
- */
-async function grantAvoidNotice(partyActors) {
-  const records = [];
-  for (const actor of partyActors) {
-    const originalExploration = foundry.utils.deepClone(
-      actor.system.exploration ?? [],
-    );
-    const originalInitiativeStatistic = actor.system.initiative?.statistic ?? null;
-
-    let avoidNoticeId = actor.itemTypes.action.find(
-      (i) => i.system.slug === AVOID_NOTICE_SLUG,
-    )?.id;
-    let createdItemId = null;
-    if (!avoidNoticeId) {
-      const pack = game.packs.get(AVOID_NOTICE_PACK);
-      const idx = await pack.getIndex({ fields: ["type"] });
-      const entry = idx.find((e) => e.name === "Avoid Notice");
-      const source = await pack.getDocument(entry._id);
-      const [created] = await actor.createEmbeddedDocuments("Item", [
-        source.toObject(),
-      ]);
-      avoidNoticeId = created.id;
-      createdItemId = created.id;
-    }
-
-    await actor.update({
-      "system.exploration": [avoidNoticeId],
-      "system.initiative.statistic": "stealth",
-    });
-
-    records.push({
-      actor,
-      originalExploration,
-      originalInitiativeStatistic,
-      createdItemId,
-    });
-  }
-  return records;
-}
-
-/** Undoes exactly what grantAvoidNotice did, per actor -- always run in a
- * `finally`, regardless of whether the surprise check itself succeeded. */
-async function revertAvoidNotice(records) {
-  for (const { actor, originalExploration, originalInitiativeStatistic, createdItemId } of records) {
-    await actor.update({
-      "system.exploration": originalExploration,
-      "system.initiative.statistic": originalInitiativeStatistic,
-    });
-    if (createdItemId) {
-      await actor.deleteEmbeddedDocuments("Item", [createdItemId]);
-    }
-  }
-}
-```
-
-- [ ] **Step 3: Live-verify with `foundry-rest`**
-
-```bash
-cat > /tmp/verify-grant-avoid-notice.js <<'EOF'
-// Read-only-safe round trip: grant, inspect, revert, confirm restored.
-const actor = game.actors.party?.members?.[0];
-if (!actor) return { error: "no party member found" };
-
-const beforeExploration = foundry.utils.deepClone(actor.system.exploration ?? []);
-const beforeStatistic = actor.system.initiative?.statistic ?? null;
-const beforeOwnsAvoidNotice = actor.itemTypes.action.some((i) => i.system.slug === "avoid-notice");
-
-// Inline the exact grant/revert logic this task adds (import is not
-// reachable from a foundry-rest script, which can't `import`).
-const pack = game.packs.get("pf2e.actionspf2e");
-const idx = await pack.getIndex({ fields: ["type"] });
-const entry = idx.find((e) => e.name === "Avoid Notice");
-const source = await pack.getDocument(entry._id);
-let avoidNoticeId = actor.itemTypes.action.find((i) => i.system.slug === "avoid-notice")?.id;
-let createdItemId = null;
-if (!avoidNoticeId) {
-  const [created] = await actor.createEmbeddedDocuments("Item", [source.toObject()]);
-  avoidNoticeId = created.id;
-  createdItemId = created.id;
-}
-await actor.update({ "system.exploration": [avoidNoticeId], "system.initiative.statistic": "stealth" });
-
-const duringExploration = foundry.utils.deepClone(actor.system.exploration ?? []);
-const duringStatistic = actor.system.initiative?.statistic ?? null;
-
-await actor.update({ "system.exploration": beforeExploration, "system.initiative.statistic": beforeStatistic });
-if (createdItemId) await actor.deleteEmbeddedDocuments("Item", [createdItemId]);
-
-const afterExploration = foundry.utils.deepClone(actor.system.exploration ?? []);
-const afterStatistic = actor.system.initiative?.statistic ?? null;
-const afterOwnsAvoidNotice = actor.itemTypes.action.some((i) => i.system.slug === "avoid-notice");
-
-return {
-  beforeExploration, beforeStatistic, beforeOwnsAvoidNotice,
-  duringExploration, duringStatistic,
-  afterExploration, afterStatistic, afterOwnsAvoidNotice,
-  restoredCorrectly: JSON.stringify(afterExploration) === JSON.stringify(beforeExploration)
-    && afterStatistic === beforeStatistic
-    && afterOwnsAvoidNotice === beforeOwnsAvoidNotice,
-};
-EOF
-.claude/skills/foundry-rest/foundry-exec.sh /tmp/verify-grant-avoid-notice.js
-rm /tmp/verify-grant-avoid-notice.js
-```
-
-Expected: `duringStatistic: "stealth"`, `duringExploration` is exactly `[avoidNoticeId]`, and `restoredCorrectly: true`. Also manually re-run this against a party member who, before starting, already owns a real Avoid Notice item (temporarily grant one by hand first) to confirm `createdItemId` stays `null` and the pre-existing item is never deleted.
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add scripts/dungeon-combat.mjs
-git commit -m "feat(#616): add grantAvoidNotice/revertAvoidNotice
-
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
-```
-
----
-
-### Task 3: Wire the surprise check into `startCombat`
+### Task 4: Seek and the unaware hostile
 
 **Files:**
-- Modify: `scripts/dungeon-combat.mjs` (`startCombat`, between `createEmbeddedDocuments("Combatant", ...)` and `rollInitiative`, and between `startCombat()` and `return combat`)
-- Modify: `scripts/module.mjs` (new `surpriseCheckDelayMs` world setting)
+- Modify: `scripts/agent-candidates.mjs` (`seek` candidate builder, registered in `buildCandidateList`, cost 1)
+- Modify: `scripts/dungeon-combat.mjs` (`getPendingAgentTurn` context, `applyAgentDecision` `seek` branch, `playHeuristicTurn` Seek/unaware branch, shared `performSeek`)
+- Test: `tests/dungeon-combat-stealth-seek.test.mjs` (new), extend `tests/agent-candidates.test.mjs`
 
 **Interfaces:**
-- Consumes: `grantAvoidNotice`/`revertAvoidNotice` (Task 2), `determinePartySurprise` (Task 1), `readPacingSetting` (already imported from `./token-walk.mjs`).
-- Produces: `flags["pf2e-dungeon-crawl"].surprised = true` on hostile combatants — consumed by Task 4.
+- Consumes: Task 1 `hostileAwareness`/`applySeekOutcome`, Task 2/3 matrix + filter.
+- Produces: `export async function performSeek(combat, hostileCombatant, deps)` → rolls `hostile.actor.perception.roll({ dc: { value: targetStealthDC }, createMessage: true })` (under `withDialogsSuppressed`) against each seekable sneaker's `actor.skills.stealth.dc.value`, updates the matrix per RAW, refreshes display conditions, posts a chat line on a change, returns outcome summary; `seek` candidate `{ id: "seek", type: "seek", cost: 1, summary }` offered only when `hostileAwareness(...).seekable` is non-empty.
 
-No unit test: real Combat/Combatant document glue. Verified live in Step 3.
+- [x] **Step 1:** Failing tests: `seek` candidate offered iff the hostile has seekable sneakers (and never when it has targetable PCs it prefers? — offered **alongside** attacks only when there is no targetable PC; with targetable PCs present it is not offered); `performSeek` outcome table via injected roll (crit success → observed; success undetected→hidden, hidden→observed; failure unchanged; matrix updated for that pair only); unaware hostile (all unnoticed): agent path with empty candidates ends the turn (`nextTurn`) without calling the agent service and without hanging; heuristic path likewise ends the turn; a hostile that Seeks and finds someone may then act with remaining actions (matrix refreshed before candidate rebuild).
+- [x] **Step 2:** Run, confirm failures.
+- [x] **Step 3:** Implement per spec.
+- [x] **Step 4:** Run affected tests (`dungeon-combat*`, `agent-candidates*`, `stealth*`), confirm green.
+- [x] **Step 5:** Commit.
 
-- [ ] **Step 1: Add the new world setting**
-
-In `scripts/module.mjs`, add directly after the existing `actionPaceDelayMs` registration:
-
-```js
-  game.settings.register(MODULE_ID, "surpriseCheckDelayMs", {
-    name: "PF2EDC.Settings.SurpriseCheckDelayMs.Name",
-    hint: "PF2EDC.Settings.SurpriseCheckDelayMs.Hint",
-    scope: "world",
-    config: true,
-    type: Number,
-    range: { min: 0, max: 5000, step: 100 },
-    default: 1000,
-  });
-```
-
-Add the matching `lang/en.json` keys (placed alphabetically near the existing `PF2EDC.Settings.*` keys — re-check the file fresh for the exact current surrounding keys before inserting):
-
-```json
-"PF2EDC.Settings.SurpriseCheckDelayMs.Hint": "Milliseconds to wait after combat starts before checking whether the party achieved surprise, giving the Avoid Notice module's own async processing time to finish.",
-"PF2EDC.Settings.SurpriseCheckDelayMs.Name": "Surprise check delay after combat starts (ms)",
-```
-
-- [ ] **Step 2: Wire the check into `startCombat`**
-
-In `scripts/dungeon-combat.mjs`, add this constant near the existing `ACTION_PACE_DELAY_MS`:
-
-```js
-const SURPRISE_CHECK_DELAY_MS = 1000;
-const surpriseCheckDelayMs = () =>
-  readPacingSetting("surpriseCheckDelayMs", SURPRISE_CHECK_DELAY_MS);
-```
-
-Change `startCombat` from:
-
-```js
-  const combatants = await combat.createEmbeddedDocuments(
-    "Combatant",
-    tokens.map((t) => ({
-      tokenId: t.id,
-      sceneId: scene.id,
-      ...(isAgentEligible(t.actor?.id, partyIds, aiControlledIds)
-        ? { flags: { [MODULE_ID]: { agentControlled: true } } }
-        : {}),
-    })),
-  );
-  await combat.rollInitiative(
-    combatants.map((c) => c.id),
-    { skipDialog: true },
-  );
-  await combat.startCombat();
-  unpauseIfGmLessRun(scene.id);
-  return combat;
-}
-```
-
-to:
-
-```js
-  const combatants = await combat.createEmbeddedDocuments(
-    "Combatant",
-    tokens.map((t) => ({
-      tokenId: t.id,
-      sceneId: scene.id,
-      ...(isAgentEligible(t.actor?.id, partyIds, aiControlledIds)
-        ? { flags: { [MODULE_ID]: { agentControlled: true } } }
-        : {}),
-    })),
-  );
-
-  const partyCombatantActors = combatants
-    .filter((c) => partyIds.has(c.actor?.id))
-    .map((c) => c.actor)
-    .filter((a) => !!a);
-  const hostileCombatants = combatants.filter((c) => !partyIds.has(c.actor?.id));
-  const avoidNoticeRecords = await grantAvoidNotice(partyCombatantActors);
-
-  try {
-    await combat.rollInitiative(
-      combatants.map((c) => c.id),
-      { skipDialog: true },
-    );
-    await combat.startCombat();
-    await new Promise((resolve) => setTimeout(resolve, surpriseCheckDelayMs()));
-
-    const conditionSlugs = partyCombatantActors.map(
-      (actor) =>
-        actor.itemTypes.condition.find((c) =>
-          ["unnoticed", "undetected", "hidden", "observed"].includes(c.system.slug),
-        )?.system.slug ?? null,
-    );
-    if (determinePartySurprise(conditionSlugs)) {
-      await Promise.all(
-        hostileCombatants.map((c) =>
-          c.setFlag(MODULE_ID, "surprised", true),
-        ),
-      );
-    }
-  } finally {
-    await revertAvoidNotice(avoidNoticeRecords);
-  }
-
-  unpauseIfGmLessRun(scene.id);
-  return combat;
-}
-```
-
-Add the two new imports at the top of `scripts/dungeon-combat.mjs`:
-
-```js
-import { determinePartySurprise } from "./surprise-round.mjs";
-```
-
-- [ ] **Step 3: Live-verify with `foundry-rest`**
-
-With `pf2e-avoid-notice` active (Task 2), start a real dungeon run with a combat room built, open its door (triggering `startCombatForRoom` → `startCombat`), and confirm:
-
-```bash
-echo 'const combat = game.combats.active; return combat ? combat.combatants.contents.map(c => ({name: c.name, isParty: game.actors.party.members.some(m => m.id === c.actor?.id), surprised: c.getFlag("pf2e-dungeon-crawl", "surprised") ?? false, condition: c.actor?.itemTypes.condition.map(i => i.system.slug) ?? []})) : "no active combat";' | .claude/skills/foundry-rest/foundry-exec.sh
-```
-
-Expected: every hostile combatant shows `surprised: true` and every party member shows `isParty: true` with a `condition` array containing one of `unnoticed`/`undetected`/`hidden` (not `observed`) — in a scenario where the party realistically would have snuck up on the room. Repeat with the party positioned somewhere they'd realistically be spotted (e.g. right next to a hostile with a high Perception modifier) and confirm `surprised: false` on every hostile and at least one party member shows `observed`. In both cases, immediately after, confirm every party actor's `system.exploration`/`system.initiative.statistic` were actually reverted (reuse Task 2's own verification script's read-back pattern against the real actors involved) — the live run is the integration test that Task 2's isolated revert check didn't cover: confirming the revert still happens correctly when it's wired into the full `startCombat` sequence, not just called standalone.
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add scripts/dungeon-combat.mjs scripts/module.mjs lang/en.json
-git commit -m "feat(#616): wire surprise-round check into startCombat
-
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
-```
-
----
-
-### Task 4: Skip a surprised hostile's round-1 turn
+### Task 5: Breaking stealth
 
 **Files:**
-- Modify: `scripts/dungeon-combat.mjs` (`autoPlayCombatantTurnIfDue`, directly after its existing `isDefeated` check, ~line 2972 — re-locate via your editor before editing)
+- Modify: `scripts/dungeon-combat.mjs` (stealth-break handler), `scripts/module.mjs` (hook registration)
+- Test: `tests/dungeon-combat-stealth-break.test.mjs` (new)
 
 **Interfaces:**
-- Consumes: the `surprised` combatant flag (Task 3).
-- Produces: nothing further in this plan consumes it — this is the feature's final visible behavior.
+- Consumes: Task 1 `afterAttack`/`uniformCondition`, Task 2's helpers.
+- Produces: `export async function handleStealthBreakMessage(message, deps)` registered on `createChatMessage` (GM client only): when a message's PF2e context type is an attack roll (`attack-roll` / `spell-attack-roll`) made by an actor that is a sneaker in the active combat's matrix, apply `afterAttack`, refresh that sneaker's display condition, post a chat line.
 
-No unit test: `autoPlayCombatantTurnIfDue` has no existing unit-test harness anywhere in this codebase (it reads `combat.combatant`, calls `combat.nextTurn()`, and dispatches into the live agent-decision/heuristic pipelines — pure Foundry-document glue throughout). Verified live in Step 2.
+- [x] **Step 1:** Failing tests: a sneaker's attack roll message turns its unnoticed/undetected pairs to hidden and leaves observed pairs and other sneakers untouched; a hostile's attack message and a non-sneaker party attack never alter the matrix; non-attack messages ignored; non-GM client ignored; no active combat ignored; condition refreshed (removed when no longer uniform).
+- [x] **Step 2:** Run, confirm failures.
+- [x] **Step 3:** Implement and register.
+- [x] **Step 4:** Run affected tests, confirm green.
+- [x] **Step 5:** Commit.
 
-- [ ] **Step 1: Add the skip check**
+### Task 6: Docs, version, full verification
 
-Change `autoPlayCombatantTurnIfDue` from:
+**Files:** `module.json`, `docs/architecture.md` (via the `update-architecture-docs` skill), this plan's checkboxes.
 
-```js
-  if (combatant.isDefeated) {
-    await combat.nextTurn();
-    return;
-  }
-
-  if (combatant.getFlag(MODULE_ID, "agentControlled")) {
-```
-
-to:
-
-```js
-  if (combatant.isDefeated) {
-    await combat.nextTurn();
-    return;
-  }
-
-  // #616: an unaware hostile gets no action at all during the surprise
-  // round. Gating on round === 1 (rather than clearing the flag after use)
-  // means this never needs to fire again once round 2 begins.
-  if (combat.round === 1 && combatant.getFlag(MODULE_ID, "surprised")) {
-    await combat.nextTurn();
-    return;
-  }
-
-  if (combatant.getFlag(MODULE_ID, "agentControlled")) {
-```
-
-- [ ] **Step 2: Live-verify with `foundry-rest`**
-
-Using the same surprised combat from Task 3's own live verification (or a fresh one), confirm:
-
-```bash
-echo 'const combat = game.combats.active; return { round: combat?.round, currentCombatantName: combat?.combatant?.name, currentIsSurprised: combat?.combatant?.getFlag("pf2e-dungeon-crawl", "surprised") ?? false };' | .claude/skills/foundry-rest/foundry-exec.sh
-```
-
-Run this repeatedly as the combat's automated turns proceed (or step through manually). Expected: while `round` is `1`, any combatant with `surprised: true` is skipped over without acting (its turn advances immediately — confirm via the Combat Tracker UI or by checking no strike/spell chat message was created for it); once `round` reaches `2`, that same combatant takes a normal turn. Also confirm a combatant that is both `defeated` and `surprised` is skipped via the pre-existing `isDefeated` branch (order matters only in that both branches produce the same visible result — a skipped turn — so this is a defensive check that the two conditions don't conflict, not that one visibly differs from the other).
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add scripts/dungeon-combat.mjs
-git commit -m "feat(#616): skip a surprised hostile's round-1 turn
-
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
-```
-
----
-
-### Task 5: Declare the dependency and document it
-
-**Files:**
-- Modify: `module.json` (new `relationships.requires` entry)
-- Modify: `README.md` (Install section)
-
-**Interfaces:** None.
-
-- [ ] **Step 1: Confirm the real installed version**
-
-```bash
-echo 'return game.modules.get("pf2e-avoid-notice")?.version ?? null;' | .claude/skills/foundry-rest/foundry-exec.sh
-```
-
-Use whatever this returns as the `compatibility.minimum` value below (do not guess a version string).
-
-- [ ] **Step 2: Add the module.json dependency**
-
-Change `module.json`'s `relationships` object from:
-
-```json
-  "relationships": {
-    "systems": [
-      {
-        "id": "pf2e",
-        "type": "system",
-        "compatibility": { "minimum": "6.0.0" }
-      }
-    ]
-  },
-```
-
-to:
-
-```json
-  "relationships": {
-    "systems": [
-      {
-        "id": "pf2e",
-        "type": "system",
-        "compatibility": { "minimum": "6.0.0" }
-      }
-    ],
-    "requires": [
-      {
-        "id": "pf2e-avoid-notice",
-        "type": "module",
-        "compatibility": { "minimum": "<version from Step 1>" }
-      }
-    ]
-  },
-```
-
-- [ ] **Step 3: Update the README**
-
-Change `README.md`'s Install section from:
-
-```markdown
-Requires the `pf2e` system (minimum v6.0.0) and Foundry v14. No other
-module is required.
-```
-
-to:
-
-```markdown
-Requires the `pf2e` system (minimum v6.0.0), Foundry v14, and the
-[PF2e Avoid Notice](https://foundryvtt.com/packages/pf2e-avoid-notice)
-module (used to resolve whether the party achieves surprise when a
-combat room's door opens — see #616). Foundry's own dependency
-resolution will prompt to install it automatically.
-```
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add module.json README.md
-git commit -m "docs(#616): declare the pf2e-avoid-notice dependency
-
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
-```
-
----
-
-### Task 6: Version bump
-
-**Files:**
-- Modify: `module.json`
-
-**Interfaces:** None.
-
-- [ ] **Step 1: Bump the version**
-
-Re-check the current version first (concurrent sessions push to this repo):
-
-```bash
-git fetch origin main -q && git log origin/main -1 --oneline && grep version module.json
-```
-
-Apply a **minor** bump (new cross-system dependency and a genuine new combat mechanic), e.g. `0.59.2` → `0.60.0`, using whatever the fetch above shows as current.
-
-- [ ] **Step 2: Commit**
-
-```bash
-git add module.json
-git commit -m "chore: bump version for #616 combat surprise round
-
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
-```
-
----
-
-## Self-Review
-
-**1. Spec coverage:** The spec's four concrete deliverables — adopt `pf2e-avoid-notice` rather than hand-roll detection, the self-contained grant/revert sequence, the hook-timing delay, and the aggregation rule + skip-turn bridge — map onto Task 2 (grant/revert), Task 3 (delay + wiring + dependency declaration via Task 5), Task 1 (aggregation rule), and Task 4 (skip bridge). No gaps found.
-
-**2. Placeholder scan:** No TBD/TODO, no "add appropriate handling," no "similar to Task N." Task 5's Step 1 explicitly tells the implementer to read a real value live rather than guessing a version string — an instruction to verify, not a placeholder for missing code.
-
-**3. Type consistency:** `determinePartySurprise(conditionSlugs: Array<string|null>): boolean` (Task 1) is invoked with the identical shape in Task 3's wiring (`partyCombatantActors.map(...)` producing exactly that array type). `grantAvoidNotice(partyActors)`/`revertAvoidNotice(records)` (Task 2) are invoked with the identical names and argument shapes in Task 3. The `surprised` flag key and its `flags["pf2e-dungeon-crawl"]` namespace are identical between Task 3 (where it's set) and Task 4 (where it's read).
-
-**4. Review Focus:** All five items (duplicate-Avoid-Notice-item guard, non-empty-exploration-array round-trip, revert-runs-even-after-an-error, isDefeated-vs-surprised ordering, round-2-plays-normally) each have a dedicated test or explicit live-verification step. No gaps found.
-
----
-
-Plan complete and saved to `docs/superpowers/plans/2026-10-05-combat-surprise-round.md`. Please review the plan. Which execution approach would you prefer?
-
-- **Subagent-driven** - A fresh subagent implements each task and a fresh reviewer checks it before the next one starts, then a whole-branch review at the end. Most thorough; costs a fresh context per task and per review.
-- **Native** - I implement every task myself in this session, the way this harness runs work, then one fresh reviewer on the most capable model checks the whole branch. Cheapest and fastest; no independent review until the end. Runs well with a mid-tier session model, since the plan carries the design.
-
-For this plan I recommend **Subagent-driven**, because Tasks 2-4 chain through a third-party module's undocumented real behavior with one genuinely unverified timing risk (the `combatStart` hook delay) — a fresh reviewer checking Task 3's actual live results before Task 4 builds the skip-turn behavior on top of them is worth more here than the cost of separate contexts. Does the plan capture what you want, and which approach should we use?
+- [ ] **Step 1:** Run the full suite once (`npx vitest run`; known flaky: `tests/dungeon-reseed-sweep.test.mjs` timing, passes alone) and fix anything legitimately broken.
+- [ ] **Step 2:** Regenerate the architecture graph (`node tools/generate-architecture-graph.mjs`), replace the mermaid block verbatim, check for new circular imports.
+- [ ] **Step 3:** Bump `module.json` minor above `origin/main`; commit.
+- [ ] **Step 4 (controller, live):** with one party member set to Avoiding Notice (`system.exploration`), open a combat room's door and confirm: Stealth roll card, detection matrix on the Combat flag, conditions applied, hostiles that did not notice the sneaker do not attack it, Seek cards appear, a sneaker attack reveals it, conditions removed at combat end; and a combat with no sneakers behaves as before.
