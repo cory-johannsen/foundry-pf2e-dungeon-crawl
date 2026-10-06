@@ -183,6 +183,36 @@ describe("friendly non-party combatants and non-sneaking party members (#616)", 
   });
 });
 
+describe("detection chat wording (#616)", () => {
+  const lineKeys = (d) => d.chat.mock.calls.map((c) => c[0]);
+
+  it("unnoticed by every hostile -> the unnoticed line", async () => {
+    const combat = makeCombat();
+    const sneak = actor("pc1", { sneaking: true, stealthTotal: 30 });
+    const d = deps(["pc1"]);
+    await rollStealthInitiativeAndDetect(combat, [comb("c1", actor("m1", { dc: 10 })), comb("p1", sneak)], d);
+    expect(lineKeys(d)).toEqual(["PF2EDC.Dungeon.Combat.StealthUnnoticedChat"]);
+  });
+
+  it("undetected only because the alarm was raised -> the undetected line, not 'slips in unnoticed'", async () => {
+    const combat = makeCombat();
+    const good = actor("pc1", { sneaking: true, stealthTotal: 16 });
+    const poor = actor("pc2", { sneaking: true, stealthTotal: 15 });
+    const combatants = [
+      comb("c1", actor("m1", { dc: 10 })),
+      comb("c2", actor("m2", { dc: 16 })),
+      comb("p1", good),
+      comb("p2", poor),
+    ];
+    const d = deps(["pc1", "pc2"]);
+    await rollStealthInitiativeAndDetect(combat, combatants, d);
+    expect(combat.getFlag(MOD, "detection").p1).toEqual({ c1: "undetected", c2: "undetected" });
+    const byName = Object.fromEntries(d.chat.mock.calls.map((c) => [c[1].name, c[0]]));
+    expect(byName.p1).toBe("PF2EDC.Dungeon.Combat.StealthUndetectedChat");
+    expect(byName.p2).toBe("PF2EDC.Dungeon.Combat.StealthNoticedChat");
+  });
+});
+
 describe("clearDetection", () => {
   it("removes only recorded conditions and the flags", async () => {
     const combat = makeCombat();
