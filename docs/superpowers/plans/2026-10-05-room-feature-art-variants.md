@@ -388,19 +388,19 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `applyRoomFeatureUsedArt(scene, roomId, kind, {theme, manifest})` (new, `scripts/dungeon-scene.mjs`) — finds the room's own feature token (via the same `roomFeatureRoomId`/`roomFeatureKind` flags `hasRoomFeatureToken` already reads) and updates its `img`/`prototypeToken.texture.src` to the `${kind}_used` art if the manifest lists it, else does nothing. `runRoomFeatureAction`'s own `deps` shape gains `applyUsedArt` (optional; a no-op default keeps every existing caller that doesn't pass it unaffected — though this plan updates both real callers to pass it).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `grep -rln "runRoomFeatureAction\|spawnRoomFeatureToken" tests/` first and read the matching file(s) in full to match their exact fixture conventions. Add cases:
 - `spawnRoomFeatureToken` called with a room whose `artVariant` is 1 (manifest lists `treasure: [0, 1]` for that theme) builds the actor with `art` ending in `treasure-1.webp`.
 - `runRoomFeatureAction` for `kind: "treasure"`, on success, calls `deps.applyUsedArt(scene-or-sceneId, roomId, "treasure", {theme, manifest})` (match whatever exact argument shape reads most naturally against this function's own existing `deps` calls, e.g. `claimTreasureFor`/`revealRoomFeature`'s own argument style) exactly once; a failed/not-ok plan never calls it.
 - `applyRoomFeatureUsedArt`: updates the matching token's `img`/`prototypeToken.texture.src` (via `token.actor.update`, matching how every other room-feature token update in this codebase applies a visual change) when the manifest lists `${kind}_used` for that theme; does nothing (no `update` call) when it doesn't; does nothing when no matching token exists on the scene.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run -t "#764"` across whichever files Step 1 touched.
 Expected: FAIL.
 
-- [ ] **Step 3: Thread `artVariant` into `spawnRoomFeatureToken`**
+- [x] **Step 3: Thread `artVariant` into `spawnRoomFeatureToken`**
 
 Change (confirmed current, lines 1085-1096):
 
@@ -438,7 +438,7 @@ async function spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed, the
 
 Update all three call sites (confirmed current, ~lines 1800, 1848, 1884) to add `variant: room.artVariant,` alongside their existing `theme: room.locationTag,` line.
 
-- [ ] **Step 4: Write `applyRoomFeatureUsedArt`**
+- [x] **Step 4: Write `applyRoomFeatureUsedArt`**
 
 Add near `spawnRoomFeatureToken` in `scripts/dungeon-scene.mjs`:
 
@@ -463,7 +463,7 @@ export async function applyRoomFeatureUsedArt(scene, roomId, kind, { theme, mani
 }
 ```
 
-- [ ] **Step 5: Wire it into `runRoomFeatureAction`**
+- [x] **Step 5: Wire it into `runRoomFeatureAction`**
 
 In `scripts/room-feature-tokens.mjs`, change `runRoomFeatureAction` (confirmed current, lines 64-87):
 
@@ -528,7 +528,7 @@ export async function runRoomFeatureAction(
 }
 ```
 
-- [ ] **Step 6: Wire the real collaborator at both call sites**
+- [x] **Step 6: Wire the real collaborator at both call sites**
 
 In `scripts/module.mjs` (confirmed current, line 371 area, where `revealRoomFeature`/`claimTreasureFor`/`getRunState` are already passed into `runRoomFeatureAction`'s `deps`) and `scripts/dungeon-remote.mjs` (confirmed current, line 91), add a new local wrapper and pass it as `applyUsedArt`:
 
@@ -542,17 +542,17 @@ async function applyRoomFeatureUsedArtForScene(sceneId, roomId, kind, { theme })
 
 (import `applyRoomFeatureUsedArt` from `./dungeon-scene.mjs` and `loadRoomFeatureArt` from `./data-loader.mjs` in both files — `dungeon-remote.mjs` and `module.mjs` both already import several other things from `dungeon-scene.mjs`, confirmed current, so this is additive to an existing import line, not a new cross-file dependency) then add `applyUsedArt: applyRoomFeatureUsedArtForScene` to each of the two `{ getRunState, claimTreasureFor, revealRoomFeature }` deps objects passed into `runRoomFeatureAction`.
 
-- [ ] **Step 7: Run tests to verify they pass**
+- [x] **Step 7: Run tests to verify they pass**
 
 Run: `npx vitest run -t "#764"` across the files Step 1 touched.
 Expected: PASS.
 
-- [ ] **Step 8: Run the full test suite to confirm no regression**
+- [x] **Step 8: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs scripts/room-feature-tokens.mjs scripts/module.mjs scripts/dungeon-remote.mjs

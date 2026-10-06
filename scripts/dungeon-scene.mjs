@@ -1115,10 +1115,47 @@ export async function populateSlotEncounter(
   });
 }
 
+/**
+ * #764: swap a resolved room's own feature token to its used/solved-state
+ * art, if the manifest has one for this theme. A no-op (token untouched)
+ * when it doesn't, when no matching token exists, and on any error --
+ * silent fallback, never a thrown failure (#750). Only art changes: the
+ * actor's img / prototype texture and the placed token's texture.
+ */
+export async function applyRoomFeatureUsedArt(scene, roomId, kind, { theme, manifest } = {}) {
+  try {
+    const art = roomFeatureArtPath({ theme, kind: `${kind}_used`, manifest });
+    if (!art) return;
+    const token = scene?.tokens?.find?.(
+      (t) =>
+        t.getFlag?.(MODULE_ID, "roomFeatureRoomId") === roomId &&
+        t.getFlag?.(MODULE_ID, "roomFeatureKind") === kind,
+    );
+    if (!token) return;
+    // A placed token copied its texture at spawn, so the actor's own update
+    // alone would not change what is drawn on the canvas.
+    if (token.actor) await token.actor.update({ img: art, "prototypeToken.texture.src": art });
+    await token.update({ "texture.src": art });
+  } catch (err) {
+    console.warn(`${MODULE_ID} | used-state art swap failed`, err);
+  }
+}
+
+/** #764: scene-id entry point for runRoomFeatureAction's `applyUsedArt` dep. */
+export async function applyRoomFeatureUsedArtForScene(sceneId, roomId, kind, { theme } = {}) {
+  try {
+    const scene = game.scenes.get(sceneId);
+    if (!scene) return;
+    await applyRoomFeatureUsedArt(scene, roomId, kind, { theme, manifest: await loadRoomFeatureArt() });
+  } catch (err) {
+    console.warn(`${MODULE_ID} | used-state art swap failed`, err);
+  }
+}
+
 /** Spawns one room-feature prop token (#611/#623) -- a player-targetable
  * scene object for a treasure/puzzle/skill-challenge room. Idempotent: a
  * rebuild of an already-built room must not duplicate the prop. */
-async function spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed, theme }) {
+export async function spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed, theme, variant = 0 }) {
   const existing = scene.tokens.map((t) => t.flags?.[MODULE_ID]);
   if (hasRoomFeatureToken(existing, roomId, kind)) return;
   const rect = roomRect(seed, roomId, rank, col);
@@ -1127,7 +1164,7 @@ async function spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed, the
     gx: rect.gx,
     gy: rect.gy,
   };
-  const art = roomFeatureArtPath({ theme, kind, manifest: await loadRoomFeatureArt() });
+  const art = roomFeatureArtPath({ theme, kind, variant, manifest: await loadRoomFeatureArt() });
   const actorData = buildRoomFeatureTokenActorData(kind, roomId, { art });
   const [actor] = await Actor.createDocuments([actorData]);
   // A prop failure must never block room building, nor leave an orphan
@@ -1860,6 +1897,7 @@ export async function buildPopulateAndUnlockGraphNode(
         col,
         seed: state.seed,
         theme: room.locationTag,
+        variant: room.artVariant,
       });
     }
     // #32: puzzle and trap are now decided up front as their own room kinds
@@ -1890,6 +1928,7 @@ export async function buildPopulateAndUnlockGraphNode(
         col,
         seed: state.seed,
         theme: room.locationTag,
+        variant: room.artVariant,
       });
     }
     // #167: a narrative room's own selected content is attached here too
@@ -1926,6 +1965,7 @@ export async function buildPopulateAndUnlockGraphNode(
           col,
           seed: state.seed,
           theme: room.locationTag,
+          variant: room.artVariant,
         });
       }
     }
