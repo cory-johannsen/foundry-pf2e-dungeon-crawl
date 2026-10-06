@@ -49,6 +49,18 @@ files there pollute `main` for everyone else.
   never symlink `node_modules`.
 - Remove the worktree and delete the branch after the PR merges.
 
+## Game rules
+
+PF2e rules are the source of truth for all gameplay rule decisions. When
+implementing or changing anything with a rules answer (XP, flanking,
+actions, conditions, DCs, rests, treasure, encounter budgets, etc.), follow
+the Pathfinder 2e rules as written (Player Core, GM Core, Monster Core) and
+prefer the PF2e system's own implementation over reimplementing it. Don't
+invent house rules or simplify a rule for convenience. If a deviation is
+truly needed, get the owner's explicit approval and record it on the issue.
+When unsure what the rules say, check them (or the system's behaviour in
+real play history) before assuming.
+
 ## Pull requests
 
 Always automerge PRs once opened, unless the user has instructed otherwise
