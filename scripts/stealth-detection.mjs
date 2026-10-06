@@ -16,19 +16,28 @@ export const DETECTION = {
 };
 
 /**
+ * Ids of actors whose selected exploration activities include an owned item
+ * with the given slug (`system.exploration` lists item ids; the item's slug
+ * names the activity). Shared by Avoid Notice (#616) and Search (#755).
+ */
+export function actorIdsWithExplorationActivity(actors, slug) {
+  const ids = [];
+  for (const actor of actors ?? []) {
+    const selected = new Set(actor.exploration ?? []);
+    const active = (actor.items ?? []).some(
+      (item) => item.slug === slug && selected.has(item.id),
+    );
+    if (active) ids.push(actor.id);
+  }
+  return ids;
+}
+
+/**
  * Ids of actors who are Avoiding Notice: their selected exploration activities
  * include an owned item whose slug is "avoid-notice".
  */
 export function avoidingNoticeActorIds(actors) {
-  const ids = [];
-  for (const actor of actors ?? []) {
-    const selected = new Set(actor.exploration ?? []);
-    const sneaking = (actor.items ?? []).some(
-      (item) => item.slug === "avoid-notice" && selected.has(item.id),
-    );
-    if (sneaking) ids.push(actor.id);
-  }
-  return ids;
+  return actorIdsWithExplorationActivity(actors, "avoid-notice");
 }
 
 /**

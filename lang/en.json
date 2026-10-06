@@ -160,6 +160,7 @@
   "PF2EDC.Dungeon.Trap.CannotDisable": "This trap can't be disabled.",
   "PF2EDC.Dungeon.Trap.CharacterLabel": "Who attempts?",
   "PF2EDC.Dungeon.Trap.DetectedChat": "{name} notices a hidden trap: {trap}!",
+  "PF2EDC.Dungeon.Trap.DetectionRollGM": "Secret trap check: {name} vs {trap}, {total} against DC {dc} ({outcome}).",
   "PF2EDC.Dungeon.Trap.DisableCancel": "Cancel",
   "PF2EDC.Dungeon.Trap.DisableConfirm": "Attempt Disable",
   "PF2EDC.Dungeon.Trap.DisableFailureChat": "{name} fails to disable {trap}.",

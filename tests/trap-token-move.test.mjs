@@ -49,6 +49,8 @@ beforeEach(() => {
   announce = vi.fn(async () => {});
   base = {
     announce,
+    whisperGM: vi.fn(async () => {}), // #755: detection now whispers a GM line
+    isCombatActive: () => false,
     isGM: () => true,
     isPartyActor: () => true,
     triggerTrap,

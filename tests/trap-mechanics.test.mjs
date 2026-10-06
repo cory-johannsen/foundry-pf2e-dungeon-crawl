@@ -5,6 +5,9 @@ import {
   isSimpleAutomatableTrap,
   classifyTrapMove,
   trapFootprintSize,
+  trapMinProficiencyRank,
+  detectionEligibility,
+  withinSearchRange,
 } from "../scripts/trap-mechanics.mjs";
 
 describe("parseDisableChecks", () => {
@@ -184,5 +187,80 @@ describe('trapFootprintSize', () => {
     const rate = squares / trials;
     expect(rate).toBeGreaterThan(0.07);
     expect(rate).toBeLessThan(0.13);
+  });
+});
+
+describe("trapMinProficiencyRank (#755)", () => {
+  it.each([
+    ["<p>(trained)</p>", 1],
+    ["<p>(expert)</p>", 2],
+    ["<p>(master)</p>", 3],
+    ["<p>(legendary)</p>", 4],
+    ["<p>(untrained)</p>", 0],
+    ["  <p> (Trained) </p>\n", 1],
+    ["(EXPERT)", 2],
+  ])("parses %j as %s", (html, rank) => {
+    expect(trapMinProficiencyRank(html)).toBe(rank);
+  });
+
+  it.each([
+    [""],
+    [undefined],
+    [null],
+    ["<p></p>"],
+    ["<p>@Check[stealth|dc:23]</p>"],
+    ["<p>(or 0 if the trapdoor is disabled or broken)</p>"],
+    ["or <em>detect magic</em>"],
+    ["<p>(trained) or detect magic</p>"],
+    ["<p>(sneaky)</p>"],
+    ["<p>trained</p>"],
+  ])("treats %j as no minimum", (html) => {
+    expect(trapMinProficiencyRank(html)).toBeNull();
+  });
+});
+
+describe("detectionEligibility (#755)", () => {
+  it("no minimum: everyone gets the automatic check, searching or not", () => {
+    expect(detectionEligibility({ minRank: null, searching: false, perceptionRank: 0 })).toBe(true);
+    expect(detectionEligibility({ minRank: null, searching: true, perceptionRank: 0 })).toBe(true);
+  });
+  it("minimum: needs Search AND the rank", () => {
+    expect(detectionEligibility({ minRank: 1, searching: true, perceptionRank: 0 })).toBe(false);
+    expect(detectionEligibility({ minRank: 1, searching: true, perceptionRank: 1 })).toBe(true);
+    expect(detectionEligibility({ minRank: 1, searching: true, perceptionRank: 2 })).toBe(true);
+    expect(detectionEligibility({ minRank: 1, searching: false, perceptionRank: 4 })).toBe(false);
+  });
+  it("minimum untrained (0) still needs Search", () => {
+    expect(detectionEligibility({ minRank: 0, searching: false, perceptionRank: 0 })).toBe(false);
+    expect(detectionEligibility({ minRank: 0, searching: true, perceptionRank: 0 })).toBe(true);
+  });
+});
+
+describe("withinSearchRange (#755)", () => {
+  const fp = (gx, gy, gw = 1, gh = 1) => ({ gx, gy, gw, gh });
+  it("overlap and adjacency are in range", () => {
+    expect(withinSearchRange(fp(5, 5), fp(5, 5), 6)).toBe(true);
+    expect(withinSearchRange(fp(5, 5), fp(6, 5), 6)).toBe(true);
+  });
+  it("exactly at range is in, one beyond is out", () => {
+    expect(withinSearchRange(fp(0, 0), fp(6, 0), 6)).toBe(true);
+    expect(withinSearchRange(fp(0, 0), fp(7, 0), 6)).toBe(false);
+    expect(withinSearchRange(fp(0, 0), fp(6, 6), 6)).toBe(true);
+    expect(withinSearchRange(fp(0, 0), fp(6, 7), 6)).toBe(false);
+  });
+  it("uses Chebyshev distance (the larger axis)", () => {
+    expect(withinSearchRange(fp(0, 0), fp(3, 6), 6)).toBe(true);
+    expect(withinSearchRange(fp(0, 0), fp(7, 2), 6)).toBe(false);
+  });
+  it("measures between footprint edges for multi-cell footprints", () => {
+    expect(withinSearchRange(fp(0, 0, 2, 2), fp(7, 0), 6)).toBe(true);
+    expect(withinSearchRange(fp(0, 0, 2, 2), fp(8, 0), 6)).toBe(false);
+    expect(withinSearchRange(fp(0, 0), fp(5, 0, 3, 3), 6)).toBe(true);
+    expect(withinSearchRange(fp(10, 10, 2, 1), fp(2, 10, 2, 1), 6)).toBe(false);
+    expect(withinSearchRange(fp(10, 10, 2, 1), fp(3, 10, 2, 1), 6)).toBe(true);
+  });
+  it("is safe with negative coordinates", () => {
+    expect(withinSearchRange(fp(-3, -3), fp(3, 3), 6)).toBe(true);
+    expect(withinSearchRange(fp(-4, -3), fp(3, 3), 6)).toBe(false);
   });
 });

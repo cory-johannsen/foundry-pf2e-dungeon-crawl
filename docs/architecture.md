@@ -391,6 +391,7 @@ graph LR
   scripts_skill_challenge_mechanics_mjs --> scripts_prng_mjs
   scripts_skill_challenge_mechanics_mjs --> scripts_dungeon_deck_mjs
   scripts_trap_combat_mjs --> scripts_trap_mechanics_mjs
+  scripts_trap_combat_mjs --> scripts_stealth_detection_mjs
   scripts_trap_combat_mjs --> scripts_dungeon_runner_mjs
   scripts_trap_combat_mjs --> scripts_dungeon_permissions_mjs
   scripts_trap_combat_mjs --> scripts_placement_mjs

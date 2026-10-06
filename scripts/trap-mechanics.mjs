@@ -111,6 +111,45 @@ export function classifyTrapMove(trapFootprint, moverFootprint) {
   return Math.max(dx, dy) <= 1 ? "detect" : "none";
 }
 
+const RANK_BY_NAME = { untrained: 0, trained: 1, expert: 2, master: 3, legendary: 4 };
+
+/** #755: the minimum Perception proficiency rank a hazard's Stealth entry
+ * lists (`system.attributes.stealth.details`, e.g. `<p>(trained)</p>`), as
+ * 0..4, or `null` when none is listed. Only a clean, whole-text
+ * parenthesised rank counts; anything else seen in pf2e.hazards
+ * (`@Check[...]`, `(or 0 if ...)`, `or <em>detect magic</em>`, empty) is
+ * "no minimum" rather than a guessed rank. */
+export function trapMinProficiencyRank(stealthDetailsHtml) {
+  if (typeof stealthDetailsHtml !== "string") return null;
+  const text = stealthDetailsHtml.replace(/<[^>]*>/g, "").trim();
+  const match = /^\((untrained|trained|expert|master|legendary)\)$/i.exec(text);
+  return match ? RANK_BY_NAME[match[1].toLowerCase()] : null;
+}
+
+/** #755: PF2e RAW -- a hazard with no listed minimum proficiency gives every
+ * character an automatic check; one with a minimum is checked only for a
+ * character who is actively Searching and has at least that Perception rank. */
+export function detectionEligibility({ minRank, searching, perceptionRank }) {
+  if (minRank == null) return true;
+  return searching === true && perceptionRank >= minRank;
+}
+
+/** #755: whether the mover's footprint is within `rangeSquares` of the
+ * trap's -- Chebyshev distance between footprint edges (0 when overlapping). */
+export function withinSearchRange(trapFootprint, moverFootprint, rangeSquares) {
+  const dx = Math.max(
+    trapFootprint.gx - (moverFootprint.gx + moverFootprint.gw - 1),
+    moverFootprint.gx - (trapFootprint.gx + trapFootprint.gw - 1),
+    0,
+  );
+  const dy = Math.max(
+    trapFootprint.gy - (moverFootprint.gy + moverFootprint.gh - 1),
+    moverFootprint.gy - (trapFootprint.gy + trapFootprint.gh - 1),
+    0,
+  );
+  return Math.max(dx, dy) <= rangeSquares;
+}
+
 /**
  * Whether a trap-tagged hazard's own data is one this file's v1 automation
  * can actually run end-to-end: non-complex, exactly one ready strike-shaped
