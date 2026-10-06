@@ -156,7 +156,7 @@
     }
   },
   "corridor-corner.webp": {
-    "sha256": "5ae37966d28cbf214282f4573729add604edc3dfb07b6a362ac40901e066faae",
+    "sha256": "3b1bc8509a2c70ba89cd63c2d27931de8520ca244ffa3b35f752257b0cd1d882",
     "size": [
       512,
       512
@@ -169,7 +169,7 @@
     }
   },
   "corridor-end.webp": {
-    "sha256": "80f642749bbe2d2e790e873bae9bd1d1da13fe349b5f25334c5844ce2ba11421",
+    "sha256": "0a5f598def6b58c2422ef3dbc32fb9914822a031b15f933c85e5eeca2168e3b6",
     "size": [
       512,
       512
@@ -182,7 +182,7 @@
     }
   },
   "corridor-mid.webp": {
-    "sha256": "f8c37ad7b067651e9d6be0d8043c3e298f83e23863ba8ebd13da7a18b94731fa",
+    "sha256": "70b424449d22db979ef1bc3db67662bda1d8e015d466b2af905053b9ff4270fb",
     "size": [
       512,
       512
@@ -195,7 +195,7 @@
     }
   },
   "corridor-rubble.webp": {
-    "sha256": "9bb29a513459c6537df13049df79214d12857ea20190263ff01441c78c59e80c",
+    "sha256": "b50018f82ac2159d50780bb1367f4e705f1db57d3057d7fe1c83e37012073171",
     "size": [
       512,
       512
@@ -208,7 +208,7 @@
     }
   },
   "corridor.webp": {
-    "sha256": "96f60c060a7ec60d3bc1d28813a9753549ad97d8551c330bfe3bbede00a45e1f",
+    "sha256": "0dc5ea7c8b93a0e24078c7130d7bbb007cf641dd3f9253ca4441ec75d1a8b457",
     "size": [
       512,
       512
