@@ -48,12 +48,44 @@ export function decideOpenDungeon(hostedRun, { userRef = null } = {}) {
 export function decideGmLessBroadcast(
   hostedRun,
   hasOpenInstance,
-  { userRef = null } = {},
+  { userRef = null, autoOpenAllowed = true } = {},
 ) {
   const user = resolveUser(userRef);
   if (user?.isGM) return { action: "none" };
-  if (hostedRun) return { action: hasOpenInstance ? "render" : "open" };
+  if (hostedRun) {
+    if (hasOpenInstance) return { action: "render" };
+    // #845: gates only the closed -> open transition, on every client
+    // (host or not) -- an already-open tracker (branch above) keeps
+    // rendering regardless, and a run ending (branch below) always still
+    // closes everything, matching #771's "never force-close, only skip
+    // re-opening" rule.
+    return { action: autoOpenAllowed ? "open" : "none" };
+  }
   return { action: hasOpenInstance ? "close" : "none" };
+}
+
+/**
+ * #845: whether the GM-less broadcast may auto-OPEN the tracker right now,
+ * from the CURRENT room kind of the hosted run's own state on this client.
+ * Dependency-injected (getRunState / the shared kind rule come from
+ * dungeon-runner / dungeon-scene via module.mjs) so this file stays
+ * import-free and the module.mjs wiring is unit-testable. A missing run,
+ * state, room or kind (or a lookup that throws) defaults to allowed, so
+ * nothing regresses when state is unavailable.
+ */
+export function broadcastAutoOpenAllowed(
+  hostedRun,
+  { getRunState, roomKindAllowsTrackerAutoOpen },
+) {
+  if (!hostedRun) return true;
+  let kind;
+  try {
+    const state = getRunState(hostedRun.sceneId);
+    kind = state?.rooms?.[state.currentRoomId]?.kind;
+  } catch {
+    return true;
+  }
+  return roomKindAllowsTrackerAutoOpen(kind);
 }
 
 /** Actions a non-host, non-GM owner of a party character may send. */

@@ -29,6 +29,7 @@ import {
   attemptableCharacters,
   decideOpenDungeon,
   decideGmLessBroadcast,
+  broadcastAutoOpenAllowed,
 } from "./dungeon-permissions.mjs";
 import {
   registerDungeonActionSocket,
@@ -40,6 +41,7 @@ import {
 } from "./room-feature-tokens.mjs";
 import {
   handleDungeonDoorOpened,
+  roomKindAllowsTrackerAutoOpen,
   teardownDungeonRun,
   sweepLooseNpcActors,
   applyRoomFeatureUsedArtForScene,
@@ -560,10 +562,15 @@ Hooks.on("renderChatMessageHTML", (message, html) => {
  * GM-less run. */
 function syncGmLessDungeonBroadcast() {
   const existing = foundry.applications.instances.get("pf2edc-dungeon-app");
-  const decision = decideGmLessBroadcast(
-    findHostedRunForBroadcast(),
-    !!existing,
-  );
+  const hostedRun = findHostedRunForBroadcast();
+  // #845: same room-kind rule as the GM-side door-open path. Both callers of
+  // this function (dungeonRuns setting change, canvasReady) share it.
+  const decision = decideGmLessBroadcast(hostedRun, !!existing, {
+    autoOpenAllowed: broadcastAutoOpenAllowed(hostedRun, {
+      getRunState,
+      roomKindAllowsTrackerAutoOpen,
+    }),
+  });
   if (decision.action === "open") new DungeonApp().render(true);
   else if (decision.action === "render") existing.render();
   else if (decision.action === "close") existing.close();

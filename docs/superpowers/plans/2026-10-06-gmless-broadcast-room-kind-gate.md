@@ -133,7 +133,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `decideGmLessBroadcast(hostedRun, hasOpenInstance, {userRef, autoOpenAllowed = true})` — the new third option, defaulting `true` so every existing call/test keeps its current behavior unless it explicitly opts into the new gate.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/dungeon-permissions.test.mjs`, inside the existing `describe("decideGmLessBroadcast", ...)` block (confirmed current, reusing its own `gm`/`player`/`otherPlayer` fixtures exactly):
 
@@ -185,12 +185,12 @@ Add to `tests/dungeon-permissions.test.mjs`, inside the existing `describe("deci
   });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-permissions.test.mjs -t "#845"`
 Expected: FAIL.
 
-- [ ] **Step 3: Add the gate**
+- [x] **Step 3: Add the gate**
 
 In `scripts/dungeon-permissions.mjs`, change `decideGmLessBroadcast` (confirmed current, lines 48-57):
 
@@ -230,7 +230,7 @@ export function decideGmLessBroadcast(
 }
 ```
 
-- [ ] **Step 4: Wire the real room-kind check into the broadcast sync**
+- [x] **Step 4: Wire the real room-kind check into the broadcast sync**
 
 In `scripts/module.mjs`, add `roomKindAllowsTrackerAutoOpen` to the existing multi-line import from `./dungeon-scene.mjs` (confirmed current, ends line 42). Change `syncGmLessDungeonBroadcast` (confirmed current, lines 533-542):
 
@@ -269,17 +269,17 @@ function syncGmLessDungeonBroadcast() {
 
 (`getRunState` is already imported in this file, confirmed current — no new import needed for it.)
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-permissions.test.mjs`
 Expected: PASS, old and new cases green.
 
-- [ ] **Step 6: Run the full test suite to confirm no regression**
+- [x] **Step 6: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-permissions.mjs scripts/module.mjs tests/dungeon-permissions.test.mjs
@@ -297,7 +297,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No code changes in this task — verification and the version bump only.
 
-- [ ] **Step 1: Live-verify via `foundry-rest`**
+- [x] **Step 1: Live-verify via `foundry-rest`**
 
 In a real GM-less (hosted) run, close the tracker on a non-host player's client, then advance into a treasure room: confirm it stays closed on that client (and on the host's, and the GM's). Advance into a narrative or rest room: confirm it still auto-(re)opens as a read-only instance for a non-host player, unchanged from today. With the tracker already open on a non-host client, advance into an excluded-kind room: confirm the open tracker keeps updating (doesn't freeze or close). Finally, resolve the run's goal room (any kind) and confirm every client's tracker still closes.
 
