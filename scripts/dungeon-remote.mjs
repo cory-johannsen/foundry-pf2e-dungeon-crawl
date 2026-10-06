@@ -20,6 +20,7 @@ import {
 import {
   isAuthorizedRequest,
   canRelayRoomFeature,
+  WIDENED_ACTIONS,
 } from "./dungeon-permissions.mjs";
 import { runRoomFeatureAction } from "./room-feature-tokens.mjs";
 import {
@@ -30,6 +31,8 @@ import {
   startCombatRecoveryFor,
   recordSkillChallengeOutcome,
   recordPuzzleStageOutcome,
+  attemptPuzzleStageFor,
+  attemptSkillChallengeFor,
   continueNarrativeRoom,
   chooseNarrativeOption,
   claimTreasureFor,
@@ -83,6 +86,29 @@ export const DUNGEON_ACTIONS = {
     attemptTrapDisableForScene(args.sceneId, args.actorId, args.skill, {
       requestingUserId: args.requestingUserId,
     }),
+  // #822: a puzzle-stage / skill-challenge attempt from a room-feature token
+  // click. Widened like attemptTrapDisable; the roll AND the record run on
+  // this (GM) client and the handler re-validates requester, actor, party
+  // membership and stale/resolved state. Throws on refusal so the ack is false.
+  attemptPuzzleStage: async (args) => {
+    const r = await attemptPuzzleStageFor(
+      args.sceneId,
+      args.roomId,
+      args.stageIndex,
+      args.actorId,
+      { requestingUserId: args.requestingUserId },
+    );
+    if (!r) throw new Error("puzzle stage attempt refused or nothing to attempt");
+  },
+  attemptSkillChallenge: async (args) => {
+    const r = await attemptSkillChallengeFor(
+      args.sceneId,
+      args.actorId,
+      args.skill,
+      { requestingUserId: args.requestingUserId, roomId: args.roomId },
+    );
+    if (!r) throw new Error("skill challenge attempt refused or nothing to attempt");
+  },
   // #611/#623: a player targeting a room-feature prop token. The runner
   // re-validates everything GM-side (authoritative, idempotent).
   roomFeatureInteract: (args) =>
@@ -164,11 +190,11 @@ export function registerDungeonActionSocket() {
       msg.actionName === "startRun"
         ? findActiveHostedRun()
         : getRunState(msg.args?.sceneId);
-    // #611/#623/#754: only roomFeatureInteract and attemptTrapDisable widen
+    // #611/#623/#754/#822: only WIDENED_ACTIONS (roomFeatureInteract,
+    // attemptTrapDisable, attemptPuzzleStage, attemptSkillChallenge) widen
     // authorization, to active non-GM owners of a party character.
     const ownsPartyCharacter =
-      (msg.actionName === "roomFeatureInteract" ||
-        msg.actionName === "attemptTrapDisable") &&
+      WIDENED_ACTIONS.has(msg.actionName) &&
       canRelayRoomFeature(
         game.users.get(msg.requestingUserId),
         game.actors?.party?.members ?? [],

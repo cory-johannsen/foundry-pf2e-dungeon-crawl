@@ -4,6 +4,9 @@ import {
   resolveCurrentRoom,
   retreatFromCard,
   claimTreasureFor,
+  attemptPuzzleStageFor,
+  attemptSkillChallengeFor,
+  skillLabel,
 } from "./ui/dungeon-app.mjs";
 import { SoundPreviewApp } from "./ui/sound-preview-app.mjs";
 import { retreatCardActionFor } from "./dungeon-retreat.mjs";
@@ -23,6 +26,7 @@ import {
   applyTreasureCustomization,
 } from "./dungeon-runner.mjs";
 import {
+  attemptableCharacters,
   decideOpenDungeon,
   decideGmLessBroadcast,
 } from "./dungeon-permissions.mjs";
@@ -68,6 +72,9 @@ import {
 } from "./trap-combat.mjs";
 import { registerFlankedIndicator } from "./flanking-indicator.mjs";
 import { promptTrapDisable } from "./ui/trap-disable-dialog.mjs";
+import { promptPuzzleStage } from "./ui/puzzle-stage-dialog.mjs";
+import { promptSkillChallenge } from "./ui/skill-challenge-dialog.mjs";
+import { handleRoomFeatureClick } from "./room-feature-check.mjs";
 import { registerGenerator } from "./generator-registry.mjs";
 import { DefaultGenerator } from "./default-generator.mjs";
 import { ensureWorldMacros } from "./world-macros.mjs";
@@ -367,19 +374,40 @@ async function triggerRoomFeatureToken(user, token, targeted) {
     state: sceneId ? getRunState(sceneId) : null,
   });
   if (!route) return;
-  if (game.user.isGM) {
-    try {
-      await runRoomFeatureAction(route, {
-        getRunState,
-        claimTreasureFor,
-        revealRoomFeature,
-        applyUsedArt: applyRoomFeatureUsedArtForScene,
-      });
-    } catch (err) {
-      console.error(`${MODULE_ID} | room-feature interaction failed`, err);
-    }
-  } else {
-    await requestDungeonAction("roomFeatureInteract", route);
+  const isGM = game.user.isGM;
+  const runState = getRunState(sceneId);
+  try {
+    await handleRoomFeatureClick(route, {
+      isGM,
+      relay: requestDungeonAction,
+      runAction: (r) =>
+        runRoomFeatureAction(r, {
+          getRunState,
+          claimTreasureFor,
+          revealRoomFeature,
+          applyUsedArt: applyRoomFeatureUsedArtForScene,
+        }),
+      onError: (err) =>
+        console.error(`${MODULE_ID} | room-feature interaction failed`, err),
+      getRunState,
+      // #822: the GM/host may pick any party character; any other player
+      // only the ones they own (the GM-side relay handler re-checks).
+      characters: attemptableCharacters({
+        userId: game.user.id,
+        isGM,
+        isHost: !!runState?.hostUserId && runState.hostUserId === game.user.id,
+        partyMembers: game.actors?.party?.members ?? [],
+      }).map(({ id, name }) => ({ id, name })),
+      skillLabel,
+      promptPuzzleStage,
+      promptSkillChallenge,
+      attemptPuzzleStageFor,
+      attemptSkillChallengeFor,
+      notify: (msg) => ui.notifications.warn(msg),
+      localize: (key) => game.i18n.localize(key),
+    });
+  } catch (err) {
+    console.error(`${MODULE_ID} | room-feature check prompt failed`, err);
   }
 }
 

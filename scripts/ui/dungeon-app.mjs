@@ -21,7 +21,10 @@ import {
   applyUsedArtOnCompletion,
   showRoomFeatureFallback,
 } from "../room-feature-tokens.mjs";
-import { canActOnDungeon } from "../dungeon-permissions.mjs";
+import {
+  canActOnDungeon,
+  userMayAttemptRoomFeatureCheck,
+} from "../dungeon-permissions.mjs";
 import { fulfillPendingCustomizations } from "../dungeon-customization-fulfillment.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
 import {
@@ -122,7 +125,7 @@ const UNCOUNTED_ROOM_KINDS = new Set(["safe_entry", "safe_rest"]);
  * `CONFIG.PF2E.skills` at all (it's not a "skill" in PF2e's own model),
  * resolved instead via the same `"PF2E.PerceptionLabel"` key the system's
  * own UI uses for it. */
-function skillLabel(slug) {
+export function skillLabel(slug) {
   if (slug === "perception") return game.i18n.localize("PF2E.PerceptionLabel");
   const key = CONFIG.PF2E?.skills?.[slug]?.label;
   return key ? game.i18n.localize(key) : slug;
@@ -686,8 +689,12 @@ export async function startDungeonRun({
 }
 
 export async function recordSkillChallengeOutcome(sceneId, roomId, outcome) {
+  // #822: XP and resolution only on the NOT-resolved -> resolved transition,
+  // never when the challenge was already resolved before this record.
+  const wasResolved = !!getRunState(sceneId)?.rooms[roomId]?.challenge?.resolved;
   const newState = await recordSkillChallengeAttempt(sceneId, roomId, outcome);
   const resolved = newState?.rooms[roomId]?.challenge?.resolved;
+  if (wasResolved) return;
   if (resolved === "success") {
     await makeFoundryApi().grantPartyXp(xpFor(0), "skillChallenge");
   }
@@ -710,6 +717,8 @@ export async function recordPuzzleStageOutcome(
   stageIndex,
   outcome,
 ) {
+  // #822: XP and resolution only on the NOT-resolved -> resolved transition.
+  const wasResolved = !!getRunState(sceneId)?.rooms[roomId]?.puzzle?.resolved;
   const newState = await recordPuzzleStageAttempt(
     sceneId,
     roomId,
@@ -717,6 +726,7 @@ export async function recordPuzzleStageOutcome(
     outcome,
   );
   const resolved = newState?.rooms[roomId]?.puzzle?.resolved;
+  if (wasResolved) return;
   if (resolved === "success") {
     await makeFoundryApi().grantPartyXp(xpFor(0), "puzzle");
   }
@@ -834,6 +844,135 @@ export async function abandonDungeonRun(sceneId) {
     await teardownDungeonRun(scene, {
       previousSceneId: state?.previousSceneId ?? null,
     });
+}
+
+/**
+ * #822: server-side gate for a relayed room-feature check. Only applies when
+ * `deps.requestingUserId` is given (a trusted direct GM-client call omits
+ * it). Refuses unless the run is live, `roomId` is the current room, the
+ * requester may roll as `actor` (GM / host / owner, and a party member),
+ * and the puzzle/challenge is not already resolved.
+ */
+function relayedCheckAllowed(sceneId, state, roomId, actor, deps) {
+  if (deps.requestingUserId === undefined) return true;
+  if (!state || state.completed || roomId !== state.currentRoomId) return false;
+  const userId = deps.requestingUserId;
+  return userMayAttemptRoomFeatureCheck({
+    userId,
+    isGM: !!game.users?.get(userId)?.isGM,
+    isHost: !!userId && state.hostUserId === userId,
+    actor,
+    partyMembers: game.actors?.party?.members ?? [],
+  });
+}
+
+/** #822: `${sceneId}:${roomId}` keys of puzzle/challenge attempts mid-roll. */
+const attemptsInFlight = new Set();
+
+/**
+ * #822: the roll-then-record-or-relay logic every puzzle-stage attempt
+ * needs, extracted so both the tracker's own form (#onAttemptPuzzleStage)
+ * and a room-feature token's click dialog (module.mjs, #822) share one
+ * implementation rather than two copies drifting apart. Returns the roll
+ * result, or null for every guard failure (no such room/puzzle/stage,
+ * already attempted, unknown actor) -- the caller decides what "nothing
+ * happened" means for its own UI. Works for GM (records directly) and
+ * non-GM (rolls locally, relays only the outcome) alike.
+ */
+export async function attemptPuzzleStageFor(
+  sceneId,
+  roomId,
+  stageIndex,
+  actorId,
+  deps = {},
+) {
+  const state = sceneId ? getRunState(sceneId) : null;
+  const room = state?.rooms[roomId];
+  if (!room?.puzzle) return null;
+  const stage = room.puzzle.stages[stageIndex];
+  if (!stage || stage.attempted) return null;
+  const actor = actorId ? game.actors.get(actorId) : null;
+  if (!actor) return null;
+  if (deps.requestingUserId !== undefined && room.puzzle.resolved) return null;
+  if (!relayedCheckAllowed(sceneId, state, roomId, actor, deps)) return null;
+
+  // One attempt per room at a time on this client: no check-then-act race
+  // (double XP, lost update, wrong chat-message read, check-dialog setting).
+  const key = `${sceneId}:${roomId}`;
+  if (attemptsInFlight.has(key)) return null;
+  attemptsInFlight.add(key);
+  try {
+    const result = await rollPuzzleStageAttempt(actor, stage.skill, stage.dc);
+    if (!result) return null;
+
+    if (game.user.isGM) {
+      await recordPuzzleStageOutcome(sceneId, roomId, stageIndex, result.outcome);
+    } else {
+      await requestDungeonAction("recordPuzzleStageOutcome", {
+        sceneId,
+        roomId,
+        stageIndex,
+        outcome: result.outcome,
+      });
+    }
+    return result;
+  } finally {
+    attemptsInFlight.delete(key);
+  }
+}
+
+/**
+ * #822: the roll-then-record-or-relay logic every skill-challenge attempt
+ * needs, extracted for the same reason attemptPuzzleStageFor is (shared by
+ * the tracker form and a token's click dialog). `actorId`/`skill` are read
+ * by the caller; this looks up the current room itself, including the #553
+ * specialty-skill restriction and the dcForAttempt call.
+ */
+export async function attemptSkillChallengeFor(
+  sceneId,
+  actorId,
+  skill,
+  deps = {},
+) {
+  const state = sceneId ? getRunState(sceneId) : null;
+  const currentRoom = state?.rooms[state.currentRoomId];
+  if (!currentRoom?.challenge) return null;
+  const actor = actorId ? game.actors.get(actorId) : null;
+  if (!actor || !skill) return null;
+  if (deps.requestingUserId !== undefined && currentRoom.challenge.resolved)
+    return null;
+  // A relayed attempt names the room it was offered for; refuse if the party
+  // has since moved on to a different challenge.
+  if (deps.roomId !== undefined && deps.roomId !== currentRoom.id) return null;
+  if (!relayedCheckAllowed(sceneId, state, currentRoom.id, actor, deps))
+    return null;
+  // #553: only the challenge's own specialty skills are attemptable.
+  if (!currentRoom.challenge.specialtySkills.includes(skill)) return null;
+
+  const key = `${sceneId}:${currentRoom.id}`;
+  if (attemptsInFlight.has(key)) return null;
+  attemptsInFlight.add(key);
+  try {
+    const dc = dcForAttempt({
+      partyLevel: await makeFoundryApi().partyLevel(),
+      difficulty: state.difficulty,
+    });
+    const result = await rollSkillChallengeAttempt(actor, skill, dc);
+    if (!result) return null;
+
+    if (game.user.isGM) {
+      await recordSkillChallengeOutcome(sceneId, currentRoom.id, result.outcome);
+    } else {
+      await requestDungeonAction("recordSkillChallengeOutcome", {
+        sceneId,
+        roomId: currentRoom.id,
+        outcome: result.outcome,
+      });
+    }
+    return result;
+  } finally {
+    attemptsInFlight.delete(key);
+  }
 }
 
 export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -1403,42 +1542,16 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
    * anyway rather than trusted blind).
    */
   static async #onAttemptSkillChallenge() {
-    const scene = canvas?.scene;
-    const sceneId = scene?.id;
-    const state = sceneId ? getRunState(sceneId) : null;
-    const currentRoom = state?.rooms[state.currentRoomId];
-    if (!currentRoom?.challenge) return;
-
+    const sceneId = canvas?.scene?.id;
     const form = this.element.querySelector(
       ".pf2edc-dungeon__skill-challenge-form",
     );
     const actorId = form?.querySelector('[name="actorId"]')?.value;
     const skill = form?.querySelector('[name="skill"]')?.value;
-    const actor = actorId ? game.actors.get(actorId) : null;
-    if (!actor || !skill) return;
-    // #553: only the challenge's own specialty skills are attemptable.
-    if (!currentRoom.challenge.specialtySkills.includes(skill)) return;
+    if (!actorId || !skill) return;
 
-    const dc = dcForAttempt({
-      partyLevel: await makeFoundryApi().partyLevel(),
-      difficulty: state.difficulty,
-    });
-    const result = await rollSkillChallengeAttempt(actor, skill, dc);
+    const result = await attemptSkillChallengeFor(sceneId, actorId, skill);
     if (!result) return;
-
-    if (game.user.isGM) {
-      await recordSkillChallengeOutcome(
-        sceneId,
-        currentRoom.id,
-        result.outcome,
-      );
-    } else {
-      await requestDungeonAction("recordSkillChallengeOutcome", {
-        sceneId,
-        roomId: currentRoom.id,
-        outcome: result.outcome,
-      });
-    }
     this.render();
   }
 
@@ -1461,34 +1574,19 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!currentRoom?.puzzle) return;
 
     const stageIndex = Number(target?.dataset?.stageIndex);
-    const stage = currentRoom.puzzle.stages[stageIndex];
-    if (!stage || stage.attempted) return;
-
     const form = this.element.querySelector(
       `.pf2edc-dungeon__puzzle-stage-form[data-stage-index="${stageIndex}"]`,
     );
     const actorId = form?.querySelector('[name="actorId"]')?.value;
-    const actor = actorId ? game.actors.get(actorId) : null;
-    if (!actor) return;
+    if (!actorId) return;
 
-    const result = await rollPuzzleStageAttempt(actor, stage.skill, stage.dc);
+    const result = await attemptPuzzleStageFor(
+      sceneId,
+      currentRoom.id,
+      stageIndex,
+      actorId,
+    );
     if (!result) return;
-
-    if (game.user.isGM) {
-      await recordPuzzleStageOutcome(
-        sceneId,
-        currentRoom.id,
-        stageIndex,
-        result.outcome,
-      );
-    } else {
-      await requestDungeonAction("recordPuzzleStageOutcome", {
-        sceneId,
-        roomId: currentRoom.id,
-        stageIndex,
-        outcome: result.outcome,
-      });
-    }
     this.render();
   }
 

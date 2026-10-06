@@ -39,7 +39,7 @@
 **Interfaces:**
 - Produces: `export async function attemptPuzzleStageFor(sceneId, roomId, stageIndex, actorId): Promise<result|null>` and `export async function attemptSkillChallengeFor(sceneId, roomId, skill, actorId): Promise<result|null>` — each does exactly what the tracker handler's own existing roll-then-record-or-relay logic already does, extracted verbatim. `export function skillLabel(slug): string` (confirmed current, a private function, lines 123-127 — only its own `export` keyword changes). Consumed by Task 4.
 
-- [ ] **Step 1: Export `skillLabel`**
+- [x] **Step 1: Export `skillLabel`**
 
 In `scripts/ui/dungeon-app.mjs`, change (confirmed current, line 123):
 
@@ -53,7 +53,7 @@ to:
 export function skillLabel(slug) {
 ```
 
-- [ ] **Step 2: Extract `attemptPuzzleStageFor`**
+- [x] **Step 2: Extract `attemptPuzzleStageFor`**
 
 Change `#onAttemptPuzzleStage` (confirmed current, lines 1441-1477) from:
 
@@ -162,7 +162,7 @@ export async function attemptPuzzleStageFor(sceneId, roomId, stageIndex, actorId
 }
 ```
 
-- [ ] **Step 3: Extract `attemptSkillChallengeFor`**
+- [x] **Step 3: Extract `attemptSkillChallengeFor`**
 
 Change `#onAttemptSkillChallenge` (confirmed current, lines 1389-1427ish) from reading the form directly and inlining the roll/record logic to delegating, the same pattern as Step 2 — read its exact current body first (confirmed current through line ~1427) and apply the identical extraction shape:
 
@@ -224,12 +224,12 @@ export async function attemptSkillChallengeFor(sceneId, actorId, skill) {
 
 (Confirm this matches the real current `#onAttemptSkillChallenge` body exactly before extracting — read it fresh first; the shape above is reconstructed from this session's own earlier reading and may need small adjustment to match verbatim, e.g. exact variable names.)
 
-- [ ] **Step 4: Run the full test suite to confirm no regression**
+- [x] **Step 4: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS — this step is a pure extraction with no behavior change; whatever existing coverage exercises the tracker's own puzzle/skill-challenge forms should pass unchanged.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/ui/dungeon-app.mjs
@@ -249,7 +249,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `buildPuzzleStageChoices(stages, characters)` (pure) and `promptPuzzleStage(stages, characters)` (DialogV2), mirroring `trap-disable-dialog.mjs`'s own two-function shape exactly. `promptPuzzleStage` resolves `{actorId, stageIndex}` or `null`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/puzzle-stage-dialog.test.mjs`, mirroring `tests/trap-disable-dialog.test.mjs`'s own exact structure:
 
@@ -312,12 +312,12 @@ describe("puzzle dialog lang keys", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/puzzle-stage-dialog.test.mjs`
 Expected: FAIL — module doesn't exist yet.
 
-- [ ] **Step 3: Write `scripts/ui/puzzle-stage-dialog.mjs`**
+- [x] **Step 3: Write `scripts/ui/puzzle-stage-dialog.mjs`**
 
 ```js
 /** #822: the prompt shown when a player clicks a puzzle room-feature
@@ -390,7 +390,7 @@ export async function promptPuzzleStage(stages, characters) {
 }
 ```
 
-- [ ] **Step 4: Add the new localization keys**
+- [x] **Step 4: Add the new localization keys**
 
 In `lang/en.json`, add near the existing `PF2EDC.Dungeon.Puzzle.*` keys:
 
@@ -404,12 +404,12 @@ In `lang/en.json`, add near the existing `PF2EDC.Dungeon.Puzzle.*` keys:
   "PF2EDC.Dungeon.Puzzle.DialogNothingToAttempt": "Nothing left to attempt on this puzzle.",
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npx vitest run tests/puzzle-stage-dialog.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/ui/puzzle-stage-dialog.mjs tests/puzzle-stage-dialog.test.mjs lang/en.json
@@ -430,7 +430,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Produces: `buildSkillChallengeChoices(specialtySkills, characters)` (pure) and `promptSkillChallenge(specialtySkills, characters)` (DialogV2), resolving `{actorId, skill}` or `null`.
 - Consumes: `skillLabel` (Task 1).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/skill-challenge-dialog.test.mjs`:
 
@@ -485,12 +485,12 @@ describe("skill-challenge dialog lang keys", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/skill-challenge-dialog.test.mjs`
 Expected: FAIL.
 
-- [ ] **Step 3: Write `scripts/ui/skill-challenge-dialog.mjs`**
+- [x] **Step 3: Write `scripts/ui/skill-challenge-dialog.mjs`**
 
 ```js
 /** #822: the prompt shown when a player clicks a skill-challenge
@@ -556,7 +556,7 @@ export async function promptSkillChallenge(specialtySkills, characters) {
 }
 ```
 
-- [ ] **Step 4: Add the new localization keys**
+- [x] **Step 4: Add the new localization keys**
 
 In `lang/en.json`, add near the existing `PF2EDC.Dungeon.SkillChallenge.*` keys:
 
@@ -569,12 +569,12 @@ In `lang/en.json`, add near the existing `PF2EDC.Dungeon.SkillChallenge.*` keys:
   "PF2EDC.Dungeon.SkillChallenge.DialogNoCharacters": "You have no party character to attempt this.",
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npx vitest run tests/skill-challenge-dialog.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/ui/skill-challenge-dialog.mjs tests/skill-challenge-dialog.test.mjs lang/en.json
@@ -594,7 +594,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: `promptPuzzleStage`/`attemptPuzzleStageFor` (Tasks 1-2), `promptSkillChallenge`/`attemptSkillChallengeFor` (Tasks 1-3).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Read `tests/room-feature-click-binding.test.mjs` in full first to match its exact mocking conventions (it already covers `triggerRoomFeatureToken`'s current reveal-only behavior for puzzle/skill-challenge/treasure). Add cases:
 - Clicking a puzzle token (as GM, puzzle not yet revealed, one not-yet-attempted stage, one party character) reveals it AND calls `attemptPuzzleStageFor` with the dialog's chosen `actorId`/`stageIndex` (mock `promptPuzzleStage` to resolve a fixed choice).
@@ -603,12 +603,12 @@ Read `tests/room-feature-click-binding.test.mjs` in full first to match its exac
 - Clicking a treasure token is completely unaffected (still just reveals/claims, confirmed current — neither new dialog is ever imported into that branch).
 - A non-GM client relays the attempt exactly as the existing tracker form does (reuse whatever this test file's own existing relay-mocking convention already is for `roomFeatureInteract`, extended for the new attempt relay).
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/room-feature-click-binding.test.mjs -t "#822"`
 Expected: FAIL.
 
-- [ ] **Step 3: Wire it**
+- [x] **Step 3: Wire it**
 
 In `scripts/module.mjs`, change `triggerRoomFeatureToken` (confirmed current, lines 358-384) from:
 
@@ -743,12 +743,12 @@ Add the new imports this needs (`promptPuzzleStage`, `attemptPuzzleStageFor`, `r
 
 **Note for the implementer:** the inline `outcome` recomputation in the non-GM branches above duplicates one roll call already made inside `attemptPuzzleStageFor`/`attemptSkillChallengeFor` for the GM branch — a real wart worth a second look during implementation. If it reads better, consider instead exporting a small `rollOnly` variant of each attempt function (roll, return `{outcome}`, no record/relay) that both the GM and non-GM branches call identically before branching only on *who persists the result* — cleaner than the duplicated inline closures sketched here. Either shape is acceptable; keep whichever the implementer's own judgment finds clearer, since this plan's own job is pinning the *behavior*, not the exact internal shape.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/room-feature-click-binding.test.mjs`
 Expected: PASS, old and new cases green.
 
-- [ ] **Step 5: Run the full test suite to confirm no regression**
+- [x] **Step 5: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS.
@@ -757,7 +757,7 @@ Expected: PASS.
 
 In a real dungeon run, reach a puzzle room and click its token: confirm the reveal happens AND a dialog immediately offers a character + stage picker, that confirming it rolls and records the attempt (room progress updates, and the room eventually resolves once enough stages succeed). Repeat for a skill-challenge room (character + skill picker). Confirm a treasure room's own click is unaffected. Repeat once each as a non-GM client (if available) to confirm the relay path works identically.
 
-- [ ] **Step 7: Bump module.json's version**
+- [x] **Step 7: Bump module.json's version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -767,7 +767,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **minor** bump (restoring a genuinely broken core interaction), using whatever the fetch above shows as current.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/module.mjs tests/room-feature-click-binding.test.mjs module.json

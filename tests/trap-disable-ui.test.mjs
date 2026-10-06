@@ -51,8 +51,10 @@ describe("#753 remote wiring", () => {
     expect(remoteSource).toMatch(
       /attemptTrapDisable:\s*\(args\)\s*=>\s*attemptTrapDisableForScene\(args\.sceneId, args\.actorId, args\.skill, \{\s*requestingUserId: args\.requestingUserId,?\s*\}\)/,
     );
-    expect(remoteSource).toMatch(
-      /msg\.actionName === "attemptTrapDisable"/,
+    // #822: the widening is now the shared WIDENED_ACTIONS set.
+    expect(remoteSource).toContain("WIDENED_ACTIONS.has(msg.actionName)");
+    expect(read("../scripts/dungeon-permissions.mjs")).toMatch(
+      /WIDENED_ACTIONS = new Set\(\[[^\]]*"attemptTrapDisable"/,
     );
   });
 

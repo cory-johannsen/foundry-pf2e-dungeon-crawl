@@ -114,10 +114,19 @@ content pending, rather than waiting on an interactive session to check in).
 (`puzzle-mechanics.mjs`+`puzzle.mjs`,
 `trap-mechanics.mjs`+`trap-combat.mjs`+`trap-library.mjs`,
 `skill-challenge-mechanics.mjs`+`skill-challenge.mjs`, `treasure.mjs`,
-`narrative-mechanics.mjs`, `room-feature-tokens.mjs`, `room-feature-art.mjs`) — one pure/glue pair per room-kind mechanic
+`narrative-mechanics.mjs`, `room-feature-tokens.mjs`, `room-feature-art.mjs`, `room-feature-check.mjs`) — one pure/glue pair per room-kind mechanic
 (see the convention above), each built from real PF2e compendium content
 (`pf2e.hazards`, `pf2e.rollable-tables`) rather than inventing new game
 data.
+
+Clicking a puzzle or skill-challenge room-feature token (#822) reveals it
+and then offers the attempt through `room-feature-check.mjs`'s
+`promptRoomFeatureCheck` (Foundry-free, collaborators injected by
+`module.mjs`), which opens `ui/puzzle-stage-dialog.mjs` or
+`ui/skill-challenge-dialog.mjs` (mirroring #754's `ui/trap-disable-dialog.mjs`)
+and runs the same `attemptPuzzleStageFor`/`attemptSkillChallengeFor` logic
+(exported from `ui/dungeon-app.mjs`) that the tracker window's own forms use.
+A non-GM player's attempt is relayed as `attemptPuzzleStage`/`attemptSkillChallenge` (widened like `attemptTrapDisable`, rolled and recorded on the GM client after `userMayAttemptRoomFeatureCheck` re-validation), never as a self-reported outcome.
 
 **GM-less relay & permissions** (`dungeon-remote.mjs`,
 `dungeon-permissions.mjs`, `player-choice.mjs`, `choice-prompts.mjs`) —
@@ -222,6 +231,7 @@ graph LR
     scripts_puzzle_mechanics_mjs["puzzle-mechanics.mjs"]
     scripts_puzzle_mjs["puzzle.mjs"]
     scripts_room_feature_art_mjs["room-feature-art.mjs"]
+    scripts_room_feature_check_mjs["room-feature-check.mjs"]
     scripts_room_feature_tokens_mjs["room-feature-tokens.mjs"]
     scripts_skill_challenge_mechanics_mjs["skill-challenge-mechanics.mjs"]
     scripts_skill_challenge_mjs["skill-challenge.mjs"]
@@ -260,12 +270,14 @@ graph LR
     scripts_dungeon_runner_mjs["dungeon-runner.mjs"]
     scripts_module_mjs["module.mjs"]
     scripts_ui_dungeon_app_mjs["ui/dungeon-app.mjs"]
+    scripts_ui_puzzle_stage_dialog_mjs["ui/puzzle-stage-dialog.mjs"]
+    scripts_ui_skill_challenge_dialog_mjs["ui/skill-challenge-dialog.mjs"]
     scripts_ui_sound_preview_app_mjs["ui/sound-preview-app.mjs"]
+    scripts_ui_trap_disable_dialog_mjs["ui/trap-disable-dialog.mjs"]
     scripts_world_macros_mjs["world-macros.mjs"]
   end
   subgraph "Other"
     scripts_pathfinding_mjs["pathfinding.mjs"]
-    scripts_ui_trap_disable_dialog_mjs["ui/trap-disable-dialog.mjs"]
   end
   scripts_combat_rewards_mjs --> scripts_encounter_roster_mjs
   scripts_cover_items_mjs --> scripts_prng_mjs
@@ -368,6 +380,9 @@ graph LR
   scripts_module_mjs --> scripts_trap_combat_mjs
   scripts_module_mjs --> scripts_flanking_indicator_mjs
   scripts_module_mjs --> scripts_ui_trap_disable_dialog_mjs
+  scripts_module_mjs --> scripts_ui_puzzle_stage_dialog_mjs
+  scripts_module_mjs --> scripts_ui_skill_challenge_dialog_mjs
+  scripts_module_mjs --> scripts_room_feature_check_mjs
   scripts_module_mjs --> scripts_generator_registry_mjs
   scripts_module_mjs --> scripts_default_generator_mjs
   scripts_module_mjs --> scripts_world_macros_mjs
@@ -399,6 +414,7 @@ graph LR
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_retreat_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_layout_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_reseed_mjs
+  scripts_ui_skill_challenge_dialog_mjs --> scripts_ui_dungeon_app_mjs
   scripts_ui_sound_preview_app_mjs --> scripts_dungeon_sound_mjs
   scripts_ui_sound_preview_app_mjs --> scripts_audio_mjs
   tools_agent_service_customization_generator_mjs --> tools_agent_service_node_fetch_mjs
