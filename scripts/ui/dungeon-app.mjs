@@ -689,8 +689,12 @@ export async function startDungeonRun({
 }
 
 export async function recordSkillChallengeOutcome(sceneId, roomId, outcome) {
+  // #822: XP and resolution only on the NOT-resolved -> resolved transition,
+  // never when the challenge was already resolved before this record.
+  const wasResolved = !!getRunState(sceneId)?.rooms[roomId]?.challenge?.resolved;
   const newState = await recordSkillChallengeAttempt(sceneId, roomId, outcome);
   const resolved = newState?.rooms[roomId]?.challenge?.resolved;
+  if (wasResolved) return;
   if (resolved === "success") {
     await makeFoundryApi().grantPartyXp(xpFor(0), "skillChallenge");
   }
@@ -713,6 +717,8 @@ export async function recordPuzzleStageOutcome(
   stageIndex,
   outcome,
 ) {
+  // #822: XP and resolution only on the NOT-resolved -> resolved transition.
+  const wasResolved = !!getRunState(sceneId)?.rooms[roomId]?.puzzle?.resolved;
   const newState = await recordPuzzleStageAttempt(
     sceneId,
     roomId,
@@ -720,6 +726,7 @@ export async function recordPuzzleStageOutcome(
     outcome,
   );
   const resolved = newState?.rooms[roomId]?.puzzle?.resolved;
+  if (wasResolved) return;
   if (resolved === "success") {
     await makeFoundryApi().grantPartyXp(xpFor(0), "puzzle");
   }
@@ -859,6 +866,9 @@ function relayedCheckAllowed(sceneId, state, roomId, actor, deps) {
   });
 }
 
+/** #822: `${sceneId}:${roomId}` keys of puzzle/challenge attempts mid-roll. */
+const attemptsInFlight = new Set();
+
 /**
  * #822: the roll-then-record-or-relay logic every puzzle-stage attempt
  * needs, extracted so both the tracker's own form (#onAttemptPuzzleStage)
@@ -886,20 +896,29 @@ export async function attemptPuzzleStageFor(
   if (deps.requestingUserId !== undefined && room.puzzle.resolved) return null;
   if (!relayedCheckAllowed(sceneId, state, roomId, actor, deps)) return null;
 
-  const result = await rollPuzzleStageAttempt(actor, stage.skill, stage.dc);
-  if (!result) return null;
+  // One attempt per room at a time on this client: no check-then-act race
+  // (double XP, lost update, wrong chat-message read, check-dialog setting).
+  const key = `${sceneId}:${roomId}`;
+  if (attemptsInFlight.has(key)) return null;
+  attemptsInFlight.add(key);
+  try {
+    const result = await rollPuzzleStageAttempt(actor, stage.skill, stage.dc);
+    if (!result) return null;
 
-  if (game.user.isGM) {
-    await recordPuzzleStageOutcome(sceneId, roomId, stageIndex, result.outcome);
-  } else {
-    await requestDungeonAction("recordPuzzleStageOutcome", {
-      sceneId,
-      roomId,
-      stageIndex,
-      outcome: result.outcome,
-    });
+    if (game.user.isGM) {
+      await recordPuzzleStageOutcome(sceneId, roomId, stageIndex, result.outcome);
+    } else {
+      await requestDungeonAction("recordPuzzleStageOutcome", {
+        sceneId,
+        roomId,
+        stageIndex,
+        outcome: result.outcome,
+      });
+    }
+    return result;
+  } finally {
+    attemptsInFlight.delete(key);
   }
-  return result;
 }
 
 /**
@@ -922,28 +941,38 @@ export async function attemptSkillChallengeFor(
   if (!actor || !skill) return null;
   if (deps.requestingUserId !== undefined && currentRoom.challenge.resolved)
     return null;
+  // A relayed attempt names the room it was offered for; refuse if the party
+  // has since moved on to a different challenge.
+  if (deps.roomId !== undefined && deps.roomId !== currentRoom.id) return null;
   if (!relayedCheckAllowed(sceneId, state, currentRoom.id, actor, deps))
     return null;
   // #553: only the challenge's own specialty skills are attemptable.
   if (!currentRoom.challenge.specialtySkills.includes(skill)) return null;
 
-  const dc = dcForAttempt({
-    partyLevel: await makeFoundryApi().partyLevel(),
-    difficulty: state.difficulty,
-  });
-  const result = await rollSkillChallengeAttempt(actor, skill, dc);
-  if (!result) return null;
-
-  if (game.user.isGM) {
-    await recordSkillChallengeOutcome(sceneId, currentRoom.id, result.outcome);
-  } else {
-    await requestDungeonAction("recordSkillChallengeOutcome", {
-      sceneId,
-      roomId: currentRoom.id,
-      outcome: result.outcome,
+  const key = `${sceneId}:${currentRoom.id}`;
+  if (attemptsInFlight.has(key)) return null;
+  attemptsInFlight.add(key);
+  try {
+    const dc = dcForAttempt({
+      partyLevel: await makeFoundryApi().partyLevel(),
+      difficulty: state.difficulty,
     });
+    const result = await rollSkillChallengeAttempt(actor, skill, dc);
+    if (!result) return null;
+
+    if (game.user.isGM) {
+      await recordSkillChallengeOutcome(sceneId, currentRoom.id, result.outcome);
+    } else {
+      await requestDungeonAction("recordSkillChallengeOutcome", {
+        sceneId,
+        roomId: currentRoom.id,
+        outcome: result.outcome,
+      });
+    }
+    return result;
+  } finally {
+    attemptsInFlight.delete(key);
   }
-  return result;
 }
 
 export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {

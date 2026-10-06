@@ -110,11 +110,12 @@ describe("promptRoomFeatureCheck (#822)", () => {
     expect(deps.attemptSkillChallengeFor).not.toHaveBeenCalled();
   });
 
-  it("non-GM: a refused/failed relay shows the request-failed notice", async () => {
+  it("non-GM: a failed relay adds no second warning (requestDungeonAction already warns)", async () => {
     deps.isGM = false;
     deps.relay.mockResolvedValue(false);
     await promptRoomFeatureCheck(route("puzzle", "p1"), deps);
-    expect(deps.notify).toHaveBeenCalledWith("PF2EDC.Dungeon.RequestFailedWarning");
+    await promptRoomFeatureCheck(route("skill_challenge", "c1"), deps);
+    expect(deps.notify).not.toHaveBeenCalled();
   });
 
   it("GM keeps the direct path (no relay)", async () => {

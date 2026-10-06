@@ -105,7 +105,7 @@ export const DUNGEON_ACTIONS = {
       args.sceneId,
       args.actorId,
       args.skill,
-      { requestingUserId: args.requestingUserId },
+      { requestingUserId: args.requestingUserId, roomId: args.roomId },
     );
     if (!r) throw new Error("skill challenge attempt refused or nothing to attempt");
   },

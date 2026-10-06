@@ -75,13 +75,13 @@ export async function promptRoomFeatureCheck(
           choice.actorId,
         );
       } else {
-        const ok = await relay("attemptPuzzleStage", {
+        // requestDungeonAction itself warns when the relay fails.
+        await relay("attemptPuzzleStage", {
           sceneId,
           roomId,
           stageIndex: choice.stageIndex,
           actorId: choice.actorId,
         });
-        if (!ok) notify(localize("PF2EDC.Dungeon.RequestFailedWarning"));
       }
     } else {
       if (!room?.challenge) return;
@@ -103,13 +103,13 @@ export async function promptRoomFeatureCheck(
       if (isGM) {
         await attemptSkillChallengeFor(sceneId, choice.actorId, choice.skill);
       } else {
-        const ok = await relay("attemptSkillChallenge", {
+        // requestDungeonAction itself warns when the relay fails.
+        await relay("attemptSkillChallenge", {
           sceneId,
           roomId,
           actorId: choice.actorId,
           skill: choice.skill,
         });
-        if (!ok) notify(localize("PF2EDC.Dungeon.RequestFailedWarning"));
       }
     }
   } finally {

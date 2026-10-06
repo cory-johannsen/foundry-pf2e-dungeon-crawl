@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 
 const mocks = vi.hoisted(() => ({
   state: null,
+  grantXp: vi.fn(async () => {}),
   rollPuzzle: vi.fn(),
   rollChallenge: vi.fn(),
   relay: vi.fn(async () => {}),
@@ -20,7 +21,7 @@ vi.mock("../scripts/skill-challenge.mjs", () => ({ rollSkillChallengeAttempt: mo
 vi.mock("../scripts/dungeon-remote.mjs", () => ({ requestDungeonAction: mocks.relay }));
 vi.mock("../scripts/foundry-api.mjs", async (orig) => ({
   ...(await orig()),
-  makeFoundryApi: () => ({ partyLevel: async () => 3 }),
+  makeFoundryApi: () => ({ partyLevel: async () => 3, grantPartyXp: mocks.grantXp }),
 }));
 vi.mock("../scripts/dungeon-runner.mjs", async (orig) => ({
   ...(await orig()),
@@ -53,7 +54,11 @@ function setup({ isGM }) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
+  mocks.relay.mockResolvedValue(true);
+  mocks.grantXp.mockResolvedValue(undefined);
+  mocks.recordPuzzle.mockResolvedValue({ rooms: {} });
+  mocks.recordChallenge.mockResolvedValue({ rooms: {} });
   mocks.state = {
     currentRoomId: "r1",
     difficulty: "moderate",
@@ -195,6 +200,98 @@ describe("relayed (requestingUserId) validation, GM-side (#822)", () => {
     mocks.state.rooms.r1.challenge.resolved = "failure";
     expect(await attemptSkillChallengeFor("s1", "a1", "stealth", d)).toBeNull();
     expect(mocks.rollChallenge).not.toHaveBeenCalled();
+  });
+});
+
+describe("GM-side attempt lock and idempotent XP (#822)", () => {
+  const deferred = () => {
+    let resolve;
+    const promise = new Promise((r) => (resolve = r));
+    return { promise, resolve };
+  };
+  beforeEach(() => {
+    globalThis.game = {
+      user: { isGM: true },
+      users: { get: () => ({ isGM: true }) },
+      actors: {
+        get: (id) => ({ id }),
+        party: { members: [{ id: "a1" }, { id: "a2" }] },
+      },
+      scenes: { get: () => null },
+      i18n: { localize: (k) => k, format: (k) => k },
+    };
+    mocks.state.hostUserId = "h";
+    mocks.state.completed = false;
+    mocks.state.rooms.r2 = { id: "r2", puzzle: { stages: [{ skill: "arcana", dc: 20, attempted: false }] } };
+    mocks.state.rooms.r1.puzzle.stages[1].attempted = false;
+  });
+
+  it("(a) a second concurrent attempt on the same room is refused and records exactly once", async () => {
+    const d = deferred();
+    mocks.rollPuzzle.mockReturnValueOnce(d.promise);
+    const gm = { requestingUserId: "gm" };
+    const first = attemptPuzzleStageFor("s1", "r1", 0, "a1", gm);
+    const second = await attemptPuzzleStageFor("s1", "r1", 1, "a2", gm);
+    expect(second).toBeNull();
+    expect(mocks.rollPuzzle).toHaveBeenCalledTimes(1);
+    d.resolve({ outcome: "success" });
+    await first;
+    expect(mocks.recordPuzzle).toHaveBeenCalledTimes(1);
+  });
+
+  it("(a) same for skill challenges", async () => {
+    const d = deferred();
+    mocks.rollChallenge.mockReturnValueOnce(d.promise);
+    const first = attemptSkillChallengeFor("s1", "a1", "stealth", { requestingUserId: "gm" });
+    const second = await attemptSkillChallengeFor("s1", "a2", "stealth", { requestingUserId: "gm" });
+    expect(second).toBeNull();
+    d.resolve({ outcome: "success" });
+    await first;
+    expect(mocks.recordChallenge).toHaveBeenCalledTimes(1);
+  });
+
+  it("(b) the lock is released after a throw in the roll; a later attempt succeeds", async () => {
+    mocks.rollPuzzle.mockRejectedValueOnce(new Error("boom"));
+    await expect(attemptPuzzleStageFor("s1", "r1", 0, "a1")).rejects.toThrow("boom");
+    expect(await attemptPuzzleStageFor("s1", "r1", 0, "a1")).toEqual({ outcome: "success" });
+    mocks.rollChallenge.mockRejectedValueOnce(new Error("boom"));
+    await expect(attemptSkillChallengeFor("s1", "a1", "stealth")).rejects.toThrow("boom");
+    expect(await attemptSkillChallengeFor("s1", "a1", "stealth")).not.toBeNull();
+  });
+
+  it("(d) different rooms do not block each other", async () => {
+    const d = deferred();
+    mocks.rollPuzzle.mockReturnValueOnce(d.promise);
+    const first = attemptPuzzleStageFor("s1", "r1", 0, "a1");
+    const other = await attemptPuzzleStageFor("s1", "r2", 0, "a1");
+    expect(other).toEqual({ outcome: "success" });
+    d.resolve({ outcome: "success" });
+    await first;
+  });
+
+  it("(c) recording an already-resolved puzzle/challenge grants no XP and resolves nothing", async () => {
+    const { recordPuzzleStageOutcome, recordSkillChallengeOutcome } = await import("../scripts/ui/dungeon-app.mjs");
+    mocks.state.rooms.r1.puzzle.resolved = "success";
+    mocks.state.rooms.r1.challenge.resolved = "success";
+    mocks.recordPuzzle.mockResolvedValue({ rooms: { r1: { puzzle: { resolved: "success" } } } });
+    mocks.recordChallenge.mockResolvedValue({ rooms: { r1: { challenge: { resolved: "success" } } } });
+    await recordPuzzleStageOutcome("s1", "r1", 0, "success");
+    await recordSkillChallengeOutcome("s1", "r1", "success");
+    expect(mocks.grantXp).not.toHaveBeenCalled();
+  });
+
+  it("(c) the not-resolved -> resolved transition grants XP exactly once", async () => {
+    const { recordPuzzleStageOutcome } = await import("../scripts/ui/dungeon-app.mjs");
+    mocks.recordPuzzle.mockResolvedValue({ rooms: { r1: { puzzle: { resolved: "success" } } } });
+    await recordPuzzleStageOutcome("s1", "r1", 0, "success").catch(() => {});
+    expect(mocks.grantXp).toHaveBeenCalledTimes(1);
+  });
+
+  it("skill challenge relay: a payload roomId that isn't the current room is refused", async () => {
+    const d = { requestingUserId: "gm", roomId: "elsewhere" };
+    expect(await attemptSkillChallengeFor("s1", "a1", "stealth", d)).toBeNull();
+    expect(mocks.rollChallenge).not.toHaveBeenCalled();
+    expect(await attemptSkillChallengeFor("s1", "a1", "stealth", { requestingUserId: "gm", roomId: "r1" })).not.toBeNull();
   });
 });
 
