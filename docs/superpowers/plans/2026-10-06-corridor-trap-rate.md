@@ -48,7 +48,7 @@ Room traps stay unchanged at their own independent ~8.3% rate throughout (e.g. ~
 
 **Interfaces:** None — `corridorTrapRollSucceeds(seed, edgeId): boolean`'s own signature is unchanged; only its internal threshold changes.
 
-- [ ] **Step 1: Update the failing test**
+- [x] **Step 1: Update the failing test**
 
 In `tests/dungeon-deck.test.mjs`, change the existing rate test (confirmed current, lines 979-987) from:
 
@@ -81,12 +81,12 @@ to:
 
 (The file's own existing `'is deterministic...'` and `'is independent per edge and from the room-level roll...'` tests, confirmed current lines 962-977, need no change — both already pass regardless of the exact threshold value.)
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs -t "#846"`
 Expected: FAIL — today's real rate is ~8.3%, well outside the new 22-28% window.
 
-- [ ] **Step 3: Add the new constant and use it**
+- [x] **Step 3: Add the new constant and use it**
 
 In `scripts/dungeon-deck.mjs`, change (confirmed current, lines 41-57):
 
@@ -141,17 +141,17 @@ export function corridorTrapRollSucceeds(seed, edgeId) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs -t "#846"`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full test suite to confirm no regression**
+- [x] **Step 5: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS — in particular, every existing #779 test covering footprint size, placement cell, trap-vs-room independence, and idempotency (`tests/dungeon-scene-trap-placement.test.mjs`) stays green: none of them pin the exact rate value, only behavior that doesn't depend on it (confirmed by reading those tests — they mock `corridorTrapRollSucceeds` directly via `roll.corridor = true/false` rather than relying on its real threshold).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-deck.mjs tests/dungeon-deck.test.mjs
@@ -179,7 +179,7 @@ echo 'const hazards = canvas.scene.tokens.filter(t => t.getFlag("pf2e-dungeon-cr
 
 Expected: edge-shaped `dungeonSlot` values (`"<roomId>-><roomId>"`, corridor traps) appear noticeably more often across a handful of runs than before this change, consistent with the sweep's own ~2-5 traps/dungeon expectation depending on size.
 
-- [ ] **Step 2: Bump module.json's version**
+- [x] **Step 2: Bump module.json's version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -189,7 +189,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **patch** bump (a balance/tuning change), using whatever the fetch above shows as current.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json
