@@ -17,6 +17,7 @@ import {
   MID_DUNGEON_REST_THRESHOLD,
   ROOM_KIND_WEIGHTS,
   roomKindAt,
+  trapRollSucceeds,
   lootGpForTreasureRoom,
   TREASURE_GP_PER_LEVEL,
   seededPick,
@@ -157,17 +158,6 @@ describe('buildRoomSequence', () => {
     for (const room of withoutPieces) expect(room.setpieceId).toBeNull();
   });
 
-  it('only assigns a set-piece to trap rooms, and only when trap set-pieces are supplied (#32)', () => {
-    const withPieces = buildRoomSequence({ seed: 'delta', roomCount: 12, trapSetpieceIds: ['t1', 't2'] });
-    expect(withPieces.some((r) => r.kind === 'trap')).toBe(true);
-    for (const room of withPieces) {
-      if (room.kind === 'trap') expect(['t1', 't2']).toContain(room.setpieceId);
-      else expect(room.setpieceId).toBeNull();
-    }
-    const withoutPieces = buildRoomSequence({ seed: 'delta', roomCount: 12, trapSetpieceIds: [] });
-    for (const room of withoutPieces) expect(room.setpieceId).toBeNull();
-  });
-
   it('only assigns a set-piece to narrative rooms, and only when narrative set-pieces are supplied (#165)', () => {
     // seed 'gamma' + roomCount 12 is confirmed (roomKindAt) to include at
     // least one narrative-kind room, so this actually exercises the
@@ -200,22 +190,19 @@ describe('buildRoomSequence', () => {
     for (const room of withoutPieces) expect(room.setpieceId).toBeNull();
   });
 
-  it('draws puzzle, trap, narrative and treasure set-pieces from independent pools (#32, #165, #89)', () => {
+  it('draws puzzle, narrative and treasure set-pieces from independent pools (#32, #165, #89, #754)', () => {
     const rooms = buildRoomSequence({
       seed: 'gamma',
       roomCount: 12,
       puzzleSetpieceIds: ['p1', 'p2'],
-      trapSetpieceIds: ['t1', 't2'],
       narrativeSetpieceIds: ['n1', 'n2'],
       treasureSetpieceIds: ['tr1', 'tr2']
     });
     expect(rooms.some((r) => r.kind === 'puzzle')).toBe(true);
-    expect(rooms.some((r) => r.kind === 'trap')).toBe(true);
     expect(rooms.some((r) => r.kind === 'narrative')).toBe(true);
     expect(rooms.some((r) => r.kind === 'treasure')).toBe(true);
     for (const room of rooms) {
       if (room.kind === 'puzzle') expect(['p1', 'p2']).toContain(room.setpieceId);
-      else if (room.kind === 'trap') expect(['t1', 't2']).toContain(room.setpieceId);
       else if (room.kind === 'narrative') expect(['n1', 'n2']).toContain(room.setpieceId);
       else if (room.kind === 'treasure') expect(['tr1', 'tr2']).toContain(room.setpieceId);
       else expect(room.setpieceId).toBeNull();
@@ -334,20 +321,16 @@ describe('ROOM_KIND_WEIGHTS', () => {
     expect(ROOM_KIND_WEIGHTS.some((w) => w.kind === 'treasure')).toBe(true);
   });
 
-  it('splits puzzle and trap into independent kinds with an even 1/1 weight (#32)', () => {
+  it('has no puzzle_or_trap combined kind (#32)', () => {
     expect(ROOM_KIND_WEIGHTS.some((w) => w.kind === 'puzzle_or_trap')).toBe(false);
     const puzzle = ROOM_KIND_WEIGHTS.find((w) => w.kind === 'puzzle');
-    const trap = ROOM_KIND_WEIGHTS.find((w) => w.kind === 'trap');
     expect(puzzle?.weight).toBe(1);
-    expect(trap?.weight).toBe(1);
   });
 
-  it('keeps the combined puzzle+trap weight, and the overall total, unchanged from before the split (#32)', () => {
-    const puzzle = ROOM_KIND_WEIGHTS.find((w) => w.kind === 'puzzle');
-    const trap = ROOM_KIND_WEIGHTS.find((w) => w.kind === 'trap');
-    expect(puzzle.weight + trap.weight).toBe(2);
+  it('no longer includes trap as a room kind (#754 — traps are now an independent layer, not a room kind)', () => {
+    expect(ROOM_KIND_WEIGHTS.some((w) => w.kind === 'trap')).toBe(false);
     const total = ROOM_KIND_WEIGHTS.reduce((sum, w) => sum + w.weight, 0);
-    expect(total).toBe(12);
+    expect(total).toBe(11);
   });
 });
 
@@ -358,11 +341,11 @@ describe('roomKindAt', () => {
     expect(kinds).toContain('treasure');
   });
 
-  it('can produce a puzzle room and a trap room as independent kinds (#32)', () => {
+  it('can produce a puzzle room, and never produces trap (#32, #754)', () => {
     const kinds = new Set();
     for (let i = 0; i < 200; i += 1) kinds.add(roomKindAt('probe-seed', i));
     expect(kinds).toContain('puzzle');
-    expect(kinds).toContain('trap');
+    expect(kinds.has('trap')).toBe(false);
     expect(kinds.has('puzzle_or_trap')).toBe(false);
   });
 });
@@ -727,9 +710,8 @@ describe('attachHiddenPaths detour content (#93 post-merge fix)', () => {
     expect(sawDetour).toBe(true);
   });
 
-  it('a puzzle/trap/narrative/treasure detour room gets a real setpieceId when pools are provided', () => {
+  it('a puzzle/narrative/treasure detour room gets a real setpieceId when pools are provided (#754: never trap)', () => {
     const puzzleSetpieceIds = ['p1', 'p2'];
-    const trapSetpieceIds = ['t1', 't2'];
     const narrativeSetpieceIds = ['n1', 'n2'];
     const treasureSetpieceIds = ['tr1', 'tr2'];
     let sawContentKind = false;
@@ -738,11 +720,12 @@ describe('attachHiddenPaths detour content (#93 post-merge fix)', () => {
       const { rooms, edges } = buildRoomGraph({ seed, roomCount: 10 });
       const attached = attachHiddenPaths({
         rooms, edges, seed,
-        puzzleSetpieceIds, trapSetpieceIds, narrativeSetpieceIds, treasureSetpieceIds,
+        puzzleSetpieceIds, narrativeSetpieceIds, treasureSetpieceIds,
       });
       for (const roomId of attached.hiddenRooms) {
         const room = attached.rooms[roomId];
-        if (['puzzle', 'trap', 'narrative', 'treasure'].includes(room.kind)) {
+        expect(room.kind).not.toBe('trap');
+        if (['puzzle', 'narrative', 'treasure'].includes(room.kind)) {
           sawContentKind = true;
           expect(room.setpieceId).not.toBeNull();
         }
@@ -947,5 +930,29 @@ describe('difficulty tiers (#412, #636)', () => {
   it('extreme still lifts the goal room of the shortest dungeon to 3', () => {
     const bias = depthBiasFor({ rank: 1, maxRank: 1, isGoal: true });
     expect(applyDifficultyShift(bias, 'extreme')).toBe(3);
+  });
+});
+
+describe('trapRollSucceeds (#754)', () => {
+  it('is deterministic for the same seed and roomId', () => {
+    expect(trapRollSucceeds('alpha', 'room-5')).toBe(trapRollSucceeds('alpha', 'room-5'));
+  });
+
+  it('is independent per room — different roomIds can roll differently under the same seed', () => {
+    const results = new Set();
+    for (let i = 0; i < 200; i += 1) results.add(trapRollSucceeds('alpha', `room-${i}`));
+    expect(results.has(true)).toBe(true);
+    expect(results.has(false)).toBe(true);
+  });
+
+  it('succeeds at approximately the same rate traps occurred at before #754 (~8.3%, weight 1 of 12)', () => {
+    let successes = 0;
+    const trials = 5000;
+    for (let i = 0; i < trials; i += 1) {
+      if (trapRollSucceeds('rate-probe-seed', `room-${i}`)) successes += 1;
+    }
+    const rate = successes / trials;
+    expect(rate).toBeGreaterThan(0.06);
+    expect(rate).toBeLessThan(0.11);
   });
 });

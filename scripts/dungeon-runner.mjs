@@ -158,7 +158,6 @@ export async function createRun(
     settingsRef = defaultSettingsRef(),
     partyOwnershipRef = defaultPartyOwnershipRef(),
     puzzleSetpieceIds = [],
-    trapSetpieceIds = [],
     narrativeSetpieceIds = [],
     treasureSetpieceIds = [],
   } = {},
@@ -169,7 +168,6 @@ export async function createRun(
     seed: runSeed,
     roomCount,
     puzzleSetpieceIds,
-    trapSetpieceIds,
     narrativeSetpieceIds,
     treasureSetpieceIds,
   });
@@ -264,8 +262,12 @@ export async function markRoomOutcome(
   { sceneId, succeeded },
   {
     settingsRef = defaultSettingsRef(),
+    // #754: the trap setpiece pool param was removed (trap is no longer a room kind). Note:
+    // puzzleSetpieceIds/narrativeSetpieceIds/treasureSetpieceIds are ALSO
+    // never actually read in this function's own body (it only calls
+    // revealTravelTimeEffect, which takes no setpiece pools at all), but
+    // removing those is out of this issue's own scope.
     puzzleSetpieceIds = [],
-    trapSetpieceIds = [],
     narrativeSetpieceIds = [],
     treasureSetpieceIds = [],
   } = {},

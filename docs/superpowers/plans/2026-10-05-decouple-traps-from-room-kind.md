@@ -36,7 +36,7 @@
 
 **Interfaces:** None — no new exports, no signature changes.
 
-- [ ] **Step 1: Update the two existing tests that assert trap's own weight/presence**
+- [x] **Step 1: Update the two existing tests that assert trap's own weight/presence**
 
 In `tests/dungeon-deck.test.mjs`, change the `describe('ROOM_KIND_WEIGHTS', ...)` block's two trap-specific tests from:
 
@@ -98,12 +98,12 @@ to:
   });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs -t "754"`
 Expected: FAIL — `ROOM_KIND_WEIGHTS` still contains a `trap` entry with weight 1 and a total of 12, and `roomKindAt` can still produce `'trap'`.
 
-- [ ] **Step 3: Remove the `trap` entry**
+- [x] **Step 3: Remove the `trap` entry**
 
 In `scripts/dungeon-deck.mjs`, change:
 
@@ -133,12 +133,12 @@ export const ROOM_KIND_WEIGHTS = [
 ];
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs -t "754"`
 Expected: PASS, all tests from Step 1 green.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-deck.mjs tests/dungeon-deck.test.mjs
@@ -157,7 +157,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 **Interfaces:** None — removes a parameter from four existing exported functions; no behavior for puzzle/narrative/treasure changes.
 
-- [ ] **Step 1: Delete/update the tests that exercised trap-setpiece assignment**
+- [x] **Step 1: Delete/update the tests that exercised trap-setpiece assignment**
 
 In `tests/dungeon-deck.test.mjs`, **delete** this entire test (its own premise — a dedicated trap room with a setpiece — no longer exists):
 
@@ -279,12 +279,12 @@ to:
   });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs -t "754"`
 Expected: FAIL — `buildRoomSequence`/`attachHiddenPaths` still accept and act on `trapSetpieceIds`, so the updated assertions (no `'trap'` kind, no trap pool) don't yet hold... actually since Task 1 already removed `trap` from `ROOM_KIND_WEIGHTS`, these rooms can never be kind `'trap'` already — re-run to confirm these specific tests already pass post-Task-1 (if so, that's fine: it means Task 1 alone already satisfies the *kind* assertions here, and this task is purely the *dead-parameter cleanup*, not a second behavior fix). Either way, proceed to Step 3 to remove the now-fully-dead parameters.
 
-- [ ] **Step 3: Delete the dead code from `buildRoomSequence`**
+- [x] **Step 3: Delete the dead code from `buildRoomSequence`**
 
 In `scripts/dungeon-deck.mjs`, change:
 
@@ -349,7 +349,7 @@ to:
       : null;
 ```
 
-- [ ] **Step 4: Delete the dead code from `applySequenceMutation`**
+- [x] **Step 4: Delete the dead code from `applySequenceMutation`**
 
 Change:
 
@@ -405,7 +405,7 @@ to:
       : null;
 ```
 
-- [ ] **Step 5: Delete the dead code from `buildRoomGraph`**
+- [x] **Step 5: Delete the dead code from `buildRoomGraph`**
 
 Change:
 
@@ -470,7 +470,7 @@ to:
       : null;
 ```
 
-- [ ] **Step 6: Delete the dead code from `attachHiddenPaths`**
+- [x] **Step 6: Delete the dead code from `attachHiddenPaths`**
 
 Change:
 
@@ -533,12 +533,12 @@ to:
         : null;
 ```
 
-- [ ] **Step 7: Run tests to verify they pass**
+- [x] **Step 7: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs`
 Expected: PASS, every test in the file green — including every test untouched by this plan (puzzle/narrative/treasure assertions unaffected).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/dungeon-deck.mjs tests/dungeon-deck.test.mjs
@@ -560,7 +560,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 This is mechanical deletion with no new logic; no new test is needed beyond Task 2's own full-suite pass already confirming nothing broke. Re-locate each site fresh via your editor before editing (concurrent sessions push to this repo constantly) — do not rely solely on the line numbers below.
 
-- [ ] **Step 1: `scripts/dungeon-runner.mjs`**
+- [x] **Step 1: `scripts/dungeon-runner.mjs`**
 
 Remove `trapSetpieceIds = [],` from both of this file's own option-destructuring blocks that currently have it (confirmed this session at two separate locations: one around the `startDungeonRun`-adjacent legacy `buildRoomSequence`-calling path, one in `markRoomOutcome`'s own options). Remove the corresponding `trapSetpieceIds,` entry from whichever object literal passes it onward (e.g. into `getGenerator().buildRoomSequence({...})`).
 
@@ -574,7 +574,7 @@ Note: confirmed this session that `markRoomOutcome`'s own `trapSetpieceIds` (alo
     // but removing those is out of this issue's own scope.
 ```
 
-- [ ] **Step 2: `scripts/dungeon-reseed.mjs`**
+- [x] **Step 2: `scripts/dungeon-reseed.mjs`**
 
 Change `computeRunLayout`'s own destructuring/bundling from:
 
@@ -592,18 +592,18 @@ to:
 
 Also update this function's own docblock comment (`` `setpieceIds` is `{ puzzle, trap, narrative, treasure }` ``) to drop `trap` from the listed shape.
 
-- [ ] **Step 3: `scripts/ui/dungeon-app.mjs`**
+- [x] **Step 3: `scripts/ui/dungeon-app.mjs`**
 
 At the site feeding `markRoomOutcome`'s options (confirmed this session, ~line 147-161), remove the `trapSetpieceIds: setpieces.filter((s) => s.kind === "trap").map((s) => s.id),` entry (keep the puzzle/narrative/treasure ones, which are still genuinely consumed by other callers even though this specific `markRoomOutcome` call never reads them, per Task 3 Step 1's own finding).
 
 At the site feeding `createRun`/`chooseRunLayout` (confirmed this session, ~line 470-510): remove the `const trapSetpieceIds = setpieces.filter((s) => s.kind === "trap").map((s) => s.id);` local, remove `trapSetpieceIds,` from the object passed to `createRun`, and remove `trap: trapSetpieceIds,` from the `setpieceIds` object passed to `chooseRunLayout`.
 
-- [ ] **Step 4: Run the full test suite**
+- [x] **Step 4: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS, every test in the repo green — this step is the real safety net for this task's otherwise untested mechanical deletions, since removing a now-unread parameter can't change any test's observable behavior if every actual consumer was already cleaned up correctly in Tasks 1-2.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-runner.mjs scripts/dungeon-reseed.mjs scripts/ui/dungeon-app.mjs
@@ -625,7 +625,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `export function trapRollSucceeds(seed, roomId): boolean` (`scripts/dungeon-deck.mjs`) — consumed by `scripts/dungeon-scene.mjs`'s new build-time check.
 
-- [ ] **Step 1: Write the failing test for `trapRollSucceeds`**
+- [x] **Step 1: Write the failing test for `trapRollSucceeds`**
 
 Add to `tests/dungeon-deck.test.mjs`, in a new `describe` block:
 
@@ -655,12 +655,12 @@ describe('trapRollSucceeds (#754)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs -t "trapRollSucceeds"`
 Expected: FAIL — `trapRollSucceeds is not a function`.
 
-- [ ] **Step 3: Write `trapRollSucceeds`**
+- [x] **Step 3: Write `trapRollSucceeds`**
 
 In `scripts/dungeon-deck.mjs`, add directly after `ROOM_KIND_WEIGHTS`:
 
@@ -676,12 +676,12 @@ export function trapRollSucceeds(seed, roomId) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run tests/dungeon-deck.test.mjs -t "trapRollSucceeds"`
 Expected: PASS, all 3 tests green.
 
-- [ ] **Step 5: Commit the pure function**
+- [x] **Step 5: Commit the pure function**
 
 ```bash
 git add scripts/dungeon-deck.mjs tests/dungeon-deck.test.mjs
@@ -690,7 +690,7 @@ git commit -m "feat(#754): add trapRollSucceeds independent placement check
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ```
 
-- [ ] **Step 6: Replace the kind-gated trap branch in `dungeon-scene.mjs`**
+- [x] **Step 6: Replace the kind-gated trap branch in `dungeon-scene.mjs`**
 
 Import `trapRollSucceeds` from `./dungeon-deck.mjs` at the top of `scripts/dungeon-scene.mjs` (add to whatever existing import from that file is already there, or add a new import line if none exists).
 
@@ -759,7 +759,7 @@ Add this new, kind-agnostic check at the point where both the `combat` branch an
   }
 ```
 
-- [ ] **Step 7: Run the full test suite to confirm no regression**
+- [x] **Step 7: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS, every test in the repo green.
@@ -774,7 +774,7 @@ echo 'const state = game.settings.get("pf2e-dungeon-crawl", "dungeonRuns")[canva
 
 Expected, across several real runs: traps now appear in rooms of multiple different kinds (not only a dedicated `trap` kind, which no longer exists at all), never in a `safe_entry`/`safe_rest`/goal room, and at a rate in the same rough ballpark as `trapRollSucceeds`'s own confirmed ~8.3%. For any run that happens to include a `combat`-kind room with a trap, confirm the trap hazard token's own position doesn't overlap any of that room's encounter tokens (read both sets of tokens' `x`/`y`/`width`/`height` and check for overlap) — this is the one scenario Task 2's own unit tests can't exercise (`populateSlotTrap`'s real occupied-avoidance logic only runs against a live scene's real token positions).
 
-- [ ] **Step 9: Bump module.json's version**
+- [x] **Step 9: Bump module.json's version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -784,7 +784,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **minor** bump (a real behavioral change to room generation), e.g. `0.61.1` → `0.62.0`, using whatever the fetch above shows as current.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs module.json
