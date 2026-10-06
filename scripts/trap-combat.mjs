@@ -49,7 +49,7 @@ export function classifyTrap(hazardActor) {
  * of `fn`, restoring whatever they were set to afterward — the exact same
  * pattern every roll in dungeon-combat.mjs already uses, so an automated
  * trap roll doesn't sit blocked on a dialog nobody's there to click. */
-async function withDialogsSuppressed(fn) {
+export async function withDialogsSuppressed(fn) {
   const prevShowCheck = game.user.flags?.pf2e?.settings?.showCheckDialogs;
   const prevShowDamage = game.user.flags?.pf2e?.settings?.showDamageDialogs;
   await game.user.update({

@@ -64,6 +64,13 @@ import {
   fumbleDeckCategory,
 } from "./dungeon-critical-deck.mjs";
 import { fetchCombatDecision } from "./agent-service-client.mjs";
+import { withDialogsSuppressed } from "./trap-combat.mjs";
+import {
+  DETECTION,
+  avoidingNoticeActorIds,
+  initialDetection,
+  uniformCondition,
+} from "./stealth-detection.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 // #361 revert of #141's own fix -- see dungeon-follow.mjs's own matching
@@ -159,13 +166,140 @@ async function startCombat(scene, flagKey, flagValue) {
         : {}),
     })),
   );
-  await combat.rollInitiative(
-    combatants.map((c) => c.id),
-    { skipDialog: true },
-  );
+  await rollStealthInitiativeAndDetect(combat, combatants, { partyIds });
   await combat.startCombat();
   unpauseIfGmLessRun(scene.id);
   return combat;
+}
+
+/** #616: display conditions this module applies to a sneaker. */
+const DISPLAY_CONDITIONS = new Set([DETECTION.UNNOTICED, DETECTION.UNDETECTED]);
+
+const stealthDefaults = {
+  rollStealth: (actor) =>
+    withDialogsSuppressed(() => actor.skills.stealth.roll({ createMessage: true })),
+  hasCondition: (actor, slug) =>
+    Boolean(actor.hasCondition?.(slug) ?? actor.conditions?.bySlug?.(slug)?.length),
+  setCondition: async (actor, slug, active) => {
+    if (active) await actor.increaseCondition(slug);
+    else await actor.decreaseCondition(slug, { forceRemove: true });
+  },
+  chat: async (key, data) => {
+    const esc = (s) => foundry.utils.escapeHTML?.(String(s)) ?? String(s);
+    const safe = Object.fromEntries(
+      Object.entries(data ?? {}).map(([k, v]) => [k, esc(v)]),
+    );
+    await ChatMessage.create({ content: game.i18n.format(key, safe) });
+  },
+};
+
+/**
+ * #616: Rolls initiative for a freshly created combat. Party members who are
+ * Avoiding Notice roll Stealth (PF2e "Initiative with Stealth"); everyone else
+ * goes through `combat.rollInitiative` exactly as before. With no sneaker this
+ * is a single unchanged `rollInitiative(allIds, {skipDialog:true})` call and
+ * nothing else. Otherwise it stores the detection matrix
+ * (`flags[MODULE_ID].detection`) and, for display, applies the `unnoticed` /
+ * `undetected` condition when uniform across hostiles (recorded in
+ * `appliedConditions` so `clearDetection` removes only what we added).
+ */
+export async function rollStealthInitiativeAndDetect(combat, combatants, deps = {}) {
+  const d = { ...stealthDefaults, ...deps };
+  const partyIds = d.partyIds ?? partyActorIds();
+  const allIds = combatants.map((c) => c.id);
+
+  const partyCombatants = combatants.filter((c) => partyIds.has(c.actor?.id));
+  const sneakingActorIds = new Set(
+    avoidingNoticeActorIds(
+      partyCombatants.map((c) => ({
+        id: c.actor.id,
+        exploration: c.actor.system?.exploration ?? [],
+        items: Array.from(c.actor.items ?? []).map((i) => ({ id: i.id, slug: i.slug })),
+      })),
+    ),
+  );
+  const sneakers = partyCombatants.filter(
+    (c) => sneakingActorIds.has(c.actor.id) && c.actor.skills?.stealth,
+  );
+  if (!sneakers.length) {
+    await combat.rollInitiative(allIds, { skipDialog: true });
+    return;
+  }
+
+  const sneakerIds = new Set(sneakers.map((c) => c.id));
+  const others = allIds.filter((id) => !sneakerIds.has(id));
+  if (others.length) await combat.rollInitiative(others, { skipDialog: true });
+
+  const rolled = [];
+  for (const c of sneakers) {
+    const roll = await d.rollStealth(c.actor);
+    rolled.push({ combatant: c, result: Number(roll?.total ?? 0) });
+  }
+  await combat.setMultipleInitiatives(
+    rolled.map((r) => ({ id: r.combatant.id, value: r.result, statistic: "stealth" })),
+  );
+
+  const hostiles = combatants.filter((c) => !partyIds.has(c.actor?.id));
+  const matrix = initialDetection({
+    sneakers: rolled.map((r) => ({ id: r.combatant.id, result: r.result })),
+    hostiles: hostiles.map((h) => ({
+      id: h.id,
+      // A hostile with no readable Perception DC is treated as noticing
+      // (safe: it can then fight instead of stalling the combat unaware).
+      dc: h.actor?.perception?.dc?.value ?? Infinity,
+    })),
+  });
+  await combat.setFlag(MODULE_ID, "detection", matrix);
+
+  const applied = {};
+  for (const r of rolled) {
+    const slug = uniformCondition(matrix, r.combatant.id);
+    if (!DISPLAY_CONDITIONS.has(slug)) continue;
+    if (d.hasCondition(r.combatant.actor, slug)) continue;
+    await d.setCondition(r.combatant.actor, slug, true);
+    applied[r.combatant.id] = { actorId: r.combatant.actor.id, slug };
+  }
+  await combat.setFlag(MODULE_ID, "appliedConditions", applied);
+
+  for (const r of rolled) {
+    const row = matrix[r.combatant.id] ?? {};
+    const observers = hostiles
+      .filter((h) => row[h.id] === DETECTION.OBSERVED)
+      .map((h) => h.name);
+    if (observers.length) {
+      await d.chat("PF2EDC.Dungeon.Combat.StealthNoticedChat", {
+        name: r.combatant.name,
+        result: r.result,
+        observers: observers.join(", "),
+      });
+    } else {
+      await d.chat("PF2EDC.Dungeon.Combat.StealthUnnoticedChat", {
+        name: r.combatant.name,
+        result: r.result,
+      });
+    }
+  }
+}
+
+/**
+ * #616: `deleteCombat` cleanup. Removes only the display conditions this
+ * module recorded in `appliedConditions` (never one the actor already had)
+ * and clears the detection flags.
+ */
+export async function clearDetection(combat, deps = {}) {
+  const d = { ...stealthDefaults, ...deps };
+  const applied = combat.getFlag?.(MODULE_ID, "appliedConditions");
+  const detection = combat.getFlag?.(MODULE_ID, "detection");
+  if (applied) {
+    for (const [combatantId, rec] of Object.entries(applied)) {
+      const actor =
+        combat.combatants?.get?.(combatantId)?.actor ?? game.actors?.get?.(rec.actorId);
+      if (!actor) continue;
+      await d.setCondition(actor, rec.slug, false);
+    }
+  }
+  if (applied !== undefined) await combat.unsetFlag(MODULE_ID, "appliedConditions");
+  if (detection !== undefined) await combat.unsetFlag(MODULE_ID, "detection");
 }
 
 /** Flips a single combatant's agentControlled flag — the GM's per-combatant

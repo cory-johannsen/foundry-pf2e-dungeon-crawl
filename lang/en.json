@@ -21,6 +21,8 @@
   "PF2EDC.Dungeon.Combat.ReactiveStrikeChat": "<p><strong>{name}</strong> reacts with a Reactive Strike against {target}!</p>",
   "PF2EDC.Dungeon.Combat.ReactiveStrikeCheckLabel": "Reactive Strike Check",
   "PF2EDC.Dungeon.Combat.StartCombatButton": "Start Combat",
+  "PF2EDC.Dungeon.Combat.StealthNoticedChat": "<p><strong>{name}</strong> tries to avoid notice (Stealth {result}), but {observers} spotted them.</p>",
+  "PF2EDC.Dungeon.Combat.StealthUnnoticedChat": "<p><strong>{name}</strong> slips in unnoticed (Stealth {result}).</p>",
   "PF2EDC.Dungeon.Combat.ToggleAgentControlLabel": "Toggle Agent Control",
   "PF2EDC.Dungeon.Completed": "Dungeon complete",
   "PF2EDC.Dungeon.CurrentObjective": "Current objective: {objective}",

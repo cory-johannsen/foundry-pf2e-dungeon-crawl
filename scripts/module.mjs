@@ -51,6 +51,7 @@ import {
   handleRangedAttackForReactiveStrike,
   handleManualStrikeDamage,
   offerReactiveStrikesAgainst,
+  clearDetection,
 } from "./dungeon-combat.mjs";
 import {
   followLeaderIfDue,
@@ -616,6 +617,13 @@ Hooks.on("createChatMessage", handleRangedAttackForReactiveStrike);
  * roll's own already-correct target, instead of relying on PF2e's own
  * manual "Apply Damage" button (which resolves from live selection state). */
 Hooks.on("createChatMessage", handleManualStrikeDamage);
+
+/** #616: remove the Stealth display conditions this module applied and the
+ * detection flags when a combat ends (active GM only, so it runs once). */
+Hooks.on("deleteCombat", async (combat) => {
+  if (!(game.users?.activeGM?.isSelf ?? game.user?.isGM)) return;
+  await clearDetection(combat);
+});
 
 Hooks.on("getSceneControlButtons", (controls) => {
   const tokenControl =
