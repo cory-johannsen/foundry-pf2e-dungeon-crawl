@@ -976,13 +976,30 @@ describe('corridorTrapRollSucceeds (#779)', () => {
     expect(differsFromRoom).toBe(true);
   });
 
-  it('succeeds at approximately the room-level rate (~8.3%)', () => {
+  it('#846: succeeds at approximately 25%, deliberately higher than the room-level rate', () => {
     let hits = 0;
     const trials = 5000;
     for (let i = 0; i < trials; i += 1) {
       if (corridorTrapRollSucceeds('rate-probe-seed', `edge-${i}`)) hits += 1;
     }
-    expect(hits / trials).toBeGreaterThan(0.06);
-    expect(hits / trials).toBeLessThan(0.11);
+    const rate = hits / trials;
+    expect(rate).toBeGreaterThan(0.22);
+    expect(rate).toBeLessThan(0.28);
+  });
+
+  it('#846: the corridor rate exceeds the (unchanged ~8.3%) room rate by roughly 3x', () => {
+    let corridorHits = 0;
+    let roomHits = 0;
+    const trials = 5000;
+    for (let i = 0; i < trials; i += 1) {
+      if (corridorTrapRollSucceeds('rate-probe-seed', `edge-${i}`)) corridorHits += 1;
+      if (trapRollSucceeds('rate-probe-seed', `room-${i}`)) roomHits += 1;
+    }
+    const roomRate = roomHits / trials;
+    const corridorRate = corridorHits / trials;
+    expect(roomRate).toBeGreaterThan(0.06);
+    expect(roomRate).toBeLessThan(0.11);
+    expect(corridorRate / roomRate).toBeGreaterThan(2.3);
+    expect(corridorRate / roomRate).toBeLessThan(3.8);
   });
 });

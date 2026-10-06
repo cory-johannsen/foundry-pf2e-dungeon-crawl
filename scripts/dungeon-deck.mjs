@@ -43,17 +43,24 @@ export const ROOM_KIND_WEIGHTS = [
 // regardless of whichever kind the room actually is.
 const TRAP_CHANCE = 1 / 12;
 
+// #846: a corridor's own, deliberately higher rate than a room's — #779's
+// original corridor roll shared TRAP_CHANCE, which a seed-sweep against
+// the real generator (2026-10-06) confirmed averaged under one trap per
+// corridor-heavy dungeon. 1/4, picked with the owner against that sweep:
+// an 8-room dungeon (~9.3 corridors) averages ~2.2 corridor traps.
+const CORRIDOR_TRAP_CHANCE = 1 / 4;
+
 export function trapRollSucceeds(seed, roomId) {
   const rand = splitmix32(seedFromString(`${seed}-trap-chance-${roomId}`));
   return rand() < TRAP_CHANCE;
 }
 
-/** #779: a corridor's own independent trap roll, same rate and convention as
- * trapRollSucceeds but keyed by edge id (`${fromRoomId}->${toRoomId}`) with a
+/** #779/#846: a corridor's own independent trap roll, a higher rate than
+ * trapRollSucceeds's (CORRIDOR_TRAP_CHANCE) and keyed by edge id (`${fromRoomId}->${toRoomId}`) with a
  * distinct salt, so a corridor's roll never aliases a room's. */
 export function corridorTrapRollSucceeds(seed, edgeId) {
   const rand = splitmix32(seedFromString(`${seed}-corridor-trap-chance-${edgeId}`));
-  return rand() < TRAP_CHANCE;
+  return rand() < CORRIDOR_TRAP_CHANCE;
 }
 
 // Frequent branching, capped at 2 extra exits (3 total) — confirmed with
