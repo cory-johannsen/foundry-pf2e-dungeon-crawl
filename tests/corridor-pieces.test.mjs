@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
 import {
   PIECE_OPENINGS,
@@ -61,5 +62,19 @@ describe('openingsOf / hasBlock2x2', () => {
     expect(hasBlock2x2(set([0, 0], [1, 0], [0, 1], [1, 1]))).toBe(true);
     expect(hasBlock2x2(set([0, 0], [1, 0], [0, 1]))).toBe(false);
     expect(hasBlock2x2(set([0, 0], [1, 0], [2, 0]))).toBe(false);
+  });
+});
+
+describe('compose-corridor-pieces.py stays in sync with PIECE_OPENINGS (#857)', () => {
+  it('documents the same canonical openings corridor-pieces.mjs defines', () => {
+    const src = readFileSync(
+      new URL('../tools/compose-corridor-pieces.py', import.meta.url),
+      'utf8',
+    );
+    // Mirrors corridor-pieces.mjs's own doc comment verbatim -- if either
+    // changes, this test is the tripwire that catches the other going stale.
+    expect(src).toContain('end@0 open S');
+    expect(src).toContain('mid@0 open N+S');
+    expect(src).toContain('corner@0 walls N+W');
   });
 });
