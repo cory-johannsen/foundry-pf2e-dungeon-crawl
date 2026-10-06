@@ -76,7 +76,7 @@ import {
   markStubOpened,
 } from "./dungeon-runner.mjs";
 import { canRetreat, hasNoWayForward, roomDisplayLabel, roomTileName, openChildren } from "./dungeon-retreat.mjs";
-import { depthBiasFor, applyDifficultyShift, trapRollSucceeds } from "./dungeon-deck.mjs";
+import { depthBiasFor, applyDifficultyShift, trapRollSucceeds, corridorTrapRollSucceeds } from "./dungeon-deck.mjs";
 import { startCombatForRoom } from "./dungeon-combat.mjs";
 import { playDoorSound } from "./dungeon-sound.mjs";
 import { loadDungeonSetpieces, loadRoomFeatureArt, loadCreatureArt } from "./data-loader.mjs";
@@ -173,8 +173,12 @@ export function wallDoc(
  * shared by a connection's own corridor and a #174 Task 5 transit cell's
  * own crossing, both of which lay tile-per-grid-square the same way the
  * old linear-slot builder's single corridorRect loop always did. */
-function corridorTilesForSegments(segments, { fullWidth = false } = {}) {
+export function corridorTilesForSegments(segments, { fullWidth = false } = {}) {
   const tiles = [];
+  // #779: parallel to `tiles` (same order): the grid cell each tile occupies,
+  // so corridor trap placement can pick a real floor cell without redoing the
+  // baseGx/baseGy flooring (#324) by hand.
+  const cells = [];
   for (const segment of segments) {
     const vertical = segment.gh >= segment.gw;
     const length = vertical ? segment.gh : segment.gw;
@@ -205,6 +209,7 @@ function corridorTilesForSegments(segments, { fullWidth = false } = {}) {
       const dx = vertical ? ci : ti;
       const dy = vertical ? ti : ci;
       const { variant, rotation } = corridorTileVariant(ti, length, vertical);
+      cells.push({ gx: baseGx + dx, gy: baseGy + dy });
       tiles.push({
         // anchorX/anchorY: 0.5 (center) -- NOT top-left. Room floor art
         // (above, roomArtPath's own Tile) uses anchor 0/0 + top-left x/y,
@@ -237,7 +242,7 @@ function corridorTilesForSegments(segments, { fullWidth = false } = {}) {
     }
     }
   }
-  return tiles;
+  return { tiles, cells };
 }
 
 /** #427: the floor tiles of one dead-end stub, door tile first and the collapsed-rubble cap (#438) on the far end.
@@ -297,7 +302,8 @@ async function buildTransitCellIfNeeded(scene, cell) {
   );
   if (alreadyBuilt) return;
 
-  const tiles = corridorTilesForSegments(cell.corridorSegments).map((t) => ({
+  const { tiles: rawTiles } = corridorTilesForSegments(cell.corridorSegments);
+  const tiles = rawTiles.map((t) => ({
     ...t,
     flags: { [MODULE_ID]: { dungeonTransitCellCrossing: marker } },
   }));
@@ -1170,7 +1176,7 @@ async function spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed, the
 export async function populateSlotTrap(
   scene,
   slot,
-  { rect, partyLevel, levelOffsetBias = 0, locationTag = null, seed = "", roomId } = {},
+  { rect, partyLevel, levelOffsetBias = 0, locationTag = null, seed = "", roomId, tokenSize = null } = {},
 ) {
   const api = makeFoundryApi(scene);
   const rng = splitmix32(seedFromString(`${seed}-trap-${slot}`));
@@ -1181,14 +1187,16 @@ export async function populateSlotTrap(
     );
     return;
   }
-  const tokenSize = trapFootprintSize(seed, roomId);
+  // #779: a corridor trap forces 1x1 (a 1-cell corridor rect can't hold a bigger footprint); every
+  // room caller omits `tokenSize` and keeps the #757 seeded roll.
+  const trapTokenSize = tokenSize ?? trapFootprintSize(seed, roomId);
   // #759: generated hazard art; a miss (null) leaves the compendium default.
   const artFilename = findCreatureArt(await loadCreatureArt(), { pack: trap.pack, id: trap.id });
   const imgFallback = artFilename
     ? `modules/${MODULE_ID}/assets/${creatureArtPath(artFilename)}`
     : null;
   const [spawned] = await api.spawnCreatures(
-    [{ pack: trap.pack, id: trap.id, tokenSize, imgFallback }],
+    [{ pack: trap.pack, id: trap.id, tokenSize: trapTokenSize, imgFallback }],
     {
       originArea: {
         x: toPixels(rect.gx),
@@ -1750,7 +1758,38 @@ export async function buildPopulateAndUnlockGraphNode(
       // variant/rotation logic the old linear-slot builder's single-corridorRect
       // loop always used, just offset by each segment's own gx/gy instead
       // of a single shared corridorRect's.
-      tiles.push(...corridorTilesForSegments(corridorSegments, { fullWidth: layoutVersion >= 3 }));
+      const { tiles: edgeTiles, cells: edgeCells } = corridorTilesForSegments(corridorSegments, { fullWidth: layoutVersion >= 3 });
+      tiles.push(...edgeTiles);
+      // #779: independent per-edge trap roll, one level down from #754's room roll. Only a real
+      // (non-hidden) edge's own main-segment cells are candidates (never a transit/detour cell).
+      // The edge id stands in for a room id: populateSlotTrap's ensureTrapState / trapCustomization
+      // mirror find no state.rooms[edgeId] and no-op (pinned by tests/trap-edge-id-state.test.mjs;
+      // #820 tracks real customization parity). Forced 1x1 so it can't spill out of the corridor.
+      const edgeId = `${sourceId}->${room.id}`;
+      if (
+        !hidden &&
+        scene.tokens &&
+        edgeCells.length > 0 &&
+        !hasTrapInRoom(scene, edgeId) &&
+        corridorTrapRollSucceeds(state.seed, edgeId)
+      ) {
+        const pickRand = splitmix32(seedFromString(`${state.seed}-corridor-trap-cell-${edgeId}`));
+        const trapCell = edgeCells[Math.floor(pickRand() * edgeCells.length)];
+        await populateSlotTrap(scene, edgeId, {
+          rect: { gx: trapCell.gx, gy: trapCell.gy, gw: 1, gh: 1 },
+          partyLevel: await makeFoundryApi().partyLevel(),
+          levelOffsetBias: effectiveRoomBias({
+            rank,
+            maxRank: state.maxRank,
+            isGoal: room.isGoal,
+            difficulty: state.difficulty,
+          }),
+          locationTag: room.locationTag,
+          seed: state.seed,
+          roomId: edgeId,
+          tokenSize: { width: 1, height: 1 },
+        });
+      }
       placeholderIdsToDelete.push(...placeholderIdsByConnection[i]);
 
       // #174 Task 4/5: every intermediate, empty cell this connection's
