@@ -39,19 +39,19 @@
 
 No test: pure content generation, reviewed by eye per Step 3 below.
 
-- [ ] **Step 1: Generate the floor texture**
+- [x] **Step 1: Generate the floor texture**
 
 Via ComfyUI (matching this repo's own established generation conventions — `tools/room-feature-art-prompts.mjs`'s own `THEME_FLAVOR`-style prompt structure is a reasonable model to borrow phrasing from, even though this is a new asset category with no existing prompt table of its own): a seamless, tileable, top-down dungeon stone floor — large worn flagstones, subtle cracks and weathering, consistent muted brown-grey tone matching the existing corridor art's own palette (confirmed current: warm grey-brown stone, visible in `corridor.webp`), lit evenly with no strong directional shadow (so it reads correctly from any side a wall strip gets composited against it), no walls, no vignette, no border — generate at a size comfortably larger than the 512×512 target tile (e.g. 768×768 or 1024×1024) so Task 2 can crop a clean, edge-agnostic floor region from its center with room to spare.
 
-- [ ] **Step 2: Generate the wall-bevel edge strip**
+- [x] **Step 2: Generate the wall-bevel edge strip**
 
 Via ComfyUI: a single straight dungeon-wall edge in the same top-down perspective and material as the existing corridor art's own wall trim (confirmed current: a warm wood/stone bevel along the tile's outer edge, visible in every existing piece) — a long horizontal strip, consistent depth, matching the floor texture's own lighting and palette so a composite seam doesn't itself read as a seam. Generate wide enough to crop a clean strip from (avoiding the generation's own edges/artifacts), at the same working resolution as the floor texture.
 
-- [ ] **Step 3: Review both source assets**
+- [x] **Step 3: Review both source assets**
 
 Confirm by eye: the floor texture tiles acceptably (no obvious repeating artifact when viewed at the crop size Task 2 will use), has even lighting across its whole area (no bright/dark corner that would look wrong rotated), and the wall strip's own lighting/material genuinely matches the floor texture rather than looking like a different scene pasted alongside it. Reroll either asset if not — this is the foundation every one of the 5 shipped pieces is built from, so it's worth getting right before Task 2 composites anything from it.
 
-- [ ] **Step 4: Commit the working source assets**
+- [x] **Step 4: Commit the working source assets**
 
 ```bash
 git add <floor-texture-path> <wall-strip-path>
@@ -71,7 +71,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: a CLI tool writing `single.webp`/`end.webp`/`mid.webp`/`corner.webp`/`rubble.webp` (or directly the final `corridor*.webp` names, matching Task 3's own needs) from the two Task 1 source assets, keyed by the same canonical opening spec `scripts/corridor-pieces.mjs` already defines.
 
-- [ ] **Step 1: Write the drift-guard test first**
+- [x] **Step 1: Write the drift-guard test first**
 
 Add to `tests/corridor-pieces.test.mjs` (confirmed current, covers `PIECE_OPENINGS`/`corridorPieceForOpenings` already):
 
@@ -93,12 +93,12 @@ describe('compose-corridor-pieces.py stays in sync with PIECE_OPENINGS (#857)', 
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/corridor-pieces.test.mjs -t "compose-corridor-pieces"`
 Expected: FAIL — the python file doesn't exist yet.
 
-- [ ] **Step 3: Write the compositing tool**
+- [x] **Step 3: Write the compositing tool**
 
 ```python
 #!/usr/bin/env python3
@@ -206,17 +206,17 @@ if __name__ == "__main__":
 
 (`--wall-depth` and the rubble-fill compositing rectangle are starting points — Task 3's own review step is where these get tuned against how they actually look, not treated as final on the first run.)
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run tests/corridor-pieces.test.mjs -t "compose-corridor-pieces"`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full test suite to confirm no regression**
+- [x] **Step 5: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS (the art files themselves haven't been replaced yet — that's Task 3 — so `tests/dungeon-art-edges.test.mjs` still passes against today's existing, not-yet-replaced files).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tools/compose-corridor-pieces.py tests/corridor-pieces.test.mjs
@@ -235,7 +235,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No code changes in this task.
 
-- [ ] **Step 1: Run the compositor**
+- [x] **Step 1: Run the compositor**
 
 ```bash
 .venv/bin/python tools/compose-corridor-pieces.py --floor <floor-source> --wall <wall-strip-source> --out assets/dungeon-rooms
@@ -243,15 +243,15 @@ No code changes in this task.
 
 If the default rubble (end-shape + plain floor on the open side) doesn't read as "collapsed passage" on inspection, generate a small rubble-fill texture (matching the existing `corridor-rubble.webp`'s own rubble-pile material/style) and re-run with `--rubble <rubble-source>`.
 
-- [ ] **Step 2: Build a join contact sheet**
+- [x] **Step 2: Build a join contact sheet**
 
 Write a small script (or extend `make-corridor-corner.py`'s own existing `--preview`/`--proof` pattern, confirmed current) that tiles several of the 5 new pieces together in their real rotations — at minimum: a straight run (several `mid` tiles in a row), an `end`-into-`mid` join, and a `corner` with a `mid` joined to each of its two open sides (matching `corridorPieceForOpenings`'s own real rotation math, confirmed current in `scripts/corridor-pieces.mjs`) — into one image for review.
 
-- [ ] **Step 3: Owner review**
+- [x] **Step 3: Owner review**
 
 Per the issue's own explicit requirement: review the contact sheet before merging. Confirm every join shows continuous floor with no visible seam, every wall edge matches in style, and the corner's own two walls meet convincingly. Redo (regenerate a source asset, retune `--wall-depth`, or adjust the compositor) and re-review if not — this is the real acceptance gate for this entire plan, not a formality.
 
-- [ ] **Step 4: Refresh the edge-quality report**
+- [x] **Step 4: Refresh the edge-quality report**
 
 ```bash
 .venv/bin/python tools/strip-art-white-edge.py assets/dungeon-rooms --report-only
@@ -259,12 +259,12 @@ Per the issue's own explicit requirement: review the contact sheet before mergin
 
 (Confirmed current, `tools/strip-art-white-edge.py`'s own docstring: run this after regenerating any file under `assets/dungeon-rooms/`, or `tests/dungeon-art-edges.test.mjs`'s own hash-pinning test fails.) If it reports a near-white fringe on any new piece, run the script on that file directly (not `--report-only`) to strip it, per its own documented usage, then re-run `--report-only` once more to refresh the report against the cleaned files.
 
-- [ ] **Step 5: Run the full test suite to confirm it passes**
+- [x] **Step 5: Run the full test suite to confirm it passes**
 
 Run: `npx vitest run`
 Expected: PASS — `tests/dungeon-art-edges.test.mjs` (hashes match the refreshed report, no near-white band), `tests/dungeon-room-art.test.mjs`, `tests/dungeon-corridor-joins-sweep.test.mjs`, and `tests/dungeon-scene-corridor-edge-tiles.test.mjs` (confirmed current, all three covering this exact art/geometry area) all stay green with no code changes needed, since every file name and the `CORRIDOR_ART_BY_VARIANT` mapping are unchanged.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add assets/dungeon-rooms/corridor.webp assets/dungeon-rooms/corridor-end.webp assets/dungeon-rooms/corridor-mid.webp assets/dungeon-rooms/corridor-corner.webp assets/dungeon-rooms/corridor-rubble.webp assets/dungeon-rooms/edge-report.json
@@ -284,7 +284,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 Generate a few real dungeon runs with long/branching corridors (including at least one merge-room junction, to exercise the `corner` piece) and confirm visually (via a connected client, not by panning this session's own camera — see this session's own standing caution from #823's investigation) that the new art shows no seams at any join, including the corner case.
 
-- [ ] **Step 2: Bump module.json's version**
+- [x] **Step 2: Bump module.json's version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -294,7 +294,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **minor** bump (new generated content replacing shipped art), using whatever the fetch above shows as current.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json
