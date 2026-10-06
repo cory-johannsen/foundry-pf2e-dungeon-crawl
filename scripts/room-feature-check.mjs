@@ -38,6 +38,8 @@ export async function promptRoomFeatureCheck(
     promptSkillChallenge,
     attemptPuzzleStageFor,
     attemptSkillChallengeFor,
+    isGM = true,
+    relay,
     notify,
     localize,
     inFlight = moduleInFlight,
@@ -57,18 +59,30 @@ export async function promptRoomFeatureCheck(
         notify(localize("PF2EDC.Dungeon.Puzzle.DialogNoCharacters"));
         return;
       }
-      if (stages.every((s) => s.attempted)) {
+      if (room.puzzle.resolved || stages.every((s) => s.attempted)) {
         notify(localize("PF2EDC.Dungeon.Puzzle.DialogNothingToAttempt"));
         return;
       }
       const choice = await promptPuzzleStage(stages, characters);
       if (!choice?.actorId || !Number.isInteger(choice.stageIndex)) return;
-      await attemptPuzzleStageFor(
-        sceneId,
-        roomId,
-        choice.stageIndex,
-        choice.actorId,
-      );
+      // A player never rolls locally: the GM client rolls AND records, so
+      // the outcome can't be self-reported (and nothing rolls twice).
+      if (isGM) {
+        await attemptPuzzleStageFor(
+          sceneId,
+          roomId,
+          choice.stageIndex,
+          choice.actorId,
+        );
+      } else {
+        const ok = await relay("attemptPuzzleStage", {
+          sceneId,
+          roomId,
+          stageIndex: choice.stageIndex,
+          actorId: choice.actorId,
+        });
+        if (!ok) notify(localize("PF2EDC.Dungeon.RequestFailedWarning"));
+      }
     } else {
       if (!room?.challenge) return;
       const skills = room.challenge.specialtySkills;
@@ -76,15 +90,54 @@ export async function promptRoomFeatureCheck(
         notify(localize("PF2EDC.Dungeon.SkillChallenge.DialogNoCharacters"));
         return;
       }
-      if (!Array.isArray(skills) || skills.length === 0) {
+      if (
+        room.challenge.resolved ||
+        !Array.isArray(skills) ||
+        skills.length === 0
+      ) {
         notify(localize("PF2EDC.Dungeon.SkillChallenge.DialogNothingToAttempt"));
         return;
       }
       const choice = await promptSkillChallenge(skills, characters);
       if (!choice?.actorId || !choice?.skill) return;
-      await attemptSkillChallengeFor(sceneId, choice.actorId, choice.skill);
+      if (isGM) {
+        await attemptSkillChallengeFor(sceneId, choice.actorId, choice.skill);
+      } else {
+        const ok = await relay("attemptSkillChallenge", {
+          sceneId,
+          roomId,
+          actorId: choice.actorId,
+          skill: choice.skill,
+        });
+        if (!ok) notify(localize("PF2EDC.Dungeon.RequestFailedWarning"));
+      }
     }
   } finally {
     inFlight.delete(key);
   }
+}
+
+/**
+ * The whole token click: reveal first (GM runs it directly, a player relays
+ * `roomFeatureInteract`), then -- only if the reveal actually happened --
+ * offer the check. `runAction` is the GM-side runRoomFeatureAction wrapper
+ * (returns its `{ok}` result); `relay` is requestDungeonAction (resolves a
+ * boolean). A failed reveal (GM errored / not acted on, or no GM answered
+ * the relay) never opens the dialog.
+ */
+export async function handleRoomFeatureClick(route, deps) {
+  const { isGM, runAction, relay, onError = () => {} } = deps;
+  if (isGM) {
+    try {
+      const result = await runAction(route);
+      if (result?.ok === false) return;
+    } catch (err) {
+      onError(err);
+      return;
+    }
+  } else {
+    const ok = await relay("roomFeatureInteract", route);
+    if (!ok) return;
+  }
+  await promptRoomFeatureCheck(route, deps);
 }

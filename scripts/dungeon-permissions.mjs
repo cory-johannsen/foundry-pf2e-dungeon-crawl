@@ -56,6 +56,14 @@ export function decideGmLessBroadcast(
   return { action: hasOpenInstance ? "close" : "none" };
 }
 
+/** Actions a non-host, non-GM owner of a party character may send. */
+export const WIDENED_ACTIONS = new Set([
+  "roomFeatureInteract",
+  "attemptTrapDisable",
+  "attemptPuzzleStage",
+  "attemptSkillChallenge",
+]);
+
 /**
  * Whether the GM-side relay handler (dungeon-remote.mjs) should honor a
  * routed request from `requestingUserId` — the actual authorization
@@ -77,9 +85,14 @@ export function isAuthorizedRequest(
   if (actionName === "startRun") {
     return !run || run.hostUserId === requestingUserId;
   }
-  if (actionName === "roomFeatureInteract" || actionName === "attemptTrapDisable") {
-    // #611/#623 (+ #754 attemptTrapDisable): room-feature prop tokens may be triggered by any non-GM
-    // player who owns a party character (relay computes the flag), or the host.
+  if (WIDENED_ACTIONS.has(actionName)) {
+    // #611/#623 (+ #754 attemptTrapDisable, #822 attemptPuzzleStage /
+    // attemptSkillChallenge): room-feature prop tokens may be triggered by
+    // any non-GM player who owns a party character (relay computes the
+    // flag), or the host. The recordPuzzleStageOutcome /
+    // recordSkillChallengeOutcome actions stay host-only: the widened
+    // attempt actions roll AND record GM-side, so no player ever relays a
+    // self-reported outcome.
     return (
       !!run &&
       !run.completed &&
@@ -121,4 +134,43 @@ export function userMayAttemptTrapDisable({
   if (!userId || !actor) return false;
   if (!(partyMembers ?? []).some((m) => m?.id === actor.id)) return false;
   return isGM || isHost || ownsPartyCharacter(userId, partyMembers);
+}
+
+/** #822: whether `userId` may attempt a puzzle stage / skill-challenge check
+ * as `actor`. The actor must be a party member, and the requester must be
+ * the GM, the run host, or OWN the chosen actor (stricter than #754's
+ * any-party-member rule: a player can't roll someone else's character).
+ * Pure. */
+export function userMayAttemptRoomFeatureCheck({
+  userId,
+  isGM = false,
+  isHost = false,
+  actor,
+  partyMembers = [],
+} = {}) {
+  if (!userId || !actor) return false;
+  if (!(partyMembers ?? []).some((m) => m?.id === actor.id)) return false;
+  if (isGM || isHost) return true;
+  return (actor.ownership?.[userId] ?? 0) >= 3;
+}
+
+/** #822: the party characters `userId` may pick in the check dialog
+ * (everyone for the GM/host, otherwise only the ones they own). Pure. */
+export function attemptableCharacters({
+  userId,
+  isGM = false,
+  isHost = false,
+  partyMembers = [],
+} = {}) {
+  return (partyMembers ?? []).filter(
+    (m) =>
+      m?.type === "character" &&
+      userMayAttemptRoomFeatureCheck({
+        userId,
+        isGM,
+        isHost,
+        actor: m,
+        partyMembers,
+      }),
+  );
 }

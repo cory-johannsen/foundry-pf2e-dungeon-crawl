@@ -126,6 +126,7 @@ and then offers the attempt through `room-feature-check.mjs`'s
 `ui/skill-challenge-dialog.mjs` (mirroring #754's `ui/trap-disable-dialog.mjs`)
 and runs the same `attemptPuzzleStageFor`/`attemptSkillChallengeFor` logic
 (exported from `ui/dungeon-app.mjs`) that the tracker window's own forms use.
+A non-GM player's attempt is relayed as `attemptPuzzleStage`/`attemptSkillChallenge` (widened like `attemptTrapDisable`, rolled and recorded on the GM client after `userMayAttemptRoomFeatureCheck` re-validation), never as a self-reported outcome.
 
 **GM-less relay & permissions** (`dungeon-remote.mjs`,
 `dungeon-permissions.mjs`, `player-choice.mjs`, `choice-prompts.mjs`) —

@@ -8,6 +8,8 @@ import {
   ownsPartyCharacter,
   canRelayRoomFeature,
   userMayAttemptTrapDisable,
+  userMayAttemptRoomFeatureCheck,
+  attemptableCharacters,
 } from "../scripts/dungeon-permissions.mjs";
 
 const gm = { id: "gm-1", isGM: true };
@@ -300,5 +302,58 @@ describe("userMayAttemptTrapDisable (#754)", () => {
   it("missing actor or user may not", () => {
     expect(userMayAttemptTrapDisable({ userId: "p", actor: null, partyMembers })).toBe(false);
     expect(userMayAttemptTrapDisable({ actor: mine, partyMembers })).toBe(false);
+  });
+});
+
+describe("#822 room-feature check relay authorization", () => {
+  const opts = { ownsPartyCharacter: true };
+  for (const action of ["attemptPuzzleStage", "attemptSkillChallenge"]) {
+    it(`${action}: widened to a party-character owner, the host; refused for strangers, completed/no run, no user`, () => {
+      expect(isAuthorizedRequest(action, "p", { hostUserId: null }, opts)).toBe(true);
+      expect(isAuthorizedRequest(action, "h", { hostUserId: "h" })).toBe(true);
+      expect(isAuthorizedRequest(action, "p", { hostUserId: "h" })).toBe(false);
+      expect(isAuthorizedRequest(action, "p", { completed: true }, opts)).toBe(false);
+      expect(isAuthorizedRequest(action, "p", null, opts)).toBe(false);
+      expect(isAuthorizedRequest(action, undefined, { hostUserId: "h" }, opts)).toBe(false);
+    });
+  }
+  it("the self-reported outcome actions and others stay host-only", () => {
+    for (const action of ["recordPuzzleStageOutcome", "recordSkillChallengeOutcome", "claimTreasure"]) {
+      expect(isAuthorizedRequest(action, "p", { hostUserId: "h" }, opts)).toBe(false);
+      expect(isAuthorizedRequest(action, "h", { hostUserId: "h" })).toBe(true);
+    }
+  });
+});
+
+describe("userMayAttemptRoomFeatureCheck / attemptableCharacters (#822)", () => {
+  const mine = { id: "a1", type: "character", ownership: { p: 3 } };
+  const other = { id: "a2", type: "character", ownership: { q: 3 } };
+  const partyMembers = [mine, other];
+  it("a non-host owner may roll as their own party character", () => {
+    expect(userMayAttemptRoomFeatureCheck({ userId: "p", actor: mine, partyMembers })).toBe(true);
+  });
+  it("an owner may NOT roll as a character they don't own", () => {
+    expect(userMayAttemptRoomFeatureCheck({ userId: "p", actor: other, partyMembers })).toBe(false);
+  });
+  it("a user who owns no party character is refused", () => {
+    expect(userMayAttemptRoomFeatureCheck({ userId: "x", actor: mine, partyMembers })).toBe(false);
+  });
+  it("an actor outside the party is refused, even for GM/host", () => {
+    const stray = { id: "zz", type: "character", ownership: { p: 3 } };
+    expect(userMayAttemptRoomFeatureCheck({ userId: "p", actor: stray, partyMembers })).toBe(false);
+    expect(userMayAttemptRoomFeatureCheck({ userId: "g", isGM: true, actor: stray, partyMembers })).toBe(false);
+    expect(userMayAttemptRoomFeatureCheck({ userId: "h", isHost: true, actor: stray, partyMembers })).toBe(false);
+  });
+  it("GM and host may roll as any party member; missing user/actor refused", () => {
+    expect(userMayAttemptRoomFeatureCheck({ userId: "g", isGM: true, actor: other, partyMembers })).toBe(true);
+    expect(userMayAttemptRoomFeatureCheck({ userId: "h", isHost: true, actor: other, partyMembers })).toBe(true);
+    expect(userMayAttemptRoomFeatureCheck({ actor: mine, partyMembers })).toBe(false);
+    expect(userMayAttemptRoomFeatureCheck({ userId: "p", partyMembers })).toBe(false);
+  });
+  it("attemptableCharacters: owner sees only their own; GM/host see all characters", () => {
+    expect(attemptableCharacters({ userId: "p", partyMembers })).toEqual([mine]);
+    expect(attemptableCharacters({ userId: "g", isGM: true, partyMembers })).toEqual(partyMembers);
+    expect(attemptableCharacters({ userId: "h", isHost: true, partyMembers })).toEqual(partyMembers);
+    expect(attemptableCharacters({ userId: "x", partyMembers })).toEqual([]);
   });
 });

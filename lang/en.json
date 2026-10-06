@@ -73,6 +73,7 @@
   "PF2EDC.Dungeon.Puzzle.StageLabel": "{skill} — who attempts?",
   "PF2EDC.Dungeon.Puzzle.DialogTitle": "Attempt Puzzle Stage",
   "PF2EDC.Dungeon.Puzzle.DialogCharacterLabel": "Who attempts?",
+  "PF2EDC.Dungeon.Puzzle.DialogStageLabel": "Check",
   "PF2EDC.Dungeon.Puzzle.DialogStageOption": "{skill} (DC {dc})",
   "PF2EDC.Dungeon.Puzzle.DialogConfirm": "Attempt",
   "PF2EDC.Dungeon.Puzzle.DialogCancel": "Cancel",

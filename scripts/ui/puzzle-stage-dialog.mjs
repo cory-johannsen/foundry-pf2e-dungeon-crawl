@@ -45,6 +45,7 @@ export async function promptPuzzleStage(stages, characters) {
           <select name="actorId" style="width:100%;">${who}</select>
         </div>
         <div class="form-group">
+          <label>${game.i18n.localize("PF2EDC.Dungeon.Puzzle.DialogStageLabel")}</label>
           <select name="stageIndex" style="width:100%;">${stageOptions}</select>
         </div>
       </form>`,

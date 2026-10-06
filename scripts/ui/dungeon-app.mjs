@@ -21,7 +21,10 @@ import {
   applyUsedArtOnCompletion,
   showRoomFeatureFallback,
 } from "../room-feature-tokens.mjs";
-import { canActOnDungeon } from "../dungeon-permissions.mjs";
+import {
+  canActOnDungeon,
+  userMayAttemptRoomFeatureCheck,
+} from "../dungeon-permissions.mjs";
 import { fulfillPendingCustomizations } from "../dungeon-customization-fulfillment.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
 import {
@@ -837,6 +840,26 @@ export async function abandonDungeonRun(sceneId) {
 }
 
 /**
+ * #822: server-side gate for a relayed room-feature check. Only applies when
+ * `deps.requestingUserId` is given (a trusted direct GM-client call omits
+ * it). Refuses unless the run is live, `roomId` is the current room, the
+ * requester may roll as `actor` (GM / host / owner, and a party member),
+ * and the puzzle/challenge is not already resolved.
+ */
+function relayedCheckAllowed(sceneId, state, roomId, actor, deps) {
+  if (deps.requestingUserId === undefined) return true;
+  if (!state || state.completed || roomId !== state.currentRoomId) return false;
+  const userId = deps.requestingUserId;
+  return userMayAttemptRoomFeatureCheck({
+    userId,
+    isGM: !!game.users?.get(userId)?.isGM,
+    isHost: !!userId && state.hostUserId === userId,
+    actor,
+    partyMembers: game.actors?.party?.members ?? [],
+  });
+}
+
+/**
  * #822: the roll-then-record-or-relay logic every puzzle-stage attempt
  * needs, extracted so both the tracker's own form (#onAttemptPuzzleStage)
  * and a room-feature token's click dialog (module.mjs, #822) share one
@@ -851,6 +874,7 @@ export async function attemptPuzzleStageFor(
   roomId,
   stageIndex,
   actorId,
+  deps = {},
 ) {
   const state = sceneId ? getRunState(sceneId) : null;
   const room = state?.rooms[roomId];
@@ -859,6 +883,8 @@ export async function attemptPuzzleStageFor(
   if (!stage || stage.attempted) return null;
   const actor = actorId ? game.actors.get(actorId) : null;
   if (!actor) return null;
+  if (deps.requestingUserId !== undefined && room.puzzle.resolved) return null;
+  if (!relayedCheckAllowed(sceneId, state, roomId, actor, deps)) return null;
 
   const result = await rollPuzzleStageAttempt(actor, stage.skill, stage.dc);
   if (!result) return null;
@@ -883,12 +909,21 @@ export async function attemptPuzzleStageFor(
  * by the caller; this looks up the current room itself, including the #553
  * specialty-skill restriction and the dcForAttempt call.
  */
-export async function attemptSkillChallengeFor(sceneId, actorId, skill) {
+export async function attemptSkillChallengeFor(
+  sceneId,
+  actorId,
+  skill,
+  deps = {},
+) {
   const state = sceneId ? getRunState(sceneId) : null;
   const currentRoom = state?.rooms[state.currentRoomId];
   if (!currentRoom?.challenge) return null;
   const actor = actorId ? game.actors.get(actorId) : null;
   if (!actor || !skill) return null;
+  if (deps.requestingUserId !== undefined && currentRoom.challenge.resolved)
+    return null;
+  if (!relayedCheckAllowed(sceneId, state, currentRoom.id, actor, deps))
+    return null;
   // #553: only the challenge's own specialty skills are attemptable.
   if (!currentRoom.challenge.specialtySkills.includes(skill)) return null;
 

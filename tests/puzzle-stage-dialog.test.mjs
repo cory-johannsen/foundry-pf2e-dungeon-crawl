@@ -41,7 +41,7 @@ describe("puzzle-stage-dialog source", () => {
   const src = readFileSync(new URL("../scripts/ui/puzzle-stage-dialog.mjs", import.meta.url), "utf8");
   it("uses DialogV2 and the localized keys", () => {
     expect(src).toContain("DialogV2");
-    for (const k of ["Title", "CharacterLabel", "StageOption", "Confirm", "Cancel"])
+    for (const k of ["Title", "CharacterLabel", "StageLabel", "StageOption", "Confirm", "Cancel"])
       expect(src).toContain(`PF2EDC.Dungeon.Puzzle.Dialog${k}`);
   });
 });
@@ -49,7 +49,7 @@ describe("puzzle-stage-dialog source", () => {
 describe("puzzle dialog lang keys", () => {
   const lang = JSON.parse(readFileSync(new URL("../lang/en.json", import.meta.url), "utf8"));
   it("defines the new keys", () => {
-    for (const k of ["DialogTitle", "DialogCharacterLabel", "DialogStageOption", "DialogConfirm", "DialogCancel", "DialogNoCharacters", "DialogNothingToAttempt"])
+    for (const k of ["DialogTitle", "DialogCharacterLabel", "DialogStageLabel", "DialogStageOption", "DialogConfirm", "DialogCancel", "DialogNoCharacters", "DialogNothingToAttempt"])
       expect(lang[`PF2EDC.Dungeon.Puzzle.${k}`]).toBeTruthy();
     expect(lang["PF2EDC.Dungeon.Puzzle.DialogStageOption"]).toContain("{dc}");
   });
