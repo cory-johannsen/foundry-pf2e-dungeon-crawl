@@ -1,0 +1,483 @@
+{
+  "aberration-0.webp": {
+    "sha256": "a4156143d0bfa1dc8be54082577a24dbc173cb7b2b02f63576eb8b6aa4890e12",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "aberration-1.webp": {
+    "sha256": "3a79205494e27a8e8ec2c05490e666608d10a161bfd768c8803fb3d3037755f2",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "aberration-2.webp": {
+    "sha256": "98492b24066cc00235af0f9431d462f81389b4ed68cfde9c7395031bd55dad32",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "aberration-goal.webp": {
+    "sha256": "4871c8d6d9835c3dd98536bf4d8b4d6650aae53b443d663dbf0bd9a2ea411fe0",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "beast-0.webp": {
+    "sha256": "175e4bb0aea5cfc07801594036d41583d52afd58452a6d54bddd1ef5e059103f",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "beast-1.webp": {
+    "sha256": "27dcb9883aa138934c558d4f13dae2879c6b626ad1de228321f1095cc7d19eb2",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "beast-2.webp": {
+    "sha256": "99ac1a16362430d04763b64ac36e3dbb67a895de2b6712eeb9e8373ee309c141",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "beast-goal.webp": {
+    "sha256": "e52d3d65e481de6da8a8d5e7ee7109259c5469a869b3d40f390620eccfd5dc6b",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "construct-0.webp": {
+    "sha256": "31402f3da6a6b3081a15d175e87e9a4aaa733b903c61664fa7740c4f684d01dd",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "construct-1.webp": {
+    "sha256": "0008ed9f0aa12283866cd020e1b3d37a3b0a158be6f2eba1df520ef89d3f36cd",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "construct-2.webp": {
+    "sha256": "069518d887aba43ddb039243753359fcc4c4aeec0b8313bb5d2860c2347a0af3",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "construct-goal.webp": {
+    "sha256": "935a383aa9a6313733616dbba4d6260e9e02d5924a27db5a8e72287dcf05425e",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "corridor-corner.webp": {
+    "sha256": "5ae37966d28cbf214282f4573729add604edc3dfb07b6a362ac40901e066faae",
+    "size": [
+      512,
+      512
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "corridor-end.webp": {
+    "sha256": "80f642749bbe2d2e790e873bae9bd1d1da13fe349b5f25334c5844ce2ba11421",
+    "size": [
+      512,
+      512
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "corridor-mid.webp": {
+    "sha256": "f8c37ad7b067651e9d6be0d8043c3e298f83e23863ba8ebd13da7a18b94731fa",
+    "size": [
+      512,
+      512
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "corridor-rubble.webp": {
+    "sha256": "9bb29a513459c6537df13049df79214d12857ea20190263ff01441c78c59e80c",
+    "size": [
+      512,
+      512
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "corridor.webp": {
+    "sha256": "96f60c060a7ec60d3bc1d28813a9753549ad97d8551c330bfe3bbede00a45e1f",
+    "size": [
+      512,
+      512
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "dragon-0.webp": {
+    "sha256": "e83fe28e3d135ae1c7035acd30be7bf28083aed9aba7c060143cb0eb31d8d91e",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "dragon-1.webp": {
+    "sha256": "2cfeda8aa150fdefa4930ee2bd536502561ed773548224fc2e6c694c14ed9513",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "dragon-2.webp": {
+    "sha256": "3331e922563e367b01de86f5e1a78c8e433ee7aadfa0f5c29ff1724283f9f8c2",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "dragon-goal.webp": {
+    "sha256": "e98efee8fd8cfe8994c6b8b486cf161e91df59f8710083e1793b26fc3addfbc1",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "elemental-0.webp": {
+    "sha256": "3ee3996e76ff29fa0ff0ded9254026aeefef313ece2960e2217db164173f46b5",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "elemental-1.webp": {
+    "sha256": "dcec01da12a4475e0cd550b4d66c0dffdb75644d97b04901467a0e13eb35d9c3",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "elemental-2.webp": {
+    "sha256": "360e62ed7b104cc466016d5589ca65766dc3023c99a99930152540d9987294e3",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "elemental-goal.webp": {
+    "sha256": "5a56a21530bdf701fc8b53d636ca6797366e2add4586e73bc03bba048bb94d23",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "fiend-0.webp": {
+    "sha256": "f97f403b3e30698162681bd07185aefb0a83064dbbe52a4845aa497634d7608a",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "fiend-1.webp": {
+    "sha256": "0c7c6474194bc9ebcb71cdd30a3a1806760ad01a9b56c01e79bcbe4bc551b6d1",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "fiend-2.webp": {
+    "sha256": "f82e432cbf09abd8f7fa34e145ecb4f9bf8eb70646395cb6c954464a1767747e",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "fiend-goal.webp": {
+    "sha256": "6ed70bfe71988ad5f6372d89bb792845d57289acc1974d4d3e158e2ba14f697b",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "plant-0.webp": {
+    "sha256": "642be5a34603ac342283ac52fb43545e4288a5a61bd8b0caa70686dc71c69062",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "plant-1.webp": {
+    "sha256": "e6bcda94860350d119f26f33833fcf26ce248f0ffa3d5c8537faaebca8f753af",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "plant-2.webp": {
+    "sha256": "df1a40ba6e0ad5231790adec7b2f97417b2fbcace6b7d95490a02cdaf693bce3",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "plant-goal.webp": {
+    "sha256": "a8500f4cf14094fbb8e34bbef18ea4e3f67b805b6fcf671ca929ad70bae9538c",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "undead-0.webp": {
+    "sha256": "afb67aacbfc9b7ea53b34d8f5f5ff453f4eb32ac09d9e925a7c1ba3fd00b3b7e",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "undead-1.webp": {
+    "sha256": "82267baaa72540af66fda8afd65d499035231420c604a884a243905eaea7e3df",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "undead-2.webp": {
+    "sha256": "69773b02cbd69c28802fda3ceedef4555cd1441f33cf2eb5864a03d34989dfff",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  },
+  "undead-goal.webp": {
+    "sha256": "3337e2447cc7b1c05ea8f4ec471a31be414661baad561176945bc5d1475842b4",
+    "size": [
+      768,
+      768
+    ],
+    "nearWhiteOuterBandPct": {
+      "N": 0.0,
+      "S": 0.0,
+      "W": 0.0,
+      "E": 0.0
+    }
+  }
+}
