@@ -23,12 +23,11 @@ out = Path(sys.argv[2]) if len(sys.argv) > 2 else Path("assets/room-features")
 session = None
 
 
-def key_white(im, floor=228):
-    """Clear the near-white background connected to the image border."""
+def key_bg(im, bg):
+    """Clear the background (pixels where bg(pixel) is true) connected to the image border."""
     im = im.convert("RGBA")
     w, h = im.size
     px = im.load()
-    bg = lambda p: p[0] > floor and p[1] > floor and p[2] > floor
     seen = bytearray(w * h)
     q = deque()
     for x in range(w):
@@ -52,11 +51,18 @@ def key_white(im, floor=228):
 
 
 for src in sorted(p for p in raw.glob("*/*") if p.suffix.lower() in (".webp", ".jpg", ".jpeg", ".png")):
-    theme, kind = src.parent.name, src.stem
+    theme, kind = src.parent.name, src.stem  # kind may carry a -N variant suffix
     rgb = Image.open(src).convert("RGB")
-    if kind == "door":
-        # Hand-generated top-down strip on a plain white background.
-        im = key_white(rgb)
+    if kind.startswith("door"):
+        # Top-down strip. A white background (hand-made) or a flat black one
+        # (OpenRouter, with a soft glow that is kept as a thin aura) is keyed out
+        # from the border, then the strip is cropped to what is left.
+        corners = [rgb.getpixel(c) for c in ((2, 2), (rgb.width - 3, 2), (2, rgb.height - 3), (rgb.width - 3, rgb.height - 3))]
+        dark = sum(sum(c) / 3 for c in corners) / 4 < 60
+        if dark:
+            im = key_bg(rgb, lambda p: p[0] < 30 and p[1] < 30 and p[2] < 30)
+        else:
+            im = key_bg(rgb, lambda p: p[0] > 228 and p[1] > 228 and p[2] > 228)
         im = im.crop(im.getbbox())
         im = im.resize((1200, round(1200 * im.height / im.width)), Image.LANCZOS)
     else:

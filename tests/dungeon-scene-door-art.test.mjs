@@ -5,13 +5,13 @@ vi.mock("../scripts/data-loader.mjs", async (importOriginal) => {
   return {
     ...real,
     loadRoomFeatureArt: vi.fn(async () => ({
-      undead: ["door", "treasure", "puzzle", "skill_challenge"],
-      fiend: ["door"],
+      undead: { door: [0], treasure: [0], puzzle: [0], skill_challenge: [0] },
+      fiend: { door: [0] },
     })),
   };
 });
 
-import { wallDoc, buildPopulateAndUnlockGraphNode, buildRoomAtGraphNode } from "../scripts/dungeon-scene.mjs";
+import { wallDoc, buildPopulateAndUnlockGraphNode, buildRoomAtGraphNode, unlockDoorsFromRoom, unsealHiddenDoorFromRoom, relockDoorFromRoom, relockSiblingDoors, reopenSiblingDoors } from "../scripts/dungeon-scene.mjs";
 import { roomRect } from "../scripts/dungeon-layout.mjs";
 import { DOOR_TEXTURE_WIDTH_PX } from "../scripts/room-feature-art.mjs";
 import { loadRoomFeatureArt } from "../scripts/data-loader.mjs";
@@ -192,5 +192,208 @@ describe("scene door wiring (#750)", () => {
       { id: A, kind: "narrative", isGoal: false, locationTag: null, artVariant: 0, setpieceId: null },
       { rank: 1, col: 2, childIds: [], unlock: false },
     )).resolves.not.toThrow();
+  });
+});
+
+describe("door floor-variant and locked-state art (#764)", () => {
+  beforeEach(installFoundryStubs);
+
+  const seed = "door-art-seed-0";
+  const S = "room-s";
+  const A = "room-a";
+  const layoutPositionByRoomId = { [S]: { rank: 0, col: 2 }, [A]: { rank: 1, col: 2 } };
+  const occupiedCells = { "0,2": S, "1,2": A };
+  const incomingFaceByRoomId = { [S]: "north", [A]: "north" };
+  const edges = { [S]: [A] };
+  const layoutEdges = { [S]: [A] };
+  const baseState = (rooms) => ({
+    seed, layoutPositionByRoomId, incomingFaceByRoomId, hiddenRooms: [], edges, layoutEdges,
+    hiddenIncomingByRoomId: {}, hiddenEdges: {}, layoutVersion: 2, rooms,
+  });
+  const buildSource = (scene, artVariant = 0) => buildRoomAtGraphNode(scene, S, {
+    rank: 0, col: 2, childIds: [A], incomingConnections: [], seed,
+    layoutPositionByRoomId, occupiedCells, incomingFace: "north", incomingFaceByRoomId,
+    edges, layoutEdges, hiddenIncomingByRoomId: {}, hiddenEdges: {}, layoutVersion: 2,
+    locationTag: "undead", artVariant,
+  });
+  const populate = (scene, rooms) => buildPopulateAndUnlockGraphNode(
+    scene, baseState(rooms),
+    { id: A, kind: "narrative", isGoal: false, locationTag: "fiend", artVariant: 1, setpieceId: null },
+    { rank: 1, col: 2, childIds: [], unlock: false },
+  );
+  const gateOf = (scene) => scene.walls.find((w) => w.getFlag(MODULE_ID, "dungeonDoorToRoomId") === A);
+  const revealOf = (scene) => scene.walls.find((w) => w.getFlag(MODULE_ID, "dungeonRevealDoorForSlot") === A);
+  const stubsOf = (scene) => scene.walls.filter((w) => w.getFlag(MODULE_ID, "dungeonStubDoorFor"));
+
+  it("gives the reveal door its room's floor-variant art", async () => {
+    loadRoomFeatureArt.mockResolvedValue({
+      undead: { door: [0, 1] }, fiend: { door: [0, 1] },
+    });
+    const scene = makeFakeScene();
+    await buildSource(scene);
+    await populate(scene, { [S]: { locationTag: "undead", artVariant: 0 }, [A]: { locationTag: "fiend", artVariant: 1 } });
+    expect(revealOf(scene).animation.texture).toBe(`${ART}/fiend/door-1.webp`);
+    expect(gateOf(scene).animation.texture).toBe(`${ART}/undead/door.webp`);
+  });
+
+  it("uses the locked art for a locked gate, from the source room's theme and variant", async () => {
+    loadRoomFeatureArt.mockResolvedValue({
+      undead: { door: [0, 1], door_locked: [0] }, fiend: { door: [0, 1], door_locked: [0] },
+    });
+    const scene = makeFakeScene();
+    await buildSource(scene);
+    await populate(scene, { [S]: { locationTag: "undead", artVariant: 1 }, [A]: { locationTag: "fiend", artVariant: 1 } });
+    expect(gateOf(scene).animation.texture).toBe(`${ART}/undead/door_locked.webp`);
+    // the reveal door is CLOSED, so it keeps the plain variant art.
+    expect(revealOf(scene).animation.texture).toBe(`${ART}/fiend/door-1.webp`);
+    expect(gateOf(scene).flags.core.textureGridSize).toBe(DOOR_TEXTURE_WIDTH_PX);
+  });
+
+  it("uses the locked art for a locked stub door", async () => {
+    loadRoomFeatureArt.mockResolvedValue({ undead: { door: [0], door_locked: [0] } });
+    const scene = makeFakeScene();
+    await buildRoomAtGraphNode(scene, S, {
+      rank: 0, col: 2, childIds: [], incomingConnections: [], seed,
+      layoutPositionByRoomId, occupiedCells: { "0,2": S }, incomingFace: "north", incomingFaceByRoomId,
+      edges: {}, layoutEdges, hiddenIncomingByRoomId: {}, hiddenEdges: {}, layoutVersion: 3,
+      stubEdges: { [S]: [A] }, locationTag: "undead",
+    });
+    const stubs = stubsOf(scene);
+    for (const d of stubs) expect(d.animation.texture).toBe(`${ART}/undead/door_locked.webp`);
+  });
+
+  it("falls back to the variant-matched door art when there is no door_locked entry", async () => {
+    loadRoomFeatureArt.mockResolvedValue({
+      undead: { door: [0, 1] }, fiend: { door: [0, 1] },
+    });
+    const scene = makeFakeScene();
+    await buildSource(scene);
+    await populate(scene, { [S]: { locationTag: "undead", artVariant: 1 }, [A]: { locationTag: "fiend", artVariant: 1 } });
+    expect(gateOf(scene).ds).toBe(CONST.WALL_DOOR_STATES.LOCKED);
+    expect(gateOf(scene).animation.texture).toBe(`${ART}/undead/door-1.webp`);
+  });
+
+  describe("unlockDoorsFromRoom", () => {
+    const runWith = (rooms) => {
+      globalThis.game = { settings: { get: () => ({ "test-scene": { rooms } }) } };
+    };
+    const lockedDoor = (extra = {}) => {
+      const doc = {
+        id: "w1", ds: CONST.WALL_DOOR_STATES.LOCKED,
+        animation: { type: "swing", texture: `${ART}/undead/door_locked.webp` },
+        flags: { core: { textureGridSize: DOOR_TEXTURE_WIDTH_PX } },
+        getFlag: (m, k) => ({ dungeonDoorToRoomId: A, dungeonDoorFromRoomId: S, ...extra })[k],
+        update: vi.fn(async (c) => Object.assign(doc, c)),
+      };
+      return doc;
+    };
+
+    it("swaps a locked door's texture back to the room's variant door art, touching only the texture", async () => {
+      loadRoomFeatureArt.mockResolvedValue({ undead: { door: [0, 1], door_locked: [0] } });
+      runWith({ [S]: { locationTag: "undead", artVariant: 1 } });
+      const wall = lockedDoor();
+      await unlockDoorsFromRoom({ id: "test-scene", walls: [wall] }, S, [A]);
+      expect(wall.ds).toBe(CONST.WALL_DOOR_STATES.CLOSED);
+      expect(wall.animation.texture).toBe(`${ART}/undead/door-1.webp`);
+      expect(wall.animation.type).toBe("swing");
+      expect(wall.flags.core.textureGridSize).toBe(DOOR_TEXTURE_WIDTH_PX);
+      expect(Object.keys(wall.update.mock.calls[0][0]).sort()).toEqual(["animation", "ds"]);
+    });
+
+    it("only changes ds when the door has no animation or there is no door art", async () => {
+      loadRoomFeatureArt.mockResolvedValue({});
+      runWith({ [S]: { locationTag: "undead", artVariant: 0 } });
+      const wall = lockedDoor();
+      await unlockDoorsFromRoom({ id: "test-scene", walls: [wall] }, S, [A]);
+      expect(wall.update).toHaveBeenCalledWith({ ds: CONST.WALL_DOOR_STATES.CLOSED });
+    });
+
+    it("tolerates no run state at all", async () => {
+      loadRoomFeatureArt.mockResolvedValue({ undead: { door: [0] } });
+      globalThis.game = { settings: { get: () => ({}) } };
+      const wall = lockedDoor();
+      await unlockDoorsFromRoom({ id: "test-scene", walls: [wall] }, S, [A]);
+      expect(wall.update).toHaveBeenCalledWith({ ds: CONST.WALL_DOOR_STATES.CLOSED });
+    });
+  });
+});
+
+describe("door art on unseal / relock / reopen (#764)", () => {
+  beforeEach(installFoundryStubs);
+  const S = "room-s";
+  const A = "room-a";
+  const LOCKED_ART = (t) => `${ART}/${t}/door_locked.webp`;
+  const setup = () => {
+    loadRoomFeatureArt.mockResolvedValue({
+      undead: { door: [0, 1], door_locked: [0] }, fiend: { door: [0, 1], door_locked: [0] },
+    });
+    globalThis.game = { settings: { get: () => ({ "test-scene": { rooms: {
+      [S]: { locationTag: "undead", artVariant: 1 }, [A]: { locationTag: "fiend", artVariant: 1 },
+    } } }) } };
+  };
+  const mkWall = (flags, texture) => {
+    const doc = {
+      id: `w-${Math.random()}`, ds: CONST.WALL_DOOR_STATES.LOCKED,
+      animation: { type: "swing", texture },
+      flags: { core: { textureGridSize: DOOR_TEXTURE_WIDTH_PX } },
+      getFlag: (m, k) => flags[k],
+      update: vi.fn(async (c) => Object.assign(doc, c)),
+    };
+    return doc;
+  };
+  const scene = (walls) => ({ id: "test-scene", walls });
+
+  it("unseal: hidden gate gets the source room's normal variant art", async () => {
+    setup();
+    const w = mkWall({ dungeonHiddenDoorForEdge: `${S}->${A}`, dungeonHiddenDoorRole: "gate" }, LOCKED_ART("undead"));
+    await unsealHiddenDoorFromRoom(scene([w]), S, A);
+    expect(w.animation.texture).toBe(`${ART}/undead/door-1.webp`);
+    expect(w.flags.core.textureGridSize).toBe(DOOR_TEXTURE_WIDTH_PX);
+  });
+  it("unseal: hidden reveal gets the target room's normal variant art", async () => {
+    setup();
+    const w = mkWall({ dungeonHiddenDoorForEdge: `${S}->${A}`, dungeonHiddenDoorRole: "reveal" }, LOCKED_ART("fiend"));
+    await unsealHiddenDoorFromRoom(scene([w]), S, A);
+    expect(w.animation.texture).toBe(`${ART}/fiend/door-1.webp`);
+  });
+  it("unseal: hidden stub gets the source room's normal variant art", async () => {
+    setup();
+    const w = mkWall({ dungeonHiddenDoorForEdge: `${S}->${A}`, dungeonStubDoorFor: A }, LOCKED_ART("undead"));
+    await unsealHiddenDoorFromRoom(scene([w]), S, A);
+    expect(w.animation.texture).toBe(`${ART}/undead/door-1.webp`);
+  });
+  it("unseal: a door with no animation only gets its state change", async () => {
+    setup();
+    const w = mkWall({ dungeonHiddenDoorForEdge: `${S}->${A}`, dungeonHiddenDoorRole: "gate" });
+    delete w.animation;
+    await unsealHiddenDoorFromRoom(scene([w]), S, A);
+    expect("animation" in w).toBe(false);
+  });
+  it("relockDoorFromRoom swaps the gate to locked art and re-closes the reveal on normal art", async () => {
+    setup();
+    const gate = mkWall({ dungeonDoorToRoomId: A, dungeonDoorFromRoomId: S }, `${ART}/undead/door-1.webp`);
+    const reveal = mkWall({ dungeonRevealDoorForSlot: A, dungeonDoorFromRoomId: S }, `${ART}/fiend/door-1.webp`);
+    await relockDoorFromRoom(scene([gate, reveal]), S, A);
+    expect(gate.ds).toBe(CONST.WALL_DOOR_STATES.LOCKED);
+    expect(gate.animation.texture).toBe(LOCKED_ART("undead"));
+    expect(gate.flags.core.textureGridSize).toBe(DOOR_TEXTURE_WIDTH_PX);
+    expect(reveal.animation.texture).toBe(`${ART}/fiend/door-1.webp`);
+  });
+  it("relockSiblingDoors locks to locked art, reopenSiblingDoors restores normal art", async () => {
+    setup();
+    const gate = mkWall({ dungeonDoorToRoomId: A, dungeonDoorFromRoomId: S }, `${ART}/undead/door-1.webp`);
+    await relockSiblingDoors(scene([gate]), S, "other", [A]);
+    expect(gate.animation.texture).toBe(LOCKED_ART("undead"));
+    await reopenSiblingDoors(scene([gate]), S, [A]);
+    expect(gate.ds).toBe(CONST.WALL_DOOR_STATES.CLOSED);
+    expect(gate.animation.texture).toBe(`${ART}/undead/door-1.webp`);
+  });
+  it("relock falls back to normal art when the theme has no locked art", async () => {
+    setup();
+    loadRoomFeatureArt.mockResolvedValue({ undead: { door: [0, 1] } });
+    const gate = mkWall({ dungeonDoorToRoomId: A, dungeonDoorFromRoomId: S }, `${ART}/undead/door-1.webp`);
+    await relockSiblingDoors(scene([gate]), S, "other", [A]);
+    expect(gate.animation.texture).toBe(`${ART}/undead/door-1.webp`);
+    expect(gate.update).toHaveBeenCalledWith({ ds: CONST.WALL_DOOR_STATES.LOCKED });
   });
 });

@@ -38,7 +38,7 @@
 **Interfaces:**
 - Produces: `roomFeatureArtPath({theme, kind, variant = 0, manifest})` — same name/callers as today, now variant-aware. `ROOM_FEATURE_ART_STATE_KINDS` — the 4 new kind keys (`door_locked`, `treasure_used`, `puzzle_used`, `skill_challenge_used`), exported for Task 4's generator wiring. Consumed by Tasks 2 and 3.
 
-- [ ] **Step 1: Confirm the existing test file and current manifest-coverage test**
+- [x] **Step 1: Confirm the existing test file and current manifest-coverage test**
 
 ```bash
 grep -rln "roomFeatureArtPath" tests/
@@ -46,7 +46,7 @@ grep -rln "roomFeatureArtPath" tests/
 
 Open whichever file that finds and read its existing `describe`/`it` blocks in full before writing new ones below, matching its exact conventions (fixture style, manifest-coverage assertion shape).
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 Add to that file:
 
@@ -85,12 +85,12 @@ describe('roomFeatureArtPath variants (#764)', () => {
 });
 ```
 
-- [ ] **Step 3: Run tests to verify they fail**
+- [x] **Step 3: Run tests to verify they fail**
 
 Run: `npx vitest run tests/room-feature-art.test.mjs -t "variants"` (adjust path to whatever Step 1 found)
 Expected: FAIL — `roomFeatureArtPath` doesn't understand `variant` or the new manifest shape yet.
 
-- [ ] **Step 4: Rewrite `roomFeatureArtPath` and extend the kind list**
+- [x] **Step 4: Rewrite `roomFeatureArtPath` and extend the kind list**
 
 In `scripts/room-feature-art.mjs`, change:
 
@@ -148,7 +148,7 @@ export function roomFeatureArtPath({ theme, kind, variant = 0, manifest } = {}) 
 }
 ```
 
-- [ ] **Step 5: Migrate `data/room-feature-art.json`**
+- [x] **Step 5: Migrate `data/room-feature-art.json`**
 
 Replace its entire contents with (every existing entry's kinds carried forward unchanged as `[0]`; no new variants/state kinds listed yet — Task 5 adds them once the art actually exists):
 
@@ -165,16 +165,16 @@ Replace its entire contents with (every existing entry's kinds carried forward u
 }
 ```
 
-- [ ] **Step 6: Update the manifest-coverage test for the new shape**
+- [x] **Step 6: Update the manifest-coverage test for the new shape**
 
 The existing "manifest matches the files on disk exactly" test (found in Step 1) walks `manifest[theme]` as an array of kind strings; update it to walk `Object.keys(manifest[theme])` as the kind list instead (the variant array itself only matters for Task 5's own coverage check, added there once variant/state files actually exist) — adjust its exact logic to match whatever shape the real test used, preserving its "no manifest entry without a file, no file without an entry" guarantee for variant 0's unsuffixed filename.
 
-- [ ] **Step 7: Run tests to verify they pass**
+- [x] **Step 7: Run tests to verify they pass**
 
 Run: `npx vitest run tests/room-feature-art.test.mjs`
 Expected: PASS, every test (old and new) green.
 
-- [ ] **Step 8: Run the full test suite to confirm no regression**
+- [x] **Step 8: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS — every existing caller of `roomFeatureArtPath` (Tasks 2/3's own current code, pre-this-plan) still passes a bare `{theme, kind, manifest}` with no `variant`, which now defaults to 0 and resolves identically to before the manifest migration.
@@ -200,7 +200,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `roomFeatureArtPath({theme, kind, variant, manifest})` (Task 1).
 - Produces: nothing further in this plan consumes it.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Read `tests/dungeon-scene-door-art.test.mjs` in full first to match its exact fixture/mock conventions (confirmed current: it already covers #750's door-art wiring, so this is an extension, not a new harness). Add cases asserting:
 - A door built for a room whose `artVariant` is 1 (and whose manifest lists `door: [0, 1]` for that theme) gets `animation.texture` ending in `door-1.webp`, not `door.webp`.
@@ -208,12 +208,12 @@ Read `tests/dungeon-scene-door-art.test.mjs` in full first to match its exact fi
 - A door built with `ds: LOCKED` but NO `door_locked` entry in the manifest falls back to the normal (variant-matched) `door` art, unchanged from #750's own existing behavior.
 - `unlockDoorsFromRoom`, called against a wall whose `animation.texture` currently points at a `door_locked` image, updates it (via `wall.update`) to the normal `door`/`door-N` art for that same room's theme and variant.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-scene-door-art.test.mjs -t "#764"`
 Expected: FAIL.
 
-- [ ] **Step 3: Extend both `doorArt` closures**
+- [x] **Step 3: Extend both `doorArt` closures**
 
 In `buildRoomAtGraphNode` (confirmed current, lines 507-509):
 
@@ -270,7 +270,7 @@ to:
           wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonRevealDoorForSlot: room.id, dungeonDoorFromRoomId: sourceId } }, ds: CONST.WALL_DOOR_STATES.CLOSED, door: CONST.WALL_DOOR_TYPES.DOOR, art: doorArt(room.locationTag, room.artVariant) }),
 ```
 
-- [ ] **Step 4: Swap the texture back on unlock**
+- [x] **Step 4: Swap the texture back on unlock**
 
 In `unlockDoorsFromRoom` (confirmed current, lines 1913-1938), change:
 
@@ -356,17 +356,17 @@ export async function unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildId
 
 (`getRunState` is already imported in this file, confirmed current line 64 — no new import needed.)
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-scene-door-art.test.mjs`
 Expected: PASS, old and new cases green.
 
-- [ ] **Step 6: Run the full test suite to confirm no regression**
+- [x] **Step 6: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-scene-door-art.test.mjs
@@ -388,19 +388,19 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `applyRoomFeatureUsedArt(scene, roomId, kind, {theme, manifest})` (new, `scripts/dungeon-scene.mjs`) — finds the room's own feature token (via the same `roomFeatureRoomId`/`roomFeatureKind` flags `hasRoomFeatureToken` already reads) and updates its `img`/`prototypeToken.texture.src` to the `${kind}_used` art if the manifest lists it, else does nothing. `runRoomFeatureAction`'s own `deps` shape gains `applyUsedArt` (optional; a no-op default keeps every existing caller that doesn't pass it unaffected — though this plan updates both real callers to pass it).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `grep -rln "runRoomFeatureAction\|spawnRoomFeatureToken" tests/` first and read the matching file(s) in full to match their exact fixture conventions. Add cases:
 - `spawnRoomFeatureToken` called with a room whose `artVariant` is 1 (manifest lists `treasure: [0, 1]` for that theme) builds the actor with `art` ending in `treasure-1.webp`.
 - `runRoomFeatureAction` for `kind: "treasure"`, on success, calls `deps.applyUsedArt(scene-or-sceneId, roomId, "treasure", {theme, manifest})` (match whatever exact argument shape reads most naturally against this function's own existing `deps` calls, e.g. `claimTreasureFor`/`revealRoomFeature`'s own argument style) exactly once; a failed/not-ok plan never calls it.
 - `applyRoomFeatureUsedArt`: updates the matching token's `img`/`prototypeToken.texture.src` (via `token.actor.update`, matching how every other room-feature token update in this codebase applies a visual change) when the manifest lists `${kind}_used` for that theme; does nothing (no `update` call) when it doesn't; does nothing when no matching token exists on the scene.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run -t "#764"` across whichever files Step 1 touched.
 Expected: FAIL.
 
-- [ ] **Step 3: Thread `artVariant` into `spawnRoomFeatureToken`**
+- [x] **Step 3: Thread `artVariant` into `spawnRoomFeatureToken`**
 
 Change (confirmed current, lines 1085-1096):
 
@@ -438,7 +438,7 @@ async function spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed, the
 
 Update all three call sites (confirmed current, ~lines 1800, 1848, 1884) to add `variant: room.artVariant,` alongside their existing `theme: room.locationTag,` line.
 
-- [ ] **Step 4: Write `applyRoomFeatureUsedArt`**
+- [x] **Step 4: Write `applyRoomFeatureUsedArt`**
 
 Add near `spawnRoomFeatureToken` in `scripts/dungeon-scene.mjs`:
 
@@ -463,7 +463,7 @@ export async function applyRoomFeatureUsedArt(scene, roomId, kind, { theme, mani
 }
 ```
 
-- [ ] **Step 5: Wire it into `runRoomFeatureAction`**
+- [x] **Step 5: Wire it into `runRoomFeatureAction`**
 
 In `scripts/room-feature-tokens.mjs`, change `runRoomFeatureAction` (confirmed current, lines 64-87):
 
@@ -528,7 +528,7 @@ export async function runRoomFeatureAction(
 }
 ```
 
-- [ ] **Step 6: Wire the real collaborator at both call sites**
+- [x] **Step 6: Wire the real collaborator at both call sites**
 
 In `scripts/module.mjs` (confirmed current, line 371 area, where `revealRoomFeature`/`claimTreasureFor`/`getRunState` are already passed into `runRoomFeatureAction`'s `deps`) and `scripts/dungeon-remote.mjs` (confirmed current, line 91), add a new local wrapper and pass it as `applyUsedArt`:
 
@@ -542,17 +542,17 @@ async function applyRoomFeatureUsedArtForScene(sceneId, roomId, kind, { theme })
 
 (import `applyRoomFeatureUsedArt` from `./dungeon-scene.mjs` and `loadRoomFeatureArt` from `./data-loader.mjs` in both files — `dungeon-remote.mjs` and `module.mjs` both already import several other things from `dungeon-scene.mjs`, confirmed current, so this is additive to an existing import line, not a new cross-file dependency) then add `applyUsedArt: applyRoomFeatureUsedArtForScene` to each of the two `{ getRunState, claimTreasureFor, revealRoomFeature }` deps objects passed into `runRoomFeatureAction`.
 
-- [ ] **Step 7: Run tests to verify they pass**
+- [x] **Step 7: Run tests to verify they pass**
 
 Run: `npx vitest run -t "#764"` across the files Step 1 touched.
 Expected: PASS.
 
-- [ ] **Step 8: Run the full test suite to confirm no regression**
+- [x] **Step 8: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs scripts/room-feature-tokens.mjs scripts/module.mjs scripts/dungeon-remote.mjs
@@ -570,7 +570,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 **Interfaces:** None — pure content, consumed by Task 5's generation run via the existing `generate-token-art.mjs` pipeline (unchanged import/splice mechanism, confirmed current from #750).
 
-- [ ] **Step 1: Add the 4 new state-kind subjects**
+- [x] **Step 1: Add the 4 new state-kind subjects**
 
 In `tools/room-feature-art-prompts.mjs`, change the import and `KIND_SUBJECT`/generation list:
 
@@ -657,12 +657,12 @@ export const ROOM_FEATURE_ART = [
 
 (`baseKindSubject`'s extraction is a pure refactor of the existing single-line prompt-building expression — same text, reused for both the original 32 and the new proof-batch entries, since a floor-variant image describes the identical object/theme as variant 0, just a different roll of the same prompt — the generator's own per-attempt seed, confirmed current in `generate-token-art.mjs`, already produces a different image per distinct `id`.)
 
-- [ ] **Step 2: Run the full test suite to confirm no regression**
+- [x] **Step 2: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS — `tools/room-feature-art-prompts.mjs` has no dedicated unit test (confirmed, matching #750's own precedent for this exact file and `generate-token-art.mjs`'s own content arrays generally); this is a regression check on the rest of the suite.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tools/room-feature-art-prompts.mjs
@@ -682,7 +682,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No unit test: this task is the image-generation run, manifest update, and live verification, not code.
 
-- [ ] **Step 1: Generate the 40 images**
+- [x] **Step 1: Generate the 40 images**
 
 ```bash
 node tools/generate-token-art.mjs \
@@ -700,11 +700,11 @@ node tools/generate-token-art.mjs \
 
 Per #750's own documented precedent (its spec's "As built" note): the generator produces straight-on/flat results needing the same `tools/cutout-room-feature-art.py` post-process (crop/turn/squash for doors to the established 5:1 strip; rembg cutout for tokens) — run it the same way #750's own batch did.
 
-- [ ] **Step 2: Review every image**
+- [x] **Step 2: Review every image**
 
 Per #750's own established review discipline (its spec's "Review" section): check each image against its kind (a locked door reads as barred/chained, an open chest reads as emptied, a solved puzzle reads as settled/quiescent, a spent challenge marker reads as lowered/still) and its theme, with no stray frames, rings, pedestals, or scenery. Redo (via `--force --reroll=N`) any that fail.
 
-- [ ] **Step 3: Update the manifest**
+- [x] **Step 3: Update the manifest**
 
 Add the new entries to each theme's object in `data/room-feature-art.json` — for example, `undead` becomes:
 
@@ -774,3 +774,5 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 ---
 
 Plan complete and saved to `docs/superpowers/plans/2026-10-05-room-feature-art-variants.md`.
+
+> **As built:** the 10 doors (8 `door_locked`, undead `door-1`/`door-2`) were generated through OpenRouter (`--backend=openrouter`, `meta/muse-image`, ~$0.01 each) using a door-specific `systemPrompt` (top-down strip), and cut out by `tools/cutout-room-feature-art.py` (black background keyed from the border, kept opaque, resized to 1200 px wide). The 30 token images were generated on ComfyUI and cut out with rembg. Only the undead theme got floor variants 1/2 (the plan's proof batch); other themes' variants are a follow-up.

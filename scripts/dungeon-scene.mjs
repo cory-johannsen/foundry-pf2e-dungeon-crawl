@@ -513,7 +513,12 @@ export async function buildRoomAtGraphNode(
 ) {
   // #750: themed door art for every door this room's own walls carry.
   const doorArtManifest = await loadRoomFeatureArt();
-  const doorArt = (theme) => roomFeatureArtPath({ theme, kind: "door", manifest: doorArtManifest });
+  const doorArt = (theme, variant = 0) =>
+    roomFeatureArtPath({ theme, kind: "door", variant, manifest: doorArtManifest });
+  // #764: a locked door's own art, falling back to the normal (variant-matched) art when the
+  // theme has no dedicated locked image -- never no texture if the base art exists.
+  const lockedDoorArt = (theme, variant = 0) =>
+    roomFeatureArtPath({ theme, kind: "door_locked", manifest: doorArtManifest }) ?? doorArt(theme, variant);
   const rect = roomRect(seed, roomId, rank, col);
   const planned = layoutVersion >= 2;
   const stubEdges = layoutVersion >= 3 ? stubEdgesParam : {};
@@ -745,7 +750,7 @@ export async function buildRoomAtGraphNode(
         wallDoc(g.doorWall, {
           door: CONST.WALL_DOOR_TYPES.DOOR,
           ds: CONST.WALL_DOOR_STATES.LOCKED,
-          art: doorArt(locationTag),
+          art: lockedDoorArt(locationTag, artVariant),
           flags: {
             [MODULE_ID]: {
               dungeonStubDoorFor: targetId,
@@ -875,6 +880,28 @@ export function focusCameraOnRoom(scene, roomId, rank, col, seed) {
   });
 }
 
+// #764: the door art a wall should show for the room whose theme/variant it takes (null when unknown).
+// `locked` picks door_locked art, falling back to the normal art (same rule as build time).
+async function doorArtForRoom(scene, roomId, { locked = false } = {}) {
+  try {
+    const room = getRunState(scene.id)?.rooms?.[roomId];
+    if (!room) return null;
+    const manifest = await loadRoomFeatureArt();
+    const normal = roomFeatureArtPath({ theme: room.locationTag, kind: "door", variant: room.artVariant, manifest });
+    if (!locked) return normal;
+    return roomFeatureArtPath({ theme: room.locationTag, kind: "door_locked", manifest }) ?? normal;
+  } catch {
+    return null;
+  }
+}
+
+// #764: merges a texture swap into a wall update. Only animation.texture changes (never
+// flags.core.textureGridSize, #800); a wall with no animation (native door) is left alone.
+function withDoorArt(wall, update, art) {
+  if (!art || !wall.animation || wall.animation.texture === art) return update;
+  return { ...update, animation: { ...wall.animation, texture: art } };
+}
+
 /** Undo-only twin of unlockDoorsFromRoom: re-locks the progress-gate door
  * AND re-closes the reveal door between fromRoomId and toRoomId — a full
  * undo of both doors' state, not just the one a GM would think to check,
@@ -894,7 +921,8 @@ export async function relockDoorFromRoom(scene, fromRoomId, toRoomId) {
       w.getFlag(MODULE_ID, "dungeonDoorFromRoomId") === fromRoomId,
   );
   if (wall) {
-    await wall.update({ ds: CONST.WALL_DOOR_STATES.LOCKED });
+    const art = await doorArtForRoom(scene, fromRoomId, { locked: true });
+    await wall.update(withDoorArt(wall, { ds: CONST.WALL_DOOR_STATES.LOCKED }, art));
     playDoorSound("lock");
   }
   const revealWall = scene.walls.find(
@@ -902,7 +930,10 @@ export async function relockDoorFromRoom(scene, fromRoomId, toRoomId) {
       w.getFlag(MODULE_ID, "dungeonRevealDoorForSlot") === toRoomId &&
       w.getFlag(MODULE_ID, "dungeonDoorFromRoomId") === fromRoomId,
   );
-  if (revealWall) await revealWall.update({ ds: CONST.WALL_DOOR_STATES.CLOSED });
+  if (revealWall) {
+    const art = await doorArtForRoom(scene, toRoomId);
+    await revealWall.update(withDoorArt(revealWall, { ds: CONST.WALL_DOOR_STATES.CLOSED }, art));
+  }
 }
 
 // #175: shared by relockSiblingDoors / reopenSiblingDoors -- sets the progress-gate
@@ -917,7 +948,8 @@ async function setGateDoorState(scene, fromRoomId, toRoomIds, ds, sound) {
         w.getFlag(MODULE_ID, "dungeonDoorFromRoomId") === fromRoomId,
     );
     if (wall) {
-      await wall.update({ ds });
+      const art = await doorArtForRoom(scene, fromRoomId, { locked: ds === CONST.WALL_DOOR_STATES.LOCKED });
+      await wall.update(withDoorArt(wall, { ds }, art));
       playDoorSound(sound);
     }
   }
@@ -976,21 +1008,24 @@ export async function unsealHiddenDoorFromRoom(scene, roomId, targetRoomId) {
     // #427: a hidden dead-end stub's door only opens (a false shortcut); it is never promoted to a progression or
     // reveal door, so opening it can never advance the run.
     if (wall.getFlag(MODULE_ID, "dungeonStubDoorFor")) {
-      await wall.update({
+      const stubArt = await doorArtForRoom(scene, roomId);
+      await wall.update(withDoorArt(wall, {
         ds: CONST.WALL_DOOR_STATES.CLOSED,
         [`flags.${MODULE_ID}.-=dungeonHiddenDoorForEdge`]: null,
         [`flags.${MODULE_ID}.-=dungeonHiddenDoorRole`]: null,
-      });
+      }, stubArt));
       continue;
     }
     const isReveal = wall.getFlag(MODULE_ID, "dungeonHiddenDoorRole") === "reveal";
-    await wall.update({
+    // #764: the gate takes the source room's theme, the reveal door the target's.
+    const art = await doorArtForRoom(scene, isReveal ? targetRoomId : roomId);
+    await wall.update(withDoorArt(wall, {
       ds: CONST.WALL_DOOR_STATES.CLOSED,
       [`flags.${MODULE_ID}.${isReveal ? "dungeonRevealDoorForSlot" : "dungeonDoorToRoomId"}`]: targetRoomId,
       [`flags.${MODULE_ID}.dungeonDoorFromRoomId`]: roomId,
       [`flags.${MODULE_ID}.-=dungeonHiddenDoorForEdge`]: null,
       [`flags.${MODULE_ID}.-=dungeonHiddenDoorRole`]: null,
-    });
+    }, art));
   }
 }
 
@@ -1086,10 +1121,47 @@ export async function populateSlotEncounter(
   });
 }
 
+/**
+ * #764: swap a resolved room's own feature token to its used/solved-state
+ * art, if the manifest has one for this theme. A no-op (token untouched)
+ * when it doesn't, when no matching token exists, and on any error --
+ * silent fallback, never a thrown failure (#750). Only art changes: the
+ * actor's img / prototype texture and the placed token's texture.
+ */
+export async function applyRoomFeatureUsedArt(scene, roomId, kind, { theme, manifest } = {}) {
+  try {
+    const art = roomFeatureArtPath({ theme, kind: `${kind}_used`, manifest });
+    if (!art) return;
+    const token = scene?.tokens?.find?.(
+      (t) =>
+        t.getFlag?.(MODULE_ID, "roomFeatureRoomId") === roomId &&
+        t.getFlag?.(MODULE_ID, "roomFeatureKind") === kind,
+    );
+    if (!token) return;
+    // A placed token copied its texture at spawn, so the actor's own update
+    // alone would not change what is drawn on the canvas.
+    if (token.actor) await token.actor.update({ img: art, "prototypeToken.texture.src": art });
+    await token.update({ "texture.src": art });
+  } catch (err) {
+    console.warn(`${MODULE_ID} | used-state art swap failed`, err);
+  }
+}
+
+/** #764: scene-id entry point for runRoomFeatureAction's `applyUsedArt` dep. */
+export async function applyRoomFeatureUsedArtForScene(sceneId, roomId, kind, { theme } = {}) {
+  try {
+    const scene = game.scenes.get(sceneId);
+    if (!scene) return;
+    await applyRoomFeatureUsedArt(scene, roomId, kind, { theme, manifest: await loadRoomFeatureArt() });
+  } catch (err) {
+    console.warn(`${MODULE_ID} | used-state art swap failed`, err);
+  }
+}
+
 /** Spawns one room-feature prop token (#611/#623) -- a player-targetable
  * scene object for a treasure/puzzle/skill-challenge room. Idempotent: a
  * rebuild of an already-built room must not duplicate the prop. */
-async function spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed, theme }) {
+export async function spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed, theme, variant = 0 }) {
   const existing = scene.tokens.map((t) => t.flags?.[MODULE_ID]);
   if (hasRoomFeatureToken(existing, roomId, kind)) return;
   const rect = roomRect(seed, roomId, rank, col);
@@ -1098,7 +1170,7 @@ async function spawnRoomFeatureToken(scene, roomId, kind, { rank, col, seed, the
     gx: rect.gx,
     gy: rect.gy,
   };
-  const art = roomFeatureArtPath({ theme, kind, manifest: await loadRoomFeatureArt() });
+  const art = roomFeatureArtPath({ theme, kind, variant, manifest: await loadRoomFeatureArt() });
   const actorData = buildRoomFeatureTokenActorData(kind, roomId, { art });
   const [actor] = await Actor.createDocuments([actorData]);
   // A prop failure must never block room building, nor leave an orphan
@@ -1574,7 +1646,12 @@ export async function buildPopulateAndUnlockGraphNode(
   // #750: themed door art for this room's connection doors (the gate takes
   // the source room's theme, the reveal door this room's).
   const doorArtManifest = await loadRoomFeatureArt();
-  const doorArt = (theme) => roomFeatureArtPath({ theme, kind: "door", manifest: doorArtManifest });
+  const doorArt = (theme, variant = 0) =>
+    roomFeatureArtPath({ theme, kind: "door", variant, manifest: doorArtManifest });
+  // #764: a locked door's own art, falling back to the normal (variant-matched) art when the
+  // theme has no dedicated locked image -- never no texture if the base art exists.
+  const lockedDoorArt = (theme, variant = 0) =>
+    roomFeatureArtPath({ theme, kind: "door_locked", manifest: doorArtManifest }) ?? doorArt(theme, variant);
   const rect = roomRect(state.seed, room.id, rank, col);
 
   // #174 Task 5: every room's own {rank, col}, inverted from
@@ -1729,8 +1806,8 @@ export async function buildPopulateAndUnlockGraphNode(
         // and Task 11's handler (which reads `dungeonRevealDoorForSlot`)
         // would silently never fire for it.
         connectionWalls.push(
-          wallDoc(doorWall, { flags: { [MODULE_ID]: { dungeonHiddenDoorForEdge: `${sourceId}->${room.id}`, dungeonHiddenDoorRole: "gate" } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR, art: doorArt(state.rooms?.[sourceId]?.locationTag) }),
-          wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonHiddenDoorForEdge: `${sourceId}->${room.id}`, dungeonHiddenDoorRole: "reveal" } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR, art: doorArt(room.locationTag) }),
+          wallDoc(doorWall, { flags: { [MODULE_ID]: { dungeonHiddenDoorForEdge: `${sourceId}->${room.id}`, dungeonHiddenDoorRole: "gate" } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR, art: lockedDoorArt(state.rooms?.[sourceId]?.locationTag, state.rooms?.[sourceId]?.artVariant) }),
+          wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonHiddenDoorForEdge: `${sourceId}->${room.id}`, dungeonHiddenDoorRole: "reveal" } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR, art: lockedDoorArt(room.locationTag, room.artVariant) }),
           ...plainWalls.map((w) => wallDoc(w)),
         );
       } else {
@@ -1748,8 +1825,8 @@ export async function buildPopulateAndUnlockGraphNode(
         // exact "every parent but one dead-ends" bug this whole redesign
         // exists to fix, just moved from build-time to unlock-time.
         connectionWalls.push(
-          wallDoc(doorWall, { flags: { [MODULE_ID]: { dungeonDoorToRoomId: room.id, dungeonDoorFromRoomId: sourceId } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR, art: doorArt(state.rooms?.[sourceId]?.locationTag) }),
-          wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonRevealDoorForSlot: room.id, dungeonDoorFromRoomId: sourceId } }, ds: CONST.WALL_DOOR_STATES.CLOSED, door: CONST.WALL_DOOR_TYPES.DOOR, art: doorArt(room.locationTag) }),
+          wallDoc(doorWall, { flags: { [MODULE_ID]: { dungeonDoorToRoomId: room.id, dungeonDoorFromRoomId: sourceId } }, ds: CONST.WALL_DOOR_STATES.LOCKED, door: CONST.WALL_DOOR_TYPES.DOOR, art: lockedDoorArt(state.rooms?.[sourceId]?.locationTag, state.rooms?.[sourceId]?.artVariant) }),
+          wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonRevealDoorForSlot: room.id, dungeonDoorFromRoomId: sourceId } }, ds: CONST.WALL_DOOR_STATES.CLOSED, door: CONST.WALL_DOOR_TYPES.DOOR, art: doorArt(room.locationTag, room.artVariant) }),
           ...plainWalls.map((w) => wallDoc(w)),
         );
       }
@@ -1873,6 +1950,7 @@ export async function buildPopulateAndUnlockGraphNode(
         col,
         seed: state.seed,
         theme: room.locationTag,
+        variant: room.artVariant,
       });
     }
     // #32: puzzle and trap are now decided up front as their own room kinds
@@ -1903,6 +1981,7 @@ export async function buildPopulateAndUnlockGraphNode(
         col,
         seed: state.seed,
         theme: room.locationTag,
+        variant: room.artVariant,
       });
     }
     // #167: a narrative room's own selected content is attached here too
@@ -1939,6 +2018,7 @@ export async function buildPopulateAndUnlockGraphNode(
           col,
           seed: state.seed,
           theme: room.locationTag,
+          variant: room.artVariant,
         });
       }
     }
@@ -2003,6 +2083,10 @@ export async function buildPopulateAndUnlockGraphNode(
  * door. Matching on both ends of the edge together is what actually picks
  * out the right one. */
 export async function unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildIds = []) {
+  // #764: a door's locked-state art must come back to the room's normal, variant-matched door art
+  // the moment it unlocks (real and stub doors of roomId's own walls share its theme/variant).
+  const unlockArt = await doorArtForRoom(scene, roomId);
+  const unlockUpdate = (wall) => withDoorArt(wall, { ds: CONST.WALL_DOOR_STATES.CLOSED }, unlockArt);
   const targets = childIds.filter((id) => !hiddenChildIds.includes(id));
   for (const targetId of targets) {
     const wall = scene.walls.find(
@@ -2011,7 +2095,7 @@ export async function unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildId
         w.getFlag(MODULE_ID, "dungeonDoorFromRoomId") === roomId,
     );
     if (wall) {
-      await wall.update({ ds: CONST.WALL_DOOR_STATES.CLOSED });
+      await wall.update(unlockUpdate(wall));
       playDoorSound("unlock");
     }
   }
@@ -2023,7 +2107,7 @@ export async function unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildId
       wall.getFlag(MODULE_ID, "dungeonDoorFromRoomId") === roomId &&
       !wall.getFlag(MODULE_ID, "dungeonHiddenDoorForEdge")
     ) {
-      await wall.update({ ds: CONST.WALL_DOOR_STATES.CLOSED });
+      await wall.update(unlockUpdate(wall));
       playDoorSound("unlock");
     }
   }

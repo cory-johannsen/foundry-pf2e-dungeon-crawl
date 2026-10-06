@@ -38,6 +38,7 @@ import {
   handleDungeonDoorOpened,
   teardownDungeonRun,
   sweepLooseNpcActors,
+  applyRoomFeatureUsedArtForScene,
 } from "./dungeon-scene.mjs";
 import {
   maybeResolveCombatForActor,
@@ -372,6 +373,7 @@ async function triggerRoomFeatureToken(user, token, targeted) {
         getRunState,
         claimTreasureFor,
         revealRoomFeature,
+        applyUsedArt: applyRoomFeatureUsedArtForScene,
       });
     } catch (err) {
       console.error(`${MODULE_ID} | room-feature interaction failed`, err);

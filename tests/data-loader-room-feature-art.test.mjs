@@ -6,10 +6,10 @@ describe("loadRoomFeatureArt", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("fetches the manifest and caches a successful result", async () => {
-    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ undead: ["door"] }) }));
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ undead: { door: [0] } }) }));
     vi.stubGlobal("fetch", fetchMock);
-    expect(await loadRoomFeatureArt()).toEqual({ undead: ["door"] });
-    expect(await loadRoomFeatureArt()).toEqual({ undead: ["door"] });
+    expect(await loadRoomFeatureArt()).toEqual({ undead: { door: [0] } });
+    expect(await loadRoomFeatureArt()).toEqual({ undead: { door: [0] } });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0][0]).toBe("modules/pf2e-dungeon-crawl/data/room-feature-art.json");
   });

@@ -34,7 +34,7 @@ import {
   chooseNarrativeOption,
   claimTreasureFor,
 } from "./ui/dungeon-app.mjs";
-import { undoRoomEntry, retreatToFork } from "./dungeon-scene.mjs";
+import { undoRoomEntry, retreatToFork, applyRoomFeatureUsedArtForScene } from "./dungeon-scene.mjs";
 import { attemptTrapDisableForScene } from "./trap-combat.mjs";
 import { runFollowMoveNow, resnapTokenNow } from "./dungeon-follow.mjs";
 
@@ -88,7 +88,7 @@ export const DUNGEON_ACTIONS = {
   roomFeatureInteract: (args) =>
     runRoomFeatureAction(
       { sceneId: args.sceneId, roomId: args.roomId, kind: args.kind },
-      { getRunState, claimTreasureFor, revealRoomFeature },
+      { getRunState, claimTreasureFor, revealRoomFeature, applyUsedArt: applyRoomFeatureUsedArtForScene },
     ),
   // #65: a non-GM host's own dungeon-follow.mjs hooks can't move followers
   // directly, so they request it — this is the one entry point that

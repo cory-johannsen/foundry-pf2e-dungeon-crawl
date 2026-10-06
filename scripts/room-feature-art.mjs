@@ -11,17 +11,35 @@ export const ROOM_FEATURE_ART_THEMES = [
   "aberration", "beast", "construct", "dragon",
   "elemental", "fiend", "plant", "undead",
 ];
-export const ROOM_FEATURE_ART_KINDS = ["door", "treasure", "puzzle", "skill_challenge"];
+export const ROOM_FEATURE_ART_BASE_KINDS = ["door", "treasure", "puzzle", "skill_challenge"];
+// #764: one state variant per base kind, ignoring floor variant (user decision
+// 2026-10-05) -- a locked door or a used/solved token looks the same across
+// a theme's own 3 floor sub-styles.
+export const ROOM_FEATURE_ART_STATE_KINDS = [
+  "door_locked", "treasure_used", "puzzle_used", "skill_challenge_used",
+];
+export const ROOM_FEATURE_ART_KINDS = [...ROOM_FEATURE_ART_BASE_KINDS, ...ROOM_FEATURE_ART_STATE_KINDS];
 export const ROOM_FEATURE_ART_DIR = `modules/${MODULE_ID}/assets/room-features`;
 
-/** Module-relative path of the themed image, or null when the manifest does
- * not list that theme/kind (or either name is unknown). */
-export function roomFeatureArtPath({ theme, kind, manifest } = {}) {
+/**
+ * Module-relative path of the themed image, or null when the manifest does
+ * not list that theme/kind/variant (or either name is unknown).
+ *
+ * #764: the manifest's per-theme value is `{kind: [variants]}` -- which
+ * floor-variant indices (0, 1, 2) exist for that kind. `variant` defaults to
+ * 0; an unlisted requested variant falls back to variant 0 before giving up
+ * and returning null. Variant 0's file stays unsuffixed (`<kind>.webp`);
+ * variant 1/2 add a `-<variant>` suffix. State kinds only ever have variant 0.
+ */
+export function roomFeatureArtPath({ theme, kind, variant = 0, manifest } = {}) {
   if (!ROOM_FEATURE_ART_THEMES.includes(theme)) return null;
   if (!ROOM_FEATURE_ART_KINDS.includes(kind)) return null;
-  const kinds = manifest?.[theme];
-  if (!Array.isArray(kinds) || !kinds.includes(kind)) return null;
-  return `${ROOM_FEATURE_ART_DIR}/${theme}/${kind}.webp`;
+  const variants = manifest?.[theme]?.[kind];
+  if (!Array.isArray(variants) || variants.length === 0) return null;
+  const resolved = variants.includes(variant) ? variant : (variants.includes(0) ? 0 : null);
+  if (resolved === null) return null;
+  const suffix = resolved === 0 ? "" : `-${resolved}`;
+  return `${ROOM_FEATURE_ART_DIR}/${theme}/${kind}${suffix}.webp`;
 }
 
 /** Foundry wall `animation` defaults for a themed door. The live spike chose

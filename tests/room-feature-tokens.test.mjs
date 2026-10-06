@@ -275,3 +275,26 @@ describe("buildRoomFeatureTokenActorData themed art (#750)", () => {
     });
   });
 });
+
+describe("#764 runRoomFeatureAction used-state art", () => {
+  it("calls applyUsedArt once after a successful treasure claim", async () => {
+    const state = makeState({ rooms: { r1: { kind: "treasure", locationTag: "undead" } } });
+    const applyUsedArt = vi.fn(async () => {});
+    const d = deps(state, { applyUsedArt });
+    await runRoomFeatureAction({ sceneId: "s", roomId: "r1", kind: "treasure" }, d);
+    expect(applyUsedArt.mock.calls).toEqual([["s", "r1", "treasure", { theme: "undead" }]]);
+  });
+
+  it("never calls applyUsedArt on a failed plan", async () => {
+    const applyUsedArt = vi.fn(async () => {});
+    const d = deps(makeState({ completed: true }), { applyUsedArt });
+    await runRoomFeatureAction({ sceneId: "s", roomId: "r1", kind: "treasure" }, d);
+    expect(applyUsedArt).not.toHaveBeenCalled();
+  });
+
+  it("a throwing applyUsedArt does not fail the resolved action", async () => {
+    const d = deps(makeState(), { applyUsedArt: vi.fn(async () => { throw new Error("x"); }) });
+    expect(await runRoomFeatureAction({ sceneId: "s", roomId: "r1", kind: "treasure" }, d)).toEqual({ ok: true });
+    expect(d.inFlight.size).toBe(0);
+  });
+});

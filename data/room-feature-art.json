@@ -1,10 +1,218 @@
 {
-  "aberration": ["door", "treasure", "puzzle", "skill_challenge"],
-  "beast": ["door", "treasure", "puzzle", "skill_challenge"],
-  "construct": ["door", "treasure", "puzzle", "skill_challenge"],
-  "dragon": ["door", "treasure", "puzzle", "skill_challenge"],
-  "elemental": ["door", "treasure", "puzzle", "skill_challenge"],
-  "fiend": ["door", "treasure", "puzzle", "skill_challenge"],
-  "plant": ["door", "treasure", "puzzle", "skill_challenge"],
-  "undead": ["door", "treasure", "puzzle", "skill_challenge"]
+  "aberration": {
+    "door": [
+      0
+    ],
+    "treasure": [
+      0
+    ],
+    "puzzle": [
+      0
+    ],
+    "skill_challenge": [
+      0
+    ],
+    "door_locked": [
+      0
+    ],
+    "treasure_used": [
+      0
+    ],
+    "puzzle_used": [
+      0
+    ],
+    "skill_challenge_used": [
+      0
+    ]
+  },
+  "beast": {
+    "door": [
+      0
+    ],
+    "treasure": [
+      0
+    ],
+    "puzzle": [
+      0
+    ],
+    "skill_challenge": [
+      0
+    ],
+    "door_locked": [
+      0
+    ],
+    "treasure_used": [
+      0
+    ],
+    "puzzle_used": [
+      0
+    ],
+    "skill_challenge_used": [
+      0
+    ]
+  },
+  "construct": {
+    "door": [
+      0
+    ],
+    "treasure": [
+      0
+    ],
+    "puzzle": [
+      0
+    ],
+    "skill_challenge": [
+      0
+    ],
+    "door_locked": [
+      0
+    ],
+    "treasure_used": [
+      0
+    ],
+    "puzzle_used": [
+      0
+    ],
+    "skill_challenge_used": [
+      0
+    ]
+  },
+  "dragon": {
+    "door": [
+      0
+    ],
+    "treasure": [
+      0
+    ],
+    "puzzle": [
+      0
+    ],
+    "skill_challenge": [
+      0
+    ],
+    "door_locked": [
+      0
+    ],
+    "treasure_used": [
+      0
+    ],
+    "puzzle_used": [
+      0
+    ],
+    "skill_challenge_used": [
+      0
+    ]
+  },
+  "elemental": {
+    "door": [
+      0
+    ],
+    "treasure": [
+      0
+    ],
+    "puzzle": [
+      0
+    ],
+    "skill_challenge": [
+      0
+    ],
+    "door_locked": [
+      0
+    ],
+    "treasure_used": [
+      0
+    ],
+    "puzzle_used": [
+      0
+    ],
+    "skill_challenge_used": [
+      0
+    ]
+  },
+  "fiend": {
+    "door": [
+      0
+    ],
+    "treasure": [
+      0
+    ],
+    "puzzle": [
+      0
+    ],
+    "skill_challenge": [
+      0
+    ],
+    "door_locked": [
+      0
+    ],
+    "treasure_used": [
+      0
+    ],
+    "puzzle_used": [
+      0
+    ],
+    "skill_challenge_used": [
+      0
+    ]
+  },
+  "plant": {
+    "door": [
+      0
+    ],
+    "treasure": [
+      0
+    ],
+    "puzzle": [
+      0
+    ],
+    "skill_challenge": [
+      0
+    ],
+    "door_locked": [
+      0
+    ],
+    "treasure_used": [
+      0
+    ],
+    "puzzle_used": [
+      0
+    ],
+    "skill_challenge_used": [
+      0
+    ]
+  },
+  "undead": {
+    "door": [
+      0,
+      1,
+      2
+    ],
+    "treasure": [
+      0,
+      1,
+      2
+    ],
+    "puzzle": [
+      0,
+      1,
+      2
+    ],
+    "skill_challenge": [
+      0,
+      1,
+      2
+    ],
+    "door_locked": [
+      0
+    ],
+    "treasure_used": [
+      0
+    ],
+    "puzzle_used": [
+      0
+    ],
+    "skill_challenge_used": [
+      0
+    ]
+  }
 }

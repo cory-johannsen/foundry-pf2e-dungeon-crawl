@@ -69,6 +69,9 @@ export async function runRoomFeatureAction(
     getRunState,
     claimTreasureFor,
     revealRoomFeature,
+    // #764: swaps the resolved token's art to its used/solved variant.
+    // Optional no-op default; a failure never un-resolves the action.
+    applyUsedArt = async () => {},
     inFlight = moduleInFlight,
   },
 ) {
@@ -80,6 +83,11 @@ export async function runRoomFeatureAction(
   try {
     if (kind === "treasure") await claimTreasureFor(sceneId);
     else await revealRoomFeature(sceneId, roomId, kind);
+    try {
+      await applyUsedArt(sceneId, roomId, kind, { theme: plan.room.locationTag });
+    } catch (err) {
+      console.warn("pf2e-dungeon-crawl | used-state art failed", err);
+    }
     return { ok: true };
   } finally {
     inFlight.delete(key);
