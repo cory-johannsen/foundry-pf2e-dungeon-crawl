@@ -307,8 +307,16 @@ export async function rollStealthInitiativeAndDetect(combat, combatants, deps = 
         result: r.result,
         observers: observers.join(", "),
       });
-    } else {
+    } else if (hostiles.every((h) => row[h.id] === DETECTION.UNNOTICED)) {
       await d.chat("PF2EDC.Dungeon.Combat.StealthUnnoticedChat", {
+        name: r.combatant.name,
+        result: r.result,
+      });
+    } else {
+      // The alarm rule (another party member was spotted) turned this
+      // sneaker's unnoticed pairs into undetected: the foes know someone is
+      // about, they just can't place this character.
+      await d.chat("PF2EDC.Dungeon.Combat.StealthUndetectedChat", {
         name: r.combatant.name,
         result: r.result,
       });
