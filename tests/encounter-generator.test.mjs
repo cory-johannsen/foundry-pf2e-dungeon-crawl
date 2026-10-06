@@ -174,6 +174,33 @@ describe("generateEncounter Friend announcement (#768)", () => {
     expect(friendCall[0].whisperGM).toBeFalsy();
   });
 
+  it("#810: does not announce a Friend spawned hidden (full pregeneration)", async () => {
+    installFoundryStubs({ dialogShownRef: { shown: false } });
+    generateEncounterRoster.mockResolvedValueOnce(friendRoster("abc123"));
+    const postChatCard = vi.fn(async () => {});
+    const spawnCreatures = vi.fn(async (entries, opts) =>
+      opts.disposition === 1
+        ? [{ name: "Clockwork Spy", actorId: "a1", tokenId: "t1" }]
+        : [],
+    );
+    makeFoundryApi.mockReturnValueOnce(apiWith(postChatCard, spawnCreatures));
+
+    await generateEncounter({
+      skipThemeDialog: true,
+      scene: { id: "scene1" },
+      forceHidden: true,
+    });
+
+    expect(
+      spawnCreatures.mock.calls.some(([, o]) => o.disposition === 1 && o.hidden === true),
+    ).toBe(true);
+    expect(
+      postChatCard.mock.calls.some((c) =>
+        c[0].content.includes("PF2EDC.Encounter.FriendAnnounceChat"),
+      ),
+    ).toBe(false);
+  });
+
   it("does not crash and posts no Friend message when nothing is spawned", async () => {
     installFoundryStubs({ dialogShownRef: { shown: false } });
     generateEncounterRoster.mockResolvedValueOnce(friendRoster("missing"));

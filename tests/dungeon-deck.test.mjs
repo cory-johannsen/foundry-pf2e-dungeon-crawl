@@ -18,6 +18,7 @@ import {
   ROOM_KIND_WEIGHTS,
   roomKindAt,
   trapRollSucceeds,
+  corridorTrapRollSucceeds,
   lootGpForTreasureRoom,
   TREASURE_GP_PER_LEVEL,
   seededPick,
@@ -954,5 +955,34 @@ describe('trapRollSucceeds (#754)', () => {
     const rate = successes / trials;
     expect(rate).toBeGreaterThan(0.06);
     expect(rate).toBeLessThan(0.11);
+  });
+});
+
+describe('corridorTrapRollSucceeds (#779)', () => {
+  it('is deterministic for the same seed and edgeId', () => {
+    expect(corridorTrapRollSucceeds('alpha', 'a->b')).toBe(corridorTrapRollSucceeds('alpha', 'a->b'));
+  });
+
+  it('is independent per edge and from the room-level roll (distinct salt)', () => {
+    const edge = [];
+    let differsFromRoom = false;
+    for (let i = 0; i < 400; i += 1) {
+      const id = `r${i}->r${i + 1}`;
+      edge.push(corridorTrapRollSucceeds('alpha', id));
+      if (corridorTrapRollSucceeds('alpha', id) !== trapRollSucceeds('alpha', id)) differsFromRoom = true;
+    }
+    expect(edge).toContain(true);
+    expect(edge).toContain(false);
+    expect(differsFromRoom).toBe(true);
+  });
+
+  it('succeeds at approximately the room-level rate (~8.3%)', () => {
+    let hits = 0;
+    const trials = 5000;
+    for (let i = 0; i < trials; i += 1) {
+      if (corridorTrapRollSucceeds('rate-probe-seed', `edge-${i}`)) hits += 1;
+    }
+    expect(hits / trials).toBeGreaterThan(0.06);
+    expect(hits / trials).toBeLessThan(0.11);
   });
 });

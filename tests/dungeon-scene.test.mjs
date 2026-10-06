@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { effectiveRoomBias, buildRoomAtGraphNode, buildPopulateAndUnlockGraphNode } from '../scripts/dungeon-scene.mjs';
+import { effectiveRoomBias, corridorTilesForSegments, buildRoomAtGraphNode, buildPopulateAndUnlockGraphNode } from '../scripts/dungeon-scene.mjs';
 import {
   pendingForeignMarginOpenings, cellMarginWalls, roomRect, cellBounds,
   buildEdgeCorridor, doorSlotsForFace, findPriorityCollision, assignDoorSlotsWithPriority,
@@ -620,5 +620,28 @@ describe('effectiveRoomBias (#412, #636)', () => {
   it('extreme shifts every room up one, topping out at 3', () => {
     expect(effectiveRoomBias({ ...room, difficulty: 'extreme' })).toBe(2);
     expect(effectiveRoomBias({ ...goal, difficulty: 'extreme' })).toBe(3);
+  });
+});
+
+describe('corridorTilesForSegments (#779 cells)', () => {
+  const cases = [
+    ['horizontal + vertical L, fractional starts', [{ gx: 2.5, gy: 3, gw: 3, gh: 1 }, { gx: 4.5, gy: 3.5, gw: 1, gh: 2 }], false],
+    ['fullWidth widened bridge', [{ gx: 1, gy: 1, gw: 2, gh: 3 }], true],
+  ];
+  for (const [label, segments, fullWidth] of cases) {
+    it(`returns one cell per tile, in tile order, on the tile's own grid cell (${label})`, () => {
+      const { tiles, cells } = corridorTilesForSegments(segments, { fullWidth });
+      expect(tiles.length).toBeGreaterThan(0);
+      expect(cells).toHaveLength(tiles.length);
+      tiles.forEach((t, i) => {
+        expect(t.x).toBe(toPixels(cells[i].gx) + GRID_SIZE / 2);
+        expect(t.y).toBe(toPixels(cells[i].gy) + GRID_SIZE / 2);
+      });
+    });
+  }
+
+  it('floors a fractional segment start once (#324)', () => {
+    const { cells } = corridorTilesForSegments([{ gx: 2.5, gy: 3, gw: 3, gh: 1 }]);
+    expect(cells).toEqual([{ gx: 2, gy: 3 }, { gx: 3, gy: 3 }, { gx: 4, gy: 3 }]);
   });
 });
