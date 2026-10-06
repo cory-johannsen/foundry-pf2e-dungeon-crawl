@@ -45,7 +45,7 @@
 - Produces: `createFlankedIndicator(deps): { refresh(), schedule(), clear(), badgeCount() }` where `deps = { getCombat(), getPlaceables(combat), createBadge(placeable), defer(fn), onError?(err) }` and a badge is `{ destroy(), isAttached(placeable): boolean }`.
 - Consumed by: Task 2 (`createPixiBadge`, `registerFlankedIndicator` live in the same file and use these).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/flanking-indicator.test.mjs`:
 
@@ -268,12 +268,12 @@ describe("createFlankedIndicator", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/flanking-indicator.test.mjs`
 Expected: FAIL — the module `scripts/flanking-indicator.mjs` does not exist.
 
-- [ ] **Step 3: Write the pure logic and the manager**
+- [x] **Step 3: Write the pure logic and the manager**
 
 Create `scripts/flanking-indicator.mjs`:
 
@@ -379,12 +379,12 @@ export function createFlankedIndicator(deps) {
 
 (`MODULE_ID` and `BADGE_NAME` are used by Task 2's code in this same file; keeping the constants here now avoids a second edit to the header. If lint complains about unused constants before Task 2, leave them — Task 2 uses both.)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/flanking-indicator.test.mjs`
 Expected: PASS, all tests green.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/flanking-indicator.mjs tests/flanking-indicator.test.mjs
@@ -408,7 +408,7 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 
 No unit test: the PIXI badge and hook registration are Foundry-canvas glue with no existing test harness (same precedent as `module.mjs`'s `syncRoomFeatureControls`, which draws PIXI controls and is verified live). The decision logic they drive is covered by Task 1.
 
-- [ ] **Step 1: Add the locale key**
+- [x] **Step 1: Add the locale key**
 
 In `lang/en.json`, add next to the other `PF2EDC.Dungeon.Combat.*` keys (keep the file's alphabetical order):
 
@@ -416,7 +416,7 @@ In `lang/en.json`, add next to the other `PF2EDC.Dungeon.Combat.*` keys (keep th
   "PF2EDC.Dungeon.Combat.FlankedBadge": "Flanked",
 ```
 
-- [ ] **Step 2: Add the PIXI badge and the hook registration**
+- [x] **Step 2: Add the PIXI badge and the hook registration**
 
 Append to `scripts/flanking-indicator.mjs`, and add `import { isPositionChange } from "./placement.mjs";` at the top of the file under the header comment:
 
@@ -515,7 +515,7 @@ export function registerFlankedIndicator() {
 }
 ```
 
-- [ ] **Step 3: Wire it into `scripts/module.mjs`**
+- [x] **Step 3: Wire it into `scripts/module.mjs`**
 
 Add to `scripts/module.mjs`'s imports:
 
@@ -531,12 +531,12 @@ registerFlankedIndicator();
 
 (Check the current file for the right neighbourhood by content, not line number. `Hooks`, `game`, `canvas` and `PIXI` are only touched inside callbacks, so calling this at module load is safe, same as the neighbouring registrations.)
 
-- [ ] **Step 4: Run the full test suite**
+- [x] **Step 4: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS. `module.mjs` is never imported by the test suite, and `tests/flanking-indicator.test.mjs` only imports the pure functions (PIXI/`foundry`/`Hooks` are referenced only inside `createPixiBadge`/`registerFlankedIndicator`, which no test calls).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/flanking-indicator.mjs scripts/module.mjs lang/en.json
@@ -554,11 +554,11 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 - Modify: `module.json` (minor bump)
 - Modify: `docs/superpowers/plans/2026-10-05-flanked-status-indicator.md` (add a superseded note)
 
-- [ ] **Step 1: Architecture docs**
+- [x] **Step 1: Architecture docs**
 
 Run the `update-architecture-docs` skill (`.claude/skills/update-architecture-docs/SKILL.md`): regenerate the mermaid block with `node tools/generate-architecture-graph.mjs`. The new file `scripts/flanking-indicator.mjs` imports `placement.mjs` and is imported by `module.mjs`. If it lands in the generated "Other" group, add `"scripts/flanking-indicator.mjs"` to the most fitting group in `GROUPS` (the "Combat automation (in-module heuristic)" group is the closest), and add one sentence to that subsystem's prose in `docs/architecture.md`: a client-side, write-nothing flanked badge (#769). Check the "Two intentional circular imports" section is unaffected.
 
-- [ ] **Step 2: Mark the old plan superseded**
+- [x] **Step 2: Mark the old plan superseded**
 
 At the very top of `docs/superpowers/plans/2026-10-05-flanked-status-indicator.md`, above its title, add:
 
@@ -566,7 +566,7 @@ At the very top of `docs/superpowers/plans/2026-10-05-flanked-status-indicator.m
 > **SUPERSEDED (2026-10-05):** replaced by `2026-10-05-flanked-badge-indicator.md`. This plan toggled PF2e's real `off-guard` condition; review found that applies off-guard to every attacker (broader than PF2e's own flanking) and introduced multi-client write races and cleanup gaps, so the user chose a visual-only badge instead. Do not implement this plan.
 ```
 
-- [ ] **Step 3: Bump `module.json`'s version (minor)**
+- [x] **Step 3: Bump `module.json`'s version (minor)**
 
 ```bash
 git fetch origin main -q && git show origin/main:module.json | grep '"version"'
@@ -575,7 +575,7 @@ for pr in $(gh pr list --json number -q '.[].number'); do gh pr diff $pr | grep 
 
 Take the highest version seen, bump its minor (e.g. `0.65.3` -> `0.66.0`), never reuse a number. Re-check immediately before committing and after any rebase.
 
-- [ ] **Step 4: Run the full suite and commit**
+- [x] **Step 4: Run the full suite and commit**
 
 Run: `npx vitest run` (a known wall-clock flake `tests/dungeon-reseed-sweep.test.mjs`, issue #787, can fail under load; if it is the only failure, re-run it alone).
 
