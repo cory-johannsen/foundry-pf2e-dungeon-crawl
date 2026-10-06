@@ -15,6 +15,7 @@
   "PF2EDC.Dungeon.Combat.CriticalDeckChat": "<p><strong>{name}</strong> draws a {deckLabel} card: <strong>{cardName}</strong> ({category})</p>",
   "PF2EDC.Dungeon.Combat.DeclareDefeatButton": "Declare Defeat",
   "PF2EDC.Dungeon.Combat.DeclareVictoryButton": "Declare Victory",
+  "PF2EDC.Dungeon.Combat.FlankedBadge": "Flanked",
   "PF2EDC.Dungeon.Combat.InProgressHint": "Combat is underway — the party can't move on until it's resolved.",
   "PF2EDC.Dungeon.Combat.OpenTrackerButton": "Open Combat Tracker",
   "PF2EDC.Dungeon.Combat.ReactiveStrikeChat": "<p><strong>{name}</strong> reacts with a Reactive Strike against {target}!</p>",

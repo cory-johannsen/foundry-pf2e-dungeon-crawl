@@ -63,6 +63,7 @@ import {
   handleTrapTokenMove,
   attemptTrapDisableForScene,
 } from "./trap-combat.mjs";
+import { registerFlankedIndicator } from "./flanking-indicator.mjs";
 import { promptTrapDisable } from "./ui/trap-disable-dialog.mjs";
 import { registerGenerator } from "./generator-registry.mjs";
 import { DefaultGenerator } from "./default-generator.mjs";
@@ -603,6 +604,9 @@ Hooks.on("updateToken", resnapDriftedTokens);
 /** #753: detect/trigger a trap when a party token approaches or steps
  * onto its footprint. */
 Hooks.on("updateToken", (tokenDoc, changes) => handleTrapTokenMove(tokenDoc, changes));
+
+/** #769: client-side, write-nothing "Flanked" badge on flanked tokens in combat. */
+registerFlankedIndicator();
 
 /** #202: reactive/triggered NPC abilities (ranged-Strike-triggered Reactive
  * Strike/Attack of Opportunity). */

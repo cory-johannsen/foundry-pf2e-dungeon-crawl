@@ -12,6 +12,8 @@
  * user chose this visual-only version instead.
  */
 
+import { isPositionChange } from "./placement.mjs";
+
 const MODULE_ID = "pf2e-dungeon-crawl";
 const BADGE_NAME = "pf2edc-flanked";
 
@@ -94,4 +96,97 @@ export function createFlankedIndicator(deps) {
   }
 
   return { refresh, schedule, clear, badgeCount: () => badges.size };
+}
+
+/** Draws a small "Flanked" pill as a named child of the token placeable
+ * (bottom-left), so it follows the token's animation, is hidden with the
+ * token, and is destroyed with it. */
+export function createPixiBadge(placeable) {
+  const container = new PIXI.Container();
+  container.name = BADGE_NAME;
+  container.eventMode = "none";
+
+  const style = CONFIG.canvasTextStyle.clone();
+  style.fontSize = Math.max(14, Math.round(canvas.grid.size / 6));
+  style.fill = 0xffffff;
+  style.stroke = 0x000000;
+  const label = new foundry.canvas.containers.PreciseText(
+    game.i18n.localize("PF2EDC.Dungeon.Combat.FlankedBadge"),
+    style,
+  );
+  const padX = 6;
+  const padY = 3;
+  label.anchor.set(0, 0);
+  label.position.set(padX, padY);
+
+  const pill = new PIXI.Graphics();
+  pill.beginFill(0xb3261e, 0.92);
+  pill.lineStyle(2, 0xffffff, 0.9);
+  pill.drawRoundedRect(0, 0, label.width + padX * 2, label.height + padY * 2, 6);
+  pill.endFill();
+
+  container.addChild(pill);
+  container.addChild(label);
+
+  const tokenHeight =
+    placeable.h ?? (placeable.document?.height ?? 1) * canvas.grid.size;
+  container.position.set(2, tokenHeight - (label.height + padY * 2) - 2);
+  placeable.addChild(container);
+
+  return {
+    destroy() {
+      if (!container.destroyed) container.destroy({ children: true });
+    },
+    isAttached(p) {
+      return !container.destroyed && container.parent === p;
+    },
+  };
+}
+
+/** Registers the hooks that keep each client's badges in sync. Every client
+ * runs its own indicator: nothing is written, so there is no GM gating. */
+export function registerFlankedIndicator() {
+  const indicator = createFlankedIndicator({
+    getCombat: () => {
+      const combat = game.combat;
+      return combat?.started && combat.scene?.id === canvas?.scene?.id
+        ? combat
+        : null;
+    },
+    getPlaceables: (combat) =>
+      combat.combatants.map((c) => c.token?.object).filter(Boolean),
+    createBadge: createPixiBadge,
+    // setTimeout, not requestAnimationFrame: rAF never fires in a hidden
+    // browser tab (e.g. the foundry-rest relay tab).
+    defer: (fn) => setTimeout(fn, 50),
+    onError: (err) =>
+      console.error(`${MODULE_ID} | flanked indicator refresh failed`, err),
+  });
+
+  // Flanking is a three-body relationship: any token's move/visibility/size
+  // change can change a DIFFERENT token's state, so every one of these
+  // schedules a recompute of the whole combat.
+  Hooks.on("updateToken", (doc, changes) => {
+    if (doc.parent?.id !== canvas?.scene?.id) return;
+    if (
+      isPositionChange(changes) ||
+      changes.hidden !== undefined ||
+      changes.width !== undefined ||
+      changes.height !== undefined ||
+      changes.elevation !== undefined
+    )
+      indicator.schedule();
+  });
+  // A redraw can discard our child; the manager re-creates a detached badge.
+  Hooks.on("refreshToken", (_token, flags) => {
+    if (flags?.redraw || flags?.refreshVisibility) indicator.schedule();
+  });
+  for (const hook of ["updateCombat", "createCombatant", "deleteCombatant"])
+    Hooks.on(hook, () => indicator.schedule());
+  Hooks.on("canvasReady", () => indicator.schedule());
+  // Combat deleted by ANY path, or the canvas going away: drop every badge now.
+  Hooks.on("deleteCombat", () => indicator.clear());
+  Hooks.on("canvasTearDown", () => indicator.clear());
+
+  return indicator;
 }
