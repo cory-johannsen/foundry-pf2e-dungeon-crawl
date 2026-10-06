@@ -13,6 +13,7 @@ vi.mock("../scripts/data-loader.mjs", async (importOriginal) => {
 
 import { wallDoc, buildPopulateAndUnlockGraphNode, buildRoomAtGraphNode } from "../scripts/dungeon-scene.mjs";
 import { roomRect } from "../scripts/dungeon-layout.mjs";
+import { DOOR_TEXTURE_WIDTH_PX } from "../scripts/room-feature-art.mjs";
 import { loadRoomFeatureArt } from "../scripts/data-loader.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -83,7 +84,36 @@ describe("wallDoc themed art (#750)", () => {
     const w = wallDoc(span, { door: CONST.WALL_DOOR_TYPES.DOOR, ds: CONST.WALL_DOOR_STATES.LOCKED, flags, art: `${ART}/undead/door.webp` });
     expect(w.c).toEqual([0, 0, 100, 0]);
     expect(w.ds).toBe(CONST.WALL_DOOR_STATES.LOCKED);
-    expect(w.flags).toBe(flags);
+    expect(w.flags[MODULE_ID]).toBe(flags[MODULE_ID]);
+  });
+});
+
+describe("wallDoc door texture scale (#800)", () => {
+  beforeEach(installFoundryStubs);
+  const art = `${ART}/undead/door.webp`;
+
+  it("sets core.textureGridSize so the strip keeps its aspect on a one-square door", () => {
+    const w = wallDoc({ x1: 0, y1: 0, x2: 1, y2: 0 }, { door: CONST.WALL_DOOR_TYPES.DOOR, art });
+    expect(w.flags.core.textureGridSize).toBe(DOOR_TEXTURE_WIDTH_PX);
+  });
+  it("scales the value with the door length in squares", () => {
+    const w = wallDoc({ x1: 0, y1: 0, x2: 3, y2: 0 }, { door: CONST.WALL_DOOR_TYPES.DOOR, art });
+    expect(w.flags.core.textureGridSize).toBe(DOOR_TEXTURE_WIDTH_PX / 3);
+  });
+  it("uses the wall length for a vertical door", () => {
+    const w = wallDoc({ x1: 2, y1: 1, x2: 2, y2: 2 }, { door: CONST.WALL_DOOR_TYPES.DOOR, art });
+    expect(w.flags.core.textureGridSize).toBe(DOOR_TEXTURE_WIDTH_PX);
+  });
+  it("keeps the caller's own flags alongside", () => {
+    const flags = { [MODULE_ID]: { x: 1 }, core: { other: true } };
+    const w = wallDoc({ x1: 0, y1: 0, x2: 1, y2: 0 }, { door: CONST.WALL_DOOR_TYPES.DOOR, art, flags });
+    expect(w.flags[MODULE_ID]).toEqual({ x: 1 });
+    expect(w.flags.core.other).toBe(true);
+    expect(w.flags.core.textureGridSize).toBe(DOOR_TEXTURE_WIDTH_PX);
+  });
+  it("adds no core flag without art or on a non-door wall", () => {
+    expect(wallDoc({ x1: 0, y1: 0, x2: 1, y2: 0 }, { door: CONST.WALL_DOOR_TYPES.DOOR }).flags).toBeUndefined();
+    expect(wallDoc({ x1: 0, y1: 0, x2: 1, y2: 0 }, { art }).flags).toBeUndefined();
   });
 });
 

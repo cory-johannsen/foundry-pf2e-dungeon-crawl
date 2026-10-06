@@ -151,9 +151,6 @@ export async function resolveCurrentRoom(succeeded, { scene } = {}) {
       puzzleSetpieceIds: setpieces
         .filter((s) => s.kind === "puzzle")
         .map((s) => s.id),
-      trapSetpieceIds: setpieces
-        .filter((s) => s.kind === "trap")
-        .map((s) => s.id),
       narrativeSetpieceIds: setpieces
         .filter((s) => s.kind === "narrative")
         .map((s) => s.id),
@@ -472,9 +469,6 @@ export async function startDungeonRun({
   const puzzleSetpieceIds = setpieces
     .filter((s) => s.kind === "puzzle")
     .map((s) => s.id);
-  const trapSetpieceIds = setpieces
-    .filter((s) => s.kind === "trap")
-    .map((s) => s.id);
   const narrativeSetpieceIds = setpieces
     .filter((s) => s.kind === "narrative")
     .map((s) => s.id);
@@ -493,7 +487,6 @@ export async function startDungeonRun({
     },
     {
       puzzleSetpieceIds,
-      trapSetpieceIds,
       narrativeSetpieceIds,
       treasureSetpieceIds,
     },
@@ -506,7 +499,7 @@ export async function startDungeonRun({
   const chosen = await chooseRunLayout({
     generator: getGenerator(), seed: state.seed, roomCount, layoutVersion: NEW_RUN_LAYOUT_VERSION,
     topologyRouting: NEW_RUN_TOPOLOGY_ROUTING,
-    setpieceIds: { puzzle: puzzleSetpieceIds, trap: trapSetpieceIds, narrative: narrativeSetpieceIds, treasure: treasureSetpieceIds },
+    setpieceIds: { puzzle: puzzleSetpieceIds, narrative: narrativeSetpieceIds, treasure: treasureSetpieceIds },
     // Candidates are CPU-bound (~25 ms each): hand the thread back between them so the 'generating' popup stays alive.
     yieldFn: () => new Promise((resolve) => setTimeout(resolve, 0)),
     warn: (msg) => console.warn(`${MODULE_ID} | ${msg}`),

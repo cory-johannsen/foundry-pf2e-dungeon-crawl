@@ -76,12 +76,12 @@ import {
   markStubOpened,
 } from "./dungeon-runner.mjs";
 import { canRetreat, hasNoWayForward, roomDisplayLabel, roomTileName, openChildren } from "./dungeon-retreat.mjs";
-import { depthBiasFor, applyDifficultyShift } from "./dungeon-deck.mjs";
+import { depthBiasFor, applyDifficultyShift, trapRollSucceeds } from "./dungeon-deck.mjs";
 import { startCombatForRoom } from "./dungeon-combat.mjs";
 import { playDoorSound } from "./dungeon-sound.mjs";
 import { loadDungeonSetpieces, loadRoomFeatureArt, loadCreatureArt } from "./data-loader.mjs";
 import { findCreatureArt, creatureArtPath } from "./creature-art.mjs";
-import { roomFeatureArtPath, doorAnimationFor } from "./room-feature-art.mjs";
+import { roomFeatureArtPath, doorAnimationFor, DOOR_TEXTURE_WIDTH_PX } from "./room-feature-art.mjs";
 import {
   selectSkillChallengeTemplate,
   dcAdjustmentForTier,
@@ -147,13 +147,23 @@ export function wallDoc(
   } = {},
 ) {
   const animation = door !== CONST.WALL_DOOR_TYPES.NONE ? doorAnimationFor(art) : null;
+  // #800: keep the door strip's aspect ratio (see DOOR_TEXTURE_WIDTH_PX).
+  const wallFlags = animation
+    ? {
+        ...flags,
+        core: {
+          ...flags?.core,
+          textureGridSize: DOOR_TEXTURE_WIDTH_PX / Math.hypot(x2 - x1, y2 - y1),
+        },
+      }
+    : flags;
   return {
     c: [toPixels(x1), toPixels(y1), toPixels(x2), toPixels(y2)],
     door,
     ds,
     sight: CONST.WALL_SENSE_TYPES.NORMAL,
     move: CONST.WALL_MOVEMENT_TYPES.NORMAL,
-    ...(flags ? { flags } : {}),
+    ...(wallFlags ? { flags: wallFlags } : {}),
     ...(animation ? { animation } : {}),
   };
 }
@@ -1510,6 +1520,18 @@ export function effectiveRoomBias({ rank, maxRank, isGoal, difficulty }) {
   return applyDifficultyShift(depthBiasFor({ rank, maxRank, isGoal }), difficulty);
 }
 
+/** Whether roomId already has its own trap hazard placed — #754's own
+ * idempotency check, deliberately NOT isSlotPopulated (that flag is
+ * shared with combat's own encounter population, so it's already true
+ * for a combat room before this check ever runs). */
+function hasTrapInRoom(scene, roomId) {
+  return scene.tokens.some(
+    (t) =>
+      t.getFlag(MODULE_ID, "trapHazard") &&
+      t.getFlag(MODULE_ID, "dungeonSlot") === roomId,
+  );
+}
+
 /**
  * Build+populate+unlock one graph room (#93 replacement for the old
  * linear-slot builder, since deleted) — the function Tasks 11/12/13
@@ -1810,27 +1832,9 @@ export async function buildPopulateAndUnlockGraphNode(
     // own state used to use above before #109 moved it to this same
     // build-time spot, for the same reason: a client only relaying a
     // GM-less host's requests never renders DungeonApp at all. A trap room
-    // additionally gets a real, mechanically-functional hazard spawned from
-    // pf2e.hazards for #134's engine to run.
-    if (
-      room.kind === "trap" &&
-      room.setpieceId &&
-      !isSlotPopulated(scene, room.id)
-    ) {
-      await populateSlotTrap(scene, room.id, {
-        rect,
-        partyLevel: await makeFoundryApi().partyLevel(),
-        levelOffsetBias: effectiveRoomBias({
-          rank,
-          maxRank: state.maxRank,
-          isGoal: room.isGoal,
-          difficulty: state.difficulty,
-        }),
-        locationTag: room.locationTag,
-        seed: state.seed,
-        roomId: room.id,
-      });
-    } else if (room.kind === "puzzle" && room.setpieceId) {
+    // (Traps are no longer a room kind — #754 places them independently,
+    // after this whole if/else, in any room kind.)
+    if (room.kind === "puzzle" && room.setpieceId) {
       const setpieces = await loadDungeonSetpieces();
       const setpiece = setpieces.find((s) => s.id === room.setpieceId);
       await ensurePuzzleState(scene.id, room.id, {
@@ -1889,6 +1893,45 @@ export async function buildPopulateAndUnlockGraphNode(
     // is actually resolved; resolveCurrentRoom's own unlock then opens them.
     if (unlock && !["treasure", "puzzle", "skill_challenge"].includes(room.kind))
       await unlockDoorsFromRoom(scene, room.id, childIds, state.hiddenEdges[room.id] ?? []);
+  }
+
+  // #754: traps are placed independently of room kind. Cross-cutting: runs
+  // after BOTH the combat and non-combat branches, so a combat room's trap
+  // is placed AFTER its encounter (populateSlotTrap avoids occupied cells).
+  // Idempotency is hasTrapInRoom, not isSlotPopulated (combat shares that
+  // flag). A combat room whose encounter failed to populate gets no trap:
+  // a trap token would set dungeonSlot and make the retry think the
+  // encounter exists.
+  // `scene.tokens` is always present on a real Scene; geometry-only fake
+  // scenes in tests omit it and have no token layer to place a hazard on.
+  const combatEncounterMissing =
+    room.kind === "combat" &&
+    !scene.tokens?.some(
+      (t) =>
+        t.getFlag(MODULE_ID, "dungeonSlot") === room.id &&
+        !t.getFlag(MODULE_ID, "trapHazard"),
+    );
+  if (
+    scene.tokens &&
+    !["safe_entry", "safe_rest"].includes(room.kind) &&
+    !room.isGoal &&
+    !combatEncounterMissing &&
+    !hasTrapInRoom(scene, room.id) &&
+    trapRollSucceeds(state.seed, room.id)
+  ) {
+    await populateSlotTrap(scene, room.id, {
+      rect,
+      partyLevel: await makeFoundryApi().partyLevel(),
+      levelOffsetBias: effectiveRoomBias({
+        rank,
+        maxRank: state.maxRank,
+        isGoal: room.isGoal,
+        difficulty: state.difficulty,
+      }),
+      locationTag: room.locationTag,
+      seed: state.seed,
+      roomId: room.id,
+    });
   }
 }
 

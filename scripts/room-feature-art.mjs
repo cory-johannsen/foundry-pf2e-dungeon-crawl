@@ -28,6 +28,13 @@ export function roomFeatureArtPath({ theme, kind, manifest } = {}) {
  * `swing` (see the spec's Spike result); `texture` is always the themed image. */
 export const DOOR_ANIMATION = { type: "swing" };
 
+/** Pixel width of every shipped door strip (assets/room-features/<theme>/door.webp).
+ * Foundry draws a wall texture at the wall's length horizontally but scales it
+ * vertically by gridSize / `flags.core.textureGridSize` (default 200), so a
+ * strip keeps its aspect only when that flag is the texture width per square of
+ * door length. */
+export const DOOR_TEXTURE_WIDTH_PX = 1200;
+
 /** The wall `animation` object for a themed door, or null with no art. */
 export function doorAnimationFor(art) {
   return art ? { ...DOOR_ANIMATION, texture: art } : null;

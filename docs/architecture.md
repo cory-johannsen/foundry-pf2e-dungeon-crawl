@@ -317,6 +317,7 @@ graph LR
   scripts_dungeon_scene_mjs --> scripts_dungeon_combat_mjs
   scripts_dungeon_scene_mjs --> scripts_dungeon_sound_mjs
   scripts_dungeon_scene_mjs --> scripts_data_loader_mjs
+  scripts_dungeon_scene_mjs --> scripts_creature_art_mjs
   scripts_dungeon_scene_mjs --> scripts_room_feature_art_mjs
   scripts_dungeon_scene_mjs --> scripts_skill_challenge_mechanics_mjs
   scripts_dungeon_scene_mjs --> scripts_narrative_mechanics_mjs
@@ -341,7 +342,6 @@ graph LR
   scripts_foundry_api_mjs --> scripts_cover_items_mjs
   scripts_foundry_api_mjs --> scripts_trap_combat_mjs
   scripts_foundry_api_mjs --> scripts_treasure_mjs
-  scripts_foundry_api_mjs --> scripts_combat_rewards_mjs
   scripts_module_mjs --> scripts_encounter_generator_mjs
   scripts_module_mjs --> scripts_ui_dungeon_app_mjs
   scripts_module_mjs --> scripts_ui_sound_preview_app_mjs
