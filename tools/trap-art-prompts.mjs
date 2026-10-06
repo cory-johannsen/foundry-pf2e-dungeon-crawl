@@ -13,6 +13,17 @@
  * All descriptions are grounded in each hazard's real `pf2e.hazards` text,
  * fetched live via foundry-rest rather than guessed.
  */
+/** System prompt for the paid backends (OpenRouter): the shared creature one
+ * demands a head-and-shoulders bust, which turns every object into a face. */
+export const TRAP_OBJECT_SYSTEM_PROMPT = [
+  'You are generating a single dark-fantasy object illustration for a tabletop VTT token. Follow these rules exactly:',
+  '1. SUBJECT: The described object or mechanism ONLY, centered and filling most of the frame. It is an inanimate thing: no creature, no face, no eyes, no person, no character, no bust portrait.',
+  '2. BACKGROUND: Plain, flat, solid BLACK background. Nothing else in the frame: no landscape, no room, no ground, no floor, no shadow on a floor, no walls, no props.',
+  '3. STYLE: Hand-painted dark fantasy illustration with intricate linework and rich saturated colors. Not a photograph, not a 3D render.',
+  '4. NO TEXT: No watermark, signature, logo or lettering.',
+  '5. NO FRAMES: No circular border, halo, ring, medallion or decorative frame around the subject.'
+].join('\n\n');
+
 export const TRAP_ART = [
   { id: 'fireball-rune', file: 'fireball-rune', dir: 'assets/creature-art/hazards', shapeless: true,
     prompt: 'A single glowing fire-red magical rune, an angular arcane sigil etched in flickering '
@@ -134,3 +145,5 @@ export const TRAP_ART = [
       + 'nothing else in the frame',
     avoid: 'portal frame, doorway, person, planet, galaxy, stars, wormhole tunnel effect, creature, monster, animal, humanoid, eyes, claws, wings, insect, bat, moth' },
 ];
+
+for (const entry of TRAP_ART) entry.systemPrompt = TRAP_OBJECT_SYSTEM_PROMPT;

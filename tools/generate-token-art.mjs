@@ -11360,7 +11360,8 @@ async function openrouterGenerateOne(subject, dest, model) {
       { fatal: true }
     );
   }
-  const systemPrompt = resolveGeminiSystemPrompt();
+  // A subject may bring its own system prompt (#824: objects, not creature busts).
+  const systemPrompt = subject.systemPrompt ?? resolveGeminiSystemPrompt();
   // Image-only models (Muse, Flux, Seedream, ...) are served by the dedicated
   // /images endpoint, not chat/completions.
   const res = await fetch('https://openrouter.ai/api/v1/images', {
