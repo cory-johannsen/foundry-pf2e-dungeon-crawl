@@ -182,6 +182,34 @@ describe('handleDungeonDoorOpened stub and revisit branches (#439 R3.2)', () => 
     expect(scene.updates[0].updates).toEqual([{ _id: 'mon', hidden: false }]);
     expect(getRunState(SID).currentRoomId).toBe('b');
   });
+
+  it.each(['treasure', 'skill_challenge', 'puzzle'])(
+    '#771: a %s room does not auto-open the tracker',
+    async (kind) => {
+      registerGenerator(DefaultGenerator);
+      const revealB = wall('w-b', { dungeonRevealDoorForSlot: 'b' });
+      scenes.set(SID, makeScene({ walls: [revealB] }));
+      const state = v3State({ currentRoomId: 'f', retreatPath: ['room-entry', 'f'] });
+      state.rooms.b = { ...state.rooms.b, kind, outcomeSlotId: null };
+      await seed(state);
+      const res = await handleDungeonDoorOpened(SID, 'w-b');
+      expect(res.autoOpenTracker).toBe(false);
+    },
+  );
+
+  it.each(['narrative', 'safe_rest'])(
+    '#771: a %s room still auto-opens the tracker',
+    async (kind) => {
+      registerGenerator(DefaultGenerator);
+      const revealB = wall('w-b', { dungeonRevealDoorForSlot: 'b' });
+      scenes.set(SID, makeScene({ walls: [revealB] }));
+      const state = v3State({ currentRoomId: 'f', retreatPath: ['room-entry', 'f'] });
+      state.rooms.b = { ...state.rooms.b, kind, outcomeSlotId: null };
+      await seed(state);
+      const res = await handleDungeonDoorOpened(SID, 'w-b');
+      expect(res.autoOpenTracker).toBe(true);
+    },
+  );
 });
 
 describe('retreatToFork (#439 R3.3)', () => {

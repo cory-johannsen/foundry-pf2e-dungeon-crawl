@@ -2012,12 +2012,15 @@ const roomsBeingOpened = new Set();
  * tracker.
  *
  * Returns `{ autoOpenTracker }` (`false` on every early-return path, since
- * nothing was actually revealed) — #158: a combat room's own reveal already
- * draws the GM's attention through Foundry's native Combat Tracker the
- * instant `startCombatForRoom` runs below, but a skill challenge, puzzle/
- * trap, narrative, or rest room has no such native surface at all, so
- * without this the GM has to know to reopen the Dungeon Crawl tracker
- * themselves just to see the Succeed/Fail buttons. module.mjs's own
+ * nothing was actually revealed) — #158, narrowed by #771: a combat room's
+ * own reveal already draws the GM's attention through Foundry's native
+ * Combat Tracker the instant `startCombatForRoom` runs below, and treasure/
+ * skill-challenge/puzzle rooms (#611/#623) are now resolved by clicking
+ * their own interactable room-feature token, with their own chat
+ * announcements for gp/item found or XP earned (grantPartyXp, #782) —
+ * neither needs the Dungeon Crawl tracker window open at all. Only a
+ * narrative or rest room still has no native surface of its own, so those
+ * (and any future unlisted kind) still auto-open it. module.mjs's own
  * `updateWall` hook (which this file deliberately never imports back into,
  * see this file's own docblock) is what actually opens `DungeonApp` — this
  * only ever hands back the plain boolean, same bridge pattern
@@ -2176,7 +2179,11 @@ export async function handleDungeonDoorOpened(sceneId, wallId, deps = {}) {
       await announceNoWayForward(scene, resolvedState, deps);
     }
 
-    return { autoOpenTracker: room?.kind !== "combat" };
+    return {
+      autoOpenTracker: !["combat", "treasure", "skill_challenge", "puzzle"].includes(
+        room?.kind,
+      ),
+    };
   } finally {
     roomsBeingOpened.delete(roomId);
   }

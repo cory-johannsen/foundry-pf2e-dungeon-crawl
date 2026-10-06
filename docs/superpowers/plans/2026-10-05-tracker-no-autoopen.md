@@ -34,7 +34,7 @@
 
 **Interfaces:** None — no function signature changes; `handleDungeonDoorOpened`'s own `{autoOpenTracker}` return shape is unchanged, only which room kinds produce `false`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/dungeon-scene-retreat.test.mjs`, inside the existing `describe('handleDungeonDoorOpened stub and revisit branches (#439 R3.2)', ...)` block (reusing its own `wall`/`token`/`v3State`/`installGlobals` fixtures exactly, mirroring the existing "first entry of an unjudged combat room still reveals and starts combat" test):
 
@@ -68,12 +68,12 @@ Add to `tests/dungeon-scene-retreat.test.mjs`, inside the existing `describe('ha
   );
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-scene-retreat.test.mjs -t "#771"`
 Expected: the three `treasure`/`skill_challenge`/`puzzle` cases FAIL (`autoOpenTracker` is still `true` today); the two `narrative`/`safe_rest` cases already PASS (today's behavior is already `true` for them) — confirming the test correctly targets only the intended change.
 
-- [ ] **Step 3: Widen the exclusion**
+- [x] **Step 3: Widen the exclusion**
 
 In `scripts/dungeon-scene.mjs`, change the final return (currently, line 2130):
 
@@ -91,7 +91,7 @@ to:
     };
 ```
 
-- [ ] **Step 4: Update the stale doc comment**
+- [x] **Step 4: Update the stale doc comment**
 
 The function's own doc comment (confirmed current, lines 1965-1976) still says "a skill challenge, puzzle/trap, narrative, or rest room has no such native surface at all" — stale now that #611/#623 gave treasure/skill-challenge/puzzle rooms their own interactable room-feature tokens. Change:
 
@@ -130,12 +130,12 @@ to:
  */
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-scene-retreat.test.mjs -t "#771"`
 Expected: PASS, all five cases green.
 
-- [ ] **Step 6: Run the full test suite to confirm no regression**
+- [x] **Step 6: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS — in particular every existing test in `tests/dungeon-scene-retreat.test.mjs` and `tests/dungeon-scene.test.mjs` (all of which use `kind: 'combat'` or `kind: 'safe_rest'` fixtures, confirmed via this session's own search) stays green, since neither of those kinds' `autoOpenTracker` results changed.
@@ -148,7 +148,7 @@ Close the tracker window, then advance a real dungeon run's door-open into a tre
 echo 'return !!foundry.applications.instances.get("pf2edc-dungeon-app");' | .claude/skills/foundry-rest/foundry-exec.sh
 ```
 
-- [ ] **Step 8: Bump module.json's version**
+- [x] **Step 8: Bump module.json's version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -158,7 +158,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **patch** bump (a small behavioral change), using whatever the fetch above shows as current.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-scene-retreat.test.mjs module.json
