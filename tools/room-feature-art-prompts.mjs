@@ -72,8 +72,13 @@ const AVOID = 'floor, ground, shadow on the ground, pedestal, base, plinth, fram
 // floor variants (1, 2) for all 4 base kinds, proving the variant pipeline
 // end to end. Every other theme's variants 1/2 are a tracked follow-up
 // batch through this exact same mechanism, not generated here.
-const FLOOR_VARIANT_PROOF_THEME = 'undead';
-const FLOOR_VARIANT_PROOF_VARIANTS = [1, 2];
+// #764: floor variants 1 and 2 for every theme. Variant 0 is the unsuffixed base
+// image. The wording nudges each variant to a visibly different design.
+const FLOOR_VARIANTS = [1, 2];
+const VARIANT_WORDING = {
+  1: 'a differently shaped, more weathered and worn variation',
+  2: 'a differently shaped, more ornate and elaborate variation',
+};
 
 function kindSubject(theme, kind) {
   return `${KIND_SUBJECT[kind]}, styled as a ${theme} dungeon object with ${THEME_FLAVOR[theme]}, `
@@ -104,16 +109,18 @@ export const ROOM_FEATURE_ART = [
       avoid: AVOID,
     })),
   ),
-  // #764 floor-variant proof batch.
-  ...FLOOR_VARIANT_PROOF_VARIANTS.flatMap((variant) =>
-    ROOM_FEATURE_ART_BASE_KINDS.map((kind) => ({
-      id: `rf-${FLOOR_VARIANT_PROOF_THEME}-${kind}-${variant}`,
-      file: `${kind}-${variant}`,
-      dir: `assets/room-features/${FLOOR_VARIANT_PROOF_THEME}`,
-      icon: true,
-      prompt: kindSubject(FLOOR_VARIANT_PROOF_THEME, kind),
-      systemPrompt: systemPromptFor(kind),
-      avoid: AVOID,
-    })),
+  // #764 floor variants 1 and 2 for every theme (undead's were the first batch).
+  ...ROOM_FEATURE_ART_THEMES.flatMap((theme) =>
+    FLOOR_VARIANTS.flatMap((variant) =>
+      ROOM_FEATURE_ART_BASE_KINDS.map((kind) => ({
+        id: `rf-${theme}-${kind}-${variant}`,
+        file: `${kind}-${variant}`,
+        dir: `assets/room-features/${theme}`,
+        icon: true,
+        prompt: `${kindSubject(theme, kind)}, ${VARIANT_WORDING[variant]}`,
+        systemPrompt: systemPromptFor(kind),
+        avoid: AVOID,
+      })),
+    ),
   ),
 ];
