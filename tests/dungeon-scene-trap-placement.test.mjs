@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // #754: build-time trap placement is independent of room kind.
 const roll = vi.hoisted(() => ({ succeeds: true, corridor: false }));
+const overshoot = vi.hoisted(() => ({ on: false }));
 const calls = vi.hoisted(() => ({ order: [], spawns: [], selects: [], origFootprint: null }));
 
 vi.mock("../scripts/dungeon-deck.mjs", async (importOriginal) => ({
@@ -9,6 +10,22 @@ vi.mock("../scripts/dungeon-deck.mjs", async (importOriginal) => ({
   trapRollSucceeds: vi.fn(() => roll.succeeds),
   corridorTrapRollSucceeds: vi.fn(() => roll.corridor),
 }));
+// #779: lets a test lengthen the last corridor segment by half a cell, reproducing the fractional-length
+// overshoot of corridorTilesForSegments (one extra cell past the corridor, inside the destination room).
+vi.mock("../scripts/dungeon-layout.mjs", async (importOriginal) => {
+  const orig = await importOriginal();
+  return {
+    ...orig,
+    buildEdgeCorridor: (...a) => {
+      const r = orig.buildEdgeCorridor(...a);
+      if (!overshoot.on || !r?.corridorSegments?.length) return r;
+      const segs = r.corridorSegments.map((x) => ({ ...x }));
+      const last = segs[segs.length - 1];
+      if (last.gh >= last.gw) last.gh += 0.5; else last.gw += 0.5;
+      return { ...r, corridorSegments: segs };
+    },
+  };
+});
 vi.mock("../scripts/encounter-generator.mjs", () => ({
   generateEncounter: vi.fn(async ({ scene, extraFlags }) => {
     calls.order.push("encounter");
@@ -38,7 +55,8 @@ vi.mock("../scripts/foundry-api.mjs", () => ({
 import { buildPopulateAndUnlockGraphNode } from "../scripts/dungeon-scene.mjs";
 import { trapRollSucceeds, corridorTrapRollSucceeds, depthBiasFor, applyDifficultyShift } from "../scripts/dungeon-deck.mjs";
 import { trapFootprintSize } from "../scripts/trap-mechanics.mjs";
-import { corridorTilesForSegments, populateSlotTrap, effectiveRoomBias } from "../scripts/dungeon-scene.mjs";
+import { splitmix32, seedFromString } from "../scripts/prng.mjs";
+import { corridorTilesForSegments, corridorTrapCandidateCells, populateSlotTrap, effectiveRoomBias } from "../scripts/dungeon-scene.mjs";
 import { buildEdgeCorridor, roomRect, doorSlotsForFace } from "../scripts/dungeon-layout.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -79,6 +97,7 @@ const trapsIn = (scene) => scene.tokens.filter((t) => t.getFlag(MODULE_ID, "trap
 beforeEach(() => {
   roll.succeeds = true;
   roll.corridor = false;
+  overshoot.on = false;
   calls.order.length = 0;
   calls.spawns.length = 0;
   calls.selects.length = 0;
@@ -274,6 +293,67 @@ describe("buildPopulateAndUnlockGraphNode — #779 corridor trap placement", () 
     await cBuild(withTrap);
     expect(corridorTraps(withTrap)).toHaveLength(1);
     expect(strip(withTrap)).toEqual(strip(without));
+  });
+});
+
+describe("#779 corridor trap never lands inside a room (overshoot cell)", () => {
+  const inRect = (c, r) => c.gx >= r.gx && c.gx < r.gx + r.gw && c.gy >= r.gy && c.gy < r.gy + r.gh;
+  const rects = (st) => [roomRect(st.seed, F, 0, 2), roomRect(st.seed, S, 1, 2)];
+  const cellOf = (originArea) => ({ gx: originArea.x / 100, gy: originArea.y / 100 });
+  /** Which cell the pre-fix code (pick from the unfiltered cells) would choose. */
+  const oldPick = (st) => {
+    overshoot.on = true;
+    const cells = edgeCells(st);
+    overshoot.on = false;
+    return cells[Math.floor(splitmix32(seedFromString(`${st.seed}-corridor-trap-cell-${EDGE}`))() * cells.length)];
+  };
+
+  it("fixture really overshoots: with a fractional segment, a corridor cell lies inside the destination room", () => {
+    overshoot.on = true;
+    const st = cState();
+    expect(edgeCells(st).some((c) => inRect(c, rects(st)[1]))).toBe(true);
+  });
+
+  it("across seeds (including ones the old code would send into the room) the trap is never in either room rect", async () => {
+    let oldWouldHit = 0;
+    let placed = 0;
+    for (let k = 0; k < 60; k += 1) {
+      const st = cState({ seed: `overshoot-${k}` });
+      const [fr, tr] = rects(st);
+      const old = oldPick(st);
+      if (inRect(old, fr) || inRect(old, tr)) oldWouldHit += 1;
+      roll.succeeds = false;
+      roll.corridor = true;
+      overshoot.on = true;
+      calls.spawns.length = 0;
+      const scene = makeScene();
+      await cBuild(scene, st);
+      if (calls.spawns.length) {
+        placed += 1;
+        const cell = cellOf(calls.spawns[0].originArea);
+        expect(inRect(cell, fr) || inRect(cell, tr)).toBe(false);
+      }
+    }
+    expect(oldWouldHit).toBeGreaterThan(0); // proves the fixture exercises the old bug
+    expect(placed).toBe(60); // a legitimate corridor cell still gets a trap
+  });
+
+  it("the helper drops cells inside either rect, de-duplicates, and keeps legitimate cells", () => {
+    const src = { gx: 0, gy: 0, gw: 4, gh: 4 };
+    const dst = { gx: 378, gy: 39, gw: 6, gh: 6 };
+    const cells = [{ gx: 4, gy: 1 }, { gx: 4, gy: 1 }, { gx: 3, gy: 1 }, { gx: 377, gy: 41 }, { gx: 378, gy: 41 }, { gx: 380, gy: 40 }];
+    expect(corridorTrapCandidateCells(cells, [src, dst])).toEqual([{ gx: 4, gy: 1 }, { gx: 377, gy: 41 }]);
+  });
+
+  it("when every candidate is inside a room, no candidate remains (no fallback to an excluded cell)", () => {
+    const dst = { gx: 378, gy: 39, gw: 6, gh: 6 };
+    expect(corridorTrapCandidateCells([{ gx: 378, gy: 41 }, { gx: 378, gy: 41 }], [dst])).toEqual([]);
+  });
+
+  it("corridor floor tiles still include the overshoot cell (art output unchanged)", () => {
+    const { cells, tiles } = corridorTilesForSegments([{ gx: 5, gy: 5, gw: 1, gh: 2.5 }]);
+    expect(cells).toHaveLength(3);
+    expect(tiles).toHaveLength(3);
   });
 });
 
