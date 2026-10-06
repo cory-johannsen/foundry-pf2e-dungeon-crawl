@@ -38,7 +38,7 @@
 **Interfaces:**
 - Produces: `roomFeatureArtPath({theme, kind, variant = 0, manifest})` — same name/callers as today, now variant-aware. `ROOM_FEATURE_ART_STATE_KINDS` — the 4 new kind keys (`door_locked`, `treasure_used`, `puzzle_used`, `skill_challenge_used`), exported for Task 4's generator wiring. Consumed by Tasks 2 and 3.
 
-- [ ] **Step 1: Confirm the existing test file and current manifest-coverage test**
+- [x] **Step 1: Confirm the existing test file and current manifest-coverage test**
 
 ```bash
 grep -rln "roomFeatureArtPath" tests/
@@ -46,7 +46,7 @@ grep -rln "roomFeatureArtPath" tests/
 
 Open whichever file that finds and read its existing `describe`/`it` blocks in full before writing new ones below, matching its exact conventions (fixture style, manifest-coverage assertion shape).
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 Add to that file:
 
@@ -85,12 +85,12 @@ describe('roomFeatureArtPath variants (#764)', () => {
 });
 ```
 
-- [ ] **Step 3: Run tests to verify they fail**
+- [x] **Step 3: Run tests to verify they fail**
 
 Run: `npx vitest run tests/room-feature-art.test.mjs -t "variants"` (adjust path to whatever Step 1 found)
 Expected: FAIL — `roomFeatureArtPath` doesn't understand `variant` or the new manifest shape yet.
 
-- [ ] **Step 4: Rewrite `roomFeatureArtPath` and extend the kind list**
+- [x] **Step 4: Rewrite `roomFeatureArtPath` and extend the kind list**
 
 In `scripts/room-feature-art.mjs`, change:
 
@@ -148,7 +148,7 @@ export function roomFeatureArtPath({ theme, kind, variant = 0, manifest } = {}) 
 }
 ```
 
-- [ ] **Step 5: Migrate `data/room-feature-art.json`**
+- [x] **Step 5: Migrate `data/room-feature-art.json`**
 
 Replace its entire contents with (every existing entry's kinds carried forward unchanged as `[0]`; no new variants/state kinds listed yet — Task 5 adds them once the art actually exists):
 
@@ -165,16 +165,16 @@ Replace its entire contents with (every existing entry's kinds carried forward u
 }
 ```
 
-- [ ] **Step 6: Update the manifest-coverage test for the new shape**
+- [x] **Step 6: Update the manifest-coverage test for the new shape**
 
 The existing "manifest matches the files on disk exactly" test (found in Step 1) walks `manifest[theme]` as an array of kind strings; update it to walk `Object.keys(manifest[theme])` as the kind list instead (the variant array itself only matters for Task 5's own coverage check, added there once variant/state files actually exist) — adjust its exact logic to match whatever shape the real test used, preserving its "no manifest entry without a file, no file without an entry" guarantee for variant 0's unsuffixed filename.
 
-- [ ] **Step 7: Run tests to verify they pass**
+- [x] **Step 7: Run tests to verify they pass**
 
 Run: `npx vitest run tests/room-feature-art.test.mjs`
 Expected: PASS, every test (old and new) green.
 
-- [ ] **Step 8: Run the full test suite to confirm no regression**
+- [x] **Step 8: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS — every existing caller of `roomFeatureArtPath` (Tasks 2/3's own current code, pre-this-plan) still passes a bare `{theme, kind, manifest}` with no `variant`, which now defaults to 0 and resolves identically to before the manifest migration.

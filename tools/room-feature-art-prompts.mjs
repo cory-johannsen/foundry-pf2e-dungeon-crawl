@@ -11,7 +11,7 @@
  * flavor, on a plain white background, and cut out by the same script.
  * No apostrophes in any string here; the generator builds JS strings from them.
  */
-import { ROOM_FEATURE_ART_THEMES, ROOM_FEATURE_ART_KINDS } from '../scripts/room-feature-art.mjs';
+import { ROOM_FEATURE_ART_THEMES, ROOM_FEATURE_ART_BASE_KINDS } from '../scripts/room-feature-art.mjs';
 
 /** How each theme dresses an object: materials, colors and details. */
 const THEME_FLAVOR = {
@@ -39,7 +39,7 @@ const AVOID = 'floor, ground, shadow on the ground, pedestal, base, plinth, fram
   + 'scenery, room, wall, people, creatures, faces, heads, monsters, hands, text, letters, square plate, panel';
 
 export const ROOM_FEATURE_ART = ROOM_FEATURE_ART_THEMES.flatMap((theme) =>
-  ROOM_FEATURE_ART_KINDS.map((kind) => ({
+  ROOM_FEATURE_ART_BASE_KINDS.map((kind) => ({
     id: `rf-${theme}-${kind}`,
     file: kind,
     dir: `assets/room-features/${theme}`,

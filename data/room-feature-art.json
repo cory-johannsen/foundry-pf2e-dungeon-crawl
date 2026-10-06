@@ -1,10 +1,10 @@
 {
-  "aberration": ["door", "treasure", "puzzle", "skill_challenge"],
-  "beast": ["door", "treasure", "puzzle", "skill_challenge"],
-  "construct": ["door", "treasure", "puzzle", "skill_challenge"],
-  "dragon": ["door", "treasure", "puzzle", "skill_challenge"],
-  "elemental": ["door", "treasure", "puzzle", "skill_challenge"],
-  "fiend": ["door", "treasure", "puzzle", "skill_challenge"],
-  "plant": ["door", "treasure", "puzzle", "skill_challenge"],
-  "undead": ["door", "treasure", "puzzle", "skill_challenge"]
+  "aberration": { "door": [0], "treasure": [0], "puzzle": [0], "skill_challenge": [0] },
+  "beast": { "door": [0], "treasure": [0], "puzzle": [0], "skill_challenge": [0] },
+  "construct": { "door": [0], "treasure": [0], "puzzle": [0], "skill_challenge": [0] },
+  "dragon": { "door": [0], "treasure": [0], "puzzle": [0], "skill_challenge": [0] },
+  "elemental": { "door": [0], "treasure": [0], "puzzle": [0], "skill_challenge": [0] },
+  "fiend": { "door": [0], "treasure": [0], "puzzle": [0], "skill_challenge": [0] },
+  "plant": { "door": [0], "treasure": [0], "puzzle": [0], "skill_challenge": [0] },
+  "undead": { "door": [0], "treasure": [0], "puzzle": [0], "skill_challenge": [0] }
 }

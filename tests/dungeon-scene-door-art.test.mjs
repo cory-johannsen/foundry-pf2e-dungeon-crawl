@@ -5,8 +5,8 @@ vi.mock("../scripts/data-loader.mjs", async (importOriginal) => {
   return {
     ...real,
     loadRoomFeatureArt: vi.fn(async () => ({
-      undead: ["door", "treasure", "puzzle", "skill_challenge"],
-      fiend: ["door"],
+      undead: { door: [0], treasure: [0], puzzle: [0], skill_challenge: [0] },
+      fiend: { door: [0] },
     })),
   };
 });

@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { ROOM_FEATURE_ART } from "../tools/room-feature-art-prompts.mjs";
-import { ROOM_FEATURE_ART_THEMES, ROOM_FEATURE_ART_KINDS } from "../scripts/room-feature-art.mjs";
+import { ROOM_FEATURE_ART_THEMES, ROOM_FEATURE_ART_BASE_KINDS } from "../scripts/room-feature-art.mjs";
 
 describe("ROOM_FEATURE_ART subjects", () => {
   it("has exactly one subject per theme and kind", () => {
-    expect(ROOM_FEATURE_ART).toHaveLength(ROOM_FEATURE_ART_THEMES.length * ROOM_FEATURE_ART_KINDS.length);
+    expect(ROOM_FEATURE_ART).toHaveLength(ROOM_FEATURE_ART_THEMES.length * ROOM_FEATURE_ART_BASE_KINDS.length);
     for (const theme of ROOM_FEATURE_ART_THEMES) {
-      for (const kind of ROOM_FEATURE_ART_KINDS) {
+      for (const kind of ROOM_FEATURE_ART_BASE_KINDS) {
         const s = ROOM_FEATURE_ART.find((x) => x.id === `rf-${theme}-${kind}`);
         expect(s, `${theme}/${kind}`).toBeDefined();
         expect(s.dir).toBe(`assets/room-features/${theme}`);
