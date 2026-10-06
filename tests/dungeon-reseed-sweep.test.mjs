@@ -24,7 +24,6 @@ describe('goal-only reseed ratchet (500 bases, N = 20)', () => {
       exhausted: out.filter((r) => r.exhausted).length,
       detour: out.filter((r) => r.layout.hiddenRooms.length > 0).length,
       hidden: mean(out.map((r) => r.layout.hiddenRooms.length)),
-      maxMs: Math.max(...out.map((r) => r.ms)), meanMs: mean(out.map((r) => r.ms)),
     };
     expect(RESEED_MAX_TRIES).toBe(20);
     // Base world (no reseed, stub-free layout): over half of the dungeons cannot reach the goal. #575: the predicate also needs every
@@ -40,8 +39,9 @@ describe('goal-only reseed ratchet (500 bases, N = 20)', () => {
     expect(stats.detour).toBe(147);
     expect(stats.hidden).toBeGreaterThan(0.34);
     expect(stats.hidden).toBeLessThan(0.42);
-    // Timing (#427 Chunk 7: the stub plan builds scenes per candidate): measured max 977 ms, mean 66 ms per run precompute
-    // (generous bound for slow CI).
-    expect(stats.maxMs).toBeLessThan(5000);
+    // #787: no wall-clock assertion. A `maxMs < 5000` bound failed intermittently under full-suite load (5789 ms observed
+    // while other files ran in parallel) and said nothing about the code. Cost is bounded deterministically instead: the stub
+    // plan builds scenes per candidate (#427 Chunk 7), so the pinned mean (2.25-2.4) and worst-case (<= 1 + RESEED_MAX_TRIES)
+    // candidate counts above ARE the cost ratchet.
   }, 600000);
 });
