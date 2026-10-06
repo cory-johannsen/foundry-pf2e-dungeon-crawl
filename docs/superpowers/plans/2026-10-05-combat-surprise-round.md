@@ -48,11 +48,11 @@
 - `hostileAwareness(matrix, hostileId, partyCombatantIds)` → `{ targetable: [ids observed by hostile], seekable: [ids hidden|undetected], unaware: boolean }` where `unaware` is true when there is at least one sneaker in the matrix, none targetable, none seekable (all unnoticed). Party ids not in the matrix are targetable.
 - `uniformCondition(matrix, sneakerId)` → `"unnoticed"` if every hostile's state for the sneaker is `unnoticed`; `"undetected"` if every state is `undetected`; `"hidden"` if every state is `hidden`; else `null`.
 
-- [ ] **Step 1:** Write failing tests for every function above, covering at least: equal result vs DC is `unnoticed` (meets or exceeds), one below is `observed`; the alarm rule (one observed pair converts unnoticed → undetected, observed stays; all unnoticed stays unnoticed); `afterAttack` immutability and scope; every Seek outcome row incl. observed/unnoticed unchanged; `hostileAwareness` for unaware / seekable / targetable / mixed / no sneakers / unknown party ids; `uniformCondition` uniform vs mixed; `avoidingNoticeActorIds` with and without the item, with the item owned but not selected in `exploration`.
-- [ ] **Step 2:** Run `npx vitest run tests/stealth-detection.test.mjs`, confirm failures are for the right reason.
-- [ ] **Step 3:** Implement the module.
-- [ ] **Step 4:** Run the test file, confirm green.
-- [ ] **Step 5:** Commit.
+- [x] **Step 1:** Write failing tests for every function above, covering at least: equal result vs DC is `unnoticed` (meets or exceeds), one below is `observed`; the alarm rule (one observed pair converts unnoticed → undetected, observed stays; all unnoticed stays unnoticed); `afterAttack` immutability and scope; every Seek outcome row incl. observed/unnoticed unchanged; `hostileAwareness` for unaware / seekable / targetable / mixed / no sneakers / unknown party ids; `uniformCondition` uniform vs mixed; `avoidingNoticeActorIds` with and without the item, with the item owned but not selected in `exploration`.
+- [x] **Step 2:** Run `npx vitest run tests/stealth-detection.test.mjs`, confirm failures are for the right reason.
+- [x] **Step 3:** Implement the module.
+- [x] **Step 4:** Run the test file, confirm green.
+- [x] **Step 5:** Commit.
 
 ### Task 2: Stealth initiative and detection in `startCombat`
 
