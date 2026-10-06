@@ -15,7 +15,8 @@ import { forEachEdge, buildSweepLayout, legacyExitSelector } from './helpers/lay
 
 const SEEDS = 500;
 const NO_REST_ROOM = { restRoom: false }; // the digest predates the sweep mirroring insertRestRoom
-const GOLDEN_DIGEST = 'f179b4c09a584cd2df8fc459b7647aa5207f65b65e45285967c6cd1cecf2f478';
+// #860 re-baseline (deliberate): west-face incoming corridors now route one cell west of the room's own first column.
+const GOLDEN_DIGEST = 'e794236c8783739202712b1864a2383b71417e34b34fa9cda4663b70096073bc';
 
 function digest(explicitUndefined) {
   const h = createHash('sha256');

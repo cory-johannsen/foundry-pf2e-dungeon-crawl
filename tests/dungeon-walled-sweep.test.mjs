@@ -102,7 +102,10 @@ describe('#585: dead edges that cannot be stubs are walled (500 seeds, retreat o
     // are gone; the single overshoot tile per cell stays, deliberately out of scope). doorMismatch (130 -> 0) reads
     // walls/doors only, so it is unchanged; so are the walled/lost counts above.
     expect([t.dupBefore, t.dupAfter, t.inRoomBefore, t.inRoomAfter, t.doorMismatchBefore, t.doorMismatchAfter])
-      .toEqual([19, 0, 6163, 1987, 130, 0]);
+      // #860 re-pin: west-face corridor legs moved off the destination room's first column, so tiles inside a room
+      // drop 6163 -> 4676 (shipped) / 1987 -> 1227 (walled) and the visible-door mismatches 130 -> 96 (more doors now sit
+      // directly beside their corridor); dup and the walled/lost counts are unchanged.
+      .toEqual([19, 0, 4676, 1227, 96, 0]);
     expect([t.unreachBefore, t.unreachAfter, t.goalLostBefore, t.goalLostAfter]).toEqual([2305, 2259, 271, 266]);
   }, 900000);
 });

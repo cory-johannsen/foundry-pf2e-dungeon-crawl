@@ -31,6 +31,8 @@ function digestScene(h, scene) {
 // different art file/rotation, a bend gets the new corner piece, stacked duplicate tiles are gone). Tiles are visual
 // only, so every WALL digest below is the value computed on the pre-#823 code (8428daad) and is UNCHANGED; only the
 // tile digests were re-pinned. (The pre-#823 combined walls+tiles digests were 8743a565..., 7c040a14... and 93561df2...)
+// #860 re-pin (tiles only): west-face incoming corridors now run one cell west of the destination room's first column, so
+// the corridor TILE digests moved; every WALL digest below is unchanged (verified: walls identical before and after).
 describe('runs without the routing flag keep their geometry exactly (#427)', () => {
   const sceneDigests = async (layoutVersion) => {
     const walls = createHash('sha256');
@@ -43,10 +45,10 @@ describe('runs without the routing flag keep their geometry exactly (#427)', () 
     return { walls: walls.digest('hex'), tiles: tiles.digest('hex') };
   };
   it('layoutVersion 2 builds the same walls and (re-pinned, #823) tiles (40 seeds)', async () => {
-    expect(await sceneDigests(2)).toEqual({ walls: 'eeedfa994be105aaab4a7ffd66ab885251aa65b53f015c7369f6d1e2ea935d39', tiles: '1e8076b7f46fe6e3050e8b2b0bf13cfbc0c1cde02e7d6da9faa2b316a0d1838f' });
+    expect(await sceneDigests(2)).toEqual({ walls: 'eeedfa994be105aaab4a7ffd66ab885251aa65b53f015c7369f6d1e2ea935d39', tiles: 'd6ab4a5baeba5932faebfd78b4a0df45f5e73fddc6a1d984e6391c677de78195' });
   }, 120000);
   it('layoutVersion 1 builds the same walls and (re-pinned, #823) tiles (40 seeds)', async () => {
-    expect(await sceneDigests(1)).toEqual({ walls: 'c3432f24940373854c6eebc2cbc582c387cae91b547e1963592b407dd1b74836', tiles: '1678396a948ef627db21138836038144953cbc6ebb995f65e231e27a06c9a407' });
+    expect(await sceneDigests(1)).toEqual({ walls: 'c3432f24940373854c6eebc2cbc582c387cae91b547e1963592b407dd1b74836', tiles: 'b4810286d8ceaa1862e115bc5c015a86938fe5c2b572d2f683e965bcf9c4a15f' });
   }, 120000);
   it('a v3 run without the flag: the whole pipeline (reseed, stubs, walls) is unchanged; tiles re-pinned (#823) (40 seeds)', async () => {
     const walls = createHash('sha256');
@@ -59,7 +61,7 @@ describe('runs without the routing flag keep their geometry exactly (#427)', () 
       digestWalls(walls, scene);
       digestTiles(tiles, scene);
     }
-    expect({ walls: walls.digest('hex'), tiles: tiles.digest('hex') }).toEqual({ walls: 'a5721e874f506919d21f179ffcf16970e7e502eee1f3dc7a19be74da385d03aa', tiles: '02556513fd52bb8d385039220de8533911e4b5dc6705bf2c752146217212d5ef' });
+    expect({ walls: walls.digest('hex'), tiles: tiles.digest('hex') }).toEqual({ walls: 'a5721e874f506919d21f179ffcf16970e7e502eee1f3dc7a19be74da385d03aa', tiles: 'e3123cd8b6b4e1cf7c7d33fe562529f177a1b1dfcbf2eeeae065fc68654d0021' });
   }, 300000);
 });
 

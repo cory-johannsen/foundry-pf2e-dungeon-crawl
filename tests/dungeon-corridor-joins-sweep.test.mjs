@@ -159,8 +159,8 @@ describe('#823 corridor joins (100 routed v3 seeds, through the real scene build
 
     // The check is known to detect the live bug: on the same layouts the old per-segment end-cap rule (reimplemented
     // here by running the unchanged corridorTilesForSegments over each edge's segments) draws a wall across
-    // 1874 open joints (I2), is asymmetric on 530 (I1) and stacks 1257 cells (I0).
-    expect([t.oldI2, t.oldI1, t.oldStackedCells]).toEqual([1874, 530, 1257]);
+    // 1749 open joints (I2), is asymmetric on 530 (I1) and stacks 1247 cells (I0) (#860: west-face corridor geometry moved these from 1874/530/1257).
+    expect([t.oldI2, t.oldI1, t.oldStackedCells]).toEqual([1749, 530, 1247]);
     // The new rule: no stacked cell scene-wide (stubs included), no wall across a joint, symmetric, every door end
     // an end cap open toward its one neighbour. Before -> after: stacked cells 1257 -> 0.
     expect(t.stackExamples).toEqual([]);
@@ -170,8 +170,9 @@ describe('#823 corridor joins (100 routed v3 seeds, through the real scene build
     // (none in routed v3), bend cells now drawn with the corner piece, and the documented cross-edge overlap (sweep-51:
     // a hidden detour crosses another corridor; first wins, 2 cells open toward a cell the other corridor owns).
     expect([t.newPairs, t.newDoorEnds, t.newExcluded, t.newWide, t.corners, t.newCrossEdgeCells])
-      .toEqual([20196, 2480, 0, 0, 1269, 2]);
-    // One tile per distinct cell: 22877 old tiles (incl. stacked duplicates) -> 21620 flagged corridor tiles.
-    expect([t.oldTiles, t.corridorTiles]).toEqual([22877, 21620]);
+      .toEqual([20083, 2480, 0, 0, 1259, 2]);
+    // #860: pairs 20196 -> 20083, corners 1269 -> 1259 (west-face detour corner and final leg moved one cell west, off the room).
+    // One tile per distinct cell: 22889 old tiles (incl. stacked duplicates) -> 21507 flagged corridor tiles (#860: west-face detour legs moved off the destination room's first column; was 22877 -> 21620).
+    expect([t.oldTiles, t.corridorTiles]).toEqual([22889, 21507]);
   }, 600000);
 });

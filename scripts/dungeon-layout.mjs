@@ -805,7 +805,13 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     // point next to a room's own cell, both bigger than this task's scope.
     const corridorSegments = [
       ...cornerConnector(exitPoint, firstCellPoint, { toSide: transitCells[0].entrySide, coverFromCell }),
-      ...cornerConnector(lastCellPoint, entryPoint, { fromSide: transitCells[transitCells.length - 1].exitSide }),
+      ...cornerConnector(lastCellPoint, entryPoint, {
+        fromSide: transitCells[transitCells.length - 1].exitSide,
+        // #860: a west-face entryPoint sits exactly on the destination
+        // room's own west edge (toSlot.x1 === toRect.gx), so the whole
+        // approach (corner + final leg) must stay one cell WEST of it.
+        toWestFace: incomingFace === 'west',
+      }),
     ];
     const plainWalls = [
       ...(exitDoor ? [] : sourceFaceCapWalls(fromRect, exitFace, exitPoint)),
@@ -1378,7 +1384,8 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
   const entryPoint = incomingFace === 'west'
     ? { x: toSlot.x1, y: clampDoorStart(toSlot.y1, toSlot.y2, toSlot.y1 + slotSpan / 2 - DOOR_WIDTH) }
     : { x: clampDoorStart(toSlot.x1, toSlot.x2, toSlot.x1 + slotSpan / 2 - DOOR_WIDTH), y: toSlot.y1 };
-  const corner = { x: entryPoint.x, y: exitPoint.y };
+  // #860: a west-face entryPoint is the room's own west edge; keep the corner (and final leg) one cell west of it.
+  const corner = { x: incomingFace === 'west' ? entryPoint.x - CORRIDOR_LEN : entryPoint.x, y: exitPoint.y };
 
   const doorWall = exitFace === 'south'
     ? { x1: exitPoint.x, y1: exitPoint.y, x2: exitPoint.x + DOOR_WIDTH, y2: exitPoint.y }
@@ -1411,7 +1418,7 @@ export function buildEdgeCorridor(seed, fromRoomId, toRoomId, fromRect, toRect, 
     plainWalls,
     corridorSegments: [
       // #555: heading west, include the door's own cell (see cornerConnector's coverFromCell).
-      { gx: Math.min(exitPoint.x, corner.x), gy: Math.min(exitPoint.y, corner.y), gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - exitPoint.x)) + (coverFromCell && corner.x < exitPoint.x ? CORRIDOR_LEN : 0), gh: CORRIDOR_LEN },
+      { gx: Math.min(exitPoint.x, corner.x), gy: Math.min(exitPoint.y, corner.y), gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - exitPoint.x)) + (coverFromCell && corner.x < exitPoint.x ? CORRIDOR_LEN : 0) + (incomingFace === 'west' && corner.x > exitPoint.x ? CORRIDOR_LEN : 0), gh: CORRIDOR_LEN },
       { gx: Math.min(corner.x, entryPoint.x), gy: Math.min(corner.y, entryPoint.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(entryPoint.y - corner.y)) }
     ],
     transitCells: [],
@@ -1966,15 +1973,18 @@ function directionBetween(from, to) {
  * cell.gx) where extending forward already stays inward, same as Task
  * 3's own round-2 fix for transitCellCrossing's internal corner case.
  */
-function cornerConnector(from, to, { fromSide, toSide, coverFromCell = false } = {}) {
-  const corner = { x: to.x, y: from.y };
+function cornerConnector(from, to, { fromSide, toSide, toWestFace = false, coverFromCell = false } = {}) {
+  // #860: `toWestFace` -- `to` is on a destination room's own WEST edge (the room occupies the cell east of it), so the
+  // corner and the final leg shift one cell west, and a leg heading east is widened to cover the corner cell.
+  const corner = { x: toWestFace ? to.x - CORRIDOR_LEN : to.x, y: from.y };
+  const eastExtra = toWestFace && corner.x > from.x ? CORRIDOR_LEN : 0;
   // #555: a leg heading WEST spans [to.x, from.x), omitting from's own cell; for a gap-START door point that
   // is the door's cell, leaving the hallway one cell left of the door. `coverFromCell` includes it.
   const westExtra = coverFromCell && corner.x < from.x ? CORRIDOR_LEN : 0;
   const leg1Gy = fromSide === 'south' ? from.y - CORRIDOR_LEN : Math.min(from.y, corner.y);
   const leg2Gx = toSide === 'east' ? to.x - CORRIDOR_LEN : Math.min(corner.x, to.x);
   return [
-    { gx: Math.min(from.x, corner.x), gy: leg1Gy, gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - from.x)) + westExtra, gh: CORRIDOR_LEN },
+    { gx: Math.min(from.x, corner.x), gy: leg1Gy, gw: Math.max(CORRIDOR_LEN, Math.abs(corner.x - from.x)) + westExtra + eastExtra, gh: CORRIDOR_LEN },
     { gx: leg2Gx, gy: Math.min(corner.y, to.y), gw: CORRIDOR_LEN, gh: Math.max(CORRIDOR_LEN, Math.abs(to.y - corner.y)) },
   ];
 }

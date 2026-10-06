@@ -79,8 +79,10 @@ describe('measureBuildability reproduces the spec baseline on layoutVersion 1 (#
   it('matches the numbers measured on main 0.54.49', () => {
     const t = Array.from({ length: SEEDS }, (_, i) => measureBuildability(buildSweepLayout(i))).reduce(sumMeasures);
     expect(t).toMatchObject({
-      edges: 9930, nullPath: 2470, interOverlap: 1316, multi: 2077, sharedCells: 1257,
-      cutEdges: 526, cutOccurrences: 861, floorCrossings: 510, targetOverlapDeep: 170,
+      // #860 re-pin: west-face corridor legs no longer run through the destination room's first column, so
+      // interOverlap 1316 -> 1281 and targetOverlapDeep 170 -> 0 (the 170 west-incoming edges #427/#416 had abandoned).
+      edges: 9930, nullPath: 2470, interOverlap: 1281, multi: 2077, sharedCells: 1257,
+      cutEdges: 526, cutOccurrences: 861, floorCrossings: 510, targetOverlapDeep: 0,
     });
   });
 });
@@ -141,7 +143,8 @@ describe('layoutVersion 3 buildability: incoming door order only (#427)', () => 
   });
   it('v1/v2 slot assignment is untouched (the same helper without layoutVersion 3 still uses the priority swap)', () => {
     const v2 = Array.from({ length: SEEDS }, (_, i) => measureBuildability(buildSweepLayout(i, { layoutVersion: 2 }))).reduce(sumMeasures);
-    expect(v2.interOverlap).toBe(1132);
+    // #860 re-pin: 1132 -> 1104 (west-face legs moved off the destination room's first column).
+    expect(v2.interOverlap).toBe(1104);
     expect(v2.cutOccurrences).toBe(814);
   });
 });
