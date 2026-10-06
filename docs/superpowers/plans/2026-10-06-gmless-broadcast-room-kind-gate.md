@@ -41,7 +41,7 @@
 **Interfaces:**
 - Produces: `export function roomKindAllowsTrackerAutoOpen(kind): boolean` — `true` for every kind except `"combat"`, `"treasure"`, `"skill_challenge"`, `"puzzle"`. Consumed by Task 2.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add a new small test block (in `tests/dungeon-scene-retreat.test.mjs`, or wherever reads most naturally alongside this file's own existing `#771` tests — check that file's own import line first and add `roomKindAllowsTrackerAutoOpen` to it):
 
@@ -63,12 +63,12 @@ describe('roomKindAllowsTrackerAutoOpen (#845)', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-scene-retreat.test.mjs -t "roomKindAllowsTrackerAutoOpen"`
 Expected: FAIL — not exported yet.
 
-- [ ] **Step 3: Extract the function**
+- [x] **Step 3: Extract the function**
 
 In `scripts/dungeon-scene.mjs`, add directly above `handleDungeonDoorOpened` (confirmed current function start, around line 2170):
 
@@ -102,17 +102,17 @@ to:
       autoOpenTracker: roomKindAllowsTrackerAutoOpen(room?.kind),
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-scene-retreat.test.mjs -t "roomKindAllowsTrackerAutoOpen"`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full test suite to confirm no regression**
+- [x] **Step 5: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS — in particular, every existing #771 test in this file (the ones exercising `handleDungeonDoorOpened`'s own `autoOpenTracker` value) stays green, confirming the extraction is behavior-preserving.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-scene-retreat.test.mjs
