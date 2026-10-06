@@ -99,10 +99,12 @@ describe('#585: dead edges that cannot be stubs are walled (500 seeds, retreat o
     // #823 re-pin (tile identity only): the scene now lays ONE corridor tile per distinct cell (a cross-corridor guard
     // plus per-corridor dedup), so cells holding stacked tiles drop 15066 -> 19 (shipped scene; all 19 are the documented
     // keepOne case, two crossings of one cell that must each keep a marker tile) and 5437 -> 0 (walled scene), and tiles inside some room's rect drop 7909 -> 6163 / 2572 -> 1987 (the duplicates that sat in rooms
-    // are gone; the single overshoot tile per cell stays, deliberately out of scope). doorMismatch (130 -> 0) reads
-    // walls/doors only, so it is unchanged; so are the walled/lost counts above.
+    // are gone; the single overshoot tile per cell stays, deliberately out of scope). doorMismatch (130 -> 0 after the #860 re-pin) reads
+    // doors against corridor TILES (doorCorridorMismatches), so tile-geometry changes move it; the walled/lost counts above are wall-driven and unchanged.
     expect([t.dupBefore, t.dupAfter, t.inRoomBefore, t.inRoomAfter, t.doorMismatchBefore, t.doorMismatchAfter])
-      .toEqual([19, 0, 6163, 1987, 130, 0]);
+      // #860 re-pin: west-face corridor legs moved off the destination room's first column, so tiles inside a room
+      // drop 6163 -> 4676 (shipped) / 1987 -> 1227 (walled) and the visible-door mismatches 130 -> 0 (west-face doors now have a corridor tile directly in front of them); dup and the walled/lost counts are unchanged.
+      .toEqual([19, 0, 4676, 1227, 0, 0]);
     expect([t.unreachBefore, t.unreachAfter, t.goalLostBefore, t.goalLostAfter]).toEqual([2305, 2259, 271, 266]);
   }, 900000);
 });

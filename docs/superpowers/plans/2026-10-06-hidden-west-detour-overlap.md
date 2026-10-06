@@ -49,7 +49,7 @@ This is the exact residual gap the multi-cell branch's own comment already docum
 - Consumes: `computeRunLayout`, `planRunLayoutStubs` (`scripts/dungeon-reseed.mjs`); `buildSceneForLayout`, `installFoundryStubs` (`tests/helpers/scene-oracle.mjs`); `sweepShapeOfRunLayout` (`tests/helpers/walkability-oracle.mjs`, confirmed current to expose `L.rect[roomId] = {gx,gy,gw,gh}` via `roomRect`, plus `L.hiddenEdges`, `L.incFace`) — all existing, already-proven test-harness exports, the same ones `tests/dungeon-corridor-joins-sweep.test.mjs` already uses.
 - Produces: a permanent regression sweep other future corridor-routing changes must keep green.
 
-- [ ] **Step 1: Write the sweep test**
+- [x] **Step 1: Write the sweep test**
 
 ```js
 import { describe, it, expect } from 'vitest';
@@ -125,12 +125,12 @@ describe('#860 hidden west-face detour corridor entries never cross a room or an
 });
 ```
 
-- [ ] **Step 2: Run it to confirm the destination-room failure reproduces**
+- [x] **Step 2: Run it to confirm the destination-room failure reproduces**
 
 Run: `npx vitest run tests/dungeon-corridor-hidden-west-overlap-sweep.test.mjs`
 Expected: FAIL on `expect(all.ownDest).toEqual([])` (measured 59 entries before the fix, this session) and likely also on `expect(all.otherRoom).toEqual([])` (measured 17 entries). `ownSource` and `crossCorridor` are expected to already read `[]` (measured 0 before the fix) — if either is non-empty when this step actually runs, note the real count instead of assuming the baseline measured this session still holds (concurrent sessions push to this repo constantly).
 
-- [ ] **Step 3: Commit the failing sweep**
+- [x] **Step 3: Commit the failing sweep**
 
 ```bash
 git add tests/dungeon-corridor-hidden-west-overlap-sweep.test.mjs
@@ -151,7 +151,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `cornerConnector(from, to, {fromSide, toSide, coverFromCell})` (confirmed current, `scripts/dungeon-layout.mjs:1969`) — its existing `toSide: 'east'` correction is reused verbatim, just now also passed for the real room's own `entryPoint`, not only a transit cell's own point.
 - Produces: no signature changes — `buildEdgeCorridor`'s own return shape is unchanged; only the `corridorSegments` geometry values for `incomingFace === 'west'` edges shift.
 
-- [ ] **Step 1: Fix the multi-cell (transit) branch**
+- [x] **Step 1: Fix the multi-cell (transit) branch**
 
 Change (confirmed current):
 
@@ -181,7 +181,7 @@ to:
     ];
 ```
 
-- [ ] **Step 2: Fix the adjacent/fallback branch**
+- [x] **Step 2: Fix the adjacent/fallback branch**
 
 Change (confirmed current):
 
@@ -212,12 +212,12 @@ to:
     ],
 ```
 
-- [ ] **Step 3: Run the new sweep to verify the destination-overflow category passes**
+- [x] **Step 3: Run the new sweep to verify the destination-overflow category passes**
 
 Run: `npx vitest run tests/dungeon-corridor-hidden-west-overlap-sweep.test.mjs`
 Expected: `all.ownDest` and `all.ownSource` now both `[]` (PASS). Read the actual `all.otherRoom` and `all.crossCorridor` results — do not assume they pass; Task 3 handles whichever of these two assertions still fails.
 
-- [ ] **Step 4: Run the full test suite, read and record every number that moved**
+- [x] **Step 4: Run the full test suite, read and record every number that moved**
 
 Run: `npx vitest run`
 Expected: `tests/dungeon-corridor-joins-sweep.test.mjs` FAILS — its own hard-coded numbers (`oldI2/oldI1/oldStackedCells`, `newPairs/newDoorEnds/newExcluded/newWide/corners/newCrossEdgeCells`, `oldTiles/corridorTiles`) will have shifted because west-face corridor geometry changed. This is expected; Task 3 updates them to the real post-fix values. Every other existing test file must stay green — if anything outside this one file fails, that is a real regression, not an expected geometry shift, and must be investigated before continuing.
@@ -230,11 +230,11 @@ Expected: `tests/dungeon-corridor-joins-sweep.test.mjs` FAILS — its own hard-c
 - Modify: `tests/dungeon-corridor-joins-sweep.test.mjs` (update the now-stale hard-coded numbers)
 - Modify: `tests/dungeon-corridor-hidden-west-overlap-sweep.test.mjs` (if `all.otherRoom` has a real residual, update its assertion to match and leave a comment citing the follow-up issue filed below; if it's `[]`, leave the assertion as-is)
 
-- [ ] **Step 1: Read the real post-fix numbers from Task 2 Step 4's run and update `tests/dungeon-corridor-joins-sweep.test.mjs`**
+- [x] **Step 1: Read the real post-fix numbers from Task 2 Step 4's run and update `tests/dungeon-corridor-joins-sweep.test.mjs`**
 
 Replace the two hard-coded `expect([...]).toEqual([...])` lines (confirmed current values before this fix: `[1874, 530, 1257]` for `oldI2/oldI1/oldStackedCells` and `[20196, 2480, 0, 0, 1269, 2]` for `newPairs/newDoorEnds/newExcluded/newWide/corners/newCrossEdgeCells`, and `[22877, 21620]` for `oldTiles/corridorTiles`) with whatever the actual re-run reports. Do not guess these values — read them from the test's own failure output (Vitest prints the actual received array on an `toEqual` mismatch) and paste the real numbers in.
 
-- [ ] **Step 2: Decide the "other room" residual's disposition from the real Task 2 Step 3 measurement**
+- [x] **Step 2: Decide the "other room" residual's disposition from the real Task 2 Step 3 measurement**
 
 If `all.otherRoom` is `[]` after the fix: leave `tests/dungeon-corridor-hidden-west-overlap-sweep.test.mjs`'s `expect(all.otherRoom).toEqual([])` as-is (no further action — the fix incidentally resolved this category too, which is plausible since a corrected leg no longer extends as far east/west as before, possibly no longer reaching whatever other room it used to clip).
 
@@ -253,12 +253,12 @@ EOF
 )"
 ```
 
-- [ ] **Step 3: Run the full suite once more to confirm everything is green (or pinned, for the known residual)**
+- [x] **Step 3: Run the full suite once more to confirm everything is green (or pinned, for the known residual)**
 
 Run: `npx vitest run`
 Expected: PASS across the board — `tests/dungeon-corridor-joins-sweep.test.mjs` with its updated real numbers, `tests/dungeon-corridor-hidden-west-overlap-sweep.test.mjs` with `ownDest`/`ownSource`/`crossCorridor` at `[]` and `otherRoom` either `[]` or pinned to its real residual count.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tests/dungeon-corridor-joins-sweep.test.mjs tests/dungeon-corridor-hidden-west-overlap-sweep.test.mjs scripts/dungeon-layout.mjs
@@ -274,7 +274,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Files:**
 - Modify: `module.json`
 
-- [ ] **Step 1: Re-check the current version and bump**
+- [x] **Step 1: Re-check the current version and bump**
 
 ```bash
 git fetch origin main -q && git log origin/main -1 --oneline && grep version module.json
@@ -282,7 +282,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **minor** bump (a real behavioral change to generated corridor geometry for every west-face hidden detour, not a trivial fix), using whatever the fetch above shows as current.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add module.json
