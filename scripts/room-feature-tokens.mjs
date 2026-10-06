@@ -83,14 +83,38 @@ export async function runRoomFeatureAction(
   try {
     if (kind === "treasure") await claimTreasureFor(sceneId);
     else await revealRoomFeature(sceneId, roomId, kind);
-    try {
-      await applyUsedArt(sceneId, roomId, kind, { theme: plan.room.locationTag });
-    } catch (err) {
-      console.warn("pf2e-dungeon-crawl | used-state art failed", err);
+    // #764: only treasure is "used" at this point (the claim). A puzzle /
+    // skill challenge is merely revealed here; its used art swaps when it
+    // completes (applyUsedArtOnCompletion).
+    if (kind === "treasure") {
+      try {
+        await applyUsedArt(sceneId, roomId, kind, { theme: plan.room.locationTag });
+      } catch (err) {
+        console.warn("pf2e-dungeon-crawl | used-state art failed", err);
+      }
     }
     return { ok: true };
   } finally {
     inFlight.delete(key);
+  }
+}
+
+/**
+ * #764: swap a puzzle / skill-challenge token to its used art once the
+ * challenge has COMPLETED (any final outcome). Never throws: an art failure
+ * must not break completion. Other room kinds are ignored (treasure swaps
+ * at claim, in runRoomFeatureAction).
+ */
+export async function applyUsedArtOnCompletion(
+  { sceneId, roomId, state },
+  { applyUsedArt = async () => {} } = {},
+) {
+  try {
+    const room = state?.rooms?.[roomId];
+    if (room?.kind !== "puzzle" && room?.kind !== "skill_challenge") return;
+    await applyUsedArt(sceneId, roomId, room.kind, { theme: room.locationTag });
+  } catch (err) {
+    console.warn("pf2e-dungeon-crawl | used-state art failed", err);
   }
 }
 

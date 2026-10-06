@@ -4,6 +4,7 @@ import {
   buildRoomFeatureTokenActorData,
   planRoomFeatureAction,
   runRoomFeatureAction,
+  applyUsedArtOnCompletion,
   routeTargetTokenEvent,
   hasRoomFeatureToken,
 } from "../scripts/room-feature-tokens.mjs";
@@ -296,5 +297,43 @@ describe("#764 runRoomFeatureAction used-state art", () => {
     const d = deps(makeState(), { applyUsedArt: vi.fn(async () => { throw new Error("x"); }) });
     expect(await runRoomFeatureAction({ sceneId: "s", roomId: "r1", kind: "treasure" }, d)).toEqual({ ok: true });
     expect(d.inFlight.size).toBe(0);
+  });
+});
+
+describe("#764 used-state art for puzzle / skill_challenge swaps at completion, not reveal", () => {
+  it.each(["puzzle", "skill_challenge"])("%s reveal does not call applyUsedArt", async (kind) => {
+    const state = makeState({ rooms: { r1: { kind, locationTag: "undead" } } });
+    const applyUsedArt = vi.fn(async () => {});
+    const d = deps(state, { applyUsedArt });
+    expect(await runRoomFeatureAction({ sceneId: "s", roomId: "r1", kind }, d)).toEqual({ ok: true });
+    expect(applyUsedArt).not.toHaveBeenCalled();
+  });
+
+  it.each(["puzzle", "skill_challenge"])("%s completion calls applyUsedArt once with the room theme", async (kind) => {
+    const state = makeState({ rooms: { r1: { kind, locationTag: "undead" } } });
+    const applyUsedArt = vi.fn(async () => {});
+    await applyUsedArtOnCompletion({ sceneId: "s", roomId: "r1", state }, { applyUsedArt });
+    expect(applyUsedArt.mock.calls).toEqual([["s", "r1", kind, { theme: "undead" }]]);
+  });
+
+  it("ignores rooms that are not puzzle / skill_challenge", async () => {
+    const applyUsedArt = vi.fn(async () => {});
+    const state = makeState({ rooms: { r1: { kind: "treasure" } } });
+    await applyUsedArtOnCompletion({ sceneId: "s", roomId: "r1", state }, { applyUsedArt });
+    await applyUsedArtOnCompletion({ sceneId: "s", roomId: "nope", state }, { applyUsedArt });
+    await applyUsedArtOnCompletion({ sceneId: "s", roomId: "r1", state: null }, { applyUsedArt });
+    expect(applyUsedArt).not.toHaveBeenCalled();
+  });
+
+  it("an art failure never throws out of completion", async () => {
+    const state = makeState({ rooms: { r1: { kind: "puzzle" } } });
+    const applyUsedArt = vi.fn(async () => { throw new Error("x"); });
+    await expect(applyUsedArtOnCompletion({ sceneId: "s", roomId: "r1", state }, { applyUsedArt })).resolves.toBeUndefined();
+  });
+
+  it("a synchronous throw from applyUsedArt is also swallowed", async () => {
+    const state = makeState({ rooms: { r1: { kind: "skill_challenge" } } });
+    const applyUsedArt = vi.fn(() => { throw new Error("x"); });
+    await expect(applyUsedArtOnCompletion({ sceneId: "s", roomId: "r1", state }, { applyUsedArt })).resolves.toBeUndefined();
   });
 });

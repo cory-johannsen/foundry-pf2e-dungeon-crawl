@@ -14,19 +14,26 @@ describe("ROOM_FEATURE_ART subjects", () => {
       }
     }
   });
-  it("adds the undead floor-variant proof batch (variants 1 and 2 of each base kind)", () => {
-    for (const variant of [1, 2]) {
-      for (const kind of ROOM_FEATURE_ART_BASE_KINDS) {
-        const s = ROOM_FEATURE_ART.find((x) => x.id === `rf-undead-${kind}-${variant}`);
-        expect(s, `${kind}-${variant}`).toBeDefined();
-        expect(s.file).toBe(`${kind}-${variant}`);
-        expect(s.dir).toBe("assets/room-features/undead");
+  it("adds floor variants 1 and 2 of each base kind for every theme", () => {
+    for (const theme of ROOM_FEATURE_ART_THEMES) {
+      for (const variant of [1, 2]) {
+        for (const kind of ROOM_FEATURE_ART_BASE_KINDS) {
+          const s = ROOM_FEATURE_ART.find((x) => x.id === `rf-${theme}-${kind}-${variant}`);
+          expect(s, `${theme}/${kind}-${variant}`).toBeDefined();
+          expect(s.file).toBe(`${kind}-${variant}`);
+          expect(s.dir).toBe(`assets/room-features/${theme}`);
+        }
       }
     }
   });
+  it("makes the two variants of a kind visibly different prompts", () => {
+    const a = ROOM_FEATURE_ART.find((x) => x.id === "rf-beast-treasure-1").prompt;
+    const b = ROOM_FEATURE_ART.find((x) => x.id === "rf-beast-treasure-2").prompt;
+    expect(a).not.toBe(b);
+  });
   it("has the expected total count", () => {
     const n = ROOM_FEATURE_ART_THEMES.length * (ROOM_FEATURE_ART_BASE_KINDS.length + ROOM_FEATURE_ART_STATE_KINDS.length)
-      + 2 * ROOM_FEATURE_ART_BASE_KINDS.length;
+      + ROOM_FEATURE_ART_THEMES.length * 2 * ROOM_FEATURE_ART_BASE_KINDS.length;
     expect(ROOM_FEATURE_ART).toHaveLength(n);
   });
   it("gives every subject a systemPrompt: door kinds the door one, others the object one", () => {
