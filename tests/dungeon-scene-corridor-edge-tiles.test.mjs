@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { corridorEdgeTiles, corridorTileAt } from '../scripts/dungeon-scene.mjs';
+import { corridorEdgeTiles, corridorTileAt, corridorCellKeyOfTile, skipClaimedCorridorTiles } from '../scripts/dungeon-scene.mjs';
 
 const piece = (tile) => `${tile.texture.src.split('/').pop().replace('.webp', '')}@${tile.rotation}`;
 const at = (tiles, gx, gy) =>
@@ -90,5 +90,33 @@ describe('corridorEdgeTiles (#823)', () => {
     });
     expect(transit[0].length).toBeGreaterThan(0);
     expect(transit[1].length).toBeGreaterThan(0);
+  });
+});
+
+
+describe('skipClaimedCorridorTiles (#823 cross-edge guard)', () => {
+  const t = (gx, gy) => corridorTileAt(gx, gy, 'mid', 0);
+
+  it('keeps tiles on free cells and claims them', () => {
+    const claimed = new Set();
+    const kept = skipClaimedCorridorTiles([t(1, 1), t(1, 2)], claimed);
+    expect(kept).toHaveLength(2);
+    expect(claimed).toEqual(new Set(['1,1', '1,2']));
+  });
+
+  it('drops a tile whose cell an earlier corridor already claimed (first wins)', () => {
+    const claimed = new Set(['1,2']);
+    const kept = skipClaimedCorridorTiles([t(1, 1), t(1, 2)], claimed);
+    expect(kept.map(corridorCellKeyOfTile)).toEqual(['1,1']);
+  });
+
+  it('keepOne keeps the first tile when every tile would be dropped (transit marker safety)', () => {
+    const claimed = new Set(['1,1', '1,2']);
+    const kept = skipClaimedCorridorTiles([t(1, 1), t(1, 2)], claimed, { keepOne: true });
+    expect(kept).toHaveLength(1);
+  });
+
+  it('corridorCellKeyOfTile is null for non-corridor art', () => {
+    expect(corridorCellKeyOfTile({ texture: { src: 'modules/x/assets/dungeon-rooms/beast-0.webp' }, x: 250, y: 250 })).toBeNull();
   });
 });

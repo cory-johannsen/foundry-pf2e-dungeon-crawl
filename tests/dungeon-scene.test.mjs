@@ -341,14 +341,23 @@ describe('buildPopulateAndUnlockGraphNode — #297 Round 2 (slot priority)', () 
     // whichever axis the segment runs (vertical when gh >= gw), counted
     // with ti < length (fractional lengths truncate, matching the real
     // for-loop's own behavior).
-    const segmentTileCount = (seg) => {
-      const length = seg.gh >= seg.gw ? seg.gh : seg.gw;
-      let count = 0;
-      for (let ti = 0; ti < length; ti += 1) count += 1;
-      return count;
+    //
+    // #823 re-pin: the two corridors' segments can share a cell (the old count summed segment lengths, so a
+    // shared cell counted twice and held two stacked tiles). One tile per DISTINCT cell is now laid, so count the
+    // distinct cells the segments cover (same floor + per-axis walk as the tiler). Room-floor art is unchanged.
+    const segmentCells = (seg) => {
+      const vertical = seg.gh >= seg.gw;
+      const length = vertical ? seg.gh : seg.gw;
+      const cells = [];
+      for (let ti = 0; ti < length; ti += 1) {
+        cells.push(`${Math.floor(seg.gx) + (vertical ? 0 : ti)},${Math.floor(seg.gy) + (vertical ? ti : 0)}`);
+      }
+      return cells;
     };
-    const expectedTileCount = 1 + [...expectedFromA.corridorSegments, ...expectedFromB.corridorSegments]
-      .reduce((sum, seg) => sum + segmentTileCount(seg), 0);
+    const distinctCells = new Set(
+      [...expectedFromA.corridorSegments, ...expectedFromB.corridorSegments].flatMap(segmentCells),
+    );
+    const expectedTileCount = 1 + distinctCells.size;
     expect(scene.tiles.length).toBe(expectedTileCount);
   });
 });

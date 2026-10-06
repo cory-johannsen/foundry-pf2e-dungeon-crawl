@@ -328,6 +328,33 @@ export function corridorEdgeTiles({ corridorSegments, transitCells = [] }, { ful
   return result;
 }
 
+const CORRIDOR_TILE_SRC = /\/corridor(?:-[a-z]+)?\.webp$/;
+
+/** "gx,gy" of a corridor tile (centre-anchored: x/y = cell*100 + 50), or null
+ * for anything that is not corridor art (room floors, etc.). */
+export function corridorCellKeyOfTile(tile) {
+  const src = tile.texture?.src ?? tile.texture ?? "";
+  if (!CORRIDOR_TILE_SRC.test(String(src))) return null;
+  return `${Math.round((tile.x - 50) / 100)},${Math.round((tile.y - 50) / 100)}`;
+}
+
+/** #823: drop a corridor tile whose cell an earlier corridor tile already
+ * holds (first wins, no merging) and claim the kept cells. `keepOne`: never
+ * drop EVERY tile (a transit crossing's marker lives on its tiles). */
+export function skipClaimedCorridorTiles(tiles, claimed, { keepOne = false } = {}) {
+  const kept = tiles.filter((tile) => {
+    const key = corridorCellKeyOfTile(tile);
+    if (key === null || !claimed.has(key)) return true;
+    return false;
+  });
+  const result = kept.length || !keepOne || !tiles.length ? kept : [tiles[0]];
+  for (const tile of result) {
+    const key = corridorCellKeyOfTile(tile);
+    if (key !== null) claimed.add(key);
+  }
+  return result;
+}
+
 /** #427: the floor tiles of one dead-end stub, door tile first and the collapsed-rubble cap (#438) on the far end.
  * `g` is a `stubGeometry` result; each tile is one cell of its single floor rect. */
 function stubTilesFor(g, key) {
@@ -367,6 +394,9 @@ function stubTilesFor(g, key) {
  * got its own tiles or opening — this is what `cell.edgeId` in the marker
  * below fixes.
  *
+ * #823: `corridorTiles` are this crossing's already-chosen tiles (corridorEdgeTiles +
+ * skipClaimedCorridorTiles), carrying the marker flag added here.
+ *
  * Idempotency for this EXACT entry/exit pair is checked against this
  * crossing's own corridor floor TILE, not its containment walls —
  * mirroring buildRoomAtGraphNode's own `dungeonRoomBuilt` convention (a
@@ -378,17 +408,18 @@ function stubTilesFor(g, key) {
  * vanish the moment a second crossing rebuilds them, making an idempotent
  * re-run of the FIRST crossing think it still needs building again.
  */
-async function buildTransitCellIfNeeded(scene, cell) {
+async function buildTransitCellIfNeeded(scene, cell, corridorTiles, edgeId = cell.edgeId) {
   const marker = `${cell.rank},${cell.col}:${cell.entrySide}-${cell.exitSide}:${cell.edgeId}`;
   const alreadyBuilt = scene.tiles.some(
     (t) => t.getFlag(MODULE_ID, "dungeonTransitCellCrossing") === marker,
   );
   if (alreadyBuilt) return;
 
-  const { tiles: rawTiles } = corridorTilesForSegments(cell.corridorSegments);
-  const tiles = rawTiles.map((t) => ({
+  // #823: the crossing's tiles come from corridorEdgeTiles (the caller's de-duplicated, openings-based pieces)
+  // instead of being rebuilt here from this cell's own segments; `dungeonCorridorEdge` groups them by corridor.
+  const tiles = corridorTiles.map((t) => ({
     ...t,
-    flags: { [MODULE_ID]: { dungeonTransitCellCrossing: marker } },
+    flags: { [MODULE_ID]: { dungeonTransitCellCrossing: marker, dungeonCorridorEdge: edgeId } },
   }));
 
   // This cell's outer-boundary containment accumulates across every edge
@@ -1840,6 +1871,13 @@ export async function buildPopulateAndUnlockGraphNode(
           state.seed, room.id, rank, col, incomingConnections, state.layoutPositionByRoomId, occupiedCells, incomingFace, planFor,
         ),
       );
+    // #823: every corridor cell already holding a tile in this scene (earlier rooms' corridors, transit
+    // crossings and #427 stubs, which are never rewritten): a later corridor tile on a held cell is dropped.
+    const claimedCorridorCells = new Set();
+    for (const t of scene.tiles ?? []) {
+      const key = corridorCellKeyOfTile(t);
+      if (key !== null) claimedCorridorCells.add(key);
+    }
     for (let i = 0; i < incomingConnections.length; i += 1) {
       const { sourceId, hidden } = incomingConnections[i];
       const toSlot = slots[i];
@@ -1918,14 +1956,22 @@ export async function buildPopulateAndUnlockGraphNode(
       // variant/rotation logic the old linear-slot builder's single-corridorRect
       // loop always used, just offset by each segment's own gx/gy instead
       // of a single shared corridorRect's.
-      const { tiles: edgeTiles, cells: edgeCells } = corridorTilesForSegments(corridorSegments, { fullWidth: layoutVersion >= 3 });
-      tiles.push(...edgeTiles);
+      // #823: one openings-based tile plan for the whole corridor (main legs + transit crossings); `mainCells`
+      // stays the unfiltered main-leg cell list the #779 trap placement below reads.
+      const edgeId = `${sourceId}->${room.id}`;
+      const edgePlan = corridorEdgeTiles({ corridorSegments, transitCells }, { fullWidth: layoutVersion >= 3 });
+      const edgeCells = edgePlan.mainCells;
+      tiles.push(
+        ...skipClaimedCorridorTiles(edgePlan.main, claimedCorridorCells).map((t) => ({
+          ...t,
+          flags: { [MODULE_ID]: { dungeonCorridorEdge: edgeId } },
+        })),
+      );
       // #779: independent per-edge trap roll, one level down from #754's room roll. Only a real
       // (non-hidden) edge's own main-segment cells are candidates (never a transit/detour cell).
       // The edge id stands in for a room id: populateSlotTrap's ensureTrapState / trapCustomization
       // mirror find no state.rooms[edgeId] and no-op (pinned by tests/trap-edge-id-state.test.mjs;
       // #820 tracks real customization parity). Forced 1x1 so it can't spill out of the corridor.
-      const edgeId = `${sourceId}->${room.id}`;
       const trapCandidates = corridorTrapCandidateCells(edgeCells, [sourceRect, rect]);
       if (
         !hidden &&
@@ -1962,8 +2008,13 @@ export async function buildPopulateAndUnlockGraphNode(
       // state (for its own idempotency check and to accumulate openings
       // across possibly-multiple crossing edges) before deciding what to
       // create.
-      for (const cell of transitCells) {
-        await buildTransitCellIfNeeded(scene, cell);
+      for (let ti = 0; ti < transitCells.length; ti += 1) {
+        await buildTransitCellIfNeeded(
+          scene,
+          transitCells[ti],
+          skipClaimedCorridorTiles(edgePlan.transit[ti], claimedCorridorCells, { keepOne: true }),
+          edgeId,
+        );
       }
     }
 
