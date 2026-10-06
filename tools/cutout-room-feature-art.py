@@ -55,15 +55,24 @@ for src in sorted(p for p in raw.glob("*/*") if p.suffix.lower() in (".webp", ".
     rgb = Image.open(src).convert("RGB")
     if kind.startswith("door"):
         # Top-down strip. A white background (hand-made) or a flat black one
-        # (OpenRouter, with a soft glow that is kept as a thin aura) is keyed out
-        # from the border, then the strip is cropped to what is left.
+        # (OpenRouter, with a soft glow) is cropped to the door, opaque.
         corners = [rgb.getpixel(c) for c in ((2, 2), (rgb.width - 3, 2), (2, rgb.height - 3), (rgb.width - 3, rgb.height - 3))]
         dark = sum(sum(c) / 3 for c in corners) / 4 < 60
         if dark:
-            im = key_bg(rgb, lambda p: p[0] < 30 and p[1] < 30 and p[2] < 30)
+            # Keep the door opaque: a flood fill leaks through the door's dark
+            # ink outline into the planks. Crop to the rows/columns whose mean
+            # brightness shows the door (the black background and its faint
+            # glow stay below the cut).
+            gray = rgb.convert("L")
+            cols = gray.resize((gray.width, 1), Image.BOX)
+            rows = gray.resize((1, gray.height), Image.BOX)
+            cut = 38
+            xs = [x for x in range(gray.width) if cols.getpixel((x, 0)) > cut]
+            ys = [y for y in range(gray.height) if rows.getpixel((0, y)) > cut]
+            im = rgb.convert("RGBA").crop((xs[0], ys[0], xs[-1] + 1, ys[-1] + 1))
         else:
             im = key_bg(rgb, lambda p: p[0] > 228 and p[1] > 228 and p[2] > 228)
-        im = im.crop(im.getbbox())
+            im = im.crop(im.getbbox())
         im = im.resize((1200, round(1200 * im.height / im.width)), Image.LANCZOS)
     else:
         if session is None:

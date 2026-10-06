@@ -1,16 +1,24 @@
 {
   "aberration": {
     "door": [
-      0
+      0,
+      1,
+      2
     ],
     "treasure": [
-      0
+      0,
+      1,
+      2
     ],
     "puzzle": [
-      0
+      0,
+      1,
+      2
     ],
     "skill_challenge": [
-      0
+      0,
+      1,
+      2
     ],
     "door_locked": [
       0
@@ -27,16 +35,24 @@
   },
   "beast": {
     "door": [
-      0
+      0,
+      1,
+      2
     ],
     "treasure": [
-      0
+      0,
+      1,
+      2
     ],
     "puzzle": [
-      0
+      0,
+      1,
+      2
     ],
     "skill_challenge": [
-      0
+      0,
+      1,
+      2
     ],
     "door_locked": [
       0
@@ -53,16 +69,24 @@
   },
   "construct": {
     "door": [
-      0
+      0,
+      1,
+      2
     ],
     "treasure": [
-      0
+      0,
+      1,
+      2
     ],
     "puzzle": [
-      0
+      0,
+      1,
+      2
     ],
     "skill_challenge": [
-      0
+      0,
+      1,
+      2
     ],
     "door_locked": [
       0
@@ -79,16 +103,24 @@
   },
   "dragon": {
     "door": [
-      0
+      0,
+      1,
+      2
     ],
     "treasure": [
-      0
+      0,
+      1,
+      2
     ],
     "puzzle": [
-      0
+      0,
+      1,
+      2
     ],
     "skill_challenge": [
-      0
+      0,
+      1,
+      2
     ],
     "door_locked": [
       0
@@ -105,16 +137,24 @@
   },
   "elemental": {
     "door": [
-      0
+      0,
+      1,
+      2
     ],
     "treasure": [
-      0
+      0,
+      1,
+      2
     ],
     "puzzle": [
-      0
+      0,
+      1,
+      2
     ],
     "skill_challenge": [
-      0
+      0,
+      1,
+      2
     ],
     "door_locked": [
       0
@@ -131,16 +171,24 @@
   },
   "fiend": {
     "door": [
-      0
+      0,
+      1,
+      2
     ],
     "treasure": [
-      0
+      0,
+      1,
+      2
     ],
     "puzzle": [
-      0
+      0,
+      1,
+      2
     ],
     "skill_challenge": [
-      0
+      0,
+      1,
+      2
     ],
     "door_locked": [
       0
@@ -157,16 +205,24 @@
   },
   "plant": {
     "door": [
-      0
+      0,
+      1,
+      2
     ],
     "treasure": [
-      0
+      0,
+      1,
+      2
     ],
     "puzzle": [
-      0
+      0,
+      1,
+      2
     ],
     "skill_challenge": [
-      0
+      0,
+      1,
+      2
     ],
     "door_locked": [
       0
