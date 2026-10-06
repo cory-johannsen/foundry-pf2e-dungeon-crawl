@@ -7,14 +7,17 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 const h = vi.hoisted(() => ({
   state: null,
+  // #822: what the (mocked) record call turns the state into. Models the real
+  // transition: unresolved before the record, resolved after it.
+  after: null,
   applyUsedArt: null,
   resolveOrder: [],
 }));
 
 vi.mock("../scripts/dungeon-runner.mjs", async (orig) => ({
   ...(await orig()),
-  recordSkillChallengeAttempt: async () => h.state,
-  recordPuzzleStageAttempt: async () => h.state,
+  recordSkillChallengeAttempt: async () => (h.state = h.after ?? h.state),
+  recordPuzzleStageAttempt: async () => (h.state = h.after ?? h.state),
   getRunState: () => h.state,
   markRoomOutcome: async () => {
     h.resolveOrder.push("markRoomOutcome");
@@ -60,6 +63,7 @@ describe("#764 solve-time used art (dungeon-app)", () => {
     stubGlobals();
     h.applyUsedArt = vi.fn(async () => {});
     h.resolveOrder = [];
+    h.after = null;
     app = await import("../scripts/ui/dungeon-app.mjs");
   });
 
@@ -70,7 +74,8 @@ describe("#764 solve-time used art (dungeon-app)", () => {
   });
 
   it.each(["success", "failure"])("puzzle: swaps once when resolved %s", async (r) => {
-    h.state = stateWith("puzzle", r);
+    h.state = stateWith("puzzle", null);
+    h.after = stateWith("puzzle", r);
     await app.recordPuzzleStageOutcome("s", "r1", 0, "success");
     expect(h.applyUsedArt.mock.calls).toEqual([["s", "r1", "puzzle", { theme: "undead" }]]);
   });
@@ -82,15 +87,26 @@ describe("#764 solve-time used art (dungeon-app)", () => {
   });
 
   it.each(["success", "failure"])("skill_challenge: swaps once when resolved %s", async (r) => {
-    h.state = stateWith("skill_challenge", r);
+    h.state = stateWith("skill_challenge", null);
+    h.after = stateWith("skill_challenge", r);
     await app.recordSkillChallengeOutcome("s", "r1", "success");
     expect(h.applyUsedArt.mock.calls).toEqual([["s", "r1", "skill_challenge", { theme: "undead" }]]);
   });
 
   it("art failure does not break completion (room still resolves)", async () => {
     h.applyUsedArt = vi.fn(async () => { throw new Error("boom"); });
-    h.state = stateWith("puzzle", "success");
+    h.state = stateWith("puzzle", null);
+    h.after = stateWith("puzzle", "success");
     await expect(app.recordPuzzleStageOutcome("s", "r1", 0, "success")).resolves.toBeUndefined();
     expect(h.resolveOrder).toContain("markRoomOutcome");
+  });
+
+  it("#822: a record on an ALREADY-resolved room does not swap art or resolve again", async () => {
+    h.state = stateWith("puzzle", "success");
+    await app.recordPuzzleStageOutcome("s", "r1", 0, "success");
+    h.state = stateWith("skill_challenge", "failure");
+    await app.recordSkillChallengeOutcome("s", "r1", "success");
+    expect(h.applyUsedArt).not.toHaveBeenCalled();
+    expect(h.resolveOrder).toEqual([]);
   });
 });
