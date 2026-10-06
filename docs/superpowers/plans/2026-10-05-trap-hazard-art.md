@@ -38,7 +38,7 @@
 **Interfaces:**
 - Produces: `export const TRAP_ART` — an array of `{id, file, dir, shapeless, prompt, avoid}` objects, in the exact same shape `MONSTER_ART` entries already use. Consumed by Task 1's own edit to `ALL`, and by Task 4's live generation run.
 
-- [ ] **Step 1: Create `tools/trap-art-prompts.mjs`**
+- [x] **Step 1: Create `tools/trap-art-prompts.mjs`**
 
 ```js
 /**
@@ -179,7 +179,7 @@ export const TRAP_ART = [
 ];
 ```
 
-- [ ] **Step 2: Splice `TRAP_ART` into `generate-token-art.mjs`'s `ALL`**
+- [x] **Step 2: Splice `TRAP_ART` into `generate-token-art.mjs`'s `ALL`**
 
 Add the import near the top of `tools/generate-token-art.mjs`, alongside its other local imports:
 
@@ -210,12 +210,12 @@ const ALL = [
 ];
 ```
 
-- [ ] **Step 3: Confirm the whole repo still runs clean**
+- [x] **Step 3: Confirm the whole repo still runs clean**
 
 Run: `npx vitest run`
 Expected: PASS — `generate-token-art.mjs` has no existing unit-test coverage (confirmed: no test file in `tests/` references it or `MONSTER_ART`), so this step is a regression check on the rest of the suite, not new coverage for this file.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tools/trap-art-prompts.mjs tools/generate-token-art.mjs
@@ -237,7 +237,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 No test file: `data/creature-art.json` already has `npm run validate:creature-art` (ajv schema) as its one standing check, exercised in Step 2 below — adding a Vitest test around a plain data file this module already schema-validates on every run would duplicate that check, not add coverage.
 
-- [ ] **Step 1: Append the 24 entries**
+- [x] **Step 1: Append the 24 entries**
 
 Open `data/creature-art.json`. It is a flat JSON array; insert these 24 objects before the final closing `]`, each separated by a comma exactly like the file's existing entries:
 
@@ -436,18 +436,18 @@ Open `data/creature-art.json`. It is a flat JSON array; insert these 24 objects 
   }
 ```
 
-- [ ] **Step 2: Validate the schema**
+- [x] **Step 2: Validate the schema**
 
 Run: `npm run validate:creature-art`
 Expected: PASS — all 24 new entries satisfy `data/schema/creature-art.schema.json` (`id` pattern, `pack` pattern, `art` pattern, `level` integer).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add data/creature-art.json
 git commit -m "feat(#759): register trap hazard art entries in creature-art.json
 
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 ```
 
 ---
@@ -462,7 +462,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `loadCreatureArt()` (`scripts/data-loader.mjs`, already exported, parameterless, cached), `findCreatureArt(list, {pack, id})` / `creatureArtPath(filename)` (`scripts/creature-art.mjs`, already exported).
 - Produces: nothing further in this plan consumes it — this is the feature's final wiring, mirroring `scripts/encounter-generator.mjs`'s own `resolveArt`/`withArt` pattern exactly (confirmed current, lines 90-96 and 116).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Check `tests/dungeon-scene.test.mjs`'s existing top-of-file mocks first (its `vi.mock` calls and fixture helpers) and match its conventions exactly. Add a new `describe('populateSlotTrap art', ...)` block using the file's own existing Foundry-stub/fixture style. Two cases:
 
@@ -500,12 +500,12 @@ describe('populateSlotTrap art', () => {
 
 Adapt the exact mock/fixture mechanics (scene stub, `api.spawnCreatures` spy, `selectTrap` stub) to however this file's existing `populateSlotTrap` tests (if any) or its sibling `populateSlotEncounter`/combat-room tests already do it — reuse the established harness rather than inventing a new one.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-scene.test.mjs -t "populateSlotTrap art"`
 Expected: FAIL — no `imgFallback` is set on the spawned entry today.
 
-- [ ] **Step 3: Wire the art lookup**
+- [x] **Step 3: Wire the art lookup**
 
 Add to the existing `data-loader.mjs` import in `scripts/dungeon-scene.mjs` (currently `import { loadDungeonSetpieces } from "./data-loader.mjs";`):
 
@@ -560,17 +560,17 @@ to:
 
 This mirrors `encounter-generator.mjs`'s own `resolveArt`/`withArt` exactly, including its `null`-safe behavior on a miss — `spawnCreatures`'s existing per-entry override logic (confirmed current, `scripts/foundry-api.mjs`) already treats a falsy `imgFallback` as "use the compendium's own default art", so a hazard with no art entry yet is unaffected.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-scene.test.mjs -t "populateSlotTrap art"`
 Expected: PASS, both cases green.
 
-- [ ] **Step 5: Run the full test file to confirm no regression**
+- [x] **Step 5: Run the full test file to confirm no regression**
 
 Run: `npx vitest run tests/dungeon-scene.test.mjs`
 Expected: PASS, every existing test in this file still green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-scene.test.mjs

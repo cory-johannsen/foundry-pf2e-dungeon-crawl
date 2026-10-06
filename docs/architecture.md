@@ -317,6 +317,7 @@ graph LR
   scripts_dungeon_scene_mjs --> scripts_dungeon_combat_mjs
   scripts_dungeon_scene_mjs --> scripts_dungeon_sound_mjs
   scripts_dungeon_scene_mjs --> scripts_data_loader_mjs
+  scripts_dungeon_scene_mjs --> scripts_creature_art_mjs
   scripts_dungeon_scene_mjs --> scripts_room_feature_art_mjs
   scripts_dungeon_scene_mjs --> scripts_skill_challenge_mechanics_mjs
   scripts_dungeon_scene_mjs --> scripts_narrative_mechanics_mjs
