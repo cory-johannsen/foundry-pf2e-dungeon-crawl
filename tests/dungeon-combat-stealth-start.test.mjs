@@ -46,7 +46,15 @@ function actor(id, { sneaking = false, dc = 15, stealthTotal = 20, conds = [] } 
   };
 }
 
-const comb = (id, a) => ({ id, name: id, actor: a });
+// Party actors ("pc*") are friendly (1), everything else hostile (-1) unless
+// overridden; observers are picked by token disposition (#616).
+const comb = (id, a, disposition = /^pc/.test(a.id) ? 1 : -1) => ({
+  id,
+  name: id,
+  actor: a,
+  token: { disposition },
+  isDefeated: false,
+});
 
 function deps(partyIds, over = {}) {
   return {
@@ -142,6 +150,39 @@ describe("rollStealthInitiativeAndDetect", () => {
   });
 });
 
+describe("friendly non-party combatants and non-sneaking party members (#616)", () => {
+  it("a friendly (non-party) combatant is not an observer and cannot set the alarm", async () => {
+    const combat = makeCombat();
+    const sneak = actor("pc1", { sneaking: true, stealthTotal: 30 });
+    const friend = actor("friend", { dc: 99 });
+    const combatants = [comb("c1", actor("m1", { dc: 10 })), comb("f1", friend, 1), comb("p1", sneak)];
+    const d = deps(["pc1"]);
+    await rollStealthInitiativeAndDetect(combat, combatants, d);
+    expect(combat.getFlag(MOD, "detection")).toEqual({ p1: { c1: "unnoticed" } });
+    expect(d.setCondition).toHaveBeenCalledWith(sneak, "unnoticed", true);
+  });
+
+  it("a non-sneaking party member is observed, so the alarm makes unnoticed pairs undetected", async () => {
+    const combat = makeCombat();
+    const sneak = actor("pc1", { sneaking: true, stealthTotal: 30 });
+    const plain = actor("pc2");
+    const combatants = [comb("c1", actor("m1", { dc: 10 })), comb("p1", sneak), comb("p2", plain)];
+    const d = deps(["pc1", "pc2"]);
+    await rollStealthInitiativeAndDetect(combat, combatants, d);
+    expect(combat.getFlag(MOD, "detection")).toEqual({ p1: { c1: "undetected" } });
+  });
+
+  it("a defeated non-sneaking party member does not raise the alarm", async () => {
+    const combat = makeCombat();
+    const sneak = actor("pc1", { sneaking: true, stealthTotal: 30 });
+    const dead = comb("p2", actor("pc2"));
+    dead.isDefeated = true;
+    const combatants = [comb("c1", actor("m1", { dc: 10 })), comb("p1", sneak), dead];
+    await rollStealthInitiativeAndDetect(combat, combatants, deps(["pc1", "pc2"]));
+    expect(combat.getFlag(MOD, "detection")).toEqual({ p1: { c1: "unnoticed" } });
+  });
+});
+
 describe("clearDetection", () => {
   it("removes only recorded conditions and the flags", async () => {
     const combat = makeCombat();
@@ -156,8 +197,8 @@ describe("clearDetection", () => {
     expect(d.setCondition).toHaveBeenCalledTimes(1);
     expect(d.setCondition).toHaveBeenCalledWith(sneak, "unnoticed", false);
     expect(other.conds.has("undetected")).toBe(true);
-    expect(combat.getFlag(MOD, "detection")).toBeUndefined();
-    expect(combat.getFlag(MOD, "appliedConditions")).toBeUndefined();
+    // Runs from deleteCombat: the document is already gone, so no unsetFlag.
+    expect(combat.unsetFlag).not.toHaveBeenCalled();
   });
 
   it("is a no-op with no flags", async () => {
@@ -205,5 +246,26 @@ describe("startCombat integration", () => {
       ["rollInitiative", ["c1", "c2"], { skipDialog: true }],
       ["startCombat"],
     ]);
+  });
+
+  it("startCombat: a non-sneaking party member makes the alarm fire (hostile observes them)", async () => {
+    globalThis.game.actors.party.members = [{ id: "pc" }, { id: "pc2" }];
+    globalThis.game.user = { isGM: true, flags: { pf2e: { settings: {} } }, update: async () => {} };
+    const m = actor("m1", { dc: 10 });
+    const sneak = actor("pc", { sneaking: true, stealthTotal: 30 });
+    const plain = actor("pc2");
+    sneak.increaseCondition = vi.fn(async () => {});
+    globalThis.ChatMessage = { create: vi.fn(async () => {}) };
+    globalThis.foundry = { utils: {} };
+    combat.createEmbeddedDocuments = vi.fn(async () => [
+      comb("c1", m),
+      comb("p1", sneak),
+      comb("p2", plain),
+    ]);
+    await startCombatForRoom(
+      scene([tok("t1", m, 1), tok("t2", sneak, undefined), tok("t3", plain, undefined)]),
+      1,
+    );
+    expect(combat.getFlag(MOD, "detection")).toEqual({ p1: { c1: "undetected" } });
   });
 });

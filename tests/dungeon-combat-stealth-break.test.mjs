@@ -43,6 +43,49 @@ beforeEach(() => {
 });
 afterEach(() => vi.restoreAllMocks());
 
+const spellMsg = (actorId, item) => ({
+  flags: { pf2e: { origin: { type: "spell" } } },
+  actor: { id: actorId },
+  item,
+});
+const spell = (over = {}) => ({
+  traits: new Set(),
+  system: { defense: null, damage: {} },
+  ...over,
+});
+
+describe("hostile spell cards (#616)", () => {
+  it("a save-based spell breaks stealth", async () => {
+    const { flags, deps } = setup(matrix());
+    const item = spell({ system: { defense: { save: { statistic: "reflex" } }, damage: {} } });
+    await handleStealthBreakMessage(spellMsg("actor-s1", item), deps);
+    expect(flags.detection.s1).toEqual({ h1: "hidden", h2: "observed" });
+  });
+  it("a damaging spell without a save breaks stealth", async () => {
+    const { flags, deps } = setup(matrix());
+    await handleStealthBreakMessage(spellMsg("actor-s1", spell({ system: { damage: { a: {} } } })), deps);
+    expect(flags.detection.s1.h1).toBe("hidden");
+  });
+  it.each([
+    ["healing trait", spell({ traits: new Set(["healing"]), system: { damage: { a: {} } } })],
+    ["no save, no damage", spell()],
+    ["healing-only damage kinds", spell({ damageKinds: new Set(["healing"]) })],
+    ["no item on the message", undefined],
+  ])("%s does not break stealth", async (_n, item) => {
+    const { combat, deps } = setup(matrix());
+    await handleStealthBreakMessage(spellMsg("actor-s1", item), deps);
+    expect(combat.setFlag).not.toHaveBeenCalled();
+  });
+  it("a hostile's or non-sneaker's spell, or a non-GM client, is ignored", async () => {
+    const item = spell({ system: { defense: { save: { statistic: "will" } } } });
+    for (const [id, over] of [["actor-h1", {}], ["actor-pc", {}], ["actor-s1", { isActiveGm: false }]]) {
+      const { combat, deps } = setup(matrix());
+      await handleStealthBreakMessage(spellMsg(id, item), { ...deps, ...over });
+      expect(combat.setFlag).not.toHaveBeenCalled();
+    }
+  });
+});
+
 describe("handleStealthBreakMessage", () => {
   it("turns the sneaker's unnoticed/undetected pairs hidden, leaving observed and other sneakers", async () => {
     const { combat, flags, deps } = setup(matrix());

@@ -189,13 +189,27 @@ describe("hostile targeting honors the detection matrix (#616)", () => {
     expect(claw1.variants[0].roll).toHaveBeenCalledTimes(1);
   });
 
-  it("a hostile mover is not offered a Reactive Strike from an unobserved PC", () => {
+  it("a hostile with Reactive Strike gets no opportunity against an unobserved sneaking PC", () => {
+    const hostile = mk("h", 0, 0, -1, { type: "npc" });
+    const sneak = mk("sneak", 1, 0, 1, { agent: false });
+    const combat = mkCombat([hostile, sneak], sneak, { sneak: { h: "hidden" } });
+    expect(findReactiveStrikeOpportunities(combat, sneak, G, 5)).toEqual([]);
+  });
+
+  it("a hostile does get an opportunity against an observed PC (control)", () => {
+    const hostile = mk("h", 0, 0, -1, { type: "npc" });
+    const sneak = mk("sneak", 1, 0, 1, { agent: false });
+    const combat = mkCombat([hostile, sneak], sneak, { sneak: { h: "observed" } });
+    expect(findReactiveStrikeOpportunities(combat, sneak, G, 5).map((o) => o.reactor.id)).toEqual(["h"]);
+  });
+
+  it("an AI sneaking PC still reacts when a hostile it cannot see... strides past (hostiles are always observed)", () => {
     const mover = mk("mover", 0, 0, -1, { type: "npc", agent: false });
     const sneak = mk("sneak", 1, 0, 1);
     const up = mk("up", 0, 1, 1);
     const combat = mkCombat([mover, sneak, up], mover, { sneak: { mover: "hidden" } });
     const ops = findReactiveStrikeOpportunities(combat, mover, G, 5);
-    expect(ops.map((o) => o.reactor.id)).toEqual(["up"]);
+    expect(ops.map((o) => o.reactor.id).sort()).toEqual(["sneak", "up"]);
   });
 
   it("an unobserved PC still physically blocks movement", async () => {

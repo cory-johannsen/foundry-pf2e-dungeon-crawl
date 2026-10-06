@@ -33,12 +33,14 @@ export function avoidingNoticeActorIds(actors) {
 
 /**
  * Compare each sneaker's Stealth result with each hostile's Perception DC
- * (meets or exceeds = unnoticed). Alarm rule: if any pair is observed, every
+ * (meets or exceeds = unnoticed). Alarm rule: if any pair is observed (or a
+ * non-sneaking party member is, `hasObservedNonSneaker`), every
  * unnoticed pair becomes undetected.
  */
-export function initialDetection({ sneakers, hostiles }) {
+export function initialDetection({ sneakers, hostiles, hasObservedNonSneaker = false }) {
   const matrix = {};
-  let anyObserved = false;
+  // A party member who is not sneaking is always observed by every hostile.
+  let anyObserved = Boolean(hasObservedNonSneaker) && (hostiles ?? []).length > 0;
   for (const sneaker of sneakers ?? []) {
     const row = {};
     for (const hostile of hostiles ?? []) {

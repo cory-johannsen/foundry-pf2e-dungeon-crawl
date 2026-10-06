@@ -207,3 +207,21 @@ describe("uniformCondition", () => {
     expect(uniformCondition({}, "s")).toBeNull();
   });
 });
+
+describe("initialDetection hasObservedNonSneaker (#616)", () => {
+  it("fires the alarm when a non-sneaking party member is observed", () => {
+    const m = initialDetection({
+      sneakers: [{ id: "s", result: 30 }],
+      hostiles: [{ id: "h", dc: 10 }],
+      hasObservedNonSneaker: true,
+    });
+    expect(m).toEqual({ s: { h: "undetected" } });
+  });
+  it("defaults to false (unchanged)", () => {
+    const m = initialDetection({ sneakers: [{ id: "s", result: 30 }], hostiles: [{ id: "h", dc: 10 }] });
+    expect(m).toEqual({ s: { h: "unnoticed" } });
+  });
+  it("no hostiles: nothing to alarm", () => {
+    expect(initialDetection({ sneakers: [{ id: "s", result: 1 }], hostiles: [], hasObservedNonSneaker: true })).toEqual({ s: {} });
+  });
+});

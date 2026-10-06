@@ -193,11 +193,14 @@ const stealthDefaults = {
     withDialogsSuppressed(async () => {
       const roll = await actor.perception.roll({ dc: { value: dc }, createMessage: true });
       const byDegree = ["criticalFailure", "failure", "success", "criticalSuccess"];
-      return (
-        byDegree[roll?.degreeOfSuccess] ??
-        game.messages?.contents?.at(-1)?.flags?.pf2e?.context?.outcome ??
-        "failure"
-      );
+      if (byDegree[roll?.degreeOfSuccess]) return byDegree[roll.degreeOfSuccess];
+      // Fallback only when the roll carried no degree AND the newest chat
+      // message is this actor's own roll (racy otherwise).
+      const last = game.messages?.contents?.at(-1);
+      const speakerActor = last?.actor?.id ?? last?.speaker?.actor;
+      return speakerActor === actor.id
+        ? (last?.flags?.pf2e?.context?.outcome ?? "failure")
+        : "failure";
     }),
   setCondition: async (actor, slug, active) => {
     if (active) await actor.increaseCondition(slug);
@@ -258,8 +261,21 @@ export async function rollStealthInitiativeAndDetect(combat, combatants, deps = 
     rolled.map((r) => ({ id: r.combatant.id, value: r.result, statistic: "stealth" })),
   );
 
-  const hostiles = combatants.filter((c) => !partyIds.has(c.actor?.id));
+  // Observers are the sneakers' opponents by token disposition (the same rule
+  // `combatantOpponents` uses), not "everyone outside the party": a friendly
+  // encounter Friend or neutral NPC never notices/alarms.
+  const sneakerSides = new Set(sneakers.map((c) => c.token?.disposition));
+  const hostiles = combatants.filter(
+    (c) =>
+      !sneakerIds.has(c.id) &&
+      !partyIds.has(c.actor?.id) &&
+      [...sneakerSides].some((side) => c.token?.disposition !== side),
+  );
+  const hasObservedNonSneaker = partyCombatants.some(
+    (c) => !sneakerIds.has(c.id) && !c.isDefeated,
+  );
   const matrix = initialDetection({
+    hasObservedNonSneaker,
     sneakers: rolled.map((r) => ({ id: r.combatant.id, result: r.result })),
     hostiles: hostiles.map((h) => ({
       id: h.id,
@@ -308,7 +324,6 @@ export async function rollStealthInitiativeAndDetect(combat, combatants, deps = 
 export async function clearDetection(combat, deps = {}) {
   const d = { ...stealthDefaults, ...deps };
   const applied = combat.getFlag?.(MODULE_ID, "appliedConditions");
-  const detection = combat.getFlag?.(MODULE_ID, "detection");
   if (applied) {
     for (const [combatantId, rec] of Object.entries(applied)) {
       const actor =
@@ -317,8 +332,8 @@ export async function clearDetection(combat, deps = {}) {
       await d.setCondition(actor, rec.slug, false);
     }
   }
-  if (applied !== undefined) await combat.unsetFlag(MODULE_ID, "appliedConditions");
-  if (detection !== undefined) await combat.unsetFlag(MODULE_ID, "detection");
+  // No unsetFlag: this runs from `deleteCombat`, when the document is already
+  // gone (the update would be rejected) and its flags go with it.
 }
 
 /**
@@ -418,6 +433,24 @@ export async function performSeek(combat, hostile, deps = {}) {
 
 const STEALTH_BREAK_TYPES = new Set(["attack-roll", "spell-attack-roll"]);
 
+/** #616: a spell card (no attack roll) with a hostile effect: it has a save/
+ * defense or deals damage, and is not a healing spell. Needs the cast item on
+ * the message; without enough data it is NOT hostile (never breaks stealth). */
+function isHostileSpellCard(message) {
+  if (message?.flags?.pf2e?.origin?.type !== "spell") return false;
+  const spell = message.item;
+  if (!spell) return false;
+  const traits = spell.traits ?? spell.system?.traits?.value;
+  const hasTrait = (t) => (traits?.has ? traits.has(t) : Array.isArray(traits) && traits.includes(t));
+  if (hasTrait("healing")) return false;
+  const hasSave = Boolean(spell.system?.defense?.save?.statistic);
+  const kinds = spell.damageKinds;
+  const hasDamage = kinds?.has
+    ? kinds.has("damage")
+    : Object.keys(spell.system?.damage ?? {}).length > 0;
+  return hasSave || hasDamage;
+}
+
 /**
  * #616: a sneaker's own attack roll (Strike or spell attack) reveals its
  * position: its unnoticed/undetected pairs become hidden (`afterAttack`);
@@ -431,7 +464,11 @@ export async function handleStealthBreakMessage(message, deps = {}) {
   const d = { ...stealthDefaults, ...deps };
   const isGm = d.isActiveGm ?? (game.users?.activeGM?.isSelf ?? game.user?.isGM);
   if (!isGm) return;
-  if (!STEALTH_BREAK_TYPES.has(message?.flags?.pf2e?.context?.type)) return;
+  if (
+    !STEALTH_BREAK_TYPES.has(message?.flags?.pf2e?.context?.type) &&
+    !isHostileSpellCard(message)
+  )
+    return;
   const actorId = message.actor?.id ?? message.speaker?.actor;
   if (!actorId) return;
   const combats = d.combats ?? game.combats?.contents ?? [];
@@ -1798,7 +1835,14 @@ export function findReactiveStrikeOpportunities(
   gridDistanceFt,
 ) {
   const opportunities = [];
-  for (const reactor of combatantTargets(combat, mover)) {
+  // #616: a reactor must have OBSERVED the mover (the mover is the matrix
+  // row, the reactor the column) -- not the reverse, which is what
+  // `combatantTargets(combat, mover)` filters on.
+  const matrix = combat.getFlag?.(MODULE_ID, "detection");
+  const reactors = combatantOpponents(combat, mover)
+    .filter((c) => !isDownedCharacter(c))
+    .filter((c) => canTargetState(stateFor(matrix, mover.id, c.id)));
+  for (const reactor of reactors) {
     if (!reactor.getFlag(MODULE_ID, "agentControlled")) continue;
     if (getReactionUsed(combat, reactor.id, combat.round)) continue;
     const item = (reactor.actor?.items ?? []).find(isReactiveStrikeInScope);
