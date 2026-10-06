@@ -18,6 +18,7 @@ import {
 import {
   hasRoomFeatureToken,
   runRoomFeatureAction,
+  applyUsedArtOnCompletion,
   showRoomFeatureFallback,
 } from "../room-feature-tokens.mjs";
 import { canActOnDungeon } from "../dungeon-permissions.mjs";
@@ -52,6 +53,7 @@ import {
   unlockDoorsFromRoom,
   sweepCompletedDungeonScene,
   unsealHiddenDoorFromRoom,
+  applyRoomFeatureUsedArtForScene,
 } from "../dungeon-scene.mjs";
 import {
   startCombatForRoom,
@@ -689,6 +691,13 @@ export async function recordSkillChallengeOutcome(sceneId, roomId, outcome) {
   if (resolved === "success") {
     await makeFoundryApi().grantPartyXp(xpFor(0), "skillChallenge");
   }
+  // #764: the token's used art swaps at completion (either outcome), never
+  // at reveal; applyUsedArtOnCompletion swallows any art failure.
+  if (resolved)
+    await applyUsedArtOnCompletion(
+      { sceneId, roomId, state: newState },
+      { applyUsedArt: applyRoomFeatureUsedArtForScene },
+    );
   if (resolved)
     await resolveCurrentRoom(resolved === "success", {
       scene: game.scenes.get(sceneId),
@@ -711,6 +720,13 @@ export async function recordPuzzleStageOutcome(
   if (resolved === "success") {
     await makeFoundryApi().grantPartyXp(xpFor(0), "puzzle");
   }
+  // #764: the token's used art swaps at completion (either outcome), never
+  // at reveal; applyUsedArtOnCompletion swallows any art failure.
+  if (resolved)
+    await applyUsedArtOnCompletion(
+      { sceneId, roomId, state: newState },
+      { applyUsedArt: applyRoomFeatureUsedArtForScene },
+    );
   if (resolved)
     await resolveCurrentRoom(resolved === "success", {
       scene: game.scenes.get(sceneId),
