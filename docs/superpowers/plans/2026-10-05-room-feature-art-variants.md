@@ -200,7 +200,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `roomFeatureArtPath({theme, kind, variant, manifest})` (Task 1).
 - Produces: nothing further in this plan consumes it.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Read `tests/dungeon-scene-door-art.test.mjs` in full first to match its exact fixture/mock conventions (confirmed current: it already covers #750's door-art wiring, so this is an extension, not a new harness). Add cases asserting:
 - A door built for a room whose `artVariant` is 1 (and whose manifest lists `door: [0, 1]` for that theme) gets `animation.texture` ending in `door-1.webp`, not `door.webp`.
@@ -208,12 +208,12 @@ Read `tests/dungeon-scene-door-art.test.mjs` in full first to match its exact fi
 - A door built with `ds: LOCKED` but NO `door_locked` entry in the manifest falls back to the normal (variant-matched) `door` art, unchanged from #750's own existing behavior.
 - `unlockDoorsFromRoom`, called against a wall whose `animation.texture` currently points at a `door_locked` image, updates it (via `wall.update`) to the normal `door`/`door-N` art for that same room's theme and variant.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-scene-door-art.test.mjs -t "#764"`
 Expected: FAIL.
 
-- [ ] **Step 3: Extend both `doorArt` closures**
+- [x] **Step 3: Extend both `doorArt` closures**
 
 In `buildRoomAtGraphNode` (confirmed current, lines 507-509):
 
@@ -270,7 +270,7 @@ to:
           wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonRevealDoorForSlot: room.id, dungeonDoorFromRoomId: sourceId } }, ds: CONST.WALL_DOOR_STATES.CLOSED, door: CONST.WALL_DOOR_TYPES.DOOR, art: doorArt(room.locationTag, room.artVariant) }),
 ```
 
-- [ ] **Step 4: Swap the texture back on unlock**
+- [x] **Step 4: Swap the texture back on unlock**
 
 In `unlockDoorsFromRoom` (confirmed current, lines 1913-1938), change:
 
@@ -356,17 +356,17 @@ export async function unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildId
 
 (`getRunState` is already imported in this file, confirmed current line 64 — no new import needed.)
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-scene-door-art.test.mjs`
 Expected: PASS, old and new cases green.
 
-- [ ] **Step 6: Run the full test suite to confirm no regression**
+- [x] **Step 6: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-scene-door-art.test.mjs
