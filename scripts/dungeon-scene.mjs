@@ -92,6 +92,7 @@ import { selectTrap } from "./trap-library.mjs";
 import { classifyTrap } from "./trap-combat.mjs";
 import { trapFootprintSize } from "./trap-mechanics.mjs";
 import { splitmix32, seedFromString } from "./prng.mjs";
+import { corridorPieceForOpenings, openingsOf, cellKey, hasBlock2x2 } from "./corridor-pieces.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 const GRID_SIZE = 100;
@@ -105,6 +106,8 @@ const CORRIDOR_ART_BY_VARIANT = {
   single: CORRIDOR_ART_PATH,
   end: `${ROOM_ART_DIR}/corridor-end.webp`,
   mid: `${ROOM_ART_DIR}/corridor-mid.webp`,
+  // #823: walls on N+W (canonical), open S+E; chosen by corridor-pieces.mjs for a bend.
+  corner: `${ROOM_ART_DIR}/corridor-corner.webp`,
   // #438: the collapsed-rubble cap for #427's dead-end stub corridors — not
   // chosen by corridorTileVariant; the stub builder asks for it by name.
   rubble: `${ROOM_ART_DIR}/corridor-rubble.webp`,
@@ -184,6 +187,40 @@ export function corridorTrapCandidateCells(cells, rects) {
   return out;
 }
 
+/** One corridor tile (a single 1x1 cell at grid cell gx,gy) of the given art variant + rotation. Shared by
+ * corridorTilesForSegments and #823's corridorEdgeTiles so both build the byte-identical tile object. */
+export function corridorTileAt(gx, gy, variant, rotation) {
+  return {
+    // anchorX/anchorY: 0.5 (center) -- NOT top-left. Room floor art
+    // (above, roomArtPath's own Tile) uses anchor 0/0 + top-left x/y,
+    // which works because it never rotates. Every corridor tile DOES
+    // rotate (0/90/180/270, see corridorTileVariant) -- and Foundry
+    // ties a Tile's rotation pivot directly to its own texture anchor
+    // (confirmed live against Tile.LNWFJbnzjltfbwor: mesh.pivot exactly
+    // equals mesh.anchor in local pixel space). A 0/0 anchor rotates
+    // the art around its own CORNER, swinging a rotated tile's visible
+    // content outside its own bounding box -- this was tried first and
+    // broke every non-90-degree-symmetric rotation (#324, sixth
+    // finding; anchor 0/0 alone was only ever correct for rotation 0).
+    // Center anchor + a center-of-cell x/y sidesteps this entirely: a
+    // SQUARE tile (every corridor tile is 1x1) rotated about its own
+    // center by any multiple of 90 degrees re-covers the exact same
+    // bounding box, so no rotation-angle-specific compensation is ever
+    // needed.
+    texture: { src: CORRIDOR_ART_BY_VARIANT[variant], anchorX: 0.5, anchorY: 0.5 },
+    // x/y is this tile's own CENTER (toPixels(gx) is its
+    // top-left grid line; + half a cell lands on its center) -- not
+    // its top-left corner, unlike every other pixel coordinate in this
+    // file (e.g. wallDoc's own toPixels(x1)/toPixels(y1) above), because
+    // this tile's anchor is center, not top-left (see above).
+    x: toPixels(gx) + toPixels(1) / 2,
+    y: toPixels(gy) + toPixels(1) / 2,
+    width: toPixels(1),
+    height: toPixels(1),
+    rotation,
+  };
+}
+
 /** Corridor floor Tile data for every 1x1 square in `segments` (a
  * `buildEdgeCorridor`/`transitCellCrossing` `corridorSegments` array) —
  * shared by a connection's own corridor and a #174 Task 5 transit cell's
@@ -226,39 +263,69 @@ export function corridorTilesForSegments(segments, { fullWidth = false } = {}) {
       const dy = vertical ? ti : ci;
       const { variant, rotation } = corridorTileVariant(ti, length, vertical);
       cells.push({ gx: baseGx + dx, gy: baseGy + dy });
-      tiles.push({
-        // anchorX/anchorY: 0.5 (center) -- NOT top-left. Room floor art
-        // (above, roomArtPath's own Tile) uses anchor 0/0 + top-left x/y,
-        // which works because it never rotates. Every corridor tile DOES
-        // rotate (0/90/180/270, see corridorTileVariant) -- and Foundry
-        // ties a Tile's rotation pivot directly to its own texture anchor
-        // (confirmed live against Tile.LNWFJbnzjltfbwor: mesh.pivot exactly
-        // equals mesh.anchor in local pixel space). A 0/0 anchor rotates
-        // the art around its own CORNER, swinging a rotated tile's visible
-        // content outside its own bounding box -- this was tried first and
-        // broke every non-90-degree-symmetric rotation (#324, sixth
-        // finding; anchor 0/0 alone was only ever correct for rotation 0).
-        // Center anchor + a center-of-cell x/y sidesteps this entirely: a
-        // SQUARE tile (every corridor tile is 1x1) rotated about its own
-        // center by any multiple of 90 degrees re-covers the exact same
-        // bounding box, so no rotation-angle-specific compensation is ever
-        // needed.
-        texture: { src: CORRIDOR_ART_BY_VARIANT[variant], anchorX: 0.5, anchorY: 0.5 },
-        // x/y is this tile's own CENTER (toPixels(baseGx+dx) is its
-        // top-left grid line; + half a cell lands on its center) -- not
-        // its top-left corner, unlike every other pixel coordinate in this
-        // file (e.g. wallDoc's own toPixels(x1)/toPixels(y1) above), because
-        // this tile's anchor is center, not top-left (see above).
-        x: toPixels(baseGx + dx) + toPixels(1) / 2,
-        y: toPixels(baseGy + dy) + toPixels(1) / 2,
-        width: toPixels(1),
-        height: toPixels(1),
-        rotation,
-      });
+      tiles.push(corridorTileAt(baseGx + dx, baseGy + dy, variant, rotation));
     }
     }
   }
   return { tiles, cells };
+}
+
+/**
+ * #823: all of ONE corridor's tiles, chosen from the corridor's own cell set
+ * so a join or bend never draws a wall across an open joint and no cell holds
+ * two tiles. `corridorSegments` are the room-build call's main legs;
+ * `transitCells` the crossings (each with its own `corridorSegments`).
+ * A cell present in more than one place (a main leg overlapping a crossing,
+ * both legs of an L-shaped crossing sharing the corner, #355) is owned once:
+ * crossings claim first, in order, then the main legs, so each crossing's
+ * marker tile survives. A cell's piece comes from which sides continue to
+ * another cell of this same corridor (corridor-pieces.mjs). A wide (#555)
+ * corridor keeps today's pieces. `mainCells` stays the unfiltered list
+ * #779's trap placement reads.
+ */
+export function corridorEdgeTiles({ corridorSegments, transitCells = [] }, { fullWidth = false } = {}) {
+  const main = corridorTilesForSegments(corridorSegments, { fullWidth });
+  const transits = transitCells.map((c) => corridorTilesForSegments(c.corridorSegments));
+
+  const owner = new Map(); // cellKey -> 'main' | transit index
+  const order = []; // [{cell, owner}] in claim order
+  const claim = (cells, who) => {
+    for (const cell of cells) {
+      const key = cellKey(cell);
+      if (owner.has(key)) continue;
+      owner.set(key, who);
+      order.push({ cell, owner: who });
+    }
+  };
+  transits.forEach((t, i) => claim(t.cells, i));
+  claim(main.cells, 'main');
+
+  const cellSet = new Set(owner.keys());
+  if (hasBlock2x2(cellSet)) {
+    return { main: main.tiles, transit: transits.map((t) => t.tiles), mainCells: main.cells, legacy: true };
+  }
+
+  const result = {
+    main: [],
+    transit: transits.map(() => []),
+    mainCells: main.cells,
+    legacy: false,
+  };
+  for (const { cell, owner: who } of order) {
+    const { variant, rotation } = corridorPieceForOpenings(openingsOf(cell, cellSet));
+    const tile = corridorTileAt(cell.gx, cell.gy, variant, rotation);
+    (who === 'main' ? result.main : result.transit[who]).push(tile);
+  }
+  // A crossing must keep at least one tile (its marker lives on its tiles):
+  // if every cell was claimed earlier, re-add its first cell (a rare stack).
+  transits.forEach((t, i) => {
+    if (!result.transit[i].length && t.cells[0]) {
+      const cell = t.cells[0];
+      const { variant, rotation } = corridorPieceForOpenings(openingsOf(cell, cellSet));
+      result.transit[i].push(corridorTileAt(cell.gx, cell.gy, variant, rotation));
+    }
+  });
+  return result;
 }
 
 /** #427: the floor tiles of one dead-end stub, door tile first and the collapsed-rubble cap (#438) on the far end.
