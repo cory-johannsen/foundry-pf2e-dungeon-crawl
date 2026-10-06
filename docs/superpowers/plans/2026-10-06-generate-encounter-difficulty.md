@@ -36,7 +36,7 @@
 **Interfaces:**
 - Produces: `depthBiasForDifficultyTier(tier: string): number` — the exact inverse of `xpCeilingTierForDepth`. Consumed by Task 2.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/encounter-roster.test.mjs`, alongside the existing `xpCeilingTierForDepth` tests (confirmed current, lines 553-562):
 
@@ -66,12 +66,12 @@ describe('depthBiasForDifficultyTier', () => {
 
 Add `depthBiasForDifficultyTier` to this test file's existing import from `../scripts/encounter-roster.mjs`.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/encounter-roster.test.mjs -t "depthBiasForDifficultyTier"`
 Expected: FAIL — not a function yet.
 
-- [ ] **Step 3: Write `depthBiasForDifficultyTier`**
+- [x] **Step 3: Write `depthBiasForDifficultyTier`**
 
 In `scripts/encounter-roster.mjs`, add directly after `xpCeilingTierForDepth` (confirmed current, ends line 102):
 
@@ -98,17 +98,17 @@ export function depthBiasForDifficultyTier(tier) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run tests/encounter-roster.test.mjs -t "depthBiasForDifficultyTier"`
 Expected: PASS, all three cases green.
 
-- [ ] **Step 5: Run the full test suite to confirm no regression**
+- [x] **Step 5: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/encounter-roster.mjs tests/encounter-roster.test.mjs
@@ -130,7 +130,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `depthBiasForDifficultyTier` (Task 1).
 - Produces: `chooseThemeAndSize`'s own resolved value gains a `difficulty` field (e.g. `{traits, excludeTraits, difficulty}`); `generateEncounter` uses it to compute the effective `depthBias` passed into `generateEncounterRoster` for the macro path only.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/encounter-generator.test.mjs`, inside the existing `describe("generateEncounter (no approval gate)", ...)` block (reusing its own `installFoundryStubs` fixture, extending the `DialogV2.wait` stub's returned object):
 
@@ -198,12 +198,12 @@ Add to `tests/encounter-generator.test.mjs`, inside the existing `describe("gene
 
 (Check this test file's own existing import of `getGenerator`/`generator-registry.mjs` mock first — confirmed current, it already `vi.mock`s `../scripts/generator-registry.mjs`; adapt the exact `vi.mocked(getGenerator)` call shape to however that mock is already set up in this file rather than assuming the above verbatim.)
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npx vitest run tests/encounter-generator.test.mjs -t "#831"`
 Expected: FAIL — `difficulty`/`depthBias` aren't wired yet; the dungeon-room case may already pass incidentally (it's today's existing behavior), confirming the test targets only the intended change.
 
-- [ ] **Step 3: Add the selector to the dialog**
+- [x] **Step 3: Add the selector to the dialog**
 
 In `scripts/encounter-generator.mjs`, change `chooseThemeAndSize` (confirmed current, lines 29-68):
 
@@ -310,7 +310,7 @@ async function chooseThemeAndSize({
 }
 ```
 
-- [ ] **Step 4: Use the chosen difficulty for the macro path only**
+- [x] **Step 4: Use the chosen difficulty for the macro path only**
 
 In `generateEncounter`, change (confirmed current):
 
@@ -370,7 +370,7 @@ to (only the `depthBias` line changes):
 
 Add `depthBiasForDifficultyTier` to this file's existing import from `./encounter-roster.mjs`.
 
-- [ ] **Step 5: Add the localization keys**
+- [x] **Step 5: Add the localization keys**
 
 In `lang/en.json`, add near the existing `PF2EDC.Encounter.*` keys:
 
@@ -383,12 +383,12 @@ In `lang/en.json`, add near the existing `PF2EDC.Encounter.*` keys:
   "PF2EDC.Encounter.Difficulty.Extreme": "Extreme",
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `npx vitest run tests/encounter-generator.test.mjs -t "#831"`
 Expected: PASS, all three cases green.
 
-- [ ] **Step 7: Run the full test suite to confirm no regression**
+- [x] **Step 7: Run the full test suite to confirm no regression**
 
 Run: `npx vitest run`
 Expected: PASS.
@@ -397,7 +397,7 @@ Expected: PASS.
 
 Run the real "PF2EDC: Generate Encounter" macro, confirm the dialog now shows a Difficulty dropdown defaulting to Moderate, and that picking Trivial vs. Extreme produces a visibly smaller vs. larger roster for the same party (cross-check the GM-only roster chat card's own total XP against `xpBudget(tier, partySize)` for the chosen tier). Separately, generate a real dungeon run and confirm a combat room's own encounter is completely unaffected (no difficulty dialog ever appears for it, and its roster still scales with the room's own depth as before).
 
-- [ ] **Step 9: Bump module.json's version**
+- [x] **Step 9: Bump module.json's version**
 
 Re-check the current version first (concurrent sessions push to this repo):
 
@@ -407,7 +407,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **minor** bump (a real new GM-facing option), using whatever the fetch above shows as current.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add scripts/encounter-generator.mjs lang/en.json tests/encounter-generator.test.mjs module.json
