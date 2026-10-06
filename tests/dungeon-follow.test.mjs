@@ -88,6 +88,7 @@ function makeToken({
   height = 1,
   sourceX = x,
   sourceY = y,
+  flags = {},
 }) {
   const token = {
     id,
@@ -97,6 +98,7 @@ function makeToken({
     width,
     height,
     _source: { x: sourceX, y: sourceY },
+    getFlag: (m, k) => (m === "pf2e-dungeon-crawl" ? flags[k] : undefined),
   };
   token.update = vi.fn(async (changes) => {
     Object.assign(token, changes);
@@ -752,6 +754,61 @@ describe("moveFollowersToward footprint-awareness (#140)", () => {
     const gy = y / GRID;
     const overlapsLeader = gx <= 5 && gx + 2 > 5 && gy <= 1 && gy + 2 > 1;
     expect(overlapsLeader).toBe(false);
+  });
+
+  // #836: a single-row scene makes the hazard a true chokepoint -- the
+  // follower can only reach the leader by walking through the hazard's
+  // square, so today's blocking behavior leaves it with no route at all
+  // (a detour test would not discriminate: the final destination is the
+  // same either way).
+  it("#836: a trap hazard token (armed or tripped) never blocks a follower's path", async () => {
+    vi.useFakeTimers();
+    const leader = makeToken({ id: "t-leader", x: 5 * GRID, y: 0, actorId: LEADER_ACTOR_ID });
+    const follower = makeToken({ id: "t-follower", x: 0, y: 0, actorId: FOLLOWER_ACTOR_ID });
+    const hazard = makeToken({
+      id: "t-hazard",
+      x: 2 * GRID,
+      y: 0,
+      actorId: "hazard-actor",
+      flags: { trapHazard: true },
+    });
+    const scene = makeScene({ tokens: [leader, follower, hazard] });
+    scene.height = 1 * GRID;
+
+    installFoundryStubs({
+      dungeonRuns: { [SCENE_ID]: { hostUserId: HOST_USER_ID, aiControlledActorIds: [FOLLOWER_ACTOR_ID] } },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    runFollowMoveNow(SCENE_ID);
+    await settle();
+
+    expect(follower.update).toHaveBeenCalled();
+    const [{ x, y }] = follower.update.mock.calls.at(-1);
+    expect(y).toBe(0);
+    // It walked past the hazard's square and got next to the leader.
+    expect(x / GRID).toBeGreaterThan(2);
+  });
+
+  it("#836: a non-hazard token in the same chokepoint still blocks (only trapHazard is passable)", async () => {
+    vi.useFakeTimers();
+    const leader = makeToken({ id: "t-leader", x: 5 * GRID, y: 0, actorId: LEADER_ACTOR_ID });
+    const follower = makeToken({ id: "t-follower", x: 0, y: 0, actorId: FOLLOWER_ACTOR_ID });
+    const other = makeToken({ id: "t-other", x: 2 * GRID, y: 0, actorId: "other-actor" });
+    const scene = makeScene({ tokens: [leader, follower, other] });
+    scene.height = 1 * GRID;
+
+    installFoundryStubs({
+      dungeonRuns: { [SCENE_ID]: { hostUserId: HOST_USER_ID, aiControlledActorIds: [FOLLOWER_ACTOR_ID] } },
+    });
+    game.scenes = { get: (id) => (id === SCENE_ID ? scene : undefined) };
+
+    runFollowMoveNow(SCENE_ID);
+    await settle();
+
+    const calls = follower.update.mock.calls;
+    // Never gets past the blocker at x=2 (it may stay put or stop short).
+    for (const [c] of calls) expect(c.x / GRID).toBeLessThan(2);
   });
 
   it("does not treat the follower's own body as an obstacle to itself", async () => {

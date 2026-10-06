@@ -257,13 +257,19 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
     // comment above.
     const leaderCell = tokenCell(sourcePosition(leaderToken), gridSize);
     // #365: loot-type tokens (corpses/piles) are `passable` -- they don't
-    // block follower pathing, though destinations still avoid them.
+    // block follower pathing, though destinations still avoid them. #836: a
+    // trap hazard (armed, detected, disabled or triggered) is the same -- a
+    // thing to trigger or step around, never a physical obstacle. Whether a
+    // walk onto it triggers it is trap-combat.mjs's updateToken hook, which
+    // this pathing flag does not touch.
     const occupied = scene.tokens.map((t) => ({
       ...footprint(
         { ...sourcePosition(t), width: t.width, height: t.height },
         gridSize,
       ),
-      ...(t.actor?.type === "loot" ? { passable: true } : {}),
+      ...(t.actor?.type === "loot" || t.getFlag?.(MODULE_ID, "trapHazard")
+        ? { passable: true }
+        : {}),
     }));
 
     // #181: chain-following — the first follower in marching order
