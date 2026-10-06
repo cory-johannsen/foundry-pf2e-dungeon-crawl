@@ -66,7 +66,7 @@ sequencing/roster logic without this one caring.
 
 **Combat automation** (`dungeon-combat.mjs`, `combat-rewards.mjs`,
 `agent-candidates.mjs`, `dungeon-strike-riders.mjs`,
-`dungeon-critical-deck.mjs`) — wires a spawned encounter into a real PF2e
+`dungeon-critical-deck.mjs`, `flanking-indicator.mjs`) — wires a spawned encounter into a real PF2e
 `Combat`, and auto-applies whatever Critical Hit/Fumble Deck directives
 parse cleanly. For an `agentControlled` combatant's turn,
 `autoPlayCombatantTurnIfDue` races two things: `armAgentTimeout` (a pure
@@ -76,7 +76,9 @@ hosted agent service (below) directly over `fetch()`. If the service
 doesn't answer in time, errors, or isn't configured, the timeout fires and
 `playHeuristicTurn` (pure candidate-scoring logic, no LLM) takes the turn
 instead — the module always has a working fallback with no hardcoded LLM
-dependency of its own.
+dependency of its own. `flanking-indicator.mjs` (#769) is separate from
+that turn-taking path: a client-side, write-nothing "Flanked" badge drawn
+on flanked tokens in a started combat, using PF2e's own `Token#isFlanking`.
 
 **Hosted agent service** (`scripts/agent-service-client.mjs`,
 `scripts/dungeon-customization-fulfillment.mjs`,
@@ -208,6 +210,7 @@ graph LR
     scripts_dungeon_combat_mjs["dungeon-combat.mjs"]
     scripts_dungeon_critical_deck_mjs["dungeon-critical-deck.mjs"]
     scripts_dungeon_strike_riders_mjs["dungeon-strike-riders.mjs"]
+    scripts_flanking_indicator_mjs["flanking-indicator.mjs"]
   end
   subgraph "Puzzle / trap / skill-challenge / treasure mechanics"
     scripts_narrative_mechanics_mjs["narrative-mechanics.mjs"]
@@ -337,6 +340,7 @@ graph LR
   scripts_encounter_generator_mjs --> scripts_trait_picker_mjs
   scripts_encounter_generator_mjs --> scripts_dungeon_combat_mjs
   scripts_encounter_generator_mjs --> scripts_cover_items_mjs
+  scripts_flanking_indicator_mjs --> scripts_placement_mjs
   scripts_foundry_api_mjs --> scripts_placement_mjs
   scripts_foundry_api_mjs --> scripts_prng_mjs
   scripts_foundry_api_mjs --> scripts_cover_items_mjs
@@ -354,6 +358,7 @@ graph LR
   scripts_module_mjs --> scripts_dungeon_combat_mjs
   scripts_module_mjs --> scripts_dungeon_follow_mjs
   scripts_module_mjs --> scripts_trap_combat_mjs
+  scripts_module_mjs --> scripts_flanking_indicator_mjs
   scripts_module_mjs --> scripts_ui_trap_disable_dialog_mjs
   scripts_module_mjs --> scripts_generator_registry_mjs
   scripts_module_mjs --> scripts_default_generator_mjs
