@@ -43,11 +43,11 @@
 - `detectionEligibility({ minRank, searching, perceptionRank })` → `boolean`: `minRank == null` → `true` (automatic check for everyone); otherwise `searching === true && perceptionRank >= minRank`.
 - `withinSearchRange(trapFootprint, moverFootprint, rangeSquares)` → `boolean`: Chebyshev distance between the two `{gx,gy,gw,gh}` footprints (0 when overlapping) `<= rangeSquares`.
 
-- [ ] **Step 1:** Write failing tests for all three (every odd details string listed in Review Focus; eligibility truth table incl. null minRank with searching false, minRank 1 with rank 0/1/2, searching false with high rank; range: overlap, adjacent, exactly at range, one beyond, multi-cell footprints, negative-coordinate-safe).
-- [ ] **Step 2:** Run `npx vitest run tests/trap-mechanics.test.mjs`, confirm failures are for the right reason.
-- [ ] **Step 3:** Implement.
-- [ ] **Step 4:** Run the whole `tests/trap-mechanics.test.mjs` file, confirm green.
-- [ ] **Step 5:** Commit.
+- [x] **Step 1:** Write failing tests for all three (every odd details string listed in Review Focus; eligibility truth table incl. null minRank with searching false, minRank 1 with rank 0/1/2, searching false with high rank; range: overlap, adjacent, exactly at range, one beyond, multi-cell footprints, negative-coordinate-safe).
+- [x] **Step 2:** Run `npx vitest run tests/trap-mechanics.test.mjs`, confirm failures are for the right reason.
+- [x] **Step 3:** Implement.
+- [x] **Step 4:** Run the whole `tests/trap-mechanics.test.mjs` file, confirm green.
+- [x] **Step 5:** Commit.
 
 ### Task 2: Secret roll and range-based detection in `scripts/trap-combat.mjs`
 
