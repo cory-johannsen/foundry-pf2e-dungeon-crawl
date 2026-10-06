@@ -102,6 +102,27 @@ export function xpCeilingTierForDepth(bias) {
 }
 
 /**
+ * #831: the exact inverse of `xpCeilingTierForDepth` above — maps a GM
+ * Core difficulty tier name straight back to the depth bias that produces
+ * it, so a direct tier picker (the standalone "Generate Encounter" macro,
+ * which has no dungeon room/depth to derive one from) can drive the same
+ * cap mechanism dungeon rooms already use, with no new XP-budget logic.
+ * An unrecognized or missing tier falls back to Moderate (bias 1),
+ * matching this file's own "default to Moderate" convention.
+ */
+const DIFFICULTY_TIER_TO_BIAS = {
+  trivial: -1,
+  low: 0,
+  moderate: 1,
+  severe: 2,
+  extreme: 3,
+};
+
+export function depthBiasForDifficultyTier(tier) {
+  return DIFFICULTY_TIER_TO_BIAS[tier] ?? DIFFICULTY_TIER_TO_BIAS.moderate;
+}
+
+/**
  * `levelOffsetBias` shifts the target level band — a dungeon room's
  * depth-based difficulty ramp (see dungeon-deck.mjs's depthBiasFor).
  * `requireTrait` is a single ANDed restriction — a dungeon room's own

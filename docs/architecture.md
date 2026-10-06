@@ -347,6 +347,7 @@ graph LR
   scripts_encounter_generator_mjs --> scripts_trait_picker_mjs
   scripts_encounter_generator_mjs --> scripts_dungeon_combat_mjs
   scripts_encounter_generator_mjs --> scripts_cover_items_mjs
+  scripts_encounter_generator_mjs --> scripts_encounter_roster_mjs
   scripts_flanking_indicator_mjs --> scripts_placement_mjs
   scripts_foundry_api_mjs --> scripts_placement_mjs
   scripts_foundry_api_mjs --> scripts_prng_mjs
