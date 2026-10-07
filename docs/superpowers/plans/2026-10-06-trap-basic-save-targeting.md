@@ -50,7 +50,7 @@
 **Interfaces:**
 - Produces: `parseBasicSaveAction(descriptionHtml): {save, dc, damage: [{formula, type}], areaFeet} | null`; `basicSaveDamageMultiplier(outcome): number`.
 
-- [ ] **Step 1: Write the failing tests, using the real surveyed description strings verbatim**
+- [x] **Step 1: Write the failing tests, using the real surveyed description strings verbatim**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -119,12 +119,12 @@ describe("#839 basicSaveDamageMultiplier", () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/trap-mechanics-basic-save.test.mjs`
 Expected: FAIL — neither function exists yet.
 
-- [ ] **Step 3: Implement the parser**
+- [x] **Step 3: Implement the parser**
 
 Add to `scripts/trap-mechanics.mjs`:
 
@@ -177,12 +177,12 @@ export function basicSaveDamageMultiplier(outcome) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/trap-mechanics-basic-save.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/trap-mechanics.mjs tests/trap-mechanics-basic-save.test.mjs

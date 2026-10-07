@@ -164,3 +164,52 @@ export function isSimpleAutomatableTrap({
 }) {
   return !isComplex && strikeActionCount === 1 && disableChecks.length > 0;
 }
+
+const SAVE_SLUGS = new Set(["reflex", "fortitude", "will"]);
+
+/**
+ * #839: parses a hazard action item's own description HTML for PF2e's own
+ * inline-enricher syntax -- `@Check[<save>|dc:<n>|basic|...]` plus
+ * `@Damage[<dice>d<faces>[<type>],...]`, optionally with an area phrase
+ * ("creatures within N feet"). Returns null for anything outside this
+ * narrow, confirmed shape -- no "basic" keyword, no parseable @Damage, or
+ * no @Check at all -- rather than guessing at a hazard whose effect isn't
+ * simple damage (a condition, banishment, initiative-rolling routine).
+ * Deliberately does NOT resolve an area stated only via a referenced
+ * spell's own stats (e.g. a hazard whose effect "casts Fireball" without
+ * restating Fireball's own 20-foot burst in its own text) -- a known,
+ * excluded case (#839's own plan), not a silent mis-parse.
+ */
+export function parseBasicSaveAction(descriptionHtml) {
+  if (typeof descriptionHtml !== "string") return null;
+  const checkMatch = /@Check\[([a-z]+)((?:\|[^\]]*)?)\]/i.exec(descriptionHtml);
+  if (!checkMatch) return null;
+  const save = checkMatch[1].toLowerCase();
+  if (!SAVE_SLUGS.has(save)) return null;
+  const segments = checkMatch[2].split("|").filter(Boolean);
+  if (!segments.includes("basic")) return null;
+  const dcSegment = segments.find((s) => s.startsWith("dc:"));
+  const dc = dcSegment ? Number(dcSegment.slice(3)) : NaN;
+  if (!Number.isFinite(dc)) return null;
+
+  // The damage list nests one level of brackets (`3d6[fire]`), so the body is
+  // any run of non-bracket characters or one `[...]` group.
+  const damageMatch = /@Damage\[((?:[^[\]]|\[[^\]]*\])+)\]/i.exec(descriptionHtml);
+  if (!damageMatch) return null;
+  const damage = [];
+  for (const part of damageMatch[1].split(",")) {
+    const termMatch = /^\s*(\d+d\d+)\[([a-z-]+)\]\s*$/i.exec(part);
+    if (!termMatch) return null; // an unrecognized damage shape -- stay conservative
+    damage.push({ formula: termMatch[1], type: termMatch[2].toLowerCase() });
+  }
+
+  const areaMatch = /creatures?\s+within\s+(\d+)\s+feet/i.exec(descriptionHtml);
+  const areaFeet = areaMatch ? Number(areaMatch[1]) : null;
+
+  return { save, dc, damage, areaFeet };
+}
+
+/** PF2e RAW basic-save degree-of-success damage scaling. */
+export function basicSaveDamageMultiplier(outcome) {
+  return { criticalSuccess: 0, success: 0.5, failure: 1, criticalFailure: 2 }[outcome] ?? 0;
+}
