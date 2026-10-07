@@ -119,6 +119,7 @@
   "PF2EDC.Dungeon.XpSource.puzzle": "Puzzle",
   "PF2EDC.Dungeon.XpSource.trap": "Trap",
   "PF2EDC.Dungeon.XpSource.other": "Dungeon",
+  "PF2EDC.Dungeon.ReadyToLevelUp": "{names} reached enough XP to level up!",
   "PF2EDC.Dungeon.RoomCountLabel": "Number of rooms (including the goal room)",
   "PF2EDC.Dungeon.DifficultyLabel": "Difficulty",
   "PF2EDC.Dungeon.Difficulty.Trivial": "Trivial (much easier rooms and checks)",
