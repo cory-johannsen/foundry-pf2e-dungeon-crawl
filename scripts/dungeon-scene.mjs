@@ -357,20 +357,28 @@ export function skipClaimedCorridorTiles(tiles, claimed, { keepOne = false } = {
 
 /** #427: the floor tiles of one dead-end stub, door tile first and the collapsed-rubble cap (#438) on the far end.
  * `g` is a `stubGeometry` result; each tile is one cell of its single floor rect. */
-function stubTilesFor(g, key) {
+export function stubTilesFor(g, key) {
   const f = g.floor[0];
   const tiles = [];
+  const forward = g.dir > 0 ? "E" : "W";
+  const backward = g.dir > 0 ? "W" : "E";
   for (let k = 0; k < g.length; k += 1) {
     const gx = g.dir > 0 ? f.gx + k : f.gx + f.gw - 1 - k;
     const cap = k === g.length - 1;
+    // #861: every non-cap tile uses #823's openings-based piece rule. The door-end tile (k=0) only opens toward the
+    // NEXT stub cell (never toward the room: that boundary is the room's own door wall); interior tiles open both
+    // ways along the line. The cap stays the dedicated rubble asset (#438), outside the openings system.
+    const { variant, rotation } = cap
+      ? { variant: "rubble", rotation: g.dir > 0 ? 90 : 270 }
+      : corridorPieceForOpenings(k === 0 ? [forward] : [forward, backward]);
     tiles.push({
-      texture: { src: CORRIDOR_ART_BY_VARIANT[cap ? "rubble" : "single"], anchorX: 0.5, anchorY: 0.5 },
+      texture: { src: CORRIDOR_ART_BY_VARIANT[variant], anchorX: 0.5, anchorY: 0.5 },
       x: toPixels(gx) + toPixels(1) / 2,
       y: toPixels(f.gy) + toPixels(1) / 2,
       width: toPixels(1),
       height: toPixels(1),
       // The cap faces the dead end like corridorTileVariant's far 'end' tile (90 heading east, 270 west).
-      rotation: cap ? (g.dir > 0 ? 90 : 270) : 0,
+      rotation,
       flags: { [MODULE_ID]: { dungeonStubCorridorFor: key } },
     });
   }
