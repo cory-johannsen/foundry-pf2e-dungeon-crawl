@@ -173,4 +173,32 @@ describe("grantTreasureReward (#88 chat log fix)", () => {
     expect(itemMessage.data.item).toBe("Wand of Magic Missile");
     expect(ui.notifications.calls).toHaveLength(0);
   });
+
+  it("#897: a drawn item's own ChoiceSet is pre-resolved before it's created", async () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.1);
+    const params = { partyLevel: 5, rank: 2, maxRank: 7, isGoal: false };
+    const expectedTableName = treasureRoomItemTableName({ ...params, rng: Math.random });
+    const itemDoc = {
+      name: "Charm of Resistance",
+      toObject: () => ({
+        name: "Charm of Resistance",
+        system: {
+          rules: [{
+            key: "ChoiceSet", flag: "damageType",
+            choices: [{ label: "Acid", value: "acid" }, { label: "Fire", value: "fire" }],
+          }],
+        },
+        flags: { pf2e: { rulesSelections: {} } },
+      }),
+    };
+    installFoundryStubs({ tableEntry: { tableName: expectedTableName }, itemDoc });
+    const created = [];
+    globalThis.game.actors = {
+      party: { id: "party1", createEmbeddedDocuments: async (type, docs) => { created.push(...docs); } },
+    };
+    await grantTreasureReward({ addCoins: async () => {} }, params);
+    Math.random.mockRestore();
+    expect(created).toHaveLength(1);
+    expect(["acid", "fire"]).toContain(created[0].flags.pf2e.rulesSelections.damageType);
+  });
 });

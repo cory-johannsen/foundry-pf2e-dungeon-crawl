@@ -115,7 +115,7 @@ content pending, rather than waiting on an interactive session to check in).
 **Puzzle / trap / skill-challenge / treasure mechanics**
 (`puzzle-mechanics.mjs`+`puzzle.mjs`,
 `trap-mechanics.mjs`+`trap-combat.mjs`+`trap-library.mjs`,
-`skill-challenge-mechanics.mjs`+`skill-challenge.mjs`, `treasure.mjs`,
+`skill-challenge-mechanics.mjs`+`skill-challenge.mjs`, `treasure.mjs`, `choice-set.mjs` (pre-picks a PF2e `ChoiceSet` rule element's choice for treasure items and spawned actors, #897),
 `narrative-mechanics.mjs`, `room-feature-tokens.mjs`, `room-feature-art.mjs`, `room-feature-check.mjs`) — one pure/glue pair per room-kind mechanic
 (see the convention above), each built from real PF2e compendium content
 (`pf2e.hazards`, `pf2e.rollable-tables`) rather than inventing new game
@@ -245,6 +245,7 @@ graph LR
     scripts_stealth_detection_mjs["stealth-detection.mjs"]
   end
   subgraph "Puzzle / trap / skill-challenge / treasure mechanics"
+    scripts_choice_set_mjs["choice-set.mjs"]
     scripts_narrative_mechanics_mjs["narrative-mechanics.mjs"]
     scripts_puzzle_mechanics_mjs["puzzle-mechanics.mjs"]
     scripts_puzzle_mjs["puzzle.mjs"]
@@ -386,6 +387,7 @@ graph LR
   scripts_foundry_api_mjs --> scripts_cover_items_mjs
   scripts_foundry_api_mjs --> scripts_trap_combat_mjs
   scripts_foundry_api_mjs --> scripts_treasure_mjs
+  scripts_foundry_api_mjs --> scripts_choice_set_mjs
   scripts_module_mjs --> scripts_encounter_generator_mjs
   scripts_module_mjs --> scripts_ui_dungeon_app_mjs
   scripts_module_mjs --> scripts_dungeon_sound_mjs
@@ -429,6 +431,7 @@ graph LR
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_deck_mjs
   scripts_ui_dungeon_app_mjs --> scripts_foundry_api_mjs
   scripts_ui_dungeon_app_mjs --> scripts_encounter_roster_mjs
+  scripts_ui_dungeon_app_mjs --> scripts_choice_set_mjs
   scripts_ui_dungeon_app_mjs --> scripts_skill_challenge_mjs
   scripts_ui_dungeon_app_mjs --> scripts_puzzle_mjs
   scripts_ui_dungeon_app_mjs --> scripts_skill_challenge_mechanics_mjs
