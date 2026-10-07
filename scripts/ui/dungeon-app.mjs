@@ -11,8 +11,6 @@ import {
   roomsToEagerlyBuild,
   replaceRunState,
   resetRetreatPath,
-  effectiveMarchingOrder,
-  setMarchingOrder,
   revealRoomFeature,
 } from "../dungeon-runner.mjs";
 import {
@@ -1000,8 +998,6 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       chooseNarrativeOption: DungeonApp.#onChooseNarrativeOption,
       claimTreasure: DungeonApp.#onClaimTreasure,
       revealRoomFeature: DungeonApp.#onRevealRoomFeature,
-      moveMarchingOrderUp: DungeonApp.#onMoveMarchingOrderUp,
-      moveMarchingOrderDown: DungeonApp.#onMoveMarchingOrderDown,
     },
   };
 
@@ -1255,14 +1251,6 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       treasure = { name: raw.name, summary: raw.summary };
     }
 
-    const marchingOrderIds = effectiveMarchingOrder(state);
-    const marchingOrder = marchingOrderIds.map((actorId, index) => ({
-      actorId,
-      name: game.actors.get(actorId)?.name ?? "?",
-      isFirst: index === 0,
-      isLast: index === marchingOrderIds.length - 1,
-    }));
-
     // #611/#623: a player (even the run's host) uses the in-scene prop when
     // one exists; the sidebar claim/reveal controls remain for the GM and as
     // a fallback when the room has no prop token.
@@ -1357,11 +1345,6 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       partyMembers: (game.actors?.party?.members ?? [])
         .filter((m) => m.type === "character")
         .map((m) => ({ id: m.id, name: m.name })),
-      // #181: only meaningful for a GM-less (player-led) run — follow-
-      // the-leader itself is inactive otherwise (state.hostUserId null),
-      // so there's no leader to march behind.
-      isGmLessRun: !!state.hostUserId,
-      marchingOrder,
       currentRoom: currentRoom && {
         isGoal: currentRoom.isGoal,
         kind: currentRoom.kind,
@@ -1674,60 +1657,6 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
       );
     } else {
       await requestDungeonAction("roomFeatureInteract", { sceneId, roomId, kind });
-    }
-    this.render();
-  }
-
-  /**
-   * Moves one AI-controlled follower earlier in the run's own marching
-   * order (#181) — swaps it with whoever's currently just ahead of it. A
-   * no-op if it's already first. Routed the same isGM-direct-vs-relayed
-   * way every other mutating action in this app already is.
-   */
-  static async #onMoveMarchingOrderUp(event, target) {
-    const sceneId = canvas?.scene?.id;
-    const actorId = target?.dataset?.actorId;
-    if (!sceneId || !actorId) return;
-    const state = getRunState(sceneId);
-    if (!state) return;
-    const order = effectiveMarchingOrder(state);
-    const index = order.indexOf(actorId);
-    if (index <= 0) return;
-    const reordered = [...order];
-    [reordered[index - 1], reordered[index]] = [reordered[index], reordered[index - 1]];
-    if (game.user.isGM) {
-      await setMarchingOrder(sceneId, reordered);
-    } else {
-      await requestDungeonAction("setMarchingOrder", {
-        sceneId,
-        orderedActorIds: reordered,
-      });
-    }
-    this.render();
-  }
-
-  /**
-   * Moves one AI-controlled follower later in the run's own marching
-   * order (#181) — the mirror of #onMoveMarchingOrderUp.
-   */
-  static async #onMoveMarchingOrderDown(event, target) {
-    const sceneId = canvas?.scene?.id;
-    const actorId = target?.dataset?.actorId;
-    if (!sceneId || !actorId) return;
-    const state = getRunState(sceneId);
-    if (!state) return;
-    const order = effectiveMarchingOrder(state);
-    const index = order.indexOf(actorId);
-    if (index === -1 || index >= order.length - 1) return;
-    const reordered = [...order];
-    [reordered[index], reordered[index + 1]] = [reordered[index + 1], reordered[index]];
-    if (game.user.isGM) {
-      await setMarchingOrder(sceneId, reordered);
-    } else {
-      await requestDungeonAction("setMarchingOrder", {
-        sceneId,
-        orderedActorIds: reordered,
-      });
     }
     this.render();
   }
