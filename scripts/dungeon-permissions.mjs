@@ -94,6 +94,9 @@ export const WIDENED_ACTIONS = new Set([
   "attemptTrapDisable",
   "attemptPuzzleStage",
   "attemptSkillChallenge",
+  // #852: reordering the marching order from the standalone window. The
+  // handler re-validates the payload is a pure permutation (setMarchingOrder).
+  "setMarchingOrder",
 ]);
 
 /**
@@ -119,7 +122,7 @@ export function isAuthorizedRequest(
   }
   if (WIDENED_ACTIONS.has(actionName)) {
     // #611/#623 (+ #754 attemptTrapDisable, #822 attemptPuzzleStage /
-    // attemptSkillChallenge): room-feature prop tokens may be triggered by
+    // attemptSkillChallenge, #852 setMarchingOrder): room-feature prop tokens may be triggered by
     // any non-GM player who owns a party character (relay computes the
     // flag), or the host. The recordPuzzleStageOutcome /
     // recordSkillChallengeOutcome actions stay host-only: the widened
@@ -149,6 +152,22 @@ export function ownsPartyCharacter(userId, partyMembers) {
 export function canRelayRoomFeature(user, partyMembers) {
   if (!user || !user.active || user.isGM) return false;
   return ownsPartyCharacter(user.id, partyMembers);
+}
+
+/**
+ * #852: whether THIS client's user is entitled to send `actionName` (a
+ * WIDENED_ACTIONS member) -- the same rule the relay applies, by delegating
+ * to isAuthorizedRequest + canRelayRoomFeature rather than restating it. A
+ * GM always may (acts directly, no relay). Pure.
+ */
+export function canUserSendWidenedAction(actionName, user, run, partyMembers) {
+  if (!user) return false;
+  if (user.isGM) return true;
+  return isAuthorizedRequest(actionName, user.id, run, {
+    ownsPartyCharacter:
+      WIDENED_ACTIONS.has(actionName) &&
+      canRelayRoomFeature({ ...user, active: true }, partyMembers),
+  });
 }
 
 /** #754: whether `userId` may roll a trap-disable attempt as `actor`. Like

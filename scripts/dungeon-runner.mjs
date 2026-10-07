@@ -714,6 +714,23 @@ export async function setObjective(
 }
 
 /**
+ * #852: pure payload check -- `given` must be an array that is exactly a
+ * reordering of `current` (same ids, no extras, no duplicates, none missing).
+ * setMarchingOrder runs on the GM client for relayed requests from any
+ * party-character owner, so it never trusts the submitted list.
+ */
+export function isMarchingPermutation(current, given) {
+  if (!Array.isArray(given)) return false;
+  const cur = new Set(current ?? []);
+  const giv = new Set(given);
+  return (
+    given.length === cur.size &&
+    giv.size === given.length &&
+    [...cur].every((id) => giv.has(id))
+  );
+}
+
+/**
  * Sets this run's own marching-order priority sequence for its
  * AI-controlled followers (#181) — `orderedActorIds` must be exactly a
  * permutation of the run's CURRENT `aiControlledActorIds` (same actors,
@@ -728,12 +745,10 @@ export async function setMarchingOrder(
 ) {
   const state = getRunState(sceneId, { settingsRef });
   if (!state) return null;
-  const current = new Set(state.aiControlledActorIds ?? []);
-  const given = new Set(orderedActorIds);
-  const isValidPermutation =
-    orderedActorIds.length === current.size &&
-    given.size === orderedActorIds.length &&
-    [...current].every((id) => given.has(id));
+  const isValidPermutation = isMarchingPermutation(
+    state.aiControlledActorIds,
+    orderedActorIds,
+  );
   if (!isValidPermutation) {
     throw new Error(
       "pf2e-dungeon-crawl | setMarchingOrder: orderedActorIds must be exactly a permutation of the run's current aiControlledActorIds",

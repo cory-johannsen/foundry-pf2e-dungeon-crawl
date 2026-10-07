@@ -1,0 +1,22 @@
+<section class="pf2edc-marching-order-app">
+  {{#if hasRun}}
+    <ol class="pf2edc-dungeon__marching-order-list">
+      {{#each marchingOrder}}
+        <li class="pf2edc-dungeon__marching-order-row">
+          <span class="pf2edc-dungeon__marching-order-name">{{this.name}}</span>
+          {{#if ../canReorder}}
+            <span class="pf2edc-dungeon__marching-order-controls">
+              <button type="button" data-action="moveUp" data-actor-id="{{this.actorId}}" {{#if this.isFirst}}disabled{{/if}}>&uarr;</button>
+              <button type="button" data-action="moveDown" data-actor-id="{{this.actorId}}" {{#if this.isLast}}disabled{{/if}}>&darr;</button>
+            </span>
+          {{/if}}
+        </li>
+      {{/each}}
+    </ol>
+    {{#unless canReorder}}
+      <p class="pf2edc-marching-order-readonly">{{localize "PF2EDC.MarchingOrder.ReadOnly"}}</p>
+    {{/unless}}
+  {{else}}
+    <p>{{localize "PF2EDC.MarchingOrder.NoActiveRun"}}</p>
+  {{/if}}
+</section>

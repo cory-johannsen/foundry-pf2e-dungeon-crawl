@@ -173,7 +173,7 @@ falling back to that chain-following whenever the trail can't place it.
 
 **Run state & UI** (`dungeon-runner.mjs`, `module.mjs`,
 `scripts/ui/dungeon-app.mjs`, `scripts/ui/sound-preview-app.mjs`,
-`world-macros.mjs`) — `dungeon-runner.mjs`
+`scripts/ui/marching-order-app.mjs`, `world-macros.mjs`) — `dungeon-runner.mjs`
 reads/writes the `dungeonRuns` world setting (the durable record of an
 in-progress run); `module.mjs` is the Foundry module's own entry point
 (hook registration, `game.modules.get(...).api` surface); `dungeon-app.mjs`
@@ -189,6 +189,15 @@ coverage despite touching `game.macros`/`Macro`.
 `ui/sound-preview-app.mjs` (#600) is the GM-only settings-menu form, registered
 by `module.mjs`, that lists every sound from `dungeon-sound.mjs` and plays it
 locally (never broadcast) through `audio.mjs`.
+
+`ui/marching-order-app.mjs` (#852) is the standalone marching-order window,
+opened from a scene-control button registered in `module.mjs` and re-rendered
+by `module.mjs`'s `dungeonRuns` setting hook; it reads order via
+`dungeon-runner.mjs`, writes it directly (GM) or through `dungeon-remote.mjs`'s
+`setMarchingOrder` relay, and uses `dungeon-permissions.mjs` so only the GM, the
+run host and party-character owners get controls (everyone else sees a read-only
+list); `setMarchingOrder` is a widened relay action whose payload is re-validated
+as a pure permutation in `dungeon-runner.mjs`.
 
 ## Dependency graph
 
@@ -280,6 +289,7 @@ graph LR
     scripts_dungeon_runner_mjs["dungeon-runner.mjs"]
     scripts_module_mjs["module.mjs"]
     scripts_ui_dungeon_app_mjs["ui/dungeon-app.mjs"]
+    scripts_ui_marching_order_app_mjs["ui/marching-order-app.mjs"]
     scripts_ui_puzzle_stage_dialog_mjs["ui/puzzle-stage-dialog.mjs"]
     scripts_ui_skill_challenge_dialog_mjs["ui/skill-challenge-dialog.mjs"]
     scripts_ui_sound_preview_app_mjs["ui/sound-preview-app.mjs"]
@@ -380,6 +390,7 @@ graph LR
   scripts_module_mjs --> scripts_encounter_generator_mjs
   scripts_module_mjs --> scripts_ui_dungeon_app_mjs
   scripts_module_mjs --> scripts_ui_sound_preview_app_mjs
+  scripts_module_mjs --> scripts_ui_marching_order_app_mjs
   scripts_module_mjs --> scripts_dungeon_retreat_mjs
   scripts_module_mjs --> scripts_dungeon_runner_mjs
   scripts_module_mjs --> scripts_dungeon_permissions_mjs
@@ -428,6 +439,9 @@ graph LR
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_retreat_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_layout_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_reseed_mjs
+  scripts_ui_marching_order_app_mjs --> scripts_dungeon_runner_mjs
+  scripts_ui_marching_order_app_mjs --> scripts_dungeon_remote_mjs
+  scripts_ui_marching_order_app_mjs --> scripts_dungeon_permissions_mjs
   scripts_ui_skill_challenge_dialog_mjs --> scripts_ui_dungeon_app_mjs
   scripts_ui_sound_preview_app_mjs --> scripts_dungeon_sound_mjs
   scripts_ui_sound_preview_app_mjs --> scripts_audio_mjs
@@ -454,6 +468,7 @@ graph LR
   tools_agent_service_validate_decision_model_mjs --> tools_agent_service_providers_index_mjs
   tools_agent_service_validate_decision_model_mjs --> tools_agent_service_env_mjs
 ```
+
 
 Notably, `tools/agent-service/*` never imports anything from `scripts/`,
 and `scripts/agent-service-client.mjs` never imports anything from

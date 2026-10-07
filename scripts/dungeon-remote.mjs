@@ -122,7 +122,8 @@ export const DUNGEON_ACTIONS = {
   followMove: (args) => runFollowMoveNow(args.sceneId),
   // #141: same #65 pattern, for resnapDriftedTokens's own self-heal write.
   resnapToken: (args) => resnapTokenNow(args.sceneId, args.tokenId),
-  // #181: a non-GM host reordering their own AI-controlled followers.
+  // #181/#852: a non-GM host or party-character owner reordering the AI
+  // followers; setMarchingOrder re-validates the list is a pure permutation.
   setMarchingOrder: (args) =>
     setMarchingOrder(args.sceneId, args.orderedActorIds),
 };
@@ -190,8 +191,9 @@ export function registerDungeonActionSocket() {
       msg.actionName === "startRun"
         ? findActiveHostedRun()
         : getRunState(msg.args?.sceneId);
-    // #611/#623/#754/#822: only WIDENED_ACTIONS (roomFeatureInteract,
-    // attemptTrapDisable, attemptPuzzleStage, attemptSkillChallenge) widen
+    // #611/#623/#754/#822/#852: only WIDENED_ACTIONS (roomFeatureInteract,
+    // attemptTrapDisable, attemptPuzzleStage, attemptSkillChallenge,
+    // setMarchingOrder) widen
     // authorization, to active non-GM owners of a party character.
     const ownsPartyCharacter =
       WIDENED_ACTIONS.has(msg.actionName) &&
