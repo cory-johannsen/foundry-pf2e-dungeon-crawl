@@ -357,7 +357,6 @@ graph LR
   scripts_dungeon_scene_mjs --> scripts_dungeon_retreat_mjs
   scripts_dungeon_scene_mjs --> scripts_dungeon_deck_mjs
   scripts_dungeon_scene_mjs --> scripts_dungeon_combat_mjs
-  scripts_dungeon_scene_mjs --> scripts_dungeon_sound_mjs
   scripts_dungeon_scene_mjs --> scripts_data_loader_mjs
   scripts_dungeon_scene_mjs --> scripts_creature_art_mjs
   scripts_dungeon_scene_mjs --> scripts_room_feature_art_mjs
@@ -389,6 +388,7 @@ graph LR
   scripts_foundry_api_mjs --> scripts_treasure_mjs
   scripts_module_mjs --> scripts_encounter_generator_mjs
   scripts_module_mjs --> scripts_ui_dungeon_app_mjs
+  scripts_module_mjs --> scripts_dungeon_sound_mjs
   scripts_module_mjs --> scripts_ui_sound_preview_app_mjs
   scripts_module_mjs --> scripts_ui_marching_order_app_mjs
   scripts_module_mjs --> scripts_dungeon_retreat_mjs

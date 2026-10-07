@@ -190,7 +190,7 @@ export function playCreatureDeathSound() {
 
 /** `kind` is `'open' | 'lock' | 'unlock'` -- the three door-state
  * transitions this generator's own doors go through (dungeon-scene.mjs). */
-export function playDoorSound(kind) {
+export function playDoorSound(kind, { broadcast = true } = {}) {
   const key =
     kind === "open"
       ? "doorOpen"
@@ -200,5 +200,19 @@ export function playDoorSound(kind) {
           ? "doorUnlock"
           : null;
   const p = key ? soundPath(key) : null;
-  if (p) playSound(p);
+  if (p) playSound(p, { broadcast });
+}
+
+/**
+ * #868: which door sound (if any) a real Wall document's own `ds`
+ * transition represents, from plain extracted flag booleans (kept
+ * Foundry-free so this stays unit-testable). Driven reactively from every
+ * client's own `updateWall` hook (module.mjs) rather than from inline calls
+ * inside GM-only state-mutation code, so no GM session is needed to hear it.
+ */
+export function doorSoundForWallTransition(ds, { hasRevealFlag, hasStubFlag, hasGateFlag } = {}) {
+  if (ds === 1 && (hasRevealFlag || hasStubFlag)) return "open"; // OPEN
+  if (ds === 2 && hasGateFlag) return "lock"; // LOCKED
+  if (ds === 0 && (hasGateFlag || hasStubFlag)) return "unlock"; // CLOSED
+  return null;
 }

@@ -8,6 +8,7 @@ import {
   attemptSkillChallengeFor,
   skillLabel,
 } from "./ui/dungeon-app.mjs";
+import { doorSoundForWallTransition, playDoorSound } from "./dungeon-sound.mjs";
 import { SoundPreviewApp } from "./ui/sound-preview-app.mjs";
 import { findTokenControl, marchingOrderSceneTool, refreshMarchingOrderWindow } from "./ui/marching-order-app.mjs";
 import { retreatCardActionFor } from "./dungeon-retreat.mjs";
@@ -352,6 +353,17 @@ function openDungeonTrackerIfNotOpen() {
 
 Hooks.on("updateWall", async (wall, changes) => {
   followLeaderOnDoorOpened(wall, changes);
+  // #868: every connected client plays its own door sound reactively, from the
+  // wall state Foundry's document sync already delivers to everyone -- no
+  // longer dependent on a GM client running the state-mutation code below.
+  if (changes.ds !== undefined) {
+    const sound = doorSoundForWallTransition(changes.ds, {
+      hasRevealFlag: !!wall.getFlag(MODULE_ID, "dungeonRevealDoorForSlot"),
+      hasStubFlag: !!wall.getFlag(MODULE_ID, "dungeonStubDoorFor"),
+      hasGateFlag: !!wall.getFlag(MODULE_ID, "dungeonDoorToRoomId"),
+    });
+    if (sound) playDoorSound(sound, { broadcast: false });
+  }
   if (changes.ds !== CONST.WALL_DOOR_STATES.OPEN) return;
   const { autoOpenTracker } = await handleDungeonDoorOpened(
     wall.parent?.id,
