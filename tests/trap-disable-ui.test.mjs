@@ -186,7 +186,11 @@ describe("#754 attemptTrapDisableForScene outcomes and authorization", () => {
   it("critical failure triggers once on the attempter's token, marks both spent, announces once", async () => {
     const { triggerTrap } = await go({ disabled: false, outcome: "criticalFailure" });
     expect(triggerTrap).toHaveBeenCalledOnce();
-    expect(triggerTrap).toHaveBeenCalledWith(hazardActor, { actor: pc, token: pcToken.object });
+    expect(triggerTrap).toHaveBeenCalledWith(
+      hazardActor,
+      { actor: pc, token: pcToken.object },
+      { hazardToken, scene }, // #839: geometry for area basic-save hazards
+    );
     expect(flags.trapTriggered).toBe(true);
     expect(hazardToken.flags.trapSpent).toBe(true);
     expect(announce).toHaveBeenCalledOnce();

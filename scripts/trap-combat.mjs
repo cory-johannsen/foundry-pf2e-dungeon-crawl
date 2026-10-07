@@ -14,6 +14,8 @@ import {
   trapMinProficiencyRank,
   detectionEligibility,
   withinSearchRange,
+  parseBasicSaveAction,
+  basicSaveDamageMultiplier,
 } from "./trap-mechanics.mjs";
 import { actorIdsWithExplorationActivity } from "./stealth-detection.mjs";
 import { applyTrapRoomState, getRunState } from "./dungeon-runner.mjs";
@@ -162,34 +164,142 @@ export async function rollTrapDisableAttempt(hazardActor, actor, skill) {
  * or has no ready strike at all — call `classifyTrap(hazardActor).automatable`
  * first to know whether this function applies before calling it.
  */
-export async function triggerTrap(hazardActor, target) {
+export async function triggerTrap(hazardActor, target, deps = {}) {
   if (hazardActor.getFlag(MODULE_ID, "trapDisabled")) return null;
   const strike = (hazardActor.system?.actions ?? []).find(
     (a) => a.type === "strike" && a.ready !== false,
   );
-  if (!strike) return null;
-
-  return withDialogsSuppressed(async () => {
-    const targetRef = { document: target.token };
-    await strike.variants[0].roll({ target: targetRef, createMessage: true });
-    const outcome =
-      game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
-    if (outcome === "success" || outcome === "criticalSuccess") {
-      const damageRoll = await strike.damage({
-        target: targetRef,
-        outcome,
-        createMessage: true,
-      });
-      if (damageRoll) {
-        await target.actor.applyDamage({
-          damage: damageRoll,
-          token: target.token,
+  if (strike) {
+    return withDialogsSuppressed(async () => {
+      const targetRef = { document: target.token };
+      await strike.variants[0].roll({ target: targetRef, createMessage: true });
+      const outcome =
+        game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
+      if (outcome === "success" || outcome === "criticalSuccess") {
+        const damageRoll = await strike.damage({
+          target: targetRef,
           outcome,
+          createMessage: true,
         });
+        if (damageRoll) {
+          await target.actor.applyDamage({
+            damage: damageRoll,
+            token: target.token,
+            outcome,
+          });
+        }
       }
-    }
-    return outcome;
+      return outcome;
+    });
+  }
+
+  // #839: no strike -- look for a hazard action item whose own description
+  // is a basic save + structured damage (parseBasicSaveAction). Resolved
+  // against the triggering creature alone, or every party member within
+  // the parsed area, per whichever the hazard's own text describes.
+  const hazardItems = Array.from(hazardActor.items ?? []);
+  let parsed = null;
+  for (const item of hazardItems) {
+    if (item.type !== "action") continue;
+    parsed = parseBasicSaveAction(item.system?.description?.value);
+    if (parsed) break;
+  }
+  if (parsed) {
+    return withDialogsSuppressed(async () => {
+      const affected = resolveBasicSaveTargets(parsed, target, deps);
+      const outcomes = [];
+      for (const { actor, token } of affected) {
+        const saveRoll = await actor.saves?.[parsed.save]?.roll?.({
+          dc: { value: parsed.dc },
+          createMessage: true,
+        });
+        const outcome =
+          DEGREE_OUTCOMES[saveRoll?.degreeOfSuccess] ??
+          game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ??
+          null;
+        const multiplier = basicSaveDamageMultiplier(outcome);
+        if (multiplier > 0) {
+          let total = 0;
+          for (const term of parsed.damage) {
+            const roll = await new Roll(term.formula).evaluate();
+            total += roll.total;
+          }
+          await actor.applyDamage({
+            damage: Math.floor(total * multiplier),
+            token,
+            outcome,
+          });
+        }
+        outcomes.push(outcome);
+      }
+      return outcomes[0] ?? null;
+    });
+  }
+
+  // Nothing automatable -- guard rail, never silence (#839). GM-only whisper
+  // with the hazard's own text and the party members actually near it.
+  const description = hazardDescriptionText(hazardActor, hazardItems);
+  const names =
+    resolveBasicSaveTargets({ areaFeet: GUARD_RAIL_RANGE_FEET }, target, deps)
+      .map(({ actor }) => actor.name)
+      .join(", ") || target.actor.name;
+  await whisperGMChat("PF2EDC.Dungeon.Trap.UnautomatedChat", {
+    trap: hazardActor.name,
+    description,
+    names,
   });
+  return null;
+}
+
+/** #839: generous radius (feet) used to name who is near an un-automated hazard. */
+const GUARD_RAIL_RANGE_FEET = 15;
+
+/** #839: plain text of a hazard's own effect description(s) for the GM whisper. */
+function hazardDescriptionText(hazardActor, items) {
+  const parts = items
+    .filter((i) => i.type === "action")
+    .map((i) => i.system?.description?.value)
+    .filter((v) => typeof v === "string" && v.trim());
+  if (!parts.length) {
+    const routine = hazardActor.system?.details?.routine;
+    if (typeof routine === "string" && routine.trim()) parts.push(routine);
+  }
+  const text = parts
+    .join(" ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text || hazardActor.name;
+}
+
+/**
+ * #839: `{actor, token}` pairs a parsed basic-save action affects --
+ * the triggering creature alone when `parsed.areaFeet` is null, or every
+ * PARTY member (matching handleTrapTokenMove's own party-only trigger
+ * gate) within that radius of the hazard, via the same grid-distance
+ * primitive the detection-range check already uses, always including the
+ * triggering creature itself. `deps.hazardToken` (a TokenDocument) and
+ * `deps.scene` come from the real call sites; the scene falls back to
+ * `target.token.document.parent` when omitted. Geometry reads token
+ * DOCUMENTS (pixel x/y, width in squares), same as handleTrapTokenMove.
+ */
+function resolveBasicSaveTargets(parsed, target, deps = {}) {
+  const single = [{ actor: target.actor, token: target.token }];
+  if (!parsed.areaFeet) return single;
+  const scene = deps.scene ?? target.token?.document?.parent;
+  const hazardToken = deps.hazardToken;
+  if (!scene?.grid || !hazardToken) return single;
+  const rangeSquares = parsed.areaFeet / (scene.grid.distance || 5);
+  const hazardFootprint = footprint(hazardToken, scene.grid.size);
+  const inArea = Array.from(scene.tokens ?? [])
+    .filter((t) => t.actor && isPartyActor(t.actor))
+    .filter((t) =>
+      withinSearchRange(hazardFootprint, footprint(t, scene.grid.size), rangeSquares),
+    )
+    .map((t) => ({ actor: t.actor, token: t.object ?? t }));
+  return inArea.some(({ actor }) => actor.id === target.actor.id)
+    ? inArea
+    : [...single, ...inArea];
 }
 
 /** Posts a localized public chat line for a trap event (#753). */
@@ -328,10 +438,11 @@ export async function handleTrapTokenMove(tokenDoc, changes, deps = {}) {
             name: tokenDoc.name ?? tokenDoc.actor.name,
             trap: hazardActor.name,
           });
-          await trigger(hazardActor, {
-            actor: tokenDoc.actor,
-            token: tokenDoc.object,
-          });
+          await trigger(
+            hazardActor,
+            { actor: tokenDoc.actor, token: tokenDoc.object },
+            { hazardToken, scene },
+          );
         }
         await markTrapSpent(hazardToken);
         if (hazardToken.hidden) await hazardToken.update({ hidden: false });
@@ -428,7 +539,11 @@ export async function attemptTrapDisableForScene(
         (t) => t.actor?.id === actor.id,
       );
       if (attempterToken?.object) {
-        await trigger(hazardActor, { actor, token: attempterToken.object });
+        await trigger(
+          hazardActor,
+          { actor, token: attempterToken.object },
+          { hazardToken, scene: trapScene },
+        );
       }
     } finally {
       trapChecksInFlight.delete(hazardActor.id);
