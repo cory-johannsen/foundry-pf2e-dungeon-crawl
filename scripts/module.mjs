@@ -61,6 +61,7 @@ import {
   clearDetection,
   handleStealthBreakMessage,
 } from "./dungeon-combat.mjs";
+import { subtractXpOnLevelUp } from "./dungeon-leveling.mjs";
 import {
   followLeaderIfDue,
   followLeaderOnDoorOpened,
@@ -612,9 +613,12 @@ async function onCombatAutoResolved(result) {
     });
 }
 
-Hooks.on("updateActor", async (actor) => {
+Hooks.on("updateActor", async (actor, changes) => {
   await autoDefeatZeroHpNpcs(actor);
   onCombatAutoResolved(await maybeResolveCombatForActor(actor));
+  // #853: this hook fires on every connected client; only the active GM
+  // subtracts, so the carry-over is written once, not once per client.
+  if (game.users?.activeGM?.isSelf) await subtractXpOnLevelUp(actor, changes);
 });
 Hooks.on("createItem", async (item) => {
   onCombatAutoResolved(await maybeResolveCombatForCondition(item));
