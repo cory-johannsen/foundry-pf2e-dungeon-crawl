@@ -121,6 +121,12 @@ content pending, rather than waiting on an interactive session to check in).
 (`pf2e.hazards`, `pf2e.rollable-tables`) rather than inventing new game
 data.
 
+`trap-combat.mjs` also resolves a no-strike hazard whose action is a basic
+save plus structured damage (#839): `trap-mechanics.mjs` parses it, and
+`trap-combat.mjs` finds every creature in the hazard's area using
+`pathfinding.mjs`'s wall-aware `hasLineOfSight`, so a wall blocks the effect
+the same way it blocks movement.
+
 Clicking a puzzle or skill-challenge room-feature token (#822) reveals it
 and then offers the attempt through `room-feature-check.mjs`'s
 `promptRoomFeatureCheck` (Foundry-free, collaborators injected by
@@ -399,6 +405,7 @@ graph LR
   scripts_trap_combat_mjs --> scripts_dungeon_runner_mjs
   scripts_trap_combat_mjs --> scripts_dungeon_permissions_mjs
   scripts_trap_combat_mjs --> scripts_placement_mjs
+  scripts_trap_combat_mjs --> scripts_pathfinding_mjs
   scripts_trap_mechanics_mjs --> scripts_prng_mjs
   scripts_ui_dungeon_app_mjs --> scripts_data_loader_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_runner_mjs

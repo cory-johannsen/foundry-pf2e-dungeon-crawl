@@ -35,7 +35,8 @@ const LEVEL_TOLERANCE = 3;
  * per #135's "only fall back to a stub the compendium genuinely doesn't
  * cover."
  *
- * Prefers an automatable candidate (`classifyTrap(...).automatable`,
+ * Prefers an automatable candidate (`classifyTrap(...).automatable` -- a
+ * strike hazard, or since #839 a basic-save-plus-damage one,
  * #134) when the level-filtered pool has one, so the room's trap is
  * actually playable through the mechanical engine rather than picked
  * blind — falls back to the full pool (GM-narrated) only when *none* of

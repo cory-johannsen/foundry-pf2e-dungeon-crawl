@@ -68,6 +68,16 @@ describe("handleTrapTokenMove", () => {
     expect(h.actor.setFlag).not.toHaveBeenCalled();
   });
 
+  it("#839: passes the hazard token and scene to triggerTrap for area geometry", async () => {
+    const h = makeHazard({ x: 100, y: 100 });
+    const mover = makeMover([h]);
+    await handleTrapTokenMove(mover, MOVE, base);
+    expect(triggerTrap).toHaveBeenCalledOnce();
+    const [, , deps] = triggerTrap.mock.calls[0];
+    expect(deps.hazardToken).toBe(h);
+    expect(deps.scene).toBe(mover.parent);
+  });
+
   it("ignores non-GM clients", async () => {
     const h = makeHazard({ x: 100, y: 100 });
     await handleTrapTokenMove(makeMover([h]), MOVE, { ...base, isGM: () => false });

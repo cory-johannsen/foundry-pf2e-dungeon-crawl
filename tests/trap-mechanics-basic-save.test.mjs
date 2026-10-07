@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { parseBasicSaveAction, basicSaveDamageMultiplier } from "../scripts/trap-mechanics.mjs";
+import {
+  parseBasicSaveAction,
+  basicSaveDamageMultiplier,
+  parseAreaFeet,
+  footprintDistanceFeet,
+  isSimpleAutomatableTrap,
+} from "../scripts/trap-mechanics.mjs";
 
 // Real description HTML from pf2e.hazards, confirmed live this session (2026-10-06).
 const ELECTRIC_LATCH_RUNE = `<p><strong>Trigger</strong> A creature grasps the door latch directly or with a tool</p><hr /><p><strong>Effect</strong> The trap deals @Damage[3d12[electricity]] damage to the triggering creature (@Check[reflex|dc:22|basic] save).</p>`;
@@ -12,19 +18,19 @@ const HIDDEN_PIT = `<p><strong>Effect</strong> The triggering creature falls in 
 
 describe("#839 parseBasicSaveAction", () => {
   it("parses a single-target basic save with one damage term, no area", () => {
-    expect(parseBasicSaveAction(ELECTRIC_LATCH_RUNE)).toEqual({
+    expect(parseBasicSaveAction(ELECTRIC_LATCH_RUNE)).toMatchObject({
       save: "reflex", dc: 22, damage: [{ formula: "3d12", type: "electricity" }], areaFeet: null,
     });
   });
 
   it("parses a single-target basic save even with extra trailing segments", () => {
-    expect(parseBasicSaveAction(INSISTENT_PRIVACY_FENCE)).toEqual({
+    expect(parseBasicSaveAction(INSISTENT_PRIVACY_FENCE)).toMatchObject({
       save: "reflex", dc: 26, damage: [{ formula: "7d12", type: "electricity" }], areaFeet: null,
     });
   });
 
   it("parses an area basic save with two damage terms and a labeled {..} suffix", () => {
-    expect(parseBasicSaveAction(STEAM_VENTS)).toEqual({
+    expect(parseBasicSaveAction(STEAM_VENTS)).toMatchObject({
       save: "reflex", dc: 24,
       damage: [{ formula: "3d6", type: "bludgeoning" }, { formula: "3d6", type: "fire" }],
       areaFeet: 15,
@@ -50,6 +56,36 @@ describe("#839 parseBasicSaveAction", () => {
   });
 });
 
+// Real pf2e.hazards descriptions (read from the installed compendium, 2026-10-07).
+const FIREBALL_RUNE = `<p><strong>Trigger</strong> A living creature enters the sensor area</p><hr /><p><strong>Effect</strong> The rune detonates a @UUID[Compendium.pf2e.spells-srd.Item.sxQZ6yqTn0czJxVd]{Fireball} centered on the triggering creature's square. This is a 3rd-rank fireball spell that deals @Damage[6d6[fire]] damage (@Check[reflex|dc:22|basic] save).</p>`;
+const ARMAGEDDON_ORB = `<p><strong>Effect</strong> Fire rains from the sky in a 100-mile radius, dealing @Damage[10d6[fire]] damage to creatures and objects in the area. Each creature or object can attempt a @Check[reflex|dc:46|basic] save.</p>`;
+
+const SHRIEKER = `<p><strong>Trigger</strong> A creature or light source approaches within 10 feet of the shrieker</p><hr /><p><strong>Effect</strong> The shrieker emits a deafening screech that deals @Damage[1d6[sonic]] damage to creatures within @Template[emanation|distance:30]{30 feet} (@Check[fortitude|dc:16|basic|traits:auditory] save; creatures that critically fail this saving throw are @UUID[Compendium.pf2e.conditionitems.Item.9PR9y0bi4JPKnHPR]{Deafened} for 1 minute).</p>`;
+const WEB_LURKER_DEADFALL = `<p><strong>Effect</strong> All creatures in the trap's 10-foot square take @Damage[2d6[bludgeoning]] damage (@Check[reflex|dc:20|basic] save).</p>`;
+
+describe("#839 parseBasicSaveAction real area shapes", () => {
+  it("reads a @Template emanation distance as the area and surfaces the Deafened rider", () => {
+    const p = parseBasicSaveAction(SHRIEKER);
+    expect(p.areaFeet).toBe(30);
+    expect(p.save).toBe("fortitude");
+    expect(p.traits).toEqual(["auditory"]);
+    expect(p.proneOnCritFail).toBe(false);
+    expect(p.unparsedText).toContain("Deafened");
+  });
+  it("returns null for \"all creatures in the trap's 10-foot square\" (unsized shape)", () => {
+    expect(parseBasicSaveAction(WEB_LURKER_DEADFALL)).toBeNull();
+  });
+});
+
+describe("#839 parseBasicSaveAction refuses areas it cannot size", () => {
+  it("returns null for Fireball Rune (area via a referenced spell) rather than shrinking it to one target", () => {
+    expect(parseBasicSaveAction(FIREBALL_RUNE)).toBeNull();
+  });
+  it("returns null for an unsized radius/area (Armageddon Orb)", () => {
+    expect(parseBasicSaveAction(ARMAGEDDON_ORB)).toBeNull();
+  });
+});
+
 describe("#839 basicSaveDamageMultiplier", () => {
   it("is the exact PF2e basic-save scaling", () => {
     expect(basicSaveDamageMultiplier("criticalSuccess")).toBe(0);
@@ -60,5 +96,67 @@ describe("#839 basicSaveDamageMultiplier", () => {
 
   it("is 0 for an unrecognized outcome rather than throwing", () => {
     expect(basicSaveDamageMultiplier(undefined)).toBe(0);
+  });
+});
+
+describe("#839 parseBasicSaveAction riders, traits and area anchoring", () => {
+  it("captures the @Check traits for the save's roll options", () => {
+    expect(parseBasicSaveAction(STEAM_VENTS).traits).toEqual(["mechanical", "trap", "hazard"]);
+    expect(parseBasicSaveAction(ELECTRIC_LATCH_RUNE).traits).toEqual([]);
+  });
+
+  it("recognises the critical-failure prone rider and consumes it", () => {
+    const p = parseBasicSaveAction(STEAM_VENTS);
+    expect(p.proneOnCritFail).toBe(true);
+    expect(p.unparsedText).toBe("");
+  });
+
+  it("reports no rider text for a plain single-target hazard", () => {
+    const p = parseBasicSaveAction(ELECTRIC_LATCH_RUNE);
+    expect(p.proneOnCritFail).toBe(false);
+    expect(p.unparsedText).toBe("");
+  });
+
+  it("surfaces any other text after the save instead of dropping it", () => {
+    const html = `<p><strong>Effect</strong> It deals @Damage[2d6[fire]] (@Check[reflex|dc:20|basic]) to creatures within 10 feet. Creatures that critically fail are knocked prone. The room fills with smoke and the door locks.</p>`;
+    const p = parseBasicSaveAction(html);
+    expect(p.areaFeet).toBe(10);
+    expect(p.proneOnCritFail).toBe(true);
+    expect(p.unparsedText).toBe("The room fills with smoke and the door locks.");
+  });
+
+  it("does not read an area from the Trigger line", () => {
+    const html = `<p><strong>Trigger</strong> A creature within 30 feet steps here</p><hr /><p><strong>Effect</strong> It deals @Damage[3d6[fire]] to the creature (@Check[reflex|dc:20|basic] save).</p>`;
+    expect(parseAreaFeet(html)).toBeNull();
+    expect(parseBasicSaveAction(html).areaFeet).toBeNull();
+  });
+});
+
+describe("#839 footprintDistanceFeet (PF2e 5-10-5 diagonals)", () => {
+  const cell = (gx, gy) => ({ gx, gy, gw: 1, gh: 1 });
+  it("is 0 on the same square and 5 ft per orthogonal step", () => {
+    expect(footprintDistanceFeet(cell(0, 0), cell(0, 0))).toBe(0);
+    expect(footprintDistanceFeet(cell(0, 0), cell(3, 0))).toBe(15);
+  });
+  it("counts every second diagonal double: 3 east + 2 north is 20 ft", () => {
+    expect(footprintDistanceFeet(cell(0, 0), cell(3, 2))).toBe(20);
+    expect(footprintDistanceFeet(cell(0, 0), cell(1, 1))).toBe(5);
+    expect(footprintDistanceFeet(cell(0, 0), cell(2, 2))).toBe(15);
+    expect(footprintDistanceFeet(cell(0, 0), cell(3, 3))).toBe(20);
+  });
+  it("measures to the nearest edge of a large footprint", () => {
+    expect(footprintDistanceFeet(cell(0, 0), { gx: 2, gy: 0, gw: 2, gh: 2 })).toBe(10);
+  });
+});
+
+describe("#839 isSimpleAutomatableTrap with basic-save actions", () => {
+  const base = { isComplex: false, strikeActionCount: 0, basicSaveActionCount: 1, disableChecks: [{}] };
+  it("accepts a no-strike hazard with a basic-save action", () => {
+    expect(isSimpleAutomatableTrap(base)).toBe(true);
+  });
+  it("still rejects complex, check-less or action-less hazards", () => {
+    expect(isSimpleAutomatableTrap({ ...base, isComplex: true })).toBe(false);
+    expect(isSimpleAutomatableTrap({ ...base, disableChecks: [] })).toBe(false);
+    expect(isSimpleAutomatableTrap({ ...base, basicSaveActionCount: 0 })).toBe(false);
   });
 });
