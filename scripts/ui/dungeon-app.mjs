@@ -32,6 +32,7 @@ import {
 } from "../dungeon-deck.mjs";
 import { makeFoundryApi, drawTreasureItem } from "../foundry-api.mjs";
 import { xpFor } from "../encounter-roster.mjs";
+import { resolveChoiceSetsOnItemData } from "../choice-set.mjs";
 import { rollSkillChallengeAttempt } from "../skill-challenge.mjs";
 import { rollPuzzleStageAttempt } from "../puzzle.mjs";
 import { dcForAttempt } from "../skill-challenge-mechanics.mjs";
@@ -343,8 +344,11 @@ export async function grantTreasureReward(
   });
   const itemDoc = await drawTreasureItem(tableName);
   if (itemDoc) {
+    // #897: pre-resolve any ChoiceSet (e.g. "Charm of Resistance" -- choose
+    // a damage type) before creating the item; this module's treasure draw
+    // has no GM present to answer a prompt.
     await game.actors.party.createEmbeddedDocuments("Item", [
-      itemDoc.toObject(),
+      resolveChoiceSetsOnItemData(itemDoc.toObject()),
     ]);
     await ChatMessage.create({
       content: game.i18n.format("PF2EDC.Dungeon.Treasure.ItemFound", {
