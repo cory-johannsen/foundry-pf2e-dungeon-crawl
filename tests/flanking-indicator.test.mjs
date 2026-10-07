@@ -1,7 +1,9 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   computeFlankedTokenIds,
   createFlankedIndicator,
+  flankingPlaceablesFor,
+  registerFlankedIndicator,
 } from "../scripts/flanking-indicator.mjs";
 
 // `flanking` = ids of tokens THIS token is flanking (what Token#isFlanking
@@ -212,5 +214,179 @@ describe("createFlankedIndicator", () => {
       expect(p.actor.update).not.toHaveBeenCalled();
       expect(p.document.update).not.toHaveBeenCalled();
     }
+  });
+});
+
+// A combatant whose linked token placeable is `placeable` (undefined = no
+// linked token on this client).
+function combatant(placeable, { defeated = false } = {}) {
+  return {
+    id: `cbt-${placeable?.id ?? "none"}`,
+    isDefeated: defeated,
+    token: placeable ? { object: placeable } : undefined,
+  };
+}
+
+describe("flankingPlaceablesFor (#875)", () => {
+  it("excludes a defeated combatant's token and keeps the alive ones", () => {
+    const alive = token("alive");
+    const dead = token("dead");
+    const out = flankingPlaceablesFor({
+      combatants: [combatant(alive), combatant(dead, { defeated: true })],
+    });
+    expect(out).toEqual([alive]);
+  });
+
+  it("skips a combatant with no linked token safely", () => {
+    const alive = token("alive");
+    const out = flankingPlaceablesFor({
+      combatants: [combatant(undefined), combatant(alive)],
+    });
+    expect(out).toEqual([alive]);
+  });
+
+  it("composes: a defeated tokenless combatant is also skipped", () => {
+    const alive = token("alive");
+    const out = flankingPlaceablesFor({
+      combatants: [combatant(undefined, { defeated: true }), combatant(alive)],
+    });
+    expect(out).toEqual([alive]);
+  });
+});
+
+describe("flanked badge vs defeat (#875)", () => {
+  function setup() {
+    const a = token("a", { flanking: ["t"] });
+    const b = token("b", { flanking: ["t"] });
+    const t = token("t");
+    const bystander = token("x");
+    const cbts = {
+      a: combatant(a),
+      b: combatant(b),
+      t: combatant(t),
+      x: combatant(bystander),
+    };
+    const combat = { combatants: Object.values(cbts) };
+    const { deps, state } = makeDeps({ placeables: [] });
+    deps.getPlaceables = vi.fn((c) => flankingPlaceablesFor(c));
+    state.combat = combat;
+    return { ind: createFlankedIndicator(deps), deps, state, cbts, ids: { a, b, t } };
+  }
+
+  it("creates a badge for a flanked creature", () => {
+    const { ind, state } = setup();
+    ind.refresh();
+    expect(ind.badgeCount()).toBe(1);
+    expect(state.badges[0].tokenId).toBe("t");
+  });
+
+  it("destroys the badge when the flanked creature is defeated", () => {
+    const { ind, state, cbts } = setup();
+    ind.refresh();
+    cbts.t.isDefeated = true;
+    ind.refresh();
+    expect(state.badges[0].destroy).toHaveBeenCalled();
+    expect(ind.badgeCount()).toBe(0);
+  });
+
+  it("defeating one flanker of a two-flanker pair removes the flank", () => {
+    // Flanking needs BOTH flankers: each reports isFlanking(t) only while
+    // its partner is present among the placeables the pass sees.
+    const t = token("t");
+    const mk = (id, partner) => {
+      const p = token(id);
+      p.isFlanking.mockImplementation(
+        (target) => target.id === "t" && partner.present,
+      );
+      return p;
+    };
+    const pa = { present: true };
+    const pb = { present: true };
+    const a = mk("a", pb);
+    const b = mk("b", pa);
+    const ca = combatant(a);
+    const cb = combatant(b);
+    const ct = combatant(t);
+    const { deps, state } = makeDeps();
+    state.combat = { combatants: [ca, cb, ct] };
+    deps.getPlaceables = vi.fn((c) => {
+      const out = flankingPlaceablesFor(c);
+      pa.present = out.includes(a);
+      pb.present = out.includes(b);
+      return out;
+    });
+    const ind = createFlankedIndicator(deps);
+    ind.refresh();
+    expect(ind.badgeCount()).toBe(1);
+    ca.isDefeated = true;
+    ind.refresh();
+    expect(state.badges[0].destroy).toHaveBeenCalled();
+    expect(ind.badgeCount()).toBe(0);
+  });
+
+  it("an un-defeated flanked creature is unaffected by another's defeat", () => {
+    const { ind, state, cbts } = setup();
+    ind.refresh();
+    cbts.x.isDefeated = true; // unrelated bystander
+    ind.refresh();
+    expect(state.badges[0].destroy).not.toHaveBeenCalled();
+    expect(ind.badgeCount()).toBe(1);
+  });
+});
+
+describe("registerFlankedIndicator hooks (#875)", () => {
+  const saved = {};
+  afterEach(() => {
+    vi.useRealTimers();
+    for (const k of ["Hooks", "canvas", "game"]) {
+      if (saved[k] === undefined) delete globalThis[k];
+      else globalThis[k] = saved[k];
+    }
+  });
+
+  function install(combat) {
+    for (const k of ["Hooks", "canvas", "game"]) saved[k] = globalThis[k];
+    const hooks = {};
+    globalThis.Hooks = {
+      on: vi.fn((name, fn) => {
+        (hooks[name] ??= []).push(fn);
+      }),
+    };
+    globalThis.canvas = { scene: { id: "s1" } };
+    const getCombat = vi.fn(() => combat);
+    globalThis.game = {
+      get combat() {
+        return getCombat();
+      },
+    };
+    return { hooks, getCombat };
+  }
+
+  it("keeps every existing hook and adds updateCombatant", () => {
+    const { hooks } = install(null);
+    registerFlankedIndicator();
+    for (const name of [
+      "updateToken",
+      "refreshToken",
+      "updateCombat",
+      "updateCombatant",
+      "createCombatant",
+      "deleteCombatant",
+      "canvasReady",
+      "deleteCombat",
+      "canvasTearDown",
+    ])
+      expect(hooks[name]?.length, name).toBeGreaterThan(0);
+  });
+
+  it("updateCombatant schedules a refresh that consults the combat", () => {
+    vi.useFakeTimers();
+    // started combat on another scene -> getCombat() resolves to null, no drawing
+    const { hooks, getCombat } = install({ started: true, scene: { id: "other" } });
+    registerFlankedIndicator();
+    hooks.updateCombatant[0]();
+    expect(getCombat).not.toHaveBeenCalled(); // deferred, not synchronous
+    vi.advanceTimersByTime(100);
+    expect(getCombat).toHaveBeenCalled();
   });
 });
