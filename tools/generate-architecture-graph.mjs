@@ -93,6 +93,7 @@ const GROUPS = [
         "scripts/dungeon-strike-riders.mjs",
         "scripts/dungeon-critical-deck.mjs",
         "scripts/flanking-indicator.mjs",
+        "scripts/dungeon-leveling.mjs",
       ].includes(p),
   },
   {
