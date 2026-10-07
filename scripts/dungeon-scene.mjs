@@ -1716,18 +1716,34 @@ export async function moveTokensToRoom(
 ) {
   if (!tokenIds?.length) return;
   const rect = roomRect(seed, roomId, rank, col);
-  const updates = tokenIds.map((id, i) => ({
-    _id: id,
+  const positions = tokenIds.map((id, i) => ({
+    id,
     x: toPixels(rect.gx + (i % rect.gw)),
     y: toPixels(rect.gy + Math.floor(i / rect.gw)),
   }));
   // #439: a plain update is constrained by Foundry's wall-collision pipeline
-  // (the #87/#141 root cause); retreat must pass teleport so tokens cross walls.
-  await scene.updateEmbeddedDocuments(
-    "Token",
-    updates,
-    teleport ? { teleport: true } : undefined,
-  );
+  // (the #87/#141 root cause); retreat must cross walls. #631: that used to
+  // pass the deprecated update option { teleport: true }; it now batches one
+  // Scene#moveTokens instruction per token (the same primitive
+  // TokenDocument#move delegates to) whose waypoint carries the per-call
+  // "displace" action (no collision check). The action is per-waypoint, so
+  // movementAction is never persisted on the documents -- never write it
+  // through an update payload, that would stick.
+  if (teleport) {
+    await scene.moveTokens(
+      Object.fromEntries(
+        positions.map((p) => [
+          p.id,
+          { waypoints: [{ x: p.x, y: p.y, action: "displace" }] },
+        ]),
+      ),
+    );
+  } else {
+    await scene.updateEmbeddedDocuments(
+      "Token",
+      positions.map((p) => ({ _id: p.id, x: p.x, y: p.y })),
+    );
+  }
 }
 
 /** #412/#636: a room's depth bias with the run's difficulty shift applied.
@@ -2526,7 +2542,7 @@ export async function announceNoWayForward(scene, state, deps = {}) {
   await announceRetreatIfAvailable(scene, state, deps);
 }
 
-/** #439: turn the party back to the nearest fork. Tokens are teleported
+/** #439: turn the party back to the nearest fork. Tokens are displaced (#631)
  * FIRST and the run state persisted AFTER, so a failed move leaves the run
  * in the dead end with the button still showing. Re-opens (#175) the still-open
  * children of the fork it returns to, which advancing into the other branch had locked. */

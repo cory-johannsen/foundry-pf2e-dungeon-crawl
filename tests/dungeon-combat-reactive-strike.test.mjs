@@ -571,7 +571,7 @@ describe("strideByPosture (Reactive Strike wiring)", () => {
     installFoundryStubs();
     const reactor = makeFullReactor({ id: "r1", x: 400, y: 0 });
     const mover = makeMoverTarget();
-    mover.token.update = async function (changes) {
+    mover.token.move = async function (changes) {
       Object.assign(this, changes);
     };
     mover.actor.system.movement = { speeds: { land: { value: 30 } } };
@@ -593,7 +593,7 @@ describe("strideByPosture (Reactive Strike wiring)", () => {
         x: 0,
         y: 0,
         disposition: -1,
-        update: async () => {
+        move: async () => {
           throw new Error("should not move: speed is 0");
         },
       },
@@ -612,7 +612,7 @@ describe("stepToward (Reactive Strike wiring)", () => {
     installFoundryStubs();
     const reactor = makeFullReactor({ id: "r1", x: 400, y: 0 });
     const mover = makeMoverTarget();
-    mover.token.update = async function (changes) {
+    mover.token.move = async function (changes) {
       Object.assign(this, changes);
     };
     mover.actor.system.movement = { speeds: { land: { value: 30 } } };
@@ -634,7 +634,7 @@ describe("stepToward (Reactive Strike wiring)", () => {
         x: 0,
         y: 0,
         disposition: -1,
-        update: async () => {
+        move: async () => {
           throw new Error("should not move: distanceSquares <= MELEE_REACH_SQUARES");
         },
       },
@@ -668,7 +668,7 @@ describe("stepToward (Reactive Strike wiring)", () => {
     const blocker = makeFullReactor({ id: "blocker", x: 300, y: -100 });
     const farTarget = makeFullReactor({ id: "far", x: 400, y: 0 });
     const mover = makeMoverTarget();
-    mover.token.update = async function (changes) {
+    mover.token.move = async function (changes) {
       Object.assign(this, changes);
     };
     mover.actor.system.movement = { speeds: { land: { value: 30 } } };
@@ -715,7 +715,7 @@ describe("stepToward (Reactive Strike wiring)", () => {
       actor: { system: {} },
     };
     const mover = makeMoverTarget();
-    mover.token.update = async function (changes) {
+    mover.token.move = async function (changes) {
       Object.assign(this, changes);
     };
     mover.actor.system.movement = { speeds: { land: { value: 30 } } };
@@ -738,7 +738,7 @@ describe("stepToward (Reactive Strike wiring)", () => {
       actor: { system: {} },
     };
     const mover = makeMoverTarget();
-    mover.token.update = async function (changes) {
+    mover.token.move = async function (changes) {
       Object.assign(this, changes);
     };
     mover.actor.system.movement = { speeds: { land: { value: 30 } } };
@@ -759,7 +759,7 @@ describe("pushTokenAway (#51 push/improved-push rider)", () => {
     installFoundryStubs();
     const attacker = { id: "attacker1", token: { x: 0, y: 0, disposition: 1 } };
     const target = makeMoverTarget({ x: 200, y: 0 });
-    target.token.update = async function (changes) {
+    target.token.move = async function (changes) {
       Object.assign(this, changes);
     };
     const combat = makeFullCombat({ combatants: [target] });
@@ -779,7 +779,7 @@ describe("pushTokenAway (#51 push/improved-push rider)", () => {
     installFoundryStubs();
     const attacker = { id: "attacker1", token: { x: 0, y: 0, disposition: 1 } };
     const target = makeMoverTarget({ x: 200, y: 0 });
-    target.token.update = async function (changes) {
+    target.token.move = async function (changes) {
       Object.assign(this, changes);
     };
     const combat = makeFullCombat({ combatants: [target] });
@@ -794,7 +794,7 @@ describe("pushTokenAway (#51 push/improved-push rider)", () => {
     installFoundryStubs();
     const attacker = { id: "attacker1", token: { x: 0, y: 0, disposition: 1 } };
     const target = makeMoverTarget({ x: 100, y: 0 });
-    target.token.update = async () => {
+    target.token.move = async () => {
       throw new Error("should not move: fully boxed in by scene bounds");
     };
     // A 200x100 scene at grid size 100 gives bounds gx:[0,1], gy:[0,0] —
@@ -812,7 +812,7 @@ describe("pushTokenAway (#51 push/improved-push rider)", () => {
     installFoundryStubs();
     const attacker = { id: "attacker1", token: { x: 0, y: 0, disposition: 1 } };
     const target = makeMoverTarget({ x: 200, y: 0, disposition: -1 });
-    target.token.update = async function (changes) {
+    target.token.move = async function (changes) {
       Object.assign(this, changes);
     };
     // Hostile to target (opposite disposition) sitting exactly on the

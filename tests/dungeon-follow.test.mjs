@@ -104,6 +104,15 @@ function makeToken({
     Object.assign(token, changes);
     Object.assign(token._source, changes);
   });
+  // #631: the module moves tokens with `token.move({x, y, action:
+  // "displace"})`. Like update(), a resolved move() commits the position to
+  // `_source`; the per-waypoint `action` is NOT persisted, so
+  // `movementAction` stays at its natural default (see the regression test).
+  token.movementAction = "travel";
+  token.move = vi.fn(async ({ x, y }) => {
+    Object.assign(token, { x, y });
+    Object.assign(token._source, { x, y });
+  });
   return token;
 }
 
@@ -146,8 +155,8 @@ async function settle(watch) {
   await vi.advanceTimersByTimeAsync(300);
   if (!watch) return vi.advanceTimersByTimeAsync(60000);
   let seen = -1;
-  while (watch.update.mock.calls.length !== seen) {
-    seen = watch.update.mock.calls.length;
+  while (watch.move.mock.calls.length !== seen) {
+    seen = watch.move.mock.calls.length;
     await vi.advanceTimersByTimeAsync(150);
   }
 }
@@ -188,8 +197,8 @@ describe("followLeaderOnDoorOpened (#39)", () => {
     followLeaderOnDoorOpened(door, { ds: CONST.WALL_DOOR_STATES.OPEN });
     await settle();
 
-    expect(follower.update).toHaveBeenCalled();
-    const [{ x, y }] = follower.update.mock.calls.at(-1);
+    expect(follower.move).toHaveBeenCalled();
+    const [{ x, y }] = follower.move.mock.calls.at(-1);
     const followerGx = x / GRID;
     const followerGy = y / GRID;
     const chebyshev = Math.max(
@@ -228,7 +237,7 @@ describe("followLeaderOnDoorOpened (#39)", () => {
     followLeaderOnDoorOpened(door, { ds: CONST.WALL_DOOR_STATES.CLOSED });
     await settle();
 
-    expect(follower.update).not.toHaveBeenCalled();
+    expect(follower.move).not.toHaveBeenCalled();
   });
 
   it("does nothing when the current client is neither GM nor the run's host", async () => {
@@ -262,7 +271,7 @@ describe("followLeaderOnDoorOpened (#39)", () => {
     followLeaderOnDoorOpened(door, { ds: CONST.WALL_DOOR_STATES.OPEN });
     await settle();
 
-    expect(follower.update).not.toHaveBeenCalled();
+    expect(follower.move).not.toHaveBeenCalled();
     expect(requestDungeonAction).not.toHaveBeenCalled();
   });
 
@@ -299,7 +308,7 @@ describe("followLeaderOnDoorOpened (#39)", () => {
 
     // The actual move happens on whichever client receives and executes
     // the relayed request, not this one -- this client only ever asks.
-    expect(follower.update).not.toHaveBeenCalled();
+    expect(follower.move).not.toHaveBeenCalled();
     expect(requestDungeonAction).toHaveBeenCalledTimes(1);
     expect(requestDungeonAction).toHaveBeenCalledWith("followMove", {
       sceneId: SCENE_ID,
@@ -345,7 +354,7 @@ describe("followLeaderIfDue (#65)", () => {
     followLeaderIfDue(leader, { x: leader.x, y: leader.y });
     await settle();
 
-    expect(follower.update).toHaveBeenCalled();
+    expect(follower.move).toHaveBeenCalled();
   });
 
   it("does nothing when the moved token isn't the leader's own", async () => {
@@ -363,7 +372,7 @@ describe("followLeaderIfDue (#65)", () => {
     followLeaderIfDue(follower, { x: follower.x, y: follower.y });
     await settle();
 
-    expect(follower.update).not.toHaveBeenCalled();
+    expect(follower.move).not.toHaveBeenCalled();
     expect(requestDungeonAction).not.toHaveBeenCalled();
   });
 
@@ -382,7 +391,7 @@ describe("followLeaderIfDue (#65)", () => {
     followLeaderIfDue(leader, { elevation: 0 });
     await settle();
 
-    expect(follower.update).not.toHaveBeenCalled();
+    expect(follower.move).not.toHaveBeenCalled();
   });
 
   // #87 (reopened after #100): Foundry v14's newer ruler/pathfinding-driven
@@ -417,7 +426,7 @@ describe("followLeaderIfDue (#65)", () => {
     });
     await settle();
 
-    expect(follower.update).toHaveBeenCalled();
+    expect(follower.move).toHaveBeenCalled();
   });
 
   it("does nothing when the current client is neither GM nor the run's host", async () => {
@@ -437,7 +446,7 @@ describe("followLeaderIfDue (#65)", () => {
     followLeaderIfDue(leader, { x: leader.x, y: leader.y });
     await settle();
 
-    expect(follower.update).not.toHaveBeenCalled();
+    expect(follower.move).not.toHaveBeenCalled();
     expect(requestDungeonAction).not.toHaveBeenCalled();
   });
 
@@ -458,7 +467,7 @@ describe("followLeaderIfDue (#65)", () => {
     followLeaderIfDue(leader, { x: leader.x, y: leader.y });
     await settle();
 
-    expect(follower.update).not.toHaveBeenCalled();
+    expect(follower.move).not.toHaveBeenCalled();
     expect(requestDungeonAction).toHaveBeenCalledTimes(1);
     expect(requestDungeonAction).toHaveBeenCalledWith("followMove", {
       sceneId: SCENE_ID,
@@ -500,7 +509,7 @@ describe("runFollowMoveNow (#65)", () => {
     runFollowMoveNow(SCENE_ID);
     await settle();
 
-    expect(follower.update).toHaveBeenCalled();
+    expect(follower.move).toHaveBeenCalled();
   });
 
   it("is a no-op for a scene with no matching run", async () => {
@@ -600,12 +609,13 @@ describe("runFollowMoveNow (#65)", () => {
     runFollowMoveNow(SCENE_ID);
     await settle();
 
-    expect(follower.update).toHaveBeenCalled();
-    const [{ x, y }, moveOptions] = follower.update.mock.calls.at(-1);
+    expect(follower.move).toHaveBeenCalled();
+    const [{ x, y, action: moveAction }] = follower.move.mock.calls.at(-1);
     expect({ gx: x / GRID, gy: y / GRID }).not.toEqual({ gx: 6, gy: 1 });
-    // #87 (2026-10-01, round 7): see the inline #86 snap's own teleport
-    // assertion below for why this matters.
-    expect(moveOptions).toEqual({ teleport: true });
+    // #87 (2026-10-01, round 7): see the inline #86 snap's own displace
+    // assertion below for why this matters (#631: displace replaced the
+    // deprecated teleport option).
+    expect(moveAction).toBe("displace");
   });
 
   // #86: a follower's own token can end up off-grid for reasons entirely
@@ -646,17 +656,24 @@ describe("runFollowMoveNow (#65)", () => {
     runFollowMoveNow(SCENE_ID);
     await settle();
 
-    expect(follower.update).toHaveBeenCalled();
+    expect(follower.move).toHaveBeenCalled();
     expect(follower.x % GRID).toBe(0);
     expect(follower.y % GRID).toBe(0);
-    // #87 (2026-10-01, round 7): every write this module makes must pass
-    // `{ teleport: true }` -- Foundry v14 otherwise routes a plain
+    // #87 (2026-10-01, round 7): every write this module makes must be a
+    // `move({ ..., action: "displace" })` (#631; formerly the deprecated
+    // `{ teleport: true }` update option) -- Foundry v14 otherwise routes a plain
     // `update({x, y})` through its own wall-collision-constrained movement
     // pipeline, which can silently commit a different, non-grid-exact
     // position than the one requested if the straight-line path to it
     // clips a wall (live-confirmed; see this file's module-level comment
     // above `RECENT_WRITE_SUPPRESS_MS`).
-    expect(follower.update.mock.calls.at(-1)[1]).toEqual({ teleport: true });
+    expect(follower.move.mock.calls.at(-1)[0].action).toBe("displace");
+    expect(follower.update).not.toHaveBeenCalled();
+    // #631: neither the inline #86 snap nor the walk persisted movementAction.
+    expect(follower.movementAction).toBe("travel");
+    for (const [payload] of follower.update.mock.calls) {
+      expect(payload).not.toHaveProperty("movementAction");
+    }
   });
 
   // #87 (2026-10-01, round 3): this inline snap reads the follower's own
@@ -703,7 +720,7 @@ describe("runFollowMoveNow (#65)", () => {
     runFollowMoveNow(SCENE_ID);
     await settle();
 
-    expect(follower.update).not.toHaveBeenCalled();
+    expect(follower.move).not.toHaveBeenCalled();
   });
 });
 
@@ -748,8 +765,8 @@ describe("moveFollowersToward footprint-awareness (#140)", () => {
     runFollowMoveNow(SCENE_ID);
     await settle();
 
-    expect(follower.update).toHaveBeenCalled();
-    const [{ x, y }] = follower.update.mock.calls.at(-1);
+    expect(follower.move).toHaveBeenCalled();
+    const [{ x, y }] = follower.move.mock.calls.at(-1);
     const gx = x / GRID;
     const gy = y / GRID;
     const overlapsLeader = gx <= 5 && gx + 2 > 5 && gy <= 1 && gy + 2 > 1;
@@ -783,8 +800,8 @@ describe("moveFollowersToward footprint-awareness (#140)", () => {
     runFollowMoveNow(SCENE_ID);
     await settle();
 
-    expect(follower.update).toHaveBeenCalled();
-    const [{ x, y }] = follower.update.mock.calls.at(-1);
+    expect(follower.move).toHaveBeenCalled();
+    const [{ x, y }] = follower.move.mock.calls.at(-1);
     expect(y).toBe(0);
     // It walked past the hazard's square and got next to the leader.
     expect(x / GRID).toBeGreaterThan(2);
@@ -806,7 +823,7 @@ describe("moveFollowersToward footprint-awareness (#140)", () => {
     runFollowMoveNow(SCENE_ID);
     await settle();
 
-    const calls = follower.update.mock.calls;
+    const calls = follower.move.mock.calls;
     // Never gets past the blocker at x=2 (it may stay put or stop short).
     for (const [c] of calls) expect(c.x / GRID).toBeLessThan(2);
   });
@@ -847,8 +864,8 @@ describe("moveFollowersToward footprint-awareness (#140)", () => {
     runFollowMoveNow(SCENE_ID);
     await settle();
 
-    expect(follower.update).toHaveBeenCalled();
-    const [{ x, y }] = follower.update.mock.calls.at(-1);
+    expect(follower.move).toHaveBeenCalled();
+    const [{ x, y }] = follower.move.mock.calls.at(-1);
     // Verified independently by running findFollowMove directly: with
     // the follower's own footprint wrongly counted as an obstacle to
     // itself, the result is {gx:4,gy:6} -- one square worse (farther
@@ -862,7 +879,7 @@ describe("moveFollowersToward stepwise walking (#610)", () => {
     vi.useRealTimers();
   });
 
-  it("walks a follower one cell per teleport update with the step delay between hops", async () => {
+  it("walks a follower one cell per displace move with the step delay between hops", async () => {
     vi.useFakeTimers();
     const leader = makeToken({ id: "t-leader", x: 5 * GRID, y: 0, actorId: LEADER_ACTOR_ID });
     const follower = makeToken({ id: "t-f", x: 0, y: 0, actorId: "actor-f" });
@@ -886,11 +903,11 @@ describe("moveFollowersToward stepwise walking (#610)", () => {
     runFollowMoveNow(SCENE_ID);
     await settle();
 
-    const calls = follower.update.mock.calls;
+    const calls = follower.move.mock.calls;
     expect(calls.length).toBeGreaterThan(1);
     let prev = { gx: 0, gy: 0 };
-    for (const [{ x, y }, opts] of calls) {
-      expect(opts).toEqual({ teleport: true });
+    for (const [{ x, y, action }] of calls) {
+      expect(action).toBe("displace");
       const cell = { gx: x / GRID, gy: y / GRID };
       expect(Math.max(Math.abs(cell.gx - prev.gx), Math.abs(cell.gy - prev.gy))).toBe(1);
       prev = cell;
@@ -933,8 +950,8 @@ describe("moveFollowersToward concurrent walking and pacing (#689)", () => {
   function trackOrder(...tokens) {
     const order = [];
     for (const t of tokens) {
-      const orig = t.update;
-      t.update = vi.fn(async (...args) => {
+      const orig = t.move;
+      t.move = vi.fn(async (...args) => {
         order.push(t.id);
         return orig(...args);
       });
@@ -948,8 +965,8 @@ describe("moveFollowersToward concurrent walking and pacing (#689)", () => {
     const order = trackOrder(a, b);
     runFollowMoveNow(SCENE_ID);
     await settle();
-    expect(a.update.mock.calls.length).toBeGreaterThan(2);
-    expect(b.update.mock.calls.length).toBeGreaterThan(2);
+    expect(a.move.mock.calls.length).toBeGreaterThan(2);
+    expect(b.move.mock.calls.length).toBeGreaterThan(2);
     const firstB = order.indexOf("t-b");
     const lastA = order.lastIndexOf("t-a");
     expect(firstB).toBeLessThan(lastA);
@@ -979,12 +996,12 @@ describe("moveFollowersToward concurrent walking and pacing (#689)", () => {
     vi.useFakeTimers();
     const { a, b } = twoFollowers();
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    a.update = vi.fn(async () => {
+    a.move = vi.fn(async () => {
       throw new Error("boom");
     });
     runFollowMoveNow(SCENE_ID);
     await settle();
-    expect(b.update.mock.calls.length).toBeGreaterThan(2);
+    expect(b.move.mock.calls.length).toBeGreaterThan(2);
     expect(b._source.x).toBeGreaterThan(0);
     const msgs = warn.mock.calls.map((c) => c.join(" "));
     expect(msgs.some((m) => m.includes("pf2e-dungeon-crawl") && m.includes("actor-a"))).toBe(true);
@@ -1034,12 +1051,12 @@ describe("moveFollowersToward walk lifecycle (#689 fix round 1)", () => {
     process.on("unhandledRejection", onUnhandled);
     try {
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-      a.update = vi.fn(async () => {
+      a.move = vi.fn(async () => {
         throw new Error("boom");
       });
-      const realB = b.update;
+      const realB = b.move;
       let first = true;
-      b.update = vi.fn(async (...args) => {
+      b.move = vi.fn(async (...args) => {
         if (first) {
           first = false;
           await new Promise((r) => setTimeout(r, 50)); // snap round-trip
@@ -1065,27 +1082,27 @@ describe("moveFollowersToward walk lifecycle (#689 fix round 1)", () => {
     vi.useFakeTimers();
     const { a, b, reads } = setup(true);
     vi.spyOn(console, "warn").mockImplementation(() => {});
-    b.update = vi.fn(async () => {
+    b.move = vi.fn(async () => {
       throw new Error("snap failed");
     });
     runFollowMoveNow(SCENE_ID);
     await vi.advanceTimersByTimeAsync(260); // run starts; A hopping, B's snap rejected
-    expect(a.update.mock.calls.length).toBeGreaterThan(0);
-    expect(b.update).toHaveBeenCalledTimes(1);
-    const aHopsAtStart = a.update.mock.calls.length;
+    expect(a.move.mock.calls.length).toBeGreaterThan(0);
+    expect(b.move).toHaveBeenCalledTimes(1);
+    const aHopsAtStart = a.move.mock.calls.length;
     const readsAtStart = reads();
     runFollowMoveNow(SCENE_ID);
     await vi.advanceTimersByTimeAsync(300); // second run fires mid-walk
     expect(a._source.x).toBeLessThan(8 * GRID - GRID); // A still walking
     expect(reads()).toBe(readsAtStart); // second run was a no-op
-    expect(b.update).toHaveBeenCalledTimes(1);
-    expect(a.update.mock.calls.length).toBeGreaterThan(aHopsAtStart);
+    expect(b.move).toHaveBeenCalledTimes(1);
+    expect(a.move.mock.calls.length).toBeGreaterThan(aHopsAtStart);
     await vi.advanceTimersByTimeAsync(60000); // A finishes
     const readsAfter = reads();
     runFollowMoveNow(SCENE_ID);
     await vi.advanceTimersByTimeAsync(300);
     expect(reads()).toBeGreaterThan(readsAfter); // new run proceeded
-    expect(b.update).toHaveBeenCalledTimes(2);
+    expect(b.move).toHaveBeenCalledTimes(2);
   });
 
   it("holds inFlightScenes until walks settle on the normal path", async () => {
@@ -1251,7 +1268,7 @@ describe("follower trail-following (#610)", () => {
     followLeaderIfDue(leader, { x: leader.x, y: leader.y });
     await moveLeader(leader, 6, 2);
     await settle();
-    expect(big.update).toHaveBeenCalled();
+    expect(big.move).toHaveBeenCalled();
     const c = cellOf(big);
     // the trail slot for a 1x1 here would be (5,2); only the fallback lands on (5,3)
     expect(c).toEqual({ gx: 5, gy: 3 });
@@ -1369,11 +1386,14 @@ describe("resnapTokenNow (#141)", () => {
 
     await resnapTokenNow(SCENE_ID, "t-drifted");
 
-    expect(token.update).toHaveBeenCalledTimes(1);
-    expect(token.update).toHaveBeenCalledWith(
-      { x: 5 * GRID, y: 3 * GRID },
-      { teleport: true },
+    expect(token.move).toHaveBeenCalledTimes(1);
+    expect(token.move).toHaveBeenCalledWith(
+      { x: 5 * GRID, y: 3 * GRID, action: "displace" },
     );
+    // #631: the displace action is per-call only -- never persisted via an
+    // update() payload, so movementAction keeps its natural default.
+    expect(token.update).not.toHaveBeenCalled();
+    expect(token.movementAction).toBe("travel");
   });
 
   it("rings out to a free cell when the rounded cell is occupied (#150)", async () => {
@@ -1395,8 +1415,8 @@ describe("resnapTokenNow (#141)", () => {
 
     await resnapTokenNow(SCENE_ID, "t-drifted");
 
-    expect(token.update).toHaveBeenCalledTimes(1);
-    const [{ x, y }] = token.update.mock.calls[0];
+    expect(token.move).toHaveBeenCalledTimes(1);
+    const [{ x, y }] = token.move.mock.calls[0];
     expect(x % GRID).toBe(0);
     expect(y % GRID).toBe(0);
     expect(x === 5 * GRID && y === GRID).toBe(false);
@@ -1415,7 +1435,7 @@ describe("resnapTokenNow (#141)", () => {
 
     resnapTokenNow(SCENE_ID, "t-aligned");
 
-    expect(token.update).not.toHaveBeenCalled();
+    expect(token.move).not.toHaveBeenCalled();
   });
 
   it("is a no-op when the scene or token can't be found", () => {
@@ -1452,7 +1472,7 @@ describe("resnapTokenNow (#141)", () => {
 
     await resnapTokenNow(SCENE_ID, "t-mid-animation");
 
-    expect(token.update).not.toHaveBeenCalled();
+    expect(token.move).not.toHaveBeenCalled();
   });
 
   it("corrects using the committed _source position even while x/y still shows a different, mid-animation value", async () => {
@@ -1470,10 +1490,9 @@ describe("resnapTokenNow (#141)", () => {
 
     await resnapTokenNow(SCENE_ID, "t-drifted-source");
 
-    expect(token.update).toHaveBeenCalledTimes(1);
-    expect(token.update).toHaveBeenCalledWith(
-      { x: 5 * GRID, y: 3 * GRID },
-      { teleport: true },
+    expect(token.move).toHaveBeenCalledTimes(1);
+    expect(token.move).toHaveBeenCalledWith(
+      { x: 5 * GRID, y: 3 * GRID, action: "displace" },
     );
   });
 
@@ -1498,7 +1517,7 @@ describe("resnapTokenNow (#141)", () => {
     const updateGate = new Promise((resolve) => {
       releaseUpdate = resolve;
     });
-    token.update = vi.fn(async (changes) => {
+    token.move = vi.fn(async (changes) => {
       await updateGate;
       Object.assign(token, changes);
       Object.assign(token._source, changes);
@@ -1513,7 +1532,7 @@ describe("resnapTokenNow (#141)", () => {
     releaseUpdate();
     await Promise.all([first, second]);
 
-    expect(token.update).toHaveBeenCalledTimes(1);
+    expect(token.move).toHaveBeenCalledTimes(1);
   });
 
   it("releases its guard once a correction finishes, so a later call for the same token id can still run (#87)", async () => {
@@ -1535,10 +1554,9 @@ describe("resnapTokenNow (#141)", () => {
 
     await resnapTokenNow(SCENE_ID, "t-guard-release");
 
-    expect(token.update).toHaveBeenCalledTimes(1);
-    expect(token.update).toHaveBeenCalledWith(
-      { x: 5 * GRID, y: 3 * GRID },
-      { teleport: true },
+    expect(token.move).toHaveBeenCalledTimes(1);
+    expect(token.move).toHaveBeenCalledWith(
+      { x: 5 * GRID, y: 3 * GRID, action: "displace" },
     );
   });
 
@@ -1559,7 +1577,7 @@ describe("resnapTokenNow (#141)", () => {
     const gateA = new Promise((resolve) => {
       releaseA = resolve;
     });
-    tokenA.update = vi.fn(async (changes) => {
+    tokenA.move = vi.fn(async (changes) => {
       await gateA;
       Object.assign(tokenA, changes);
       Object.assign(tokenA._source, changes);
@@ -1574,7 +1592,7 @@ describe("resnapTokenNow (#141)", () => {
     // awaiting it here would hang forever, since A's own gate is only
     // released after this await already completes.
     await resnapTokenNow(SCENE_ID, "t-b");
-    expect(tokenB.update).toHaveBeenCalledTimes(1);
+    expect(tokenB.move).toHaveBeenCalledTimes(1);
     // A's own write started (the guard let it proceed) but hasn't
     // resolved yet -- its committed position is still the original,
     // off-grid one.
@@ -1582,7 +1600,7 @@ describe("resnapTokenNow (#141)", () => {
 
     releaseA();
     await promiseA;
-    expect(tokenA.update).toHaveBeenCalledTimes(1);
+    expect(tokenA.move).toHaveBeenCalledTimes(1);
     expect(tokenA._source.x).toBe(5 * GRID);
   });
 });
@@ -1609,10 +1627,9 @@ describe("resnapDriftedTokens (#141)", () => {
 
     await resnapDriftedTokens(token, { x: token.x, y: token.y });
 
-    expect(token.update).toHaveBeenCalledTimes(1);
-    expect(token.update).toHaveBeenCalledWith(
-      { x: 5 * GRID, y: 3 * GRID },
-      { teleport: true },
+    expect(token.move).toHaveBeenCalledTimes(1);
+    expect(token.move).toHaveBeenCalledWith(
+      { x: 5 * GRID, y: 3 * GRID, action: "displace" },
     );
     expect(requestDungeonAction).not.toHaveBeenCalled();
   });
@@ -1644,10 +1661,9 @@ describe("resnapDriftedTokens (#141)", () => {
 
     await resnapDriftedTokens(token, { x: token.x, y: token.y });
 
-    expect(token.update).toHaveBeenCalledTimes(1);
-    expect(token.update).toHaveBeenCalledWith(
-      { x: 5 * GRID, y: 3 * GRID },
-      { teleport: true },
+    expect(token.move).toHaveBeenCalledTimes(1);
+    expect(token.move).toHaveBeenCalledWith(
+      { x: 5 * GRID, y: 3 * GRID, action: "displace" },
     );
   });
 
@@ -1663,7 +1679,7 @@ describe("resnapDriftedTokens (#141)", () => {
 
     resnapDriftedTokens(token, { x: token.x, y: token.y });
 
-    expect(token.update).not.toHaveBeenCalled();
+    expect(token.move).not.toHaveBeenCalled();
     expect(requestDungeonAction).not.toHaveBeenCalled();
   });
 
@@ -1683,7 +1699,7 @@ describe("resnapDriftedTokens (#141)", () => {
 
     resnapDriftedTokens(token, { elevation: 0 });
 
-    expect(token.update).not.toHaveBeenCalled();
+    expect(token.move).not.toHaveBeenCalled();
   });
 
   it("does nothing when the token is already grid-aligned", () => {
@@ -1703,7 +1719,7 @@ describe("resnapDriftedTokens (#141)", () => {
 
     resnapDriftedTokens(token, { x: token.x, y: token.y });
 
-    expect(token.update).not.toHaveBeenCalled();
+    expect(token.move).not.toHaveBeenCalled();
     expect(requestDungeonAction).not.toHaveBeenCalled();
   });
 
@@ -1725,7 +1741,7 @@ describe("resnapDriftedTokens (#141)", () => {
 
     resnapDriftedTokens(token, { x: token.x, y: token.y });
 
-    expect(token.update).not.toHaveBeenCalled();
+    expect(token.move).not.toHaveBeenCalled();
     expect(requestDungeonAction).toHaveBeenCalledTimes(1);
     expect(requestDungeonAction).toHaveBeenCalledWith("resnapToken", {
       sceneId: SCENE_ID,
@@ -1751,7 +1767,7 @@ describe("resnapDriftedTokens (#141)", () => {
 
     resnapDriftedTokens(token, { x: token.x, y: token.y });
 
-    expect(token.update).not.toHaveBeenCalled();
+    expect(token.move).not.toHaveBeenCalled();
     expect(requestDungeonAction).not.toHaveBeenCalled();
   });
 });
@@ -1784,7 +1800,7 @@ describe("moveFollowersToward + resnapDriftedTokens interaction (#87)", () => {
     vi.useFakeTimers();
     const leader = makeToken({ id: "t-leader", x: 3 * GRID, y: 0, actorId: LEADER_ACTOR_ID });
     const follower = makeToken({ id: "t-f", x: 0, y: 0, actorId: "actor-f" });
-    follower.update = vi.fn(async (changes) => {
+    follower.move = vi.fn(async (changes) => {
       follower.__destination = { x: changes.x, y: changes.y };
       Object.assign(follower._source, changes);
       follower.x = follower.x + (changes.x - follower.x) * 0.2;
@@ -1806,8 +1822,8 @@ describe("moveFollowersToward + resnapDriftedTokens interaction (#87)", () => {
     runFollowMoveNow(SCENE_ID);
     await settle(follower);
 
-    expect(follower.update).toHaveBeenCalled();
-    const hopsBefore = follower.update.mock.calls.length;
+    expect(follower.move).toHaveBeenCalled();
+    const hopsBefore = follower.move.mock.calls.length;
     const destination = follower.__destination;
 
     // Simulate Foundry's updateToken hook firing reactively while the
@@ -1817,7 +1833,7 @@ describe("moveFollowersToward + resnapDriftedTokens interaction (#87)", () => {
     // the real destination, so this must be a genuine no-op.
     await resnapDriftedTokens(follower, { x: follower.x, y: follower.y });
 
-    expect(follower.update).toHaveBeenCalledTimes(hopsBefore);
+    expect(follower.move).toHaveBeenCalledTimes(hopsBefore);
     expect(follower._source.x).toBe(destination.x);
     expect(follower._source.y).toBe(destination.y);
   });
@@ -1839,7 +1855,7 @@ describe("moveFollowersToward + resnapDriftedTokens interaction (#87)", () => {
     vi.useFakeTimers();
     const leader = makeToken({ id: "t-leader", x: 3 * GRID, y: 0, actorId: LEADER_ACTOR_ID });
     const follower = makeToken({ id: "t-f2", x: 0, y: 0, actorId: "actor-f" });
-    follower.update = vi.fn(async (changes) => {
+    follower.move = vi.fn(async (changes) => {
       follower.__destination = { x: changes.x, y: changes.y };
       Object.assign(follower._source, changes);
       // Simulate the live-observed race: right after this legitimate
@@ -1865,14 +1881,14 @@ describe("moveFollowersToward + resnapDriftedTokens interaction (#87)", () => {
     runFollowMoveNow(SCENE_ID);
     await settle(follower);
 
-    expect(follower.update).toHaveBeenCalled();
-    const hopsBefore = follower.update.mock.calls.length;
+    expect(follower.move).toHaveBeenCalled();
+    const hopsBefore = follower.move.mock.calls.length;
 
     // Fires immediately after, well within the suppression window --
     // must be skipped entirely, without even reading the (deliberately
     // wrong) _source value.
     await resnapDriftedTokens(follower, { x: follower.x, y: follower.y });
 
-    expect(follower.update).toHaveBeenCalledTimes(hopsBefore);
+    expect(follower.move).toHaveBeenCalledTimes(hopsBefore);
   });
 });

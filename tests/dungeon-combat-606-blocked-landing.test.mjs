@@ -37,6 +37,8 @@ function mk(id, gx, gy, disposition, { size = 1, speed = 25, defeated = false } 
     token: {
       x: gx * G, y: gy * G, disposition, width: size, height: size,
       update: vi.fn(async function (c) { Object.assign(this, c); }),
+      // #631: positions are written via move({x, y, action: "displace"}).
+      move: vi.fn(async function ({ x, y }) { Object.assign(this, { x, y }); }),
     },
     actor: { system: { movement: { speeds: { land: { value: speed } } } } },
   };
@@ -101,7 +103,7 @@ describe("#606 AI party stalls with free squares beside the target", () => {
       getFlag: () => undefined, setFlag: async () => {},
     };
     expect(await stepToward(combat, mover, target, 2)).toBe("blocked");
-    expect(mover.token.update).not.toHaveBeenCalled();
+    expect(mover.token.move).not.toHaveBeenCalled();
   });
 
   it("still reports blocked when every reachable square is truly occupied", async () => {

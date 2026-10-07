@@ -2329,9 +2329,9 @@ function tokenCell(token, gridSize) {
  * token it isn't actively moving. Called unconditionally, before any of
  * those early returns can fire, so a bad existing position gets corrected
  * even on a turn that otherwise wouldn't move the token at all. A no-op (no
- * `update` call) when the token is already aligned -- overwhelmingly the
+ * `move` call) when the token is already aligned -- overwhelmingly the
  * common case -- so this never adds a second write alongside a real move's
- * own single `update()` call. */
+ * own single write. */
 async function snapTokenToGrid(token, gridSize) {
   const cell = tokenCell(token, gridSize);
   const snappedX = cell.gx * gridSize;
@@ -2343,11 +2343,14 @@ async function snapTokenToGrid(token, gridSize) {
     // silently substitutes a quarter-cell "collision waypoint" instead of the
     // exact cell requested. This module already does its own wall-aware
     // pathfinding before ever calling update(), so that check is redundant
-    // and is the actual mechanism putting tokens off-grid. { teleport: true }
-    // (Foundry's `displace` movement action, walls: null) bypasses it -- same
-    // fix as dungeon-follow.mjs's #87/PR #407, ported here for combat
-    // movement's own four token.update() call sites.
-    await token.update({ x: snappedX, y: snappedY }, { teleport: true });
+    // and is the actual mechanism putting tokens off-grid. Foundry's
+    // `displace` movement action (walls: null) bypasses it -- same fix as
+    // dungeon-follow.mjs's #87/PR #407, ported here for combat movement's
+    // own four call sites. #631: originally passed the deprecated update
+    // option { teleport: true } (which maps to `displace`); now
+    // token.move({ action: "displace" }), whose per-call action does not
+    // persist movementAction on the document.
+    await token.move({ x: snappedX, y: snappedY, action: "displace" });
   }
 }
 

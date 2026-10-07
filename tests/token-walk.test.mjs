@@ -26,11 +26,11 @@ describe("movementStepDelayMs (#610)", () => {
 });
 
 describe("walkTokenThroughSteps (#610)", () => {
-  it("writes each cell with teleport:true, pausing between but not after hops", async () => {
+  it("writes each cell via move({action: 'displace'}), pausing between but not after hops", async () => {
     vi.useFakeTimers();
     globalThis.game = { settings: { get: () => 100 } };
     const spy = vi.spyOn(globalThis, "setTimeout");
-    const token = { update: vi.fn(async () => {}) };
+    const token = { update: vi.fn(async () => {}), move: vi.fn(async () => {}) };
     const p = walkTokenThroughSteps(
       token,
       [{ gx: 1, gy: 0 }, { gx: 2, gy: 1 }, { gx: 3, gy: 1 }],
@@ -38,26 +38,46 @@ describe("walkTokenThroughSteps (#610)", () => {
     );
     await vi.runAllTimersAsync();
     await p;
-    expect(token.update.mock.calls).toEqual([
-      [{ x: 50, y: 0 }, { teleport: true }],
-      [{ x: 100, y: 50 }, { teleport: true }],
-      [{ x: 150, y: 50 }, { teleport: true }],
+    expect(token.move.mock.calls).toEqual([
+      [{ x: 50, y: 0, action: "displace" }],
+      [{ x: 100, y: 50, action: "displace" }],
+      [{ x: 150, y: 50, action: "displace" }],
     ]);
+    expect(token.update).not.toHaveBeenCalled();
     expect(spy.mock.calls.filter((c) => c[1] === 100)).toHaveLength(2);
   });
 
   it("calls onHop before and after every write", async () => {
     globalThis.game = { settings: { get: () => 0 } };
     const order = [];
-    const token = { update: vi.fn(async () => order.push("write")) };
+    const token = { move: vi.fn(async () => order.push("write")) };
     await walkTokenThroughSteps(token, [{ gx: 1, gy: 0 }, { gx: 2, gy: 0 }], 50, () =>
       order.push("hop"),
     );
     expect(order).toEqual(["hop", "write", "hop", "hop", "write", "hop"]);
   });
 
+  it("never persists movementAction: a displace-move leaves it at its natural default (#631)", async () => {
+    globalThis.game = { settings: { get: () => 0 } };
+    const actions = [];
+    const token = {
+      movementAction: "travel",
+      update: vi.fn(async () => {}),
+      move: vi.fn(async ({ action }) => {
+        actions.push(action); // per-waypoint only; document field untouched
+      }),
+    };
+    vi.useFakeTimers();
+    const p = walkTokenThroughSteps(token, [{ gx: 1, gy: 0 }, { gx: 2, gy: 0 }], 50);
+    await vi.runAllTimersAsync();
+    await p;
+    expect(actions).toEqual(["displace", "displace"]);
+    expect(token.movementAction).toBe("travel");
+    expect(token.update).not.toHaveBeenCalled();
+  });
+
   it("does nothing for an empty step list", async () => {
-    const token = { update: vi.fn() };
+    const token = { update: vi.fn(), move: vi.fn() };
     await walkTokenThroughSteps(token, [], 50);
     expect(token.update).not.toHaveBeenCalled();
   });
@@ -92,7 +112,7 @@ describe("walkTokenThroughSteps delayMs (#689)", () => {
     vi.useFakeTimers();
     globalThis.game = { settings: { get: () => 777 } };
     const spy = vi.spyOn(globalThis, "setTimeout");
-    const token = { update: vi.fn(async () => {}) };
+    const token = { update: vi.fn(async () => {}), move: vi.fn(async () => {}) };
     const p = walkTokenThroughSteps(token, steps, 50, undefined, 123);
     await vi.runAllTimersAsync();
     await p;
@@ -105,7 +125,7 @@ describe("walkTokenThroughSteps delayMs (#689)", () => {
     globalThis.game = { settings: { get: () => 777 } };
     const spy = vi.spyOn(globalThis, "setTimeout");
     for (const d of [undefined, null]) {
-      const token = { update: vi.fn(async () => {}) };
+      const token = { update: vi.fn(async () => {}), move: vi.fn(async () => {}) };
       const p = walkTokenThroughSteps(token, steps, 50, undefined, d);
       await vi.runAllTimersAsync();
       await p;

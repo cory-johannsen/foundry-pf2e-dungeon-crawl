@@ -136,14 +136,18 @@ const recentlyWrittenByUs = new Map(); // tokenId -> Date.now() of our own last 
 // (`movementBlockedEdges`/`findFollowMove`) before ever calling
 // `update()` -- a follower is never asked to move anywhere its own path
 // doesn't already clear. Foundry's additional wall-collision check on the
-// write itself is therefore redundant for every `token.update()` call
+// write itself is therefore redundant for every token position write
 // this module makes, and is the actual mechanism silently relocating
-// followers to the wrong cell. Foundry exposes `{ teleport: true }` as an
-// update option for exactly this -- a deprecated-but-fully-functional
-// (since v13, removal "until: 15") compatibility shim that maps to the
-// `displace` movement action, which has `walls: null` (no collision
-// check at all). Passed on every `token.update({x, y}, ...)` call this
-// module makes (the inline #86 snap, the real move write, and
+// followers to the wrong cell. Foundry's `displace` movement action
+// (`CONFIG.Token.movement.actions.displace`: `{ teleport: true, walls: null }`,
+// i.e. no collision check at all) is exactly this. The first fix (#87) passed
+// the update option `{ teleport: true }` -- a deprecated-but-functional
+// compatibility shim (since v13, removal "until: 15") that maps to
+// `displace`. #631 replaced it with `token.move({ x, y, action: "displace" })`,
+// the non-deprecated per-call form (never write `movementAction` through
+// update(): that persists on the document and would leave the token
+// collision-free for good). Used for every position write this module makes
+// (the inline #86 snap, the walk hops via walkTokenThroughSteps, and
 // `resnapTokenNow`'s own correction) so none of them can ever again be
 // silently redirected by a wall collision mid-write.
 
@@ -322,7 +326,7 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
       const snappedY = Math.round(followerSource.y / gridSize) * gridSize;
       if (followerSource.x !== snappedX || followerSource.y !== snappedY) {
         markRecentlyWritten(token.id);
-        await token.update({ x: snappedX, y: snappedY }, { teleport: true });
+        await token.move({ x: snappedX, y: snappedY, action: "displace" });
         // #87 (round 6): re-mark after the await resolves too, not just
         // before -- the suppression window should cover however long the
         // round-trip to the server and back actually takes, not just the
@@ -397,7 +401,7 @@ async function moveFollowersToward(scene, leaderToken, aiControlledIds) {
         gh: moverFootprint.gh,
       });
       // #610: walk the path one cell at a time (each hop still
-      // { teleport: true }, #87/#141/#361), re-marking the #87 suppression
+      // a displace move, #87/#141/#361/#631), re-marking the #87 suppression
       // window around every hop's write.
       // #689: not awaited here -- later followers' decisions use planned
       // cells (referenceCell/occupied), so all walks can overlap. A failed
@@ -617,7 +621,7 @@ export async function resnapTokenNow(sceneId, tokenId) {
       const snappedX = cell.gx * gridSize;
       const snappedY = cell.gy * gridSize;
       markRecentlyWritten(tokenId);
-      await token.update({ x: snappedX, y: snappedY }, { teleport: true });
+      await token.move({ x: snappedX, y: snappedY, action: "displace" });
       // #87 (round 6): re-mark after the await resolves too -- see the
       // inline #86 snap's own comment in moveFollowersToward for why.
       markRecentlyWritten(tokenId);

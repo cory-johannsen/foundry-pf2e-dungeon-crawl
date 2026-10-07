@@ -7,11 +7,13 @@ const MODULE_ID = "pf2e-dungeon-crawl";
 // #479: how long each individual grid-square hop of an AI-controlled
 // token's movement pauses before the next one, so players can actually see
 // it move instead of it jumping straight to its destination. Every hop
-// still writes via { teleport: true } -- this paces the write-by-write
-// sequence, it does not reintroduce Foundry's own animated movement
-// pipeline (see #87/#141/#361: that pipeline's own wall-collision check
-// silently relocates a token to the wrong cell; { teleport: true }
-// bypasses it on every single hop, same as before).
+// still writes via token.move({ x, y, action: "displace" }) (#631; formerly
+// the deprecated update option { teleport: true }) -- this paces the
+// write-by-write sequence, it does not reintroduce Foundry's own animated
+// movement pipeline (see #87/#141/#361: that pipeline's own wall-collision
+// check silently relocates a token to the wrong cell; the "displace"
+// movement action is registered as { teleport: true, walls: null }, so it
+// bypasses that check on every single hop, same as before).
 // DEFAULT value (ms); the live value is the world setting
 // `movementStepDelayMs`, read at call time by movementStepDelayMs().
 export const MOVEMENT_STEP_DELAY_MS = 600;
@@ -38,7 +40,8 @@ export const followerStepDelayMs = () =>
 
 /** Writes `token`'s position through each cell in `steps` in order (an
  * ordered list of {gx, gy} cells, not including the token's own starting
- * cell), each still via { teleport: true } so Foundry's wall-collision
+ * cell), each via token.move({ x, y, action: "displace" }) (#631; was the
+ * deprecated { teleport: true } update option) so Foundry's wall-collision
  * check never relocates a single hop (#87/#141/#361), with
  * `delayMs` (default movementStepDelayMs(), #689) between each write except after the last one.
  * `onHop` (optional) is called immediately before and after every write
@@ -47,10 +50,15 @@ export const followerStepDelayMs = () =>
 export async function walkTokenThroughSteps(token, steps, gridSize, onHop, delayMs) {
   for (let i = 0; i < steps.length; i += 1) {
     onHop?.();
-    await token.update(
-      { x: steps[i].gx * gridSize, y: steps[i].gy * gridSize },
-      { teleport: true },
-    );
+    // #631: token.move() with a per-call action, not token.update() with
+    // the deprecated teleport option. Setting movementAction through
+    // update() persists on the document (a regression trap: the token would
+    // stay collision-free); move()'s per-waypoint action does not persist.
+    await token.move({
+      x: steps[i].gx * gridSize,
+      y: steps[i].gy * gridSize,
+      action: "displace",
+    });
     onHop?.();
     if (i < steps.length - 1) {
       await new Promise((resolve) => setTimeout(resolve, delayMs ?? movementStepDelayMs()));

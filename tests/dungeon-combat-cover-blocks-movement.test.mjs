@@ -32,6 +32,10 @@ function combatant(id, gx, gy, disposition, size = 1) {
       update: vi.fn(async function (c) {
         Object.assign(this, c);
       }),
+      // #631: positions are written via move({x, y, action: "displace"}).
+      move: vi.fn(async function ({ x, y }) {
+        Object.assign(this, { x, y });
+      }),
     },
     actor: { system: { movement: { speeds: { land: { value: 30 } } } } },
   };
@@ -66,9 +70,9 @@ function makeCombat(combatants, tokens, rows = 1) {
   };
 }
 
-// Every cell the token was ever moved onto, by its update() calls.
+// Every cell the token was ever moved onto, by its move() calls.
 function visited(token) {
-  return token.update.mock.calls.map((c) => ({
+  return token.move.mock.calls.map((c) => ({
     gx: Math.round((c[0].x ?? 0) / G),
     gy: Math.round((c[0].y ?? 0) / G),
   }));
