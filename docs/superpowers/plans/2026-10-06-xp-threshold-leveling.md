@@ -1,6 +1,6 @@
 # XP Threshold And Level-Up Carry-Over Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Fix #853 — the module only ever adds XP and never reacts to a character crossing the 1,000-XP threshold or actually leveling up, leaving characters sitting at e.g. 1848/1000 XP forever.
 
@@ -45,7 +45,7 @@
 - Consumes: `actor.getFlag(MODULE_ID, key)` / `actor.setFlag(MODULE_ID, key, value)` (standard Foundry Actor API, already used elsewhere in this codebase — e.g. `scripts/dungeon-combat.mjs`'s own hook-registered functions).
 - Produces: no signature change to `grantPartyXp(totalXp, source)` — purely additive internal behavior.
 
-- [ ] **Step 1: Extend the test fixture and write the failing tests**
+- [x] **Step 1: Extend the test fixture and write the failing tests**
 
 The existing `member()` helper (confirmed current, `tests/foundry-api-grant-party-xp.test.mjs:6-15`) has no `xp.max` and no flag methods. Change it to:
 
@@ -102,12 +102,12 @@ describe("#853 grantPartyXp flags a character ready to level up at the XP thresh
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/foundry-api-grant-party-xp.test.mjs`
 Expected: FAIL — `grantPartyXp` never calls `setFlag` or posts a second chat message today.
 
-- [ ] **Step 3: Add the i18n key**
+- [x] **Step 3: Add the i18n key**
 
 In `lang/en.json`, alongside the existing `PF2EDC.Dungeon.XpAwarded`/`XpSource.*` keys (confirmed current, lines 116-121):
 
@@ -115,7 +115,7 @@ In `lang/en.json`, alongside the existing `PF2EDC.Dungeon.XpAwarded`/`XpSource.*
   "PF2EDC.Dungeon.ReadyToLevelUp": "{names} reached enough XP to level up!",
 ```
 
-- [ ] **Step 4: Fix `grantPartyXp`**
+- [x] **Step 4: Fix `grantPartyXp`**
 
 Change (confirmed current, `scripts/foundry-api.mjs:659-676`):
 
@@ -180,12 +180,12 @@ to:
 
 Check whether `MODULE_ID` is already defined/imported in `scripts/foundry-api.mjs` (`grep -n "MODULE_ID" scripts/foundry-api.mjs`); if not, add the same local `const MODULE_ID = "pf2e-dungeon-crawl";` convention every sibling file in this codebase already uses (e.g. `scripts/room-feature-tokens.mjs:15`).
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/foundry-api-grant-party-xp.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/foundry-api.mjs lang/en.json tests/foundry-api-grant-party-xp.test.mjs
@@ -206,7 +206,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `export async function subtractXpOnLevelUp(actor, changes)` — called from `scripts/module.mjs`'s existing `Hooks.on("updateActor", ...)`, matching the exact calling convention `autoDefeatZeroHpNpcs(actor)` already uses there (confirmed current, `scripts/module.mjs:615-618`).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -281,12 +281,12 @@ describe("#853 subtractXpOnLevelUp", () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-leveling.test.mjs`
 Expected: FAIL — `scripts/dungeon-leveling.mjs` does not exist yet.
 
-- [ ] **Step 3: Write `scripts/dungeon-leveling.mjs`**
+- [x] **Step 3: Write `scripts/dungeon-leveling.mjs`**
 
 ```js
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -319,12 +319,12 @@ export async function subtractXpOnLevelUp(actor, changes) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-leveling.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Wire into the shared `updateActor` hook**
+- [x] **Step 5: Wire into the shared `updateActor` hook**
 
 In `scripts/module.mjs`, add to the import block that already brings in `autoDefeatZeroHpNpcs` (confirmed current, lines 49-63 — a new import statement, since `dungeon-leveling.mjs` is a new file, not an addition to `dungeon-combat.mjs`'s own import):
 
@@ -351,12 +351,12 @@ Hooks.on("updateActor", async (actor, changes) => {
 });
 ```
 
-- [ ] **Step 6: Run the full test suite**
+- [x] **Step 6: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS across the board.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-leveling.mjs scripts/module.mjs tests/dungeon-leveling.test.mjs
@@ -369,11 +369,11 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 ### Task 3: Architecture docs
 
-- [ ] **Step 1: Run the `update-architecture-docs` skill**
+- [x] **Step 1: Run the `update-architecture-docs` skill**
 
 CLAUDE.md requires this in the same pass as any merge that adds, removes, or rewires a `scripts/` file's imports — this plan adds `scripts/dungeon-leveling.mjs` and adds an import to `scripts/module.mjs`. Invoke the `update-architecture-docs` skill now and commit its output (likely `docs/architecture.md`) in this same task.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add docs/architecture.md
@@ -415,7 +415,7 @@ Re-run Step 1's own read-only query and confirm every previously-over character 
 **Files:**
 - Modify: `module.json`
 
-- [ ] **Step 1: Re-check the current version and bump**
+- [x] **Step 1: Re-check the current version and bump**
 
 ```bash
 git fetch origin main -q && git log origin/main -1 --oneline && grep version module.json
@@ -423,7 +423,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **patch** bump (a contained bug fix), using whatever the fetch above shows as current.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add module.json
