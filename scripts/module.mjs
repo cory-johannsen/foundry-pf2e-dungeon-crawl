@@ -562,16 +562,24 @@ Hooks.on("renderChatMessageHTML", (message, html) => {
 
 /** #109: keeps every non-host, non-GM client's DungeonApp in sync with a
  * GM-less run. */
-function syncGmLessDungeonBroadcast() {
+let lastBroadcastSceneId = null;
+function syncGmLessDungeonBroadcast({ openOnlyForNewRun = false } = {}) {
   const existing = foundry.applications.instances.get("pf2edc-dungeon-app");
   const hostedRun = findHostedRunForBroadcast();
   // #845: same room-kind rule as the GM-side door-open path. Both callers of
   // this function (dungeonRuns setting change, canvasReady) share it.
+  // #852: a setting write for an ALREADY-hosted run (e.g. a marching-order
+  // reorder) must not re-open a tracker the player closed; only a run that
+  // newly appears on this client may.
+  const isNewRun = hostedRun?.sceneId !== lastBroadcastSceneId;
+  lastBroadcastSceneId = hostedRun?.sceneId ?? null;
   const decision = decideGmLessBroadcast(hostedRun, !!existing, {
-    autoOpenAllowed: broadcastAutoOpenAllowed(hostedRun, {
-      getRunState,
-      roomKindAllowsTrackerAutoOpen,
-    }),
+    autoOpenAllowed:
+      (!openOnlyForNewRun || isNewRun) &&
+      broadcastAutoOpenAllowed(hostedRun, {
+        getRunState,
+        roomKindAllowsTrackerAutoOpen,
+      }),
   });
   if (decision.action === "open") new DungeonApp().render(true);
   else if (decision.action === "render") existing.render();
@@ -580,14 +588,14 @@ function syncGmLessDungeonBroadcast() {
 
 function onDungeonRunsSettingChanged(setting) {
   if (setting.key !== `${MODULE_ID}.dungeonRuns`) return;
-  syncGmLessDungeonBroadcast();
+  syncGmLessDungeonBroadcast({ openOnlyForNewRun: true });
   // #852: an open marching-order window reflects a change made from another
   // client or an automatic follow-the-leader reconcile, GM-less or not.
   refreshMarchingOrderWindow(foundry.applications.instances);
 }
 Hooks.on("updateSetting", onDungeonRunsSettingChanged);
 Hooks.on("createSetting", onDungeonRunsSettingChanged);
-Hooks.on("canvasReady", syncGmLessDungeonBroadcast);
+Hooks.on("canvasReady", () => syncGmLessDungeonBroadcast());
 
 /**
  * #14: a dungeon scene deleted outside the tracker's own Abandon flow (most
