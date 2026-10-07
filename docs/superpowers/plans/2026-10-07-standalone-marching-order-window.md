@@ -45,7 +45,7 @@
 - Consumes: `getRunState`, `effectiveMarchingOrder`, `setMarchingOrder` (`scripts/dungeon-runner.mjs`); `requestDungeonAction` (`scripts/dungeon-remote.mjs`) — all confirmed current, unchanged signatures.
 - Produces: `export class MarchingOrderApp extends HandlebarsApplicationMixin(ApplicationV2)`.
 
-- [ ] **Step 1: Check for an existing test convention for a similarly-shaped small app**
+- [x] **Step 1: Check for an existing test convention for a similarly-shaped small app**
 
 ```bash
 find tests -iname "*sound-preview*" -o -iname "*marching*"
@@ -53,7 +53,7 @@ find tests -iname "*sound-preview*" -o -iname "*marching*"
 
 If `tests/sound-preview-app.test.mjs` (or similar) exists, follow its exact mocking conventions for `ApplicationV2`/`HandlebarsApplicationMixin`/`foundry.applications.api`. Otherwise, write the test using the same lightweight global-stubbing approach this session's own earlier plans used for Foundry-dependent code (a plain object standing in for `foundry.applications.api.ApplicationV2`/`HandlebarsApplicationMixin`, `game`, etc.).
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 ```js
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -116,12 +116,12 @@ describe("#852 MarchingOrderApp", () => {
 
 (Adjust the exact mocking mechanism once written against this file's own real import shape — `vi.doMock` requires the module under test to import `dungeon-runner.mjs` fresh after the mock is registered; use dynamic `import()` after `vi.doMock` the way Vitest's own docs describe, or switch to `vi.mock` with a top-level factory if this codebase's other tests already establish that convention — check an existing test of a module that imports `dungeon-runner.mjs` for the real pattern before finalizing.)
 
-- [ ] **Step 3: Run the tests to verify they fail**
+- [x] **Step 3: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/marching-order-app.test.mjs`
 Expected: FAIL — `scripts/ui/marching-order-app.mjs` does not exist yet.
 
-- [ ] **Step 4: Write `scripts/ui/marching-order-app.mjs`**
+- [x] **Step 4: Write `scripts/ui/marching-order-app.mjs`**
 
 ```js
 import { getRunState, effectiveMarchingOrder, setMarchingOrder } from "../dungeon-runner.mjs";
@@ -203,7 +203,7 @@ export class MarchingOrderApp extends HandlebarsApplicationMixin(ApplicationV2) 
 
 Note `#move`'s `this` binding: Foundry's own action-dispatcher binds static action handlers with `this` set to the application instance (the same convention `DungeonApp`'s own static handlers already rely on, confirmed current throughout that file) — `#onMoveUp`/`#onMoveDown` pass `this` through to `#move` explicitly, the same pattern `DungeonApp`'s own `#onDeclareVictory`/`#declareOutcome` pair already uses (confirmed current, `scripts/ui/dungeon-app.mjs:1742-1744`).
 
-- [ ] **Step 5: Write `templates/marching-order-app.hbs`**
+- [x] **Step 5: Write `templates/marching-order-app.hbs`**
 
 ```handlebars
 <section class="pf2edc-marching-order-app">
@@ -227,12 +227,12 @@ Note `#move`'s `this` binding: Foundry's own action-dispatcher binds static acti
 
 Add the new `PF2EDC.MarchingOrder.Title`/`PF2EDC.MarchingOrder.NoActiveRun` keys to `lang/en.json`, alongside the existing `PF2EDC.Dungeon.MarchingOrder.Title` key (confirmed current, `templates/dungeon-tracker.hbs:34` references it — check `lang/en.json` for its exact string and reuse the same wording for the new `Title` key rather than inventing new copy).
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/marching-order-app.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/ui/marching-order-app.mjs templates/marching-order-app.hbs tests/marching-order-app.test.mjs lang/en.json
@@ -251,13 +251,13 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: `MarchingOrderApp` (Task 1).
 
-- [ ] **Step 1: Add the import**
+- [x] **Step 1: Add the import**
 
 ```js
 import { MarchingOrderApp } from "./ui/marching-order-app.mjs";
 ```
 
-- [ ] **Step 2: Extend the existing scene-control hook**
+- [x] **Step 2: Extend the existing scene-control hook**
 
 Change (confirmed current, `scripts/module.mjs:669-686`):
 
@@ -322,7 +322,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
 
 Add the new `PF2EDC.SceneControl.MarchingOrderLabel` key to `lang/en.json`, alongside the existing `PF2EDC.SceneControl.AgentLoopStatusLabel` key.
 
-- [ ] **Step 3: Keep an open window in sync with a remote marching-order change**
+- [x] **Step 3: Keep an open window in sync with a remote marching-order change**
 
 Change (confirmed current, `scripts/module.mjs:579-585`):
 
@@ -355,12 +355,12 @@ Hooks.on("createSetting", onDungeonRunsSettingChanged);
 Hooks.on("canvasReady", syncGmLessDungeonBroadcast);
 ```
 
-- [ ] **Step 4: Run the full test suite**
+- [x] **Step 4: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/module.mjs lang/en.json
@@ -378,7 +378,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Modify: `scripts/ui/dungeon-app.mjs`
 - Test: whatever existing test(s) currently exercise `DungeonApp`'s own marching-order context/actions (`grep -rln "marchingOrder\|MoveMarchingOrder" tests/`)
 
-- [ ] **Step 1: Find and update existing tests that will break**
+- [x] **Step 1: Find and update existing tests that will break**
 
 ```bash
 grep -rln "marchingOrder\|MarchingOrder" tests/
@@ -386,20 +386,20 @@ grep -rln "marchingOrder\|MarchingOrder" tests/
 
 Remove or update any assertion in `DungeonApp`'s own test file(s) that currently checks for marching-order context fields or the `moveMarchingOrderUp`/`moveMarchingOrderDown` actions — those are moving to `MarchingOrderApp`'s own test file (Task 1), not staying here.
 
-- [ ] **Step 2: Remove the markup**
+- [x] **Step 2: Remove the markup**
 
 Delete the `{{#if marchingOrder.length}}...{{/if}}` block from `templates/dungeon-tracker.hbs` (confirmed current, lines 32-55 — read the file fresh to get the exact closing-tag line number, since concurrent sessions may have touched this file since this plan was written).
 
-- [ ] **Step 3: Remove the dead code from `scripts/ui/dungeon-app.mjs`**
+- [x] **Step 3: Remove the dead code from `scripts/ui/dungeon-app.mjs`**
 
 Remove: the `marchingOrderIds`/`marchingOrder` context-building block (confirmed current, lines 1258-1264), the `marchingOrder` key in whatever object `_prepareContext` returns (confirmed current, line 1364), the `moveMarchingOrderUp: DungeonApp.#onMoveMarchingOrderUp`/`moveMarchingOrderDown: DungeonApp.#onMoveMarchingOrderDown` entries in `static DEFAULT_OPTIONS.actions` (confirmed current, lines 1003-1004), and the `#onMoveMarchingOrderUp`/`#onMoveMarchingOrderDown` static methods themselves (confirmed current, lines 1687-1733). Also remove the now-unused `effectiveMarchingOrder`/`setMarchingOrder` imports from this file if nothing else in it still uses them (`grep -n "effectiveMarchingOrder\|setMarchingOrder" scripts/ui/dungeon-app.mjs` after the removal to confirm).
 
-- [ ] **Step 4: Run the full test suite**
+- [x] **Step 4: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add templates/dungeon-tracker.hbs scripts/ui/dungeon-app.mjs tests/
@@ -433,7 +433,7 @@ With no dungeon run active on the viewed scene, open the window and confirm the 
 **Files:**
 - Modify: `module.json`
 
-- [ ] **Step 1: Re-check the current version and bump**
+- [x] **Step 1: Re-check the current version and bump**
 
 ```bash
 git fetch origin main -q && git log origin/main -1 --oneline && grep version module.json
@@ -441,7 +441,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **minor** bump (a real new UI surface plus removal of an old one), using whatever the fetch above shows as current.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add module.json
