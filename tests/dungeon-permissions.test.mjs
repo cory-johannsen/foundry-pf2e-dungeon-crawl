@@ -11,6 +11,8 @@ import {
   userMayAttemptTrapDisable,
   userMayAttemptRoomFeatureCheck,
   attemptableCharacters,
+  canUserSendWidenedAction,
+  WIDENED_ACTIONS,
 } from "../scripts/dungeon-permissions.mjs";
 
 const gm = { id: "gm-1", isGM: true };
@@ -467,5 +469,36 @@ describe("userMayAttemptRoomFeatureCheck / attemptableCharacters (#822)", () => 
     expect(attemptableCharacters({ userId: "g", isGM: true, partyMembers })).toEqual(partyMembers);
     expect(attemptableCharacters({ userId: "h", isHost: true, partyMembers })).toEqual(partyMembers);
     expect(attemptableCharacters({ userId: "x", partyMembers })).toEqual([]);
+  });
+});
+
+describe("#852 setMarchingOrder relay authorization", () => {
+  const partyMembers = [{ id: "c1", type: "character", ownership: { p: 3 } }];
+  const run = { hostUserId: "h" };
+
+  it("is a widened action: a non-host party-character owner is authorised, a stranger is not", () => {
+    expect(WIDENED_ACTIONS.has("setMarchingOrder")).toBe(true);
+    const owner = canRelayRoomFeature({ id: "p", active: true, isGM: false }, partyMembers);
+    const stranger = canRelayRoomFeature({ id: "x", active: true, isGM: false }, partyMembers);
+    expect(isAuthorizedRequest("setMarchingOrder", "p", run, { ownsPartyCharacter: owner })).toBe(true);
+    expect(isAuthorizedRequest("setMarchingOrder", "x", run, { ownsPartyCharacter: stranger })).toBe(false);
+    expect(isAuthorizedRequest("setMarchingOrder", "h", run)).toBe(true);
+    expect(isAuthorizedRequest("setMarchingOrder", "p", { ...run, completed: true }, { ownsPartyCharacter: true })).toBe(false);
+  });
+
+  it("record* outcome actions stay host-only for a party-character owner", () => {
+    for (const a of ["recordPuzzleStageOutcome", "recordSkillChallengeOutcome"]) {
+      expect(isAuthorizedRequest(a, "p", run, { ownsPartyCharacter: true })).toBe(false);
+    }
+  });
+
+  it("canUserSendWidenedAction: GM, host, party owner yes; others no", () => {
+    const send = (user, r = run) => canUserSendWidenedAction("setMarchingOrder", user, r, partyMembers);
+    expect(send({ id: "g", isGM: true })).toBe(true);
+    expect(send({ id: "h", isGM: false })).toBe(true);
+    expect(send({ id: "p", isGM: false })).toBe(true);
+    expect(send({ id: "x", isGM: false })).toBe(false);
+    expect(send(null)).toBe(false);
+    expect(send({ id: "p", isGM: false }, null)).toBe(false);
   });
 });

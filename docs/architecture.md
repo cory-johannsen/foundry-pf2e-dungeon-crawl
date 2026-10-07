@@ -194,8 +194,10 @@ locally (never broadcast) through `audio.mjs`.
 opened from a scene-control button registered in `module.mjs` and re-rendered
 by `module.mjs`'s `dungeonRuns` setting hook; it reads order via
 `dungeon-runner.mjs`, writes it directly (GM) or through `dungeon-remote.mjs`'s
-`setMarchingOrder` relay, and uses `dungeon-permissions.mjs` so only the GM and
-the run host get controls (everyone else sees a read-only list).
+`setMarchingOrder` relay, and uses `dungeon-permissions.mjs` so only the GM, the
+run host and party-character owners get controls (everyone else sees a read-only
+list); `setMarchingOrder` is a widened relay action whose payload is re-validated
+as a pure permutation in `dungeon-runner.mjs`.
 
 ## Dependency graph
 

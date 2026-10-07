@@ -39,7 +39,13 @@ afterAll(() => {
 
 function setup({ user, state }) {
   globalThis.canvas = { scene: { id: "scene1" } };
-  globalThis.game = { actors: { get: (id) => ({ name: `Actor-${id}` }) }, user };
+  globalThis.game = {
+    actors: {
+      get: (id) => ({ name: `Actor-${id}` }),
+      party: { members: [{ id: "c1", type: "character", ownership: { pl: 3 } }] },
+    },
+    user,
+  };
   mocks.state = state;
   mocks.setMarchingOrder.mockClear();
   mocks.requestDungeonAction.mockClear();
@@ -48,7 +54,8 @@ function setup({ user, state }) {
 const run = (over = {}) => ({ marchingOrder: ["a", "b", "c"], hostUserId: "host", ...over });
 const GM = { id: "gm", isGM: true };
 const HOST = { id: "host", isGM: false };
-const PLAYER = { id: "pl", isGM: false };
+const PLAYER = { id: "pl", isGM: false }; // owns a party character, not the host
+const STRANGER = { id: "zz", isGM: false }; // owns no party character
 
 describe("MarchingOrderApp._prepareContext", () => {
   beforeEach(() => setup({ user: GM, state: run() }));
@@ -78,8 +85,8 @@ describe("MarchingOrderApp._prepareContext", () => {
     expect(ctx.hasRun).toBe(false);
   });
 
-  it("GM and run host get controls; a non-host player gets a read-only view", async () => {
-    for (const [user, expected] of [[GM, true], [HOST, true], [PLAYER, false]]) {
+  it("GM, run host and party-character owner get controls; others get a read-only view", async () => {
+    for (const [user, expected] of [[GM, true], [HOST, true], [PLAYER, true], [STRANGER, false]]) {
       globalThis.game.user = user;
       expect((await new MarchingOrderApp()._prepareContext()).canReorder).toBe(expected);
     }
@@ -123,8 +130,18 @@ describe("move actions", () => {
     expect(mocks.setMarchingOrder).not.toHaveBeenCalled();
   });
 
-  it("a non-host player sends nothing (the relay would refuse it)", async () => {
+  it("a non-host party-character owner relays setMarchingOrder", async () => {
     setup({ user: PLAYER, state: run() });
+    await moveUp.call(mkApp(), {}, target("b"));
+    expect(mocks.requestDungeonAction).toHaveBeenCalledWith("setMarchingOrder", {
+      sceneId: "scene1",
+      orderedActorIds: ["b", "a", "c"],
+    });
+    expect(mocks.setMarchingOrder).not.toHaveBeenCalled();
+  });
+
+  it("a user owning no party character sends nothing (the relay would refuse it)", async () => {
+    setup({ user: STRANGER, state: run() });
     const app = mkApp();
     await moveUp.call(app, {}, target("b"));
     expect(mocks.requestDungeonAction).not.toHaveBeenCalled();

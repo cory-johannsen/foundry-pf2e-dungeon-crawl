@@ -36,6 +36,7 @@ import {
   replaceRunState,
   effectiveMarchingOrder,
   setMarchingOrder,
+  isMarchingPermutation,
   retreatTo,
   markStubOpened,
   resetRetreatPath,
@@ -2696,5 +2697,24 @@ describe("revealRoomFeature", () => {
       settingsRef,
     });
     expect(result).toBeNull();
+  });
+});
+
+describe("isMarchingPermutation (#852 relayed-payload validation)", () => {
+  const cur = ["a", "b", "c"];
+  it("accepts any permutation", () => {
+    expect(isMarchingPermutation(cur, ["c", "a", "b"])).toBe(true);
+    expect(isMarchingPermutation(cur, cur)).toBe(true);
+  });
+  it("rejects an extra id, a missing id, a duplicate and a non-party id", () => {
+    expect(isMarchingPermutation(cur, ["a", "b", "c", "d"])).toBe(false);
+    expect(isMarchingPermutation(cur, ["a", "b"])).toBe(false);
+    expect(isMarchingPermutation(cur, ["a", "a", "b"])).toBe(false);
+    expect(isMarchingPermutation(cur, ["a", "b", "zzz"])).toBe(false);
+  });
+  it("rejects non-array payloads", () => {
+    expect(isMarchingPermutation(cur, "abc")).toBe(false);
+    expect(isMarchingPermutation(cur, undefined)).toBe(false);
+    expect(isMarchingPermutation(cur, { length: 3 })).toBe(false);
   });
 });

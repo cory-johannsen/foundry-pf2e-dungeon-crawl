@@ -1,10 +1,21 @@
 import { getRunState, effectiveMarchingOrder, setMarchingOrder } from "../dungeon-runner.mjs";
 import { requestDungeonAction } from "../dungeon-remote.mjs";
-import { canActOnDungeon } from "../dungeon-permissions.mjs";
+import { canUserSendWidenedAction } from "../dungeon-permissions.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 const APP_ID = "pf2edc-marching-order-app";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
+/** Whether the current user may reorder: same rule as the relay (GM, run
+ * host, or owner of a party character). */
+function canReorderNow(state) {
+  return canUserSendWidenedAction(
+    "setMarchingOrder",
+    game.user,
+    state,
+    game.actors?.party?.members ?? [],
+  );
+}
 
 /**
  * #852: pure swap of `actorId` with its neighbour (`delta` -1 earlier, +1
@@ -51,9 +62,9 @@ export function marchingOrderSceneTool(localize, open = () => new MarchingOrderA
  * run's marching order, reachable without opening the Dungeon Tracker (which
  * no longer auto-opens, #771/#845). Mirrors SoundPreviewApp's lightweight
  * ApplicationV2 shape. Reordering is relayed exactly as before: the GM
- * writes directly, the run's host relays `setMarchingOrder` -- the relay
- * authorises only the GM and the run host (isAuthorizedRequest), so other
- * users get a read-only view rather than controls that would be refused.
+ * writes directly, anyone else entitled (run host or party-character owner,
+ * WIDENED_ACTIONS) relays `setMarchingOrder`; other users get a read-only
+ * view rather than controls the relay would refuse.
  */
 export class MarchingOrderApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
@@ -78,7 +89,7 @@ export class MarchingOrderApp extends HandlebarsApplicationMixin(ApplicationV2) 
     const ids = effectiveMarchingOrder(state);
     return {
       hasRun: true,
-      canReorder: canActOnDungeon(state),
+      canReorder: canReorderNow(state),
       marchingOrder: ids.map((actorId, index) => ({
         actorId,
         name: game.actors.get(actorId)?.name ?? "?",
@@ -103,7 +114,7 @@ export class MarchingOrderApp extends HandlebarsApplicationMixin(ApplicationV2) 
     const state = getRunState(sceneId);
     if (!state) return;
     // Defence in depth: the relay would refuse anyone else anyway.
-    if (!canActOnDungeon(state)) return;
+    if (!canReorderNow(state)) return;
     const reordered = reorderMarching(effectiveMarchingOrder(state), actorId, delta);
     if (!reordered) return;
     if (game.user.isGM) {
