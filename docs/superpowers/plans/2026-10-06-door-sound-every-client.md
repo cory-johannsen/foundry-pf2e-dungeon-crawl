@@ -1,6 +1,6 @@
 # Door Sounds Play On Every Client Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Fix #868 — door open/lock/unlock sounds silently never play because they are only ever triggered by GM-gated code, and this table's actual GM side is mostly unattended (confirmed with the owner this session) — no continuously-connected GM client exists for the sound call to run on.
 
@@ -42,7 +42,7 @@
 - Produces: `doorSoundForWallTransition(ds, flags): 'open' | 'lock' | 'unlock' | null` — `flags` is `{hasRevealFlag, hasStubFlag, hasGateFlag}`, plain booleans the caller extracts from the real wall's own `getFlag` calls (keeping this function Foundry-free and unit-testable, matching this file's own existing pure/glue split).
 - Consumes: `CONST.WALL_DOOR_STATES` values, confirmed current `{CLOSED: 0, OPEN: 1, LOCKED: 2}`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -80,12 +80,12 @@ describe("#868 doorSoundForWallTransition", () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-sound-wall-transition.test.mjs`
 Expected: FAIL — `doorSoundForWallTransition` does not exist yet.
 
-- [ ] **Step 3: Implement the dispatcher and the new `broadcast` option**
+- [x] **Step 3: Implement the dispatcher and the new `broadcast` option**
 
 Add to `scripts/dungeon-sound.mjs`:
 
@@ -144,12 +144,12 @@ export function playDoorSound(kind, { broadcast = true } = {}) {
 
 (The default stays `true` — this function has no other caller after Task 2 removes the five inline ones, but changing its own default would be an unrelated, silent behavior change for any future caller that doesn't think to pass `broadcast: false`; Task 2's own new call site passes it explicitly instead.)
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-sound-wall-transition.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-sound.mjs tests/dungeon-sound-wall-transition.test.mjs
@@ -171,7 +171,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `doorSoundForWallTransition` (Task 1).
 - Produces: no change to `handleDungeonDoorOpened`/`unlockDoorsFromRoom`/`relockDoorFromRoom`/`setGateDoorState`'s own exported signatures — only their internal bodies lose the now-redundant sound calls.
 
-- [ ] **Step 1: Check whether module.mjs's `updateWall` hook already has test coverage**
+- [x] **Step 1: Check whether module.mjs's `updateWall` hook already has test coverage**
 
 ```bash
 grep -rln "updateWall" tests/
@@ -222,12 +222,12 @@ describe("#868 updateWall sound reaction (every client, no GM dependency)", () =
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/module-door-sound-hook.test.mjs`
 Expected: FAIL — `doorSoundForWallTransition`/`playDoorSound`'s new `broadcast` option exist from Task 1, but this is a fresh scenario check; confirm it fails for the right reason (none expected here, since Task 1 already shipped — if it already passes, this step confirms Task 1's own exports compose correctly and Step 2 is effectively a formality; note that in the plan's own record rather than skipping it).
 
-- [ ] **Step 3: Wire the hook in `module.mjs`**
+- [x] **Step 3: Wire the hook in `module.mjs`**
 
 Change (confirmed current, `scripts/module.mjs:351-359`):
 
@@ -271,21 +271,21 @@ Hooks.on("updateWall", async (wall, changes) => {
 
 Add `doorSoundForWallTransition` to this file's existing `playDoorSound` import from `./dungeon-sound.mjs` (check whether `module.mjs` already imports `playDoorSound` directly or only via `dungeon-scene.mjs`'s own re-export; import both exports directly from `./dungeon-sound.mjs` if not already present). Confirm `MODULE_ID` is already defined in `module.mjs` (it is, used throughout this file already).
 
-- [ ] **Step 4: Remove the five now-redundant inline calls in `scripts/dungeon-scene.mjs`**
+- [x] **Step 4: Remove the five now-redundant inline calls in `scripts/dungeon-scene.mjs`**
 
 Remove `playDoorSound("lock");` (line 1048, inside `relockDoorFromRoom`), `playDoorSound(sound);` (line 1075, inside `setGateDoorState`, including its now-unused `sound` parameter — update `relockSiblingDoors`/`reopenSiblingDoors`'s own calls into `setGateDoorState` to drop the now-dead `"lock"`/`"unlock"` argument), both `playDoorSound("unlock");` lines (2242, 2254, inside `unlockDoorsFromRoom`), and all three `playDoorSound("open");` lines (2343, 2376, 2393, inside `handleDungeonDoorOpened`) — confirmed current locations. Leave every other line of each function completely unchanged; these were always a single, isolated statement each, never entangled with the surrounding logic.
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/module-door-sound-hook.test.mjs tests/dungeon-sound-wall-transition.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full test suite**
+- [x] **Step 6: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS — in particular every existing test touching `relockDoorFromRoom`/`setGateDoorState`/`unlockDoorsFromRoom`/`handleDungeonDoorOpened` stays green, since none of their own state-mutation behavior changed, only the now-removed sound side-effect.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/module.mjs scripts/dungeon-scene.mjs tests/module-door-sound-hook.test.mjs
@@ -323,7 +323,7 @@ Record what was actually heard/observed as a comment on #868 before closing it.
 **Files:**
 - Modify: `module.json`
 
-- [ ] **Step 1: Re-check the current version and bump**
+- [x] **Step 1: Re-check the current version and bump**
 
 ```bash
 git fetch origin main -q && git log origin/main -1 --oneline && grep version module.json
@@ -331,7 +331,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **patch** bump (a contained regression fix), using whatever the fetch above shows as current.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add module.json

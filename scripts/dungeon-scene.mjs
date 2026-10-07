@@ -78,7 +78,6 @@ import {
 import { canRetreat, hasNoWayForward, roomDisplayLabel, roomTileName, openChildren } from "./dungeon-retreat.mjs";
 import { depthBiasFor, applyDifficultyShift, trapRollSucceeds, corridorTrapRollSucceeds } from "./dungeon-deck.mjs";
 import { startCombatForRoom } from "./dungeon-combat.mjs";
-import { playDoorSound } from "./dungeon-sound.mjs";
 import { loadDungeonSetpieces, loadRoomFeatureArt, loadCreatureArt } from "./data-loader.mjs";
 import { findCreatureArt, creatureArtPath } from "./creature-art.mjs";
 import { roomFeatureArtPath, doorAnimationFor, DOOR_TEXTURE_WIDTH_PX } from "./room-feature-art.mjs";
@@ -1045,7 +1044,6 @@ export async function relockDoorFromRoom(scene, fromRoomId, toRoomId) {
   if (wall) {
     const art = await doorArtForRoom(scene, fromRoomId, { locked: true });
     await wall.update(withDoorArt(wall, { ds: CONST.WALL_DOOR_STATES.LOCKED }, art));
-    playDoorSound("lock");
   }
   const revealWall = scene.walls.find(
     (w) =>
@@ -1062,7 +1060,7 @@ export async function relockDoorFromRoom(scene, fromRoomId, toRoomId) {
 // door (`dungeonDoorFromRoomId` -> `dungeonDoorToRoomId`) of each target. Matches both
 // ends of the edge, like unlockDoorsFromRoom. Hidden doors and stub doors never come
 // through here (callers pass real, open children only).
-async function setGateDoorState(scene, fromRoomId, toRoomIds, ds, sound) {
+async function setGateDoorState(scene, fromRoomId, toRoomIds, ds) {
   for (const toId of toRoomIds) {
     const wall = scene.walls.find(
       (w) =>
@@ -1072,7 +1070,6 @@ async function setGateDoorState(scene, fromRoomId, toRoomIds, ds, sound) {
     if (wall) {
       const art = await doorArtForRoom(scene, fromRoomId, { locked: ds === CONST.WALL_DOOR_STATES.LOCKED });
       await wall.update(withDoorArt(wall, { ds }, art));
-      playDoorSound(sound);
     }
   }
 }
@@ -1087,14 +1084,14 @@ async function setGateDoorState(scene, fromRoomId, toRoomIds, ds, sound) {
  * `reopenSiblingDoors`. */
 export async function relockSiblingDoors(scene, parentId, keepRoomId, siblingIds) {
   const targets = siblingIds.filter((id) => id !== keepRoomId);
-  await setGateDoorState(scene, parentId, targets, CONST.WALL_DOOR_STATES.LOCKED, "lock");
+  await setGateDoorState(scene, parentId, targets, CONST.WALL_DOOR_STATES.LOCKED);
 }
 
 /** #175: inverse of relockSiblingDoors -- closes (unlocks) the gate doors of
  * `siblingIds` out of `parentId`. Unlike unlockDoorsFromRoom it leaves the parent's stub
  * doors alone. */
 export async function reopenSiblingDoors(scene, parentId, siblingIds) {
-  await setGateDoorState(scene, parentId, siblingIds, CONST.WALL_DOOR_STATES.CLOSED, "unlock");
+  await setGateDoorState(scene, parentId, siblingIds, CONST.WALL_DOOR_STATES.CLOSED);
 }
 
 /**
@@ -2255,7 +2252,6 @@ export async function unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildId
     );
     if (wall) {
       await wall.update(unlockUpdate(wall));
-      playDoorSound("unlock");
     }
   }
   // #427: the source's dead-end stub doors unlock with its real doors (Decision 10: indistinguishable, no extra
@@ -2267,7 +2263,6 @@ export async function unlockDoorsFromRoom(scene, roomId, childIds, hiddenChildId
       !wall.getFlag(MODULE_ID, "dungeonHiddenDoorForEdge")
     ) {
       await wall.update(unlockUpdate(wall));
-      playDoorSound("unlock");
     }
   }
 }
@@ -2356,7 +2351,6 @@ export async function handleDungeonDoorOpened(sceneId, wallId, deps = {}) {
     // Only the party's CURRENT room's own stub door counts.
     if (!stubState || stubState.currentRoomId !== stubSourceId)
       return { autoOpenTracker: false };
-    playDoorSound("open");
     const first = !stubState.stubsOpened?.[`${stubSourceId}->${stubTargetId}`];
     const after = await markStubOpened({
       sceneId,
@@ -2389,8 +2383,7 @@ export async function handleDungeonDoorOpened(sceneId, wallId, deps = {}) {
       state.retreatVersion >= 1 &&
       (state.history ?? []).some((h) => h.roomId === roomId)
     ) {
-      playDoorSound("open");
-      const revisit = await advanceToRoom({ sceneId, roomId, revealedTokenIds: [] });
+        const revisit = await advanceToRoom({ sceneId, roomId, revealedTokenIds: [] });
       if (revisit.ok) {
         await relockSiblingDoors(scene, state.currentRoomId, roomId, openChildren(revisit.state, state.currentRoomId));
       }
@@ -2406,7 +2399,6 @@ export async function handleDungeonDoorOpened(sceneId, wallId, deps = {}) {
     // never fire. The real safety net for a room eager pregeneration
     // failed to build now lives at resolution time — see the rest-room
     // branch below, and Task 13's resolveCurrentRoom for every other kind.
-    playDoorSound("open");
     const revealedTokenIds = await revealSlotTokens(scene, roomId);
     const room = state.rooms[roomId];
     // Started here, not at populate/build time — the room's monsters spawn
