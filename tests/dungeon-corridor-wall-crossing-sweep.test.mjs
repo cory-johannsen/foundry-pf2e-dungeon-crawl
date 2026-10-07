@@ -88,7 +88,7 @@ describe('#861 no solid (non-door) wall crosses an open corridor joint', () => {
     // Three wall-generation mechanisms -- cellMarginWalls' planned margin openings, transitCellContainmentWalls'
     // per-crossing openings, roomEnclosureWalls' per-direction wall -- each disagree with a hidden-detour edge's
     // real corridor tiles in 11/100 seeds (8,36,41,48,51,52,56,69,81,87,94). Pinned, not asserted to zero: the
-    // cause spans independent subsystems and is tracked as #<follow-up> (FOLLOWUP_ISSUE_NUMBER). A future fix
+    // cause spans independent subsystems and is tracked as #877. A future fix
     // lowers these numbers -- update this assertion to match, like tests/dungeon-corridor-joins-sweep.test.mjs.
     expect(stubPairs).toBeGreaterThan(0);
     expect([...seedsHit]).toEqual([8, 36, 41, 48, 51, 52, 56, 69, 81, 87, 94]);
