@@ -39,7 +39,7 @@
 **Interfaces:**
 - Produces: no change to `registerFlankedIndicator()`'s own exported signature (still takes no arguments, still returns the same `indicator` object) — only its internal `getPlaceables` closure and its own `Hooks.on(...)` registrations change.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add a new `describe` block to `tests/flanking-indicator.test.mjs`, following this file's own existing style (check its first ~20 lines for the exact import list and any shared test fixtures before writing, to match conventions rather than inventing new ones):
 
@@ -94,12 +94,12 @@ describe("registerFlankedIndicator: defeated combatants (#875)", () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/flanking-indicator.test.mjs`
 Expected: FAIL on the `updateCombatant` hook test — `registerFlankedIndicator` doesn't register one today. (The first test may already pass trivially since nothing currently throws on a defeated combatant's token; its real value comes with Step 4's added assertion below once the filter exists to verify against.)
 
-- [ ] **Step 3: Strengthen the first test with a real flanking scenario**
+- [x] **Step 3: Strengthen the first test with a real flanking scenario**
 
 Replace the first test's fixture so `isFlanking` actually reports `true` for the alive pair, confirming the defeated one is excluded from BOTH roles (flanker and flanked):
 
@@ -124,7 +124,7 @@ Replace the first test's fixture so `isFlanking` actually reports `true` for the
 
 (Adjust the fixture shape once written against `createPixiBadge`'s own real requirements — `registerFlankedIndicator` uses the real `createPixiBadge`, which needs `PIXI`/`CONFIG`/`canvas.grid`/`game.i18n` globals; stub whatever this step's first real run reveals is missing, following this test file's own existing stubbing conventions for `createFlankedIndicator`'s own tests above it in the same file.)
 
-- [ ] **Step 4: Fix `registerFlankedIndicator`**
+- [x] **Step 4: Fix `registerFlankedIndicator`**
 
 Change (confirmed current, `scripts/flanking-indicator.mjs:156-157`):
 
@@ -164,17 +164,17 @@ to:
     Hooks.on(hook, () => indicator.schedule());
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/flanking-indicator.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full test suite**
+- [x] **Step 6: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/flanking-indicator.mjs tests/flanking-indicator.test.mjs
@@ -190,7 +190,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Files:**
 - Modify: `module.json`
 
-- [ ] **Step 1: Re-check the current version and bump**
+- [x] **Step 1: Re-check the current version and bump**
 
 ```bash
 git fetch origin main -q && git log origin/main -1 --oneline && grep version module.json
@@ -198,7 +198,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **patch** bump (a contained bug fix), using whatever the fetch above shows as current.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add module.json
