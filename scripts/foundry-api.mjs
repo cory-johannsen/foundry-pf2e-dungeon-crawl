@@ -660,11 +660,19 @@ export function makeFoundryApi(sceneRef = null) {
       const party = (game.actors?.party?.members ?? []).filter(
         (m) => m.type === "character",
       );
+      const readyNow = [];
       for (const member of party) {
-        await member.update({
-          "system.details.xp.value":
-            (member.system.details.xp.value ?? 0) + totalXp,
-        });
+        const newXp = (member.system.details.xp.value ?? 0) + totalXp;
+        await member.update({ "system.details.xp.value": newXp });
+        // #853: flag once per threshold-crossing -- never re-announced on a
+        // later grant while the character remains unleveled (the module
+        // never auto-levels; see dungeon-leveling.mjs for the subtraction
+        // that fires once Leveler/a GM actually raises the level).
+        const xpMax = member.system.details.xp?.max ?? 1000;
+        if (newXp >= xpMax && !member.getFlag(MODULE_ID, "readyToLevelUp")) {
+          await member.setFlag(MODULE_ID, "readyToLevelUp", true);
+          readyNow.push(member.name);
+        }
       }
       if (party.length === 0) return;
       await ChatMessage.create({
@@ -673,6 +681,13 @@ export function makeFoundryApi(sceneRef = null) {
           total: totalXp,
         }),
       });
+      if (readyNow.length) {
+        await ChatMessage.create({
+          content: game.i18n.format("PF2EDC.Dungeon.ReadyToLevelUp", {
+            names: readyNow.join(", "),
+          }),
+        });
+      }
     },
 
     /**

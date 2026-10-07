@@ -68,7 +68,7 @@ sequencing/roster logic without this one caring.
 
 **Combat automation** (`dungeon-combat.mjs`, `stealth-detection.mjs`,
 `combat-rewards.mjs`, `agent-candidates.mjs`, `dungeon-strike-riders.mjs`,
-`dungeon-critical-deck.mjs`, `flanking-indicator.mjs`) — wires a spawned encounter into a real PF2e
+`dungeon-critical-deck.mjs`, `flanking-indicator.mjs`, `dungeon-leveling.mjs`) — wires a spawned encounter into a real PF2e
 `Combat`, and auto-applies whatever Critical Hit/Fumble Deck directives
 parse cleanly. For an `agentControlled` combatant's turn,
 `autoPlayCombatantTurnIfDue` races two things: `armAgentTimeout` (a pure
@@ -230,6 +230,7 @@ graph LR
     scripts_combat_rewards_mjs["combat-rewards.mjs"]
     scripts_dungeon_combat_mjs["dungeon-combat.mjs"]
     scripts_dungeon_critical_deck_mjs["dungeon-critical-deck.mjs"]
+    scripts_dungeon_leveling_mjs["dungeon-leveling.mjs"]
     scripts_dungeon_strike_riders_mjs["dungeon-strike-riders.mjs"]
     scripts_flanking_indicator_mjs["flanking-indicator.mjs"]
     scripts_stealth_detection_mjs["stealth-detection.mjs"]
@@ -386,6 +387,7 @@ graph LR
   scripts_module_mjs --> scripts_room_feature_tokens_mjs
   scripts_module_mjs --> scripts_dungeon_scene_mjs
   scripts_module_mjs --> scripts_dungeon_combat_mjs
+  scripts_module_mjs --> scripts_dungeon_leveling_mjs
   scripts_module_mjs --> scripts_dungeon_follow_mjs
   scripts_module_mjs --> scripts_trap_combat_mjs
   scripts_module_mjs --> scripts_flanking_indicator_mjs
