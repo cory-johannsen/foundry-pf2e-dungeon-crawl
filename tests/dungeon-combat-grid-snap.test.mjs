@@ -13,7 +13,7 @@ import {
 // no valid waypoint -- that used to leave whatever position the token
 // already had completely untouched, silently preserving an off-grid
 // position for the rest of that combatant's turns as long as none of those
-// paths ever call `token.update()`. These tests start a mover already
+// paths ever call `token.move()` (#631; was `token.update()`). These tests start a mover already
 // straddling four grid squares (x/y at a half-cell offset) in a scenario
 // that takes one of those no-op branches, and assert the token still ends
 // up corrected to its nearest grid cell.
@@ -36,9 +36,14 @@ function installFoundryStubs() {
 }
 
 function makeToken({ x, y, disposition = -1, width = 1, height = 1 } = {}) {
-  const token = { x, y, disposition, width, height };
+  const token = { x, y, disposition, width, height, movementAction: "travel" };
   token.update = vi.fn(async function (changes) {
     Object.assign(this, changes);
+  });
+  // #631: position writes go through move({x, y, action: "displace"}); the
+  // per-waypoint action is not persisted, so movementAction never changes.
+  token.move = vi.fn(async function ({ x, y }) {
+    Object.assign(this, { x, y });
   });
   return token;
 }
@@ -94,12 +99,16 @@ describe("stepToward corrects an off-grid mover even when it doesn't move (#86)"
     // "already adjacent, nothing to do" early return.
     await stepToward(combat, mover, target, 1);
 
-    expect(mover.token.update).toHaveBeenCalledTimes(1);
+    expect(mover.token.move).toHaveBeenCalledTimes(1);
     expect(Math.abs(mover.token.x % GRID_SIZE)).toBe(0);
     expect(Math.abs(mover.token.y % GRID_SIZE)).toBe(0);
     expect(mover.token.x).toBe(Math.round(OFF_GRID_X / GRID_SIZE) * GRID_SIZE);
     expect(mover.token.y).toBe(Math.round(OFF_GRID_Y / GRID_SIZE) * GRID_SIZE);
-    expect(mover.token.update.mock.calls[0][1]).toEqual({ teleport: true });
+    expect(mover.token.move).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "displace" }),
+    );
+    expect(mover.token.update).not.toHaveBeenCalled();
+    expect(mover.token.movementAction).toBe("travel");
   });
 
   it("snaps the mover to its nearest grid cell when it has no speed to move with", async () => {
@@ -119,12 +128,12 @@ describe("stepToward corrects an off-grid mover even when it doesn't move (#86)"
 
     await stepToward(combat, mover, target, 4);
 
-    expect(mover.token.update).toHaveBeenCalledTimes(1);
+    expect(mover.token.move).toHaveBeenCalledTimes(1);
     expect(Math.abs(mover.token.x % GRID_SIZE)).toBe(0);
     expect(Math.abs(mover.token.y % GRID_SIZE)).toBe(0);
   });
 
-  it("does not call update at all when the mover is already grid-aligned and doesn't need to move", async () => {
+  it("does not call move at all when the mover is already grid-aligned and doesn't need to move", async () => {
     installFoundryStubs();
     const mover = makeCombatant({
       id: "mover",
@@ -140,7 +149,7 @@ describe("stepToward corrects an off-grid mover even when it doesn't move (#86)"
 
     await stepToward(combat, mover, target, 1);
 
-    expect(mover.token.update).not.toHaveBeenCalled();
+    expect(mover.token.move).not.toHaveBeenCalled();
   });
 });
 
@@ -152,7 +161,7 @@ describe("strideByPosture corrects an off-grid mover even when it doesn't move (
 
     await strideByPosture(combat, mover, "approach", null);
 
-    expect(mover.token.update).toHaveBeenCalledTimes(1);
+    expect(mover.token.move).toHaveBeenCalledTimes(1);
     expect(Math.abs(mover.token.x % GRID_SIZE)).toBe(0);
     expect(Math.abs(mover.token.y % GRID_SIZE)).toBe(0);
   });
@@ -174,12 +183,12 @@ describe("strideByPosture corrects an off-grid mover even when it doesn't move (
 
     await strideByPosture(combat, mover, "approach", target);
 
-    expect(mover.token.update).toHaveBeenCalledTimes(1);
+    expect(mover.token.move).toHaveBeenCalledTimes(1);
     expect(Math.abs(mover.token.x % GRID_SIZE)).toBe(0);
     expect(Math.abs(mover.token.y % GRID_SIZE)).toBe(0);
   });
 
-  it("passes { teleport: true } on every hop of its own move update, walking multiple squares instead of jumping once", async () => {
+  it("passes action "displace" on every hop of its own move, walking multiple squares instead of jumping once", async () => {
     installFoundryStubs();
     const mover = makeCombatant({ id: "mover", x: 0, y: 0, speedFt: 30 });
     const target = makeCombatant({ id: "target", x: 5 * GRID_SIZE, y: 0 });
@@ -193,9 +202,9 @@ describe("strideByPosture corrects an off-grid mover even when it doesn't move (
     expect(status).toBe("moved");
     // Grid-aligned start -> the #86 snap correction never fires here; every
     // call below is strideByPosture's own waypoint-walking (line ~3295).
-    expect(mover.token.update.mock.calls.length).toBeGreaterThan(1);
-    mover.token.update.mock.calls.forEach((call) => {
-      expect(call[1]).toEqual({ teleport: true });
+    expect(mover.token.move.mock.calls.length).toBeGreaterThan(1);
+    mover.token.move.mock.calls.forEach((call) => {
+      expect(call[0].action).toBe("displace");
     });
     expect(Math.abs(mover.token.x % GRID_SIZE)).toBe(0);
     expect(Math.abs(mover.token.y % GRID_SIZE)).toBe(0);
@@ -270,12 +279,12 @@ describe("pushTokenAway corrects an off-grid target even when it can't be pushed
 
     await pushTokenAway(combat, attacker, target, 1);
 
-    expect(target.token.update).toHaveBeenCalledTimes(1);
+    expect(target.token.move).toHaveBeenCalledTimes(1);
     expect(target.token.x % GRID_SIZE).toBe(0);
     expect(target.token.y % GRID_SIZE).toBe(0);
   });
 
-  it("passes { teleport: true } on its own push-move update, separately from the #86 snap correction", async () => {
+  it("passes action "displace" on its own push-move, separately from the #86 snap correction", async () => {
     installFoundryStubs();
     const attacker = makeCombatant({ id: "attacker", x: 0, y: 0 });
     const target = makeCombatant({ id: "target", x: GRID_SIZE, y: 0 });
@@ -285,9 +294,13 @@ describe("pushTokenAway corrects an off-grid target even when it can't be pushed
 
     // Grid-aligned start -> the #86 snap correction (a separate call site,
     // already covered above) never fires here; this is the push itself.
-    expect(target.token.update).toHaveBeenCalledTimes(1);
+    expect(target.token.move).toHaveBeenCalledTimes(1);
     expect(target.token.x % GRID_SIZE).toBe(0);
-    expect(target.token.update.mock.calls[0][1]).toEqual({ teleport: true });
+    expect(target.token.move).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "displace" }),
+    );
+    expect(target.token.update).not.toHaveBeenCalled();
+    expect(target.token.movementAction).toBe("travel");
   });
 });
 
@@ -473,7 +486,7 @@ describe("footprint-aware movement (#140)", () => {
     const status = await stepToward(combat, mover, target, 10);
 
     expect(status).toBe("no-route");
-    expect(mover.token.update).not.toHaveBeenCalled();
+    expect(mover.token.move).not.toHaveBeenCalled();
   });
 
   it("stepToward returns 'blocked' when a route exists but every landing cell is occupied", async () => {
@@ -495,7 +508,7 @@ describe("footprint-aware movement (#140)", () => {
     const status = await stepToward(combat, mover, target, 2);
 
     expect(status).toBe("blocked");
-    expect(mover.token.update).not.toHaveBeenCalled();
+    expect(mover.token.move).not.toHaveBeenCalled();
   });
 
   it("stepToward returns 'moved' on a normal successful move", async () => {
@@ -511,8 +524,12 @@ describe("footprint-aware movement (#140)", () => {
     const status = await stepToward(combat, mover, target, 10);
 
     expect(status).toBe("moved");
-    expect(mover.token.update).toHaveBeenCalled();
-    expect(mover.token.update.mock.calls[0][1]).toEqual({ teleport: true });
+    expect(mover.token.move).toHaveBeenCalled();
+    expect(mover.token.move).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "displace" }),
+    );
+    expect(mover.token.update).not.toHaveBeenCalled();
+    expect(mover.token.movementAction).toBe("travel");
   });
 
   it("stepToward walks multiple squares one at a time, waiting MOVEMENT_STEP_DELAY_MS between hops", async () => {
@@ -531,13 +548,13 @@ describe("footprint-aware movement (#140)", () => {
     const status = await movePromise;
 
     expect(status).toBe("moved");
-    expect(mover.token.update.mock.calls.length).toBeGreaterThan(1);
-    mover.token.update.mock.calls.forEach((call) => {
-      expect(call[1]).toEqual({ teleport: true });
+    expect(mover.token.move.mock.calls.length).toBeGreaterThan(1);
+    mover.token.move.mock.calls.forEach((call) => {
+      expect(call[0].action).toBe("displace");
     });
     const stepDelayCalls = setTimeoutSpy.mock.calls.filter((call) => call[1] === 600);
     // One fewer delay than hops -- no delay waited after the final hop.
-    expect(stepDelayCalls.length).toBe(mover.token.update.mock.calls.length - 1);
+    expect(stepDelayCalls.length).toBe(mover.token.move.mock.calls.length - 1);
     vi.useRealTimers();
   });
 
@@ -552,7 +569,7 @@ describe("footprint-aware movement (#140)", () => {
     const p = stepToward(combat, mover, target, 10);
     await vi.runAllTimersAsync();
     await p;
-    const hops = mover.token.update.mock.calls.length;
+    const hops = mover.token.move.mock.calls.length;
     const delays = spy.mock.calls.map((c) => c[1]);
     vi.useRealTimers();
     return { hops, delays };
@@ -582,9 +599,9 @@ describe("footprint-aware movement (#140)", () => {
     await vi.runAllTimersAsync();
     await pushPromise;
 
-    expect(target.token.update.mock.calls.length).toBeGreaterThan(1);
-    target.token.update.mock.calls.forEach((call) => {
-      expect(call[1]).toEqual({ teleport: true });
+    expect(target.token.move.mock.calls.length).toBeGreaterThan(1);
+    target.token.move.mock.calls.forEach((call) => {
+      expect(call[0].action).toBe("displace");
     });
     vi.useRealTimers();
   });
