@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { selectTrap } from "../scripts/trap-library.mjs";
+import { classifyTrap } from "../scripts/trap-combat.mjs";
 
 function makeStubApi({ hazards, automatableIds = new Set() }) {
   const calls = [];
@@ -120,5 +121,43 @@ describe("selectTrap", () => {
     );
     expect(classifyCalls).toHaveLength(2);
     expect(classifyCalls.map((c) => c.id).sort()).toEqual(["a", "b"]);
+  });
+});
+
+describe("selectTrap with basic-save hazards (#839)", () => {
+  const disable = "<p>@Check[thievery|dc:20] to disable</p>";
+  const doc = (description, extra = {}) => ({
+    system: { details: { disable, isComplex: false }, actions: [] },
+    items: [{ type: "action", system: { description: { value: description } } }],
+    ...extra,
+  });
+  const STEAM = doc("<p><strong>Effect</strong> @Damage[3d6[bludgeoning],3d6[fire]] (@Check[reflex|dc:24|basic]) to all creatures within 15 feet.</p>");
+  const LATCH = doc("<p><strong>Effect</strong> @Damage[3d12[electricity]] to the triggering creature (@Check[reflex|dc:22|basic] save).</p>");
+  const WHEEL = doc("<p>The wheel rolls initiative.</p>");
+  const docs = { steam: STEAM, latch: LATCH, wheel: WHEEL };
+  const hazards = [
+    { pack: "pf2e.hazards", id: "steam", name: "Steam Vents", level: 4, traits: ["trap"] },
+    { pack: "pf2e.hazards", id: "latch", name: "Electric Latch Rune", level: 3, traits: ["trap"] },
+    { pack: "pf2e.hazards", id: "wheel", name: "Wheel of Misery", level: 6, traits: ["trap"] },
+  ];
+  const api = {
+    findHazards: async ({ minLevel, maxLevel }) =>
+      hazards.filter((h) => h.level >= minLevel && h.level <= maxLevel),
+    classifyHazard: async ({ id }) => classifyTrap(docs[id]),
+  };
+
+  it("can select a basic-save hazard when it is the automatable one in range", async () => {
+    // party level 4: all three are in range; only steam + latch are automatable.
+    const picks = new Set();
+    for (const rng of [0, 0.99]) {
+      picks.add((await selectTrap({ api, partyLevel: 4, rng: () => rng })).name);
+    }
+    expect(picks).toEqual(new Set(["Electric Latch Rune", "Steam Vents"]));
+  });
+
+  it("never picks the initiative-rolling hazard while an automatable one is in range", async () => {
+    for (const rng of [0, 0.5, 0.99]) {
+      expect((await selectTrap({ api, partyLevel: 4, rng: () => rng })).name).not.toBe("Wheel of Misery");
+    }
   });
 });

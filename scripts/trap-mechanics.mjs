@@ -160,7 +160,170 @@ export function withinSearchRange(trapFootprint, moverFootprint, rangeSquares) {
 export function isSimpleAutomatableTrap({
   isComplex,
   strikeActionCount,
+  basicSaveActionCount = 0,
   disableChecks,
 }) {
-  return !isComplex && strikeActionCount === 1 && disableChecks.length > 0;
+  // #839: a hazard with no strike but a parseable basic-save-plus-damage
+  // action is automatable too (triggerTrap's second branch).
+  const runnable =
+    strikeActionCount === 1 ||
+    (strikeActionCount === 0 && basicSaveActionCount >= 1);
+  return !isComplex && runnable && disableChecks.length > 0;
+}
+
+const SAVE_SLUGS = new Set(["reflex", "fortitude", "will"]);
+
+/** The Effect paragraph (or the whole text when it has no Effect heading),
+ * so Trigger-line wording is never mistaken for the effect. */
+function effectText(html) {
+  const m = /<strong>\s*Effect\s*<\/strong>/i.exec(html);
+  return m ? html.slice(m.index + m[0].length) : html;
+}
+
+/** #839: plain text of a description -- tags dropped, PF2e enrichers turned
+ * into their label (or a readable stand-in). */
+export function plainDescriptionText(html) {
+  if (typeof html !== "string") return "";
+  return html
+    .replace(
+      /@(\w+)\[((?:[^[\]]|\[[^\]]*\])*)\](?:\{([^}]*)\})?/g,
+      (_m, kind, inner, label) => {
+        if (label) return label;
+        if (/^template$/i.test(kind)) {
+          const dist = /distance:(\d+)/.exec(inner);
+          return dist ? `${dist[1]} feet` : inner.split("|")[0];
+        }
+        if (/^check$/i.test(kind)) {
+          const [type, ...rest] = inner.split("|");
+          const dc = rest.find((x) => x.startsWith("dc:"));
+          return `${type}${dc ? ` DC ${dc.slice(3)}` : ""} check`;
+        }
+        return inner.split("|")[0];
+      },
+    )
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** #839: "creatures within N feet" stated by the hazard's own Effect text. */
+export function parseAreaFeet(descriptionHtml) {
+  if (typeof descriptionHtml !== "string") return null;
+  const m = /creatures?\s+within\s+(\d+)\s+feet/i.exec(
+    plainDescriptionText(effectText(descriptionHtml)),
+  );
+  return m ? Number(m[1]) : null;
+}
+
+const AREA_PHRASE = /(?:to\s+)?(?:all\s+|each\s+|every\s+)?(?:living\s+)?creatures?\s+within\s+\d+\s+feet/i;
+
+/**
+ * #839: parses a hazard action item's own description HTML for PF2e's own
+ * inline-enricher syntax -- `@Check[<save>|dc:<n>|basic|...]` plus
+ * `@Damage[<dice>d<faces>[<type>],...]`, optionally with an area phrase
+ * ("creatures within N feet"). Returns null for anything outside this
+ * narrow, confirmed shape -- no "basic" keyword, no parseable @Damage, or
+ * no @Check at all -- rather than guessing at a hazard whose effect isn't
+ * simple damage (a condition, banishment, initiative-rolling routine).
+ * Deliberately does NOT resolve an area stated only via a referenced
+ * spell's own stats (e.g. a hazard whose effect "casts Fireball" without
+ * restating Fireball's own 20-foot burst in its own text) -- a known,
+ * excluded case (#839's own plan), not a silent mis-parse.
+ *
+ * Also returns `traits` (the @Check's own `traits:`/`options:` segments, for
+ * the save's roll options), `proneOnCritFail` (a "critically fail ... prone"
+ * rider) and `unparsedText` (every other sentence after the save, so the
+ * caller can tell the GM instead of silently dropping a rider).
+ */
+export function parseBasicSaveAction(descriptionHtml) {
+  if (typeof descriptionHtml !== "string") return null;
+  const checkMatch = /@Check\[([a-z]+)((?:\|[^\]]*)?)\]/i.exec(descriptionHtml);
+  if (!checkMatch) return null;
+  const save = checkMatch[1].toLowerCase();
+  if (!SAVE_SLUGS.has(save)) return null;
+  const segments = checkMatch[2].split("|").filter(Boolean);
+  if (!segments.includes("basic")) return null;
+  const dcSegment = segments.find((s) => s.startsWith("dc:"));
+  const dc = dcSegment ? Number(dcSegment.slice(3)) : NaN;
+  if (!Number.isFinite(dc)) return null;
+  const listOf = (prefix) =>
+    segments
+      .filter((s) => s.startsWith(prefix))
+      .flatMap((s) => s.slice(prefix.length).split(","))
+      .map((x) => x.trim())
+      .filter(Boolean);
+  const traits = listOf("traits:");
+  const options = listOf("options:");
+
+  // The damage list nests one level of brackets (`3d6[fire]`), so the body is
+  // any run of non-bracket characters or one `[...]` group.
+  const damageMatch = /@Damage\[((?:[^[\]]|\[[^\]]*\])+)\]/i.exec(descriptionHtml);
+  if (!damageMatch) return null;
+  const damage = [];
+  for (const part of damageMatch[1].split(",")) {
+    const termMatch = /^\s*(\d+d\d+)\[([a-z-]+)\]\s*$/i.exec(part);
+    if (!termMatch) return null; // an unrecognized damage shape -- stay conservative
+    damage.push({ formula: termMatch[1], type: termMatch[2].toLowerCase() });
+  }
+
+  const areaFeet = parseAreaFeet(descriptionHtml);
+  // An area the text names only by shape or via a referenced spell ("a
+  // Fireball centered on ...", "in the area", a burst/radius) is one this
+  // parser cannot size: stay conservative and let the guard rail handle it
+  // rather than silently shrinking it to a single target.
+  if (
+    areaFeet === null &&
+    /\b(?:fireball|burst|emanation|cone|radius|centered on)\b|\bin the area\b|\b(?:all|any|each|every) creatures?\b/i.test(
+      plainDescriptionText(effectText(descriptionHtml)),
+    )
+  ) {
+    return null;
+  }
+
+  // Everything after the save entry that is not the area phrase, the
+  // "save" noise, or the prone rider is surfaced, never dropped.
+  const afterCheck = descriptionHtml.slice(checkMatch.index + checkMatch[0].length);
+  let proneOnCritFail = false;
+  const unparsed = [];
+  const residue = plainDescriptionText(afterCheck)
+    .replace(AREA_PHRASE, " ")
+    .replace(/^[\s)\].,;]*(?:saving throw|save)?[\s).]*/i, "");
+  for (const raw of residue.split(/(?<=[.!?])\s+/)) {
+    const sentence = raw.replace(/^[\s).,;]+|[\s]+$/g, "");
+    if (!sentence || /^(?:saving throw|save)\W*$/i.test(sentence)) continue;
+    if (/critically\s+fail[^.]*\bprone\b/i.test(sentence)) {
+      proneOnCritFail = true;
+      continue;
+    }
+    unparsed.push(sentence);
+  }
+
+  return {
+    save,
+    dc,
+    damage,
+    areaFeet,
+    traits,
+    options,
+    proneOnCritFail,
+    unparsedText: unparsed.join(" "),
+  };
+}
+
+/** PF2e RAW basic-save degree-of-success damage scaling. */
+export function basicSaveDamageMultiplier(outcome) {
+  return { criticalSuccess: 0, success: 0.5, failure: 1, criticalFailure: 2 }[outcome] ?? 0;
+}
+
+/**
+ * #839: distance in feet between two footprints ({gx, gy, gw, gh}) by PF2e's
+ * diagonal counting (the first diagonal is 5 ft, the second 10 ft, and so
+ * on): `gridDistance * (max(dx, dy) + floor(min(dx, dy) / 2))`, with dx/dy
+ * the square gaps between the footprints' nearest edges (adjacent = 1, 0
+ * when overlapping on that axis).
+ */
+export function footprintDistanceFeet(a, b, gridDistance = 5) {
+  const dx = Math.max(a.gx - (b.gx + b.gw - 1), b.gx - (a.gx + a.gw - 1), 0);
+  const dy = Math.max(a.gy - (b.gy + b.gh - 1), b.gy - (a.gy + a.gh - 1), 0);
+  return gridDistance * (Math.max(dx, dy) + Math.floor(Math.min(dx, dy) / 2));
 }

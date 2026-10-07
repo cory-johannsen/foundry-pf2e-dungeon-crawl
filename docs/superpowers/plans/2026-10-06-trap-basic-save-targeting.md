@@ -50,7 +50,7 @@
 **Interfaces:**
 - Produces: `parseBasicSaveAction(descriptionHtml): {save, dc, damage: [{formula, type}], areaFeet} | null`; `basicSaveDamageMultiplier(outcome): number`.
 
-- [ ] **Step 1: Write the failing tests, using the real surveyed description strings verbatim**
+- [x] **Step 1: Write the failing tests, using the real surveyed description strings verbatim**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -119,12 +119,12 @@ describe("#839 basicSaveDamageMultiplier", () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/trap-mechanics-basic-save.test.mjs`
 Expected: FAIL — neither function exists yet.
 
-- [ ] **Step 3: Implement the parser**
+- [x] **Step 3: Implement the parser**
 
 Add to `scripts/trap-mechanics.mjs`:
 
@@ -177,12 +177,12 @@ export function basicSaveDamageMultiplier(outcome) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/trap-mechanics-basic-save.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/trap-mechanics.mjs tests/trap-mechanics-basic-save.test.mjs
@@ -204,7 +204,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `parseBasicSaveAction`, `basicSaveDamageMultiplier` (Task 1); `withinSearchRange`, `footprint` (confirmed current).
 - Produces: `triggerTrap(hazardActor, target, deps = {})` — new third parameter, optional, defaulting every lookup to real Foundry globals exactly like `handleTrapTokenMove`'s own existing `deps` pattern. Both existing call sites (`handleTrapTokenMove`, `attemptTrapDisableForScene`) are updated to pass the hazard's own token/scene through.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 import { describe, it, expect, vi } from "vitest";
@@ -299,12 +299,12 @@ describe("#839 triggerTrap basic-save branch", () => {
 
 Adjust the test fixtures' exact shapes once written against the real `footprint`/`withinSearchRange` signatures (confirmed current, `scripts/placement.mjs:26`, `scripts/trap-mechanics.mjs:139`) if a mock's token shape doesn't line up — the intent (single-target vs. area vs. guard-rail) is what matters, not the exact mock plumbing.
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/trap-combat-basic-save-trigger.test.mjs`
 Expected: FAIL — `triggerTrap` has no basic-save branch yet.
 
-- [ ] **Step 3: Add the i18n keys**
+- [x] **Step 3: Add the i18n keys**
 
 In `lang/en.json`, alongside the existing `PF2EDC.Dungeon.Trap.*` keys:
 
@@ -312,7 +312,7 @@ In `lang/en.json`, alongside the existing `PF2EDC.Dungeon.Trap.*` keys:
   "PF2EDC.Dungeon.Trap.UnautomatedChat": "{trap} triggered but needs manual GM resolution: {description} Within range: {names}.",
 ```
 
-- [ ] **Step 4: Implement the basic-save branch and guard rail**
+- [x] **Step 4: Implement the basic-save branch and guard rail**
 
 Change (confirmed current, `scripts/trap-combat.mjs:165-193`):
 
@@ -456,7 +456,7 @@ function resolveBasicSaveTargets(parsed, target, deps = {}) {
 
 Add `parseBasicSaveAction`/`basicSaveDamageMultiplier` to this file's existing import from `./trap-mechanics.mjs` (confirmed current, `scripts/trap-combat.mjs:9-17`).
 
-- [ ] **Step 5: Thread the hazard's own token through both call sites**
+- [x] **Step 5: Thread the hazard's own token through both call sites**
 
 In `handleTrapTokenMove` (confirmed current, `scripts/trap-combat.mjs:331-334`), change:
 
@@ -494,17 +494,17 @@ to:
 
 (matching this function's own already-in-scope `hazardToken`/`trapScene` variables, confirmed current).
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/trap-combat-basic-save-trigger.test.mjs`
 Expected: PASS. Adjust `resolveBasicSaveTargets`'s own `footprint`-input shape to match whatever `footprint` (confirmed current, `scripts/placement.mjs:26`) actually expects from a token object if a test reveals a mismatch — read that function's real signature before finalizing this step.
 
-- [ ] **Step 7: Run the full test suite**
+- [x] **Step 7: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS — in particular every existing `trap-combat.mjs` test (the strike path is untouched) and every `trap-mechanics.mjs` test stay green.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/trap-combat.mjs lang/en.json tests/trap-combat-basic-save-trigger.test.mjs
@@ -532,7 +532,7 @@ Record what was actually observed (chat cards, applied damage, guard-rail whispe
 **Files:**
 - Modify: `module.json`
 
-- [ ] **Step 1: Re-check the current version and bump**
+- [x] **Step 1: Re-check the current version and bump**
 
 ```bash
 git fetch origin main -q && git log origin/main -1 --oneline && grep version module.json
@@ -540,7 +540,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **minor** bump (a real new mechanic — basic-save trap automation — not a trivial fix), using whatever the fetch above shows as current.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add module.json

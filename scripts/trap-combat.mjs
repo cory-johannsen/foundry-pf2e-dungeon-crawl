@@ -14,11 +14,17 @@ import {
   trapMinProficiencyRank,
   detectionEligibility,
   withinSearchRange,
+  parseBasicSaveAction,
+  basicSaveDamageMultiplier,
+  parseAreaFeet,
+  plainDescriptionText,
+  footprintDistanceFeet,
 } from "./trap-mechanics.mjs";
 import { actorIdsWithExplorationActivity } from "./stealth-detection.mjs";
 import { applyTrapRoomState, getRunState } from "./dungeon-runner.mjs";
 import { userMayAttemptTrapDisable } from "./dungeon-permissions.mjs";
 import { footprint, isPositionChange } from "./placement.mjs";
+import { blockedEdgesFromWalls, hasLineOfSight } from "./pathfinding.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 
@@ -37,13 +43,19 @@ export function classifyTrap(hazardActor) {
     (a) => a.type === "strike" && a.ready !== false,
   ).length;
   const isComplex = !!hazardActor.system?.details?.isComplex;
+  // #839: action items whose own description is a basic save + damage.
+  const basicSaveActionCount = Array.from(hazardActor.items ?? []).filter(
+    (i) => i.type === "action" && parseBasicSaveAction(i.system?.description?.value),
+  ).length;
   return {
     isComplex,
     strikeActionCount,
+    basicSaveActionCount,
     disableChecks,
     automatable: isSimpleAutomatableTrap({
       isComplex,
       strikeActionCount,
+      basicSaveActionCount,
       disableChecks,
     }),
   };
@@ -158,38 +170,271 @@ export async function rollTrapDisableAttempt(hazardActor, actor, skill) {
  * given, which is exactly this failure mode; removed rather than left in
  * as a trap for the next caller.
  *
- * A no-op if the trap has already been disabled (`rollTrapDisableAttempt`)
- * or has no ready strike at all — call `classifyTrap(hazardActor).automatable`
- * first to know whether this function applies before calling it.
+ * No-op if the trap has already been disabled (`rollTrapDisableAttempt`).
+ * Without a ready strike it (#839) resolves a basic-save-plus-damage action
+ * item (`parseBasicSaveAction`) -- the triggerer alone or everything in the
+ * parsed area -- or, for any other hazard, whispers the GM a guard rail
+ * instead of staying silent. `deps` = `{hazardToken, scene}` (the hazard's
+ * TokenDocument and its scene) for area geometry.
  */
-export async function triggerTrap(hazardActor, target) {
+export async function triggerTrap(hazardActor, target, deps = {}) {
   if (hazardActor.getFlag(MODULE_ID, "trapDisabled")) return null;
   const strike = (hazardActor.system?.actions ?? []).find(
     (a) => a.type === "strike" && a.ready !== false,
   );
-  if (!strike) return null;
-
-  return withDialogsSuppressed(async () => {
-    const targetRef = { document: target.token };
-    await strike.variants[0].roll({ target: targetRef, createMessage: true });
-    const outcome =
-      game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
-    if (outcome === "success" || outcome === "criticalSuccess") {
-      const damageRoll = await strike.damage({
-        target: targetRef,
-        outcome,
-        createMessage: true,
-      });
-      if (damageRoll) {
-        await target.actor.applyDamage({
-          damage: damageRoll,
-          token: target.token,
+  if (strike) {
+    return withDialogsSuppressed(async () => {
+      const targetRef = { document: target.token };
+      await strike.variants[0].roll({ target: targetRef, createMessage: true });
+      const outcome =
+        game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
+      if (outcome === "success" || outcome === "criticalSuccess") {
+        const damageRoll = await strike.damage({
+          target: targetRef,
           outcome,
+          createMessage: true,
+        });
+        if (damageRoll) {
+          await target.actor.applyDamage({
+            damage: damageRoll,
+            token: target.token,
+            outcome,
+          });
+        }
+      }
+      return outcome;
+    });
+  }
+
+  // #839: no strike -- look for a hazard action item whose own description
+  // is a basic save + structured damage (parseBasicSaveAction). Resolved
+  // against the triggering creature alone, or every creature in the parsed
+  // area (RAW: an area effect hits whoever is in it, with line of effect).
+  const hazardItems = Array.from(hazardActor.items ?? []);
+  let parsed = null;
+  let actionItem = null;
+  for (const item of hazardItems) {
+    if (item.type !== "action") continue;
+    parsed = parseBasicSaveAction(item.system?.description?.value);
+    if (parsed) {
+      actionItem = item;
+      break;
+    }
+  }
+  if (parsed) {
+    const area = resolveAreaTargets(parsed.areaFeet, target, hazardActor, deps);
+    if (area.geometryMissing) {
+      await whisperGMEscaped("PF2EDC.Dungeon.Trap.AreaUnavailableChat", {
+        trap: hazardActor.name,
+        names: target.actor.name,
+      });
+      return null;
+    }
+    return withDialogsSuppressed(async () => {
+      const results = [];
+      let damageRoll = null;
+      for (const { actor, token } of area.targets) {
+        const saveStat = actor.saves?.[parsed.save];
+        const saveRoll = saveStat?.roll
+          ? await saveStat.roll({
+              dc: { value: parsed.dc },
+              origin: hazardActor,
+              item: actionItem,
+              token,
+              traits: parsed.traits,
+              extraRollOptions: [
+                "damaging-effect",
+                ...parsed.traits.map((t) => `item:trait:${t}`),
+                ...parsed.options,
+              ],
+              createMessage: true,
+            })
+          : null;
+        const outcome = DEGREE_OUTCOMES[saveRoll?.degreeOfSuccess] ?? null;
+        results.push({ actor, outcome });
+        if (!outcome) {
+          // Never reuse another target's card or guess: skip and tell the GM.
+          await whisperGMEscaped("PF2EDC.Dungeon.Trap.SaveUnavailableChat", {
+            trap: hazardActor.name,
+            name: actor.name,
+            save: parsed.save,
+          });
+          continue;
+        }
+        const multiplier = basicSaveDamageMultiplier(outcome);
+        if (multiplier > 0) {
+          // One damage roll per trigger, shared by every target (RAW), applied
+          // through PF2e's own path so IWR applies.
+          damageRoll ??= await rollHazardDamage(hazardActor, parsed, deps);
+          await actor.applyDamage({
+            damage: multiplier === 1 ? damageRoll : damageRoll.alter(multiplier, 0),
+            token,
+          });
+        }
+        if (outcome === "criticalFailure" && parsed.proneOnCritFail) {
+          await actor.increaseCondition?.("prone");
+        }
+      }
+      if (parsed.unparsedText) {
+        await whisperGMEscaped("PF2EDC.Dungeon.Trap.RiderChat", {
+          trap: hazardActor.name,
+          text: parsed.unparsedText,
         });
       }
-    }
-    return outcome;
+      const own = results.find((r) => r.actor === target.actor) ?? results[0];
+      return own?.outcome ?? null;
+    });
+  }
+
+  // Nothing automatable -- guard rail, never silence (#839). GM-only whisper
+  // with the hazard's own text and the creatures actually near it.
+  const description = hazardDescriptionText(hazardActor, hazardItems);
+  const rangeFeet =
+    hazardItems
+      .filter((i) => i.type === "action")
+      .map((i) => parseAreaFeet(i.system?.description?.value))
+      .find((f) => f) ?? GUARD_RAIL_RANGE_FEET;
+  const area = resolveAreaTargets(rangeFeet, target, hazardActor, deps);
+  if (area.geometryMissing) {
+    await whisperGMEscaped("PF2EDC.Dungeon.Trap.UnautomatedNoMapChat", {
+      trap: hazardActor.name,
+      description,
+      names: target.actor.name,
+    });
+    return null;
+  }
+  await whisperGMEscaped("PF2EDC.Dungeon.Trap.UnautomatedChat", {
+    trap: hazardActor.name,
+    description,
+    range: rangeFeet,
+    names: area.targets.map(({ actor }) => actor.name).join(", ") || "-",
   });
+  return null;
+}
+
+/** #839: radius (feet) used to name who is near an un-automated hazard whose
+ * own text states no area. */
+const GUARD_RAIL_RANGE_FEET = 15;
+
+/** #839: escapes text for HTML chat content. */
+function escapeText(value) {
+  const text = String(value ?? "");
+  const esc = globalThis.foundry?.utils?.escapeHTML;
+  return typeof esc === "function"
+    ? esc(text)
+    : text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+}
+
+/** #839: GM whisper with every interpolated value HTML-escaped. */
+async function whisperGMEscaped(key, data) {
+  const safe = Object.fromEntries(
+    Object.entries(data).map(([k, v]) => [k, escapeText(v)]),
+  );
+  await whisperGMChat(key, safe);
+}
+
+/** #839: plain text of a hazard's own effect description(s) for the GM whisper. */
+function hazardDescriptionText(hazardActor, items) {
+  const parts = items
+    .filter((i) => i.type === "action")
+    .map((i) => i.system?.description?.value)
+    .filter((v) => typeof v === "string" && v.trim());
+  if (!parts.length) {
+    const routine = hazardActor.system?.details?.routine;
+    if (typeof routine === "string" && routine.trim()) parts.push(routine);
+  }
+  return plainDescriptionText(parts.join(" ")) || hazardActor.name;
+}
+
+/** #839: ONE typed PF2e DamageRoll for the whole trigger, posted once with
+ * its apply buttons suppressed (so nobody applies it to a whole selection). */
+async function rollHazardDamage(hazardActor, parsed, deps = {}) {
+  const DamageRoll = globalThis.CONFIG?.Dice?.rolls?.find(
+    (R) => R.name === "DamageRoll",
+  );
+  if (!DamageRoll) throw new Error("PF2e DamageRoll class not available");
+  const formula = parsed.damage.map((t) => `${t.formula}[${t.type}]`).join(",");
+  const roll = await new DamageRoll(formula).evaluate();
+  await roll.toMessage({
+    speaker: ChatMessage.getSpeaker?.({
+      token: deps.hazardToken,
+      actor: hazardActor,
+    }),
+    flavor: hazardActor.name,
+    flags: { pf2e: { suppressDamageButtons: true } },
+  });
+  return roll;
+}
+
+/** Mirrors dungeon-combat.mjs's wallBlocksMovement (private there, and that
+ * file imports this one): a wall blocks unless its movement sense is NONE or
+ * it is a door standing open. */
+function wallBlocksLine(wall) {
+  if (wall.move === CONST.WALL_MOVEMENT_TYPES.NONE) return false;
+  if (
+    wall.door !== CONST.WALL_DOOR_TYPES.NONE &&
+    wall.ds === CONST.WALL_DOOR_STATES.OPEN
+  )
+    return false;
+  return true;
+}
+
+/** The center square of a footprint. */
+function centerCell(fp) {
+  return {
+    gx: fp.gx + Math.floor((fp.gw - 1) / 2),
+    gy: fp.gy + Math.floor((fp.gh - 1) / 2),
+  };
+}
+
+/** Whether `actor` is a living creature a hazard's area can affect. */
+function isAffectableCreature(actor) {
+  if (!actor) return false;
+  if (typeof actor.isOfType === "function" && !actor.isOfType("creature")) return false;
+  if (actor.statuses?.has?.("dead")) return false;
+  return true;
+}
+
+/**
+ * #839: `{actor, token}` pairs a hazard's effect reaches. With no stated area
+ * (`areaFeet` null) that is the triggering creature alone ("the triggering
+ * creature"). With an area it is EVERY creature token on the scene -- party,
+ * hostile or neutral, hidden or not (PF2e area effects don't care) -- within
+ * `areaFeet` of the hazard by PF2e's 5-10-5 diagonal counting and with an
+ * unobstructed straight line from the hazard (walls block, open doors don't;
+ * pathfinding.mjs's wall-aware `hasLineOfSight`), excluding the hazard token
+ * itself and dead creatures. The triggerer is in the result only when it is
+ * really inside the area (a walk-over trigger is at distance 0). Returns
+ * `{geometryMissing: true}` when an area is needed but the hazard token or
+ * scene is unavailable, so the caller can tell the GM instead of guessing.
+ * Geometry reads token DOCUMENTS (pixel x/y, width in squares).
+ */
+function resolveAreaTargets(areaFeet, target, hazardActor, deps = {}) {
+  if (!areaFeet) {
+    return { targets: [{ actor: target.actor, token: target.token }] };
+  }
+  const scene = deps.scene ?? target.token?.document?.parent;
+  const hazardToken = deps.hazardToken;
+  if (!scene?.grid || !hazardToken) return { geometryMissing: true, targets: [] };
+  const size = scene.grid.size;
+  const hazardFp = footprint(hazardToken, size);
+  const walls = (scene.walls?.contents ?? [])
+    .filter(wallBlocksLine)
+    .map((w) => ({ x1: w.c[0], y1: w.c[1], x2: w.c[2], y2: w.c[3] }));
+  const isBlocked = blockedEdgesFromWalls(walls, size);
+  const origin = centerCell(hazardFp);
+  const targets = Array.from(scene.tokens ?? [])
+    .filter((t) => t !== hazardToken && !(t.id && t.id === hazardToken.id))
+    .filter((t) => t.actor && t.actor !== hazardActor && isAffectableCreature(t.actor))
+    .filter((t) => {
+      const fp = footprint(t, size);
+      return (
+        footprintDistanceFeet(hazardFp, fp, scene.grid.distance || 5) <= areaFeet &&
+        hasLineOfSight(origin, centerCell(fp), isBlocked)
+      );
+    })
+    .map((t) => ({ actor: t.actor, token: t.object ?? t }));
+  return { targets };
 }
 
 /** Posts a localized public chat line for a trap event (#753). */
@@ -328,10 +573,11 @@ export async function handleTrapTokenMove(tokenDoc, changes, deps = {}) {
             name: tokenDoc.name ?? tokenDoc.actor.name,
             trap: hazardActor.name,
           });
-          await trigger(hazardActor, {
-            actor: tokenDoc.actor,
-            token: tokenDoc.object,
-          });
+          await trigger(
+            hazardActor,
+            { actor: tokenDoc.actor, token: tokenDoc.object },
+            { hazardToken, scene },
+          );
         }
         await markTrapSpent(hazardToken);
         if (hazardToken.hidden) await hazardToken.update({ hidden: false });
@@ -428,7 +674,11 @@ export async function attemptTrapDisableForScene(
         (t) => t.actor?.id === actor.id,
       );
       if (attempterToken?.object) {
-        await trigger(hazardActor, { actor, token: attempterToken.object });
+        await trigger(
+          hazardActor,
+          { actor, token: attempterToken.object },
+          { hazardToken, scene: trapScene },
+        );
       }
     } finally {
       trapChecksInFlight.delete(hazardActor.id);
