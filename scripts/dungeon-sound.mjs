@@ -210,8 +210,12 @@ export function playDoorSound(kind, { broadcast = true } = {}) {
  * client's own `updateWall` hook (module.mjs) rather than from inline calls
  * inside GM-only state-mutation code, so no GM session is needed to hear it.
  */
-export function doorSoundForWallTransition(ds, { hasRevealFlag, hasStubFlag, hasGateFlag } = {}) {
-  if (ds === 1 && (hasRevealFlag || hasStubFlag)) return "open"; // OPEN
+export function doorSoundForWallTransition(ds, { hasRevealFlag, hasStubFlag, hasGateFlag } = {}, prevDs) {
+  if (ds === 1 && (hasRevealFlag || hasStubFlag || hasGateFlag)) return "open"; // OPEN
+  // Closing an open door plays the same sound as opening it; "unlock" is
+  // LOCKED -> CLOSED. Unknown previous state keeps the old gate/stub unlock.
+  if (ds === 0 && prevDs === 1 && (hasRevealFlag || hasStubFlag || hasGateFlag)) return "open";
+  if (ds === 0 && prevDs !== undefined && prevDs !== 2) return null;
   if (ds === 2 && hasGateFlag) return "lock"; // LOCKED
   if (ds === 0 && (hasGateFlag || hasStubFlag)) return "unlock"; // CLOSED
   return null;

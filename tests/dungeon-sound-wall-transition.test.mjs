@@ -30,4 +30,24 @@ describe("#868 doorSoundForWallTransition", () => {
   it("stays silent for an untracked ds value", () => {
     expect(doorSoundForWallTransition(undefined, { hasRevealFlag: true, hasStubFlag: false, hasGateFlag: false })).toBeNull();
   });
+
+  it("OPEN on a gate-only door plays open", () => {
+    expect(doorSoundForWallTransition(OPEN, { hasRevealFlag: false, hasStubFlag: false, hasGateFlag: true })).toBe("open");
+  });
+
+  it("LOCKED -> CLOSED plays unlock", () => {
+    expect(doorSoundForWallTransition(CLOSED, { hasGateFlag: true }, LOCKED)).toBe("unlock");
+    expect(doorSoundForWallTransition(CLOSED, { hasStubFlag: true }, LOCKED)).toBe("unlock");
+  });
+
+  it("OPEN -> CLOSED plays open (same sound) on any door flag", () => {
+    expect(doorSoundForWallTransition(CLOSED, { hasGateFlag: true }, OPEN)).toBe("open");
+    expect(doorSoundForWallTransition(CLOSED, { hasStubFlag: true }, OPEN)).toBe("open");
+    expect(doorSoundForWallTransition(CLOSED, { hasRevealFlag: true }, OPEN)).toBe("open");
+    expect(doorSoundForWallTransition(CLOSED, {}, OPEN)).toBeNull();
+  });
+
+  it("unknown previous state keeps the old CLOSED behaviour", () => {
+    expect(doorSoundForWallTransition(CLOSED, { hasGateFlag: true }, undefined)).toBe("unlock");
+  });
 });
