@@ -53,8 +53,20 @@ export function marchingOrderSceneTool(localize, open = () => new MarchingOrderA
     icon: "fa-solid fa-arrows-up-down",
     visible: true,
     button: true,
+    // v14 fires button tools through onChange (onClick was the v13 name).
+    onChange: () => open(),
     onClick: open,
   };
+}
+
+/**
+ * The token control group: v14 keys it `tokens` (an object keyed by name),
+ * v13 and earlier named it `token` (an array of controls).
+ */
+export function findTokenControl(controls) {
+  if (!controls) return undefined;
+  if (Array.isArray(controls)) return controls.find((c) => c.name === "token" || c.name === "tokens");
+  return controls.tokens ?? controls.token;
 }
 
 /**

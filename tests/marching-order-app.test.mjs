@@ -29,7 +29,7 @@ globalThis.foundry = {
   },
 };
 
-const { MarchingOrderApp, reorderMarching, refreshMarchingOrderWindow, marchingOrderSceneTool } = await import(
+const { MarchingOrderApp, reorderMarching, refreshMarchingOrderWindow, marchingOrderSceneTool, findTokenControl } = await import(
   "../scripts/ui/marching-order-app.mjs"
 );
 
@@ -192,7 +192,17 @@ describe("scene control wiring", () => {
       button: true,
     });
     tool.onClick();
-    expect(open).toHaveBeenCalledTimes(1);
+    tool.onChange();
+    expect(open).toHaveBeenCalledTimes(2);
+  });
+
+  it("findTokenControl handles the v14 `tokens` object and the older array/`token` shapes", () => {
+    const t = { name: "tokens" };
+    expect(findTokenControl({ tokens: t, walls: {} })).toBe(t);
+    expect(findTokenControl({ token: t })).toBe(t);
+    expect(findTokenControl([{ name: "walls" }, { name: "token" }])).toEqual({ name: "token" });
+    expect(findTokenControl({ walls: {} })).toBeUndefined();
+    expect(findTokenControl(undefined)).toBeUndefined();
   });
 
   it("module.mjs registers the tool for both tools shapes and refreshes on dungeonRuns changes", () => {

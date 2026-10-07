@@ -9,7 +9,7 @@ import {
   skillLabel,
 } from "./ui/dungeon-app.mjs";
 import { SoundPreviewApp } from "./ui/sound-preview-app.mjs";
-import { marchingOrderSceneTool, refreshMarchingOrderWindow } from "./ui/marching-order-app.mjs";
+import { findTokenControl, marchingOrderSceneTool, refreshMarchingOrderWindow } from "./ui/marching-order-app.mjs";
 import { retreatCardActionFor } from "./dungeon-retreat.mjs";
 import {
   abandonRun,
@@ -675,8 +675,7 @@ Hooks.on("deleteCombat", async (combat) => {
 Hooks.on("createChatMessage", handleStealthBreakMessage);
 
 Hooks.on("getSceneControlButtons", (controls) => {
-  const tokenControl =
-    controls.find?.((c) => c.name === "token") ?? controls.token;
+  const tokenControl = findTokenControl(controls);
   if (!tokenControl) return;
   const agentLoopButton = {
     name: "pf2edc-agent-loop-status",
@@ -684,6 +683,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
     icon: "fa-solid fa-robot",
     visible: game.user.isGM,
     button: true,
+    onChange: () => game.modules.get(MODULE_ID).api.postAgentLoopStatus(),
     onClick: () => game.modules.get(MODULE_ID).api.postAgentLoopStatus(),
   };
   // #852: visible to every connected user, not just the GM -- reachable
