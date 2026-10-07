@@ -499,7 +499,7 @@ to:
 Run: `npx vitest run tests/trap-combat-basic-save-trigger.test.mjs`
 Expected: PASS. Adjust `resolveBasicSaveTargets`'s own `footprint`-input shape to match whatever `footprint` (confirmed current, `scripts/placement.mjs:26`) actually expects from a token object if a test reveals a mismatch — read that function's real signature before finalizing this step.
 
-- [ ] **Step 7: Run the full test suite**
+- [x] **Step 7: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS — in particular every existing `trap-combat.mjs` test (the strike path is untouched) and every `trap-mechanics.mjs` test stay green.
@@ -532,7 +532,7 @@ Record what was actually observed (chat cards, applied damage, guard-rail whispe
 **Files:**
 - Modify: `module.json`
 
-- [ ] **Step 1: Re-check the current version and bump**
+- [x] **Step 1: Re-check the current version and bump**
 
 ```bash
 git fetch origin main -q && git log origin/main -1 --oneline && grep version module.json
@@ -540,7 +540,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **minor** bump (a real new mechanic — basic-save trap automation — not a trivial fix), using whatever the fetch above shows as current.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add module.json
