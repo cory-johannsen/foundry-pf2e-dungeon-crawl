@@ -143,6 +143,17 @@ export function createPixiBadge(placeable) {
   };
 }
 
+/** Token placeables the flanking pass scans for `combat` (#875): a defeated
+ * combatant is neither a flanker nor flanked, so its token is excluded
+ * (the combatant's own `isDefeated`, as the combat code uses); a combatant
+ * with no linked token is skipped. */
+export function flankingPlaceablesFor(combat) {
+  return combat.combatants
+    .filter((c) => !c.isDefeated)
+    .map((c) => c.token?.object)
+    .filter(Boolean);
+}
+
 /** Registers the hooks that keep each client's badges in sync. Every client
  * runs its own indicator: nothing is written, so there is no GM gating. */
 export function registerFlankedIndicator() {
@@ -153,8 +164,7 @@ export function registerFlankedIndicator() {
         ? combat
         : null;
     },
-    getPlaceables: (combat) =>
-      combat.combatants.map((c) => c.token?.object).filter(Boolean),
+    getPlaceables: flankingPlaceablesFor,
     createBadge: createPixiBadge,
     // setTimeout, not requestAnimationFrame: rAF never fires in a hidden
     // browser tab (e.g. the foundry-rest relay tab).
@@ -181,7 +191,14 @@ export function registerFlankedIndicator() {
   Hooks.on("refreshToken", (_token, flags) => {
     if (flags?.redraw || flags?.refreshVisibility) indicator.schedule();
   });
-  for (const hook of ["updateCombat", "createCombatant", "deleteCombatant"])
+  // #875: defeat is a Combatant `defeated` update (fires updateCombatant);
+  // without it the badge only clears on some unrelated later event.
+  for (const hook of [
+    "updateCombat",
+    "updateCombatant",
+    "createCombatant",
+    "deleteCombatant",
+  ])
     Hooks.on(hook, () => indicator.schedule());
   Hooks.on("canvasReady", () => indicator.schedule());
   // Combat deleted by ANY path, or the canvas going away: drop every badge now.
