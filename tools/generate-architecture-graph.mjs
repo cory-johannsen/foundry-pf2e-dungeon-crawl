@@ -108,6 +108,7 @@ const GROUPS = [
         "scripts/skill-challenge-mechanics.mjs",
         "scripts/skill-challenge.mjs",
         "scripts/treasure.mjs",
+        "scripts/choice-set.mjs",
         "scripts/narrative-mechanics.mjs",
         "scripts/room-feature-tokens.mjs",
         "scripts/room-feature-art.mjs",

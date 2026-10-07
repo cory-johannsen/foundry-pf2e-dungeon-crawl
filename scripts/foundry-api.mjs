@@ -46,6 +46,7 @@ import { splitmix32, seedFromString } from "./prng.mjs";
 import { buildCoverItemActorData, MODULE_ID } from "./cover-items.mjs";
 import { classifyTrap } from "./trap-combat.mjs";
 import { isTreasureEligible, rollNpcTreasure } from "./treasure.mjs";
+import { resolveChoiceSetsOnActorData, resolveChoiceSetsOnItemData } from "./choice-set.mjs";
 
 export const CREATURE_PACK_PATTERN =
   /bestiary|monster-core|npc-core|npc-gallery/i;
@@ -898,8 +899,14 @@ export function makeFoundryApi(sceneRef = null) {
               }
             : {}),
         };
+        // #897: pre-resolve any ChoiceSet on a spawned NPC/hazard's own
+        // embedded items before creation -- the generation-time
+        // document-creation path shared by combat encounters and
+        // populateSlotTrap's hazard spawning.
         const [actor] = await Actor.createDocuments([
-          foundry.utils.mergeObject(doc.toObject(), overrides),
+          resolveChoiceSetsOnActorData(
+            foundry.utils.mergeObject(doc.toObject(), overrides),
+          ),
         ]);
         // Only a hostile spawn (a monster, never a player's own summon) can
         // ever end up on the lootable-corpse path resolveCombat drives — see
@@ -912,7 +919,7 @@ export function makeFoundryApi(sceneRef = null) {
           if (gp > 0) await actor.inventory.addCoins({ gp });
           if (tableName) {
             const itemDoc = await drawTreasureItem(tableName);
-            if (itemDoc) await actor.createEmbeddedDocuments("Item", [itemDoc.toObject()]);
+            if (itemDoc) await actor.createEmbeddedDocuments("Item", [resolveChoiceSetsOnItemData(itemDoc.toObject())]);
           }
         }
         // Most summons stand next to the character. Ooze lands *on* them: the

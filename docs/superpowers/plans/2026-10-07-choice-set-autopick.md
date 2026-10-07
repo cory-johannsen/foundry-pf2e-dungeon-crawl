@@ -41,7 +41,7 @@
 **Interfaces:**
 - Produces: `resolveChoiceSetsOnItemData(itemData, rng = Math.random): itemData` (new object, `itemData` itself untouched); `resolveChoiceSetsOnActorData(actorData, rng = Math.random): actorData` (same, mapping over `actorData.items`).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -120,12 +120,12 @@ describe("#897 resolveChoiceSetsOnActorData", () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/choice-set.test.mjs`
 Expected: FAIL — `scripts/choice-set.mjs` does not exist yet.
 
-- [ ] **Step 3: Write `scripts/choice-set.mjs`**
+- [x] **Step 3: Write `scripts/choice-set.mjs`**
 
 ```js
 /**
@@ -173,12 +173,12 @@ export function resolveChoiceSetsOnActorData(actorData, rng = Math.random) {
 export { resolveChoiceSetsOnItemData };
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/choice-set.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/choice-set.mjs tests/choice-set.test.mjs
@@ -195,7 +195,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Modify: `scripts/ui/dungeon-app.mjs`
 - Test: `tests/dungeon-app-treasure-chat.test.mjs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to the existing `describe("grantTreasureReward (#88 chat log fix)", ...)` block (confirmed current, follow its own exact fixture style — `itemDoc.toObject()`, `installFoundryStubs`, `created` capture — all confirmed current in this file):
 
@@ -229,12 +229,12 @@ it("#897: a drawn item's own ChoiceSet is pre-resolved before it's created", asy
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/dungeon-app-treasure-chat.test.mjs`
 Expected: FAIL — `created[0]` has no `rulesSelections` set today.
 
-- [ ] **Step 3: Wire the resolver**
+- [x] **Step 3: Wire the resolver**
 
 Change (confirmed current, `scripts/ui/dungeon-app.mjs:344-348`):
 
@@ -262,17 +262,17 @@ to:
 
 Add the import: `import { resolveChoiceSetsOnItemData } from "../choice-set.mjs";`
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run tests/dungeon-app-treasure-chat.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full test suite**
+- [x] **Step 5: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/ui/dungeon-app.mjs tests/dungeon-app-treasure-chat.test.mjs
@@ -289,7 +289,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Modify: `scripts/foundry-api.mjs`
 - Test: whichever existing test file already covers `spawnCreatures`'s own `Actor.createDocuments` call (`grep -rln "spawnCreatures" tests/` — confirm the exact fixture before writing).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 it("#897: a spawned creature's own embedded item ChoiceSet is pre-resolved before Actor.createDocuments", async () => {
@@ -301,12 +301,12 @@ it("#897: a spawned creature's own embedded item ChoiceSet is pre-resolved befor
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run <the test file found in Step 1>`
 Expected: FAIL.
 
-- [ ] **Step 3: Wire the resolver**
+- [x] **Step 3: Wire the resolver**
 
 Change (confirmed current, `scripts/foundry-api.mjs:901-903`):
 
@@ -330,17 +330,17 @@ to:
 
 Add the import: `import { resolveChoiceSetsOnActorData } from "./choice-set.mjs";`
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run <the test file found in Step 1>`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full test suite**
+- [x] **Step 5: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/foundry-api.mjs tests/
@@ -370,7 +370,7 @@ Generate several dungeons with combat rooms and traps, confirming no GM prompt e
 **Files:**
 - Modify: `module.json`
 
-- [ ] **Step 1: Re-check the current version and bump**
+- [x] **Step 1: Re-check the current version and bump**
 
 ```bash
 git fetch origin main -q && git log origin/main -1 --oneline && grep version module.json
@@ -378,7 +378,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **patch** bump, using whatever the fetch above shows as current.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add module.json
