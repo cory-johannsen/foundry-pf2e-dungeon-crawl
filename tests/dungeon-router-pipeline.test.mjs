@@ -61,7 +61,9 @@ describe('runs without the routing flag keep their geometry exactly (#427)', () 
       digestWalls(walls, scene);
       digestTiles(tiles, scene);
     }
-    expect({ walls: walls.digest('hex'), tiles: tiles.digest('hex') }).toEqual({ walls: 'a5721e874f506919d21f179ffcf16970e7e502eee1f3dc7a19be74da385d03aa', tiles: 'e3123cd8b6b4e1cf7c7d33fe562529f177a1b1dfcbf2eeeae065fc68654d0021' });
+    // #861: dead-end stub corridor tiles now use the openings-based piece rule (end/mid instead of the closed 'single'),
+    // so the tiles digest moved (was e3123cd8...); the walls digest is byte-identical.
+    expect({ walls: walls.digest('hex'), tiles: tiles.digest('hex') }).toEqual({ walls: 'a5721e874f506919d21f179ffcf16970e7e502eee1f3dc7a19be74da385d03aa', tiles: '3dcc98a0499a692844f4c590676fb42b777b59d2e4106e4cfb8ef689066a4578' });
   }, 300000);
 });
 

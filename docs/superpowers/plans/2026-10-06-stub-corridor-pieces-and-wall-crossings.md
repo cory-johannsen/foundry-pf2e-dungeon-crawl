@@ -1,6 +1,6 @@
 # Stub Corridor Pieces And Corridor Wall Crossings Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Fix #861's part (1) — dead-end stub corridors render as a row of fully-walled boxes instead of using the #823 openings-based piece rule — and, for part (2), measure and honestly pin the real "solid wall crosses open corridor floor" phenomenon with a committed, categorized sweep, then re-file the harder, multi-subsystem root cause as its own properly-scoped, evidence-backed issue rather than guessing at a fix for three loosely-related wall-generation mechanisms in one pass.
 
@@ -42,7 +42,7 @@
 - Consumes: `corridorPieceForOpenings(openings)` (confirmed current, `scripts/corridor-pieces.mjs:51`) — reused directly, no signature change.
 - Produces: no change to `stubTilesFor`'s own call signature or return shape (still an array of tile objects with the same `{texture, x, y, width, height, rotation, flags}` shape) — only the `texture`/`rotation` VALUES change for non-cap tiles.
 
-- [ ] **Step 1: Check for an existing stub-tile-specific test**
+- [x] **Step 1: Check for an existing stub-tile-specific test**
 
 ```bash
 grep -rln "stubTilesFor\|dungeonStubCorridorFor" tests/
@@ -50,7 +50,7 @@ grep -rln "stubTilesFor\|dungeonStubCorridorFor" tests/
 
 If a test already exercises `stubTilesFor`'s own output shape, extend it. Otherwise create `tests/dungeon-stub-corridor-pieces.test.mjs` (pure unit test, no scene stub needed — `stubTilesFor` is a plain function of a `stubGeometry`-shaped object).
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 ```js
 import { describe, it, expect } from 'vitest';
@@ -98,12 +98,12 @@ describe('#861 stub corridor tiles use the openings-based piece rule, not a row 
 
 `stubTilesFor` is not currently exported — add it to `scripts/dungeon-scene.mjs`'s own export list for this test (it is already a named `function` declaration, confirmed current; change `function stubTilesFor` to `export function stubTilesFor`).
 
-- [ ] **Step 3: Run the tests to verify they fail**
+- [x] **Step 3: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-stub-corridor-pieces.test.mjs`
 Expected: FAIL — every non-cap tile currently reports `['corridor', 0]` (the `'single'` variant), not `'corridor-end'`/`'corridor-mid'`.
 
-- [ ] **Step 4: Fix `stubTilesFor`**
+- [x] **Step 4: Fix `stubTilesFor`**
 
 Change (confirmed current):
 
@@ -163,17 +163,17 @@ export function stubTilesFor(g, key) {
 }
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-stub-corridor-pieces.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS across the board — `stubTilesFor` is only called from one site (`scripts/dungeon-scene.mjs:879`, confirmed current), and no other file imports it by name, so this change cannot ripple beyond stub-tile rendering.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-stub-corridor-pieces.test.mjs
@@ -193,7 +193,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: the same harness `tests/dungeon-corridor-joins-sweep.test.mjs` already uses (`computeRunLayout`, `planRunLayoutStubs`, `buildSceneForLayout`, `installFoundryStubs`, `sweepShapeOfRunLayout`, `PIECE_OPENINGS`).
 - Produces: a permanent, categorized regression guard for "a non-door wall crosses an open corridor joint" — pinned to the real current counts, not zero, until the follow-up issue (Task 3) resolves the underlying cause.
 
-- [ ] **Step 1: Write the sweep**
+- [x] **Step 1: Write the sweep**
 
 ```js
 import { describe, it, expect } from 'vitest';
@@ -288,12 +288,12 @@ describe('#861 no solid (non-door) wall crosses an open corridor joint', () => {
 });
 ```
 
-- [ ] **Step 2: Run it to confirm it passes against the real, current state**
+- [x] **Step 2: Run it to confirm it passes against the real, current state**
 
 Run: `npx vitest run tests/dungeon-corridor-wall-crossing-sweep.test.mjs`
 Expected: PASS with exactly the pinned counts above. If the real counts differ (concurrent sessions push to this repo constantly — re-check immediately before this step), update the `expect(byCategory).toEqual(...)` block to the actual, freshly-measured numbers rather than forcing the old ones — this test's entire purpose is to honestly reflect the current measured state, never a stale guess.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/dungeon-corridor-wall-crossing-sweep.test.mjs
@@ -346,7 +346,7 @@ gh issue comment 861 --body "Part (1) (stub corridor tiles rendering as fully-wa
 **Files:**
 - Modify: `module.json`
 
-- [ ] **Step 1: Re-check the current version and bump**
+- [x] **Step 1: Re-check the current version and bump**
 
 ```bash
 git fetch origin main -q && git log origin/main -1 --oneline && grep version module.json
@@ -354,7 +354,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **patch** bump (a rendering fix plus a new regression sweep, not an architecture-level change), using whatever the fetch above shows as current.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add module.json
