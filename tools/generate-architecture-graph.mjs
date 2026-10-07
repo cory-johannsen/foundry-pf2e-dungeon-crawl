@@ -161,6 +161,7 @@ const GROUPS = [
         "scripts/module.mjs",
         "scripts/ui/dungeon-app.mjs",
         "scripts/ui/sound-preview-app.mjs",
+        "scripts/ui/marching-order-app.mjs",
         "scripts/ui/trap-disable-dialog.mjs",
         "scripts/ui/puzzle-stage-dialog.mjs",
         "scripts/ui/skill-challenge-dialog.mjs",
