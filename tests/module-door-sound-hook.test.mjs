@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, it, expect, vi } from "vitest";
 import { doorSoundForWallTransition, playDoorSound } from "../scripts/dungeon-sound.mjs";
 
@@ -34,5 +35,12 @@ describe("#868 updateWall sound reaction (every client, no GM dependency)", () =
     const result = simulateUpdateWallSoundReaction(wall({ dungeonRevealDoorForSlot: "room1" }), {});
     expect(result).toBeNull();
     expect(globalThis.foundry.audio.AudioHelper.play).not.toHaveBeenCalled();
+  });
+
+  it("module.mjs records the previous ds in preUpdateWall and passes it on", () => {
+    const src = readFileSync(new URL("../scripts/module.mjs", import.meta.url), "utf8");
+    expect(src).toMatch(/Hooks\.on\("preUpdateWall"/);
+    expect(src).toMatch(/prevWallDs\.set\(wall\.id, wall\.ds\)/);
+    expect(src).toMatch(/\}, prevDs\);/);
   });
 });

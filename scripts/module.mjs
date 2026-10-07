@@ -351,8 +351,18 @@ function openDungeonTrackerIfNotOpen() {
     new DungeonApp().render(true);
 }
 
+/** #868: updateWall can't see the previous door state, so remember it here
+ * (consumed and deleted by the matching updateWall) to tell LOCKED->CLOSED
+ * (unlock sound) from OPEN->CLOSED (open sound). */
+const prevWallDs = new Map();
+Hooks.on("preUpdateWall", (wall, changes) => {
+  if (changes.ds !== undefined) prevWallDs.set(wall.id, wall.ds);
+});
+
 Hooks.on("updateWall", async (wall, changes) => {
   followLeaderOnDoorOpened(wall, changes);
+  const prevDs = prevWallDs.get(wall.id);
+  prevWallDs.delete(wall.id);
   // #868: every connected client plays its own door sound reactively, from the
   // wall state Foundry's document sync already delivers to everyone -- no
   // longer dependent on a GM client running the state-mutation code below.
@@ -361,7 +371,7 @@ Hooks.on("updateWall", async (wall, changes) => {
       hasRevealFlag: !!wall.getFlag(MODULE_ID, "dungeonRevealDoorForSlot"),
       hasStubFlag: !!wall.getFlag(MODULE_ID, "dungeonStubDoorFor"),
       hasGateFlag: !!wall.getFlag(MODULE_ID, "dungeonDoorToRoomId"),
-    });
+    }, prevDs);
     if (sound) playDoorSound(sound, { broadcast: false });
   }
   if (changes.ds !== CONST.WALL_DOOR_STATES.OPEN) return;
