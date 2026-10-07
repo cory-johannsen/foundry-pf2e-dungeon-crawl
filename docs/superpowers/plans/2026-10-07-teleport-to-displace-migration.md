@@ -47,7 +47,7 @@
 - Modify: `scripts/token-walk.mjs`
 - Test: `tests/token-walk.test.mjs`
 
-- [ ] **Step 1: Update the failing test**
+- [x] **Step 1: Update the failing test**
 
 Change (confirmed current, `tests/token-walk.test.mjs:29-44`):
 
@@ -74,12 +74,12 @@ to assert on `token.move` instead (add a `move: vi.fn()` to this file's own toke
     expect(token.update).not.toHaveBeenCalled();
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/token-walk.test.mjs`
 Expected: FAIL — `walkTokenThroughSteps` still calls `token.update`.
 
-- [ ] **Step 3: Fix `walkTokenThroughSteps`**
+- [x] **Step 3: Fix `walkTokenThroughSteps`**
 
 Change (confirmed current, `scripts/token-walk.mjs:47-59`):
 
@@ -125,12 +125,12 @@ export async function walkTokenThroughSteps(token, steps, gridSize, onHop, delay
 
 Update this function's own docblock (confirmed current, lines 39-46) and the file's own top-of-file comment (lines 7-14) to describe `.move({action:'displace'})` instead of `{teleport:true}`.
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run tests/token-walk.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/token-walk.mjs tests/token-walk.test.mjs
@@ -147,7 +147,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Modify: `scripts/dungeon-follow.mjs`, `scripts/dungeon-combat.mjs`
 - Test: `tests/dungeon-follow.test.mjs`, `tests/dungeon-follow-mechanics.test.mjs`, `tests/dungeon-combat-grid-snap.test.mjs`
 
-- [ ] **Step 1: Update the failing tests**
+- [x] **Step 1: Update the failing tests**
 
 In `tests/dungeon-follow.test.mjs`, every assertion of the shape (confirmed current, lines 608/659/893/1375/1476/1541/1615/1650):
 
@@ -180,12 +180,12 @@ expect(mover.token.update).not.toHaveBeenCalled();
 
 (adjusting each one's own exact `x`/`y` expectations to match, and adding `move: vi.fn()` to this file's own token fixtures).
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-follow.test.mjs tests/dungeon-follow-mechanics.test.mjs tests/dungeon-combat-grid-snap.test.mjs`
 Expected: FAIL.
 
-- [ ] **Step 3: Fix `dungeon-follow.mjs`'s two sites**
+- [x] **Step 3: Fix `dungeon-follow.mjs`'s two sites**
 
 Change (confirmed current, line 325):
 
@@ -213,7 +213,7 @@ to:
 
 Update both sites' own surrounding comments (lines 141, 400) to describe `.move({action:'displace'})` instead of the deprecated option.
 
-- [ ] **Step 4: Fix `dungeon-combat.mjs`'s `snapTokenToGrid`**
+- [x] **Step 4: Fix `dungeon-combat.mjs`'s `snapTokenToGrid`**
 
 Change (confirmed current, line 2350):
 
@@ -229,17 +229,17 @@ to:
 
 Update the function's own docblock (lines 2340-2349) to describe `.move({action:'displace'})` instead.
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-follow.test.mjs tests/dungeon-follow-mechanics.test.mjs tests/dungeon-combat-grid-snap.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full test suite**
+- [x] **Step 6: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-follow.mjs scripts/dungeon-combat.mjs tests/dungeon-follow.test.mjs tests/dungeon-follow-mechanics.test.mjs tests/dungeon-combat-grid-snap.test.mjs
@@ -259,7 +259,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: `scene.moveTokens(instructions, options)` (confirmed live this session — `TokenDocument#move`'s own source delegates to exactly this: `this.parent.moveTokens({[this.id]: instruction}, rest)`).
 
-- [ ] **Step 1: Update the failing tests**
+- [x] **Step 1: Update the failing tests**
 
 Change (confirmed current, `tests/dungeon-scene-retreat.test.mjs:90-94`):
 
@@ -275,12 +275,12 @@ to assert on a `scene.moveTokens` mock call instead — check this test file's o
 
 Apply the same conversion to the second test at line 231 (`'moves tokens with teleport:true FIRST, then persists, then posts a line'`).
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-scene-retreat.test.mjs`
 Expected: FAIL.
 
-- [ ] **Step 3: Fix `moveTokensToRoom`**
+- [x] **Step 3: Fix `moveTokensToRoom`**
 
 Change (confirmed current, `scripts/dungeon-scene.mjs:1710-1731`):
 
@@ -345,17 +345,17 @@ to:
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-scene-retreat.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full test suite**
+- [x] **Step 5: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-scene-retreat.test.mjs

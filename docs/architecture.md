@@ -161,7 +161,7 @@ run's `marchingOrder` (`dungeon-runner.mjs`'s `effectiveMarchingOrder`),
 not always the leader directly — this chain-following is what lets
 followers queue single-file through a corridor too narrow for more than
 one of them to be near the leader at once. Since #610, a follower walks its
-found path one cell per `{teleport: true}` update with the
+found path one cell per `move({action: "displace"})` write with the
 `movementStepDelayMs` pause between hops, via `token-walk.mjs` — the leaf
 module (shared with `dungeon-combat.mjs`, #479) that owns that hop-by-hop
 write loop, so neither file imports the other.

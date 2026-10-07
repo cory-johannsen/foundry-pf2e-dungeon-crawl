@@ -1,4 +1,4 @@
-// #439 R3: scene layer for retreat (teleport option, stub-door and revisit branches,
+// #439 R3: scene layer for retreat (teleport option -> #631 moveTokens displace, stub-door and revisit branches,
 // retreatToFork, relay actions). Separate file from dungeon-scene.test.mjs because it
 // vi.mock()s startCombatForRoom, which would leak into that file's tests.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -34,6 +34,14 @@ function makeScene({ walls = [], tokens = [], log = [], failMove = false } = {})
     walls: wallList,
     tokens: Object.assign([...tokens], {}),
     updates: [],
+    moves: [],
+    // #631: Scene#moveTokens(instructions, options) -- the batch primitive
+    // TokenDocument#move delegates to; instructions is {[tokenId]: {waypoints}}.
+    async moveTokens(instructions, options) {
+      log.push('move');
+      if (failMove) throw new Error('boom');
+      scene.moves.push({ instructions, options });
+    },
     async updateEmbeddedDocuments(type, updates, options) {
       log.push('move');
       if (failMove) throw new Error('boom');
@@ -88,12 +96,38 @@ async function seed(state) { await replaceRunState(SID, state); }
 beforeEach(() => { combatStarts.length = 0; });
 
 describe('moveTokensToRoom teleport option (#439 R3.1)', () => {
-  it('passes { teleport: true } when asked, undefined otherwise', async () => {
+  it('uses scene.moveTokens with a per-waypoint displace action when asked, a plain batch update otherwise (#631)', async () => {
     const scene = makeScene();
     await moveTokensToRoom(scene, ['t1'], 'r', 0, 0, 'seed', { teleport: true });
-    expect(scene.updates[0].options).toEqual({ teleport: true });
+    expect(scene.updates).toHaveLength(0);
+    expect(scene.moves).toHaveLength(1);
+    const { x, y } = scene.moves[0].instructions.t1.waypoints[0];
+    expect(scene.moves[0].instructions).toEqual({
+      t1: { waypoints: [{ x, y, action: 'displace' }] },
+    });
     await moveTokensToRoom(scene, ['t1'], 'r', 0, 0, 'seed');
-    expect(scene.updates[1].options).toBeUndefined();
+    expect(scene.moves).toHaveLength(1);
+    expect(scene.updates[0].options).toBeUndefined();
+    // the plain update lands on the same cell and never carries movementAction
+    expect(scene.updates[0].updates).toEqual([{ _id: 't1', x, y }]);
+  });
+
+  it('moves EVERY listed token, each to its own cell, never persisting movementAction (#631)', async () => {
+    const scene = makeScene();
+    const ids = ['t1', 't2', 't3', 't4'];
+    await moveTokensToRoom(scene, ids, 'r', 0, 0, 'seed', { teleport: true });
+    const { instructions } = scene.moves[0];
+    expect(Object.keys(instructions)).toEqual(ids);
+    const cells = new Set();
+    for (const id of ids) {
+      expect(instructions[id].waypoints).toHaveLength(1);
+      expect(instructions[id].waypoints[0].action).toBe('displace');
+      expect(instructions[id].waypoints[0]).not.toHaveProperty('movementAction');
+      expect(instructions[id]).not.toHaveProperty('movementAction');
+      cells.add(`${instructions[id].waypoints[0].x},${instructions[id].waypoints[0].y}`);
+    }
+    expect(cells.size).toBe(ids.length);
+    expect(scene.updates).toHaveLength(0);
   });
 });
 
@@ -228,13 +262,14 @@ describe('retreatToFork (#439 R3.3)', () => {
   }
   const dead = (over = {}) => v3State({ stubsOpened: { 'd->g': 1 }, aiControlledActorIds: ['ai1', 'ai2'], marchingOrder: ['ai1', 'ai2'], ...over });
 
-  it('moves tokens with teleport:true FIRST, then persists, then posts a line', async () => {
+  it('moves tokens with a displace moveTokens FIRST, then persists, then posts a line', async () => {
     const { scene, log } = setup();
     await seed(dead());
     log.length = 0;
     const res = await retreatToFork(SID);
     expect(res).toEqual({ ok: true });
-    expect(scene.updates[0].options).toEqual({ teleport: true });
+    expect(scene.moves).toHaveLength(1);
+    expect(scene.updates).toHaveLength(0);
     expect(log).toEqual(['move', 'persist']);
     const after = getRunState(SID);
     expect(after.currentRoomId).toBe('f');
@@ -271,6 +306,7 @@ describe('retreatToFork (#439 R3.3)', () => {
     const res = await retreatToFork(SID);
     expect(res).toEqual({ ok: false, reason: 'combat' });
     expect(scene.updates).toHaveLength(0);
+    expect(scene.moves).toHaveLength(0);
     expect(warns).toEqual(['PF2EDC.Dungeon.Retreat.Refused.combat']);
     expect(getRunState(SID)).toEqual(st);
   });
@@ -279,7 +315,7 @@ describe('retreatToFork (#439 R3.3)', () => {
     const { scene } = setup();
     await seed(dead());
     await retreatToFork(SID);
-    expect(scene.updates[0].updates.map((u) => u._id)).toEqual(['t-h', 't-ai1', 't-ai2']);
+    expect(Object.keys(scene.moves[0].instructions)).toEqual(['t-h', 't-ai1', 't-ai2']);
   });
 });
 
