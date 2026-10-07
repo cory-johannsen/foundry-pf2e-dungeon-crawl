@@ -22,6 +22,10 @@ function makeToken({ x, y, disposition }) {
   token.update = vi.fn(async function (changes) {
     Object.assign(this, changes);
   });
+  // #631: positions are written via move({x, y, action: "displace"}).
+  token.move = vi.fn(async function ({ x, y }) {
+    Object.assign(this, { x, y });
+  });
   return token;
 }
 
@@ -119,7 +123,7 @@ describe("applyAgentDecision move-stalled chat card (#140)", () => {
     expect(ChatMessage.create.mock.calls[1][0].content).toContain(
       "PF2EDC.Dungeon.Combat.AgentMoveStalled",
     );
-    expect(attacker.token.update).not.toHaveBeenCalled();
+    expect(attacker.token.move).not.toHaveBeenCalled();
   });
 
   it("does not whisper a stall card on a normal successful stride", async () => {
@@ -148,6 +152,6 @@ describe("applyAgentDecision move-stalled chat card (#140)", () => {
     await applyAgentDecision(combat, "atk", candidate.id);
 
     expect(ChatMessage.create).toHaveBeenCalledTimes(1);
-    expect(attacker.token.update).toHaveBeenCalled();
+    expect(attacker.token.move).toHaveBeenCalled();
   });
 });

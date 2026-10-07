@@ -188,7 +188,7 @@ describe("strideByPosture corrects an off-grid mover even when it doesn't move (
     expect(Math.abs(mover.token.y % GRID_SIZE)).toBe(0);
   });
 
-  it("passes action "displace" on every hop of its own move, walking multiple squares instead of jumping once", async () => {
+  it("passes the displace action on every hop of its own move, walking multiple squares instead of jumping once", async () => {
     installFoundryStubs();
     const mover = makeCombatant({ id: "mover", x: 0, y: 0, speedFt: 30 });
     const target = makeCombatant({ id: "target", x: 5 * GRID_SIZE, y: 0 });
@@ -284,7 +284,7 @@ describe("pushTokenAway corrects an off-grid target even when it can't be pushed
     expect(target.token.y % GRID_SIZE).toBe(0);
   });
 
-  it("passes action "displace" on its own push-move, separately from the #86 snap correction", async () => {
+  it("passes the displace action on its own push-move, separately from the #86 snap correction", async () => {
     installFoundryStubs();
     const attacker = makeCombatant({ id: "attacker", x: 0, y: 0 });
     const target = makeCombatant({ id: "target", x: GRID_SIZE, y: 0 });

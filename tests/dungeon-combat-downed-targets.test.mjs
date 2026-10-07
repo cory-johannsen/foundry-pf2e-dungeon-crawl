@@ -58,6 +58,10 @@ function mk(id, gx, gy, disposition, { type = "character", conds = [], agent = t
       update: vi.fn(async function (c) {
         Object.assign(this, c);
       }),
+      // #631: positions are written via move({x, y, action: "displace"}).
+      move: vi.fn(async function ({ x, y }) {
+        Object.assign(this, { x, y });
+      }),
     },
     getFlag: (_m, k) => flags[k],
     actor: {
@@ -156,8 +160,8 @@ describe("hostile AI skips downed PCs (#410)", () => {
     const p1 = strideByPosture(combat, me, "approach", far);
     await vi.runAllTimersAsync();
     await p1;
-    expect(me.token.update.mock.calls.length).toBeGreaterThan(0);
-    for (const c of me.token.update.mock.calls.map((x) => x[0])) {
+    expect(me.token.move.mock.calls.length).toBeGreaterThan(0);
+    for (const c of me.token.move.mock.calls.map((x) => x[0])) {
       expect(
         Math.round((c.x ?? 0) / G) === 3 && Math.round((c.y ?? 0) / G) === 0,
       ).toBe(false);
@@ -172,7 +176,7 @@ describe("hostile AI skips downed PCs (#410)", () => {
     await vi.runAllTimersAsync();
     await p2;
     vi.useRealTimers();
-    expect(me2.token.update.mock.calls.length).toBeGreaterThan(0);
+    expect(me2.token.move.mock.calls.length).toBeGreaterThan(0);
     expect(me2.token.x === 2 * G && me2.token.y === 0).toBe(false);
   });
 

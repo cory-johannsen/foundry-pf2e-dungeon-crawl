@@ -62,6 +62,10 @@ function mk(id, gx, gy, disposition, { type = "character", agent = true } = {}) 
       update: vi.fn(async function (c) {
         Object.assign(this, c);
       }),
+      // #631: positions are written via move({x, y, action: "displace"}).
+      move: vi.fn(async function ({ x, y }) {
+        Object.assign(this, { x, y });
+      }),
     },
     getFlag: (_m, k) => flags[k],
     actor: {
@@ -225,7 +229,7 @@ describe("hostile targeting honors the detection matrix (#616)", () => {
     await vi.runAllTimersAsync();
     await p;
     vi.useRealTimers();
-    expect(me.token.update.mock.calls.length).toBeGreaterThan(0);
+    expect(me.token.move.mock.calls.length).toBeGreaterThan(0);
     expect(me.token.x === 2 * G && me.token.y === 0).toBe(false);
   });
 });
