@@ -196,6 +196,12 @@ describe("scene control wiring", () => {
     expect(open).toHaveBeenCalledTimes(2);
   });
 
+  it("a dungeonRuns setting write only auto-opens the tracker for a newly hosted run", () => {
+    const src = readFileSync(new URL("../scripts/module.mjs", import.meta.url), "utf8");
+    expect(src).toContain("syncGmLessDungeonBroadcast({ openOnlyForNewRun: true })");
+    expect(src).toContain("(!openOnlyForNewRun || isNewRun)");
+  });
+
   it("findTokenControl handles the v14 `tokens` object and the older array/`token` shapes", () => {
     const t = { name: "tokens" };
     expect(findTokenControl({ tokens: t, walls: {} })).toBe(t);
