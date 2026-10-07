@@ -30,6 +30,23 @@ export function refreshMarchingOrderWindow(instances) {
 }
 
 /**
+ * #852: the scene-control tool that opens the window. Visible to every
+ * connected user and unconditionally (scene controls are built once per
+ * canvas-ready/scene-change cycle, not per run start/end), so the window's
+ * own _prepareContext renders the "no active run" empty state.
+ */
+export function marchingOrderSceneTool(localize, open = () => new MarchingOrderApp().render(true)) {
+  return {
+    name: "pf2edc-marching-order",
+    title: localize("PF2EDC.SceneControl.MarchingOrderLabel"),
+    icon: "fa-solid fa-arrows-up-down",
+    visible: true,
+    button: true,
+    onClick: open,
+  };
+}
+
+/**
  * #852: a small, standalone window for viewing/editing the current dungeon
  * run's marching order, reachable without opening the Dungeon Tracker (which
  * no longer auto-opens, #771/#845). Mirrors SoundPreviewApp's lightweight

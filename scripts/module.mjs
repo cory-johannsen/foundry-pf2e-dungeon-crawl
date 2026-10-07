@@ -9,6 +9,7 @@ import {
   skillLabel,
 } from "./ui/dungeon-app.mjs";
 import { SoundPreviewApp } from "./ui/sound-preview-app.mjs";
+import { marchingOrderSceneTool, refreshMarchingOrderWindow } from "./ui/marching-order-app.mjs";
 import { retreatCardActionFor } from "./dungeon-retreat.mjs";
 import {
   abandonRun,
@@ -580,6 +581,9 @@ function syncGmLessDungeonBroadcast() {
 function onDungeonRunsSettingChanged(setting) {
   if (setting.key !== `${MODULE_ID}.dungeonRuns`) return;
   syncGmLessDungeonBroadcast();
+  // #852: an open marching-order window reflects a change made from another
+  // client or an automatic follow-the-leader reconcile, GM-less or not.
+  refreshMarchingOrderWindow(foundry.applications.instances);
 }
 Hooks.on("updateSetting", onDungeonRunsSettingChanged);
 Hooks.on("createSetting", onDungeonRunsSettingChanged);
@@ -682,10 +686,14 @@ Hooks.on("getSceneControlButtons", (controls) => {
     button: true,
     onClick: () => game.modules.get(MODULE_ID).api.postAgentLoopStatus(),
   };
+  // #852: visible to every connected user, not just the GM -- reachable
+  // without the tracker (which no longer auto-opens, #771/#845).
+  const marchingOrderButton = marchingOrderSceneTool((k) => game.i18n.localize(k));
   if (Array.isArray(tokenControl.tools)) {
-    tokenControl.tools.push(agentLoopButton);
+    tokenControl.tools.push(agentLoopButton, marchingOrderButton);
   } else if (tokenControl.tools && typeof tokenControl.tools === "object") {
     tokenControl.tools["pf2edc-agent-loop-status"] = agentLoopButton;
+    tokenControl.tools[marchingOrderButton.name] = marchingOrderButton;
   }
 });
 

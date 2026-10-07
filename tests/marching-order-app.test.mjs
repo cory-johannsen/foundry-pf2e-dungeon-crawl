@@ -29,7 +29,7 @@ globalThis.foundry = {
   },
 };
 
-const { MarchingOrderApp, reorderMarching, refreshMarchingOrderWindow } = await import(
+const { MarchingOrderApp, reorderMarching, refreshMarchingOrderWindow, marchingOrderSceneTool } = await import(
   "../scripts/ui/marching-order-app.mjs"
 );
 
@@ -161,5 +161,37 @@ describe("template", () => {
     expect(tpl).toContain("{{#if ../canReorder}}");
     expect(tpl).toContain("PF2EDC.MarchingOrder.ReadOnly");
     expect(tpl).toContain("PF2EDC.MarchingOrder.NoActiveRun");
+  });
+});
+
+describe("scene control wiring", () => {
+  it("the tool is an unconditionally visible button that opens the window", () => {
+    const open = vi.fn();
+    const tool = marchingOrderSceneTool((k) => `L:${k}`, open);
+    expect(tool).toMatchObject({
+      name: "pf2edc-marching-order",
+      title: "L:PF2EDC.SceneControl.MarchingOrderLabel",
+      visible: true,
+      button: true,
+    });
+    tool.onClick();
+    expect(open).toHaveBeenCalledTimes(1);
+  });
+
+  it("module.mjs registers the tool for both tools shapes and refreshes on dungeonRuns changes", () => {
+    const src = readFileSync(new URL("../scripts/module.mjs", import.meta.url), "utf8");
+    expect(src).toContain("tokenControl.tools.push(agentLoopButton, marchingOrderButton)");
+    expect(src).toContain("tokenControl.tools[marchingOrderButton.name] = marchingOrderButton");
+    const fn = src.slice(src.indexOf("function onDungeonRunsSettingChanged"));
+    const body = fn.slice(0, fn.indexOf("\n}\n"));
+    expect(body).toContain("refreshMarchingOrderWindow(foundry.applications.instances)");
+    expect(body.indexOf("return;")).toBeLessThan(body.indexOf("refreshMarchingOrderWindow"));
+    expect(src).toContain('Hooks.on("updateSetting", onDungeonRunsSettingChanged)');
+    expect(src).toContain('Hooks.on("createSetting", onDungeonRunsSettingChanged)');
+  });
+
+  it("the locale has the scene-control label", () => {
+    const lang = JSON.parse(readFileSync(new URL("../lang/en.json", import.meta.url), "utf8"));
+    expect(lang["PF2EDC.SceneControl.MarchingOrderLabel"]).toBeTruthy();
   });
 });
