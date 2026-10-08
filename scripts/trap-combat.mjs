@@ -24,7 +24,7 @@ import { actorIdsWithExplorationActivity } from "./stealth-detection.mjs";
 import { applyTrapRoomState, getRunState } from "./dungeon-runner.mjs";
 import { userMayAttemptTrapDisable } from "./dungeon-permissions.mjs";
 import { footprint, isPositionChange } from "./placement.mjs";
-import { blockedEdgesFromWalls, hasLineOfSight } from "./pathfinding.mjs";
+import { blockedEdgesFromWalls, hasLineOfSight, wallBlocksMovement } from "./pathfinding.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 
@@ -366,19 +366,6 @@ async function rollHazardDamage(hazardActor, parsed, deps = {}) {
   return roll;
 }
 
-/** Mirrors dungeon-combat.mjs's wallBlocksMovement (private there, and that
- * file imports this one): a wall blocks unless its movement sense is NONE or
- * it is a door standing open. */
-function wallBlocksLine(wall) {
-  if (wall.move === CONST.WALL_MOVEMENT_TYPES.NONE) return false;
-  if (
-    wall.door !== CONST.WALL_DOOR_TYPES.NONE &&
-    wall.ds === CONST.WALL_DOOR_STATES.OPEN
-  )
-    return false;
-  return true;
-}
-
 /** The center square of a footprint. */
 function centerCell(fp) {
   return {
@@ -419,7 +406,7 @@ function resolveAreaTargets(areaFeet, target, hazardActor, deps = {}) {
   const size = scene.grid.size;
   const hazardFp = footprint(hazardToken, size);
   const walls = (scene.walls?.contents ?? [])
-    .filter(wallBlocksLine)
+    .filter(wallBlocksMovement)
     .map((w) => ({ x1: w.c[0], y1: w.c[1], x2: w.c[2], y2: w.c[3] }));
   const isBlocked = blockedEdgesFromWalls(walls, size);
   const origin = centerCell(hazardFp);

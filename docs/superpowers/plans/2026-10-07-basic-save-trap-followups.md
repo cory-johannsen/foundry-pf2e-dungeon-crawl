@@ -207,7 +207,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Modify: `scripts/trap-combat.mjs`, `scripts/dungeon-combat.mjs`, `scripts/dungeon-follow.mjs` (use the shared export, delete each own local copy)
 - Test: whichever existing test file(s) already cover these three call sites indirectly (`grep -rln "wallBlocksMovement\|wallBlocksLine" tests/`) — this is a pure refactor, so the existing test suite passing unchanged is the real confirmation; add one direct test on the new export itself.
 
-- [ ] **Step 1: Write a direct test for the new shared export**
+- [x] **Step 1: Write a direct test for the new shared export**
 
 ```js
 import { wallBlocksMovement } from "../scripts/pathfinding.mjs";
@@ -231,12 +231,12 @@ describe("#884 wallBlocksMovement (shared by dungeon-combat.mjs, dungeon-follow.
 
 (Use this codebase's own real `CONST.WALL_MOVEMENT_TYPES`/`CONST.WALL_DOOR_TYPES`/`CONST.WALL_DOOR_STATES` values if this test file already stubs `CONST` — confirm via an existing sibling test before hard-coding `20`/`0`/`1`/`2` as shown above.)
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run <the new test file>`
 Expected: FAIL — `pathfinding.mjs` exports no such function yet.
 
-- [ ] **Step 3: Add the shared export**
+- [x] **Step 3: Add the shared export**
 
 Add to `scripts/pathfinding.mjs`:
 
@@ -259,7 +259,7 @@ export function wallBlocksMovement(wall) {
 }
 ```
 
-- [ ] **Step 4: Switch all three call sites to the shared export**
+- [x] **Step 4: Switch all three call sites to the shared export**
 
 In `scripts/dungeon-combat.mjs`, remove the local `wallBlocksMovement` (confirmed current, lines 2382-2390) and add `wallBlocksMovement` to this file's own existing import from `./pathfinding.mjs` (confirmed current, lines ~34-42).
 
@@ -267,12 +267,12 @@ In `scripts/dungeon-follow.mjs`, remove the local `wallBlocksMovement` and its o
 
 In `scripts/trap-combat.mjs`, remove the local `wallBlocksLine` (confirmed current, lines 372-380) and add `wallBlocksMovement` to this file's own existing import from `./pathfinding.mjs` (confirmed current, line 27) — update its one call site (confirmed current, line 422: `.filter(wallBlocksLine)`) to `.filter(wallBlocksMovement)`.
 
-- [ ] **Step 5: Run the new test and the full suite**
+- [x] **Step 5: Run the new test and the full suite**
 
 Run: `npx vitest run`
 Expected: PASS across the board — this is a pure extraction, no behavior changes anywhere.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/pathfinding.mjs scripts/trap-combat.mjs scripts/dungeon-combat.mjs scripts/dungeon-follow.mjs tests/
