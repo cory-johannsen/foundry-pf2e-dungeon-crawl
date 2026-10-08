@@ -4,7 +4,7 @@
 
 **Builds on:** #910 / `docs/superpowers/specs/2026-10-08-ai-actor-feat-actions-design.md` (the feat vocabulary builder `buildFeatVocabulary` and the `feat` execution branch) and, through it, #909's `/v1/combat-candidates` pipeline. This spec replaces #910's "stances + Rage" self-effect allowlist with a **derived, data-driven eligibility filter**; it adds no new endpoint or subsystem.
 
-**Status:** Draft written from investigation of this repo, the installed PF2e system and the live compendium, **without a design dialogue**. Decisions are marked *Proposed*; the choices that most need the owner are under "Open questions". Not yet an approved design.
+**Status:** Approved. Drafted from investigation of this repo, the installed PF2e system and the live compendium; the six open questions were answered by the owner on 2026-10-08 and are folded in below (see "Resolved questions").
 
 ## Summary
 
@@ -79,11 +79,15 @@ Unchanged from #910's self-effect path, with one addition: the created effect is
 - Composite (Strike/Stride) feats — owned by #910's table.
 - NPC/monster abilities — #915.
 
-## Open questions (owner input wanted)
+## Resolved questions
 
-1. **Denylist review.** I propose to produce, at planning time, the 139-name survivor table (feat, category, effect summary) for the owner to mark which to deny. Alternatively ship with an empty denylist and let the reasoning model decide. Preference?
-2. **ChoiceSet effects (50 items).** Exclude for now (proposed), or implement a random-pick pre-answer now and share it with #897?
-3. **Marked-target effects (21 items).** Leave out of this issue (proposed) and file a follow-up for AI target selection?
-4. **Vocabulary cap.** Is 12 a reasonable per-turn cap?
-5. **Cleanup scope.** Is removing tagged `unlimited` self-effects at combat end the right behavior, or should they persist across rooms?
-6. **Dependency order.** Plan now against #910's and #909's specs (execution waits for both), or hold?
+1. **Denylist:** built by review. At planning time the planner produces the survivor table (feat, category, effect summary) and the owner marks which to deny; the denylist ships as reviewed data (Decision 3).
+2. **ChoiceSet effects (50 items):** excluded for now; revisit once #897's randomized choice pre-answer exists, then share it.
+3. **Marked-target effects (21 items):** out of scope; filed as 927.
+4. **Vocabulary cap:** 12 (Decision 5).
+5. **Unlimited-duration self-effects:** removed at combat end (Decision 6).
+6. **Sequencing:** plan now against #910's and #909's specs; execution waits for both.
+
+## Follow-ups
+
+- #927: marked-target self-effect feats need AI target selection.
