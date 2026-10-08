@@ -4,14 +4,14 @@
 
 **Builds on:** #909 / `docs/superpowers/specs/2026-10-08-ai-actor-maneuvers-design.md` (the `/v1/combat-candidates` reasoning pipeline and its Foundry-side vocabulary/validation shape). This spec adds a second vocabulary entry `type` to that pipeline; it does not add a second reasoning mechanism.
 
-**Status:** Draft written from investigation of this repo and the installed PF2e system, **without a design dialogue** (the issue asked for one before a spec). Every decision below is marked *Proposed* and the choices that most need the owner are listed under "Open questions". Treat this as the starting point for that conversation, not an approved design.
+**Status:** Approved. Drafted from investigation of this repo and the installed PF2e system; the four open questions were answered by the owner on 2026-10-08 and the answers are folded in below (see "Resolved questions"). Initial scope: stances + Rage as self-effect actions and four composite feats; wider self-effect coverage and NPC abilities are filed as follow-ups.
 
 ## Summary
 
 Today the candidate list for an AI combatant (`buildCandidateList`, `scripts/agent-candidates.mjs`) is spell-, strike- and stride-shaped; #909 adds the five basic martial maneuvers. A feat or class action such as Rage, a Stance, Power Attack or Sudden Charge is never offered. PF2e feats are extremely heterogeneous, so modeling "feats" in general is not feasible. This spec defines a **narrow, deterministic eligibility filter** that picks out the feats and actions that are mechanically well-defined, and a **two-kind execution model** for them:
 
 1. **Self-effect actions** — feats/actions that carry the PF2e system's own `system.selfEffect` link (stances, Rage, many "you gain X until..." actions). The module posts the usage message and applies the linked effect item, exactly as the system's own chat-card button does.
-2. **Composite strike actions** — a small curated allowlist of one/two-action feats that are just a combination of primitives the module already executes (Stride, Strike, Strike-with-modifier): e.g. Sudden Charge, Lunge, Power Attack, Twin Feint, Flurry of Blows.
+2. **Composite strike actions** — a small curated allowlist of one/two-action feats that are just a combination of primitives the module already executes (Stride, Strike, Strike-with-modifier): i.e. Power Attack, Sudden Charge, Lunge and Twin Feint.
 
 Foundry enumerates the legal vocabulary each turn; the #909 reasoning endpoint selects a tactically sensible subset with rationale; Foundry validates and merges the picks into the candidate list; the existing `/v1/combat-decision` call is unchanged.
 
@@ -42,7 +42,7 @@ Confirmed against this repo and the installed PF2e system (`/srv/foundry/data/Da
 
 ## Decisions (Proposed)
 
-1. **Scope: a deterministic eligibility filter plus two execution kinds, not "all feats".** Anything that fails the filter is simply never offered. There is no attempt to interpret feat prose.
+1. **Scope: a deterministic eligibility filter plus two execution kinds, not "all feats".** Initial self-effect coverage is **stances and Rage only** (an explicit allowlist: items with the `stance` trait, plus Rage); the generic "any one-action `selfEffect` feat" filter is a follow-up. Anything that fails the filter is simply never offered. There is no attempt to interpret feat prose.
 2. **Reuse the #909 pipeline.** The vocabulary gains entries of `type: "feat"`; the endpoint, the schema-constrained response, and the "drop any pick not literally in the sent vocabulary" validation are unchanged apart from the schema allowing the new `type` and a free-string `slug`/`itemId` for it.
 3. **Foundry decides legality; the model only chooses.** Same split as #909: eligibility, cost, frequency, prerequisites and "already active" are computed deterministically. The model never invents a feat or a target.
 4. **Self-effect kind is generic; composite kind is a curated allowlist.** Self-effect works for any item passing the filter because the effect item carries the rules. Composite actions need hand-written executors, so they are an explicit, small, test-covered table keyed by feat slug — adding one is a deliberate change, never automatic.
@@ -53,14 +53,14 @@ Confirmed against this repo and the installed PF2e system (`/srv/foundry/data/Da
 
 A new `buildFeatVocabulary(combatant, opponents, turnState)` in `scripts/agent-candidates.mjs`, called from `getPendingAgentTurn` next to the maneuver vocabulary builder. For each item in `actor.itemTypes.feat` and `actor.itemTypes.action`:
 
-Include only if **all** hold:
+Include only if **all** hold (initial self-effect scope: stances and Rage only, per the owner's decision — the rest of the self-effect population is deferred to the follow-up):
 
 - `system.actionType.value` is `action` or `free`, and cost (`actions.value`, or 0 for `free`) ≤ actions remaining this turn.
 - Not on cooldown: `system.frequency` is absent, or `system.frequency.value > 0`.
 - Not already in effect: no effect on the actor whose `system.context.origin.item` is this item's UUID.
 - Excluded traits: `exploration`, `downtime`, `secret`, `reaction`-style triggered traits, and any item whose `system.selfEffect` is null **and** whose slug is not in the composite allowlist.
 - Kind-specific gates:
-  - **Self-effect:** `system.selfEffect.uuid` resolves to an effect item; if the item has the `stance` trait, no other effect with an origin item bearing the `stance` trait is active *or*, if one is, the entry is flagged `replacesStance` (the executor removes the old stance's effect first).
+  - **Self-effect (stances + Rage only for now):** the item has the `stance` trait or is Rage; `system.selfEffect.uuid` resolves to an effect item; if the item has the `stance` trait, no other effect with an origin item bearing the `stance` trait is active *or*, if one is, the entry is flagged `replacesStance` (the executor removes the old stance's effect first).
   - **Composite:** every precondition of its executor (e.g. a wielded strike with reach/range for the chosen target, a free hand for Twin Feint's second weapon, a clear stride path).
 - No unresolved sub-choice: items whose rules contain a `ChoiceSet` that is unresolved are excluded (the choice is never invented).
 
@@ -70,7 +70,7 @@ If the vocabulary is empty (including after the #909 maneuver vocabulary is merg
 
 ## Composite action allowlist (initial)
 
-Each entry is an executor built only from primitives `applyAgentDecision` already has. Initial list, to be confirmed by the owner (see Open questions):
+Each entry is an executor built only from primitives `applyAgentDecision` already has. Initial list (confirmed by the owner):
 
 | Feat | Cost | Executor |
 |---|---|---|
@@ -78,7 +78,6 @@ Each entry is an executor built only from primitives `applyAgentDecision` alread
 | Sudden Charge | 2 | Stride up to double Speed, then Strike |
 | Lunge | 1 | Strike with +5 ft reach (melee weapon only) |
 | Twin Feint | 2 | Two Strikes with different weapons; second target is off-guard |
-| Flurry of Blows | 1 | Two unarmed Strikes (monk) |
 
 Each executor delegates the actual rolls to the system's own strike statistics (`actor.system.actions` entries) and applies the feat's documented rider by reading the item description's structure where it is stable, or by a one-line hand-applied effect where it is not. This table is the main curated piece of work and the main place future issues add coverage.
 
@@ -125,9 +124,14 @@ As in #909: each pick must literally match a vocabulary entry on `(type, itemId)
 - Anything needing GM adjudication or a UI choice at use time.
 - A GM on/off toggle (always-on for agent-controlled combatants, matching #909 and #785).
 
-## Open questions (owner input wanted)
+## Resolved questions
 
-1. **Composite allowlist contents.** Is the five-entry starting list right? Which classes matter most for this module's parties (Fighter, Barbarian, Rogue, Monk, Champion)?
-2. **Self-effect scope.** Should every `selfEffect` action with cost ≤ 1 be eligible by default (generic, ~200 feats), or start with an allowlist of stances plus Rage only?
-3. **NPCs vs PCs.** Monster special abilities are `action` items without `selfEffect` in most cases. Are they in scope here, or only class/ancestry feats on character-style actors?
-4. **Dependency order.** This cannot ship before the #909 pipeline is implemented. Should it be planned now against #909's spec, or held until #909 lands?
+1. **Composite allowlist:** Power Attack, Sudden Charge, Lunge, Twin Feint. (Flurry of Blows is dropped from the initial list.)
+2. **Self-effect scope:** stances + Rage only for now. Widening to every one-action/free `selfEffect` feat (~200) is a filed follow-up.
+3. **NPCs vs PCs:** class/ancestry feats on character-style actors only. NPC/monster special-ability actions are a filed follow-up.
+4. **Sequencing:** plan now against #909's spec; execution waits until #909's pipeline is implemented.
+
+## Follow-ups
+
+- #914: widen self-effect eligibility beyond stances + Rage to all one-action/free `selfEffect` feats and actions.
+- #915: NPC/monster special-ability action modeling.
