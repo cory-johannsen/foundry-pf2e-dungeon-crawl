@@ -1189,21 +1189,21 @@ git commit -m "#906: re-pin the ratchets the detour drop moves (measured; old va
 - Consumes: Tasks 1-3 committed.
 - Produces: the release version.
 
-- [ ] **Step 1: Pick an unused version**
+- [x] **Step 1: Pick an unused version**
 
 Run: `git fetch origin && git show origin/main:module.json | grep '"version"' && gh pr list --state open --json number,title,headRefName --limit 50`
 Then for each open PR that touches `module.json`, run `gh pr diff <n> -- module.json`. Take the highest version among `origin/main` and the open PRs. It was `0.80.6` on `origin/main` when this plan was written. Use the next patch version (for example `0.80.7` if `0.80.6` is still the highest). Never reuse one.
 
-- [ ] **Step 2: Bump it**
+- [x] **Step 2: Bump it**
 
 In `module.json` change `"version": "<current>"` to `"version": "<next patch>"`. If `origin/main` moved, rebase onto it first (`git rebase origin/main`) and re-run `npx vitest run`, since a newer main can move the ratchets again.
 
-- [ ] **Step 3: Confirm no import edge changed**
+- [x] **Step 3: Confirm no import edge changed**
 
 Run: `npm run architecture:graph > /tmp/arch-906.txt && git diff --stat`
 Expected: only `module.json` is changed by this task. The generated graph is file-level, and Tasks 1-3 add no new `scripts/` -> `scripts/` import edge, so `docs/architecture.md` needs no refresh. If the generator output differs from the Mermaid block in `docs/architecture.md`, run the `update-architecture-docs` skill instead of skipping it.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add module.json
