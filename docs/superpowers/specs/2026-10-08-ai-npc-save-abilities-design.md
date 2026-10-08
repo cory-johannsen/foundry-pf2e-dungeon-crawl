@@ -23,7 +23,7 @@ Confirmed against the repo, the installed PF2e system and the local PF2e source 
 - **The system provides the save roll, not the application.** `target.actor.saves[<save>]`/`actor.system.saves` statistics roll against a DC and report the degree of success (the same mechanism `resolveAthleticsRider` reads from the created chat message's `flags.pf2e.context.outcome`). The system does not apply a monster ability's conditions for the module; that is the caller's job.
 - **Timed conditions have no existing module precedent.** `applyConditionOnSuccess` in `dungeon-strike-riders.mjs` calls `actor.increaseCondition(slug)` with no duration. Timed application must be introduced here (see "Applying inflicted conditions").
 - **The game clock exists** (#785): `game.time.worldTime` supports the "temporarily immune ... for 24 hours" windows, matching how #909's Demoralize immunity is tracked.
-- **The incapacitation rule (PF2e):** if a creature of higher level than the effect's level is targeted by an incapacitation effect, the result of its save is one degree better; for a monster ability the effect's level is the monster's level. The module must apply this itself.
+- **The incapacitation rule (PF2e):** if a creature of higher level than the effect's level is targeted by an incapacitation effect, the result of its save is one degree better; for a monster ability the effect's level is the monster's level. **Correction (verified in `pf2e.mjs`, `Check#roll`):** the system already applies this degree adjustment itself when the roll carries the incapacitation trait (`incapacitation` / `item:trait:incapacitation` roll option) and has a numeric DC; the effect level is taken from the roll context's origin actor (`origin?.actor ?? roller`), so the module's job is to supply that context, not to reimplement the shift. If the origin is omitted the effect level defaults to the roller's own level and no adjustment happens.
 
 ## Resolved decisions
 
@@ -32,7 +32,7 @@ Confirmed against the repo, the installed PF2e system and the local PF2e source 
 3. **Execution: fully automatic when parseable, roll-and-report otherwise.** A parseable ability is applied fully (saves, incapacitation, conditions with durations, immunity). An ability with a recognizable save but unparseable outcomes is still offered; its saves are rolled and the monster's own outcome text is whispered to the GM. Expanding automatic coverage for the rest is #935.
 4. **Reactions are out of scope** (#931).
 5. **"Temporarily immune" windows are tracked on the game clock** (`worldTime` timestamp, keyed by ability + target), as in #909's Demoralize design.
-6. **The incapacitation rule is implemented per PF2e RAW.**
+6. **The incapacitation rule follows PF2e RAW** — by giving the system's own `Check#roll` the context it needs (origin actor, DC, trait), not by reimplementing the shift.
 
 ## Architecture
 
@@ -67,7 +67,7 @@ The #909 endpoint's vocabulary and response schema gain `type: "npcAbility"` wit
 1. Spend the action cost through the existing `turnState` accounting; record frequency/recharge using the existing stores (`system.frequency.value` decrement as the system does; `setAbilityRecharge` when a recharge formula exists).
 2. Post the ability's usage message (`item.toMessage()`).
 3. For each affected target: roll the save through the system against the ability DC (`target.actor.saves[save].roll({ dc: { value: dc }, createMessage: true })`), reading the degree of success from the created message (`flags.pf2e.context.outcome`).
-4. **Incapacitation:** if the ability has the `incapacitation` trait and the target's level exceeds the monster's level, shift the result one degree better before applying (critical failure → failure → success → critical success).
+4. **Incapacitation:** roll each save with the monster as the roll's **origin actor**, a numeric DC, and the incapacitation roll option when the ability has the `incapacitation` trait (e.g. via the item context or `extraRollOptions`); the system then shifts the degree of success itself for higher-level targets. The module reads the (already adjusted) outcome from the created message. The exact parameter shape for supplying the origin to the save statistic's `check.roll` is confirmed during planning.
 5. **`mode: "auto"`:** apply the parsed degree's conditions with durations (below), and when the degree carries `immuneSeconds` write the immunity timestamp `abilityImmunity[itemId][targetId] = game.time.worldTime + immuneSeconds`. **`mode: "reportOnly"`:** apply nothing.
 6. Whisper a GM summary per target (save result, degree after incapacitation, what was applied, or for `reportOnly` the monster's own outcome text for that degree) via the existing `whisperGm` convention.
 
@@ -88,7 +88,7 @@ The module has no timed-condition precedent, so this spec adds one helper, `appl
 - **Parser (pure):** fixtures drawn from real data for each shape — emanation with full degree blocks and immunity (Radiant Wings), single target with frequency (Vanth's Curse), the `inflicts:` option, "as failure" crit failure, a descriptor with an unparseable block (→ `reportOnly`), no template and no range (→ not offered), damaging ability (→ out of scope).
 - **Data-driven coverage audit:** a snapshot test over a fixture of the 369-ability slice asserting counts of `auto` / `reportOnly` / not-offered, so changes to parsing or to the compendium are visible; also the basis for measuring #935's progress.
 - **Vocabulary builder:** cost vs remaining actions, frequency 0, recharge unavailable, immunity window active, placement choosing the best origin, no enemies affected, allies in the area.
-- **Executor (mocked Foundry):** save rolled per target; incapacitation shifts each degree correctly and only for higher-level targets; auto mode applies conditions/durations/immunity; reportOnly applies nothing and whispers the text; one failing target does not stop the others.
+- **Executor (mocked Foundry):** save rolled per target; the save roll is made with the monster as origin, a numeric DC and the incapacitation option for incapacitation abilities (assert the arguments; the shift itself is the system's); auto mode applies conditions/durations/immunity; reportOnly applies nothing and whispers the text; one failing target does not stop the others.
 - Live verification: a monster with Bloodcurdling Screech-style and Radiant-Wings-style abilities in a real fight; confirm conditions appear with the right durations, expire, and immunity blocks a re-use.
 
 ## Explicitly out of scope
