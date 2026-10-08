@@ -24,7 +24,7 @@ import { actorIdsWithExplorationActivity } from "./stealth-detection.mjs";
 import { applyTrapRoomState, getRunState } from "./dungeon-runner.mjs";
 import { userMayAttemptTrapDisable } from "./dungeon-permissions.mjs";
 import { footprint, isPositionChange } from "./placement.mjs";
-import { blockedEdgesFromWalls, hasLineOfSight } from "./pathfinding.mjs";
+import { blockedEdgesFromWalls, hasLineOfSight, wallBlocksMovement } from "./pathfinding.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 
@@ -266,9 +266,20 @@ export async function triggerTrap(hazardActor, target, deps = {}) {
           // One damage roll per trigger, shared by every target (RAW), applied
           // through PF2e's own path so IWR applies.
           damageRoll ??= await rollHazardDamage(hazardActor, parsed, deps);
+          // #884: the same item/trait rollOptions the save roll above
+          // already builds (minus "damaging-effect", a save-DC trait, not
+          // a damage-matching one) -- without these, a resistance or
+          // weakness whose own predicate depends on the hazard's traits
+          // (e.g. a ward with resistance keyed to item:trait:electricity)
+          // never matches.
           await actor.applyDamage({
             damage: multiplier === 1 ? damageRoll : damageRoll.alter(multiplier, 0),
             token,
+            item: actionItem,
+            rollOptions: [
+              ...parsed.traits.map((t) => `item:trait:${t}`),
+              ...parsed.options,
+            ],
           });
         }
         if (outcome === "criticalFailure" && parsed.proneOnCritFail) {
@@ -366,19 +377,6 @@ async function rollHazardDamage(hazardActor, parsed, deps = {}) {
   return roll;
 }
 
-/** Mirrors dungeon-combat.mjs's wallBlocksMovement (private there, and that
- * file imports this one): a wall blocks unless its movement sense is NONE or
- * it is a door standing open. */
-function wallBlocksLine(wall) {
-  if (wall.move === CONST.WALL_MOVEMENT_TYPES.NONE) return false;
-  if (
-    wall.door !== CONST.WALL_DOOR_TYPES.NONE &&
-    wall.ds === CONST.WALL_DOOR_STATES.OPEN
-  )
-    return false;
-  return true;
-}
-
 /** The center square of a footprint. */
 function centerCell(fp) {
   return {
@@ -403,7 +401,16 @@ function isAffectableCreature(actor) {
  * `areaFeet` of the hazard by PF2e's 5-10-5 diagonal counting and with an
  * unobstructed straight line from the hazard (walls block, open doors don't;
  * pathfinding.mjs's wall-aware `hasLineOfSight`), excluding the hazard token
- * itself and dead creatures. The triggerer is in the result only when it is
+ * itself and dead creatures.
+ * Line of effect is checked center cell to center cell (centerCell below),
+ * matching dungeon-combat.mjs's own hasLineOfSight (tokenCell-based)
+ * convention exactly -- a known, accepted limitation shared by both: a
+ * 2x2+ creature whose own center square sits behind a wall corner is
+ * excluded even when part of its real footprint is actually exposed.
+ * Neither module does per-corner/multi-point line of effect today; fixing
+ * this for traps without also fixing it for the identical combat case
+ * would be a narrower, inconsistent improvement, not a real fix (#884).
+ * The triggerer is in the result only when it is
  * really inside the area (a walk-over trigger is at distance 0). Returns
  * `{geometryMissing: true}` when an area is needed but the hazard token or
  * scene is unavailable, so the caller can tell the GM instead of guessing.
@@ -419,7 +426,7 @@ function resolveAreaTargets(areaFeet, target, hazardActor, deps = {}) {
   const size = scene.grid.size;
   const hazardFp = footprint(hazardToken, size);
   const walls = (scene.walls?.contents ?? [])
-    .filter(wallBlocksLine)
+    .filter(wallBlocksMovement)
     .map((w) => ({ x1: w.c[0], y1: w.c[1], x2: w.c[2], y2: w.c[3] }));
   const isBlocked = blockedEdgesFromWalls(walls, size);
   const origin = centerCell(hazardFp);

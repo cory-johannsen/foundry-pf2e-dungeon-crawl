@@ -13,7 +13,7 @@
  */
 import { getRunState, effectiveMarchingOrder } from "./dungeon-runner.mjs";
 import { requestDungeonAction } from "./dungeon-remote.mjs";
-import { blockedEdgesFromWalls } from "./pathfinding.mjs";
+import { blockedEdgesFromWalls, wallBlocksMovement } from "./pathfinding.mjs";
 import { footprint, isPositionChange } from "./placement.mjs";
 import { walkTokenThroughSteps, followerStepDelayMs } from "./token-walk.mjs";
 import {
@@ -207,21 +207,6 @@ const inFlightScenes = new Set();
  * bypass action economy while a fight is live. */
 function hasActiveCombat(scene) {
   return !!game.combats?.some((c) => c.started && c.scene?.id === scene.id);
-}
-
-// Mirrors dungeon-combat.mjs's own wallBlocksMovement/movementBlockedEdges
-// (private, combat-scoped) — keep the wall/door logic in sync if either
-// changes.
-/** Mirrors dungeon-combat.mjs's own wallBlocksMovement: a wall blocks
- * movement unless it's a door currently standing open. */
-function wallBlocksMovement(wall) {
-  if (wall.move === CONST.WALL_MOVEMENT_TYPES.NONE) return false;
-  if (
-    wall.door !== CONST.WALL_DOOR_TYPES.NONE &&
-    wall.ds === CONST.WALL_DOOR_STATES.OPEN
-  )
-    return false;
-  return true;
 }
 
 // Mirrors dungeon-combat.mjs's own wallBlocksMovement/movementBlockedEdges

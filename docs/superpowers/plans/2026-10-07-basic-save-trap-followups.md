@@ -35,7 +35,7 @@
 - Modify: `scripts/trap-mechanics.mjs`
 - Test: `tests/trap-mechanics-basic-save.test.mjs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 it("#884: @Check/@Damage before the Effect heading (a rider written earlier) is not mistaken for the real save", () => {
@@ -56,12 +56,12 @@ it("#884: still parses every real automatable hazard's own description unchanged
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify the first one fails**
+- [x] **Step 2: Run the tests to verify the first one fails**
 
 Run: `npx vitest run tests/trap-mechanics-basic-save.test.mjs`
 Expected: FAIL on the new rider test (today's code matches the Trigger line's own `@Check`/`@Damage`, not the Effect's); the regression test should already pass.
 
-- [ ] **Step 3: Anchor both regexes to the Effect text**
+- [x] **Step 3: Anchor both regexes to the Effect text**
 
 Change (confirmed current, `scripts/trap-mechanics.mjs:238-267`):
 
@@ -90,17 +90,17 @@ export function parseBasicSaveAction(descriptionHtml) {
 
 Every other use of `descriptionHtml` further down this same function (the `afterCheck`/residue-sentence extraction, confirmed current lines 269-298) must also switch to `effect` for consistency, since `checkMatch.index` now refers to an offset within `effect`, not `descriptionHtml` — read the function's own remaining body carefully and update every `descriptionHtml`-relative offset accordingly.
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/trap-mechanics-basic-save.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full test suite**
+- [x] **Step 5: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/trap-mechanics.mjs tests/trap-mechanics-basic-save.test.mjs
@@ -117,7 +117,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Modify: `scripts/trap-mechanics.mjs`
 - Test: `tests/trap-mechanics-basic-save.test.mjs` (or wherever `plainDescriptionText` already has its own direct tests — `grep -rln "plainDescriptionText" tests/`)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 it("#884: decodes common HTML entities instead of leaving them to be double-escaped later", () => {
@@ -125,12 +125,12 @@ it("#884: decodes common HTML entities instead of leaving them to be double-esca
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/trap-mechanics-basic-save.test.mjs`
 Expected: FAIL — today's output is `"Smith &amp; Sons&nbsp;trap"` (entities untouched).
 
-- [ ] **Step 3: Decode entities in `plainDescriptionText`**
+- [x] **Step 3: Decode entities in `plainDescriptionText`**
 
 Change (confirmed current, `scripts/trap-mechanics.mjs:185-207`):
 
@@ -179,17 +179,17 @@ export function plainDescriptionText(html) {
 
 (Leave the enricher-replacement callback's own body, confirmed current lines 190-202, completely unchanged — only the new entity-decode line and the `HTML_ENTITIES` map are added.)
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/trap-mechanics-basic-save.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full test suite**
+- [x] **Step 5: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/trap-mechanics.mjs tests/trap-mechanics-basic-save.test.mjs
@@ -207,7 +207,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Modify: `scripts/trap-combat.mjs`, `scripts/dungeon-combat.mjs`, `scripts/dungeon-follow.mjs` (use the shared export, delete each own local copy)
 - Test: whichever existing test file(s) already cover these three call sites indirectly (`grep -rln "wallBlocksMovement\|wallBlocksLine" tests/`) — this is a pure refactor, so the existing test suite passing unchanged is the real confirmation; add one direct test on the new export itself.
 
-- [ ] **Step 1: Write a direct test for the new shared export**
+- [x] **Step 1: Write a direct test for the new shared export**
 
 ```js
 import { wallBlocksMovement } from "../scripts/pathfinding.mjs";
@@ -231,12 +231,12 @@ describe("#884 wallBlocksMovement (shared by dungeon-combat.mjs, dungeon-follow.
 
 (Use this codebase's own real `CONST.WALL_MOVEMENT_TYPES`/`CONST.WALL_DOOR_TYPES`/`CONST.WALL_DOOR_STATES` values if this test file already stubs `CONST` — confirm via an existing sibling test before hard-coding `20`/`0`/`1`/`2` as shown above.)
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run <the new test file>`
 Expected: FAIL — `pathfinding.mjs` exports no such function yet.
 
-- [ ] **Step 3: Add the shared export**
+- [x] **Step 3: Add the shared export**
 
 Add to `scripts/pathfinding.mjs`:
 
@@ -259,7 +259,7 @@ export function wallBlocksMovement(wall) {
 }
 ```
 
-- [ ] **Step 4: Switch all three call sites to the shared export**
+- [x] **Step 4: Switch all three call sites to the shared export**
 
 In `scripts/dungeon-combat.mjs`, remove the local `wallBlocksMovement` (confirmed current, lines 2382-2390) and add `wallBlocksMovement` to this file's own existing import from `./pathfinding.mjs` (confirmed current, lines ~34-42).
 
@@ -267,12 +267,12 @@ In `scripts/dungeon-follow.mjs`, remove the local `wallBlocksMovement` and its o
 
 In `scripts/trap-combat.mjs`, remove the local `wallBlocksLine` (confirmed current, lines 372-380) and add `wallBlocksMovement` to this file's own existing import from `./pathfinding.mjs` (confirmed current, line 27) — update its one call site (confirmed current, line 422: `.filter(wallBlocksLine)`) to `.filter(wallBlocksMovement)`.
 
-- [ ] **Step 5: Run the new test and the full suite**
+- [x] **Step 5: Run the new test and the full suite**
 
 Run: `npx vitest run`
 Expected: PASS across the board — this is a pure extraction, no behavior changes anywhere.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/pathfinding.mjs scripts/trap-combat.mjs scripts/dungeon-combat.mjs scripts/dungeon-follow.mjs tests/
@@ -289,7 +289,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Modify: `scripts/trap-combat.mjs`
 - Test: `tests/trap-combat-basic-save-trigger.test.mjs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 it("#884: applyDamage receives item and rollOptions, matching the save roll's own trait/option list", async () => {
@@ -314,12 +314,12 @@ it("#884: an empty traits/options list still calls applyDamage normally (no roll
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify the first fails**
+- [x] **Step 2: Run the tests to verify the first fails**
 
 Run: `npx vitest run tests/trap-combat-basic-save-trigger.test.mjs`
 Expected: FAIL — today's `applyDamage` call has no `item`/`rollOptions` key at all.
 
-- [ ] **Step 3: Pass `item`/`rollOptions` to `applyDamage`**
+- [x] **Step 3: Pass `item`/`rollOptions` to `applyDamage`**
 
 Change (confirmed current, `scripts/trap-combat.mjs:269-272`):
 
@@ -350,17 +350,17 @@ to:
           });
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/trap-combat-basic-save-trigger.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full test suite**
+- [x] **Step 5: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/trap-combat.mjs tests/trap-combat-basic-save-trigger.test.mjs
@@ -376,7 +376,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Files:**
 - Modify: `scripts/trap-combat.mjs`
 
-- [ ] **Step 1: Add the clarifying comment**
+- [x] **Step 1: Add the clarifying comment**
 
 Change `resolveAreaTargets`'s own docblock (confirmed current, `scripts/trap-combat.mjs:398-411`) to add, after its existing "pathfinding.mjs's wall-aware `hasLineOfSight`" sentence:
 
@@ -391,12 +391,12 @@ Change `resolveAreaTargets`'s own docblock (confirmed current, `scripts/trap-com
  * would be a narrower, inconsistent improvement, not a real fix (#884).
 ```
 
-- [ ] **Step 2: Run the full test suite to confirm nothing changed**
+- [x] **Step 2: Run the full test suite to confirm nothing changed**
 
 Run: `npx vitest run`
 Expected: PASS — comment-only change.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/trap-combat.mjs

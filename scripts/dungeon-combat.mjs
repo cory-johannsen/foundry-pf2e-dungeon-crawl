@@ -39,6 +39,7 @@ import {
   findPath,
   blockedEdgesFromWalls,
   hasLineOfSight as sightLineClear,
+  wallBlocksMovement,
 } from "./pathfinding.mjs";
 import { footprint, overlaps } from "./placement.mjs";
 import { readPacingSetting, walkTokenThroughSteps } from "./token-walk.mjs";
@@ -2370,24 +2371,11 @@ function sceneBounds(combat, gridSize) {
   };
 }
 
-// Mirrors dungeon-follow.mjs's own wallBlocksMovement/movementBlockedEdges
-// (Foundry glue for follow-the-leader movement) — keep the wall/door logic
-// in sync if either changes.
-/** A wall blocks movement if its own `move` sense says so, unless it's a
- * door currently standing open — Foundry's own collision rules ignore an
- * open door's sense properties, and this generator's doors do transition
- * CLOSED/LOCKED -> OPEN when a player opens one (handleDungeonDoorOpened,
- * dungeon-scene.mjs), so a party that's already opened a door shouldn't
- * find it treated as a wall by pathfinding. */
-function wallBlocksMovement(wall) {
-  if (wall.move === CONST.WALL_MOVEMENT_TYPES.NONE) return false;
-  if (
-    wall.door !== CONST.WALL_DOOR_TYPES.NONE &&
-    wall.ds === CONST.WALL_DOOR_STATES.OPEN
-  )
-    return false;
-  return true;
-}
+// wallBlocksMovement (shared, pathfinding.mjs, #884): a wall blocks movement
+// if its own `move` sense says so, unless it's a door currently standing
+// open — this generator's doors transition CLOSED/LOCKED -> OPEN when a
+// player opens one (handleDungeonDoorOpened, dungeon-scene.mjs), so a party
+// that's already opened a door shouldn't find it treated as a wall.
 
 /** The isBlocked(a, b) predicate for this combat's real scene walls alone
  * (no combatant-occupancy blocking) — the shared wall-lookup both

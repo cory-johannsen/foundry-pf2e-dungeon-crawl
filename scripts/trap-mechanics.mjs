@@ -180,6 +180,14 @@ function effectText(html) {
   return m ? html.slice(m.index + m[0].length) : html;
 }
 
+// #884: the bounded, realistic set of HTML entities PF2e compendium prose
+// actually uses -- not a general entity-decoding library. Decoded AFTER
+// tag-stripping (an entity never looks like a tag) and BEFORE this text
+// reaches trap-combat.mjs's own escapeText for a GM whisper, so that
+// escaping step runs on real characters exactly once, not on literal
+// entity text that then gets re-escaped into something like "&#38;amp;".
+const HTML_ENTITIES = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'", "&apos;": "'", "&nbsp;": " " };
+
 /** #839: plain text of a description -- tags dropped, PF2e enrichers turned
  * into their label (or a readable stand-in). */
 export function plainDescriptionText(html) {
@@ -202,6 +210,7 @@ export function plainDescriptionText(html) {
       },
     )
     .replace(/<[^>]+>/g, " ")
+    .replace(/&(?:amp|lt|gt|quot|#39|apos|nbsp);/g, (m) => HTML_ENTITIES[m])
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -237,7 +246,12 @@ const AREA_PHRASE = /(?:to\s+)?(?:all\s+|each\s+|every\s+)?(?:living\s+)?creatur
  */
 export function parseBasicSaveAction(descriptionHtml) {
   if (typeof descriptionHtml !== "string") return null;
-  const checkMatch = /@Check\[([a-z]+)((?:\|[^\]]*)?)\]/i.exec(descriptionHtml);
+  // #884: anchored to the Effect paragraph, same as parseAreaFeet already
+  // is just below -- a Trigger-line (or any earlier) rider with its own
+  // @Check/@Damage (an affliction's own later-stage text, say) must never
+  // be mistaken for the hazard's real, primary save.
+  const effect = effectText(descriptionHtml);
+  const checkMatch = /@Check\[([a-z]+)((?:\|[^\]]*)?)\]/i.exec(effect);
   if (!checkMatch) return null;
   const save = checkMatch[1].toLowerCase();
   if (!SAVE_SLUGS.has(save)) return null;
@@ -257,7 +271,7 @@ export function parseBasicSaveAction(descriptionHtml) {
 
   // The damage list nests one level of brackets (`3d6[fire]`), so the body is
   // any run of non-bracket characters or one `[...]` group.
-  const damageMatch = /@Damage\[((?:[^[\]]|\[[^\]]*\])+)\]/i.exec(descriptionHtml);
+  const damageMatch = /@Damage\[((?:[^[\]]|\[[^\]]*\])+)\]/i.exec(effect);
   if (!damageMatch) return null;
   const damage = [];
   for (const part of damageMatch[1].split(",")) {
@@ -282,7 +296,7 @@ export function parseBasicSaveAction(descriptionHtml) {
 
   // Everything after the save entry that is not the area phrase, the
   // "save" noise, or the prone rider is surfaced, never dropped.
-  const afterCheck = descriptionHtml.slice(checkMatch.index + checkMatch[0].length);
+  const afterCheck = effect.slice(checkMatch.index + checkMatch[0].length);
   let proneOnCritFail = false;
   const unparsed = [];
   const residue = plainDescriptionText(afterCheck)

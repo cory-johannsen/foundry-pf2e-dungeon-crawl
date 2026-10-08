@@ -349,3 +349,22 @@ export function hasLineOfSight(start, goal, isBlocked) {
   }
   return true;
 }
+
+/**
+ * #884: the one real implementation of "does this wall block movement/line
+ * of effect" -- previously three byte-identical private copies
+ * (dungeon-combat.mjs's own wallBlocksMovement, dungeon-follow.mjs's own
+ * mirror, trap-combat.mjs's own wallBlocksLine). A wall blocks unless its
+ * own movement sense is NONE, or it is a door currently standing open.
+ * Reads Foundry's global CONST at call time (not import time), so this
+ * module still loads outside Foundry.
+ */
+export function wallBlocksMovement(wall) {
+  if (wall.move === CONST.WALL_MOVEMENT_TYPES.NONE) return false;
+  if (
+    wall.door !== CONST.WALL_DOOR_TYPES.NONE &&
+    wall.ds === CONST.WALL_DOOR_STATES.OPEN
+  )
+    return false;
+  return true;
+}
