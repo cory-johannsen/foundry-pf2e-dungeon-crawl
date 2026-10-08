@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { EventEmitter } from 'node:events';
 import { createServer } from '../tools/agent-service/server.mjs';
 import { resolveProvider } from '../tools/agent-service/providers/index.mjs';
+import { generateCombatCandidates } from '../tools/agent-service/candidate-generator.mjs';
 
 // Wraps the real resolveProvider so every existing test (which relies on
 // the real litellm.mjs decide() — see the 502 test's real-network-failure
@@ -12,6 +13,17 @@ vi.mock('../tools/agent-service/providers/index.mjs', async (importOriginal) => 
   return {
     ...actual,
     resolveProvider: vi.fn(actual.resolveProvider)
+  };
+});
+
+// #909: same wrap-the-real-thing approach as resolveProvider above, so the
+// /v1/combat-candidates tests can stub a single generator call without a
+// real (or deliberately failing) litellm round trip.
+vi.mock('../tools/agent-service/candidate-generator.mjs', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    generateCombatCandidates: vi.fn(actual.generateCombatCandidates)
   };
 });
 
@@ -240,5 +252,55 @@ describe('POST /v1/flavor-customization', () => {
       body: JSON.stringify({ kind: 'not-a-real-kind' })
     });
     expect(res.status).toBe(400);
+  });
+});
+
+describe('POST /v1/combat-candidates', () => {
+  let server;
+  let baseUrl;
+  const vocabulary = [{ type: 'maneuver', slug: 'trip', targetId: 'opp1' }];
+
+  function post(body, apiKey = 'test-key') {
+    return fetch(`${baseUrl}/v1/combat-candidates`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+  }
+
+  beforeEach(async () => {
+    server = createServer({ apiKey: 'test-key' });
+    await new Promise((resolve) => server.listen(0, resolve));
+    baseUrl = `http://127.0.0.1:${server.address().port}`;
+  });
+
+  afterEach(async () => {
+    await new Promise((resolve) => server.close(resolve));
+  });
+
+  it('rejects a body with no vocabulary array', async () => {
+    const res = await post({ context: {} });
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 401 without a valid bearer token', async () => {
+    const res = await post({ vocabulary }, 'wrong-key');
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 200 with the generator result, splitting vocabulary from the rest of the body as context', async () => {
+    const picks = { picks: [{ type: 'maneuver', slug: 'trip', targetId: 'opp1', rationale: 'r' }] };
+    generateCombatCandidates.mockResolvedValueOnce(picks);
+    const res = await post({ self: { id: 'atk' }, roundNumber: 2, vocabulary });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual(picks);
+    expect(generateCombatCandidates).toHaveBeenLastCalledWith({ self: { id: 'atk' }, roundNumber: 2 }, vocabulary);
+  });
+
+  it('returns 502 when the generator throws', async () => {
+    generateCombatCandidates.mockRejectedValueOnce(new Error('boom'));
+    const res = await post({ self: {}, vocabulary });
+    expect(res.status).toBe(502);
+    expect((await res.json()).error).toMatch(/combat-candidates: generation failed: boom/);
   });
 });

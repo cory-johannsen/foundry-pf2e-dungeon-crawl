@@ -246,13 +246,13 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `generateCombatCandidates` from Task 1.
 - Produces: the `/v1/combat-candidates` HTTP route, consumed by Task 3's client function.
 
-- [ ] **Step 1: Read the existing server test file's conventions**
+- [x] **Step 1: Read the existing server test file's conventions**
 
 Run: `grep -n "flavor-customization\|handleFlavorCustomization" tests/agent-service-server.test.mjs`
 
 Copy the exact request-building/assertion pattern that test file already uses for `/v1/flavor-customization` (headers, auth, body-posting helper) for the new tests below — the server test harness's exact request helper is not reproduced here since reading it live avoids drifting from whatever shape it actually has.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 Add to `tests/agent-service-server.test.mjs` (mirroring whatever request-helper the file already defines for `/v1/flavor-customization`, substituting the new route and body):
 
@@ -284,12 +284,12 @@ describe("/v1/combat-candidates", () => {
 
 (The third test's exact mechanics depend on how this file's existing `/v1/flavor-customization` 502 test is written — copy that test's approach verbatim, substituting the route and a vocabulary-carrying body, rather than guessing a new mocking seam.)
 
-- [ ] **Step 3: Run tests to verify the first two fail**
+- [x] **Step 3: Run tests to verify the first two fail**
 
 Run: `npm test -- tests/agent-service-server.test.mjs`
 Expected: FAIL for the two new `/v1/combat-candidates` tests (404, since the route doesn't exist yet); other existing tests in the file still PASS.
 
-- [ ] **Step 4: Wire the route**
+- [x] **Step 4: Wire the route**
 
 In `tools/agent-service/server.mjs`, add the import:
 
@@ -338,12 +338,12 @@ In the request dispatcher, add the new branch alongside the existing two:
       }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-service-server.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tools/agent-service/server.mjs tests/agent-service-server.test.mjs
