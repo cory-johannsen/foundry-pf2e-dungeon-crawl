@@ -117,7 +117,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Modify: `scripts/trap-mechanics.mjs`
 - Test: `tests/trap-mechanics-basic-save.test.mjs` (or wherever `plainDescriptionText` already has its own direct tests — `grep -rln "plainDescriptionText" tests/`)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 it("#884: decodes common HTML entities instead of leaving them to be double-escaped later", () => {
@@ -125,12 +125,12 @@ it("#884: decodes common HTML entities instead of leaving them to be double-esca
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/trap-mechanics-basic-save.test.mjs`
 Expected: FAIL — today's output is `"Smith &amp; Sons&nbsp;trap"` (entities untouched).
 
-- [ ] **Step 3: Decode entities in `plainDescriptionText`**
+- [x] **Step 3: Decode entities in `plainDescriptionText`**
 
 Change (confirmed current, `scripts/trap-mechanics.mjs:185-207`):
 
@@ -179,17 +179,17 @@ export function plainDescriptionText(html) {
 
 (Leave the enricher-replacement callback's own body, confirmed current lines 190-202, completely unchanged — only the new entity-decode line and the `HTML_ENTITIES` map are added.)
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/trap-mechanics-basic-save.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full test suite**
+- [x] **Step 5: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/trap-mechanics.mjs tests/trap-mechanics-basic-save.test.mjs

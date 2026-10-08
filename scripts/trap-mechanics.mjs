@@ -180,6 +180,14 @@ function effectText(html) {
   return m ? html.slice(m.index + m[0].length) : html;
 }
 
+// #884: the bounded, realistic set of HTML entities PF2e compendium prose
+// actually uses -- not a general entity-decoding library. Decoded AFTER
+// tag-stripping (an entity never looks like a tag) and BEFORE this text
+// reaches trap-combat.mjs's own escapeText for a GM whisper, so that
+// escaping step runs on real characters exactly once, not on literal
+// entity text that then gets re-escaped into something like "&#38;amp;".
+const HTML_ENTITIES = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'", "&apos;": "'", "&nbsp;": " " };
+
 /** #839: plain text of a description -- tags dropped, PF2e enrichers turned
  * into their label (or a readable stand-in). */
 export function plainDescriptionText(html) {
@@ -202,6 +210,7 @@ export function plainDescriptionText(html) {
       },
     )
     .replace(/<[^>]+>/g, " ")
+    .replace(/&(?:amp|lt|gt|quot|#39|apos|nbsp);/g, (m) => HTML_ENTITIES[m])
     .replace(/\s+/g, " ")
     .trim();
 }

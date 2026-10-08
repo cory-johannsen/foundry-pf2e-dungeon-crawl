@@ -3,6 +3,7 @@ import {
   parseBasicSaveAction,
   basicSaveDamageMultiplier,
   parseAreaFeet,
+  plainDescriptionText,
   footprintDistanceFeet,
   isSimpleAutomatableTrap,
 } from "../scripts/trap-mechanics.mjs";
@@ -158,6 +159,12 @@ describe("#839 isSimpleAutomatableTrap with basic-save actions", () => {
     expect(isSimpleAutomatableTrap({ ...base, isComplex: true })).toBe(false);
     expect(isSimpleAutomatableTrap({ ...base, disableChecks: [] })).toBe(false);
     expect(isSimpleAutomatableTrap({ ...base, basicSaveActionCount: 0 })).toBe(false);
+  });
+});
+
+describe("#884 plainDescriptionText entities", () => {
+  it("#884: decodes common HTML entities instead of leaving them to be double-escaped later", () => {
+    expect(plainDescriptionText("<p>Smith &amp; Sons&nbsp;trap</p>")).toBe("Smith & Sons trap");
   });
 });
 
