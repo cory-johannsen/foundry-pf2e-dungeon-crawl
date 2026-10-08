@@ -997,7 +997,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `computeManeuverAttackerProfile`, `sizeOkForManeuver`, `getDemoralizeImmunityUntil` (Task 5); `buildManeuverVocabulary` (Task 4).
 - Produces: `getPendingAgentTurn`'s return value now also carries `maneuverVocabulary: Array<{type, slug, targetId}>`; `getAgentTurnState`/`setAgentTurnState` now also carry `maneuverPicks` through their existing round-trip — consumed by Task 7.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 This test needs a full combat/combatant/scene stub exercising `getPendingAgentTurn` end to end — rather than inventing that stub shape from scratch, first find and read whichever existing test already builds one for `getPendingAgentTurn` (or the closest equivalent, e.g. a strike-candidate or spell-candidate integration test), and copy its exact combat/combatant/token/actor stub shape:
 
@@ -1042,12 +1042,12 @@ describe('getPendingAgentTurn maneuver vocabulary', () => {
 
 (The three bodies above are deliberately left as comments describing exact expected assertions rather than runnable code: the real stub shape must come from the existing test file found in this step, not be guessed here — fill in the real stub and uncomment/complete each assertion before running.)
 
-- [ ] **Step 2: Run test to verify it fails (once filled in)**
+- [x] **Step 2: Run test to verify it fails (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-agent-maneuver-pending.test.mjs`
 Expected: FAIL — `pending.maneuverVocabulary` is `undefined` (the field doesn't exist yet).
 
-- [ ] **Step 3: Extend `getAgentTurnState`/`setAgentTurnState`**
+- [x] **Step 3: Extend `getAgentTurnState`/`setAgentTurnState`**
 
 ```js
 function getAgentTurnState(combat, combatantId) {
@@ -1076,7 +1076,7 @@ async function setAgentTurnState(combat, combatantId, turnState) {
 }
 ```
 
-- [ ] **Step 4: Build the vocabulary inside `getPendingAgentTurn` and merge it into the return value**
+- [x] **Step 4: Build the vocabulary inside `getPendingAgentTurn` and merge it into the return value**
 
 In `getPendingAgentTurn` (`scripts/dungeon-combat.mjs`), right after the existing `readyActions`/`hasRangedOrReach` block (the code reading `const readyActions = (combatant.actor?.system?.actions ?? [])...` and `const hasRangedOrReach = readyActions.some(...)`), add:
 
@@ -1153,14 +1153,14 @@ Add `maneuverVocabulary` to the function's final return object:
   };
 ```
 
-- [ ] **Step 5: Fill in and run the Task 6 test, confirm it passes**
+- [x] **Step 5: Fill in and run the Task 6 test, confirm it passes**
 
 Fill in the real combat/combatant/token/actor stub (copied in Step 1) and uncomment the assertions, then:
 
 Run: `npm test -- tests/dungeon-combat-agent-maneuver-pending.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite once**
+- [x] **Step 6: Run the full suite once**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — in particular, every pre-existing test that calls `getPendingAgentTurn` directly and asserts an exact return-object shape (`toEqual` on the whole object, not just specific fields) needs its expected object updated to include the new `maneuverVocabulary` field. Search for these:
@@ -1169,7 +1169,7 @@ Run: `grep -rln "getPendingAgentTurn(" tests/*.mjs`
 
 For each match, check whether its assertions use `toEqual` against the whole returned object (vs. just reading specific fields like `pending.candidates`); if so, add `maneuverVocabulary: [...]` (whatever the real expected vocabulary is for that test's stub — likely `[]` for a stub with no Athletics/Intimidation) to the expected object literal.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-agent-maneuver-pending.test.mjs

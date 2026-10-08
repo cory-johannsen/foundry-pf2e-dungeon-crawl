@@ -36,6 +36,7 @@ import {
   parseReactiveStrikeWeaponRestriction,
   AGENT_MELEE_REACH_SQUARES,
   DEMORALIZE_RANGE_SQUARES,
+  buildManeuverVocabulary,
 } from "./agent-candidates.mjs";
 import {
   findPath,
@@ -2335,6 +2336,15 @@ export async function setDemoralizeImmunityUntil(combat, attackerId, targetId, w
  * offered as a wasted action. */
 const DEMORALIZE_BLOCKING_IMMUNITIES = new Set(["mental", "emotion", "fear-effects"]);
 
+/** #909: Disarm "knock[s] an item out of a creature's grasp" -- a target
+ * holding nothing (e.g. an NPC with only natural attacks) can't be
+ * Disarmed. Unreadable item data counts as holding nothing. */
+export function holdsAnItem(actor) {
+  return Array.from(actor?.items ?? []).some(
+    (i) => i?.system?.equipped?.carryType === "held",
+  );
+}
+
 export function immuneToDemoralize(targetActor) {
   return (targetActor?.attributes?.immunities ?? []).some((i) =>
     DEMORALIZE_BLOCKING_IMMUNITIES.has(i?.type),
@@ -2350,6 +2360,7 @@ function getAgentTurnState(combat, combatantId) {
     ? {
         actionsRemaining: stored.actionsRemaining,
         mapIncrement: stored.mapIncrement,
+        maneuverPicks: stored.maneuverPicks ?? null,
       }
     : initAgentTurnState();
 }
@@ -2370,6 +2381,7 @@ async function setAgentTurnState(combat, combatantId, turnState) {
     turn: combat.turn,
     actionsRemaining: turnState.actionsRemaining,
     mapIncrement: turnState.mapIncrement,
+    maneuverPicks: turnState.maneuverPicks ?? null,
     counter,
   });
 }
@@ -3557,6 +3569,30 @@ export async function getPendingAgentTurn(combat) {
     (a) => a.reachSquares > MELEE_REACH_SQUARES,
   );
 
+  // #909: the (maneuver, target) pairs that are RAW-legal this turn --
+  // Foundry decides legality here; the agent service's reasoning model only
+  // ever selects from this list (see runAgentDecisionLoop).
+  const maneuverAttackerProfile = computeManeuverAttackerProfile(combatant.actor);
+  const worldTime = globalThis.game?.time?.worldTime ?? 0;
+  const maneuverOpponents = rawOpponents.map((o) => {
+    const sizeOk = sizeOkForManeuver(combatant.actor, o.actor);
+    return {
+      id: o.id,
+      name: o.name,
+      distanceSquares: chebyshevSquares(combatant.token, o.token, gridSize),
+      hasLineOfSight: canSee(o),
+      sizeOk: { trip: sizeOk, shove: sizeOk, grapple: sizeOk, disarm: sizeOk },
+      holdsItem: holdsAnItem(o.actor),
+      demoralizeImmune:
+        immuneToDemoralize(o.actor) ||
+        worldTime < getDemoralizeImmunityUntil(combat, combatant.id, o.id),
+    };
+  });
+  const maneuverVocabulary = buildManeuverVocabulary({
+    attacker: { maneuvers: maneuverAttackerProfile },
+    opponents: maneuverOpponents,
+  });
+
   const readySpells = (combatant.actor?.spellcasting?.contents ?? [])
     .flatMap((entry) =>
       (entry.spells?.contents ?? [])
@@ -4190,6 +4226,8 @@ export async function getPendingAgentTurn(combat) {
     readyAutoHitAreaSpells,
     allies,
     turnState,
+    maneuverVocabulary,
+    maneuverPicks: turnState.maneuverPicks,
     hazard: nearestHazardousRegionPoint(
       combat.scene,
       combatant.token,
@@ -4208,6 +4246,7 @@ export async function getPendingAgentTurn(combat) {
       roundNumber: combat.round,
     }),
     candidates,
+    maneuverVocabulary,
   };
 }
 

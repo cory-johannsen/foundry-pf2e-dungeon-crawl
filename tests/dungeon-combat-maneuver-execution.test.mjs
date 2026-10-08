@@ -1,0 +1,251 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { applyAgentDecision, getDemoralizeImmunityUntil } from "../scripts/dungeon-combat.mjs";
+
+// #909: applyAgentDecision's `maneuver` branch, driven end-to-end through
+// the real getPendingAgentTurn rebuild (stub shape copied from
+// dungeon-combat-agent-move-stalled.test.mjs). Each test seeds the turn's
+// persisted maneuverPicks so the chosen maneuver is a real candidate.
+
+const G = 100;
+const MODULE_ID = "pf2e-dungeon-crawl";
+
+function makeToken({ x, y, disposition }) {
+  const token = { x, y, disposition, width: 1, height: 1 };
+  token.update = vi.fn(async function (changes) {
+    Object.assign(this, changes);
+  });
+  token.move = vi.fn(async function ({ x, y }) {
+    Object.assign(this, { x, y });
+  });
+  return token;
+}
+
+function makeCombatant({ id, gx, gy, disposition, heldWeapon = false }) {
+  const flags = { agentControlled: true };
+  const weapon = {
+    id: `${id}-sword`,
+    name: "Longsword",
+    type: "weapon",
+    system: { equipped: { carryType: "held", handsHeld: 1 }, traits: { value: [] } },
+    update: vi.fn(async () => {}),
+  };
+  const items = heldWeapon ? [weapon] : [];
+  return {
+    id,
+    name: id,
+    isDefeated: false,
+    token: makeToken({ x: gx * G, y: gy * G, disposition }),
+    getFlag: (_m, key) => flags[key],
+    actor: {
+      type: "npc",
+      conditions: [],
+      items,
+      itemTypes: { weapon: items },
+      skills: { athletics: {}, intimidation: {} },
+      attributes: { immunities: [] },
+      increaseCondition: vi.fn(async () => {}),
+      applyDamage: vi.fn(async () => {}),
+      createEmbeddedDocuments: vi.fn(async () => {}),
+      system: {
+        actions: [],
+        traits: { size: { value: "med" } },
+        attributes: { hp: { value: 20, max: 20 } },
+        movement: { speeds: { land: { value: 30 } } },
+      },
+    },
+  };
+}
+
+function setup({ slug, outcome, opponentAt = [1, 0] }) {
+  const attacker = makeCombatant({ id: "atk", gx: 0, gy: 0, disposition: -1 });
+  const opponent = makeCombatant({
+    id: "opp",
+    gx: opponentAt[0],
+    gy: opponentAt[1],
+    disposition: 1,
+    heldWeapon: true,
+  });
+  const flags = {
+    dungeonSlot: "slot-1",
+    agentTurnState: {
+      combatantId: "atk",
+      round: 1,
+      turn: 0,
+      actionsRemaining: 3,
+      mapIncrement: 0,
+      maneuverPicks: [{ type: "maneuver", slug, targetId: "opp", rationale: "r" }],
+      counter: 1,
+    },
+  };
+  const combat = {
+    id: "combat-1",
+    round: 1,
+    turn: 0,
+    combatant: attacker,
+    combatants: [attacker, opponent],
+    getFlag: (_m, key) => flags[key],
+    setFlag: async (_m, key, value) => {
+      flags[key] = value;
+    },
+    scene: {
+      grid: { size: G, distance: 5 },
+      width: 8 * G,
+      height: G,
+      walls: { contents: [] },
+      regions: [],
+    },
+  };
+  const action = vi.fn(({ callback }) => {
+    callback({ outcome });
+  });
+  game.pf2e = { actions: { [slug]: action } };
+  return { attacker, opponent, combat, action };
+}
+
+beforeEach(() => {
+  globalThis.CONST = {
+    WALL_MOVEMENT_TYPES: { NONE: 0, NORMAL: 20 },
+    WALL_DOOR_TYPES: { NONE: 0, DOOR: 1, SECRET: 2 },
+    WALL_DOOR_STATES: { CLOSED: 0, OPEN: 1, LOCKED: 2 },
+  };
+  globalThis.foundry = { utils: {} };
+  globalThis.ChatMessage = {
+    create: vi.fn(async () => {}),
+    getWhisperRecipients: () => [{ id: "gm1" }],
+  };
+  class DamageRoll {
+    constructor(formula) {
+      this.formula = formula;
+    }
+    async evaluate() {
+      this.total = 4;
+      return this;
+    }
+  }
+  globalThis.CONFIG = { Dice: { rolls: [DamageRoll] } };
+  globalThis.fromUuid = vi.fn(async () => ({ toObject: () => ({ name: "Effect: Disarm (Success)" }) }));
+  globalThis.game = {
+    i18n: { format: (key) => key },
+    user: { flags: { pf2e: { settings: {} } }, update: vi.fn(async () => {}) },
+    combats: { has: () => false },
+    time: { worldTime: 1000 },
+  };
+  vi.spyOn(console, "warn").mockImplementation(() => {});
+  vi.spyOn(console, "debug").mockImplementation(() => {});
+});
+
+describe("applyAgentDecision maneuver execution (#909)", () => {
+  it("calls game.pf2e.actions.trip with the attacker and an explicit target, and applies Prone on success", async () => {
+    const { attacker, opponent, combat, action } = setup({ slug: "trip", outcome: "success" });
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp", "r");
+    expect(action).toHaveBeenCalledTimes(1);
+    const opts = action.mock.calls[0][0];
+    expect(opts.actors).toEqual([attacker.actor]);
+    expect(opts.target()).toEqual({ actor: opponent.actor, token: opponent.token });
+    expect(opponent.actor.increaseCondition).toHaveBeenCalledWith("prone");
+    expect(opponent.actor.applyDamage).not.toHaveBeenCalled();
+  });
+
+  it("applies Prone plus 1d6 bludgeoning damage on a critical success Trip", async () => {
+    const { opponent, combat } = setup({ slug: "trip", outcome: "criticalSuccess" });
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp");
+    expect(opponent.actor.increaseCondition).toHaveBeenCalledWith("prone");
+    expect(opponent.actor.applyDamage).toHaveBeenCalledTimes(1);
+    const { damage, token } = opponent.actor.applyDamage.mock.calls[0][0];
+    expect(damage.formula).toBe("1d6[bludgeoning]");
+    expect(token).toBe(opponent.token);
+  });
+
+  it("knocks the attacker Prone on a critical failure Trip", async () => {
+    const { attacker, opponent, combat } = setup({ slug: "trip", outcome: "criticalFailure" });
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp");
+    expect(attacker.actor.increaseCondition).toHaveBeenCalledWith("prone");
+    expect(opponent.actor.increaseCondition).not.toHaveBeenCalled();
+  });
+
+  it("pushes the target 5 ft (1 square) away on a successful Shove", async () => {
+    const { opponent, combat } = setup({ slug: "shove", outcome: "success" });
+    await applyAgentDecision(combat, "atk", "maneuver:shove:opp");
+    expect(opponent.token.x).toBe(2 * G);
+  });
+
+  it("pushes the target 10 ft (2 squares) away on a critical success Shove", async () => {
+    const { opponent, combat } = setup({ slug: "shove", outcome: "criticalSuccess" });
+    await applyAgentDecision(combat, "atk", "maneuver:shove:opp");
+    expect(opponent.token.x).toBe(3 * G);
+  });
+
+  it("applies Grabbed on a successful Grapple and Restrained on a critical success", async () => {
+    let { opponent, combat } = setup({ slug: "grapple", outcome: "success" });
+    await applyAgentDecision(combat, "atk", "maneuver:grapple:opp");
+    expect(opponent.actor.increaseCondition).toHaveBeenCalledWith("grabbed");
+
+    ({ opponent, combat } = setup({ slug: "grapple", outcome: "criticalSuccess" }));
+    await applyAgentDecision(combat, "atk", "maneuver:grapple:opp");
+    expect(opponent.actor.increaseCondition).toHaveBeenCalledWith("restrained");
+  });
+
+  it("applies the system's Disarm (Success) effect to the target on a successful Disarm", async () => {
+    const { opponent, combat } = setup({ slug: "disarm", outcome: "success" });
+    await applyAgentDecision(combat, "atk", "maneuver:disarm:opp");
+    expect(fromUuid).toHaveBeenCalledWith("Compendium.pf2e.other-effects.Item.PuDS0DEq0CnaSIFV");
+    expect(opponent.actor.createEmbeddedDocuments).toHaveBeenCalledWith("Item", [
+      { name: "Effect: Disarm (Success)" },
+    ]);
+  });
+
+  it("drops the target's held item on a critical success Disarm", async () => {
+    const { opponent, combat } = setup({ slug: "disarm", outcome: "criticalSuccess" });
+    await applyAgentDecision(combat, "atk", "maneuver:disarm:opp");
+    expect(opponent.actor.items[0].update).toHaveBeenCalledWith({
+      "system.equipped.carryType": "dropped",
+      "system.equipped.handsHeld": 0,
+    });
+  });
+
+  it("makes the attacker Off-Guard on a critical failure Disarm", async () => {
+    const { attacker, combat } = setup({ slug: "disarm", outcome: "criticalFailure" });
+    await applyAgentDecision(combat, "atk", "maneuver:disarm:opp");
+    expect(attacker.actor.increaseCondition).toHaveBeenCalledWith("off-guard");
+  });
+
+  for (const [outcome, value] of [
+    ["success", 1],
+    ["criticalSuccess", 2],
+  ]) {
+    it(`applies Frightened ${value} on a ${outcome} Demoralize and records the 10-minute immunity`, async () => {
+      const { opponent, combat } = setup({ slug: "demoralize", outcome });
+      await applyAgentDecision(combat, "atk", "maneuver:demoralize:opp");
+      expect(opponent.actor.increaseCondition).toHaveBeenCalledWith("frightened", { value });
+      expect(getDemoralizeImmunityUntil(combat, "atk", "opp")).toBe(1600);
+    });
+  }
+
+  it("records the Demoralize immunity even on a failure, with no condition applied", async () => {
+    const { opponent, combat } = setup({ slug: "demoralize", outcome: "failure" });
+    await applyAgentDecision(combat, "atk", "maneuver:demoralize:opp");
+    expect(opponent.actor.increaseCondition).not.toHaveBeenCalled();
+    expect(getDemoralizeImmunityUntil(combat, "atk", "opp")).toBe(1600);
+  });
+
+  it("whispers the GM the maneuver's outcome", async () => {
+    const { combat } = setup({ slug: "trip", outcome: "failure" });
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp");
+    const contents = ChatMessage.create.mock.calls.map((c) => c[0].content);
+    expect(contents.some((c) => c.includes("Trip") && c.includes("failure"))).toBe(true);
+  });
+
+  it("spends one action on the maneuver", async () => {
+    const { combat } = setup({ slug: "trip", outcome: "failure" });
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp");
+    expect(combat.getFlag(MODULE_ID, "agentTurnState").actionsRemaining).toBe(2);
+  });
+
+  it("never calls the maneuver macro when the target no longer resolves (defeated since the pick)", async () => {
+    const { opponent, combat, action } = setup({ slug: "trip", outcome: "success" });
+    opponent.isDefeated = true;
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp");
+    expect(action).not.toHaveBeenCalled();
+    expect(opponent.actor.increaseCondition).not.toHaveBeenCalled();
+  });
+});

@@ -6,6 +6,7 @@ import {
   getDemoralizeImmunityUntil,
   setDemoralizeImmunityUntil,
   immuneToDemoralize,
+  holdsAnItem,
 } from '../scripts/dungeon-combat.mjs';
 
 function combatStub(flags = {}) {
@@ -134,5 +135,13 @@ describe('immuneToDemoralize', () => {
   it('is false for a target with unrelated or no immunities', () => {
     expect(immuneToDemoralize({ attributes: { immunities: [{ type: 'fire' }] } })).toBe(false);
     expect(immuneToDemoralize({})).toBe(false);
+  });
+});
+
+describe('holdsAnItem', () => {
+  it('is true only when some item is actually held', () => {
+    expect(holdsAnItem({ items: [{ system: { equipped: { carryType: 'held' } } }] })).toBe(true);
+    expect(holdsAnItem({ items: [{ system: { equipped: { carryType: 'worn' } } }] })).toBe(false);
+    expect(holdsAnItem({})).toBe(false);
   });
 });

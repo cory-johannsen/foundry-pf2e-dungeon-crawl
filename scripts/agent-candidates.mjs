@@ -985,6 +985,8 @@ export const DEMORALIZE_RANGE_SQUARES = 6;
  * demoralize has no size restriction, so it never reads sizeOk at all).
  * `opponent.demoralizeImmune` -> bool, dungeon-combat.mjs's own real-time
  * worldTime check against this module's 10-minute immunity tracking.
+ * `opponent.holdsItem` -> bool, whether the target is holding anything
+ * Disarm could knock away.
  */
 export function buildManeuverVocabulary({ attacker, opponents }) {
   const vocabulary = [];
@@ -995,6 +997,10 @@ export function buildManeuverVocabulary({ attacker, opponents }) {
       if (!withinRangeAndSight(opponent, a.reachSquares)) continue;
       if (slug === 'demoralize' && opponent.demoralizeImmune) continue;
       if (slug !== 'demoralize' && opponent.sizeOk?.[slug] === false) continue;
+      // Disarm needs an item to knock out of the target's grasp; only an
+      // explicit `false` excludes (a caller that never computes it is
+      // unaffected).
+      if (slug === 'disarm' && opponent.holdsItem === false) continue;
       vocabulary.push({ type: 'maneuver', slug, targetId: opponent.id });
     }
   }

@@ -1405,6 +1405,12 @@ describe('buildManeuverVocabulary', () => {
     expect(vocabulary.map((v) => v.slug)).toEqual(['trip', 'shove', 'grapple', 'disarm']);
   });
 
+  it('excludes disarm (only) against a target holding no item', () => {
+    const emptyHanded = { ...inReach, holdsItem: false };
+    const vocabulary = buildManeuverVocabulary({ attacker: eligibleAttacker, opponents: [emptyHanded] });
+    expect(vocabulary.map((v) => v.slug)).toEqual(['trip', 'shove', 'grapple', 'demoralize']);
+  });
+
   it('returns an empty array for no opponents at all', () => {
     expect(buildManeuverVocabulary({ attacker: eligibleAttacker, opponents: [] })).toEqual([]);
   });
