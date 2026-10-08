@@ -73,11 +73,11 @@ describe('#427 Chunk 7: dead edges become stubs (500 seeds, retreat on, union or
     // shortcut links); the rest are refused by the rules (target has no other walkable parent, graph rule 3) or have no
     // free door tile in the source's south margin row. Sealed doors 1478 -> 473.
     // #585: the dead edges the rules refuse are now walled (tests/dungeon-walled-sweep.test.mjs), so no dead real edge is
-    // left (1277 -> 0), one stub fewer (its door tile went when the walled doors re-slotted) and the 58 doors still sealed
+    // left (1277 -> 0), one stub fewer (its door tile went when the walled doors re-slotted) and the 4 doors still sealed (58 before #873 reopened west-face reveal doors' buffer margins)
     // are hidden shortcut/detour doors (not progression edges). Sole-child stub sources count walled siblings too.
-    expect([t.stubs, t.stubDungeons, t.maxStubs, t.soleChildStubs]).toEqual([1271, 454, 8, 1250]);
-    expect(t.droppedByVerify).toBe(24);
-    expect([t.sealedBefore, t.sealedAfter]).toEqual([1478, 58]);
+    expect([t.stubs, t.stubDungeons, t.maxStubs, t.soleChildStubs]).toEqual([1280, 457, 8, 1259]);
+    expect(t.droppedByVerify).toBe(15);
+    expect([t.sealedBefore, t.sealedAfter]).toEqual([1294, 4]);
     expect([t.deadBefore, t.deadAfter, t.deadDungeonsBefore, t.deadDungeonsAfter]).toEqual([2556, 0, 490, 0]);
     expect([t.unreachRoomsBefore, t.unreachRoomsAfter, t.goalLostBefore, t.goalLostAfter]).toEqual([2305, 2259, 271, 266]);
   }, 900000);

@@ -92,7 +92,7 @@ describe('layoutVersion stamp (#427)', () => {
 // spans are (even partly) covered by a collinear solid wall. v2 is the baseline (its own known residuals, #231
 // and #309); v3 may not exceed it. The ceilings only fall.
 const ORACLE_SEEDS = 200;
-const V2_SEALED_DOORS = 775;
+const V2_SEALED_DOORS = 689;
 const V3_SEALED_DOORS_CEILING = 619;
 describe('scene oracle: sealed doors (#427)', () => {
   const count = async (v) => {

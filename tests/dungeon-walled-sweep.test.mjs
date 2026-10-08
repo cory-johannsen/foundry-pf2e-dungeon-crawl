@@ -93,7 +93,7 @@ describe('#585: dead edges that cannot be stubs are walled (500 seeds, retreat o
     expect(t.goalLostAfter).toBeLessThanOrEqual(t.goalLostBefore);
     // Measured: 1279 walls in 313 dungeons (max 15); 2 more than the static count of dead edges after the stub plan (1277)
     // because walling re-slots siblings and kills 2 more; goal-unreachable dungeons 271 -> 266 (the stubs' doing).
-    expect([t.walled, t.walledDungeons, t.maxWalled, t.lostFlagged]).toEqual([1279, 313, 15, 1]);
+    expect([t.walled, t.walledDungeons, t.maxWalled, t.lostFlagged]).toEqual([1270, 313, 15, 1]);
     // Against the shipped (stubs, dead edges built) scene: corridor tiles sharing a cell, tiles inside a room
     // (the dead edges' straight-line fallback corridors are gone), uncovered progression doors 130 -> 0.
     // #823 re-pin (tile identity only): the scene now lays ONE corridor tile per distinct cell (a cross-corridor guard

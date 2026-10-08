@@ -1,6 +1,6 @@
 # West-Face Reveal Door Margin Reseal Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Fix #873's Part 2 — a west-face (or, by the same geometry, any future west-face) reveal door can be physically sealed by a transit-cell buffer-column margin wall that was built before the door existed and never reopened for it.
 
@@ -38,7 +38,7 @@
 - Consumes: `transitCellContainmentWalls` (confirmed current, `scripts/dungeon-layout.mjs:2461`), `wallDoc` (confirmed current, `scripts/dungeon-scene.mjs:142`).
 - Produces: `reopenBufferCellForDoor(scene, rank, col, opening)` — `opening` is `{side: 'east', point: {y}}`, the same shape `transitCellContainmentWalls`'s own `openings` array already takes.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 import { describe, it, expect, vi } from "vitest";
@@ -117,12 +117,12 @@ describe("#873 reopenBufferCellForDoor", () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-west-face-door-margin.test.mjs`
 Expected: FAIL — `reopenBufferCellForDoor` does not exist yet.
 
-- [ ] **Step 3: Implement `reopenBufferCellForDoor`**
+- [x] **Step 3: Implement `reopenBufferCellForDoor`**
 
 Add to `scripts/dungeon-scene.mjs`, near `sealBufferCellIfUnbuilt` (confirmed current, line 494):
 
@@ -162,7 +162,7 @@ async function reopenBufferCellForDoor(scene, rank, col, opening) {
 
 Add `transitCellContainmentWalls` to this file's existing import from `./dungeon-layout.mjs` if not already present (`grep -n "transitCellContainmentWalls" scripts/dungeon-scene.mjs` — it is already imported, confirmed current, used by `buildTransitCellIfNeeded`/`sealBufferCellIfUnbuilt`).
 
-- [ ] **Step 4: Wire the call site in `buildPopulateAndUnlockGraphNode`**
+- [x] **Step 4: Wire the call site in `buildPopulateAndUnlockGraphNode`**
 
 Change (confirmed current, `scripts/dungeon-scene.mjs:1913-1961`, the `if (hidden) {...} else {...}` block that creates `connectionWalls`), adding one call **after** both branches (so it applies to hidden and real connections alike):
 
@@ -210,12 +210,12 @@ to (adding the new call right after, using this scope's own already-available `i
       }
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-west-face-door-margin.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Add a live-shaped regression test, reusing the 4 seeds already confirmed to reproduce the bug**
+- [x] **Step 6: Add a live-shaped regression test, reusing the 4 seeds already confirmed to reproduce the bug**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -250,17 +250,17 @@ describe("#873 a west-face reveal door is never sealed by a buffer-cell margin w
 });
 ```
 
-- [ ] **Step 7: Run the tests to verify they pass**
+- [x] **Step 7: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-west-face-door-margin.test.mjs`
 Expected: PASS — all 4 previously-confirmed-broken seeds now report no blocking wall.
 
-- [ ] **Step 8: Run the full test suite**
+- [x] **Step 8: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS — in particular `tests/dungeon-corridor-hidden-west-overlap-sweep.test.mjs`'s own existing assertions (`ownDest`/`ownSource`/`crossCorridor`/`doorUncovered` all `[]`, `otherRoom` pinned to its known 12-instance residual) stay exactly as they are — this fix only adds wall openings, never moves a corridor tile.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add scripts/dungeon-scene.mjs tests/dungeon-west-face-door-margin.test.mjs
@@ -309,7 +309,7 @@ gh issue comment 873 --body "Part (sealed hidden reveal door) fixed: a buffer ce
 **Files:**
 - Modify: `module.json`
 
-- [ ] **Step 1: Re-check the current version and bump**
+- [x] **Step 1: Re-check the current version and bump**
 
 ```bash
 git fetch origin main -q && git log origin/main -1 --oneline && grep version module.json
@@ -317,7 +317,7 @@ git fetch origin main -q && git log origin/main -1 --oneline && grep version mod
 
 Apply a **patch** bump (a contained geometry fix), using whatever the fetch above shows as current.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add module.json
