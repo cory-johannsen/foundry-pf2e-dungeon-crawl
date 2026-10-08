@@ -8,6 +8,7 @@ import {
   unreachableDetourIds, withoutDetours, placeLayoutGraph, computeRanks, computeColumns, pruneConflictingShortcuts,
   findCorridorPath, incomingFaceFor, parentRoomIdsFor,
 } from '../scripts/dungeon-layout.mjs';
+import { computeRunLayout } from '../scripts/dungeon-reseed.mjs';
 
 // Column 0 is a solid stack from rank 0 to rank 5 except the detour d at (3,0); its source x is at (2,2).
 const STACK_POS = {
@@ -139,5 +140,26 @@ describe('placeLayoutGraph (#906)', () => {
       expect(unreachableDetourIds(placed)).toEqual([]);
     }
     expect([dropped, multiPass]).toEqual([56, 2]);
+  });
+});
+
+describe('computeRunLayout (#906)', () => {
+  it('a v3 layout never contains an unreachable detour; v1/v2 layouts are placed as before', () => {
+    for (let i = 0; i < 100; i += 1) {
+      const ctx = { generator: deck, seed: `sweep-${i}`, roomCount: 6 + (i % 15) };
+      const P = computeRunLayout({ ...ctx, topologyRouting: true });
+      expect(unreachableDetourIds({
+        positionByRoomId: P.layoutPositionByRoomId, layoutEdges: P.layoutEdges, hiddenRooms: P.hiddenRooms,
+        hiddenIncomingByRoomId: P.hiddenIncomingByRoomId,
+      })).toEqual([]);
+      expect(P.maxCol).toBe(Math.max(...Object.values(P.layoutPositionByRoomId).map((p) => p.col)));
+    }
+    const v2 = computeRunLayout({ generator: deck, seed: 'sweep-81', roomCount: 6 + (81 % 15), layoutVersion: 2 });
+    expect(v2.hiddenRooms).toContain('room-detour-0');
+    const v3 = computeRunLayout({ generator: deck, seed: 'sweep-81', roomCount: 6 + (81 % 15) });
+    expect(v3.hiddenRooms).not.toContain('room-detour-0');
+    expect(v3.rooms['room-detour-0']).toBeUndefined();
+    expect(v3.edges['room-detour-0']).toBeUndefined();
+    expect(Object.values(v3.hiddenEdges).flat()).not.toContain('room-detour-0');
   });
 });

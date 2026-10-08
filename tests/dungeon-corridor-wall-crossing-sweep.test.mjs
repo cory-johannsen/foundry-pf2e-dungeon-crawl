@@ -85,17 +85,12 @@ describe('#861 no solid (non-door) wall crosses an open corridor joint', () => {
     // Measured 2026-10-06 on v0.77.0 + #861's stub-piece change (identical with and without it: stubs add no
     // crossings -- the stub door wall is a door, excluded). Stub groups ARE judged: the stub-piece fix makes their
     // joints open toward each other, so stubPairs > 0 (it was 0 while every stub tile was a closed 'single').
-    // Three wall-generation mechanisms -- cellMarginWalls' planned margin openings, transitCellContainmentWalls'
-    // per-crossing openings, roomEnclosureWalls' per-direction wall -- each disagree with a hidden-detour edge's
-    // real corridor tiles in 11/100 seeds (8,36,41,48,51,52,56,69,81,87,94). Pinned, not asserted to zero: the
-    // cause spans independent subsystems and is tracked as #877. A future fix
-    // lowers these numbers -- update this assertion to match, like tests/dungeon-corridor-joins-sweep.test.mjs.
+    // #877/#906: the 101 crossings (29 cell-margin, 70 transit-cell, 2 enclosure walls; 12 edges in 11/100 seeds:
+    // 8,36,41,48,51,52,56,69,81,87,94) were all one shape -- a hidden link into a column-0 detour room that no corridor
+    // can reach, drawn as buildEdgeCorridor's null-path fallback line. #906 no longer produces that detour
+    // (placeLayoutGraph drops it), so none is left.
     expect(stubPairs).toBeGreaterThan(0);
-    expect([...seedsHit]).toEqual([8, 36, 41, 48, 51, 52, 56, 69, 81, 87, 94]);
-    expect(byCategory).toEqual({
-      dungeonCellMarginWallForRoom: 29,
-      'dungeonTransitCellMarginForCell+dungeonTransitCellOpenings': 70,
-      'dungeonEnclosureWallForRoom+dungeonEnclosureWallDirection': 2,
-    });
+    expect([...seedsHit]).toEqual([]);
+    expect(byCategory).toEqual({});
   }, 600000);
 });

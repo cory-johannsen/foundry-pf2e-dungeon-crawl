@@ -71,26 +71,21 @@ describe('#860 hidden west-face detour corridor entries never cross a room or an
     // never lands inside its own destination (or source) room's rect.
     expect(all.ownDest).toEqual([]);
     expect(all.ownSource).toEqual([]);
-    // Tracked in #873 (which also notes the sealed-reveal-door transit-margin observation).
-    // Second, distinct phenomenon #860 also reports: a corridor cell inside an
-    // UNRELATED third room. Measured 17 cells before the fix; 12 remain after
-    // it, all one seed (sweep-81, one straight row y=45, x=300..311 through
-    // room-room-room-room-entry-0-0-0). That is a pathfinding route choice
-    // (findCorridorPath), not the west-face leg overflow fixed here -- see the
-    // known-residual note in buildEdgeCorridor's multi-cell branch. Pinned at
-    // the real residual so the sweep is honest; tighten when it is fixed.
-    expect(all.otherRoom.map((h) => `${h.seed} ${h.cell}`)).toEqual(
-      Array.from({ length: 12 }, (_, k) => `sweep-81 ${300 + k},45`),
-    );
+    // Second, distinct phenomenon #860 also reports: a corridor cell inside an UNRELATED third room. 17 cells before
+    // #860, 12 after it (all sweep-81, y=45, x=300..311 through room-room-room-room-entry-0-0-0): that detour had no
+    // reachable approach at all, so the scene drew the null-path fallback line. #906 drops such detours: 0.
+    expect(all.otherRoom.map((h) => `${h.seed} ${h.cell}`)).toEqual([]);
     expect(all.crossCorridor).toEqual([]);
     // #860: every west-face door's outside cell is covered by its own corridor (incl. a corridor arriving from the north).
     expect(all.doorUncovered).toEqual([]);
   }, 600000);
 });
 
-describe('#860 seed 51 (the issue\'s named repro)', () => {
+// #906: seed 51 (#860's named repro) no longer builds a hidden west-face edge -- its detour was unreachable and is now
+// dropped -- so the repro runs on seed 10, the lowest sweep seed that still builds one.
+describe('#860 repro on seed 10 (seed 51\'s detour is dropped by #906)', () => {
   it('its hidden west-face corridor has no cell inside its destination room and covers its door\'s outside cell', async () => {
-    const P = computeRunLayout({ generator: deck, seed: 'sweep-51', roomCount: 6 + (51 % 15), topologyRouting: true });
+    const P = computeRunLayout({ generator: deck, seed: 'sweep-10', roomCount: 6 + (10 % 15), topologyRouting: true });
     const planned = await planRunLayoutStubs(P, { retreatAvailable: true });
     const L = sweepShapeOfRunLayout(planned.layout);
     const { scene } = await buildSceneForLayout(L, 3);

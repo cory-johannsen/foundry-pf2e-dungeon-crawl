@@ -351,7 +351,7 @@ git commit -m "#906: unreachableDetourIds, withoutDetours, placeLayoutGraph (pur
 - Consumes: `placeLayoutGraph` and `unreachableDetourIds` from Task 1.
 - Produces: `computeRunLayout(...)` keeps its signature and return shape. For `layoutVersion >= 3` its `rooms`, `edges`, `layoutEdges`, `hiddenRooms` and `hiddenEdges` no longer contain an unreachable detour, and `maxCol` comes from the final positions. `buildSweepLayout(i, opts)` keeps its signature and return shape.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add `import { computeRunLayout } from '../scripts/dungeon-reseed.mjs';` after the existing `dungeon-layout.mjs` import in `tests/dungeon-detour-reachability.test.mjs`, and append:
 
@@ -378,12 +378,12 @@ describe('computeRunLayout (#906)', () => {
 });
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `npx vitest run tests/dungeon-detour-reachability.test.mjs -t "computeRunLayout"`
 Expected: FAIL. `unreachableDetourIds` returns `['room-detour-0']` for sweep-8, where `[]` is expected.
 
-- [ ] **Step 3: Wire `computeRunLayout`**
+- [x] **Step 3: Wire `computeRunLayout`**
 
 In `scripts/dungeon-reseed.mjs` replace the import
 
@@ -446,7 +446,7 @@ with
     maxRank: Math.max(...Object.values(ranks)), maxCol: Math.max(...Object.values(layoutPositionByRoomId).map((p) => p.col)),
 ```
 
-- [ ] **Step 4: Wire the sweep mirror**
+- [x] **Step 4: Wire the sweep mirror**
 
 In `tests/helpers/layout-sweep.mjs` replace the import list
 
@@ -499,12 +499,12 @@ with
   const occ = Object.fromEntries(
 ```
 
-- [ ] **Step 5: Run the new test and the guards that must NOT move**
+- [x] **Step 5: Run the new test and the guards that must NOT move**
 
 Run: `npx vitest run tests/dungeon-detour-reachability.test.mjs tests/dungeon-layout-default-identical.test.mjs tests/dungeon-reseed.test.mjs`
 Expected: every test passes except exactly one, `chooseRunLayout > exhausted: keeps a candidate and warns instead of blocking`, which receives `[false, true, 0]` because sweep-12 no longer exhausts; Task 3 re-pins it. The v1 default-geometry digest is unchanged. "computeRunLayout equals the stub-free sweep layout" still holds, which proves the two placement paths agree.
 
-- [ ] **Step 6: Re-pin the two #906 target sweeps to the measured numbers**
+- [x] **Step 6: Re-pin the two #906 target sweeps to the measured numbers**
 
 Run first: `npx vitest run tests/dungeon-corridor-wall-crossing-sweep.test.mjs tests/dungeon-corridor-hidden-west-overlap-sweep.test.mjs`
 Expected before the edit: FAIL. `seedsHit` is `[]` against the old `[8, 36, …, 94]`, `otherRoom` is `[]` against the old 12 `sweep-81` cells, and the seed-51 repro's last assertion is `false`, because seed 51 no longer builds a hidden west-face edge (its detour is dropped).
@@ -588,12 +588,12 @@ describe('#860 repro on seed 10 (seed 51\'s detour is dropped by #906)', () => {
 ```
 
 
-- [ ] **Step 7: Run the target sweeps to verify they pass**
+- [x] **Step 7: Run the target sweeps to verify they pass**
 
 Run: `npx vitest run tests/dungeon-corridor-wall-crossing-sweep.test.mjs tests/dungeon-corridor-hidden-west-overlap-sweep.test.mjs`
 Expected: PASS (2 files, 3 tests). Crossings are 0 (`byCategory` `{}`), `otherRoom` is `[]`, `ownDest`, `ownSource`, `crossCorridor` and `doorUncovered` are still `[]`, and seed 10's hidden west-face edge passes the #860 repro.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/dungeon-reseed.mjs tests/helpers/layout-sweep.mjs tests/dungeon-detour-reachability.test.mjs   tests/dungeon-corridor-wall-crossing-sweep.test.mjs tests/dungeon-corridor-hidden-west-overlap-sweep.test.mjs
