@@ -4,7 +4,7 @@
 
 **Builds on:** #909 / `docs/superpowers/specs/2026-10-08-ai-actor-maneuvers-design.md` (the basic-maneuver vocabulary builder `buildManeuverVocabulary` and the `maneuver` execution branch in `applyAgentDecision`). This spec changes *that* work's eligibility checks and outcome riders; it adds no new subsystem and no new agent-service endpoint.
 
-**Status:** Draft written from investigation of this repo, the installed PF2e system and the live compendium, **without a design dialogue**. Decisions are marked *Proposed*; the choices that most need the owner are under "Open questions". Not yet an approved design.
+**Status:** Approved. Drafted from investigation of this repo, the installed PF2e system and the live compendium; the four open questions were answered by the owner on 2026-10-08 and are folded in below (see "Resolved questions").
 
 ## Summary
 
@@ -46,7 +46,7 @@ Confirmed against this repo, the installed PF2e system (`/srv/foundry/data/Data/
    | Crushing Grab | Grapple | rider | On success, deal Str-modifier bludgeoning damage to the target |
    | Terrified Retreat | Demoralize | rider | On a critical success against a target of lower level, target is Fleeing for 1 round |
 
-5. **Agile Maneuvers and Antagonize are out of the initial table.** Agile Maneuvers changes the multiple-attack-penalty for maneuvers, which depends on how MAP is accounted for in `turnState`/the system roll (needs its own verification, see Open questions). Antagonize (Frightened floor until a hostile act against the actor) needs a persisted condition-floor and a break condition, a larger design than a one-shot rider.
+5. **Agile Maneuvers and Antagonize are out of the initial table (follow-ups #919 and #920).** Agile Maneuvers changes the multiple-attack-penalty for maneuvers, which depends on how MAP is accounted for in `turnState`/the system roll (needs its own verification, see Open questions). Antagonize (Frightened floor until a hostile act against the actor) needs a persisted condition-floor and a break condition, a larger design than a one-shot rider.
 6. **Sly Disarm picks the better statistic deterministically**, using the higher of Athletics and Thievery modifier for that actor; ties prefer Athletics (no Off-Guard rider).
 7. **No reasoning-model change.** The model only ever chooses among vocabulary entries; feat modifiers change which entries exist (e.g. a larger target now appears) and what happens on execution, never the model contract.
 
@@ -95,9 +95,14 @@ The existing size check compares `targetSize - attackerSize <= sizeCapSteps`; ev
 - Agile Maneuvers (MAP) and Antagonize (persistent Frightened floor) — deferred, see Open questions.
 - Reactions that trigger maneuvers (Shoving Sweep, Topple Foe, Opportunistic Grapple).
 
-## Open questions (owner input wanted)
+## Resolved questions
 
-1. **Initial table.** Are the four entries (Titan Wrestler, Sly Disarm, Crushing Grab, Terrified Retreat) the right first slice, or should something else (e.g. Battle Cry's initiative Demoralize, which is an extra free-action use) be included?
-2. **Agile Maneuvers.** Does the system already compute the lower maneuver MAP from the actor, or must the module adjust it? Needs a quick live check before committing to include or exclude it.
-3. **Antagonize.** Worth a dedicated design for the persistent Frightened floor, or leave out permanently?
-4. **Dependency order.** Plan now against #909's spec (execution waits for #909 to be implemented), or hold?
+1. **Initial table:** Titan Wrestler, Sly Disarm, Crushing Grab, Terrified Retreat, as proposed.
+2. **Agile Maneuvers:** deferred; the system has no handling for it, so the module must adjust MAP itself. Filed as #919.
+3. **Antagonize:** deferred to a follow-up ticket, #920.
+4. **Sequencing:** plan now against #909's spec; execution waits for #909's pipeline to be implemented.
+
+## Follow-ups
+
+- #919: Agile Maneuvers (lower MAP on maneuvers).
+- #920: Antagonize (persistent Frightened floor after Demoralize).
