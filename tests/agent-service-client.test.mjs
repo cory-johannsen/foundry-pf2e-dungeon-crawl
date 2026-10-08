@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { fetchCombatDecision, fetchFlavorCustomization } from '../scripts/agent-service-client.mjs';
+import { fetchCombatDecision, fetchFlavorCustomization, fetchCombatCandidates } from '../scripts/agent-service-client.mjs';
 
 function fakeFetch(status, body) {
   return vi.fn().mockResolvedValue({
@@ -55,5 +55,30 @@ describe('agent-service-client', () => {
     const [url, options] = fetchImpl.mock.calls[0];
     expect(url).toBe('https://agent.example/v1/flavor-customization');
     expect(JSON.parse(options.body)).toEqual({ kind: 'trap', actorId: 'a1' });
+  });
+});
+
+describe('fetchCombatCandidates', () => {
+  it('posts context and vocabulary to /v1/combat-candidates with a bearer token', async () => {
+    const fetchImpl = fakeFetch(200, { picks: [{ type: 'maneuver', slug: 'trip', targetId: 'opp1', rationale: 'r' }] });
+    const result = await fetchCombatCandidates({
+      baseUrl: 'https://agent.example',
+      apiKey: 'test-key',
+      context: { self: {}, roundNumber: 1 },
+      vocabulary: [{ type: 'maneuver', slug: 'trip', targetId: 'opp1' }],
+      fetchImpl
+    });
+    expect(result).toEqual({ picks: [{ type: 'maneuver', slug: 'trip', targetId: 'opp1', rationale: 'r' }] });
+    const [url, options] = fetchImpl.mock.calls[0];
+    expect(url).toBe('https://agent.example/v1/combat-candidates');
+    expect(options.headers.Authorization).toBe('Bearer test-key');
+    expect(JSON.parse(options.body)).toEqual({ self: {}, roundNumber: 1, vocabulary: [{ type: 'maneuver', slug: 'trip', targetId: 'opp1' }] });
+  });
+
+  it("throws with the service's own error message on a non-ok response", async () => {
+    const fetchImpl = fakeFetch(502, { error: 'boom' });
+    await expect(
+      fetchCombatCandidates({ baseUrl: 'https://agent.example', apiKey: 'k', context: {}, vocabulary: [], fetchImpl })
+    ).rejects.toThrow(/\/v1\/combat-candidates failed \(502\): boom/);
   });
 });

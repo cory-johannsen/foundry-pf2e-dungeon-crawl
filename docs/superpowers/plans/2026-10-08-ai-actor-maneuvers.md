@@ -364,13 +364,13 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing from this plan's other Foundry-side tasks.
 - Produces: `fetchCombatCandidates({ baseUrl, apiKey, context, vocabulary, fetchImpl })` → `Promise<{picks: [...]}>`, consumed by Task 6's `runAgentDecisionLoop`.
 
-- [ ] **Step 1: Check for an existing test file**
+- [x] **Step 1: Check for an existing test file**
 
 Run: `ls tests/agent-service-client.test.mjs 2>/dev/null || echo "none"`
 
 If it exists, read it fully first and add the new test inside its existing `describe` structure, matching its conventions exactly. If not, create it fresh per Step 2 below.
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 ```js
 // tests/agent-service-client.test.mjs (new describe block if the file already exists)
@@ -407,12 +407,12 @@ describe("fetchCombatCandidates", () => {
 });
 ```
 
-- [ ] **Step 3: Run test to verify it fails**
+- [x] **Step 3: Run test to verify it fails**
 
 Run: `npm test -- tests/agent-service-client.test.mjs`
 Expected: FAIL — `fetchCombatCandidates` is not exported yet.
 
-- [ ] **Step 4: Add the client function**
+- [x] **Step 4: Add the client function**
 
 In `scripts/agent-service-client.mjs`, add after `fetchCombatDecision`:
 
@@ -422,12 +422,12 @@ export async function fetchCombatCandidates({ baseUrl, apiKey, context, vocabula
 }
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `npm test -- tests/agent-service-client.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/agent-service-client.mjs tests/agent-service-client.test.mjs
