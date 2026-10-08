@@ -506,6 +506,36 @@ async function sealBufferCellIfUnbuilt(scene, rank, col) {
   await scene.createEmbeddedDocuments("Wall", marginWalls);
 }
 
+/**
+ * #873: rebuilds a buffer cell's own margin wall with one more opening — the
+ * same "read back prior openings, union in the new one, create-then-delete"
+ * pattern `buildTransitCellIfNeeded` uses for a corridor crossing (#110
+ * ordering: the new wall exists before the old one is removed). For a ROOM's
+ * own west-face door landing flush on a buffer cell's east boundary:
+ * `sealBufferCellIfUnbuilt` sealed that boundary solid when the room built,
+ * before its connecting doors existed. Works whichever of the two ran first,
+ * and composes with a later corridor crossing of the same cell.
+ */
+export async function reopenBufferCellForDoor(scene, rank, col, opening) {
+  const cellKey = `${rank},${col}`;
+  const existingMarginWalls = scene.walls.filter(
+    (w) => w.getFlag(MODULE_ID, "dungeonTransitCellMarginForCell") === cellKey,
+  );
+  const priorOpenings = existingMarginWalls.length
+    ? (existingMarginWalls[0].getFlag(MODULE_ID, "dungeonTransitCellOpenings") ?? [])
+    : [];
+  const openings = [...priorOpenings, opening];
+  const marginWalls = transitCellContainmentWalls(rank, col, openings).map((side) =>
+    wallDoc(side, {
+      flags: { [MODULE_ID]: { dungeonTransitCellMarginForCell: cellKey, dungeonTransitCellOpenings: openings } },
+    }),
+  );
+  await scene.createEmbeddedDocuments("Wall", marginWalls);
+  if (existingMarginWalls.length) {
+    await scene.deleteEmbeddedDocuments("Wall", existingMarginWalls.map((w) => w.id));
+  }
+}
+
 // #93 pre-flight fix (Step 3f): requiredDimensions/ensureSceneCovers
 // (the old per-room, slot-indexed canvas-growth pair) are deleted —
 // superseded by resizeSceneForLayout below, called ONCE by Task 12 right
@@ -1971,6 +2001,12 @@ export async function buildPopulateAndUnlockGraphNode(
           wallDoc(revealDoorWall, { flags: { [MODULE_ID]: { dungeonRevealDoorForSlot: room.id, dungeonDoorFromRoomId: sourceId } }, ds: CONST.WALL_DOOR_STATES.CLOSED, door: CONST.WALL_DOOR_TYPES.DOOR, art: doorArt(room.locationTag, room.artVariant) }),
           ...plainWalls.map((w) => wallDoc(w)),
         );
+      }
+      // #873: a west-face reveal door sits flush on its buffer column's east
+      // edge, which sealBufferCellIfUnbuilt already closed solid when this
+      // room's shell built. Reopen it, for hidden and real doors alike.
+      if (incomingFace === 'west') {
+        await reopenBufferCellForDoor(scene, rank, col - 1, { side: 'east', point: { y: revealDoorWall.y1 } });
       }
       // Corridor floor tiles — one per corridorSegments entry (1 for a
       // straight edge, 2 for an L-shaped edge, Task 6), same per-tile

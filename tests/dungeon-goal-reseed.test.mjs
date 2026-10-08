@@ -30,7 +30,7 @@ describe('goal-only reject-and-reseed (#490/#427 prototype, truth oracle, stubs 
     // Residual after goal-only reseed + stubs (truth): the goal is reachable everywhere, optional rooms mostly are.
     expect([a.unreachDungeons, a.unreachRooms]).toEqual([47, 80]);
     expect(a.soleDeadDungeons).toBe(16);
-    expect(a.sealedDoors).toBe(127);
+    expect(a.sealedDoors).toBe(89);
     expect(base.unreachRooms).toBe(1275);
   }, 300000);
 });

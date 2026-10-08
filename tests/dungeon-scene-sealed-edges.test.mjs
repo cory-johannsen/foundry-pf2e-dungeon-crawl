@@ -134,7 +134,7 @@ describe('reject-and-reseed prototype (#490, measured, not shipped)', () => {
 // measured in the same way: sealed doors 1478 -> 411, real sealed edges 1380 -> 352, gate-held 1106 -> 172;
 // but goal-unreachable dungeons 36 -> 41, which Chunk 7 must resolve before it ships.
 const MEASURE_SEEDS = 500;
-const NO_STUB_500 = { sealedDoors: 1478, sealedRealEdges: 1380, gateHeld: 1106, sole: 30, unreachableRooms: 405, dungeons: 93, goalUnreachable: 36 };
+const NO_STUB_500 = { sealedDoors: 1294, sealedRealEdges: 1250, gateHeld: 1106, sole: 18, unreachableRooms: 335, dungeons: 58, goalUnreachable: 32 };
 const STUBS_500 = { sealedDoors: 1447, sealedRealEdges: 1375, gateHeld: 1102, sole: 30, unreachableRooms: 380, dungeons: 89, goalUnreachable: 33 };
 const STUB_DOORS_SEALED = 0;
 
