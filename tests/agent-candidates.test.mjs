@@ -15,12 +15,13 @@ import {
   parseTargetCountFormula, buildTargetCountSpellCandidates,
   parseAutoHitAreaTiers, buildAutoHitAreaSpellCandidates,
   buildCandidateList, applyCandidateToTurnState, buildDecisionContext,
-  MAX_ACTIONS_PER_TURN, AGENT_MELEE_REACH_SQUARES
+  MAX_ACTIONS_PER_TURN, AGENT_MELEE_REACH_SQUARES,
+  MANEUVER_DEFS, DEMORALIZE_RANGE_SQUARES, buildManeuverVocabulary, buildManeuverCandidates
 } from '../scripts/agent-candidates.mjs';
 
 describe('initAgentTurnState', () => {
-  it('starts with a full action budget and no MAP penalty', () => {
-    expect(initAgentTurnState()).toEqual({ actionsRemaining: MAX_ACTIONS_PER_TURN, mapIncrement: 0 });
+  it('starts with a full action budget, no MAP penalty, and no maneuver picks yet', () => {
+    expect(initAgentTurnState()).toEqual({ actionsRemaining: MAX_ACTIONS_PER_TURN, mapIncrement: 0, maneuverPicks: null });
   });
 });
 
@@ -1161,6 +1162,17 @@ describe('buildCandidateList', () => {
     expect(candidates).toEqual([endTurnCandidate()]);
   });
 
+  it('includes maneuver candidates when a vocabulary and matching picks are both present', () => {
+    const candidates = buildCandidateList({
+      opponents: [{ id: 'opp1', name: 'Goblin', distanceSquares: 5 }],
+      readyActions: [],
+      turnState: { actionsRemaining: 3, mapIncrement: 0, maneuverPicks: null },
+      maneuverVocabulary: [{ type: 'maneuver', slug: 'trip', targetId: 'opp1' }],
+      maneuverPicks: [{ type: 'maneuver', slug: 'trip', targetId: 'opp1', rationale: 'r' }],
+    });
+    expect(candidates).toContainEqual({ id: 'maneuver:trip:opp1', type: 'maneuver', slug: 'trip', targetId: 'opp1', cost: 1, summary: 'Trip vs Goblin — r' });
+  });
+
   it('includes affordable spell candidates alongside strikes', () => {
     const spiritBlast = { id: 'sp1', slug: 'spirit-blast', label: 'Spirit Blast', cost: 2, rangeSquares: 6, save: 'fortitude', basic: true };
     const turnState = { actionsRemaining: 3, mapIncrement: 0 };
@@ -1234,6 +1246,19 @@ describe('buildCandidateList', () => {
 });
 
 describe('applyCandidateToTurnState', () => {
+  // #909: maneuverPicks is fetched once per turn and must survive every
+  // action's turn-state transition, or the next decision iteration would
+  // see `null` again and re-ask the reasoning model.
+  it('carries maneuverPicks through unchanged', () => {
+    const picks = [{ type: 'maneuver', slug: 'trip', targetId: 'opp1', rationale: 'r' }];
+    const next = applyCandidateToTurnState(
+      { actionsRemaining: 3, mapIncrement: 0, maneuverPicks: picks },
+      { id: 'maneuver:trip:opp1', type: 'maneuver', cost: 1 },
+    );
+    expect(next).toEqual({ actionsRemaining: 2, mapIncrement: 0, maneuverPicks: picks });
+  });
+
+
   it('decrements actionsRemaining by the candidate\'s cost', () => {
     const next = applyCandidateToTurnState({ actionsRemaining: 3, mapIncrement: 0 }, { type: 'stride', cost: 1 });
     expect(next).toEqual({ actionsRemaining: 2, mapIncrement: 0 });
@@ -1319,5 +1344,124 @@ describe('seek candidate (#616)', () => {
     expect(ids(none)).toEqual(['endTurn']);
     const seek = { id: 'seek', type: 'seek', cost: 1 };
     expect(applyCandidateToTurnState(turnState, seek)).toEqual({ actionsRemaining: 2, mapIncrement: 0 });
+  });
+});
+
+describe('buildManeuverVocabulary', () => {
+  const inReach = { id: 'opp1', name: 'Goblin', distanceSquares: 1, hasLineOfSight: true, sizeOk: { trip: true, shove: true, grapple: true, disarm: true }, demoralizeImmune: false };
+  const outOfMeleeReach = { id: 'opp2', name: 'Archer', distanceSquares: 2, hasLineOfSight: true, sizeOk: { trip: true, shove: true, grapple: true, disarm: true }, demoralizeImmune: false };
+  const eligibleAttacker = {
+    maneuvers: {
+      trip: { eligible: true, reachSquares: AGENT_MELEE_REACH_SQUARES },
+      shove: { eligible: true, reachSquares: AGENT_MELEE_REACH_SQUARES },
+      grapple: { eligible: true, reachSquares: AGENT_MELEE_REACH_SQUARES },
+      disarm: { eligible: true, reachSquares: AGENT_MELEE_REACH_SQUARES },
+      demoralize: { eligible: true, reachSquares: DEMORALIZE_RANGE_SQUARES },
+    },
+  };
+
+  it('offers all four melee maneuvers against an in-reach opponent', () => {
+    const vocabulary = buildManeuverVocabulary({ attacker: eligibleAttacker, opponents: [inReach] });
+    expect(vocabulary).toEqual([
+      { type: 'maneuver', slug: 'trip', targetId: 'opp1' },
+      { type: 'maneuver', slug: 'shove', targetId: 'opp1' },
+      { type: 'maneuver', slug: 'grapple', targetId: 'opp1' },
+      { type: 'maneuver', slug: 'disarm', targetId: 'opp1' },
+      { type: 'maneuver', slug: 'demoralize', targetId: 'opp1' },
+    ]);
+  });
+
+  it('excludes melee maneuvers (but not demoralize) against an opponent beyond melee reach', () => {
+    const vocabulary = buildManeuverVocabulary({ attacker: eligibleAttacker, opponents: [outOfMeleeReach] });
+    expect(vocabulary).toEqual([{ type: 'maneuver', slug: 'demoralize', targetId: 'opp2' }]);
+  });
+
+  it('excludes a maneuver the attacker is not eligible for at all', () => {
+    const noAthletics = {
+      maneuvers: {
+        ...eligibleAttacker.maneuvers,
+        trip: { eligible: false, reachSquares: AGENT_MELEE_REACH_SQUARES },
+      },
+    };
+    const vocabulary = buildManeuverVocabulary({ attacker: noAthletics, opponents: [inReach] });
+    expect(vocabulary.some((v) => v.slug === 'trip')).toBe(false);
+  });
+
+  it('excludes a target the attacker cannot see', () => {
+    const blocked = { ...inReach, hasLineOfSight: false };
+    const vocabulary = buildManeuverVocabulary({ attacker: eligibleAttacker, opponents: [blocked] });
+    expect(vocabulary).toEqual([]);
+  });
+
+  it('excludes trip/shove/grapple/disarm (but not demoralize) against a too-large target', () => {
+    const tooLarge = { ...inReach, sizeOk: { trip: false, shove: false, grapple: false, disarm: false } };
+    const vocabulary = buildManeuverVocabulary({ attacker: eligibleAttacker, opponents: [tooLarge] });
+    expect(vocabulary).toEqual([{ type: 'maneuver', slug: 'demoralize', targetId: 'opp1' }]);
+  });
+
+  it('excludes demoralize against a currently-immune target, leaving the melee maneuvers', () => {
+    const immune = { ...inReach, demoralizeImmune: true };
+    const vocabulary = buildManeuverVocabulary({ attacker: eligibleAttacker, opponents: [immune] });
+    expect(vocabulary.map((v) => v.slug)).toEqual(['trip', 'shove', 'grapple', 'disarm']);
+  });
+
+  it('returns an empty array for no opponents at all', () => {
+    expect(buildManeuverVocabulary({ attacker: eligibleAttacker, opponents: [] })).toEqual([]);
+  });
+});
+
+describe('buildManeuverCandidates', () => {
+  const maneuverVocabulary = [
+    { type: 'maneuver', slug: 'trip', targetId: 'opp1' },
+    { type: 'maneuver', slug: 'demoralize', targetId: 'opp1' },
+  ];
+  const opponents = [{ id: 'opp1', name: 'Goblin' }];
+
+  it('builds a candidate for each pick that matches the vocabulary, with the rationale in its summary', () => {
+    const candidates = buildManeuverCandidates({
+      maneuverVocabulary,
+      maneuverPicks: [{ type: 'maneuver', slug: 'trip', targetId: 'opp1', rationale: 'Knock it down.' }],
+      opponents,
+    });
+    expect(candidates).toEqual([
+      { id: 'maneuver:trip:opp1', type: 'maneuver', slug: 'trip', targetId: 'opp1', cost: 1, summary: 'Trip vs Goblin — Knock it down.' },
+    ]);
+  });
+
+  it('drops a pick whose targetId does not match any vocabulary entry for that slug', () => {
+    const candidates = buildManeuverCandidates({
+      maneuverVocabulary,
+      maneuverPicks: [{ type: 'maneuver', slug: 'trip', targetId: 'opp-not-offered', rationale: 'x' }],
+      opponents,
+    });
+    expect(candidates).toEqual([]);
+  });
+
+  it('drops a pick for a slug never in the vocabulary at all', () => {
+    const candidates = buildManeuverCandidates({
+      maneuverVocabulary,
+      maneuverPicks: [{ type: 'maneuver', slug: 'shove', targetId: 'opp1', rationale: 'x' }],
+      opponents,
+    });
+    expect(candidates).toEqual([]);
+  });
+
+  it('returns an empty array when maneuverPicks is null (not yet fetched this turn)', () => {
+    expect(buildManeuverCandidates({ maneuverVocabulary, maneuverPicks: null, opponents })).toEqual([]);
+  });
+
+  it('drops a pick whose target is no longer in the opponents list', () => {
+    const candidates = buildManeuverCandidates({
+      maneuverVocabulary,
+      maneuverPicks: [{ type: 'maneuver', slug: 'trip', targetId: 'opp1', rationale: 'x' }],
+      opponents: [],
+    });
+    expect(candidates).toEqual([]);
+  });
+});
+
+describe('MANEUVER_DEFS', () => {
+  it('covers exactly the five PF2e basic maneuvers', () => {
+    expect(Object.keys(MANEUVER_DEFS)).toEqual(['trip', 'shove', 'grapple', 'disarm', 'demoralize']);
   });
 });

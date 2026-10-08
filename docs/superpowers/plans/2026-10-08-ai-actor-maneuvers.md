@@ -454,7 +454,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
   - `initAgentTurnState()` now also returns `maneuverPicks: null`.
   - `buildCandidateList` now also accepts `maneuverVocabulary = []` and `maneuverPicks = null`, splicing `buildManeuverCandidates` output into its result.
 
-- [ ] **Step 1: Update the existing `initAgentTurnState` test and write the new failing tests**
+- [x] **Step 1: Update the existing `initAgentTurnState` test and write the new failing tests**
 
 In `tests/agent-candidates.test.mjs`, update the existing test (it will otherwise fail once Step 3 changes `initAgentTurnState`'s return shape):
 
@@ -583,12 +583,12 @@ describe('buildManeuverCandidates', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/agent-candidates.test.mjs`
 Expected: FAIL — `MANEUVER_DEFS`/`DEMORALIZE_RANGE_SQUARES`/`buildManeuverVocabulary`/`buildManeuverCandidates` don't exist yet, and the updated `initAgentTurnState` assertion fails against the current two-field return shape.
 
-- [ ] **Step 3: Implement in `scripts/agent-candidates.mjs`**
+- [x] **Step 3: Implement in `scripts/agent-candidates.mjs`**
 
 Change `initAgentTurnState`:
 
@@ -721,12 +721,12 @@ Also add a test confirming the splice point (in the same `describe('buildCandida
   });
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-candidates.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs tests/agent-candidates.test.mjs

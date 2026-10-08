@@ -28,7 +28,7 @@ function withinRangeAndSight(target, maxSquares) {
 /** Fresh per-turn bookkeeping — reset the instant an agent-controlled
  * combatant's turn becomes current. */
 export function initAgentTurnState() {
-  return { actionsRemaining: MAX_ACTIONS_PER_TURN, mapIncrement: 0 };
+  return { actionsRemaining: MAX_ACTIONS_PER_TURN, mapIncrement: 0, maneuverPicks: null };
 }
 
 /**
@@ -958,12 +958,89 @@ export function endTurnCandidate() {
   return { id: 'endTurn', type: 'endTurn', cost: 0, summary: 'End turn' };
 }
 
+/**
+ * #909: the five PF2e basic combat maneuvers, taken verbatim from the
+ * installed system's own lang/action-en.json action text (see this
+ * feature's spec for the full reference table) — not approximated.
+ */
+export const MANEUVER_DEFS = Object.freeze({
+  trip: { label: 'Trip' },
+  shove: { label: 'Shove' },
+  grapple: { label: 'Grapple' },
+  disarm: { label: 'Disarm' },
+  demoralize: { label: 'Demoralize' },
+});
+
+/** 30ft at this module's 5ft/square grid — Demoralize's own fixed range,
+ * distinct from the melee reach the other four maneuvers use. */
+export const DEMORALIZE_RANGE_SQUARES = 6;
+
+/**
+ * `attacker.maneuvers[slug]` -> `{eligible, reachSquares}`, already
+ * resolved by dungeon-combat.mjs from real actor/weapon/skill data (the
+ * free-hand-or-matching-weapon-trait and skill-exists checks — this
+ * function has no Foundry API surface, so it never looks at raw actor
+ * documents itself). `opponent.sizeOk[slug]` -> bool (false only for
+ * trip/shove/grapple/disarm against a target more than one size larger;
+ * demoralize has no size restriction, so it never reads sizeOk at all).
+ * `opponent.demoralizeImmune` -> bool, dungeon-combat.mjs's own real-time
+ * worldTime check against this module's 10-minute immunity tracking.
+ */
+export function buildManeuverVocabulary({ attacker, opponents }) {
+  const vocabulary = [];
+  for (const slug of Object.keys(MANEUVER_DEFS)) {
+    const a = attacker.maneuvers?.[slug];
+    if (!a?.eligible) continue;
+    for (const opponent of opponents) {
+      if (!withinRangeAndSight(opponent, a.reachSquares)) continue;
+      if (slug === 'demoralize' && opponent.demoralizeImmune) continue;
+      if (slug !== 'demoralize' && opponent.sizeOk?.[slug] === false) continue;
+      vocabulary.push({ type: 'maneuver', slug, targetId: opponent.id });
+    }
+  }
+  return vocabulary;
+}
+
+/**
+ * Validates `maneuverPicks` (the agent service's own reasoning-model
+ * response, persisted once per turn onto agentTurnState by
+ * dungeon-combat.mjs's runAgentDecisionLoop) against `maneuverVocabulary`
+ * — the authoritative referential-integrity check this whole pipeline
+ * relies on. A pick whose (type, slug, targetId) triple isn't a literal
+ * member of maneuverVocabulary, or whose target isn't in `opponents`
+ * anymore, is silently dropped rather than executed.
+ */
+export function buildManeuverCandidates({ maneuverVocabulary = [], maneuverPicks = null, opponents = [] }) {
+  if (!maneuverPicks) return [];
+  const candidates = [];
+  for (const pick of maneuverPicks) {
+    const inVocabulary = maneuverVocabulary.some(
+      (v) => v.type === pick.type && v.slug === pick.slug && v.targetId === pick.targetId,
+    );
+    if (!inVocabulary) continue;
+    const opponent = opponents.find((o) => o.id === pick.targetId);
+    if (!opponent) continue;
+    const label = MANEUVER_DEFS[pick.slug]?.label ?? pick.slug;
+    const summary = pick.rationale ? `${label} vs ${opponent.name} — ${pick.rationale}` : `${label} vs ${opponent.name}`;
+    candidates.push({
+      id: `maneuver:${pick.slug}:${pick.targetId}`,
+      type: 'maneuver',
+      slug: pick.slug,
+      targetId: pick.targetId,
+      cost: 1,
+      summary,
+    });
+  }
+  return candidates;
+}
+
 /** Full candidate list for one decision iteration. */
-export function buildCandidateList({ opponents, readyActions, readySpells = [], readyAreaSpells = [], readyAttackSpells = [], readyDebuffSpells = [], readyBreathWeapons = [], readyMultiStrikeBundles = [], readyChainSpells = [], readyHealSpells = [], readyBuffSpells = [], readyTierScalingAreaSpells = [], readyDualNatureSpells = [], readyTargetCountSpells = [], readyAutoHitAreaSpells = [], allies = [], seekTargets = [], turnState, hazard = null, hasRangedOrReach = false }) {
+export function buildCandidateList({ opponents, readyActions, readySpells = [], readyAreaSpells = [], readyAttackSpells = [], readyDebuffSpells = [], readyBreathWeapons = [], readyMultiStrikeBundles = [], readyChainSpells = [], readyHealSpells = [], readyBuffSpells = [], readyTierScalingAreaSpells = [], readyDualNatureSpells = [], readyTargetCountSpells = [], readyAutoHitAreaSpells = [], allies = [], seekTargets = [], turnState, hazard = null, hasRangedOrReach = false, maneuverVocabulary = [], maneuverPicks = null }) {
   if (turnState.actionsRemaining <= 0) return [endTurnCandidate()];
   return [
     ...buildMovementCandidates({ opponents, hazard, hasRangedOrReach }),
     ...buildStrikeCandidates({ readyActions, opponents, mapIncrement: turnState.mapIncrement }),
+    ...buildManeuverCandidates({ maneuverVocabulary, maneuverPicks, opponents }),
     ...buildSpellCandidates({ readySpells, opponents, actionsRemaining: turnState.actionsRemaining }),
     ...buildAreaSpellCandidates({ readyAreaSpells, actionsRemaining: turnState.actionsRemaining }),
     ...buildAttackSpellCandidates({ readyAttackSpells, opponents, actionsRemaining: turnState.actionsRemaining }),
@@ -985,12 +1062,14 @@ export function buildCandidateList({ opponents, readyActions, readySpells = [], 
 /** New turn state after applying `candidate` — a pure transition, no side effects. */
 export function applyCandidateToTurnState(turnState, candidate) {
   if (candidate.type === 'endTurn') return { ...turnState, actionsRemaining: 0 };
+  // #909: spread turnState so per-turn data beyond the action budget (the
+  // once-per-turn maneuverPicks) survives every transition.
   let mapIncrement = turnState.mapIncrement;
   if (candidate.type === 'strike') mapIncrement += 1;
   else if (candidate.type === 'multiStrike') {
     mapIncrement += candidate.strikes.reduce((sum, s) => sum + s.count, 0);
   }
-  return { actionsRemaining: turnState.actionsRemaining - candidate.cost, mapIncrement };
+  return { ...turnState, actionsRemaining: turnState.actionsRemaining - candidate.cost, mapIncrement };
 }
 
 /** The JSON context handed to a decision provider alongside its candidates
