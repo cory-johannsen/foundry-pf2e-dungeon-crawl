@@ -266,9 +266,20 @@ export async function triggerTrap(hazardActor, target, deps = {}) {
           // One damage roll per trigger, shared by every target (RAW), applied
           // through PF2e's own path so IWR applies.
           damageRoll ??= await rollHazardDamage(hazardActor, parsed, deps);
+          // #884: the same item/trait rollOptions the save roll above
+          // already builds (minus "damaging-effect", a save-DC trait, not
+          // a damage-matching one) -- without these, a resistance or
+          // weakness whose own predicate depends on the hazard's traits
+          // (e.g. a ward with resistance keyed to item:trait:electricity)
+          // never matches.
           await actor.applyDamage({
             damage: multiplier === 1 ? damageRoll : damageRoll.alter(multiplier, 0),
             token,
+            item: actionItem,
+            rollOptions: [
+              ...parsed.traits.map((t) => `item:trait:${t}`),
+              ...parsed.options,
+            ],
           });
         }
         if (outcome === "criticalFailure" && parsed.proneOnCritFail) {

@@ -289,7 +289,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Modify: `scripts/trap-combat.mjs`
 - Test: `tests/trap-combat-basic-save-trigger.test.mjs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 it("#884: applyDamage receives item and rollOptions, matching the save roll's own trait/option list", async () => {
@@ -314,12 +314,12 @@ it("#884: an empty traits/options list still calls applyDamage normally (no roll
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify the first fails**
+- [x] **Step 2: Run the tests to verify the first fails**
 
 Run: `npx vitest run tests/trap-combat-basic-save-trigger.test.mjs`
 Expected: FAIL — today's `applyDamage` call has no `item`/`rollOptions` key at all.
 
-- [ ] **Step 3: Pass `item`/`rollOptions` to `applyDamage`**
+- [x] **Step 3: Pass `item`/`rollOptions` to `applyDamage`**
 
 Change (confirmed current, `scripts/trap-combat.mjs:269-272`):
 
@@ -350,17 +350,17 @@ to:
           });
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/trap-combat-basic-save-trigger.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full test suite**
+- [x] **Step 5: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/trap-combat.mjs tests/trap-combat-basic-save-trigger.test.mjs

@@ -124,6 +124,32 @@ describe("#839 triggerTrap basic-save branch: single target", () => {
     expect(args.extraRollOptions).toEqual(expect.arrayContaining(["item:trait:trap", "item:trait:mechanical"]));
   });
 
+  it("#884: applyDamage receives item and rollOptions, matching the save roll's own trait/option list", async () => {
+    const alice = actor("p1", "Alice", "failure");
+    const hazardToken = tokenDoc({ id: "hz" }, 0, 0, "hz-tok");
+    const scene = sceneWith([hazardToken, tokenDoc(alice, 0)]);
+    const item = actionItem("S", STEAM_VENTS_DESC);
+    await triggerTrap(hazardActor({ items: [item] }), { actor: alice, token: {} }, { hazardToken, scene });
+    expect(alice.applyDamage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        item,
+        rollOptions: expect.arrayContaining(["item:trait:trap", "item:trait:mechanical"]),
+      }),
+    );
+    const { rollOptions } = alice.applyDamage.mock.calls[0][0];
+    expect(rollOptions).not.toContain("damaging-effect");
+  });
+
+  it("#884: an empty traits/options list still calls applyDamage normally (no rollOptions key breaks anything)", async () => {
+    const alice = actor("p1", "Alice", "failure");
+    const token = { id: "t" };
+    const h = hazardActor({ items: [actionItem("Zap", ELECTRIC_LATCH_DESC)] });
+    await triggerTrap(h, { actor: alice, token });
+    expect(alice.applyDamage).toHaveBeenCalledWith(
+      expect.objectContaining({ damage: expect.anything(), token, rollOptions: [] }),
+    );
+  });
+
   it.each([
     ["criticalSuccess", null],
     ["success", 0.5],
