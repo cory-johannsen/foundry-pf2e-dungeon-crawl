@@ -401,7 +401,16 @@ function isAffectableCreature(actor) {
  * `areaFeet` of the hazard by PF2e's 5-10-5 diagonal counting and with an
  * unobstructed straight line from the hazard (walls block, open doors don't;
  * pathfinding.mjs's wall-aware `hasLineOfSight`), excluding the hazard token
- * itself and dead creatures. The triggerer is in the result only when it is
+ * itself and dead creatures.
+ * Line of effect is checked center cell to center cell (centerCell below),
+ * matching dungeon-combat.mjs's own hasLineOfSight (tokenCell-based)
+ * convention exactly -- a known, accepted limitation shared by both: a
+ * 2x2+ creature whose own center square sits behind a wall corner is
+ * excluded even when part of its real footprint is actually exposed.
+ * Neither module does per-corner/multi-point line of effect today; fixing
+ * this for traps without also fixing it for the identical combat case
+ * would be a narrower, inconsistent improvement, not a real fix (#884).
+ * The triggerer is in the result only when it is
  * really inside the area (a walk-over trigger is at distance 0). Returns
  * `{geometryMissing: true}` when an area is needed but the hazard token or
  * scene is unavailable, so the caller can tell the GM instead of guessing.

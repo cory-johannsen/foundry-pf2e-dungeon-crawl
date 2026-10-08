@@ -376,7 +376,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **Files:**
 - Modify: `scripts/trap-combat.mjs`
 
-- [ ] **Step 1: Add the clarifying comment**
+- [x] **Step 1: Add the clarifying comment**
 
 Change `resolveAreaTargets`'s own docblock (confirmed current, `scripts/trap-combat.mjs:398-411`) to add, after its existing "pathfinding.mjs's wall-aware `hasLineOfSight`" sentence:
 
@@ -391,12 +391,12 @@ Change `resolveAreaTargets`'s own docblock (confirmed current, `scripts/trap-com
  * would be a narrower, inconsistent improvement, not a real fix (#884).
 ```
 
-- [ ] **Step 2: Run the full test suite to confirm nothing changed**
+- [x] **Step 2: Run the full test suite to confirm nothing changed**
 
 Run: `npx vitest run`
 Expected: PASS — comment-only change.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/trap-combat.mjs
