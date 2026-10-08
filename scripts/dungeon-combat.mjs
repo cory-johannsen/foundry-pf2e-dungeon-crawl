@@ -67,7 +67,7 @@ import {
   hitDeckCategory,
   fumbleDeckCategory,
 } from "./dungeon-critical-deck.mjs";
-import { fetchCombatDecision } from "./agent-service-client.mjs";
+import { fetchCombatDecision, fetchCombatCandidates } from "./agent-service-client.mjs";
 import { withDialogsSuppressed } from "./trap-combat.mjs";
 import {
   DETECTION,
@@ -994,8 +994,10 @@ export async function runAgentDecisionLoop(
   combatant,
   {
     fetchDecision = fetchCombatDecision,
+    fetchCandidates = fetchCombatCandidates,
     getPending = getPendingAgentTurn,
     applyDecision = applyAgentDecision,
+    armTimeout = armAgentTimeout,
   } = {},
 ) {
   const baseUrl = game.settings.get(MODULE_ID, "agentServiceUrl");
@@ -1009,6 +1011,43 @@ export async function runAgentDecisionLoop(
     if (isUnawareHostile(combat, combatant)) {
       await endUnawareTurn(combat, combatant);
       return;
+    }
+    // #909: once per turn, when there's a non-empty maneuver vocabulary and
+    // no picks have been fetched yet this turn, ask the reasoning-model
+    // endpoint which (if any) maneuvers to propose, persist the result onto
+    // the same combat-flag turn state mapIncrement/actionsRemaining already
+    // use, then rebuild `pending` so its deterministic candidate list picks
+    // the persisted picks back up (applyAgentDecision's own internal
+    // getPendingAgentTurn call does the same rebuild). A failed call
+    // persists `[]` so it is never retried this turn. A pendingTurn with no
+    // maneuverVocabulary never touches the turn state at all.
+    if (pending.maneuverVocabulary?.length) {
+      const turnState = getAgentTurnState(combat, pending.combatantId);
+      if (turnState.maneuverPicks === null) {
+        let picks = [];
+        try {
+          const response = await fetchCandidates({
+            baseUrl,
+            apiKey,
+            context: pending.context,
+            vocabulary: pending.maneuverVocabulary,
+          });
+          picks = Array.isArray(response?.picks) ? response.picks : [];
+        } catch (err) {
+          console.error("agent-service: combat-candidates call failed:", err.message);
+        }
+        await setAgentTurnState(combat, pending.combatantId, {
+          ...turnState,
+          maneuverPicks: picks,
+        });
+        // That write bumped the turn-state counter, which invalidates the
+        // fallback timer armed at turn start -- re-arm it (same as
+        // applyAgentDecision after every action) so a later failure here
+        // still falls back to the heuristic instead of stalling the turn.
+        armTimeout(combat, combatant);
+        pending = await getPending(combat);
+        if (!pending) return;
+      }
     }
     let decision;
     try {

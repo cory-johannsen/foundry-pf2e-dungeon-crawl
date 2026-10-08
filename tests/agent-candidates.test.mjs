@@ -1452,6 +1452,12 @@ describe('buildManeuverCandidates', () => {
     expect(candidates).toEqual([]);
   });
 
+  it('ignores junk entries and collapses duplicate picks into one candidate', () => {
+    const pick = { type: 'maneuver', slug: 'trip', targetId: 'opp1', rationale: 'r' };
+    const candidates = buildManeuverCandidates({ maneuverVocabulary, maneuverPicks: [null, 'x', pick, pick], opponents });
+    expect(candidates.map((c) => c.id)).toEqual(['maneuver:trip:opp1']);
+  });
+
   it('returns an empty array when maneuverPicks is null (not yet fetched this turn)', () => {
     expect(buildManeuverCandidates({ maneuverVocabulary, maneuverPicks: null, opponents })).toEqual([]);
   });

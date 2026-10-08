@@ -1019,17 +1019,23 @@ export function buildManeuverVocabulary({ attacker, opponents }) {
 export function buildManeuverCandidates({ maneuverVocabulary = [], maneuverPicks = null, opponents = [] }) {
   if (!maneuverPicks) return [];
   const candidates = [];
+  const seen = new Set();
   for (const pick of maneuverPicks) {
+    // Model output: tolerate junk entries and duplicate picks.
+    if (!pick || typeof pick !== 'object') continue;
+    const id = `maneuver:${pick.slug}:${pick.targetId}`;
+    if (seen.has(id)) continue;
     const inVocabulary = maneuverVocabulary.some(
       (v) => v.type === pick.type && v.slug === pick.slug && v.targetId === pick.targetId,
     );
     if (!inVocabulary) continue;
     const opponent = opponents.find((o) => o.id === pick.targetId);
     if (!opponent) continue;
+    seen.add(id);
     const label = MANEUVER_DEFS[pick.slug]?.label ?? pick.slug;
     const summary = pick.rationale ? `${label} vs ${opponent.name} — ${pick.rationale}` : `${label} vs ${opponent.name}`;
     candidates.push({
-      id: `maneuver:${pick.slug}:${pick.targetId}`,
+      id,
       type: 'maneuver',
       slug: pick.slug,
       targetId: pick.targetId,

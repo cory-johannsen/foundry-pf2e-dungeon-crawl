@@ -1190,7 +1190,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `fetchCombatCandidates` (Task 3); `getAgentTurnState`/`setAgentTurnState` (already module-private in this file, extended by Task 6).
 - Produces: `runAgentDecisionLoop` now accepts an injectable `fetchCandidates` dependency (defaulting to `fetchCombatCandidates`), consumed by nothing further in this plan but available the same way `fetchDecision`/`getPending`/`applyDecision` already are for any future test.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/dungeon-combat-agent-service-loop.test.mjs` (a new `describe` block; the file's existing `installGameStub`/`afterEach` at the top apply to these too):
 
@@ -1285,12 +1285,12 @@ describe('runAgentDecisionLoop maneuver-candidate augmentation', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-agent-service-loop.test.mjs`
 Expected: FAIL — `runAgentDecisionLoop` doesn't accept/use a `fetchCandidates` dependency yet, and `maneuverVocabulary` is never read.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 Add the import:
 
@@ -1383,7 +1383,7 @@ export async function runAgentDecisionLoop(
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-agent-service-loop.test.mjs`
 Expected: PASS.
