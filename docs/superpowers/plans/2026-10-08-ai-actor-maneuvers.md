@@ -40,7 +40,7 @@
 - Consumes: nothing from this plan's other tasks.
 - Produces: `generateCombatCandidates(context, vocabulary, { baseUrl, apiKey, timeoutMs, fetchImpl } = {})` → `Promise<{ picks: Array<{type, slug, targetId, rationale}> }>`, used by Task 2's server route.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/agent-service-candidate-generator.test.mjs
@@ -122,12 +122,12 @@ describe("generateCombatCandidates", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/agent-service-candidate-generator.test.mjs`
 Expected: FAIL — `tools/agent-service/candidate-generator.mjs` does not exist yet.
 
-- [ ] **Step 3: Write `tools/agent-service/candidate-generator.mjs`**
+- [x] **Step 3: Write `tools/agent-service/candidate-generator.mjs`**
 
 ```js
 import { nodeFetch } from "./node-fetch.mjs";
@@ -220,12 +220,12 @@ export async function generateCombatCandidates(
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-service-candidate-generator.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools/agent-service/candidate-generator.mjs tests/agent-service-candidate-generator.test.mjs
