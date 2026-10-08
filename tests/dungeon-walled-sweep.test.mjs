@@ -93,7 +93,8 @@ describe('#585: dead edges that cannot be stubs are walled (500 seeds, retreat o
     expect(t.goalLostAfter).toBeLessThanOrEqual(t.goalLostBefore);
     // Measured: 1279 walls in 313 dungeons (max 15); 2 more than the static count of dead edges after the stub plan (1277)
     // because walling re-slots siblings and kills 2 more; goal-unreachable dungeons 271 -> 266 (the stubs' doing).
-    expect([t.walled, t.walledDungeons, t.maxWalled, t.lostFlagged]).toEqual([1270, 313, 15, 1]);
+    // #906 (unreachable detours dropped): 1270 walls in 313 dungeons -> 1145 in 292.
+    expect([t.walled, t.walledDungeons, t.maxWalled, t.lostFlagged]).toEqual([1145, 292, 15, 1]);
     // Against the shipped (stubs, dead edges built) scene: corridor tiles sharing a cell, tiles inside a room
     // (the dead edges' straight-line fallback corridors are gone), uncovered progression doors 130 -> 0.
     // #823 re-pin (tile identity only): the scene now lays ONE corridor tile per distinct cell (a cross-corridor guard
@@ -104,7 +105,8 @@ describe('#585: dead edges that cannot be stubs are walled (500 seeds, retreat o
     expect([t.dupBefore, t.dupAfter, t.inRoomBefore, t.inRoomAfter, t.doorMismatchBefore, t.doorMismatchAfter])
       // #860 re-pin: west-face corridor legs moved off the destination room's first column, so tiles inside a room
       // drop 6163 -> 4676 (shipped) / 1987 -> 1227 (walled) and the visible-door mismatches 130 -> 0 (west-face doors now have a corridor tile directly in front of them); dup and the walled/lost counts are unchanged.
-      .toEqual([19, 0, 4676, 1227, 0, 0]);
-    expect([t.unreachBefore, t.unreachAfter, t.goalLostBefore, t.goalLostAfter]).toEqual([2305, 2259, 271, 266]);
+      // #906: tiles inside a room 4676 -> 3922 (shipped) / 1227 -> 1099 (walled): the dropped detours' fallback lines.
+      .toEqual([19, 0, 3922, 1099, 0, 0]);
+    expect([t.unreachBefore, t.unreachAfter, t.goalLostBefore, t.goalLostAfter]).toEqual([2124, 2075, 245, 240]); // #906: was 2305/2259/271/266
   }, 900000);
 });

@@ -615,12 +615,12 @@ The following were checked and must NOT move. If one fails, stop: that is a real
 
 **Re-pin rule:** each edit below replaces a pinned value with the value this plan's code measures (full-suite run: 161 files, 8762 passed, 1 todo) and records the old value beside it. Where a number got worse (routed baseDead, stubs, dead-end rooms, `dungeon-goal-reseed` residual, `wallCut`), the comment says so plainly. These are part of the OPEN QUESTION trade-off and are not to be hidden. `UNROUTED` in the router-pipeline sweep is re-measured with `node tests/helpers/pipeline-measure.mjs 500 0`, as its own header instructs, because the unrouted v3 pipeline also drops the detours. Two bound-style assertions change form deliberately: `dungeon-reseed-sweep`'s candidate range moves to 1.95-2.05 around the measured 1.998 (499/500), and `dungeon-scene-sealed-edges`' base scene-valid bound becomes the exact 237 (it was "under 225"). The `exhausted` case in `tests/dungeon-reseed.test.mjs` moves from sweep-12 (it now needs fewer than 4 reseeds) to sweep-25, which needs 8. That was measured: `[exhausted, goalReachable, warnings] = [true, false, 1]` with `maxTries: 3`.
 
-- [ ] **Step 1: Run the full suite and confirm exactly these failures**
+- [x] **Step 1: Run the full suite and confirm exactly these failures**
 
 Run: `npx vitest run 2>&1 | grep -E "^ FAIL " | sort -u`
 Expected: failures only in the 13 files listed above, and the received values equal the "with" numbers below.
 
-- [ ] **Step 2: Apply the re-pins**
+- [x] **Step 2: Apply the re-pins**
 
 #### `tests/dungeon-corridor-joins-sweep.test.mjs`
 
@@ -1168,12 +1168,12 @@ with:
     expect([t.unreachBefore, t.unreachAfter, t.goalLostBefore, t.goalLostAfter]).toEqual([2124, 2075, 245, 240]); // #906: was 2305/2259/271/266
 ```
 
-- [ ] **Step 3: Run the full suite**
+- [x] **Step 3: Run the full suite**
 
 Run: `npx vitest run`
 Expected: `Test Files  161 passed (161)`, `Tests  8762 passed | 1 todo (8763)`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tests/dungeon-corridor-joins-sweep.test.mjs tests/dungeon-goal-reseed.test.mjs tests/dungeon-layout-buildability.test.mjs   tests/dungeon-layout-stubs-sweep.test.mjs tests/dungeon-reseed-sweep.test.mjs tests/dungeon-reseed.test.mjs   tests/dungeon-router-pipeline-sweep.test.mjs tests/dungeon-router-pipeline.test.mjs tests/dungeon-scene-sealed-edges.test.mjs   tests/dungeon-sealed-door-causes.test.mjs tests/dungeon-stub-oracle-aware.test.mjs tests/dungeon-stub-union-sweep.test.mjs   tests/dungeon-walled-sweep.test.mjs

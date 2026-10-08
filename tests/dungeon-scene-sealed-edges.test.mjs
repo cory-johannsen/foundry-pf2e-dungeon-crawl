@@ -12,7 +12,7 @@ const SEEDS = 200;
 // layoutVersion 3 WITHOUT dead-end stubs (the fallback-line world; the stub ratchets are at the end of this file),
 // measured over sweep-0..199. v2 for reference: 737 / 491 / 13 / 497 / 100 / 78.
 const V3_SEALED_REAL_EDGES = 580;
-const V3_SEALED_GATE_HELD = 460; // null path because a co-parent holds the gate cell: the dominant cause
+const V3_SEALED_GATE_HELD = 443; // null path because a co-parent holds the gate cell: the dominant cause (#906: 460 -> 443)
 const V3_SEALED_SOLE_INCOMING = 13; // real edge that is its target's only incoming edge (true soft-locks)
 const V3_UNREACHABLE_ROOMS = 165;
 const V3_DUNGEONS_WITH_UNREACHABLE = 44;
@@ -75,7 +75,7 @@ describe('scene oracle: sealed edges and reachability (#490, layoutVersion 3)', 
     }
     expect(edges).toBe(V3_SEALED_GATE_HELD);
     expect(walkable).toBe(0);
-    expect(withEnclosure).toBe(197);
+    expect(withEnclosure).toBe(154); // #906: 197 -> 154
   }, 180000);
 
   it.todo('target: 0 sealed real edges and 0 goal-unreachable dungeons over 500 seeds (needs the #490 routing fix)');
@@ -111,8 +111,8 @@ describe('reject-and-reseed prototype (#490, measured, not shipped)', () => {
       if (!sv.goalReachable) t.goalLost += 1;
       if (sceneOk(sceneValidity(base, (await buildSceneForLayout(base, 3)).scene))) t.baseSceneValid += 1;
     }
-    // Base seeds: only ~41% are scene-valid under "null-path fallback = dead edge".
-    expect(t.baseSceneValid).toBeLessThan(BASES * 0.45);
+    // Base seeds: only ~47% (237/500) are scene-valid under "null-path fallback = dead edge" (#906: was ~41%, under 225).
+    expect(t.baseSceneValid).toBe(237);
     // After the reseed the PURE check is satisfied for all but the leftover few ...
     expect(t.pureInvalid).toBeLessThanOrEqual(2);
     // ... but the scene-level oracle still finds sealed doors the pure check cannot see.
@@ -134,7 +134,9 @@ describe('reject-and-reseed prototype (#490, measured, not shipped)', () => {
 // measured in the same way: sealed doors 1478 -> 411, real sealed edges 1380 -> 352, gate-held 1106 -> 172;
 // but goal-unreachable dungeons 36 -> 41, which Chunk 7 must resolve before it ships.
 const MEASURE_SEEDS = 500;
-const NO_STUB_500 = { sealedDoors: 1294, sealedRealEdges: 1250, gateHeld: 1106, sole: 18, unreachableRooms: 335, dungeons: 58, goalUnreachable: 32 };
+// #906 (unreachable detours dropped): was sealedDoors 1294, sealedRealEdges 1250, gateHeld 1106, sole 18, unreachableRooms 335,
+// dungeons 58, goalUnreachable 32.
+const NO_STUB_500 = { sealedDoors: 1218, sealedRealEdges: 1176, gateHeld: 1055, sole: 16, unreachableRooms: 261, dungeons: 53, goalUnreachable: 23 };
 const STUBS_500 = { sealedDoors: 1447, sealedRealEdges: 1375, gateHeld: 1102, sole: 30, unreachableRooms: 380, dungeons: 89, goalUnreachable: 33 };
 const STUB_DOORS_SEALED = 0;
 

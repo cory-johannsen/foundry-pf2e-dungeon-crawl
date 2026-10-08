@@ -159,8 +159,9 @@ describe('#823 corridor joins (100 routed v3 seeds, through the real scene build
 
     // The check is known to detect the live bug: on the same layouts the old per-segment end-cap rule (reimplemented
     // here by running the unchanged corridorTilesForSegments over each edge's segments) draws a wall across
-    // 1749 open joints (I2), is asymmetric on 530 (I1) and stacks 1247 cells (I0) (#860: west-face corridor geometry moved these from 1874/530/1257).
-    expect([t.oldI2, t.oldI1, t.oldStackedCells]).toEqual([1749, 530, 1247]);
+    // 1735 open joints (I2), is asymmetric on 518 (I1) and stacks 1230 cells (I0) (#860: west-face corridor geometry moved these from 1874/530/1257;
+    // #906: unreachable detours are no longer produced, 1749/530/1247 -> 1735/518/1230).
+    expect([t.oldI2, t.oldI1, t.oldStackedCells]).toEqual([1735, 518, 1230]);
     // The new rule: no stacked cell scene-wide (stubs included), no wall across a joint, symmetric, every door end
     // an end cap open toward its one neighbour. Before -> after: stacked cells 1257 -> 0.
     expect(t.stackExamples).toEqual([]);
@@ -170,9 +171,12 @@ describe('#823 corridor joins (100 routed v3 seeds, through the real scene build
     // (none in routed v3), bend cells now drawn with the corner piece, and the documented cross-edge overlap (sweep-51:
     // a hidden detour crosses another corridor; first wins, 2 cells open toward a cell the other corridor owns).
     expect([t.newPairs, t.newDoorEnds, t.newExcluded, t.newWide, t.corners, t.newCrossEdgeCells])
-      .toEqual([20095, 2480, 0, 0, 1259, 2]);
+      .toEqual([19535, 2468, 0, 0, 1246, 0]);
+    // #906: the sweep-51 cross-edge overlap (2 cells) was that seed's unreachable detour's fallback line; it is gone.
+    // Pairs 20095 -> 19535, door ends 2480 -> 2468, corners 1259 -> 1246 (56 fewer detour rooms over 500 seeds; here 12 over 100).
     // #860: pairs 20196 -> 20095 (incl. the cell in front of each north-approached west door), corners 1269 -> 1259 (west-face detour corner and final leg moved one cell west, off the room).
     // One tile per distinct cell: 22901 old tiles (incl. stacked duplicates) -> 21519 flagged corridor tiles (#860: west-face detour legs moved off the destination room's first column; was 22877 -> 21620).
-    expect([t.oldTiles, t.corridorTiles]).toEqual([22901, 21519]);
+    // #906: 22901 -> 22313 old tiles, 21519 -> 20948 corridor tiles (the dropped detours' corridors and fallback lines).
+    expect([t.oldTiles, t.corridorTiles]).toEqual([22313, 20948]);
   }, 600000);
 });

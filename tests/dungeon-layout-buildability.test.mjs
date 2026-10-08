@@ -94,7 +94,8 @@ describe('layoutVersion 3 buildability: incoming door order only (#427)', () => 
   const layouts = Array.from({ length: SEEDS }, (_, i) => buildSweepLayout(i, { layoutVersion: 3 }));
   const total = layouts.map((l) => measureBuildability(l)).reduce(sumMeasures);
   it('holds every v2 invariant', () => {
-    expect(total.edges).toBe(9498);
+    // #906: 9498 -> 9386, the 56 dropped (unreachable) detour rooms' two edges each.
+    expect(total.edges).toBe(9386);
     expect(total.interOverlapFound).toBe(0);
     expect(total.targetDoorCovered).toBe(0);
     expect(total.chainMismatch).toBe(0);

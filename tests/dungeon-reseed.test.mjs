@@ -122,8 +122,9 @@ describe('chooseRunLayout', () => {
   }, 60000);
   it('exhausted: keeps a candidate and warns instead of blocking', async () => {
     const warnings = [];
-    // base 12 needs 11 reseeds (see the ratchet test); with maxTries 3 it exhausts.
-    const r = await chooseRunLayout({ ...ctx(12, 'sweep-12'), maxTries: 3, warn: (m) => warnings.push(m) });
+    // base 25 needs 8 reseeds; with maxTries 3 it exhausts. (#906: base 12 needed 11 before unreachable detours were
+    // dropped; it now needs fewer than 4.)
+    const r = await chooseRunLayout({ ...ctx(25, 'sweep-25'), maxTries: 3, warn: (m) => warnings.push(m) });
     expect([r.exhausted, r.goalReachable, warnings.length]).toEqual([true, false, 1]);
     expect(r.layout.seed).toBe(r.seed);
   }, 60000);

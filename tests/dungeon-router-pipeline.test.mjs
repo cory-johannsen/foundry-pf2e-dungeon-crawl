@@ -63,7 +63,10 @@ describe('runs without the routing flag keep their geometry exactly (#427)', () 
     }
     // #861: dead-end stub corridor tiles now use the openings-based piece rule (end/mid instead of the closed 'single'),
     // so the tiles digest moved (was e3123cd8...); the walls digest is byte-identical.
-    expect({ walls: walls.digest('hex'), tiles: tiles.digest('hex') }).toEqual({ walls: 'c69fe85b77e393200a6ee0e885861e4c5eff61590a5310decc25119b9aecdbc0', tiles: '3dcc98a0499a692844f4c590676fb42b777b59d2e4106e4cfb8ef689066a4578' });
+    // #906 re-pin (deliberate, layout-level): every NEW v3 layout drops the detour rooms no corridor can reach, with or
+    // without the routing flag; this digest hashes the layout itself (was walls c69fe85b..., tiles 3dcc98a0...).
+    // A persisted run keeps its stored layout, so no existing run moves.
+    expect({ walls: walls.digest('hex'), tiles: tiles.digest('hex') }).toEqual({ walls: '53e9f60d3f9ea70b4f82226f919fffefbf7d98749a1d4fae6ff1a695131b5710', tiles: '654348b88ad963fa0d04f7e44b9e3b7ff778f26e10e5192c8781c5afa5b9a802' });
   }, 300000);
 });
 
