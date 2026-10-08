@@ -747,7 +747,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `SIZE_ORDER` from `scripts/foundry-api.mjs`; `AGENT_MELEE_REACH_SQUARES`, `DEMORALIZE_RANGE_SQUARES` from `scripts/agent-candidates.mjs` (Task 4).
 - Produces (consumed by Task 6): `getDemoralizeImmunityUntil(combat, attackerId, targetId)` → number (worldTime seconds, `0` if never set); `setDemoralizeImmunityUntil(combat, attackerId, targetId, worldTimeExpiry)` → `Promise<void>`; `computeManeuverAttackerProfile(actor)` → `{trip, shove, grapple, disarm, demoralize}` each `{eligible, reachSquares}`; `sizeOkForManeuver(attackerActor, targetActor)` → boolean. None of these four are exported outside `dungeon-combat.mjs` (same module-private convention `getAgentTurnState`/`resolveOpponentForTurn` already use) — Task 5's own test file imports them by re-exporting a thin test-only wrapper is unnecessary; instead the test file drives them indirectly through a small exported seam added in this task (see Step 3).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-maneuver-vocabulary.test.mjs
@@ -875,12 +875,12 @@ describe('demoralize immunity tracking', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-vocabulary.test.mjs`
 Expected: FAIL — none of the four functions are exported yet.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 Add the import (alongside the existing `SIZE_ORDER`-adjacent imports — add a new import line near the top with the other single-symbol imports, e.g. right after the `makeFoundryApi` import at line 17):
 
@@ -971,12 +971,12 @@ async function setDemoralizeImmunityUntil(combat, attackerId, targetId, worldTim
 
 Export the four new functions for Task 5's own test file (add to this file's existing `export` list by changing each `function` declaration above to `export function`— i.e. `export function computeManeuverAttackerProfile(actor) {`, `export function sizeOkForManeuver(...)`, `export function getDemoralizeImmunityUntil(...)`, and `export async function setDemoralizeImmunityUntil(...)`; `hasFreeHandOrManeuverWeapon` and `MELEE_MANEUVER_SLUGS` stay module-private).
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-vocabulary.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-maneuver-vocabulary.test.mjs

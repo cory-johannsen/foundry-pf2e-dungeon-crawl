@@ -14,7 +14,7 @@
  * module.mjs — the composition root that already imports from every one of
  * these files — is what stitches "combat resolved" to "advance the room."
  */
-import { makeFoundryApi } from "./foundry-api.mjs";
+import { makeFoundryApi, SIZE_ORDER } from "./foundry-api.mjs";
 import { getRunState } from "./dungeon-runner.mjs";
 import { totalCombatXp } from "./combat-rewards.mjs";
 import {
@@ -34,6 +34,8 @@ import {
   parseAutoHitAreaTiers,
   parseSpellEffectUuid,
   parseReactiveStrikeWeaponRestriction,
+  AGENT_MELEE_REACH_SQUARES,
+  DEMORALIZE_RANGE_SQUARES,
 } from "./agent-candidates.mjs";
 import {
   findPath,
@@ -2254,6 +2256,89 @@ function currentStoredAgentTurnState(combat, combatantId) {
   )
     return stored;
   return null;
+}
+
+const MELEE_MANEUVER_SLUGS = ["trip", "shove", "grapple", "disarm"];
+
+/**
+ * #909: whether `actor` can satisfy a melee maneuver's free-hand
+ * requirement — either a literal free hand (`handsFree`, confirmed
+ * present only on CharacterPF2e actors in the installed system — not
+ * NPCs) or a currently-held weapon carrying `slug` as one of its own
+ * traits (PF2e's own "or a weapon with the matching trait" exception,
+ * e.g. a trip-trait weapon for Trip). An actor with no `handsFree` getter
+ * at all (every NPC) defaults to eligible, matching
+ * dungeon-strike-riders.mjs's resolveAthleticsRider precedent of gating
+ * NPC maneuvers on skill existence alone, never hand state.
+ */
+function hasFreeHandOrManeuverWeapon(actor, slug) {
+  if (typeof actor?.handsFree === "number" && actor.handsFree > 0) return true;
+  const heldWeapons = (actor?.itemTypes?.weapon ?? []).filter(
+    (w) => w.system?.equipped?.carryType === "held",
+  );
+  if (heldWeapons.some((w) => (w.system?.traits?.value ?? []).includes(slug))) return true;
+  return actor?.handsFree === undefined;
+}
+
+/** #909: this turn's real maneuver eligibility for `actor`, in the plain
+ * shape agent-candidates.mjs's buildManeuverVocabulary expects —
+ * everything Foundry-specific (skill existence, free hand/weapon trait)
+ * is resolved here; that file never touches a real actor document. */
+export function computeManeuverAttackerProfile(actor) {
+  const profile = {};
+  const hasAthletics = !!actor?.skills?.athletics;
+  const hasIntimidation = !!actor?.skills?.intimidation;
+  for (const slug of MELEE_MANEUVER_SLUGS) {
+    profile[slug] = {
+      eligible: hasAthletics && hasFreeHandOrManeuverWeapon(actor, slug),
+      reachSquares: AGENT_MELEE_REACH_SQUARES,
+    };
+  }
+  profile.demoralize = { eligible: hasIntimidation, reachSquares: DEMORALIZE_RANGE_SQUARES };
+  return profile;
+}
+
+/** #909: PF2e's own "target no more than one size larger than you"
+ * prerequisite, shared verbatim by Trip/Shove/Grapple/Disarm (confirmed
+ * in each action's own lang/action-en.json text). Unreadable size data on
+ * either side defaults to allowed rather than blocking the maneuver on a
+ * data gap. */
+export function sizeOkForManeuver(attackerActor, targetActor) {
+  const attackerIdx = SIZE_ORDER.indexOf(attackerActor?.system?.traits?.size?.value);
+  const targetIdx = SIZE_ORDER.indexOf(targetActor?.system?.traits?.size?.value);
+  if (attackerIdx < 0 || targetIdx < 0) return true;
+  return targetIdx - attackerIdx <= 1;
+}
+
+/** #909: Demoralize's own 10-minute re-attempt immunity (PF2e RAW: "the
+ * target is temporarily immune to your attempts to Demoralize it for 10
+ * minutes", regardless of outcome) — tracked as a real worldTime
+ * timestamp (reusing #785's game clock) rather than a round count, scoped
+ * to this Combat document the same way agentTurnState already is. Returns
+ * 0 (never immune) when nothing has been recorded yet for this pair. */
+export function getDemoralizeImmunityUntil(combat, attackerId, targetId) {
+  return combat.getFlag(MODULE_ID, "demoralizeImmunity")?.[attackerId]?.[targetId] ?? 0;
+}
+
+export async function setDemoralizeImmunityUntil(combat, attackerId, targetId, worldTimeExpiry) {
+  const current = combat.getFlag(MODULE_ID, "demoralizeImmunity") ?? {};
+  await combat.setFlag(MODULE_ID, "demoralizeImmunity", {
+    ...current,
+    [attackerId]: { ...(current[attackerId] ?? {}), [targetId]: worldTimeExpiry },
+  });
+}
+
+/** #909: Demoralize carries the emotion, fear and mental traits (the
+ * installed system's own `demoralize` action definition), so a target
+ * immune to any of those (e.g. a mindless undead's mental immunity) can
+ * never be affected by it -- excluded from the vocabulary rather than
+ * offered as a wasted action. */
+const DEMORALIZE_BLOCKING_IMMUNITIES = new Set(["mental", "emotion", "fear-effects"]);
+
+export function immuneToDemoralize(targetActor) {
+  return (targetActor?.attributes?.immunities ?? []).some((i) =>
+    DEMORALIZE_BLOCKING_IMMUNITIES.has(i?.type),
+  );
 }
 
 /** Reads back Combat's own per-turn agent bookkeeping, or a fresh one
