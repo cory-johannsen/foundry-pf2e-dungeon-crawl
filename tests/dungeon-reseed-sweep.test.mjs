@@ -28,17 +28,20 @@ describe('goal-only reseed ratchet (500 bases, N = 20)', () => {
     expect(RESEED_MAX_TRIES).toBe(20);
     // Base world (no reseed, stub-free layout): over half of the dungeons cannot reach the goal. #575: the predicate also needs every
     // edge on the route to be walkable door to door (was 256 under `truth` alone; 496/500 accepted at N = 10).
-    expect(stats.baseGoal).toBe(229);
+    // #906 (unreachable detours dropped): 229 -> 255.
+    expect(stats.baseGoal).toBe(255);
     // Accepted seeds: goal reachable in 500/500 at N = 20 (495/500 at N = 10; the last 5 need 11-19 reseeds).
     expect(stats.goal).toBe(500);
     expect(stats.exhausted).toBe(0);
-    expect(stats.cand).toBeGreaterThan(2.25);
-    expect(stats.cand).toBeLessThan(2.4);
+    // #906: mean candidates 2.25-2.4 -> 1.998 (499 reseeds over 500 bases, was 654).
+    expect(stats.cand).toBeGreaterThan(1.95);
+    expect(stats.cand).toBeLessThan(2.05);
     expect(stats.worst).toBeLessThanOrEqual(1 + RESEED_MAX_TRIES);
     // Skew: secret-detour dungeons fall 66% -> ~29%, hidden rooms 1.11 -> ~0.38 (detour edges are often cut ones).
-    expect(stats.detour).toBe(147);
-    expect(stats.hidden).toBeGreaterThan(0.34);
-    expect(stats.hidden).toBeLessThan(0.42);
+    // #906: 147 -> 128 detour dungeons accepted, hidden rooms ~0.38 -> 0.326 (unreachable detours are dropped).
+    expect(stats.detour).toBe(128);
+    expect(stats.hidden).toBeGreaterThan(0.3);
+    expect(stats.hidden).toBeLessThan(0.35);
     // #787: no wall-clock assertion. A `maxMs < 5000` bound failed intermittently under full-suite load (5789 ms observed
     // while other files ran in parallel) and said nothing about the code. Cost is bounded deterministically instead: the stub
     // plan builds scenes per candidate (#427 Chunk 7), so the pinned mean (2.25-2.4) and worst-case (<= 1 + RESEED_MAX_TRIES)

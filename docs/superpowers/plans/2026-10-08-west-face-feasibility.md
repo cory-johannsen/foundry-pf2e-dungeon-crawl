@@ -70,7 +70,7 @@
   - `withoutDetours({ rooms, edges, layoutEdges, hiddenRooms, hiddenEdges, hiddenIncomingByRoomId }, ids) -> { rooms, edges, layoutEdges, hiddenRooms: Set, hiddenEdges, hiddenIncomingByRoomId }` (pure)
   - `placeLayoutGraph(graph, { prune = true, dropUnreachableDetours = false }) -> { rooms, edges, layoutEdges, hiddenRooms, hiddenEdges, hiddenIncomingByRoomId, positionByRoomId, ranks, droppedDetours: string[] }`. `graph` is the shape `attachHiddenPaths` returns. With `prune: false`, `hiddenEdges` and `hiddenIncomingByRoomId` are the input objects themselves.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/dungeon-detour-reachability.test.mjs`:
 
@@ -220,12 +220,12 @@ describe('placeLayoutGraph (#906)', () => {
 });
 ```
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 Run: `npx vitest run tests/dungeon-detour-reachability.test.mjs`
 Expected: FAIL. The file does not load because `scripts/dungeon-layout.mjs` has no export named `unreachableDetourIds`, `withoutDetours` or `placeLayoutGraph`.
 
-- [ ] **Step 3: Implement the three functions**
+- [x] **Step 3: Implement the three functions**
 
 In `scripts/dungeon-layout.mjs`, directly after the closing brace of `incomingFaceFor`:
 
@@ -327,12 +327,12 @@ export function placeLayoutGraph(graph, { prune = true, dropUnreachableDetours =
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass, and that nothing else moved**
+- [x] **Step 4: Run the tests to verify they pass, and that nothing else moved**
 
 Run: `npx vitest run tests/dungeon-detour-reachability.test.mjs tests/dungeon-layout.test.mjs tests/dungeon-corridor-wall-crossing-sweep.test.mjs`
 Expected: PASS (3 files, 214 tests). The crossing sweep still pins 101 crossings, because nothing calls the new functions yet.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-layout.mjs tests/dungeon-detour-reachability.test.mjs
@@ -351,7 +351,7 @@ git commit -m "#906: unreachableDetourIds, withoutDetours, placeLayoutGraph (pur
 - Consumes: `placeLayoutGraph` and `unreachableDetourIds` from Task 1.
 - Produces: `computeRunLayout(...)` keeps its signature and return shape. For `layoutVersion >= 3` its `rooms`, `edges`, `layoutEdges`, `hiddenRooms` and `hiddenEdges` no longer contain an unreachable detour, and `maxCol` comes from the final positions. `buildSweepLayout(i, opts)` keeps its signature and return shape.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add `import { computeRunLayout } from '../scripts/dungeon-reseed.mjs';` after the existing `dungeon-layout.mjs` import in `tests/dungeon-detour-reachability.test.mjs`, and append:
 
@@ -378,12 +378,12 @@ describe('computeRunLayout (#906)', () => {
 });
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `npx vitest run tests/dungeon-detour-reachability.test.mjs -t "computeRunLayout"`
 Expected: FAIL. `unreachableDetourIds` returns `['room-detour-0']` for sweep-8, where `[]` is expected.
 
-- [ ] **Step 3: Wire `computeRunLayout`**
+- [x] **Step 3: Wire `computeRunLayout`**
 
 In `scripts/dungeon-reseed.mjs` replace the import
 
@@ -446,7 +446,7 @@ with
     maxRank: Math.max(...Object.values(ranks)), maxCol: Math.max(...Object.values(layoutPositionByRoomId).map((p) => p.col)),
 ```
 
-- [ ] **Step 4: Wire the sweep mirror**
+- [x] **Step 4: Wire the sweep mirror**
 
 In `tests/helpers/layout-sweep.mjs` replace the import list
 
@@ -499,12 +499,12 @@ with
   const occ = Object.fromEntries(
 ```
 
-- [ ] **Step 5: Run the new test and the guards that must NOT move**
+- [x] **Step 5: Run the new test and the guards that must NOT move**
 
 Run: `npx vitest run tests/dungeon-detour-reachability.test.mjs tests/dungeon-layout-default-identical.test.mjs tests/dungeon-reseed.test.mjs`
 Expected: every test passes except exactly one, `chooseRunLayout > exhausted: keeps a candidate and warns instead of blocking`, which receives `[false, true, 0]` because sweep-12 no longer exhausts; Task 3 re-pins it. The v1 default-geometry digest is unchanged. "computeRunLayout equals the stub-free sweep layout" still holds, which proves the two placement paths agree.
 
-- [ ] **Step 6: Re-pin the two #906 target sweeps to the measured numbers**
+- [x] **Step 6: Re-pin the two #906 target sweeps to the measured numbers**
 
 Run first: `npx vitest run tests/dungeon-corridor-wall-crossing-sweep.test.mjs tests/dungeon-corridor-hidden-west-overlap-sweep.test.mjs`
 Expected before the edit: FAIL. `seedsHit` is `[]` against the old `[8, 36, …, 94]`, `otherRoom` is `[]` against the old 12 `sweep-81` cells, and the seed-51 repro's last assertion is `false`, because seed 51 no longer builds a hidden west-face edge (its detour is dropped).
@@ -588,12 +588,12 @@ describe('#860 repro on seed 10 (seed 51\'s detour is dropped by #906)', () => {
 ```
 
 
-- [ ] **Step 7: Run the target sweeps to verify they pass**
+- [x] **Step 7: Run the target sweeps to verify they pass**
 
 Run: `npx vitest run tests/dungeon-corridor-wall-crossing-sweep.test.mjs tests/dungeon-corridor-hidden-west-overlap-sweep.test.mjs`
 Expected: PASS (2 files, 3 tests). Crossings are 0 (`byCategory` `{}`), `otherRoom` is `[]`, `ownDest`, `ownSource`, `crossCorridor` and `doorUncovered` are still `[]`, and seed 10's hidden west-face edge passes the #860 repro.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/dungeon-reseed.mjs tests/helpers/layout-sweep.mjs tests/dungeon-detour-reachability.test.mjs   tests/dungeon-corridor-wall-crossing-sweep.test.mjs tests/dungeon-corridor-hidden-west-overlap-sweep.test.mjs
@@ -615,12 +615,12 @@ The following were checked and must NOT move. If one fails, stop: that is a real
 
 **Re-pin rule:** each edit below replaces a pinned value with the value this plan's code measures (full-suite run: 161 files, 8762 passed, 1 todo) and records the old value beside it. Where a number got worse (routed baseDead, stubs, dead-end rooms, `dungeon-goal-reseed` residual, `wallCut`), the comment says so plainly. These are part of the OPEN QUESTION trade-off and are not to be hidden. `UNROUTED` in the router-pipeline sweep is re-measured with `node tests/helpers/pipeline-measure.mjs 500 0`, as its own header instructs, because the unrouted v3 pipeline also drops the detours. Two bound-style assertions change form deliberately: `dungeon-reseed-sweep`'s candidate range moves to 1.95-2.05 around the measured 1.998 (499/500), and `dungeon-scene-sealed-edges`' base scene-valid bound becomes the exact 237 (it was "under 225"). The `exhausted` case in `tests/dungeon-reseed.test.mjs` moves from sweep-12 (it now needs fewer than 4 reseeds) to sweep-25, which needs 8. That was measured: `[exhausted, goalReachable, warnings] = [true, false, 1]` with `maxTries: 3`.
 
-- [ ] **Step 1: Run the full suite and confirm exactly these failures**
+- [x] **Step 1: Run the full suite and confirm exactly these failures**
 
 Run: `npx vitest run 2>&1 | grep -E "^ FAIL " | sort -u`
 Expected: failures only in the 13 files listed above, and the received values equal the "with" numbers below.
 
-- [ ] **Step 2: Apply the re-pins**
+- [x] **Step 2: Apply the re-pins**
 
 #### `tests/dungeon-corridor-joins-sweep.test.mjs`
 
@@ -1168,12 +1168,12 @@ with:
     expect([t.unreachBefore, t.unreachAfter, t.goalLostBefore, t.goalLostAfter]).toEqual([2124, 2075, 245, 240]); // #906: was 2305/2259/271/266
 ```
 
-- [ ] **Step 3: Run the full suite**
+- [x] **Step 3: Run the full suite**
 
 Run: `npx vitest run`
 Expected: `Test Files  161 passed (161)`, `Tests  8762 passed | 1 todo (8763)`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tests/dungeon-corridor-joins-sweep.test.mjs tests/dungeon-goal-reseed.test.mjs tests/dungeon-layout-buildability.test.mjs   tests/dungeon-layout-stubs-sweep.test.mjs tests/dungeon-reseed-sweep.test.mjs tests/dungeon-reseed.test.mjs   tests/dungeon-router-pipeline-sweep.test.mjs tests/dungeon-router-pipeline.test.mjs tests/dungeon-scene-sealed-edges.test.mjs   tests/dungeon-sealed-door-causes.test.mjs tests/dungeon-stub-oracle-aware.test.mjs tests/dungeon-stub-union-sweep.test.mjs   tests/dungeon-walled-sweep.test.mjs
@@ -1189,21 +1189,21 @@ git commit -m "#906: re-pin the ratchets the detour drop moves (measured; old va
 - Consumes: Tasks 1-3 committed.
 - Produces: the release version.
 
-- [ ] **Step 1: Pick an unused version**
+- [x] **Step 1: Pick an unused version**
 
 Run: `git fetch origin && git show origin/main:module.json | grep '"version"' && gh pr list --state open --json number,title,headRefName --limit 50`
 Then for each open PR that touches `module.json`, run `gh pr diff <n> -- module.json`. Take the highest version among `origin/main` and the open PRs. It was `0.80.6` on `origin/main` when this plan was written. Use the next patch version (for example `0.80.7` if `0.80.6` is still the highest). Never reuse one.
 
-- [ ] **Step 2: Bump it**
+- [x] **Step 2: Bump it**
 
 In `module.json` change `"version": "<current>"` to `"version": "<next patch>"`. If `origin/main` moved, rebase onto it first (`git rebase origin/main`) and re-run `npx vitest run`, since a newer main can move the ratchets again.
 
-- [ ] **Step 3: Confirm no import edge changed**
+- [x] **Step 3: Confirm no import edge changed**
 
 Run: `npm run architecture:graph > /tmp/arch-906.txt && git diff --stat`
 Expected: only `module.json` is changed by this task. The generated graph is file-level, and Tasks 1-3 add no new `scripts/` -> `scripts/` import edge, so `docs/architecture.md` needs no refresh. If the generator output differs from the Mermaid block in `docs/architecture.md`, run the `update-architecture-docs` skill instead of skipping it.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add module.json

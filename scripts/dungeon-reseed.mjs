@@ -16,7 +16,7 @@
  * tests/dungeon-reseed.test.mjs proves that over 500 seeds.
  */
 import {
-  computeRanks, computeColumns, parentRoomIdsFor, incomingFaceFor, pruneConflictingShortcuts, NEW_RUN_LAYOUT_VERSION,
+  parentRoomIdsFor, incomingFaceFor, placeLayoutGraph, NEW_RUN_LAYOUT_VERSION,
 } from './dungeon-layout.mjs';
 import { buildPopulateAndUnlockGraphNode } from './dungeon-scene.mjs';
 import { deadEdgeSets, verdictsOf, planStubsVerified } from './dungeon-stub-oracle.mjs';
@@ -92,21 +92,16 @@ export function computeRunLayout({
   const sets = { puzzleSetpieceIds, narrativeSetpieceIds, treasureSetpieceIds };
   const generated = generator.buildRoomGraph({ seed, roomCount, ...sets });
   // The rest room goes in BEFORE attachHiddenPaths (#93): a hidden path must never pick it as its source.
-  const { rooms, edges: edgesBeforeStubs } = generator.insertRestRoom({
+  const restInserted = generator.insertRestRoom({
     rooms: generated.rooms, edges: generated.edges, seed, roomCount,
   });
-  const { hiddenRooms, hiddenEdges: attachedHiddenEdges, layoutEdges, hiddenIncomingByRoomId: attachedHiddenIncoming } =
-    generator.attachHiddenPaths({ rooms, edges: edgesBeforeStubs, seed, ...sets });
-  // #156: ranks/columns come from layoutEdges (they include detour rooms).
-  const ranks = computeRanks(layoutEdges, 'room-entry');
-  const columns = computeColumns(layoutEdges, ranks, 'room-entry');
-  const layoutPositionByRoomId = Object.fromEntries(
-    Object.keys(rooms).map((id) => [id, { rank: ranks[id], col: columns[id] }]),
-  );
-  // #415 Chunk 5: drop optional hidden shortcuts that share an outgoing face lane; must precede the incoming faces.
-  const { hiddenEdges, hiddenIncomingByRoomId } = pruneConflictingShortcuts({
-    edges: edgesBeforeStubs, hiddenRooms, hiddenEdges: attachedHiddenEdges, hiddenIncomingByRoomId: attachedHiddenIncoming,
-  }, layoutPositionByRoomId);
+  const attached = generator.attachHiddenPaths({ rooms: restInserted.rooms, edges: restInserted.edges, seed, ...sets });
+  // #156 ranks/columns from layoutEdges, #415 Chunk 5 shortcut prune (must precede the incoming faces), and #906: a new
+  // (v3) run drops every detour room no corridor can reach instead of drawing its fallback line through other rooms.
+  const {
+    rooms, edges: edgesBeforeStubs, layoutEdges, hiddenRooms, hiddenEdges, hiddenIncomingByRoomId,
+    positionByRoomId: layoutPositionByRoomId, ranks,
+  } = placeLayoutGraph(attached, { prune: true, dropUnreachableDetours: layoutVersion >= 3 });
   const occupiedCells = {};
   for (const [id, pos] of Object.entries(layoutPositionByRoomId)) occupiedCells[`${pos.rank},${pos.col}`] = id;
   const incomingFaceByRoomId = Object.fromEntries(
@@ -120,7 +115,7 @@ export function computeRunLayout({
   return {
     seed, layoutVersion, rooms, edges: edgesBeforeStubs, layoutEdges, hiddenRooms: [...hiddenRooms],
     hiddenEdges, hiddenIncomingByRoomId, layoutPositionByRoomId, incomingFaceByRoomId, occupiedCells,
-    maxRank: Math.max(...Object.values(ranks)), maxCol: Math.max(...Object.values(columns)),
+    maxRank: Math.max(...Object.values(ranks)), maxCol: Math.max(...Object.values(layoutPositionByRoomId).map((p) => p.col)),
     ...(topologyRouting && layoutVersion >= 3 ? { topologyRouting: true } : {}),
   };
 }

@@ -70,12 +70,13 @@ describe('stub rule vs the scene oracle (#427 Chunk 7 prototype, retreat on)', (
     }
     console.log('[stub-oracle-aware]', JSON.stringify({ none, cur, fix, churn, fixRegress, removalCause }));
     // Baseline and current planner are the numbers the stubs agent measured (guards the helpers).
-    expect(none.sealedDoors).toBe(1294);
-    expect([none.opt.goal, none.opt.dungeons]).toEqual([32, 58]);
-    expect([cur.opt.goal, cur.opt.dungeons]).toEqual([26, 58]);
-    // The 5 "extra" goal losses are the net of many losses and gains (churn); under strict nothing is lost.
-    expect(churn.goalLost).toBe(23);
-    expect(churn.goalGained).toBe(29);
+    // #906 (unreachable detours dropped): was 1294, [32, 58], [26, 58], churn lost 23 / gained 29.
+    expect(none.sealedDoors).toBe(1218);
+    expect([none.opt.goal, none.opt.dungeons]).toEqual([23, 53]);
+    expect([cur.opt.goal, cur.opt.dungeons]).toEqual([19, 50]);
+    // The "extra" goal losses are the net of many losses and gains (churn); under strict nothing is lost.
+    expect(churn.goalLost).toBe(17);
+    expect(churn.goalGained).toBe(21);
     expect(strictNeverLost(none, cur)).toBe(true);
     // The prototype: never worse than no stubs, per dungeon and in total, under all three semantics.
     expect(fixRegress.perDungeon).toBe(0);

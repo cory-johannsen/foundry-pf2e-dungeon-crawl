@@ -5,9 +5,9 @@
 // hidden edges, exclude an edge's own endpoints and use one north slot.
 import { buildRoomGraph, attachHiddenPaths, insertRestRoom } from '../../scripts/dungeon-deck.mjs';
 import {
-  computeRanks, computeColumns, roomRect, incomingFaceFor, parentRoomIdsFor,
+  roomRect, incomingFaceFor, parentRoomIdsFor, placeLayoutGraph,
   incomingConnectionsFor, findPriorityCollision, assignDoorSlotsWithPriority,
-  exitFaceForIndex, buildEdgeCorridor, outgoingDoorPlan, pruneConflictingShortcuts,
+  exitFaceForIndex, buildEdgeCorridor, outgoingDoorPlan,
 } from '../../scripts/dungeon-layout.mjs';
 
 export function rectsOverlap(a, b) {
@@ -22,19 +22,16 @@ export function buildSweepLayout(i, { restRoom = true, layoutVersion = 1, incomi
   const seed = seedOverride ?? `sweep-${i}`;
   const roomCount = roomCountOverride ?? (6 + (i % 15));
   const generated = buildRoomGraph({ seed, roomCount });
-  const { rooms, edges } = restRoom
+  const base = restRoom
     ? insertRestRoom({ rooms: generated.rooms, edges: generated.edges, seed, roomCount })
     : generated;
-  const attached = attachHiddenPaths({ rooms, edges, seed });
-  const { layoutEdges, hiddenRooms } = attached;
-  const ranks = computeRanks(layoutEdges, 'room-entry');
-  const cols = computeColumns(layoutEdges, ranks, 'room-entry');
+  const attached = attachHiddenPaths({ rooms: base.rooms, edges: base.edges, seed });
+  // Mirrors computeRunLayout (scripts/dungeon-reseed.mjs): the shared placement step. #415 Chunk 5 prunes shortcuts for
+  // layoutVersion >= 2; #906 drops unreachable detour rooms for layoutVersion >= 3.
+  const {
+    rooms, edges, layoutEdges, hiddenRooms, hiddenEdges, hiddenIncomingByRoomId, positionByRoomId: pos,
+  } = placeLayoutGraph(attached, { prune: layoutVersion >= 2, dropUnreachableDetours: layoutVersion >= 3 });
   const ids = Object.keys(rooms);
-  const pos = Object.fromEntries(ids.map((id) => [id, { rank: ranks[id], col: cols[id] }]));
-  // #415 Chunk 5 (layoutVersion >= 2): mirrors dungeon-app.mjs, which prunes between positions and incoming faces.
-  const { hiddenEdges, hiddenIncomingByRoomId } = layoutVersion >= 2
-    ? pruneConflictingShortcuts({ edges, hiddenRooms, hiddenEdges: attached.hiddenEdges, hiddenIncomingByRoomId: attached.hiddenIncomingByRoomId }, pos)
-    : attached;
   const occ = Object.fromEntries(Object.entries(pos).map(([id, p]) => [`${p.rank},${p.col}`, id]));
   const rect = Object.fromEntries(ids.map((id) => [id, roomRect(seed, id, pos[id].rank, pos[id].col)]));
   const incFace = Object.fromEntries(ids.map((id) => [id, incomingFaceFor(

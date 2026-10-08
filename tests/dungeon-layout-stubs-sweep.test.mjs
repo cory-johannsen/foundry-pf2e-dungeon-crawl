@@ -15,10 +15,10 @@ const SEEDS = 500;
 // non-sole-child real nulls all fail rule 1 or 3), and 26 of those have a free door tile. The old spec estimate
 // of about 464 predates #415 Chunk 5 pruning hidden shortcuts. The counts below are floors (more stubs is better);
 // the invariants further down are exact.
-const NO_RETREAT_NULL_EDGES = 2052;
+const NO_RETREAT_NULL_EDGES = 1952; // #906: 2052 -> 1952 (unreachable detours dropped)
 const NO_RETREAT_ELIGIBLE = 32;
 const NO_RETREAT_STUBS_MIN = 26;
-const RETREAT_ELIGIBLE = 1576;
+const RETREAT_ELIGIBLE = 1573; // #906: 1576 -> 1573
 const RETREAT_STUBS_MIN = 1376;
 
 const layoutsNoRetreat = Array.from({ length: SEEDS }, (_, i) => buildStubbedSweepLayout(i));
