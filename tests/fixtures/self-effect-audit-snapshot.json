@@ -1,0 +1,1558 @@
+{
+  "totalCandidates": 156,
+  "survivorCount": 87,
+  "excludedCount": 69,
+  "entries": [
+    {
+      "name": "Ghost Wrangler",
+      "slug": "ghost-wrangler",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Tributary Circulation",
+      "slug": "tributary-circulation",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "In Lightning, Life",
+      "slug": "in-lightning-life",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Invigorating Breath",
+      "slug": "invigorating-breath",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "10 minutes"
+    },
+    {
+      "name": "Vivacious Bravado",
+      "slug": "vivacious-bravado",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Radiant Circuitry",
+      "slug": "radiant-circuitry",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "unlimited"
+    },
+    {
+      "name": "Prayer-Touched Weapon",
+      "slug": "prayer-touched-weapon",
+      "category": "feat",
+      "cost": 0,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Harsh Judgement",
+      "slug": "harsh-judgement",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "target-dependent"
+      ],
+      "durationLabel": "unlimited"
+    },
+    {
+      "name": "Channel Divine Spark",
+      "slug": "channel-divine-spark",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "GrantItem"
+      ],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Osteo Armaments",
+      "slug": "osteo-armaments",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet",
+        "long-duration"
+      ],
+      "durationLabel": "1 hours"
+    },
+    {
+      "name": "Sense Iniquity",
+      "slug": "sense-iniquity",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Energize Bite",
+      "slug": "energize-bite",
+      "category": "feat",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "0 rounds"
+    },
+    {
+      "name": "Renewed Vigor",
+      "slug": "renewed-vigor",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "unlimited"
+    },
+    {
+      "name": "After You",
+      "slug": "after-you",
+      "category": "feat",
+      "cost": 0,
+      "excluded": true,
+      "excludeReasons": [
+        "no-rules"
+      ],
+      "durationLabel": "until encounter ends"
+    },
+    {
+      "name": "Whispers of Weakness",
+      "slug": "whispers-of-weakness",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "target-dependent"
+      ],
+      "durationLabel": "0 rounds"
+    },
+    {
+      "name": "Herald's Weapon",
+      "slug": "heralds-weapon",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Even the Odds",
+      "slug": "even-the-odds",
+      "category": "feat",
+      "cost": 0,
+      "excluded": true,
+      "excludeReasons": [
+        "GrantItem"
+      ],
+      "durationLabel": "0 rounds"
+    },
+    {
+      "name": "Furious Finish",
+      "slug": "furious-finish",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "unlimited"
+    },
+    {
+      "name": "Duelist's Challenge",
+      "slug": "duelists-challenge",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "target-dependent"
+      ],
+      "durationLabel": "until encounter ends"
+    },
+    {
+      "name": "Draconic Resilience",
+      "slug": "draconic-resilience",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Hungry Blade",
+      "slug": "hungry-blade",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "target-dependent"
+      ],
+      "durationLabel": "10 minutes"
+    },
+    {
+      "name": "Memory of Skill",
+      "slug": "memory-of-skill",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Invoke Movement",
+      "slug": "invoke-movement",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Poison Weapon",
+      "slug": "poison-weapon",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Spark Fist",
+      "slug": "spark-fist",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Mineral Deposits",
+      "slug": "mineral-deposits",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "unlimited"
+    },
+    {
+      "name": "Stoney Deflection",
+      "slug": "stoney-deflection",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "unlimited"
+    },
+    {
+      "name": "Infused with Belkzen's Might",
+      "slug": "infused-with-belkzens-might",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Fortify Shield",
+      "slug": "fortify-shield",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "GrantItem"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Invoke Offense",
+      "slug": "invoke-offense",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Desperate Wrath",
+      "slug": "desperate-wrath",
+      "category": "feat",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Hone Claws",
+      "slug": "hone-claws",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "unlimited"
+    },
+    {
+      "name": "Harness Natural Magic",
+      "slug": "harness-natural-magic",
+      "category": "feat",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Blade of the Heart",
+      "slug": "blade-of-the-heart",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "10 minutes"
+    },
+    {
+      "name": "Weapon Infusion",
+      "slug": "weapon-infusion",
+      "category": "feat",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "0 rounds"
+    },
+    {
+      "name": "Relinquish Control",
+      "slug": "relinquish-control",
+      "category": "feat",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Draw From the Land",
+      "slug": "draw-from-the-land",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Envenom Fangs",
+      "slug": "envenom-fangs",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Moisture Bath",
+      "slug": "moisture-bath",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Wings of Bone and Sinew",
+      "slug": "wings-of-bone-and-sinew",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Trance of Celerity",
+      "slug": "trance-of-celerity",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Watchful Gaze",
+      "slug": "watchful-gaze",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Animalistic Brutality",
+      "slug": "animalistic-brutality",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Crimson Shroud",
+      "slug": "crimson-shroud",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "GrantItem"
+      ],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Giant's Lunge",
+      "slug": "giants-lunge",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Precious Ammunition",
+      "slug": "precious-ammunition",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Godspeed",
+      "slug": "godspeed",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "GrantItem"
+      ],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Shadow Sight",
+      "slug": "shadow-sight",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Disrupting Strikes",
+      "slug": "disrupting-strikes",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Favorable Winds",
+      "slug": "favorable-winds",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Elemental Assault",
+      "slug": "elemental-assault",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Eye of the Arclords",
+      "slug": "eye-of-the-arclords",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "target-dependent"
+      ],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "One with the Spirits",
+      "slug": "one-with-the-spirits",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "GrantItem"
+      ],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Tracing Trance",
+      "slug": "tracing-trance",
+      "category": "feat",
+      "cost": 0,
+      "excluded": true,
+      "excludeReasons": [
+        "GrantItem"
+      ],
+      "durationLabel": "0 rounds"
+    },
+    {
+      "name": "Diverting Vortex",
+      "slug": "diverting-vortex",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Harden Flesh",
+      "slug": "harden-flesh",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Exploding Bullet",
+      "slug": "exploding-bullet",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Defensive Instincts",
+      "slug": "defensive-instincts",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Mutate Weapon",
+      "slug": "mutate-weapon",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "0 rounds"
+    },
+    {
+      "name": "Prescience",
+      "slug": "prescience",
+      "category": "feat",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Divine Weapon",
+      "slug": "divine-weapon",
+      "category": "feat",
+      "cost": 0,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet",
+        "target-dependent"
+      ],
+      "durationLabel": "0 rounds"
+    },
+    {
+      "name": "Shield the Faithful",
+      "slug": "shield-the-faithful",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Giant's Stature",
+      "slug": "giants-stature",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "unlimited"
+    },
+    {
+      "name": "Extravagant Parry",
+      "slug": "extravagant-parry",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Spell Parry",
+      "slug": "spell-parry",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "target-dependent"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Twin Parry",
+      "slug": "twin-parry",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Come and Get Me",
+      "slug": "come-and-get-me",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "GrantItem",
+        "target-dependent"
+      ],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Repair Module",
+      "slug": "repair-module",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Unfazed Assessment",
+      "slug": "unfazed-assessment",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet",
+        "target-dependent"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Turn to Mist",
+      "slug": "turn-to-mist",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "5 minutes"
+    },
+    {
+      "name": "Dragon's Rage Wings",
+      "slug": "dragons-rage-wings",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Inspiring Recitation",
+      "slug": "inspiring-recitation",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Saoc Astrology",
+      "slug": "saoc-astrology",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Bone Spikes",
+      "slug": "bone-spikes",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Emotional Surge",
+      "slug": "emotional-surge",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Null Field",
+      "slug": "null-field",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Armored Courage",
+      "slug": "armored-courage",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Guardian's Embrace",
+      "slug": "guardians-embrace",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Reckless Abandon",
+      "slug": "reckless-abandon",
+      "category": "feat",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Divine Invulnerability",
+      "slug": "divine-invulnerability",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Enforce Oath",
+      "slug": "enforce-oath",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "target-dependent"
+      ],
+      "durationLabel": "unlimited"
+    },
+    {
+      "name": "Nothing Personal",
+      "slug": "nothing-personal",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "target-dependent",
+        "long-duration"
+      ],
+      "durationLabel": "1 hours"
+    },
+    {
+      "name": "Sacred Defense",
+      "slug": "sacred-defense",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Don Thy Fervor",
+      "slug": "don-thy-fervor",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Invoke Defense",
+      "slug": "invoke-defense",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Oni Form",
+      "slug": "oni-form",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "GrantItem"
+      ],
+      "durationLabel": "10 minutes"
+    },
+    {
+      "name": "Energy Ablation",
+      "slug": "energy-ablation",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Sheltering Wing",
+      "slug": "sheltering-wing",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Guillotine Blade",
+      "slug": "guillotine-blade",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Raise Symbol",
+      "slug": "raise-symbol",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "GrantItem"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Hydraulic Deflection",
+      "slug": "hydraulic-deflection",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Energy Ward",
+      "slug": "energy-ward",
+      "category": "feat",
+      "cost": 0,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Rebirth in Living Stone",
+      "slug": "rebirth-in-living-stone",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Mountain Stronghold",
+      "slug": "mountain-stronghold",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Dueling Parry",
+      "slug": "dueling-parry",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Echoes in Stone",
+      "slug": "echoes-in-stone",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Fulminating Shot",
+      "slug": "fulminating-shot",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "0 rounds"
+    },
+    {
+      "name": "Bold Defiance",
+      "slug": "bold-defiance",
+      "category": "feat",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Propulsive Leap",
+      "slug": "propulsive-leap",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Heaven's Thunder",
+      "slug": "heavens-thunder",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Consolidated Overlay Panopticon",
+      "slug": "consolidated-overlay-panopticon",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Howling Aspect",
+      "slug": "howling-aspect",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Guided by the Stars",
+      "slug": "guided-by-the-stars",
+      "category": "feat",
+      "cost": 0,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "unlimited"
+    },
+    {
+      "name": "Towering Presence",
+      "slug": "towering-presence",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "GrantItem"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Bespell Strikes",
+      "slug": "bespell-strikes",
+      "category": "feat",
+      "cost": 0,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "0 rounds"
+    },
+    {
+      "name": "Ectoplasmic Aura",
+      "slug": "ectoplasmic-aura",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "10 minutes"
+    },
+    {
+      "name": "Dismal Harvest",
+      "slug": "dismal-harvest",
+      "category": "feat",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Psi Strikes",
+      "slug": "psi-strikes",
+      "category": "feat",
+      "cost": 0,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "0 rounds"
+    },
+    {
+      "name": "Benefactor's Majesty",
+      "slug": "benefactors-majesty",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Dissolution's Sight",
+      "slug": "dissolutions-sight",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Guided Skill",
+      "slug": "guided-skill",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "10 minutes"
+    },
+    {
+      "name": "Close Contract",
+      "slug": "close-contract",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "long-duration"
+      ],
+      "durationLabel": "1 hours"
+    },
+    {
+      "name": "Overclock Senses",
+      "slug": "overclock-senses",
+      "category": "feat",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Stone Body",
+      "slug": "stone-body",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Smite",
+      "slug": "smite",
+      "category": "feat",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "target-dependent"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Meddling Futures",
+      "slug": "meddling-futures",
+      "category": "feat",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "0 rounds"
+    },
+    {
+      "name": "Fortifying Knock",
+      "slug": "fortifying-knock",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Gathering Moss",
+      "slug": "gathering-moss",
+      "category": "feat",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Apparition's Enhancement",
+      "slug": "apparitions-enhancement",
+      "category": "feat",
+      "cost": 0,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "0 rounds"
+    },
+    {
+      "name": "Ursine Avenger Form",
+      "slug": "ursine-avenger-form",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "unlimited"
+    },
+    {
+      "name": "Kishin Rage",
+      "slug": "kishin-rage",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Tunnel Wall",
+      "slug": "tunnel-wall",
+      "category": "feat",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Daydream Trance",
+      "slug": "daydream-trance",
+      "category": "action",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Turn Aside Ambient Magic",
+      "slug": "turn-aside-ambient-magic",
+      "category": "action",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Unleash Psyche",
+      "slug": "unleash-psyche",
+      "category": "action",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "2 rounds"
+    },
+    {
+      "name": "Anadi Venom",
+      "slug": "anadi-venom",
+      "category": "action",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "0 rounds"
+    },
+    {
+      "name": "Living Fortification",
+      "slug": "living-fortification",
+      "category": "action",
+      "cost": 0,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "0 rounds"
+    },
+    {
+      "name": "Channel Draconic Essence",
+      "slug": "channel-draconic-essence",
+      "category": "action",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "until encounter ends"
+    },
+    {
+      "name": "Crash Against Me",
+      "slug": "crash-against-me",
+      "category": "action",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Calculate Threats",
+      "slug": "calculate-threats",
+      "category": "action",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Harvest Blood",
+      "slug": "harvest-blood",
+      "category": "action",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "target-dependent"
+      ],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Swirl Crimson Shroud",
+      "slug": "swirl-crimson-shroud",
+      "category": "action",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Hunt Runelord",
+      "slug": "hunt-runelord",
+      "category": "action",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet",
+        "target-dependent",
+        "long-duration"
+      ],
+      "durationLabel": "1 days"
+    },
+    {
+      "name": "Hunt Prey",
+      "slug": "hunt-prey",
+      "category": "action",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "target-dependent"
+      ],
+      "durationLabel": "unlimited"
+    },
+    {
+      "name": "Drain Realm",
+      "slug": "drain-realm",
+      "category": "action",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "0 rounds"
+    },
+    {
+      "name": "Starlit Transformation",
+      "slug": "starlit-transformation",
+      "category": "action",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "10 minutes"
+    },
+    {
+      "name": "Race the Skies",
+      "slug": "race-the-skies",
+      "category": "action",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Wish for Luck",
+      "slug": "wish-for-luck",
+      "category": "action",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Survive the Wilds",
+      "slug": "survive-the-wilds",
+      "category": "action",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Repel Ambient Magic",
+      "slug": "repel-ambient-magic",
+      "category": "action",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Avert Gaze",
+      "slug": "avert-gaze",
+      "category": "action",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Accept Echo",
+      "slug": "accept-echo",
+      "category": "action",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "10 minutes"
+    },
+    {
+      "name": "Hunt the Razer's Pawn",
+      "slug": "hunt-the-razers-pawn",
+      "category": "action",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "target-dependent",
+        "long-duration"
+      ],
+      "durationLabel": "1 days"
+    },
+    {
+      "name": "Quick-Tempered",
+      "slug": "quick-tempered",
+      "category": "action",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Size Up",
+      "slug": "size-up",
+      "category": "action",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "target-dependent",
+        "long-duration"
+      ],
+      "durationLabel": "1 days"
+    },
+    {
+      "name": "Enter Spirit Trance",
+      "slug": "enter-spirit-trance",
+      "category": "action",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Tail Toxin",
+      "slug": "tail-toxin",
+      "category": "action",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Channel Elements",
+      "slug": "channel-elements",
+      "category": "action",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "unlimited"
+    },
+    {
+      "name": "Tap the Past",
+      "slug": "tap-the-past",
+      "category": "action",
+      "cost": 0,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "unlimited"
+    },
+    {
+      "name": "Stonestrike Stance",
+      "slug": "stonestrike-stance",
+      "category": "action",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "until encounter ends"
+    },
+    {
+      "name": "Recall Under Pressure",
+      "slug": "recall-under-pressure",
+      "category": "action",
+      "cost": 0,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "until encounter ends"
+    },
+    {
+      "name": "Devise a Stratagem",
+      "slug": "devise-a-stratagem",
+      "category": "action",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "target-dependent"
+      ],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Weaponsight",
+      "slug": "weaponsight",
+      "category": "action",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 minutes"
+    },
+    {
+      "name": "Take Cover",
+      "slug": "take-cover",
+      "category": "action",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "unlimited"
+    },
+    {
+      "name": "Raise a Shield",
+      "slug": "raise-a-shield",
+      "category": "action",
+      "cost": 1,
+      "excluded": false,
+      "excludeReasons": [],
+      "durationLabel": "1 rounds"
+    },
+    {
+      "name": "Shielding Wave",
+      "slug": "shielding-wave",
+      "category": "action",
+      "cost": 1,
+      "excluded": true,
+      "excludeReasons": [
+        "ChoiceSet"
+      ],
+      "durationLabel": "1 rounds"
+    }
+  ]
+}
