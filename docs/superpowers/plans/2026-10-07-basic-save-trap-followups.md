@@ -35,7 +35,7 @@
 - Modify: `scripts/trap-mechanics.mjs`
 - Test: `tests/trap-mechanics-basic-save.test.mjs`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 it("#884: @Check/@Damage before the Effect heading (a rider written earlier) is not mistaken for the real save", () => {
@@ -56,12 +56,12 @@ it("#884: still parses every real automatable hazard's own description unchanged
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify the first one fails**
+- [x] **Step 2: Run the tests to verify the first one fails**
 
 Run: `npx vitest run tests/trap-mechanics-basic-save.test.mjs`
 Expected: FAIL on the new rider test (today's code matches the Trigger line's own `@Check`/`@Damage`, not the Effect's); the regression test should already pass.
 
-- [ ] **Step 3: Anchor both regexes to the Effect text**
+- [x] **Step 3: Anchor both regexes to the Effect text**
 
 Change (confirmed current, `scripts/trap-mechanics.mjs:238-267`):
 
@@ -90,17 +90,17 @@ export function parseBasicSaveAction(descriptionHtml) {
 
 Every other use of `descriptionHtml` further down this same function (the `afterCheck`/residue-sentence extraction, confirmed current lines 269-298) must also switch to `effect` for consistency, since `checkMatch.index` now refers to an offset within `effect`, not `descriptionHtml` — read the function's own remaining body carefully and update every `descriptionHtml`-relative offset accordingly.
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/trap-mechanics-basic-save.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full test suite**
+- [x] **Step 5: Run the full test suite**
 
 Run: `npx vitest run`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/trap-mechanics.mjs tests/trap-mechanics-basic-save.test.mjs

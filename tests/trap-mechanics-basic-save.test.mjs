@@ -160,3 +160,20 @@ describe("#839 isSimpleAutomatableTrap with basic-save actions", () => {
     expect(isSimpleAutomatableTrap({ ...base, basicSaveActionCount: 0 })).toBe(false);
   });
 });
+
+describe("#884 Effect-anchored parsing", () => {
+  it("#884: @Check/@Damage before the Effect heading (a rider written earlier) is not mistaken for the real save", () => {
+    const html =
+      '<p><strong>Trigger</strong> Stage 4 (@Check[fortitude|dc:30|basic]) deals @Damage[4d6[poison]] damage.</p>' +
+      '<p><strong>Effect</strong> The trap deals @Damage[2d8[piercing]] damage to the triggering creature (@Check[reflex|dc:22|basic] save).</p>';
+    expect(parseBasicSaveAction(html)).toEqual(
+      expect.objectContaining({ save: "reflex", dc: 22, damage: [{ formula: "2d8", type: "piercing" }] }),
+    );
+  });
+
+  it("#884: still parses every real automatable hazard's own description unchanged", () => {
+    expect(parseBasicSaveAction(ELECTRIC_LATCH_RUNE)).not.toBeNull();
+    expect(parseBasicSaveAction(INSISTENT_PRIVACY_FENCE)).not.toBeNull();
+    expect(parseBasicSaveAction(STEAM_VENTS)).not.toBeNull();
+  });
+});

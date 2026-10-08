@@ -237,7 +237,12 @@ const AREA_PHRASE = /(?:to\s+)?(?:all\s+|each\s+|every\s+)?(?:living\s+)?creatur
  */
 export function parseBasicSaveAction(descriptionHtml) {
   if (typeof descriptionHtml !== "string") return null;
-  const checkMatch = /@Check\[([a-z]+)((?:\|[^\]]*)?)\]/i.exec(descriptionHtml);
+  // #884: anchored to the Effect paragraph, same as parseAreaFeet already
+  // is just below -- a Trigger-line (or any earlier) rider with its own
+  // @Check/@Damage (an affliction's own later-stage text, say) must never
+  // be mistaken for the hazard's real, primary save.
+  const effect = effectText(descriptionHtml);
+  const checkMatch = /@Check\[([a-z]+)((?:\|[^\]]*)?)\]/i.exec(effect);
   if (!checkMatch) return null;
   const save = checkMatch[1].toLowerCase();
   if (!SAVE_SLUGS.has(save)) return null;
@@ -257,7 +262,7 @@ export function parseBasicSaveAction(descriptionHtml) {
 
   // The damage list nests one level of brackets (`3d6[fire]`), so the body is
   // any run of non-bracket characters or one `[...]` group.
-  const damageMatch = /@Damage\[((?:[^[\]]|\[[^\]]*\])+)\]/i.exec(descriptionHtml);
+  const damageMatch = /@Damage\[((?:[^[\]]|\[[^\]]*\])+)\]/i.exec(effect);
   if (!damageMatch) return null;
   const damage = [];
   for (const part of damageMatch[1].split(",")) {
@@ -282,7 +287,7 @@ export function parseBasicSaveAction(descriptionHtml) {
 
   // Everything after the save entry that is not the area phrase, the
   // "save" noise, or the prone rider is surfaced, never dropped.
-  const afterCheck = descriptionHtml.slice(checkMatch.index + checkMatch[0].length);
+  const afterCheck = effect.slice(checkMatch.index + checkMatch[0].length);
   let proneOnCritFail = false;
   const unparsed = [];
   const residue = plainDescriptionText(afterCheck)
