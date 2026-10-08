@@ -253,6 +253,94 @@ export function incomingFaceFor(roomId, positionByRoomId, occupiedCells, legitim
 }
 
 /**
+ * #906: the detour rooms (`hiddenRooms`) of a placed layout that no corridor can reach. A detour has exactly one
+ * incoming connection, its hidden link from its one `layoutEdges` parent; it is unreachable when `findCorridorPath`
+ * finds no path for that link on the face `incomingFaceFor` gives the detour, with the source's door on the face
+ * `outgoingDoorPlan` would give it (east for a target in a higher column, south otherwise).
+ *
+ * Measured (500 sweep seeds): every such detour sits in column 0 inside a solid stack of rooms. Its north neighbour
+ * is an unrelated room (so `incomingFaceFor` falls back to west), and the only west entry cell (rank, -1) cannot be
+ * reached from the source's column without crossing that stack, so north is no better than west. The scene then draws
+ * `buildEdgeCorridor`'s null-path fallback line through other rooms and sealed cells (#877's crossings). The detour is
+ * also always the room directly above its own child's north gate cell. Returns the ids, sorted.
+ */
+export function unreachableDetourIds({ positionByRoomId, layoutEdges, hiddenRooms, hiddenIncomingByRoomId = {} }) {
+  const occupiedCells = {};
+  for (const [id, p] of Object.entries(positionByRoomId)) occupiedCells[`${p.rank},${p.col}`] = id;
+  const unreachable = [];
+  for (const id of [...hiddenRooms].sort()) {
+    const [sourceId] = parentRoomIdsFor(layoutEdges, id);
+    if (sourceId == null) continue;
+    const from = positionByRoomId[sourceId];
+    const to = positionByRoomId[id];
+    const legitimateSourceIds = new Set([...parentRoomIdsFor(layoutEdges, id), ...(hiddenIncomingByRoomId[id] ?? [])]);
+    const path = findCorridorPath(from, to, occupiedCells, {
+      fromRoomId: sourceId, toRoomId: id,
+      incomingFace: incomingFaceFor(id, positionByRoomId, occupiedCells, legitimateSourceIds),
+      exitFace: to.col > from.col ? 'east' : 'south',
+    });
+    if (path == null) unreachable.push(id);
+  }
+  return unreachable;
+}
+
+/**
+ * #906: `graph` (the `attachHiddenPaths` shape) without the detour rooms `ids`: each leaves `rooms`, `hiddenRooms`,
+ * its own `edges`/`layoutEdges` entry, its parent's `layoutEdges` list and its parent's `hiddenEdges` entry (dropped
+ * when empty). `hiddenIncomingByRoomId` only ever holds shortcut links, never a detour, so it passes through. Pure:
+ * returns new maps, `hiddenRooms` as a new Set.
+ */
+export function withoutDetours({ rooms, edges, layoutEdges, hiddenRooms, hiddenEdges, hiddenIncomingByRoomId = {} }, ids) {
+  const drop = new Set(ids);
+  const keep = (map) => Object.fromEntries(Object.entries(map)
+    .filter(([id]) => !drop.has(id))
+    .map(([id, kids]) => [id, kids.filter((kid) => !drop.has(kid))]));
+  return {
+    rooms: Object.fromEntries(Object.entries(rooms).filter(([id]) => !drop.has(id))),
+    edges: keep(edges),
+    layoutEdges: keep(layoutEdges),
+    hiddenRooms: new Set([...hiddenRooms].filter((id) => !drop.has(id))),
+    hiddenEdges: Object.fromEntries(Object.entries(keep(hiddenEdges)).filter(([, kids]) => kids.length > 0)),
+    hiddenIncomingByRoomId,
+  };
+}
+
+/**
+ * #906: the placement step every layout builder shares: ranks and columns from `layoutEdges` (#156), the shortcut
+ * prune (#415 Chunk 5) when `prune`, and, when `dropUnreachableDetours` (layoutVersion >= 3), the removal of every
+ * detour `unreachableDetourIds` reports, re-placing until none is left (dropping a detour moves its child up a rank
+ * and can change other cells; measured: a second pass is needed in 2 of 500 seeds). `graph` is the
+ * `attachHiddenPaths` shape. Returns `{ rooms, edges, layoutEdges, hiddenRooms, hiddenEdges, hiddenIncomingByRoomId,
+ * positionByRoomId, ranks, droppedDetours }` (`hiddenEdges`/`hiddenIncomingByRoomId` pruned; `droppedDetours` the
+ * removed ids in removal order).
+ */
+export function placeLayoutGraph(graph, { prune = true, dropUnreachableDetours = false } = {}) {
+  let g = graph;
+  const droppedDetours = [];
+  for (;;) {
+    const ranks = computeRanks(g.layoutEdges, 'room-entry');
+    const columns = computeColumns(g.layoutEdges, ranks, 'room-entry');
+    const positionByRoomId = Object.fromEntries(Object.keys(g.rooms).map((id) => [id, { rank: ranks[id], col: columns[id] }]));
+    const { hiddenEdges, hiddenIncomingByRoomId } = prune
+      ? pruneConflictingShortcuts({
+        edges: g.edges, hiddenRooms: g.hiddenRooms, hiddenEdges: g.hiddenEdges, hiddenIncomingByRoomId: g.hiddenIncomingByRoomId,
+      }, positionByRoomId)
+      : g;
+    const unreachable = dropUnreachableDetours
+      ? unreachableDetourIds({ positionByRoomId, layoutEdges: g.layoutEdges, hiddenRooms: g.hiddenRooms, hiddenIncomingByRoomId })
+      : [];
+    if (unreachable.length === 0) {
+      return {
+        rooms: g.rooms, edges: g.edges, layoutEdges: g.layoutEdges, hiddenRooms: g.hiddenRooms,
+        hiddenEdges, hiddenIncomingByRoomId, positionByRoomId, ranks, droppedDetours,
+      };
+    }
+    droppedDetours.push(...unreachable);
+    g = withoutDetours(g, unreachable);
+  }
+}
+
+/**
  * Divides a room's incoming face into `count` equal, contiguous door
  * slots, left-to-right (`face === 'north'`) or top-to-bottom
  * (`face === 'west'`). Replaces the old `northDoorSlots` (single-face

@@ -70,7 +70,7 @@
   - `withoutDetours({ rooms, edges, layoutEdges, hiddenRooms, hiddenEdges, hiddenIncomingByRoomId }, ids) -> { rooms, edges, layoutEdges, hiddenRooms: Set, hiddenEdges, hiddenIncomingByRoomId }` (pure)
   - `placeLayoutGraph(graph, { prune = true, dropUnreachableDetours = false }) -> { rooms, edges, layoutEdges, hiddenRooms, hiddenEdges, hiddenIncomingByRoomId, positionByRoomId, ranks, droppedDetours: string[] }`. `graph` is the shape `attachHiddenPaths` returns. With `prune: false`, `hiddenEdges` and `hiddenIncomingByRoomId` are the input objects themselves.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/dungeon-detour-reachability.test.mjs`:
 
@@ -220,12 +220,12 @@ describe('placeLayoutGraph (#906)', () => {
 });
 ```
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 Run: `npx vitest run tests/dungeon-detour-reachability.test.mjs`
 Expected: FAIL. The file does not load because `scripts/dungeon-layout.mjs` has no export named `unreachableDetourIds`, `withoutDetours` or `placeLayoutGraph`.
 
-- [ ] **Step 3: Implement the three functions**
+- [x] **Step 3: Implement the three functions**
 
 In `scripts/dungeon-layout.mjs`, directly after the closing brace of `incomingFaceFor`:
 
@@ -327,12 +327,12 @@ export function placeLayoutGraph(graph, { prune = true, dropUnreachableDetours =
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass, and that nothing else moved**
+- [x] **Step 4: Run the tests to verify they pass, and that nothing else moved**
 
 Run: `npx vitest run tests/dungeon-detour-reachability.test.mjs tests/dungeon-layout.test.mjs tests/dungeon-corridor-wall-crossing-sweep.test.mjs`
 Expected: PASS (3 files, 214 tests). The crossing sweep still pins 101 crossings, because nothing calls the new functions yet.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-layout.mjs tests/dungeon-detour-reachability.test.mjs
