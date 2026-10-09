@@ -874,7 +874,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `setAbilityRecharge` (existing, module-private), `recordNpcAbilityExpiry`/`setNpcAbilityImmunityUntil` (Task 3), `resolveOpponentForTurn`/`detectableOpponents` (existing, module-private).
 - Produces: a new `else if (candidate.type === "npcAbility")` branch in `applyAgentDecision`, the terminal consumer in this plan.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Find and read an existing `applyAgentDecision` test exercising a save roll (e.g. the maneuver execution tests from #909's plan) to copy its `game`/combat/combatant/target stub shape, then:
 
@@ -971,12 +971,12 @@ describe('applyAgentDecision npcAbility execution (mode: reportOnly)', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail (once filled in)**
+- [x] **Step 2: Run tests to verify they fail (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-npc-ability-execution.test.mjs`
 Expected: FAIL — `applyAgentDecision` has no `npcAbility` branch yet.
 
-- [ ] **Step 3: Implement the executor**
+- [x] **Step 3: Implement the executor**
 
 ```js
 const SECONDS_PER_ROUND = 6;
@@ -1074,17 +1074,17 @@ Add the dispatching branch inside `applyAgentDecision`:
 
 (Replace the GM-whisper test's own assumed mechanism in Step 1 with whatever this file's real existing whisper helper turns out to be once read — `item.toMessage()` above already posts the ability's own full outcome text as a chat message, which may already satisfy the "whisper the outcome text" requirement for `reportOnly` without any *additional* whisper call; confirm this against the real test expectations once the exact existing convention is read, rather than adding a second, redundant message.)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-npc-ability-execution.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-npc-ability-execution.test.mjs
