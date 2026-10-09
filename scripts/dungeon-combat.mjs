@@ -6036,6 +6036,30 @@ async function executeLunge(combat, combatant, candidate, target) {
   return { performed: true, attacks: 1 };
 }
 
+/** #910: Sudden Charge -- "Stride twice. If you end your movement within
+ * melee reach of at least one enemy, you can make a melee Strike against
+ * that enemy." Two ordinary approach Strides (each stops at melee reach on
+ * its own, so a second Stride after the first already arrived is a no-op),
+ * then one melee Strike at the turn's current MAP if the target is now in
+ * reach of a ready melee strike. Reports the attacks actually made. */
+async function executeSuddenCharge(combat, combatant, target) {
+  await strideByPosture(combat, combatant, "approach", target);
+  if (combatant.isDefeated) return { performed: true, attacks: 0 };
+  await strideByPosture(combat, combatant, "approach", target);
+  if (combatant.isDefeated || target.isDefeated) return { performed: true, attacks: 0 };
+
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  const action = readyMeleeStrikeActions(combatant.actor).find(
+    (a) => strikeInReach(combatant, target, a, gridSize, gridDistanceFt).inReach,
+  );
+  if (!action) return { performed: true, attacks: 0 };
+  const actionSlug = action.item?.slug ?? action.slug ?? action.label;
+  const { mapIncrement } = getAgentTurnState(combat, combatant.id);
+  await rollAndApplyStrikeAtVariant(combat, combatant, target, actionSlug, mapIncrement);
+  return { performed: true, attacks: 1 };
+}
+
 /** #910: dispatches a feat candidate to its executor. Every executor
  * returns `{ performed, attacks }` -- `performed: false` means nothing
  * happened and no action is spent. */
