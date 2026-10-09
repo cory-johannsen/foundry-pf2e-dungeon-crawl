@@ -149,6 +149,11 @@ describe("isHostileCheckContext", () => {
 });
 
 describe("hostileTargetIdsOf", () => {
+  it("treats a targeted self-effect feat (Hunt Prey, Devise a Stratagem) as not hostile (#922)", () => {
+    expect(hostileTargetIdsOf({ type: "feat", kind: "targetedSelfEffect", targetId: "t1" })).toEqual([]);
+    expect(hostileTargetIdsOf({ type: "feat", kind: "composite", targetId: "t1" })).toEqual(["t1"]);
+  });
+
   it("returns the single target of a hostile single-target candidate", () => {
     for (const type of ["strike", "cast", "castAttack", "castDebuff", "multiStrike", "castDualHarm", "maneuver", "feat", "npcAbility"]) {
       expect(hostileTargetIdsOf({ type, targetId: "t1" })).toEqual(["t1"]);

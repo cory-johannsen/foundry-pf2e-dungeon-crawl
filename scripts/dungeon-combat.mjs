@@ -80,6 +80,14 @@ import { eligibilityModifiers, ridersFor, maneuverMapPenalty } from "./maneuver-
 import { SELF_EFFECT_DENYLIST } from "./self-effect-denylist.mjs";
 import { summarizeEffect, effectDurationLabel, effectRelevanceTier } from "./self-effect-summary.mjs";
 import {
+  TARGETED_SELF_EFFECT_ALLOWLIST,
+  bindTokenMarkEffect,
+  selectRollOptionSuboption,
+  markedTokenUuids,
+  findActiveMarkEffects,
+  markAnnotation,
+} from "./targeted-feat-actions.mjs";
+import {
   ANTAGONIZE_FEAT_SLUG,
   readAntagonizeMap,
   frightenedFloorFor,
@@ -2739,6 +2747,90 @@ export async function computeSelfEffectVocabularyEntries(actor, actionsRemaining
   return scored.slice(0, SELF_EFFECT_VOCABULARY_CAP).map((s) => s.entry);
 }
 
+/** #922: at most this many targeted self-effect entries (one per legal
+ * target) are sent per turn, in opponent order -- the same order the Strike
+ * candidates use. */
+const TARGETED_SELF_EFFECT_VOCABULARY_CAP = 12;
+
+/** #922: whether `actor` has a ready Strike Devise a Stratagem's attack
+ * stratagem can apply to -- the effect's own SubstituteRoll predicate: an
+ * agile or finesse weapon, or a ranged one that isn't thrown. Without one
+ * the stored d20 can never replace a Strike roll. */
+function hasStratagemStrike(actor) {
+  return (actor?.system?.actions ?? []).some((a) => {
+    if (a.type !== "strike" || a.ready === false) return false;
+    const traits = a.item?.system?.traits?.value ?? [];
+    if (traits.includes("agile") || traits.includes("finesse")) return true;
+    return !isMeleeStrikeAction(a) && !traits.some((t) => String(t).startsWith("thrown"));
+  });
+}
+
+/** #922: the targeted self-effect vocabulary category (Hunt Prey, Devise a
+ * Stratagem; character actors only, like #910/#914's self-effects). Each
+ * allowlisted action/feat item that passes #910's per-turn gates (excluded
+ * traits, cost, frequency, unresolved ChoiceSet) and whose linked effect
+ * really carries the expected TokenMark rule yields one entry per legal
+ * target. `opponents` are `{id, name, hasLineOfSight, tokenUuid}` for the
+ * opponents this actor can currently target (stealth matrix already
+ * applied). The system ignores TokenMark on an actor with no token on the
+ * viewed canvas, so such an actor gets no entries. Both are concentrate
+ * actions, so neither is offered while raging. Hunt Prey: never against
+ * the creature already designated as prey. Devise a Stratagem: a creature
+ * the actor can see, not while its effect is active, and only with a
+ * Strike its d20 can apply to. Returns plain `{itemId, slug, name, cost,
+ * targetId, traits, effectSummary}` entries for buildFeatVocabulary. */
+export async function computeTargetedSelfEffectVocabularyEntries(actor, opponents, actionsRemaining) {
+  if (actor?.type !== "character") return [];
+  if (typeof actor.getActiveTokens !== "function" || actor.getActiveTokens().length === 0) return [];
+  const entries = [];
+  const items = [...(actor.itemTypes?.action ?? []), ...(actor.itemTypes?.feat ?? [])];
+  const effects = actor.itemTypes?.effect ?? [];
+  // Rage: "You can't use actions with the concentrate trait unless they also
+  // have the rage trait" -- both of these are concentrate actions.
+  const raging = effects.some((e) => e?.slug === "effect-rage");
+  for (const item of items) {
+    const config = TARGETED_SELF_EFFECT_ALLOWLIST[item?.slug];
+    if (!config) continue;
+    try {
+      const uuid = item.system?.selfEffect?.uuid;
+      if (!uuid) continue;
+      const traits = item.system?.traits?.value ?? [];
+      if (traits.some((t) => FEAT_EXCLUDED_TRAITS.has(t))) continue;
+      if (raging && traits.includes("concentrate") && !traits.includes("rage")) continue;
+      const cost = featActionCost(item);
+      if (cost === null || cost > actionsRemaining) continue;
+      if (item.system?.frequency && !(item.system.frequency.value > 0)) continue;
+      if (hasUnresolvedChoiceSet(item)) continue;
+      const effect = await fromUuid(uuid);
+      if (typeof effect?.toObject !== "function") continue;
+      if (!bindTokenMarkEffect(effect.toObject(), config.markSlug, "probe")) continue;
+      const marked = markedTokenUuids(effects, config.markSlug);
+      if (!config.exclusiveMark && marked.length > 0) continue;
+      if (item.slug === "devise-a-stratagem" && !hasStratagemStrike(actor)) continue;
+      for (const o of opponents ?? []) {
+        if (!o.tokenUuid) continue;
+        if (config.requiresSight && o.hasLineOfSight === false) continue;
+        if (config.exclusiveMark && marked.includes(o.tokenUuid)) continue;
+        entries.push({
+          itemId: item.id,
+          slug: item.slug,
+          name: item.name,
+          cost,
+          targetId: o.id,
+          traits: featGatingTraits(item),
+          effectSummary:
+            item.slug === "hunt-prey"
+              ? `mark prey: +bonuses vs ${o.name}`
+              : `d20 replaces next Strike vs ${o.name}`,
+        });
+      }
+    } catch (err) {
+      console.warn(`#922: skipping unreadable targeted action ${item?.name ?? item?.id}:`, err.message);
+    }
+  }
+  return entries.slice(0, TARGETED_SELF_EFFECT_VOCABULARY_CAP);
+}
+
 /** #910: whether a strike action is a melee one -- the same "finite
  * positive range increment means ranged" rule actionReachSquares uses
  * (number on PC weapons, `{increment}` on NPC items). */
@@ -4050,13 +4142,21 @@ export async function getPendingAgentTurn(combat) {
   // this function's own chain/target-count/dual-nature filtering below)
   // can exclude it from anything that actually requires a line of sight.
   const canSee = (c) => hasLineOfSight(combat, combatant.token, c.token);
-  const opponents = rawOpponents.map((c) => ({
-    id: c.id,
-    name: c.name,
-    distanceSquares: chebyshevSquares(combatant.token, c.token, gridSize),
-    hp: c.actor?.system?.attributes?.hp?.value ?? null,
-    hasLineOfSight: canSee(c),
-  }));
+  // #922: this actor's own TokenMark effects (Hunt Prey, Devise a
+  // Stratagem) bound to an opponent's token -- surfaced on that opponent
+  // (and so on Strike summaries against it); absent when unmarked.
+  const ownEffects = combatant.actor?.itemTypes?.effect ?? [];
+  const opponents = rawOpponents.map((c) => {
+    const annotation = markAnnotation(findActiveMarkEffects(ownEffects, c.token?.uuid));
+    return {
+      id: c.id,
+      name: c.name,
+      distanceSquares: chebyshevSquares(combatant.token, c.token, gridSize),
+      hp: c.actor?.system?.attributes?.hp?.value ?? null,
+      hasLineOfSight: canSee(c),
+      ...(annotation ? { markAnnotation: annotation } : {}),
+    };
+  });
   const allies = rawAllies.map((c) => ({
     id: c.id,
     name: c.name,
@@ -4106,8 +4206,9 @@ export async function getPendingAgentTurn(combat) {
     opponents: maneuverOpponents,
   });
 
-  // #910: the feat/class actions (stances + Rage, and the composite
-  // Sudden Charge/Lunge/Twin Feint allowlist) that are legal this turn --
+  // #910: the feat/class actions (self-effects, the composite Sudden
+  // Charge/Lunge/Twin Feint allowlist and #922's targeted self-effects)
+  // that are legal this turn --
   // sent to the same once-per-turn reasoning call as the maneuvers.
   const featVocabulary = buildFeatVocabulary({
     selfEffectEntries: await computeSelfEffectVocabularyEntries(
@@ -4119,6 +4220,17 @@ export async function getPendingAgentTurn(combat) {
       opponents,
       turnState.actionsRemaining,
       gridDistanceFt,
+    ),
+    // #922: Hunt Prey / Devise a Stratagem, one entry per legal target.
+    targetedSelfEffectEntries: await computeTargetedSelfEffectVocabularyEntries(
+      combatant.actor,
+      rawOpponents.map((c, i) => ({
+        id: c.id,
+        name: c.name,
+        hasLineOfSight: opponents[i].hasLineOfSight,
+        tokenUuid: c.token?.uuid ?? null,
+      })),
+      turnState.actionsRemaining,
     ),
     turnState,
   });
@@ -6921,6 +7033,113 @@ async function executeSelfEffectFeat(combatant, candidate) {
   return { performed: true, attacks: 0 };
 }
 
+/** #922: Hunt Prey / Devise a Stratagem. The linked effect is created the
+ * way executeSelfEffectFeat (and the system's own apply-effect button)
+ * does, after binding its TokenMark rule to the chosen opponent's token
+ * (so TokenMarkRuleElement#preCreate neither reads the user's targets nor
+ * opens its interactive prompt) and, for Devise, selecting the `attack`
+ * stratagem on its RollOption rule's `selection` (the field the system's
+ * own toggle writes). Everything afterwards -- Hunt Prey's bonuses, the d20
+ * replacing the next Strike against the marked creature -- is the system's
+ * own rule elements. The new effect is created first; only then is a prior
+ * Hunt Prey designation removed (RAW: one prey at a time), the usage card
+ * posted and frequency spent, so a failed creation leaves no side effects
+ * and spends no action. Returns `{ performed, attacks }`. */
+async function executeTargetedSelfEffectFeat(combat, combatant, candidate) {
+  const actor = combatant.actor;
+  const config = TARGETED_SELF_EFFECT_ALLOWLIST[candidate.slug];
+  if (!config) return { performed: false };
+  const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
+  const targetTokenUuid = target?.token?.uuid;
+  if (!targetTokenUuid) return { performed: false };
+  if (config.requiresSight && !hasLineOfSight(combat, combatant.token, target.token)) return { performed: false };
+  // The system ignores a TokenMark on an actor with no token on the viewed
+  // canvas -- the effect would be created unbound.
+  if (typeof actor.getActiveTokens !== "function" || actor.getActiveTokens().length === 0) return { performed: false };
+  const item = findFeatItem(actor, candidate.itemId);
+  const uuid = item?.system?.selfEffect?.uuid;
+  if (!uuid) return { performed: false };
+  const effect = await fromUuid(uuid);
+  if (typeof effect?.toObject !== "function") return { performed: false };
+
+  let bound = bindTokenMarkEffect(effect.toObject(), config.markSlug, targetTokenUuid);
+  if (bound && config.suboption) {
+    bound = selectRollOptionSuboption(bound, config.suboption.option, config.suboption.value);
+  }
+  if (!bound) {
+    console.error(`#922: ${item.name}'s effect has no bindable ${config.markSlug} mark -- not applied.`);
+    return { performed: false };
+  }
+
+  const priorMarkIds = config.exclusiveMark
+    ? (actor.itemTypes?.effect ?? [])
+        .filter((e) => (e.system?.rules ?? []).some((r) => r?.key === "TokenMark" && r.slug === config.markSlug))
+        .map((e) => e.id)
+    : [];
+  const tokenUuid = combatant.token?.uuid ?? null;
+  const effectTraits = CONFIG.PF2E?.effectTraits ?? {};
+  const traits = (item.system.traits?.value ?? []).filter((t) => t in effectTraits);
+  let created;
+  try {
+    const source = foundry.utils.mergeObject(bound, {
+      _id: null,
+      // #914: agent-created -- an unlimited one (Hunt Prey) is removed at
+      // combat end by cleanupAgentSelfEffects.
+      flags: { [MODULE_ID]: { agentSelfEffect: true } },
+      system: {
+        context: {
+          origin: {
+            actor: actor.uuid,
+            token: tokenUuid,
+            item: item.uuid,
+            spellcasting: null,
+            rollOptions: item.getOriginData?.().rollOptions ?? [],
+          },
+          target: { actor: actor.uuid, token: tokenUuid },
+          roll: null,
+        },
+        traits: { value: traits },
+      },
+    });
+    [created] = (await actor.createEmbeddedDocuments("Item", [source])) ?? [];
+  } catch (err) {
+    console.error(`#922: applying ${item.name}'s effect failed:`, err.message);
+    return { performed: false };
+  }
+  // TokenMarkRuleElement#preCreate drops the item from creation when the
+  // uuid doesn't resolve to a token.
+  if (!created) return { performed: false };
+
+  const stale = priorMarkIds.filter((id) => id !== created.id);
+  if (stale.length) {
+    try {
+      await actor.deleteEmbeddedDocuments("Item", stale);
+    } catch (err) {
+      console.error("#922: removing the previous prey designation failed:", err.message);
+    }
+  }
+  try {
+    await item.toMessage?.();
+  } catch (err) {
+    console.warn(`#922: posting ${item.name}'s usage card failed:`, err.message);
+  }
+  if (item.system.frequency && item.system.frequency.value > 0) {
+    await item.update({ "system.frequency.value": item.system.frequency.value - 1 });
+  }
+  const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
+  const d20 = created.system?.badge?.value;
+  const what =
+    candidate.slug === "hunt-prey"
+      ? `hunts ${esc(target.name)} as prey`
+      : `devises a stratagem against ${esc(target.name)}${typeof d20 === "number" ? ` (d20 = ${d20})` : ""}`;
+  try {
+    await whisperGmContent(`<p><strong>${esc(combatant.name)}</strong> ${what}.</p>`);
+  } catch {
+    // Reporting is best-effort.
+  }
+  return { performed: true, attacks: 0 };
+}
+
 /** #914: effects the AI-actor pipeline created (executeSelfEffectFeat's
  * `flags[MODULE_ID].agentSelfEffect` tag) whose own duration is `unlimited`
  * would otherwise outlive the encounter -- removed once, when combat ends.
@@ -7058,6 +7277,7 @@ async function executeTwinFeint(combat, combatant, target) {
  * happened and no action is spent. */
 async function executeFeatCandidate(combat, combatant, candidate) {
   if (candidate.kind === "selfEffect") return executeSelfEffectFeat(combatant, candidate);
+  if (candidate.kind === "targetedSelfEffect") return executeTargetedSelfEffectFeat(combat, combatant, candidate);
   if (candidate.kind !== "composite") return { performed: false };
   const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
   if (!target) return { performed: false };

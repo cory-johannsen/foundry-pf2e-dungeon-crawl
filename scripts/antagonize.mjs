@@ -99,9 +99,13 @@ const AREA_HOSTILE_TYPES = new Set(["castArea", "breathWeapon", "castAreaTier", 
 
 /** The combatant ids an AI candidate (agent-candidates.mjs shapes) uses a
  * hostile action against. Healing, buffing, movement, Seek and self-effect
- * feats are not hostile. */
+ * feats are not hostile. #922: neither is a targeted self-effect (Hunt
+ * Prey, Devise a Stratagem) -- it only designates the creature; nothing in
+ * it can harm the target (Player Core: a hostile action "can harm or damage
+ * another creature"). */
 export function hostileTargetIdsOf(candidate) {
   if (!candidate) return [];
+  if (candidate.type === "feat" && candidate.kind === "targetedSelfEffect") return [];
   const ids = [];
   if (SINGLE_TARGET_HOSTILE_TYPES.has(candidate.type) && candidate.targetId) ids.push(candidate.targetId);
   if (AREA_HOSTILE_TYPES.has(candidate.type) || candidate.type === "npcAbility") {

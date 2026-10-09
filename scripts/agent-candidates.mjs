@@ -78,10 +78,13 @@ export function buildStrikeCandidates({ readyActions, opponents, mapIncrement })
     const variantIndex = Math.min(mapIncrement, action.variantCount - 1);
     for (const opponent of opponents) {
       if (!withinRangeAndSight(opponent, action.reachSquares)) continue;
+      const summary = `${action.label} vs ${opponent.name} (variant ${variantIndex})`;
       candidates.push({
         id: `strike:${action.slug}:${opponent.id}`, type: 'strike',
         actionSlug: action.slug, targetId: opponent.id, variantIndex, cost: 1,
-        summary: `${action.label} vs ${opponent.name} (variant ${variantIndex})`
+        // #922: an opponent this actor has marked (Hunt Prey, Devise a
+        // Stratagem) -- tells the model the follow-up Strike is set up.
+        summary: opponent.markAnnotation ? `${summary} [${opponent.markAnnotation}]` : summary
       });
     }
   }
@@ -1073,13 +1076,14 @@ export function buildManeuverCandidates({ maneuverVocabulary = [], maneuverPicks
  * `selfEffectEntries` (every one-action/free item whose selfEffect passed
  * #914's derived eligibility filter, each with an effectSummary/
  * durationLabel/frequencyLabel) and `compositeEntries` (the curated Sudden Charge/Lunge/Twin
- * Feint allowlist, each already matched to a real opponent). Self-effect
- * entries are self-targeted (targetId: null); composite entries always
- * carry a real opponent id. `traits` carries only the action traits that
+ * Feint allowlist, each already matched to a real opponent) and #922's
+ * `targetedSelfEffectEntries` (Hunt Prey/Devise a Stratagem, one per legal
+ * opponent). Self-effect entries are self-targeted (targetId: null);
+ * composite and targeted self-effect entries always carry a real opponent id. `traits` carries only the action traits that
  * gate per-turn reuse (`flourish`, `stance`): an entry is dropped once this
  * turn already spent a flourish/stance action.
  */
-export function buildFeatVocabulary({ selfEffectEntries = [], compositeEntries = [], turnState = null }) {
+export function buildFeatVocabulary({ selfEffectEntries = [], compositeEntries = [], targetedSelfEffectEntries = [], turnState = null }) {
   const blocked = (traits = []) =>
     (turnState?.flourishUsed && traits.includes('flourish')) ||
     (turnState?.stanceUsed && traits.includes('stance'));
@@ -1103,6 +1107,18 @@ export function buildFeatVocabulary({ selfEffectEntries = [], compositeEntries =
       type: 'feat', kind: 'composite',
       itemId: entry.itemId, slug: entry.slug, name: entry.name, cost: entry.cost,
       targetId: entry.targetId, traits: entry.traits ?? [],
+    });
+  }
+  // #922: self-effect actions whose effect is bound to a chosen opponent by
+  // the system's own TokenMark rule (Hunt Prey, Devise a Stratagem) -- one
+  // entry per legal target.
+  for (const entry of targetedSelfEffectEntries) {
+    if (blocked(entry.traits)) continue;
+    vocabulary.push({
+      type: 'feat', kind: 'targetedSelfEffect',
+      itemId: entry.itemId, slug: entry.slug, name: entry.name, cost: entry.cost,
+      targetId: entry.targetId, traits: entry.traits ?? [],
+      effectSummary: entry.effectSummary ?? null,
     });
   }
   return vocabulary;
@@ -1139,7 +1155,8 @@ export function buildFeatCandidates({ featVocabulary = [], picks = null, opponen
     if (match.targetId && opponents) {
       const opponent = opponents.find((o) => o.id === match.targetId);
       if (!opponent) continue;
-      label = `${match.name} vs ${opponent.name}`;
+      // #922: a targeted self-effect's summary already names the target.
+      label = match.effectSummary ? `${match.name} (${match.effectSummary})` : `${match.name} vs ${opponent.name}`;
     }
     seen.add(id);
     const candidate = {
