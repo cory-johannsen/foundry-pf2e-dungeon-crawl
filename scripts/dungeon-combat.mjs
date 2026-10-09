@@ -38,6 +38,7 @@ import {
   DEMORALIZE_RANGE_SQUARES,
   buildManeuverVocabulary,
   MANEUVER_DEFS,
+  buildFeatVocabulary,
 } from "./agent-candidates.mjs";
 import {
   findPath,
@@ -1022,7 +1023,8 @@ export async function runAgentDecisionLoop(
     // getPendingAgentTurn call does the same rebuild). A failed call
     // persists `[]` so it is never retried this turn. A pendingTurn with no
     // maneuverVocabulary never touches the turn state at all.
-    if (pending.maneuverVocabulary?.length) {
+    // #910: the feat vocabulary rides along in the same single call.
+    if (pending.maneuverVocabulary?.length || pending.featVocabulary?.length) {
       const turnState = getAgentTurnState(combat, pending.combatantId);
       if (turnState.maneuverPicks === null) {
         let picks = [];
@@ -1031,7 +1033,10 @@ export async function runAgentDecisionLoop(
             baseUrl,
             apiKey,
             context: pending.context,
-            vocabulary: pending.maneuverVocabulary,
+            vocabulary: [
+              ...(pending.maneuverVocabulary ?? []),
+              ...(pending.featVocabulary ?? []),
+            ],
           });
           picks = Array.isArray(response?.picks) ? response.picks : [];
         } catch (err) {
@@ -2335,7 +2340,10 @@ export function computeManeuverAttackerProfile(actor) {
       reachSquares: AGENT_MELEE_REACH_SQUARES,
     };
   }
-  profile.demoralize = { eligible: hasIntimidation, reachSquares: DEMORALIZE_RANGE_SQUARES };
+  // #910: Rage -- "You can't use actions with the concentrate trait unless
+  // they also have the rage trait"; Demoralize is concentrate, not rage.
+  const raging = (actor?.itemTypes?.effect ?? []).some((e) => e?.slug === "effect-rage");
+  profile.demoralize = { eligible: hasIntimidation && !raging, reachSquares: DEMORALIZE_RANGE_SQUARES };
   return profile;
 }
 
@@ -2620,6 +2628,8 @@ function getAgentTurnState(combat, combatantId) {
         actionsRemaining: stored.actionsRemaining,
         mapIncrement: stored.mapIncrement,
         maneuverPicks: stored.maneuverPicks ?? null,
+        flourishUsed: stored.flourishUsed ?? false,
+        stanceUsed: stored.stanceUsed ?? false,
       }
     : initAgentTurnState();
 }
@@ -2641,6 +2651,8 @@ async function setAgentTurnState(combat, combatantId, turnState) {
     actionsRemaining: turnState.actionsRemaining,
     mapIncrement: turnState.mapIncrement,
     maneuverPicks: turnState.maneuverPicks ?? null,
+    flourishUsed: turnState.flourishUsed ?? false,
+    stanceUsed: turnState.stanceUsed ?? false,
     counter,
   });
 }
@@ -3852,6 +3864,23 @@ export async function getPendingAgentTurn(combat) {
     opponents: maneuverOpponents,
   });
 
+  // #910: the feat/class actions (stances + Rage, and the composite
+  // Sudden Charge/Lunge/Twin Feint allowlist) that are legal this turn --
+  // sent to the same once-per-turn reasoning call as the maneuvers.
+  const featVocabulary = buildFeatVocabulary({
+    selfEffectEntries: await computeSelfEffectVocabularyEntries(
+      combatant.actor,
+      turnState.actionsRemaining,
+    ),
+    compositeEntries: computeCompositeVocabularyEntries(
+      combatant.actor,
+      opponents,
+      turnState.actionsRemaining,
+      gridDistanceFt,
+    ),
+    turnState,
+  });
+
   const readySpells = (combatant.actor?.spellcasting?.contents ?? [])
     .flatMap((entry) =>
       (entry.spells?.contents ?? [])
@@ -4487,6 +4516,7 @@ export async function getPendingAgentTurn(combat) {
     turnState,
     maneuverVocabulary,
     maneuverPicks: turnState.maneuverPicks,
+    featVocabulary,
     hazard: nearestHazardousRegionPoint(
       combat.scene,
       combatant.token,
@@ -4506,6 +4536,7 @@ export async function getPendingAgentTurn(combat) {
     }),
     candidates,
     maneuverVocabulary,
+    featVocabulary,
   };
 }
 
