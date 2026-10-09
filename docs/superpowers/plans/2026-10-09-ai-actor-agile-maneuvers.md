@@ -173,7 +173,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `maneuverMapPenalty` (Task 1).
 - Produces: `computeManeuverMapModifier` (per #940's plan) now delegates its numeric value to `maneuverMapPenalty`, reading the actor's own feat slugs, Panache effect, and the maneuver weapon's real `agile` trait.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/dungeon-combat-maneuver-map.test.mjs` (per #940's plan, this file already mocks `game.pf2e.actions` and installs a combat/combatant/target stub):
 
@@ -206,12 +206,12 @@ it('still applies the plain #940 baseline (-5) when the actor has no Agile Maneu
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-map.test.mjs`
 Expected: FAIL — `computeManeuverMapModifier` doesn't read feat/effect data yet.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Add the import:
 
@@ -248,17 +248,17 @@ function computeManeuverMapModifier(actor, slug, mapIncrement) {
 
 (Note the `attackNumber: mapIncrement + 1` conversion — #940's own `mapIncrement` is 0-based (0 = first attack already happened... wait, confirm this precisely: #940's own `computeManeuverMapModifier` early-returns `null` when `mapIncrement <= 0`, meaning the function is only ever called with `mapIncrement >= 1` by the time it does real work, i.e. `mapIncrement` counts completed prior attacks, and the CURRENT maneuver is attack number `mapIncrement + 1`. This conversion makes `maneuverMapPenalty`'s own 1-based `attackNumber` convention line up exactly with #940's existing `mapIncrement` semantics — confirm this against #940's actual committed test fixtures, e.g. its "second maneuver this turn" test uses `mapIncrement === 1`, which is attack number 2, matching exactly.)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-map.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — in particular #940's own existing `computeManeuverMapModifier` tests (no-feat cases) must still pass unchanged, since `maneuverMapPenalty` with an empty `featSlugs` reproduces #940's exact baseline values.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-maneuver-map.test.mjs

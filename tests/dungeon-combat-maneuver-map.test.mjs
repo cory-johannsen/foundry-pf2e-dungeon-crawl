@@ -66,8 +66,15 @@ class FakeModifier {
   }
 }
 
-function setup({ slug, mapIncrement = 0, weapons = [], character = false }) {
+function setup({ slug, mapIncrement = 0, weapons = [], character = false, feats = [], effects = [] }) {
   const attacker = makeCombatant({ id: "atk", gx: 0, gy: 0, disposition: -1, weapons });
+  // #919: feat items live in actor.items (and itemTypes.feat); Panache is
+  // an effect item in itemTypes.effect.
+  const featItems = feats.map((s) => ({ id: s, name: s, type: "feat", slug: s }));
+  const effectItems = effects.map((s) => ({ id: s, name: s, type: "effect", slug: s }));
+  attacker.actor.items.push(...featItems, ...effectItems);
+  attacker.actor.itemTypes.feat = featItems;
+  attacker.actor.itemTypes.effect = effectItems;
   if (character) {
     // A PC's maneuver weapon comes from its ready strike actions (the
     // system's own #getApplicableEquippedWeapons for characters).
@@ -225,5 +232,70 @@ describe("applyAgentDecision maneuver MAP accounting (#940)", () => {
     await applyAgentDecision(combat, "atk", "maneuver:trip:opp", "r");
     expect(flags.agentTurnState.mapIncrement).toBe(2);
     expect(flags.agentTurnState.actionsRemaining).toBe(2);
+  });
+});
+
+describe("applyAgentDecision maneuver MAP with Agile Maneuvers (#919)", () => {
+  it("passes -4/-8 when the actor has Agile Maneuvers but no agile weapon", async () => {
+    let { combat, action } = setup({ slug: "trip", mapIncrement: 1, feats: ["agile-maneuvers"] });
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp", "r");
+    expect(passedModifiers(action)[0]).toMatchObject({ slug: "multiple-attack-penalty", modifier: -4 });
+
+    ({ combat, action } = setup({ slug: "grapple", mapIncrement: 2, feats: ["agile-maneuvers"] }));
+    await applyAgentDecision(combat, "atk", "maneuver:grapple:opp", "r");
+    expect(passedModifiers(action)[0].modifier).toBe(-8);
+  });
+
+  it("passes -3/-6 with Agile Maneuvers, an agile maneuver weapon, AND active Panache", async () => {
+    const weapons = [makeWeapon({ id: "whip", traits: ["trip", "disarm", "agile"] })];
+    const opts = { weapons, feats: ["agile-maneuvers"], effects: ["effect-panache"] };
+    let { combat, action } = setup({ slug: "trip", mapIncrement: 1, ...opts });
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp", "r");
+    expect(passedModifiers(action)[0].modifier).toBe(-3);
+
+    ({ combat, action } = setup({ slug: "disarm", mapIncrement: 2, ...opts }));
+    await applyAgentDecision(combat, "atk", "maneuver:disarm:opp", "r");
+    expect(passedModifiers(action)[0].modifier).toBe(-6);
+  });
+
+  it("falls back to -4 when the weapon is agile but Panache is not active", async () => {
+    const weapons = [makeWeapon({ id: "whip", traits: ["trip", "agile"] })];
+    const { combat, action } = setup({ slug: "trip", mapIncrement: 1, weapons, feats: ["agile-maneuvers"] });
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp", "r");
+    expect(passedModifiers(action)[0].modifier).toBe(-4);
+  });
+
+  it("falls back to -4 when Panache is active but the maneuver weapon is not agile", async () => {
+    const { combat, action } = setup({
+      slug: "shove",
+      mapIncrement: 1,
+      feats: ["agile-maneuvers"],
+      effects: ["effect-panache"],
+    });
+    await applyAgentDecision(combat, "atk", "maneuver:shove:opp", "r");
+    expect(passedModifiers(action)[0].modifier).toBe(-4);
+  });
+
+  it("keeps the #940 baseline (-5) without the feat, even with Panache", async () => {
+    const { combat, action } = setup({ slug: "shove", mapIncrement: 1, effects: ["effect-panache"] });
+    await applyAgentDecision(combat, "atk", "maneuver:shove:opp", "r");
+    expect(passedModifiers(action)[0].modifier).toBe(-5);
+  });
+
+  it("still passes no modifier on the first attack with the feat", async () => {
+    const { combat, action } = setup({ slug: "trip", mapIncrement: 0, feats: ["agile-maneuvers"] });
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp", "r");
+    expect(passedModifiers(action)).toBeUndefined();
+  });
+
+  it("never gives demoralize a MAP modifier, even with Agile Maneuvers", async () => {
+    const { combat, action } = setup({
+      slug: "demoralize",
+      mapIncrement: 2,
+      feats: ["agile-maneuvers"],
+      effects: ["effect-panache"],
+    });
+    await applyAgentDecision(combat, "atk", "maneuver:demoralize:opp", "r");
+    expect(passedModifiers(action)).toBeUndefined();
   });
 });
