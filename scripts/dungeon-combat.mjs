@@ -5915,6 +5915,110 @@ async function executeManeuverCandidate(combat, combatant, candidate) {
   );
 }
 
+/** #910: the action/feat item a feat candidate names, or null. */
+function findFeatItem(actor, itemId) {
+  return (
+    [...(actor?.itemTypes?.action ?? []), ...(actor?.itemTypes?.feat ?? [])].find(
+      (i) => i.id === itemId,
+    ) ?? null
+  );
+}
+
+/** #910: applies a self-effect action (stance/Rage) the way the installed
+ * PF2e system's own chat-card button does (ChatLogPF2e#onClickApplyEffect,
+ * a UI handler with no public API): the linked effect's source merged
+ * with an origin context (actor/token/item uuids, the item's origin roll
+ * options), the actor itself as target, and only the action traits that
+ * are valid effect traits. The new effect is created first; only then is
+ * a replaced stance removed, the usage card posted and the item's
+ * frequency spent (mirroring createUseActionMessage), so a failed creation
+ * leaves no side effects. Returns `{ performed, attacks }`. */
+async function executeSelfEffectFeat(combatant, candidate) {
+  const actor = combatant.actor;
+  const item = findFeatItem(actor, candidate.itemId);
+  const uuid = item?.system?.selfEffect?.uuid;
+  if (!uuid) return { performed: false };
+  const effect = await fromUuid(uuid);
+  if (typeof effect?.toObject !== "function") return { performed: false };
+
+  const tokenUuid = combatant.token?.uuid ?? null;
+  const effectTraits = CONFIG.PF2E?.effectTraits ?? {};
+  const traits = (item.system.traits?.value ?? []).filter((t) => t in effectTraits);
+  try {
+    const source = foundry.utils.mergeObject(effect.toObject(), {
+      _id: null,
+      system: {
+        context: {
+          origin: {
+            actor: actor.uuid,
+            token: tokenUuid,
+            item: item.uuid,
+            spellcasting: null,
+            rollOptions: item.getOriginData?.().rollOptions ?? [],
+          },
+          target: { actor: actor.uuid, token: tokenUuid },
+          roll: null,
+        },
+        traits: { value: traits },
+      },
+    });
+    await actor.createEmbeddedDocuments("Item", [source]);
+  } catch (err) {
+    console.error(`#910: applying ${item.name}'s effect failed:`, err.message);
+    return { performed: false };
+  }
+
+  // PF2e RAW: entering a stance ends the one you were in.
+  if (
+    candidate.replacesStance &&
+    (actor.itemTypes?.effect ?? []).some((e) => e.id === candidate.replacesStance)
+  ) {
+    try {
+      await actor.deleteEmbeddedDocuments("Item", [candidate.replacesStance]);
+    } catch (err) {
+      console.error("#910: removing the previous stance effect failed:", err.message);
+    }
+  }
+  try {
+    await item.toMessage?.();
+  } catch (err) {
+    console.warn(`#910: posting ${item.name}'s usage card failed:`, err.message);
+  }
+  if (item.system.frequency && item.system.frequency.value > 0) {
+    await item.update({ "system.frequency.value": item.system.frequency.value - 1 });
+  }
+  return { performed: true, attacks: 0 };
+}
+
+/** #910: a feat candidate that turned out impossible at execution time
+ * (item/effect/target/weapon gone, or effect creation failed) spends no
+ * actions; its pick is dropped from this turn's persisted picks so the
+ * model can't re-choose it in a loop. */
+async function skipUnperformedFeat(combat, combatant, candidate) {
+  const turnState = getAgentTurnState(combat, combatant.id);
+  const picks = (turnState.maneuverPicks ?? []).filter(
+    (p) =>
+      !(
+        p?.type === "feat" &&
+        p.slug === candidate.slug &&
+        (p.targetId || null) === candidate.targetId
+      ),
+  );
+  await setAgentTurnState(combat, combatant.id, { ...turnState, maneuverPicks: picks });
+  const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
+  await whisperGmContent(
+    `<p><strong>${esc(candidate.name ?? candidate.slug)} (${esc(combatant.name)}):</strong> could not be used -- no action spent.</p>`,
+  );
+  armAgentTimeout(combat, combatant);
+  return getPendingAgentTurn(combat);
+}
+
+/** #910: dispatches a feat candidate to its executor. */
+async function executeFeatCandidate(combat, combatant, candidate) {
+  if (candidate.kind === "selfEffect") return executeSelfEffectFeat(combatant, candidate);
+  return { performed: false };
+}
+
 async function whisperGmContent(content) {
   const gmIds = ChatMessage.getWhisperRecipients("GM").map((u) => u.id);
   await ChatMessage.create({ content, whisper: gmIds });
@@ -5941,6 +6045,9 @@ export async function applyAgentDecision(
 
   const combatant = combat.combatant;
   await postAgentDecisionChat(combatant, candidate, rationale);
+  // #910: what applyCandidateToTurnState charges -- a feat candidate gains
+  // the number of Strikes its executor really made (MAP).
+  let applied = candidate;
   if (candidate.type === "stride") {
     let target = candidate.targetId
       ? resolveOpponentForTurn(combat, combatant, candidate.targetId)
@@ -6208,10 +6315,14 @@ export async function applyAgentDecision(
       );
   } else if (candidate.type === "maneuver") {
     await executeManeuverCandidate(combat, combatant, candidate);
+  } else if (candidate.type === "feat") {
+    const result = await executeFeatCandidate(combat, combatant, candidate);
+    if (!result.performed) return skipUnperformedFeat(combat, combatant, candidate);
+    applied = { ...candidate, attacks: result.attacks ?? 0 };
   }
 
   const turnState = getAgentTurnState(combat, combatantId);
-  const nextTurnState = applyCandidateToTurnState(turnState, candidate);
+  const nextTurnState = applyCandidateToTurnState(turnState, applied);
   await setAgentTurnState(combat, combatantId, nextTurnState);
 
   if (nextTurnState.actionsRemaining <= 0) {
