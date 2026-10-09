@@ -967,11 +967,11 @@ export function endTurnCandidate() {
  * feature's spec for the full reference table) — not approximated.
  */
 export const MANEUVER_DEFS = Object.freeze({
-  trip: { label: 'Trip', dcSlug: 'reflex' },
-  shove: { label: 'Shove', dcSlug: 'fortitude' },
-  grapple: { label: 'Grapple', dcSlug: 'fortitude' },
-  disarm: { label: 'Disarm', dcSlug: 'reflex' },
-  demoralize: { label: 'Demoralize', dcSlug: 'will' },
+  trip: { label: 'Trip', dcSlug: 'reflex', skill: 'athletics' },
+  shove: { label: 'Shove', dcSlug: 'fortitude', skill: 'athletics' },
+  grapple: { label: 'Grapple', dcSlug: 'fortitude', skill: 'athletics' },
+  disarm: { label: 'Disarm', dcSlug: 'reflex', skill: 'athletics' },
+  demoralize: { label: 'Demoralize', dcSlug: 'will', skill: 'intimidation' },
 });
 
 /** 30ft at this module's 5ft/square grid — Demoralize's own fixed range,
@@ -979,12 +979,15 @@ export const MANEUVER_DEFS = Object.freeze({
 export const DEMORALIZE_RANGE_SQUARES = 6;
 
 /**
- * `attacker.maneuvers[slug]` -> `{eligible, reachSquares}`, already
+ * `attacker.maneuvers[slug]` -> `{eligible, reachSquares, skill?}`, already
  * resolved by dungeon-combat.mjs from real actor/weapon/skill data (the
  * free-hand-or-matching-weapon-trait and skill-exists checks — this
  * function has no Foundry API surface, so it never looks at raw actor
- * documents itself). `opponent.sizeOk[slug]` -> bool (false only for
- * trip/shove/grapple/disarm against a target more than one size larger;
+ * documents itself). `skill` is the statistic the attacker rolls (#911:
+ * a feat such as Sly Disarm can substitute one). `opponent.sizeOk[slug]` ->
+ * bool (false only for trip/shove/grapple/disarm against a target larger
+ * than the attacker's per-slug size cap -- one size, or more with #911's
+ * Titan Wrestler;
  * demoralize has no size restriction, so it never reads sizeOk at all).
  * `opponent.demoralizeImmune` -> bool, dungeon-combat.mjs's own real-time
  * worldTime check against this module's 10-minute immunity tracking.
@@ -1004,7 +1007,11 @@ export function buildManeuverVocabulary({ attacker, opponents }) {
       // explicit `false` excludes (a caller that never computes it is
       // unaffected).
       if (slug === 'disarm' && opponent.holdsItem === false) continue;
-      vocabulary.push({ type: 'maneuver', slug, targetId: opponent.id });
+      // #911: a feat-substituted statistic (Sly Disarm's Thievery) rides on
+      // the entry so execution never re-derives it; the base skill stays
+      // implicit.
+      const substituted = a.skill && a.skill !== MANEUVER_DEFS[slug].skill;
+      vocabulary.push({ type: 'maneuver', slug, targetId: opponent.id, ...(substituted ? { skill: a.skill } : {}) });
     }
   }
   return vocabulary;
@@ -1028,10 +1035,10 @@ export function buildManeuverCandidates({ maneuverVocabulary = [], maneuverPicks
     if (!pick || typeof pick !== 'object') continue;
     const id = `maneuver:${pick.slug}:${pick.targetId}`;
     if (seen.has(id)) continue;
-    const inVocabulary = maneuverVocabulary.some(
+    const matched = maneuverVocabulary.find(
       (v) => v.type === pick.type && v.slug === pick.slug && v.targetId === pick.targetId,
     );
-    if (!inVocabulary) continue;
+    if (!matched) continue;
     const opponent = opponents.find((o) => o.id === pick.targetId);
     if (!opponent) continue;
     seen.add(id);
@@ -1042,6 +1049,7 @@ export function buildManeuverCandidates({ maneuverVocabulary = [], maneuverPicks
       type: 'maneuver',
       slug: pick.slug,
       targetId: pick.targetId,
+      ...(matched.skill ? { skill: matched.skill } : {}),
       cost: 1,
       summary,
     });

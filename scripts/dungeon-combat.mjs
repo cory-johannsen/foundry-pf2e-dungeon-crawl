@@ -71,6 +71,7 @@ import {
 } from "./dungeon-critical-deck.mjs";
 import { fetchCombatDecision, fetchCombatCandidates } from "./agent-service-client.mjs";
 import { withDialogsSuppressed } from "./trap-combat.mjs";
+import { eligibilityModifiers } from "./maneuver-feat-modifiers.mjs";
 import {
   DETECTION,
   applySeekOutcome,
@@ -2334,29 +2335,56 @@ export function computeManeuverAttackerProfile(actor) {
   const profile = {};
   const hasAthletics = !!actor?.skills?.athletics;
   const hasIntimidation = !!actor?.skills?.intimidation;
+  // #911: feat-driven size-cap widening (Titan Wrestler) and skill
+  // substitution (Sly Disarm) from the curated maneuver-feat table.
+  const modifiers = eligibilityModifiers(actorFeatSlugs(actor), {
+    athleticsRank: actor?.skills?.athletics?.rank,
+    athleticsMod: actor?.skills?.athletics?.mod,
+    thieveryMod: actor?.skills?.thievery?.mod,
+  });
   for (const slug of MELEE_MANEUVER_SLUGS) {
     profile[slug] = {
       eligible: hasAthletics && hasFreeHandOrManeuverWeapon(actor, slug),
       reachSquares: AGENT_MELEE_REACH_SQUARES,
+      skill: modifiers.skill[slug] ?? MANEUVER_DEFS[slug].skill,
+      sizeCapSteps: modifiers.sizeCapSteps[slug] ?? 1,
     };
   }
   // #910: Rage -- "You can't use actions with the concentrate trait unless
   // they also have the rage trait"; Demoralize is concentrate, not rage.
   const raging = (actor?.itemTypes?.effect ?? []).some((e) => e?.slug === "effect-rage");
-  profile.demoralize = { eligible: hasIntimidation && !raging, reachSquares: DEMORALIZE_RANGE_SQUARES };
+  profile.demoralize = {
+    eligible: hasIntimidation && !raging,
+    reachSquares: DEMORALIZE_RANGE_SQUARES,
+    skill: MANEUVER_DEFS.demoralize.skill,
+    sizeCapSteps: 1,
+  };
   return profile;
+}
+
+/** #911: the slugs of `actor`'s own feat items (the maneuver-feat table's
+ * input). Unreadable item data yields no slugs -- base RAW, never more
+ * permissive. */
+function actorFeatSlugs(actor) {
+  try {
+    return Array.from(actor?.items ?? [])
+      .filter((i) => i?.type === "feat" && typeof i.slug === "string")
+      .map((i) => i.slug);
+  } catch {
+    return [];
+  }
 }
 
 /** #909: PF2e's own "target no more than one size larger than you"
  * prerequisite, shared verbatim by Trip/Shove/Grapple/Disarm (confirmed
- * in each action's own lang/action-en.json text). Unreadable size data on
- * either side defaults to allowed rather than blocking the maneuver on a
- * data gap. */
-export function sizeOkForManeuver(attackerActor, targetActor) {
+ * in each action's own lang/action-en.json text). `capSteps` widens it
+ * (#911: Titan Wrestler, 2 or 3). Unreadable size data on either side
+ * defaults to allowed rather than blocking the maneuver on a data gap. */
+export function sizeOkForManeuver(attackerActor, targetActor, capSteps = 1) {
   const attackerIdx = SIZE_ORDER.indexOf(attackerActor?.system?.traits?.size?.value);
   const targetIdx = SIZE_ORDER.indexOf(targetActor?.system?.traits?.size?.value);
   if (attackerIdx < 0 || targetIdx < 0) return true;
-  return targetIdx - attackerIdx <= 1;
+  return targetIdx - attackerIdx <= capSteps;
 }
 
 /** #909: Demoralize's own 10-minute re-attempt immunity (PF2e RAW: "the
@@ -3846,13 +3874,18 @@ export async function getPendingAgentTurn(combat) {
   const maneuverAttackerProfile = computeManeuverAttackerProfile(combatant.actor);
   const worldTime = globalThis.game?.time?.worldTime ?? 0;
   const maneuverOpponents = rawOpponents.map((o) => {
-    const sizeOk = sizeOkForManeuver(combatant.actor, o.actor);
+    const sizeOk = Object.fromEntries(
+      MELEE_MANEUVER_SLUGS.map((slug) => [
+        slug,
+        sizeOkForManeuver(combatant.actor, o.actor, maneuverAttackerProfile[slug].sizeCapSteps),
+      ]),
+    );
     return {
       id: o.id,
       name: o.name,
       distanceSquares: chebyshevSquares(combatant.token, o.token, gridSize),
       hasLineOfSight: canSee(o),
-      sizeOk: { trip: sizeOk, shove: sizeOk, grapple: sizeOk, disarm: sizeOk },
+      sizeOk,
       holdsItem: holdsAnItem(o.actor),
       demoralizeImmune:
         immuneToDemoralize(o.actor) ||

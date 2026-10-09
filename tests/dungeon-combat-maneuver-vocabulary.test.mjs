@@ -62,6 +62,35 @@ describe('computeManeuverAttackerProfile', () => {
     expect(computeManeuverAttackerProfile(actor).shove.eligible).toBe(false);
   });
 
+  it('defaults every maneuver\'s skill to its own base statistic and sizeCapSteps to 1 with no modifier feats (#911)', () => {
+    const actor = { items: [], skills: { athletics: { rank: 1, mod: 5 }, intimidation: {} } };
+    const profile = computeManeuverAttackerProfile(actor);
+    expect(profile.trip.skill).toBe('athletics');
+    expect(profile.trip.sizeCapSteps).toBe(1);
+    expect(profile.disarm.skill).toBe('athletics');
+    expect(profile.demoralize.skill).toBe('intimidation');
+  });
+
+  it('widens sizeCapSteps for all four Athletics maneuvers when the actor has Titan Wrestler (#911)', () => {
+    const legendary = { items: [{ type: 'feat', slug: 'titan-wrestler' }], skills: { athletics: { rank: 4, mod: 20 }, intimidation: {} } };
+    const profile = computeManeuverAttackerProfile(legendary);
+    for (const slug of ['trip', 'shove', 'grapple', 'disarm']) expect(profile[slug].sizeCapSteps).toBe(3);
+    const master = { items: [{ type: 'feat', slug: 'titan-wrestler' }], skills: { athletics: { rank: 3, mod: 15 }, intimidation: {} } };
+    expect(computeManeuverAttackerProfile(master).grapple.sizeCapSteps).toBe(2);
+  });
+
+  it('ignores a titan-wrestler slug on a non-feat item (#911)', () => {
+    const actor = { items: [{ type: 'effect', slug: 'titan-wrestler' }], skills: { athletics: { rank: 4 }, intimidation: {} } };
+    expect(computeManeuverAttackerProfile(actor).trip.sizeCapSteps).toBe(1);
+  });
+
+  it('substitutes thievery for disarm when the actor has Sly Disarm and a better Thievery modifier (#911)', () => {
+    const actor = { items: [{ type: 'feat', slug: 'sly-disarm' }], skills: { athletics: { rank: 1, mod: 2 }, thievery: { mod: 9 }, intimidation: {} } };
+    const profile = computeManeuverAttackerProfile(actor);
+    expect(profile.disarm.skill).toBe('thievery');
+    expect(profile.trip.skill).toBe('athletics');
+  });
+
   it('uses melee reach for the four Athletics maneuvers and the fixed 30ft range for Demoralize', () => {
     const actor = { skills: { athletics: {}, intimidation: {} }, itemTypes: { weapon: [] } };
     const profile = computeManeuverAttackerProfile(actor);
@@ -96,6 +125,16 @@ describe('sizeOkForManeuver', () => {
 
   it('defaults to allowed when either actor has no readable size', () => {
     expect(sizeOkForManeuver({}, {})).toBe(true);
+  });
+
+  it('accepts a target up to capSteps sizes larger when a wider cap is passed (#911)', () => {
+    const med = { system: { traits: { size: { value: 'med' } } } };
+    const huge = { system: { traits: { size: { value: 'huge' } } } };
+    const grg = { system: { traits: { size: { value: 'grg' } } } };
+    expect(sizeOkForManeuver(med, huge, 1)).toBe(false);
+    expect(sizeOkForManeuver(med, huge, 2)).toBe(true);
+    expect(sizeOkForManeuver(med, grg, 2)).toBe(false);
+    expect(sizeOkForManeuver(med, grg, 3)).toBe(true);
   });
 });
 
