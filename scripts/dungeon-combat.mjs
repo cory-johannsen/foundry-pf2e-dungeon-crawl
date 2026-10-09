@@ -6060,6 +6060,38 @@ async function executeSuddenCharge(combat, combatant, target) {
   return { performed: true, attacks: 1 };
 }
 
+/** #910: Twin Feint -- "Make one Strike with each of your two melee
+ * weapons, both against the same target. The target is automatically
+ * Off-Guard against the second attack. Apply your multiple attack penalty
+ * to the Strikes normally." Neither the feat's rule elements (empty) nor
+ * the system automate the Off-Guard, so it is added for the second Strike
+ * only and removed right after -- unless the target was already Off-Guard,
+ * which is left untouched. The second Strike is skipped if the first one
+ * defeated the target. Reports the attacks actually made. */
+async function executeTwinFeint(combat, combatant, target) {
+  const pair = twinFeintStrikePair(combatant.actor);
+  if (!pair) return { performed: false };
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  if (!pair.every((a) => strikeInReach(combatant, target, a, gridSize, gridDistanceFt).inReach)) {
+    return { performed: false };
+  }
+  const [first, second] = pair.map((a) => a.item?.slug ?? a.slug ?? a.label);
+  const { mapIncrement } = getAgentTurnState(combat, combatant.id);
+
+  await rollAndApplyStrikeAtVariant(combat, combatant, target, first, mapIncrement);
+  if (target.isDefeated) return { performed: true, attacks: 1 };
+
+  const addOffGuard = !actorHasCondition(target.actor, "off-guard");
+  if (addOffGuard) await target.actor.increaseCondition("off-guard");
+  try {
+    await rollAndApplyStrikeAtVariant(combat, combatant, target, second, mapIncrement + 1);
+  } finally {
+    if (addOffGuard) await target.actor.decreaseCondition("off-guard", { forceRemove: true });
+  }
+  return { performed: true, attacks: 2 };
+}
+
 /** #910: dispatches a feat candidate to its executor. Every executor
  * returns `{ performed, attacks }` -- `performed: false` means nothing
  * happened and no action is spent. */
