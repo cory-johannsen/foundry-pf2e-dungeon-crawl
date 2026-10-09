@@ -40,9 +40,12 @@ in the main checkout (`~/src/foundry-pf2e-dungeon-crawl`). Concurrent
 sessions share that checkout, so edits, branch switches, or uncommitted
 files there pollute `main` for everyone else.
 
-- Create a worktree off `origin/main` before touching any file
-  (`git worktree add ../wt-<slug> -b <branch> origin/main`, or the
-  `EnterWorktree` tool / `isolation: "worktree"` for subagents).
+- Create a worktree off `origin/main` before touching any file. Prefer the
+  `EnterWorktree` tool / `isolation: "worktree"` for subagents. If you must
+  use git directly, put it inside the project, never beside it:
+  `git worktree add .claude/worktrees/<slug> -b <branch> origin/main`
+  (run from the main checkout; `.claude/worktrees/` is gitignored). Do NOT
+  use `../wt-<slug>` -- that lands in `~/src/`, outside the project.
 - Read-only work (searching, `gh` queries) can happen in the main checkout;
   anything that edits, commits, or runs tooling that writes files cannot.
 - Copy `.env` into the worktree before live-testing, and use `npm ci` —
