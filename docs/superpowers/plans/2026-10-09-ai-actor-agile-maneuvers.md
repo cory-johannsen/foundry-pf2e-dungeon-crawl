@@ -34,7 +34,7 @@
 **Files:**
 - none (verification-only step; no commit)
 
-- [ ] **Step 1: Query the live world**
+- [x] **Step 1: Query the live world**
 
 Run (from this worktree, with `.env` already copied in):
 
@@ -60,7 +60,7 @@ If this returns `agile-maneuvers`, proceed with Task 1 exactly as written. If it
 - Consumes: nothing.
 - Produces (consumed by Task 2): `maneuverMapPenalty({ attackNumber, weaponIsAgile, featSlugs = [], hasPanache = false })` → `number` (always `<= 0`).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/maneuver-feat-modifiers.test.mjs`:
 
@@ -114,12 +114,12 @@ describe('maneuverMapPenalty', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/maneuver-feat-modifiers.test.mjs`
 Expected: FAIL — `maneuverMapPenalty` doesn't exist yet.
 
-- [ ] **Step 3: Write `maneuverMapPenalty` in `scripts/maneuver-feat-modifiers.mjs`**
+- [x] **Step 3: Write `maneuverMapPenalty` in `scripts/maneuver-feat-modifiers.mjs`**
 
 Add alongside `eligibilityModifiers`/`ridersFor` (per #911's plan):
 
@@ -147,12 +147,12 @@ export function maneuverMapPenalty({ attackNumber, weaponIsAgile, featSlugs = []
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/maneuver-feat-modifiers.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/maneuver-feat-modifiers.mjs tests/maneuver-feat-modifiers.test.mjs

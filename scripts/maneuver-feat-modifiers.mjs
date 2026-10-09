@@ -87,3 +87,24 @@ export function ridersFor(featSlugs, slug, outcome, skillUsed, { actorLevel, tar
   }
   return riders;
 }
+
+/**
+ * #940/#919: the PF2e multiple attack penalty for an attack-trait maneuver
+ * (Trip/Shove/Grapple/Disarm). Pure. `attackNumber` is 1-based (1 = the
+ * turn's first attack, always 0). #940's baseline mirrors the system's own
+ * calculateMAPs: -5/-10, or -4/-8 when the maneuver's weapon is agile.
+ * Agile Maneuvers (confirmed live: slug `agile-maneuvers`, `rules: []`, so
+ * the system applies none of it) makes it -4/-8 regardless of weapon, or
+ * -3/-6 when the weapon is agile AND the actor has panache. The least
+ * negative of the baseline and the feat's value wins -- the feat only ever
+ * helps. Unreadable feat data falls back to the baseline.
+ */
+export function maneuverMapPenalty({ attackNumber, weaponIsAgile, featSlugs = [], hasPanache = false }) {
+  if (!(attackNumber > 1)) return 0;
+  const third = attackNumber >= 3;
+  const baseline = third ? (weaponIsAgile ? -8 : -10) : (weaponIsAgile ? -4 : -5);
+  if (!Array.isArray(featSlugs) || !featSlugs.includes("agile-maneuvers")) return baseline;
+  const panacheAgile = weaponIsAgile === true && hasPanache === true;
+  const agileManeuvers = third ? (panacheAgile ? -6 : -8) : (panacheAgile ? -3 : -4);
+  return Math.max(baseline, agileManeuvers);
+}
