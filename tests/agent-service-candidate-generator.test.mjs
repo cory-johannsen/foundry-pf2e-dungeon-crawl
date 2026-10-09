@@ -50,6 +50,42 @@ describe("generateCombatCandidates", () => {
     expect(result).toEqual({ picks: [] });
   });
 
+  it("builds the slug enum dynamically from the vocabulary actually sent, not a fixed list", async () => {
+    const vocab = [
+      { type: "maneuver", slug: "trip", targetId: "opp1" },
+      { type: "feat", slug: "rage", targetId: null },
+    ];
+    const fetchImpl = fakeFetch({ picks: [] });
+    await generateCombatCandidates(context, vocab, { ...OPTS, fetchImpl });
+    const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    const itemProps = body.tools[0].function.parameters.properties.picks.items.properties;
+    expect(itemProps.slug.enum).toEqual(["trip", "rage"]);
+    expect(itemProps.type.enum).toEqual(["maneuver", "feat"]);
+    // #910: self-effect feat picks are self-targeted and send targetId null.
+    expect(itemProps.targetId.type).toEqual(["string", "null"]);
+  });
+
+  it("dedupes repeated slugs/types across multiple vocabulary entries", async () => {
+    const vocab = [
+      { type: "maneuver", slug: "trip", targetId: "opp1" },
+      { type: "maneuver", slug: "trip", targetId: "opp2" },
+    ];
+    const fetchImpl = fakeFetch({ picks: [] });
+    await generateCombatCandidates(context, vocab, { ...OPTS, fetchImpl });
+    const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    const itemProps = body.tools[0].function.parameters.properties.picks.items.properties;
+    expect(itemProps.slug.enum).toEqual(["trip"]);
+    expect(itemProps.type.enum).toEqual(["maneuver"]);
+  });
+
+  it("tells the model how to treat feat/class-action entries (#910)", async () => {
+    const fetchImpl = fakeFetch({ picks: [] });
+    await generateCombatCandidates(context, [{ type: "feat", slug: "rage", targetId: null }], { ...OPTS, fetchImpl });
+    const content = JSON.parse(fetchImpl.mock.calls[0][1].body).messages[0].content;
+    expect(content).toMatch(/feat/i);
+    expect(content).toMatch(/stance/i);
+  });
+
   it("throws when the upstream request fails", async () => {
     const fetchImpl = fakeFetch({}, { ok: false, status: 500 });
     await expect(generateCombatCandidates(context, vocabulary, { ...OPTS, fetchImpl })).rejects.toThrow(

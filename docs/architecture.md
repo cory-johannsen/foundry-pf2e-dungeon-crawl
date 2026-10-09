@@ -102,15 +102,17 @@ a model tier (`fast` vs `reasoning`, litellm's own aliases, configured in
 `litellm` is the default combat-decision provider, `laya` remains
 selectable via `PF2EDC_AGENT_PROVIDER=laya`. `candidate-generator.mjs`
 (#909) is the litellm-only "reasoning model" stage that picks a tactical
-subset of a Foundry-enumerated maneuver vocabulary; Foundry re-validates
-every pick against that vocabulary before it becomes a candidate. Exposes
+subset of a Foundry-enumerated maneuver and feat/class-action (#910:
+stances, Rage, Sudden Charge, Lunge, Twin Feint) vocabulary, with a
+response schema built per request from that vocabulary; Foundry
+re-validates every pick against it before it becomes a candidate. Exposes
 `GET /v1/health`, `POST /v1/combat-decision`, `POST /v1/flavor-customization`,
 and `POST /v1/combat-candidates` behind a bearer token. Foundry's own client-side code calls it directly — no relay,
 no local process a GM has to keep alive — via
 `scripts/agent-service-client.mjs` (a thin fetch wrapper) from two call
 sites: `dungeon-combat.mjs`'s `runAgentDecisionLoop` (combat decisions, plus
-once per turn the maneuver picks when the turn's maneuver vocabulary is
-non-empty, see above) and `scripts/dungeon-customization-fulfillment.mjs`'s
+once per turn the maneuver/feat picks when the turn's combined vocabulary
+is non-empty, see above) and `scripts/dungeon-customization-fulfillment.mjs`'s
 `fulfillPendingCustomizations` (fire-and-forget trap/skill-challenge/
 puzzle/narrative flavor text, called fire-and-forget from `ui/dungeon-app.mjs`'s
 `startDungeonRun` once full pregeneration has built every room and left its

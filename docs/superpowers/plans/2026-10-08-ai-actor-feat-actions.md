@@ -43,7 +43,7 @@
 - Consumes: nothing new.
 - Produces: `generateCombatCandidates`'s request schema now constrains `type`/`slug` to whatever `(type, slug)` pairs are actually present in that call's own `vocabulary` argument, rather than a fixed five-maneuver enum — consumed by every later task that sends a combined `vocabulary` through this function.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `tests/agent-service-candidate-generator.test.mjs` (alongside its existing `describe("generateCombatCandidates", ...)` block from #909's own plan):
 
@@ -74,12 +74,12 @@ it("dedupes repeated slugs/types across multiple vocabulary entries", async () =
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- tests/agent-service-candidate-generator.test.mjs`
 Expected: FAIL — the current (#909) `SCHEMA` constant hardcodes a fixed 5-slug enum, not a dynamic one.
 
-- [ ] **Step 3: Replace the static `SCHEMA` constant with a per-request builder**
+- [x] **Step 3: Replace the static `SCHEMA` constant with a per-request builder**
 
 In `tools/agent-service/candidate-generator.mjs`, replace the module-level `const SCHEMA = {...}` with a function:
 
@@ -113,12 +113,12 @@ Update `generateCombatCandidates`'s body to call `buildSchema(vocabulary)` inste
 
 (Note: `targetId` is now typed `["string", "null"]` rather than plain `"string"` — #909's maneuver picks always carry a real target id, but #910's self-effect/stance picks are self-targeted and must send `targetId: null`; this widening is required for the new category and has no effect on maneuver picks, which still send a real string.)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-service-candidate-generator.test.mjs`
 Expected: PASS, including every pre-existing #909 test in this file (they only ever assert `tool_choice`/`messages`/response-parsing, never the exact enum contents, so the schema's internal shape change doesn't break them — confirm this by reading the file's existing tests before this step if any assertion does inspect `parameters` directly, and adjust it to the new dynamic shape rather than leaving it asserting the old fixed one).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools/agent-service/candidate-generator.mjs tests/agent-service-candidate-generator.test.mjs
@@ -139,7 +139,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing from this plan's other tasks.
 - Produces (consumed by Task 4/5): `buildFeatVocabulary({ selfEffectEntries, compositeEntries })` → `Array<{type: 'feat', kind, itemId, slug, name, cost, targetId, replacesStance?}>`; `buildFeatCandidates({ featVocabulary, picks })` → `Array<{id, type: 'feat', kind, itemId, slug, targetId, cost, replacesStance, summary}>`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/agent-candidates.test.mjs` (add `buildFeatVocabulary, buildFeatCandidates` to the file's existing import list):
 
@@ -236,12 +236,12 @@ describe('buildFeatCandidates', () => {
 
 (The `replacesStance: undefined` in the composite-pick expectation above is intentional — a composite vocabulary entry never carries `replacesStance` at all, so the spread used in the implementation below never sets that key for it; adjust the implementation in Step 3 so this is exactly what it produces, rather than adjusting the test to hide a real inconsistency.)
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/agent-candidates.test.mjs`
 Expected: FAIL — `buildFeatVocabulary`/`buildFeatCandidates` don't exist yet.
 
-- [ ] **Step 3: Implement in `scripts/agent-candidates.mjs`**
+- [x] **Step 3: Implement in `scripts/agent-candidates.mjs`**
 
 Add after the maneuver builders (per #909's plan, i.e. after `buildManeuverCandidates`):
 
@@ -322,12 +322,12 @@ export function buildCandidateList({ /* ...#909's existing params..., */ maneuve
 
 (The full parameter list and the rest of the splice order are exactly what #909's own plan already specifies — only the two new items shown above, `featVocabulary = []` in the signature and the `buildFeatCandidates` splice line right after `buildManeuverCandidates`'s, are new. Do not re-type the other ~15 existing parameters/splice lines from memory; open the file and add only these two things to what's already there once #909 has landed.)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-candidates.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs tests/agent-candidates.test.mjs
@@ -348,7 +348,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing from this plan's other tasks.
 - Produces (consumed by Task 5): `async function computeSelfEffectVocabularyEntries(actor, actionsRemaining)` → `Promise<Array<{itemId, slug, name, cost, replacesStance}>>`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs
@@ -458,12 +458,12 @@ describe('computeSelfEffectVocabularyEntries', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs`
 Expected: FAIL — `computeSelfEffectVocabularyEntries` doesn't exist yet.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 Add near the Task 5 maneuver eligibility helpers (per #909's plan, i.e. near `computeManeuverAttackerProfile`):
 
@@ -543,12 +543,12 @@ export async function computeSelfEffectVocabularyEntries(actor, actionsRemaining
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs
@@ -569,7 +569,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `AGENT_MELEE_REACH_SQUARES` (already imported per #909's plan).
 - Produces (consumed by Task 5): `function computeCompositeVocabularyEntries(actor, opponents, actionsRemaining)` → `Array<{itemId, slug, name, cost, targetId}>`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-feat-composite-vocabulary.test.mjs
@@ -660,12 +660,12 @@ describe('computeCompositeVocabularyEntries', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-feat-composite-vocabulary.test.mjs`
 Expected: FAIL — `computeCompositeVocabularyEntries` doesn't exist yet.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 Add alongside Task 3's helpers:
 
@@ -736,12 +736,12 @@ export function computeCompositeVocabularyEntries(actor, opponents, actionsRemai
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-feat-composite-vocabulary.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-feat-composite-vocabulary.test.mjs
@@ -762,7 +762,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `computeSelfEffectVocabularyEntries` (Task 3), `computeCompositeVocabularyEntries` (Task 4), `buildFeatVocabulary` (Task 2).
 - Produces: `getPendingAgentTurn`'s return value now also carries `featVocabulary`; `runAgentDecisionLoop`'s fetch gate now also fires on a non-empty `featVocabulary`, sending both vocabularies combined in one call.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Mirror #909's own Task 6 approach exactly: find and read whichever existing test already exercises `getPendingAgentTurn` end to end (`grep -rl "getPendingAgentTurn(" tests/*.mjs`), copy its combat/combatant/actor stub shape, and write:
 
@@ -790,12 +790,12 @@ describe('getPendingAgentTurn feat vocabulary', () => {
 
 (As with #909's own Task 6, the bodies above intentionally stay commented/pseudocoded pending the real stub shape — fill in and uncomment before running.)
 
-- [ ] **Step 2: Run test to verify it fails (once filled in)**
+- [x] **Step 2: Run test to verify it fails (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-agent-feat-pending.test.mjs`
 Expected: FAIL — `pending.featVocabulary` is `undefined`.
 
-- [ ] **Step 3: Build the combined feat vocabulary inside `getPendingAgentTurn`**
+- [x] **Step 3: Build the combined feat vocabulary inside `getPendingAgentTurn`**
 
 Right after the maneuver vocabulary block (per #909's plan), add:
 
@@ -820,7 +820,7 @@ Pass `featVocabulary` into the existing `buildCandidateList({...})` call (one mo
   };
 ```
 
-- [ ] **Step 4: Widen `runAgentDecisionLoop`'s fetch gate to cover feat vocabulary too**
+- [x] **Step 4: Widen `runAgentDecisionLoop`'s fetch gate to cover feat vocabulary too**
 
 In `runAgentDecisionLoop` (per #909's plan), change:
 
@@ -847,17 +847,17 @@ and change the `vocabulary` sent to `fetchCandidates` from `pending.maneuverVoca
 
 No other change to this function is needed — the persisted `maneuverPicks` field (per #909's plan) already holds whatever `picks` the combined response returns, and `buildFeatCandidates` (Task 2) already reads that same field, filtering by `type === 'feat'`.
 
-- [ ] **Step 5: Fill in and run the Task 5 test, confirm it passes**
+- [x] **Step 5: Fill in and run the Task 5 test, confirm it passes**
 
 Run: `npm test -- tests/dungeon-combat-agent-feat-pending.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures). As with #909's own Task 6, check every pre-existing test asserting `getPendingAgentTurn`'s exact whole-object return shape via `toEqual` and add `featVocabulary: [...]` to each expected object (`grep -rln "getPendingAgentTurn(" tests/*.mjs`).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-agent-feat-pending.test.mjs
@@ -878,7 +878,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing new.
 - Produces: `executeSelfEffectFeat(combat, combatant, candidate)`, dispatched from a new branch in `applyAgentDecision`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Find and read an existing `applyAgentDecision` test first (`grep -rl "applyAgentDecision(" tests/*.mjs`) to copy its stub shape, then:
 
@@ -932,12 +932,12 @@ describe('applyAgentDecision self-effect feat execution', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail (once filled in)**
+- [x] **Step 2: Run tests to verify they fail (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-feat-self-effect-execution.test.mjs`
 Expected: FAIL — `applyAgentDecision` has no `feat` branch yet.
 
-- [ ] **Step 3: Implement `executeSelfEffectFeat` and wire the branch**
+- [x] **Step 3: Implement `executeSelfEffectFeat` and wire the branch**
 
 Add near `executeManeuverCandidate` (per #909's plan):
 
@@ -991,17 +991,17 @@ Add the dispatching branch inside `applyAgentDecision` (alongside the existing `
     await executeSelfEffectFeat(combat, combatant, candidate);
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-feat-self-effect-execution.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-feat-self-effect-execution.test.mjs
@@ -1022,7 +1022,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `resolveOpponentForTurn` (module-private), `rollAndApplyStrikeAtVariant` (module-private), `readyMeleeStrikeActions` (Task 4).
 - Produces: `executeLunge(combat, combatant, candidate)`, dispatched from `applyAgentDecision`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-feat-lunge-execution.test.mjs
@@ -1045,12 +1045,12 @@ describe('applyAgentDecision Lunge execution', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails (once filled in)**
+- [x] **Step 2: Run test to verify it fails (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-feat-lunge-execution.test.mjs`
 Expected: FAIL — no `feat`/`composite`/`lunge` dispatch exists yet.
 
-- [ ] **Step 3: Implement `executeLunge` and wire the dispatch**
+- [x] **Step 3: Implement `executeLunge` and wire the dispatch**
 
 ```js
 /** #910: Lunge is a plain Strike with its own reach bonus toggled on for
@@ -1086,12 +1086,12 @@ Add the `composite` dispatch branch in `applyAgentDecision` (immediately after t
 
 (`executeSuddenCharge`/`executeTwinFeint` are added in Tasks 8/9 — this branch references them ahead of their own definitions purely in source order; place this dispatch branch's own code after all three executor functions are defined, or declare them with `function` hoisting as this file already does elsewhere for its other helpers, so the branch compiles regardless of which task lands first in a differently-ordered execution.)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-feat-lunge-execution.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-feat-lunge-execution.test.mjs
@@ -1112,7 +1112,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `strideByPosture` (exported, per #909's plan reuse), `resolveOpponentForTurn`, `rollAndApplyStrikeAtVariant`, `strikeInReach` (module-private, already used by the existing `strike` branch).
 - Produces: `executeSuddenCharge(combat, combatant, candidate, target)`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-feat-sudden-charge-execution.test.mjs
@@ -1140,12 +1140,12 @@ describe('applyAgentDecision Sudden Charge execution', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails (once filled in)**
+- [x] **Step 2: Run test to verify it fails (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-feat-sudden-charge-execution.test.mjs`
 Expected: FAIL — `executeSuddenCharge` doesn't exist yet.
 
-- [ ] **Step 3: Implement `executeSuddenCharge`**
+- [x] **Step 3: Implement `executeSuddenCharge`**
 
 ```js
 /** #910: PF2e RAW text: "Stride twice. If you end your movement within
@@ -1172,12 +1172,12 @@ async function executeSuddenCharge(combat, combatant, candidate, target) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-feat-sudden-charge-execution.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-feat-sudden-charge-execution.test.mjs
@@ -1198,7 +1198,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `rollAndApplyStrikeAtVariant`, `readyMeleeStrikeActions` (Task 4).
 - Produces: `executeTwinFeint(combat, combatant, candidate, target)`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-feat-twin-feint-execution.test.mjs
@@ -1222,12 +1222,12 @@ describe('applyAgentDecision Twin Feint execution', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails (once filled in)**
+- [x] **Step 2: Run test to verify it fails (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-feat-twin-feint-execution.test.mjs`
 Expected: FAIL — `executeTwinFeint` doesn't exist yet.
 
-- [ ] **Step 3: Implement `executeTwinFeint`**
+- [x] **Step 3: Implement `executeTwinFeint`**
 
 ```js
 /** #910: neither Twin Feint's own rule elements (confirmed live: empty)
@@ -1249,17 +1249,17 @@ async function executeTwinFeint(combat, combatant, candidate, target) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-feat-twin-feint-execution.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite once, now that all three composite executors and the dispatch branch from Task 7 are in place together**
+- [x] **Step 5: Run the full suite once, now that all three composite executors and the dispatch branch from Task 7 are in place together**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-feat-twin-feint-execution.test.mjs
@@ -1279,17 +1279,17 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing.
 - Produces: nothing — final housekeeping step before merge.
 
-- [ ] **Step 1: Check the current version and bump it**
+- [x] **Step 1: Check the current version and bump it**
 
 Run: `grep '"version"' module.json`
 
 This adds a second vocabulary category plus three new execution paths on top of #909's own subsystem — per `CLAUDE.md`'s versioning rule this is a **minor** bump: `x.Y.0` → `x.Y+1.0`. Do not reuse a version number already used by a prior merge (in particular, #909's own plan will already have consumed one minor bump by the time this plan executes — confirm the real current value live rather than assuming).
 
-- [ ] **Step 2: Verify no other file hardcodes the old version**
+- [x] **Step 2: Verify no other file hardcodes the old version**
 
 Run: `grep -rn "<old version string>" . --include="*.json" --include="*.mjs" --include="*.md" | grep -v node_modules | grep -v docs/superpowers`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json

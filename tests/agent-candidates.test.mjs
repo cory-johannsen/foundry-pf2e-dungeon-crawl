@@ -16,12 +16,15 @@ import {
   parseAutoHitAreaTiers, buildAutoHitAreaSpellCandidates,
   buildCandidateList, applyCandidateToTurnState, buildDecisionContext,
   MAX_ACTIONS_PER_TURN, AGENT_MELEE_REACH_SQUARES,
-  MANEUVER_DEFS, DEMORALIZE_RANGE_SQUARES, buildManeuverVocabulary, buildManeuverCandidates
+  MANEUVER_DEFS, DEMORALIZE_RANGE_SQUARES, buildManeuverVocabulary, buildManeuverCandidates,
+  buildFeatVocabulary, buildFeatCandidates
 } from '../scripts/agent-candidates.mjs';
 
 describe('initAgentTurnState', () => {
-  it('starts with a full action budget, no MAP penalty, and no maneuver picks yet', () => {
-    expect(initAgentTurnState()).toEqual({ actionsRemaining: MAX_ACTIONS_PER_TURN, mapIncrement: 0, maneuverPicks: null });
+  it('starts with a full action budget, no MAP penalty, no maneuver picks yet, and no flourish/stance used', () => {
+    expect(initAgentTurnState()).toEqual({
+      actionsRemaining: MAX_ACTIONS_PER_TURN, mapIncrement: 0, maneuverPicks: null, flourishUsed: false, stanceUsed: false,
+    });
   });
 });
 
@@ -1475,5 +1478,190 @@ describe('buildManeuverCandidates', () => {
 describe('MANEUVER_DEFS', () => {
   it('covers exactly the five PF2e basic maneuvers', () => {
     expect(Object.keys(MANEUVER_DEFS)).toEqual(['trip', 'shove', 'grapple', 'disarm', 'demoralize']);
+  });
+});
+
+// #910: feat/class-action vocabulary + candidates.
+describe('buildFeatVocabulary', () => {
+  it('builds a self-effect vocabulary entry with targetId null', () => {
+    const vocabulary = buildFeatVocabulary({
+      selfEffectEntries: [{ itemId: 'i1', slug: 'rage', name: 'Rage', cost: 1, replacesStance: null, traits: [] }],
+      compositeEntries: [],
+    });
+    expect(vocabulary).toEqual([
+      { type: 'feat', kind: 'selfEffect', itemId: 'i1', slug: 'rage', name: 'Rage', cost: 1, targetId: null, replacesStance: null, traits: [] },
+    ]);
+  });
+
+  it('builds a composite vocabulary entry with a real targetId', () => {
+    const vocabulary = buildFeatVocabulary({
+      selfEffectEntries: [],
+      compositeEntries: [{ itemId: 'i2', slug: 'lunge', name: 'Lunge', cost: 1, targetId: 'opp1', traits: [] }],
+    });
+    expect(vocabulary).toEqual([
+      { type: 'feat', kind: 'composite', itemId: 'i2', slug: 'lunge', name: 'Lunge', cost: 1, targetId: 'opp1', traits: [] },
+    ]);
+  });
+
+  it('returns an empty array for no eligible entries at all', () => {
+    expect(buildFeatVocabulary({ selfEffectEntries: [], compositeEntries: [] })).toEqual([]);
+    expect(buildFeatVocabulary({})).toEqual([]);
+  });
+
+  it('carries replacesStance through for a stance that would replace an active one', () => {
+    const vocabulary = buildFeatVocabulary({
+      selfEffectEntries: [{ itemId: 'i3', slug: 'gorilla-stance', name: 'Gorilla Stance', cost: 1, replacesStance: 'effect1', traits: ['stance'] }],
+      compositeEntries: [],
+    });
+    expect(vocabulary[0].replacesStance).toBe('effect1');
+  });
+
+  it('drops flourish entries once a flourish action was used this turn (PF2e: one flourish per turn)', () => {
+    const vocabulary = buildFeatVocabulary({
+      selfEffectEntries: [],
+      compositeEntries: [
+        { itemId: 'sc', slug: 'sudden-charge', name: 'Sudden Charge', cost: 2, targetId: 'opp1', traits: ['flourish'] },
+        { itemId: 'lu', slug: 'lunge', name: 'Lunge', cost: 1, targetId: 'opp1', traits: [] },
+      ],
+      turnState: { flourishUsed: true },
+    });
+    expect(vocabulary.map((v) => v.slug)).toEqual(['lunge']);
+  });
+
+  it('drops stance entries once a stance action was used this turn (PF2e: no second stance action for 1 round)', () => {
+    const vocabulary = buildFeatVocabulary({
+      selfEffectEntries: [
+        { itemId: 'g', slug: 'gorilla-stance', name: 'Gorilla Stance', cost: 1, replacesStance: null, traits: ['stance'] },
+        { itemId: 'r', slug: 'rage', name: 'Rage', cost: 1, replacesStance: null, traits: [] },
+      ],
+      compositeEntries: [],
+      turnState: { stanceUsed: true },
+    });
+    expect(vocabulary.map((v) => v.slug)).toEqual(['rage']);
+  });
+});
+
+describe('buildFeatCandidates', () => {
+  const featVocabulary = [
+    { type: 'feat', kind: 'selfEffect', itemId: 'i1', slug: 'rage', name: 'Rage', cost: 1, targetId: null, replacesStance: null, traits: [] },
+    { type: 'feat', kind: 'composite', itemId: 'i2', slug: 'lunge', name: 'Lunge', cost: 1, targetId: 'opp1', traits: [] },
+  ];
+  const opponents = [{ id: 'opp1', name: 'Goblin', distanceSquares: 2 }];
+
+  it('builds a candidate for a matching self-effect pick, with the rationale in its summary', () => {
+    const candidates = buildFeatCandidates({
+      featVocabulary, opponents,
+      picks: [{ type: 'feat', slug: 'rage', targetId: null, rationale: 'Open raged.' }],
+    });
+    expect(candidates).toEqual([
+      { id: 'feat:i1', type: 'feat', kind: 'selfEffect', itemId: 'i1', slug: 'rage', name: 'Rage', targetId: null, cost: 1, replacesStance: null, traits: [], summary: 'Rage — Open raged.' },
+    ]);
+  });
+
+  it('builds a candidate for a matching composite pick, keyed by itemId and targetId', () => {
+    const candidates = buildFeatCandidates({
+      featVocabulary, opponents,
+      picks: [{ type: 'feat', slug: 'lunge', targetId: 'opp1', rationale: 'Extend reach.' }],
+    });
+    expect(candidates).toEqual([
+      { id: 'feat:i2:opp1', type: 'feat', kind: 'composite', itemId: 'i2', slug: 'lunge', name: 'Lunge', targetId: 'opp1', cost: 1, traits: [], summary: 'Lunge vs Goblin — Extend reach.' },
+    ]);
+  });
+
+  it('treats a missing/empty targetId on a self-effect pick as null', () => {
+    const candidates = buildFeatCandidates({
+      featVocabulary, opponents,
+      picks: [{ type: 'feat', slug: 'rage', targetId: '', rationale: 'r' }],
+    });
+    expect(candidates.map((c) => c.id)).toEqual(['feat:i1']);
+  });
+
+  it('drops a pick whose optional itemId/kind disagree with the vocabulary entry', () => {
+    expect(buildFeatCandidates({
+      featVocabulary, opponents,
+      picks: [{ type: 'feat', slug: 'rage', itemId: 'other', targetId: null, rationale: 'x' }],
+    })).toEqual([]);
+    expect(buildFeatCandidates({
+      featVocabulary, opponents,
+      picks: [{ type: 'feat', slug: 'rage', kind: 'composite', targetId: null, rationale: 'x' }],
+    })).toEqual([]);
+  });
+
+  it('drops a pick whose targetId does not match the vocabulary entry', () => {
+    const candidates = buildFeatCandidates({
+      featVocabulary, opponents,
+      picks: [{ type: 'feat', slug: 'lunge', targetId: 'opp-not-offered', rationale: 'x' }],
+    });
+    expect(candidates).toEqual([]);
+  });
+
+  it('drops a slug that is not in this request\'s vocabulary (even if valid elsewhere)', () => {
+    const candidates = buildFeatCandidates({
+      featVocabulary, opponents,
+      picks: [{ type: 'feat', slug: 'twin-feint', targetId: 'opp1', rationale: 'x' }],
+    });
+    expect(candidates).toEqual([]);
+  });
+
+  it('drops a composite pick whose opponent is no longer present', () => {
+    const candidates = buildFeatCandidates({
+      featVocabulary, opponents: [],
+      picks: [{ type: 'feat', slug: 'lunge', targetId: 'opp1', rationale: 'x' }],
+    });
+    expect(candidates).toEqual([]);
+  });
+
+  it('ignores non-feat picks and junk entries, and dedupes repeated picks', () => {
+    const candidates = buildFeatCandidates({
+      featVocabulary, opponents,
+      picks: [
+        { type: 'maneuver', slug: 'trip', targetId: 'opp1', rationale: 'x' },
+        null,
+        'junk',
+        { type: 'feat', slug: 'rage', targetId: null, rationale: 'a' },
+        { type: 'feat', slug: 'rage', targetId: null, rationale: 'b' },
+      ],
+    });
+    expect(candidates.map((c) => c.id)).toEqual(['feat:i1']);
+  });
+
+  it('returns an empty array when picks is null (not yet fetched this turn)', () => {
+    expect(buildFeatCandidates({ featVocabulary, picks: null })).toEqual([]);
+  });
+});
+
+describe('buildCandidateList feat candidates (#910)', () => {
+  it('splices feat candidates in from the same persisted picks the maneuvers read', () => {
+    const candidates = buildCandidateList({
+      opponents: [{ id: 'opp1', name: 'Goblin', distanceSquares: 5 }],
+      readyActions: [],
+      turnState: { actionsRemaining: 3, mapIncrement: 0, maneuverPicks: null },
+      maneuverVocabulary: [{ type: 'maneuver', slug: 'trip', targetId: 'opp1' }],
+      featVocabulary: [{ type: 'feat', kind: 'selfEffect', itemId: 'i1', slug: 'rage', name: 'Rage', cost: 1, targetId: null, replacesStance: null, traits: [] }],
+      maneuverPicks: [
+        { type: 'maneuver', slug: 'trip', targetId: 'opp1', rationale: 'r' },
+        { type: 'feat', slug: 'rage', targetId: null, rationale: 'r' },
+      ],
+    });
+    expect(candidates.map((c) => c.id)).toEqual(expect.arrayContaining(['maneuver:trip:opp1', 'feat:i1']));
+  });
+});
+
+describe('applyCandidateToTurnState feat candidates (#910)', () => {
+  const base = { actionsRemaining: 3, mapIncrement: 0, maneuverPicks: [], flourishUsed: false, stanceUsed: false };
+
+  it('charges the feat cost and adds the number of attacks actually made to MAP', () => {
+    const next = applyCandidateToTurnState(base, { type: 'feat', kind: 'composite', cost: 2, traits: [], attacks: 2 });
+    expect(next).toEqual({ ...base, actionsRemaining: 1, mapIncrement: 2 });
+  });
+
+  it('adds no MAP for a self-effect feat', () => {
+    const next = applyCandidateToTurnState(base, { type: 'feat', kind: 'selfEffect', cost: 1, traits: [] });
+    expect(next).toEqual({ ...base, actionsRemaining: 2 });
+  });
+
+  it('records flourish and stance usage', () => {
+    expect(applyCandidateToTurnState(base, { type: 'feat', cost: 2, traits: ['flourish'], attacks: 1 }).flourishUsed).toBe(true);
+    expect(applyCandidateToTurnState(base, { type: 'feat', cost: 1, traits: ['stance'] }).stanceUsed).toBe(true);
   });
 });

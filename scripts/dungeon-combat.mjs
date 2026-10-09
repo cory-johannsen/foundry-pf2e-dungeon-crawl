@@ -38,6 +38,7 @@ import {
   DEMORALIZE_RANGE_SQUARES,
   buildManeuverVocabulary,
   MANEUVER_DEFS,
+  buildFeatVocabulary,
 } from "./agent-candidates.mjs";
 import {
   findPath,
@@ -1022,7 +1023,8 @@ export async function runAgentDecisionLoop(
     // getPendingAgentTurn call does the same rebuild). A failed call
     // persists `[]` so it is never retried this turn. A pendingTurn with no
     // maneuverVocabulary never touches the turn state at all.
-    if (pending.maneuverVocabulary?.length) {
+    // #910: the feat vocabulary rides along in the same single call.
+    if (pending.maneuverVocabulary?.length || pending.featVocabulary?.length) {
       const turnState = getAgentTurnState(combat, pending.combatantId);
       if (turnState.maneuverPicks === null) {
         let picks = [];
@@ -1031,7 +1033,10 @@ export async function runAgentDecisionLoop(
             baseUrl,
             apiKey,
             context: pending.context,
-            vocabulary: pending.maneuverVocabulary,
+            vocabulary: [
+              ...(pending.maneuverVocabulary ?? []),
+              ...(pending.featVocabulary ?? []),
+            ],
           });
           picks = Array.isArray(response?.picks) ? response.picks : [];
         } catch (err) {
@@ -2335,7 +2340,10 @@ export function computeManeuverAttackerProfile(actor) {
       reachSquares: AGENT_MELEE_REACH_SQUARES,
     };
   }
-  profile.demoralize = { eligible: hasIntimidation, reachSquares: DEMORALIZE_RANGE_SQUARES };
+  // #910: Rage -- "You can't use actions with the concentrate trait unless
+  // they also have the rage trait"; Demoralize is concentrate, not rage.
+  const raging = (actor?.itemTypes?.effect ?? []).some((e) => e?.slug === "effect-rage");
+  profile.demoralize = { eligible: hasIntimidation && !raging, reachSquares: DEMORALIZE_RANGE_SQUARES };
   return profile;
 }
 
@@ -2391,6 +2399,225 @@ export function immuneToDemoralize(targetActor) {
   );
 }
 
+/** #910: self-effect actions in this feature's initial scope besides the
+ * stance-trait items (widening is #914). */
+const SELF_EFFECT_SLUGS = new Set(["rage"]);
+
+/** #910: traits that keep an activatable item out of the turn-time
+ * vocabulary (not usable in an encounter turn). */
+const FEAT_EXCLUDED_TRAITS = new Set(["exploration", "downtime"]);
+
+/** #910: the action traits that gate per-turn reuse, carried on vocabulary
+ * entries so agent-candidates.mjs can enforce PF2e's one-flourish-per-turn
+ * and one-stance-action-per-round rules. */
+const FEAT_TURN_GATING_TRAITS = ["flourish", "stance"];
+
+function featGatingTraits(item) {
+  const traits = item.system?.traits?.value ?? [];
+  return FEAT_TURN_GATING_TRAITS.filter((t) => traits.includes(t));
+}
+
+/** #910: an action/free-action item's real cost, or null for anything else
+ * (passive, reaction, unreadable). */
+function featActionCost(item) {
+  const actionType = item.system?.actionType?.value;
+  if (actionType === "free") return 0;
+  if (actionType !== "action") return null;
+  const cost = item.system?.actions?.value;
+  return typeof cost === "number" && cost > 0 ? cost : null;
+}
+
+/** #910: a PF2e `ChoiceSet` rule still unresolved on this item (no
+ * selection recorded under its flag) -- such an item is excluded; this
+ * module never invents a choice for an AI actor's own feat. */
+function hasUnresolvedChoiceSet(item) {
+  const rules = item.system?.rules ?? [];
+  return rules.some(
+    (r) =>
+      r?.key === "ChoiceSet" &&
+      typeof r.flag === "string" &&
+      item.flags?.pf2e?.rulesSelections?.[r.flag] === undefined,
+  );
+}
+
+/** #910: whether `actor` already has the effect `item` would apply --
+ * either an effect created from this very item (PF2e's own self-effect
+ * handler writes `system.context.origin.item` = the action's uuid) or the
+ * same linked effect from any other source (same slug), so a buff is never
+ * re-offered while active (Rage: "you aren't ... raging"). */
+function actorAlreadyHasEffectFrom(actor, item, effectSlug) {
+  return (actor.itemTypes?.effect ?? []).some(
+    (e) =>
+      e.system?.context?.origin?.item === item.uuid ||
+      (effectSlug && e.slug === effectSlug),
+  );
+}
+
+/** #910: the id of an active stance effect on `actor`, or null. An effect
+ * is a stance when it carries the stance trait itself (the system copies
+ * the action's effect-valid traits onto it) or its origin item does. PF2e
+ * RAW: entering a stance ends any stance you're already in. */
+async function findActiveStanceEffectId(actor) {
+  for (const effect of actor.itemTypes?.effect ?? []) {
+    if ((effect.system?.traits?.value ?? []).includes("stance")) return effect.id;
+    const originItemUuid = effect.system?.context?.origin?.item;
+    if (!originItemUuid) continue;
+    const originItem = await fromUuid(originItemUuid);
+    if (originItem?.system?.traits?.value?.includes("stance")) return effect.id;
+  }
+  return null;
+}
+
+function actorHasCondition(actor, slug) {
+  return Array.from(actor?.conditions ?? []).some((c) => c.slug === slug);
+}
+
+/** #910: the self-effect vocabulary category -- stance-trait items plus
+ * Rage, on character actors only (NPC abilities are #915). Scans both
+ * itemTypes.action and itemTypes.feat (the system's own self-effect marker
+ * lives on both). Returns plain `{itemId, slug, name, cost, replacesStance,
+ * traits}` entries for agent-candidates.mjs's buildFeatVocabulary. Any item
+ * whose data can't be read is excluded, never defaulted to available. */
+export async function computeSelfEffectVocabularyEntries(actor, actionsRemaining) {
+  if (actor?.type !== "character") return [];
+  const entries = [];
+  const items = [...(actor.itemTypes?.action ?? []), ...(actor.itemTypes?.feat ?? [])];
+  for (const item of items) {
+    try {
+      const selfEffect = item.system?.selfEffect;
+      if (!selfEffect?.uuid) continue;
+      const traits = item.system?.traits?.value ?? [];
+      const isStance = traits.includes("stance");
+      if (!isStance && !SELF_EFFECT_SLUGS.has(item.slug)) continue;
+      if (traits.some((t) => FEAT_EXCLUDED_TRAITS.has(t))) continue;
+      const cost = featActionCost(item);
+      if (cost === null || cost > actionsRemaining) continue;
+      const frequencyValue = item.system?.frequency?.value;
+      if (item.system?.frequency && !(frequencyValue > 0)) continue;
+      if (hasUnresolvedChoiceSet(item)) continue;
+      // Rage's own requirement: "You aren't Fatigued or raging."
+      if (item.slug === "rage" && actorHasCondition(actor, "fatigued")) continue;
+      const effect = await fromUuid(selfEffect.uuid);
+      if (!effect) continue;
+      if (actorAlreadyHasEffectFrom(actor, item, effect.slug)) continue;
+      const replacesStance = isStance ? await findActiveStanceEffectId(actor) : null;
+      entries.push({
+        itemId: item.id,
+        slug: item.slug,
+        name: item.name,
+        cost,
+        replacesStance,
+        traits: featGatingTraits(item),
+      });
+    } catch (err) {
+      console.warn(`#910: skipping unreadable feat item ${item?.name ?? item?.id}:`, err.message);
+    }
+  }
+  return entries;
+}
+
+/** #910: whether a strike action is a melee one -- the same "finite
+ * positive range increment means ranged" rule actionReachSquares uses
+ * (number on PC weapons, `{increment}` on NPC items). */
+function isMeleeStrikeAction(action) {
+  const range = action?.item?.system?.range;
+  const increment = typeof range === "number" ? range : range?.increment;
+  if (Number.isFinite(increment) && increment > 0) return false;
+  return !(action?.item?.system?.traits?.value ?? []).some((t) =>
+    String(t).startsWith("range-increment"),
+  );
+}
+
+function readyMeleeStrikeActions(actor) {
+  return (actor?.system?.actions ?? []).filter(
+    (a) => a.type === "strike" && a.ready !== false && isMeleeStrikeAction(a),
+  );
+}
+
+/** #910: Lunge's "You are wielding a melee weapon" -- a real weapon item,
+ * not an unarmed attack. */
+function isMeleeWeaponStrike(action) {
+  return action.item?.type === "weapon" && action.item?.system?.category !== "unarmed";
+}
+
+/** #910: Twin Feint's "two melee weapons, each in a different hand": two
+ * distinct held weapon items each wielded in exactly one hand (so,
+ * necessarily, different hands). Returns the two strike actions, or null. */
+function twinFeintStrikePair(actor) {
+  const byItem = new Map();
+  for (const a of readyMeleeStrikeActions(actor)) {
+    if (!isMeleeWeaponStrike(a)) continue;
+    const equipped = a.item?.system?.equipped;
+    if (equipped?.carryType !== "held" || equipped?.handsHeld !== 1) continue;
+    if (!byItem.has(a.item.id)) byItem.set(a.item.id, a);
+  }
+  const pair = [...byItem.values()].slice(0, 2);
+  return pair.length === 2 ? pair : null;
+}
+
+/** #910: Lunge's strike for a target `distanceSquares` away -- the first
+ * melee weapon strike whose reach falls exactly 5 ft short of it. */
+function lungeStrikeFor(actor, distanceSquares, gridDistanceFt) {
+  const extra = 5 / gridDistanceFt;
+  return (
+    readyMeleeStrikeActions(actor).find((a) => {
+      if (!isMeleeWeaponStrike(a)) return false;
+      const reach = actionReachSquares(a, gridDistanceFt);
+      return distanceSquares > reach + REACH_EPSILON && distanceSquares <= reach + extra + REACH_EPSILON;
+    }) ?? null
+  );
+}
+
+const COMPOSITE_FEAT_SLUGS = new Set(["sudden-charge", "lunge", "twin-feint"]);
+
+/** #910: the curated composite-feat allowlist's own eligibility -- each
+ * feat's real PF2e requirement (installed system text) checked against the
+ * actor's ready strikes; character actors only. `opponents` is the
+ * serialized `{id, distanceSquares, hasLineOfSight}` list
+ * getPendingAgentTurn already builds.
+ *  - Lunge: wielding a melee weapon; target just beyond its reach.
+ *  - Sudden Charge: any melee Strike; target out of reach now but within
+ *    reach after two Strides.
+ *  - Twin Feint: two one-handed melee weapons; target in reach of both. */
+export function computeCompositeVocabularyEntries(actor, opponents, actionsRemaining, gridDistanceFt = 5) {
+  if (actor?.type !== "character") return [];
+  const entries = [];
+  const feats = (actor.itemTypes?.feat ?? []).filter((f) => COMPOSITE_FEAT_SLUGS.has(f.slug));
+  const meleeActions = readyMeleeStrikeActions(actor);
+  const visible = (opponents ?? []).filter((o) => o.hasLineOfSight !== false);
+
+  for (const feat of feats) {
+    const cost = featActionCost(feat);
+    if (cost === null || cost > actionsRemaining) continue;
+    if (feat.system?.frequency && !(feat.system.frequency.value > 0)) continue;
+    const base = { itemId: feat.id, slug: feat.slug, name: feat.name, cost, traits: featGatingTraits(feat) };
+
+    if (feat.slug === "lunge") {
+      for (const o of visible) {
+        if (lungeStrikeFor(actor, o.distanceSquares, gridDistanceFt)) entries.push({ ...base, targetId: o.id });
+      }
+    } else if (feat.slug === "sudden-charge") {
+      if (meleeActions.length === 0) continue;
+      const maxReach = Math.max(...meleeActions.map((a) => actionReachSquares(a, gridDistanceFt)));
+      const speedFt = actor.system?.movement?.speeds?.land?.value ?? 0;
+      const twoStridesSquares = 2 * Math.floor(speedFt / gridDistanceFt);
+      for (const o of visible) {
+        if (o.distanceSquares > maxReach + REACH_EPSILON && o.distanceSquares - maxReach <= twoStridesSquares + REACH_EPSILON) {
+          entries.push({ ...base, targetId: o.id });
+        }
+      }
+    } else if (feat.slug === "twin-feint") {
+      const pair = twinFeintStrikePair(actor);
+      if (!pair) continue;
+      const reach = Math.min(...pair.map((a) => actionReachSquares(a, gridDistanceFt)));
+      for (const o of visible) {
+        if (o.distanceSquares <= reach + REACH_EPSILON) entries.push({ ...base, targetId: o.id });
+      }
+    }
+  }
+  return entries;
+}
+
 /** Reads back Combat's own per-turn agent bookkeeping, or a fresh one
  * (`initAgentTurnState()`) if this is the first decision seen for this exact
  * combatant/round/turn — see `currentStoredAgentTurnState` above. */
@@ -2401,6 +2628,8 @@ function getAgentTurnState(combat, combatantId) {
         actionsRemaining: stored.actionsRemaining,
         mapIncrement: stored.mapIncrement,
         maneuverPicks: stored.maneuverPicks ?? null,
+        flourishUsed: stored.flourishUsed ?? false,
+        stanceUsed: stored.stanceUsed ?? false,
       }
     : initAgentTurnState();
 }
@@ -2422,6 +2651,8 @@ async function setAgentTurnState(combat, combatantId, turnState) {
     actionsRemaining: turnState.actionsRemaining,
     mapIncrement: turnState.mapIncrement,
     maneuverPicks: turnState.maneuverPicks ?? null,
+    flourishUsed: turnState.flourishUsed ?? false,
+    stanceUsed: turnState.stanceUsed ?? false,
     counter,
   });
 }
@@ -3633,6 +3864,23 @@ export async function getPendingAgentTurn(combat) {
     opponents: maneuverOpponents,
   });
 
+  // #910: the feat/class actions (stances + Rage, and the composite
+  // Sudden Charge/Lunge/Twin Feint allowlist) that are legal this turn --
+  // sent to the same once-per-turn reasoning call as the maneuvers.
+  const featVocabulary = buildFeatVocabulary({
+    selfEffectEntries: await computeSelfEffectVocabularyEntries(
+      combatant.actor,
+      turnState.actionsRemaining,
+    ),
+    compositeEntries: computeCompositeVocabularyEntries(
+      combatant.actor,
+      opponents,
+      turnState.actionsRemaining,
+      gridDistanceFt,
+    ),
+    turnState,
+  });
+
   const readySpells = (combatant.actor?.spellcasting?.contents ?? [])
     .flatMap((entry) =>
       (entry.spells?.contents ?? [])
@@ -4268,6 +4516,7 @@ export async function getPendingAgentTurn(combat) {
     turnState,
     maneuverVocabulary,
     maneuverPicks: turnState.maneuverPicks,
+    featVocabulary,
     hazard: nearestHazardousRegionPoint(
       combat.scene,
       combatant.token,
@@ -4287,6 +4536,7 @@ export async function getPendingAgentTurn(combat) {
     }),
     candidates,
     maneuverVocabulary,
+    featVocabulary,
   };
 }
 
@@ -5665,6 +5915,197 @@ async function executeManeuverCandidate(combat, combatant, candidate) {
   );
 }
 
+/** #910: the action/feat item a feat candidate names, or null. */
+function findFeatItem(actor, itemId) {
+  return (
+    [...(actor?.itemTypes?.action ?? []), ...(actor?.itemTypes?.feat ?? [])].find(
+      (i) => i.id === itemId,
+    ) ?? null
+  );
+}
+
+/** #910: applies a self-effect action (stance/Rage) the way the installed
+ * PF2e system's own chat-card button does (ChatLogPF2e#onClickApplyEffect,
+ * a UI handler with no public API): the linked effect's source merged
+ * with an origin context (actor/token/item uuids, the item's origin roll
+ * options), the actor itself as target, and only the action traits that
+ * are valid effect traits. The new effect is created first; only then is
+ * a replaced stance removed, the usage card posted and the item's
+ * frequency spent (mirroring createUseActionMessage), so a failed creation
+ * leaves no side effects. Returns `{ performed, attacks }`. */
+async function executeSelfEffectFeat(combatant, candidate) {
+  const actor = combatant.actor;
+  const item = findFeatItem(actor, candidate.itemId);
+  const uuid = item?.system?.selfEffect?.uuid;
+  if (!uuid) return { performed: false };
+  const effect = await fromUuid(uuid);
+  if (typeof effect?.toObject !== "function") return { performed: false };
+
+  const tokenUuid = combatant.token?.uuid ?? null;
+  const effectTraits = CONFIG.PF2E?.effectTraits ?? {};
+  const traits = (item.system.traits?.value ?? []).filter((t) => t in effectTraits);
+  try {
+    const source = foundry.utils.mergeObject(effect.toObject(), {
+      _id: null,
+      system: {
+        context: {
+          origin: {
+            actor: actor.uuid,
+            token: tokenUuid,
+            item: item.uuid,
+            spellcasting: null,
+            rollOptions: item.getOriginData?.().rollOptions ?? [],
+          },
+          target: { actor: actor.uuid, token: tokenUuid },
+          roll: null,
+        },
+        traits: { value: traits },
+      },
+    });
+    await actor.createEmbeddedDocuments("Item", [source]);
+  } catch (err) {
+    console.error(`#910: applying ${item.name}'s effect failed:`, err.message);
+    return { performed: false };
+  }
+
+  // PF2e RAW: entering a stance ends the one you were in.
+  if (
+    candidate.replacesStance &&
+    (actor.itemTypes?.effect ?? []).some((e) => e.id === candidate.replacesStance)
+  ) {
+    try {
+      await actor.deleteEmbeddedDocuments("Item", [candidate.replacesStance]);
+    } catch (err) {
+      console.error("#910: removing the previous stance effect failed:", err.message);
+    }
+  }
+  try {
+    await item.toMessage?.();
+  } catch (err) {
+    console.warn(`#910: posting ${item.name}'s usage card failed:`, err.message);
+  }
+  if (item.system.frequency && item.system.frequency.value > 0) {
+    await item.update({ "system.frequency.value": item.system.frequency.value - 1 });
+  }
+  return { performed: true, attacks: 0 };
+}
+
+/** #910: a feat candidate that turned out impossible at execution time
+ * (item/effect/target/weapon gone, or effect creation failed) spends no
+ * actions; its pick is dropped from this turn's persisted picks so the
+ * model can't re-choose it in a loop. */
+async function skipUnperformedFeat(combat, combatant, candidate) {
+  const turnState = getAgentTurnState(combat, combatant.id);
+  const picks = (turnState.maneuverPicks ?? []).filter(
+    (p) =>
+      !(
+        p?.type === "feat" &&
+        p.slug === candidate.slug &&
+        (p.targetId || null) === candidate.targetId
+      ),
+  );
+  await setAgentTurnState(combat, combatant.id, { ...turnState, maneuverPicks: picks });
+  const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
+  await whisperGmContent(
+    `<p><strong>${esc(candidate.name ?? candidate.slug)} (${esc(combatant.name)}):</strong> could not be used -- no action spent.</p>`,
+  );
+  armAgentTimeout(combat, combatant);
+  return getPendingAgentTurn(combat);
+}
+
+/** #910: Lunge -- "Make a Strike with a melee weapon, increasing your
+ * reach by 5 feet for that Strike." The feat's own rule elements (a
+ * toggleable `lunge` RollOption in the default "all" domain, plus an
+ * ActiveEffectLike adding 5 ft to reach predicated on it) are switched on
+ * for exactly this Strike, then off again. Rolled at the turn's current
+ * MAP; counts as one attack. */
+async function executeLunge(combat, combatant, candidate, target) {
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  const distance = chebyshevSquares(combatant.token, target.token, gridSize);
+  const action = lungeStrikeFor(combatant.actor, distance, gridDistanceFt);
+  if (!action) return { performed: false };
+  const actionSlug = action.item?.slug ?? action.slug ?? action.label;
+  const { mapIncrement } = getAgentTurnState(combat, combatant.id);
+  await combatant.actor.toggleRollOption("all", "lunge", candidate.itemId, true);
+  try {
+    await rollAndApplyStrikeAtVariant(combat, combatant, target, actionSlug, mapIncrement);
+  } finally {
+    await combatant.actor.toggleRollOption("all", "lunge", candidate.itemId, false);
+  }
+  return { performed: true, attacks: 1 };
+}
+
+/** #910: Sudden Charge -- "Stride twice. If you end your movement within
+ * melee reach of at least one enemy, you can make a melee Strike against
+ * that enemy." Two ordinary approach Strides (each stops at melee reach on
+ * its own, so a second Stride after the first already arrived is a no-op),
+ * then one melee Strike at the turn's current MAP if the target is now in
+ * reach of a ready melee strike. Reports the attacks actually made. */
+async function executeSuddenCharge(combat, combatant, target) {
+  await strideByPosture(combat, combatant, "approach", target);
+  if (combatant.isDefeated) return { performed: true, attacks: 0 };
+  await strideByPosture(combat, combatant, "approach", target);
+  if (combatant.isDefeated || target.isDefeated) return { performed: true, attacks: 0 };
+
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  const action = readyMeleeStrikeActions(combatant.actor).find(
+    (a) => strikeInReach(combatant, target, a, gridSize, gridDistanceFt).inReach,
+  );
+  if (!action) return { performed: true, attacks: 0 };
+  const actionSlug = action.item?.slug ?? action.slug ?? action.label;
+  const { mapIncrement } = getAgentTurnState(combat, combatant.id);
+  await rollAndApplyStrikeAtVariant(combat, combatant, target, actionSlug, mapIncrement);
+  return { performed: true, attacks: 1 };
+}
+
+/** #910: Twin Feint -- "Make one Strike with each of your two melee
+ * weapons, both against the same target. The target is automatically
+ * Off-Guard against the second attack. Apply your multiple attack penalty
+ * to the Strikes normally." Neither the feat's rule elements (empty) nor
+ * the system automate the Off-Guard, so it is added for the second Strike
+ * only and removed right after -- unless the target was already Off-Guard,
+ * which is left untouched. The second Strike is skipped if the first one
+ * defeated the target. Reports the attacks actually made. */
+async function executeTwinFeint(combat, combatant, target) {
+  const pair = twinFeintStrikePair(combatant.actor);
+  if (!pair) return { performed: false };
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  if (!pair.every((a) => strikeInReach(combatant, target, a, gridSize, gridDistanceFt).inReach)) {
+    return { performed: false };
+  }
+  const [first, second] = pair.map((a) => a.item?.slug ?? a.slug ?? a.label);
+  const { mapIncrement } = getAgentTurnState(combat, combatant.id);
+
+  await rollAndApplyStrikeAtVariant(combat, combatant, target, first, mapIncrement);
+  if (target.isDefeated) return { performed: true, attacks: 1 };
+
+  const addOffGuard = !actorHasCondition(target.actor, "off-guard");
+  if (addOffGuard) await target.actor.increaseCondition("off-guard");
+  try {
+    await rollAndApplyStrikeAtVariant(combat, combatant, target, second, mapIncrement + 1);
+  } finally {
+    if (addOffGuard) await target.actor.decreaseCondition("off-guard", { forceRemove: true });
+  }
+  return { performed: true, attacks: 2 };
+}
+
+/** #910: dispatches a feat candidate to its executor. Every executor
+ * returns `{ performed, attacks }` -- `performed: false` means nothing
+ * happened and no action is spent. */
+async function executeFeatCandidate(combat, combatant, candidate) {
+  if (candidate.kind === "selfEffect") return executeSelfEffectFeat(combatant, candidate);
+  if (candidate.kind !== "composite") return { performed: false };
+  const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
+  if (!target) return { performed: false };
+  if (candidate.slug === "lunge") return executeLunge(combat, combatant, candidate, target);
+  if (candidate.slug === "sudden-charge") return executeSuddenCharge(combat, combatant, target);
+  if (candidate.slug === "twin-feint") return executeTwinFeint(combat, combatant, target);
+  return { performed: false };
+}
+
 async function whisperGmContent(content) {
   const gmIds = ChatMessage.getWhisperRecipients("GM").map((u) => u.id);
   await ChatMessage.create({ content, whisper: gmIds });
@@ -5691,6 +6132,9 @@ export async function applyAgentDecision(
 
   const combatant = combat.combatant;
   await postAgentDecisionChat(combatant, candidate, rationale);
+  // #910: what applyCandidateToTurnState charges -- a feat candidate gains
+  // the number of Strikes its executor really made (MAP).
+  let applied = candidate;
   if (candidate.type === "stride") {
     let target = candidate.targetId
       ? resolveOpponentForTurn(combat, combatant, candidate.targetId)
@@ -5958,10 +6402,14 @@ export async function applyAgentDecision(
       );
   } else if (candidate.type === "maneuver") {
     await executeManeuverCandidate(combat, combatant, candidate);
+  } else if (candidate.type === "feat") {
+    const result = await executeFeatCandidate(combat, combatant, candidate);
+    if (!result.performed) return skipUnperformedFeat(combat, combatant, candidate);
+    applied = { ...candidate, attacks: result.attacks ?? 0 };
   }
 
   const turnState = getAgentTurnState(combat, combatantId);
-  const nextTurnState = applyCandidateToTurnState(turnState, candidate);
+  const nextTurnState = applyCandidateToTurnState(turnState, applied);
   await setAgentTurnState(combat, combatantId, nextTurnState);
 
   if (nextTurnState.actionsRemaining <= 0) {
