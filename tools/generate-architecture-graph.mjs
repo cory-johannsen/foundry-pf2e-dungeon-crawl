@@ -94,6 +94,7 @@ const GROUPS = [
         "scripts/npc-ability-parse.mjs",
         "scripts/self-effect-denylist.mjs",
         "scripts/self-effect-summary.mjs",
+        "scripts/antagonize.mjs",
         "scripts/dungeon-strike-riders.mjs",
         "scripts/dungeon-critical-deck.mjs",
         "scripts/flanking-indicator.mjs",

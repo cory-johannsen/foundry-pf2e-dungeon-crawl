@@ -441,3 +441,52 @@ describe("maneuver feat riders (#911)", () => {
     expect(combat.getFlag(MODULE_ID, "agentTurnState").actionsRemaining).toBe(2);
   });
 });
+
+// #920: the AI's own Demoralize rolls with a numeric DC, so the system
+// records no target on its chat message -- the executor records the
+// Antagonize floor itself; and an AI decision that is hostile toward an
+// antagonizer ends that antagonizer's floor on the acting creature.
+describe("Antagonize on the AI path (#920)", () => {
+  const ENTRY = { antagonizerUuid: "Actor.x", sinceWorldTime: 0, unsensedSince: null };
+  const whispers = () => ChatMessage.create.mock.calls.map((c) => c[0].content).join("\n");
+
+  it("records the floor on the target after a successful Demoralize by an actor with Antagonize", async () => {
+    const { opponent, combat } = setup({ slug: "demoralize", outcome: "success", feats: ["antagonize"] });
+    opponent.actor.setFlag = vi.fn(async () => {});
+    await applyAgentDecision(combat, "atk", "maneuver:demoralize:opp", "r");
+    expect(opponent.actor.setFlag).toHaveBeenCalledWith(MODULE_ID, "antagonize.atk", {
+      antagonizerUuid: null,
+      sinceWorldTime: 1000,
+      unsensedSince: null,
+    });
+    expect(whispers()).toMatch(/Antagonize: its Frightened can't fall below 1/);
+  });
+
+  it("records no floor on a failed Demoralize, or without the feat", async () => {
+    let { opponent, combat } = setup({ slug: "demoralize", outcome: "failure", feats: ["antagonize"] });
+    opponent.actor.setFlag = vi.fn(async () => {});
+    await applyAgentDecision(combat, "atk", "maneuver:demoralize:opp", "r");
+    expect(opponent.actor.setFlag).not.toHaveBeenCalled();
+
+    ({ opponent, combat } = setup({ slug: "demoralize", outcome: "success" }));
+    opponent.actor.setFlag = vi.fn(async () => {});
+    await applyAgentDecision(combat, "atk", "maneuver:demoralize:opp", "r");
+    expect(opponent.actor.setFlag).not.toHaveBeenCalled();
+  });
+
+  it("ends the acting creature's floor from its maneuver's target", async () => {
+    const { attacker, combat } = setup({ slug: "trip", outcome: "failure" });
+    attacker.actor.flags = { [MODULE_ID]: { antagonize: { opp: ENTRY } } };
+    attacker.actor.unsetFlag = vi.fn(async () => {});
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp", "r");
+    expect(attacker.actor.unsetFlag).toHaveBeenCalledWith(MODULE_ID, "antagonize");
+  });
+
+  it("leaves a floor from anyone other than the action's target", async () => {
+    const { attacker, combat } = setup({ slug: "trip", outcome: "success" });
+    attacker.actor.flags = { [MODULE_ID]: { antagonize: { someoneElse: ENTRY } } };
+    attacker.actor.unsetFlag = vi.fn(async () => {});
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp", "r");
+    expect(attacker.actor.unsetFlag).not.toHaveBeenCalled();
+  });
+});
