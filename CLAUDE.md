@@ -139,7 +139,7 @@ implementing; never use it just to mean "someone has this".
 ## Agent Roles
 
 Agents are assigned named roles that dictate and limit their behavior.
-- `reporter` reports new issues into JIRA and optionally performs diagnostics to collect and attach relevant data.
+- `reporter` reports new issues into GitHub (via `gh`) and optionally performs diagnostics to collect and attach relevant data.
 - `specifier` writes and commits specifications for issues and attaches them to the tickets
 - `planner` generates and commits implementation plans from specifications and attaches them to the tickets
 - `worker` executes implementation plans and PRs the resulting changes into the repository.  There may be multiple workers
