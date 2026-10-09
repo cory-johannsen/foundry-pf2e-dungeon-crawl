@@ -298,7 +298,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `SELF_EFFECT_DENYLIST` (Task 1), `summarizeEffect`/`effectDurationLabel`/`effectRelevanceTier` (Task 2).
 - Produces: `computeSelfEffectVocabularyEntries`'s output entries now carry `effectSummary`/`durationLabel`/`frequencyLabel`, are capped at 12, and are drawn from the full derived population instead of the stance-trait-or-Rage allowlist.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Replace the existing `SELF_EFFECT_SLUGS`-based tests in `tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs` that assert on a non-stance, non-Rage item being excluded (per #910's plan, there is no such test — #910 only tests Rage and a synthetic stance item — so nothing here needs deleting, only adding):
 
@@ -437,12 +437,12 @@ describe('computeSelfEffectVocabularyEntries (#914 derived filter)', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs`
 Expected: FAIL — the derived checks, denylist, cap, and new entry fields don't exist yet.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 Add the imports:
 
@@ -530,12 +530,12 @@ export async function computeSelfEffectVocabularyEntries(actor, actionsRemaining
 
 (`hasUnresolvedChoiceSet`, `actorAlreadyHasEffectFrom`, and `findActiveStanceEffectId` are #910's own existing helpers, unchanged by this task.)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs

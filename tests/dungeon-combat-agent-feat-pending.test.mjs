@@ -103,7 +103,12 @@ function withFeats(c, { action = [], feat = [], effect = [] } = {}) {
 }
 
 beforeEach(() => {
-  globalThis.fromUuid = vi.fn(async (uuid) => (uuid === RAGE_EFFECT ? { slug: "effect-rage" } : null));
+  // #914: the linked effect needs real rules to pass the derived filter.
+  globalThis.fromUuid = vi.fn(async (uuid) =>
+    uuid === RAGE_EFFECT
+      ? { slug: "effect-rage", system: { rules: [{ key: "TempHP", value: 1 }], duration: { value: 1, unit: "minutes" } } }
+      : null,
+  );
 });
 
 describe("getPendingAgentTurn feat vocabulary (#910)", () => {

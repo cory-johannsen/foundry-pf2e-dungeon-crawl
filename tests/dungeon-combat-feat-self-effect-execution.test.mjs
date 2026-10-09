@@ -30,8 +30,16 @@ function selfEffectItem({ id = "rage1", slug = "rage", name = "Rage", traits = [
   };
 }
 
+// #914: the linked effect must carry real rules to pass the derived
+// eligibility filter (an effect with no rules is excluded).
+const EFFECT_RULES = [{ key: "RollOption", domain: "all", option: "x" }];
 function effectDoc(slug) {
-  return { slug, toObject: () => ({ _id: "src", name: slug, type: "effect", system: { slug, rules: [], traits: { value: [] } } }) };
+  const duration = { value: 1, unit: "minutes" };
+  return {
+    slug,
+    system: { rules: EFFECT_RULES, duration },
+    toObject: () => ({ _id: "src", name: slug, type: "effect", system: { slug, rules: EFFECT_RULES, duration, traits: { value: [] } } }),
+  };
 }
 
 function setup({ item = selfEffectItem(), effect = [], picks } = {}) {
