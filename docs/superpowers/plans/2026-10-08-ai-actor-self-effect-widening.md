@@ -137,7 +137,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing.
 - Produces (consumed by Task 3): `summarizeEffect(rules)` → `string`; `effectDurationLabel(duration)` → `string`; `effectRelevanceTier(rules)` → `0 | 1 | 2`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/self-effect-summary.test.mjs
@@ -210,12 +210,12 @@ describe('effectRelevanceTier', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/self-effect-summary.test.mjs`
 Expected: FAIL — `scripts/self-effect-summary.mjs` doesn't exist yet.
 
-- [ ] **Step 3: Write `scripts/self-effect-summary.mjs`**
+- [x] **Step 3: Write `scripts/self-effect-summary.mjs`**
 
 ```js
 /**
@@ -272,12 +272,12 @@ export function effectRelevanceTier(rules = []) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/self-effect-summary.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/self-effect-summary.mjs tests/self-effect-summary.test.mjs
