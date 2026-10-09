@@ -88,6 +88,12 @@ describe('buildStrikeCandidates', () => {
     ]);
   });
 
+  it('annotates the summary for an opponent this actor has marked (#922)', () => {
+    const marked = { ...opponentAdjacent, markAnnotation: 'marked: devise-a-stratagem, d20 = 17' };
+    const candidates = buildStrikeCandidates({ readyActions: [claw], opponents: [marked], mapIncrement: 0 });
+    expect(candidates[0].summary).toBe('Claw vs Fighter (variant 0) [marked: devise-a-stratagem, d20 = 17]');
+  });
+
   it('clamps the variant index to the action\'s own variant count', () => {
     const candidates = buildStrikeCandidates({ readyActions: [claw], opponents: [opponentAdjacent], mapIncrement: 5 });
     expect(candidates[0].variantIndex).toBe(2); // claw.variantCount - 1
@@ -1587,6 +1593,15 @@ describe('buildFeatVocabulary', () => {
     ]);
   });
 
+  it('builds a targetedSelfEffect vocabulary entry with a real targetId (#922)', () => {
+    const vocabulary = buildFeatVocabulary({
+      targetedSelfEffectEntries: [{ itemId: 'i4', slug: 'hunt-prey', name: 'Hunt Prey', cost: 1, targetId: 'opp1', traits: [], effectSummary: 'mark prey: +bonuses vs Goblin' }],
+    });
+    expect(vocabulary).toEqual([
+      { type: 'feat', kind: 'targetedSelfEffect', itemId: 'i4', slug: 'hunt-prey', name: 'Hunt Prey', cost: 1, targetId: 'opp1', traits: [], effectSummary: 'mark prey: +bonuses vs Goblin' },
+    ]);
+  });
+
   it('returns an empty array for no eligible entries at all', () => {
     expect(buildFeatVocabulary({ selfEffectEntries: [], compositeEntries: [] })).toEqual([]);
     expect(buildFeatVocabulary({})).toEqual([]);
@@ -1659,6 +1674,20 @@ describe('buildFeatCandidates', () => {
     });
     expect(candidates).toEqual([
       { id: 'feat:i2:opp1', type: 'feat', kind: 'composite', itemId: 'i2', slug: 'lunge', name: 'Lunge', targetId: 'opp1', cost: 1, traits: [], summary: 'Lunge vs Goblin — Extend reach.' },
+    ]);
+  });
+
+  it('builds a targetedSelfEffect candidate keyed by itemId and targetId, summarised by its effect (#922)', () => {
+    const candidates = buildFeatCandidates({
+      featVocabulary: [
+        { type: 'feat', kind: 'targetedSelfEffect', itemId: 'hp', slug: 'hunt-prey', name: 'Hunt Prey', cost: 1, targetId: 'opp1', traits: [], effectSummary: 'mark prey: +bonuses vs Goblin' },
+        { type: 'feat', kind: 'targetedSelfEffect', itemId: 'hp', slug: 'hunt-prey', name: 'Hunt Prey', cost: 1, targetId: 'opp2', traits: [], effectSummary: 'mark prey: +bonuses vs Orc' },
+      ],
+      opponents: [...opponents, { id: 'opp2', name: 'Orc', distanceSquares: 4 }],
+      picks: [{ type: 'feat', slug: 'hunt-prey', targetId: 'opp2', rationale: 'Focus the orc.' }],
+    });
+    expect(candidates).toEqual([
+      { id: 'feat:hp:opp2', type: 'feat', kind: 'targetedSelfEffect', itemId: 'hp', slug: 'hunt-prey', name: 'Hunt Prey', targetId: 'opp2', cost: 1, traits: [], summary: 'Hunt Prey (mark prey: +bonuses vs Orc) — Focus the orc.' },
     ]);
   });
 

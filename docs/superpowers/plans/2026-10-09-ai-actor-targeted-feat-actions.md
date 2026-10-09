@@ -40,7 +40,7 @@
 - Consumes: nothing.
 - Produces (consumed by Tasks 2–4): `TARGETED_SELF_EFFECT_ALLOWLIST` — `{"hunt-prey": {senseType: "detect", exclusiveMark: true}, "devise-a-stratagem": {senseType: "sight", exclusiveMark: false}}`; `bindTokenMarkEffect(effectSource, slug, targetTokenUuid)` → a new object (never mutates its input), or `null` if no matching `TokenMark` rule exists; `findActiveMarkEffects(effectItems, targetTokenUuid)` → `Array<{slug, badgeValue}>`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/targeted-feat-actions.test.mjs
@@ -118,12 +118,12 @@ describe('findActiveMarkEffects', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/targeted-feat-actions.test.mjs`
 Expected: FAIL — `scripts/targeted-feat-actions.mjs` doesn't exist yet.
 
-- [ ] **Step 3: Write `scripts/targeted-feat-actions.mjs`**
+- [x] **Step 3: Write `scripts/targeted-feat-actions.mjs`**
 
 ```js
 /**
@@ -184,12 +184,12 @@ export function findActiveMarkEffects(effectItems, targetTokenUuid) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/targeted-feat-actions.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/targeted-feat-actions.mjs tests/targeted-feat-actions.test.mjs
@@ -212,7 +212,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `TARGETED_SELF_EFFECT_ALLOWLIST` (Task 1).
 - Produces: `buildFeatVocabulary` (per #910/#914's plans) accepts a third entry list, `targetedSelfEffectEntries`, each becoming a `kind: "targetedSelfEffect"` vocabulary entry with a real `targetId`; `computeTargetedSelfEffectVocabularyEntries(actor, opponents, actionsRemaining)` in `dungeon-combat.mjs`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/agent-candidates.test.mjs` (inside the existing `describe('buildFeatVocabulary', ...)` block, per #910/#914's plans):
 
@@ -295,12 +295,12 @@ describe('computeTargetedSelfEffectVocabularyEntries', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/agent-candidates.test.mjs tests/dungeon-combat-targeted-feat-vocabulary.test.mjs`
 Expected: FAIL — neither function/parameter exists yet.
 
-- [ ] **Step 3: Extend `buildFeatVocabulary` in `scripts/agent-candidates.mjs`**
+- [x] **Step 3: Extend `buildFeatVocabulary` in `scripts/agent-candidates.mjs`**
 
 ```js
 export function buildFeatVocabulary({ selfEffectEntries = [], compositeEntries = [], targetedSelfEffectEntries = [] }) {
@@ -335,7 +335,7 @@ export function buildFeatVocabulary({ selfEffectEntries = [], compositeEntries =
 
 (`buildFeatCandidates`, per #914's plan, already matches generically on `(kind, itemId, targetId)` with no kind-specific branching and already carries `match.replacesStance`/`match.cost` through — add `stratagem: match.stratagem` to its own candidate-push object too, a one-field addition, since Task 3's execution needs it on the candidate; `targetedSelfEffectEntries` never sets `stratagem` in this slice since it's always fixed to `"attack"` for Devise and irrelevant for Hunt Prey — Task 3 hardcodes `"attack"` directly rather than threading it through the vocabulary/candidate at all, so **no change to `buildFeatCandidates` is actually needed** — confirm this is still true once Task 3 is written, and only add the `stratagem` field here if Task 3 ends up needing it threaded through after all.)
 
-- [ ] **Step 4: Implement `computeTargetedSelfEffectVocabularyEntries` in `scripts/dungeon-combat.mjs`**
+- [x] **Step 4: Implement `computeTargetedSelfEffectVocabularyEntries` in `scripts/dungeon-combat.mjs`**
 
 ```js
 import { TARGETED_SELF_EFFECT_ALLOWLIST } from "./targeted-feat-actions.mjs";
@@ -388,7 +388,7 @@ export function computeTargetedSelfEffectVocabularyEntries(actor, opponents, act
 
 (Note: Devise a Stratagem's "not offered while active" exclusion happens via the `if (!allowlisted.exclusiveMark) continue;` branch inside the first guard — when `activeMarkTokenUuids.length > 0` and the feat is NOT exclusive, the whole feat is skipped for every target; when it IS exclusive (Hunt Prey), the feat stays eligible but the per-opponent loop below excludes only the currently-marked target. Re-read this logic once more against the Task 2 Step 1 tests above before considering it done — the two different exclusion shapes for the two feats are easy to invert by mistake.)
 
-- [ ] **Step 5: Wire into `getPendingAgentTurn`**
+- [x] **Step 5: Wire into `getPendingAgentTurn`**
 
 Right after the self-effect/composite feat vocabulary block (per #910/#914's plans), add:
 
@@ -405,17 +405,17 @@ Right after the self-effect/composite feat vocabulary block (per #910/#914's pla
 
 Add `targetedSelfEffectEntries` to the existing `buildFeatVocabulary({...})` call, and pass the resulting combined `featVocabulary` into `buildCandidateList` and the function's own return object exactly as #910/#914's plans already do (no new top-level field needed — `targetedSelfEffect` entries live inside the same `featVocabulary` array `selfEffect`/`composite` entries already do).
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-candidates.test.mjs tests/dungeon-combat-targeted-feat-vocabulary.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs scripts/dungeon-combat.mjs tests/agent-candidates.test.mjs tests/dungeon-combat-targeted-feat-vocabulary.test.mjs
@@ -436,7 +436,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `bindTokenMarkEffect` (Task 1).
 - Produces: a new branch inside `applyAgentDecision`'s existing `kind === "feat"` dispatch (per #910's plan) for `candidate.kind === "targetedSelfEffect"`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Find and read #910's own `tests/dungeon-combat-feat-self-effect-execution.test.mjs` first to copy its exact stub shape (`fromUuid` stub, `createEmbeddedDocuments`/`deleteEmbeddedDocuments` mocks), then:
 
@@ -493,12 +493,12 @@ describe('applyAgentDecision targetedSelfEffect execution (Devise a Stratagem)',
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail (once filled in)**
+- [x] **Step 2: Run tests to verify they fail (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-targeted-feat-execution.test.mjs`
 Expected: FAIL — no `targetedSelfEffect` dispatch exists yet.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 import { bindTokenMarkEffect } from "./targeted-feat-actions.mjs";
@@ -573,17 +573,17 @@ Add the dispatch inside `applyAgentDecision`'s existing `candidate.type === "fea
     await executeTargetedSelfEffectFeat(combat, combatant, candidate);
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-targeted-feat-execution.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-targeted-feat-execution.test.mjs
@@ -605,7 +605,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `findActiveMarkEffects` (Task 1).
 - Produces: `buildStrikeCandidates`'s `summary` field gains a mark annotation when the opponent entry carries one.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `tests/agent-candidates.test.mjs` (inside the existing `describe('buildStrikeCandidates', ...)` block):
 
@@ -623,12 +623,12 @@ Add to `tests/agent-candidates.test.mjs` (inside the existing `describe('buildSt
   });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- tests/agent-candidates.test.mjs`
 Expected: FAIL — `buildStrikeCandidates` ignores `opponent.markAnnotation`.
 
-- [ ] **Step 3: Update `buildStrikeCandidates` in `scripts/agent-candidates.mjs`**
+- [x] **Step 3: Update `buildStrikeCandidates` in `scripts/agent-candidates.mjs`**
 
 ```js
 export function buildStrikeCandidates({ readyActions, opponents, mapIncrement }) {
@@ -649,7 +649,7 @@ export function buildStrikeCandidates({ readyActions, opponents, mapIncrement })
 }
 ```
 
-- [ ] **Step 4: Compute `markAnnotation` per opponent in `getPendingAgentTurn`**
+- [x] **Step 4: Compute `markAnnotation` per opponent in `getPendingAgentTurn`**
 
 Right after `opponents` is built (per the existing code in `scripts/dungeon-combat.mjs`), add:
 
@@ -673,17 +673,17 @@ Add the import:
 import { findActiveMarkEffects } from "./targeted-feat-actions.mjs";
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-candidates.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs scripts/dungeon-combat.mjs tests/agent-candidates.test.mjs

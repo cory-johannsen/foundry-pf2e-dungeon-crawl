@@ -53,6 +53,15 @@ describe("generateCombatCandidates", () => {
     expect(content).toContain("frequencyLabel");
   });
 
+  it("tells the model what a targetedSelfEffect entry (Hunt Prey, Devise a Stratagem) does (#922)", async () => {
+    const fetchImpl = fakeFetch({ picks: [] });
+    await generateCombatCandidates(context, vocabulary, { ...OPTS, fetchImpl });
+    const content = JSON.parse(fetchImpl.mock.calls[0][1].body).messages[0].content;
+    expect(content).toContain('kind "targetedSelfEffect"');
+    expect(content).toContain("Hunt Prey");
+    expect(content).toContain("Devise a Stratagem");
+  });
+
   it("returns an empty picks array when the model proposes none", async () => {
     const fetchImpl = fakeFetch({ picks: [] });
     const result = await generateCombatCandidates(context, vocabulary, { ...OPTS, fetchImpl });
