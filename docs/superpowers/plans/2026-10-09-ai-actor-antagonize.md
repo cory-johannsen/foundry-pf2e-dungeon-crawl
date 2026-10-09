@@ -42,7 +42,7 @@
 - Consumes: nothing.
 - Produces (consumed by Tasks 2–4): `readAntagonizeMap(actor)` → `Record<string, {sinceWorldTime, lastSensedWorldTime}>`; `frightenedFloorFor(actor)` → `0 | 1`; `evaluateAntagonizeEntry(entry, { sensed, worldTime })` → `{...entry, expired: boolean}` (and, when `sensed`, a refreshed `lastSensedWorldTime`).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/antagonize.test.mjs
@@ -136,12 +136,12 @@ it('consults frightenedFloorFor(actor), not frightenedFloorFor(combat, actorId)'
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/antagonize.test.mjs tests/dungeon-combat-frightened-decay.test.mjs`
 Expected: FAIL — `scripts/antagonize.mjs` doesn't exist yet; the new decay test fails since `frightenedFloorFor` is still hardcoded to `0` per #943's own plan.
 
-- [ ] **Step 3: Write `scripts/antagonize.mjs`**
+- [x] **Step 3: Write `scripts/antagonize.mjs`**
 
 ```js
 /**
@@ -178,7 +178,7 @@ export function evaluateAntagonizeEntry(entry, { sensed, worldTime }) {
 }
 ```
 
-- [ ] **Step 4: Patch #943's own `frightenedFloorFor`/`decayFrightenedAtEndOfTurn` in `scripts/dungeon-combat.mjs`**
+- [x] **Step 4: Patch #943's own `frightenedFloorFor`/`decayFrightenedAtEndOfTurn` in `scripts/dungeon-combat.mjs`**
 
 Remove #943's own local `frightenedFloorFor(combat, actorId)` function entirely, and import the real one from Task 1 instead:
 
@@ -206,17 +206,17 @@ export async function decayFrightenedAtEndOfTurn(combatant) {
 
 (Only the `frightenedFloorFor(combatant.combat, actor.id)` call site changes to `frightenedFloorFor(actor)`, and the now-unused local function is deleted — everything else in this function is #943's own existing code, unchanged.)
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/antagonize.test.mjs tests/dungeon-combat-frightened-decay.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/antagonize.mjs scripts/dungeon-combat.mjs tests/antagonize.test.mjs tests/dungeon-combat-frightened-decay.test.mjs
@@ -238,7 +238,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing new.
 - Produces: `export async function handleDemoralizeForAntagonize(message)`, wired into a new `createChatMessage` hook.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-antagonize-create.test.mjs
@@ -322,12 +322,12 @@ describe('handleDemoralizeForAntagonize', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-antagonize-create.test.mjs`
 Expected: FAIL — `handleDemoralizeForAntagonize` doesn't exist yet.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 ```js
 import { readAntagonizeMap } from "./antagonize.mjs";
@@ -376,7 +376,7 @@ export async function handleDemoralizeForAntagonize(message) {
 }
 ```
 
-- [ ] **Step 4: Wire the hook in `scripts/module.mjs`**
+- [x] **Step 4: Wire the hook in `scripts/module.mjs`**
 
 ```js
 import { handleDemoralizeForAntagonize } from "./dungeon-combat.mjs";
@@ -388,17 +388,17 @@ import { handleDemoralizeForAntagonize } from "./dungeon-combat.mjs";
 Hooks.on("createChatMessage", handleDemoralizeForAntagonize);
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-antagonize-create.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs scripts/module.mjs tests/dungeon-combat-antagonize-create.test.mjs
@@ -420,7 +420,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `readAntagonizeMap` (Task 1).
 - Produces: `export async function handleAntagonizeAttackClear(message)`, wired into the same `createChatMessage` hook list.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-antagonize-clear-attack.test.mjs
@@ -496,12 +496,12 @@ describe('handleAntagonizeAttackClear', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-antagonize-clear-attack.test.mjs`
 Expected: FAIL — `handleAntagonizeAttackClear` doesn't exist yet.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 ```js
 /** #920: reacts to an attack-roll/spell-attack-roll chat message where
@@ -531,7 +531,7 @@ export async function handleAntagonizeAttackClear(message) {
 }
 ```
 
-- [ ] **Step 4: Wire the hook in `scripts/module.mjs`**
+- [x] **Step 4: Wire the hook in `scripts/module.mjs`**
 
 ```js
 import { handleDemoralizeForAntagonize, handleAntagonizeAttackClear } from "./dungeon-combat.mjs";
@@ -542,17 +542,17 @@ Hooks.on("createChatMessage", handleDemoralizeForAntagonize);
 Hooks.on("createChatMessage", handleAntagonizeAttackClear);
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-antagonize-clear-attack.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs scripts/module.mjs tests/dungeon-combat-antagonize-clear-attack.test.mjs
@@ -574,7 +574,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `evaluateAntagonizeEntry` (Task 1), `detectableOpponents` (existing, module-private).
 - Produces: `export async function sweepAntagonizeFloors(combat)`, wired into the existing `updateCombat` hook alongside #911/#915's own sweeps; `export async function clearAntagonizeOnDefeatOrFrightenedLoss(combatant)` and cleanup on `deleteCombat`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-antagonize-sense-sweep.test.mjs
@@ -648,12 +648,12 @@ describe('clearAntagonizeOnDefeatOrFrightenedLoss', () => {
 
 (As with earlier plans in this session, the first test's own exact "opposing alliance" fixture shape is deliberately left for the implementer to confirm against `combatantOpponents`'s real field checks before writing it, rather than guessed here — find and read that function's body first.)
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-antagonize-sense-sweep.test.mjs`
 Expected: FAIL — neither function exists yet.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 ```js
 import { readAntagonizeMap, evaluateAntagonizeEntry } from "./antagonize.mjs";
@@ -699,7 +699,7 @@ export async function clearAntagonizeOnDefeatOrFrightenedLoss(combatant) {
 }
 ```
 
-- [ ] **Step 4: Wire into the existing hooks in `scripts/module.mjs`**
+- [x] **Step 4: Wire into the existing hooks in `scripts/module.mjs`**
 
 Add `sweepAntagonizeFloors`/`clearAntagonizeOnDefeatOrFrightenedLoss` to the existing import from `dungeon-combat.mjs`, and call `sweepAntagonizeFloors` alongside #911/#915's own sweeps in the existing `updateCombat` hook:
 
@@ -749,17 +749,17 @@ Hooks.on("deleteCombat", async (combat) => {
 
 (This last loop only clears an antagonize flag whose actor no longer has Frightened at the moment combat ends — per RAW the floor is tied to the condition, not to the combat's own lifetime; if Frightened is somehow still active when combat ends, per this plan's own design that's an existing-Frightened-persists-after-combat scenario already handled elsewhere in this codebase, not something this task needs to force-clear.)
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-antagonize-sense-sweep.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs scripts/module.mjs tests/dungeon-combat-antagonize-sense-sweep.test.mjs
@@ -772,6 +772,8 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 ### Task 5: Version bump
 
+> Implementation note (#920): the version bump is done by whoever merges the PR, not on the feature branch.
+
 **Files:**
 - Modify: `module.json`
 
@@ -779,17 +781,17 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing.
 - Produces: nothing — final housekeeping step before merge.
 
-- [ ] **Step 1: Check the current version and bump it**
+- [x] **Step 1: Check the current version and bump it**
 
 Run: `grep '"version"' module.json`
 
 A **minor** bump per `CLAUDE.md`'s versioning rule — a new cross-cutting mechanic (two chat-message handlers plus a sweep), not a one-line fix.
 
-- [ ] **Step 2: Verify no other file hardcodes the old version**
+- [x] **Step 2: Verify no other file hardcodes the old version**
 
 Run: `grep -rn "<old version string>" . --include="*.json" --include="*.mjs" --include="*.md" | grep -v node_modules | grep -v docs/superpowers`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json

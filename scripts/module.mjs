@@ -67,6 +67,11 @@ import {
   handleStealthBreakMessage,
   cleanupAgentSelfEffects,
   decayFrightenedAtEndOfTurn,
+  handleDemoralizeForAntagonize,
+  handleAntagonizeHostileMessage,
+  sweepAntagonizeFloors,
+  handleFrightenedRemovedForAntagonize,
+  clearAntagonizeForCombat,
 } from "./dungeon-combat.mjs";
 import { subtractXpOnLevelUp } from "./dungeon-leveling.mjs";
 import {
@@ -680,6 +685,11 @@ Hooks.on("updateCombat", async (combat, changes) => {
   await sweepExpiredNpcAbilityConditions(combat).catch((err) =>
     console.error("pf2e-dungeon-crawl | #915: npc-ability condition sweep failed:", err.message),
   );
+  // #920: Antagonize floors end after a full round without sensing the
+  // antagonizer (sampled here, at turn changes) or once Frightened is gone.
+  await sweepAntagonizeFloors(combat).catch((err) =>
+    console.error("pf2e-dungeon-crawl | #920: Antagonize sweep failed:", err.message),
+  );
   autoPlayCombatantTurnIfDue(combat);
 });
 
@@ -719,6 +729,8 @@ Hooks.on("deleteCombat", async (combat) => {
   await settleNpcAbilityConditionsAtCombatEnd(combat).catch((err) =>
     console.error("pf2e-dungeon-crawl | #915: npc-ability condition settle failed:", err.message),
   );
+  // #920: Antagonize floors are keyed by this combat's combatants.
+  await clearAntagonizeForCombat(combat);
 });
 
 /** #943: PF2e RAW decreases Frightened by 1 at the end of the frightened
@@ -733,6 +745,15 @@ Hooks.on("pf2e.endTurn", (combatant) => {
 
 /** #616: a sneaker's attack roll reveals it (active GM only, handled inside). */
 Hooks.on("createChatMessage", handleStealthBreakMessage);
+
+/** #920: Antagonize -- a successful targeted Demoralize by an actor with the
+ * feat floors the target's Frightened at 1 (the AI's own Demoralize records
+ * it in the maneuver executor); the frightened creature's hostile action
+ * against its antagonizer, or deleting its Frightened, ends the floor.
+ * Active GM only, handled inside. */
+Hooks.on("createChatMessage", handleDemoralizeForAntagonize);
+Hooks.on("createChatMessage", handleAntagonizeHostileMessage);
+Hooks.on("deleteItem", handleFrightenedRemovedForAntagonize);
 
 Hooks.on("getSceneControlButtons", (controls) => {
   const tokenControl = findTokenControl(controls);

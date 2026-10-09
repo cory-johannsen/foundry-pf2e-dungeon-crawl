@@ -21,7 +21,7 @@ across the module rather than being a one-off pattern:
   `dungeon-deck.mjs`, `trap-mechanics.mjs`, `puzzle-mechanics.mjs`,
   `skill-challenge-mechanics.mjs`, `treasure.mjs`, `room-feature-tokens.mjs`, `agent-candidates.mjs`,
   `maneuver-feat-modifiers.mjs`, `npc-ability-parse.mjs`, `self-effect-denylist.mjs`, `self-effect-summary.mjs`,
-  `combat-rewards.mjs`, `dungeon-follow-mechanics.mjs`, `cover-items.mjs`,
+  `antagonize.mjs`, `combat-rewards.mjs`, `dungeon-follow-mechanics.mjs`, `cover-items.mjs`,
   `encounter-deck.mjs`, `dungeon-layout.mjs`, and `dungeon-retreat.mjs` are all this shape.
 - A **Foundry-glue** file that touches `game`/`Actor`/`ChatMessage`/`Scene`
   and calls into its pure sibling for the actual decision logic.
@@ -70,8 +70,8 @@ sequencing/roster logic without this one caring.
 **Combat automation** (`dungeon-combat.mjs`, `stealth-detection.mjs`,
 `combat-rewards.mjs`, `agent-candidates.mjs`, `maneuver-feat-modifiers.mjs`,
 `npc-ability-parse.mjs`, `self-effect-denylist.mjs`, `self-effect-summary.mjs`,
-`dungeon-strike-riders.mjs`, `dungeon-critical-deck.mjs`, `flanking-indicator.mjs`,
-`dungeon-leveling.mjs`) — wires a spawned encounter into a real PF2e
+`antagonize.mjs`, `dungeon-strike-riders.mjs`, `dungeon-critical-deck.mjs`,
+`flanking-indicator.mjs`, `dungeon-leveling.mjs`) — wires a spawned encounter into a real PF2e
 `Combat`, and auto-applies whatever Critical Hit/Fumble Deck directives
 parse cleanly. For an `agentControlled` combatant's turn,
 `autoPlayCombatantTurnIfDue` races two things: `armAgentTimeout` (a pure
@@ -85,7 +85,11 @@ dependency of its own. `stealth-detection.mjs` (#616, pure) holds the PF2e
 rules for Stealth initiative and per-hostile detection (unnoticed /
 undetected / hidden / observed, Seek outcomes); `startCombat` stores the
 resulting matrix on the Combat document and `combatantTargets` filters
-hostile targeting through it. `flanking-indicator.mjs` (#769) is separate from
+hostile targeting through it. `antagonize.mjs` (#920, pure, reads the
+same detection states) holds the Antagonize Frightened-floor rules that
+`dungeon-combat.mjs`'s #943 end-of-turn Frightened decay consults; the
+floors themselves live in an actor flag that chat-message, turn-change,
+`deleteItem` and `deleteCombat` hooks create and clear. `flanking-indicator.mjs` (#769) is separate from
 that turn-taking path: a client-side, write-nothing "Flanked" badge drawn
 on flanked tokens in a started combat, using PF2e's own `Token#isFlanking`.
 
@@ -252,6 +256,7 @@ graph LR
   end
   subgraph "Combat automation (in-module heuristic)"
     scripts_agent_candidates_mjs["agent-candidates.mjs"]
+    scripts_antagonize_mjs["antagonize.mjs"]
     scripts_combat_rewards_mjs["combat-rewards.mjs"]
     scripts_dungeon_combat_mjs["dungeon-combat.mjs"]
     scripts_dungeon_critical_deck_mjs["dungeon-critical-deck.mjs"]
@@ -320,6 +325,7 @@ graph LR
   subgraph "Other"
     scripts_pathfinding_mjs["pathfinding.mjs"]
   end
+  scripts_antagonize_mjs --> scripts_stealth_detection_mjs
   scripts_combat_rewards_mjs --> scripts_encounter_roster_mjs
   scripts_cover_items_mjs --> scripts_prng_mjs
   scripts_default_generator_mjs --> scripts_dungeon_deck_mjs
@@ -342,6 +348,7 @@ graph LR
   scripts_dungeon_combat_mjs --> scripts_maneuver_feat_modifiers_mjs
   scripts_dungeon_combat_mjs --> scripts_self_effect_denylist_mjs
   scripts_dungeon_combat_mjs --> scripts_self_effect_summary_mjs
+  scripts_dungeon_combat_mjs --> scripts_antagonize_mjs
   scripts_dungeon_combat_mjs --> scripts_stealth_detection_mjs
   scripts_dungeon_customization_fulfillment_mjs --> scripts_agent_service_client_mjs
   scripts_dungeon_customization_fulfillment_mjs --> scripts_trap_combat_mjs

@@ -80,6 +80,15 @@ import { eligibilityModifiers, ridersFor, maneuverMapPenalty } from "./maneuver-
 import { SELF_EFFECT_DENYLIST } from "./self-effect-denylist.mjs";
 import { summarizeEffect, effectDurationLabel, effectRelevanceTier } from "./self-effect-summary.mjs";
 import {
+  ANTAGONIZE_FEAT_SLUG,
+  readAntagonizeMap,
+  frightenedFloorFor,
+  sensesAntagonizer,
+  evaluateAntagonizeEntry,
+  isHostileCheckContext,
+  hostileTargetIdsOf,
+} from "./antagonize.mjs";
+import {
   DETECTION,
   applySeekOutcome,
   avoidingNoticeActorIds,
@@ -6196,14 +6205,6 @@ export async function sweepExpiredManeuverRiders(combat) {
   }
 }
 
-/** #943/#920: the value below which a combatant's Frightened may not decay
- * at the end of its turn. Always 0 for now -- the extension point #920's
- * Antagonize ("can't decrease below 1 until ...") widens without touching
- * decayFrightenedAtEndOfTurn. */
-function frightenedFloorFor(_combat, _actorId) {
-  return 0;
-}
-
 /** #943: PF2e RAW -- "at the end of each of your turns, the value of your
  * frightened condition decreases by 1." The pf2e system (8.5.0) does not
  * do this itself: ConditionPF2e#onEndTurn only acts on persistent damage.
@@ -6217,11 +6218,264 @@ export async function decayFrightenedAtEndOfTurn(combatant) {
   try {
     const condition = actor.getCondition("frightened");
     if (!condition) return;
-    const floor = frightenedFloorFor(combatant.combat, actor.id);
-    if ((condition.value ?? 0) <= floor) return;
+    // #920: Antagonize holds Frightened at 1 while any antagonizer's floor
+    // lasts (antagonize.mjs).
+    const floor = frightenedFloorFor(actor);
+    if ((condition.value ?? 0) <= floor) {
+      if (floor > 0) await whisperAntagonize(`${actor.name}'s Frightened stays at ${floor} (Antagonize).`);
+      return;
+    }
     await actor.decreaseCondition("frightened");
   } catch (err) {
     console.error(`${MODULE_ID} | #943: Frightened end-of-turn decay failed:`, err?.message);
+  }
+}
+
+/** #920: true on the one client that should mutate state from a global
+ * hook (the active GM), matching the #616/#943 gates. */
+function isActiveGmClient() {
+  return game.users?.activeGM?.isSelf ?? game.user?.isGM ?? false;
+}
+
+/** #920: a best-effort GM whisper about an Antagonize floor; never throws. */
+async function whisperAntagonize(text) {
+  try {
+    const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
+    await whisperGmContent(`<p><strong>Antagonize:</strong> ${esc(text)}</p>`);
+  } catch (err) {
+    console.error(`${MODULE_ID} | #920: Antagonize report failed:`, err?.message);
+  }
+}
+
+/** #920: the combatant in `combat` with id `id` (an EmbeddedCollection or a
+ * plain array alike). */
+function combatantById(combat, id) {
+  return Array.from(combat?.combatants ?? []).find((c) => c.id === id) ?? null;
+}
+
+/** #920: records `antagonizer`'s Antagonize floor on `target` after a
+ * successful Demoralize -- only when the antagonizer really has the feat
+ * (slug `antagonize`). Keyed by the antagonizer's combatant id (see
+ * antagonize.mjs); a repeat Demoralize by the same antagonizer restarts its
+ * entry. Returns whether a floor was recorded. A failed write is logged and
+ * reported; it never affects the Demoralize result itself. */
+export async function recordAntagonizeFloor(antagonizer, target) {
+  const actor = target?.actor;
+  if (!antagonizer?.id || !actor || antagonizer.id === target.id) return false;
+  if (!actorFeatSlugs(antagonizer.actor).includes(ANTAGONIZE_FEAT_SLUG)) return false;
+  try {
+    await actor.setFlag(MODULE_ID, `antagonize.${antagonizer.id}`, {
+      antagonizerUuid: antagonizer.actor?.uuid ?? null,
+      sinceWorldTime: game.time?.worldTime ?? 0,
+      unsensedSince: null,
+    });
+    return true;
+  } catch (err) {
+    console.error(`${MODULE_ID} | #920: recording an Antagonize floor failed:`, err?.message);
+    await whisperAntagonize(
+      `could not record ${antagonizer.name}'s floor on ${target.name} -- keep its Frightened at 1 by hand.`,
+    );
+    return false;
+  }
+}
+
+/** #920: removes the given antagonizers' entries from `frightened`'s map
+ * (the whole flag when none would remain) and reports each, naming why. */
+async function removeAntagonizeEntries(combat, frightened, ids, reason) {
+  const actor = frightened?.actor;
+  const map = readAntagonizeMap(actor);
+  const removing = ids.filter((id) => Object.hasOwn(map, id));
+  if (!removing.length) return;
+  try {
+    if (removing.length === Object.keys(map).length) {
+      await actor.unsetFlag(MODULE_ID, "antagonize");
+    } else {
+      for (const id of removing) await actor.unsetFlag(MODULE_ID, `antagonize.${id}`);
+    }
+  } catch (err) {
+    console.error(`${MODULE_ID} | #920: clearing an Antagonize floor failed:`, err?.message);
+    return;
+  }
+  for (const id of removing) {
+    const name = combatantById(combat, id)?.name ?? "its antagonizer";
+    await whisperAntagonize(`${frightened.name}'s floor from ${name} ends (${reason}).`);
+  }
+}
+
+/** #920: the frightened creature `frightened` used a hostile action against
+ * the combatants `targetIds`; each of those that holds an Antagonize floor on
+ * it loses that floor. Others' floors are untouched. */
+export async function clearAntagonizeOnHostileAction(combat, frightened, targetIds) {
+  try {
+    await removeAntagonizeEntries(combat, frightened, targetIds ?? [], "it used a hostile action against them");
+  } catch (err) {
+    console.error(`${MODULE_ID} | #920: Antagonize hostile-action clear failed:`, err?.message);
+  }
+}
+
+/** #920: the combat holding a combatant for `tokenId`, and that combatant. */
+function findCombatantByTokenId(tokenId) {
+  if (!tokenId) return null;
+  for (const combat of game.combats?.contents ?? []) {
+    const combatant = Array.from(combat.combatants ?? []).find((c) => c.tokenId === tokenId);
+    if (combatant) return { combat, combatant };
+  }
+  return null;
+}
+
+/** The trailing token-document id of a token UUID ("Scene.<id>.Token.<id>"),
+ * which is what `Combatant#tokenId` carries. */
+function tokenIdFromUuid(uuid) {
+  return typeof uuid === "string" && uuid ? uuid.split(".").pop() : null;
+}
+
+/** #920: creates an Antagonize floor from a Demoralize check rolled through
+ * the system's own action with a target (a player's roll): the message's
+ * `flags.pf2e.context` then carries `options` with `action:demoralize`, the
+ * `outcome` and `target.token`. The AI's own Demoralize (#909) rolls with a
+ * numeric DC, so the system records no target for it (confirmed live: every
+ * agent Demoralize message has `context.target === null`); that path records
+ * its floor in applyBaseManeuverOutcome instead. Registered against
+ * `createChatMessage` in module.mjs; never throws. */
+export async function handleDemoralizeForAntagonize(message) {
+  try {
+    if (!isActiveGmClient()) return;
+    const context = message?.flags?.pf2e?.context;
+    if (context?.type !== "skill-check") return;
+    if (!context.options?.includes("action:demoralize")) return;
+    if (context.outcome !== "success" && context.outcome !== "criticalSuccess") return;
+    const found = findCombatantByTokenId(message.speaker?.token);
+    if (!found) return;
+    const targetTokenId = tokenIdFromUuid(context.target?.token);
+    const target = Array.from(found.combat.combatants ?? []).find((c) => c.tokenId === targetTokenId);
+    if (!target) return;
+    if (await recordAntagonizeFloor(found.combatant, target)) {
+      await whisperAntagonize(
+        `${target.name}'s Frightened can't fall below 1 while ${found.combatant.name} holds it.`,
+      );
+    }
+  } catch (err) {
+    console.error(`${MODULE_ID} | #920: Antagonize Demoralize handler failed:`, err?.message);
+  }
+}
+
+/** #920: ends a floor when the frightened creature uses a hostile action
+ * against its antagonizer, as seen in a chat message: an attack, spell
+ * attack or damage roll, or a hostile skill check (antagonize.mjs
+ * isHostileCheckContext) the creature rolled against the antagonizer
+ * (`context.target`); or a saving throw the antagonizer rolled against an
+ * effect whose `context.origin` is the creature. Registered against
+ * `createChatMessage` in module.mjs; never throws. */
+export async function handleAntagonizeHostileMessage(message) {
+  try {
+    if (!isActiveGmClient()) return;
+    const context = message?.flags?.pf2e?.context;
+    if (!context) return;
+    let actorTokenId;
+    let victimTokenId;
+    if (context.type === "saving-throw") {
+      actorTokenId = tokenIdFromUuid(context.origin?.token);
+      victimTokenId = message.speaker?.token;
+    } else if (isHostileCheckContext(context)) {
+      actorTokenId = message.speaker?.token;
+      victimTokenId = tokenIdFromUuid(context.target?.token);
+    } else {
+      return;
+    }
+    if (!actorTokenId || !victimTokenId || actorTokenId === victimTokenId) return;
+    const found = findCombatantByTokenId(actorTokenId);
+    if (!found) return;
+    const victim = Array.from(found.combat.combatants ?? []).find((c) => c.tokenId === victimTokenId);
+    if (!victim) return;
+    await clearAntagonizeOnHostileAction(found.combat, found.combatant, [victim.id]);
+  } catch (err) {
+    console.error(`${MODULE_ID} | #920: Antagonize hostile-action handler failed:`, err?.message);
+  }
+}
+
+/** #920: at every turn change (module.mjs's updateCombat hook), for each
+ * combatant holding Antagonize floors: drop them all once it is defeated or
+ * no longer Frightened; drop one whose antagonizer is gone or defeated; and
+ * sample whether it still senses each antagonizer (the #616 detection
+ * matrix: hidden still counts as sensed), dropping a floor once a full round
+ * has passed without sensing (antagonize.mjs evaluateAntagonizeEntry). A
+ * failure for one combatant is logged and leaves its floors untouched. */
+export async function sweepAntagonizeFloors(combat) {
+  if (!isActiveGmClient()) return;
+  const matrix = combat?.getFlag?.(MODULE_ID, "detection") ?? null;
+  const round = combat?.round ?? 0;
+  const turn = combat?.turn ?? 0;
+  for (const combatant of Array.from(combat?.combatants ?? [])) {
+    const map = readAntagonizeMap(combatant.actor);
+    const ids = Object.keys(map);
+    if (!ids.length) continue;
+    try {
+      if (combatant.isDefeated) {
+        await removeAntagonizeEntries(combat, combatant, ids, "it is defeated");
+        continue;
+      }
+      if (!combatant.actor.getCondition?.("frightened")) {
+        await removeAntagonizeEntries(combat, combatant, ids, "it is no longer Frightened");
+        continue;
+      }
+      const gone = [];
+      const lostSense = [];
+      for (const id of ids) {
+        const antagonizer = combatantById(combat, id);
+        if (!antagonizer || antagonizer.isDefeated) {
+          gone.push(id);
+          continue;
+        }
+        const state = matrix ? stateFor(matrix, antagonizer.id, combatant.id) : undefined;
+        const { entry, expired } = evaluateAntagonizeEntry(map[id], {
+          sensed: sensesAntagonizer(state),
+          round,
+          turn,
+        });
+        if (expired) {
+          lostSense.push(id);
+        } else if (JSON.stringify(entry.unsensedSince ?? null) !== JSON.stringify(map[id].unsensedSince ?? null)) {
+          await combatant.actor.setFlag(MODULE_ID, `antagonize.${id}.unsensedSince`, entry.unsensedSince);
+        }
+      }
+      if (gone.length) await removeAntagonizeEntries(combat, combatant, gone, "the antagonizer is defeated or gone");
+      if (lostSense.length) {
+        await removeAntagonizeEntries(combat, combatant, lostSense, "it could not observe or sense them for a round");
+      }
+    } catch (err) {
+      console.error(`${MODULE_ID} | #920: Antagonize sense sweep failed for ${combatant.name}:`, err?.message);
+    }
+  }
+}
+
+/** #920: a deleted Frightened condition takes its Antagonize floors with it
+ * (the floor only constrains that condition; a later, unrelated Frightened
+ * must decay normally). Registered against `deleteItem` in module.mjs. */
+export async function handleFrightenedRemovedForAntagonize(item) {
+  try {
+    if (!isActiveGmClient()) return;
+    if (item?.type !== "condition" || item.slug !== "frightened") return;
+    const actor = item.actor ?? item.parent;
+    if (!Object.keys(readAntagonizeMap(actor)).length) return;
+    if (actor.getCondition?.("frightened")) return;
+    await actor.unsetFlag(MODULE_ID, "antagonize");
+  } catch (err) {
+    console.error(`${MODULE_ID} | #920: Antagonize Frightened-removal clear failed:`, err?.message);
+  }
+}
+
+/** #920: a deleted combat ends every Antagonize floor its combatants hold --
+ * entries are keyed by this combat's combatant ids and sensing is only
+ * tracked during combat. Called from module.mjs's deleteCombat hook. */
+export async function clearAntagonizeForCombat(combat) {
+  for (const combatant of Array.from(combat?.combatants ?? [])) {
+    const actor = combatant?.actor;
+    if (!Object.keys(readAntagonizeMap(actor)).length) continue;
+    try {
+      await actor.unsetFlag(MODULE_ID, "antagonize");
+    } catch (err) {
+      console.error(`${MODULE_ID} | #920: clearing Antagonize floors at combat end failed:`, err?.message);
+    }
   }
 }
 
@@ -6403,7 +6657,12 @@ async function applyBaseManeuverOutcome(slug, combat, combatant, target, outcome
     if (hit) {
       const value = outcome === "criticalSuccess" ? 2 : 1;
       await target.actor.increaseCondition("frightened", { value });
-      return `target is Frightened ${value}`;
+      // #920: the system records no target on this (numeric-DC) roll, so
+      // the chat-message handler can't see it -- record the floor here.
+      const antagonized = await recordAntagonizeFloor(combatant, target);
+      return antagonized
+        ? `target is Frightened ${value}; Antagonize: its Frightened can't fall below 1 while ${combatant.name} holds it`
+        : `target is Frightened ${value}`;
     }
   }
   return "no effect";
@@ -7045,6 +7304,14 @@ export async function applyAgentDecision(
 
   const combatant = combat.combatant;
   await postAgentDecisionChat(combatant, candidate, rationale);
+  // #920: who this action is hostile against, resolved under the same
+  // detection filter every executor below uses -- ends any Antagonize floor
+  // those combatants hold on this one once the action is really taken.
+  let hostileIds = hostileTargetIdsOf(candidate);
+  if (hostileIds.length) {
+    const detectable = new Set(detectableOpponents(combat, combatant).map((c) => c.id));
+    hostileIds = hostileIds.filter((id) => detectable.has(id));
+  }
   // #910: what applyCandidateToTurnState charges -- a feat candidate gains
   // the number of Strikes its executor really made (MAP).
   let applied = candidate;
@@ -7088,6 +7355,7 @@ export async function applyAgentDecision(
         ? strikeInReach(combatant, target, action, gridSize, gridDistanceFt)
         : null;
       if (check && !check.inReach) {
+        hostileIds = [];
         await reportStrikeOutOfReach({
           combat,
           combatant,
@@ -7323,6 +7591,8 @@ export async function applyAgentDecision(
     const result = await executeNpcAbilityCandidate(combat, combatant, candidate);
     if (!result.performed) return skipUnperformedFeat(combat, combatant, candidate);
   }
+
+  if (hostileIds.length) await clearAntagonizeOnHostileAction(combat, combatant, hostileIds);
 
   const turnState = getAgentTurnState(combat, combatantId);
   const nextTurnState = applyCandidateToTurnState(turnState, applied);

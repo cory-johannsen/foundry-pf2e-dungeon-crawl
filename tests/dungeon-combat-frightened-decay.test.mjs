@@ -75,4 +75,32 @@ describe("decayFrightenedAtEndOfTurn", () => {
     expect(combatant.actor.decreaseCondition).not.toHaveBeenCalled();
     expect(err).toHaveBeenCalled();
   });
+
+  // #920: Antagonize floors Frightened at 1 while any antagonizer's entry
+  // remains on the frightened creature's actor.
+  describe("with an Antagonize floor (#920)", () => {
+    function floored(value, entries = { ant1: { antagonizerUuid: "Actor.x", sinceWorldTime: 0, unsensedSince: null } }) {
+      const combatant = combatantWithCondition(value);
+      combatant.actor.flags = { "pf2e-dungeon-crawl": { antagonize: entries } };
+      return combatant;
+    }
+
+    it("decays Frightened 2 to 1 (the floor is 1, not the current value)", async () => {
+      const combatant = floored(2);
+      await decayFrightenedAtEndOfTurn(combatant);
+      expect(combatant.actor.decreaseCondition).toHaveBeenCalledWith("frightened");
+    });
+
+    it("holds Frightened 1 at 1 while an entry exists", async () => {
+      const combatant = floored(1);
+      await decayFrightenedAtEndOfTurn(combatant);
+      expect(combatant.actor.decreaseCondition).not.toHaveBeenCalled();
+    });
+
+    it("decays Frightened 1 normally once the map is empty", async () => {
+      const combatant = floored(1, {});
+      await decayFrightenedAtEndOfTurn(combatant);
+      expect(combatant.actor.decreaseCondition).toHaveBeenCalledWith("frightened");
+    });
+  });
 });
