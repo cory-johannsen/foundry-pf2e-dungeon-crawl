@@ -40,7 +40,7 @@
 - Consumes: nothing new.
 - Produces (consumed by #920 later): `function frightenedFloorFor(combat, actorId)` → `number` (module-private, extended by #920's own future plan, not exported yet since nothing outside this file needs it until then); `export async function decayFrightenedAtEndOfTurn(combatant)`, wired into a new `pf2e.endTurn` hook in `module.mjs`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-frightened-decay.test.mjs
@@ -93,12 +93,12 @@ describe('decayFrightenedAtEndOfTurn', () => {
 
 (The floor-skip case — "a combatant whose floor is at or above their current value is skipped entirely" — is not independently testable yet from outside this module, since `frightenedFloorFor` always returns `0` in this plan and every real Frightened value is `>= 1` while active; #920's own plan, which widens `frightenedFloorFor` beyond its fixed `0`, is where that branch becomes reachable and gets its own direct test. This plan's own `Review Focus` item for it is satisfied by the code itself existing and being called unconditionally on every path above, not by a currently-unreachable-branch test.)
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-frightened-decay.test.mjs`
 Expected: FAIL — `decayFrightenedAtEndOfTurn` doesn't exist yet.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 ```js
 /** #943/#920: always 0 in this plan — the extension point #920's own
@@ -136,7 +136,7 @@ export async function decayFrightenedAtEndOfTurn(combatant) {
 }
 ```
 
-- [ ] **Step 4: Wire the hook in `scripts/module.mjs`**
+- [x] **Step 4: Wire the hook in `scripts/module.mjs`**
 
 Add the import:
 
@@ -158,17 +158,17 @@ Hooks.on("pf2e.endTurn", (combatant) => {
 });
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-frightened-decay.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs scripts/module.mjs tests/dungeon-combat-frightened-decay.test.mjs

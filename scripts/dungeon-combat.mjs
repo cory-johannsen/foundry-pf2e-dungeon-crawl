@@ -6121,6 +6121,35 @@ export async function sweepExpiredManeuverRiders(combat) {
   }
 }
 
+/** #943/#920: the value below which a combatant's Frightened may not decay
+ * at the end of its turn. Always 0 for now -- the extension point #920's
+ * Antagonize ("can't decrease below 1 until ...") widens without touching
+ * decayFrightenedAtEndOfTurn. */
+function frightenedFloorFor(_combat, _actorId) {
+  return 0;
+}
+
+/** #943: PF2e RAW -- "at the end of each of your turns, the value of your
+ * frightened condition decreases by 1." The pf2e system (8.5.0) does not
+ * do this itself: ConditionPF2e#onEndTurn only acts on persistent damage.
+ * Called from module.mjs's `pf2e.endTurn` hook for every combatant, player-
+ * or AI-controlled. `actor.decreaseCondition("frightened")` drops a valued
+ * condition by 1 and deletes it at 0. Never throws: a failure is logged so
+ * it can't break other `pf2e.endTurn` listeners. */
+export async function decayFrightenedAtEndOfTurn(combatant) {
+  const actor = combatant?.actor;
+  if (!actor) return;
+  try {
+    const condition = actor.getCondition("frightened");
+    if (!condition) return;
+    const floor = frightenedFloorFor(combatant.combat, actor.id);
+    if ((condition.value ?? 0) <= floor) return;
+    await actor.decreaseCondition("frightened");
+  } catch (err) {
+    console.error(`${MODULE_ID} | #943: Frightened end-of-turn decay failed:`, err?.message);
+  }
+}
+
 /** #915: an NPC ability's "temporarily immune ... for N" window, as a
  * game-clock (worldTime) timestamp keyed by ability item then target --
  * the same shape #909's demoralizeImmunity uses. 0 when never recorded. */
@@ -6788,7 +6817,8 @@ function endOfTargetsNextTurn(combat, targetId) {
 
 /** #915: applies one parsed degree to one target and returns a short GM
  * description. A condition with no duration of its own (Frightened) is left
- * to PF2e's own handling; one with a duration is tracked for removal: rounds
+ * to its own decay (Frightened: #943's end-of-turn hook); one with a
+ * duration is tracked for removal: rounds
  * count from the NPC's own turn (a duration ends at the start of the
  * creator's turn), and "until the end of its next turn" from the target's. */
 async function applyNpcAbilityDegree(combat, combatant, item, target, degree) {

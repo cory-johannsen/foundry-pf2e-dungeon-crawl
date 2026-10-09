@@ -165,8 +165,8 @@ function parseDegreeBlock(blockHtml) {
 
   // A duration attaches to the conditions in its own clause: Terrifying
   // Display's "Frightened 2 and Fleeing until the end of its next turn" is
-  // Fleeing for that long while Frightened decays on its own (PF2e's own
-  // end-of-turn reduction). A duration in a clause with no condition of its
+  // Fleeing for that long while Frightened decays on its own (#943's
+  // end-of-turn hook). A duration in a clause with no condition of its
   // own ("For 1 hour, the target is Stupefied 2") covers every condition in
   // the block that has none.
   const conditions = [];
