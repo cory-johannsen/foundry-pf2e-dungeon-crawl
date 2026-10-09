@@ -569,7 +569,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `AGENT_MELEE_REACH_SQUARES` (already imported per #909's plan).
 - Produces (consumed by Task 5): `function computeCompositeVocabularyEntries(actor, opponents, actionsRemaining)` → `Array<{itemId, slug, name, cost, targetId}>`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-feat-composite-vocabulary.test.mjs
@@ -660,12 +660,12 @@ describe('computeCompositeVocabularyEntries', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-feat-composite-vocabulary.test.mjs`
 Expected: FAIL — `computeCompositeVocabularyEntries` doesn't exist yet.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 Add alongside Task 3's helpers:
 
@@ -736,12 +736,12 @@ export function computeCompositeVocabularyEntries(actor, opponents, actionsRemai
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-feat-composite-vocabulary.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-feat-composite-vocabulary.test.mjs

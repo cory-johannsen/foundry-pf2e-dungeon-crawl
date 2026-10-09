@@ -2508,6 +2508,108 @@ export async function computeSelfEffectVocabularyEntries(actor, actionsRemaining
   return entries;
 }
 
+/** #910: whether a strike action is a melee one -- the same "finite
+ * positive range increment means ranged" rule actionReachSquares uses
+ * (number on PC weapons, `{increment}` on NPC items). */
+function isMeleeStrikeAction(action) {
+  const range = action?.item?.system?.range;
+  const increment = typeof range === "number" ? range : range?.increment;
+  if (Number.isFinite(increment) && increment > 0) return false;
+  return !(action?.item?.system?.traits?.value ?? []).some((t) =>
+    String(t).startsWith("range-increment"),
+  );
+}
+
+function readyMeleeStrikeActions(actor) {
+  return (actor?.system?.actions ?? []).filter(
+    (a) => a.type === "strike" && a.ready !== false && isMeleeStrikeAction(a),
+  );
+}
+
+/** #910: Lunge's "You are wielding a melee weapon" -- a real weapon item,
+ * not an unarmed attack. */
+function isMeleeWeaponStrike(action) {
+  return action.item?.type === "weapon" && action.item?.system?.category !== "unarmed";
+}
+
+/** #910: Twin Feint's "two melee weapons, each in a different hand": two
+ * distinct held weapon items each wielded in exactly one hand (so,
+ * necessarily, different hands). Returns the two strike actions, or null. */
+function twinFeintStrikePair(actor) {
+  const byItem = new Map();
+  for (const a of readyMeleeStrikeActions(actor)) {
+    if (!isMeleeWeaponStrike(a)) continue;
+    const equipped = a.item?.system?.equipped;
+    if (equipped?.carryType !== "held" || equipped?.handsHeld !== 1) continue;
+    if (!byItem.has(a.item.id)) byItem.set(a.item.id, a);
+  }
+  const pair = [...byItem.values()].slice(0, 2);
+  return pair.length === 2 ? pair : null;
+}
+
+/** #910: Lunge's strike for a target `distanceSquares` away -- the first
+ * melee weapon strike whose reach falls exactly 5 ft short of it. */
+function lungeStrikeFor(actor, distanceSquares, gridDistanceFt) {
+  const extra = 5 / gridDistanceFt;
+  return (
+    readyMeleeStrikeActions(actor).find((a) => {
+      if (!isMeleeWeaponStrike(a)) return false;
+      const reach = actionReachSquares(a, gridDistanceFt);
+      return distanceSquares > reach + REACH_EPSILON && distanceSquares <= reach + extra + REACH_EPSILON;
+    }) ?? null
+  );
+}
+
+const COMPOSITE_FEAT_SLUGS = new Set(["sudden-charge", "lunge", "twin-feint"]);
+
+/** #910: the curated composite-feat allowlist's own eligibility -- each
+ * feat's real PF2e requirement (installed system text) checked against the
+ * actor's ready strikes; character actors only. `opponents` is the
+ * serialized `{id, distanceSquares, hasLineOfSight}` list
+ * getPendingAgentTurn already builds.
+ *  - Lunge: wielding a melee weapon; target just beyond its reach.
+ *  - Sudden Charge: any melee Strike; target out of reach now but within
+ *    reach after two Strides.
+ *  - Twin Feint: two one-handed melee weapons; target in reach of both. */
+export function computeCompositeVocabularyEntries(actor, opponents, actionsRemaining, gridDistanceFt = 5) {
+  if (actor?.type !== "character") return [];
+  const entries = [];
+  const feats = (actor.itemTypes?.feat ?? []).filter((f) => COMPOSITE_FEAT_SLUGS.has(f.slug));
+  const meleeActions = readyMeleeStrikeActions(actor);
+  const visible = (opponents ?? []).filter((o) => o.hasLineOfSight !== false);
+
+  for (const feat of feats) {
+    const cost = featActionCost(feat);
+    if (cost === null || cost > actionsRemaining) continue;
+    if (feat.system?.frequency && !(feat.system.frequency.value > 0)) continue;
+    const base = { itemId: feat.id, slug: feat.slug, name: feat.name, cost, traits: featGatingTraits(feat) };
+
+    if (feat.slug === "lunge") {
+      for (const o of visible) {
+        if (lungeStrikeFor(actor, o.distanceSquares, gridDistanceFt)) entries.push({ ...base, targetId: o.id });
+      }
+    } else if (feat.slug === "sudden-charge") {
+      if (meleeActions.length === 0) continue;
+      const maxReach = Math.max(...meleeActions.map((a) => actionReachSquares(a, gridDistanceFt)));
+      const speedFt = actor.system?.movement?.speeds?.land?.value ?? 0;
+      const twoStridesSquares = 2 * Math.floor(speedFt / gridDistanceFt);
+      for (const o of visible) {
+        if (o.distanceSquares > maxReach + REACH_EPSILON && o.distanceSquares - maxReach <= twoStridesSquares + REACH_EPSILON) {
+          entries.push({ ...base, targetId: o.id });
+        }
+      }
+    } else if (feat.slug === "twin-feint") {
+      const pair = twinFeintStrikePair(actor);
+      if (!pair) continue;
+      const reach = Math.min(...pair.map((a) => actionReachSquares(a, gridDistanceFt)));
+      for (const o of visible) {
+        if (o.distanceSquares <= reach + REACH_EPSILON) entries.push({ ...base, targetId: o.id });
+      }
+    }
+  }
+  return entries;
+}
+
 /** Reads back Combat's own per-turn agent bookkeeping, or a fresh one
  * (`initAgentTurnState()`) if this is the first decision seen for this exact
  * combatant/round/turn — see `currentStoredAgentTurnState` above. */
