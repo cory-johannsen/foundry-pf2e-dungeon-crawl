@@ -1417,6 +1417,31 @@ describe('buildManeuverVocabulary', () => {
   it('returns an empty array for no opponents at all', () => {
     expect(buildManeuverVocabulary({ attacker: eligibleAttacker, opponents: [] })).toEqual([]);
   });
+
+  // #911: Sly Disarm's skill substitution rides on the vocabulary entry so
+  // execution never re-derives it; the base skill is left implicit.
+  it('carries an attacker-resolved substitute skill through onto the vocabulary entry', () => {
+    const attackerWithSlyDisarm = {
+      maneuvers: {
+        ...eligibleAttacker.maneuvers,
+        disarm: { eligible: true, reachSquares: AGENT_MELEE_REACH_SQUARES, skill: 'thievery' },
+      },
+    };
+    const vocabulary = buildManeuverVocabulary({ attacker: attackerWithSlyDisarm, opponents: [inReach] });
+    expect(vocabulary.find((v) => v.slug === 'disarm')).toEqual({ type: 'maneuver', slug: 'disarm', targetId: 'opp1', skill: 'thievery' });
+  });
+
+  it('omits skill when the attacker uses the maneuver\'s own base skill', () => {
+    const attackerBase = {
+      maneuvers: {
+        ...eligibleAttacker.maneuvers,
+        trip: { eligible: true, reachSquares: AGENT_MELEE_REACH_SQUARES, skill: 'athletics' },
+        demoralize: { eligible: true, reachSquares: DEMORALIZE_RANGE_SQUARES, skill: 'intimidation' },
+      },
+    };
+    const vocabulary = buildManeuverVocabulary({ attacker: attackerBase, opponents: [inReach] });
+    expect(vocabulary.every((v) => !('skill' in v))).toBe(true);
+  });
 });
 
 describe('buildManeuverCandidates', () => {
@@ -1463,6 +1488,17 @@ describe('buildManeuverCandidates', () => {
 
   it('returns an empty array when maneuverPicks is null (not yet fetched this turn)', () => {
     expect(buildManeuverCandidates({ maneuverVocabulary, maneuverPicks: null, opponents })).toEqual([]);
+  });
+
+  it('carries the matched vocabulary entry\'s skill onto the candidate (#911)', () => {
+    const candidates = buildManeuverCandidates({
+      maneuverVocabulary: [{ type: 'maneuver', slug: 'disarm', targetId: 'opp1', skill: 'thievery' }],
+      maneuverPicks: [{ type: 'maneuver', slug: 'disarm', targetId: 'opp1', rationale: 'x' }],
+      opponents,
+    });
+    expect(candidates).toEqual([
+      { id: 'maneuver:disarm:opp1', type: 'maneuver', slug: 'disarm', targetId: 'opp1', skill: 'thievery', cost: 1, summary: 'Disarm vs Goblin — x' },
+    ]);
   });
 
   it('drops a pick whose target is no longer in the opponents list', () => {

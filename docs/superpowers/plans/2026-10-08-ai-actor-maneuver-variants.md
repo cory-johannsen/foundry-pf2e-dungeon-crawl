@@ -40,7 +40,7 @@
 - Consumes: nothing.
 - Produces (consumed by Task 2 and Task 5): `eligibilityModifiers(featSlugs, { athleticsRank, athleticsMod, thieveryMod } = {})` → `{ sizeCapSteps: {trip?, shove?, grapple?, disarm?}, skill: {disarm?} }`; `ridersFor(featSlugs, slug, outcome, skillUsed)` → `Array<{type: 'crushingGrabDamage' | 'slyDisarmOffGuard' | 'terrifiedRetreatFleeing'}>`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/maneuver-feat-modifiers.test.mjs
@@ -126,12 +126,12 @@ describe('ridersFor', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/maneuver-feat-modifiers.test.mjs`
 Expected: FAIL — `scripts/maneuver-feat-modifiers.mjs` doesn't exist yet.
 
-- [ ] **Step 3: Write `scripts/maneuver-feat-modifiers.mjs`**
+- [x] **Step 3: Write `scripts/maneuver-feat-modifiers.mjs`**
 
 ```js
 /**
@@ -201,12 +201,12 @@ export function ridersFor(featSlugs, slug, outcome, skillUsed) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/maneuver-feat-modifiers.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/maneuver-feat-modifiers.mjs tests/maneuver-feat-modifiers.test.mjs
@@ -229,7 +229,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `eligibilityModifiers` (Task 1).
 - Produces: `buildManeuverVocabulary`'s output entries now carry `skill`; `sizeOkForManeuver` now takes a `capSteps` parameter; `computeManeuverAttackerProfile`'s per-slug entries now carry `skill`/`sizeCapSteps`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/agent-candidates.test.mjs` (inside the existing `describe('buildManeuverVocabulary', ...)` block):
 
@@ -292,12 +292,12 @@ Add to `tests/dungeon-combat-maneuver-vocabulary.test.mjs` (inside the existing 
   });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/agent-candidates.test.mjs tests/dungeon-combat-maneuver-vocabulary.test.mjs`
 Expected: FAIL — `skill` is `undefined` on vocabulary entries; `sizeOkForManeuver` ignores a third argument; `computeManeuverAttackerProfile`'s entries carry no `skill`/`sizeCapSteps`.
 
-- [ ] **Step 3: Update `buildManeuverVocabulary` in `scripts/agent-candidates.mjs`**
+- [x] **Step 3: Update `buildManeuverVocabulary` in `scripts/agent-candidates.mjs`**
 
 Change the vocabulary-push line:
 
@@ -333,7 +333,7 @@ Update `buildManeuverCandidates` to carry `skill` through onto the built candida
 
 (This replaces the `const inVocabulary = maneuverVocabulary.some((v) => ...)` + `if (!inVocabulary) continue;` pair with the `const matched = maneuverVocabulary.find(...)` + `if (!matched) continue;` pair shown — same referential-integrity check, now also capturing the matched entry's `skill`.)
 
-- [ ] **Step 4: Update `sizeOkForManeuver` and `computeManeuverAttackerProfile` in `scripts/dungeon-combat.mjs`**
+- [x] **Step 4: Update `sizeOkForManeuver` and `computeManeuverAttackerProfile` in `scripts/dungeon-combat.mjs`**
 
 ```js
 function sizeOkForManeuver(attackerActor, targetActor, capSteps = 1) {
@@ -376,7 +376,7 @@ function computeManeuverAttackerProfile(actor) {
 }
 ```
 
-- [ ] **Step 5: Thread the per-slug `sizeCapSteps` into `getPendingAgentTurn`'s own `sizeOk` computation**
+- [x] **Step 5: Thread the per-slug `sizeCapSteps` into `getPendingAgentTurn`'s own `sizeOk` computation**
 
 In `getPendingAgentTurn` (per #909's plan), the four `sizeOkForManeuver(combatant.actor, o.actor)` calls inside the `maneuverOpponents` mapping each gain their matching per-slug cap argument:
 
@@ -391,17 +391,17 @@ In `getPendingAgentTurn` (per #909's plan), the four `sizeOkForManeuver(combatan
 
 (`maneuverAttackerProfile` is the same variable `computeManeuverAttackerProfile(combatant.actor)`'s own result, already assigned earlier in this function per #909's plan — this step only changes the four call sites that read from it, not its own assignment.)
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-candidates.test.mjs tests/dungeon-combat-maneuver-vocabulary.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — in particular, re-check any existing `buildManeuverCandidates` test that asserts an exact candidate object via `toEqual` (per #909's own plan, its tests do) now needs a `skill: 'athletics'` (or whatever that fixture's vocabulary entry carries) added to the expected object, since the candidate shape gained a field.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs scripts/dungeon-combat.mjs tests/agent-candidates.test.mjs tests/dungeon-combat-maneuver-vocabulary.test.mjs
@@ -422,7 +422,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `candidate.skill` (Task 2).
 - Produces: `runManeuverCheck`/`executeManeuverCandidate` now pass the candidate's own resolved `skill` through to `game.pf2e.actions[slug]`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `tests/dungeon-combat-maneuver-execution.test.mjs` (per #909's plan, this file already mocks `game.pf2e.actions`):
 
@@ -445,12 +445,12 @@ it('defaults to no explicit skill override when the candidate carries the maneuv
 
 (Fill in the real combat/combatant/target stub shape this file already established per #909's plan before running — not re-derived here.)
 
-- [ ] **Step 2: Run test to verify it fails (once filled in)**
+- [x] **Step 2: Run test to verify it fails (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-execution.test.mjs`
 Expected: FAIL — `runManeuverCheck` doesn't forward a `skill` option yet.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 function runManeuverCheck(slug, combatant, target, skill) {
@@ -476,17 +476,17 @@ async function executeManeuverCandidate(combat, combatant, candidate) {
 
 (`applyManeuverOutcome`'s own signature gains the trailing `skillUsed` parameter here; Task 5 is what actually uses it — this task only threads it through without yet changing what `applyManeuverOutcome` does with it, so update its signature to `async function applyManeuverOutcome(slug, combat, combatant, target, outcome, skillUsed = "athletics") {` and leave its existing body otherwise unchanged for now.)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-execution.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-maneuver-execution.test.mjs
@@ -508,7 +508,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing new.
 - Produces (consumed by Task 5): `async function recordManeuverRiderExpiry(combat, entry)`; `export async function sweepExpiredManeuverRiders(combat)`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-maneuver-rider-expiry.test.mjs
@@ -607,12 +607,12 @@ describe('sweepExpiredManeuverRiders', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-rider-expiry.test.mjs`
 Expected: FAIL — `sweepExpiredManeuverRiders` doesn't exist yet.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 ```js
 async function recordManeuverRiderExpiry(combat, entry) {
@@ -652,7 +652,7 @@ export async function sweepExpiredManeuverRiders(combat) {
 }
 ```
 
-- [ ] **Step 4: Wire the sweep into the existing turn-change hook in `scripts/module.mjs`**
+- [x] **Step 4: Wire the sweep into the existing turn-change hook in `scripts/module.mjs`**
 
 Add the import:
 
@@ -670,17 +670,17 @@ Hooks.on("updateCombat", (combat, changes) => {
 });
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-rider-expiry.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — in particular, check whether `scripts/module.mjs` already has a direct test asserting the exact body of this `updateCombat` hook via source-text matching (the way `tests/module-door-sound-hook.test.mjs` does for a different hook, per earlier work this session) and, if so, update its expected pattern rather than leaving it asserting the pre-change hook body.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs scripts/module.mjs tests/dungeon-combat-maneuver-rider-expiry.test.mjs
@@ -701,7 +701,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `ridersFor` (Task 1), `recordManeuverRiderExpiry` (Task 4, module-private).
 - Produces: `applyManeuverOutcome`'s existing body (per #909's plan) now calls a new `applyManeuverRiders` after applying the base RAW outcome — the terminal consumer in this plan.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Find and read an existing maneuver-execution test first (`tests/dungeon-combat-maneuver-execution.test.mjs`, already touched in Task 3) to copy its stub shape, then:
 
@@ -756,12 +756,12 @@ describe('applyAgentDecision maneuver riders', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail (once filled in)**
+- [x] **Step 2: Run tests to verify they fail (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-riders.test.mjs`
 Expected: FAIL — `applyManeuverOutcome` doesn't call any rider logic yet.
 
-- [ ] **Step 3: Implement `applyManeuverRiders` and wire it into `applyManeuverOutcome`**
+- [x] **Step 3: Implement `applyManeuverRiders` and wire it into `applyManeuverOutcome`**
 
 ```js
 /** #911: applies each rider `ridersFor` returns, after the base RAW
@@ -805,17 +805,17 @@ At the end of `applyManeuverOutcome` (per #909's plan, after its existing per-sl
   await applyManeuverRiders(combat, combatant, target, slug, outcome, skillUsed);
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-riders.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-maneuver-riders.test.mjs
@@ -835,17 +835,17 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing.
 - Produces: nothing — final housekeeping step before merge.
 
-- [ ] **Step 1: Check the current version and bump it**
+- [x] **Step 1: Check the current version and bump it**
 
 Run: `grep '"version"' module.json`
 
 A **minor** bump per `CLAUDE.md`'s versioning rule — a new pure module plus eligibility/execution changes to #909's own pipeline. Confirm the real current value live (both #909's and #910's own plans will each have already consumed a bump by the time this one executes) rather than assuming.
 
-- [ ] **Step 2: Verify no other file hardcodes the old version**
+- [x] **Step 2: Verify no other file hardcodes the old version**
 
 Run: `grep -rn "<old version string>" . --include="*.json" --include="*.mjs" --include="*.md" | grep -v node_modules | grep -v docs/superpowers`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json

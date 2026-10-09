@@ -56,8 +56,11 @@ function makeCombatant({ id, gx, gy, disposition, heldWeapon = false }) {
   };
 }
 
-function setup({ slug, outcome, opponentAt = [1, 0], dcs = null }) {
+function setup({ slug, outcome, opponentAt = [1, 0], dcs = null, feats = [], skills = null, levels = null }) {
   const attacker = makeCombatant({ id: "atk", gx: 0, gy: 0, disposition: -1 });
+  // #911: maneuver-modifier feats/skills on the attacker.
+  for (const featSlug of feats) attacker.actor.items.push({ type: "feat", slug: featSlug });
+  if (skills) attacker.actor.skills = skills;
   const opponent = makeCombatant({
     id: "opp",
     gx: opponentAt[0],
@@ -65,6 +68,10 @@ function setup({ slug, outcome, opponentAt = [1, 0], dcs = null }) {
     disposition: 1,
     heldWeapon: true,
   });
+  if (levels) {
+    attacker.actor.level = levels[0];
+    opponent.actor.level = levels[1];
+  }
   if (dcs) {
     opponent.actor.getStatistic = vi.fn((s) => (s in dcs ? { dc: { value: dcs[s] } } : null));
   }
@@ -285,5 +292,152 @@ describe("maneuver target defense DC (#909)", () => {
     const { combat, action } = setup({ slug: "trip", outcome: "success" });
     await applyAgentDecision(combat, "atk", "maneuver:trip:opp", "r");
     expect("difficultyClass" in action.mock.calls[0][0]).toBe(false);
+  });
+});
+
+describe("maneuver skill substitution (#911)", () => {
+  const SLY = { athletics: { mod: 3 }, thievery: { mod: 10 }, intimidation: {} };
+
+  it("passes skill: thievery to game.pf2e.actions.disarm for a Sly Disarm actor whose Thievery is better", async () => {
+    const { combat, action } = setup({ slug: "disarm", outcome: "failure", feats: ["sly-disarm"], skills: SLY });
+    await applyAgentDecision(combat, "atk", "maneuver:disarm:opp", "r");
+    expect(action).toHaveBeenCalledTimes(1);
+    expect(action.mock.calls[0][0].skill).toBe("thievery");
+  });
+
+  it("still rolls against the target's Reflex DC when Disarming with Thievery", async () => {
+    const { opponent, combat, action } = setup({
+      slug: "disarm", outcome: "failure", feats: ["sly-disarm"], skills: SLY, dcs: { reflex: 18, fortitude: 20 },
+    });
+    await applyAgentDecision(combat, "atk", "maneuver:disarm:opp", "r");
+    expect(opponent.actor.getStatistic).toHaveBeenCalledWith("reflex");
+    expect(action.mock.calls[0][0].difficultyClass).toEqual({ value: 18 });
+  });
+
+  it("passes no skill override when the maneuver uses its own base skill", async () => {
+    const { combat, action } = setup({ slug: "trip", outcome: "failure" });
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp", "r");
+    expect("skill" in action.mock.calls[0][0]).toBe(false);
+  });
+
+  it("passes no skill override for a Sly Disarm actor whose Athletics is at least as good", async () => {
+    const { combat, action } = setup({
+      slug: "disarm", outcome: "failure", feats: ["sly-disarm"],
+      skills: { athletics: { mod: 10 }, thievery: { mod: 10 }, intimidation: {} },
+    });
+    await applyAgentDecision(combat, "atk", "maneuver:disarm:opp", "r");
+    expect("skill" in action.mock.calls[0][0]).toBe(false);
+  });
+});
+
+describe("maneuver feat riders (#911)", () => {
+  const SLY = { athletics: { mod: 3 }, thievery: { mod: 10 }, intimidation: {} };
+  const whispers = () => ChatMessage.create.mock.calls.map((c) => c[0].content).join("\n");
+
+  it("deals Crushing Grab's Strength-modifier bludgeoning damage after a successful Grapple", async () => {
+    const { attacker, opponent, combat } = setup({ slug: "grapple", outcome: "success", feats: ["crushing-grab"] });
+    attacker.actor.abilities = { str: { mod: 4 } };
+    await applyAgentDecision(combat, "atk", "maneuver:grapple:opp", "r");
+    expect(opponent.actor.increaseCondition).toHaveBeenCalledWith("grabbed");
+    expect(opponent.actor.applyDamage).toHaveBeenCalledTimes(1);
+    const { damage, token } = opponent.actor.applyDamage.mock.calls[0][0];
+    expect(damage.formula).toBe("4[bludgeoning]");
+    expect(token).toBe(opponent.token);
+    expect(whispers()).toContain("Crushing Grab");
+  });
+
+  it("also deals Crushing Grab damage on a critical success (Restrained)", async () => {
+    const { attacker, opponent, combat } = setup({ slug: "grapple", outcome: "criticalSuccess", feats: ["crushing-grab"] });
+    attacker.actor.abilities = { str: { mod: 3 } };
+    await applyAgentDecision(combat, "atk", "maneuver:grapple:opp", "r");
+    expect(opponent.actor.increaseCondition).toHaveBeenCalledWith("restrained");
+    expect(opponent.actor.applyDamage.mock.calls[0][0].damage.formula).toBe("3[bludgeoning]");
+  });
+
+  it("deals no Crushing Grab damage without the feat, on a failure, or with a non-positive Strength modifier", async () => {
+    let { attacker, opponent, combat } = setup({ slug: "grapple", outcome: "success" });
+    attacker.actor.abilities = { str: { mod: 4 } };
+    await applyAgentDecision(combat, "atk", "maneuver:grapple:opp", "r");
+    expect(opponent.actor.applyDamage).not.toHaveBeenCalled();
+
+    ({ attacker, opponent, combat } = setup({ slug: "grapple", outcome: "failure", feats: ["crushing-grab"] }));
+    attacker.actor.abilities = { str: { mod: 4 } };
+    await applyAgentDecision(combat, "atk", "maneuver:grapple:opp", "r");
+    expect(opponent.actor.applyDamage).not.toHaveBeenCalled();
+
+    ({ attacker, opponent, combat } = setup({ slug: "grapple", outcome: "success", feats: ["crushing-grab"] }));
+    attacker.actor.abilities = { str: { mod: 0 } };
+    await applyAgentDecision(combat, "atk", "maneuver:grapple:opp", "r");
+    expect(opponent.actor.applyDamage).not.toHaveBeenCalled();
+  });
+
+  it("makes the target Off-Guard until the end of the turn after a successful Thievery Disarm with Sly Disarm", async () => {
+    const { opponent, combat } = setup({ slug: "disarm", outcome: "success", feats: ["sly-disarm"], skills: SLY });
+    await applyAgentDecision(combat, "atk", "maneuver:disarm:opp", "r");
+    expect(opponent.actor.createEmbeddedDocuments).toHaveBeenCalled(); // base RAW effect still applied
+    expect(opponent.actor.increaseCondition).toHaveBeenCalledWith("off-guard");
+    expect(combat.getFlag(MODULE_ID, "maneuverRiderExpiry")).toEqual([
+      { targetId: "opp", conditionSlug: "off-guard", expiry: { afterRoundTurn: { round: 1, turn: 0 } } },
+    ]);
+    expect(whispers()).toContain("Sly Disarm");
+  });
+
+  it("does not apply Sly Disarm's Off-Guard when the Disarm used Athletics", async () => {
+    const { opponent, combat } = setup({
+      slug: "disarm", outcome: "success", feats: ["sly-disarm"],
+      skills: { athletics: { mod: 12 }, thievery: { mod: 5 }, intimidation: {} },
+    });
+    await applyAgentDecision(combat, "atk", "maneuver:disarm:opp", "r");
+    expect(opponent.actor.increaseCondition).not.toHaveBeenCalledWith("off-guard");
+    expect(combat.getFlag(MODULE_ID, "maneuverRiderExpiry")).toBeUndefined();
+  });
+
+  it("does not track (and so never later removes) Off-Guard the target already had", async () => {
+    const { opponent, combat } = setup({ slug: "disarm", outcome: "success", feats: ["sly-disarm"], skills: SLY });
+    opponent.actor.conditions = [{ slug: "off-guard" }];
+    await applyAgentDecision(combat, "atk", "maneuver:disarm:opp", "r");
+    expect(opponent.actor.increaseCondition).not.toHaveBeenCalledWith("off-guard");
+    expect(combat.getFlag(MODULE_ID, "maneuverRiderExpiry")).toBeUndefined();
+  });
+
+  it("makes a lower-level target Fleeing for 1 round after a critical-success Demoralize with Terrified Retreat", async () => {
+    const { opponent, combat } = setup({
+      slug: "demoralize", outcome: "criticalSuccess", feats: ["terrified-retreat"], levels: [7, 4],
+    });
+    await applyAgentDecision(combat, "atk", "maneuver:demoralize:opp", "r");
+    expect(opponent.actor.increaseCondition).toHaveBeenCalledWith("frightened", { value: 2 });
+    expect(opponent.actor.increaseCondition).toHaveBeenCalledWith("fleeing");
+    expect(combat.getFlag(MODULE_ID, "maneuverRiderExpiry")).toEqual([
+      { targetId: "opp", conditionSlug: "fleeing", expiry: { untilRoundTurn: { round: 2, turn: 0 } } },
+    ]);
+    expect(whispers()).toContain("Terrified Retreat");
+  });
+
+  it("does not apply Fleeing on a plain success, or against a target of equal/higher level", async () => {
+    let { opponent, combat } = setup({
+      slug: "demoralize", outcome: "success", feats: ["terrified-retreat"], levels: [7, 4],
+    });
+    await applyAgentDecision(combat, "atk", "maneuver:demoralize:opp", "r");
+    expect(opponent.actor.increaseCondition).not.toHaveBeenCalledWith("fleeing");
+
+    ({ opponent, combat } = setup({
+      slug: "demoralize", outcome: "criticalSuccess", feats: ["terrified-retreat"], levels: [7, 7],
+    }));
+    await applyAgentDecision(combat, "atk", "maneuver:demoralize:opp", "r");
+    expect(opponent.actor.increaseCondition).not.toHaveBeenCalledWith("fleeing");
+  });
+
+  it("logs and continues when a rider fails, keeping the base outcome and reporting it to the GM", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { attacker, opponent, combat } = setup({ slug: "grapple", outcome: "success", feats: ["crushing-grab"] });
+    attacker.actor.abilities = { str: { mod: 4 } };
+    opponent.actor.applyDamage = vi.fn(async () => {
+      throw new Error("boom");
+    });
+    await applyAgentDecision(combat, "atk", "maneuver:grapple:opp", "r"); // must not reject
+    expect(opponent.actor.increaseCondition).toHaveBeenCalledWith("grabbed");
+    expect(console.error).toHaveBeenCalled();
+    expect(whispers()).toMatch(/Crushing Grab.*failed/);
+    expect(combat.getFlag(MODULE_ID, "agentTurnState").actionsRemaining).toBe(2);
   });
 });

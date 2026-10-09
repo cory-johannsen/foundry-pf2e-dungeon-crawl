@@ -126,6 +126,25 @@ describe("getPendingAgentTurn maneuver vocabulary (#909)", () => {
     expect(pending.maneuverVocabulary.map((v) => v.slug)).toEqual(["demoralize"]);
   });
 
+  it("offers the Athletics maneuvers against a target two sizes larger when the attacker has Titan Wrestler (#911)", async () => {
+    const me = mk("atk", 0, 0, -1, { skills: { athletics: { rank: 2, mod: 8 }, intimidation: {} }, size: "sm" });
+    me.actor.items.push({ type: "feat", slug: "titan-wrestler" });
+    const big = mk("big", 1, 0, 1, { type: "character", size: "lg" });
+    const pending = await getPendingAgentTurn(mkCombat([me, big], me));
+    expect(pending.maneuverVocabulary.map((v) => v.slug)).toEqual(["trip", "shove", "grapple", "disarm", "demoralize"]);
+  });
+
+  it("tags the disarm entry with thievery when Sly Disarm's Thievery is the better statistic (#911)", async () => {
+    const me = mk("atk", 0, 0, -1, { skills: { athletics: { mod: 3 }, thievery: { mod: 10 }, intimidation: {} } });
+    me.actor.items.push({ type: "feat", slug: "sly-disarm" });
+    const opp = mk("opp1", 1, 0, 1, { type: "character" });
+    const pending = await getPendingAgentTurn(mkCombat([me, opp], me));
+    expect(pending.maneuverVocabulary.find((v) => v.slug === "disarm")).toEqual({
+      type: "maneuver", slug: "disarm", targetId: "opp1", skill: "thievery",
+    });
+    expect(pending.maneuverVocabulary.find((v) => v.slug === "trip").skill).toBeUndefined();
+  });
+
   it("excludes demoralize against a target immune to mental effects", async () => {
     const me = mk("atk", 0, 0, -1, { skills: SKILLED });
     const mindless = mk("opp1", 1, 0, 1, { immunities: [{ type: "mental" }] });

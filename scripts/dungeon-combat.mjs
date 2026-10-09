@@ -71,6 +71,7 @@ import {
 } from "./dungeon-critical-deck.mjs";
 import { fetchCombatDecision, fetchCombatCandidates } from "./agent-service-client.mjs";
 import { withDialogsSuppressed } from "./trap-combat.mjs";
+import { eligibilityModifiers, ridersFor } from "./maneuver-feat-modifiers.mjs";
 import {
   DETECTION,
   applySeekOutcome,
@@ -2334,29 +2335,56 @@ export function computeManeuverAttackerProfile(actor) {
   const profile = {};
   const hasAthletics = !!actor?.skills?.athletics;
   const hasIntimidation = !!actor?.skills?.intimidation;
+  // #911: feat-driven size-cap widening (Titan Wrestler) and skill
+  // substitution (Sly Disarm) from the curated maneuver-feat table.
+  const modifiers = eligibilityModifiers(actorFeatSlugs(actor), {
+    athleticsRank: actor?.skills?.athletics?.rank,
+    athleticsMod: actor?.skills?.athletics?.mod,
+    thieveryMod: actor?.skills?.thievery?.mod,
+  });
   for (const slug of MELEE_MANEUVER_SLUGS) {
     profile[slug] = {
       eligible: hasAthletics && hasFreeHandOrManeuverWeapon(actor, slug),
       reachSquares: AGENT_MELEE_REACH_SQUARES,
+      skill: modifiers.skill[slug] ?? MANEUVER_DEFS[slug].skill,
+      sizeCapSteps: modifiers.sizeCapSteps[slug] ?? 1,
     };
   }
   // #910: Rage -- "You can't use actions with the concentrate trait unless
   // they also have the rage trait"; Demoralize is concentrate, not rage.
   const raging = (actor?.itemTypes?.effect ?? []).some((e) => e?.slug === "effect-rage");
-  profile.demoralize = { eligible: hasIntimidation && !raging, reachSquares: DEMORALIZE_RANGE_SQUARES };
+  profile.demoralize = {
+    eligible: hasIntimidation && !raging,
+    reachSquares: DEMORALIZE_RANGE_SQUARES,
+    skill: MANEUVER_DEFS.demoralize.skill,
+    sizeCapSteps: 1,
+  };
   return profile;
+}
+
+/** #911: the slugs of `actor`'s own feat items (the maneuver-feat table's
+ * input). Unreadable item data yields no slugs -- base RAW, never more
+ * permissive. */
+function actorFeatSlugs(actor) {
+  try {
+    return Array.from(actor?.items ?? [])
+      .filter((i) => i?.type === "feat" && typeof i.slug === "string")
+      .map((i) => i.slug);
+  } catch {
+    return [];
+  }
 }
 
 /** #909: PF2e's own "target no more than one size larger than you"
  * prerequisite, shared verbatim by Trip/Shove/Grapple/Disarm (confirmed
- * in each action's own lang/action-en.json text). Unreadable size data on
- * either side defaults to allowed rather than blocking the maneuver on a
- * data gap. */
-export function sizeOkForManeuver(attackerActor, targetActor) {
+ * in each action's own lang/action-en.json text). `capSteps` widens it
+ * (#911: Titan Wrestler, 2 or 3). Unreadable size data on either side
+ * defaults to allowed rather than blocking the maneuver on a data gap. */
+export function sizeOkForManeuver(attackerActor, targetActor, capSteps = 1) {
   const attackerIdx = SIZE_ORDER.indexOf(attackerActor?.system?.traits?.size?.value);
   const targetIdx = SIZE_ORDER.indexOf(targetActor?.system?.traits?.size?.value);
   if (attackerIdx < 0 || targetIdx < 0) return true;
-  return targetIdx - attackerIdx <= 1;
+  return targetIdx - attackerIdx <= capSteps;
 }
 
 /** #909: Demoralize's own 10-minute re-attempt immunity (PF2e RAW: "the
@@ -3846,13 +3874,18 @@ export async function getPendingAgentTurn(combat) {
   const maneuverAttackerProfile = computeManeuverAttackerProfile(combatant.actor);
   const worldTime = globalThis.game?.time?.worldTime ?? 0;
   const maneuverOpponents = rawOpponents.map((o) => {
-    const sizeOk = sizeOkForManeuver(combatant.actor, o.actor);
+    const sizeOk = Object.fromEntries(
+      MELEE_MANEUVER_SLUGS.map((slug) => [
+        slug,
+        sizeOkForManeuver(combatant.actor, o.actor, maneuverAttackerProfile[slug].sizeCapSteps),
+      ]),
+    );
     return {
       id: o.id,
       name: o.name,
       distanceSquares: chebyshevSquares(combatant.token, o.token, gridSize),
       hasLineOfSight: canSee(o),
-      sizeOk: { trip: sizeOk, shove: sizeOk, grapple: sizeOk, disarm: sizeOk },
+      sizeOk,
       holdsItem: holdsAnItem(o.actor),
       demoralizeImmune:
         immuneToDemoralize(o.actor) ||
@@ -5770,9 +5803,10 @@ const MANEUVER_CHECK_TIMEOUT_MS = 30000;
  * promise. Resolves `null` if no outcome arrives in time or the macro
  * throws synchronously. `modifiers` is passed straight through to the
  * macro's own check (the hook a multiple attack penalty for the four
- * attack-trait maneuvers will use, #940).
+ * attack-trait maneuvers will use, #940). `skill` (#911) overrides the
+ * statistic rolled; omitted, the macro uses the maneuver's base skill.
  */
-function runManeuverCheck(slug, combatant, target, { modifiers } = {}) {
+function runManeuverCheck(slug, combatant, target, { modifiers, skill } = {}) {
   return new Promise((resolve) => {
     let settled = false;
     const finish = (outcome) => {
@@ -5798,6 +5832,10 @@ function runManeuverCheck(slug, combatant, target, { modifiers } = {}) {
         event: null,
         ...(Number.isFinite(dcValue) ? { difficultyClass: { value: dcValue } } : {}),
         ...(modifiers?.length ? { modifiers } : {}),
+        // #911: a feat-substituted statistic (Sly Disarm: Thievery) goes
+        // through the macro's own `skill` option; the DC above is still the
+        // maneuver's own defense (Disarm: Reflex) regardless of the skill.
+        ...(skill ? { skill } : {}),
         callback: ({ outcome }) => finish(outcome),
       });
     } catch (err) {
@@ -5805,6 +5843,64 @@ function runManeuverCheck(slug, combatant, target, { modifiers } = {}) {
       finish(null);
     }
   });
+}
+
+/** #911: tracks a module-applied maneuver rider condition for removal by
+ * sweepExpiredManeuverRiders. Same combat-flag precedent as the recharge
+ * tracking (`availableAtRound`) and demoralizeImmunity. */
+async function recordManeuverRiderExpiry(combat, entry) {
+  const current = combat.getFlag(MODULE_ID, "maneuverRiderExpiry") ?? [];
+  await combat.setFlag(MODULE_ID, "maneuverRiderExpiry", [...current, entry]);
+}
+
+/** #911: whether a tracked rider has run out at the combat's current
+ * (round, turn). `untilRoundTurn` ("for 1 round": Terrified Retreat's
+ * Fleeing) ends once that (round, turn) is reached or passed;
+ * `afterRoundTurn` ("before the end of your turn": Sly Disarm's Off-Guard)
+ * ends the moment the current (round, turn) differs from the granting one.
+ * A malformed entry counts as expired so it never lingers. */
+function maneuverRiderExpired(combat, expiry) {
+  const round = combat.round ?? 0;
+  const turn = combat.turn ?? 0;
+  if (expiry?.untilRoundTurn) {
+    const { round: r, turn: t } = expiry.untilRoundTurn;
+    return round > r || (round === r && turn >= t);
+  }
+  if (expiry?.afterRoundTurn) {
+    const { round: r, turn: t } = expiry.afterRoundTurn;
+    return round !== r || turn !== t;
+  }
+  return true;
+}
+
+/** #911: PF2e's Fleeing condition item carries no duration at all
+ * (`duration: {unit: "unlimited"}`), and Sly Disarm's turn-limited
+ * Off-Guard has no system-tracked duration either -- this module removes
+ * both itself on turn/round change (module.mjs's updateCombat hook). GM
+ * only, since that hook fires on every client. A removal that fails is
+ * logged and the entry dropped; it never aborts the rest of the sweep. */
+export async function sweepExpiredManeuverRiders(combat) {
+  if (globalThis.game?.user && !game.user.isGM) return;
+  if (typeof combat?.getFlag !== "function") return;
+  const entries = combat.getFlag(MODULE_ID, "maneuverRiderExpiry") ?? [];
+  if (!Array.isArray(entries) || !entries.length) return;
+  const remaining = [];
+  for (const entry of entries) {
+    if (!maneuverRiderExpired(combat, entry?.expiry)) {
+      remaining.push(entry);
+      continue;
+    }
+    if (!entry?.targetId || !entry?.conditionSlug) continue;
+    try {
+      const target = Array.from(combat.combatants ?? []).find((c) => c.id === entry.targetId);
+      await target?.actor?.decreaseCondition?.(entry.conditionSlug, { forceRemove: true });
+    } catch (err) {
+      console.error(`${MODULE_ID} | #911: removing expired ${entry.conditionSlug} failed:`, err.message);
+    }
+  }
+  if (remaining.length !== entries.length) {
+    await combat.setFlag(MODULE_ID, "maneuverRiderExpiry", remaining);
+  }
 }
 
 /** #909: Disarm's critical success -- "the item falls to the ground in the
@@ -5827,7 +5923,15 @@ async function dropHeldItem(actor) {
  * applied by hand, mirroring dungeon-strike-riders.mjs's
  * applyConditionOnSuccess precedent. Returns a short description for the
  * GM whisper. */
-async function applyManeuverOutcome(slug, combat, combatant, target, outcome) {
+async function applyManeuverOutcome(slug, combat, combatant, target, outcome, skillUsed = MANEUVER_DEFS[slug]?.skill) {
+  const base = await applyBaseManeuverOutcome(slug, combat, combatant, target, outcome);
+  // #911: feat riders land after (and never undo) the base RAW outcome.
+  const riders = await applyManeuverRiders(combat, combatant, target, slug, outcome, skillUsed);
+  return [base, ...riders].join("; ");
+}
+
+/** The base RAW consequence of one maneuver outcome (see applyManeuverOutcome). */
+async function applyBaseManeuverOutcome(slug, combat, combatant, target, outcome) {
   const hit = outcome === "success" || outcome === "criticalSuccess";
   if (slug === "trip") {
     if (hit) await target.actor.increaseCondition("prone");
@@ -5895,11 +5999,75 @@ async function applyManeuverOutcome(slug, combat, combatant, target, outcome) {
   return "no effect";
 }
 
+/** #911: applies each feat rider ridersFor returns (Crushing Grab, Sly
+ * Disarm, Terrified Retreat), after the base RAW outcome already landed.
+ * A failing rider is caught, logged and reported in the returned GM text;
+ * it never undoes or interrupts the base outcome. Returns one short
+ * description per rider, naming the feat. */
+async function applyManeuverRiders(combat, combatant, target, slug, outcome, skillUsed) {
+  const riders = ridersFor(actorFeatSlugs(combatant.actor), slug, outcome, skillUsed, {
+    actorLevel: combatant.actor?.level,
+    targetLevel: target.actor?.level,
+  });
+  const notes = [];
+  for (const rider of riders) {
+    const feat = MANEUVER_RIDER_FEAT_NAMES[rider.type] ?? rider.type;
+    try {
+      if (rider.type === "crushingGrabDamage") {
+        // "deal bludgeoning damage ... equal to your Strength modifier" --
+        // a typed DamageRoll (not a bare number) so the target's
+        // bludgeoning IWR applies, same as the Trip crit damage above.
+        const mod = Number(combatant.actor?.abilities?.str?.mod);
+        if (!Number.isFinite(mod) || mod <= 0) continue;
+        const DamageRollClass = CONFIG.Dice.rolls.find((c) => c.name === "DamageRoll");
+        const roll = new DamageRollClass(`${mod}[bludgeoning]`);
+        await roll.evaluate();
+        await target.actor.applyDamage({ damage: roll, token: target.token });
+        await applyDefeatIfReducedToZero(target);
+        notes.push(`${feat}: ${roll.total} bludgeoning damage`);
+      } else if (rider.type === "slyDisarmOffGuard") {
+        // "Off-Guard against the next attack you make before the end of
+        // your turn" -- removed at this turn's end by the expiry sweep. A
+        // condition the target already had is neither re-applied nor
+        // tracked, so the sweep never strips someone else's Off-Guard.
+        if (actorHasCondition(target.actor, "off-guard")) continue;
+        await target.actor.increaseCondition("off-guard");
+        await recordManeuverRiderExpiry(combat, {
+          targetId: target.id,
+          conditionSlug: "off-guard",
+          expiry: { afterRoundTurn: { round: combat.round, turn: combat.turn } },
+        });
+        notes.push(`${feat}: target is Off-Guard until the end of this turn`);
+      } else if (rider.type === "terrifiedRetreatFleeing") {
+        // "Fleeing for 1 round" -- until this same point next round.
+        if (actorHasCondition(target.actor, "fleeing")) continue;
+        await target.actor.increaseCondition("fleeing");
+        await recordManeuverRiderExpiry(combat, {
+          targetId: target.id,
+          conditionSlug: "fleeing",
+          expiry: { untilRoundTurn: { round: combat.round + 1, turn: combat.turn } },
+        });
+        notes.push(`${feat}: target is Fleeing for 1 round`);
+      }
+    } catch (err) {
+      console.error(`${MODULE_ID} | #911: maneuver rider (${rider.type}) failed:`, err.message);
+      notes.push(`${feat} failed -- apply manually`);
+    }
+  }
+  return notes;
+}
+
+const MANEUVER_RIDER_FEAT_NAMES = Object.freeze({
+  crushingGrabDamage: "Crushing Grab",
+  slyDisarmOffGuard: "Sly Disarm",
+  terrifiedRetreatFleeing: "Terrified Retreat",
+});
+
 async function executeManeuverCandidate(combat, combatant, candidate) {
   const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
   if (!target) return;
   const outcome = await withDialogsSuppressed(() =>
-    runManeuverCheck(candidate.slug, combatant, target),
+    runManeuverCheck(candidate.slug, combatant, target, { skill: candidate.skill }),
   );
   const label = MANEUVER_DEFS[candidate.slug]?.label ?? candidate.slug;
   const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
@@ -5909,7 +6077,14 @@ async function executeManeuverCandidate(combat, combatant, candidate) {
     );
     return;
   }
-  const result = await applyManeuverOutcome(candidate.slug, combat, combatant, target, outcome);
+  const result = await applyManeuverOutcome(
+    candidate.slug,
+    combat,
+    combatant,
+    target,
+    outcome,
+    candidate.skill ?? MANEUVER_DEFS[candidate.slug]?.skill,
+  );
   await whisperGmContent(
     `<p><strong>${esc(label)} (${esc(combatant.name)} vs ${esc(target.name)}):</strong> ${esc(outcome)} -- ${esc(result)}.</p>`,
   );
