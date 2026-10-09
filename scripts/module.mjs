@@ -66,6 +66,7 @@ import {
   clearDetection,
   handleStealthBreakMessage,
   cleanupAgentSelfEffects,
+  decayFrightenedAtEndOfTurn,
 } from "./dungeon-combat.mjs";
 import { subtractXpOnLevelUp } from "./dungeon-leveling.mjs";
 import {
@@ -718,6 +719,16 @@ Hooks.on("deleteCombat", async (combat) => {
   await settleNpcAbilityConditionsAtCombatEnd(combat).catch((err) =>
     console.error("pf2e-dungeon-crawl | #915: npc-ability condition settle failed:", err.message),
   );
+});
+
+/** #943: PF2e RAW decreases Frightened by 1 at the end of the frightened
+ * creature's turn; the pf2e system doesn't (its condition end-of-turn
+ * handling covers persistent damage only). `pf2e.endTurn` is fired from
+ * Foundry's turn events, which run on the active GM's client; the gate is
+ * kept anyway so a second client can never double-decrement. */
+Hooks.on("pf2e.endTurn", (combatant) => {
+  if (!(game.users?.activeGM?.isSelf ?? game.user?.isGM)) return;
+  decayFrightenedAtEndOfTurn(combatant);
 });
 
 /** #616: a sneaker's attack roll reveals it (active GM only, handled inside). */
