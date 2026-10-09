@@ -8,7 +8,8 @@ const DEFAULT_TIMEOUT_MS = 30000;
  * actually sent -- `type`/`slug` are constrained to the (deduped) values
  * present in that call's own vocabulary (maneuvers and/or feat/class
  * actions), never a fixed list. `targetId` is nullable because self-effect
- * feat picks (stances, Rage) target the actor itself. Foundry still
+ * feat picks (stances, Rage, other one-action self-buffs -- #914) target
+ * the actor itself. Foundry still
  * re-validates every pick against the exact vocabulary entries it sent.
  */
 function buildSchema(vocabulary) {
@@ -36,7 +37,7 @@ function buildSchema(vocabulary) {
 }
 
 function userMessageContent(context, vocabulary) {
-  return `You are proposing tactical options (combat maneuvers and feat/class actions) for an AI-controlled combatant's turn in a Pathfinder 2e combat. Pick a tactically sensible subset of the vocabulary below (zero or more) — never propose anything not listed in it.\n\nEntries with type "feat" are the combatant's own feats/class actions. kind "selfEffect" entries (stances, Rage) apply a lasting effect to the combatant itself (send targetId null): prefer raising a stance or buff early in the round when a fight is on, and remember only one stance can be active at a time. kind "composite" entries (Sudden Charge, Lunge, Twin Feint) are Strike-based actions against the listed targetId. Respect each entry's action cost.\n\nContext:\n${JSON.stringify(context, null, 2)}\n\nVocabulary (every legal (type, slug, targetId) option this turn):\n${JSON.stringify(vocabulary, null, 2)}`;
+  return `You are proposing tactical options (combat maneuvers and feat/class actions) for an AI-controlled combatant's turn in a Pathfinder 2e combat. Pick a tactically sensible subset of the vocabulary below (zero or more) — never propose anything not listed in it.\n\nEntries with type "feat" are the combatant's own feats/class actions. kind "selfEffect" entries (stances, Rage and other self-buffs) apply a lasting effect to the combatant itself (send targetId null): each one's effectSummary says what the effect does (e.g. "+attack, +damage dice", "resist fire", "temp HP"), its durationLabel how long it lasts, and its frequencyLabel (when not null) how often it can be used — choose a buff by what it does for this fight, prefer raising a stance or buff early in the round when a fight is on, and remember only one stance can be active at a time. kind "composite" entries (Sudden Charge, Lunge, Twin Feint) are Strike-based actions against the listed targetId. Respect each entry's action cost.\n\nContext:\n${JSON.stringify(context, null, 2)}\n\nVocabulary (every legal (type, slug, targetId) option this turn):\n${JSON.stringify(vocabulary, null, 2)}`;
 }
 
 /**

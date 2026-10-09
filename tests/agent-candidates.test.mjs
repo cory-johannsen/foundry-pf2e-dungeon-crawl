@@ -1525,8 +1525,16 @@ describe('buildFeatVocabulary', () => {
       compositeEntries: [],
     });
     expect(vocabulary).toEqual([
-      { type: 'feat', kind: 'selfEffect', itemId: 'i1', slug: 'rage', name: 'Rage', cost: 1, targetId: null, replacesStance: null, traits: [] },
+      { type: 'feat', kind: 'selfEffect', itemId: 'i1', slug: 'rage', name: 'Rage', cost: 1, targetId: null, replacesStance: null, traits: [], effectSummary: null, durationLabel: null, frequencyLabel: null },
     ]);
+  });
+
+  it('carries effectSummary/durationLabel/frequencyLabel through onto a self-effect vocabulary entry (#914)', () => {
+    const vocabulary = buildFeatVocabulary({
+      selfEffectEntries: [{ itemId: 'i1', slug: 'raise-a-shield', name: 'Raise a Shield', cost: 1, replacesStance: null, traits: [], effectSummary: '+ac', durationLabel: '1 rounds', frequencyLabel: '1/hour' }],
+      compositeEntries: [],
+    });
+    expect(vocabulary[0]).toMatchObject({ effectSummary: '+ac', durationLabel: '1 rounds', frequencyLabel: '1/hour' });
   });
 
   it('builds a composite vocabulary entry with a real targetId', () => {
@@ -1592,6 +1600,16 @@ describe('buildFeatCandidates', () => {
     expect(candidates).toEqual([
       { id: 'feat:i1', type: 'feat', kind: 'selfEffect', itemId: 'i1', slug: 'rage', name: 'Rage', targetId: null, cost: 1, replacesStance: null, traits: [], summary: 'Rage — Open raged.' },
     ]);
+  });
+
+  it('puts the effect summary and duration into a self-effect candidate\'s summary alongside the rationale (#914)', () => {
+    const candidates = buildFeatCandidates({
+      featVocabulary: [
+        { type: 'feat', kind: 'selfEffect', itemId: 'i1', slug: 'raise-a-shield', name: 'Raise a Shield', cost: 1, targetId: null, replacesStance: null, traits: [], effectSummary: '+ac', durationLabel: '1 rounds', frequencyLabel: null },
+      ],
+      picks: [{ type: 'feat', slug: 'raise-a-shield', targetId: null, rationale: 'Shore up defense.' }],
+    });
+    expect(candidates[0].summary).toBe('Raise a Shield (+ac, 1 rounds) — Shore up defense.');
   });
 
   it('builds a candidate for a matching composite pick, keyed by itemId and targetId', () => {

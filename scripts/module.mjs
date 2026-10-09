@@ -63,6 +63,7 @@ import {
   offerReactiveStrikesAgainst,
   clearDetection,
   handleStealthBreakMessage,
+  cleanupAgentSelfEffects,
 } from "./dungeon-combat.mjs";
 import { subtractXpOnLevelUp } from "./dungeon-leveling.mjs";
 import {
@@ -706,6 +707,8 @@ Hooks.on("createChatMessage", handleManualStrikeDamage);
 Hooks.on("deleteCombat", async (combat) => {
   if (!(game.users?.activeGM?.isSelf ?? game.user?.isGM)) return;
   await clearDetection(combat);
+  // #914: agent-created self-effects with an unlimited duration.
+  await cleanupAgentSelfEffects(combat);
 });
 
 /** #616: a sneaker's attack roll reveals it (active GM only, handled inside). */

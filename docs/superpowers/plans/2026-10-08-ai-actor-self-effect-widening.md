@@ -38,7 +38,7 @@
 - Consumes: nothing.
 - Produces (consumed by Task 3): `SELF_EFFECT_DENYLIST` — a `Set<string>` of feat/action slugs.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // tests/self-effect-denylist.test.mjs
@@ -65,12 +65,12 @@ describe('SELF_EFFECT_DENYLIST', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- tests/self-effect-denylist.test.mjs`
 Expected: FAIL — `scripts/self-effect-denylist.mjs` doesn't exist yet.
 
-- [ ] **Step 3: Write `scripts/self-effect-denylist.mjs`**
+- [x] **Step 3: Write `scripts/self-effect-denylist.mjs`**
 
 ```js
 /**
@@ -111,12 +111,12 @@ export const SELF_EFFECT_DENYLIST = new Set([
 ]);
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npm test -- tests/self-effect-denylist.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/self-effect-denylist.mjs tests/self-effect-denylist.test.mjs
@@ -137,7 +137,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing.
 - Produces (consumed by Task 3): `summarizeEffect(rules)` → `string`; `effectDurationLabel(duration)` → `string`; `effectRelevanceTier(rules)` → `0 | 1 | 2`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/self-effect-summary.test.mjs
@@ -210,12 +210,12 @@ describe('effectRelevanceTier', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/self-effect-summary.test.mjs`
 Expected: FAIL — `scripts/self-effect-summary.mjs` doesn't exist yet.
 
-- [ ] **Step 3: Write `scripts/self-effect-summary.mjs`**
+- [x] **Step 3: Write `scripts/self-effect-summary.mjs`**
 
 ```js
 /**
@@ -272,12 +272,12 @@ export function effectRelevanceTier(rules = []) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/self-effect-summary.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/self-effect-summary.mjs tests/self-effect-summary.test.mjs
@@ -298,7 +298,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `SELF_EFFECT_DENYLIST` (Task 1), `summarizeEffect`/`effectDurationLabel`/`effectRelevanceTier` (Task 2).
 - Produces: `computeSelfEffectVocabularyEntries`'s output entries now carry `effectSummary`/`durationLabel`/`frequencyLabel`, are capped at 12, and are drawn from the full derived population instead of the stance-trait-or-Rage allowlist.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Replace the existing `SELF_EFFECT_SLUGS`-based tests in `tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs` that assert on a non-stance, non-Rage item being excluded (per #910's plan, there is no such test — #910 only tests Rage and a synthetic stance item — so nothing here needs deleting, only adding):
 
@@ -437,12 +437,12 @@ describe('computeSelfEffectVocabularyEntries (#914 derived filter)', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs`
 Expected: FAIL — the derived checks, denylist, cap, and new entry fields don't exist yet.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 Add the imports:
 
@@ -530,12 +530,12 @@ export async function computeSelfEffectVocabularyEntries(actor, actionsRemaining
 
 (`hasUnresolvedChoiceSet`, `actorAlreadyHasEffectFrom`, and `findActiveStanceEffectId` are #910's own existing helpers, unchanged by this task.)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs
@@ -556,7 +556,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing new.
 - Produces: `buildFeatVocabulary`'s self-effect entries and `buildFeatCandidates`'s built candidates both carry `effectSummary`/`durationLabel`/`frequencyLabel` through.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to the existing `describe('buildFeatVocabulary', ...)` block in `tests/agent-candidates.test.mjs`:
 
@@ -585,12 +585,12 @@ Add to the existing `describe('buildFeatCandidates', ...)` block:
   });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/agent-candidates.test.mjs`
 Expected: FAIL — `buildFeatVocabulary` drops the three new fields; `buildFeatCandidates`'s summary doesn't include them.
 
-- [ ] **Step 3: Implement in `scripts/agent-candidates.mjs`**
+- [x] **Step 3: Implement in `scripts/agent-candidates.mjs`**
 
 Update `buildFeatVocabulary`'s self-effect push (per #910's plan):
 
@@ -618,17 +618,17 @@ Update `buildFeatCandidates`'s summary construction (per #910's plan) to include
 
 (Composite-kind entries never carry `effectSummary` — per #910's plan they're never given that field — so `match.effectSummary` is `undefined`/falsy for them and this falls back to the existing plain `match.name` behavior, no regression for #910's own composite tests.)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-candidates.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — check #910's own existing `buildFeatCandidates` self-effect test (the "Rage — Open raged." case) still passes: its fixture vocabulary entry carries no `effectSummary`, so the fallback path keeps producing the exact same `'Rage — Open raged.'` string as before.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs tests/agent-candidates.test.mjs
@@ -650,7 +650,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing new.
 - Produces: `executeSelfEffectFeat` (per #910's plan) now tags every effect it creates; `export async function cleanupAgentSelfEffects(combat)`, wired into the existing `deleteCombat` hook.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-feat-self-effect-cleanup.test.mjs
@@ -706,12 +706,12 @@ describe('cleanupAgentSelfEffects', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-feat-self-effect-cleanup.test.mjs`
 Expected: FAIL — `cleanupAgentSelfEffects` doesn't exist yet.
 
-- [ ] **Step 3: Tag created effects in `executeSelfEffectFeat`**
+- [x] **Step 3: Tag created effects in `executeSelfEffectFeat`**
 
 In `executeSelfEffectFeat` (per #910's plan), add a `flags` field to the existing `foundry.utils.mergeObject(effect.toObject(), {...})` call's object literal:
 
@@ -738,7 +738,7 @@ In `executeSelfEffectFeat` (per #910's plan), add a `flags` field to the existin
 
 (Only the new `flags:` line is added; everything else in this call is #910's own existing code, unchanged.)
 
-- [ ] **Step 4: Add `cleanupAgentSelfEffects` to `scripts/dungeon-combat.mjs`**
+- [x] **Step 4: Add `cleanupAgentSelfEffects` to `scripts/dungeon-combat.mjs`**
 
 ```js
 /** #914: effects this module's own AI-actor pipeline created
@@ -765,7 +765,7 @@ export async function cleanupAgentSelfEffects(combat) {
 }
 ```
 
-- [ ] **Step 5: Wire the cleanup into the existing `deleteCombat` hook in `scripts/module.mjs`**
+- [x] **Step 5: Wire the cleanup into the existing `deleteCombat` hook in `scripts/module.mjs`**
 
 Add the import:
 
@@ -783,17 +783,17 @@ Hooks.on("deleteCombat", async (combat) => {
 });
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-feat-self-effect-cleanup.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs scripts/module.mjs tests/dungeon-combat-feat-self-effect-cleanup.test.mjs
@@ -816,7 +816,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 **Note on the fixture file:** `tests/fixtures/self-effect-audit-snapshot.json` already exists in this plan's own branch — it was generated once, live, against the real `pf2e.feats-srd`/`pf2e.actionspf2e` compendia and their linked effects while this plan was being written (156 non-stance/non-Rage, one-action/free, `selfEffect`-carrying candidates; 87 survivors, 69 excluded, 0 resolution errors — matching the spec's own published 139-survivor figure once the 51 stances and Rage are added back in). Do not regenerate it; commit it as-is in Task 6's own commit (it was created in the working tree before this task's commit step, not fabricated data).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // tests/self-effect-audit-snapshot.test.mjs
@@ -869,12 +869,12 @@ describe('self-effect compendium population snapshot', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- tests/self-effect-audit-snapshot.test.mjs`
 Expected: FAIL — the fixture file isn't tracked by git yet (it exists on disk in this plan's own worktree already, per the note above, but hasn't been `git add`ed).
 
-- [ ] **Step 3: Confirm the fixture is present and run the test**
+- [x] **Step 3: Confirm the fixture is present and run the test**
 
 Run: `ls tests/fixtures/self-effect-audit-snapshot.json`
 Expected: the file exists (created while this plan was written — see the Task 6 header note).
@@ -882,12 +882,12 @@ Expected: the file exists (created while this plan was written — see the Task 
 Run: `npm test -- tests/self-effect-audit-snapshot.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 4: Run the full suite**
+- [x] **Step 4: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tests/fixtures/self-effect-audit-snapshot.json tests/self-effect-audit-snapshot.test.mjs
@@ -907,17 +907,17 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing.
 - Produces: nothing — final housekeeping step before merge.
 
-- [ ] **Step 1: Check the current version and bump it**
+- [x] **Step 1: Check the current version and bump it**
 
 Run: `grep '"version"' module.json`
 
 A **minor** bump per `CLAUDE.md`'s versioning rule. Confirm the real current value live (#909/#910/#911's own plans will each have already consumed a bump by the time this one executes) rather than assuming.
 
-- [ ] **Step 2: Verify no other file hardcodes the old version**
+- [x] **Step 2: Verify no other file hardcodes the old version**
 
 Run: `grep -rn "<old version string>" . --include="*.json" --include="*.mjs" --include="*.md" | grep -v node_modules | grep -v docs/superpowers`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json

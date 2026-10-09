@@ -1061,8 +1061,9 @@ export function buildManeuverCandidates({ maneuverVocabulary = [], maneuverPicks
  * #910: the feat/class-action vocabulary, built from two already-
  * eligibility-filtered plain-object lists dungeon-combat.mjs computes from
  * real actor/item data (this file has no Foundry API surface) --
- * `selfEffectEntries` (stance-trait items and Rage with a usable
- * selfEffect) and `compositeEntries` (the curated Sudden Charge/Lunge/Twin
+ * `selfEffectEntries` (every one-action/free item whose selfEffect passed
+ * #914's derived eligibility filter, each with an effectSummary/
+ * durationLabel/frequencyLabel) and `compositeEntries` (the curated Sudden Charge/Lunge/Twin
  * Feint allowlist, each already matched to a real opponent). Self-effect
  * entries are self-targeted (targetId: null); composite entries always
  * carry a real opponent id. `traits` carries only the action traits that
@@ -1080,6 +1081,11 @@ export function buildFeatVocabulary({ selfEffectEntries = [], compositeEntries =
       type: 'feat', kind: 'selfEffect',
       itemId: entry.itemId, slug: entry.slug, name: entry.name, cost: entry.cost,
       targetId: null, replacesStance: entry.replacesStance ?? null, traits: entry.traits ?? [],
+      // #914: deterministic labels so the reasoning model can tell buffs
+      // apart by purpose (it never sees raw rule elements).
+      effectSummary: entry.effectSummary ?? null,
+      durationLabel: entry.durationLabel ?? null,
+      frequencyLabel: entry.frequencyLabel ?? null,
     });
   }
   for (const entry of compositeEntries) {
@@ -1117,6 +1123,10 @@ export function buildFeatCandidates({ featVocabulary = [], picks = null, opponen
     const id = match.targetId ? `feat:${match.itemId}:${match.targetId}` : `feat:${match.itemId}`;
     if (seen.has(id)) continue;
     let label = match.name;
+    // #914: a self-effect entry's own effect summary/duration, when known.
+    if (match.effectSummary) {
+      label = `${match.name} (${match.effectSummary}${match.durationLabel ? `, ${match.durationLabel}` : ''})`;
+    }
     if (match.targetId && opponents) {
       const opponent = opponents.find((o) => o.id === match.targetId);
       if (!opponent) continue;

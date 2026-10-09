@@ -103,7 +103,12 @@ function withFeats(c, { action = [], feat = [], effect = [] } = {}) {
 }
 
 beforeEach(() => {
-  globalThis.fromUuid = vi.fn(async (uuid) => (uuid === RAGE_EFFECT ? { slug: "effect-rage" } : null));
+  // #914: the linked effect needs real rules to pass the derived filter.
+  globalThis.fromUuid = vi.fn(async (uuid) =>
+    uuid === RAGE_EFFECT
+      ? { slug: "effect-rage", system: { rules: [{ key: "TempHP", value: 1 }], duration: { value: 1, unit: "minutes" } } }
+      : null,
+  );
 });
 
 describe("getPendingAgentTurn feat vocabulary (#910)", () => {
@@ -112,7 +117,7 @@ describe("getPendingAgentTurn feat vocabulary (#910)", () => {
     const opp = mk("opp1", 1, 0, 1);
     const pending = await getPendingAgentTurn(mkCombat([me, opp], me));
     expect(pending.featVocabulary).toEqual([
-      { type: "feat", kind: "selfEffect", itemId: "rage1", slug: "rage", name: "Rage", cost: 1, targetId: null, replacesStance: null, traits: [] },
+      { type: "feat", kind: "selfEffect", itemId: "rage1", slug: "rage", name: "Rage", cost: 1, targetId: null, replacesStance: null, traits: [], effectSummary: "temp HP", durationLabel: "1 minutes", frequencyLabel: null },
     ]);
   });
 

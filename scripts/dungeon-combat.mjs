@@ -72,6 +72,8 @@ import {
 import { fetchCombatDecision, fetchCombatCandidates } from "./agent-service-client.mjs";
 import { withDialogsSuppressed } from "./trap-combat.mjs";
 import { eligibilityModifiers, ridersFor } from "./maneuver-feat-modifiers.mjs";
+import { SELF_EFFECT_DENYLIST } from "./self-effect-denylist.mjs";
+import { summarizeEffect, effectDurationLabel, effectRelevanceTier } from "./self-effect-summary.mjs";
 import {
   DETECTION,
   applySeekOutcome,
@@ -2427,9 +2429,44 @@ export function immuneToDemoralize(targetActor) {
   );
 }
 
-/** #910: self-effect actions in this feature's initial scope besides the
- * stance-trait items (widening is #914). */
-const SELF_EFFECT_SLUGS = new Set(["rage"]);
+/** #914: at most this many self-effect entries are sent per turn (spec
+ * Decision 5), most tactically relevant first. */
+const SELF_EFFECT_VOCABULARY_CAP = 12;
+
+/** #914: the deterministic checks against a linked effect's OWN rule
+ * elements/duration that decide whether this module can apply it to an AI
+ * actor unattended. True (unsafe) on any hit: an unresolved ChoiceSet (the
+ * system would open a choice dialog), GrantItem (granted items this module
+ * doesn't track or clean up), TokenMark or a `target:`/`@target` reference
+ * (needs a chosen target -- #927), no rules at all (nothing to apply), or
+ * an hours/days duration (outlives the encounter by design). The classified
+ * live compendium population is tests/fixtures/self-effect-audit-snapshot.json. */
+function isUnsafeSelfEffect(rules, duration) {
+  if (rules.length === 0) return true;
+  if (duration?.unit === "hours" || duration?.unit === "days") return true;
+  return rules.some((r) => {
+    if (r?.key === "ChoiceSet" || r?.key === "GrantItem" || r?.key === "TokenMark") return true;
+    const text = JSON.stringify(r);
+    return text.includes("target:") || /@target\b/.test(text);
+  });
+}
+
+/** #914: PF2e `frequency.per` values (ISO-8601 durations or plain units)
+ * as words the reasoning model can read. Unknown values pass through. */
+const FREQUENCY_PER_LABELS = {
+  PT1M: "minute",
+  PT10M: "10 minutes",
+  PT1H: "hour",
+  PT24H: "day",
+  P1W: "week",
+  P1M: "month",
+};
+
+function selfEffectFrequencyLabel(frequency) {
+  if (!frequency) return null;
+  const per = frequency.per ?? "day";
+  return `${frequency.max ?? 1}/${FREQUENCY_PER_LABELS[per] ?? per}`;
+}
 
 /** #910: traits that keep an activatable item out of the turn-time
  * vocabulary (not usable in an encounter turn). */
@@ -2500,15 +2537,22 @@ function actorHasCondition(actor, slug) {
   return Array.from(actor?.conditions ?? []).some((c) => c.slug === slug);
 }
 
-/** #910: the self-effect vocabulary category -- stance-trait items plus
- * Rage, on character actors only (NPC abilities are #915). Scans both
- * itemTypes.action and itemTypes.feat (the system's own self-effect marker
- * lives on both). Returns plain `{itemId, slug, name, cost, replacesStance,
- * traits}` entries for agent-candidates.mjs's buildFeatVocabulary. Any item
- * whose data can't be read is excluded, never defaulted to available. */
+/** #910/#914: the self-effect vocabulary category, on character actors only
+ * (NPC abilities are #915). #914 replaced #910's stances+Rage allowlist with
+ * a derived filter: any one-action/free item with a resolvable selfEffect,
+ * kept by #910's per-turn gates (excluded traits, cost, frequency, the
+ * item's own unresolved ChoiceSet, Rage's Fatigued requirement, already
+ * active), the linked effect's own safety checks (isUnsafeSelfEffect) and
+ * the reviewed SELF_EFFECT_DENYLIST. Scans both itemTypes.action and
+ * itemTypes.feat (the system's own self-effect marker lives on both).
+ * Returns plain `{itemId, slug, name, cost, replacesStance, traits,
+ * effectSummary, durationLabel, frequencyLabel}` entries for
+ * agent-candidates.mjs's buildFeatVocabulary, sorted by relevance tier
+ * (stable, so ties keep item order) and capped. Any item whose data can't
+ * be read is excluded, never defaulted to available. */
 export async function computeSelfEffectVocabularyEntries(actor, actionsRemaining) {
   if (actor?.type !== "character") return [];
-  const entries = [];
+  const scored = [];
   const items = [...(actor.itemTypes?.action ?? []), ...(actor.itemTypes?.feat ?? [])];
   for (const item of items) {
     try {
@@ -2516,7 +2560,7 @@ export async function computeSelfEffectVocabularyEntries(actor, actionsRemaining
       if (!selfEffect?.uuid) continue;
       const traits = item.system?.traits?.value ?? [];
       const isStance = traits.includes("stance");
-      if (!isStance && !SELF_EFFECT_SLUGS.has(item.slug)) continue;
+      if (SELF_EFFECT_DENYLIST.has(item.slug)) continue;
       if (traits.some((t) => FEAT_EXCLUDED_TRAITS.has(t))) continue;
       const cost = featActionCost(item);
       if (cost === null || cost > actionsRemaining) continue;
@@ -2527,21 +2571,31 @@ export async function computeSelfEffectVocabularyEntries(actor, actionsRemaining
       if (item.slug === "rage" && actorHasCondition(actor, "fatigued")) continue;
       const effect = await fromUuid(selfEffect.uuid);
       if (!effect) continue;
+      const rules = effect.system?.rules ?? [];
+      const duration = effect.system?.duration;
+      if (isUnsafeSelfEffect(rules, duration)) continue;
       if (actorAlreadyHasEffectFrom(actor, item, effect.slug)) continue;
       const replacesStance = isStance ? await findActiveStanceEffectId(actor) : null;
-      entries.push({
-        itemId: item.id,
-        slug: item.slug,
-        name: item.name,
-        cost,
-        replacesStance,
-        traits: featGatingTraits(item),
+      scored.push({
+        tier: effectRelevanceTier(rules),
+        entry: {
+          itemId: item.id,
+          slug: item.slug,
+          name: item.name,
+          cost,
+          replacesStance,
+          traits: featGatingTraits(item),
+          effectSummary: summarizeEffect(rules),
+          durationLabel: effectDurationLabel(duration),
+          frequencyLabel: selfEffectFrequencyLabel(item.system?.frequency),
+        },
       });
     } catch (err) {
       console.warn(`#910: skipping unreadable feat item ${item?.name ?? item?.id}:`, err.message);
     }
   }
-  return entries;
+  scored.sort((a, b) => a.tier - b.tier);
+  return scored.slice(0, SELF_EFFECT_VOCABULARY_CAP).map((s) => s.entry);
 }
 
 /** #910: whether a strike action is a melee one -- the same "finite
@@ -6122,6 +6176,8 @@ async function executeSelfEffectFeat(combatant, candidate) {
   try {
     const source = foundry.utils.mergeObject(effect.toObject(), {
       _id: null,
+      // #914: marks the effect as agent-created for cleanupAgentSelfEffects.
+      flags: { [MODULE_ID]: { agentSelfEffect: true } },
       system: {
         context: {
           origin: {
@@ -6163,6 +6219,36 @@ async function executeSelfEffectFeat(combatant, candidate) {
     await item.update({ "system.frequency.value": item.system.frequency.value - 1 });
   }
   return { performed: true, attacks: 0 };
+}
+
+/** #914: effects the AI-actor pipeline created (executeSelfEffectFeat's
+ * `flags[MODULE_ID].agentSelfEffect` tag) whose own duration is `unlimited`
+ * would otherwise outlive the encounter -- removed once, when combat ends.
+ * Round/minute/encounter-duration effects are left alone: PF2e's own
+ * duration handling expires them, and removing one early would be wrong.
+ * A failed removal is logged and reported to the GM, never thrown. */
+export async function cleanupAgentSelfEffects(combat) {
+  for (const combatant of combat?.combatants ?? []) {
+    const actor = combatant?.actor;
+    if (!actor) continue;
+    const toRemove = (actor.itemTypes?.effect ?? []).filter(
+      (e) => e.flags?.[MODULE_ID]?.agentSelfEffect === true && e.system?.duration?.unit === "unlimited",
+    );
+    if (!toRemove.length) continue;
+    try {
+      await actor.deleteEmbeddedDocuments("Item", toRemove.map((e) => e.id));
+    } catch (err) {
+      console.error(`#914: failed to clean up agent self-effects on ${actor.name}:`, err.message);
+      try {
+        const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
+        await whisperGmContent(
+          `<p><strong>${esc(actor.name)}:</strong> could not remove ${toRemove.map((e) => esc(e.name)).join(", ")} after combat -- remove manually.</p>`,
+        );
+      } catch {
+        // Reporting is best-effort; cleanup never blocks combat resolution.
+      }
+    }
+  }
 }
 
 /** #910: a feat candidate that turned out impossible at execution time

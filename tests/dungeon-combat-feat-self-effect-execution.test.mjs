@@ -30,8 +30,16 @@ function selfEffectItem({ id = "rage1", slug = "rage", name = "Rage", traits = [
   };
 }
 
+// #914: the linked effect must carry real rules to pass the derived
+// eligibility filter (an effect with no rules is excluded).
+const EFFECT_RULES = [{ key: "RollOption", domain: "all", option: "x" }];
 function effectDoc(slug) {
-  return { slug, toObject: () => ({ _id: "src", name: slug, type: "effect", system: { slug, rules: [], traits: { value: [] } } }) };
+  const duration = { value: 1, unit: "minutes" };
+  return {
+    slug,
+    system: { rules: EFFECT_RULES, duration },
+    toObject: () => ({ _id: "src", name: slug, type: "effect", system: { slug, rules: EFFECT_RULES, duration, traits: { value: [] } } }),
+  };
 }
 
 function setup({ item = selfEffectItem(), effect = [], picks } = {}) {
@@ -74,6 +82,13 @@ describe("applyAgentDecision self-effect feat execution (#910)", () => {
     // Only the action's traits that are valid effect traits carry over.
     expect(source.system.traits.value).toEqual(["emotion", "mental"]);
     expect(source.system.slug).toBe("effect-rage");
+  });
+
+  it("tags the created effect as agent-created so combat-end cleanup can find it (#914)", async () => {
+    const { attacker, combat } = setup();
+    await applyAgentDecision(combat, "atk", "feat:rage1", "r");
+    const [, [source]] = attacker.actor.createEmbeddedDocuments.mock.calls[0];
+    expect(source.flags?.["pf2e-dungeon-crawl"]?.agentSelfEffect).toBe(true);
   });
 
   it("posts the action's usage card and spends its action cost", async () => {
