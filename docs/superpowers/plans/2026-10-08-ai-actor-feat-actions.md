@@ -1198,7 +1198,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `rollAndApplyStrikeAtVariant`, `readyMeleeStrikeActions` (Task 4).
 - Produces: `executeTwinFeint(combat, combatant, candidate, target)`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-feat-twin-feint-execution.test.mjs
@@ -1222,12 +1222,12 @@ describe('applyAgentDecision Twin Feint execution', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails (once filled in)**
+- [x] **Step 2: Run test to verify it fails (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-feat-twin-feint-execution.test.mjs`
 Expected: FAIL — `executeTwinFeint` doesn't exist yet.
 
-- [ ] **Step 3: Implement `executeTwinFeint`**
+- [x] **Step 3: Implement `executeTwinFeint`**
 
 ```js
 /** #910: neither Twin Feint's own rule elements (confirmed live: empty)
@@ -1249,17 +1249,17 @@ async function executeTwinFeint(combat, combatant, candidate, target) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-feat-twin-feint-execution.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite once, now that all three composite executors and the dispatch branch from Task 7 are in place together**
+- [x] **Step 5: Run the full suite once, now that all three composite executors and the dispatch branch from Task 7 are in place together**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-feat-twin-feint-execution.test.mjs
