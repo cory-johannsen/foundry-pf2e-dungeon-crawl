@@ -48,13 +48,26 @@ const HIT_DECK_CORROSIVE =
 const HIT_DECK_NO_MULTIPLIER =
   '<section class="critical-deck"><h1>Concussion</h1><blockquote><p>Normal damage.</p></blockquote><p><code>Bomb or Spell</code></p></section>';
 
-function makeSpell({ damageType = "acid", outcome = "criticalSuccess", damageRoll } = {}) {
+// #976: a real CheckRoll's d20 Die term shape (`dice[].faces`/`results[]`,
+// as read live off a stored attack message) -- the natural face is what
+// gates a critical-deck card draw, not the outcome alone.
+function d20Roll(face) {
+  return { dice: [{ faces: 20, results: [{ result: face, active: true }] }] };
+}
+
+function makeSpell({
+  damageType = "acid",
+  outcome = "criticalSuccess",
+  natural = outcome === "criticalSuccess" ? 20 : outcome === "criticalFailure" ? 1 : 10,
+  damageRoll,
+} = {}) {
   return {
     id: "spell1",
     system: { damage: { d1: { type: damageType } } },
     rollAttack: async () => {
       game.messages.contents.push({
         flags: { pf2e: { context: { outcome } } },
+        rolls: [d20Roll(natural)],
       });
     },
     rollDamage: async () => damageRoll,
@@ -182,5 +195,70 @@ describe("castAttackSpellAndApplyRoll critical-deck damage multiplier (#75)", ()
     expect(alterCalls).toEqual([]);
     expect(ChatMessage.calls).toEqual([]);
     expect(target.applyDamageCalls).toHaveLength(1);
+  });
+
+  // #976: cards only draw on a natural 20 crit / natural 1 fumble.
+  it("draws no card on a 10+-margin crit (natural 15) but still applies PF2e's baseline crit doubling", async () => {
+    installFoundryStubs();
+    installCriticalDeckPack([makeDoc("Critical Hit Deck #10", HIT_DECK_DISEMBOWEL)]);
+    const alterCalls = [];
+    const spell = makeSpell({
+      damageType: "acid",
+      natural: 15,
+      damageRoll: makeDamageRoll(alterCalls),
+    });
+    const combatant = makeCombatant(spell);
+    const target = makeTarget();
+
+    await castAttackSpellAndApplyRoll(combatant, target, "spell1", "entry1");
+
+    expect(ChatMessage.calls).toEqual([]);
+    expect(alterCalls).toEqual([{ multiplier: 2, addend: 0 }]);
+    expect(target.applyDamageCalls).toHaveLength(1);
+  });
+
+  it("draws no card on a crit whose attack message carries no readable d20 (missing data never draws)", async () => {
+    installFoundryStubs();
+    installCriticalDeckPack([makeDoc("Critical Hit Deck #10", HIT_DECK_DISEMBOWEL)]);
+    const alterCalls = [];
+    const spell = makeSpell({ damageType: "acid", damageRoll: makeDamageRoll(alterCalls) });
+    spell.rollAttack = async () => {
+      game.messages.contents.push({
+        flags: { pf2e: { context: { outcome: "criticalSuccess" } } },
+      });
+    };
+    const combatant = makeCombatant(spell);
+    const target = makeTarget();
+
+    await castAttackSpellAndApplyRoll(combatant, target, "spell1", "entry1");
+
+    expect(ChatMessage.calls).toEqual([]);
+    expect(alterCalls).toEqual([{ multiplier: 2, addend: 0 }]);
+  });
+
+  it("draws a Fumble card only on a natural-1 critical failure, not a 10+-margin one", async () => {
+    const FUMBLE_SPELL =
+      '<section class="fumble-deck"><h1>Electrical Feedback</h1><blockquote><p>Your spell fizzles.</p></blockquote><p><code>Spell</code></p></section>';
+
+    installFoundryStubs();
+    installCriticalDeckPack([makeDoc("Critical Fumble Deck #14", FUMBLE_SPELL)]);
+    await castAttackSpellAndApplyRoll(
+      makeCombatant(makeSpell({ outcome: "criticalFailure", natural: 6 })),
+      makeTarget(),
+      "spell1",
+      "entry1",
+    );
+    expect(ChatMessage.calls).toEqual([]);
+
+    installFoundryStubs();
+    installCriticalDeckPack([makeDoc("Critical Fumble Deck #14", FUMBLE_SPELL)]);
+    await castAttackSpellAndApplyRoll(
+      makeCombatant(makeSpell({ outcome: "criticalFailure", natural: 1 })),
+      makeTarget(),
+      "spell1",
+      "entry1",
+    );
+    expect(ChatMessage.calls).toHaveLength(1);
+    expect(ChatMessage.calls[0].content).toContain("Your spell fizzles.");
   });
 });

@@ -41,11 +41,11 @@
 - Consumes: nothing new.
 - Produces: `drawCriticalCardForStrike` and the spell-attack critical/fumble block both additionally require a natural 20/1; the terminal consumer in this plan.
 
-- [ ] **Step 1: Update the existing fixture helper to carry a real `degreeOfSuccess`**
+- [x] **Step 1: Update the existing fixture helper to carry a real `degreeOfSuccess`**
 
 In `tests/dungeon-combat-auto-apply-damage.test.mjs`, `makeMessage`'s own `roll` default (`{ total: 7 }`) needs a `degreeOfSuccess` field added to every call site that currently exercises a `criticalSuccess`/`criticalFailure` outcome and expects a card to draw, matching the real PF2e shape confirmed live: `{ total: 7, degreeOfSuccess: { dieResult: 20 } }` for a criticalSuccess case, `{ dieResult: 1 }` for criticalFailure. Find every existing test in this file that sets `outcome: "criticalSuccess"` or `"criticalFailure"` and currently expects a card draw to happen, and add the matching `dieResult` to that test's own `roll` fixture — without this, every one of those tests will start failing once Step 3 lands (the new check will see no `degreeOfSuccess` at all and correctly refuse to draw), which is the expected, correct behavior change this plan makes, not a regression to work around by leaving the fixtures broken.
 
-- [ ] **Step 2: Write the new failing tests**
+- [x] **Step 2: Write the new failing tests**
 
 ```js
 // tests/dungeon-combat-natural-roll-cards.test.mjs
@@ -96,12 +96,12 @@ describe('critical/fumble card draw requires a natural 20/1', () => {
 });
 ```
 
-- [ ] **Step 3: Run tests to verify they fail**
+- [x] **Step 3: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-natural-roll-cards.test.mjs tests/dungeon-combat-auto-apply-damage.test.mjs`
 Expected: FAIL — the new tests fail since no gate exists yet; the updated existing fixtures from Step 1 also fail until Step 4's own implementation lands (both failure sets converge once Step 4 is done).
 
-- [ ] **Step 4: Implement the shared helper and gate both call sites in `scripts/dungeon-combat.mjs`**
+- [x] **Step 4: Implement the shared helper and gate both call sites in `scripts/dungeon-combat.mjs`**
 
 Add near `drawCriticalCardForStrike`:
 
@@ -168,17 +168,17 @@ Update the spell-attack critical/fumble block inside `castAttackSpellAndApplyRol
 
 (Only the two condition lines change; the surrounding comment and the `damageMultiplier`/`rollDamage` logic below are unchanged.)
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-natural-roll-cards.test.mjs tests/dungeon-combat-auto-apply-damage.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — in particular, check `tests/dungeon-critical-deck.test.mjs` and any other existing test that exercises a Strike's criticalSuccess/criticalFailure path end to end (search `grep -rl "criticalSuccess\|criticalFailure" tests/*.mjs` for anything not already touched by Step 1) and add the same `degreeOfSuccess.dieResult` fixture field to each one found, rather than leaving any pre-existing test silently broken by this change.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-auto-apply-damage.test.mjs tests/dungeon-combat-natural-roll-cards.test.mjs
