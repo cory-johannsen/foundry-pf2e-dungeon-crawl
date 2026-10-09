@@ -964,11 +964,11 @@ export function endTurnCandidate() {
  * feature's spec for the full reference table) — not approximated.
  */
 export const MANEUVER_DEFS = Object.freeze({
-  trip: { label: 'Trip' },
-  shove: { label: 'Shove' },
-  grapple: { label: 'Grapple' },
-  disarm: { label: 'Disarm' },
-  demoralize: { label: 'Demoralize' },
+  trip: { label: 'Trip', dcSlug: 'reflex' },
+  shove: { label: 'Shove', dcSlug: 'fortitude' },
+  grapple: { label: 'Grapple', dcSlug: 'fortitude' },
+  disarm: { label: 'Disarm', dcSlug: 'reflex' },
+  demoralize: { label: 'Demoralize', dcSlug: 'will' },
 });
 
 /** 30ft at this module's 5ft/square grid — Demoralize's own fixed range,
