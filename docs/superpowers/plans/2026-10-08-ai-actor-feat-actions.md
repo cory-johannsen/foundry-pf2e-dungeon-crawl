@@ -43,7 +43,7 @@
 - Consumes: nothing new.
 - Produces: `generateCombatCandidates`'s request schema now constrains `type`/`slug` to whatever `(type, slug)` pairs are actually present in that call's own `vocabulary` argument, rather than a fixed five-maneuver enum — consumed by every later task that sends a combined `vocabulary` through this function.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `tests/agent-service-candidate-generator.test.mjs` (alongside its existing `describe("generateCombatCandidates", ...)` block from #909's own plan):
 
@@ -74,12 +74,12 @@ it("dedupes repeated slugs/types across multiple vocabulary entries", async () =
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- tests/agent-service-candidate-generator.test.mjs`
 Expected: FAIL — the current (#909) `SCHEMA` constant hardcodes a fixed 5-slug enum, not a dynamic one.
 
-- [ ] **Step 3: Replace the static `SCHEMA` constant with a per-request builder**
+- [x] **Step 3: Replace the static `SCHEMA` constant with a per-request builder**
 
 In `tools/agent-service/candidate-generator.mjs`, replace the module-level `const SCHEMA = {...}` with a function:
 
@@ -113,12 +113,12 @@ Update `generateCombatCandidates`'s body to call `buildSchema(vocabulary)` inste
 
 (Note: `targetId` is now typed `["string", "null"]` rather than plain `"string"` — #909's maneuver picks always carry a real target id, but #910's self-effect/stance picks are self-targeted and must send `targetId: null`; this widening is required for the new category and has no effect on maneuver picks, which still send a real string.)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-service-candidate-generator.test.mjs`
 Expected: PASS, including every pre-existing #909 test in this file (they only ever assert `tool_choice`/`messages`/response-parsing, never the exact enum contents, so the schema's internal shape change doesn't break them — confirm this by reading the file's existing tests before this step if any assertion does inspect `parameters` directly, and adjust it to the new dynamic shape rather than leaving it asserting the old fixed one).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools/agent-service/candidate-generator.mjs tests/agent-service-candidate-generator.test.mjs

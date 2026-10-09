@@ -3,28 +3,40 @@ import { readEnvOrDotenv } from "./env.mjs";
 
 const DEFAULT_TIMEOUT_MS = 30000;
 
-const SCHEMA = {
-  type: "object",
-  properties: {
-    picks: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          type: { type: "string", enum: ["maneuver"] },
-          slug: { type: "string", enum: ["trip", "shove", "grapple", "disarm", "demoralize"] },
-          targetId: { type: "string" },
-          rationale: { type: "string", description: "One short sentence explaining the pick." },
+/**
+ * #910: the response schema is built per request from the vocabulary
+ * actually sent -- `type`/`slug` are constrained to the (deduped) values
+ * present in that call's own vocabulary (maneuvers and/or feat/class
+ * actions), never a fixed list. `targetId` is nullable because self-effect
+ * feat picks (stances, Rage) target the actor itself. Foundry still
+ * re-validates every pick against the exact vocabulary entries it sent.
+ */
+function buildSchema(vocabulary) {
+  const types = [...new Set(vocabulary.map((v) => v.type))];
+  const slugs = [...new Set(vocabulary.map((v) => v.slug))];
+  return {
+    type: "object",
+    properties: {
+      picks: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            type: { type: "string", enum: types },
+            slug: { type: "string", enum: slugs },
+            targetId: { type: ["string", "null"] },
+            rationale: { type: "string", description: "One short sentence explaining the pick." },
+          },
+          required: ["type", "slug", "targetId", "rationale"],
         },
-        required: ["type", "slug", "targetId", "rationale"],
       },
     },
-  },
-  required: ["picks"],
-};
+    required: ["picks"],
+  };
+}
 
 function userMessageContent(context, vocabulary) {
-  return `You are proposing tactical maneuver options for an NPC's turn in a Pathfinder 2e combat. Pick a tactically sensible subset of the vocabulary below (zero or more) — never propose anything not listed in it.\n\nContext:\n${JSON.stringify(context, null, 2)}\n\nVocabulary (every legal (type, slug, targetId) option this turn):\n${JSON.stringify(vocabulary, null, 2)}`;
+  return `You are proposing tactical options (combat maneuvers and feat/class actions) for an AI-controlled combatant's turn in a Pathfinder 2e combat. Pick a tactically sensible subset of the vocabulary below (zero or more) — never propose anything not listed in it.\n\nEntries with type "feat" are the combatant's own feats/class actions. kind "selfEffect" entries (stances, Rage) apply a lasting effect to the combatant itself (send targetId null): prefer raising a stance or buff early in the round when a fight is on, and remember only one stance can be active at a time. kind "composite" entries (Sudden Charge, Lunge, Twin Feint) are Strike-based actions against the listed targetId. Respect each entry's action cost.\n\nContext:\n${JSON.stringify(context, null, 2)}\n\nVocabulary (every legal (type, slug, targetId) option this turn):\n${JSON.stringify(vocabulary, null, 2)}`;
 }
 
 /**
@@ -62,8 +74,8 @@ export async function generateCombatCandidates(
           type: "function",
           function: {
             name: "propose_candidates",
-            description: "Propose a tactically sensible subset of the offered maneuver vocabulary.",
-            parameters: SCHEMA,
+            description: "Propose a tactically sensible subset of the offered maneuver/feat vocabulary.",
+            parameters: buildSchema(vocabulary),
           },
         },
       ],
