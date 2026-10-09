@@ -38,7 +38,7 @@
 - Consumes: nothing.
 - Produces (consumed by Task 3): `SELF_EFFECT_DENYLIST` — a `Set<string>` of feat/action slugs.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // tests/self-effect-denylist.test.mjs
@@ -65,12 +65,12 @@ describe('SELF_EFFECT_DENYLIST', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- tests/self-effect-denylist.test.mjs`
 Expected: FAIL — `scripts/self-effect-denylist.mjs` doesn't exist yet.
 
-- [ ] **Step 3: Write `scripts/self-effect-denylist.mjs`**
+- [x] **Step 3: Write `scripts/self-effect-denylist.mjs`**
 
 ```js
 /**
@@ -111,12 +111,12 @@ export const SELF_EFFECT_DENYLIST = new Set([
 ]);
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npm test -- tests/self-effect-denylist.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/self-effect-denylist.mjs tests/self-effect-denylist.test.mjs
