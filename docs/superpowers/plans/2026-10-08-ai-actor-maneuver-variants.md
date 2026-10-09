@@ -652,7 +652,7 @@ export async function sweepExpiredManeuverRiders(combat) {
 }
 ```
 
-- [ ] **Step 4: Wire the sweep into the existing turn-change hook in `scripts/module.mjs`**
+- [x] **Step 4: Wire the sweep into the existing turn-change hook in `scripts/module.mjs`**
 
 Add the import:
 
@@ -670,17 +670,17 @@ Hooks.on("updateCombat", (combat, changes) => {
 });
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-rider-expiry.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — in particular, check whether `scripts/module.mjs` already has a direct test asserting the exact body of this `updateCombat` hook via source-text matching (the way `tests/module-door-sound-hook.test.mjs` does for a different hook, per earlier work this session) and, if so, update its expected pattern rather than leaving it asserting the pre-change hook body.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs scripts/module.mjs tests/dungeon-combat-maneuver-rider-expiry.test.mjs
@@ -701,7 +701,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `ridersFor` (Task 1), `recordManeuverRiderExpiry` (Task 4, module-private).
 - Produces: `applyManeuverOutcome`'s existing body (per #909's plan) now calls a new `applyManeuverRiders` after applying the base RAW outcome — the terminal consumer in this plan.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Find and read an existing maneuver-execution test first (`tests/dungeon-combat-maneuver-execution.test.mjs`, already touched in Task 3) to copy its stub shape, then:
 
@@ -756,7 +756,7 @@ describe('applyAgentDecision maneuver riders', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail (once filled in)**
+- [x] **Step 2: Run tests to verify they fail (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-riders.test.mjs`
 Expected: FAIL — `applyManeuverOutcome` doesn't call any rider logic yet.

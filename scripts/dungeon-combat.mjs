@@ -71,7 +71,7 @@ import {
 } from "./dungeon-critical-deck.mjs";
 import { fetchCombatDecision, fetchCombatCandidates } from "./agent-service-client.mjs";
 import { withDialogsSuppressed } from "./trap-combat.mjs";
-import { eligibilityModifiers } from "./maneuver-feat-modifiers.mjs";
+import { eligibilityModifiers, ridersFor } from "./maneuver-feat-modifiers.mjs";
 import {
   DETECTION,
   applySeekOutcome,
@@ -5924,6 +5924,14 @@ async function dropHeldItem(actor) {
  * applyConditionOnSuccess precedent. Returns a short description for the
  * GM whisper. */
 async function applyManeuverOutcome(slug, combat, combatant, target, outcome, skillUsed = MANEUVER_DEFS[slug]?.skill) {
+  const base = await applyBaseManeuverOutcome(slug, combat, combatant, target, outcome);
+  // #911: feat riders land after (and never undo) the base RAW outcome.
+  const riders = await applyManeuverRiders(combat, combatant, target, slug, outcome, skillUsed);
+  return [base, ...riders].join("; ");
+}
+
+/** The base RAW consequence of one maneuver outcome (see applyManeuverOutcome). */
+async function applyBaseManeuverOutcome(slug, combat, combatant, target, outcome) {
   const hit = outcome === "success" || outcome === "criticalSuccess";
   if (slug === "trip") {
     if (hit) await target.actor.increaseCondition("prone");
@@ -5990,6 +5998,70 @@ async function applyManeuverOutcome(slug, combat, combatant, target, outcome, sk
   }
   return "no effect";
 }
+
+/** #911: applies each feat rider ridersFor returns (Crushing Grab, Sly
+ * Disarm, Terrified Retreat), after the base RAW outcome already landed.
+ * A failing rider is caught, logged and reported in the returned GM text;
+ * it never undoes or interrupts the base outcome. Returns one short
+ * description per rider, naming the feat. */
+async function applyManeuverRiders(combat, combatant, target, slug, outcome, skillUsed) {
+  const riders = ridersFor(actorFeatSlugs(combatant.actor), slug, outcome, skillUsed, {
+    actorLevel: combatant.actor?.level,
+    targetLevel: target.actor?.level,
+  });
+  const notes = [];
+  for (const rider of riders) {
+    const feat = MANEUVER_RIDER_FEAT_NAMES[rider.type] ?? rider.type;
+    try {
+      if (rider.type === "crushingGrabDamage") {
+        // "deal bludgeoning damage ... equal to your Strength modifier" --
+        // a typed DamageRoll (not a bare number) so the target's
+        // bludgeoning IWR applies, same as the Trip crit damage above.
+        const mod = Number(combatant.actor?.abilities?.str?.mod);
+        if (!Number.isFinite(mod) || mod <= 0) continue;
+        const DamageRollClass = CONFIG.Dice.rolls.find((c) => c.name === "DamageRoll");
+        const roll = new DamageRollClass(`${mod}[bludgeoning]`);
+        await roll.evaluate();
+        await target.actor.applyDamage({ damage: roll, token: target.token });
+        await applyDefeatIfReducedToZero(target);
+        notes.push(`${feat}: ${roll.total} bludgeoning damage`);
+      } else if (rider.type === "slyDisarmOffGuard") {
+        // "Off-Guard against the next attack you make before the end of
+        // your turn" -- removed at this turn's end by the expiry sweep. A
+        // condition the target already had is neither re-applied nor
+        // tracked, so the sweep never strips someone else's Off-Guard.
+        if (actorHasCondition(target.actor, "off-guard")) continue;
+        await target.actor.increaseCondition("off-guard");
+        await recordManeuverRiderExpiry(combat, {
+          targetId: target.id,
+          conditionSlug: "off-guard",
+          expiry: { afterRoundTurn: { round: combat.round, turn: combat.turn } },
+        });
+        notes.push(`${feat}: target is Off-Guard until the end of this turn`);
+      } else if (rider.type === "terrifiedRetreatFleeing") {
+        // "Fleeing for 1 round" -- until this same point next round.
+        if (actorHasCondition(target.actor, "fleeing")) continue;
+        await target.actor.increaseCondition("fleeing");
+        await recordManeuverRiderExpiry(combat, {
+          targetId: target.id,
+          conditionSlug: "fleeing",
+          expiry: { untilRoundTurn: { round: combat.round + 1, turn: combat.turn } },
+        });
+        notes.push(`${feat}: target is Fleeing for 1 round`);
+      }
+    } catch (err) {
+      console.error(`${MODULE_ID} | #911: maneuver rider (${rider.type}) failed:`, err.message);
+      notes.push(`${feat} failed -- apply manually`);
+    }
+  }
+  return notes;
+}
+
+const MANEUVER_RIDER_FEAT_NAMES = Object.freeze({
+  crushingGrabDamage: "Crushing Grab",
+  slyDisarmOffGuard: "Sly Disarm",
+  terrifiedRetreatFleeing: "Terrified Retreat",
+});
 
 async function executeManeuverCandidate(combat, combatant, candidate) {
   const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
