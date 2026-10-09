@@ -56,8 +56,11 @@ function makeCombatant({ id, gx, gy, disposition, heldWeapon = false }) {
   };
 }
 
-function setup({ slug, outcome, opponentAt = [1, 0], dcs = null }) {
+function setup({ slug, outcome, opponentAt = [1, 0], dcs = null, feats = [], skills = null, levels = null }) {
   const attacker = makeCombatant({ id: "atk", gx: 0, gy: 0, disposition: -1 });
+  // #911: maneuver-modifier feats/skills on the attacker.
+  for (const featSlug of feats) attacker.actor.items.push({ type: "feat", slug: featSlug });
+  if (skills) attacker.actor.skills = skills;
   const opponent = makeCombatant({
     id: "opp",
     gx: opponentAt[0],
@@ -65,6 +68,10 @@ function setup({ slug, outcome, opponentAt = [1, 0], dcs = null }) {
     disposition: 1,
     heldWeapon: true,
   });
+  if (levels) {
+    attacker.actor.level = levels[0];
+    opponent.actor.level = levels[1];
+  }
   if (dcs) {
     opponent.actor.getStatistic = vi.fn((s) => (s in dcs ? { dc: { value: dcs[s] } } : null));
   }
@@ -285,5 +292,40 @@ describe("maneuver target defense DC (#909)", () => {
     const { combat, action } = setup({ slug: "trip", outcome: "success" });
     await applyAgentDecision(combat, "atk", "maneuver:trip:opp", "r");
     expect("difficultyClass" in action.mock.calls[0][0]).toBe(false);
+  });
+});
+
+describe("maneuver skill substitution (#911)", () => {
+  const SLY = { athletics: { mod: 3 }, thievery: { mod: 10 }, intimidation: {} };
+
+  it("passes skill: thievery to game.pf2e.actions.disarm for a Sly Disarm actor whose Thievery is better", async () => {
+    const { combat, action } = setup({ slug: "disarm", outcome: "failure", feats: ["sly-disarm"], skills: SLY });
+    await applyAgentDecision(combat, "atk", "maneuver:disarm:opp", "r");
+    expect(action).toHaveBeenCalledTimes(1);
+    expect(action.mock.calls[0][0].skill).toBe("thievery");
+  });
+
+  it("still rolls against the target's Reflex DC when Disarming with Thievery", async () => {
+    const { opponent, combat, action } = setup({
+      slug: "disarm", outcome: "failure", feats: ["sly-disarm"], skills: SLY, dcs: { reflex: 18, fortitude: 20 },
+    });
+    await applyAgentDecision(combat, "atk", "maneuver:disarm:opp", "r");
+    expect(opponent.actor.getStatistic).toHaveBeenCalledWith("reflex");
+    expect(action.mock.calls[0][0].difficultyClass).toEqual({ value: 18 });
+  });
+
+  it("passes no skill override when the maneuver uses its own base skill", async () => {
+    const { combat, action } = setup({ slug: "trip", outcome: "failure" });
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp", "r");
+    expect("skill" in action.mock.calls[0][0]).toBe(false);
+  });
+
+  it("passes no skill override for a Sly Disarm actor whose Athletics is at least as good", async () => {
+    const { combat, action } = setup({
+      slug: "disarm", outcome: "failure", feats: ["sly-disarm"],
+      skills: { athletics: { mod: 10 }, thievery: { mod: 10 }, intimidation: {} },
+    });
+    await applyAgentDecision(combat, "atk", "maneuver:disarm:opp", "r");
+    expect("skill" in action.mock.calls[0][0]).toBe(false);
   });
 });

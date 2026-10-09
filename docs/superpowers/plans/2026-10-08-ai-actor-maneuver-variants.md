@@ -40,7 +40,7 @@
 - Consumes: nothing.
 - Produces (consumed by Task 2 and Task 5): `eligibilityModifiers(featSlugs, { athleticsRank, athleticsMod, thieveryMod } = {})` → `{ sizeCapSteps: {trip?, shove?, grapple?, disarm?}, skill: {disarm?} }`; `ridersFor(featSlugs, slug, outcome, skillUsed)` → `Array<{type: 'crushingGrabDamage' | 'slyDisarmOffGuard' | 'terrifiedRetreatFleeing'}>`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/maneuver-feat-modifiers.test.mjs
@@ -126,12 +126,12 @@ describe('ridersFor', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/maneuver-feat-modifiers.test.mjs`
 Expected: FAIL — `scripts/maneuver-feat-modifiers.mjs` doesn't exist yet.
 
-- [ ] **Step 3: Write `scripts/maneuver-feat-modifiers.mjs`**
+- [x] **Step 3: Write `scripts/maneuver-feat-modifiers.mjs`**
 
 ```js
 /**
@@ -201,12 +201,12 @@ export function ridersFor(featSlugs, slug, outcome, skillUsed) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/maneuver-feat-modifiers.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/maneuver-feat-modifiers.mjs tests/maneuver-feat-modifiers.test.mjs
@@ -229,7 +229,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `eligibilityModifiers` (Task 1).
 - Produces: `buildManeuverVocabulary`'s output entries now carry `skill`; `sizeOkForManeuver` now takes a `capSteps` parameter; `computeManeuverAttackerProfile`'s per-slug entries now carry `skill`/`sizeCapSteps`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/agent-candidates.test.mjs` (inside the existing `describe('buildManeuverVocabulary', ...)` block):
 
@@ -292,12 +292,12 @@ Add to `tests/dungeon-combat-maneuver-vocabulary.test.mjs` (inside the existing 
   });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/agent-candidates.test.mjs tests/dungeon-combat-maneuver-vocabulary.test.mjs`
 Expected: FAIL — `skill` is `undefined` on vocabulary entries; `sizeOkForManeuver` ignores a third argument; `computeManeuverAttackerProfile`'s entries carry no `skill`/`sizeCapSteps`.
 
-- [ ] **Step 3: Update `buildManeuverVocabulary` in `scripts/agent-candidates.mjs`**
+- [x] **Step 3: Update `buildManeuverVocabulary` in `scripts/agent-candidates.mjs`**
 
 Change the vocabulary-push line:
 
@@ -333,7 +333,7 @@ Update `buildManeuverCandidates` to carry `skill` through onto the built candida
 
 (This replaces the `const inVocabulary = maneuverVocabulary.some((v) => ...)` + `if (!inVocabulary) continue;` pair with the `const matched = maneuverVocabulary.find(...)` + `if (!matched) continue;` pair shown — same referential-integrity check, now also capturing the matched entry's `skill`.)
 
-- [ ] **Step 4: Update `sizeOkForManeuver` and `computeManeuverAttackerProfile` in `scripts/dungeon-combat.mjs`**
+- [x] **Step 4: Update `sizeOkForManeuver` and `computeManeuverAttackerProfile` in `scripts/dungeon-combat.mjs`**
 
 ```js
 function sizeOkForManeuver(attackerActor, targetActor, capSteps = 1) {
@@ -376,7 +376,7 @@ function computeManeuverAttackerProfile(actor) {
 }
 ```
 
-- [ ] **Step 5: Thread the per-slug `sizeCapSteps` into `getPendingAgentTurn`'s own `sizeOk` computation**
+- [x] **Step 5: Thread the per-slug `sizeCapSteps` into `getPendingAgentTurn`'s own `sizeOk` computation**
 
 In `getPendingAgentTurn` (per #909's plan), the four `sizeOkForManeuver(combatant.actor, o.actor)` calls inside the `maneuverOpponents` mapping each gain their matching per-slug cap argument:
 
@@ -391,17 +391,17 @@ In `getPendingAgentTurn` (per #909's plan), the four `sizeOkForManeuver(combatan
 
 (`maneuverAttackerProfile` is the same variable `computeManeuverAttackerProfile(combatant.actor)`'s own result, already assigned earlier in this function per #909's plan — this step only changes the four call sites that read from it, not its own assignment.)
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-candidates.test.mjs tests/dungeon-combat-maneuver-vocabulary.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — in particular, re-check any existing `buildManeuverCandidates` test that asserts an exact candidate object via `toEqual` (per #909's own plan, its tests do) now needs a `skill: 'athletics'` (or whatever that fixture's vocabulary entry carries) added to the expected object, since the candidate shape gained a field.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs scripts/dungeon-combat.mjs tests/agent-candidates.test.mjs tests/dungeon-combat-maneuver-vocabulary.test.mjs
@@ -422,7 +422,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `candidate.skill` (Task 2).
 - Produces: `runManeuverCheck`/`executeManeuverCandidate` now pass the candidate's own resolved `skill` through to `game.pf2e.actions[slug]`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `tests/dungeon-combat-maneuver-execution.test.mjs` (per #909's plan, this file already mocks `game.pf2e.actions`):
 
@@ -445,12 +445,12 @@ it('defaults to no explicit skill override when the candidate carries the maneuv
 
 (Fill in the real combat/combatant/target stub shape this file already established per #909's plan before running — not re-derived here.)
 
-- [ ] **Step 2: Run test to verify it fails (once filled in)**
+- [x] **Step 2: Run test to verify it fails (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-execution.test.mjs`
 Expected: FAIL — `runManeuverCheck` doesn't forward a `skill` option yet.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 function runManeuverCheck(slug, combatant, target, skill) {

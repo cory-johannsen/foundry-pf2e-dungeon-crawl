@@ -5803,9 +5803,10 @@ const MANEUVER_CHECK_TIMEOUT_MS = 30000;
  * promise. Resolves `null` if no outcome arrives in time or the macro
  * throws synchronously. `modifiers` is passed straight through to the
  * macro's own check (the hook a multiple attack penalty for the four
- * attack-trait maneuvers will use, #940).
+ * attack-trait maneuvers will use, #940). `skill` (#911) overrides the
+ * statistic rolled; omitted, the macro uses the maneuver's base skill.
  */
-function runManeuverCheck(slug, combatant, target, { modifiers } = {}) {
+function runManeuverCheck(slug, combatant, target, { modifiers, skill } = {}) {
   return new Promise((resolve) => {
     let settled = false;
     const finish = (outcome) => {
@@ -5831,6 +5832,10 @@ function runManeuverCheck(slug, combatant, target, { modifiers } = {}) {
         event: null,
         ...(Number.isFinite(dcValue) ? { difficultyClass: { value: dcValue } } : {}),
         ...(modifiers?.length ? { modifiers } : {}),
+        // #911: a feat-substituted statistic (Sly Disarm: Thievery) goes
+        // through the macro's own `skill` option; the DC above is still the
+        // maneuver's own defense (Disarm: Reflex) regardless of the skill.
+        ...(skill ? { skill } : {}),
         callback: ({ outcome }) => finish(outcome),
       });
     } catch (err) {
@@ -5860,7 +5865,7 @@ async function dropHeldItem(actor) {
  * applied by hand, mirroring dungeon-strike-riders.mjs's
  * applyConditionOnSuccess precedent. Returns a short description for the
  * GM whisper. */
-async function applyManeuverOutcome(slug, combat, combatant, target, outcome) {
+async function applyManeuverOutcome(slug, combat, combatant, target, outcome, skillUsed = MANEUVER_DEFS[slug]?.skill) {
   const hit = outcome === "success" || outcome === "criticalSuccess";
   if (slug === "trip") {
     if (hit) await target.actor.increaseCondition("prone");
@@ -5932,7 +5937,7 @@ async function executeManeuverCandidate(combat, combatant, candidate) {
   const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
   if (!target) return;
   const outcome = await withDialogsSuppressed(() =>
-    runManeuverCheck(candidate.slug, combatant, target),
+    runManeuverCheck(candidate.slug, combatant, target, { skill: candidate.skill }),
   );
   const label = MANEUVER_DEFS[candidate.slug]?.label ?? candidate.slug;
   const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
@@ -5942,7 +5947,14 @@ async function executeManeuverCandidate(combat, combatant, candidate) {
     );
     return;
   }
-  const result = await applyManeuverOutcome(candidate.slug, combat, combatant, target, outcome);
+  const result = await applyManeuverOutcome(
+    candidate.slug,
+    combat,
+    combatant,
+    target,
+    outcome,
+    candidate.skill ?? MANEUVER_DEFS[candidate.slug]?.skill,
+  );
   await whisperGmContent(
     `<p><strong>${esc(label)} (${esc(combatant.name)} vs ${esc(target.name)}):</strong> ${esc(outcome)} -- ${esc(result)}.</p>`,
   );
