@@ -37,6 +37,7 @@ import {
   AGENT_MELEE_REACH_SQUARES,
   DEMORALIZE_RANGE_SQUARES,
   buildManeuverVocabulary,
+  MANEUVER_DEFS,
 } from "./agent-candidates.mjs";
 import {
   findPath,
@@ -5503,6 +5504,162 @@ async function postMoveStalledChat(combatant, status) {
   await ChatMessage.create({ content, whisper: gmIds });
 }
 
+/** #909: upper bound on waiting for a maneuver macro's callback. The
+ * macro never returns its own promise and never calls `callback` when its
+ * check can't be rolled at all (e.g. a CheckContextError for a missing
+ * statistic, which it only reports via ui.notifications) -- without this,
+ * that case would hang the agent's turn forever. */
+const MANEUVER_CHECK_TIMEOUT_MS = 30000;
+
+/**
+ * #909: game.pf2e.actions.<slug>() (trip/shove/grapple/disarm/demoralize)
+ * is fire-and-forget -- confirmed in the installed system's bundled source,
+ * none of the five action functions `return` their own
+ * simpleRollActionCheck(...) promise. The only way to know the roll
+ * finished is the `callback` option, so this bridges that callback to a
+ * promise. Resolves `null` if no outcome arrives in time or the macro
+ * throws synchronously. `modifiers` is passed straight through to the
+ * macro's own check (the hook a multiple attack penalty for the four
+ * attack-trait maneuvers will use, #940).
+ */
+function runManeuverCheck(slug, combatant, target, { modifiers } = {}) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (outcome) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(outcome ?? null);
+    };
+    const timer = setTimeout(() => finish(null), MANEUVER_CHECK_TIMEOUT_MS);
+    try {
+      game.pf2e.actions[slug]({
+        actors: [combatant.actor],
+        target: () => ({ actor: target.actor, token: target.token }),
+        event: null,
+        ...(modifiers?.length ? { modifiers } : {}),
+        callback: ({ outcome }) => finish(outcome),
+      });
+    } catch (err) {
+      console.error(`#909: ${slug} maneuver macro failed:`, err.message);
+      finish(null);
+    }
+  });
+}
+
+/** #909: Disarm's critical success -- "the item falls to the ground in the
+ * target's space": the target's first held item stops being held. */
+async function dropHeldItem(actor) {
+  const item = Array.from(actor?.items ?? []).find(
+    (i) => i?.system?.equipped?.carryType === "held",
+  );
+  if (!item) return null;
+  await item.update({
+    "system.equipped.carryType": "dropped",
+    "system.equipped.handsHeld": 0,
+  });
+  return item;
+}
+
+/** PF2e RAW outcome table for the five basic maneuvers, verbatim from the
+ * installed system's lang/action-en.json (see this feature's spec) -- none
+ * of the five macros auto-apply their own outcome, so every effect here is
+ * applied by hand, mirroring dungeon-strike-riders.mjs's
+ * applyConditionOnSuccess precedent. Returns a short description for the
+ * GM whisper. */
+async function applyManeuverOutcome(slug, combat, combatant, target, outcome) {
+  const hit = outcome === "success" || outcome === "criticalSuccess";
+  if (slug === "trip") {
+    if (hit) await target.actor.increaseCondition("prone");
+    if (outcome === "criticalSuccess") {
+      const DamageRollClass = CONFIG.Dice.rolls.find((c) => c.name === "DamageRoll");
+      const roll = new DamageRollClass("1d6[bludgeoning]");
+      await roll.evaluate();
+      await target.actor.applyDamage({ damage: roll, token: target.token });
+      await applyDefeatIfReducedToZero(target);
+      return `target is Prone and takes ${roll.total} bludgeoning damage`;
+    }
+    if (hit) return "target is Prone";
+    if (outcome === "criticalFailure") {
+      await combatant.actor.increaseCondition("prone");
+      return "attacker falls Prone";
+    }
+  } else if (slug === "shove") {
+    if (hit) {
+      const squares = outcome === "criticalSuccess" ? 2 : 1;
+      await pushTokenAway(combat, combatant, target, squares);
+      return `target pushed ${squares * 5} ft`;
+    }
+    if (outcome === "criticalFailure") {
+      await combatant.actor.increaseCondition("prone");
+      return "attacker falls Prone";
+    }
+  } else if (slug === "grapple") {
+    if (outcome === "criticalSuccess") {
+      await target.actor.increaseCondition("restrained");
+      return "target is Restrained";
+    }
+    if (outcome === "success") {
+      await target.actor.increaseCondition("grabbed");
+      return "target is Grabbed";
+    }
+  } else if (slug === "disarm") {
+    if (outcome === "criticalSuccess") {
+      const item = await dropHeldItem(target.actor);
+      return item ? `${item.name} falls to the ground` : "target holds nothing to drop";
+    }
+    if (outcome === "success") {
+      const effect = await fromUuid("Compendium.pf2e.other-effects.Item.PuDS0DEq0CnaSIFV");
+      if (effect) await target.actor.createEmbeddedDocuments("Item", [effect.toObject()]);
+      return "target's grip is weakened";
+    }
+    if (outcome === "criticalFailure") {
+      await combatant.actor.increaseCondition("off-guard");
+      return "attacker is Off-Guard";
+    }
+  } else if (slug === "demoralize") {
+    // RAW: regardless of the result, the target is immune to this
+    // attacker's Demoralize for 10 minutes -- real game time (#785 clock).
+    await setDemoralizeImmunityUntil(
+      combat,
+      combatant.id,
+      target.id,
+      game.time.worldTime + 600,
+    );
+    if (hit) {
+      const value = outcome === "criticalSuccess" ? 2 : 1;
+      await target.actor.increaseCondition("frightened", { value });
+      return `target is Frightened ${value}`;
+    }
+  }
+  return "no effect";
+}
+
+async function executeManeuverCandidate(combat, combatant, candidate) {
+  const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
+  if (!target) return;
+  const outcome = await withDialogsSuppressed(() =>
+    runManeuverCheck(candidate.slug, combatant, target),
+  );
+  const label = MANEUVER_DEFS[candidate.slug]?.label ?? candidate.slug;
+  const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
+  if (!outcome) {
+    await whisperGmContent(
+      `<p><strong>${esc(label)} (${esc(combatant.name)} vs ${esc(target.name)}):</strong> no check result -- resolve manually.</p>`,
+    );
+    return;
+  }
+  const result = await applyManeuverOutcome(candidate.slug, combat, combatant, target, outcome);
+  await whisperGmContent(
+    `<p><strong>${esc(label)} (${esc(combatant.name)} vs ${esc(target.name)}):</strong> ${esc(outcome)} -- ${esc(result)}.</p>`,
+  );
+}
+
+async function whisperGmContent(content) {
+  const gmIds = ChatMessage.getWhisperRecipients("GM").map((u) => u.id);
+  await ChatMessage.create({ content, whisper: gmIds });
+}
+
 /**
  * Executes exactly one chosen candidate for `combatantId`'s current turn in
  * `combat`, updates the per-turn state, and advances the turn once actions
@@ -5789,6 +5946,8 @@ export async function applyAgentDecision(
         candidate.save,
         candidate.cost,
       );
+  } else if (candidate.type === "maneuver") {
+    await executeManeuverCandidate(combat, combatant, candidate);
   }
 
   const turnState = getAgentTurnState(combat, combatantId);

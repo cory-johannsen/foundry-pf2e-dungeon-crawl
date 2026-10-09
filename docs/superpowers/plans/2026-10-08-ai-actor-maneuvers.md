@@ -1388,12 +1388,12 @@ export async function runAgentDecisionLoop(
 Run: `npm test -- tests/dungeon-combat-agent-service-loop.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-agent-service-loop.test.mjs
@@ -1414,7 +1414,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `resolveOpponentForTurn` (already module-private in this file); `setDemoralizeImmunityUntil` (Task 5); `pushTokenAway` (already exported in this file).
 - Produces: a new `else if (candidate.type === "maneuver")` branch inside `applyAgentDecision`, the terminal consumer in this plan.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 First, find and read an existing `applyAgentDecision` test (e.g. for the `strike` or `cast` branch) to copy its exact `game`/`combat`/`combatant`/`target` stub shape:
 
@@ -1485,12 +1485,12 @@ describe('applyAgentDecision maneuver execution', () => {
 
 (As with Task 6's Step 1, the bodies above intentionally stay partially commented/pseudocoded — fill in the real stub shape copied from the found existing test before running, rather than guessing it here.)
 
-- [ ] **Step 2: Run tests to verify they fail (once filled in)**
+- [x] **Step 2: Run tests to verify they fail (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-execution.test.mjs`
 Expected: FAIL — `applyAgentDecision` has no `maneuver` branch yet.
 
-- [ ] **Step 3: Implement `executeManeuverCandidate` and the new branch**
+- [x] **Step 3: Implement `executeManeuverCandidate` and the new branch**
 
 Add this function near the other `execute*`/`rollAndApply*` helpers in `scripts/dungeon-combat.mjs` (e.g. just above `applyAgentDecision`):
 
@@ -1578,17 +1578,17 @@ Add the new branch inside `applyAgentDecision`, alongside the existing `strike`/
     await executeManeuverCandidate(combat, combatant, candidate);
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-execution.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-maneuver-execution.test.mjs
