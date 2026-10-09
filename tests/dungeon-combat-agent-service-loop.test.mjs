@@ -284,6 +284,39 @@ describe('runAgentDecisionLoop feat-candidate augmentation (#910)', () => {
   });
 });
 
+describe('runAgentDecisionLoop npcAbility vocabulary (#915)', () => {
+  const combatant = { id: 'atk' };
+  function combatWithFlagStore() {
+    const store = {};
+    return {
+      id: 'combat-1', round: 1, turn: 0,
+      getFlag: (_m, key) => store[key],
+      setFlag: async (_m, key, value) => {
+        store[key] = value;
+      },
+    };
+  }
+
+  it('fetches when only the NPC-ability vocabulary is non-empty, and appends it after maneuvers/feats', async () => {
+    installGameStub();
+    const maneuverVocabulary = [{ type: 'maneuver', slug: 'trip', targetId: 'opp1' }];
+    const npcAbilityVocabulary = [{ type: 'npcAbility', itemId: 'i1', slug: 'terrifying-display', targetId: null, affectedIds: ['opp1'] }];
+    for (const [vocab, expected] of [
+      [{ maneuverVocabulary: [], featVocabulary: [], npcAbilityVocabulary }, npcAbilityVocabulary],
+      [{ maneuverVocabulary, npcAbilityVocabulary }, [...maneuverVocabulary, ...npcAbilityVocabulary]],
+    ]) {
+      const pendingTurn = { combatId: 'combat-1', combatantId: 'atk', context: { candidates: [] }, candidates: [], ...vocab };
+      const fetchCandidates = vi.fn().mockResolvedValue({ picks: [] });
+      await runAgentDecisionLoop(combatWithFlagStore(), combatant, {
+        fetchDecision: vi.fn().mockResolvedValue({ candidateId: 'endTurn' }),
+        fetchCandidates, getPending: vi.fn().mockResolvedValue(pendingTurn), applyDecision: vi.fn().mockResolvedValue(null), armTimeout: vi.fn(),
+      });
+      expect(fetchCandidates).toHaveBeenCalledTimes(1);
+      expect(fetchCandidates.mock.calls[0][0].vocabulary).toEqual(expected);
+    }
+  });
+});
+
 describe('runAgentDecisionLoop maneuver picks already fetched this turn', () => {
   it('does not re-ask the reasoning model once picks are persisted for this turn', async () => {
     installGameStub();

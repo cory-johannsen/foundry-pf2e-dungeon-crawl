@@ -1145,14 +1145,107 @@ export function buildFeatCandidates({ featVocabulary = [], picks = null, opponen
   return candidates;
 }
 
+/** #915: at most this many NPC-ability entries go to the reasoning model per turn. */
+export const NPC_ABILITY_VOCABULARY_CAP = 8;
+
+/**
+ * #915: the NPC save-ability vocabulary, built from dungeon-combat.mjs's
+ * ready lists (this file has no Foundry API surface). `readyAreaAbilities`
+ * entries carry real precomputed `placements` (the same `affected`/
+ * `affectedAllies` shape the area spells and breath weapons use) and are
+ * offered once, at the placement catching the most enemies then the fewest
+ * allies; for an ability that affects allies ("Creatures within ...", not
+ * "Each enemy in ...") only placements catching no ally are considered.
+ * `readySingleTargetAbilities` entries carry `rangeFeet` and are offered once
+ * per opponent in range and in sight. `immuneIds` (temporarily immune, or
+ * immune to the ability's traits) are never counted or targeted. Capped at
+ * NPC_ABILITY_VOCABULARY_CAP, most enemies affected first.
+ */
+export function buildNpcAbilityVocabulary({ readyAreaAbilities = [], readySingleTargetAbilities = [], opponents = [], actionsRemaining }) {
+  const base = (ability) => ({
+    type: 'npcAbility', itemId: ability.itemId, slug: ability.slug, name: ability.name,
+    mode: ability.mode, cost: ability.cost,
+  });
+  const entries = [];
+  for (const ability of readyAreaAbilities) {
+    if (ability.cost > actionsRemaining) continue;
+    const immune = new Set(ability.immuneIds ?? []);
+    const placements = (ability.placements ?? []).map((p) => ({
+      ...p,
+      affected: p.affected.filter((o) => !immune.has(o.id)),
+      affectedAllies: ability.affectsAllies ? (p.affectedAllies ?? []).filter((o) => !immune.has(o.id)) : [],
+    }));
+    const best = bestAreaPlacement(placements.filter((p) => p.affectedAllies.length === 0));
+    if (!best) continue;
+    entries.push({
+      ...base(ability), targetId: null,
+      centerType: best.centerType, centerId: best.centerId ?? null,
+      affectedIds: best.affected.map((o) => o.id),
+      summary: ability.summary,
+    });
+  }
+  for (const ability of readySingleTargetAbilities) {
+    if (ability.cost > actionsRemaining) continue;
+    const immune = new Set(ability.immuneIds ?? []);
+    const rangeSquares = Math.floor(ability.rangeFeet / 5);
+    for (const opponent of opponents) {
+      if (immune.has(opponent.id) || !withinRangeAndSight(opponent, rangeSquares)) continue;
+      entries.push({ ...base(ability), targetId: opponent.id, affectedIds: [opponent.id], summary: ability.summary });
+    }
+  }
+  return entries
+    .map((entry, index) => ({ entry, index }))
+    .sort((a, b) => b.entry.affectedIds.length - a.entry.affectedIds.length || a.index - b.index)
+    .slice(0, NPC_ABILITY_VOCABULARY_CAP)
+    .map(({ entry }) => entry);
+}
+
+/**
+ * #915: validates the combined once-per-turn picks against
+ * `npcAbilityVocabulary`, ignoring any pick whose `type` isn't 'npcAbility'.
+ * Like feat picks, the response schema only carries (type, slug, targetId,
+ * rationale), so a pick matches on (slug, targetId) -- null for an area
+ * ability; an `itemId` the model volunteers must agree. A single-target pick
+ * whose opponent is gone is dropped.
+ */
+export function buildNpcAbilityCandidates({ npcAbilityVocabulary = [], picks = null, opponents = null }) {
+  if (!picks) return [];
+  const candidates = [];
+  const seen = new Set();
+  for (const pick of picks) {
+    if (!pick || typeof pick !== 'object' || pick.type !== 'npcAbility') continue;
+    const targetId = pick.targetId || null;
+    const match = npcAbilityVocabulary.find((v) => v.slug === pick.slug && v.targetId === targetId);
+    if (!match) continue;
+    if (pick.itemId !== undefined && pick.itemId !== match.itemId) continue;
+    const id = match.targetId ? `npcAbility:${match.itemId}:${match.targetId}` : `npcAbility:${match.itemId}`;
+    if (seen.has(id)) continue;
+    let label = match.name;
+    if (match.targetId) {
+      const opponent = (opponents ?? []).find((o) => o.id === match.targetId);
+      if (!opponent) continue;
+      label = `${match.name} vs ${opponent.name}`;
+    }
+    if (match.summary) label = `${label} (${match.summary})`;
+    seen.add(id);
+    candidates.push({
+      id, type: 'npcAbility', itemId: match.itemId, slug: match.slug, name: match.name, mode: match.mode,
+      targetId: match.targetId, affectedIds: match.affectedIds, cost: match.cost,
+      summary: pick.rationale ? `${label} — ${pick.rationale}` : label,
+    });
+  }
+  return candidates;
+}
+
 /** Full candidate list for one decision iteration. */
-export function buildCandidateList({ opponents, readyActions, readySpells = [], readyAreaSpells = [], readyAttackSpells = [], readyDebuffSpells = [], readyBreathWeapons = [], readyMultiStrikeBundles = [], readyChainSpells = [], readyHealSpells = [], readyBuffSpells = [], readyTierScalingAreaSpells = [], readyDualNatureSpells = [], readyTargetCountSpells = [], readyAutoHitAreaSpells = [], allies = [], seekTargets = [], turnState, hazard = null, hasRangedOrReach = false, maneuverVocabulary = [], maneuverPicks = null, featVocabulary = [] }) {
+export function buildCandidateList({ opponents, readyActions, readySpells = [], readyAreaSpells = [], readyAttackSpells = [], readyDebuffSpells = [], readyBreathWeapons = [], readyMultiStrikeBundles = [], readyChainSpells = [], readyHealSpells = [], readyBuffSpells = [], readyTierScalingAreaSpells = [], readyDualNatureSpells = [], readyTargetCountSpells = [], readyAutoHitAreaSpells = [], allies = [], seekTargets = [], turnState, hazard = null, hasRangedOrReach = false, maneuverVocabulary = [], maneuverPicks = null, featVocabulary = [], npcAbilityVocabulary = [] }) {
   if (turnState.actionsRemaining <= 0) return [endTurnCandidate()];
   return [
     ...buildMovementCandidates({ opponents, hazard, hasRangedOrReach }),
     ...buildStrikeCandidates({ readyActions, opponents, mapIncrement: turnState.mapIncrement }),
     ...buildManeuverCandidates({ maneuverVocabulary, maneuverPicks, opponents }),
     ...buildFeatCandidates({ featVocabulary, picks: maneuverPicks, opponents }),
+    ...buildNpcAbilityCandidates({ npcAbilityVocabulary, picks: maneuverPicks, opponents }),
     ...buildSpellCandidates({ readySpells, opponents, actionsRemaining: turnState.actionsRemaining }),
     ...buildAreaSpellCandidates({ readyAreaSpells, actionsRemaining: turnState.actionsRemaining }),
     ...buildAttackSpellCandidates({ readyAttackSpells, opponents, actionsRemaining: turnState.actionsRemaining }),

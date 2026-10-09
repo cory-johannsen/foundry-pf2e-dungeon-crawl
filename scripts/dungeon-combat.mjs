@@ -39,7 +39,9 @@ import {
   buildManeuverVocabulary,
   MANEUVER_DEFS,
   buildFeatVocabulary,
+  buildNpcAbilityVocabulary,
 } from "./agent-candidates.mjs";
+import { parseSaveAbility, describeNpcAbility } from "./npc-ability-parse.mjs";
 import {
   findPath,
   blockedEdgesFromWalls,
@@ -1027,7 +1029,13 @@ export async function runAgentDecisionLoop(
     // persists `[]` so it is never retried this turn. A pendingTurn with no
     // maneuverVocabulary never touches the turn state at all.
     // #910: the feat vocabulary rides along in the same single call.
-    if (pending.maneuverVocabulary?.length || pending.featVocabulary?.length) {
+    // #915: so do the NPC save abilities -- still one call, and none at all
+    // when all three vocabularies are empty.
+    if (
+      pending.maneuverVocabulary?.length ||
+      pending.featVocabulary?.length ||
+      pending.npcAbilityVocabulary?.length
+    ) {
       const turnState = getAgentTurnState(combat, pending.combatantId);
       if (turnState.maneuverPicks === null) {
         let picks = [];
@@ -1039,6 +1047,7 @@ export async function runAgentDecisionLoop(
             vocabulary: [
               ...(pending.maneuverVocabulary ?? []),
               ...(pending.featVocabulary ?? []),
+              ...(pending.npcAbilityVocabulary ?? []),
             ],
           });
           picks = Array.isArray(response?.picks) ? response.picks : [];
@@ -1825,6 +1834,69 @@ function isAbilityRecharged(combat, combatantId, itemSlug) {
   return combat.round >= recharge.availableAtRound;
 }
 
+/** #915: an actor's own action items (bestiary abilities are always
+ * `type: "action"`). */
+function actorActionItems(actor) {
+  return (
+    actor?.itemTypes?.action ??
+    Array.from(actor?.items ?? []).filter((i) => i?.type === "action")
+  );
+}
+
+/**
+ * #915: the Foundry-touching half of NPC-ability readiness -- parses each
+ * action item with npc-ability-parse.mjs's pure parser, drops anything out
+ * of frequency uses or still recharging (the same name-derived slug and
+ * `abilityRecharge` store breath weapons use), and splits survivors into
+ * area (template / group-range) vs single-target (range) lists. `targets`
+ * (opponent/ally combatants) are checked against the system's own
+ * `actor.isImmuneTo(item)` -- a mindless creature immune to mental effects
+ * is never counted or targeted. Area placements are computed by the caller
+ * (getPendingAgentTurn), which owns the canvas.
+ */
+export function computeReadyNpcAbilities(combat, combatant, targets = []) {
+  const readyAreaAbilities = [];
+  const readySingleTargetAbilities = [];
+  for (const item of actorActionItems(combatant.actor)) {
+    const descriptor = parseSaveAbility(item);
+    if (!descriptor) continue;
+    const uses = descriptor.frequency?.value;
+    if (descriptor.frequency && !(typeof uses === "number" && uses > 0)) continue;
+    const slug = actionItemSlug(item);
+    if (!isAbilityRecharged(combat, combatant.id, slug)) continue;
+    const immuneIds = targets
+      .filter((t) => {
+        try {
+          return t.actor?.isImmuneTo?.(item) === true;
+        } catch {
+          return false;
+        }
+      })
+      .map((t) => t.id);
+    const base = {
+      itemId: item.id,
+      slug,
+      name: item.name,
+      mode: descriptor.mode,
+      cost: descriptor.cost,
+      summary: describeNpcAbility(descriptor),
+      affectsAllies: descriptor.affectsAllies,
+      immuneIds,
+    };
+    if (descriptor.shape.areaType) {
+      readyAreaAbilities.push({
+        ...base,
+        areaType: descriptor.shape.areaType,
+        distanceFeet: descriptor.shape.distanceFeet,
+        rangeFeet: descriptor.shape.rangeFeet ?? null,
+      });
+    } else {
+      readySingleTargetAbilities.push({ ...base, rangeFeet: descriptor.shape.rangeFeet });
+    }
+  }
+  return { readyAreaAbilities, readySingleTargetAbilities };
+}
+
 /**
  * True for a non-spell NPC action item squarely inside #202's scope: a
  * reaction (`system.actionType.value === "reaction"`) named "Reactive
@@ -2150,6 +2222,7 @@ async function computeConePlacements(
   casterToken,
   rawOpponents,
   distanceFeet,
+  rawAllies = [],
 ) {
   const scene = combat.scene;
   if (!scene || game.scenes.viewed?.id !== scene.id) return [];
@@ -2188,15 +2261,22 @@ async function computeConePlacements(
         canvasObject.shape = canvasObject._computeShape();
       }
       const shape = canvasObject?.shape ?? null;
-      const affected = shape
-        ? rawOpponents
-            .filter((o) => {
-              const center = tokenCenter(o.token, gridSize);
-              return shape.contains(center.x - origin.x, center.y - origin.y);
-            })
-            .map((o) => ({ id: o.id, name: o.name }))
-        : [];
-      return { centerType: "opponent", centerId: rawOpponents[i].id, affected };
+      const contained = (pool) =>
+        shape
+          ? pool
+              .filter((o) => {
+                const center = tokenCenter(o.token, gridSize);
+                return shape.contains(center.x - origin.x, center.y - origin.y);
+              })
+              .map((o) => ({ id: o.id, name: o.name }))
+          : [];
+      // #915: allies too, for an NPC ability that affects every creature.
+      return {
+        centerType: "opponent",
+        centerId: rawOpponents[i].id,
+        affected: contained(rawOpponents),
+        affectedAllies: contained(rawAllies),
+      };
     });
   } finally {
     await scene.deleteEmbeddedDocuments(
@@ -3968,6 +4048,18 @@ export async function getPendingAgentTurn(combat) {
     turnState,
   });
 
+  // #915: NPC save-based special abilities (Terrifying Display, Vanth's
+  // Curse, ...), the third category sent to the same once-per-turn call.
+  const npcAbilityVocabulary = await computeNpcAbilityVocabulary(
+    combat,
+    combatant,
+    rawOpponents,
+    rawAllies,
+    opponents,
+    turnState.actionsRemaining,
+    gridSize,
+  );
+
   const readySpells = (combatant.actor?.spellcasting?.contents ?? [])
     .flatMap((entry) =>
       (entry.spells?.contents ?? [])
@@ -4604,6 +4696,7 @@ export async function getPendingAgentTurn(combat) {
     maneuverVocabulary,
     maneuverPicks: turnState.maneuverPicks,
     featVocabulary,
+    npcAbilityVocabulary,
     hazard: nearestHazardousRegionPoint(
       combat.scene,
       combatant.token,
@@ -4624,7 +4717,75 @@ export async function getPendingAgentTurn(combat) {
     candidates,
     maneuverVocabulary,
     featVocabulary,
+    npcAbilityVocabulary,
   };
+}
+
+/** #915: getPendingAgentTurn's NPC-ability vocabulary -- readiness from
+ * computeReadyNpcAbilities, then real template placements for each area
+ * ability: an emanation is one self-centered placement; a cone uses the
+ * breath-weapon cone placements; a burst is centered on each visible
+ * opponent within its stated range (the area spells' own burst
+ * convention). Any other shape (line, ...) has no placement helper and is
+ * not offered. */
+async function computeNpcAbilityVocabulary(
+  combat,
+  combatant,
+  rawOpponents,
+  rawAllies,
+  opponents,
+  actionsRemaining,
+  gridSize,
+) {
+  const { readyAreaAbilities: rawArea, readySingleTargetAbilities } =
+    computeReadyNpcAbilities(combat, combatant, [...rawOpponents, ...rawAllies]);
+  const readyAreaAbilities = [];
+  for (const ability of rawArea) {
+    if (ability.cost > actionsRemaining) continue;
+    let placements;
+    if (ability.areaType === "emanation") {
+      placements = await computeAreaPlacements(
+        combat,
+        [{ centerType: "self", centerId: null, originToken: combatant.token }],
+        rawOpponents,
+        rawAllies,
+        ability.distanceFeet,
+      );
+    } else if (ability.areaType === "cone") {
+      placements = await computeConePlacements(
+        combat,
+        combatant.token,
+        rawOpponents,
+        ability.distanceFeet,
+        rawAllies,
+      );
+    } else if (ability.areaType === "burst" && ability.rangeFeet) {
+      const rangeSquares = Math.floor(ability.rangeFeet / 5);
+      const centers = rawOpponents
+        .filter(
+          (o) =>
+            chebyshevSquares(combatant.token, o.token, gridSize) <= rangeSquares &&
+            hasLineOfSight(combat, combatant.token, o.token),
+        )
+        .map((o) => ({ centerType: "opponent", centerId: o.id, originToken: o.token }));
+      placements = await computeAreaPlacements(
+        combat,
+        centers,
+        rawOpponents,
+        rawAllies,
+        ability.distanceFeet,
+      );
+    } else {
+      continue;
+    }
+    readyAreaAbilities.push({ ...ability, placements });
+  }
+  return buildNpcAbilityVocabulary({
+    readyAreaAbilities,
+    readySingleTargetAbilities,
+    opponents,
+    actionsRemaining,
+  });
 }
 
 /** Moves `combatant`'s token up to its own speed, along a real, wall-aware

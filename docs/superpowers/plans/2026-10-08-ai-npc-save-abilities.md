@@ -426,7 +426,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `parseSaveAbility` (Task 1), `getAbilityRecharge`/`isAbilityRecharged` (already in `dungeon-combat.mjs`, module-private), the existing breath-weapon placement helpers.
 - Produces (consumed by Task 4): `buildNpcAbilityVocabulary({ readyAbilities, actionsRemaining })` → `Array<{type: 'npcAbility', itemId, slug, name, mode, cost, targetId?, affectedIds, summary}>` (pure, agent-candidates.mjs); `getPendingAgentTurn`'s return value gains `npcAbilityVocabulary`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/agent-candidates.test.mjs`:
 
@@ -540,12 +540,12 @@ describe('computeReadyNpcAbilities', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/agent-candidates.test.mjs tests/dungeon-combat-npc-ability-vocabulary.test.mjs`
 Expected: FAIL — none of these functions exist yet.
 
-- [ ] **Step 3: Implement `buildNpcAbilityVocabulary` in `scripts/agent-candidates.mjs`**
+- [x] **Step 3: Implement `buildNpcAbilityVocabulary` in `scripts/agent-candidates.mjs`**
 
 ```js
 const NPC_ABILITY_VOCABULARY_CAP = 8;
@@ -593,7 +593,7 @@ export function buildNpcAbilityVocabulary({ readyAreaAbilities = [], readySingle
 }
 ```
 
-- [ ] **Step 4: Implement `computeReadyNpcAbilities` in `scripts/dungeon-combat.mjs`**
+- [x] **Step 4: Implement `computeReadyNpcAbilities` in `scripts/dungeon-combat.mjs`**
 
 Add the import:
 
@@ -634,7 +634,7 @@ export function computeReadyNpcAbilities(combat, combatant) {
 }
 ```
 
-- [ ] **Step 5: Wire into `getPendingAgentTurn`**
+- [x] **Step 5: Wire into `getPendingAgentTurn`**
 
 Right after the feat vocabulary block (per #910's plan), add:
 
@@ -679,17 +679,17 @@ Splice `buildNpcAbilityCandidates({ npcAbilityVocabulary, picks: maneuverPicks }
 
 Also widen `runAgentDecisionLoop`'s fetch gate (per #910's plan) from `pending.maneuverVocabulary?.length || pending.featVocabulary?.length` to also include `|| pending.npcAbilityVocabulary?.length`, and combine all three vocabularies into the one `vocabulary` array sent to `fetchCandidates`.
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-candidates.test.mjs tests/dungeon-combat-npc-ability-vocabulary.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — update any existing exact-shape `getPendingAgentTurn`/`buildCandidateList` test assertions to include the new `npcAbilityVocabulary: []` field, per #909/#910's own plans' identical note for their own added fields.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs scripts/dungeon-combat.mjs tests/agent-candidates.test.mjs tests/dungeon-combat-npc-ability-vocabulary.test.mjs

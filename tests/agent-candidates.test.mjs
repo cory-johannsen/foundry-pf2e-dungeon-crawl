@@ -17,7 +17,8 @@ import {
   buildCandidateList, applyCandidateToTurnState, buildDecisionContext,
   MAX_ACTIONS_PER_TURN, AGENT_MELEE_REACH_SQUARES,
   MANEUVER_DEFS, DEMORALIZE_RANGE_SQUARES, buildManeuverVocabulary, buildManeuverCandidates,
-  buildFeatVocabulary, buildFeatCandidates
+  buildFeatVocabulary, buildFeatCandidates,
+  buildNpcAbilityVocabulary, buildNpcAbilityCandidates
 } from '../scripts/agent-candidates.mjs';
 
 describe('initAgentTurnState', () => {
@@ -1717,5 +1718,145 @@ describe('applyCandidateToTurnState feat candidates (#910)', () => {
   it('records flourish and stance usage', () => {
     expect(applyCandidateToTurnState(base, { type: 'feat', cost: 2, traits: ['flourish'], attacks: 1 }).flourishUsed).toBe(true);
     expect(applyCandidateToTurnState(base, { type: 'feat', cost: 1, traits: ['stance'] }).stanceUsed).toBe(true);
+  });
+});
+
+describe('buildNpcAbilityVocabulary (#915)', () => {
+  const emanationAbility = {
+    itemId: 'i1', slug: 'terrifying-display', name: 'Terrifying Display', mode: 'auto', cost: 2, summary: 'S1',
+    affectsAllies: true, immuneIds: [],
+    placements: [
+      { centerType: 'self', centerId: null, affected: [{ id: 'opp1', name: 'Goblin' }, { id: 'opp2', name: 'Orc' }], affectedAllies: [] },
+    ],
+  };
+  const singleTargetAbility = {
+    itemId: 'i2', slug: 'vanths-curse', name: "Vanth's Curse", mode: 'reportOnly', cost: 2, summary: 'S2',
+    rangeFeet: 5, immuneIds: [],
+  };
+  const opponents = [
+    { id: 'opp1', name: 'Goblin', distanceSquares: 1, hasLineOfSight: true },
+    { id: 'opp2', name: 'Orc', distanceSquares: 1, hasLineOfSight: true },
+  ];
+
+  it('offers an area ability once, at its best placement, affecting every enemy it hits', () => {
+    const vocabulary = buildNpcAbilityVocabulary({ readyAreaAbilities: [emanationAbility], opponents, actionsRemaining: 3 });
+    expect(vocabulary).toEqual([
+      { type: 'npcAbility', itemId: 'i1', slug: 'terrifying-display', name: 'Terrifying Display', mode: 'auto', cost: 2, targetId: null, centerType: 'self', centerId: null, affectedIds: ['opp1', 'opp2'], summary: 'S1' },
+    ]);
+  });
+
+  it('skips an area ability whose best placement affects no enemies', () => {
+    const noHit = { ...emanationAbility, placements: [{ centerType: 'self', centerId: null, affected: [], affectedAllies: [] }] };
+    expect(buildNpcAbilityVocabulary({ readyAreaAbilities: [noHit], opponents, actionsRemaining: 3 })).toEqual([]);
+  });
+
+  it('skips an area ability that would also catch an ally, when it affects allies at all', () => {
+    const withAlly = { ...emanationAbility, placements: [{ centerType: 'self', centerId: null, affected: [{ id: 'opp1', name: 'Goblin' }], affectedAllies: [{ id: 'ally1', name: 'Gorilla' }] }] };
+    expect(buildNpcAbilityVocabulary({ readyAreaAbilities: [withAlly], opponents, actionsRemaining: 3 })).toEqual([]);
+    // "Each enemy in ..." spares allies, so they never block it.
+    const enemiesOnly = { ...withAlly, affectsAllies: false };
+    expect(buildNpcAbilityVocabulary({ readyAreaAbilities: [enemiesOnly], opponents, actionsRemaining: 3 }).map((v) => v.affectedIds)).toEqual([['opp1']]);
+  });
+
+  it('picks the placement catching the most enemies, then the fewest allies', () => {
+    const burst = {
+      ...emanationAbility, affectsAllies: true,
+      placements: [
+        { centerType: 'opponent', centerId: 'opp1', affected: [{ id: 'opp1', name: 'Goblin' }], affectedAllies: [] },
+        { centerType: 'opponent', centerId: 'opp2', affected: [{ id: 'opp1', name: 'Goblin' }, { id: 'opp2', name: 'Orc' }], affectedAllies: [] },
+      ],
+    };
+    const [entry] = buildNpcAbilityVocabulary({ readyAreaAbilities: [burst], opponents, actionsRemaining: 3 });
+    expect(entry.affectedIds).toEqual(['opp1', 'opp2']);
+    expect(entry.centerId).toBe('opp2');
+  });
+
+  it('prefers an ally-free placement over a bigger one that catches an ally', () => {
+    const burst = {
+      ...emanationAbility, affectsAllies: true,
+      placements: [
+        { centerType: 'opponent', centerId: 'opp2', affected: [{ id: 'opp1', name: 'Goblin' }, { id: 'opp2', name: 'Orc' }], affectedAllies: [{ id: 'ally1', name: 'A' }] },
+        { centerType: 'opponent', centerId: 'opp1', affected: [{ id: 'opp1', name: 'Goblin' }], affectedAllies: [] },
+      ],
+    };
+    const [entry] = buildNpcAbilityVocabulary({ readyAreaAbilities: [burst], opponents, actionsRemaining: 3 });
+    expect(entry.centerId).toBe('opp1');
+  });
+
+  it('never counts a temporarily-immune (or trait-immune) creature as affected', () => {
+    const vocabulary = buildNpcAbilityVocabulary({ readyAreaAbilities: [{ ...emanationAbility, immuneIds: ['opp1'] }], opponents, actionsRemaining: 3 });
+    expect(vocabulary[0].affectedIds).toEqual(['opp2']);
+    const single = buildNpcAbilityVocabulary({ readySingleTargetAbilities: [{ ...singleTargetAbility, immuneIds: ['opp1'] }], opponents, actionsRemaining: 3 });
+    expect(single.map((v) => v.targetId)).toEqual(['opp2']);
+  });
+
+  it('offers a single-target ability once per in-range, visible opponent', () => {
+    const vocabulary = buildNpcAbilityVocabulary({ readySingleTargetAbilities: [singleTargetAbility], opponents: [...opponents, { id: 'far', name: 'Far', distanceSquares: 2, hasLineOfSight: true }, { id: 'hid', name: 'Hid', distanceSquares: 1, hasLineOfSight: false }], actionsRemaining: 3 });
+    expect(vocabulary).toEqual([
+      { type: 'npcAbility', itemId: 'i2', slug: 'vanths-curse', name: "Vanth's Curse", mode: 'reportOnly', cost: 2, targetId: 'opp1', affectedIds: ['opp1'], summary: 'S2' },
+      { type: 'npcAbility', itemId: 'i2', slug: 'vanths-curse', name: "Vanth's Curse", mode: 'reportOnly', cost: 2, targetId: 'opp2', affectedIds: ['opp2'], summary: 'S2' },
+    ]);
+  });
+
+  it('excludes an ability whose cost exceeds actions remaining', () => {
+    expect(buildNpcAbilityVocabulary({ readyAreaAbilities: [emanationAbility], opponents, actionsRemaining: 1 })).toEqual([]);
+  });
+
+  it('caps the vocabulary at 8 entries, most-enemies-affected first', () => {
+    const many = Array.from({ length: 12 }, (_, i) => ({ ...singleTargetAbility, itemId: `s${i}`, slug: `ability-${i}`, cost: 1 }));
+    const vocabulary = buildNpcAbilityVocabulary({ readyAreaAbilities: [emanationAbility], readySingleTargetAbilities: many, opponents: [opponents[0]], actionsRemaining: 3 });
+    expect(vocabulary).toHaveLength(8);
+    expect(vocabulary[0].slug).toBe('terrifying-display');
+  });
+});
+
+describe('buildNpcAbilityCandidates (#915)', () => {
+  const npcAbilityVocabulary = [
+    { type: 'npcAbility', itemId: 'i1', slug: 'terrifying-display', name: 'Terrifying Display', mode: 'auto', cost: 2, targetId: null, affectedIds: ['opp1', 'opp2'], summary: 'will DC 27' },
+    { type: 'npcAbility', itemId: 'i2', slug: 'vanths-curse', name: "Vanth's Curse", mode: 'reportOnly', cost: 2, targetId: 'opp1', affectedIds: ['opp1'], summary: 'will DC 25' },
+  ];
+  const opponents = [{ id: 'opp1', name: 'Goblin', distanceSquares: 1 }];
+
+  it('matches an area pick on (slug, null targetId) and a single-target pick on (slug, targetId)', () => {
+    const candidates = buildNpcAbilityCandidates({
+      npcAbilityVocabulary, opponents,
+      picks: [
+        { type: 'npcAbility', slug: 'terrifying-display', targetId: null, rationale: 'Scare them.' },
+        { type: 'npcAbility', slug: 'vanths-curse', targetId: 'opp1', rationale: 'Curse.' },
+      ],
+    });
+    expect(candidates).toEqual([
+      { id: 'npcAbility:i1', type: 'npcAbility', itemId: 'i1', slug: 'terrifying-display', name: 'Terrifying Display', mode: 'auto', targetId: null, affectedIds: ['opp1', 'opp2'], cost: 2, summary: 'Terrifying Display (will DC 27) — Scare them.' },
+      { id: 'npcAbility:i2:opp1', type: 'npcAbility', itemId: 'i2', slug: 'vanths-curse', name: "Vanth's Curse", mode: 'reportOnly', targetId: 'opp1', affectedIds: ['opp1'], cost: 2, summary: "Vanth's Curse vs Goblin (will DC 25) — Curse." },
+    ]);
+  });
+
+  it('drops mismatched, non-npcAbility, junk and duplicate picks, and a single-target pick whose opponent is gone', () => {
+    expect(buildNpcAbilityCandidates({
+      npcAbilityVocabulary, opponents: [],
+      picks: [
+        null, 'junk',
+        { type: 'feat', slug: 'terrifying-display', targetId: null },
+        { type: 'npcAbility', slug: 'terrifying-display', targetId: 'opp1' },
+        { type: 'npcAbility', slug: 'terrifying-display', itemId: 'other', targetId: null },
+        { type: 'npcAbility', slug: 'vanths-curse', targetId: 'opp1' },
+        { type: 'npcAbility', slug: 'terrifying-display', targetId: '' },
+        { type: 'npcAbility', slug: 'terrifying-display', targetId: null },
+      ],
+    }).map((c) => c.id)).toEqual(['npcAbility:i1']);
+  });
+
+  it('returns [] before picks are fetched', () => {
+    expect(buildNpcAbilityCandidates({ npcAbilityVocabulary, picks: null })).toEqual([]);
+  });
+
+  it('is spliced into buildCandidateList from the same persisted picks', () => {
+    const candidates = buildCandidateList({
+      opponents, readyActions: [],
+      turnState: { actionsRemaining: 3, mapIncrement: 0, maneuverPicks: null },
+      npcAbilityVocabulary,
+      maneuverPicks: [{ type: 'npcAbility', slug: 'terrifying-display', targetId: null, rationale: 'r' }],
+    });
+    expect(candidates.map((c) => c.id)).toContain('npcAbility:i1');
   });
 });

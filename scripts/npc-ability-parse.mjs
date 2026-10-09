@@ -359,3 +359,36 @@ export function parseSaveAbility(item) {
     mode,
   };
 }
+
+const DEGREE_SUMMARY_LABELS = { success: "success", failure: "failure", criticalFailure: "critical failure" };
+
+function durationLabel(durationSeconds) {
+  if (durationSeconds === "untilNextTurn") return "until end of its next turn";
+  if (durationSeconds % 86400 === 0) return `${durationSeconds / 86400} day`;
+  if (durationSeconds % 3600 === 0) return `${durationSeconds / 3600} hour`;
+  if (durationSeconds % 60 === 0) return `${durationSeconds / 60} minute`;
+  return `${durationSeconds / SECONDS_PER_ROUND} round`;
+}
+
+/** #915: the deterministic one-line description the reasoning model (and
+ * the GM's decision card) sees for an NPC ability -- it never reads the
+ * ability's prose. Critical success is left out (never worse than success). */
+export function describeNpcAbility(descriptor) {
+  const { shape } = descriptor;
+  const shapeLabel = shape.areaType
+    ? `${shape.distanceFeet}-ft ${shape.areaType}`
+    : `single target within ${shape.rangeFeet} ft`;
+  const head = `${descriptor.save} DC ${descriptor.dc}, ${shapeLabel}`;
+  if (descriptor.mode !== "auto") return `${head}; outcome resolved by the GM`;
+  const parts = Object.entries(DEGREE_SUMMARY_LABELS).map(([key, label]) => {
+    const degree = descriptor.degrees[key];
+    if (degree.asFailure) return `${label}: as failure`;
+    if (degree.none) return `${label}: no effect`;
+    const effects = degree.conditions.map((c) => {
+      const name = c.value != null ? `${c.slug} ${c.value}` : c.slug;
+      return c.durationSeconds != null ? `${name} (${durationLabel(c.durationSeconds)})` : name;
+    });
+    return `${label}: ${effects.join(", ")}`;
+  });
+  return `${head}; ${parts.join("; ")}`;
+}

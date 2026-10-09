@@ -95,6 +95,18 @@ describe("generateCombatCandidates", () => {
     expect(content).toMatch(/stance/i);
   });
 
+  it("puts npcAbility in the type enum and tells the model how to read an NPC-ability entry (#915)", async () => {
+    const vocab = [{ type: "npcAbility", itemId: "i1", slug: "terrifying-display", targetId: null, affectedIds: ["opp1"], summary: "will DC 27" }];
+    const fetchImpl = fakeFetch({ picks: [] });
+    await generateCombatCandidates(context, vocab, { ...OPTS, fetchImpl });
+    const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    expect(body.tools[0].function.parameters.properties.picks.items.properties.type.enum).toEqual(["npcAbility"]);
+    const content = body.messages[0].content;
+    expect(content).toContain('type "npcAbility"');
+    expect(content).toMatch(/affectedIds/);
+    expect(content).toMatch(/summary/);
+  });
+
   it("throws when the upstream request fails", async () => {
     const fetchImpl = fakeFetch({}, { ok: false, status: 500 });
     await expect(generateCombatCandidates(context, vocabulary, { ...OPTS, fetchImpl })).rejects.toThrow(

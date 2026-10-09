@@ -1,6 +1,6 @@
 // tests/npc-ability-parse.test.mjs
 import { describe, it, expect } from 'vitest';
-import { parseSaveAbility, AGENT_MELEE_REACH_FEET } from '../scripts/npc-ability-parse.mjs';
+import { parseSaveAbility, describeNpcAbility, AGENT_MELEE_REACH_FEET } from '../scripts/npc-ability-parse.mjs';
 
 function item({ type = 'action', actionType = 'action', cost = 2, description, traits = [], frequency = null } = {}) {
   return {
@@ -229,5 +229,20 @@ describe('parseSaveAbility', () => {
     expect(parseSaveAbility(item({
       description: '<p>Up to three creatures within 30 feet must attempt a @Check[will|dc:20] save.</p><hr /><p><strong>Success</strong> The creature is unaffected.</p>',
     }))).toBeNull();
+  });
+});
+
+describe('describeNpcAbility (#915)', () => {
+  it('summarizes save, shape and the auto-applied outcomes deterministically', () => {
+    const descriptor = parseSaveAbility(item({ description: TERRIFYING_DISPLAY }));
+    expect(describeNpcAbility(descriptor)).toBe(
+      'will DC 27, 50-ft emanation; success: no effect; failure: frightened 1; critical failure: frightened 2, fleeing (until end of its next turn)',
+    );
+  });
+
+  it('says the GM resolves a reportOnly ability\'s outcome, and names a single target\'s range', () => {
+    expect(describeNpcAbility({ save: 'will', dc: 25, shape: { rangeFeet: 5 }, mode: 'reportOnly', degrees: {} })).toBe(
+      'will DC 25, single target within 5 ft; outcome resolved by the GM',
+    );
   });
 });
