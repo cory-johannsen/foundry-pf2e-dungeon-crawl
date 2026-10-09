@@ -20,7 +20,7 @@ across the module rather than being a one-off pattern:
   functions over plain data, fully unit-testable without a live world.
   `dungeon-deck.mjs`, `trap-mechanics.mjs`, `puzzle-mechanics.mjs`,
   `skill-challenge-mechanics.mjs`, `treasure.mjs`, `room-feature-tokens.mjs`, `agent-candidates.mjs`,
-  `combat-rewards.mjs`, `dungeon-follow-mechanics.mjs`, `cover-items.mjs`,
+  `maneuver-feat-modifiers.mjs`, `combat-rewards.mjs`, `dungeon-follow-mechanics.mjs`, `cover-items.mjs`,
   `encounter-deck.mjs`, `dungeon-layout.mjs`, and `dungeon-retreat.mjs` are all this shape.
 - A **Foundry-glue** file that touches `game`/`Actor`/`ChatMessage`/`Scene`
   and calls into its pure sibling for the actual decision logic.
@@ -67,8 +67,9 @@ against the live PF2e bestiary into real creatures, behind a swappable
 sequencing/roster logic without this one caring.
 
 **Combat automation** (`dungeon-combat.mjs`, `stealth-detection.mjs`,
-`combat-rewards.mjs`, `agent-candidates.mjs`, `dungeon-strike-riders.mjs`,
-`dungeon-critical-deck.mjs`, `flanking-indicator.mjs`, `dungeon-leveling.mjs`) — wires a spawned encounter into a real PF2e
+`combat-rewards.mjs`, `agent-candidates.mjs`, `maneuver-feat-modifiers.mjs`,
+`dungeon-strike-riders.mjs`, `dungeon-critical-deck.mjs`, `flanking-indicator.mjs`,
+`dungeon-leveling.mjs`) — wires a spawned encounter into a real PF2e
 `Combat`, and auto-applies whatever Critical Hit/Fumble Deck directives
 parse cleanly. For an `agentControlled` combatant's turn,
 `autoPlayCombatantTurnIfDue` races two things: `armAgentTimeout` (a pure
@@ -249,6 +250,7 @@ graph LR
     scripts_dungeon_leveling_mjs["dungeon-leveling.mjs"]
     scripts_dungeon_strike_riders_mjs["dungeon-strike-riders.mjs"]
     scripts_flanking_indicator_mjs["flanking-indicator.mjs"]
+    scripts_maneuver_feat_modifiers_mjs["maneuver-feat-modifiers.mjs"]
     scripts_stealth_detection_mjs["stealth-detection.mjs"]
   end
   subgraph "Puzzle / trap / skill-challenge / treasure mechanics"
@@ -325,6 +327,7 @@ graph LR
   scripts_dungeon_combat_mjs --> scripts_dungeon_critical_deck_mjs
   scripts_dungeon_combat_mjs --> scripts_agent_service_client_mjs
   scripts_dungeon_combat_mjs --> scripts_trap_combat_mjs
+  scripts_dungeon_combat_mjs --> scripts_maneuver_feat_modifiers_mjs
   scripts_dungeon_combat_mjs --> scripts_stealth_detection_mjs
   scripts_dungeon_customization_fulfillment_mjs --> scripts_agent_service_client_mjs
   scripts_dungeon_customization_fulfillment_mjs --> scripts_trap_combat_mjs

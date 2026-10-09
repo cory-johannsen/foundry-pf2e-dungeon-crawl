@@ -90,6 +90,7 @@ const GROUPS = [
         "scripts/stealth-detection.mjs",
         "scripts/combat-rewards.mjs",
         "scripts/agent-candidates.mjs",
+        "scripts/maneuver-feat-modifiers.mjs",
         "scripts/dungeon-strike-riders.mjs",
         "scripts/dungeon-critical-deck.mjs",
         "scripts/flanking-indicator.mjs",

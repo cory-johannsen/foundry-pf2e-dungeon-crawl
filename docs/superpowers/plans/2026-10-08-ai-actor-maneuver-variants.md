@@ -761,7 +761,7 @@ describe('applyAgentDecision maneuver riders', () => {
 Run: `npm test -- tests/dungeon-combat-maneuver-riders.test.mjs`
 Expected: FAIL — `applyManeuverOutcome` doesn't call any rider logic yet.
 
-- [ ] **Step 3: Implement `applyManeuverRiders` and wire it into `applyManeuverOutcome`**
+- [x] **Step 3: Implement `applyManeuverRiders` and wire it into `applyManeuverOutcome`**
 
 ```js
 /** #911: applies each rider `ridersFor` returns, after the base RAW
@@ -805,17 +805,17 @@ At the end of `applyManeuverOutcome` (per #909's plan, after its existing per-sl
   await applyManeuverRiders(combat, combatant, target, slug, outcome, skillUsed);
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-riders.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-maneuver-riders.test.mjs
@@ -835,17 +835,17 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing.
 - Produces: nothing — final housekeeping step before merge.
 
-- [ ] **Step 1: Check the current version and bump it**
+- [x] **Step 1: Check the current version and bump it**
 
 Run: `grep '"version"' module.json`
 
 A **minor** bump per `CLAUDE.md`'s versioning rule — a new pure module plus eligibility/execution changes to #909's own pipeline. Confirm the real current value live (both #909's and #910's own plans will each have already consumed a bump by the time this one executes) rather than assuming.
 
-- [ ] **Step 2: Verify no other file hardcodes the old version**
+- [x] **Step 2: Verify no other file hardcodes the old version**
 
 Run: `grep -rn "<old version string>" . --include="*.json" --include="*.mjs" --include="*.md" | grep -v node_modules | grep -v docs/superpowers`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json
