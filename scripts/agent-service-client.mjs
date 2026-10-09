@@ -38,3 +38,10 @@ export async function fetchCombatDecision({ baseUrl, apiKey, context, fetchImpl 
 export async function fetchFlavorCustomization({ baseUrl, apiKey, kind, context, fetchImpl }) {
   return postJson(baseUrl, "/v1/flavor-customization", { kind, ...context }, { apiKey, fetchImpl });
 }
+
+/** #909: the reasoning-model candidate stage -- `vocabulary` is the
+ * Foundry-enumerated list of legal options this turn; the response's
+ * `picks` are re-validated against it by the caller. */
+export async function fetchCombatCandidates({ baseUrl, apiKey, context, vocabulary, fetchImpl }) {
+  return postJson(baseUrl, "/v1/combat-candidates", { ...context, vocabulary }, { apiKey, fetchImpl });
+}

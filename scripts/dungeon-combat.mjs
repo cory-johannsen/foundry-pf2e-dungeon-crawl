@@ -14,7 +14,7 @@
  * module.mjs — the composition root that already imports from every one of
  * these files — is what stitches "combat resolved" to "advance the room."
  */
-import { makeFoundryApi } from "./foundry-api.mjs";
+import { makeFoundryApi, SIZE_ORDER } from "./foundry-api.mjs";
 import { getRunState } from "./dungeon-runner.mjs";
 import { totalCombatXp } from "./combat-rewards.mjs";
 import {
@@ -34,6 +34,10 @@ import {
   parseAutoHitAreaTiers,
   parseSpellEffectUuid,
   parseReactiveStrikeWeaponRestriction,
+  AGENT_MELEE_REACH_SQUARES,
+  DEMORALIZE_RANGE_SQUARES,
+  buildManeuverVocabulary,
+  MANEUVER_DEFS,
 } from "./agent-candidates.mjs";
 import {
   findPath,
@@ -64,7 +68,7 @@ import {
   hitDeckCategory,
   fumbleDeckCategory,
 } from "./dungeon-critical-deck.mjs";
-import { fetchCombatDecision } from "./agent-service-client.mjs";
+import { fetchCombatDecision, fetchCombatCandidates } from "./agent-service-client.mjs";
 import { withDialogsSuppressed } from "./trap-combat.mjs";
 import {
   DETECTION,
@@ -991,8 +995,10 @@ export async function runAgentDecisionLoop(
   combatant,
   {
     fetchDecision = fetchCombatDecision,
+    fetchCandidates = fetchCombatCandidates,
     getPending = getPendingAgentTurn,
     applyDecision = applyAgentDecision,
+    armTimeout = armAgentTimeout,
   } = {},
 ) {
   const baseUrl = game.settings.get(MODULE_ID, "agentServiceUrl");
@@ -1006,6 +1012,43 @@ export async function runAgentDecisionLoop(
     if (isUnawareHostile(combat, combatant)) {
       await endUnawareTurn(combat, combatant);
       return;
+    }
+    // #909: once per turn, when there's a non-empty maneuver vocabulary and
+    // no picks have been fetched yet this turn, ask the reasoning-model
+    // endpoint which (if any) maneuvers to propose, persist the result onto
+    // the same combat-flag turn state mapIncrement/actionsRemaining already
+    // use, then rebuild `pending` so its deterministic candidate list picks
+    // the persisted picks back up (applyAgentDecision's own internal
+    // getPendingAgentTurn call does the same rebuild). A failed call
+    // persists `[]` so it is never retried this turn. A pendingTurn with no
+    // maneuverVocabulary never touches the turn state at all.
+    if (pending.maneuverVocabulary?.length) {
+      const turnState = getAgentTurnState(combat, pending.combatantId);
+      if (turnState.maneuverPicks === null) {
+        let picks = [];
+        try {
+          const response = await fetchCandidates({
+            baseUrl,
+            apiKey,
+            context: pending.context,
+            vocabulary: pending.maneuverVocabulary,
+          });
+          picks = Array.isArray(response?.picks) ? response.picks : [];
+        } catch (err) {
+          console.error("agent-service: combat-candidates call failed:", err.message);
+        }
+        await setAgentTurnState(combat, pending.combatantId, {
+          ...turnState,
+          maneuverPicks: picks,
+        });
+        // That write bumped the turn-state counter, which invalidates the
+        // fallback timer armed at turn start -- re-arm it (same as
+        // applyAgentDecision after every action) so a later failure here
+        // still falls back to the heuristic instead of stalling the turn.
+        armTimeout(combat, combatant);
+        pending = await getPending(combat);
+        if (!pending) return;
+      }
     }
     let decision;
     try {
@@ -2256,6 +2299,98 @@ function currentStoredAgentTurnState(combat, combatantId) {
   return null;
 }
 
+const MELEE_MANEUVER_SLUGS = ["trip", "shove", "grapple", "disarm"];
+
+/**
+ * #909: whether `actor` can satisfy a melee maneuver's free-hand
+ * requirement — either a literal free hand (`handsFree`, confirmed
+ * present only on CharacterPF2e actors in the installed system — not
+ * NPCs) or a currently-held weapon carrying `slug` as one of its own
+ * traits (PF2e's own "or a weapon with the matching trait" exception,
+ * e.g. a trip-trait weapon for Trip). An actor with no `handsFree` getter
+ * at all (every NPC) defaults to eligible, matching
+ * dungeon-strike-riders.mjs's resolveAthleticsRider precedent of gating
+ * NPC maneuvers on skill existence alone, never hand state.
+ */
+function hasFreeHandOrManeuverWeapon(actor, slug) {
+  if (typeof actor?.handsFree === "number" && actor.handsFree > 0) return true;
+  const heldWeapons = (actor?.itemTypes?.weapon ?? []).filter(
+    (w) => w.system?.equipped?.carryType === "held",
+  );
+  if (heldWeapons.some((w) => (w.system?.traits?.value ?? []).includes(slug))) return true;
+  return actor?.handsFree === undefined;
+}
+
+/** #909: this turn's real maneuver eligibility for `actor`, in the plain
+ * shape agent-candidates.mjs's buildManeuverVocabulary expects —
+ * everything Foundry-specific (skill existence, free hand/weapon trait)
+ * is resolved here; that file never touches a real actor document. */
+export function computeManeuverAttackerProfile(actor) {
+  const profile = {};
+  const hasAthletics = !!actor?.skills?.athletics;
+  const hasIntimidation = !!actor?.skills?.intimidation;
+  for (const slug of MELEE_MANEUVER_SLUGS) {
+    profile[slug] = {
+      eligible: hasAthletics && hasFreeHandOrManeuverWeapon(actor, slug),
+      reachSquares: AGENT_MELEE_REACH_SQUARES,
+    };
+  }
+  profile.demoralize = { eligible: hasIntimidation, reachSquares: DEMORALIZE_RANGE_SQUARES };
+  return profile;
+}
+
+/** #909: PF2e's own "target no more than one size larger than you"
+ * prerequisite, shared verbatim by Trip/Shove/Grapple/Disarm (confirmed
+ * in each action's own lang/action-en.json text). Unreadable size data on
+ * either side defaults to allowed rather than blocking the maneuver on a
+ * data gap. */
+export function sizeOkForManeuver(attackerActor, targetActor) {
+  const attackerIdx = SIZE_ORDER.indexOf(attackerActor?.system?.traits?.size?.value);
+  const targetIdx = SIZE_ORDER.indexOf(targetActor?.system?.traits?.size?.value);
+  if (attackerIdx < 0 || targetIdx < 0) return true;
+  return targetIdx - attackerIdx <= 1;
+}
+
+/** #909: Demoralize's own 10-minute re-attempt immunity (PF2e RAW: "the
+ * target is temporarily immune to your attempts to Demoralize it for 10
+ * minutes", regardless of outcome) — tracked as a real worldTime
+ * timestamp (reusing #785's game clock) rather than a round count, scoped
+ * to this Combat document the same way agentTurnState already is. Returns
+ * 0 (never immune) when nothing has been recorded yet for this pair. */
+export function getDemoralizeImmunityUntil(combat, attackerId, targetId) {
+  return combat.getFlag(MODULE_ID, "demoralizeImmunity")?.[attackerId]?.[targetId] ?? 0;
+}
+
+export async function setDemoralizeImmunityUntil(combat, attackerId, targetId, worldTimeExpiry) {
+  const current = combat.getFlag(MODULE_ID, "demoralizeImmunity") ?? {};
+  await combat.setFlag(MODULE_ID, "demoralizeImmunity", {
+    ...current,
+    [attackerId]: { ...(current[attackerId] ?? {}), [targetId]: worldTimeExpiry },
+  });
+}
+
+/** #909: Demoralize carries the emotion, fear and mental traits (the
+ * installed system's own `demoralize` action definition), so a target
+ * immune to any of those (e.g. a mindless undead's mental immunity) can
+ * never be affected by it -- excluded from the vocabulary rather than
+ * offered as a wasted action. */
+const DEMORALIZE_BLOCKING_IMMUNITIES = new Set(["mental", "emotion", "fear-effects"]);
+
+/** #909: Disarm "knock[s] an item out of a creature's grasp" -- a target
+ * holding nothing (e.g. an NPC with only natural attacks) can't be
+ * Disarmed. Unreadable item data counts as holding nothing. */
+export function holdsAnItem(actor) {
+  return Array.from(actor?.items ?? []).some(
+    (i) => i?.system?.equipped?.carryType === "held",
+  );
+}
+
+export function immuneToDemoralize(targetActor) {
+  return (targetActor?.attributes?.immunities ?? []).some((i) =>
+    DEMORALIZE_BLOCKING_IMMUNITIES.has(i?.type),
+  );
+}
+
 /** Reads back Combat's own per-turn agent bookkeeping, or a fresh one
  * (`initAgentTurnState()`) if this is the first decision seen for this exact
  * combatant/round/turn — see `currentStoredAgentTurnState` above. */
@@ -2265,6 +2400,7 @@ function getAgentTurnState(combat, combatantId) {
     ? {
         actionsRemaining: stored.actionsRemaining,
         mapIncrement: stored.mapIncrement,
+        maneuverPicks: stored.maneuverPicks ?? null,
       }
     : initAgentTurnState();
 }
@@ -2285,6 +2421,7 @@ async function setAgentTurnState(combat, combatantId, turnState) {
     turn: combat.turn,
     actionsRemaining: turnState.actionsRemaining,
     mapIncrement: turnState.mapIncrement,
+    maneuverPicks: turnState.maneuverPicks ?? null,
     counter,
   });
 }
@@ -3472,6 +3609,30 @@ export async function getPendingAgentTurn(combat) {
     (a) => a.reachSquares > MELEE_REACH_SQUARES,
   );
 
+  // #909: the (maneuver, target) pairs that are RAW-legal this turn --
+  // Foundry decides legality here; the agent service's reasoning model only
+  // ever selects from this list (see runAgentDecisionLoop).
+  const maneuverAttackerProfile = computeManeuverAttackerProfile(combatant.actor);
+  const worldTime = globalThis.game?.time?.worldTime ?? 0;
+  const maneuverOpponents = rawOpponents.map((o) => {
+    const sizeOk = sizeOkForManeuver(combatant.actor, o.actor);
+    return {
+      id: o.id,
+      name: o.name,
+      distanceSquares: chebyshevSquares(combatant.token, o.token, gridSize),
+      hasLineOfSight: canSee(o),
+      sizeOk: { trip: sizeOk, shove: sizeOk, grapple: sizeOk, disarm: sizeOk },
+      holdsItem: holdsAnItem(o.actor),
+      demoralizeImmune:
+        immuneToDemoralize(o.actor) ||
+        worldTime < getDemoralizeImmunityUntil(combat, combatant.id, o.id),
+    };
+  });
+  const maneuverVocabulary = buildManeuverVocabulary({
+    attacker: { maneuvers: maneuverAttackerProfile },
+    opponents: maneuverOpponents,
+  });
+
   const readySpells = (combatant.actor?.spellcasting?.contents ?? [])
     .flatMap((entry) =>
       (entry.spells?.contents ?? [])
@@ -4105,6 +4266,8 @@ export async function getPendingAgentTurn(combat) {
     readyAutoHitAreaSpells,
     allies,
     turnState,
+    maneuverVocabulary,
+    maneuverPicks: turnState.maneuverPicks,
     hazard: nearestHazardousRegionPoint(
       combat.scene,
       combatant.token,
@@ -4123,6 +4286,7 @@ export async function getPendingAgentTurn(combat) {
       roundNumber: combat.round,
     }),
     candidates,
+    maneuverVocabulary,
   };
 }
 
@@ -5340,6 +5504,162 @@ async function postMoveStalledChat(combatant, status) {
   await ChatMessage.create({ content, whisper: gmIds });
 }
 
+/** #909: upper bound on waiting for a maneuver macro's callback. The
+ * macro never returns its own promise and never calls `callback` when its
+ * check can't be rolled at all (e.g. a CheckContextError for a missing
+ * statistic, which it only reports via ui.notifications) -- without this,
+ * that case would hang the agent's turn forever. */
+const MANEUVER_CHECK_TIMEOUT_MS = 30000;
+
+/**
+ * #909: game.pf2e.actions.<slug>() (trip/shove/grapple/disarm/demoralize)
+ * is fire-and-forget -- confirmed in the installed system's bundled source,
+ * none of the five action functions `return` their own
+ * simpleRollActionCheck(...) promise. The only way to know the roll
+ * finished is the `callback` option, so this bridges that callback to a
+ * promise. Resolves `null` if no outcome arrives in time or the macro
+ * throws synchronously. `modifiers` is passed straight through to the
+ * macro's own check (the hook a multiple attack penalty for the four
+ * attack-trait maneuvers will use, #940).
+ */
+function runManeuverCheck(slug, combatant, target, { modifiers } = {}) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (outcome) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(outcome ?? null);
+    };
+    const timer = setTimeout(() => finish(null), MANEUVER_CHECK_TIMEOUT_MS);
+    try {
+      game.pf2e.actions[slug]({
+        actors: [combatant.actor],
+        target: () => ({ actor: target.actor, token: target.token }),
+        event: null,
+        ...(modifiers?.length ? { modifiers } : {}),
+        callback: ({ outcome }) => finish(outcome),
+      });
+    } catch (err) {
+      console.error(`#909: ${slug} maneuver macro failed:`, err.message);
+      finish(null);
+    }
+  });
+}
+
+/** #909: Disarm's critical success -- "the item falls to the ground in the
+ * target's space": the target's first held item stops being held. */
+async function dropHeldItem(actor) {
+  const item = Array.from(actor?.items ?? []).find(
+    (i) => i?.system?.equipped?.carryType === "held",
+  );
+  if (!item) return null;
+  await item.update({
+    "system.equipped.carryType": "dropped",
+    "system.equipped.handsHeld": 0,
+  });
+  return item;
+}
+
+/** PF2e RAW outcome table for the five basic maneuvers, verbatim from the
+ * installed system's lang/action-en.json (see this feature's spec) -- none
+ * of the five macros auto-apply their own outcome, so every effect here is
+ * applied by hand, mirroring dungeon-strike-riders.mjs's
+ * applyConditionOnSuccess precedent. Returns a short description for the
+ * GM whisper. */
+async function applyManeuverOutcome(slug, combat, combatant, target, outcome) {
+  const hit = outcome === "success" || outcome === "criticalSuccess";
+  if (slug === "trip") {
+    if (hit) await target.actor.increaseCondition("prone");
+    if (outcome === "criticalSuccess") {
+      const DamageRollClass = CONFIG.Dice.rolls.find((c) => c.name === "DamageRoll");
+      const roll = new DamageRollClass("1d6[bludgeoning]");
+      await roll.evaluate();
+      await target.actor.applyDamage({ damage: roll, token: target.token });
+      await applyDefeatIfReducedToZero(target);
+      return `target is Prone and takes ${roll.total} bludgeoning damage`;
+    }
+    if (hit) return "target is Prone";
+    if (outcome === "criticalFailure") {
+      await combatant.actor.increaseCondition("prone");
+      return "attacker falls Prone";
+    }
+  } else if (slug === "shove") {
+    if (hit) {
+      const squares = outcome === "criticalSuccess" ? 2 : 1;
+      await pushTokenAway(combat, combatant, target, squares);
+      return `target pushed ${squares * 5} ft`;
+    }
+    if (outcome === "criticalFailure") {
+      await combatant.actor.increaseCondition("prone");
+      return "attacker falls Prone";
+    }
+  } else if (slug === "grapple") {
+    if (outcome === "criticalSuccess") {
+      await target.actor.increaseCondition("restrained");
+      return "target is Restrained";
+    }
+    if (outcome === "success") {
+      await target.actor.increaseCondition("grabbed");
+      return "target is Grabbed";
+    }
+  } else if (slug === "disarm") {
+    if (outcome === "criticalSuccess") {
+      const item = await dropHeldItem(target.actor);
+      return item ? `${item.name} falls to the ground` : "target holds nothing to drop";
+    }
+    if (outcome === "success") {
+      const effect = await fromUuid("Compendium.pf2e.other-effects.Item.PuDS0DEq0CnaSIFV");
+      if (effect) await target.actor.createEmbeddedDocuments("Item", [effect.toObject()]);
+      return "target's grip is weakened";
+    }
+    if (outcome === "criticalFailure") {
+      await combatant.actor.increaseCondition("off-guard");
+      return "attacker is Off-Guard";
+    }
+  } else if (slug === "demoralize") {
+    // RAW: regardless of the result, the target is immune to this
+    // attacker's Demoralize for 10 minutes -- real game time (#785 clock).
+    await setDemoralizeImmunityUntil(
+      combat,
+      combatant.id,
+      target.id,
+      game.time.worldTime + 600,
+    );
+    if (hit) {
+      const value = outcome === "criticalSuccess" ? 2 : 1;
+      await target.actor.increaseCondition("frightened", { value });
+      return `target is Frightened ${value}`;
+    }
+  }
+  return "no effect";
+}
+
+async function executeManeuverCandidate(combat, combatant, candidate) {
+  const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
+  if (!target) return;
+  const outcome = await withDialogsSuppressed(() =>
+    runManeuverCheck(candidate.slug, combatant, target),
+  );
+  const label = MANEUVER_DEFS[candidate.slug]?.label ?? candidate.slug;
+  const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
+  if (!outcome) {
+    await whisperGmContent(
+      `<p><strong>${esc(label)} (${esc(combatant.name)} vs ${esc(target.name)}):</strong> no check result -- resolve manually.</p>`,
+    );
+    return;
+  }
+  const result = await applyManeuverOutcome(candidate.slug, combat, combatant, target, outcome);
+  await whisperGmContent(
+    `<p><strong>${esc(label)} (${esc(combatant.name)} vs ${esc(target.name)}):</strong> ${esc(outcome)} -- ${esc(result)}.</p>`,
+  );
+}
+
+async function whisperGmContent(content) {
+  const gmIds = ChatMessage.getWhisperRecipients("GM").map((u) => u.id);
+  await ChatMessage.create({ content, whisper: gmIds });
+}
+
 /**
  * Executes exactly one chosen candidate for `combatantId`'s current turn in
  * `combat`, updates the per-turn state, and advances the turn once actions
@@ -5626,6 +5946,8 @@ export async function applyAgentDecision(
         candidate.save,
         candidate.cost,
       );
+  } else if (candidate.type === "maneuver") {
+    await executeManeuverCandidate(combat, combatant, candidate);
   }
 
   const turnState = getAgentTurnState(combat, combatantId);

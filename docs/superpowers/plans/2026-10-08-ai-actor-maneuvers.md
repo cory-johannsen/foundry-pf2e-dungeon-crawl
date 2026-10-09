@@ -40,7 +40,7 @@
 - Consumes: nothing from this plan's other tasks.
 - Produces: `generateCombatCandidates(context, vocabulary, { baseUrl, apiKey, timeoutMs, fetchImpl } = {})` → `Promise<{ picks: Array<{type, slug, targetId, rationale}> }>`, used by Task 2's server route.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/agent-service-candidate-generator.test.mjs
@@ -122,12 +122,12 @@ describe("generateCombatCandidates", () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/agent-service-candidate-generator.test.mjs`
 Expected: FAIL — `tools/agent-service/candidate-generator.mjs` does not exist yet.
 
-- [ ] **Step 3: Write `tools/agent-service/candidate-generator.mjs`**
+- [x] **Step 3: Write `tools/agent-service/candidate-generator.mjs`**
 
 ```js
 import { nodeFetch } from "./node-fetch.mjs";
@@ -220,12 +220,12 @@ export async function generateCombatCandidates(
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-service-candidate-generator.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools/agent-service/candidate-generator.mjs tests/agent-service-candidate-generator.test.mjs
@@ -246,13 +246,13 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `generateCombatCandidates` from Task 1.
 - Produces: the `/v1/combat-candidates` HTTP route, consumed by Task 3's client function.
 
-- [ ] **Step 1: Read the existing server test file's conventions**
+- [x] **Step 1: Read the existing server test file's conventions**
 
 Run: `grep -n "flavor-customization\|handleFlavorCustomization" tests/agent-service-server.test.mjs`
 
 Copy the exact request-building/assertion pattern that test file already uses for `/v1/flavor-customization` (headers, auth, body-posting helper) for the new tests below — the server test harness's exact request helper is not reproduced here since reading it live avoids drifting from whatever shape it actually has.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 Add to `tests/agent-service-server.test.mjs` (mirroring whatever request-helper the file already defines for `/v1/flavor-customization`, substituting the new route and body):
 
@@ -284,12 +284,12 @@ describe("/v1/combat-candidates", () => {
 
 (The third test's exact mechanics depend on how this file's existing `/v1/flavor-customization` 502 test is written — copy that test's approach verbatim, substituting the route and a vocabulary-carrying body, rather than guessing a new mocking seam.)
 
-- [ ] **Step 3: Run tests to verify the first two fail**
+- [x] **Step 3: Run tests to verify the first two fail**
 
 Run: `npm test -- tests/agent-service-server.test.mjs`
 Expected: FAIL for the two new `/v1/combat-candidates` tests (404, since the route doesn't exist yet); other existing tests in the file still PASS.
 
-- [ ] **Step 4: Wire the route**
+- [x] **Step 4: Wire the route**
 
 In `tools/agent-service/server.mjs`, add the import:
 
@@ -338,12 +338,12 @@ In the request dispatcher, add the new branch alongside the existing two:
       }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-service-server.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tools/agent-service/server.mjs tests/agent-service-server.test.mjs
@@ -364,13 +364,13 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing from this plan's other Foundry-side tasks.
 - Produces: `fetchCombatCandidates({ baseUrl, apiKey, context, vocabulary, fetchImpl })` → `Promise<{picks: [...]}>`, consumed by Task 6's `runAgentDecisionLoop`.
 
-- [ ] **Step 1: Check for an existing test file**
+- [x] **Step 1: Check for an existing test file**
 
 Run: `ls tests/agent-service-client.test.mjs 2>/dev/null || echo "none"`
 
 If it exists, read it fully first and add the new test inside its existing `describe` structure, matching its conventions exactly. If not, create it fresh per Step 2 below.
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 ```js
 // tests/agent-service-client.test.mjs (new describe block if the file already exists)
@@ -407,12 +407,12 @@ describe("fetchCombatCandidates", () => {
 });
 ```
 
-- [ ] **Step 3: Run test to verify it fails**
+- [x] **Step 3: Run test to verify it fails**
 
 Run: `npm test -- tests/agent-service-client.test.mjs`
 Expected: FAIL — `fetchCombatCandidates` is not exported yet.
 
-- [ ] **Step 4: Add the client function**
+- [x] **Step 4: Add the client function**
 
 In `scripts/agent-service-client.mjs`, add after `fetchCombatDecision`:
 
@@ -422,12 +422,12 @@ export async function fetchCombatCandidates({ baseUrl, apiKey, context, vocabula
 }
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `npm test -- tests/agent-service-client.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/agent-service-client.mjs tests/agent-service-client.test.mjs
@@ -454,7 +454,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
   - `initAgentTurnState()` now also returns `maneuverPicks: null`.
   - `buildCandidateList` now also accepts `maneuverVocabulary = []` and `maneuverPicks = null`, splicing `buildManeuverCandidates` output into its result.
 
-- [ ] **Step 1: Update the existing `initAgentTurnState` test and write the new failing tests**
+- [x] **Step 1: Update the existing `initAgentTurnState` test and write the new failing tests**
 
 In `tests/agent-candidates.test.mjs`, update the existing test (it will otherwise fail once Step 3 changes `initAgentTurnState`'s return shape):
 
@@ -583,12 +583,12 @@ describe('buildManeuverCandidates', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/agent-candidates.test.mjs`
 Expected: FAIL — `MANEUVER_DEFS`/`DEMORALIZE_RANGE_SQUARES`/`buildManeuverVocabulary`/`buildManeuverCandidates` don't exist yet, and the updated `initAgentTurnState` assertion fails against the current two-field return shape.
 
-- [ ] **Step 3: Implement in `scripts/agent-candidates.mjs`**
+- [x] **Step 3: Implement in `scripts/agent-candidates.mjs`**
 
 Change `initAgentTurnState`:
 
@@ -721,12 +721,12 @@ Also add a test confirming the splice point (in the same `describe('buildCandida
   });
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-candidates.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs tests/agent-candidates.test.mjs
@@ -747,7 +747,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `SIZE_ORDER` from `scripts/foundry-api.mjs`; `AGENT_MELEE_REACH_SQUARES`, `DEMORALIZE_RANGE_SQUARES` from `scripts/agent-candidates.mjs` (Task 4).
 - Produces (consumed by Task 6): `getDemoralizeImmunityUntil(combat, attackerId, targetId)` → number (worldTime seconds, `0` if never set); `setDemoralizeImmunityUntil(combat, attackerId, targetId, worldTimeExpiry)` → `Promise<void>`; `computeManeuverAttackerProfile(actor)` → `{trip, shove, grapple, disarm, demoralize}` each `{eligible, reachSquares}`; `sizeOkForManeuver(attackerActor, targetActor)` → boolean. None of these four are exported outside `dungeon-combat.mjs` (same module-private convention `getAgentTurnState`/`resolveOpponentForTurn` already use) — Task 5's own test file imports them by re-exporting a thin test-only wrapper is unnecessary; instead the test file drives them indirectly through a small exported seam added in this task (see Step 3).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-maneuver-vocabulary.test.mjs
@@ -875,12 +875,12 @@ describe('demoralize immunity tracking', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-vocabulary.test.mjs`
 Expected: FAIL — none of the four functions are exported yet.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 Add the import (alongside the existing `SIZE_ORDER`-adjacent imports — add a new import line near the top with the other single-symbol imports, e.g. right after the `makeFoundryApi` import at line 17):
 
@@ -971,12 +971,12 @@ async function setDemoralizeImmunityUntil(combat, attackerId, targetId, worldTim
 
 Export the four new functions for Task 5's own test file (add to this file's existing `export` list by changing each `function` declaration above to `export function`— i.e. `export function computeManeuverAttackerProfile(actor) {`, `export function sizeOkForManeuver(...)`, `export function getDemoralizeImmunityUntil(...)`, and `export async function setDemoralizeImmunityUntil(...)`; `hasFreeHandOrManeuverWeapon` and `MELEE_MANEUVER_SLUGS` stay module-private).
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-vocabulary.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-maneuver-vocabulary.test.mjs
@@ -997,7 +997,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `computeManeuverAttackerProfile`, `sizeOkForManeuver`, `getDemoralizeImmunityUntil` (Task 5); `buildManeuverVocabulary` (Task 4).
 - Produces: `getPendingAgentTurn`'s return value now also carries `maneuverVocabulary: Array<{type, slug, targetId}>`; `getAgentTurnState`/`setAgentTurnState` now also carry `maneuverPicks` through their existing round-trip — consumed by Task 7.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 This test needs a full combat/combatant/scene stub exercising `getPendingAgentTurn` end to end — rather than inventing that stub shape from scratch, first find and read whichever existing test already builds one for `getPendingAgentTurn` (or the closest equivalent, e.g. a strike-candidate or spell-candidate integration test), and copy its exact combat/combatant/token/actor stub shape:
 
@@ -1042,12 +1042,12 @@ describe('getPendingAgentTurn maneuver vocabulary', () => {
 
 (The three bodies above are deliberately left as comments describing exact expected assertions rather than runnable code: the real stub shape must come from the existing test file found in this step, not be guessed here — fill in the real stub and uncomment/complete each assertion before running.)
 
-- [ ] **Step 2: Run test to verify it fails (once filled in)**
+- [x] **Step 2: Run test to verify it fails (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-agent-maneuver-pending.test.mjs`
 Expected: FAIL — `pending.maneuverVocabulary` is `undefined` (the field doesn't exist yet).
 
-- [ ] **Step 3: Extend `getAgentTurnState`/`setAgentTurnState`**
+- [x] **Step 3: Extend `getAgentTurnState`/`setAgentTurnState`**
 
 ```js
 function getAgentTurnState(combat, combatantId) {
@@ -1076,7 +1076,7 @@ async function setAgentTurnState(combat, combatantId, turnState) {
 }
 ```
 
-- [ ] **Step 4: Build the vocabulary inside `getPendingAgentTurn` and merge it into the return value**
+- [x] **Step 4: Build the vocabulary inside `getPendingAgentTurn` and merge it into the return value**
 
 In `getPendingAgentTurn` (`scripts/dungeon-combat.mjs`), right after the existing `readyActions`/`hasRangedOrReach` block (the code reading `const readyActions = (combatant.actor?.system?.actions ?? [])...` and `const hasRangedOrReach = readyActions.some(...)`), add:
 
@@ -1153,14 +1153,14 @@ Add `maneuverVocabulary` to the function's final return object:
   };
 ```
 
-- [ ] **Step 5: Fill in and run the Task 6 test, confirm it passes**
+- [x] **Step 5: Fill in and run the Task 6 test, confirm it passes**
 
 Fill in the real combat/combatant/token/actor stub (copied in Step 1) and uncomment the assertions, then:
 
 Run: `npm test -- tests/dungeon-combat-agent-maneuver-pending.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite once**
+- [x] **Step 6: Run the full suite once**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — in particular, every pre-existing test that calls `getPendingAgentTurn` directly and asserts an exact return-object shape (`toEqual` on the whole object, not just specific fields) needs its expected object updated to include the new `maneuverVocabulary` field. Search for these:
@@ -1169,7 +1169,7 @@ Run: `grep -rln "getPendingAgentTurn(" tests/*.mjs`
 
 For each match, check whether its assertions use `toEqual` against the whole returned object (vs. just reading specific fields like `pending.candidates`); if so, add `maneuverVocabulary: [...]` (whatever the real expected vocabulary is for that test's stub — likely `[]` for a stub with no Athletics/Intimidation) to the expected object literal.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-agent-maneuver-pending.test.mjs
@@ -1190,7 +1190,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `fetchCombatCandidates` (Task 3); `getAgentTurnState`/`setAgentTurnState` (already module-private in this file, extended by Task 6).
 - Produces: `runAgentDecisionLoop` now accepts an injectable `fetchCandidates` dependency (defaulting to `fetchCombatCandidates`), consumed by nothing further in this plan but available the same way `fetchDecision`/`getPending`/`applyDecision` already are for any future test.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/dungeon-combat-agent-service-loop.test.mjs` (a new `describe` block; the file's existing `installGameStub`/`afterEach` at the top apply to these too):
 
@@ -1285,12 +1285,12 @@ describe('runAgentDecisionLoop maneuver-candidate augmentation', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-agent-service-loop.test.mjs`
 Expected: FAIL — `runAgentDecisionLoop` doesn't accept/use a `fetchCandidates` dependency yet, and `maneuverVocabulary` is never read.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 Add the import:
 
@@ -1383,17 +1383,17 @@ export async function runAgentDecisionLoop(
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-agent-service-loop.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-agent-service-loop.test.mjs
@@ -1414,7 +1414,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `resolveOpponentForTurn` (already module-private in this file); `setDemoralizeImmunityUntil` (Task 5); `pushTokenAway` (already exported in this file).
 - Produces: a new `else if (candidate.type === "maneuver")` branch inside `applyAgentDecision`, the terminal consumer in this plan.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 First, find and read an existing `applyAgentDecision` test (e.g. for the `strike` or `cast` branch) to copy its exact `game`/`combat`/`combatant`/`target` stub shape:
 
@@ -1485,12 +1485,12 @@ describe('applyAgentDecision maneuver execution', () => {
 
 (As with Task 6's Step 1, the bodies above intentionally stay partially commented/pseudocoded — fill in the real stub shape copied from the found existing test before running, rather than guessing it here.)
 
-- [ ] **Step 2: Run tests to verify they fail (once filled in)**
+- [x] **Step 2: Run tests to verify they fail (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-execution.test.mjs`
 Expected: FAIL — `applyAgentDecision` has no `maneuver` branch yet.
 
-- [ ] **Step 3: Implement `executeManeuverCandidate` and the new branch**
+- [x] **Step 3: Implement `executeManeuverCandidate` and the new branch**
 
 Add this function near the other `execute*`/`rollAndApply*` helpers in `scripts/dungeon-combat.mjs` (e.g. just above `applyAgentDecision`):
 
@@ -1578,17 +1578,17 @@ Add the new branch inside `applyAgentDecision`, alongside the existing `strike`/
     await executeManeuverCandidate(combat, combatant, candidate);
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-execution.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-maneuver-execution.test.mjs
@@ -1608,18 +1608,18 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing.
 - Produces: nothing — final housekeeping step before merge.
 
-- [ ] **Step 1: Check the current version and bump it**
+- [x] **Step 1: Check the current version and bump it**
 
 Run: `grep '"version"' module.json`
 
 This is a new subsystem (a new agent-service endpoint plus five Foundry-side files), so per `CLAUDE.md`'s versioning rule this is a **minor** bump: `x.Y.0` → `x.Y+1.0` (drop the patch component). Edit `module.json`'s `version` field accordingly — do not reuse any version number already used by a prior merge.
 
-- [ ] **Step 2: Verify no other file hardcodes the old version**
+- [x] **Step 2: Verify no other file hardcodes the old version**
 
 Run: `grep -rn "<old version string>" . --include="*.json" --include="*.mjs" --include="*.md" | grep -v node_modules | grep -v docs/superpowers`
 Expected: no match outside `module.json` itself.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json

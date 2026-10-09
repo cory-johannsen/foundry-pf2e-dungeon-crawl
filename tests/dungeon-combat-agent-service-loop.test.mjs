@@ -133,3 +133,122 @@ describe('runAgentDecisionLoop', () => {
     ).resolves.toBeUndefined();
   });
 });
+
+describe('runAgentDecisionLoop maneuver-candidate augmentation', () => {
+  const combat = { id: 'combat-1', round: 1, turn: 0 };
+  const combatant = { id: 'atk' };
+
+  function combatWithFlagStore(initial = {}) {
+    const store = { ...initial };
+    return {
+      ...combat,
+      getFlag: (_m, key) => store[key],
+      setFlag: async (_m, key, value) => {
+        store[key] = value;
+      },
+    };
+  }
+
+  it('fetches and persists maneuver picks once, then rebuilds pending before deciding, when the vocabulary is non-empty', async () => {
+    installGameStub();
+    const vocabulary = [{ type: 'maneuver', slug: 'trip', targetId: 'opp1' }];
+    const pendingBeforeFetch = {
+      combatId: 'combat-1', combatantId: 'atk',
+      context: { candidates: [], roundNumber: 1 }, candidates: [],
+      maneuverVocabulary: vocabulary,
+    };
+    const pendingAfterFetch = {
+      ...pendingBeforeFetch,
+      candidates: [{ id: 'maneuver:trip:opp1', type: 'maneuver' }],
+    };
+    const stubCombat = combatWithFlagStore();
+    const getPending = vi.fn().mockResolvedValueOnce(pendingBeforeFetch).mockResolvedValueOnce(pendingAfterFetch);
+    const fetchCandidates = vi.fn().mockResolvedValue({ picks: [{ type: 'maneuver', slug: 'trip', targetId: 'opp1', rationale: 'r' }] });
+    const fetchDecision = vi.fn().mockResolvedValue({ candidateId: 'endTurn' });
+    const applyDecision = vi.fn().mockResolvedValue(null);
+    const armTimeout = vi.fn();
+
+    await runAgentDecisionLoop(stubCombat, combatant, { fetchDecision, fetchCandidates, getPending, applyDecision, armTimeout });
+
+    expect(fetchCandidates).toHaveBeenCalledWith({
+      baseUrl: 'https://agent.example', apiKey: 'test-key',
+      context: pendingBeforeFetch.context, vocabulary,
+    });
+    expect(getPending).toHaveBeenCalledTimes(2);
+    expect(stubCombat.getFlag('pf2e-dungeon-crawl', 'agentTurnState').maneuverPicks).toEqual([
+      { type: 'maneuver', slug: 'trip', targetId: 'opp1', rationale: 'r' },
+    ]);
+    // Persisting the picks bumps the turn-state counter (invalidating the
+    // already-armed fallback timer), so a fresh one must be armed.
+    expect(armTimeout).toHaveBeenCalledWith(stubCombat, combatant);
+    expect(fetchDecision).toHaveBeenCalledWith(
+      expect.objectContaining({ context: expect.objectContaining(pendingAfterFetch.context) }),
+    );
+  });
+
+  it('never calls fetchCandidates when maneuverVocabulary is empty', async () => {
+    installGameStub();
+    const pendingTurn = { combatId: 'combat-1', combatantId: 'atk', context: { candidates: [] }, candidates: [], maneuverVocabulary: [] };
+    const getPending = vi.fn().mockResolvedValue(pendingTurn);
+    const fetchCandidates = vi.fn();
+    const fetchDecision = vi.fn().mockResolvedValue({ candidateId: 'endTurn' });
+    const applyDecision = vi.fn().mockResolvedValue(null);
+    const armTimeout = vi.fn();
+
+    await runAgentDecisionLoop({ id: 'combat-1' }, combatant, { fetchDecision, fetchCandidates, getPending, applyDecision, armTimeout });
+
+    expect(fetchCandidates).not.toHaveBeenCalled();
+    expect(armTimeout).not.toHaveBeenCalled();
+  });
+
+  it('never calls fetchCandidates when maneuverVocabulary is absent entirely (existing pendingTurn shape, no regression)', async () => {
+    installGameStub();
+    const pendingTurn = { combatId: 'combat-1', combatantId: 'atk', context: { candidates: [] }, candidates: [] };
+    const getPending = vi.fn().mockResolvedValue(pendingTurn);
+    const fetchCandidates = vi.fn();
+    const fetchDecision = vi.fn().mockResolvedValue({ candidateId: 'endTurn' });
+    const applyDecision = vi.fn().mockResolvedValue(null);
+    const armTimeout = vi.fn();
+
+    await runAgentDecisionLoop({ id: 'combat-1' }, combatant, { fetchDecision, fetchCandidates, getPending, applyDecision, armTimeout });
+
+    expect(fetchCandidates).not.toHaveBeenCalled();
+    expect(fetchDecision).toHaveBeenCalled();
+  });
+
+  it('persists an empty maneuverPicks array (not null) when fetchCandidates fails, so it is not retried on the next loop iteration this same turn', async () => {
+    installGameStub();
+    const vocabulary = [{ type: 'maneuver', slug: 'trip', targetId: 'opp1' }];
+    const pendingTurn = { combatId: 'combat-1', combatantId: 'atk', context: { candidates: [] }, candidates: [], maneuverVocabulary: vocabulary };
+    const stubCombat = combatWithFlagStore();
+    const getPending = vi.fn().mockResolvedValue(pendingTurn);
+    const fetchCandidates = vi.fn().mockRejectedValue(new Error('network error'));
+    const fetchDecision = vi.fn().mockResolvedValue({ candidateId: 'endTurn' });
+    const applyDecision = vi.fn().mockResolvedValue(null);
+    const armTimeout = vi.fn();
+
+    await runAgentDecisionLoop(stubCombat, combatant, { fetchDecision, fetchCandidates, getPending, applyDecision, armTimeout });
+
+    expect(fetchCandidates).toHaveBeenCalledTimes(1);
+    expect(stubCombat.getFlag('pf2e-dungeon-crawl', 'agentTurnState').maneuverPicks).toEqual([]);
+    expect(fetchDecision).toHaveBeenCalled();
+  });
+});
+
+describe('runAgentDecisionLoop maneuver picks already fetched this turn', () => {
+  it('does not re-ask the reasoning model once picks are persisted for this turn', async () => {
+    installGameStub();
+    const flags = {
+      agentTurnState: { combatantId: 'atk', round: 1, turn: 0, actionsRemaining: 2, mapIncrement: 0, maneuverPicks: [], counter: 3 },
+    };
+    const stubCombat = { id: 'combat-1', round: 1, turn: 0, getFlag: (_m, k) => flags[k], setFlag: async (_m, k, v) => { flags[k] = v; } };
+    const pendingTurn = { combatId: 'combat-1', combatantId: 'atk', context: { candidates: [] }, candidates: [], maneuverVocabulary: [{ type: 'maneuver', slug: 'trip', targetId: 'opp1' }] };
+    const fetchCandidates = vi.fn();
+    const fetchDecision = vi.fn().mockResolvedValue({ candidateId: 'endTurn' });
+    await runAgentDecisionLoop(stubCombat, { id: 'atk' }, {
+      fetchDecision, fetchCandidates, getPending: vi.fn().mockResolvedValue(pendingTurn), applyDecision: vi.fn().mockResolvedValue(null), armTimeout: vi.fn(),
+    });
+    expect(fetchCandidates).not.toHaveBeenCalled();
+    expect(fetchDecision).toHaveBeenCalled();
+  });
+});

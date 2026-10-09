@@ -2,9 +2,10 @@ import { createServer as createHttpServer } from "node:http";
 import { timingSafeEqual } from "node:crypto";
 import { resolveProvider } from "./providers/index.mjs";
 import { generateCustomization } from "./customization-generator.mjs";
+import { generateCombatCandidates } from "./candidate-generator.mjs";
 import { readEnvOrDotenv } from "./env.mjs";
 
-const PROTECTED_ROUTES = new Set(["/v1/combat-decision", "/v1/flavor-customization"]);
+const PROTECTED_ROUTES = new Set(["/v1/combat-decision", "/v1/flavor-customization", "/v1/combat-candidates"]);
 
 function isValidCombatDecisionBody(body) {
   return (
@@ -30,6 +31,29 @@ async function handleCombatDecision(body, res) {
     return sendJson(res, 200, decision);
   } catch (err) {
     return sendJson(res, 502, { error: `combat-decision: provider call failed: ${err.message}` });
+  }
+}
+
+function isValidCombatCandidatesBody(body) {
+  return body && typeof body === "object" && Array.isArray(body.vocabulary);
+}
+
+/** #909: the reasoning-model stage of the maneuver pipeline. Like
+ * /v1/flavor-customization, always litellm (via generateCombatCandidates),
+ * never resolveProvider() -- Laya can only answer typed choice/score/bool
+ * questions, not generate a structured subset of a variable vocabulary.
+ * Everything except `vocabulary` is passed through as the decision
+ * context. */
+async function handleCombatCandidates(body, res) {
+  if (!isValidCombatCandidatesBody(body)) {
+    return sendJson(res, 400, { error: "combat-candidates: vocabulary is required and must be an array" });
+  }
+  const { vocabulary, ...context } = body;
+  try {
+    const result = await generateCombatCandidates(context, vocabulary);
+    return sendJson(res, 200, result);
+  } catch (err) {
+    return sendJson(res, 502, { error: `combat-candidates: generation failed: ${err.message}` });
   }
 }
 
@@ -137,6 +161,9 @@ export function createServer({
       }
       if (req.url === "/v1/flavor-customization") {
         return handleFlavorCustomization(body, res);
+      }
+      if (req.url === "/v1/combat-candidates") {
+        return handleCombatCandidates(body, res);
       }
     }
 
