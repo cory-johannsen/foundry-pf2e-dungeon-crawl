@@ -6013,9 +6013,40 @@ async function skipUnperformedFeat(combat, combatant, candidate) {
   return getPendingAgentTurn(combat);
 }
 
-/** #910: dispatches a feat candidate to its executor. */
+/** #910: Lunge -- "Make a Strike with a melee weapon, increasing your
+ * reach by 5 feet for that Strike." The feat's own rule elements (a
+ * toggleable `lunge` RollOption in the default "all" domain, plus an
+ * ActiveEffectLike adding 5 ft to reach predicated on it) are switched on
+ * for exactly this Strike, then off again. Rolled at the turn's current
+ * MAP; counts as one attack. */
+async function executeLunge(combat, combatant, candidate, target) {
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  const distance = chebyshevSquares(combatant.token, target.token, gridSize);
+  const action = lungeStrikeFor(combatant.actor, distance, gridDistanceFt);
+  if (!action) return { performed: false };
+  const actionSlug = action.item?.slug ?? action.slug ?? action.label;
+  const { mapIncrement } = getAgentTurnState(combat, combatant.id);
+  await combatant.actor.toggleRollOption("all", "lunge", candidate.itemId, true);
+  try {
+    await rollAndApplyStrikeAtVariant(combat, combatant, target, actionSlug, mapIncrement);
+  } finally {
+    await combatant.actor.toggleRollOption("all", "lunge", candidate.itemId, false);
+  }
+  return { performed: true, attacks: 1 };
+}
+
+/** #910: dispatches a feat candidate to its executor. Every executor
+ * returns `{ performed, attacks }` -- `performed: false` means nothing
+ * happened and no action is spent. */
 async function executeFeatCandidate(combat, combatant, candidate) {
   if (candidate.kind === "selfEffect") return executeSelfEffectFeat(combatant, candidate);
+  if (candidate.kind !== "composite") return { performed: false };
+  const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
+  if (!target) return { performed: false };
+  if (candidate.slug === "lunge") return executeLunge(combat, combatant, candidate, target);
+  if (candidate.slug === "sudden-charge") return executeSuddenCharge(combat, combatant, target);
+  if (candidate.slug === "twin-feint") return executeTwinFeint(combat, combatant, target);
   return { performed: false };
 }
 
