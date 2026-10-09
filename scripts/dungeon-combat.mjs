@@ -2391,6 +2391,123 @@ export function immuneToDemoralize(targetActor) {
   );
 }
 
+/** #910: self-effect actions in this feature's initial scope besides the
+ * stance-trait items (widening is #914). */
+const SELF_EFFECT_SLUGS = new Set(["rage"]);
+
+/** #910: traits that keep an activatable item out of the turn-time
+ * vocabulary (not usable in an encounter turn). */
+const FEAT_EXCLUDED_TRAITS = new Set(["exploration", "downtime"]);
+
+/** #910: the action traits that gate per-turn reuse, carried on vocabulary
+ * entries so agent-candidates.mjs can enforce PF2e's one-flourish-per-turn
+ * and one-stance-action-per-round rules. */
+const FEAT_TURN_GATING_TRAITS = ["flourish", "stance"];
+
+function featGatingTraits(item) {
+  const traits = item.system?.traits?.value ?? [];
+  return FEAT_TURN_GATING_TRAITS.filter((t) => traits.includes(t));
+}
+
+/** #910: an action/free-action item's real cost, or null for anything else
+ * (passive, reaction, unreadable). */
+function featActionCost(item) {
+  const actionType = item.system?.actionType?.value;
+  if (actionType === "free") return 0;
+  if (actionType !== "action") return null;
+  const cost = item.system?.actions?.value;
+  return typeof cost === "number" && cost > 0 ? cost : null;
+}
+
+/** #910: a PF2e `ChoiceSet` rule still unresolved on this item (no
+ * selection recorded under its flag) -- such an item is excluded; this
+ * module never invents a choice for an AI actor's own feat. */
+function hasUnresolvedChoiceSet(item) {
+  const rules = item.system?.rules ?? [];
+  return rules.some(
+    (r) =>
+      r?.key === "ChoiceSet" &&
+      typeof r.flag === "string" &&
+      item.flags?.pf2e?.rulesSelections?.[r.flag] === undefined,
+  );
+}
+
+/** #910: whether `actor` already has the effect `item` would apply --
+ * either an effect created from this very item (PF2e's own self-effect
+ * handler writes `system.context.origin.item` = the action's uuid) or the
+ * same linked effect from any other source (same slug), so a buff is never
+ * re-offered while active (Rage: "you aren't ... raging"). */
+function actorAlreadyHasEffectFrom(actor, item, effectSlug) {
+  return (actor.itemTypes?.effect ?? []).some(
+    (e) =>
+      e.system?.context?.origin?.item === item.uuid ||
+      (effectSlug && e.slug === effectSlug),
+  );
+}
+
+/** #910: the id of an active stance effect on `actor`, or null. An effect
+ * is a stance when it carries the stance trait itself (the system copies
+ * the action's effect-valid traits onto it) or its origin item does. PF2e
+ * RAW: entering a stance ends any stance you're already in. */
+async function findActiveStanceEffectId(actor) {
+  for (const effect of actor.itemTypes?.effect ?? []) {
+    if ((effect.system?.traits?.value ?? []).includes("stance")) return effect.id;
+    const originItemUuid = effect.system?.context?.origin?.item;
+    if (!originItemUuid) continue;
+    const originItem = await fromUuid(originItemUuid);
+    if (originItem?.system?.traits?.value?.includes("stance")) return effect.id;
+  }
+  return null;
+}
+
+function actorHasCondition(actor, slug) {
+  return Array.from(actor?.conditions ?? []).some((c) => c.slug === slug);
+}
+
+/** #910: the self-effect vocabulary category -- stance-trait items plus
+ * Rage, on character actors only (NPC abilities are #915). Scans both
+ * itemTypes.action and itemTypes.feat (the system's own self-effect marker
+ * lives on both). Returns plain `{itemId, slug, name, cost, replacesStance,
+ * traits}` entries for agent-candidates.mjs's buildFeatVocabulary. Any item
+ * whose data can't be read is excluded, never defaulted to available. */
+export async function computeSelfEffectVocabularyEntries(actor, actionsRemaining) {
+  if (actor?.type !== "character") return [];
+  const entries = [];
+  const items = [...(actor.itemTypes?.action ?? []), ...(actor.itemTypes?.feat ?? [])];
+  for (const item of items) {
+    try {
+      const selfEffect = item.system?.selfEffect;
+      if (!selfEffect?.uuid) continue;
+      const traits = item.system?.traits?.value ?? [];
+      const isStance = traits.includes("stance");
+      if (!isStance && !SELF_EFFECT_SLUGS.has(item.slug)) continue;
+      if (traits.some((t) => FEAT_EXCLUDED_TRAITS.has(t))) continue;
+      const cost = featActionCost(item);
+      if (cost === null || cost > actionsRemaining) continue;
+      const frequencyValue = item.system?.frequency?.value;
+      if (item.system?.frequency && !(frequencyValue > 0)) continue;
+      if (hasUnresolvedChoiceSet(item)) continue;
+      // Rage's own requirement: "You aren't Fatigued or raging."
+      if (item.slug === "rage" && actorHasCondition(actor, "fatigued")) continue;
+      const effect = await fromUuid(selfEffect.uuid);
+      if (!effect) continue;
+      if (actorAlreadyHasEffectFrom(actor, item, effect.slug)) continue;
+      const replacesStance = isStance ? await findActiveStanceEffectId(actor) : null;
+      entries.push({
+        itemId: item.id,
+        slug: item.slug,
+        name: item.name,
+        cost,
+        replacesStance,
+        traits: featGatingTraits(item),
+      });
+    } catch (err) {
+      console.warn(`#910: skipping unreadable feat item ${item?.name ?? item?.id}:`, err.message);
+    }
+  }
+  return entries;
+}
+
 /** Reads back Combat's own per-turn agent bookkeeping, or a fresh one
  * (`initAgentTurnState()`) if this is the first decision seen for this exact
  * combatant/round/turn — see `currentStoredAgentTurnState` above. */
