@@ -443,6 +443,45 @@ export function fumbleDeckCategory({
   return "Melee";
 }
 
+/**
+ * #976: the natural d20 face (1-20) an attack roll actually showed, or
+ * `null` when it can't be read. `roll` is the attack message's own
+ * `rolls[0]` (a PF2e CheckRoll).
+ *
+ * Read off the d20 Die term the same way PF2e's own check roller derives
+ * its `check:total:natural:N` roll option (the active, non-discarded
+ * result of the first d20 -- so a fortune/misfortune `2d20kh`/`2d20kl`
+ * reports the kept die). Deliberately NOT `roll.degreeOfSuccess.dieResult`:
+ * confirmed in the installed system and live that `CheckRoll#degreeOfSuccess`
+ * is the bare numeric degree (0-3) stored in `roll.options`, not a
+ * `DegreeOfSuccess` instance, so `.dieResult` is always undefined there.
+ */
+export function naturalD20(roll) {
+  const dice = Array.isArray(roll?.dice) ? roll.dice : [];
+  const d20 = dice.find((d) => d?.faces === 20);
+  const results = Array.isArray(d20?.results) ? d20.results : [];
+  const kept = results.find((r) => r?.active && !r?.discarded);
+  const face = kept?.result;
+  return Number.isInteger(face) && face >= 1 && face <= 20 ? face : null;
+}
+
+/**
+ * #976: which Critical Deck (`"hit"`/`"fumble"`) a check's `outcome`
+ * draws from, or `null` for none -- the owner's explicit, recorded
+ * deviation from the deck's usual "any critical hit/fumble" guidance: only
+ * a criticalSuccess on a natural 20 draws a Hit card and only a
+ * criticalFailure on a natural 1 draws a Fumble card. A crit reached by
+ * beating (or missing) the DC by 10+ on any other face still resolves as a
+ * crit in every other respect (damage doubling, riders, sounds); it just
+ * draws no card. An unknown natural face (`null`) never draws -- missing
+ * data defaults to the no-card path.
+ */
+export function criticalCardKindFor(outcome, natural) {
+  if (outcome === "criticalSuccess" && natural === 20) return "hit";
+  if (outcome === "criticalFailure" && natural === 1) return "fumble";
+  return null;
+}
+
 function pageTextContent(doc) {
   const pages = Array.isArray(doc.pages)
     ? doc.pages

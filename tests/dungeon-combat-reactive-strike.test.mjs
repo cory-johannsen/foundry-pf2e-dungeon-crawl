@@ -274,7 +274,19 @@ function installFoundryStubs() {
   };
 }
 
-function makeStrikeAction({ slug = "claw", label = "Claw", outcome = "success" } = {}) {
+// #976: a real CheckRoll's d20 Die term shape -- the natural face gates a
+// critical-deck card draw. Defaults to the face that makes `outcome`'s
+// crit/fumble a natural one.
+function d20Roll(face) {
+  return { dice: [{ faces: 20, results: [{ result: face, active: true }] }] };
+}
+
+function makeStrikeAction({
+  slug = "claw",
+  label = "Claw",
+  outcome = "success",
+  natural = outcome === "criticalSuccess" ? 20 : outcome === "criticalFailure" ? 1 : 10,
+} = {}) {
   return {
     type: "strike",
     ready: true,
@@ -287,6 +299,7 @@ function makeStrikeAction({ slug = "claw", label = "Claw", outcome = "success" }
         roll: async () => {
           game.messages.contents.push({
             flags: { pf2e: { context: { outcome } } },
+            rolls: [d20Roll(natural)],
           });
         },
       },
@@ -429,6 +442,36 @@ describe("offerReactiveStrikesAgainst", () => {
     // would stack to 6x.
     expect(alterCalls).toEqual([{ multiplier: 1.5, addend: 0 }]);
     expect(mover.applyDamageCalls).toHaveLength(1);
+  });
+
+  it("draws no card on a 10+-margin crit (natural 19), leaving PF2e's own crit damage untouched (#976)", async () => {
+    installFoundryStubs();
+    let packReads = 0;
+    globalThis.game.packs = {
+      get: () => {
+        packReads++;
+        return undefined;
+      },
+    };
+    const alterCalls = [];
+    const strike = makeStrikeAction({ outcome: "criticalSuccess", natural: 19 });
+    strike.item.system.damage = { damageType: "slashing" };
+    strike.damage = async () => ({
+      total: 4,
+      alter: async (multiplier, addend) => {
+        alterCalls.push({ multiplier, addend });
+      },
+    });
+    const mover = makeMoverTarget();
+    const reactor = makeFullReactor({ id: "r1", x: 100, y: 0, strike });
+    const combat = makeFullCombat({ combatants: [mover, reactor] });
+
+    await offerReactiveStrikesAgainst(combat, mover);
+
+    expect(packReads).toBe(0);
+    expect(alterCalls).toEqual([]);
+    expect(mover.applyDamageCalls).toHaveLength(1);
+    expect(mover.applyDamageCalls[0]).toMatchObject({ outcome: "criticalSuccess" });
   });
 
   it("does not call .alter() at all when the drawn card carries no multiplier", async () => {

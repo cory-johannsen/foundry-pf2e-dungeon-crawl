@@ -9,6 +9,35 @@ function installFoundryStubs() {
     user: { isGM: true },
     actors: { party: { members: [{ id: "party-actor-1" }] } },
     combats: { contents: [] },
+    messages: { contents: [] },
+  };
+}
+
+// #976: a real CheckRoll's d20 Die term shape, as read live off a stored
+// attack-roll message.
+function d20Roll(face) {
+  return { dice: [{ faces: 20, results: [{ result: face, active: true }] }] };
+}
+
+// #976: the manual Strike's own attack-roll message, which
+// handleManualStrikeDamage reads the natural d20 face from (the damage
+// message carries none). Matches makeMessage's default speaker/target.
+function makeAttackMessage({
+  natural = 20,
+  outcome = "criticalSuccess",
+  attackerTokenId = "attacker-token",
+  targetTokenUuid = "Scene.scene1.Token.target-token",
+  originUuid = undefined,
+} = {}) {
+  return {
+    flags: {
+      pf2e: {
+        context: { type: "attack-roll", outcome, target: { token: targetTokenUuid } },
+        ...(originUuid ? { origin: { uuid: originUuid } } : {}),
+      },
+    },
+    speaker: { scene: "scene1", token: attackerTokenId },
+    rolls: [d20Roll(natural)],
   };
 }
 
@@ -311,6 +340,7 @@ describe("handleManualStrikeDamage", () => {
     const combat = makeCombat({ combatants: [attacker, target] });
     game.combats.contents.push(combat);
     const weaponItem = makeWeaponItem({ damageType: "bludgeoning" });
+    game.messages.contents.push(makeAttackMessage({ natural: 20 }));
 
     await handleManualStrikeDamage(
       makeMessage({ outcome: "criticalSuccess", item: weaponItem }),
@@ -341,6 +371,9 @@ describe("handleManualStrikeDamage", () => {
       isRanged: false,
       hp: { value: 10, max: 10, brokenThreshold: 5 },
     });
+    game.messages.contents.push(
+      makeAttackMessage({ natural: 1, outcome: "criticalFailure" }),
+    );
 
     await handleManualStrikeDamage(
       makeMessage({ outcome: "criticalFailure", item: weaponItem }),
@@ -388,4 +421,107 @@ describe("handleManualStrikeDamage", () => {
     expect(target.applyDamageCalls).toHaveLength(1);
     expect(weaponItem.updateCalls).toEqual([]);
   });
+
+  // #976: the owner's recorded deviation -- cards draw only on a natural
+  // 20 crit / natural 1 fumble, read off the Strike's own attack message.
+  describe("natural-roll-only card draws (#976)", () => {
+    function setup() {
+      installFoundryStubs();
+      installCriticalDeckStubs({
+        docs: [
+          makeDoc("Critical Hit Deck #1", HIT_DECK_1),
+          makeDoc("Critical Fumble Deck #14", FUMBLE_DECK_14),
+        ],
+      });
+      const attacker = makeAttackerCombatant();
+      const target = makeTargetCombatant();
+      game.combats.contents.push(
+        makeCombat({ combatants: [attacker, target] }),
+      );
+      return { attacker, target };
+    }
+
+    it("draws no Hit card for a criticalSuccess reached by a 10+ margin on a natural 15, but still applies the crit damage", async () => {
+      const { target } = setup();
+      game.messages.contents.push(makeAttackMessage({ natural: 15 }));
+
+      await handleManualStrikeDamage(
+        makeMessage({
+          outcome: "criticalSuccess",
+          item: makeWeaponItem({ damageType: "bludgeoning" }),
+        }),
+      );
+
+      expect(ChatMessage.calls).toHaveLength(0);
+      expect(target.applyDamageCalls).toHaveLength(1);
+      expect(target.applyDamageCalls[0]).toMatchObject({
+        outcome: "criticalSuccess",
+      });
+    });
+
+    it("draws no Fumble card for a criticalFailure reached by a 10+ margin on a natural 6", async () => {
+      setup();
+      game.messages.contents.push(
+        makeAttackMessage({ natural: 6, outcome: "criticalFailure" }),
+      );
+      const weaponItem = makeWeaponItem({
+        hp: { value: 10, max: 10, brokenThreshold: 5 },
+      });
+
+      await handleManualStrikeDamage(
+        makeMessage({ outcome: "criticalFailure", item: weaponItem }),
+      );
+
+      expect(ChatMessage.calls).toHaveLength(0);
+      expect(weaponItem.updateCalls).toEqual([]);
+    });
+
+    it("draws no card when no attack-roll message can be found (missing data never draws)", async () => {
+      const { target } = setup();
+
+      await handleManualStrikeDamage(
+        makeMessage({ outcome: "criticalSuccess", item: makeWeaponItem() }),
+      );
+
+      expect(ChatMessage.calls).toHaveLength(0);
+      expect(target.applyDamageCalls).toHaveLength(1);
+    });
+
+    it("reads the matching attacker's attack roll, not a newer one by someone else", async () => {
+      setup();
+      game.messages.contents.push(makeAttackMessage({ natural: 20 }));
+      // A later natural-20 attack by a different token must not be mistaken
+      // for this Strike's own roll -- and vice versa below.
+      game.messages.contents.push(
+        makeAttackMessage({ natural: 3, attackerTokenId: "someone-else" }),
+      );
+
+      await handleManualStrikeDamage(
+        makeMessage({
+          outcome: "criticalSuccess",
+          item: makeWeaponItem({ damageType: "bludgeoning" }),
+        }),
+      );
+
+      expect(ChatMessage.calls).toHaveLength(1);
+      expect(ChatMessage.calls[0].content).toContain("Sickened");
+    });
+
+    it("draws no card when the attacker's nearest attack roll disagrees with the damage roll's outcome", async () => {
+      setup();
+      game.messages.contents.push(makeAttackMessage({ natural: 20 }));
+      // A newer attack by the same attacker that merely succeeded: the
+      // natural 20 above is a stale, earlier Strike's roll.
+      game.messages.contents.push(
+        makeAttackMessage({ natural: 12, outcome: "success" }),
+      );
+
+      await handleManualStrikeDamage(
+        makeMessage({ outcome: "criticalSuccess", item: makeWeaponItem() }),
+      );
+
+      expect(ChatMessage.calls).toHaveLength(0);
+    });
+  });
 });
+

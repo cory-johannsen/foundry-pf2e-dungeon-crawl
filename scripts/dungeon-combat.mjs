@@ -71,6 +71,8 @@ import {
   drawAndApplyCriticalCard,
   hitDeckCategory,
   fumbleDeckCategory,
+  naturalD20,
+  criticalCardKindFor,
 } from "./dungeon-critical-deck.mjs";
 import { fetchCombatDecision, fetchCombatCandidates } from "./agent-service-client.mjs";
 import { withDialogsSuppressed } from "./trap-combat.mjs";
@@ -2072,6 +2074,49 @@ export async function handleRangedAttackForReactiveStrike(message) {
 }
 
 /**
+ * #976: the attack-roll chat message a manual Strike's damage-roll
+ * `damageMessage` was rolled from -- the nearest earlier
+ * `context.type === "attack-roll"` message from the same speaker token and
+ * the same weapon (`flags.pf2e.origin.uuid`), accepted only when its own
+ * stored target and outcome also match the damage roll's. Scans back from
+ * the damage message's own position (not blindly `.at(-1)`), since other
+ * messages (riders, reminders, other combatants' rolls) can land in
+ * between. Returns `null` when no such message is found or the nearest one
+ * disagrees -- callers treat that as "natural face unknown", which draws
+ * no card.
+ */
+export function findAttackMessageForDamage(damageMessage) {
+  const all = game.messages?.contents ?? [];
+  const context = damageMessage?.flags?.pf2e?.context;
+  const tokenId = damageMessage?.speaker?.token;
+  if (!context || !tokenId) return null;
+  const originUuid = damageMessage.flags?.pf2e?.origin?.uuid ?? null;
+  const ownIndex =
+    damageMessage.id != null
+      ? all.findIndex((m) => m?.id === damageMessage.id)
+      : -1;
+  const start = (ownIndex >= 0 ? ownIndex : all.length) - 1;
+  for (let i = start; i >= 0; i--) {
+    const candidate = all[i];
+    const candidateContext = candidate?.flags?.pf2e?.context;
+    if (candidateContext?.type !== "attack-roll") continue;
+    if (candidate.speaker?.token !== tokenId) continue;
+    if (
+      originUuid &&
+      candidate.flags?.pf2e?.origin?.uuid !== originUuid
+    )
+      continue;
+    const targetMatches =
+      !context.target?.token ||
+      candidateContext.target?.token === context.target.token;
+    return targetMatches && candidateContext.outcome === context.outcome
+      ? candidate
+      : null;
+  }
+  return null;
+}
+
+/**
  * #47: a human party member's manual Strike still goes through PF2e's own
  * roll -> chat card "Apply Damage" button, which resolves its recipient
  * from live `game.user.targets`/selection state — reproduced live as a
@@ -2172,12 +2217,16 @@ export async function handleManualStrikeDamage(message) {
           damageRolls[0]?.damageType ??
           null,
       };
+      // #976: the damage message carries no natural-die info of its own
+      // (confirmed live -- no `check:total:natural:*` option, no d20), so
+      // the natural face comes from the matching attack-roll message.
       await drawCriticalCardForStrike(
         context.outcome,
         strike,
         soundContext,
         attacker,
         target,
+        naturalD20(findAttackMessageForDamage(message)?.rolls?.[0]),
       );
     }
   }
@@ -3712,6 +3761,13 @@ async function drawHitCardMultiplier(
  * the caller can `.alter()` its own already-in-flight `strike.damage()`
  * roll once it resolves; only ever non-1 on the criticalSuccess/hit-deck
  * branch (a fumble has no damage roll to scale).
+ *
+ * #976: `natural` is the attack roll's own natural d20 face
+ * (`naturalD20`, read off the attack message the caller captured) -- a
+ * card only draws on a natural 20 crit / natural 1 fumble
+ * (`criticalCardKindFor`); a 10+-margin crit/fumble on any other face, or
+ * an unknown face, returns 1 and draws nothing. The caller's own crit
+ * damage (strike.damage()'s pre-doubling) is unaffected either way.
  */
 async function drawCriticalCardForStrike(
   outcome,
@@ -3719,14 +3775,16 @@ async function drawCriticalCardForStrike(
   soundContext,
   combatant,
   target,
+  natural = null,
 ) {
-  if (outcome === "criticalSuccess") {
+  const kind = criticalCardKindFor(outcome, natural);
+  if (kind === "hit") {
     return drawHitCardMultiplier(hitDeckCategory(soundContext.damageType), {
       combatant,
       target,
       damageType: soundContext.damageType,
     });
-  } else if (outcome === "criticalFailure") {
+  } else if (kind === "fumble") {
     await drawAndApplyCriticalCard(
       "fumble",
       fumbleDeckCategory({
@@ -3776,8 +3834,12 @@ export async function rollAndApplyStrike(combat, combatant, target) {
     return await withCoverBonus(combat, combatant, target, async () => {
       const targetRef = { document: target.token };
       await strike.variants[0].roll({ target: targetRef, createMessage: true });
-      const outcome =
-        game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
+      // #976: capture the attack message itself right here -- the rider
+      // resolution below can post further chat messages before the card
+      // draw, so a later `.at(-1)` would no longer be the attack roll.
+      const attackMessage = game.messages.contents.at(-1);
+      const outcome = attackMessage?.flags?.pf2e?.context?.outcome ?? null;
+      const natural = naturalD20(attackMessage?.rolls?.[0]);
       const soundContext = strikeSoundContext(strike, target);
       playStrikeSound(outcome, soundContext);
       await postStrikeRiderReminder(combatant, strike, outcome);
@@ -3799,6 +3861,7 @@ export async function rollAndApplyStrike(combat, combatant, target) {
         soundContext,
         combatant,
         target,
+        natural,
       );
       if (outcome === "success" || outcome === "criticalSuccess") {
         const damageRoll = await strike.damage({
@@ -4913,8 +4976,11 @@ async function rollAndApplyStrikeAtVariant(
       const variant =
         strike.variants[Math.min(variantIndex, strike.variants.length - 1)];
       await variant.roll({ target: targetRef, createMessage: true });
-      const outcome =
-        game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
+      // #976: see rollAndApplyStrike -- capture the attack message before
+      // any rider can post a newer one.
+      const attackMessage = game.messages.contents.at(-1);
+      const outcome = attackMessage?.flags?.pf2e?.context?.outcome ?? null;
+      const natural = naturalD20(attackMessage?.rolls?.[0]);
       const soundContext = strikeSoundContext(strike, target);
       playStrikeSound(outcome, soundContext);
       await postStrikeRiderReminder(combatant, strike, outcome);
@@ -4936,6 +5002,7 @@ async function rollAndApplyStrikeAtVariant(
         soundContext,
         combatant,
         target,
+        natural,
       );
       if (outcome === "success" || outcome === "criticalSuccess") {
         const damageRoll = await strike.damage({
@@ -5296,11 +5363,19 @@ export async function castAttackSpellAndApplyRoll(
       target: target.actor,
       createMessage: true,
     });
-    const outcome =
-      game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
+    const attackMessage = game.messages.contents.at(-1);
+    const outcome = attackMessage?.flags?.pf2e?.context?.outcome ?? null;
     playAttackSpellSound(outcome);
-    let damageMultiplier = null;
-    if (outcome === "criticalSuccess") {
+    // #976: a card only draws on a natural 20 crit / natural 1 fumble
+    // (criticalCardKindFor). A 10+-margin crit still gets PF2e's own
+    // baseline doubling below via `damageMultiplier = 1` (the #79
+    // Math.max floor), just no card.
+    const cardKind = criticalCardKindFor(
+      outcome,
+      naturalD20(attackMessage?.rolls?.[0]),
+    );
+    let damageMultiplier = outcome === "criticalSuccess" ? 1 : null;
+    if (cardKind === "hit") {
       // Takes the first system.damage entry's own type as "the" spell's
       // damage type for a conditional card's (Corrosive/Combustion) own
       // acid/fire check -- correct for the common single-damage-instance
@@ -5316,7 +5391,7 @@ export async function castAttackSpellAndApplyRoll(
         target,
         damageType,
       });
-    } else if (outcome === "criticalFailure") {
+    } else if (cardKind === "fumble") {
       await drawAndApplyCriticalCard("fumble", "Spell", { combatant, target });
     }
     if (outcome === "success" || outcome === "criticalSuccess") {
@@ -5331,7 +5406,7 @@ export async function castAttackSpellAndApplyRoll(
         // source -- so this resolves an *effective* multiplier before
         // altering the roll rather than trusting rollDamage() to have
         // scaled anything itself. `damageMultiplier` stays `null` unless a
-        // crit occurred (set only in the `criticalSuccess` branch above),
+        // crit occurred (1 for any crit, or the drawn card's own value),
         // so this check alone proves a plain "success" is never altered --
         // no need to re-check `outcome` here too. A drawn card's own
         // multiplier (2 or 3) already represents the FULL intended scaling
