@@ -54,6 +54,7 @@ import {
   autoDefeatZeroHpNpcs,
   maybeResolveCombatForCombatant,
   autoPlayCombatantTurnIfDue,
+  sweepExpiredManeuverRiders,
   getPendingAgentTurn,
   applyAgentDecision,
   toggleAgentControlled,
@@ -663,9 +664,15 @@ Hooks.on("updateCombatant", async (combatant, changes) =>
   ),
 );
 
-/** ITEM-8: plays a non-player combatant's turn automatically. */
-Hooks.on("updateCombat", (combat, changes) => {
+/** ITEM-8: plays a non-player combatant's turn automatically. #911: first
+ * removes any maneuver-rider condition (Fleeing, Sly Disarm's Off-Guard)
+ * whose duration ran out with this turn/round change, so it is gone before
+ * the next turn plays. */
+Hooks.on("updateCombat", async (combat, changes) => {
   if (changes.turn === undefined && changes.round === undefined) return;
+  await sweepExpiredManeuverRiders(combat).catch((err) =>
+    console.error("pf2e-dungeon-crawl | #911: maneuver rider sweep failed:", err.message),
+  );
   autoPlayCombatantTurnIfDue(combat);
 });
 

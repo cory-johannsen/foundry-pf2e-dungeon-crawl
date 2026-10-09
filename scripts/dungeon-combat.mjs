@@ -5845,6 +5845,64 @@ function runManeuverCheck(slug, combatant, target, { modifiers, skill } = {}) {
   });
 }
 
+/** #911: tracks a module-applied maneuver rider condition for removal by
+ * sweepExpiredManeuverRiders. Same combat-flag precedent as the recharge
+ * tracking (`availableAtRound`) and demoralizeImmunity. */
+async function recordManeuverRiderExpiry(combat, entry) {
+  const current = combat.getFlag(MODULE_ID, "maneuverRiderExpiry") ?? [];
+  await combat.setFlag(MODULE_ID, "maneuverRiderExpiry", [...current, entry]);
+}
+
+/** #911: whether a tracked rider has run out at the combat's current
+ * (round, turn). `untilRoundTurn` ("for 1 round": Terrified Retreat's
+ * Fleeing) ends once that (round, turn) is reached or passed;
+ * `afterRoundTurn` ("before the end of your turn": Sly Disarm's Off-Guard)
+ * ends the moment the current (round, turn) differs from the granting one.
+ * A malformed entry counts as expired so it never lingers. */
+function maneuverRiderExpired(combat, expiry) {
+  const round = combat.round ?? 0;
+  const turn = combat.turn ?? 0;
+  if (expiry?.untilRoundTurn) {
+    const { round: r, turn: t } = expiry.untilRoundTurn;
+    return round > r || (round === r && turn >= t);
+  }
+  if (expiry?.afterRoundTurn) {
+    const { round: r, turn: t } = expiry.afterRoundTurn;
+    return round !== r || turn !== t;
+  }
+  return true;
+}
+
+/** #911: PF2e's Fleeing condition item carries no duration at all
+ * (`duration: {unit: "unlimited"}`), and Sly Disarm's turn-limited
+ * Off-Guard has no system-tracked duration either -- this module removes
+ * both itself on turn/round change (module.mjs's updateCombat hook). GM
+ * only, since that hook fires on every client. A removal that fails is
+ * logged and the entry dropped; it never aborts the rest of the sweep. */
+export async function sweepExpiredManeuverRiders(combat) {
+  if (globalThis.game?.user && !game.user.isGM) return;
+  if (typeof combat?.getFlag !== "function") return;
+  const entries = combat.getFlag(MODULE_ID, "maneuverRiderExpiry") ?? [];
+  if (!Array.isArray(entries) || !entries.length) return;
+  const remaining = [];
+  for (const entry of entries) {
+    if (!maneuverRiderExpired(combat, entry?.expiry)) {
+      remaining.push(entry);
+      continue;
+    }
+    if (!entry?.targetId || !entry?.conditionSlug) continue;
+    try {
+      const target = Array.from(combat.combatants ?? []).find((c) => c.id === entry.targetId);
+      await target?.actor?.decreaseCondition?.(entry.conditionSlug, { forceRemove: true });
+    } catch (err) {
+      console.error(`${MODULE_ID} | #911: removing expired ${entry.conditionSlug} failed:`, err.message);
+    }
+  }
+  if (remaining.length !== entries.length) {
+    await combat.setFlag(MODULE_ID, "maneuverRiderExpiry", remaining);
+  }
+}
+
 /** #909: Disarm's critical success -- "the item falls to the ground in the
  * target's space": the target's first held item stops being held. */
 async function dropHeldItem(actor) {

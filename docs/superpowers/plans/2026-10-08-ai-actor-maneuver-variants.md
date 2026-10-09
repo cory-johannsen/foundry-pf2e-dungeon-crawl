@@ -476,17 +476,17 @@ async function executeManeuverCandidate(combat, combatant, candidate) {
 
 (`applyManeuverOutcome`'s own signature gains the trailing `skillUsed` parameter here; Task 5 is what actually uses it — this task only threads it through without yet changing what `applyManeuverOutcome` does with it, so update its signature to `async function applyManeuverOutcome(slug, combat, combatant, target, outcome, skillUsed = "athletics") {` and leave its existing body otherwise unchanged for now.)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-execution.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-maneuver-execution.test.mjs
@@ -508,7 +508,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing new.
 - Produces (consumed by Task 5): `async function recordManeuverRiderExpiry(combat, entry)`; `export async function sweepExpiredManeuverRiders(combat)`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-maneuver-rider-expiry.test.mjs
@@ -607,12 +607,12 @@ describe('sweepExpiredManeuverRiders', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-maneuver-rider-expiry.test.mjs`
 Expected: FAIL — `sweepExpiredManeuverRiders` doesn't exist yet.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 ```js
 async function recordManeuverRiderExpiry(combat, entry) {
