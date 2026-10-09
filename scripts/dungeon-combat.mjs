@@ -5533,10 +5533,20 @@ function runManeuverCheck(slug, combatant, target, { modifiers } = {}) {
     };
     const timer = setTimeout(() => finish(null), MANEUVER_CHECK_TIMEOUT_MS);
     try {
+      // The macro's default string-slug DC is not resolved against our
+      // synthetic target in this system build, so pass a numeric DC.
+      let dcValue = null;
+      try {
+        const dcSlug = MANEUVER_DEFS[slug]?.dcSlug;
+        dcValue = dcSlug ? target.actor?.getStatistic?.(dcSlug)?.dc?.value : null;
+      } catch {
+        dcValue = null;
+      }
       game.pf2e.actions[slug]({
         actors: [combatant.actor],
         target: () => ({ actor: target.actor, token: target.token }),
         event: null,
+        ...(Number.isFinite(dcValue) ? { difficultyClass: { value: dcValue } } : {}),
         ...(modifiers?.length ? { modifiers } : {}),
         callback: ({ outcome }) => finish(outcome),
       });

@@ -56,7 +56,7 @@ function makeCombatant({ id, gx, gy, disposition, heldWeapon = false }) {
   };
 }
 
-function setup({ slug, outcome, opponentAt = [1, 0] }) {
+function setup({ slug, outcome, opponentAt = [1, 0], dcs = null }) {
   const attacker = makeCombatant({ id: "atk", gx: 0, gy: 0, disposition: -1 });
   const opponent = makeCombatant({
     id: "opp",
@@ -65,6 +65,9 @@ function setup({ slug, outcome, opponentAt = [1, 0] }) {
     disposition: 1,
     heldWeapon: true,
   });
+  if (dcs) {
+    opponent.actor.getStatistic = vi.fn((s) => (s in dcs ? { dc: { value: dcs[s] } } : null));
+  }
   const flags = {
     dungeonSlot: "slot-1",
     agentTurnState: {
@@ -247,5 +250,40 @@ describe("applyAgentDecision maneuver execution (#909)", () => {
     await applyAgentDecision(combat, "atk", "maneuver:trip:opp");
     expect(action).not.toHaveBeenCalled();
     expect(opponent.actor.increaseCondition).not.toHaveBeenCalled();
+  });
+});
+
+describe("maneuver target defense DC (#909)", () => {
+  const DCS = { reflex: 17, fortitude: 19, will: 21 };
+  const cases = [
+    ["trip", "reflex", 17],
+    ["shove", "fortitude", 19],
+    ["grapple", "fortitude", 19],
+    ["disarm", "reflex", 17],
+    ["demoralize", "will", 21],
+  ];
+  it.each(cases)("%s passes difficultyClass {value} from the target's %s", async (slug, defense, value) => {
+    const { opponent, combat, action } = setup({ slug, outcome: "failure", dcs: DCS });
+    await applyAgentDecision(combat, "atk", `maneuver:${slug}:opp`, "r");
+    expect(opponent.actor.getStatistic).toHaveBeenCalledWith(defense);
+    expect(action.mock.calls[0][0].difficultyClass).toEqual({ value });
+  });
+
+  it("flows the outcome to applyManeuverOutcome when the DC is resolved", async () => {
+    const { opponent, combat } = setup({ slug: "trip", outcome: "success", dcs: DCS });
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp", "r");
+    expect(opponent.actor.increaseCondition).toHaveBeenCalledWith("prone");
+  });
+
+  it("omits difficultyClass when the DC cannot be read", async () => {
+    const { combat, action } = setup({ slug: "trip", outcome: "success", dcs: {} });
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp", "r");
+    expect("difficultyClass" in action.mock.calls[0][0]).toBe(false);
+  });
+
+  it("omits difficultyClass when the target has no getStatistic", async () => {
+    const { combat, action } = setup({ slug: "trip", outcome: "success" });
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp", "r");
+    expect("difficultyClass" in action.mock.calls[0][0]).toBe(false);
   });
 });
