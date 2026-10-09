@@ -28,7 +28,10 @@ function withinRangeAndSight(target, maxSquares) {
 /** Fresh per-turn bookkeeping — reset the instant an agent-controlled
  * combatant's turn becomes current. */
 export function initAgentTurnState() {
-  return { actionsRemaining: MAX_ACTIONS_PER_TURN, mapIncrement: 0, maneuverPicks: null };
+  // #910: flourishUsed/stanceUsed enforce PF2e's "one flourish action per
+  // turn" and "no second stance action for 1 round" (an agent's next turn
+  // starts exactly one round later, so per-turn tracking is exact).
+  return { actionsRemaining: MAX_ACTIONS_PER_TURN, mapIncrement: 0, maneuverPicks: null, flourishUsed: false, stanceUsed: false };
 }
 
 /**
@@ -1046,13 +1049,92 @@ export function buildManeuverCandidates({ maneuverVocabulary = [], maneuverPicks
   return candidates;
 }
 
+/**
+ * #910: the feat/class-action vocabulary, built from two already-
+ * eligibility-filtered plain-object lists dungeon-combat.mjs computes from
+ * real actor/item data (this file has no Foundry API surface) --
+ * `selfEffectEntries` (stance-trait items and Rage with a usable
+ * selfEffect) and `compositeEntries` (the curated Sudden Charge/Lunge/Twin
+ * Feint allowlist, each already matched to a real opponent). Self-effect
+ * entries are self-targeted (targetId: null); composite entries always
+ * carry a real opponent id. `traits` carries only the action traits that
+ * gate per-turn reuse (`flourish`, `stance`): an entry is dropped once this
+ * turn already spent a flourish/stance action.
+ */
+export function buildFeatVocabulary({ selfEffectEntries = [], compositeEntries = [], turnState = null }) {
+  const blocked = (traits = []) =>
+    (turnState?.flourishUsed && traits.includes('flourish')) ||
+    (turnState?.stanceUsed && traits.includes('stance'));
+  const vocabulary = [];
+  for (const entry of selfEffectEntries) {
+    if (blocked(entry.traits)) continue;
+    vocabulary.push({
+      type: 'feat', kind: 'selfEffect',
+      itemId: entry.itemId, slug: entry.slug, name: entry.name, cost: entry.cost,
+      targetId: null, replacesStance: entry.replacesStance ?? null, traits: entry.traits ?? [],
+    });
+  }
+  for (const entry of compositeEntries) {
+    if (blocked(entry.traits)) continue;
+    vocabulary.push({
+      type: 'feat', kind: 'composite',
+      itemId: entry.itemId, slug: entry.slug, name: entry.name, cost: entry.cost,
+      targetId: entry.targetId, traits: entry.traits ?? [],
+    });
+  }
+  return vocabulary;
+}
+
+/**
+ * #910: validates `picks` (the agent service's combined maneuver+feat
+ * response, persisted once per turn in agentTurnState's maneuverPicks
+ * field -- no second field or fetch for this category) against
+ * `featVocabulary`, ignoring any pick whose `type` isn't 'feat' (those
+ * belong to buildManeuverCandidates). The response schema only carries
+ * (type, slug, targetId, rationale), so a pick matches on (slug, targetId);
+ * an `itemId`/`kind` the model volunteers anyway must agree too. A
+ * composite pick whose opponent is gone is dropped.
+ */
+export function buildFeatCandidates({ featVocabulary = [], picks = null, opponents = null }) {
+  if (!picks) return [];
+  const candidates = [];
+  const seen = new Set();
+  for (const pick of picks) {
+    if (!pick || typeof pick !== 'object' || pick.type !== 'feat') continue;
+    const targetId = pick.targetId || null;
+    const match = featVocabulary.find((v) => v.slug === pick.slug && v.targetId === targetId);
+    if (!match) continue;
+    if (pick.itemId !== undefined && pick.itemId !== match.itemId) continue;
+    if (pick.kind !== undefined && pick.kind !== match.kind) continue;
+    const id = match.targetId ? `feat:${match.itemId}:${match.targetId}` : `feat:${match.itemId}`;
+    if (seen.has(id)) continue;
+    let label = match.name;
+    if (match.targetId && opponents) {
+      const opponent = opponents.find((o) => o.id === match.targetId);
+      if (!opponent) continue;
+      label = `${match.name} vs ${opponent.name}`;
+    }
+    seen.add(id);
+    const candidate = {
+      id, type: 'feat', kind: match.kind, itemId: match.itemId, slug: match.slug, name: match.name,
+      targetId: match.targetId, cost: match.cost,
+    };
+    if (match.kind === 'selfEffect') candidate.replacesStance = match.replacesStance ?? null;
+    candidate.traits = match.traits ?? [];
+    candidate.summary = pick.rationale ? `${label} — ${pick.rationale}` : label;
+    candidates.push(candidate);
+  }
+  return candidates;
+}
+
 /** Full candidate list for one decision iteration. */
-export function buildCandidateList({ opponents, readyActions, readySpells = [], readyAreaSpells = [], readyAttackSpells = [], readyDebuffSpells = [], readyBreathWeapons = [], readyMultiStrikeBundles = [], readyChainSpells = [], readyHealSpells = [], readyBuffSpells = [], readyTierScalingAreaSpells = [], readyDualNatureSpells = [], readyTargetCountSpells = [], readyAutoHitAreaSpells = [], allies = [], seekTargets = [], turnState, hazard = null, hasRangedOrReach = false, maneuverVocabulary = [], maneuverPicks = null }) {
+export function buildCandidateList({ opponents, readyActions, readySpells = [], readyAreaSpells = [], readyAttackSpells = [], readyDebuffSpells = [], readyBreathWeapons = [], readyMultiStrikeBundles = [], readyChainSpells = [], readyHealSpells = [], readyBuffSpells = [], readyTierScalingAreaSpells = [], readyDualNatureSpells = [], readyTargetCountSpells = [], readyAutoHitAreaSpells = [], allies = [], seekTargets = [], turnState, hazard = null, hasRangedOrReach = false, maneuverVocabulary = [], maneuverPicks = null, featVocabulary = [] }) {
   if (turnState.actionsRemaining <= 0) return [endTurnCandidate()];
   return [
     ...buildMovementCandidates({ opponents, hazard, hasRangedOrReach }),
     ...buildStrikeCandidates({ readyActions, opponents, mapIncrement: turnState.mapIncrement }),
     ...buildManeuverCandidates({ maneuverVocabulary, maneuverPicks, opponents }),
+    ...buildFeatCandidates({ featVocabulary, picks: maneuverPicks, opponents }),
     ...buildSpellCandidates({ readySpells, opponents, actionsRemaining: turnState.actionsRemaining }),
     ...buildAreaSpellCandidates({ readyAreaSpells, actionsRemaining: turnState.actionsRemaining }),
     ...buildAttackSpellCandidates({ readyAttackSpells, opponents, actionsRemaining: turnState.actionsRemaining }),
@@ -1081,7 +1163,16 @@ export function applyCandidateToTurnState(turnState, candidate) {
   else if (candidate.type === 'multiStrike') {
     mapIncrement += candidate.strikes.reduce((sum, s) => sum + s.count, 0);
   }
-  return { ...turnState, actionsRemaining: turnState.actionsRemaining - candidate.cost, mapIncrement };
+  const next = { ...turnState, actionsRemaining: turnState.actionsRemaining - candidate.cost, mapIncrement };
+  if (candidate.type === 'feat') {
+    // #910: a composite feat's executor reports how many Strikes it really
+    // made (Sudden Charge may end out of reach and make none) -- each one
+    // counts toward MAP like any other attack this turn.
+    next.mapIncrement += candidate.attacks ?? 0;
+    if (candidate.traits?.includes('flourish')) next.flourishUsed = true;
+    if (candidate.traits?.includes('stance')) next.stanceUsed = true;
+  }
+  return next;
 }
 
 /** The JSON context handed to a decision provider alongside its candidates

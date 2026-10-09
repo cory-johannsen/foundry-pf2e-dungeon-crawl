@@ -139,7 +139,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing from this plan's other tasks.
 - Produces (consumed by Task 4/5): `buildFeatVocabulary({ selfEffectEntries, compositeEntries })` → `Array<{type: 'feat', kind, itemId, slug, name, cost, targetId, replacesStance?}>`; `buildFeatCandidates({ featVocabulary, picks })` → `Array<{id, type: 'feat', kind, itemId, slug, targetId, cost, replacesStance, summary}>`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/agent-candidates.test.mjs` (add `buildFeatVocabulary, buildFeatCandidates` to the file's existing import list):
 
@@ -236,12 +236,12 @@ describe('buildFeatCandidates', () => {
 
 (The `replacesStance: undefined` in the composite-pick expectation above is intentional — a composite vocabulary entry never carries `replacesStance` at all, so the spread used in the implementation below never sets that key for it; adjust the implementation in Step 3 so this is exactly what it produces, rather than adjusting the test to hide a real inconsistency.)
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/agent-candidates.test.mjs`
 Expected: FAIL — `buildFeatVocabulary`/`buildFeatCandidates` don't exist yet.
 
-- [ ] **Step 3: Implement in `scripts/agent-candidates.mjs`**
+- [x] **Step 3: Implement in `scripts/agent-candidates.mjs`**
 
 Add after the maneuver builders (per #909's plan, i.e. after `buildManeuverCandidates`):
 
@@ -322,12 +322,12 @@ export function buildCandidateList({ /* ...#909's existing params..., */ maneuve
 
 (The full parameter list and the rest of the splice order are exactly what #909's own plan already specifies — only the two new items shown above, `featVocabulary = []` in the signature and the `buildFeatCandidates` splice line right after `buildManeuverCandidates`'s, are new. Do not re-type the other ~15 existing parameters/splice lines from memory; open the file and add only these two things to what's already there once #909 has landed.)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-candidates.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs tests/agent-candidates.test.mjs
