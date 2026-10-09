@@ -907,17 +907,17 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing.
 - Produces: nothing — final housekeeping step before merge.
 
-- [ ] **Step 1: Check the current version and bump it**
+- [x] **Step 1: Check the current version and bump it**
 
 Run: `grep '"version"' module.json`
 
 A **minor** bump per `CLAUDE.md`'s versioning rule. Confirm the real current value live (#909/#910/#911's own plans will each have already consumed a bump by the time this one executes) rather than assuming.
 
-- [ ] **Step 2: Verify no other file hardcodes the old version**
+- [x] **Step 2: Verify no other file hardcodes the old version**
 
 Run: `grep -rn "<old version string>" . --include="*.json" --include="*.mjs" --include="*.md" | grep -v node_modules | grep -v docs/superpowers`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json
