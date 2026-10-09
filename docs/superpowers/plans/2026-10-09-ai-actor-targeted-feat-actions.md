@@ -40,7 +40,7 @@
 - Consumes: nothing.
 - Produces (consumed by Tasks 2–4): `TARGETED_SELF_EFFECT_ALLOWLIST` — `{"hunt-prey": {senseType: "detect", exclusiveMark: true}, "devise-a-stratagem": {senseType: "sight", exclusiveMark: false}}`; `bindTokenMarkEffect(effectSource, slug, targetTokenUuid)` → a new object (never mutates its input), or `null` if no matching `TokenMark` rule exists; `findActiveMarkEffects(effectItems, targetTokenUuid)` → `Array<{slug, badgeValue}>`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/targeted-feat-actions.test.mjs
@@ -118,12 +118,12 @@ describe('findActiveMarkEffects', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/targeted-feat-actions.test.mjs`
 Expected: FAIL — `scripts/targeted-feat-actions.mjs` doesn't exist yet.
 
-- [ ] **Step 3: Write `scripts/targeted-feat-actions.mjs`**
+- [x] **Step 3: Write `scripts/targeted-feat-actions.mjs`**
 
 ```js
 /**
@@ -184,12 +184,12 @@ export function findActiveMarkEffects(effectItems, targetTokenUuid) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/targeted-feat-actions.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/targeted-feat-actions.mjs tests/targeted-feat-actions.test.mjs
