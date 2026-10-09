@@ -1106,7 +1106,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 **Scope note:** the spec's own Testing section asks for "a fixture of the 369-ability slice" audit, matching #914's own full-population-snapshot approach. That full compilation was not done for this plan — unlike #914 (87 items, a tractable live scan completed during that planning session), reliably classifying all 369 real save-based NPC abilities by hand would need either a much larger live-query budget than this plan's own investigation used, or trusting this parser's own output as ground truth for its own audit (circular). This task instead locks in the handful of real abilities actually verified by hand during this plan's investigation (Task 1's own fixtures) as a permanent regression guard, and leaves the full 369-item population audit to #935 (parsing coverage), which is scoped exactly for expanding and auditing coverage.
 
-- [ ] **Step 1: Write the test**
+- [x] **Step 1: Write the test**
 
 ```js
 // tests/npc-ability-parse-coverage.test.mjs
@@ -1140,12 +1140,12 @@ describe('npc-ability parser coverage (real-fixture regression guard)', () => {
 
 (This task's own real value is Task 1's fixtures themselves, already committed there with the exact real HTML — this file is a thin, explicit marker that those three are the plan's own verified ground truth, pointing a future reader at #935 for the rest, rather than a second independent test of the same strings.)
 
-- [ ] **Step 2: Run the test**
+- [x] **Step 2: Run the test**
 
 Run: `npm test -- tests/npc-ability-parse-coverage.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/npc-ability-parse-coverage.test.mjs
