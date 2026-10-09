@@ -711,7 +711,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing new.
 - Produces (consumed by Task 4): `getNpcAbilityImmunityUntil(combat, itemId, targetId)`/`setNpcAbilityImmunityUntil(...)`; `recordNpcAbilityExpiry(combat, entry)`/`export async function sweepExpiredNpcAbilityConditions(combat)`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Mirror #911's own `tests/dungeon-combat-maneuver-rider-expiry.test.mjs` test shapes exactly (same `combatStub` helper, same two expiry forms), substituting `sweepExpiredNpcAbilityConditions`/`npcAbilityExpiry` for `sweepExpiredManeuverRiders`/`maneuverRiderExpiry`:
 
@@ -767,12 +767,12 @@ describe('npcAbility immunity tracking', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-npc-ability-expiry.test.mjs`
 Expected: FAIL — none of these functions exist yet.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 ```js
 function getNpcAbilityImmunityUntil(combat, itemId, targetId) {
@@ -826,7 +826,7 @@ export async function sweepExpiredNpcAbilityConditions(combat) {
 }
 ```
 
-- [ ] **Step 4: Wire into the existing `updateCombat` hook in `scripts/module.mjs`**
+- [x] **Step 4: Wire into the existing `updateCombat` hook in `scripts/module.mjs`**
 
 Add the import and the call, alongside #911's own `sweepExpiredManeuverRiders`:
 
@@ -843,17 +843,17 @@ Hooks.on("updateCombat", (combat, changes) => {
 });
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-npc-ability-expiry.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs scripts/module.mjs tests/dungeon-combat-npc-ability-expiry.test.mjs

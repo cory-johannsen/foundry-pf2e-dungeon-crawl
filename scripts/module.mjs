@@ -55,6 +55,8 @@ import {
   maybeResolveCombatForCombatant,
   autoPlayCombatantTurnIfDue,
   sweepExpiredManeuverRiders,
+  sweepExpiredNpcAbilityConditions,
+  settleNpcAbilityConditionsAtCombatEnd,
   getPendingAgentTurn,
   applyAgentDecision,
   toggleAgentControlled,
@@ -668,11 +670,14 @@ Hooks.on("updateCombatant", async (combatant, changes) =>
 /** ITEM-8: plays a non-player combatant's turn automatically. #911: first
  * removes any maneuver-rider condition (Fleeing, Sly Disarm's Off-Guard)
  * whose duration ran out with this turn/round change, so it is gone before
- * the next turn plays. */
+ * the next turn plays; #915 does the same for NPC-ability conditions. */
 Hooks.on("updateCombat", async (combat, changes) => {
   if (changes.turn === undefined && changes.round === undefined) return;
   await sweepExpiredManeuverRiders(combat).catch((err) =>
     console.error("pf2e-dungeon-crawl | #911: maneuver rider sweep failed:", err.message),
+  );
+  await sweepExpiredNpcAbilityConditions(combat).catch((err) =>
+    console.error("pf2e-dungeon-crawl | #915: npc-ability condition sweep failed:", err.message),
   );
   autoPlayCombatantTurnIfDue(combat);
 });
@@ -709,6 +714,10 @@ Hooks.on("deleteCombat", async (combat) => {
   await clearDetection(combat);
   // #914: agent-created self-effects with an unlimited duration.
   await cleanupAgentSelfEffects(combat);
+  // #915: timed NPC-ability conditions that outlive the fight.
+  await settleNpcAbilityConditionsAtCombatEnd(combat).catch((err) =>
+    console.error("pf2e-dungeon-crawl | #915: npc-ability condition settle failed:", err.message),
+  );
 });
 
 /** #616: a sneaker's attack roll reveals it (active GM only, handled inside). */

@@ -65,6 +65,17 @@ describe("computeReadyNpcAbilities (#915)", () => {
   });
 });
 
+describe("computeReadyNpcAbilities temporary immunity (#915)", () => {
+  it("marks a creature still inside its temporary-immunity window (game clock) as immune, and an expired one as not", () => {
+    globalThis.game = { time: { worldTime: 1000 } };
+    const actor = { itemTypes: { action: [actionItem({ id: "i1", name: "Terrifying Display", description: EMANATION })] } };
+    const flags = { npcAbilityImmunity: { i1: { a: 1060, b: 900 } } };
+    const combat = { getFlag: (_m, k) => flags[k], round: 1 };
+    const { readyAreaAbilities } = computeReadyNpcAbilities(combat, { id: "c1", actor }, [{ id: "a", actor: {} }, { id: "b", actor: {} }]);
+    expect(readyAreaAbilities[0].immuneIds).toEqual(["a"]);
+  });
+});
+
 describe("getPendingAgentTurn npcAbilityVocabulary (#915)", () => {
   function mk(id, gx, gy, disposition, { items = [] } = {}) {
     const flags = { agentControlled: true };

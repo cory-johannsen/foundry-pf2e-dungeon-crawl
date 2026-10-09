@@ -1864,8 +1864,10 @@ export function computeReadyNpcAbilities(combat, combatant, targets = []) {
     if (descriptor.frequency && !(typeof uses === "number" && uses > 0)) continue;
     const slug = actionItemSlug(item);
     if (!isAbilityRecharged(combat, combatant.id, slug)) continue;
+    const worldTime = globalThis.game?.time?.worldTime ?? 0;
     const immuneIds = targets
       .filter((t) => {
+        if (worldTime < getNpcAbilityImmunityUntil(combat, item.id, t.id)) return true;
         try {
           return t.actor?.isImmuneTo?.(item) === true;
         } catch {
@@ -6116,6 +6118,94 @@ export async function sweepExpiredManeuverRiders(combat) {
   if (remaining.length !== entries.length) {
     await combat.setFlag(MODULE_ID, "maneuverRiderExpiry", remaining);
   }
+}
+
+/** #915: an NPC ability's "temporarily immune ... for N" window, as a
+ * game-clock (worldTime) timestamp keyed by ability item then target --
+ * the same shape #909's demoralizeImmunity uses. 0 when never recorded. */
+export function getNpcAbilityImmunityUntil(combat, itemId, targetId) {
+  return combat.getFlag(MODULE_ID, "npcAbilityImmunity")?.[itemId]?.[targetId] ?? 0;
+}
+
+export async function setNpcAbilityImmunityUntil(combat, itemId, targetId, worldTimeExpiry) {
+  const current = combat.getFlag(MODULE_ID, "npcAbilityImmunity") ?? {};
+  await combat.setFlag(MODULE_ID, "npcAbilityImmunity", {
+    ...current,
+    [itemId]: { ...(current[itemId] ?? {}), [targetId]: worldTimeExpiry },
+  });
+}
+
+/** #915: tracks a condition an NPC ability applied with a duration, for
+ * sweepExpiredNpcAbilityConditions. A sibling of #911's
+ * recordManeuverRiderExpiry under its own flag (same entry/expiry shapes),
+ * plus `expiresAtWorldTime` for the end-of-combat settle. */
+async function recordNpcAbilityExpiry(combat, entry) {
+  const current = combat.getFlag(MODULE_ID, "npcAbilityExpiry") ?? [];
+  await combat.setFlag(MODULE_ID, "npcAbilityExpiry", [...current, entry]);
+}
+
+async function removeTrackedCondition(combat, entry) {
+  if (!entry?.targetId || !entry?.conditionSlug) return;
+  try {
+    const target = Array.from(combat.combatants ?? []).find((c) => c.id === entry.targetId);
+    await target?.actor?.decreaseCondition?.(entry.conditionSlug, { forceRemove: true });
+  } catch (err) {
+    console.error(`${MODULE_ID} | #915: removing expired ${entry.conditionSlug} failed:`, err.message);
+  }
+}
+
+/** #915: removes NPC-ability conditions whose duration ran out at this
+ * (round, turn) -- PF2e condition items carry no duration of their own, so
+ * the module removes them, exactly as #911 does for maneuver riders
+ * (module.mjs's updateCombat hook, GM only). A failed removal is logged and
+ * its entry dropped; it never aborts the rest of the sweep. */
+export async function sweepExpiredNpcAbilityConditions(combat) {
+  if (globalThis.game?.user && !game.user.isGM) return;
+  if (typeof combat?.getFlag !== "function") return;
+  const entries = combat.getFlag(MODULE_ID, "npcAbilityExpiry") ?? [];
+  if (!Array.isArray(entries) || !entries.length) return;
+  const remaining = [];
+  for (const entry of entries) {
+    if (!maneuverRiderExpired(combat, entry?.expiry)) {
+      remaining.push(entry);
+      continue;
+    }
+    await removeTrackedCondition(combat, entry);
+  }
+  if (remaining.length !== entries.length) {
+    await combat.setFlag(MODULE_ID, "npcAbilityExpiry", remaining);
+  }
+}
+
+function remainingTimeLabel(seconds) {
+  if (seconds >= 60) return `${Math.ceil(seconds / 60)} minutes`;
+  return `${Math.max(1, Math.ceil(seconds))} seconds`;
+}
+
+/** #915: when a combat ends, a condition whose duration is turn-scoped or
+ * already over on the game clock is removed; one that still has time left
+ * (a "for 1 hour" Stupefied) is left on the creature and the GM is whispered
+ * what remains, rather than silently dropping or orphaning it. */
+export async function settleNpcAbilityConditionsAtCombatEnd(combat) {
+  if (typeof combat?.getFlag !== "function") return;
+  const entries = combat.getFlag(MODULE_ID, "npcAbilityExpiry") ?? [];
+  if (!Array.isArray(entries) || !entries.length) return;
+  const now = globalThis.game?.time?.worldTime ?? 0;
+  const lingering = [];
+  for (const entry of entries) {
+    const end = entry?.expiresAtWorldTime;
+    if (typeof end === "number" && end > now) lingering.push(entry);
+    else await removeTrackedCondition(combat, entry);
+  }
+  if (!lingering.length) return;
+  const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
+  const lines = lingering.map((entry) => {
+    const name = Array.from(combat.combatants ?? []).find((c) => c.id === entry.targetId)?.name ?? entry.targetId;
+    return `<li>${esc(name)}: ${esc(entry.conditionSlug)} (${esc(remainingTimeLabel(entry.expiresAtWorldTime - now))} left${entry.source ? `, ${esc(entry.source)}` : ""})</li>`;
+  });
+  await whisperGmContent(
+    `<p><strong>Monster ability conditions still running:</strong> remove each by hand when its time is up.</p><ul>${lines.join("")}</ul>`,
+  );
 }
 
 /** #909: Disarm's critical success -- "the item falls to the ground in the
