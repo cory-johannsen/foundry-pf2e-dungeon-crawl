@@ -816,7 +816,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 **Note on the fixture file:** `tests/fixtures/self-effect-audit-snapshot.json` already exists in this plan's own branch — it was generated once, live, against the real `pf2e.feats-srd`/`pf2e.actionspf2e` compendia and their linked effects while this plan was being written (156 non-stance/non-Rage, one-action/free, `selfEffect`-carrying candidates; 87 survivors, 69 excluded, 0 resolution errors — matching the spec's own published 139-survivor figure once the 51 stances and Rage are added back in). Do not regenerate it; commit it as-is in Task 6's own commit (it was created in the working tree before this task's commit step, not fabricated data).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // tests/self-effect-audit-snapshot.test.mjs
@@ -869,12 +869,12 @@ describe('self-effect compendium population snapshot', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm test -- tests/self-effect-audit-snapshot.test.mjs`
 Expected: FAIL — the fixture file isn't tracked by git yet (it exists on disk in this plan's own worktree already, per the note above, but hasn't been `git add`ed).
 
-- [ ] **Step 3: Confirm the fixture is present and run the test**
+- [x] **Step 3: Confirm the fixture is present and run the test**
 
 Run: `ls tests/fixtures/self-effect-audit-snapshot.json`
 Expected: the file exists (created while this plan was written — see the Task 6 header note).
@@ -882,12 +882,12 @@ Expected: the file exists (created while this plan was written — see the Task 
 Run: `npm test -- tests/self-effect-audit-snapshot.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 4: Run the full suite**
+- [x] **Step 4: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tests/fixtures/self-effect-audit-snapshot.json tests/self-effect-audit-snapshot.test.mjs
