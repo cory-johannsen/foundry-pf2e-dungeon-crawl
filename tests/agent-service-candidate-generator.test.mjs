@@ -44,6 +44,15 @@ describe("generateCombatCandidates", () => {
     expect(content).toContain("trip");
   });
 
+  it("tells the model how to read a selfEffect entry's effectSummary/durationLabel/frequencyLabel (#914)", async () => {
+    const fetchImpl = fakeFetch({ picks: [] });
+    await generateCombatCandidates(context, vocabulary, { ...OPTS, fetchImpl });
+    const content = JSON.parse(fetchImpl.mock.calls[0][1].body).messages[0].content;
+    expect(content).toContain("effectSummary");
+    expect(content).toContain("durationLabel");
+    expect(content).toContain("frequencyLabel");
+  });
+
   it("returns an empty picks array when the model proposes none", async () => {
     const fetchImpl = fakeFetch({ picks: [] });
     const result = await generateCombatCandidates(context, vocabulary, { ...OPTS, fetchImpl });

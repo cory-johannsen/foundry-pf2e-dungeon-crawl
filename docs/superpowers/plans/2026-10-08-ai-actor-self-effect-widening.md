@@ -556,7 +556,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing new.
 - Produces: `buildFeatVocabulary`'s self-effect entries and `buildFeatCandidates`'s built candidates both carry `effectSummary`/`durationLabel`/`frequencyLabel` through.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to the existing `describe('buildFeatVocabulary', ...)` block in `tests/agent-candidates.test.mjs`:
 
@@ -585,12 +585,12 @@ Add to the existing `describe('buildFeatCandidates', ...)` block:
   });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/agent-candidates.test.mjs`
 Expected: FAIL — `buildFeatVocabulary` drops the three new fields; `buildFeatCandidates`'s summary doesn't include them.
 
-- [ ] **Step 3: Implement in `scripts/agent-candidates.mjs`**
+- [x] **Step 3: Implement in `scripts/agent-candidates.mjs`**
 
 Update `buildFeatVocabulary`'s self-effect push (per #910's plan):
 
@@ -618,17 +618,17 @@ Update `buildFeatCandidates`'s summary construction (per #910's plan) to include
 
 (Composite-kind entries never carry `effectSummary` — per #910's plan they're never given that field — so `match.effectSummary` is `undefined`/falsy for them and this falls back to the existing plain `match.name` behavior, no regression for #910's own composite tests.)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-candidates.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — check #910's own existing `buildFeatCandidates` self-effect test (the "Rage — Open raged." case) still passes: its fixture vocabulary entry carries no `effectSummary`, so the fallback path keeps producing the exact same `'Rage — Open raged.'` string as before.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs tests/agent-candidates.test.mjs

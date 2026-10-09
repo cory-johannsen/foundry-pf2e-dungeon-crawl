@@ -117,7 +117,7 @@ describe("getPendingAgentTurn feat vocabulary (#910)", () => {
     const opp = mk("opp1", 1, 0, 1);
     const pending = await getPendingAgentTurn(mkCombat([me, opp], me));
     expect(pending.featVocabulary).toEqual([
-      { type: "feat", kind: "selfEffect", itemId: "rage1", slug: "rage", name: "Rage", cost: 1, targetId: null, replacesStance: null, traits: [] },
+      { type: "feat", kind: "selfEffect", itemId: "rage1", slug: "rage", name: "Rage", cost: 1, targetId: null, replacesStance: null, traits: [], effectSummary: "temp HP", durationLabel: "1 minutes", frequencyLabel: null },
     ]);
   });
 
