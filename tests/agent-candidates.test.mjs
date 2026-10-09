@@ -16,7 +16,7 @@ import {
   parseAutoHitAreaTiers, buildAutoHitAreaSpellCandidates,
   buildCandidateList, applyCandidateToTurnState, buildDecisionContext,
   MAX_ACTIONS_PER_TURN, AGENT_MELEE_REACH_SQUARES,
-  MANEUVER_DEFS, DEMORALIZE_RANGE_SQUARES, buildManeuverVocabulary, buildManeuverCandidates,
+  MANEUVER_DEFS, maneuverHasAttackTrait, DEMORALIZE_RANGE_SQUARES, buildManeuverVocabulary, buildManeuverCandidates,
   buildFeatVocabulary, buildFeatCandidates,
   buildNpcAbilityVocabulary, buildNpcAbilityCandidates
 } from '../scripts/agent-candidates.mjs';
@@ -1290,6 +1290,45 @@ describe('applyCandidateToTurnState', () => {
     };
     const next = applyCandidateToTurnState({ actionsRemaining: 3, mapIncrement: 0 }, candidate);
     expect(next).toEqual({ actionsRemaining: 1, mapIncrement: 3 });
+  });
+
+  // #940: Trip/Shove/Grapple/Disarm carry the attack trait, so each counts
+  // toward the multiple attack penalty; Demoralize does not.
+  for (const slug of ['trip', 'shove', 'grapple', 'disarm']) {
+    it(`bumps mapIncrement by 1 for a ${slug} maneuver candidate`, () => {
+      const next = applyCandidateToTurnState(
+        { actionsRemaining: 3, mapIncrement: 0, maneuverPicks: null },
+        { type: 'maneuver', slug, cost: 1 },
+      );
+      expect(next.mapIncrement).toBe(1);
+      expect(next.actionsRemaining).toBe(2);
+    });
+  }
+
+  it('does not bump mapIncrement for a demoralize maneuver candidate', () => {
+    const next = applyCandidateToTurnState(
+      { actionsRemaining: 3, mapIncrement: 1, maneuverPicks: null },
+      { type: 'maneuver', slug: 'demoralize', cost: 1 },
+    );
+    expect(next.mapIncrement).toBe(1);
+  });
+
+  it('accumulates mapIncrement across a mix of strikes and maneuvers in the same turn', () => {
+    let state = { actionsRemaining: 3, mapIncrement: 0, maneuverPicks: null };
+    state = applyCandidateToTurnState(state, { type: 'strike', cost: 1 });
+    state = applyCandidateToTurnState(state, { type: 'maneuver', slug: 'trip', cost: 1 });
+    expect(state.mapIncrement).toBe(2);
+    state = applyCandidateToTurnState(state, { type: 'maneuver', slug: 'demoralize', cost: 1 });
+    expect(state).toEqual({ actionsRemaining: 0, mapIncrement: 2, maneuverPicks: null });
+  });
+});
+
+describe('maneuverHasAttackTrait (#940)', () => {
+  it('is true for the four attack-trait maneuvers and false for demoralize/unknown slugs', () => {
+    expect(['trip', 'shove', 'grapple', 'disarm'].map(maneuverHasAttackTrait)).toEqual([true, true, true, true]);
+    expect(maneuverHasAttackTrait('demoralize')).toBe(false);
+    expect(maneuverHasAttackTrait(undefined)).toBe(false);
+    expect(maneuverHasAttackTrait('feint')).toBe(false);
   });
 });
 

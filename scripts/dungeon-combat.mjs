@@ -38,6 +38,7 @@ import {
   DEMORALIZE_RANGE_SQUARES,
   buildManeuverVocabulary,
   MANEUVER_DEFS,
+  maneuverHasAttackTrait,
   buildFeatVocabulary,
   buildNpcAbilityVocabulary,
 } from "./agent-candidates.mjs";
@@ -6368,11 +6369,77 @@ const MANEUVER_RIDER_FEAT_NAMES = Object.freeze({
   terrifiedRetreatFleeing: "Terrified Retreat",
 });
 
+/** #940: whether `item` carries `trait` -- a real PF2e item exposes a
+ * `traits` Set; a plain data object only `system.traits.value`. */
+function itemHasTrait(item, trait) {
+  if (typeof item?.traits?.has === "function") return item.traits.has(trait);
+  return (item?.system?.traits?.value ?? []).includes(trait);
+}
+
+/** #940: the weapon the system's own maneuver macro will treat as the one
+ * used for maneuver `slug`, or null for an unarmed/free-hand maneuver.
+ * Mirrors ActionMacroHelpers.getBestEquippedItemForAction (private to the
+ * system, so not callable from here): a character's ready strike actions
+ * whose item has the trait (Trip also accepts `ranged-trip`), an NPC's
+ * equipped weapons with it; on a tie the first wins. The system breaks
+ * ties by weapon potency bonus; the potency rune is the stand-in here. */
+function findManeuverWeapon(actor, slug) {
+  const traits = slug === "trip" ? ["trip", "ranged-trip"] : [slug];
+  const isCharacter =
+    typeof actor?.isOfType === "function" ? actor.isOfType("character") : actor?.type === "character";
+  const candidates = traits.flatMap((trait) =>
+    isCharacter
+      ? (actor?.system?.actions ?? []).flatMap((a) =>
+          a?.ready && itemHasTrait(a.item, trait) ? [a.item] : [],
+        )
+      : (actor?.itemTypes?.weapon ?? []).filter((w) => w?.isEquipped && itemHasTrait(w, trait)),
+  );
+  const potency = (w) => w?.system?.runes?.potency ?? 0;
+  return candidates.reduce((best, w) => (potency(w) > potency(best) ? w : best), candidates[0]) ?? null;
+}
+
+/**
+ * #940: the multiple attack penalty modifier for an attack-trait maneuver
+ * (Trip/Shove/Grapple/Disarm) at this turn's `mapIncrement`, or null when
+ * none applies (the first attack of the turn, or Demoralize, which has no
+ * attack trait). The system's maneuver macros forward a caller-supplied
+ * `modifiers` array to the roll but add no MAP themselves, and its own
+ * `calculateMAPs` is module-private (not on game.pf2e), so the values here
+ * mirror it: -4/-8 when the maneuver's weapon is agile, else -5/-10 --
+ * the same -5/-10 the system's Statistic#getChatData falls back to when
+ * no item is involved (an unarmed/free-hand maneuver is never agile; the
+ * Agile Maneuvers feat, #919, is out of scope). Rule-element MAP overrides
+ * (`synthetics.multipleAttackPenalties`) are not applied.
+ */
+function computeManeuverMapModifier(actor, slug, mapIncrement) {
+  if (!maneuverHasAttackTrait(slug) || !(mapIncrement > 0)) return null;
+  const Modifier = game.pf2e?.Modifier;
+  if (typeof Modifier !== "function") {
+    console.warn(`#940: game.pf2e.Modifier unavailable -- ${slug} rolled without MAP`);
+    return null;
+  }
+  const agile = itemHasTrait(findManeuverWeapon(actor, slug), "agile");
+  const [map1, map2] = agile ? [-4, -8] : [-5, -10];
+  return new Modifier({
+    slug: "multiple-attack-penalty",
+    label: "PF2E.MultipleAttackPenalty",
+    modifier: mapIncrement >= 2 ? map2 : map1,
+    type: "untyped",
+  });
+}
+
 async function executeManeuverCandidate(combat, combatant, candidate) {
   const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
   if (!target) return;
+  // #940: the turn's attacks so far (Strikes, composite-feat Strikes and
+  // attack-trait maneuvers, all counted by applyCandidateToTurnState).
+  const { mapIncrement } = getAgentTurnState(combat, combatant.id);
+  const mapModifier = computeManeuverMapModifier(combatant.actor, candidate.slug, mapIncrement);
   const outcome = await withDialogsSuppressed(() =>
-    runManeuverCheck(candidate.slug, combatant, target, { skill: candidate.skill }),
+    runManeuverCheck(candidate.slug, combatant, target, {
+      skill: candidate.skill,
+      ...(mapModifier ? { modifiers: [mapModifier] } : {}),
+    }),
   );
   const label = MANEUVER_DEFS[candidate.slug]?.label ?? candidate.slug;
   const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);

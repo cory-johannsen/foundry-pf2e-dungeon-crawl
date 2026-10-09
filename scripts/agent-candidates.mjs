@@ -965,14 +965,23 @@ export function endTurnCandidate() {
  * #909: the five PF2e basic combat maneuvers, taken verbatim from the
  * installed system's own lang/action-en.json action text (see this
  * feature's spec for the full reference table) — not approximated.
+ * `attack` (#940): whether the action carries the `attack` trait (the
+ * system's own macros pass `traits: ['attack']` for exactly these four), so
+ * it takes and adds to the multiple attack penalty. Demoralize doesn't.
  */
 export const MANEUVER_DEFS = Object.freeze({
-  trip: { label: 'Trip', dcSlug: 'reflex', skill: 'athletics' },
-  shove: { label: 'Shove', dcSlug: 'fortitude', skill: 'athletics' },
-  grapple: { label: 'Grapple', dcSlug: 'fortitude', skill: 'athletics' },
-  disarm: { label: 'Disarm', dcSlug: 'reflex', skill: 'athletics' },
-  demoralize: { label: 'Demoralize', dcSlug: 'will', skill: 'intimidation' },
+  trip: { label: 'Trip', dcSlug: 'reflex', skill: 'athletics', attack: true },
+  shove: { label: 'Shove', dcSlug: 'fortitude', skill: 'athletics', attack: true },
+  grapple: { label: 'Grapple', dcSlug: 'fortitude', skill: 'athletics', attack: true },
+  disarm: { label: 'Disarm', dcSlug: 'reflex', skill: 'athletics', attack: true },
+  demoralize: { label: 'Demoralize', dcSlug: 'will', skill: 'intimidation', attack: false },
 });
+
+/** #940: whether maneuver `slug` has the attack trait (and so is subject
+ * to, and counts toward, the multiple attack penalty). */
+export function maneuverHasAttackTrait(slug) {
+  return Object.hasOwn(MANEUVER_DEFS, slug ?? '') && MANEUVER_DEFS[slug].attack === true;
+}
 
 /** 30ft at this module's 5ft/square grid — Demoralize's own fixed range,
  * distinct from the melee reach the other four maneuvers use. */
@@ -1273,6 +1282,10 @@ export function applyCandidateToTurnState(turnState, candidate) {
   if (candidate.type === 'strike') mapIncrement += 1;
   else if (candidate.type === 'multiStrike') {
     mapIncrement += candidate.strikes.reduce((sum, s) => sum + s.count, 0);
+  } else if (candidate.type === 'maneuver' && maneuverHasAttackTrait(candidate.slug)) {
+    // #940: Trip/Shove/Grapple/Disarm are attacks -- the next attack this
+    // turn (Strike or maneuver) takes the higher MAP. Demoralize isn't.
+    mapIncrement += 1;
   }
   const next = { ...turnState, actionsRemaining: turnState.actionsRemaining - candidate.cost, mapIncrement };
   if (candidate.type === 'feat') {
