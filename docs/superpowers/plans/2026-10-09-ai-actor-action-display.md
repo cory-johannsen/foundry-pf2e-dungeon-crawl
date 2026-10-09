@@ -39,7 +39,7 @@
 - Consumes: nothing.
 - Produces (consumed by Tasks 2/3): `describeAgentAction(candidate, executionResult)` → `{ summary: string, targetName: string | null, result: { text: string, tone: "success" | "failure" | "neutral" } }`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/agent-action-display.test.mjs
@@ -122,12 +122,12 @@ describe('describeAgentAction', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/agent-action-display.test.mjs`
 Expected: FAIL — `scripts/agent-action-display.mjs` doesn't exist yet.
 
-- [ ] **Step 3: Write `scripts/agent-action-display.mjs`**
+- [x] **Step 3: Write `scripts/agent-action-display.mjs`**
 
 ```js
 /**
@@ -211,12 +211,12 @@ export function describeAgentAction(candidate, executionResult) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-action-display.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/agent-action-display.mjs tests/agent-action-display.test.mjs
