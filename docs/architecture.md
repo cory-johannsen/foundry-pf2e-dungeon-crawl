@@ -20,7 +20,7 @@ across the module rather than being a one-off pattern:
   functions over plain data, fully unit-testable without a live world.
   `dungeon-deck.mjs`, `trap-mechanics.mjs`, `puzzle-mechanics.mjs`,
   `skill-challenge-mechanics.mjs`, `treasure.mjs`, `room-feature-tokens.mjs`, `agent-candidates.mjs`,
-  `maneuver-feat-modifiers.mjs`, `self-effect-denylist.mjs`, `self-effect-summary.mjs`,
+  `maneuver-feat-modifiers.mjs`, `npc-ability-parse.mjs`, `self-effect-denylist.mjs`, `self-effect-summary.mjs`,
   `combat-rewards.mjs`, `dungeon-follow-mechanics.mjs`, `cover-items.mjs`,
   `encounter-deck.mjs`, `dungeon-layout.mjs`, and `dungeon-retreat.mjs` are all this shape.
 - A **Foundry-glue** file that touches `game`/`Actor`/`ChatMessage`/`Scene`
@@ -69,7 +69,7 @@ sequencing/roster logic without this one caring.
 
 **Combat automation** (`dungeon-combat.mjs`, `stealth-detection.mjs`,
 `combat-rewards.mjs`, `agent-candidates.mjs`, `maneuver-feat-modifiers.mjs`,
-`self-effect-denylist.mjs`, `self-effect-summary.mjs`,
+`npc-ability-parse.mjs`, `self-effect-denylist.mjs`, `self-effect-summary.mjs`,
 `dungeon-strike-riders.mjs`, `dungeon-critical-deck.mjs`, `flanking-indicator.mjs`,
 `dungeon-leveling.mjs`) — wires a spawned encounter into a real PF2e
 `Combat`, and auto-applies whatever Critical Hit/Fumble Deck directives
@@ -109,7 +109,10 @@ subset of a Foundry-enumerated maneuver and feat/class-action (#910:
 stances, Rage, Sudden Charge, Lunge, Twin Feint; #914: any one-action/free
 self-effect that passes a derived safety filter plus the reviewed
 `self-effect-denylist.mjs`, labelled by the pure `self-effect-summary.mjs`)
-vocabulary, with a
+and NPC save-ability (#915: save-based, no-damage monster abilities
+recognized from their @Check/@Template/condition-link text by the pure
+`npc-ability-parse.mjs`; applied automatically when every outcome parses,
+rolled and reported to the GM otherwise) vocabulary, with a
 response schema built per request from that vocabulary; Foundry
 re-validates every pick against it before it becomes a candidate. Exposes
 `GET /v1/health`, `POST /v1/combat-decision`, `POST /v1/flavor-customization`,
@@ -256,6 +259,7 @@ graph LR
     scripts_dungeon_strike_riders_mjs["dungeon-strike-riders.mjs"]
     scripts_flanking_indicator_mjs["flanking-indicator.mjs"]
     scripts_maneuver_feat_modifiers_mjs["maneuver-feat-modifiers.mjs"]
+    scripts_npc_ability_parse_mjs["npc-ability-parse.mjs"]
     scripts_self_effect_denylist_mjs["self-effect-denylist.mjs"]
     scripts_self_effect_summary_mjs["self-effect-summary.mjs"]
     scripts_stealth_detection_mjs["stealth-detection.mjs"]
@@ -324,6 +328,7 @@ graph LR
   scripts_dungeon_combat_mjs --> scripts_dungeon_runner_mjs
   scripts_dungeon_combat_mjs --> scripts_combat_rewards_mjs
   scripts_dungeon_combat_mjs --> scripts_agent_candidates_mjs
+  scripts_dungeon_combat_mjs --> scripts_npc_ability_parse_mjs
   scripts_dungeon_combat_mjs --> scripts_pathfinding_mjs
   scripts_dungeon_combat_mjs --> scripts_placement_mjs
   scripts_dungeon_combat_mjs --> scripts_token_walk_mjs
@@ -430,6 +435,7 @@ graph LR
   scripts_module_mjs --> scripts_generator_registry_mjs
   scripts_module_mjs --> scripts_default_generator_mjs
   scripts_module_mjs --> scripts_world_macros_mjs
+  scripts_npc_ability_parse_mjs --> scripts_agent_candidates_mjs
   scripts_player_choice_mjs --> scripts_choice_prompts_mjs
   scripts_puzzle_mechanics_mjs --> scripts_skill_challenge_mechanics_mjs
   scripts_skill_challenge_mechanics_mjs --> scripts_prng_mjs

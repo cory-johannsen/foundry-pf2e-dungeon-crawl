@@ -43,7 +43,7 @@
 - Consumes: nothing.
 - Produces (consumed by Task 2): `parseSaveAbility(item)` → `null | { save, dc, shape: {areaType, distanceFeet} | {rangeFeet}, traits, cost, frequency, rechargeFormula, degrees: {criticalSuccess, success, failure, criticalFailure}, mode }`, where each `degrees[key]` is `{ none, asFailure, conditions: [{slug, value}], durationSeconds, immuneSeconds } | null`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/npc-ability-parse.test.mjs
@@ -167,12 +167,12 @@ describe('parseSaveAbility', () => {
 
 (`AGENT_MELEE_REACH_FEET` in the two tests above is `AGENT_MELEE_REACH_SQUARES * 5` — add this as a named constant export from this same file so the tests can import it rather than hardcoding `5`.)
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/npc-ability-parse.test.mjs`
 Expected: FAIL — `scripts/npc-ability-parse.mjs` doesn't exist yet.
 
-- [ ] **Step 3: Write `scripts/npc-ability-parse.mjs`**
+- [x] **Step 3: Write `scripts/npc-ability-parse.mjs`**
 
 ```js
 /**
@@ -398,12 +398,12 @@ export function parseSaveAbility(item) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/npc-ability-parse.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/npc-ability-parse.mjs tests/npc-ability-parse.test.mjs
@@ -426,7 +426,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `parseSaveAbility` (Task 1), `getAbilityRecharge`/`isAbilityRecharged` (already in `dungeon-combat.mjs`, module-private), the existing breath-weapon placement helpers.
 - Produces (consumed by Task 4): `buildNpcAbilityVocabulary({ readyAbilities, actionsRemaining })` → `Array<{type: 'npcAbility', itemId, slug, name, mode, cost, targetId?, affectedIds, summary}>` (pure, agent-candidates.mjs); `getPendingAgentTurn`'s return value gains `npcAbilityVocabulary`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/agent-candidates.test.mjs`:
 
@@ -540,12 +540,12 @@ describe('computeReadyNpcAbilities', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/agent-candidates.test.mjs tests/dungeon-combat-npc-ability-vocabulary.test.mjs`
 Expected: FAIL — none of these functions exist yet.
 
-- [ ] **Step 3: Implement `buildNpcAbilityVocabulary` in `scripts/agent-candidates.mjs`**
+- [x] **Step 3: Implement `buildNpcAbilityVocabulary` in `scripts/agent-candidates.mjs`**
 
 ```js
 const NPC_ABILITY_VOCABULARY_CAP = 8;
@@ -593,7 +593,7 @@ export function buildNpcAbilityVocabulary({ readyAreaAbilities = [], readySingle
 }
 ```
 
-- [ ] **Step 4: Implement `computeReadyNpcAbilities` in `scripts/dungeon-combat.mjs`**
+- [x] **Step 4: Implement `computeReadyNpcAbilities` in `scripts/dungeon-combat.mjs`**
 
 Add the import:
 
@@ -634,7 +634,7 @@ export function computeReadyNpcAbilities(combat, combatant) {
 }
 ```
 
-- [ ] **Step 5: Wire into `getPendingAgentTurn`**
+- [x] **Step 5: Wire into `getPendingAgentTurn`**
 
 Right after the feat vocabulary block (per #910's plan), add:
 
@@ -679,17 +679,17 @@ Splice `buildNpcAbilityCandidates({ npcAbilityVocabulary, picks: maneuverPicks }
 
 Also widen `runAgentDecisionLoop`'s fetch gate (per #910's plan) from `pending.maneuverVocabulary?.length || pending.featVocabulary?.length` to also include `|| pending.npcAbilityVocabulary?.length`, and combine all three vocabularies into the one `vocabulary` array sent to `fetchCandidates`.
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-candidates.test.mjs tests/dungeon-combat-npc-ability-vocabulary.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — update any existing exact-shape `getPendingAgentTurn`/`buildCandidateList` test assertions to include the new `npcAbilityVocabulary: []` field, per #909/#910's own plans' identical note for their own added fields.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs scripts/dungeon-combat.mjs tests/agent-candidates.test.mjs tests/dungeon-combat-npc-ability-vocabulary.test.mjs
@@ -711,7 +711,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing new.
 - Produces (consumed by Task 4): `getNpcAbilityImmunityUntil(combat, itemId, targetId)`/`setNpcAbilityImmunityUntil(...)`; `recordNpcAbilityExpiry(combat, entry)`/`export async function sweepExpiredNpcAbilityConditions(combat)`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Mirror #911's own `tests/dungeon-combat-maneuver-rider-expiry.test.mjs` test shapes exactly (same `combatStub` helper, same two expiry forms), substituting `sweepExpiredNpcAbilityConditions`/`npcAbilityExpiry` for `sweepExpiredManeuverRiders`/`maneuverRiderExpiry`:
 
@@ -767,12 +767,12 @@ describe('npcAbility immunity tracking', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-npc-ability-expiry.test.mjs`
 Expected: FAIL — none of these functions exist yet.
 
-- [ ] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement in `scripts/dungeon-combat.mjs`**
 
 ```js
 function getNpcAbilityImmunityUntil(combat, itemId, targetId) {
@@ -826,7 +826,7 @@ export async function sweepExpiredNpcAbilityConditions(combat) {
 }
 ```
 
-- [ ] **Step 4: Wire into the existing `updateCombat` hook in `scripts/module.mjs`**
+- [x] **Step 4: Wire into the existing `updateCombat` hook in `scripts/module.mjs`**
 
 Add the import and the call, alongside #911's own `sweepExpiredManeuverRiders`:
 
@@ -843,17 +843,17 @@ Hooks.on("updateCombat", (combat, changes) => {
 });
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-npc-ability-expiry.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs scripts/module.mjs tests/dungeon-combat-npc-ability-expiry.test.mjs
@@ -874,7 +874,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `setAbilityRecharge` (existing, module-private), `recordNpcAbilityExpiry`/`setNpcAbilityImmunityUntil` (Task 3), `resolveOpponentForTurn`/`detectableOpponents` (existing, module-private).
 - Produces: a new `else if (candidate.type === "npcAbility")` branch in `applyAgentDecision`, the terminal consumer in this plan.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Find and read an existing `applyAgentDecision` test exercising a save roll (e.g. the maneuver execution tests from #909's plan) to copy its `game`/combat/combatant/target stub shape, then:
 
@@ -971,12 +971,12 @@ describe('applyAgentDecision npcAbility execution (mode: reportOnly)', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail (once filled in)**
+- [x] **Step 2: Run tests to verify they fail (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-npc-ability-execution.test.mjs`
 Expected: FAIL — `applyAgentDecision` has no `npcAbility` branch yet.
 
-- [ ] **Step 3: Implement the executor**
+- [x] **Step 3: Implement the executor**
 
 ```js
 const SECONDS_PER_ROUND = 6;
@@ -1074,17 +1074,17 @@ Add the dispatching branch inside `applyAgentDecision`:
 
 (Replace the GM-whisper test's own assumed mechanism in Step 1 with whatever this file's real existing whisper helper turns out to be once read — `item.toMessage()` above already posts the ability's own full outcome text as a chat message, which may already satisfy the "whisper the outcome text" requirement for `reportOnly` without any *additional* whisper call; confirm this against the real test expectations once the exact existing convention is read, rather than adding a second, redundant message.)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-npc-ability-execution.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-npc-ability-execution.test.mjs
@@ -1106,7 +1106,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 **Scope note:** the spec's own Testing section asks for "a fixture of the 369-ability slice" audit, matching #914's own full-population-snapshot approach. That full compilation was not done for this plan — unlike #914 (87 items, a tractable live scan completed during that planning session), reliably classifying all 369 real save-based NPC abilities by hand would need either a much larger live-query budget than this plan's own investigation used, or trusting this parser's own output as ground truth for its own audit (circular). This task instead locks in the handful of real abilities actually verified by hand during this plan's investigation (Task 1's own fixtures) as a permanent regression guard, and leaves the full 369-item population audit to #935 (parsing coverage), which is scoped exactly for expanding and auditing coverage.
 
-- [ ] **Step 1: Write the test**
+- [x] **Step 1: Write the test**
 
 ```js
 // tests/npc-ability-parse-coverage.test.mjs
@@ -1140,12 +1140,12 @@ describe('npc-ability parser coverage (real-fixture regression guard)', () => {
 
 (This task's own real value is Task 1's fixtures themselves, already committed there with the exact real HTML — this file is a thin, explicit marker that those three are the plan's own verified ground truth, pointing a future reader at #935 for the rest, rather than a second independent test of the same strings.)
 
-- [ ] **Step 2: Run the test**
+- [x] **Step 2: Run the test**
 
 Run: `npm test -- tests/npc-ability-parse-coverage.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/npc-ability-parse-coverage.test.mjs
@@ -1165,17 +1165,17 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing.
 - Produces: nothing — final housekeeping step before merge.
 
-- [ ] **Step 1: Check the current version and bump it**
+- [x] **Step 1: Check the current version and bump it**
 
 Run: `grep '"version"' module.json`
 
 A **minor** bump per `CLAUDE.md`'s versioning rule.
 
-- [ ] **Step 2: Verify no other file hardcodes the old version**
+- [x] **Step 2: Verify no other file hardcodes the old version**
 
 Run: `grep -rn "<old version string>" . --include="*.json" --include="*.mjs" --include="*.md" | grep -v node_modules | grep -v docs/superpowers`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json

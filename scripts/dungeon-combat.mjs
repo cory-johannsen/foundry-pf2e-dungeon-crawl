@@ -39,7 +39,9 @@ import {
   buildManeuverVocabulary,
   MANEUVER_DEFS,
   buildFeatVocabulary,
+  buildNpcAbilityVocabulary,
 } from "./agent-candidates.mjs";
+import { parseSaveAbility, describeNpcAbility } from "./npc-ability-parse.mjs";
 import {
   findPath,
   blockedEdgesFromWalls,
@@ -1027,7 +1029,13 @@ export async function runAgentDecisionLoop(
     // persists `[]` so it is never retried this turn. A pendingTurn with no
     // maneuverVocabulary never touches the turn state at all.
     // #910: the feat vocabulary rides along in the same single call.
-    if (pending.maneuverVocabulary?.length || pending.featVocabulary?.length) {
+    // #915: so do the NPC save abilities -- still one call, and none at all
+    // when all three vocabularies are empty.
+    if (
+      pending.maneuverVocabulary?.length ||
+      pending.featVocabulary?.length ||
+      pending.npcAbilityVocabulary?.length
+    ) {
       const turnState = getAgentTurnState(combat, pending.combatantId);
       if (turnState.maneuverPicks === null) {
         let picks = [];
@@ -1039,6 +1047,7 @@ export async function runAgentDecisionLoop(
             vocabulary: [
               ...(pending.maneuverVocabulary ?? []),
               ...(pending.featVocabulary ?? []),
+              ...(pending.npcAbilityVocabulary ?? []),
             ],
           });
           picks = Array.isArray(response?.picks) ? response.picks : [];
@@ -1825,6 +1834,71 @@ function isAbilityRecharged(combat, combatantId, itemSlug) {
   return combat.round >= recharge.availableAtRound;
 }
 
+/** #915: an actor's own action items (bestiary abilities are always
+ * `type: "action"`). */
+function actorActionItems(actor) {
+  return (
+    actor?.itemTypes?.action ??
+    Array.from(actor?.items ?? []).filter((i) => i?.type === "action")
+  );
+}
+
+/**
+ * #915: the Foundry-touching half of NPC-ability readiness -- parses each
+ * action item with npc-ability-parse.mjs's pure parser, drops anything out
+ * of frequency uses or still recharging (the same name-derived slug and
+ * `abilityRecharge` store breath weapons use), and splits survivors into
+ * area (template / group-range) vs single-target (range) lists. `targets`
+ * (opponent/ally combatants) are checked against the system's own
+ * `actor.isImmuneTo(item)` -- a mindless creature immune to mental effects
+ * is never counted or targeted. Area placements are computed by the caller
+ * (getPendingAgentTurn), which owns the canvas.
+ */
+export function computeReadyNpcAbilities(combat, combatant, targets = []) {
+  const readyAreaAbilities = [];
+  const readySingleTargetAbilities = [];
+  for (const item of actorActionItems(combatant.actor)) {
+    const descriptor = parseSaveAbility(item);
+    if (!descriptor) continue;
+    const uses = descriptor.frequency?.value;
+    if (descriptor.frequency && !(typeof uses === "number" && uses > 0)) continue;
+    const slug = actionItemSlug(item);
+    if (!isAbilityRecharged(combat, combatant.id, slug)) continue;
+    const worldTime = globalThis.game?.time?.worldTime ?? 0;
+    const immuneIds = targets
+      .filter((t) => {
+        if (worldTime < getNpcAbilityImmunityUntil(combat, item.id, t.id)) return true;
+        try {
+          return t.actor?.isImmuneTo?.(item) === true;
+        } catch {
+          return false;
+        }
+      })
+      .map((t) => t.id);
+    const base = {
+      itemId: item.id,
+      slug,
+      name: item.name,
+      mode: descriptor.mode,
+      cost: descriptor.cost,
+      summary: describeNpcAbility(descriptor),
+      affectsAllies: descriptor.affectsAllies,
+      immuneIds,
+    };
+    if (descriptor.shape.areaType) {
+      readyAreaAbilities.push({
+        ...base,
+        areaType: descriptor.shape.areaType,
+        distanceFeet: descriptor.shape.distanceFeet,
+        rangeFeet: descriptor.shape.rangeFeet ?? null,
+      });
+    } else {
+      readySingleTargetAbilities.push({ ...base, rangeFeet: descriptor.shape.rangeFeet });
+    }
+  }
+  return { readyAreaAbilities, readySingleTargetAbilities };
+}
+
 /**
  * True for a non-spell NPC action item squarely inside #202's scope: a
  * reaction (`system.actionType.value === "reaction"`) named "Reactive
@@ -2150,6 +2224,7 @@ async function computeConePlacements(
   casterToken,
   rawOpponents,
   distanceFeet,
+  rawAllies = [],
 ) {
   const scene = combat.scene;
   if (!scene || game.scenes.viewed?.id !== scene.id) return [];
@@ -2188,15 +2263,22 @@ async function computeConePlacements(
         canvasObject.shape = canvasObject._computeShape();
       }
       const shape = canvasObject?.shape ?? null;
-      const affected = shape
-        ? rawOpponents
-            .filter((o) => {
-              const center = tokenCenter(o.token, gridSize);
-              return shape.contains(center.x - origin.x, center.y - origin.y);
-            })
-            .map((o) => ({ id: o.id, name: o.name }))
-        : [];
-      return { centerType: "opponent", centerId: rawOpponents[i].id, affected };
+      const contained = (pool) =>
+        shape
+          ? pool
+              .filter((o) => {
+                const center = tokenCenter(o.token, gridSize);
+                return shape.contains(center.x - origin.x, center.y - origin.y);
+              })
+              .map((o) => ({ id: o.id, name: o.name }))
+          : [];
+      // #915: allies too, for an NPC ability that affects every creature.
+      return {
+        centerType: "opponent",
+        centerId: rawOpponents[i].id,
+        affected: contained(rawOpponents),
+        affectedAllies: contained(rawAllies),
+      };
     });
   } finally {
     await scene.deleteEmbeddedDocuments(
@@ -3968,6 +4050,18 @@ export async function getPendingAgentTurn(combat) {
     turnState,
   });
 
+  // #915: NPC save-based special abilities (Terrifying Display, Vanth's
+  // Curse, ...), the third category sent to the same once-per-turn call.
+  const npcAbilityVocabulary = await computeNpcAbilityVocabulary(
+    combat,
+    combatant,
+    rawOpponents,
+    rawAllies,
+    opponents,
+    turnState.actionsRemaining,
+    gridSize,
+  );
+
   const readySpells = (combatant.actor?.spellcasting?.contents ?? [])
     .flatMap((entry) =>
       (entry.spells?.contents ?? [])
@@ -4604,6 +4698,7 @@ export async function getPendingAgentTurn(combat) {
     maneuverVocabulary,
     maneuverPicks: turnState.maneuverPicks,
     featVocabulary,
+    npcAbilityVocabulary,
     hazard: nearestHazardousRegionPoint(
       combat.scene,
       combatant.token,
@@ -4624,7 +4719,75 @@ export async function getPendingAgentTurn(combat) {
     candidates,
     maneuverVocabulary,
     featVocabulary,
+    npcAbilityVocabulary,
   };
+}
+
+/** #915: getPendingAgentTurn's NPC-ability vocabulary -- readiness from
+ * computeReadyNpcAbilities, then real template placements for each area
+ * ability: an emanation is one self-centered placement; a cone uses the
+ * breath-weapon cone placements; a burst is centered on each visible
+ * opponent within its stated range (the area spells' own burst
+ * convention). Any other shape (line, ...) has no placement helper and is
+ * not offered. */
+async function computeNpcAbilityVocabulary(
+  combat,
+  combatant,
+  rawOpponents,
+  rawAllies,
+  opponents,
+  actionsRemaining,
+  gridSize,
+) {
+  const { readyAreaAbilities: rawArea, readySingleTargetAbilities } =
+    computeReadyNpcAbilities(combat, combatant, [...rawOpponents, ...rawAllies]);
+  const readyAreaAbilities = [];
+  for (const ability of rawArea) {
+    if (ability.cost > actionsRemaining) continue;
+    let placements;
+    if (ability.areaType === "emanation") {
+      placements = await computeAreaPlacements(
+        combat,
+        [{ centerType: "self", centerId: null, originToken: combatant.token }],
+        rawOpponents,
+        rawAllies,
+        ability.distanceFeet,
+      );
+    } else if (ability.areaType === "cone") {
+      placements = await computeConePlacements(
+        combat,
+        combatant.token,
+        rawOpponents,
+        ability.distanceFeet,
+        rawAllies,
+      );
+    } else if (ability.areaType === "burst" && ability.rangeFeet) {
+      const rangeSquares = Math.floor(ability.rangeFeet / 5);
+      const centers = rawOpponents
+        .filter(
+          (o) =>
+            chebyshevSquares(combatant.token, o.token, gridSize) <= rangeSquares &&
+            hasLineOfSight(combat, combatant.token, o.token),
+        )
+        .map((o) => ({ centerType: "opponent", centerId: o.id, originToken: o.token }));
+      placements = await computeAreaPlacements(
+        combat,
+        centers,
+        rawOpponents,
+        rawAllies,
+        ability.distanceFeet,
+      );
+    } else {
+      continue;
+    }
+    readyAreaAbilities.push({ ...ability, placements });
+  }
+  return buildNpcAbilityVocabulary({
+    readyAreaAbilities,
+    readySingleTargetAbilities,
+    opponents,
+    actionsRemaining,
+  });
 }
 
 /** Moves `combatant`'s token up to its own speed, along a real, wall-aware
@@ -5957,6 +6120,94 @@ export async function sweepExpiredManeuverRiders(combat) {
   }
 }
 
+/** #915: an NPC ability's "temporarily immune ... for N" window, as a
+ * game-clock (worldTime) timestamp keyed by ability item then target --
+ * the same shape #909's demoralizeImmunity uses. 0 when never recorded. */
+export function getNpcAbilityImmunityUntil(combat, itemId, targetId) {
+  return combat.getFlag(MODULE_ID, "npcAbilityImmunity")?.[itemId]?.[targetId] ?? 0;
+}
+
+export async function setNpcAbilityImmunityUntil(combat, itemId, targetId, worldTimeExpiry) {
+  const current = combat.getFlag(MODULE_ID, "npcAbilityImmunity") ?? {};
+  await combat.setFlag(MODULE_ID, "npcAbilityImmunity", {
+    ...current,
+    [itemId]: { ...(current[itemId] ?? {}), [targetId]: worldTimeExpiry },
+  });
+}
+
+/** #915: tracks a condition an NPC ability applied with a duration, for
+ * sweepExpiredNpcAbilityConditions. A sibling of #911's
+ * recordManeuverRiderExpiry under its own flag (same entry/expiry shapes),
+ * plus `expiresAtWorldTime` for the end-of-combat settle. */
+async function recordNpcAbilityExpiry(combat, entry) {
+  const current = combat.getFlag(MODULE_ID, "npcAbilityExpiry") ?? [];
+  await combat.setFlag(MODULE_ID, "npcAbilityExpiry", [...current, entry]);
+}
+
+async function removeTrackedCondition(combat, entry) {
+  if (!entry?.targetId || !entry?.conditionSlug) return;
+  try {
+    const target = Array.from(combat.combatants ?? []).find((c) => c.id === entry.targetId);
+    await target?.actor?.decreaseCondition?.(entry.conditionSlug, { forceRemove: true });
+  } catch (err) {
+    console.error(`${MODULE_ID} | #915: removing expired ${entry.conditionSlug} failed:`, err.message);
+  }
+}
+
+/** #915: removes NPC-ability conditions whose duration ran out at this
+ * (round, turn) -- PF2e condition items carry no duration of their own, so
+ * the module removes them, exactly as #911 does for maneuver riders
+ * (module.mjs's updateCombat hook, GM only). A failed removal is logged and
+ * its entry dropped; it never aborts the rest of the sweep. */
+export async function sweepExpiredNpcAbilityConditions(combat) {
+  if (globalThis.game?.user && !game.user.isGM) return;
+  if (typeof combat?.getFlag !== "function") return;
+  const entries = combat.getFlag(MODULE_ID, "npcAbilityExpiry") ?? [];
+  if (!Array.isArray(entries) || !entries.length) return;
+  const remaining = [];
+  for (const entry of entries) {
+    if (!maneuverRiderExpired(combat, entry?.expiry)) {
+      remaining.push(entry);
+      continue;
+    }
+    await removeTrackedCondition(combat, entry);
+  }
+  if (remaining.length !== entries.length) {
+    await combat.setFlag(MODULE_ID, "npcAbilityExpiry", remaining);
+  }
+}
+
+function remainingTimeLabel(seconds) {
+  if (seconds >= 60) return `${Math.ceil(seconds / 60)} minutes`;
+  return `${Math.max(1, Math.ceil(seconds))} seconds`;
+}
+
+/** #915: when a combat ends, a condition whose duration is turn-scoped or
+ * already over on the game clock is removed; one that still has time left
+ * (a "for 1 hour" Stupefied) is left on the creature and the GM is whispered
+ * what remains, rather than silently dropping or orphaning it. */
+export async function settleNpcAbilityConditionsAtCombatEnd(combat) {
+  if (typeof combat?.getFlag !== "function") return;
+  const entries = combat.getFlag(MODULE_ID, "npcAbilityExpiry") ?? [];
+  if (!Array.isArray(entries) || !entries.length) return;
+  const now = globalThis.game?.time?.worldTime ?? 0;
+  const lingering = [];
+  for (const entry of entries) {
+    const end = entry?.expiresAtWorldTime;
+    if (typeof end === "number" && end > now) lingering.push(entry);
+    else await removeTrackedCondition(combat, entry);
+  }
+  if (!lingering.length) return;
+  const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
+  const lines = lingering.map((entry) => {
+    const name = Array.from(combat.combatants ?? []).find((c) => c.id === entry.targetId)?.name ?? entry.targetId;
+    return `<li>${esc(name)}: ${esc(entry.conditionSlug)} (${esc(remainingTimeLabel(entry.expiresAtWorldTime - now))} left${entry.source ? `, ${esc(entry.source)}` : ""})</li>`;
+  });
+  await whisperGmContent(
+    `<p><strong>Monster ability conditions still running:</strong> remove each by hand when its time is up.</p><ul>${lines.join("")}</ul>`,
+  );
+}
+
 /** #909: Disarm's critical success -- "the item falls to the ground in the
  * target's space": the target's first held item stops being held. */
 async function dropHeldItem(actor) {
@@ -6260,7 +6511,7 @@ async function skipUnperformedFeat(combat, combatant, candidate) {
   const picks = (turnState.maneuverPicks ?? []).filter(
     (p) =>
       !(
-        p?.type === "feat" &&
+        p?.type === candidate.type &&
         p.slug === candidate.slug &&
         (p.targetId || null) === candidate.targetId
       ),
@@ -6365,6 +6616,216 @@ async function executeFeatCandidate(combat, combatant, candidate) {
   if (candidate.slug === "sudden-charge") return executeSuddenCharge(combat, combatant, target);
   if (candidate.slug === "twin-feint") return executeTwinFeint(combat, combatant, target);
   return { performed: false };
+}
+
+/** #915: upper bound on one save roll -- a roll that never settles (a
+ * dialog that slipped through, a broken hook) must not hang the turn. */
+const NPC_ABILITY_SAVE_TIMEOUT_MS = 30000;
+const DEGREE_OUTCOMES = ["criticalFailure", "failure", "success", "criticalSuccess"];
+
+/** #915: `target` rolls its save against the NPC ability the way the
+ * system's own inline @Check button does (ChatLogPF2e's inline-check
+ * handler, read in the installed pf2e.mjs): a numeric DC, the NPC as the
+ * roll's `origin`, the ability item, and the ability's traits (plus
+ * `item:trait:<t>` for action traits and the @Check's own options) as
+ * extra roll options. Check#roll checks `incapacitation` /
+ * `item:trait:incapacitation` in those roll options -- its `traits`
+ * argument is merged in only after that check -- and then shifts the degree
+ * itself against the origin's level, so this never computes a shift. Reads
+ * the degree off the returned roll (or the created message). `null` when
+ * there is no such save, the roll fails, or it times out. */
+async function rollNpcAbilitySave(combatant, target, item, descriptor) {
+  const statistic = target.actor?.saves?.[descriptor.save];
+  if (!statistic) return null;
+  const actionTraits = globalThis.CONFIG?.PF2E?.actionTraits ?? {};
+  const extraRollOptions = [
+    ...new Set([
+      ...descriptor.traits,
+      ...descriptor.traits.filter((t) => t in actionTraits).map((t) => `item:trait:${t}`),
+      ...descriptor.rollOptions,
+    ]),
+  ];
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => resolve(undefined), NPC_ABILITY_SAVE_TIMEOUT_MS);
+  });
+  try {
+    const roll = await Promise.race([
+      statistic.roll({
+        dc: { value: descriptor.dc },
+        origin: combatant.actor,
+        item,
+        extraRollOptions,
+        skipDialog: true,
+        createMessage: true,
+      }),
+      timeout,
+    ]);
+    if (roll === undefined) return null;
+    const degree = roll?.degreeOfSuccess;
+    if (typeof degree === "number") return DEGREE_OUTCOMES[degree] ?? null;
+    return game.messages?.contents?.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** #915: PF2e never stacks a valued condition -- "you take the higher
+ * value" -- whereas actor.increaseCondition(slug, {value}) adds to an
+ * existing one. Returns whether anything changed. */
+async function applyNpcAbilityCondition(actor, { slug, value }) {
+  const existing = actor.getCondition?.(slug) ?? null;
+  if (value == null) {
+    if (existing) return false;
+    await actor.increaseCondition(slug);
+    return true;
+  }
+  const current = existing?.value ?? 0;
+  if (existing && current >= value) return false;
+  await actor.increaseCondition(slug, { value: existing ? value - current : value });
+  return true;
+}
+
+/** #915: when a condition "until the end of its next turn" ends: the
+ * (round, turn) right after the target's next turn. */
+function endOfTargetsNextTurn(combat, targetId) {
+  const turns = Array.from(combat.turns ?? combat.combatants ?? []);
+  const index = turns.findIndex((c) => c.id === targetId);
+  const round = combat.round ?? 0;
+  const turn = combat.turn ?? 0;
+  if (index < 0) return { round: round + 1, turn };
+  const nextRound = index > turn ? round : round + 1;
+  return index + 1 >= turns.length
+    ? { round: nextRound + 1, turn: 0 }
+    : { round: nextRound, turn: index + 1 };
+}
+
+/** #915: applies one parsed degree to one target and returns a short GM
+ * description. A condition with no duration of its own (Frightened) is left
+ * to PF2e's own handling; one with a duration is tracked for removal: rounds
+ * count from the NPC's own turn (a duration ends at the start of the
+ * creator's turn), and "until the end of its next turn" from the target's. */
+async function applyNpcAbilityDegree(combat, combatant, item, target, degree) {
+  if (!degree) return "no effect";
+  const applied = [];
+  for (const condition of degree.none ? [] : degree.conditions) {
+    const name = condition.value != null ? `${condition.slug} ${condition.value}` : condition.slug;
+    try {
+      if (!(await applyNpcAbilityCondition(target.actor, condition))) {
+        applied.push(`${name} (already at least that)`);
+        continue;
+      }
+      applied.push(name);
+      const duration = condition.durationSeconds;
+      if (duration === "untilNextTurn") {
+        await recordNpcAbilityExpiry(combat, {
+          targetId: target.id,
+          conditionSlug: condition.slug,
+          expiry: { untilRoundTurn: endOfTargetsNextTurn(combat, target.id) },
+          expiresAtWorldTime: null,
+          source: item.name,
+        });
+      } else if (typeof duration === "number") {
+        await recordNpcAbilityExpiry(combat, {
+          targetId: target.id,
+          conditionSlug: condition.slug,
+          expiry: {
+            untilRoundTurn: {
+              round: (combat.round ?? 0) + Math.ceil(duration / 6),
+              turn: combat.turn ?? 0,
+            },
+          },
+          expiresAtWorldTime: (globalThis.game?.time?.worldTime ?? 0) + duration,
+          source: item.name,
+        });
+      }
+    } catch (err) {
+      console.error(`${MODULE_ID} | #915: applying ${condition.slug} failed:`, err.message);
+      applied.push(`${name} FAILED -- apply by hand`);
+    }
+  }
+  if (degree.immuneSeconds) {
+    await setNpcAbilityImmunityUntil(
+      combat,
+      item.id,
+      target.id,
+      (globalThis.game?.time?.worldTime ?? 0) + degree.immuneSeconds,
+    );
+    applied.push("temporarily immune");
+  }
+  return applied.join(", ") || "no effect";
+}
+
+/** #915: executes a chosen NPC save ability: re-resolves its targets,
+ * spends frequency/recharge (as the system's own use-action card and the
+ * breath weapons do), posts the ability card, then rolls each target's save
+ * and -- in `auto` mode -- applies that degree (`asFailure` reads the
+ * failure block). `reportOnly` applies nothing; the GM gets each degree's
+ * own text instead. One target's failure never stops the others. Returns
+ * `{ performed }`: false (no action spent) only when the item or every
+ * target is gone. */
+async function executeNpcAbilityCandidate(combat, combatant, candidate) {
+  const item = actorActionItems(combatant.actor).find((i) => i.id === candidate.itemId);
+  const descriptor = item ? parseSaveAbility(item) : null;
+  if (!descriptor) return { performed: false };
+  const targets = detectableOpponents(combat, combatant).filter((c) =>
+    (candidate.affectedIds ?? []).includes(c.id),
+  );
+  if (!targets.length) return { performed: false };
+
+  const uses = item.system?.frequency?.value;
+  if (typeof uses === "number") {
+    await item.update({ "system.frequency.value": Math.max(0, uses - 1) });
+  }
+  await setAbilityRecharge(combat, combatant.id, actionItemSlug(item), descriptor.rechargeFormula);
+  try {
+    await item.toMessage?.();
+  } catch (err) {
+    console.error(`${MODULE_ID} | #915: posting ${item.name} failed:`, err.message);
+  }
+
+  const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
+  const worldTime = globalThis.game?.time?.worldTime ?? 0;
+  const lines = [];
+  for (const target of targets) {
+    try {
+      if (
+        target.actor?.isImmuneTo?.(item) === true ||
+        worldTime < getNpcAbilityImmunityUntil(combat, item.id, target.id)
+      ) {
+        lines.push(`${esc(target.name)}: immune`);
+        continue;
+      }
+      const outcome = await rollNpcAbilitySave(combatant, target, item, descriptor);
+      if (!outcome) {
+        lines.push(`${esc(target.name)}: no save result -- resolve by hand`);
+        continue;
+      }
+      if (descriptor.immuneSeconds) {
+        await setNpcAbilityImmunityUntil(combat, item.id, target.id, worldTime + descriptor.immuneSeconds);
+      }
+      if (descriptor.mode === "auto") {
+        let degree = descriptor.degrees[outcome];
+        if (degree?.asFailure) degree = descriptor.degrees.failure;
+        const result = await applyNpcAbilityDegree(combat, combatant, item, target, degree);
+        lines.push(`${esc(target.name)}: ${esc(outcome)} -- ${esc(result)}`);
+      } else {
+        const text = descriptor.degreeText?.[outcome];
+        lines.push(
+          `${esc(target.name)}: ${esc(outcome)} -- apply by hand: ${esc(text ?? "see the ability card")}`,
+        );
+      }
+    } catch (err) {
+      console.error(`${MODULE_ID} | #915: ${item.name} against ${target.name} failed:`, err.message);
+      lines.push(`${esc(target.name)}: failed (${esc(err.message)}) -- resolve by hand`);
+    }
+  }
+  let content = `<p><strong>${esc(item.name)} (${esc(combatant.name)}, ${esc(descriptor.save)} DC ${esc(descriptor.dc)}):</strong></p><ul>${lines.map((l) => `<li>${l}</li>`).join("")}</ul>`;
+  if (descriptor.riderText) {
+    content += `<p><em>Also applies (by hand):</em> ${esc(descriptor.riderText)}</p>`;
+  }
+  await whisperGmContent(content);
+  return { performed: true };
 }
 
 async function whisperGmContent(content) {
@@ -6667,6 +7128,9 @@ export async function applyAgentDecision(
     const result = await executeFeatCandidate(combat, combatant, candidate);
     if (!result.performed) return skipUnperformedFeat(combat, combatant, candidate);
     applied = { ...candidate, attacks: result.attacks ?? 0 };
+  } else if (candidate.type === "npcAbility") {
+    const result = await executeNpcAbilityCandidate(combat, combatant, candidate);
+    if (!result.performed) return skipUnperformedFeat(combat, combatant, candidate);
   }
 
   const turnState = getAgentTurnState(combat, combatantId);
