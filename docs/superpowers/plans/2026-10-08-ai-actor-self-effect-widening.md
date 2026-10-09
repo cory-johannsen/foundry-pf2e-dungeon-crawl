@@ -650,7 +650,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing new.
 - Produces: `executeSelfEffectFeat` (per #910's plan) now tags every effect it creates; `export async function cleanupAgentSelfEffects(combat)`, wired into the existing `deleteCombat` hook.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-feat-self-effect-cleanup.test.mjs
@@ -706,12 +706,12 @@ describe('cleanupAgentSelfEffects', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-feat-self-effect-cleanup.test.mjs`
 Expected: FAIL — `cleanupAgentSelfEffects` doesn't exist yet.
 
-- [ ] **Step 3: Tag created effects in `executeSelfEffectFeat`**
+- [x] **Step 3: Tag created effects in `executeSelfEffectFeat`**
 
 In `executeSelfEffectFeat` (per #910's plan), add a `flags` field to the existing `foundry.utils.mergeObject(effect.toObject(), {...})` call's object literal:
 
@@ -738,7 +738,7 @@ In `executeSelfEffectFeat` (per #910's plan), add a `flags` field to the existin
 
 (Only the new `flags:` line is added; everything else in this call is #910's own existing code, unchanged.)
 
-- [ ] **Step 4: Add `cleanupAgentSelfEffects` to `scripts/dungeon-combat.mjs`**
+- [x] **Step 4: Add `cleanupAgentSelfEffects` to `scripts/dungeon-combat.mjs`**
 
 ```js
 /** #914: effects this module's own AI-actor pipeline created
@@ -765,7 +765,7 @@ export async function cleanupAgentSelfEffects(combat) {
 }
 ```
 
-- [ ] **Step 5: Wire the cleanup into the existing `deleteCombat` hook in `scripts/module.mjs`**
+- [x] **Step 5: Wire the cleanup into the existing `deleteCombat` hook in `scripts/module.mjs`**
 
 Add the import:
 
@@ -783,17 +783,17 @@ Hooks.on("deleteCombat", async (combat) => {
 });
 ```
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-feat-self-effect-cleanup.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs scripts/module.mjs tests/dungeon-combat-feat-self-effect-cleanup.test.mjs

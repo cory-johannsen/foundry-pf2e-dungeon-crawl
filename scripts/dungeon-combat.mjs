@@ -6176,6 +6176,8 @@ async function executeSelfEffectFeat(combatant, candidate) {
   try {
     const source = foundry.utils.mergeObject(effect.toObject(), {
       _id: null,
+      // #914: marks the effect as agent-created for cleanupAgentSelfEffects.
+      flags: { [MODULE_ID]: { agentSelfEffect: true } },
       system: {
         context: {
           origin: {
@@ -6217,6 +6219,36 @@ async function executeSelfEffectFeat(combatant, candidate) {
     await item.update({ "system.frequency.value": item.system.frequency.value - 1 });
   }
   return { performed: true, attacks: 0 };
+}
+
+/** #914: effects the AI-actor pipeline created (executeSelfEffectFeat's
+ * `flags[MODULE_ID].agentSelfEffect` tag) whose own duration is `unlimited`
+ * would otherwise outlive the encounter -- removed once, when combat ends.
+ * Round/minute/encounter-duration effects are left alone: PF2e's own
+ * duration handling expires them, and removing one early would be wrong.
+ * A failed removal is logged and reported to the GM, never thrown. */
+export async function cleanupAgentSelfEffects(combat) {
+  for (const combatant of combat?.combatants ?? []) {
+    const actor = combatant?.actor;
+    if (!actor) continue;
+    const toRemove = (actor.itemTypes?.effect ?? []).filter(
+      (e) => e.flags?.[MODULE_ID]?.agentSelfEffect === true && e.system?.duration?.unit === "unlimited",
+    );
+    if (!toRemove.length) continue;
+    try {
+      await actor.deleteEmbeddedDocuments("Item", toRemove.map((e) => e.id));
+    } catch (err) {
+      console.error(`#914: failed to clean up agent self-effects on ${actor.name}:`, err.message);
+      try {
+        const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
+        await whisperGmContent(
+          `<p><strong>${esc(actor.name)}:</strong> could not remove ${toRemove.map((e) => esc(e.name)).join(", ")} after combat -- remove manually.</p>`,
+        );
+      } catch {
+        // Reporting is best-effort; cleanup never blocks combat resolution.
+      }
+    }
+  }
 }
 
 /** #910: a feat candidate that turned out impossible at execution time

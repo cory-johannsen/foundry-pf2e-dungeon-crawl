@@ -84,6 +84,13 @@ describe("applyAgentDecision self-effect feat execution (#910)", () => {
     expect(source.system.slug).toBe("effect-rage");
   });
 
+  it("tags the created effect as agent-created so combat-end cleanup can find it (#914)", async () => {
+    const { attacker, combat } = setup();
+    await applyAgentDecision(combat, "atk", "feat:rage1", "r");
+    const [, [source]] = attacker.actor.createEmbeddedDocuments.mock.calls[0];
+    expect(source.flags?.["pf2e-dungeon-crawl"]?.agentSelfEffect).toBe(true);
+  });
+
   it("posts the action's usage card and spends its action cost", async () => {
     const { combat, item } = setup();
     await applyAgentDecision(combat, "atk", "feat:rage1", "r");
