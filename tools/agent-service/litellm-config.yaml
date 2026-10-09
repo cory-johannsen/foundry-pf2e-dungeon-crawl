@@ -1,8 +1,12 @@
 model_list:
+  # The fast tier also runs on OpenRouter's free Nemotron: the local Ollama
+  # was not running, so every fast call (default combat decisions with <= 8
+  # candidates, trap/treasure flavor) failed and combat fell back to the
+  # heuristic. Needs OPENROUTER_API_KEY.
   - model_name: fast
     litellm_params:
-      model: ollama/qwen2.5:3b-instruct
-      api_base: http://host.docker.internal:11434
+      model: openrouter/nvidia/nemotron-3.5-lightning:free
+      api_key: os.environ/OPENROUTER_API_KEY
   # #966: the reasoning tier runs on OpenRouter's free Nemotron (tool
   # calling supported) -- the local Ollama above was not running, so every
   # reasoning-tier call (#909's /v1/combat-candidates included) was refused.
