@@ -1608,18 +1608,18 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing.
 - Produces: nothing — final housekeeping step before merge.
 
-- [ ] **Step 1: Check the current version and bump it**
+- [x] **Step 1: Check the current version and bump it**
 
 Run: `grep '"version"' module.json`
 
 This is a new subsystem (a new agent-service endpoint plus five Foundry-side files), so per `CLAUDE.md`'s versioning rule this is a **minor** bump: `x.Y.0` → `x.Y+1.0` (drop the patch component). Edit `module.json`'s `version` field accordingly — do not reuse any version number already used by a prior merge.
 
-- [ ] **Step 2: Verify no other file hardcodes the old version**
+- [x] **Step 2: Verify no other file hardcodes the old version**
 
 Run: `grep -rn "<old version string>" . --include="*.json" --include="*.mjs" --include="*.md" | grep -v node_modules | grep -v docs/superpowers`
 Expected: no match outside `module.json` itself.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json

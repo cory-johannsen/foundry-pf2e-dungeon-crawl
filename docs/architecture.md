@@ -92,21 +92,25 @@ on flanked tokens in a started combat, using PF2e's own `Token#isFlanking`.
 process (`tools/agent-loop/poll.mjs`) and an interactive-MCP-session flow
 (`tools/agent-loop/mcp-server.mjs`); both are retired. `tools/agent-service/`
 is a persistent, self-hosted `node:http` service (`server.mjs`, wrapping
-the `providers/litellm.mjs`/`providers/laya.mjs` adapters and
-`customization-generator.mjs`) that talks to a sidecar `litellm` proxy
+the `providers/litellm.mjs`/`providers/laya.mjs` adapters,
+`customization-generator.mjs`, and `candidate-generator.mjs`) that talks to a sidecar `litellm` proxy
 (deployed alongside it via `docker-compose.yml`) rather than any model
 provider directly. `providers/litellm.mjs` and `customization-generator.mjs`
 both route requests through the shared `node-fetch.mjs` transport and pick
 a model tier (`fast` vs `reasoning`, litellm's own aliases, configured in
 `litellm-config.yaml`) via the pure `tier-selection.mjs` classifier —
 `litellm` is the default combat-decision provider, `laya` remains
-selectable via `PF2EDC_AGENT_PROVIDER=laya`. Exposes `GET /v1/health`,
-`POST /v1/combat-decision`, and `POST /v1/flavor-customization` behind a
-bearer token. Foundry's own client-side code calls it directly — no relay,
+selectable via `PF2EDC_AGENT_PROVIDER=laya`. `candidate-generator.mjs`
+(#909) is the litellm-only "reasoning model" stage that picks a tactical
+subset of a Foundry-enumerated maneuver vocabulary; Foundry re-validates
+every pick against that vocabulary before it becomes a candidate. Exposes
+`GET /v1/health`, `POST /v1/combat-decision`, `POST /v1/flavor-customization`,
+and `POST /v1/combat-candidates` behind a bearer token. Foundry's own client-side code calls it directly — no relay,
 no local process a GM has to keep alive — via
 `scripts/agent-service-client.mjs` (a thin fetch wrapper) from two call
-sites: `dungeon-combat.mjs`'s `runAgentDecisionLoop` (combat decisions, see
-above) and `scripts/dungeon-customization-fulfillment.mjs`'s
+sites: `dungeon-combat.mjs`'s `runAgentDecisionLoop` (combat decisions, plus
+once per turn the maneuver picks when the turn's maneuver vocabulary is
+non-empty, see above) and `scripts/dungeon-customization-fulfillment.mjs`'s
 `fulfillPendingCustomizations` (fire-and-forget trap/skill-challenge/
 puzzle/narrative flavor text, called fire-and-forget from `ui/dungeon-app.mjs`'s
 `startDungeonRun` once full pregeneration has built every room and left its
@@ -211,6 +215,7 @@ graph LR
   subgraph "Hosted agent service (combat AI + flavor customization)"
     scripts_agent_service_client_mjs["agent-service-client.mjs"]
     scripts_dungeon_customization_fulfillment_mjs["dungeon-customization-fulfillment.mjs"]
+    tools_agent_service_candidate_generator_mjs["agent-service/candidate-generator.mjs"]
     tools_agent_service_customization_generator_mjs["agent-service/customization-generator.mjs"]
     tools_agent_service_entrypoint_mjs["agent-service/entrypoint.mjs"]
     tools_agent_service_env_mjs["agent-service/env.mjs"]
@@ -448,6 +453,8 @@ graph LR
   scripts_ui_skill_challenge_dialog_mjs --> scripts_ui_dungeon_app_mjs
   scripts_ui_sound_preview_app_mjs --> scripts_dungeon_sound_mjs
   scripts_ui_sound_preview_app_mjs --> scripts_audio_mjs
+  tools_agent_service_candidate_generator_mjs --> tools_agent_service_node_fetch_mjs
+  tools_agent_service_candidate_generator_mjs --> tools_agent_service_env_mjs
   tools_agent_service_customization_generator_mjs --> tools_agent_service_node_fetch_mjs
   tools_agent_service_customization_generator_mjs --> tools_agent_service_env_mjs
   tools_agent_service_customization_generator_mjs --> tools_agent_service_tier_selection_mjs
@@ -465,6 +472,7 @@ graph LR
   tools_agent_service_providers_openrouter_decisions_mjs --> tools_agent_service_providers_laya_mjs
   tools_agent_service_server_mjs --> tools_agent_service_providers_index_mjs
   tools_agent_service_server_mjs --> tools_agent_service_customization_generator_mjs
+  tools_agent_service_server_mjs --> tools_agent_service_candidate_generator_mjs
   tools_agent_service_server_mjs --> tools_agent_service_env_mjs
   tools_agent_service_tier_selection_mjs --> tools_agent_service_env_mjs
   tools_agent_service_validate_decision_model_mjs --> tools_agent_service_providers_litellm_mjs
