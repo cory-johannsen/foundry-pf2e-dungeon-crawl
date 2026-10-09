@@ -43,7 +43,7 @@
 - Consumes: nothing.
 - Produces (consumed by Task 2): `parseSaveAbility(item)` → `null | { save, dc, shape: {areaType, distanceFeet} | {rangeFeet}, traits, cost, frequency, rechargeFormula, degrees: {criticalSuccess, success, failure, criticalFailure}, mode }`, where each `degrees[key]` is `{ none, asFailure, conditions: [{slug, value}], durationSeconds, immuneSeconds } | null`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/npc-ability-parse.test.mjs
@@ -167,12 +167,12 @@ describe('parseSaveAbility', () => {
 
 (`AGENT_MELEE_REACH_FEET` in the two tests above is `AGENT_MELEE_REACH_SQUARES * 5` — add this as a named constant export from this same file so the tests can import it rather than hardcoding `5`.)
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/npc-ability-parse.test.mjs`
 Expected: FAIL — `scripts/npc-ability-parse.mjs` doesn't exist yet.
 
-- [ ] **Step 3: Write `scripts/npc-ability-parse.mjs`**
+- [x] **Step 3: Write `scripts/npc-ability-parse.mjs`**
 
 ```js
 /**
@@ -398,12 +398,12 @@ export function parseSaveAbility(item) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/npc-ability-parse.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/npc-ability-parse.mjs tests/npc-ability-parse.test.mjs
