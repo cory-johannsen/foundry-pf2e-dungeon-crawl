@@ -46,3 +46,26 @@
 .pf2edc-sound-preview__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.2rem; }
 .pf2edc-sound-preview__row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
 .pf2edc-sound-preview__label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* #925: consolidated AI turn chat card. */
+.pf2edc-agent-turn .pf2edc-agent-actions {
+  margin: 0.25em 0 0;
+  padding-left: 1.4em;
+}
+.pf2edc-agent-turn .pf2edc-agent-action {
+  margin-bottom: 0.25em;
+}
+.pf2edc-agent-turn .pf2edc-agent-result {
+  border-radius: 3px;
+  padding: 0 0.3em;
+  white-space: normal;
+}
+.pf2edc-agent-turn .pf2edc-agent-result-success { background: rgba(40, 140, 60, 0.18); }
+.pf2edc-agent-turn .pf2edc-agent-result-failure { background: rgba(170, 40, 40, 0.18); }
+.pf2edc-agent-turn .pf2edc-agent-result-neutral { background: rgba(120, 120, 120, 0.15); }
+.pf2edc-agent-turn .pf2edc-agent-note,
+.pf2edc-agent-turn .pf2edc-agent-rationale,
+.pf2edc-agent-turn .pf2edc-agent-fallback {
+  font-size: 0.9em;
+  opacity: 0.85;
+}

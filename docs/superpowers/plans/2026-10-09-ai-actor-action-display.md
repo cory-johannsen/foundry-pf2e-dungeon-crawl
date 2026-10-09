@@ -238,7 +238,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `describeAgentAction` (Task 1).
 - Produces (consumed by Task 3): `async function appendAgentActionRecord(combat, record)`; `async function renderAgentTurnCard(combat, combatantId, round)`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-agent-action-log.test.mjs
@@ -390,12 +390,12 @@ describe('renderAgentTurnCard', () => {
 
 (The second test's own `getFlag` override is deliberately left as a sketch — re-derive it against the real `agentTurnCards` storage shape once Step 3 below is written, rather than treating this as literal final test code.)
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-agent-action-log.test.mjs`
 Expected: FAIL — neither function exists yet.
 
-- [ ] **Step 3: Write `templates/chat/agent-turn.hbs`**
+- [x] **Step 3: Write `templates/chat/agent-turn.hbs`**
 
 ```handlebars
 <div class="agent-turn-card">
@@ -414,7 +414,7 @@ Expected: FAIL — neither function exists yet.
 </div>
 ```
 
-- [ ] **Step 4: Implement `appendAgentActionRecord` and `renderAgentTurnCard` in `scripts/dungeon-combat.mjs`**
+- [x] **Step 4: Implement `appendAgentActionRecord` and `renderAgentTurnCard` in `scripts/dungeon-combat.mjs`**
 
 ```js
 import { describeAgentAction } from "./agent-action-display.mjs";
@@ -494,12 +494,12 @@ export async function renderAgentTurnCard(combat, combatantId, round) {
 
 (`renderAgentTurnCardContent` calls `describeAgentAction(r, r.executionResult)` — each log record carries its own raw `executionResult`, re-describing it at render time rather than storing the already-formatted `{text, tone}` redundantly; this means `appendAgentActionRecord`'s own record shape must include `executionResult`, not a pre-computed `result` — confirm this matches Task 3's own record-building call before treating this as final, since the Design section's own JSON example in the spec shows a pre-computed `"result"` field directly on the record instead. Pick one convention and use it consistently in both this function and Task 3's call site; re-describing from the raw `executionResult` at render time, as written above, is preferred since it keeps `describeAgentAction` the single source of truth rather than duplicating its output into stored data.)
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-agent-action-log.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add templates/chat/agent-turn.hbs scripts/dungeon-combat.mjs tests/dungeon-combat-agent-action-log.test.mjs

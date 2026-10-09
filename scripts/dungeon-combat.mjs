@@ -78,6 +78,7 @@ import { fetchCombatDecision, fetchCombatCandidates } from "./agent-service-clie
 import { withDialogsSuppressed } from "./trap-combat.mjs";
 import { eligibilityModifiers, ridersFor, maneuverMapPenalty } from "./maneuver-feat-modifiers.mjs";
 import { SELF_EFFECT_DENYLIST } from "./self-effect-denylist.mjs";
+import { describeAgentAction, renderAgentTurnCardHtml } from "./agent-action-display.mjs";
 import { summarizeEffect, effectDurationLabel, effectRelevanceTier } from "./self-effect-summary.mjs";
 import {
   TARGETED_SELF_EFFECT_ALLOWLIST,
@@ -7501,6 +7502,116 @@ async function executeNpcAbilityCandidate(combat, combatant, candidate) {
 async function whisperGmContent(content) {
   const gmIds = ChatMessage.getWhisperRecipients("GM").map((u) => u.id);
   await ChatMessage.create({ content, whisper: gmIds });
+}
+
+/** #925: appends one record to the per-combat AI action log
+ * (`flags.pf2e-dungeon-crawl.agentLog` on the Combat document, deleted with
+ * it when resolveCombat deletes the combat -- no cleanup code needed).
+ * `index` is 0-based per (combatantId, round). Never throws: a failed write
+ * is logged and the turn goes on. Returns the stored record, or null. */
+export async function appendAgentActionRecord(combat, record) {
+  try {
+    const current = combat.getFlag(MODULE_ID, "agentLog");
+    const log = Array.isArray(current) ? current : [];
+    const index = log.filter(
+      (r) => r?.combatantId === record.combatantId && r?.round === record.round,
+    ).length;
+    const stored = { ...record, index };
+    await combat.setFlag(MODULE_ID, "agentLog", [...log, stored]);
+    return stored;
+  } catch (err) {
+    console.error(`${MODULE_ID} | #925: appending the AI action record failed:`, err?.message);
+    return null;
+  }
+}
+
+/** #925: creates the consolidated AI turn card on the first logged action of
+ * `combatantId` in `round`, and re-renders it in place for every later one --
+ * one ChatMessage per (combatant, round), its id kept in
+ * `flags.pf2e-dungeon-crawl.agentTurnCards` ({"<combatantId>:<round>": id})
+ * on the Combat. A card whose message was deleted is recreated. The card is
+ * public unless the first action's record is GM-only (the acting token was
+ * hidden from players), in which case it is a GM whisper; a later GM-only
+ * row in a public card is itself GM-only (renderAgentTurnCardHtml). Never
+ * throws: a failing create/update is logged and the turn goes on. */
+export async function renderAgentTurnCard(combat, combatantId, round) {
+  try {
+    const records = (combat.getFlag(MODULE_ID, "agentLog") ?? []).filter(
+      (r) => r?.combatantId === combatantId && r?.round === round,
+    );
+    if (!records.length) return;
+    const content = renderAgentTurnCardHtml({ round, records });
+    const cards = combat.getFlag(MODULE_ID, "agentTurnCards") ?? {};
+    const key = `${combatantId}:${round}`;
+    const existing = cards[key] ? game.messages?.get?.(cards[key]) : null;
+    if (existing) {
+      await existing.update({ content });
+      return;
+    }
+    const combatant = combatantById(combat, combatantId);
+    const firstIsGmOnly = [...records].sort((a, b) => (a.index ?? 0) - (b.index ?? 0))[0]?.visibility === "gm";
+    const speaker =
+      typeof ChatMessage.getSpeaker === "function"
+        ? ChatMessage.getSpeaker({ actor: combatant?.actor, token: combatant?.token })
+        : undefined;
+    const message = await ChatMessage.create({
+      content,
+      ...(speaker ? { speaker } : {}),
+      flags: { [MODULE_ID]: { agentTurnCard: { combatId: combat.id, combatantId, round } } },
+      ...(firstIsGmOnly
+        ? { whisper: ChatMessage.getWhisperRecipients("GM").map((u) => u.id) }
+        : {}),
+    });
+    if (message?.id) {
+      await combat.setFlag(MODULE_ID, "agentTurnCards", { ...cards, [key]: message.id });
+    }
+  } catch (err) {
+    console.error(`${MODULE_ID} | #925: rendering the AI turn card failed:`, err?.message);
+  }
+}
+
+/** #925: the name the table sees for combatant `id` -- PF2e's own token
+ * name visibility (metagame setting + TokenDocument#playersCanSeeName) is
+ * respected so the public card never reveals a name PF2e itself hides. */
+function agentDisplayName(combat, id) {
+  const c = combatantById(combat, id);
+  if (!c) return null;
+  const hideNames = game.pf2e?.settings?.tokens?.nameVisibility === true;
+  if (hideNames && c.token?.playersCanSeeName === false) return "an unknown creature";
+  return c.token?.name ?? c.name ?? null;
+}
+
+/** #925: logs the action `combatant` just took and refreshes its turn card.
+ * `executionResult` is whatever the candidate's executor returned. */
+async function recordAgentAction(combat, combatant, candidate, executionResult, rationale, source = "model") {
+  let display;
+  try {
+    display = describeAgentAction(candidate, executionResult, {
+      nameOf: (id) => agentDisplayName(combat, id),
+    });
+  } catch (err) {
+    console.error(`${MODULE_ID} | #925: describing the AI action failed:`, err?.message);
+    return;
+  }
+  const round = combat.round ?? 0;
+  const stored = await appendAgentActionRecord(combat, {
+    combatantId: combatant.id,
+    tokenId: combatant.token?.id ?? combatant.tokenId ?? null,
+    round,
+    turn: combat.turn ?? 0,
+    candidateId: candidate.id ?? null,
+    type: candidate.type ?? null,
+    kind: candidate.kind ?? null,
+    cost: candidate.cost ?? null,
+    summary: display.summary,
+    target: display.targetId ? { id: display.targetId, name: display.targetName } : null,
+    result: display.result,
+    gmNote: display.gmNote,
+    rationale: rationale || null,
+    source,
+    visibility: combatant.token?.hidden === true ? "gm" : "all",
+  });
+  if (stored) await renderAgentTurnCard(combat, combatant.id, round);
 }
 
 /**
