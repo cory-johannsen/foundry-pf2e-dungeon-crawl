@@ -74,7 +74,7 @@ import {
 } from "./dungeon-critical-deck.mjs";
 import { fetchCombatDecision, fetchCombatCandidates } from "./agent-service-client.mjs";
 import { withDialogsSuppressed } from "./trap-combat.mjs";
-import { eligibilityModifiers, ridersFor } from "./maneuver-feat-modifiers.mjs";
+import { eligibilityModifiers, ridersFor, maneuverMapPenalty } from "./maneuver-feat-modifiers.mjs";
 import { SELF_EFFECT_DENYLIST } from "./self-effect-denylist.mjs";
 import { summarizeEffect, effectDurationLabel, effectRelevanceTier } from "./self-effect-summary.mjs";
 import {
@@ -6407,9 +6407,12 @@ function findManeuverWeapon(actor, slug) {
  * `calculateMAPs` is module-private (not on game.pf2e), so the values here
  * mirror it: -4/-8 when the maneuver's weapon is agile, else -5/-10 --
  * the same -5/-10 the system's Statistic#getChatData falls back to when
- * no item is involved (an unarmed/free-hand maneuver is never agile; the
- * Agile Maneuvers feat, #919, is out of scope). Rule-element MAP overrides
- * (`synthetics.multipleAttackPenalties`) are not applied.
+ * no item is involved (an unarmed/free-hand maneuver is never agile).
+ * #919: the value comes from the pure maneuverMapPenalty, which also
+ * applies the Agile Maneuvers feat (-4/-8, or -3/-6 with an agile weapon
+ * and Panache); this function only gathers the actor-side inputs.
+ * Rule-element MAP overrides (`synthetics.multipleAttackPenalties`) are
+ * not applied.
  */
 function computeManeuverMapModifier(actor, slug, mapIncrement) {
   if (!maneuverHasAttackTrait(slug) || !(mapIncrement > 0)) return null;
@@ -6418,14 +6421,30 @@ function computeManeuverMapModifier(actor, slug, mapIncrement) {
     console.warn(`#940: game.pf2e.Modifier unavailable -- ${slug} rolled without MAP`);
     return null;
   }
-  const agile = itemHasTrait(findManeuverWeapon(actor, slug), "agile");
-  const [map1, map2] = agile ? [-4, -8] : [-5, -10];
+  const value = maneuverMapPenalty({
+    attackNumber: mapIncrement + 1,
+    weaponIsAgile: itemHasTrait(findManeuverWeapon(actor, slug), "agile"),
+    featSlugs: actorFeatSlugs(actor),
+    hasPanache: actorHasPanache(actor),
+  });
+  if (value === 0) return null;
   return new Modifier({
     slug: "multiple-attack-penalty",
     label: "PF2E.MultipleAttackPenalty",
-    modifier: mapIncrement >= 2 ? map2 : map1,
+    modifier: value,
     type: "untyped",
   });
+}
+
+/** #919: whether `actor` has panache -- the PF2e system tracks it as the
+ * `effect-panache` effect item (confirmed live). Unreadable data reads as
+ * no panache, never the more favorable value. */
+function actorHasPanache(actor) {
+  try {
+    return Array.from(actor?.itemTypes?.effect ?? []).some((e) => e?.slug === "effect-panache");
+  } catch {
+    return false;
+  }
 }
 
 async function executeManeuverCandidate(combat, combatant, candidate) {

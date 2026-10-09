@@ -1,6 +1,6 @@
 // tests/maneuver-feat-modifiers.test.mjs
 import { describe, it, expect } from 'vitest';
-import { MANEUVER_FEAT_MODIFIERS, eligibilityModifiers, ridersFor } from '../scripts/maneuver-feat-modifiers.mjs';
+import { MANEUVER_FEAT_MODIFIERS, eligibilityModifiers, ridersFor, maneuverMapPenalty } from '../scripts/maneuver-feat-modifiers.mjs';
 
 describe('MANEUVER_FEAT_MODIFIERS', () => {
   it('lists exactly the four curated prose-only feats (#911 initial table)', () => {
@@ -113,5 +113,67 @@ describe('ridersFor', () => {
     expect(ridersFor(['some-unrelated-feat'], 'trip', 'success', 'athletics')).toEqual([]);
     expect(ridersFor(['crushing-grab'], 'reposition', 'success', 'athletics')).toEqual([]);
     expect(ridersFor(undefined, 'grapple', 'success', 'athletics')).toEqual([]);
+  });
+});
+
+describe('maneuverMapPenalty (#919)', () => {
+  it('is 0 on the first attack regardless of everything else', () => {
+    expect(maneuverMapPenalty({ attackNumber: 1, weaponIsAgile: true, featSlugs: ['agile-maneuvers'], hasPanache: true })).toBe(0);
+    expect(maneuverMapPenalty({ attackNumber: 1, weaponIsAgile: false })).toBe(0);
+  });
+
+  it("matches #940's baseline with no Agile Maneuvers: -5/-10 standard, -4/-8 agile weapon", () => {
+    expect(maneuverMapPenalty({ attackNumber: 2, weaponIsAgile: false, featSlugs: [] })).toBe(-5);
+    expect(maneuverMapPenalty({ attackNumber: 2, weaponIsAgile: true, featSlugs: [] })).toBe(-4);
+    expect(maneuverMapPenalty({ attackNumber: 3, weaponIsAgile: false, featSlugs: [] })).toBe(-10);
+    expect(maneuverMapPenalty({ attackNumber: 3, weaponIsAgile: true, featSlugs: [] })).toBe(-8);
+    expect(maneuverMapPenalty({ attackNumber: 5, weaponIsAgile: false, featSlugs: [] })).toBe(-10);
+  });
+
+  it('applies the flat -4/-8 Agile Maneuvers value when the weapon is not agile', () => {
+    expect(maneuverMapPenalty({ attackNumber: 2, weaponIsAgile: false, featSlugs: ['agile-maneuvers'] })).toBe(-4);
+    expect(maneuverMapPenalty({ attackNumber: 3, weaponIsAgile: false, featSlugs: ['agile-maneuvers'] })).toBe(-8);
+    expect(maneuverMapPenalty({ attackNumber: 4, weaponIsAgile: false, featSlugs: ['agile-maneuvers'] })).toBe(-8);
+  });
+
+  it('applies -4/-8 when the weapon IS agile but Panache is not active', () => {
+    expect(maneuverMapPenalty({ attackNumber: 2, weaponIsAgile: true, featSlugs: ['agile-maneuvers'], hasPanache: false })).toBe(-4);
+    expect(maneuverMapPenalty({ attackNumber: 3, weaponIsAgile: true, featSlugs: ['agile-maneuvers'], hasPanache: false })).toBe(-8);
+  });
+
+  it('applies -4/-8, not -3/-6, when Panache is active but the weapon is not agile', () => {
+    expect(maneuverMapPenalty({ attackNumber: 2, weaponIsAgile: false, featSlugs: ['agile-maneuvers'], hasPanache: true })).toBe(-4);
+    expect(maneuverMapPenalty({ attackNumber: 3, weaponIsAgile: false, featSlugs: ['agile-maneuvers'], hasPanache: true })).toBe(-8);
+  });
+
+  it('applies -3/-6 only when the weapon is agile AND Panache is active', () => {
+    expect(maneuverMapPenalty({ attackNumber: 2, weaponIsAgile: true, featSlugs: ['agile-maneuvers'], hasPanache: true })).toBe(-3);
+    expect(maneuverMapPenalty({ attackNumber: 3, weaponIsAgile: true, featSlugs: ['agile-maneuvers'], hasPanache: true })).toBe(-6);
+  });
+
+  it('Panache without the feat changes nothing', () => {
+    expect(maneuverMapPenalty({ attackNumber: 2, weaponIsAgile: true, featSlugs: [], hasPanache: true })).toBe(-4);
+  });
+
+  it('the feat never makes the penalty worse than the baseline, for every combination', () => {
+    for (const attackNumber of [1, 2, 3, 4]) {
+      for (const weaponIsAgile of [false, true]) {
+        for (const hasPanache of [false, true]) {
+          const base = maneuverMapPenalty({ attackNumber, weaponIsAgile, featSlugs: [], hasPanache });
+          const feat = maneuverMapPenalty({ attackNumber, weaponIsAgile, featSlugs: ['agile-maneuvers'], hasPanache });
+          expect(feat).toBeGreaterThanOrEqual(base);
+        }
+      }
+    }
+  });
+
+  it('ignores an unrelated feat slug, applying only the baseline', () => {
+    expect(maneuverMapPenalty({ attackNumber: 2, weaponIsAgile: false, featSlugs: ['some-other-feat'] })).toBe(-5);
+  });
+
+  it('defaults featSlugs/hasPanache and tolerates non-array featSlugs, falling back to baseline', () => {
+    expect(maneuverMapPenalty({ attackNumber: 2, weaponIsAgile: false })).toBe(-5);
+    expect(maneuverMapPenalty({ attackNumber: 2, weaponIsAgile: false, featSlugs: null })).toBe(-5);
+    expect(maneuverMapPenalty({ attackNumber: 3, weaponIsAgile: true, featSlugs: 'agile-maneuvers' })).toBe(-8);
   });
 });
