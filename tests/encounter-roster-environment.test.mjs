@@ -74,22 +74,60 @@ describe("environment selection", () => {
     expect(r.warnings).toEqual([]);
   });
 
-  it("environment is relaxed before traits; requireTrait kept on every call", async () => {
+  it("trait theme survives; environment dropped first (no requireTrait)", async () => {
+    // zombie: traited, outside the environment; wolf: untraited, inside it.
     const pool = [mk("zombie", { traits: ["undead"] }), mk("wolf")];
+    const r = await run({
+      resolved: slots(1), api: stub(pool), traits: ["undead"],
+      environment: "forest", environmentLookup: lookupOf({ zombie: ["desert"], wolf: ["forest"] }, pool),
+    });
+    expect(r.foes[0].id).toBe("zombie");
+    expect(r.warnings).toEqual(["Environment: 1 of 1 creatures outside the chosen environment (no fitting creatures at this level)."]);
+  });
+
+  it("boss: trait theme survives; environment dropped first", async () => {
+    const pool = [mk("zombie", { traits: ["undead"] }), mk("wolf")];
+    const r = await run({
+      resolved: slots(1), api: stub(pool), traits: ["undead"], isBoss: true,
+      environment: "forest", environmentLookup: lookupOf({ zombie: ["desert"], wolf: ["forest"] }, pool),
+    });
+    expect(r.foes[0].id).toBe("zombie");
+    expect(r.warnings).toEqual(["Environment: 1 of 1 creatures outside the chosen environment (no fitting creatures at this level)."]);
+  });
+
+  it("trait-less steps run only after every traited step failed, keeping requireTrait", async () => {
+    // Nothing undead in range: fall back to the untraited, environment-fitting wolf.
+    const pool = [mk("wolf"), mk("bear")];
     const api = stub(pool);
     const r = await run({
+      resolved: slots(1), api, traits: ["undead"],
+      environment: "forest", environmentLookup: lookupOf({ wolf: ["forest"], bear: ["desert"] }, pool),
+    });
+    expect(r.foes[0].id).toBe("wolf");
+    expect(r.warnings).toEqual([]);
+    const firstNoTrait = api.calls.findIndex((q) => q.traits.length === 0);
+    expect(firstNoTrait).toBeGreaterThan(0);
+    expect(api.calls.slice(0, firstNoTrait).every((q) => q.traits[0] === "undead")).toBe(true);
+    expect(api.calls.slice(firstNoTrait).every((q) => q.traits.length === 0)).toBe(true);
+  });
+
+  it("requireTrait kept on every call", async () => {
+    const pool = [mk("zombie", { traits: ["undead"] }), mk("wolf")];
+    const api = stub(pool);
+    await run({
       resolved: slots(1), api, traits: ["undead"], requireTrait: "undead",
       environment: "forest", environmentLookup: lookupOf({ zombie: ["desert"] }, pool),
     });
-    expect(r.foes[0].id).toBe("zombie");
     expect(api.calls.every((q) => q.requireTrait === "undead")).toBe(true);
-    const firstNoTrait = api.calls.findIndex((q) => q.traits.length === 0);
-    // strict + adjacent passes each try the traits steps first; the
-    // trait-less step of the strict pass comes only after traited steps.
-    expect(api.calls[0].traits).toEqual(["undead"]);
-    expect(firstNoTrait).toBeGreaterThan(0);
-    // dropped pass (unfiltered) still carries the trait theme first
-    expect(api.calls.at(-1).traits).toEqual(["undead"]);
+  });
+
+  it("per pack step: an adjacent Monster Core creature beats a strict creature from a later pack", async () => {
+    const pool = [mk("croc"), mk("frog", { pack: "pf2e.pathfinder-bestiary" })];
+    const r = await run({
+      resolved: slots(1), api: stub(pool), environment: "swamp",
+      environmentLookup: lookupOf({ croc: ["forest"], frog: ["swamp"] }, pool),
+    });
+    expect(r.foes[0].id).toBe("croc");
   });
 
   it("boss path runs boss steps inside each pass", async () => {
@@ -139,6 +177,20 @@ describe("environment selection", () => {
 });
 
 describe("environment off = golden", () => {
+  it("environment set but environmentLookup null = None behavior", async () => {
+    const pool = [mk("zombie", { traits: ["undead"] }), mk("wolf")];
+    const a1 = stub(pool), a2 = stub(pool);
+    const r1 = counting(), r2 = counting();
+    const base = { resolved: slots(2), traits: ["undead"], partyLevel: 3 };
+    const x = await resolveEncounterRoster({ ...base, api: a1, rng: r1 });
+    const y = await resolveEncounterRoster({ ...base, api: a2, rng: r2, environment: "forest", environmentLookup: null });
+    expect(a2.calls).toEqual(a1.calls);
+    expect(r2.n).toBe(r1.n);
+    expect(y).toEqual(x);
+    expect(y.appliedFilters).not.toContain("environment");
+    expect(y.foes[0]).not.toHaveProperty("environmentMatch");
+  });
+
   const pool = [mk("zombie", { traits: ["undead"] }), mk("wolf")];
   const base = { resolved: slots(2), traits: ["undead"], requireTrait: "undead" };
   for (const env of [null, "bogus"]) {
@@ -153,4 +205,21 @@ describe("environment off = golden", () => {
       expect(y.foes[0]).not.toHaveProperty("environmentMatch");
     });
   }
+});
+
+describe("environment note localization", () => {
+  it("uses game.i18n.format with PF2EDC.Environment.* keys when available", async () => {
+    const fmt = (k, d) => `${k}|${d.n}/${d.total}`;
+    globalThis.game = { i18n: { format: fmt } };
+    try {
+      const pool = [mk("wolf"), mk("croc")];
+      const lk = lookupOf({ croc: ["forest"], wolf: ["desert"] }, pool);
+      const a = await run({ resolved: slots(1), api: stub(pool), environment: "swamp", environmentLookup: lk });
+      expect(a.warnings).toEqual(["PF2EDC.Environment.NoteAdjacent|1/1"]);
+      const b = await run({ resolved: slots(1), api: stub(pool), environment: "arctic", environmentLookup: lk });
+      expect(b.warnings).toEqual(["PF2EDC.Environment.NoteOutside|1/1"]);
+    } finally {
+      delete globalThis.game;
+    }
+  });
 });

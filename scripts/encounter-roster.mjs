@@ -221,28 +221,57 @@ async function pickCreature({
     return pool[Math.floor(rng() * pool.length)];
   }
 
-  // #1272: environment is relaxed (strict, adjacent, dropped) BEFORE the
-  // traits/requireTrait relaxation, so every step of the chain is tried at
-  // each environment width first.
+  // #1272: the chain is split into traited steps (the trait theme kept) and
+  // trait-less steps, in the same relative order as the None chain above.
+  // The environment is relaxed BEFORE the trait theme (plan Review Focus,
+  // spec §Selection item 3):
+  //   1. traited steps -- for each pack step, strict then adjacent (spec
+  //      item 1), so an adjacent Monster Core creature beats a strict one
+  //      from a later pack;
+  //   2. traited steps again with the environment dropped (spec item 2,
+  //      applied within the traited tier);
+  //   3. only then the trait-less steps, the same way (strict/adjacent per
+  //      step, then dropped).
+  // `requireTrait` is on every look. Each step's findCreatures result is
+  // fetched once per pick and re-filtered per width.
+  const traitedSteps = [
+    ...(boss ? [[null, true, GENERAL_PACKS]] : []),
+    [MONSTER_CORE_PACKS, true],
+    [GENERAL_PACKS, true],
+    [null, true],
+  ];
+  const traitlessSteps = [
+    ...(boss ? [[null, false, GENERAL_PACKS]] : []),
+    [null, false],
+  ];
   const env = normalizeEnvironment(environment);
   const widths = widenEnvironments(env);
-  for (let i = 0; i < widths.length; i++) {
-    const w = widths[i];
-    const pool = await runChain((e) =>
-      w.some((x) => creatureFitsEnvironment(e, x, environmentLookup)),
-    );
-    if (pool.length)
-      return {
-        ...pool[Math.floor(rng() * pool.length)],
-        environmentMatch: i === 0 ? "strict" : "adjacent",
-      };
-  }
-  const pool = await runChain(() => true);
-  if (!pool.length) return null;
-  return {
-    ...pool[Math.floor(rng() * pool.length)],
-    environmentMatch: "dropped",
+  const fetched = new Map();
+  const fetchStep = async (step) => {
+    if (!fetched.has(step)) fetched.set(step, await look(...step));
+    return fetched.get(step);
   };
+  const choose = (pool, environmentMatch) => ({
+    ...pool[Math.floor(rng() * pool.length)],
+    environmentMatch,
+  });
+  for (const steps of [traitedSteps, traitlessSteps]) {
+    for (const step of steps) {
+      const all = await fetchStep(step);
+      for (let i = 0; i < widths.length; i++) {
+        const w = widths[i];
+        const pool = all.filter((e) =>
+          w.some((x) => creatureFitsEnvironment(e, x, environmentLookup)),
+        );
+        if (pool.length) return choose(pool, i === 0 ? "strict" : "adjacent");
+      }
+    }
+    for (const step of steps) {
+      const all = await fetchStep(step);
+      if (all.length) return choose(all, "dropped");
+    }
+  }
+  return null;
 }
 
 /**
@@ -523,13 +552,24 @@ export async function resolveEncounterRoster({
     );
   }
 
+  // Counts are creature picks as tallied above: one per foe slot, one per
+  // friend/lurker, one per twin. A foe's `countsAs` (an XP weight, not a
+  // number of creatures) is intentionally ignored.
   const envOff = envTally.adjacent + envTally.dropped;
   if (envOff > 0) {
     const total = envOff + envTally.strict;
+    const dropped = envTally.dropped > 0;
+    const key = dropped
+      ? "PF2EDC.Environment.NoteOutside"
+      : "PF2EDC.Environment.NoteAdjacent";
+    const fallback = dropped
+      ? `Environment: ${envOff} of ${total} creatures outside the chosen environment (no fitting creatures at this level).`
+      : `Environment: ${envOff} of ${total} creatures from adjacent environments.`;
+    const i18n = globalThis.game?.i18n;
     warnings.push(
-      envTally.dropped > 0
-        ? `Environment: ${envOff} of ${total} creatures outside the chosen environment (no fitting creatures at this level).`
-        : `Environment: ${envOff} of ${total} creatures from adjacent environments.`,
+      typeof i18n?.format === "function"
+        ? i18n.format(key, { n: envOff, total })
+        : fallback,
     );
   }
 

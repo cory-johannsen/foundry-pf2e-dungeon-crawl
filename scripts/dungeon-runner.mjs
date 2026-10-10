@@ -177,6 +177,10 @@ export async function createRun(
     seed ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   // #1272: the stored value is always final -- "random" is resolved here,
   // against the run seed, so the same seed always yields the same environment.
+  // Note: this is the INPUT seed (runSeed), not the post-reseed `chosen.seed`
+  // that dungeon-app.mjs's chooseRunLayout later stores in state.seed, so
+  // Random is deterministic per input seed; the environment is fixed here
+  // and not re-resolved after a reseed.
   let lookup = environmentLookup;
   if (environment === "random" && !(lookup instanceof Map)) {
     lookup = buildEnvironmentLookup(

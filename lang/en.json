@@ -240,6 +240,8 @@
   "PF2EDC.Environment.Hint": "Creatures are drawn from this environment; if none fit, nearby environments are used. Traits still apply.",
   "PF2EDC.Environment.Label": "Environment",
   "PF2EDC.Environment.None": "None (any environment)",
+  "PF2EDC.Environment.NoteAdjacent": "Environment: {n} of {total} creatures from adjacent environments.",
+  "PF2EDC.Environment.NoteOutside": "Environment: {n} of {total} creatures outside the chosen environment (no fitting creatures at this level).",
   "PF2EDC.Environment.Random": "Random",
   "PF2EDC.Environment.arctic": "Arctic",
   "PF2EDC.Environment.cave": "Cave",

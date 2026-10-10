@@ -36,7 +36,9 @@ export async function loadRoomFeatureArt() {
 
 /** Creature -> environments map (#1272). Never rejects: any failure (404,
  * bad JSON, wrong shape, no fetch) warns once and yields an empty map so
- * encounters still generate; failures are not cached. */
+ * encounters still generate. A failure is cached too (as the empty map) for
+ * the page lifetime, so only one warning is ever emitted and rooms don't
+ * refetch; `invalidateCaches` resets it. */
 export async function loadCreatureEnvironments() {
   if (CREATURE_ENVIRONMENTS_CACHE) return CREATURE_ENVIRONMENTS_CACHE;
   try {
@@ -51,7 +53,8 @@ export async function loadCreatureEnvironments() {
     return data;
   } catch (e) {
     console.warn(`${MODULE_ID} | creature-environments.json unavailable (${e?.message ?? e}); environment filtering disabled`);
-    return { version: 0, creatures: {} };
+    CREATURE_ENVIRONMENTS_CACHE = { version: 0, creatures: {} };
+    return CREATURE_ENVIRONMENTS_CACHE;
   }
 }
 

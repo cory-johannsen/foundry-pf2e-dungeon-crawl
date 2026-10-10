@@ -53,13 +53,22 @@ describe("loadCreatureEnvironments", () => {
     expect(f.mock.calls[0][0]).toBe("modules/pf2e-dungeon-crawl/data/creature-environments.json");
     expect(warn).not.toHaveBeenCalled();
   });
-  it("returns default + one warn on 404, not cached", async () => {
+  it("returns default + one warn on 404; failure cached for the page lifetime", async () => {
     const f = vi.fn(async () => ({ ok: false, json: async () => ({}) }));
     vi.stubGlobal("fetch", f);
     expect(await loadCreatureEnvironments()).toEqual(DEFAULT);
+    expect(await loadCreatureEnvironments()).toEqual(DEFAULT);
+    expect(await loadCreatureEnvironments()).toEqual(DEFAULT);
+    expect(f).toHaveBeenCalledTimes(1);
     expect(warn).toHaveBeenCalledTimes(1);
+  });
+  it("invalidateCaches resets a cached failure", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, json: async () => ({}) })));
     await loadCreatureEnvironments();
-    expect(f).toHaveBeenCalledTimes(2);
+    invalidateCaches();
+    const body = { version: 1, creatures: { a: ["cave"] } };
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => body })));
+    expect(await loadCreatureEnvironments()).toEqual(body);
   });
   it("returns default + warn when fetch throws", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
