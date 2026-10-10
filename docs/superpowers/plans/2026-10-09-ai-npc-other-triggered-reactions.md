@@ -31,30 +31,67 @@
 
 ---
 
-### Task 1: Patch #931's plan — derived reaction definitions
+### Task 1: The real merge point — `reactionItemsFor`, not `resolveReactions`
+
+**Amended by #1026.** **#931 is real, merged code, not plan-only** (`scripts/npc-reactions.mjs`/`scripts/dungeon-combat.mjs`, confirmed live — the same finding #959/#1019/#960/#1021/#1022 already established independently). Two concrete defects in the original draft, confirmed by reading the real code directly:
+
+1. **The real `resolveReactions(combat, event, execute, opts)` never reads `REACTION_DEFS` at all** — it only consumes a pre-built `event.options` list from a trigger-specific collector. The real place `REACTION_DEFS` is iterated is `reactionItemsFor(actor)` (`scripts/npc-reactions.mjs`): `for (const def of REACTION_DEFS) { const item = items.find((i) => def.match.test(i.name ?? "")); }`. That is the real merge point.
+2. **`buildDerivedReactionDefs`'s own stated output shape (Task 2's "Produces" line: `{id, match, trigger, kind, priority, eligible, policy, execute}`) does not match the real registry row shape** (`{id, label, match: RegExp, triggers: string[], kind, priority, policy}`, no `eligible`/`execute`, `match` is a `RegExp` tested via `.test()` not a function, `triggers` is a plural array read via `.includes()`). Merging the original shape in as drafted would throw at runtime the first time any real dispatcher touched a derived def (`(() => true).test(...)` / `undefined.includes(...)`).
 
 **Files:**
-- Modify: `docs/superpowers/plans/2026-10-09-ai-npc-reactions.md`
+- Modify: `scripts/npc-reactions.mjs`
 
-- [ ] **Step 1: Add the merge point**
-
-In that plan's Task 3 (`resolveReactions`'s own body, wherever it currently reads `REACTION_DEFS` directly to build the eligible set), replace the direct reference with:
+- [ ] **Step 1: Add the merge point in the real file**
 
 ```js
-// docs/superpowers/plans/2026-10-09-ai-npc-reactions.md's own resolveReactions:
-import { buildDerivedReactionDefs } from "./npc-reaction-triggers.mjs"; // new import
+// scripts/npc-reactions.mjs -- reactionItemsFor, extended
+import { buildDerivedReactionDefs } from "./npc-reaction-triggers.mjs"; // new import (Task 2's file)
 
-// wherever REACTION_DEFS is read to find eligible definitions for `reactor`:
-const allDefs = [...REACTION_DEFS, ...buildDerivedReactionDefs(reactor.actor)];
+export function reactionItemsFor(actor) {
+  const items = Array.from(actor?.items ?? []).filter(isReactionActionItem);
+  const found = [];
+  for (const def of REACTION_DEFS) {
+    const item = items.find((i) => def.match.test(i.name ?? ""));
+    if (item) found.push({ def, item });
+  }
+  // #961: per-actor derived defs for reaction items with no hand-enumerated
+  // row -- fresh each call (an actor's reaction items can change over a
+  // combat, so this is never cached at module load).
+  const handledIds = new Set(found.map((f) => f.item.id));
+  for (const def of buildDerivedReactionDefs(actor)) {
+    const item = items.find((i) => !handledIds.has(i.id) && def.match.test(i.name ?? ""));
+    if (item) {
+      found.push({ def, item });
+      handledIds.add(item.id);
+    }
+  }
+  return found;
+}
 ```
 
-Note for that plan's own implementer: `buildDerivedReactionDefs` is pure and actor-scoped (it re-parses the actor's own reaction items fresh each call rather than caching), so calling it once per `resolveReactions` invocation is the correct frequency — it must not be hoisted to module load time, since a given actor's reaction items can change (a granted effect, a lost limb) over the course of a combat.
+- [ ] **Step 2: Fix `buildDerivedReactionDefs`'s own output shape (Task 2's own "Produces" line and the end of its implementation)**
 
-- [ ] **Step 2: Commit the amendment**
+Change Task 2's own stated `ReactionDef` shape from `{id, match, trigger, kind, priority, eligible, policy, execute}` to the real shape: `{id, label, match: RegExp, triggers: [trigger.kind], kind, priority, policy}`. Wherever Task 2's own implementation currently assembles the final def object for an actor's item (after `parseReactionTrigger`/`parseReactionEffect` both succeed), build:
+
+```js
+{
+  id: `derived-${item.id}`,
+  label: item.name,
+  match: new RegExp(`^${item.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i"),
+  triggers: [trigger.kind],
+  kind: effect.shape,
+  priority: 1,
+  policy: always,
+}
+```
+
+Update Task 2's own test fixtures' expected `buildDerivedReactionDefs` output to this shape rather than the original.
+
+- [ ] **Step 3: Commit**
 
 ```bash
-git add docs/superpowers/plans/2026-10-09-ai-npc-reactions.md
-git commit -m "docs(#961): amend #931's plan -- merge point for per-actor derived reaction defs"
+git add scripts/npc-reactions.mjs
+git commit -m "docs(#961): fix the derived-reaction-defs merge point against the real registry (prerequisite for #1026/#1027)"
 ```
 
 ---
