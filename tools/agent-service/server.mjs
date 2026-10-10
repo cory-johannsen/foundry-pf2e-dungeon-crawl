@@ -1,6 +1,6 @@
 import { createServer as createHttpServer } from "node:http";
 import { timingSafeEqual } from "node:crypto";
-import { resolveProvider } from "./providers/index.mjs";
+import { resolveProvider, resolveProviderName } from "./providers/index.mjs";
 import { generateCustomization } from "./customization-generator.mjs";
 import { generateCombatCandidates } from "./candidate-generator.mjs";
 import { readEnvOrDotenv } from "./env.mjs";
@@ -20,18 +20,30 @@ async function handleCombatDecision(body, res) {
   if (!isValidCombatDecisionBody(body)) {
     return sendJson(res, 400, { error: "combat-decision: candidates is required and must be non-empty" });
   }
+  let providerName;
   let decide;
   try {
-    decide = resolveProvider();
+    providerName = resolveProviderName();
+    decide = resolveProvider(providerName);
   } catch (err) {
     return sendJson(res, 500, { error: err.message });
   }
+  const startedAt = performance.now();
+  let decision;
   try {
-    const decision = await decide(body);
-    return sendJson(res, 200, decision);
+    decision = await decide(body);
   } catch (err) {
     return sendJson(res, 502, { error: `combat-decision: provider call failed: ${err.message}` });
   }
+  // #952: a backward-compatible `meta` -- whatever the provider reported
+  // (model/tier/usage/cost) plus the resolved provider name and this
+  // server's own wall time around the provider call. Clients that read only
+  // candidateId/rationale are unaffected; a malformed provider meta is
+  // dropped rather than failing the decision.
+  const serverMs = Math.round(performance.now() - startedAt);
+  const providerMeta =
+    decision?.meta && typeof decision.meta === "object" && !Array.isArray(decision.meta) ? decision.meta : {};
+  return sendJson(res, 200, { ...decision, meta: { ...providerMeta, provider: providerName, serverMs } });
 }
 
 function isValidCombatCandidatesBody(body) {

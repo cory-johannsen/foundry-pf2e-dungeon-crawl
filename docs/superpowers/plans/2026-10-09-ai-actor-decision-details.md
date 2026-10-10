@@ -45,7 +45,7 @@
 - Consumes: nothing new.
 - Produces: `resolveProviderName(name?)` (exported) → the validated provider name string; `handleCombatDecision`'s response now carries `meta.provider` and `meta.serverMs` merged into whatever the provider's own `decide()` returned.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/agent-service-provider-selection.test.mjs (append)
@@ -87,12 +87,12 @@ describe('handleCombatDecision meta (#952)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/agent-service-provider-selection.test.mjs -t "resolveProviderName"`
 Expected: FAIL with "resolveProviderName is not exported"
 
-- [ ] **Step 3: Implement `resolveProviderName`**
+- [x] **Step 3: Implement `resolveProviderName`**
 
 ```js
 // tools/agent-service/providers/index.mjs -- add alongside the existing
@@ -105,7 +105,7 @@ export function resolveProviderName(name = readEnvOrDotenv('PF2EDC_AGENT_PROVIDE
 }
 ```
 
-- [ ] **Step 4: Wire `handleCombatDecision` to attach `meta.provider`/`meta.serverMs`**
+- [x] **Step 4: Wire `handleCombatDecision` to attach `meta.provider`/`meta.serverMs`**
 
 ```js
 // tools/agent-service/server.mjs -- replace handleCombatDecision's body:
@@ -134,24 +134,24 @@ async function handleCombatDecision(body, res) {
 }
 ```
 
-- [ ] **Step 5: Add the import**
+- [x] **Step 5: Add the import**
 
 ```js
 // tools/agent-service/server.mjs -- extend the existing providers/index.mjs import:
 import { resolveProvider, resolveProviderName } from "./providers/index.mjs";
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/agent-service-provider-selection.test.mjs`
 Expected: PASS (plus the `handleCombatDecision` suite found/extended in Step 1)
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions — every existing agent-service test keeps passing unmodified)
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add tools/agent-service/providers/index.mjs tools/agent-service/server.mjs tests/agent-service-provider-selection.test.mjs
