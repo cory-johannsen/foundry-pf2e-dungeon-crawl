@@ -55,7 +55,7 @@ The full real-population yield of each family (how many of the ~850-item slice t
 - Consumes: `KNOWN_CONDITION_SLUGS` (named export, `scripts/npc-ability-parse.mjs`).
 - Produces: `parseSelfAbility(item)` → `null | { family: 'selfEffectAction'|'linkedEffectSelf'|'selfHeal', cost: number, frequency: object|null, requirements: Array<Predicate>, crossRecharge: {name: string, formula: string}|null, params: {effectUuid?: string, formula?: string} }`. `describeNpcSelfAbility(descriptor)` → `string` (deterministic one-line summary for the reasoning model, same convention as `describeNpcAbility`). `parseRequirementClause(clause)` → `null | Predicate` (exported separately so Task 3's evaluator and this task's own tests can exercise clause recognition in isolation). `Predicate` is one of `{type:'handFree'}`, `{type:'wielding'|'wearing', name: string}`, `{type:'enemyWithin', feet: number, conditions: string[]}` (where a condition is a real slug or the reserved value `'fear-effect'`), `{type:'hasCondition'|'notHasCondition', slug: string}`.
 
-- [ ] **Step 1: Write the failing tests for block-splitting and the disqualifying scans**
+- [x] **Step 1: Write the failing tests for block-splitting and the disqualifying scans**
 
 ```js
 // tests/npc-self-parse.test.mjs
@@ -357,12 +357,12 @@ describe('describeNpcSelfAbility (#934)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/npc-self-parse.test.mjs`
 Expected: FAIL with "Cannot find module '../scripts/npc-self-parse.mjs'"
 
-- [ ] **Step 3: Implement the normalizer, the disqualifying scans, and `parseRequirementClause`**
+- [x] **Step 3: Implement the normalizer, the disqualifying scans, and `parseRequirementClause`**
 
 ```js
 // scripts/npc-self-parse.mjs
@@ -556,12 +556,12 @@ function actionCost(item) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify `parseRequirementClause` passes and the rest still fails**
+- [x] **Step 4: Run the tests to verify `parseRequirementClause` passes and the rest still fails**
 
 Run: `npx vitest run tests/npc-self-parse.test.mjs -t "parseRequirementClause"`
 Expected: PASS (6 tests). The `parseSelfAbility`/`describeNpcSelfAbility` suites still fail with "parseSelfAbility is not a function".
 
-- [ ] **Step 5: Implement `parseSelfAbility` and `describeNpcSelfAbility`**
+- [x] **Step 5: Implement `parseSelfAbility` and `describeNpcSelfAbility`**
 
 ```js
 // scripts/npc-self-parse.mjs (continued)
@@ -676,12 +676,12 @@ export function describeNpcSelfAbility(descriptor, hpFraction = null) {
 }
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/npc-self-parse.test.mjs`
 Expected: PASS (all tests)
 
-- [ ] **Step 7: Save the fixture file used above as a standalone JSON regression artifact**
+- [x] **Step 7: Save the fixture file used above as a standalone JSON regression artifact**
 
 ```json
 {
