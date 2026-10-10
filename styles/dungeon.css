@@ -55,6 +55,17 @@
 .pf2edc-agent-turn .pf2edc-agent-action {
   margin-bottom: 0.25em;
 }
+/* #1252: module-owned copy of the system's .action-glyph rule (the system
+   class on a chat card makes the Action Tracker log it as an action). */
+.pf2edc-action-glyph {
+  align-self: center;
+  display: inline;
+  font-family: "Pathfinder2eActions", sans-serif;
+  font-weight: normal;
+  letter-spacing: 0;
+  margin: 0;
+  padding: 0;
+}
 .pf2edc-agent-turn .pf2edc-agent-result {
   border-radius: 3px;
   padding: 0 0.3em;

@@ -239,7 +239,8 @@ describe("renderAgentTurnCardHtml", () => {
     expect(html.indexOf("First")).toBeLessThan(html.indexOf("Second"));
     expect(html).toContain("pf2edc-agent-result-success");
     expect(html).toContain("Goblin");
-    expect(html).toContain('<span class="action-glyph">1</span>');
+    expect(html).toContain('<span class="pf2edc-action-glyph">1</span>');
+    expect(html).not.toContain('class="action-glyph"');
   });
 
   it("puts rationale and the GM note only inside data-visibility=\"gm\" elements", () => {
