@@ -215,9 +215,9 @@ export function validateRelayMessage(msg, { combat, senderUser }) {
 
 **Files:** read-only audit; fixes only if findings.
 
-- [ ] **Step 1:** `grep -nE "combatant[s]?\b.*\.(setFlag|update|unsetFlag)\(|combat\.(setFlag|update|nextTurn|updateEmbeddedDocuments)|updateEmbeddedDocuments\(\"Combatant\"" scripts/*.mjs scripts/ui/*.mjs` and for each hit decide whether it can run on a non-GM client (click handlers, `createChatMessage`/`updateCombatant` hooks without an `isGM`/`activeGM` gate, socket handlers on all clients). Record a table (file:line, gated?, verdict) as an issue comment on #1254.
-- [ ] **Step 2:** For each ungated player-reachable write: gate it with `game.users?.activeGM?.isSelf` (when it is GM-side bookkeeping) or add a relay message type of the same closed-list shape, with a test. If none found, say so in the comment — no code change.
-- [ ] **Step 3:** `npm test`; commit any fixes as `#1254: gate player-client combatant writes`.
+- [x] **Step 1:** `grep -nE "combatant[s]?\b.*\.(setFlag|update|unsetFlag)\(|combat\.(setFlag|update|nextTurn|updateEmbeddedDocuments)|updateEmbeddedDocuments\(\"Combatant\"" scripts/*.mjs scripts/ui/*.mjs` and for each hit decide whether it can run on a non-GM client (click handlers, `createChatMessage`/`updateCombatant` hooks without an `isGM`/`activeGM` gate, socket handlers on all clients). Record a table (file:line, gated?, verdict) as an issue comment on #1254.
+- [x] **Step 2:** For each ungated player-reachable write: gate it with `game.users?.activeGM?.isSelf` (when it is GM-side bookkeeping) or add a relay message type of the same closed-list shape, with a test. If none found, say so in the comment — no code change.
+- [x] **Step 3:** `npm test`; commit any fixes as `#1254: gate player-client combatant writes`.
 
 ### Task 5: Docs, version, live verification
 

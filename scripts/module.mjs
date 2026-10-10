@@ -912,13 +912,15 @@ Hooks.on("getCombatTrackerEntryContext", (html, menuItems) => {
     condition: (li) => {
       const combatant = game.combat?.combatants.get(li.dataset.combatantId);
       return (
+        // #1254: the toggle writes a Combatant flag; a player client cannot.
+        !!game.user?.isGM &&
         !!combatant &&
         !game.actors?.party?.members?.some((m) => m.id === combatant.actor?.id)
       );
     },
     callback: (li) => {
       const combatant = game.combat?.combatants.get(li.dataset.combatantId);
-      if (combatant) toggleAgentControlled(combatant);
+      if (combatant && game.user?.isGM) toggleAgentControlled(combatant);
     },
   });
   menuItems.push({
