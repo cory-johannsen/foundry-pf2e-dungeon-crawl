@@ -182,6 +182,7 @@ const GROUPS = [
         "scripts/ui/ai-action-log-view.mjs",
         "scripts/ui/ai-action-detail.mjs",
         "scripts/ai-action-digest.mjs",
+        "scripts/ui/ai-decision-details.mjs",
         "scripts/ui/trap-disable-dialog.mjs",
         "scripts/ui/puzzle-stage-dialog.mjs",
         "scripts/ui/skill-challenge-dialog.mjs",

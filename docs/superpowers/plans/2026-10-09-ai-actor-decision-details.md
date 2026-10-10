@@ -598,9 +598,9 @@ git commit -m "docs(#952): amend #925/#950/#951's plans -- render the Details di
 **Files:**
 - Modify: `module.json`
 
-- [ ] **Step 1: Run the `update-architecture-docs` skill** (new file `ai-decision-details.mjs`; `resolveProviderName` new export)
+- [x] **Step 1: Run the `update-architecture-docs` skill** (new file `ai-decision-details.mjs`; `resolveProviderName` new export)
 - [ ] **Step 2: Bump `module.json`'s version** (minor — check `main`'s current version first)
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json docs/architecture.md
