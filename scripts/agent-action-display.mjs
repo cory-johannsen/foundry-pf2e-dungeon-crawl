@@ -304,9 +304,13 @@ export function describeAgentAction(candidate, executionResult, { nameOf = () =>
 
 const TONES = new Set(["success", "failure", "neutral"]);
 
+// #1252: NOT the system's "action-glyph" class — the PF2E Automated Action
+// Tracker logs any chat message containing class="action-glyph" as an
+// "Unknown Action", so this card uses a module-owned class (styled to match
+// in styles/dungeon.css).
 function costGlyph(cost) {
   if (!Number.isInteger(cost) || cost < 1 || cost > 3) return "";
-  return `<span class="action-glyph">${cost}</span> `;
+  return `<span class="pf2edc-action-glyph">${cost}</span> `;
 }
 
 /**

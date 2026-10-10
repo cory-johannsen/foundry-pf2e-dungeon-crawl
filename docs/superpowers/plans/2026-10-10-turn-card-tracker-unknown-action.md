@@ -39,7 +39,7 @@
 **Interfaces:**
 - Produces: `costGlyph(cost)` (module-private) returns `<span class="pf2edc-action-glyph">${cost}</span> ` for integer 1..3, else `""`. `renderAgentTurnCardHtml` signature unchanged.
 
-- [ ] **Step 1: Update the existing assertion to the new class (failing test)**
+- [x] **Step 1: Update the existing assertion to the new class (failing test)**
 
 In `tests/agent-action-display.test.mjs` line 242 replace
 `expect(html).toContain('<span class="action-glyph">1</span>');` with
@@ -48,9 +48,9 @@ In `tests/agent-action-display.test.mjs` line 242 replace
     expect(html).not.toContain('class="action-glyph"');
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `npx vitest run tests/agent-action-display.test.mjs` → FAIL on the new assertion.
+- [x] **Step 2: Run to verify it fails** — `npx vitest run tests/agent-action-display.test.mjs` → FAIL on the new assertion.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `scripts/agent-action-display.mjs`:
 ```js
@@ -78,8 +78,8 @@ function costGlyph(cost) {
 }
 ```
 
-- [ ] **Step 4: Run to verify it passes** — `npx vitest run tests/agent-action-display.test.mjs` → PASS.
-- [ ] **Step 5: Commit** — `git add scripts/agent-action-display.mjs styles/dungeon.css tests/agent-action-display.test.mjs && git commit -m "#1252: module-owned glyph class on the AI turn card"`
+- [x] **Step 4: Run to verify it passes** — `npx vitest run tests/agent-action-display.test.mjs` → PASS.
+- [x] **Step 5: Commit** — `git add scripts/agent-action-display.mjs styles/dungeon.css tests/agent-action-display.test.mjs && git commit -m "#1252: module-owned glyph class on the AI turn card"`
 
 ---
 
