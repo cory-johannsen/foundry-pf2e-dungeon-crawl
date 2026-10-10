@@ -64,7 +64,7 @@
   - `widenEnvironments(environment) → string[][]` = `[[environment], [environment, ...ADJACENCY[environment]]]` (deduped).
   - `pickRandomEnvironment(seed, lookup) → string|null`: weights each concrete environment by the number of lookup creatures listing it (creatures marked `any` don't add weight); environments with weight 0 are excluded; returns `null` if none; deterministic from `seed` via a small string-hash PRNG (no `Math.random`).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -135,9 +135,9 @@ describe("pickRandomEnvironment", () => {
 });
 ```
 
-- [ ] **Step 2: Run, FAIL** — `npx vitest run tests/environments.test.mjs`.
-- [ ] **Step 3: Implement** `scripts/environments.mjs` (no imports; for the PRNG hash the seed string with an FNV-1a loop using `>>> 0` and `Math.imul`, then mulberry32; cumulative-weight select).
-- [ ] **Step 4: Run, PASS. Step 5: Commit** — `git add scripts/environments.mjs tests/environments.test.mjs && git commit -m "#1272: environment vocabulary and pure helpers"`
+- [x] **Step 2: Run, FAIL** — `npx vitest run tests/environments.test.mjs`.
+- [x] **Step 3: Implement** `scripts/environments.mjs` (no imports; for the PRNG hash the seed string with an FNV-1a loop using `>>> 0` and `Math.imul`, then mulberry32; cumulative-weight select).
+- [x] **Step 4: Run, PASS. Step 5: Commit** — `git add scripts/environments.mjs tests/environments.test.mjs && git commit -m "#1272: environment vocabulary and pure helpers"`
 
 ### Task 2: Selection — environment dimension in `pickCreature`
 
