@@ -277,7 +277,7 @@ git commit -m "fix(#946): stop excluding target-conditional self-effects from th
 - Consumes: nothing.
 - Produces: `parseMarkedTargetRequirement(featDescriptionHtml)` → `null | { rangeFeet: number|null, needsSight: boolean, predicates: Array<Predicate> }`, where `Predicate` is `{type:'handFree'}`, `{type:'wielding'|'wearing', name}`, or `{type:'previousActionWasStrike'}`. Returns `null` only when the text contains a requirement clause outside this closed set (never defaults to "no requirement").
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/marked-target-requirements.test.mjs
@@ -314,12 +314,12 @@ describe('parseMarkedTargetRequirement (#946)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/marked-target-requirements.test.mjs`
 Expected: FAIL with "Cannot find module"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/marked-target-requirements.mjs
@@ -366,12 +366,12 @@ export function parseMarkedTargetRequirement(featDescriptionHtml) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/marked-target-requirements.test.mjs`
 Expected: PASS (5 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/marked-target-requirements.mjs tests/marked-target-requirements.test.mjs

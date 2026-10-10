@@ -55,7 +55,7 @@ function stripHtml(html) {
 
 /** Human-readable plain text: links/enrichers become their label (or, for
  * an unlabelled link, the last uuid segment). */
-function renderPlain(html) {
+export function renderPlain(html) {
   return stripHtml(
     String(html)
       .replace(UUID_LINK_RE, (_m, uuid, label) => label ?? uuid.split(".").pop())
@@ -75,7 +75,7 @@ const LABEL_RE = /<p>\s*<strong>\s*(Frequency|Requirements?|Trigger|Effect|Cost|
  * unlabelled `<p>`, an item with no labels at all) is collected into
  * `effect`, so nothing is ever silently dropped.
  */
-function splitAbilityBlocks(html) {
+export function splitAbilityBlocks(html) {
   const blocks = { frequency: null, requirements: null, trigger: null, other: false, effect: "" };
   const spans = [];
   let match;
