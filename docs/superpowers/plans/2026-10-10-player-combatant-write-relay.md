@@ -52,7 +52,7 @@
   - `classifyCombatantUpdate(changes, userIsGM) → { relay: true, flagKey, value } | { relay: false }`.
   - `validateRelayMessage(msg, { combat, senderUser }) → { ok: true, combatant, flagKey, value } | { ok: false, reason }` where `combat` is the resolved Combat (or undefined) and `senderUser` the resolved User (or undefined); checks: key in closed list, `isValidQueueValue`, combat + combatant exist, `combat.active !== false`-style check is NOT used (a tracker queue can be written between rounds), sender exists and `combatant.actor?.testUserPermission(senderUser, "OWNER")`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -124,8 +124,8 @@ describe("validateRelayMessage", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `npx vitest run tests/combatant-write-relay.test.mjs` → FAIL (module missing).
-- [ ] **Step 3: Implement**
+- [x] **Step 2: Run to verify it fails** — `npx vitest run tests/combatant-write-relay.test.mjs` → FAIL (module missing).
+- [x] **Step 3: Implement**
 
 ```js
 /**
@@ -187,8 +187,8 @@ export function validateRelayMessage(msg, { combat, senderUser }) {
 }
 ```
 
-- [ ] **Step 4: Run to verify it passes** — PASS.
-- [ ] **Step 5: Commit** — `git add scripts/combatant-write-relay.mjs tests/combatant-write-relay.test.mjs && git commit -m "#1254: combatant write relay classifier and validator"`
+- [x] **Step 4: Run to verify it passes** — PASS.
+- [x] **Step 5: Commit** — `git add scripts/combatant-write-relay.mjs tests/combatant-write-relay.test.mjs && git commit -m "#1254: combatant write relay classifier and validator"`
 
 ### Task 3: Hook + socket wiring
 
