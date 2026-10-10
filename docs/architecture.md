@@ -21,7 +21,7 @@ across the module rather than being a one-off pattern:
   `dungeon-deck.mjs`, `trap-mechanics.mjs`, `puzzle-mechanics.mjs`,
   `skill-challenge-mechanics.mjs`, `treasure.mjs`, `room-feature-tokens.mjs`, `agent-candidates.mjs`,
   `maneuver-feat-modifiers.mjs`, `npc-ability-parse.mjs`, `npc-ability-overrides.mjs`, `npc-move-parse.mjs`, `npc-strike-shapes.mjs`, `npc-self-parse.mjs`, `self-effect-denylist.mjs`, `self-effect-summary.mjs`,
-  `targeted-feat-actions.mjs`, `marked-target-requirements.mjs`, `feat-action-shapes.mjs`, `feat-action-overrides.mjs`, `antagonize.mjs`, `npc-reactions.mjs`, `combat-rewards.mjs`, `dungeon-follow-mechanics.mjs`, `cover-items.mjs`,
+  `targeted-feat-actions.mjs`, `marked-target-requirements.mjs`, `feat-action-shapes.mjs`, `feat-action-overrides.mjs`, `antagonize.mjs`, `combatant-flag-guard.mjs`, `npc-reactions.mjs`, `combat-rewards.mjs`, `dungeon-follow-mechanics.mjs`, `cover-items.mjs`,
   `encounter-deck.mjs`, `dungeon-layout.mjs`, and `dungeon-retreat.mjs` are all this shape.
 - A **Foundry-glue** file that touches `game`/`Actor`/`ChatMessage`/`Scene`
   and calls into its pure sibling for the actual decision logic.
@@ -70,7 +70,7 @@ sequencing/roster logic without this one caring.
 **Combat automation** (`dungeon-combat.mjs`, `stealth-detection.mjs`,
 `combat-rewards.mjs`, `agent-candidates.mjs`, `agent-action-display.mjs`, `maneuver-feat-modifiers.mjs`,
 `npc-ability-parse.mjs`, `npc-ability-overrides.mjs`, `npc-move-parse.mjs`, `npc-strike-shapes.mjs`, `npc-self-parse.mjs`, `self-effect-denylist.mjs`, `self-effect-summary.mjs`,
-`targeted-feat-actions.mjs`, `marked-target-requirements.mjs`, `feat-action-shapes.mjs`, `feat-action-overrides.mjs`, `antagonize.mjs`, `npc-reactions.mjs`, `dungeon-strike-riders.mjs`, `dungeon-critical-deck.mjs`,
+`targeted-feat-actions.mjs`, `marked-target-requirements.mjs`, `feat-action-shapes.mjs`, `feat-action-overrides.mjs`, `antagonize.mjs`, `combatant-flag-guard.mjs`, `npc-reactions.mjs`, `dungeon-strike-riders.mjs`, `dungeon-critical-deck.mjs`,
 `flanking-indicator.mjs`, `dungeon-leveling.mjs`) — wires a spawned encounter into a real PF2e
 `Combat`, and auto-applies whatever Critical Hit/Fumble Deck directives
 parse cleanly. For an `agentControlled` combatant's turn,
@@ -89,7 +89,7 @@ hostile targeting through it. `antagonize.mjs` (#920, pure, reads the
 same detection states) holds the Antagonize Frightened-floor rules that
 `dungeon-combat.mjs`'s #943 end-of-turn Frightened decay consults; the
 floors themselves live in an actor flag that chat-message, turn-change,
-`deleteItem` and `deleteCombat` hooks create and clear. `flanking-indicator.mjs` (#769) is separate from
+`deleteItem` and `deleteCombat` hooks create and clear. `combatant-flag-guard.mjs` (#1212, pure, imported by `module.mjs`'s `preUpdateCombatant` hook) keeps this module's combatant flags (`agentControlled`) when a third-party module's non-recursive update would replace the whole `flags` object. `flanking-indicator.mjs` (#769) is separate from
 that turn-taking path: a client-side, write-nothing "Flanked" badge drawn
 on flanked tokens in a started combat, using PF2e's own `Token#isFlanking`.
 Every action `applyAgentDecision` executes is appended to the Combat's
@@ -364,6 +364,7 @@ graph LR
     scripts_agent_candidates_mjs["agent-candidates.mjs"]
     scripts_antagonize_mjs["antagonize.mjs"]
     scripts_combat_rewards_mjs["combat-rewards.mjs"]
+    scripts_combatant_flag_guard_mjs["combatant-flag-guard.mjs"]
     scripts_dungeon_combat_mjs["dungeon-combat.mjs"]
     scripts_dungeon_critical_deck_mjs["dungeon-critical-deck.mjs"]
     scripts_dungeon_leveling_mjs["dungeon-leveling.mjs"]
@@ -581,6 +582,7 @@ graph LR
   scripts_module_mjs --> scripts_dungeon_scene_mjs
   scripts_module_mjs --> scripts_dungeon_combat_mjs
   scripts_module_mjs --> scripts_dungeon_leveling_mjs
+  scripts_module_mjs --> scripts_combatant_flag_guard_mjs
   scripts_module_mjs --> scripts_dungeon_follow_mjs
   scripts_module_mjs --> scripts_trap_combat_mjs
   scripts_module_mjs --> scripts_flanking_indicator_mjs
