@@ -237,7 +237,7 @@ describe("pickRandomEnvironment", () => {
 
 ### Task 7: Docs, version, live verification
 
-- [ ] **Step 1:** README: Environment section (what it does, the map file, `npm run audit:environments`, `PF2E_SYSTEM_PACKS_DIR`, "hand edits are never overwritten"). Run the `update-architecture-docs` skill and commit its output. Bump `module.json`; `npm test` + `npm run validate:dungeon` → PASS; commit.
+- [x] **Step 1:** README: Environment section (what it does, the map file, `npm run audit:environments`, `PF2E_SYSTEM_PACKS_DIR`, "hand edits are never overwritten"). Run the `update-architecture-docs` skill and commit its output. Bump `module.json`; `npm test` + `npm run validate:dungeon` → PASS; commit.
 - [ ] **Step 2: Live verification** (copy `.env`; compare the live world's module version with the branch): (a) Start Dungeon with Swamp → combat rooms' creatures are swamp-appropriate (check against the map) or the chat card notes adjacent/outside fallbacks; (b) Start with Random twice on the same seed value → same environment (read `getRunState(sceneId).environment`); (c) stand-alone Generate Encounter with Underwater; (d) a two-force encounter with different environments and one "same as encounter"; (e) `None` is unchanged (compare roster shape/behavior with a pre-change run); (f) rename the data file temporarily → warning in console, encounters still generate.
 - [ ] **Step 3:** Open the PR; after merge label `verification` (live playtest pending), remove `claimed`/`in progress`, merge with explicit `--subject/--body`.
 

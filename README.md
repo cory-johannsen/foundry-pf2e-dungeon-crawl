@@ -61,6 +61,31 @@ alliance, so its flank indicator may count creatures of another force as
 allies. The module's AI and targeting use the force hostility relation and
 are not affected.
 
+### Environment
+
+Encounters can be themed by environment (forest, swamp, underwater, ...).
+
+- **Start Dungeon** has an Environment choice: `Random` (seeded, so the same
+  seed gives the same environment), `None` (unchanged behaviour), or a
+  specific environment. The choice applies to every combat room in the run.
+- The stand-alone **Generate Encounter** dialog has its own Environment
+  choice, and each force can override it or use "same as encounter".
+- Creature selection relaxes in order: strict match, then adjacent
+  environments, then the environment is dropped. A chat-card note says when
+  a fallback was used. The trait theme (include/exclude traits) is kept
+  before the environment is dropped.
+- Creatures are mapped to environments in `data/creature-environments.json`
+  (with `data/creature-environments.sources.json` recording where each
+  entry came from). Hand edits are never overwritten: `--merge` only adds
+  ids that are not already present.
+- `npm run audit:environments` rebuilds or checks the map from a local pf2e
+  install; set `PF2E_SYSTEM_PACKS_DIR` to point at it.
+
+Coverage is partial: about 48% of creatures are mapped. Creature prose
+covers only about 5%, most mapped entries are derived from traits, and the
+Monster Core creatures of levels -1..8 were hand-reviewed at about 94%.
+Unmapped creatures are only used once the environment has been dropped.
+
 ### The generator interface
 
 Room sequencing and encounter rosters are produced by whatever generator

@@ -139,6 +139,7 @@ const GROUPS = [
         "scripts/encounter-generator.mjs",
         "scripts/encounter-deck.mjs",
         "scripts/encounter-roster.mjs",
+        "scripts/environments.mjs",
         "scripts/generator-registry.mjs",
         "scripts/default-generator.mjs",
         "scripts/creature-art.mjs",
