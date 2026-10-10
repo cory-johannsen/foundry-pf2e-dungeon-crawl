@@ -455,11 +455,11 @@ Behavior to implement:
   - `readForcesFromForm(root) → Force[]` (reads every `fieldset[data-force]`; uses `readTraitField(root, "traits-<id>")`).
   - `async chooseEncounterForces({ api, scene }) → { difficulty, forces } | null` — the DialogV2 wrapper: difficulty select (existing keys), force 1 prefilled, **Add force** / **Remove** buttons that re-render the force list, a read-only budget line (`xpBudget(tier, partySize)` and each force's `splitBudget` allotment; recomputed on input), Generate disabled-with-message when `validateShares` fails. Placement select offers "Near party" plus one option per `scene.regions` entry (value `region:<id>`; resolved to a rect in Task 7).
 
-- [ ] **Step 1: Write failing tests** for the pure parts: `defaultForce`/`equalShares([1,2,3])`, `normalizeForce` coercions, `forceSectionHtml` contains the expected `name=` attributes and the selected hostility/rarity (parse with `new DOMParser()` only if vitest env is jsdom — check `vitest.config.*`; otherwise assert on substrings), `readForcesFromForm` against a minimal fake root (`querySelectorAll`, `querySelector(name)` returning `{ value }`) — mirror how `tests/trait-picker*.test.mjs` fakes the DOM if it exists.
-- [ ] **Step 2: Run, FAIL.**
-- [ ] **Step 3: Implement** the pure helpers + the `chooseEncounterForces` wrapper (not unit-tested; covered by live verification, Task 9). Reuse the existing dialog's markup, `PF2EDC.Encounter.*` keys and trait pickers; keep force 1's layout identical to today's dialog so a one-force encounter looks unchanged.
-- [ ] **Step 4: Run** `npx vitest run tests/encounter-forces-dialog.test.mjs` → PASS.
-- [ ] **Step 5: Commit** — `git commit -am "#1083: encounter force dialog helpers and UI"`.
+- [x] **Step 1: Write failing tests** for the pure parts: `defaultForce`/`equalShares([1,2,3])`, `normalizeForce` coercions, `forceSectionHtml` contains the expected `name=` attributes and the selected hostility/rarity (parse with `new DOMParser()` only if vitest env is jsdom — check `vitest.config.*`; otherwise assert on substrings), `readForcesFromForm` against a minimal fake root (`querySelectorAll`, `querySelector(name)` returning `{ value }`) — mirror how `tests/trait-picker*.test.mjs` fakes the DOM if it exists.
+- [x] **Step 2: Run, FAIL.**
+- [x] **Step 3: Implement** the pure helpers + the `chooseEncounterForces` wrapper (not unit-tested; covered by live verification, Task 9). Reuse the existing dialog's markup, `PF2EDC.Encounter.*` keys and trait pickers; keep force 1's layout identical to today's dialog so a one-force encounter looks unchanged.
+- [x] **Step 4: Run** `npx vitest run tests/encounter-forces-dialog.test.mjs` → PASS.
+- [x] **Step 5: Commit** — `git commit -am "#1083: encounter force dialog helpers and UI"`.
 
 ---
 
