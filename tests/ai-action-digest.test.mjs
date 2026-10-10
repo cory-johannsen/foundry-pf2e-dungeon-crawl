@@ -161,4 +161,30 @@ describe("renderDigestRowHtml (#951, shared with #1006)", () => {
     expect(html).toContain("&lt;img");
     expect(html).toContain("pf2edc-tone-neutral");
   });
+
+  it("adds #952's collapsed Details disclosure for a GM only, never for a non-GM", () => {
+    const detailed = rec({
+      alternatives: [{ id: "x", summary: "Dagger vs Fighter", chosen: true }, { id: "y", summary: "Secret plan", chosen: false }],
+      moreCount: 0,
+      meta: { provider: "litellm", clientMs: 700 },
+      fallbackReason: null,
+    });
+    const gm = renderDigestRowHtml(detailed, true);
+    expect(gm).toContain('<details class="pf2edc-ai-details"><summary>Details</summary>');
+    expect(gm).toContain("Secret plan");
+    expect(gm).toContain("Latency: 0.7 s");
+    const player = renderDigestRowHtml(detailed, false);
+    expect(player).not.toMatch(/details|Secret plan|litellm|Latency/);
+    // A record without details gets no empty disclosure, even for a GM.
+    expect(renderDigestRowHtml(rec({}), true)).not.toContain("<details");
+  });
+
+  it("buildCombatantDigest never hands a non-GM a record's decision details", () => {
+    const detailed = [rec({ alternatives: [{ id: "x", summary: "s", chosen: true }], moreCount: 2, meta: { provider: "litellm" }, fallbackReason: "error" })];
+    const digest = buildCombatantDigest(detailed, { combatantId: "c1", round: 1, isGM: false });
+    for (const r of digest.currentRound) {
+      for (const field of ["alternatives", "moreCount", "meta", "fallbackReason"]) expect(r).not.toHaveProperty(field);
+    }
+    expect(buildCombatantDigest(detailed, { combatantId: "c1", round: 1, isGM: true }).currentRound[0].meta).toEqual({ provider: "litellm" });
+  });
 });

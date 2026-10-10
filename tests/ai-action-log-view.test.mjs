@@ -222,3 +222,51 @@ describe("visibleRecords (#951: the shared visibility rule)", () => {
     }
   });
 });
+
+describe("decision details (#952)", () => {
+  const detailed = [
+    rec({
+      alternatives: [{ id: "x", summary: "Dagger vs Fighter", chosen: true }, { id: "y", summary: "Secret flank route", chosen: false }],
+      moreCount: 4,
+      meta: { provider: "litellm", model: "secret-model", tier: "fast", clientMs: 1200, serverMs: 1000, usage: { totalTokens: 50 }, costUsd: 0.5 },
+    }),
+    rec({ index: 1, source: "fallback", fallbackReason: "error", meta: { provider: "heuristic" } }),
+  ];
+  const DETAIL_FIELDS = ["alternatives", "moreCount", "meta", "fallbackReason", "candidateId", "source", "rationale", "gmNote"];
+
+  it("visibleRecords never gives a non-GM the alternatives, meta or fallback reason", () => {
+    for (const r of visibleRecords(detailed, false)) {
+      for (const field of DETAIL_FIELDS) expect(r).not.toHaveProperty(field);
+      const json = JSON.stringify(r);
+      for (const secret of ["Secret flank route", "secret-model", "litellm", "heuristic", "error"]) expect(json).not.toContain(secret);
+    }
+    // Only an explicit `true` is a GM.
+    for (const r of visibleRecords(detailed, "yes")) expect(r).not.toHaveProperty("meta");
+  });
+
+  it("visibleRecords keeps them for a GM", () => {
+    const [first, second] = visibleRecords(detailed, true);
+    expect(first.alternatives).toHaveLength(2);
+    expect(first.meta.provider).toBe("litellm");
+    expect(second.fallbackReason).toBe("error");
+  });
+
+  it("gives each GM row a collapsed Details disclosure and every non-GM row none", () => {
+    const gm = buildAiLogView(detailed, info, { ...ALL, isGM: true });
+    expect(gm.rows[0].detailsHtml).toMatch(/^<details class="pf2edc-ai-details"><summary>Details<\/summary>/);
+    expect(gm.rows[0].detailsHtml).toContain("Secret flank route");
+    expect(gm.rows[0].detailsHtml).toContain("+4 more");
+    expect(gm.rows[0].detailsHtml).toContain("Latency: 1.2 s (server 1.0 s)");
+    expect(gm.rows[1].detailsHtml).toContain("Fallback: the decision call failed");
+
+    const player = buildAiLogView(detailed, info, { ...ALL, isGM: false });
+    for (const row of player.rows) {
+      expect(row.detailsHtml).toBe("");
+      expect(JSON.stringify(row)).not.toMatch(/Secret flank route|secret-model|Details/);
+    }
+  });
+
+  it("gives an old record without details no disclosure, even for a GM", () => {
+    expect(buildAiLogView([rec({})], info, { ...ALL, isGM: true }).rows[0].detailsHtml).toBe("");
+  });
+});

@@ -154,8 +154,10 @@ describe("applyAgentDecision AI turn card (#925)", () => {
     expect(card.speaker).toEqual({ token: "atk-tok" });
     expect(card.content).toContain("success: target is Prone");
     expect(card.content).toContain('data-visibility="gm" class="pf2edc-agent-rationale"><em>Knock it down first.</em>');
-    // The reasoning model's own pick rationale is never in the public summary.
-    expect(card.content).not.toContain("secret pick reason");
+    // The reasoning model's own pick rationale is never in the public part
+    // of the card -- only inside #952's GM-only alternatives list.
+    const publicPart = card.content.replace(/<details[^>]*data-visibility="gm"[^>]*>.*?<\/details>/gs, "");
+    expect(publicPart).not.toContain("secret pick reason");
   });
 
   it("updates the same card for the second action of the turn instead of posting another", async () => {
@@ -209,5 +211,40 @@ describe("applyAgentDecision AI turn card (#925)", () => {
     await applyAgentDecision(combat, "atk", "endTurn");
     expect(cards()).toHaveLength(2);
     expect(combat.flags.agentTurnCards).toEqual({ "atk:1": "msg1", "atk:2": "msg2" });
+  });
+});
+
+describe("applyAgentDecision decision details (#952)", () => {
+  it("records the candidates offered with the chosen one marked, and the decision meta", async () => {
+    const { combat } = setup();
+    const meta = { provider: "litellm", model: "fast", tier: "fast", clientMs: 900, serverMs: 800 };
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp", "Trip it.", { source: "model", meta });
+
+    const [record] = combat.flags.agentLog;
+    expect(record.meta).toEqual(meta);
+    expect(record.moreCount).toBe(0);
+    expect(record.alternatives.length).toBeGreaterThan(1);
+    expect(record.alternatives.filter((a) => a.chosen)).toEqual([
+      expect.objectContaining({ id: "maneuver:trip:opp", chosen: true }),
+    ]);
+    expect(record.alternatives.map((a) => a.id)).toContain("endTurn");
+    expect(record).not.toHaveProperty("fallbackReason");
+  });
+
+  it("puts the details on the card inside a GM-only collapsed disclosure", async () => {
+    const { combat } = setup();
+    await applyAgentDecision(combat, "atk", "maneuver:trip:opp", null, { source: "model", meta: { provider: "litellm" } });
+    const content = cards()[0].content;
+    expect(content).toContain('<details class="pf2edc-ai-details" data-visibility="gm"><summary>Details</summary>');
+    expect(content).toContain("Provider: litellm");
+    expect(content).toContain("(chosen)");
+  });
+
+  it("still records the alternatives (but no meta) for an external caller that passes no decisionInfo", async () => {
+    const { combat } = setup();
+    await applyAgentDecision(combat, "atk", "endTurn");
+    const [record] = combat.flags.agentLog;
+    expect(record.alternatives.find((a) => a.chosen)?.id).toBe("endTurn");
+    expect(record).not.toHaveProperty("meta");
   });
 });

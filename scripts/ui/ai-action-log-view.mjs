@@ -13,6 +13,8 @@
  * field can only reach a non-GM template by being added here on purpose.
  */
 
+import { buildDecisionDetails, renderDecisionDetailsHtml } from "./ai-decision-details.mjs";
+
 const TONES = new Set(["success", "failure", "neutral"]);
 
 /** The name a viewer may see for `combatant` -- PF2e's own token name
@@ -54,7 +56,8 @@ const PUBLIC_FIELDS = [
  * and non-object entries are dropped. A GM gets the records unchanged; a
  * non-GM loses every `visibility: "gm"` record (a hidden token's actions)
  * and gets copies of the rest carrying the public fields only -- never the
- * rationale, the GM note, the fallback/model source or the candidate id.
+ * rationale, the GM note, the fallback/model source, the candidate id or
+ * #952's decision details (alternatives, moreCount, meta, fallbackReason).
  * Array order (append order, i.e. chronological) is kept.
  */
 export function visibleRecords(records, isGM) {
@@ -111,6 +114,9 @@ export function buildAiLogView(records, combatantInfo, { combatantId = null, rou
       gmNote: isGM ? (r.gmNote || null) : null,
       fallback: isGM && r.source === "fallback",
       gmOnly: isGM && r.visibility === "gm",
+      // #952: the GM-only "Details" disclosure, pre-escaped HTML ("" when
+      // there is nothing to show, and always for a non-GM).
+      detailsHtml: isGM ? renderDecisionDetailsHtml(buildDecisionDetails(r, { isGM: true })) : "",
     }));
 
   return {

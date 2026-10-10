@@ -81,6 +81,9 @@ export function renderTrackerDigestInto(root, combat, isGM, expandedIds = new Se
     // (pan + control) and its dblclick (open the sheet).
     line.addEventListener("click", (event) => {
       event.stopPropagation();
+      // #952: a row's own Details disclosure opens/closes natively, without
+      // collapsing the expanded list.
+      if (event.target?.closest?.(".pf2edc-ai-details")) return;
       event.preventDefault();
       if (expandedIds.has(combatantId)) expandedIds.delete(combatantId);
       else expandedIds.add(combatantId);

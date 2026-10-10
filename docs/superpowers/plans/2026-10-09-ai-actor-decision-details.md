@@ -255,6 +255,8 @@ git commit -m "feat(#952): litellm/OpenRouter providers report model/tier/usage/
 
 ### Task 3: Client-side latency measurement and fallback-reason recording
 
+> **Implementation note (2026-10-09):** the reason is kept in an in-memory, per-turn map in `dungeon-combat.mjs` (`noteAgentFallbackReason` / `takeAgentFallbackReason`), not in `agentTurnState` -- every `setAgentTurnState` write bumps the counter `armAgentTimeout` uses to detect a superseded timer, so writing the reason there would have cancelled the very fallback it explains (and `setAgentTurnState` writes a fixed field list that would drop it anyway). An `applyDecision` failure records `"apply-error"`. `playHeuristicTurn` never recorded anything in `agentLog` before this issue, so it gained an `onAction(candidate, result)` hook that `armAgentTimeout` uses to log each heuristic action as a `source: "fallback"` record with the reason; `armAgentTimeout` takes an injectable `playHeuristic` for tests.
+
 **Files:**
 - Modify: `scripts/dungeon-combat.mjs` (`runAgentDecisionLoop`, `armAgentTimeout`)
 - Test: `tests/dungeon-combat-decision-loop.test.mjs` (extend the existing `runAgentDecisionLoop` test file — find its real name first)
@@ -263,7 +265,7 @@ git commit -m "feat(#952): litellm/OpenRouter providers report model/tier/usage/
 - Consumes: nothing new.
 - Produces: `runAgentDecisionLoop` measures `clientMs` and passes a `decisionInfo` fifth argument to `applyAgentDecision`; a failed call or an unconfigured service records `turnState.lastDecisionError`; `armAgentTimeout` reads it to pick the fallback reason.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // append to runAgentDecisionLoop's existing test file
@@ -303,12 +305,12 @@ it('defaults to "timeout" when no lastDecisionError was ever recorded', async ()
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-combat-decision-loop.test.mjs -t "#952"`
 Expected: FAIL (no `decisionInfo` passed; no `lastDecisionError` written)
 
-- [ ] **Step 3: Implement in `runAgentDecisionLoop`**
+- [x] **Step 3: Implement in `runAgentDecisionLoop`**
 
 ```js
 // scripts/dungeon-combat.mjs -- runAgentDecisionLoop's real body (lines
@@ -357,7 +359,7 @@ Expected: FAIL (no `decisionInfo` passed; no `lastDecisionError` written)
     }
 ```
 
-- [ ] **Step 4: Implement in `armAgentTimeout`**
+- [x] **Step 4: Implement in `armAgentTimeout`**
 
 ```js
 // scripts/dungeon-combat.mjs -- armAgentTimeout, immediately before the
@@ -369,17 +371,17 @@ Expected: FAIL (no `decisionInfo` passed; no `lastDecisionError` written)
 
 (`playHeuristicTurn`'s own signature gains an optional second parameter; Task 4 is where that reason actually reaches the `agentLog` record, via whichever executor path the heuristic turn ultimately calls into `applyAgentDecision` through — confirm `playHeuristicTurn`'s real current signature and call chain before writing this exact threading, since this plan has not independently re-derived that function's full body.)
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-combat-decision-loop.test.mjs`
 Expected: PASS
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-decision-loop.test.mjs
@@ -390,10 +392,12 @@ git commit -m "feat(#952): measure clientMs and record why a fallback fired (err
 
 ### Task 4: Amend #925's plan — the record's alternatives/meta/fallbackReason fields
 
+> **Implementation note (2026-10-09):** #925 has since merged, so this was implemented directly in `applyAgentDecision` / `recordAgentAction` (`scripts/dungeon-combat.mjs`) rather than as a plan amendment. The alternatives builder is the pure `buildDecisionAlternatives` in `scripts/ui/ai-decision-details.mjs`.
+
 **Files:**
 - Modify: `docs/superpowers/plans/2026-10-09-ai-actor-action-display.md`
 
-- [ ] **Step 1: Add the fifth `decisionInfo` parameter to `applyAgentDecision`'s own signature in that plan, and the alternatives-building step**
+- [x] **Step 1: Add the fifth `decisionInfo` parameter to `applyAgentDecision`'s own signature in that plan, and the alternatives-building step**
 
 In that plan's Task 3 (`applyAgentDecision`'s dispatch capture), add immediately after the point it already resolves `pending.candidates` and the chosen `candidateId`:
 
@@ -417,7 +421,7 @@ export async function applyAgentDecision(combat, combatantId, candidateId, ratio
   const alternatives = alternativesSource.map((c) => ({ id: c.id, summary: c.summary ?? c.type, chosen: c.id === candidateId }));
 ```
 
-- [ ] **Step 2: Add the three new fields to the record `appendAgentActionRecord` writes**
+- [x] **Step 2: Add the three new fields to the record `appendAgentActionRecord` writes**
 
 ```js
 // that plan's own record-building object (wherever it spreads describeAgentAction's
@@ -430,7 +434,7 @@ export async function applyAgentDecision(combat, combatantId, candidateId, ratio
 
 Update that plan's own `source` determination: when `decisionInfo` is passed with `source: "model"` (Task 3 above), the record's `source` field is `"model"`; the heuristic path (unchanged call site, no `decisionInfo` passed, or explicitly `{source: "fallback", fallbackReason}`) keeps `source: "fallback"` as it already does. Thread `fallbackReason` from Task 3's `playHeuristicTurn({fallbackReason})` call through to whichever `applyAgentDecision` call the heuristic path ultimately makes — confirm that exact call site in #925's own plan before finalizing this step.
 
-- [ ] **Step 3: Commit the amendment**
+- [x] **Step 3: Commit the amendment**
 
 ```bash
 git add docs/superpowers/plans/2026-10-09-ai-actor-action-display.md
@@ -570,15 +574,17 @@ git commit -m "feat(#952): buildDecisionDetails, pure GM-only alternatives/metad
 
 ### Task 6: Amend #925/#950/#951's plans — render the Details disclosure
 
+> **Implementation note (2026-10-09):** #925/#950/#951 have since merged, so the disclosure is rendered directly in `renderAgentTurnCardHtml` (GM-only via `data-visibility="gm"`), `buildAiLogView`'s `detailsHtml` + `templates/ai-action-log.hbs`, and `renderDigestRowHtml` (tracker rows), all through the shared `renderDecisionDetailsHtml`.
+
 **Files:**
 - Modify: `docs/superpowers/plans/2026-10-09-ai-actor-action-display.md`
 - Modify: `docs/superpowers/plans/2026-10-09-ai-actor-action-log-panel.md`
 - Modify: `docs/superpowers/plans/2026-10-09-ai-actor-tracker-and-hover-detail.md`
 
-- [ ] **Step 1: #925's chat-card template** — inside its existing GM-only (`data-visibility="gm"`) block for each action row, add a collapsed disclosure calling `buildDecisionDetails(record, {isGM: true})` (the template itself only runs inside the already-GM-gated span, but the helper is called the same way everywhere for consistency) and rendering its `lines`/`alternatives`/`moreCount` inside a `<details><summary>Details</summary>...</details>` element.
-- [ ] **Step 2: #950's `AiActionLogApp` template** — the same `<details>` block under each GM-visible row, reusing `buildDecisionDetails` from `ai-decision-details.mjs` imported alongside `buildAiLogView`.
-- [ ] **Step 3: #951's tracker-row expanded list** — the same block inside each expanded row's own GM-only section (`renderTrackerDigestInto`'s `rowHtml` helper).
-- [ ] **Step 4: Commit the amendments**
+- [x] **Step 1: #925's chat-card template** — inside its existing GM-only (`data-visibility="gm"`) block for each action row, add a collapsed disclosure calling `buildDecisionDetails(record, {isGM: true})` (the template itself only runs inside the already-GM-gated span, but the helper is called the same way everywhere for consistency) and rendering its `lines`/`alternatives`/`moreCount` inside a `<details><summary>Details</summary>...</details>` element.
+- [x] **Step 2: #950's `AiActionLogApp` template** — the same `<details>` block under each GM-visible row, reusing `buildDecisionDetails` from `ai-decision-details.mjs` imported alongside `buildAiLogView`.
+- [x] **Step 3: #951's tracker-row expanded list** — the same block inside each expanded row's own GM-only section (`renderTrackerDigestInto`'s `rowHtml` helper).
+- [x] **Step 4: Commit the amendments**
 
 ```bash
 git add docs/superpowers/plans/2026-10-09-ai-actor-action-display.md docs/superpowers/plans/2026-10-09-ai-actor-action-log-panel.md docs/superpowers/plans/2026-10-09-ai-actor-tracker-and-hover-detail.md
