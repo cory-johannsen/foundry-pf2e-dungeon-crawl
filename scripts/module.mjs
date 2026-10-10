@@ -90,6 +90,7 @@ import {
 } from "./dungeon-combat.mjs";
 import { subtractXpOnLevelUp } from "./dungeon-leveling.mjs";
 import { preserveCombatantFlagNamespaces } from "./combatant-flag-guard.mjs";
+import { onPreUpdateCombatantRelay, registerCombatantWriteRelay } from "./combatant-write-relay.mjs";
 import {
   followLeaderIfDue,
   followLeaderOnDoorOpened,
@@ -374,6 +375,7 @@ Hooks.once("ready", async () => {
 });
 
 Hooks.once("ready", registerDungeonActionSocket);
+Hooks.once("ready", registerCombatantWriteRelay);
 
 /** #158: opens the Dungeon Crawl tracker if it isn't already rendered. */
 function openDungeonTrackerIfNotOpen() {
@@ -725,6 +727,11 @@ Hooks.on("updateCombatant", async (combatant, changes) =>
   ),
 );
 
+/** #1254: a player client cannot write a Combatant; relay the tracker's two
+ * queue flags through the GM. MUST stay registered before the #1212 hook below:
+ * returning false cancels the update so the guard never sees a relayed write. */
+Hooks.on("preUpdateCombatant", (c, ch, o, uid) => onPreUpdateCombatantRelay(c, ch, o, uid));
+
 /** #1212: pf2e-auto-action-tracker writes combatants with
  * `{ diff: false, recursive: false }`, which replaces the whole `flags`
  * object and wiped `agentControlled` (stalling AI turns). Keep the other
@@ -905,13 +912,15 @@ Hooks.on("getCombatTrackerEntryContext", (html, menuItems) => {
     condition: (li) => {
       const combatant = game.combat?.combatants.get(li.dataset.combatantId);
       return (
+        // #1254: the toggle writes a Combatant flag; a player client cannot.
+        !!game.user?.isGM &&
         !!combatant &&
         !game.actors?.party?.members?.some((m) => m.id === combatant.actor?.id)
       );
     },
     callback: (li) => {
       const combatant = game.combat?.combatants.get(li.dataset.combatantId);
-      if (combatant) toggleAgentControlled(combatant);
+      if (combatant && game.user?.isGM) toggleAgentControlled(combatant);
     },
   });
   menuItems.push({

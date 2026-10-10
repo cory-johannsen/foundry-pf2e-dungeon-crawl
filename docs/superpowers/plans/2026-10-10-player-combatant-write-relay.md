@@ -52,7 +52,7 @@
   - `classifyCombatantUpdate(changes, userIsGM) → { relay: true, flagKey, value } | { relay: false }`.
   - `validateRelayMessage(msg, { combat, senderUser }) → { ok: true, combatant, flagKey, value } | { ok: false, reason }` where `combat` is the resolved Combat (or undefined) and `senderUser` the resolved User (or undefined); checks: key in closed list, `isValidQueueValue`, combat + combatant exist, `combat.active !== false`-style check is NOT used (a tracker queue can be written between rounds), sender exists and `combatant.actor?.testUserPermission(senderUser, "OWNER")`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -124,8 +124,8 @@ describe("validateRelayMessage", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `npx vitest run tests/combatant-write-relay.test.mjs` → FAIL (module missing).
-- [ ] **Step 3: Implement**
+- [x] **Step 2: Run to verify it fails** — `npx vitest run tests/combatant-write-relay.test.mjs` → FAIL (module missing).
+- [x] **Step 3: Implement**
 
 ```js
 /**
@@ -187,8 +187,8 @@ export function validateRelayMessage(msg, { combat, senderUser }) {
 }
 ```
 
-- [ ] **Step 4: Run to verify it passes** — PASS.
-- [ ] **Step 5: Commit** — `git add scripts/combatant-write-relay.mjs tests/combatant-write-relay.test.mjs && git commit -m "#1254: combatant write relay classifier and validator"`
+- [x] **Step 4: Run to verify it passes** — PASS.
+- [x] **Step 5: Commit** — `git add scripts/combatant-write-relay.mjs tests/combatant-write-relay.test.mjs && git commit -m "#1254: combatant write relay classifier and validator"`
 
 ### Task 3: Hook + socket wiring
 
@@ -204,27 +204,27 @@ export function validateRelayMessage(msg, { combat, senderUser }) {
   - `handleCombatantFlagRelay(msg, deps = {}) → Promise<boolean>` — only when `game.users.activeGM?.isSelf`; resolves `combat = game.combats.get(msg.combatId)`, `senderUser = game.users.get(msg.userId)`, runs `validateRelayMessage`, on `ok` `await combatant.setFlag(NS, flagKey, value)` and returns `true`; otherwise `console.debug` the reason and return `false`.
   - `registerCombatantWriteRelay()` — `game.socket.on(SOCKET, (msg) => { if (msg?.type === "combatantFlagRelay") handleCombatantFlagRelay(msg); })`.
 
-- [ ] **Step 1: Write the failing tests** with fakes: `game = { user: { id: "u1", isGM: false }, users: { activeGM: {} , get }, socket: { emit: vi.fn() } }`, combatant `{ id, parent: { id: "k" }, updateSource: vi.fn(), setFlag: vi.fn() }`. Cases: player queue write → `updateSource` called with the exact flag object, `emit` called once with the exact message, returns `false`; `userId` of another user → `undefined`, nothing called; GM client → `undefined`; unrelated player write (e.g. `{ initiative: 3 }`) → `undefined`; no active GM → `updateSource` called, `emit` not called, returns `false`; `updateSource` throws → returns `undefined` and logs; handler: active-GM client with valid owner message → `setFlag(NS,"pendingDamageQueue",["m1"])` called and resolves `true`; non-GM client / `activeGM` not self → no `setFlag`, `false`; non-owner → no `setFlag`; same message twice → `setFlag` twice with identical args (idempotent).
-- [ ] **Step 2: Run, FAIL.**
-- [ ] **Step 3: Implement** as specified. In `module.mjs` add `Hooks.on("preUpdateCombatant", (c, ch, o, uid) => onPreUpdateCombatantRelay(c, ch, o, uid));` immediately **before** the existing #1212 `preUpdateCombatant` registration (Foundry runs hooks in registration order and cancels the update when a handler returns `false`, so the guard never sees a relayed update), and `Hooks.once("ready", registerCombatantWriteRelay);` beside line 374.
-- [ ] **Step 4: Ordering/regression test** in the same file: import `preserveCombatantFlagNamespaces` and assert a non-relayed non-recursive update is still restored (unchanged #1212 behavior), and that for a relayed payload the hook returns `false` (so a runner that stops at `false` never calls the guard).
-- [ ] **Step 5: Run** `npx vitest run tests/combatant-write-relay-hook.test.mjs tests/combatant-flag-guard.test.mjs` then `npm test` → PASS.
-- [ ] **Step 6: Commit** — `git commit -am "#1254: relay tracker queue writes through the GM"`
+- [x] **Step 1: Write the failing tests** with fakes: `game = { user: { id: "u1", isGM: false }, users: { activeGM: {} , get }, socket: { emit: vi.fn() } }`, combatant `{ id, parent: { id: "k" }, updateSource: vi.fn(), setFlag: vi.fn() }`. Cases: player queue write → `updateSource` called with the exact flag object, `emit` called once with the exact message, returns `false`; `userId` of another user → `undefined`, nothing called; GM client → `undefined`; unrelated player write (e.g. `{ initiative: 3 }`) → `undefined`; no active GM → `updateSource` called, `emit` not called, returns `false`; `updateSource` throws → returns `undefined` and logs; handler: active-GM client with valid owner message → `setFlag(NS,"pendingDamageQueue",["m1"])` called and resolves `true`; non-GM client / `activeGM` not self → no `setFlag`, `false`; non-owner → no `setFlag`; same message twice → `setFlag` twice with identical args (idempotent).
+- [x] **Step 2: Run, FAIL.**
+- [x] **Step 3: Implement** as specified. In `module.mjs` add `Hooks.on("preUpdateCombatant", (c, ch, o, uid) => onPreUpdateCombatantRelay(c, ch, o, uid));` immediately **before** the existing #1212 `preUpdateCombatant` registration (Foundry runs hooks in registration order and cancels the update when a handler returns `false`, so the guard never sees a relayed update), and `Hooks.once("ready", registerCombatantWriteRelay);` beside line 374.
+- [x] **Step 4: Ordering/regression test** in the same file: import `preserveCombatantFlagNamespaces` and assert a non-relayed non-recursive update is still restored (unchanged #1212 behavior), and that for a relayed payload the hook returns `false` (so a runner that stops at `false` never calls the guard).
+- [x] **Step 5: Run** `npx vitest run tests/combatant-write-relay-hook.test.mjs tests/combatant-flag-guard.test.mjs` then `npm test` → PASS.
+- [x] **Step 6: Commit** — `git commit -am "#1254: relay tracker queue writes through the GM"`
 
 ### Task 4: Audit of the module's own player-client combatant writes
 
 **Files:** read-only audit; fixes only if findings.
 
-- [ ] **Step 1:** `grep -nE "combatant[s]?\b.*\.(setFlag|update|unsetFlag)\(|combat\.(setFlag|update|nextTurn|updateEmbeddedDocuments)|updateEmbeddedDocuments\(\"Combatant\"" scripts/*.mjs scripts/ui/*.mjs` and for each hit decide whether it can run on a non-GM client (click handlers, `createChatMessage`/`updateCombatant` hooks without an `isGM`/`activeGM` gate, socket handlers on all clients). Record a table (file:line, gated?, verdict) as an issue comment on #1254.
-- [ ] **Step 2:** For each ungated player-reachable write: gate it with `game.users?.activeGM?.isSelf` (when it is GM-side bookkeeping) or add a relay message type of the same closed-list shape, with a test. If none found, say so in the comment — no code change.
-- [ ] **Step 3:** `npm test`; commit any fixes as `#1254: gate player-client combatant writes`.
+- [x] **Step 1:** `grep -nE "combatant[s]?\b.*\.(setFlag|update|unsetFlag)\(|combat\.(setFlag|update|nextTurn|updateEmbeddedDocuments)|updateEmbeddedDocuments\(\"Combatant\"" scripts/*.mjs scripts/ui/*.mjs` and for each hit decide whether it can run on a non-GM client (click handlers, `createChatMessage`/`updateCombatant` hooks without an `isGM`/`activeGM` gate, socket handlers on all clients). Record a table (file:line, gated?, verdict) as an issue comment on #1254.
+- [x] **Step 2:** For each ungated player-reachable write: gate it with `game.users?.activeGM?.isSelf` (when it is GM-side bookkeeping) or add a relay message type of the same closed-list shape, with a test. If none found, say so in the comment — no code change.
+- [x] **Step 3:** `npm test`; commit any fixes as `#1254: gate player-client combatant writes`.
 
 ### Task 5: Docs, version, live verification
 
 **Files:** `module.json`, `docs/architecture.md` (via skill)
 
-- [ ] **Step 1:** Run the `update-architecture-docs` skill (new file + `module.mjs` import); commit its output.
-- [ ] **Step 2:** Bump `module.json` patch version from the current `origin/main` value; `npm test` → PASS; commit `#1254: bump version`.
+- [x] **Step 1:** Run the `update-architecture-docs` skill (new file + `module.mjs` import); commit its output.
+- [x] **Step 2:** Bump `module.json` patch version from the current `origin/main` value; `npm test` → PASS; commit `#1254: bump version`.
 - [ ] **Step 3: Live verification** (as in Task 1 setup). As the Fighter player: click Strike, then Damage, then a spell-attack: no error toast, the damage dialog and roll complete, then read as GM `combatant.getFlag("pf2e-auto-action-tracker","pendingDamageQueue")` / `pendingAttackQueue` — values persisted during the sequence and cleared after use. Close the GM client and repeat: no toast, no console error. GM-run Strike/Damage unchanged; #1212 behavior unchanged (AI `agentControlled` flag survives tracker writes).
 - [ ] **Step 4:** Open the PR; after merge label `verification`, remove `claimed`/`in progress`, merge with explicit `--subject/--body`.
 

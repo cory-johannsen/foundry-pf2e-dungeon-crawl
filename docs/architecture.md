@@ -94,7 +94,7 @@ hostile targeting through it. `antagonize.mjs` (#920, pure, reads the
 same detection states) holds the Antagonize Frightened-floor rules that
 `dungeon-combat.mjs`'s #943 end-of-turn Frightened decay consults; the
 floors themselves live in an actor flag that chat-message, turn-change,
-`deleteItem` and `deleteCombat` hooks create and clear. `combatant-flag-guard.mjs` (#1212, pure, imported by `module.mjs`'s `preUpdateCombatant` hook) keeps this module's combatant flags (`agentControlled`) when a third-party module's non-recursive update would replace the whole `flags` object. `flanking-indicator.mjs` (#769) is separate from
+`deleteItem` and `deleteCombat` hooks create and clear. `combatant-flag-guard.mjs` (#1212, pure, imported by `module.mjs`'s `preUpdateCombatant` hook) keeps this module's combatant flags (`agentControlled`) when a third-party module's non-recursive update would replace the whole `flags` object. `combatant-write-relay.mjs` (#1254, imported by `module.mjs`) lets a player client's PF2E Automated Action Tracker queue-flag writes (`pendingDamageQueue`, `pendingAttackQueue`) reach the Combatant: a `preUpdateCombatant` hook, registered ahead of the #1212 guard, cancels the server-rejected update and relays it over the module socket to the active GM, who validates the authenticated sender id and actor ownership before `setFlag`. `flanking-indicator.mjs` (#769) is separate from
 that turn-taking path: a client-side, write-nothing "Flanked" badge drawn
 on flanked tokens in a started combat, using PF2e's own `Token#isFlanking`.
 Every action `applyAgentDecision` executes is appended to the Combat's
@@ -370,6 +370,7 @@ graph LR
     scripts_antagonize_mjs["antagonize.mjs"]
     scripts_combat_rewards_mjs["combat-rewards.mjs"]
     scripts_combatant_flag_guard_mjs["combatant-flag-guard.mjs"]
+    scripts_combatant_write_relay_mjs["combatant-write-relay.mjs"]
     scripts_dungeon_combat_mjs["dungeon-combat.mjs"]
     scripts_dungeon_critical_deck_mjs["dungeon-critical-deck.mjs"]
     scripts_dungeon_leveling_mjs["dungeon-leveling.mjs"]
@@ -597,6 +598,7 @@ graph LR
   scripts_module_mjs --> scripts_dungeon_combat_mjs
   scripts_module_mjs --> scripts_dungeon_leveling_mjs
   scripts_module_mjs --> scripts_combatant_flag_guard_mjs
+  scripts_module_mjs --> scripts_combatant_write_relay_mjs
   scripts_module_mjs --> scripts_dungeon_follow_mjs
   scripts_module_mjs --> scripts_trap_combat_mjs
   scripts_module_mjs --> scripts_flanking_indicator_mjs
