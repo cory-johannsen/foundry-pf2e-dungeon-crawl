@@ -213,7 +213,7 @@ git commit -m "feat(#950): buildAiLogView, pure filtering/redaction for the acti
 - Consumes: `buildAiLogView` (Task 2).
 - Produces: `AiActionLogApp` (class), `isScrolledToBottom(el, tolerance)` (pure, exported for its own unit test), `refreshAiActionLogWindow(instances)`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/ai-action-log-app.test.mjs -- mirrors tests/marching-order-app.test.mjs's
@@ -278,12 +278,12 @@ describe('refreshAiActionLogWindow (#950)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/ai-action-log-app.test.mjs`
 Expected: FAIL with "Cannot find module"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/ui/ai-action-log-app.mjs
@@ -374,7 +374,7 @@ export class AiActionLogApp extends HandlebarsApplicationMixin(ApplicationV2) {
 }
 ```
 
-- [ ] **Step 4: Write the template**
+- [x] **Step 4: Write the template**
 
 ```handlebars
 {{! templates/ai-action-log.hbs }}
@@ -409,12 +409,12 @@ export class AiActionLogApp extends HandlebarsApplicationMixin(ApplicationV2) {
 </section>
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/ai-action-log-app.test.mjs`
 Expected: PASS (6 tests)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/ui/ai-action-log-app.mjs templates/ai-action-log.hbs tests/ai-action-log-app.test.mjs
