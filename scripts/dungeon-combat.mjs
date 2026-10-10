@@ -15,7 +15,7 @@
  * these files — is what stitches "combat resolved" to "advance the room."
  */
 import { makeFoundryApi, SIZE_ORDER } from "./foundry-api.mjs";
-import { areHostile, forceIdOf, readForces } from "./force-hostility.mjs";
+import { areHostile, forceIdOf, readForces, recordAttack } from "./force-hostility.mjs";
 import { getRunState, ensureAiHistoryId } from "./dungeon-runner.mjs";
 import { archiveAiLogToJournals } from "./ai-history-journals.mjs";
 import { encounterLabel, runDisplayName } from "./ai-history-pages.mjs";
@@ -3085,6 +3085,27 @@ export async function handleAttackRollForReactions(message) {
 }
 
 /**
+ * #1083: any attack or damage roll (hit or miss) between combatants of a
+ * combat with a forces table records retaliation, so a force that was
+ * attacked becomes hostile to its attacker's force. Active GM only.
+ */
+export async function handleAttackForRetaliation(message) {
+  if (!(game.users?.activeGM?.isSelf ?? game.user?.isGM)) return;
+  const context = message.flags?.pf2e?.context;
+  if (context?.type !== "attack-roll" && context?.type !== "damage-roll") return;
+  const sceneId = message.speaker?.scene;
+  const attackerTokenId = message.speaker?.token;
+  const targetTokenId = context.target?.token?.split(".").pop();
+  if (!sceneId || !attackerTokenId || !targetTokenId) return;
+  const combat = game.combats.contents.find((c) => c.scene?.id === sceneId && isModuleCombat(c));
+  if (!combat || !readForces(combat)) return;
+  const attacker = combat.combatants.find((c) => c.tokenId === attackerTokenId);
+  const victim = combat.combatants.find((c) => c.tokenId === targetTokenId);
+  if (!attacker || !victim) return;
+  await recordAttack(combat, attacker, victim);
+}
+
+/**
  * #931: the GM's answer to a reaction confirm card (`accept` true = use the
  * reaction). Re-resolves every document fresh by id; a card answered after
  * its round ended, or after the reactor already spent its reaction or left
@@ -5337,6 +5358,7 @@ async function drawCriticalCardForStrike(
  * is currently rendered on this client's canvas.
  */
 export async function rollAndApplyStrike(combat, combatant, target) {
+  if (readForces(combat)) await recordAttack(combat, combatant, target);
   // #551: only a strike whose reach covers the current distance may roll;
   // out of reach after a short/blocked move is normal here, so stay silent.
   const gridSize = combat.scene?.grid?.size ?? 100;
@@ -7715,6 +7737,7 @@ async function rollAndApplyStrikeAtVariant(
   variantIndex,
   extras = null,
 ) {
+  if (readForces(combat)) await recordAttack(combat, combatant, target);
   const strike = (combatant.actor?.system?.actions ?? []).find(
     (a) =>
       a.type === "strike" &&

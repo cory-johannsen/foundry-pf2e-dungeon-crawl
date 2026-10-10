@@ -430,10 +430,10 @@ Behavior to implement:
 - Consumes: `recordAttack`, `readForces` (Task 2).
 - Produces: `handleAttackForRetaliation(message)`: active-GM-only; ignores messages whose `flags.pf2e.context.type` is not `"attack-roll"` or `"damage-roll"`; resolves attacker combatant from `message.speaker.token` and victim from `context.target.token` (`.split(".").pop()`, same as `handleAttackRollForReactions` ~3023-3040) in the module combat on that scene (`isModuleCombat`); returns early when the combat has no `forces` table; otherwise `await recordAttack(combat, attacker, victim)`.
 
-- [ ] **Step 1: Write failing tests**: message fixtures shaped like the pf2e ones used in `tests/dungeon-combat-*reaction*.test.mjs` (grep for `attack-roll` fixtures and copy the harness). Cases: undead hits goblin ⇒ goblin force `hostileTo` gains `f1`; party hits goblin ⇒ no `setFlag`; message with no target ⇒ no-op; no forces table ⇒ no-op; non-GM client ⇒ no-op; a miss still counts (attack-roll with outcome `failure`).
-- [ ] **Step 2: Run, FAIL.**
-- [ ] **Step 3: Implement.** In the two AI strike functions add `await recordAttack(combat, combatant, target)` right after the target is resolved (before rolling) — idempotent and cheap; guard so it only runs when `readForces(combat)` is non-null.
-- [ ] **Step 4: Run** `npx vitest run tests/dungeon-combat-retaliation.test.mjs` then `npm test`.
+- [x] **Step 1: Write failing tests**: message fixtures shaped like the pf2e ones used in `tests/dungeon-combat-*reaction*.test.mjs` (grep for `attack-roll` fixtures and copy the harness). Cases: undead hits goblin ⇒ goblin force `hostileTo` gains `f1`; party hits goblin ⇒ no `setFlag`; message with no target ⇒ no-op; no forces table ⇒ no-op; non-GM client ⇒ no-op; a miss still counts (attack-roll with outcome `failure`).
+- [x] **Step 2: Run, FAIL.**
+- [x] **Step 3: Implement.** In the two AI strike functions add `await recordAttack(combat, combatant, target)` right after the target is resolved (before rolling) — idempotent and cheap; guard so it only runs when `readForces(combat)` is non-null.
+- [x] **Step 4: Run** `npx vitest run tests/dungeon-combat-retaliation.test.mjs` then `npm test`.
 - [ ] **Step 5: Commit** — `git commit -am "#1083: force-level retaliation on attack"`.
 
 ---

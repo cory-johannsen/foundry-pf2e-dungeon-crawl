@@ -71,6 +71,7 @@ import {
   handleRangedAttackForReactiveStrike,
   handleManualStrikeDamage,
   handleAttackRollForReactions,
+  handleAttackForRetaliation,
   handleTokenMoveForReactions,
   answerReactionConfirm,
   offerReactiveStrikesAgainst,
@@ -812,6 +813,9 @@ Hooks.on("createChatMessage", handleRangedAttackForReactiveStrike);
 /** #931: AC-bonus NPC reactions (Wing Deflection, Ghost Dodge, Swat
  * Projectile) against a human player's Strike -- after the roll resolves. */
 Hooks.on("createChatMessage", handleAttackRollForReactions);
+
+/** #1083: an attack on another force makes that force hostile to the attacker. */
+Hooks.on("createChatMessage", handleAttackForRetaliation);
 
 /** #931: a human player's own token move provokes move-triggered NPC
  * reactions (Reactive Strike/AoO, Twisting Tail, Wing Rebuff). */
