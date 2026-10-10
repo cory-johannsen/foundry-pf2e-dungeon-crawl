@@ -244,7 +244,8 @@ falling back to that chain-following whenever the trail can't place it.
 **Run state & UI** (`dungeon-runner.mjs`, `module.mjs`,
 `scripts/ui/dungeon-app.mjs`, `scripts/ui/sound-preview-app.mjs`,
 `scripts/ui/marching-order-app.mjs`, `scripts/ui/ai-action-log-app.mjs`,
-`scripts/ui/ai-action-log-view.mjs`, `world-macros.mjs`) — `dungeon-runner.mjs`
+`scripts/ui/ai-action-log-view.mjs`, `scripts/ui/ai-action-detail.mjs`,
+`ai-action-digest.mjs`, `world-macros.mjs`) — `dungeon-runner.mjs`
 reads/writes the `dungeonRuns` world setting (the durable record of an
 in-progress run); `module.mjs` is the Foundry module's own entry point
 (hook registration, `game.modules.get(...).api` surface); `dungeon-app.mjs`
@@ -274,12 +275,23 @@ as a pure permutation in `dungeon-runner.mjs`.
 recorded in the viewed combat's `agentLog` flag (written by `dungeon-combat.mjs`'s
 `recordAgentAction`, #925), with combatant/round filters, auto-scroll and
 click-to-pan. It imports nothing but its pure sibling `ui/ai-action-log-view.mjs`
-(`buildAiLogView`), which alone decides what a viewer sees -- GM-only rows
-(`visibility: "gm"`) and the rationale/GM note/fallback tag are dropped for
-non-GMs. `module.mjs` registers its scene-control tool (every user), the
+(`buildAiLogView`), whose `visibleRecords` helper is the one rule for what a
+viewer sees -- GM-only rows (`visibility: "gm"`) and the rationale/GM
+note/fallback tag are dropped for non-GMs. `module.mjs` registers its scene-control tool (every user), the
 `api.openAiActionLog` entry point, the chat-card link binding and the
 `updateCombat`/`createCombat`/`deleteCombat`/`canvasReady` refresh hooks;
 `world-macros.mjs` carries its "AI Action Log" macro.
+
+`ui/ai-action-detail.mjs` (#951) puts the same log where the table already
+looks: a click-to-expand "last: ..." line under each AI combatant's Combat
+Tracker row (`renderCombatTracker`) and a tooltip beside a hovered AI token
+(`hoverToken`, repositioned on `canvasPan`/`refreshToken`). It builds both
+from the pure `ai-action-digest.mjs` (`buildCombatantDigest`,
+`renderDigestRowHtml`), which filters through `ui/ai-action-log-view.mjs`'s
+`visibleRecords`, so the window, the tracker and the tooltip can never
+disagree about what a non-GM may see; HTML escaping comes from
+`agent-action-display.mjs`. `module.mjs` calls `registerAiActionDetail()` at
+load; `styles/ai-action-detail.css` is listed in `module.json`.
 
 ## Dependency graph
 
@@ -385,8 +397,10 @@ graph LR
     scripts_placement_mjs["placement.mjs"]
   end
   subgraph "Run state & UI"
+    scripts_ai_action_digest_mjs["ai-action-digest.mjs"]
     scripts_dungeon_runner_mjs["dungeon-runner.mjs"]
     scripts_module_mjs["module.mjs"]
+    scripts_ui_ai_action_detail_mjs["ui/ai-action-detail.mjs"]
     scripts_ui_ai_action_log_app_mjs["ui/ai-action-log-app.mjs"]
     scripts_ui_ai_action_log_view_mjs["ui/ai-action-log-view.mjs"]
     scripts_ui_dungeon_app_mjs["ui/dungeon-app.mjs"]
@@ -401,6 +415,8 @@ graph LR
     scripts_pathfinding_mjs["pathfinding.mjs"]
   end
   scripts_agent_action_display_mjs --> scripts_agent_candidates_mjs
+  scripts_ai_action_digest_mjs --> scripts_ui_ai_action_log_view_mjs
+  scripts_ai_action_digest_mjs --> scripts_agent_action_display_mjs
   scripts_antagonize_mjs --> scripts_stealth_detection_mjs
   scripts_combat_rewards_mjs --> scripts_encounter_roster_mjs
   scripts_cover_items_mjs --> scripts_prng_mjs
@@ -525,6 +541,7 @@ graph LR
   scripts_module_mjs --> scripts_dungeon_follow_mjs
   scripts_module_mjs --> scripts_trap_combat_mjs
   scripts_module_mjs --> scripts_flanking_indicator_mjs
+  scripts_module_mjs --> scripts_ui_ai_action_detail_mjs
   scripts_module_mjs --> scripts_ui_trap_disable_dialog_mjs
   scripts_module_mjs --> scripts_ui_puzzle_stage_dialog_mjs
   scripts_module_mjs --> scripts_ui_skill_challenge_dialog_mjs
@@ -548,6 +565,9 @@ graph LR
   scripts_trap_combat_mjs --> scripts_placement_mjs
   scripts_trap_combat_mjs --> scripts_pathfinding_mjs
   scripts_trap_mechanics_mjs --> scripts_prng_mjs
+  scripts_ui_ai_action_detail_mjs --> scripts_ai_action_digest_mjs
+  scripts_ui_ai_action_detail_mjs --> scripts_agent_action_display_mjs
+  scripts_ui_ai_action_detail_mjs --> scripts_ui_ai_action_log_view_mjs
   scripts_ui_ai_action_log_app_mjs --> scripts_ui_ai_action_log_view_mjs
   scripts_ui_dungeon_app_mjs --> scripts_data_loader_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_runner_mjs

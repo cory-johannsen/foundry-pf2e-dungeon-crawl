@@ -572,7 +572,7 @@ git commit -m "feat(#951): token hover tooltip for the last AI action"
 - Modify: `styles/ai-action-detail.css`
 - Modify: `module.json`
 
-- [ ] **Step 1: Add the hover-overlay styles**
+- [x] **Step 1: Add the hover-overlay styles**
 
 ```css
 /* styles/ai-action-detail.css -- append */
@@ -587,9 +587,9 @@ git commit -m "feat(#951): token hover tooltip for the last AI action"
 }
 ```
 
-- [ ] **Step 2: Run the `update-architecture-docs` skill** (new file `ai-action-digest.mjs`, new hooks in `module.mjs`)
+- [x] **Step 2: Run the `update-architecture-docs` skill** (new file `ai-action-digest.mjs`, new hooks in `module.mjs`)
 - [ ] **Step 3: Bump `module.json`'s version** (minor — check `main`'s current version first)
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add styles/ai-action-detail.css module.json docs/architecture.md
@@ -611,3 +611,16 @@ git commit -m "chore(#951): hover-overlay styling; bump version"
 **Corrections found while writing this plan:** the first draft of Task 3's `renderTrackerDigestInto` toggled `expandedIds` and re-rendered from inside the SAME function being defined (a direct self-reference inside its own closure), which works in JS for a named function declaration but would silently break if a later refactor turned it into an arrow function assigned to a `const` before its own definition was in scope — added the click handler as a plain reference to the already-exported `renderTrackerDigestInto` function (not `this` or an inline duplicate), confirmed to resolve correctly at call time because of this, and noted here so a future refactor to a different function form doesn't reintroduce the subtlety silently.
 
 **Correction found by #1006:** this plan's own Task 3/4 test blocks originally claimed "this repo's existing DOM-touching tests... use real jsdom via vitest's own config" — confirmed live (reading `vitest.config.mjs` and `package.json`) that this is false: the configured environment is `'node'`, no `jsdom`/`happy-dom` package is installed, and no existing test file touches the real `document`/`window` globals. Fixed in place: Task 3's new Step 1 adds `jsdom` as a devDependency, and both Task 3's and Task 4's test blocks now carry a leading `// @vitest-environment jsdom` pragma so only these DOM-touching files opt into it.
+
+## Implementation notes (2026-10-09)
+
+Deviations from the plan above, found by checking the merged code and the live world (Foundry 14.368, pf2e 8.5.0):
+
+- **Task 1:** #950 had already merged, so `visibleRecords` was extracted from the real `scripts/ui/ai-action-log-view.mjs` (tests in `tests/ai-action-log-view.test.mjs`), not from #950's plan. For a non-GM it also redacts, returning copies with only the public fields (no `rationale`/`gmNote`/`source`/`candidateId`).
+- **Tasks 3/4:** the tracker and hover code lives in `scripts/ui/ai-action-detail.mjs` (`renderTrackerDigestInto`, `renderHoverOverlay`, `hideHoverOverlay`, `canvasPointToClient`, `registerAiActionDetail`), not `module.mjs`, which can't be imported in tests. `module.mjs` only calls `registerAiActionDetail()`. #1006's plan should import from there.
+- **Tracker markup (checked live):** rows are `li.combatant[data-combatant-id][data-action="activateCombatant"]` with a `.token-name` block. The summary line goes inside `.token-name`. It calls `stopPropagation` on click and dblclick so the row's own pan/control action and its open-sheet action don't fire. Rows are selected with `li[data-combatant-id]` and the line carries no `data-combatant-id`, so it is never picked up as a row itself. The hook uses `app.viewed` (the tracker's own combat). A combat flag update re-renders the whole tracker (`DocumentCollection#_onModifyContents` → `game.combats.apps`), which confirms that no extra refresh hook is needed.
+- **Coordinates (checked live):** v14 has `canvas.clientCoordinatesFromCanvas(point)` (the stage `worldTransform` applied), which returns CSS pixels relative to `#board`, and `#board` sits at (0,0). The code uses it, adds the board's bounding-rect offset, and falls back to `stage.worldTransform.apply`. The tooltip is anchored at the token's top-right corner (`token.bounds`). It also repositions on `canvasPan`/`refreshToken`, refreshes on `updateCombat` agentLog changes, and hides on `deleteToken`/`deleteCombat`/`canvasTearDown`. The combat comes from `combatant.parent`; the plan's `token.document.parent.combat` doesn't exist.
+- **Visibility:** the hover also hides for a non-GM when the combatant is `hidden`, uses `logCombatantLabel` (PF2e name visibility), and gates on `token.visible`. It does not call `token.isVisible`, because that getter has a side effect.
+- **Escaping:** every string in the tracker line, the rows and the tooltip is escaped with `escapeHtml`. The plan's snippets put rationale and names into `innerHTML` raw.
+- **jsdom:** pinned to `^25`. jsdom 30 needs a newer Node than this repo's v20.
+- **Version bump** (Task 5 Step 3) is left to the merger.
