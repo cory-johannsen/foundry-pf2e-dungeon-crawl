@@ -34,7 +34,7 @@ vi.mock("../scripts/cover-items.mjs", () => ({ chooseCoverItemTypes: vi.fn(() =>
 const chooseEncounterForces = vi.fn();
 vi.mock("../scripts/encounter-forces-dialog.mjs", () => ({ chooseEncounterForces }));
 
-const { generateEncounter, buildForceTable, FORCE_TINTS, forceTint } = await import(
+const { generateEncounter, buildForceTable, FORCE_TINTS, forceTint, regionBoundsFromShapes } = await import(
   "../scripts/encounter-generator.mjs"
 );
 const { startCombatForEncounterId } = await import("../scripts/dungeon-combat.mjs");
@@ -112,6 +112,79 @@ describe("buildForceTable / tints", () => {
     expect(FORCE_TINTS.length).toBeGreaterThanOrEqual(6);
     expect(forceTint(0)).toBe(FORCE_TINTS[0]);
     expect(forceTint(FORCE_TINTS.length)).toBe(FORCE_TINTS[0]);
+  });
+});
+
+describe("regionBoundsFromShapes", () => {
+  it("handles rectangle, ellipse (center), circle and polygon points; unions them", () => {
+    expect(regionBoundsFromShapes([{ type: "rectangle", x: 10, y: 20, width: 100, height: 50 }])).toEqual({ x: 10, y: 20, width: 100, height: 50 });
+    expect(regionBoundsFromShapes([{ type: "ellipse", x: 100, y: 100, radiusX: 30, radiusY: 10 }])).toEqual({ x: 70, y: 90, width: 60, height: 20 });
+    expect(regionBoundsFromShapes([{ type: "circle", x: 50, y: 50, radius: 5 }])).toEqual({ x: 45, y: 45, width: 10, height: 10 });
+    expect(regionBoundsFromShapes([{ type: "polygon", points: [0, 0, 40, 10, 20, 60] }])).toEqual({ x: 0, y: 0, width: 40, height: 60 });
+    expect(
+      regionBoundsFromShapes([
+        { type: "rectangle", x: 0, y: 0, width: 10, height: 10 },
+        { type: "rectangle", x: 20, y: 20, width: 10, height: 10 },
+      ]),
+    ).toEqual({ x: 0, y: 0, width: 30, height: 30 });
+  });
+  it("returns null for nothing usable", () => {
+    expect(regionBoundsFromShapes([])).toBeNull();
+    expect(regionBoundsFromShapes(undefined)).toBeNull();
+    expect(regionBoundsFromShapes([{ type: "polygon", points: [] }])).toBeNull();
+  });
+});
+
+describe("force region placement (#1083)", () => {
+  const regionForces = () => ({
+    difficulty: "moderate",
+    forces: [force("f1", { placement: { mode: "region:r1" } }), force("f2", { placement: { mode: "region:r1" } })],
+  });
+  it("derives the area from shapes when bounds is absent", async () => {
+    install(4);
+    chooseEncounterForces.mockResolvedValue(regionForces());
+    generateEncounterRoster.mockResolvedValue(roster());
+    const scene = {
+      id: "scene1",
+      regions: { get: () => ({ shapes: [{ type: "rectangle", x: 100, y: 200, width: 300, height: 400 }] }) },
+    };
+    await generateEncounter({ scene });
+    const o = spawnCreatures.mock.calls[0][1];
+    expect(o.originArea).toEqual({ x: 100, y: 200, width: 300, height: 400 });
+  });
+  it("falls back to near-party WITH the per-force offset and warns when unresolvable", async () => {
+    install(4);
+    chooseEncounterForces.mockResolvedValue(regionForces());
+    generateEncounterRoster.mockResolvedValue(roster());
+    await generateEncounter({ scene: { id: "scene1", regions: { get: () => undefined } } });
+    const calls = spawnCreatures.mock.calls.map((c) => c[1]);
+    expect(calls[0].originOffsetCells).toBeTruthy();
+    expect(calls[0].originOffsetCells).not.toEqual(calls[1].originOffsetCells);
+    expect(globalThis.renderTemplate.mock.calls.some(([, d]) =>
+      d.roster.warnings?.some((w) => w.includes("PF2EDC.Encounter.ForceRegionUnresolved")),
+    )).toBe(true);
+  });
+});
+
+describe("Friend spawn is not part of the force (#1083)", () => {
+  it("spawns the Friend without forceId/forceName flags, tint or nameSuffix", async () => {
+    install(4);
+    chooseEncounterForces.mockResolvedValue(twoForces());
+    generateEncounterRoster.mockResolvedValue(
+      roster({ friend: { pack: "p", id: "fr", name: "Fr", level: 1 } }),
+    );
+    spawnCreatures.mockResolvedValue([{ name: "Fr" }]);
+    await generateEncounter({ scene: { id: "scene1" } });
+    spawnCreatures.mockResolvedValue([]);
+    const friendCall = spawnCreatures.mock.calls.map((c) => c[1]).find((o) => o.disposition === 1);
+    expect(friendCall.extraFlags[MODULE_ID]).not.toHaveProperty("forceId");
+    expect(friendCall.extraFlags[MODULE_ID]).not.toHaveProperty("forceName");
+    expect(friendCall.extraFlags[MODULE_ID]).toHaveProperty("encounterId");
+    expect(friendCall).not.toHaveProperty("tint");
+    expect(friendCall).not.toHaveProperty("nameSuffix");
+    const foeCalls = spawnCreatures.mock.calls.map((c) => c[1]).filter((o) => o.disposition === -1);
+    expect(foeCalls[0].extraFlags[MODULE_ID].forceId).toBe("f1");
+    expect(foeCalls[0].tint).toBeTruthy();
   });
 });
 
@@ -198,7 +271,9 @@ describe("generateEncounter multi-force (#1083)", () => {
       (c) => `${c[1].extraFlags[MODULE_ID].forceId}:${c[1].disposition}`,
     );
     expect(dispositions.filter((d) => d.startsWith("f2"))).toEqual(["f2:-1"]);
-    expect(dispositions.filter((d) => d.startsWith("f1")).length).toBe(4);
+    // The Friend (disposition 1) is the party's ally and carries no forceId.
+    expect(dispositions.filter((d) => d.startsWith("f1")).length).toBe(3);
+    expect(dispositions.filter((d) => d.endsWith(":1"))).toEqual(["undefined:1"]);
   });
 
   it("uses the real party size", async () => {

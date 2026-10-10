@@ -12,11 +12,6 @@ import { buildEncounterDeck, dealEncounter } from "./encounter-deck.mjs";
 import { getGenerator } from "./generator-registry.mjs";
 import { loadCreatureArt } from "./data-loader.mjs";
 import { findCreatureArt, creatureArtPath } from "./creature-art.mjs";
-import {
-  traitFieldHtml,
-  wireTraitPickerButtons,
-  readTraitField,
-} from "./trait-picker.mjs";
 import { startCombatForEncounterId } from "./dungeon-combat.mjs";
 import { chooseCoverItemTypes } from "./cover-items.mjs";
 import { depthBiasForDifficultyTier, xpBudget } from "./encounter-roster.mjs";
@@ -56,60 +51,6 @@ const NEAR_PARTY_OFFSETS = [
   { dx: 4, dy: 4 },
 ];
 
-async function chooseThemeAndSize({
-  api,
-  prefillTraits = [],
-  prefillExcludeTraits = [],
-} = {}) {
-  const { DialogV2 } = foundry.applications.api;
-  const traits = await api.listCreatureTraits();
-  return DialogV2.wait({
-    window: { title: game.i18n.localize("PF2EDC.Encounter.Title") },
-    content: `
-      <form>
-        <label>
-          ${game.i18n.localize("PF2EDC.Encounter.DifficultyLabel")}
-          <select name="difficulty">
-            <option value="trivial">${game.i18n.localize("PF2EDC.Encounter.Difficulty.Trivial")}</option>
-            <option value="low">${game.i18n.localize("PF2EDC.Encounter.Difficulty.Low")}</option>
-            <option value="moderate" selected>${game.i18n.localize("PF2EDC.Encounter.Difficulty.Moderate")}</option>
-            <option value="severe">${game.i18n.localize("PF2EDC.Encounter.Difficulty.Severe")}</option>
-            <option value="extreme">${game.i18n.localize("PF2EDC.Encounter.Difficulty.Extreme")}</option>
-          </select>
-        </label>
-        ${traitFieldHtml({
-          name: "traits",
-          label: game.i18n.localize("PF2EDC.Encounter.ThemeLabel"),
-          buttonLabel: game.i18n.localize("PF2EDC.Encounter.ChooseTraitsButton"),
-          selected: prefillTraits,
-        })}
-        ${traitFieldHtml({
-          name: "excludeTraits",
-          label: game.i18n.localize("PF2EDC.Encounter.ExcludeTraitsLabel"),
-          buttonLabel: game.i18n.localize("PF2EDC.Encounter.ChooseTraitsButton"),
-          selected: prefillExcludeTraits,
-        })}
-      </form>`,
-    render: (_event, dialog) => wireTraitPickerButtons(dialog.element, traits),
-    buttons: [
-      {
-        action: "generate",
-        label: game.i18n.localize("PF2EDC.Encounter.GenerateButton"),
-        default: true,
-        callback: (_event, _button, dialog) => ({
-          traits: readTraitField(dialog.element, "traits"),
-          excludeTraits: readTraitField(dialog.element, "excludeTraits"),
-          // A <select> with a `selected` default option always has a value,
-          // so this only ever matters if the element is somehow missing.
-          difficulty: dialog.element.querySelector('[name="difficulty"]')?.value ?? "moderate",
-        }),
-      },
-      { action: "cancel", label: "Cancel" },
-    ],
-    rejectClose: false,
-  });
-}
-
 async function postEncounterChatCard(api, roster, force = null) {
   const content = await renderTemplate(
     `modules/${MODULE_ID}/templates/encounter-chat.hbs`,
@@ -136,6 +77,14 @@ function resolveArt(creatureArt, ref) {
   return filename
     ? `modules/${MODULE_ID}/assets/${creatureArtPath(filename)}`
     : null;
+}
+
+/** extraFlags minus the per-force identity keys (non-force flags are kept). */
+function friendFlags(extraFlags) {
+  const mod = extraFlags?.[MODULE_ID];
+  if (!mod) return extraFlags;
+  const { forceId, forceName, originalName, ...rest } = mod;
+  return { ...extraFlags, [MODULE_ID]: rest };
 }
 
 async function spawnEncounterTokens(
@@ -177,7 +126,11 @@ async function spawnEncounterTokens(
     const entries = [
       withArt({ pack: roster.friend.pack, id: roster.friend.id }),
     ];
-    const placement = place(false);
+    // #1083: the Friend is the party's ally, never a member of the force --
+    // no forceId/forceName flags, tint or name suffix.
+    const placement = { ...place(false), extraFlags: friendFlags(extraFlags) };
+    delete placement.tint;
+    delete placement.nameSuffix;
     const [spawned] =
       (await api.spawnCreatures(entries, {
         ...placement,
@@ -212,9 +165,49 @@ async function spawnEncounterTokens(
   }
 }
 
+/**
+ * #1083: bounding rectangle of a Foundry region's shapes (rectangle x/y/
+ * width/height, ellipse/circle centre + radii, polygon flat points), or null.
+ */
+export function regionBoundsFromShapes(shapes) {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  const add = (x1, y1, x2, y2) => {
+    if (![x1, y1, x2, y2].every(Number.isFinite)) return;
+    minX = Math.min(minX, x1);
+    minY = Math.min(minY, y1);
+    maxX = Math.max(maxX, x2);
+    maxY = Math.max(maxY, y2);
+  };
+  for (const sh of Array.isArray(shapes) ? shapes : []) {
+    if (!sh) continue;
+    if (sh.type === "rectangle") {
+      add(sh.x, sh.y, sh.x + sh.width, sh.y + sh.height);
+    } else if (sh.type === "ellipse") {
+      add(sh.x - sh.radiusX, sh.y - sh.radiusY, sh.x + sh.radiusX, sh.y + sh.radiusY);
+    } else if (sh.type === "circle") {
+      add(sh.x - sh.radius, sh.y - sh.radius, sh.x + sh.radius, sh.y + sh.radius);
+    } else if (sh.type === "polygon" && Array.isArray(sh.points)) {
+      for (let i = 0; i + 1 < sh.points.length; i += 2) {
+        add(sh.points[i], sh.points[i + 1], sh.points[i], sh.points[i + 1]);
+      }
+    }
+  }
+  return Number.isFinite(minX)
+    ? { x: minX, y: minY, width: maxX - minX, height: maxY - minY }
+    : null;
+}
+
 function regionArea(scene, regionId) {
-  const b = scene.regions?.get?.(regionId)?.bounds;
-  return b ? { x: b.x, y: b.y, width: b.width, height: b.height } : null;
+  const region = scene.regions?.get?.(regionId);
+  const b = region?.bounds;
+  if (b && [b.x, b.y, b.width, b.height].every(Number.isFinite)) {
+    return { x: b.x, y: b.y, width: b.width, height: b.height };
+  }
+  const shapes = region?.shapes;
+  return regionBoundsFromShapes(shapes ? Array.from(shapes) : null);
 }
 
 const FILTER_NAMES = [
@@ -305,16 +298,24 @@ async function generateForces({
 
   const encounterId = freshSeed();
   for (const { force, roster, index } of survivors) {
+    const mode = force.placement?.mode ?? "nearParty";
+    const placementArea = mode.startsWith("region:")
+      ? regionArea(scene, mode.slice("region:".length))
+      : null;
+    if (mode.startsWith("region:") && !placementArea) {
+      roster.warnings = [
+        ...(roster.warnings ?? []),
+        game.i18n.format("PF2EDC.Encounter.ForceRegionUnresolved", {
+          name: force.name || force.id,
+        }),
+      ];
+    }
     await postEncounterChatCard(api, roster, force);
     const flags = foundry.utils.mergeObject(
       { [MODULE_ID]: { encounterId, forceId: force.id, forceName: force.name } },
       extraFlags ?? {},
       { inplace: false },
     );
-    const mode = force.placement?.mode ?? "nearParty";
-    const placementArea = mode.startsWith("region:")
-      ? regionArea(scene, mode.slice("region:".length))
-      : null;
     await spawnEncounterTokens(api, roster, partyMembers, {
       originArea,
       forceHidden,
@@ -322,7 +323,7 @@ async function generateForces({
       creatureArt,
       placementArea,
       originOffsetCells:
-        mode === "nearParty" ? NEAR_PARTY_OFFSETS[index % NEAR_PARTY_OFFSETS.length] : null,
+        placementArea ? null : NEAR_PARTY_OFFSETS[index % NEAR_PARTY_OFFSETS.length],
       tint: forceTint(index),
       nameSuffix: force.name || null,
     });

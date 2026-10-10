@@ -219,6 +219,7 @@
   "PF2EDC.Encounter.ForceNearParty": "Near party",
   "PF2EDC.Encounter.ForcePlacementLabel": "Placement",
   "PF2EDC.Encounter.ForceRarityLabel": "Rarity",
+  "PF2EDC.Encounter.ForceRegionUnresolved": "Force \"{name}\": its placement region could not be resolved; placed near the party instead.",
   "PF2EDC.Encounter.ForceRemoveButton": "Remove",
   "PF2EDC.Encounter.ForceShareLabel": "Budget share (%)",
   "PF2EDC.Encounter.ForceSharesInvalid": "Shares must be positive and total 100% (currently {total}%).",

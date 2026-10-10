@@ -4,6 +4,8 @@ import {
   combatantAllies,
   combatSideStatus,
   startCombatForEncounterId,
+  rollAndApplyStrike,
+  handleAttackForRetaliation,
 } from "../scripts/dungeon-combat.mjs";
 
 const MOD = "pf2e-dungeon-crawl";
@@ -115,5 +117,46 @@ describe("startCombatForEncounterId passes forces", () => {
     const names = calls.map((c) => c[0] + ":" + (c[1] ?? ""));
     expect(calls.find((c) => c[1] === "forces")[2]).toEqual(table);
     expect(names.indexOf("setFlag:forces")).toBeLessThan(names.indexOf("rollInitiative:"));
+  });
+});
+
+describe("Friend with a stale forceId (#1083 final review)", () => {
+  const forces = { f1: { hostility: "players", hostileTo: [] } };
+  it("is not the party's opponent and not an ally of the force's monsters", () => {
+    const P = cb("P", "party", 1);
+    const M = cb("M", "f1", -1);
+    const F = cb("F", "f1", 1); // Friend: disposition 1 but carries the force flag
+    const c = mk([P, M, F], forces);
+    expect(ids(combatantOpponents(c, P))).toEqual(["M"]);
+    expect(ids(combatantAllies(c, M))).toEqual([]);
+    expect(ids(combatantOpponents(c, M))).toEqual(["P", "F"]);
+  });
+});
+
+describe("retaliation recording only for proceeding attacks (#1083)", () => {
+  it("rollAndApplyStrike with no usable strike does not record retaliation", async () => {
+    const A = { ...cb("A", "f1", -1), actor: { type: "npc", system: { actions: [] } } };
+    const V = cb("V", "f2", -1);
+    const setFlag = vi.fn();
+    const combat = {
+      combatants: [A, V],
+      scene: { grid: { size: 100, distance: 5 } },
+      getFlag: (m, k) => (k === "forces" ? { f1: { hostility: "all", hostileTo: [] }, f2: { hostility: "players", hostileTo: [] } } : undefined),
+      setFlag,
+    };
+    expect(await rollAndApplyStrike(combat, A, V)).toBeNull();
+    expect(setFlag).not.toHaveBeenCalled();
+  });
+  it("handleAttackForRetaliation never throws", async () => {
+    globalThis.game = { users: { activeGM: { isSelf: true } }, combats: { get contents() { throw new Error("boom"); } } };
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(
+      handleAttackForRetaliation({
+        flags: { pf2e: { context: { type: "attack-roll", target: { token: "Scene.s.Token.t" } } } },
+        speaker: { scene: "s", token: "a" },
+      }),
+    ).resolves.toBeUndefined();
+    expect(spy).toHaveBeenCalled();
+    spy.mockRestore();
   });
 });

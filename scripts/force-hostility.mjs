@@ -11,23 +11,25 @@ export const DEFAULT_FORCE = "default";
 
 export function forceIdOf(combatant) {
   const token = combatant?.token;
+  // Only a hostile token can belong to a non-party force: a stale forceId
+  // flag on a Friend/neutral token must never make it hostile to the party.
+  if (token?.disposition !== -1) return PARTY_FORCE;
   const flagged =
     token?.getFlag?.(MODULE_ID, "forceId") ?? token?.flags?.[MODULE_ID]?.forceId;
-  if (flagged) return flagged;
-  return token?.disposition === -1 ? DEFAULT_FORCE : PARTY_FORCE;
+  return flagged || DEFAULT_FORCE;
 }
 
 export function readForces(combat) {
   const table = combat?.getFlag?.(MODULE_ID, "forces");
-  return table && typeof table === "object" ? table : null;
+  return table && typeof table === "object" && !Array.isArray(table) ? table : null;
 }
 
 export function areHostileForces(forces, fa, fb) {
   if (fa === fb) return false;
   if (fa === PARTY_FORCE || fb === PARTY_FORCE) return true; // the other is a non-party force
   if (!forces) return false; // legacy: two non-party sides never fight each other
-  const a = forces[fa] ?? { hostility: "players", hostileTo: [] };
-  const b = forces[fb] ?? { hostility: "players", hostileTo: [] };
+  const a = (Object.hasOwn(forces, fa) && forces[fa]) || { hostility: "players", hostileTo: [] };
+  const b = (Object.hasOwn(forces, fb) && forces[fb]) || { hostility: "players", hostileTo: [] };
   return (
     a.hostility === "all" ||
     b.hostility === "all" ||
@@ -44,14 +46,14 @@ export function areHostile(combat, a, b) {
 export function withRetaliation(forces, attackerForce, victimForce) {
   if (!forces || attackerForce === victimForce) return forces;
   if (attackerForce === PARTY_FORCE || victimForce === PARTY_FORCE) return forces;
-  if (!forces[victimForce]) return forces;
+  if (!Object.hasOwn(forces, victimForce)) return forces;
   const next = structuredClone(forces);
   const add = (id, other) => {
     const list = next[id].hostileTo ?? (next[id].hostileTo = []);
     if (!list.includes(other)) list.push(other);
   };
   add(victimForce, attackerForce);
-  if (next[attackerForce]?.hostility === "players") add(attackerForce, victimForce);
+  if (Object.hasOwn(next, attackerForce) && next[attackerForce].hostility === "players") add(attackerForce, victimForce);
   return next;
 }
 

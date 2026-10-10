@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import {
-  areHostile, areHostileForces, withRetaliation, recordAttack, forceIdOf,
+  areHostile, areHostileForces, withRetaliation, recordAttack, forceIdOf, readForces,
 } from "../scripts/force-hostility.mjs";
 
 const M = "pf2e-dungeon-crawl";
@@ -21,6 +21,34 @@ describe("forceIdOf", () => {
     expect(forceIdOf(mk("a", 1))).toBe("party");
     expect(forceIdOf(mk("a", 0))).toBe("party");
     expect(forceIdOf(mk("a", -1))).toBe("default");
+  });
+});
+
+describe("forceIdOf hardening (#1083 final review)", () => {
+  it("a non-hostile token is party even if a stale forceId flag is present", () => {
+    expect(forceIdOf(mk("fr", 1, "f1"))).toBe("party");
+    expect(forceIdOf(mk("n", 0, "f1"))).toBe("party");
+  });
+  it("a friend carrying a force flag is not hostile to the party and not an ally of the force", () => {
+    const c = combatWith(forces());
+    const friend = mk("fr", 1, "f2");
+    expect(areHostile(c, mk("p", 1), friend)).toBe(false);
+    expect(areHostile(c, friend, mk("g", -1, "f2"))).toBe(true);
+  });
+});
+
+describe("readForces / lookups hardening", () => {
+  it("rejects arrays and non-objects", () => {
+    expect(readForces({ getFlag: () => [] })).toBeNull();
+    expect(readForces({ getFlag: () => "x" })).toBeNull();
+    expect(readForces(combatWith(forces()))).not.toBeNull();
+  });
+  it("does not resolve inherited keys as forces", () => {
+    const t = forces();
+    // "constructor" must be treated as an unknown force (hostile to players), not Object's constructor
+    expect(areHostileForces(t, "constructor", "toString")).toBe(false);
+    expect(areHostileForces(t, "constructor", "party")).toBe(true);
+    expect(withRetaliation(t, "f1", "constructor")).toBe(t);
   });
 });
 

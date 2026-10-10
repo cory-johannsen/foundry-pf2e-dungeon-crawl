@@ -330,9 +330,10 @@ export async function rollStealthInitiativeAndDetect(combat, combatants, deps = 
     rolled.map((r) => ({ id: r.combatant.id, value: r.result, statistic: "stealth" })),
   );
 
-  // Observers are the sneakers' opponents by token disposition (the same rule
-  // `combatantOpponents` uses), not "everyone outside the party": a friendly
-  // encounter Friend or neutral NPC never notices/alarms.
+  // Observers are the sneakers' opponents (the same rule `combatantOpponents`
+  // uses: token disposition, or force hostility when the combat has a #1083
+  // forces table), not "everyone outside the party": a friendly encounter
+  // Friend or neutral NPC never notices/alarms.
   const sneakerSides = new Set(sneakers.map((c) => c.token?.disposition));
   const hasForces = !!readForces(combat);
   const hostiles = combatants.filter(
@@ -1327,7 +1328,8 @@ export async function runAgentDecisionLoop(
 
 /** Every other still-alive combatant on the opposing side (token disposition
  * differs from `combatant`'s own) — "opposing side" here is just disposition,
- * the same two-bucket split combatSideStatus already uses. */
+ * the same two-bucket split combatSideStatus already uses. #1083: a combat
+ * with a `forces` table instead uses force hostility (areHostile). */
 export function combatantOpponents(combat, combatant) {
   if (readForces(combat))
     return combat.combatants.filter(
@@ -3112,6 +3114,14 @@ export async function handleAttackRollForReactions(message) {
  * attacked becomes hostile to its attacker's force. Active GM only.
  */
 export async function handleAttackForRetaliation(message) {
+  try {
+    await handleAttackForRetaliationInner(message);
+  } catch (err) {
+    console.error(`${MODULE_ID} | #1083: retaliation hook failed:`, err?.message ?? err);
+  }
+}
+
+async function handleAttackForRetaliationInner(message) {
   if (!(game.users?.activeGM?.isSelf ?? game.user?.isGM)) return;
   const context = message.flags?.pf2e?.context;
   if (context?.type !== "attack-roll" && context?.type !== "damage-roll") return;
@@ -5380,7 +5390,6 @@ async function drawCriticalCardForStrike(
  * is currently rendered on this client's canvas.
  */
 export async function rollAndApplyStrike(combat, combatant, target) {
-  if (readForces(combat)) await recordAttack(combat, combatant, target);
   // #551: only a strike whose reach covers the current distance may roll;
   // out of reach after a short/blocked move is normal here, so stay silent.
   const gridSize = combat.scene?.grid?.size ?? 100;
@@ -5392,6 +5401,8 @@ export async function rollAndApplyStrike(combat, combatant, target) {
       strikeInReach(combatant, target, a, gridSize, gridDistanceFt).inReach,
   );
   if (!strike) return null;
+  // #1083: retaliation is recorded only for an attack that actually proceeds.
+  if (readForces(combat)) await recordAttack(combat, combatant, target);
 
   const prevShowCheck = game.user.flags?.pf2e?.settings?.showCheckDialogs;
   const prevShowDamage = game.user.flags?.pf2e?.settings?.showDamageDialogs;
@@ -7759,7 +7770,6 @@ async function rollAndApplyStrikeAtVariant(
   variantIndex,
   extras = null,
 ) {
-  if (readForces(combat)) await recordAttack(combat, combatant, target);
   const strike = (combatant.actor?.system?.actions ?? []).find(
     (a) =>
       a.type === "strike" &&
@@ -7767,6 +7777,8 @@ async function rollAndApplyStrikeAtVariant(
       (a.item?.slug ?? a.slug ?? a.label) === actionSlug,
   );
   if (!strike) return null;
+  // #1083: see rollAndApplyStrike -- record only an attack that proceeds.
+  if (readForces(combat)) await recordAttack(combat, combatant, target);
 
   const prevShowCheck = game.user.flags?.pf2e?.settings?.showCheckDialogs;
   const prevShowDamage = game.user.flags?.pf2e?.settings?.showDamageDialogs;
