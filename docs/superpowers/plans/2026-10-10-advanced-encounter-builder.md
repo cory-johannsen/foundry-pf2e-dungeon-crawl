@@ -139,7 +139,7 @@ export function validateShares(shares) {
   - `withRetaliation(forces, attackerForce, victimForce) → forces` (pure, returns new table): no-op if table null, same force, victim is `party`, or victim force unknown; else adds `attackerForce` to victim's `hostileTo`, and (symmetric) adds `victimForce` to attacker force's `hostileTo` when the attacker force exists and has `hostility:"players"` (attacker `party` has no entry — skipped).
   - `async recordAttack(combat, attacker, victim)`: computes `withRetaliation`, and `combat.setFlag(MODULE_ID,"forces",next)` only if it changed; swallows+`console.error`s failures (never blocks).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 import { describe, it, expect, vi } from "vitest";
@@ -248,9 +248,9 @@ describe("withRetaliation / recordAttack", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `npx vitest run tests/force-hostility.test.mjs` → FAIL.
+- [x] **Step 2: Run to verify it fails** — `npx vitest run tests/force-hostility.test.mjs` → FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 /**
@@ -323,8 +323,8 @@ export async function recordAttack(combat, attacker, victim) {
 
 Note: `withRetaliation` returns the *same object* when it no-ops, so `next === forces` short-circuits before the JSON compare; the `toEqual` assertions in the test hold either way.
 
-- [ ] **Step 4: Run to verify it passes** — PASS.
-- [ ] **Step 5: Commit** — `git add scripts/force-hostility.mjs tests/force-hostility.test.mjs && git commit -m "#1083: central force hostility relation"`
+- [x] **Step 4: Run to verify it passes** — PASS.
+- [x] **Step 5: Commit** — `git add scripts/force-hostility.mjs tests/force-hostility.test.mjs && git commit -m "#1083: central force hostility relation"`
 
 ---
 
