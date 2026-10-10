@@ -330,6 +330,8 @@ Note: `withRetaliation` returns the *same object* when it no-ops, so `next === f
 
 ### Task 3: Per-force creature filters in the roster + creature listing
 
+**FAMILY_FIELD (owner decision):** PF2e NPCs have no family field (probed Monster Core, 492 actors). "family" = ancestry-style trait: case-insensitive equality against any entry of `system.traits.value` (entry `traits`); no separate `family` property on entries.
+
 **Files:**
 - Modify: `scripts/encounter-roster.mjs` (`pickCreature` ~142-181, `resolveEncounterRoster` ~228-, return value)
 - Modify: `scripts/foundry-api.mjs` (`findCreatures` ~215-300)
@@ -344,12 +346,12 @@ Note: `withRetaliation` returns the *same object* when it no-ops, so `next === f
   - The returned roster gains `appliedFilters: string[]` — the subset of `["levelRange","family","rarity","xpCapOverride"]` this resolver honored (always all four). A custom generator that omits `appliedFilters` is treated as supporting none (Task 7 warns).
 - `api.findCreatures` gains `family` and `rarity` options; the index `fields` list gains `"system.traits.rarity"` and the family field (see Step 1 probe), and returned entries gain `rarity` and `family`.
 
-- [ ] **Step 1: Probe where PF2e stores creature family** (planning left this open)
+- [x] **Step 1: Probe where PF2e stores creature family** (planning left this open)
 
 Run (needs `PF2E_SYSTEM_PACKS_DIR` from `.env`/README):
 `ls "$PF2E_SYSTEM_PACKS_DIR"/pathfinder-monster-core/_source 2>/dev/null | head -3`, then `grep -o '"family"[^,]*' -r "$PF2E_SYSTEM_PACKS_DIR"/pathfinder-monster-core/_source | head -5` and `grep -rl 'details.family\|"family"' ... | head`. Record the exact JSON path in this plan's `FAMILY_FIELD` constant below. **If no NPC carries a family field in the data**, STOP and ask the owner: the spec's family filter then needs a different source (e.g. name-prefix match), which is a scope decision, not a coding detail. If found (expected: `system.details.family`... verify, do not assume), proceed using the verified path in place of `system.details.family` everywhere below.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 Using a fake `api.findCreatures` that records its args and returns a pool filtered by the args (copy the helper pattern from `tests/encounter-roster.test.mjs`), assert:
 
@@ -377,13 +379,13 @@ it("no new params = identical result to today (regression)", async () => { /* sa
 
 Write each body fully, reusing the file's existing `oneFoeSlot`-style fixtures (create them from the shape `dealEncounter` produces: `{ foes: [{ levelOffset: 0, countsAs: 1 }] }`). Add a `foundry-api` test only if a `findCreatures` test file already exists; otherwise cover `findCreatures` filtering through a pure extracted predicate `creatureMatchesFilters(entry, { family, rarity })` exported from `foundry-api.mjs`'s neighbor — **put it in `scripts/encounter-roster.mjs`** and unit-test it there (case-insensitive family equality, exact rarity, `null` = no constraint).
 
-- [ ] **Step 3: Run to verify they fail** — `npx vitest run tests/encounter-roster-force-filters.test.mjs`.
+- [x] **Step 3: Run to verify they fail** — `npx vitest run tests/encounter-roster-force-filters.test.mjs`.
 
-- [ ] **Step 4: Implement**
+- [x] **Step 4: Implement**
   1. `encounter-roster.mjs`: add and export `creatureMatchesFilters`; add the new params to `pickCreature` (compute `minLevel = Math.max(minLevel, partyLevel+levelOffsetMin)`, `maxLevel = Math.min(maxLevel, partyLevel+levelOffsetMax)` when non-null) and pass `family`/`rarity` in `look`; thread the params through `resolveEncounterRoster`'s two `pickCreature` call sites (`pick` and `pickWithinCap`). Set `const xpCap = xpCapOverride ?? (partySize != null ? xpBudget(capTier, partySize) : null)`; in `fitOffset` return `null` immediately when `xpCap === 0`; in `pickWithinCap` the "empty roster takes -4 / nominal pick" fallbacks must not run when `xpCap === 0`. Add `appliedFilters` to the returned object.
   2. `foundry-api.mjs findCreatures`: add `family = null, rarity = null` options, request `system.traits.rarity` and the verified family field in `fields`, filter with `creatureMatchesFilters`, include `rarity`/`family` in `found.push`.
-- [ ] **Step 5: Run the new file + `npx vitest run tests/encounter-roster.test.mjs tests/encounter-generator.test.mjs`** → all PASS.
-- [ ] **Step 6: Commit** — `git commit -am "#1083: per-force level range, family, rarity and budget override in roster resolution"` (add new test file).
+- [x] **Step 5: Run the new file + `npx vitest run tests/encounter-roster.test.mjs tests/encounter-generator.test.mjs`** → all PASS.
+- [x] **Step 6: Commit** — `git commit -am "#1083: per-force level range, family, rarity and budget override in roster resolution"` (add new test file).
 
 ---
 

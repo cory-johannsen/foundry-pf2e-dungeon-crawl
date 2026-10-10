@@ -42,6 +42,7 @@ import {
   overlaps,
   partyLevelFrom,
 } from "./placement.mjs";
+import { creatureMatchesFilters } from "./encounter-roster.mjs";
 import { splitmix32, seedFromString } from "./prng.mjs";
 import { buildCoverItemActorData, MODULE_ID } from "./cover-items.mjs";
 import { classifyTrap } from "./trap-combat.mjs";
@@ -254,6 +255,8 @@ export function makeFoundryApi(sceneRef = null) {
       packs = null,
       requireTrait = null,
       excludePacks = [],
+      family = null,
+      rarity = null,
     } = {}) {
       packs ??= game.packs
         .filter(
@@ -274,6 +277,7 @@ export function makeFoundryApi(sceneRef = null) {
             "type",
             "system.details.level.value",
             "system.traits.value",
+            "system.traits.rarity",
             "system.traits.size.value",
             "system.details.languages.value",
           ],
@@ -295,11 +299,21 @@ export function makeFoundryApi(sceneRef = null) {
           if (!sizeAtLeast(size, minSize)) continue;
           const languages = e.system?.details?.languages?.value ?? [];
           if (speaksLanguage && !languages.length) continue;
+          const entryRarity = e.system?.traits?.rarity ?? "common";
+          // Family = ancestry-style trait (creatureMatchesFilters, #1083).
+          if (
+            !creatureMatchesFilters(
+              { traits: has, rarity: entryRarity },
+              { family, rarity },
+            )
+          )
+            continue;
           found.push({
             pack: id,
             id: e._id,
             name: e.name,
             level,
+            rarity: entryRarity,
             traits: has,
             size,
             languages,

@@ -139,6 +139,26 @@ export function depthBiasForDifficultyTier(tier) {
  * creature trait) used to leave every single slot empty rather than falling
  * back to an untraited pick.
  */
+/**
+ * Per-force creature filter predicate (#1083). `family` is the ancestry-style
+ * trait (goblin, orc, dragon...): PF2e NPCs carry no dedicated family field,
+ * so it is a case-insensitive equality against any entry of the creature's
+ * `traits` (system.traits.value). `rarity` is an exact match. null = no
+ * constraint.
+ */
+export function creatureMatchesFilters(
+  entry,
+  { family = null, rarity = null } = {},
+) {
+  if (rarity != null && entry.rarity !== rarity) return false;
+  if (family != null) {
+    const want = String(family).toLowerCase();
+    if (!(entry.traits ?? []).some((t) => String(t).toLowerCase() === want))
+      return false;
+  }
+  return true;
+}
+
 async function pickCreature({
   api,
   partyLevel,
@@ -150,9 +170,17 @@ async function pickCreature({
   requireTrait = null,
   boss = false,
   upwardTolerance = LEVEL_TOLERANCE,
+  levelOffsetMin = null,
+  levelOffsetMax = null,
+  family = null,
+  rarity = null,
 }) {
-  const minLevel = partyLevel + levelOffset + levelOffsetBias - LEVEL_TOLERANCE;
-  const maxLevel = partyLevel + levelOffset + levelOffsetBias + upwardTolerance;
+  let minLevel = partyLevel + levelOffset + levelOffsetBias - LEVEL_TOLERANCE;
+  let maxLevel = partyLevel + levelOffset + levelOffsetBias + upwardTolerance;
+  if (levelOffsetMin != null)
+    minLevel = Math.max(minLevel, partyLevel + levelOffsetMin);
+  if (levelOffsetMax != null)
+    maxLevel = Math.min(maxLevel, partyLevel + levelOffsetMax);
   const excludeAll = [
     ...new Set([...(excludeTraits ?? []), ...MANDATORY_EXCLUDE]),
   ];
@@ -165,6 +193,8 @@ async function pickCreature({
       packs,
       excludePacks,
       requireTrait,
+      family,
+      rarity,
     });
 
   let pool = [];
@@ -237,13 +267,20 @@ export async function resolveEncounterRoster({
   partySize = null,
   isBoss = false,
   depthBias = null,
+  levelOffsetMin = null,
+  levelOffsetMax = null,
+  family = null,
+  rarity = null,
+  xpCapOverride = null,
 }) {
   const warnings = [];
   const groupChoice = new Map();
   let approxXp = 0;
   let cappedCount = 0;
   const capTier = xpCeilingTierForDepth(depthBias);
-  const xpCap = partySize != null ? xpBudget(capTier, partySize) : null;
+  const xpCap =
+    xpCapOverride ?? (partySize != null ? xpBudget(capTier, partySize) : null);
+  const filters = { levelOffsetMin, levelOffsetMax, family, rarity };
 
   const pick = (levelOffset, boss = false) =>
     pickCreature({
@@ -256,6 +293,7 @@ export async function resolveEncounterRoster({
       levelOffsetBias,
       requireTrait,
       boss,
+      ...filters,
     });
 
   // Cap-aware pick (#293): with a cap, the largest relative level `d` (at
@@ -267,6 +305,7 @@ export async function resolveEncounterRoster({
   // charged is never below what spawns. Nothing fits even at -4 -> skipped
   // (null), except into an empty roster, which takes -4 rather than nothing.
   const fitOffset = (slotOffset, count) => {
+    if (xpCap === 0) return null;
     const nominal = slotOffset + levelOffsetBias;
     for (let d = Math.min(nominal, 4); d >= -4; d -= 1) {
       if (approxXp + xpFor(d) * count <= xpCap) return d;
@@ -295,6 +334,7 @@ export async function resolveEncounterRoster({
       requireTrait,
       boss,
       upwardTolerance: 0,
+      ...filters,
     });
     if (!chosen && d < slotOffset + levelOffsetBias) {
       // Clamped below the nominal level and nothing exists down there.
@@ -434,5 +474,6 @@ export async function resolveEncounterRoster({
     goal: resolved.goal ?? null,
     warnings,
     approxXp,
+    appliedFilters: ["levelRange", "family", "rarity", "xpCapOverride"],
   };
 }
