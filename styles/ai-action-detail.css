@@ -49,3 +49,15 @@
 #pf2edc-ai-hover .pf2edc-ai-result.pf2edc-tone-success { background: rgba(60, 170, 80, 0.35); }
 #pf2edc-ai-hover .pf2edc-ai-result.pf2edc-tone-failure { background: rgba(200, 60, 60, 0.35); }
 #pf2edc-ai-hover .pf2edc-ai-result.pf2edc-tone-neutral { background: rgba(160, 160, 160, 0.25); }
+
+/* #952: GM-only "Details" disclosure (alternatives considered + decision
+ * metadata) -- shared by the AI turn card, the AI Action Log window and the
+ * tracker row expansion. */
+.pf2edc-ai-details { font-size: 0.9em; margin-top: 0.15em; }
+.pf2edc-ai-details > summary { cursor: pointer; opacity: 0.75; }
+.pf2edc-ai-details .pf2edc-ai-alternatives-label { opacity: 0.7; margin-top: 0.2em; }
+.pf2edc-ai-details .pf2edc-ai-alternatives { margin: 0.1em 0 0.2em 1.1em; padding: 0; list-style: disc; }
+.pf2edc-ai-details .pf2edc-ai-alternative { opacity: 0.8; }
+.pf2edc-ai-details .pf2edc-ai-alternative-chosen { opacity: 1; }
+.pf2edc-ai-details .pf2edc-ai-alternative-more { list-style: none; opacity: 0.6; }
+.pf2edc-ai-details .pf2edc-ai-decision-meta { opacity: 0.8; font-family: var(--font-mono, monospace); font-size: 0.95em; word-break: break-word; }

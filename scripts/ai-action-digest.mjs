@@ -11,6 +11,7 @@
  */
 import { visibleRecords } from "./ui/ai-action-log-view.mjs";
 import { escapeHtml } from "./agent-action-display.mjs";
+import { buildDecisionDetails, renderDecisionDetailsHtml } from "./ui/ai-decision-details.mjs";
 
 const TONES = new Set(["success", "failure", "neutral"]);
 
@@ -75,9 +76,9 @@ function costGlyph(cost) {
 /**
  * #951 (shared with #1006's Token HUD panel): one digest row as an `<li>`.
  * Every string is escaped (summaries carry creature names; rationale is
- * free text from an external model). The rationale, GM note, fallback tag
- * and GM-only marker are only ever rendered for a GM, whatever the record
- * carries.
+ * free text from an external model). The rationale, GM note, fallback tag,
+ * GM-only marker and #952's decision details are only ever rendered for a
+ * GM, whatever the record carries.
  */
 export function renderDigestRowHtml(record, isGM) {
   const gm = isGM === true;
@@ -89,10 +90,11 @@ export function renderDigestRowHtml(record, isGM) {
   const gmOnly = gm && record?.visibility === "gm" ? " pf2edc-ai-gm-only" : "";
   const note = gm && record?.gmNote ? `<div class="pf2edc-ai-note">${escapeHtml(record.gmNote)}</div>` : "";
   const rationale = gm && record?.rationale ? `<div class="pf2edc-ai-rationale">${escapeHtml(record.rationale)}</div>` : "";
+  const details = gm ? renderDecisionDetailsHtml(buildDecisionDetails(record, { isGM: true })) : "";
   return (
     `<li class="pf2edc-ai-row${gmOnly}">` +
     `${costGlyph(record?.cost)}<strong>${escapeHtml(record?.summary || "Action")}</strong>${target} ` +
     `<span class="pf2edc-ai-result pf2edc-tone-${tone}">${escapeHtml(record?.result?.text ?? "done")}</span>` +
-    `${fallback}${note}${rationale}</li>`
+    `${fallback}${note}${rationale}${details}</li>`
   );
 }

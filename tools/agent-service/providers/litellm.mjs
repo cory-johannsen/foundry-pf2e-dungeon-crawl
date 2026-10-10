@@ -1,6 +1,7 @@
 import { readEnvOrDotenv } from "../env.mjs";
 import { nodeFetch } from "../node-fetch.mjs";
 import { selectCombatTier } from "../tier-selection.mjs";
+import { usageMeta } from "./decision-meta.mjs";
 
 // Deliberately its own (shorter) default, separate from
 // customization-generator.mjs's LITELLM_TIMEOUT_MS: kept well under
@@ -23,7 +24,18 @@ async function callLiteLLM(body, { baseUrl, apiKey, timeoutMs, fetchImpl }) {
     const errBody = await res.text();
     throw new Error(`litellm provider: API request failed (${res.status}): ${errBody}`);
   }
-  return res.json();
+  return { payload: await res.json(), headers: res.headers };
+}
+
+/** #952: a response header's value, or undefined (a test double may carry
+ * no `headers` at all). */
+function headerValue(headers, name) {
+  try {
+    const value = headers?.get?.(name);
+    return value === null || value === "" ? undefined : value;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function decide(
@@ -38,7 +50,7 @@ export async function decide(
 ) {
   const candidateIds = context.candidates.map((c) => c.id);
 
-  const payload = await callLiteLLM(
+  const { payload, headers } = await callLiteLLM(
     {
       model,
       messages: [
@@ -83,5 +95,17 @@ export async function decide(
   if (!candidateIds.includes(candidateId)) {
     throw new Error(`litellm provider: candidateId "${candidateId}" was not offered`);
   }
-  return { candidateId, rationale };
+  // #952: `model` here is the proxy's tier alias ("fast"/"reasoning",
+  // litellm-config.yaml); the proxy names the real upstream model it routed
+  // to in its x-litellm-model-name response header (confirmed live on the
+  // deployed proxy, litellm 1.102.1), so `tier` and `model` differ whenever
+  // that header is present. Usage and cost come from the payload's own
+  // `usage` (cost passed through from OpenRouter), the response-cost header
+  // only as a fallback.
+  const meta = {
+    tier: model,
+    model: headerValue(headers, "x-litellm-model-name") ?? model,
+    ...usageMeta(payload.usage, { fallbackCost: headerValue(headers, "x-litellm-response-cost") }),
+  };
+  return { candidateId, rationale, meta };
 }

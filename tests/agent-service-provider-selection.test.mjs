@@ -8,7 +8,7 @@ vi.mock('node:fs', () => ({
   }
 }));
 
-const { resolveProvider } = await import('../tools/agent-service/providers/index.mjs');
+const { resolveProvider, resolveProviderName } = await import('../tools/agent-service/providers/index.mjs');
 
 describe('resolveProvider', () => {
   const originalProvider = process.env.PF2EDC_AGENT_PROVIDER;
@@ -53,5 +53,38 @@ describe('resolveProvider', () => {
 
   it('throws a helpful error for an unknown provider name', () => {
     expect(() => resolveProvider('not-a-real-provider')).toThrow(/Unknown PF2EDC_AGENT_PROVIDER/);
+  });
+});
+
+describe('resolveProviderName (#952)', () => {
+  const originalProvider = process.env.PF2EDC_AGENT_PROVIDER;
+
+  beforeEach(() => {
+    delete process.env.PF2EDC_AGENT_PROVIDER;
+    mockedEnvFileContent = '';
+  });
+
+  afterEach(() => {
+    if (originalProvider === undefined) delete process.env.PF2EDC_AGENT_PROVIDER;
+    else process.env.PF2EDC_AGENT_PROVIDER = originalProvider;
+  });
+
+  it('defaults to litellm', () => {
+    expect(resolveProviderName()).toBe('litellm');
+  });
+
+  it('returns an explicitly named provider', () => {
+    expect(resolveProviderName('laya')).toBe('laya');
+  });
+
+  it('reads the same env/.env setting resolveProvider does', () => {
+    mockedEnvFileContent = 'PF2EDC_AGENT_PROVIDER=openrouter\n';
+    expect(resolveProviderName()).toBe('openrouter');
+    process.env.PF2EDC_AGENT_PROVIDER = 'laya';
+    expect(resolveProviderName()).toBe('laya');
+  });
+
+  it('throws the same message resolveProvider does for an unknown name', () => {
+    expect(() => resolveProviderName('not-a-real-provider')).toThrow(/Unknown PF2EDC_AGENT_PROVIDER/);
   });
 });

@@ -268,4 +268,35 @@ describe("renderAgentTurnCardHtml", () => {
     expect(html).toContain("pf2edc-agent-result-neutral");
     expect(escapeHtml(`<"'&>`)).toBe("&lt;&quot;'&amp;&gt;");
   });
+
+  it("renders #952's decision details only as a GM-only collapsed disclosure, and none for an old record", () => {
+    const plain = renderAgentTurnCardHtml({ round: 1, records: [record()] });
+    expect(plain).not.toContain("<details");
+    const html = renderAgentTurnCardHtml({
+      round: 1,
+      records: [
+        record({
+          alternatives: [{ id: "a", summary: "Dagger vs Goblin", chosen: true }, { id: "b", summary: "<b>Seek</b>", chosen: false }],
+          moreCount: 2,
+          meta: { provider: "openrouter", model: "inception/mercury-decide-20260930", clientMs: 1500, serverMs: 1300 },
+        }),
+      ],
+    });
+    const match = html.match(/<details class="pf2edc-ai-details" data-visibility="gm"><summary>Details<\/summary>.*<\/details>/s);
+    expect(match).not.toBeNull();
+    expect(match[0]).toContain("Provider: openrouter · Model: inception/mercury-decide-20260930");
+    expect(match[0]).toContain("Latency: 1.5 s (server 1.3 s)");
+    expect(match[0]).toContain("+2 more");
+    expect(match[0]).toContain("&lt;b&gt;Seek&lt;/b&gt;");
+    // Nothing of the details outside the GM-only element.
+    expect(html.replace(match[0], "")).not.toMatch(/Provider:|Alternatives considered/);
+  });
+
+  it("shows a fallback record's reason in its details", () => {
+    const html = renderAgentTurnCardHtml({
+      round: 1,
+      records: [record({ source: "fallback", fallbackReason: "timeout", meta: { provider: "heuristic", timeoutMs: 45000 } })],
+    });
+    expect(html).toContain("Fallback: timed out after 45 s");
+  });
 });

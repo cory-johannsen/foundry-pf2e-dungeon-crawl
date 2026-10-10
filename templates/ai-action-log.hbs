@@ -26,6 +26,7 @@
             {{#if this.fallback}}<div class="pf2edc-ai-action-log-gm pf2edc-ai-action-log-fallback">{{localize "PF2EDC.AiActionLog.Fallback"}}</div>{{/if}}
             {{#if this.gmNote}}<div class="pf2edc-ai-action-log-gm pf2edc-ai-action-log-note">{{this.gmNote}}</div>{{/if}}
             {{#if this.rationale}}<div class="pf2edc-ai-action-log-gm pf2edc-ai-action-log-rationale"><em>{{this.rationale}}</em></div>{{/if}}
+            {{#if this.detailsHtml}}<div class="pf2edc-ai-action-log-gm pf2edc-ai-action-log-details">{{{this.detailsHtml}}}</div>{{/if}}
           </li>
         {{/each}}
       </ol>

@@ -45,7 +45,7 @@
 - Consumes: nothing new.
 - Produces: `resolveProviderName(name?)` (exported) → the validated provider name string; `handleCombatDecision`'s response now carries `meta.provider` and `meta.serverMs` merged into whatever the provider's own `decide()` returned.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/agent-service-provider-selection.test.mjs (append)
@@ -87,12 +87,12 @@ describe('handleCombatDecision meta (#952)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/agent-service-provider-selection.test.mjs -t "resolveProviderName"`
 Expected: FAIL with "resolveProviderName is not exported"
 
-- [ ] **Step 3: Implement `resolveProviderName`**
+- [x] **Step 3: Implement `resolveProviderName`**
 
 ```js
 // tools/agent-service/providers/index.mjs -- add alongside the existing
@@ -105,7 +105,7 @@ export function resolveProviderName(name = readEnvOrDotenv('PF2EDC_AGENT_PROVIDE
 }
 ```
 
-- [ ] **Step 4: Wire `handleCombatDecision` to attach `meta.provider`/`meta.serverMs`**
+- [x] **Step 4: Wire `handleCombatDecision` to attach `meta.provider`/`meta.serverMs`**
 
 ```js
 // tools/agent-service/server.mjs -- replace handleCombatDecision's body:
@@ -134,24 +134,24 @@ async function handleCombatDecision(body, res) {
 }
 ```
 
-- [ ] **Step 5: Add the import**
+- [x] **Step 5: Add the import**
 
 ```js
 // tools/agent-service/server.mjs -- extend the existing providers/index.mjs import:
 import { resolveProvider, resolveProviderName } from "./providers/index.mjs";
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/agent-service-provider-selection.test.mjs`
 Expected: PASS (plus the `handleCombatDecision` suite found/extended in Step 1)
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions — every existing agent-service test keeps passing unmodified)
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add tools/agent-service/providers/index.mjs tools/agent-service/server.mjs tests/agent-service-provider-selection.test.mjs
@@ -171,7 +171,7 @@ git commit -m "feat(#952): resolveProviderName and handleCombatDecision's provid
 - Consumes: nothing new.
 - Produces: litellm's `decide()` return gains `meta: {model, tier, usage?, costUsd?}`; OpenRouter's gains `meta: {usage?, costUsd?}` (model/tier are #952's own follow-up #1009 for that provider per the spec's own scope, since OpenRouter's own tier concept isn't confirmed the same way litellm's is — this task only adds what the spec's own Investigation findings confirmed live: usage/cost from the OpenRouter payload).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/agent-service-litellm-provider.test.mjs (append to whichever file
@@ -209,12 +209,12 @@ it('returns meta.usage/costUsd from the OpenRouter payload when present (#952)',
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/agent-service-litellm-provider.test.mjs -t "#952"`
 Expected: FAIL (no `meta` on the return value yet)
 
-- [ ] **Step 3: Implement in `litellm.mjs`**
+- [x] **Step 3: Implement in `litellm.mjs`**
 
 ```js
 // tools/agent-service/providers/litellm.mjs -- decide()'s own final return,
@@ -230,21 +230,21 @@ Expected: FAIL (no `meta` on the return value yet)
   return { candidateId, rationale, meta: { model, tier: model, ...(usage ? { usage } : {}) } };
 ```
 
-- [ ] **Step 4: Implement in `openrouter-decisions.mjs`**
+- [x] **Step 4: Implement in `openrouter-decisions.mjs`**
 
 Read that file's own current `decide()` return and response-payload handling first (its exact field names for usage/cost, which the spec's Investigation findings confirm exist in the payload but this plan doesn't re-derive blind). Add a `meta: { ...(usage ? {usage} : {}), ...(costUsd != null ? {costUsd} : {}) }` field to its return, following the same "omit when absent" rule as Step 3.
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/agent-service-litellm-provider.test.mjs tests/agent-service-openrouter-decisions.test.mjs`
 Expected: PASS
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add tools/agent-service/providers/litellm.mjs tools/agent-service/providers/openrouter-decisions.mjs tests/agent-service-litellm-provider.test.mjs tests/agent-service-openrouter-decisions.test.mjs
@@ -255,6 +255,8 @@ git commit -m "feat(#952): litellm/OpenRouter providers report model/tier/usage/
 
 ### Task 3: Client-side latency measurement and fallback-reason recording
 
+> **Implementation note (2026-10-09):** the reason is kept in an in-memory, per-turn map in `dungeon-combat.mjs` (`noteAgentFallbackReason` / `takeAgentFallbackReason`), not in `agentTurnState` -- every `setAgentTurnState` write bumps the counter `armAgentTimeout` uses to detect a superseded timer, so writing the reason there would have cancelled the very fallback it explains (and `setAgentTurnState` writes a fixed field list that would drop it anyway). An `applyDecision` failure records `"apply-error"`. `playHeuristicTurn` never recorded anything in `agentLog` before this issue, so it gained an `onAction(candidate, result)` hook that `armAgentTimeout` uses to log each heuristic action as a `source: "fallback"` record with the reason; `armAgentTimeout` takes an injectable `playHeuristic` for tests.
+
 **Files:**
 - Modify: `scripts/dungeon-combat.mjs` (`runAgentDecisionLoop`, `armAgentTimeout`)
 - Test: `tests/dungeon-combat-decision-loop.test.mjs` (extend the existing `runAgentDecisionLoop` test file — find its real name first)
@@ -263,7 +265,7 @@ git commit -m "feat(#952): litellm/OpenRouter providers report model/tier/usage/
 - Consumes: nothing new.
 - Produces: `runAgentDecisionLoop` measures `clientMs` and passes a `decisionInfo` fifth argument to `applyAgentDecision`; a failed call or an unconfigured service records `turnState.lastDecisionError`; `armAgentTimeout` reads it to pick the fallback reason.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // append to runAgentDecisionLoop's existing test file
@@ -303,12 +305,12 @@ it('defaults to "timeout" when no lastDecisionError was ever recorded', async ()
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-combat-decision-loop.test.mjs -t "#952"`
 Expected: FAIL (no `decisionInfo` passed; no `lastDecisionError` written)
 
-- [ ] **Step 3: Implement in `runAgentDecisionLoop`**
+- [x] **Step 3: Implement in `runAgentDecisionLoop`**
 
 ```js
 // scripts/dungeon-combat.mjs -- runAgentDecisionLoop's real body (lines
@@ -357,7 +359,7 @@ Expected: FAIL (no `decisionInfo` passed; no `lastDecisionError` written)
     }
 ```
 
-- [ ] **Step 4: Implement in `armAgentTimeout`**
+- [x] **Step 4: Implement in `armAgentTimeout`**
 
 ```js
 // scripts/dungeon-combat.mjs -- armAgentTimeout, immediately before the
@@ -369,17 +371,17 @@ Expected: FAIL (no `decisionInfo` passed; no `lastDecisionError` written)
 
 (`playHeuristicTurn`'s own signature gains an optional second parameter; Task 4 is where that reason actually reaches the `agentLog` record, via whichever executor path the heuristic turn ultimately calls into `applyAgentDecision` through — confirm `playHeuristicTurn`'s real current signature and call chain before writing this exact threading, since this plan has not independently re-derived that function's full body.)
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-combat-decision-loop.test.mjs`
 Expected: PASS
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-decision-loop.test.mjs
@@ -390,10 +392,12 @@ git commit -m "feat(#952): measure clientMs and record why a fallback fired (err
 
 ### Task 4: Amend #925's plan — the record's alternatives/meta/fallbackReason fields
 
+> **Implementation note (2026-10-09):** #925 has since merged, so this was implemented directly in `applyAgentDecision` / `recordAgentAction` (`scripts/dungeon-combat.mjs`) rather than as a plan amendment. The alternatives builder is the pure `buildDecisionAlternatives` in `scripts/ui/ai-decision-details.mjs`.
+
 **Files:**
 - Modify: `docs/superpowers/plans/2026-10-09-ai-actor-action-display.md`
 
-- [ ] **Step 1: Add the fifth `decisionInfo` parameter to `applyAgentDecision`'s own signature in that plan, and the alternatives-building step**
+- [x] **Step 1: Add the fifth `decisionInfo` parameter to `applyAgentDecision`'s own signature in that plan, and the alternatives-building step**
 
 In that plan's Task 3 (`applyAgentDecision`'s dispatch capture), add immediately after the point it already resolves `pending.candidates` and the chosen `candidateId`:
 
@@ -417,7 +421,7 @@ export async function applyAgentDecision(combat, combatantId, candidateId, ratio
   const alternatives = alternativesSource.map((c) => ({ id: c.id, summary: c.summary ?? c.type, chosen: c.id === candidateId }));
 ```
 
-- [ ] **Step 2: Add the three new fields to the record `appendAgentActionRecord` writes**
+- [x] **Step 2: Add the three new fields to the record `appendAgentActionRecord` writes**
 
 ```js
 // that plan's own record-building object (wherever it spreads describeAgentAction's
@@ -430,7 +434,7 @@ export async function applyAgentDecision(combat, combatantId, candidateId, ratio
 
 Update that plan's own `source` determination: when `decisionInfo` is passed with `source: "model"` (Task 3 above), the record's `source` field is `"model"`; the heuristic path (unchanged call site, no `decisionInfo` passed, or explicitly `{source: "fallback", fallbackReason}`) keeps `source: "fallback"` as it already does. Thread `fallbackReason` from Task 3's `playHeuristicTurn({fallbackReason})` call through to whichever `applyAgentDecision` call the heuristic path ultimately makes — confirm that exact call site in #925's own plan before finalizing this step.
 
-- [ ] **Step 3: Commit the amendment**
+- [x] **Step 3: Commit the amendment**
 
 ```bash
 git add docs/superpowers/plans/2026-10-09-ai-actor-action-display.md
@@ -449,7 +453,7 @@ git commit -m "docs(#952): amend #925's plan -- alternatives/meta/fallbackReason
 - Consumes: nothing (takes a plain record).
 - Produces: `buildDecisionDetails(record, {isGM})` → `null | {alternatives, moreCount, lines}`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/ai-decision-details.test.mjs
@@ -501,12 +505,12 @@ describe('buildDecisionDetails (#952)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/ai-decision-details.test.mjs`
 Expected: FAIL with "Cannot find module"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/ui/ai-decision-details.mjs
@@ -554,12 +558,12 @@ export function buildDecisionDetails(record, { isGM }) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/ai-decision-details.test.mjs`
 Expected: PASS (6 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/ui/ai-decision-details.mjs tests/ai-decision-details.test.mjs
@@ -570,15 +574,17 @@ git commit -m "feat(#952): buildDecisionDetails, pure GM-only alternatives/metad
 
 ### Task 6: Amend #925/#950/#951's plans — render the Details disclosure
 
+> **Implementation note (2026-10-09):** #925/#950/#951 have since merged, so the disclosure is rendered directly in `renderAgentTurnCardHtml` (GM-only via `data-visibility="gm"`), `buildAiLogView`'s `detailsHtml` + `templates/ai-action-log.hbs`, and `renderDigestRowHtml` (tracker rows), all through the shared `renderDecisionDetailsHtml`.
+
 **Files:**
 - Modify: `docs/superpowers/plans/2026-10-09-ai-actor-action-display.md`
 - Modify: `docs/superpowers/plans/2026-10-09-ai-actor-action-log-panel.md`
 - Modify: `docs/superpowers/plans/2026-10-09-ai-actor-tracker-and-hover-detail.md`
 
-- [ ] **Step 1: #925's chat-card template** — inside its existing GM-only (`data-visibility="gm"`) block for each action row, add a collapsed disclosure calling `buildDecisionDetails(record, {isGM: true})` (the template itself only runs inside the already-GM-gated span, but the helper is called the same way everywhere for consistency) and rendering its `lines`/`alternatives`/`moreCount` inside a `<details><summary>Details</summary>...</details>` element.
-- [ ] **Step 2: #950's `AiActionLogApp` template** — the same `<details>` block under each GM-visible row, reusing `buildDecisionDetails` from `ai-decision-details.mjs` imported alongside `buildAiLogView`.
-- [ ] **Step 3: #951's tracker-row expanded list** — the same block inside each expanded row's own GM-only section (`renderTrackerDigestInto`'s `rowHtml` helper).
-- [ ] **Step 4: Commit the amendments**
+- [x] **Step 1: #925's chat-card template** — inside its existing GM-only (`data-visibility="gm"`) block for each action row, add a collapsed disclosure calling `buildDecisionDetails(record, {isGM: true})` (the template itself only runs inside the already-GM-gated span, but the helper is called the same way everywhere for consistency) and rendering its `lines`/`alternatives`/`moreCount` inside a `<details><summary>Details</summary>...</details>` element.
+- [x] **Step 2: #950's `AiActionLogApp` template** — the same `<details>` block under each GM-visible row, reusing `buildDecisionDetails` from `ai-decision-details.mjs` imported alongside `buildAiLogView`.
+- [x] **Step 3: #951's tracker-row expanded list** — the same block inside each expanded row's own GM-only section (`renderTrackerDigestInto`'s `rowHtml` helper).
+- [x] **Step 4: Commit the amendments**
 
 ```bash
 git add docs/superpowers/plans/2026-10-09-ai-actor-action-display.md docs/superpowers/plans/2026-10-09-ai-actor-action-log-panel.md docs/superpowers/plans/2026-10-09-ai-actor-tracker-and-hover-detail.md
@@ -592,9 +598,9 @@ git commit -m "docs(#952): amend #925/#950/#951's plans -- render the Details di
 **Files:**
 - Modify: `module.json`
 
-- [ ] **Step 1: Run the `update-architecture-docs` skill** (new file `ai-decision-details.mjs`; `resolveProviderName` new export)
+- [x] **Step 1: Run the `update-architecture-docs` skill** (new file `ai-decision-details.mjs`; `resolveProviderName` new export)
 - [ ] **Step 2: Bump `module.json`'s version** (minor — check `main`'s current version first)
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json docs/architecture.md

@@ -9,6 +9,7 @@
 
 import { readEnvOrDotenv } from "../env.mjs";
 import { truncatedCriteria } from "./laya.mjs";
+import { usageMeta } from "./decision-meta.mjs";
 
 export async function decide(context, {
   apiKey = readEnvOrDotenv('OPEN_ROUTER_API_KEY') ?? readEnvOrDotenv('OPENROUTER_API_KEY'),
@@ -54,5 +55,11 @@ export async function decide(context, {
     throw new Error(`openrouter-decisions provider: candidateId "${candidateId}" was not offered`);
   }
   // A decisions model never generates text — no rationale to report.
-  return { candidateId, rationale: undefined };
+  // #952: the payload names the dated model version that answered and its
+  // usage ({input_tokens, output_tokens, cost}, confirmed live 2026-10-09).
+  const meta = {
+    model: typeof payload.model === 'string' && payload.model ? payload.model : model,
+    ...usageMeta(payload.usage)
+  };
+  return { candidateId, rationale: undefined, meta };
 }

@@ -256,6 +256,15 @@ describe("click-to-pan (#950)", () => {
     AiActionLogApp.DEFAULT_OPTIONS.actions.selectRow({}, { dataset: { tokenId: "t1" } });
     expect(globalThis.canvas.animatePan).toHaveBeenCalledWith({ x: 5, y: 6 });
   });
+
+  it("a click on a row's #952 Details disclosure doesn't select/pan", () => {
+    const token = { visible: true, center: { x: 5, y: 6 }, control: vi.fn() };
+    globalThis.canvas = fakeCanvas(token);
+    const inDetails = { closest: (sel) => (sel === ".pf2edc-ai-details" ? {} : null) };
+    AiActionLogApp.DEFAULT_OPTIONS.actions.selectRow({ target: inDetails }, { dataset: { tokenId: "t1" } });
+    expect(globalThis.canvas.animatePan).not.toHaveBeenCalled();
+    expect(token.control).not.toHaveBeenCalled();
+  });
 });
 
 describe("refreshAiActionLogWindow (#950)", () => {
@@ -317,7 +326,7 @@ describe("templates/ai-action-log.hbs (#950)", () => {
   });
 
   it("every GM-only part is conditional on a field buildAiLogView blanks for players", () => {
-    for (const field of ["fallback", "gmNote", "rationale"]) {
+    for (const field of ["fallback", "gmNote", "rationale", "detailsHtml"]) {
       expect(template).toContain(`{{#if this.${field}}}`);
     }
   });

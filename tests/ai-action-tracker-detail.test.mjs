@@ -72,6 +72,33 @@ describe("renderTrackerDigestInto (#951)", () => {
     expect(root.querySelectorAll(".pf2edc-ai-last")).toHaveLength(1);
   });
 
+  it("shows #952's Details disclosure in a GM's expanded rows, opening it without collapsing the row; none for a player", () => {
+    const detailed = rec({
+      alternatives: [{ id: "x", summary: "Dagger vs Fighter", chosen: true }, { id: "y", summary: "Hide", chosen: false }],
+      moreCount: 1,
+      meta: { provider: "litellm", model: "fast", clientMs: 1000 },
+    });
+    const root = makeTracker(["c1"]);
+    const expandedIds = new Set(["c1"]);
+    renderTrackerDigestInto(root, combatWith([detailed]), true, expandedIds);
+    const details = line(root, "c1").querySelector(".pf2edc-ai-expanded details.pf2edc-ai-details");
+    expect(details).toBeTruthy();
+    expect(details.open).toBe(false);
+    expect(details.textContent).toContain("+1 more");
+    expect(details.textContent).toContain("Provider: litellm · Model: fast");
+    const rowClick = vi.fn();
+    root.addEventListener("click", rowClick);
+    details.querySelector("summary").click();
+    expect(expandedIds.has("c1")).toBe(true);
+    expect(rowClick).not.toHaveBeenCalled();
+    expect(line(root, "c1").querySelector(".pf2edc-ai-expanded")).toBeTruthy();
+
+    const playerRoot = makeTracker(["c1"]);
+    renderTrackerDigestInto(playerRoot, combatWith([detailed]), false, new Set(["c1"]));
+    expect(playerRoot.querySelector("details")).toBeNull();
+    expect(playerRoot.innerHTML).not.toMatch(/Hide|litellm|Details/);
+  });
+
   it("removes a row's line once it has nothing to show", () => {
     const root = makeTracker(["c1"]);
     renderTrackerDigestInto(root, combatWith([rec()]), true, new Set());

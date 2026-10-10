@@ -160,6 +160,8 @@ export class AiActionLogApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   static #onSelectRow(event, target) {
+    // #952: opening/closing a row's Details disclosure isn't a row select.
+    if (event?.target?.closest?.(".pf2edc-ai-details")) return;
     panToLogToken(target?.dataset?.tokenId);
   }
 }

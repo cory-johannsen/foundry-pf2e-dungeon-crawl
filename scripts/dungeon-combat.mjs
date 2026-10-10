@@ -92,6 +92,7 @@ import { withDialogsSuppressed } from "./trap-combat.mjs";
 import { eligibilityModifiers, ridersFor, maneuverMapPenalty } from "./maneuver-feat-modifiers.mjs";
 import { SELF_EFFECT_DENYLIST } from "./self-effect-denylist.mjs";
 import { describeAgentAction, renderAgentTurnCardHtml } from "./agent-action-display.mjs";
+import { buildDecisionAlternatives } from "./ui/ai-decision-details.mjs";
 import { summarizeEffect, effectDurationLabel, effectRelevanceTier } from "./self-effect-summary.mjs";
 import {
   classifyTargetEffect,
@@ -998,6 +999,48 @@ const actionPaceDelayMs = () =>
 // mid-turn (rather than never starting at all) still recovers.
 export const AGENT_TIMEOUT_MS = 45000;
 
+// #952: why an agent-controlled turn's fallback fired, noted at the moment
+// the cause is known (runAgentDecisionLoop) and read when armAgentTimeout's
+// timer fires. Kept in memory on this client -- the loop and the timer
+// always run in the same client -- rather than in the agentTurnState flag,
+// because every setAgentTurnState write bumps the counter armAgentTimeout
+// uses to detect a superseded timer, so recording the reason there would
+// silently cancel the very fallback it describes. Keyed by the exact turn
+// (combat, combatant, round, turn) so a stale reason never leaks into a
+// later turn.
+const agentFallbackReasons = new Map();
+const AGENT_FALLBACK_REASONS_MAX = 200;
+
+function agentTurnKey(combat, combatantId) {
+  return `${combat?.id}:${combatantId}:${combat?.round}:${combat?.turn}`;
+}
+
+/** #952: notes why this turn's fallback will fire: "error" (the decision
+ * call failed), "apply-error" (applying the decided candidate failed) or
+ * "unconfigured" (no agent service URL). */
+export function noteAgentFallbackReason(combat, combatantId, reason) {
+  const key = agentTurnKey(combat, combatantId);
+  agentFallbackReasons.delete(key);
+  agentFallbackReasons.set(key, reason);
+  // Bounded: a turn advanced by hand never fires its timer to consume this.
+  while (agentFallbackReasons.size > AGENT_FALLBACK_REASONS_MAX) {
+    agentFallbackReasons.delete(agentFallbackReasons.keys().next().value);
+  }
+}
+
+function clearAgentFallbackReason(combat, combatantId) {
+  agentFallbackReasons.delete(agentTurnKey(combat, combatantId));
+}
+
+/** #952: the reason noted for this exact turn, consumed -- "timeout" when
+ * none was noted (the decision call is still pending, or never answered). */
+export function takeAgentFallbackReason(combat, combatantId) {
+  const key = agentTurnKey(combat, combatantId);
+  const reason = agentFallbackReasons.get(key) ?? "timeout";
+  agentFallbackReasons.delete(key);
+  return reason;
+}
+
 /**
  * Waits AGENT_TIMEOUT_MS, then fires the heuristic fallback for `combatant`
  * — but only if this exact timer is still the freshest thing watching this
@@ -1011,8 +1054,9 @@ export const AGENT_TIMEOUT_MS = 45000;
  * moved on (catches the same combatant's *next* turn, not just a different
  * one), and the counter is unchanged (catches a decision already applied by
  * this same turn's more-recently-armed timer or `runAgentDecisionLoop`).
+ * `playHeuristic` is test-only dependency injection (#952).
  */
-export async function armAgentTimeout(combat, combatant) {
+export async function armAgentTimeout(combat, combatant, { playHeuristic = playHeuristicTurn } = {}) {
   const armedRound = combat.round;
   const armedTurn = combat.turn;
   const armedCounter =
@@ -1032,7 +1076,18 @@ export async function armAgentTimeout(combat, combatant) {
     content: game.i18n.format(chatKey, { name: combatant.name }),
     whisper: gmIds,
   });
-  await playHeuristicTurn(combat, combatant);
+  // #952: the heuristic's actions go on the AI turn card / agentLog as
+  // fallback records carrying why the fallback fired.
+  const fallbackReason = takeAgentFallbackReason(combat, combatant.id);
+  const decisionInfo = {
+    source: "fallback",
+    fallbackReason,
+    meta: { provider: "heuristic", ...(fallbackReason === "timeout" ? { timeoutMs: AGENT_TIMEOUT_MS } : {}) },
+  };
+  await playHeuristic(combat, combatant, {
+    onAction: (candidate, result) =>
+      recordAgentAction(combat, combatant, candidate, result, null, "fallback", decisionInfo),
+  });
 }
 
 /**
@@ -1060,7 +1115,11 @@ export async function runAgentDecisionLoop(
 ) {
   const baseUrl = game.settings.get(MODULE_ID, "agentServiceUrl");
   const apiKey = game.settings.get(MODULE_ID, "agentServiceApiKey");
-  if (!baseUrl) return;
+  if (!baseUrl) {
+    // #952: the fallback timer reports why it fired.
+    noteAgentFallbackReason(combat, combatant.id, "unconfigured");
+    return;
+  }
 
   let pending = await getPending(combat);
   while (pending) {
@@ -1127,6 +1186,8 @@ export async function runAgentDecisionLoop(
       }
     }
     let decision;
+    // #952: the full client-side round trip, monotonic clock.
+    const startedAt = performance.now();
     try {
       // actorProfile is reserved for future actor-complexity tiering; the
       // v1 service ignores it, but the request contract always carries it.
@@ -1137,17 +1198,25 @@ export async function runAgentDecisionLoop(
       });
     } catch (err) {
       console.error("agent-service: combat-decision call failed:", err.message);
+      // #952: noted before returning, for the fallback timer to report.
+      noteAgentFallbackReason(combat, pending.combatantId, "error");
       return;
     }
+    const clientMs = Math.round(performance.now() - startedAt);
+    clearAgentFallbackReason(combat, pending.combatantId);
+    const serviceMeta =
+      decision?.meta && typeof decision.meta === "object" && !Array.isArray(decision.meta) ? decision.meta : {};
     try {
       pending = await applyDecision(
         combat,
         pending.combatantId,
         decision.candidateId,
         decision.rationale,
+        { source: "model", meta: { ...serviceMeta, clientMs } },
       );
     } catch (err) {
       console.error("agent-service: applyAgentDecision failed:", err.message);
+      noteAgentFallbackReason(combat, pending.combatantId, "apply-error");
       return;
     }
     if (pending) {
@@ -5350,10 +5419,22 @@ export async function autoPlayCombatantTurnIfDue(combat) {
 export async function playHeuristicTurn(
   combat,
   combatant,
-  { move = stepToward, strike = rollAndApplyStrike, seek = performSeek, delayMs } = {},
+  { move = stepToward, strike = rollAndApplyStrike, seek = performSeek, delayMs, onAction = null } = {},
 ) {
   const pace = () =>
     new Promise((resolve) => setTimeout(resolve, delayMs ?? actionPaceDelayMs()));
+  // #952: `onAction(candidate, result)` -- armAgentTimeout's fallback logs
+  // each heuristic action on the AI turn card as a candidate-shaped record
+  // (the same shapes describeAgentAction reads for seek/stride/strike).
+  // Never lets a logging failure stop the turn.
+  const report = async (candidate, result) => {
+    if (!onAction) return;
+    try {
+      await onAction(candidate, result);
+    } catch (err) {
+      console.error(`${MODULE_ID} | #952: recording the fallback action failed:`, err?.message);
+    }
+  };
   // #616: an unaware hostile does nothing; a hostile with no observed target
   // but hidden/undetected sneakers Seeks (one action each, up to its 3).
   if (isUnawareHostile(combat, combatant)) {
@@ -5363,7 +5444,8 @@ export async function playHeuristicTurn(
   let actionsLeft = 3;
   let target = nearestOpponent(combat, combatant);
   while (!target && actionsLeft > 0 && seekableSneakerIds(combat, combatant).length) {
-    await seek(combat, combatant);
+    const sought = await seek(combat, combatant);
+    await report({ id: "seek", type: "seek", summary: "Seek", cost: 1 }, sought);
     actionsLeft -= 1;
     target = nearestOpponent(combat, combatant);
     if (!target && actionsLeft > 0) await pace();
@@ -5373,9 +5455,24 @@ export async function playHeuristicTurn(
     // a single action left is spent on the strike if adjacent, else the move.
     const canMove = actionsLeft >= 2 || target.distanceSquares > 1;
     const canStrike = actionsLeft >= 2 || target.distanceSquares <= 1;
-    if (canMove) await move(combat, combatant, target.combatant, target.distanceSquares);
+    if (canMove) {
+      const moved = await move(combat, combatant, target.combatant, target.distanceSquares);
+      // Already adjacent: nothing was done, nothing to log.
+      if (moved !== "already-there") {
+        await report(
+          { id: `stride:approach:${target.combatant.id}`, type: "stride", posture: "approach", targetId: target.combatant.id, summary: "Stride", cost: 1 },
+          moved,
+        );
+      }
+    }
     if (canMove && canStrike) await pace();
-    if (canStrike) await strike(combat, combatant, target.combatant);
+    if (canStrike) {
+      const outcome = await strike(combat, combatant, target.combatant);
+      await report(
+        { id: `strike:${target.combatant.id}`, type: "strike", targetId: target.combatant.id, summary: "Strike", cost: 1 },
+        outcome ?? { skipped: "no Strike in reach" },
+      );
+    }
   }
   if (game.combats.has(combat.id) && combat.combatant?.id === combatant.id) {
     await combat.nextTurn();
@@ -10524,9 +10621,35 @@ function agentDisplayName(combat, id) {
   return c.token?.name ?? c.name ?? null;
 }
 
+/** #952: the record fields for `decisionInfo` = `{alternatives?,
+ * moreCount?, meta?, fallbackReason?}`; absent ones are left off the record
+ * entirely, so an old-style record and a details-free one look the same. */
+function decisionDetailFields(decisionInfo) {
+  if (!decisionInfo || typeof decisionInfo !== "object") return {};
+  const out = {};
+  if (Array.isArray(decisionInfo.alternatives) && decisionInfo.alternatives.length) {
+    out.alternatives = decisionInfo.alternatives;
+    out.moreCount = Number.isInteger(decisionInfo.moreCount) ? decisionInfo.moreCount : 0;
+  }
+  const meta = decisionInfo.meta;
+  if (meta && typeof meta === "object" && !Array.isArray(meta) && Object.keys(meta).length) out.meta = meta;
+  if (typeof decisionInfo.fallbackReason === "string" && decisionInfo.fallbackReason) {
+    out.fallbackReason = decisionInfo.fallbackReason;
+  }
+  return out;
+}
+
 /** #925: logs the action `combatant` just took and refreshes its turn card.
  * `executionResult` is whatever the candidate's executor returned. */
-async function recordAgentAction(combat, combatant, candidate, executionResult, rationale, source = "model") {
+async function recordAgentAction(
+  combat,
+  combatant,
+  candidate,
+  executionResult,
+  rationale,
+  source = "model",
+  decisionInfo = null,
+) {
   let display;
   try {
     display = describeAgentAction(candidate, executionResult, {
@@ -10553,6 +10676,9 @@ async function recordAgentAction(combat, combatant, candidate, executionResult, 
     rationale: rationale || null,
     source,
     visibility: combatant.token?.hidden === true ? "gm" : "all",
+    // #952: GM-only decision details (#950's visibleRecords never passes
+    // these to a non-GM).
+    ...decisionDetailFields(decisionInfo),
   });
   if (stored) await renderAgentTurnCard(combat, combatant.id, round);
 }
@@ -10570,11 +10696,18 @@ export async function applyAgentDecision(
   combatantId,
   candidateId,
   rationale = null,
+  decisionInfo = null,
 ) {
   const pending = await getPendingAgentTurn(combat);
   if (!pending || pending.combatantId !== combatantId) return null;
   const candidate = pending.candidates.find((c) => c.id === candidateId);
   if (!candidate) return null;
+  // #952: what else was offered for this decision (chosen one marked,
+  // capped), and how it was made -- `decisionInfo` is
+  // runAgentDecisionLoop's {source: "model", meta}; an external caller
+  // (module.api) passes none and gets the alternatives alone.
+  const { alternatives, moreCount } = buildDecisionAlternatives(pending.candidates, candidateId);
+  const recordInfo = { alternatives, moreCount, meta: decisionInfo?.meta ?? null };
 
   const combatant = combat.combatant;
   // #925: whatever this candidate's executor returned, for the AI turn card
@@ -10898,7 +11031,7 @@ export async function applyAgentDecision(
 
   // #925: one row on this combatant's consolidated turn card (replacing the
   // old per-decision GM whisper and stalled-move whisper). Never throws.
-  await recordAgentAction(combat, combatant, candidate, executionResult, rationale);
+  await recordAgentAction(combat, combatant, candidate, executionResult, rationale, "model", recordInfo);
 
   if (hostileIds.length) await clearAntagonizeOnHostileAction(combat, combatant, hostileIds);
 

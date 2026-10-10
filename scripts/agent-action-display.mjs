@@ -19,6 +19,7 @@
  */
 
 import { MANEUVER_DEFS } from "./agent-candidates.mjs";
+import { buildDecisionDetails, renderDecisionDetailsHtml } from "./ui/ai-decision-details.mjs";
 
 const NEUTRAL_DONE = Object.freeze({ text: "done", tone: "neutral" });
 
@@ -312,8 +313,9 @@ function costGlyph(cost) {
  * The card's HTML for one (combatant, round): one row per record, in
  * `index` order. A record with `visibility: "gm"` (its token was hidden
  * from players when it acted) is a GM-only row; rationale, the executor's
- * GM note and the fallback tag are GM-only parts of a row, and absent
- * entirely (no empty element) when there's nothing to show.
+ * GM note, the fallback tag and #952's decision details are GM-only parts
+ * of a row, and absent entirely (no empty element) when there's nothing to
+ * show.
  */
 export function renderAgentTurnCardHtml({ round, records, combatantId = null }) {
   const rows = [...(records ?? [])]
@@ -330,12 +332,16 @@ export function renderAgentTurnCardHtml({ round, records, combatantId = null }) 
       const rationale = r?.rationale
         ? `<div data-visibility="gm" class="pf2edc-agent-rationale"><em>${escapeHtml(r.rationale)}</em></div>`
         : "";
+      // #952: alternatives considered and decision metadata -- built as the
+      // GM sees them (the message content is the same for everyone) and
+      // wrapped GM-only, so PF2e strips it for every other client.
+      const details = renderDecisionDetailsHtml(buildDecisionDetails(r, { isGM: true }), { gmVisibility: true });
       const rowVisibility = r?.visibility === "gm" ? ` data-visibility="gm"` : "";
       return (
         `<li class="pf2edc-agent-action"${rowVisibility}>` +
         `${costGlyph(r?.cost)}<strong>${escapeHtml(r?.summary ?? "Action")}</strong>${target} ` +
         `<span class="pf2edc-agent-result pf2edc-agent-result-${tone}">${escapeHtml(r?.result?.text ?? "done")}</span>` +
-        `${fallback}${note}${rationale}</li>`
+        `${fallback}${note}${rationale}${details}</li>`
       );
     })
     .join("");

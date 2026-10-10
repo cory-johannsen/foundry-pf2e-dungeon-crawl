@@ -218,7 +218,81 @@ describe('POST /v1/combat-decision', () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toEqual({ candidateId: 'endTurn', rationale: 'test rationale' });
+    // #952: candidateId/rationale pass through unmodified; the only addition
+    // is the backward-compatible `meta` object.
+    expect(body).toEqual({
+      candidateId: 'endTurn',
+      rationale: 'test rationale',
+      meta: { provider: 'litellm', serverMs: expect.any(Number) },
+    });
+  });
+
+  const decisionRequest = () =>
+    fetch(`${baseUrl}/v1/combat-decision`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer test-key', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        self: { name: 'Yamaraj', hp: 40, conditions: [] },
+        opponents: [],
+        candidates: [{ id: 'endTurn', summary: 'End turn' }],
+        roundNumber: 1
+      })
+    });
+
+  it('adds the resolved provider name and the server-side wall time as meta (#952)', async () => {
+    process.env.PF2EDC_AGENT_PROVIDER = 'openrouter';
+    const stubDecide = vi.fn(
+      () => new Promise((resolve) => setTimeout(() => resolve({ candidateId: 'endTurn', rationale: undefined }), 25))
+    );
+    resolveProvider.mockReturnValueOnce(stubDecide);
+
+    const res = await decisionRequest();
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.candidateId).toBe('endTurn');
+    expect(body.meta.provider).toBe('openrouter');
+    expect(body.meta.serverMs).toBeGreaterThanOrEqual(20);
+  });
+
+  it('merges provider/serverMs into a provider-supplied meta rather than overwriting it (#952)', async () => {
+    const stubDecide = vi.fn().mockResolvedValue({
+      candidateId: 'endTurn',
+      rationale: 'r',
+      meta: { model: 'openrouter/x', tier: 'fast', usage: { totalTokens: 10 }, provider: 'spoofed' }
+    });
+    resolveProvider.mockReturnValueOnce(stubDecide);
+
+    const body = await (await decisionRequest()).json();
+
+    expect(body.meta).toEqual({
+      model: 'openrouter/x',
+      tier: 'fast',
+      usage: { totalTokens: 10 },
+      provider: 'litellm',
+      serverMs: expect.any(Number)
+    });
+  });
+
+  it('ignores a malformed provider meta instead of failing the decision (#952)', async () => {
+    const stubDecide = vi.fn().mockResolvedValue({ candidateId: 'endTurn', rationale: 'r', meta: 'nonsense' });
+    resolveProvider.mockReturnValueOnce(stubDecide);
+
+    const res = await decisionRequest();
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.meta).toEqual({ provider: 'litellm', serverMs: expect.any(Number) });
+  });
+
+  it('leaves the 502 error body unchanged (no meta) when the provider throws (#952)', async () => {
+    const stubDecide = vi.fn().mockRejectedValue(new Error('upstream down'));
+    resolveProvider.mockReturnValueOnce(stubDecide);
+
+    const res = await decisionRequest();
+
+    expect(res.status).toBe(502);
+    expect(await res.json()).toEqual({ error: 'combat-decision: provider call failed: upstream down' });
   });
 });
 

@@ -39,7 +39,10 @@ describe('runAgentDecisionLoop', () => {
       apiKey: 'test-key',
       context: { ...pendingTurn.context, actorProfile: { tier: 'standard' } },
     });
-    expect(applyDecision).toHaveBeenCalledWith(combat, 'atk', 'endTurn', 'Nothing worth doing.');
+    expect(applyDecision).toHaveBeenCalledWith(combat, 'atk', 'endTurn', 'Nothing worth doing.', {
+      source: 'model',
+      meta: { clientMs: expect.any(Number) },
+    });
   });
 
   it('loops again when actions remain, stopping once applyDecision returns null', async () => {
@@ -56,7 +59,7 @@ describe('runAgentDecisionLoop', () => {
     await runAgentDecisionLoop(combat, combatant, { fetchDecision, getPending, applyDecision });
 
     expect(fetchDecision).toHaveBeenCalledTimes(2);
-    expect(applyDecision).toHaveBeenNthCalledWith(2, combat, 'atk', 'endTurn', undefined);
+    expect(applyDecision).toHaveBeenNthCalledWith(2, combat, 'atk', 'endTurn', undefined, expect.objectContaining({ source: 'model' }));
   });
 
   it('waits ACTION_PACE_DELAY_MS between applying one action and fetching the next, once per action boundary', async () => {
