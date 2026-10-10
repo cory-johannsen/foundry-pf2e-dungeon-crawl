@@ -38,7 +38,7 @@
  * Never throws.
  */
 
-import { parseDegreeBlock, KNOWN_CONDITION_SLUGS } from "./npc-ability-parse.mjs";
+import { parseDegreeBlock, resolveDegreeReferences, KNOWN_CONDITION_SLUGS } from "./npc-ability-parse.mjs";
 
 const NUMBER_WORDS = Object.freeze({ two: 2, three: 3, four: 4, five: 5 });
 const SIZE_WORDS = Object.freeze({ tiny: "tiny", small: "sm", medium: "med", large: "lg", huge: "huge", gargantuan: "grg" });
@@ -227,7 +227,10 @@ function parseSaveDegrees(blocks) {
   for (const key of ["criticalSuccess", "criticalFailure"]) {
     if (degrees[key].asKey) degrees[key] = degrees[degrees[key].asKey];
   }
-  return degrees;
+  // #935: an "As <degree>" block is a reference the degree grammar returns
+  // unresolved.
+  const resolved = resolveDegreeReferences(degrees);
+  return Object.values(resolved).every(Boolean) ? resolved : null;
 }
 
 function parseStrikeAgainstGrabbed(sentences, blocks, requirement) {
