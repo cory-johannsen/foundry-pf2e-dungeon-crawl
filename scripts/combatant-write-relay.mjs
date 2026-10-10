@@ -81,3 +81,65 @@ export function validateRelayMessage(msg, { combat, senderUser }) {
   if (!combatant.actor?.testUserPermission?.(senderUser, "OWNER")) return { ok: false, reason: "sender does not own the actor" };
   return { ok: true, combatant, flagKey: msg.flagKey, value: msg.value };
 }
+
+const SOCKET = "module.pf2e-dungeon-crawl";
+const defaultDeps = () => ({ game: globalThis.game, log: console });
+
+/**
+ * preUpdateCombatant (player client): when the update is only a tracker queue
+ * flag, apply it to the local source and relay the write through the active GM,
+ * then cancel the (server-rejected) original. Returns undefined — let the
+ * original proceed — for anything else or on any error.
+ */
+export function onPreUpdateCombatantRelay(combatant, changes, options, userId, deps = {}) {
+  const { game, log } = { ...defaultDeps(), ...deps };
+  try {
+    if (!game?.user || userId !== game.user.id) return undefined;
+    const r = classifyCombatantUpdate(changes, !!game.user.isGM);
+    if (!r.relay) return undefined;
+    combatant.updateSource({ flags: { [RELAY_NAMESPACE]: { [r.flagKey]: r.value } } });
+    if (game.users?.activeGM) {
+      game.socket.emit(SOCKET, {
+        type: "combatantFlagRelay",
+        combatId: combatant.parent?.id,
+        combatantId: combatant.id,
+        flagKey: r.flagKey,
+        value: r.value,
+        userId: game.user.id,
+      });
+    } else {
+      log.debug?.("pf2e-dungeon-crawl | #1254: no GM online, queue not persisted");
+    }
+    return false;
+  } catch (err) {
+    log.error?.("pf2e-dungeon-crawl | #1254: combatant write relay failed:", err?.message ?? err);
+    return undefined;
+  }
+}
+
+/** GM side: validate a relayed message and persist the flag. Active GM client only. */
+export async function handleCombatantFlagRelay(msg, deps = {}) {
+  const { game, log } = { ...defaultDeps(), ...deps };
+  try {
+    if (!game?.users?.activeGM?.isSelf) return false;
+    const v = validateRelayMessage(msg, {
+      combat: game.combats?.get?.(msg?.combatId),
+      senderUser: game.users.get(msg?.userId),
+    });
+    if (!v.ok) {
+      log.debug?.(`pf2e-dungeon-crawl | #1254: relay rejected: ${v.reason}`);
+      return false;
+    }
+    await v.combatant.setFlag(RELAY_NAMESPACE, v.flagKey, v.value);
+    return true;
+  } catch (err) {
+    log.error?.("pf2e-dungeon-crawl | #1254: relay apply failed:", err?.message ?? err);
+    return false;
+  }
+}
+
+export function registerCombatantWriteRelay() {
+  globalThis.game.socket.on(SOCKET, (msg) => {
+    if (msg?.type === "combatantFlagRelay") handleCombatantFlagRelay(msg);
+  });
+}
