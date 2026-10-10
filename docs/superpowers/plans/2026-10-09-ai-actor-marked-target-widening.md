@@ -705,14 +705,14 @@ git commit -m "feat(#946): remove a mark when its target is defeated or leaves c
 - Create: `tests/marked-target-audit.test.mjs`
 - Modify: `module.json`
 
-- [ ] **Step 1: Build the real-population fixture**, scanning the full compendium feat tree (`feats-srd`, `actionspf2e`, and every `feats/class/*/level-*`/`feats/archetype/*` directory — Investigation finding 3) for one-action/free items with a `selfEffect` whose linked effect's rules were excluded by the OLD #914 rule (`target:`/`@target`/`TokenMark` present). Record each one's name, its `classifyTargetEffect` result, and (for `marked`) whether `parseMarkedTargetRequirement` accepts its text. Commit the result as `tests/fixtures/marked-target-audit.json`: `{ entries: [{ name, classification, offered: boolean, reason? }], counts: { marked, targetConditional, unsupported, none } }`.
-- [ ] **Step 2: Write `tests/marked-target-audit.test.mjs`** asserting the committed counts match a live re-classification of every fixture entry (the same "golden snapshot, fails on drift" shape #915/#935 already use), and that Harsh Judgement/Nothing Personal/Unfazed Assessment/Come and Get Me/Divine Weapon/Intensified Element Stance/Hunt Runelord are each present with `classification: 'unsupported'` and a named reason.
-- [ ] **Step 3: Run the test suite**
+- [x] **Step 1: Build the real-population fixture**, scanning the full compendium feat tree (`feats-srd`, `actionspf2e`, and every `feats/class/*/level-*`/`feats/archetype/*` directory — Investigation finding 3) for one-action/free items with a `selfEffect` whose linked effect's rules were excluded by the OLD #914 rule (`target:`/`@target`/`TokenMark` present). Record each one's name, its `classifyTargetEffect` result, and (for `marked`) whether `parseMarkedTargetRequirement` accepts its text. Commit the result as `tests/fixtures/marked-target-audit.json`: `{ entries: [{ name, classification, offered: boolean, reason? }], counts: { marked, targetConditional, unsupported, none } }`.
+- [x] **Step 2: Write `tests/marked-target-audit.test.mjs`** asserting the committed counts match a live re-classification of every fixture entry (the same "golden snapshot, fails on drift" shape #915/#935 already use), and that Harsh Judgement/Nothing Personal/Unfazed Assessment/Come and Get Me/Divine Weapon/Intensified Element Stance/Hunt Runelord are each present with `classification: 'unsupported'` and a named reason.
+- [x] **Step 3: Run the test suite**
 
 Run: `npx vitest run tests/marked-target-audit.test.mjs`
 Expected: PASS
 
-- [ ] **Step 4: Run the `update-architecture-docs` skill** (new file `scripts/marked-target-requirements.mjs` imported by `scripts/dungeon-combat.mjs`)
+- [x] **Step 4: Run the `update-architecture-docs` skill** (new file `scripts/marked-target-requirements.mjs` imported by `scripts/dungeon-combat.mjs`)
 - [ ] **Step 5: Bump `module.json`'s version** (minor — check `main`'s current version first)
 - [ ] **Step 6: Commit**
 
