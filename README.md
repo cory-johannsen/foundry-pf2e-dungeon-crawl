@@ -31,6 +31,36 @@ game.modules.get('pf2e-dungeon-crawl').api.openDungeon();
 game.modules.get('pf2e-dungeon-crawl').api.generateEncounter();
 ```
 
+### Generate Encounter: multiple forces
+
+The Generate Encounter dialog builds a stand-alone encounter from one or
+more **forces**, all sharing a single PF2e XP budget (set by the difficulty
+and party size). The first force behaves exactly like the classic
+single-force encounter; use **Add force** for more. Each force has:
+
+- **Filters** — include traits, exclude traits, level range (offsets
+  relative to the party level), an ancestry/family trait, and a rarity.
+- **Budget share** — a percentage of the encounter's XP budget (shares
+  should total 100; the dialog shows each force's XP allotment and warns
+  otherwise). Each force is generated and posted as its own chat card.
+- **Hostility** — *Hostile to players* (attacks the party, ignores other
+  forces) or *Hostile to all* (attacks the party and every other force).
+- **Placement** — near the party (forces are offset so they don't stack),
+  or a chosen scene region.
+
+A force that is only hostile to players retaliates at the force level: once
+any creature of another force attacks one of its members, the whole force
+treats the attacker's force as hostile for the rest of the encounter.
+Player attacks never create retaliation edges. Spawned tokens are labelled
+and tinted per force (restored when combat ends). The combat ends in victory
+when no living enemies remain hostile to each other or the party, and in
+defeat if the party falls; XP is awarded once for every force.
+
+Known limitation: PF2e treats every spawned creature as the `opposition`
+alliance, so its flank indicator may count creatures of another force as
+allies. The module's AI and targeting use the force hostility relation and
+are not affected.
+
 ### The generator interface
 
 Room sequencing and encounter rosters are produced by whatever generator
