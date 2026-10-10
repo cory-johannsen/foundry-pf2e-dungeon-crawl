@@ -13,6 +13,7 @@
 ## Global Constraints
 
 - **#925 and #950 are both still plan-only** at the time this plan is written. Task 1 patches #950's own plan to extract the shared `visibleRecords` helper the spec explicitly asks for; everything else in this plan builds against the record shape #950's own (already-amended, per that plan's own Task 1) shape defines.
+- **Amended by #1006:** Task 2 now also exports `renderDigestRowHtml(record, isGM)`, factored out of Task 3's own inline `rowHtml` closure, so #1006's Token HUD panel can render rows identically to this plan's own expanded tracker list without re-deriving the markup a second time.
 - Every surface this plan adds is read-only display — it never writes to the combat document, never changes a decision, and must degrade to "nothing shown" rather than throw on any missing/malformed data (spec's own Error handling section).
 - The hover overlay and tracker insertion must be idempotent across re-renders — Foundry re-renders both surfaces often (token refresh, tracker update), and a handler that doesn't clean up its own prior insertion first will duplicate content silently.
 - Every merge bumps `module.json`'s version (CLAUDE.md).
@@ -174,12 +175,39 @@ export function buildCombatantDigest(records, { combatantId, round, isGM }) {
 
   return { last, currentRound, previousRound, stale };
 }
+
+/** #951 (amended for #1006): the one, shared `<li>` fragment for a single
+ * digest row -- used by Task 3's tracker-row expanded list AND #1006's
+ * Token HUD panel, so the two surfaces can never silently drift apart on
+ * what a row looks like or when rationale/fallback show. Pure string
+ * building, no Foundry API surface, matching this file's own convention. */
+export function renderDigestRowHtml(record, isGM) {
+  const rationale = isGM && record.rationale ? `<div class="pf2edc-ai-rationale">${record.rationale}</div>` : "";
+  const fallback = isGM && record.source === "fallback" ? ' <span class="pf2edc-ai-fallback">(fallback heuristic)</span>' : "";
+  return `<li class="pf2edc-tone-${record.result?.tone ?? "neutral"}">${record.summary} (${record.result?.text ?? ""})${rationale}${fallback}</li>`;
+}
+```
+
+Add one test above this implementation, alongside `buildCombatantDigest`'s own tests:
+
+```js
+import { buildCombatantDigest, renderDigestRowHtml } from '../scripts/ai-action-digest.mjs';
+
+describe('renderDigestRowHtml (#951, amended for #1006)', () => {
+  it('includes rationale and the fallback tag for a GM, strips both for a non-GM', () => {
+    const record = { summary: 'x', result: { text: 'hit', tone: 'success' }, rationale: 'r', source: 'fallback' };
+    expect(renderDigestRowHtml(record, true)).toContain('pf2edc-ai-rationale');
+    expect(renderDigestRowHtml(record, true)).toContain('fallback heuristic');
+    expect(renderDigestRowHtml(record, false)).not.toContain('pf2edc-ai-rationale');
+    expect(renderDigestRowHtml(record, false)).not.toContain('fallback heuristic');
+  });
+});
 ```
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/ai-action-digest.test.mjs`
-Expected: PASS (6 tests)
+Expected: PASS (7 tests)
 
 - [ ] **Step 5: Commit**
 
@@ -201,17 +229,22 @@ git commit -m "feat(#951): buildCombatantDigest, sharing #950's visibleRecords h
 - Consumes: `buildCombatantDigest` (Task 2).
 - Produces: a `renderCombatTracker` hook handler; `renderTrackerDigestInto(rootElement, combat, isGM, expandedIds)` (exported for direct testing without a real Foundry render cycle).
 
-- [ ] **Step 1: Write the failing tests**
+- [ ] **Step 1: Add the `jsdom` devDependency**
+
+**Amended by #1006:** confirmed live that this repo's `vitest.config.mjs` sets `environment: 'node'` (not `'jsdom'`) and no existing test file uses the real `document`/`window` globals — the earlier draft's claim that "existing DOM-touching tests... use real jsdom via vitest's own config" does not hold. This task's own tests, Task 4's tests, and #1006's Token HUD panel tests all need a real DOM, so add it once here:
+
+```bash
+npm install --save-dev jsdom
+```
+
+Each DOM-touching test file then opts in per-file with a leading pragma comment (already present in this task's and Task 4's test blocks below: `// @vitest-environment jsdom`), rather than switching the whole suite's default environment and risking unrelated non-DOM tests behaving differently under jsdom.
+
+- [ ] **Step 2: Write the failing tests**
 
 ```js
+// @vitest-environment jsdom
 // tests/ai-action-tracker-detail.test.mjs
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-// A minimal DOM-like stub -- this repo's existing DOM-touching tests (the
-// marching-order/ai-action-log app suites) use real jsdom via vitest's own
-// config; confirm that config applies to this test file too before writing
-// it (check vitest.config.* for an existing `environment: 'jsdom'` setting
-// covering tests/*.test.mjs, the same one those suites already rely on).
 
 describe('renderTrackerDigestInto (#951)', () => {
   function makeTrackerDom(combatantIds) {
@@ -258,16 +291,16 @@ describe('renderTrackerDigestInto (#951)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [ ] **Step 3: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/ai-action-tracker-detail.test.mjs`
 Expected: FAIL with "renderTrackerDigestInto is not exported"
 
-- [ ] **Step 3: Implement**
+- [ ] **Step 4: Implement**
 
 ```js
 // scripts/module.mjs -- new, near the existing getCombatTrackerEntryContext hook
-import { buildCombatantDigest } from "./ai-action-digest.mjs";
+import { buildCombatantDigest, renderDigestRowHtml } from "./ai-action-digest.mjs";
 
 /** #951: combatant ids whose tracker row is currently expanded -- a
  * module-level Set (not per-render state) so it survives the tracker's
@@ -302,7 +335,7 @@ export function renderTrackerDigestInto(rootElement, combat, isGM, expandedIds) 
     if (expandedIds.has(combatantId)) {
       const expanded = document.createElement("div");
       expanded.className = "pf2edc-ai-expanded";
-      const rowHtml = (r) => `<li class="pf2edc-tone-${r.result?.tone ?? "neutral"}">${r.summary} (${r.result?.text ?? ""})${isGM && r.rationale ? `<div class="pf2edc-ai-rationale">${r.rationale}</div>` : ""}${isGM && r.source === "fallback" ? ' <span class="pf2edc-ai-fallback">(fallback heuristic)</span>' : ""}</li>`;
+      const rowHtml = (r) => renderDigestRowHtml(r, isGM);
       expanded.innerHTML = `<ul>${digest.currentRound.map(rowHtml).join("")}</ul>${digest.previousRound.length ? `<p class="pf2edc-ai-previous-round-label">Last round</p><ul>${digest.previousRound.map(rowHtml).join("")}</ul>` : ""}`;
       container.appendChild(expanded);
     }
@@ -311,7 +344,7 @@ export function renderTrackerDigestInto(rootElement, combat, isGM, expandedIds) 
 }
 ```
 
-- [ ] **Step 4: Register the `renderCombatTracker` hook and clear expanded state on combat change**
+- [ ] **Step 5: Register the `renderCombatTracker` hook and clear expanded state on combat change**
 
 ```js
 // scripts/module.mjs -- new Hooks.on registrations:
@@ -323,7 +356,7 @@ Hooks.on("renderCombatTracker", (app, html) => {
 Hooks.on("deleteCombat", () => expandedTrackerRows.clear());
 ```
 
-- [ ] **Step 5: Add the stylesheet**
+- [ ] **Step 6: Add the stylesheet**
 
 ```css
 /* styles/ai-action-detail.css */
@@ -340,20 +373,20 @@ Hooks.on("deleteCombat", () => expandedTrackerRows.clear());
 
 Load it through this module's existing style-registration mechanism (confirm the exact entry point — `module.json`'s own `"styles"` array, or a dynamically injected `<link>`, whichever this repo's other stylesheets already use — before treating this step as done).
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [ ] **Step 7: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/ai-action-tracker-detail.test.mjs`
 Expected: PASS (4 tests)
 
-- [ ] **Step 7: Run the full suite**
+- [ ] **Step 8: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
-git add scripts/module.mjs styles/ai-action-detail.css tests/ai-action-tracker-detail.test.mjs
+git add package.json package-lock.json scripts/module.mjs styles/ai-action-detail.css tests/ai-action-tracker-detail.test.mjs
 git commit -m "feat(#951): Combat Tracker row summary with click-to-expand detail"
 ```
 
@@ -372,6 +405,7 @@ git commit -m "feat(#951): Combat Tracker row summary with click-to-expand detai
 - [ ] **Step 1: Write the failing tests**
 
 ```js
+// @vitest-environment jsdom
 // tests/ai-action-hover-tooltip.test.mjs
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -575,3 +609,5 @@ git commit -m "chore(#951): hover-overlay styling; bump version"
 **4. Review Focus:** All five bullets (no-data rows left alone, re-render idempotence, canvas-visibility vs record-visibility, coordinate-failure safety, stale-fallback labeling) are each pinned to a named test in Tasks 2, 3, and 4.
 
 **Corrections found while writing this plan:** the first draft of Task 3's `renderTrackerDigestInto` toggled `expandedIds` and re-rendered from inside the SAME function being defined (a direct self-reference inside its own closure), which works in JS for a named function declaration but would silently break if a later refactor turned it into an arrow function assigned to a `const` before its own definition was in scope — added the click handler as a plain reference to the already-exported `renderTrackerDigestInto` function (not `this` or an inline duplicate), confirmed to resolve correctly at call time because of this, and noted here so a future refactor to a different function form doesn't reintroduce the subtlety silently.
+
+**Correction found by #1006:** this plan's own Task 3/4 test blocks originally claimed "this repo's existing DOM-touching tests... use real jsdom via vitest's own config" — confirmed live (reading `vitest.config.mjs` and `package.json`) that this is false: the configured environment is `'node'`, no `jsdom`/`happy-dom` package is installed, and no existing test file touches the real `document`/`window` globals. Fixed in place: Task 3's new Step 1 adds `jsdom` as a devDependency, and both Task 3's and Task 4's test blocks now carry a leading `// @vitest-environment jsdom` pragma so only these DOM-touching files opt into it.
