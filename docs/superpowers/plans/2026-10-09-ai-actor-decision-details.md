@@ -449,7 +449,7 @@ git commit -m "docs(#952): amend #925's plan -- alternatives/meta/fallbackReason
 - Consumes: nothing (takes a plain record).
 - Produces: `buildDecisionDetails(record, {isGM})` → `null | {alternatives, moreCount, lines}`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/ai-decision-details.test.mjs
@@ -501,12 +501,12 @@ describe('buildDecisionDetails (#952)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/ai-decision-details.test.mjs`
 Expected: FAIL with "Cannot find module"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/ui/ai-decision-details.mjs
@@ -554,12 +554,12 @@ export function buildDecisionDetails(record, { isGM }) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/ai-decision-details.test.mjs`
 Expected: PASS (6 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/ui/ai-decision-details.mjs tests/ai-decision-details.test.mjs
