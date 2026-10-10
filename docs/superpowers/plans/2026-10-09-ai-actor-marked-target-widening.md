@@ -557,7 +557,7 @@ git commit -m "feat(#946): widen the marked-target vocabulary beyond Hunt Prey/D
 - Consumes: nothing new.
 - Produces: every mark effect created by Task 4's flow is tagged `flags.pf2e-dungeon-crawl.markTargetTokenUuid` (alongside the existing `agentSelfEffect` tag #922's own executor already sets); `removeMarksTargeting(combat, defeatedTokenUuid)` (exported) → removes every tagged mark across every combatant pointing at that token.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // tests/dungeon-combat-marked-target-lifecycle.test.mjs
@@ -607,12 +607,12 @@ describe('removeMarksTargeting (#946)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/dungeon-combat-marked-target-lifecycle.test.mjs`
 Expected: FAIL with "removeMarksTargeting is not exported"
 
-- [ ] **Step 3: Tag the mark effect at creation time (Task 4's executor, once #922's own plan-only executor is implemented)**
+- [x] **Step 3: Tag the mark effect at creation time (Task 4's executor, once #922's own plan-only executor is implemented)**
 
 ```js
 // scripts/dungeon-combat.mjs -- the targetedSelfEffect executor's own
@@ -621,7 +621,7 @@ Expected: FAIL with "removeMarksTargeting is not exported"
       flags: { [MODULE_ID]: { agentSelfEffect: true, markTargetTokenUuid: targetTokenUuid } },
 ```
 
-- [ ] **Step 4: Implement `removeMarksTargeting`**
+- [x] **Step 4: Implement `removeMarksTargeting`**
 
 ```js
 // scripts/dungeon-combat.mjs -- new, near cleanupAgentSelfEffects
@@ -656,7 +656,7 @@ export async function removeMarksTargeting(combat, tokenUuid) {
 }
 ```
 
-- [ ] **Step 5: Wire the hook in `module.mjs`**
+- [x] **Step 5: Wire the hook in `module.mjs`**
 
 ```js
 // scripts/module.mjs -- register alongside this module's other Hooks.on("updateCombatant", ...)
@@ -679,17 +679,17 @@ Hooks.on("deleteCombatant", async (combatant) => {
 
 (Combat-end cleanup needs no new code at all: #914's existing `cleanupAgentSelfEffects` already removes every `agentSelfEffect`-tagged, unlimited-duration effect at combat end regardless of actor type — confirmed live — and every mark this plan creates carries that same tag.)
 
-- [ ] **Step 6: Run the test to verify it passes**
+- [x] **Step 6: Run the test to verify it passes**
 
 Run: `npx vitest run tests/dungeon-combat-marked-target-lifecycle.test.mjs`
 Expected: PASS (3 tests)
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs scripts/module.mjs tests/dungeon-combat-marked-target-lifecycle.test.mjs

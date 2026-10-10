@@ -9571,13 +9571,18 @@ async function executeTargetedSelfEffectFeat(combat, combatant, candidate) {
  * would otherwise outlive the encounter -- removed once, when combat ends.
  * Round/minute/encounter-duration effects are left alone: PF2e's own
  * duration handling expires them, and removing one early would be wrong.
- * A failed removal is logged and reported to the GM, never thrown. */
+ * #946: an agent-created MARK (tagged `markTargetTokenUuid`) is removed at
+ * combat end whatever its duration (Size Up's 1 day): it points at a
+ * creature of this fight (#946 spec, mark lifecycle). A failed removal is
+ * logged and reported to the GM, never thrown. */
 export async function cleanupAgentSelfEffects(combat) {
   for (const combatant of combat?.combatants ?? []) {
     const actor = combatant?.actor;
     if (!actor) continue;
     const toRemove = (actor.itemTypes?.effect ?? []).filter(
-      (e) => e.flags?.[MODULE_ID]?.agentSelfEffect === true && e.system?.duration?.unit === "unlimited",
+      (e) =>
+        e.flags?.[MODULE_ID]?.agentSelfEffect === true &&
+        (e.system?.duration?.unit === "unlimited" || !!e.flags?.[MODULE_ID]?.markTargetTokenUuid),
     );
     if (!toRemove.length) continue;
     try {
@@ -9594,6 +9599,49 @@ export async function cleanupAgentSelfEffects(combat) {
       }
     }
   }
+}
+
+/** #946: removes every agent-created mark (tagged both `agentSelfEffect`
+ * and `markTargetTokenUuid`) bound to `tokenUuid`, on every combatant of
+ * `combat` -- the marked creature was defeated or left the combat, which
+ * ends the mark by the feats' own text (Duelist's Challenge "until it's
+ * defeated, it flees from the encounter, or the encounter ends"). A failed
+ * removal is logged and reported to the GM, never thrown; one combatant's
+ * failure never blocks another's. */
+export async function removeMarksTargeting(combat, tokenUuid) {
+  if (!tokenUuid) return;
+  for (const combatant of combat?.combatants ?? []) {
+    const actor = combatant?.actor;
+    if (!actor) continue;
+    const toRemove = (actor.itemTypes?.effect ?? []).filter(
+      (e) => e.flags?.[MODULE_ID]?.agentSelfEffect === true && e.flags?.[MODULE_ID]?.markTargetTokenUuid === tokenUuid,
+    );
+    if (!toRemove.length) continue;
+    try {
+      await actor.deleteEmbeddedDocuments("Item", toRemove.map((e) => e.id));
+    } catch (err) {
+      console.error(`#946: failed to remove ${actor.name}'s mark on ${tokenUuid}:`, err.message);
+      try {
+        const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
+        await whisperGmContent(
+          `<p><strong>${esc(actor.name)}:</strong> could not remove ${toRemove.map((e) => esc(e.name)).join(", ")} from a defeated creature -- remove manually.</p>`,
+        );
+      } catch {
+        // Reporting is best-effort; cleanup never blocks combat resolution.
+      }
+    }
+  }
+}
+
+/** #946: hook target for `updateCombatant` (a combatant newly marked
+ * defeated) and `deleteCombatant` (it left the combat -- fled or was
+ * removed): ends the marks on its token. Active GM only. */
+export async function endMarksOnCombatantGone(combatant, changes = null) {
+  if (!(game.users?.activeGM?.isSelf ?? game.user?.isGM)) return;
+  if (changes && changes.defeated !== true) return;
+  const combat = combatant?.parent ?? combatant?.combat ?? null;
+  if (!combat || !isModuleCombat(combat)) return;
+  await removeMarksTargeting(combat, combatant.token?.uuid ?? null);
 }
 
 /** #910: a feat candidate that turned out impossible at execution time

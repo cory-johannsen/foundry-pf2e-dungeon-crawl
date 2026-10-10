@@ -62,6 +62,15 @@ describe("generateCombatCandidates", () => {
     expect(content).toContain("Devise a Stratagem");
   });
 
+  it("tells the model how to read a derived mark's effectSummary scopes (#946)", async () => {
+    const fetchImpl = fakeFetch({ picks: [] });
+    await generateCombatCandidates(context, vocabulary, { ...OPTS, fetchImpl });
+    const content = JSON.parse(fetchImpl.mock.calls[0][1].body).messages[0].content;
+    expect(content).toContain("Smite");
+    expect(content).toContain('"vs others"');
+    expect(content).toContain(`"vs <name>'s actions"`);
+  });
+
   it("returns an empty picks array when the model proposes none", async () => {
     const fetchImpl = fakeFetch({ picks: [] });
     const result = await generateCombatCandidates(context, vocabulary, { ...OPTS, fetchImpl });
