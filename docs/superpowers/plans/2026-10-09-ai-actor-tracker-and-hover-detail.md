@@ -38,7 +38,7 @@
 **Files:**
 - Modify: `docs/superpowers/plans/2026-10-09-ai-actor-action-log-panel.md`
 
-- [ ] **Step 1: Extract the shared helper**
+- [x] **Step 1: Extract the shared helper**
 
 In that plan's Task 2 (`buildAiLogView`'s own implementation in `scripts/ui/ai-action-log-view.mjs`), replace the inline filtering line:
 
@@ -66,7 +66,7 @@ export function buildAiLogView(records, combatantNames, { combatantId, round, is
 
 Update that plan's own Task 2 test file reference to note the new export, and add one test there asserting `visibleRecords` is exported and behaves identically to the pre-patch inline logic (same malformed-input and GM/non-GM cases `buildAiLogView`'s own tests already cover, now exercised directly).
 
-- [ ] **Step 2: Commit the amendment**
+- [x] **Step 2: Commit the amendment**
 
 ```bash
 git add docs/superpowers/plans/2026-10-09-ai-actor-action-log-panel.md

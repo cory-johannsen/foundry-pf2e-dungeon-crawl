@@ -1,7 +1,7 @@
 // #950: pure filtering/redaction for the AI Action Log window. Records use
 // the real shape #925's recordAgentAction (dungeon-combat.mjs) writes.
 import { describe, it, expect } from "vitest";
-import { buildAiLogView, logCombatantLabel } from "../scripts/ui/ai-action-log-view.mjs";
+import { buildAiLogView, logCombatantLabel, visibleRecords } from "../scripts/ui/ai-action-log-view.mjs";
 
 const info = {
   c1: { name: "Goblin", img: "goblin.webp" },
@@ -173,5 +173,52 @@ describe("logCombatantLabel (#950)", () => {
   it("falls back to the combatant name, then null", () => {
     expect(logCombatantLabel({ name: "Bob" }, { isGM: false, hideNames: false })).toBe("Bob");
     expect(logCombatantLabel(null, { isGM: false, hideNames: false })).toBeNull();
+  });
+});
+
+describe("visibleRecords (#951: the shared visibility rule)", () => {
+  it("returns a GM every well-formed record unchanged, in log order", () => {
+    const out = visibleRecords(records, true);
+    expect(out).toHaveLength(3);
+    expect(out[0]).toBe(records[0]);
+    expect(out.map((r) => r.summary)).toEqual(["Dagger", "Longsword", "Claw"]);
+  });
+
+  it("drops GM-only records for a non-GM and strips every GM-only field", () => {
+    const out = visibleRecords(records, false);
+    expect(out.map((r) => r.combatantId)).toEqual(["c1", "c2"]);
+    for (const r of out) {
+      expect(r).not.toHaveProperty("rationale");
+      expect(r).not.toHaveProperty("gmNote");
+      expect(r).not.toHaveProperty("source");
+      expect(r).not.toHaveProperty("candidateId");
+      expect(JSON.stringify(r)).not.toContain("Closest.");
+      expect(JSON.stringify(r)).not.toContain("DC 18");
+    }
+    expect(out[0]).toMatchObject({ summary: "Dagger", target: { id: "c2", name: "Fighter" }, result: { text: "hit", tone: "success" }, round: 1, index: 0 });
+  });
+
+  it("never mutates the stored records", () => {
+    const copy = JSON.parse(JSON.stringify(records));
+    visibleRecords(records, false);
+    expect(records).toEqual(copy);
+  });
+
+  it("treats anything but true as non-GM", () => {
+    for (const isGM of [undefined, null, "yes", 1]) {
+      expect(visibleRecords(records, isGM).some((r) => r.visibility === "gm")).toBe(false);
+    }
+  });
+
+  it("reads a malformed log as empty and skips malformed entries", () => {
+    for (const bad of [null, undefined, {}, "x"]) expect(visibleRecords(bad, true)).toEqual([]);
+    expect(visibleRecords([null, "junk", 3, { combatantId: "c1" }], false)).toEqual([{ combatantId: "c1" }]);
+  });
+
+  it("buildAiLogView shows exactly the records visibleRecords lets through", () => {
+    for (const isGM of [true, false]) {
+      const view = buildAiLogView(records, info, { ...ALL, isGM });
+      expect(view.rows.map((r) => r.summary)).toEqual(visibleRecords(records, isGM).map((r) => r.summary));
+    }
   });
 });
