@@ -1,7 +1,7 @@
 {
   "totalCandidates": 156,
-  "survivorCount": 87,
-  "excludedCount": 69,
+  "survivorCount": 89,
+  "excludedCount": 67,
   "entries": [
     {
       "name": "Ghost Wrangler",
@@ -514,10 +514,8 @@
       "slug": "eye-of-the-arclords",
       "category": "feat",
       "cost": 1,
-      "excluded": true,
-      "excludeReasons": [
-        "target-dependent"
-      ],
+      "excluded": false,
+      "excludeReasons": [],
       "durationLabel": "1 minutes"
     },
     {
@@ -648,10 +646,8 @@
       "slug": "spell-parry",
       "category": "feat",
       "cost": 1,
-      "excluded": true,
-      "excludeReasons": [
-        "target-dependent"
-      ],
+      "excluded": false,
+      "excludeReasons": [],
       "durationLabel": "1 rounds"
     },
     {

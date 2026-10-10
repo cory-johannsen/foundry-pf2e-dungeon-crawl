@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { computeTargetedSelfEffectVocabularyEntries, getPendingAgentTurn } from "../scripts/dungeon-combat.mjs";
 
@@ -256,5 +257,97 @@ describe("getPendingAgentTurn targeted self-effect vocabulary (#922)", () => {
       "Rapier vs opp2 (variant 0)",
     ]);
     expect(pending.context.opponents.find((o) => o.id === "opp2")).not.toHaveProperty("markAnnotation");
+  });
+});
+
+// --- #946: derived marked-target items (real pf2e 8.5.0 data) -------------
+
+describe("computeTargetedSelfEffectVocabularyEntries: derived marked-target items (#946)", () => {
+  const POPULATION = JSON.parse(
+    readFileSync(new URL("./fixtures/marked-target-population.json", import.meta.url), "utf8"),
+  ).entries;
+
+  function realItem(slug) {
+    const e = POPULATION.find((p) => p.slug === slug);
+    return {
+      id: `${slug}-id`, slug, name: e.name, uuid: `Actor.atk.Item.${slug}-id`,
+      system: {
+        actionType: { value: e.actionType }, actions: { value: e.actions },
+        selfEffect: { uuid: e.selfEffectUuid }, frequency: e.frequency ? { ...e.frequency, value: 1 } : null,
+        traits: { value: e.traits }, rules: [], description: { value: e.description },
+      },
+      flags: { pf2e: { rulesSelections: {} } },
+    };
+  }
+
+  beforeEach(() => {
+    globalThis.fromUuid = vi.fn(async (uuid) => {
+      const e = POPULATION.find((p) => p.selfEffectUuid === uuid);
+      return e ? effectDoc(e.effect.slug, e.effect.rules) : null;
+    });
+    // effectDoc's toObject carries no duration; give the real one.
+    const base = globalThis.fromUuid;
+    globalThis.fromUuid = vi.fn(async (uuid) => {
+      const doc = await base(uuid);
+      if (!doc) return null;
+      const e = POPULATION.find((p) => p.selfEffectUuid === uuid);
+      const toObject = doc.toObject;
+      return { ...doc, toObject: () => { const o = toObject(); o.system.duration = e.effect.duration; return o; } };
+    });
+  });
+
+  const featActor = (feat, extra = {}) => ({ ...actor(), itemTypes: { action: [], feat, effect: extra.effect ?? [] }, conditions: extra.conditions ?? [] });
+  const seen = { ...goblin, distanceFeet: 10, actor: { system: { traits: { value: ["goblin", "humanoid"] } } } };
+  const unseen = { ...orc, distanceFeet: 10, actor: { system: { traits: { value: ["orc"] } } } };
+
+  it("offers Smite against every opponent in sight, with a deterministic summary of what the mark does", async () => {
+    const entries = await computeTargetedSelfEffectVocabularyEntries(featActor([realItem("smite")]), [seen, unseen], 3);
+    expect(entries).toEqual([
+      { itemId: "smite-id", slug: "smite", name: "Smite", cost: 1, targetId: "opp1", traits: [], effectSummary: "mark Goblin: +strike-damage vs Goblin (1 rounds)" },
+    ]);
+  });
+
+  it("Duelist's Challenge: the summary names the penalty against everyone else; not re-offered while a challenge is active", async () => {
+    const [entry] = await computeTargetedSelfEffectVocabularyEntries(featActor([realItem("duelists-challenge")]), [seen], 3);
+    expect(entry.effectSummary).toBe("mark Goblin: +melee-strike-damage vs Goblin, -strike-damage vs others (until encounter ends)");
+    const active = { slug: "effect-duelists-challenge", system: { rules: [{ key: "TokenMark", slug: "duelists-challenge", uuid: "Scene.s.Token.other" }] } };
+    expect(await computeTargetedSelfEffectVocabularyEntries(featActor([realItem("duelists-challenge")], { effect: [active] }), [seen], 3)).toEqual([]);
+  });
+
+  it("Smite re-designates: offered against everyone except the creature it already marks", async () => {
+    const active = { slug: "effect-smite", system: { rules: [{ key: "TokenMark", slug: "smite", uuid: "Scene.s.Token.opp1" }] } };
+    const other = { ...seen, id: "opp3", name: "Ogre", tokenUuid: "Scene.s.Token.opp3" };
+    const entries = await computeTargetedSelfEffectVocabularyEntries(featActor([realItem("smite")], { effect: [active] }), [seen, other], 3);
+    expect(entries.map((e) => e.targetId)).toEqual(["opp3"]);
+  });
+
+  it("Size Up: not against a mindless creature, and not while the actor is deafened (see AND hear)", async () => {
+    const zombie = { ...seen, id: "z", name: "Zombie", tokenUuid: "Scene.s.Token.z", actor: { system: { traits: { value: ["mindless", "undead"] } } } };
+    const entries = await computeTargetedSelfEffectVocabularyEntries(featActor([realItem("size-up")]), [seen, zombie], 3);
+    expect(entries.map((e) => e.targetId)).toEqual(["opp1"]);
+    const deafened = featActor([realItem("size-up")], { conditions: [{ slug: "deafened" }] });
+    expect(await computeTargetedSelfEffectVocabularyEntries(deafened, [seen], 3)).toEqual([]);
+  });
+
+  it("a stated range excludes a target beyond it (Unfazed Assessment-style 'within 30 feet' on a clean mark)", async () => {
+    const item = realItem("smite");
+    item.system.description.value = "<p>Choose a creature within 30 feet who you're aware of.</p>";
+    const far = { ...seen, distanceFeet: 35 };
+    expect(await computeTargetedSelfEffectVocabularyEntries(featActor([item]), [far], 3)).toEqual([]);
+    expect(await computeTargetedSelfEffectVocabularyEntries(featActor([item]), [{ ...far, distanceFeet: 30 }], 3)).toHaveLength(1);
+  });
+
+  it("never offers the rest of the population: toggleable (Harsh Judgement, Nothing Personal), cursebound (Whispers of Weakness), untracked state (Enforce Oath, Hungry Blade, Harvest Blood, Hunt the Razer's Pawn), choices/granted items, target-conditional", async () => {
+    const offered = new Set(["smite", "duelists-challenge", "size-up", "hunt-prey"]);
+    const rest = POPULATION.filter((p) => !offered.has(p.slug) && p.slug !== "devise-a-stratagem").map((p) => realItem(p.slug));
+    expect(await computeTargetedSelfEffectVocabularyEntries(featActor(rest), [seen], 3)).toEqual([]);
+  });
+
+  it("a Requirements clause is evaluated (handFree): excluded when both hands are full", async () => {
+    const item = realItem("smite");
+    item.system.description.value = "<p><strong>Requirements</strong> You have a hand free.</p><hr /><p>Designate one enemy you can see.</p>";
+    const twoHanded = { ...featActor([item]), items: [{ type: "weapon", name: "Greatsword", system: { equipped: { carryType: "held", handsHeld: 2 } } }] };
+    expect(await computeTargetedSelfEffectVocabularyEntries(twoHanded, [seen], 3)).toEqual([]);
+    expect(await computeTargetedSelfEffectVocabularyEntries({ ...twoHanded, items: [] }, [seen], 3)).toHaveLength(1);
   });
 });

@@ -157,7 +157,7 @@ git commit -m "feat(#946): classifyTargetEffect, replacing the blanket TokenMark
 - Consumes: `classifyTargetEffect` (Task 1).
 - Produces: `isUnsafeSelfEffect`'s own target-related check now defers to `classifyTargetEffect`; `computeSelfEffectVocabularyEntries` (real, merged, #914) now offers a `targetConditional` effect as an ordinary self-effect entry.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs (append to the
@@ -205,12 +205,12 @@ it('still excludes an effect classifyTargetEffect calls unsupported (a ChoiceSet
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs -t "target-conditional"`
 Expected: FAIL — Point Blank Stance is excluded today (the real, unmodified `isUnsafeSelfEffect` treats its `target:` predicate as unsafe)
 
-- [ ] **Step 3: Replace the real `isUnsafeSelfEffect` target check**
+- [x] **Step 3: Replace the real `isUnsafeSelfEffect` target check**
 
 ```js
 // scripts/dungeon-combat.mjs -- isUnsafeSelfEffect's real body (confirmed live,
@@ -241,24 +241,24 @@ function isUnsafeSelfEffect(rules, duration) {
 }
 ```
 
-- [ ] **Step 4: Add the import**
+- [x] **Step 4: Add the import**
 
 ```js
 // scripts/dungeon-combat.mjs -- extend the existing agent-candidates.mjs
 // import list with classifyTargetEffect.
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs`
 Expected: PASS (all tests, including every pre-#946 test in the file — a plain self-effect with no target dependence, or an already-excluded ChoiceSet/GrantItem case, must still behave identically)
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions in `dungeon-combat-feat-self-effect-*`/`self-effect-*` suites)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs
@@ -390,7 +390,7 @@ git commit -m "feat(#946): requirement and range-constraint parser for marked-ta
 - Consumes: `classifyTargetEffect` (Task 1), `parseMarkedTargetRequirement` (Task 3). **Depends on #922's own plan having landed first** (this task's own starting point is #922's `computeTargetedSelfEffectVocabularyEntries`/`bindTokenMarkEffect`/`TARGETED_SELF_EFFECT_ALLOWLIST`, none of which exist in real code yet — if #922 has not merged by the time this task is executed, implement #922's Task 1–3 first, then apply this task's changes on top, rather than re-deriving a third variant).
 - Produces: `computeTargetedSelfEffectVocabularyEntries` now scans **every** `actor.itemTypes.feat` item with a `selfEffect`, classifying each via `classifyTargetEffect` instead of checking a static allowlist, gated by `parseMarkedTargetRequirement`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-targeted-feat-vocabulary.test.mjs (append)
@@ -466,12 +466,12 @@ it('excludes an unsupported-classified marked feat (Harsh Judgement, toggleable 
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-combat-targeted-feat-vocabulary.test.mjs -t "Smite-shaped|Nothing Personal|60 ft|Harsh Judgement"`
 Expected: FAIL — `computeTargetedSelfEffectVocabularyEntries` (once #922 lands) only recognizes the static two-item allowlist, not a derived classification
 
-- [ ] **Step 3: Generalize `computeTargetedSelfEffectVocabularyEntries`**
+- [x] **Step 3: Generalize `computeTargetedSelfEffectVocabularyEntries`**
 
 ```js
 // scripts/dungeon-combat.mjs -- replace #922's own `TARGETED_SELF_EFFECT_ALLOWLIST`
@@ -532,12 +532,12 @@ export async function computeTargetedSelfEffectVocabularyEntries(actor, opponent
 
 Note: `summarizeEffect` is #914's existing export (`scripts/self-effect-summary.mjs`), already imported into `dungeon-combat.mjs` for the plain self-effect vocabulary — reused here rather than re-deriving a second summary format. Add `classifyTargetEffect`/`parseMarkedTargetRequirement` to this file's own import lists (from `agent-candidates.mjs` and the new `marked-target-requirements.mjs` respectively).
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-combat-targeted-feat-vocabulary.test.mjs`
 Expected: PASS (all tests, including #922's own original Hunt Prey/Devise tests — re-read them once #922 lands and confirm this generalized version still satisfies every one of them, since the static-allowlist branch they were written against no longer exists)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-targeted-feat-vocabulary.test.mjs

@@ -9,12 +9,24 @@
  * makes the system skip its interactive MarkTargetPrompt
  * (TokenMarkRuleElement#preCreate in the installed pf2e.mjs v8.5.0). No
  * Foundry API surface at all.
+ *
+ * #946 widened it from the two explicit configs below to every
+ * one-action/free self-effect item whose linked effect classifies as
+ * `marked` (classifyTargetEffect) and whose own prose states a checkable
+ * target constraint (marked-target-requirements.mjs): Smite, Duelist's
+ * Challenge, Size Up in the pf2e 8.5.0 compendium.
  */
 
+import { parseMarkedTargetRequirement } from "./marked-target-requirements.mjs";
+
 /**
- * First-slice allowlist, keyed by the ACTION item's slug (both are `action`
- * items in pf2e.actionspf2e, granted by same-named passive class
- * features). Widening to the other marked-target self-effects is #946.
+ * #922's explicit configs, keyed by the ACTION item's slug (both are
+ * `action` items in pf2e.actionspf2e, granted by same-named passive class
+ * features). #946 derives every other marked-target config from data
+ * (resolveTargetedSelfEffectConfig); these two stay explicit because each
+ * needs handling the derivation doesn't do -- Devise's stratagem sub-choice
+ * (its effect's toggleable RollOption would classify it `unsupported`) and
+ * its Strike-trait gate.
  *
  * - `markSlug`: the slug of the linked effect's own TokenMark rule
  *   (confirmed live: `Effect: Hunt Prey` -> `hunted-prey`, `Effect:
@@ -157,4 +169,82 @@ export function markAnnotation(marks) {
   return marks
     .map((m) => (m.badgeValue != null ? `marked: ${m.slug}, d20 = ${m.badgeValue}` : `marked: ${m.slug}`))
     .join("; ");
+}
+
+/**
+ * #946: the targeted-self-effect config for `item` whose linked effect
+ * source is `effectSource`, or `null` when this module can't use it
+ * unattended. #922's two explicit configs win; otherwise the effect must
+ * classify as `marked`, the item must not be `cursebound` (an oracle's
+ * curse escalation this module doesn't apply -- Whispers of Weakness), and
+ * its own description must give a checkable target constraint
+ * (parseMarkedTargetRequirement). Shape: `{ markSlug, requiresSight,
+ * needsHearing, rangeFeet, targetNotMindless, requirements, exclusiveMark,
+ * suboption }` -- `exclusiveMark` when a new use moves the mark (the old
+ * effect is deleted after the new one exists), otherwise the item isn't
+ * re-offered while its mark is active.
+ */
+export function resolveTargetedSelfEffectConfig(item, effectSource) {
+  const explicit = TARGETED_SELF_EFFECT_ALLOWLIST[item?.slug];
+  if (explicit) {
+    return { ...explicit, needsHearing: false, rangeFeet: null, targetNotMindless: false, requirements: [] };
+  }
+  const rules = effectSource?.system?.rules ?? [];
+  if (classifyTargetEffect(rules) !== "marked") return null;
+  if ((item?.system?.traits?.value ?? []).includes("cursebound")) return null;
+  const target = parseMarkedTargetRequirement(item?.system?.description?.value);
+  if (!target) return null;
+  return {
+    markSlug: rules.find((r) => r?.key === "TokenMark").slug,
+    requiresSight: target.needsSight,
+    needsHearing: target.needsHearing,
+    rangeFeet: target.rangeFeet,
+    targetNotMindless: target.targetNotMindless,
+    requirements: target.requirements,
+    exclusiveMark: target.reDesignates,
+    suboption: null,
+  };
+}
+
+function signOf(value) {
+  if (typeof value === "number") return value < 0 ? "-" : "+";
+  return /^\s*-|\*\s*-\s*1\b/.test(String(value ?? "")) ? "-" : "+";
+}
+
+function selectorLabel(rule) {
+  const selector = rule.selector ?? rule.selectors;
+  return Array.isArray(selector) ? selector.join("/") : (selector ?? "stat");
+}
+
+/**
+ * #946: the deterministic effectSummary for a derived marked-target entry:
+ * what the effect does, and against whom -- `vs <name>` (a `target:mark`
+ * predicate: the actor's rolls against the marked creature), `vs <name>'s
+ * actions` (`origin:mark`: the marked creature's rolls/effects against the
+ * actor), `vs others` (`not target:mark`: Duelist's Challenge's penalty).
+ * AdjustModifier upgrades and RollOptions restate a bonus already listed,
+ * so they are left out. `durationLabel` is appended in parentheses.
+ */
+export function summarizeMarkEffect(rules, markSlug, targetName, durationLabel = null) {
+  const parts = [];
+  for (const rule of rules ?? []) {
+    if (!rule || ["TokenMark", "AdjustModifier", "RollOption"].includes(rule.key)) continue;
+    const predicate = JSON.stringify(rule.predicate ?? []);
+    const scope = predicate.includes(`{"not":"target:mark:${markSlug}"}`)
+      ? " vs others"
+      : predicate.includes(`target:mark:${markSlug}`)
+        ? ` vs ${targetName}`
+        : predicate.includes(`origin:mark:${markSlug}`)
+          ? ` vs ${targetName}'s actions`
+          : "";
+    let label;
+    if (rule.key === "FlatModifier") label = `${signOf(rule.value)}${selectorLabel(rule)}`;
+    else if (rule.key === "DamageDice") label = "+damage dice";
+    else if (rule.key === "AdjustStrike") label = "strike adj";
+    else if (rule.key === "TempHP") label = "temp HP";
+    else label = rule.key;
+    parts.push(`${label}${scope}`);
+  }
+  const body = [...new Set(parts)].join(", ") || "marks";
+  return `mark ${targetName}: ${body}${durationLabel ? ` (${durationLabel})` : ""}`;
 }

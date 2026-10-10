@@ -94,13 +94,16 @@ import { SELF_EFFECT_DENYLIST } from "./self-effect-denylist.mjs";
 import { describeAgentAction, renderAgentTurnCardHtml } from "./agent-action-display.mjs";
 import { summarizeEffect, effectDurationLabel, effectRelevanceTier } from "./self-effect-summary.mjs";
 import {
-  TARGETED_SELF_EFFECT_ALLOWLIST,
+  classifyTargetEffect,
+  resolveTargetedSelfEffectConfig,
+  summarizeMarkEffect,
   bindTokenMarkEffect,
   selectRollOptionSuboption,
   markedTokenUuids,
   findActiveMarkEffects,
   markAnnotation,
 } from "./targeted-feat-actions.mjs";
+import { parseFeatRequirements } from "./marked-target-requirements.mjs";
 import {
   ANTAGONIZE_FEAT_SLUG,
   readAntagonizeMap,
@@ -3396,22 +3399,24 @@ export function immuneToDemoralize(targetActor) {
  * Decision 5), most tactically relevant first. */
 const SELF_EFFECT_VOCABULARY_CAP = 12;
 
-/** #914: the deterministic checks against a linked effect's OWN rule
+/** #914/#946: the deterministic checks against a linked effect's OWN rule
  * elements/duration that decide whether this module can apply it to an AI
  * actor unattended. True (unsafe) on any hit: an unresolved ChoiceSet (the
  * system would open a choice dialog), GrantItem (granted items this module
- * doesn't track or clean up), TokenMark or a `target:`/`@target` reference
- * (needs a chosen target -- #927), no rules at all (nothing to apply), or
- * an hours/days duration (outlives the encounter by design). The classified
- * live compendium population is tests/fixtures/self-effect-audit-snapshot.json. */
-function isUnsafeSelfEffect(rules, duration) {
+ * doesn't track or clean up), no rules at all (nothing to apply), an
+ * hours/days duration (outlives the encounter by design), or a target
+ * dependence classifyTargetEffect calls `marked` (needs a chosen creature --
+ * the targetedSelfEffect kind, #922/#946) or `unsupported`. #946: a
+ * `targetConditional` effect (only `target:` roll-option predicates, which
+ * the system tests against each roll's own target -- Point Blank Stance,
+ * Spell Parry) is safe; #914's old blanket target: rule wrongly excluded
+ * it. The classified live compendium population is
+ * tests/fixtures/self-effect-audit-snapshot.json. */
+function isUnsafeSelfEffect(rules, duration, classification = classifyTargetEffect(rules)) {
   if (rules.length === 0) return true;
   if (duration?.unit === "hours" || duration?.unit === "days") return true;
-  return rules.some((r) => {
-    if (r?.key === "ChoiceSet" || r?.key === "GrantItem" || r?.key === "TokenMark") return true;
-    const text = JSON.stringify(r);
-    return text.includes("target:") || /@target\b/.test(text);
-  });
+  if (classification === "marked" || classification === "unsupported") return true;
+  return rules.some((r) => r?.key === "ChoiceSet" || r?.key === "GrantItem");
 }
 
 /** #934: the NPC counterpart of isUnsafeSelfEffect, for monster abilities
@@ -3565,7 +3570,16 @@ export async function computeSelfEffectVocabularyEntries(actor, actionsRemaining
       if (!effect) continue;
       const rules = effect.system?.rules ?? [];
       const duration = effect.system?.duration;
-      if (isUnsafeSelfEffect(rules, duration)) continue;
+      const targetDependence = classifyTargetEffect(rules);
+      if (isUnsafeSelfEffect(rules, duration, targetDependence)) continue;
+      // #946: the target-conditional effects #914 used to exclude are
+      // admitted only when their own Requirements hold (Point Blank
+      // Stance's ranged weapon, Spell Parry's free hand); a requirement
+      // outside the closed set excludes the item.
+      if (targetDependence === "targetConditional") {
+        const requirements = parseFeatRequirements(item.system?.description?.value);
+        if (!requirements || !requirements.every((p) => npcSelfRequirementHolds(p, actor, []))) continue;
+      }
       if (actorAlreadyHasEffectFrom(actor, item, effect.slug)) continue;
       const replacesStance = isStance ? await findActiveStanceEffectId(actor) : null;
       scored.push({
@@ -3577,7 +3591,10 @@ export async function computeSelfEffectVocabularyEntries(actor, actionsRemaining
           cost,
           replacesStance,
           traits: featGatingTraits(item),
-          effectSummary: summarizeEffect(rules),
+          effectSummary:
+            targetDependence === "targetConditional"
+              ? `${summarizeEffect(rules)} (conditional on the roll's target)`
+              : summarizeEffect(rules),
           durationLabel: effectDurationLabel(duration),
           frequencyLabel: selfEffectFrequencyLabel(item.system?.frequency),
         },
@@ -3617,13 +3634,20 @@ function underFearEffect(actor) {
  *    the system's own state is what's read -- nothing is inferred.
  *  - wielding: a held item of that name, or a Strike (NPC `melee` item) of
  *    that name -- an NPC's Strikes are the weapons its stat block wields.
- *  - wearing: a worn item of that name. */
+ *  - wearing: a worn item of that name.
+ *  - wieldingRanged (#946): a held ranged weapon.
+ * #946: also evaluates a character's own self-effect Requirements
+ * (marked-target-requirements.mjs) -- the same closed predicate set. */
 function npcSelfRequirementHolds(predicate, actor, opponents) {
   switch (predicate?.type) {
     case "handFree": {
       const hands = heldItemsOf(actor).reduce((n, i) => n + (Number(i.system.equipped.handsHeld) || 0), 0);
       return hands < 2;
     }
+    case "wieldingRanged":
+      // #946: "You are wielding a ranged weapon" -- a held weapon with a
+      // range (WeaponPF2e#isRanged is `!!system.range`).
+      return heldItemsOf(actor).some((i) => i?.type === "weapon" && !!i.system?.range);
     case "wielding":
       return (
         heldItemsOf(actor).some((i) => itemNameIncludes(i, predicate.name)) ||
@@ -3761,20 +3785,27 @@ function hasStratagemStrike(actor) {
   });
 }
 
-/** #922: the targeted self-effect vocabulary category (Hunt Prey, Devise a
- * Stratagem; character actors only, like #910/#914's self-effects). Each
- * allowlisted action/feat item that passes #910's per-turn gates (excluded
- * traits, cost, frequency, unresolved ChoiceSet) and whose linked effect
- * really carries the expected TokenMark rule yields one entry per legal
- * target. `opponents` are `{id, name, hasLineOfSight, tokenUuid}` for the
- * opponents this actor can currently target (stealth matrix already
- * applied). The system ignores TokenMark on an actor with no token on the
- * viewed canvas, so such an actor gets no entries. Both are concentrate
- * actions, so neither is offered while raging. Hunt Prey: never against
- * the creature already designated as prey. Devise a Stratagem: a creature
- * the actor can see, not while its effect is active, and only with a
- * Strike its d20 can apply to. Returns plain `{itemId, slug, name, cost,
- * targetId, traits, effectSummary}` entries for buildFeatVocabulary. */
+/** #922/#946: the targeted self-effect vocabulary category (character
+ * actors only, like #910/#914's self-effects): every action/feat item with
+ * a linked self-effect that resolveTargetedSelfEffectConfig accepts --
+ * #922's Hunt Prey / Devise a Stratagem, plus #946's derived marked-target
+ * items (Smite, Duelist's Challenge, Size Up) -- kept by #910's per-turn
+ * gates (excluded traits, cost, frequency, unresolved ChoiceSet), whose
+ * linked effect really carries the bindable TokenMark rule, and whose own
+ * Requirements hold (the closed #934/#946 predicate set). One entry per
+ * legal target. `opponents` are `{id, name, hasLineOfSight, tokenUuid,
+ * distanceFeet, actor}` for the opponents this actor can currently target
+ * (stealth matrix already applied). The system ignores TokenMark on an
+ * actor with no token on the viewed canvas, so such an actor gets no
+ * entries. A concentrate action isn't offered while raging. Per target:
+ * "you can see" needs line of sight, "within N feet" the PF2e distance,
+ * "non-mindless" a target without the mindless trait, and "see and hear" an
+ * actor that isn't deafened. A mark that moves on re-use (Hunt Prey, Smite,
+ * Size Up) is never offered against the creature it already marks; any
+ * other (Devise a Stratagem, Duelist's Challenge) isn't offered while its
+ * mark is active. Devise a Stratagem also needs a Strike its d20 can apply
+ * to. Returns plain `{itemId, slug, name, cost, targetId, traits,
+ * effectSummary}` entries for buildFeatVocabulary. */
 export async function computeTargetedSelfEffectVocabularyEntries(actor, opponents, actionsRemaining) {
   if (actor?.type !== "character") return [];
   if (typeof actor.getActiveTokens !== "function" || actor.getActiveTokens().length === 0) return [];
@@ -3782,13 +3813,11 @@ export async function computeTargetedSelfEffectVocabularyEntries(actor, opponent
   const items = [...(actor.itemTypes?.action ?? []), ...(actor.itemTypes?.feat ?? [])];
   const effects = actor.itemTypes?.effect ?? [];
   // Rage: "You can't use actions with the concentrate trait unless they also
-  // have the rage trait" -- both of these are concentrate actions.
+  // have the rage trait".
   const raging = effects.some((e) => e?.slug === "effect-rage");
   for (const item of items) {
-    const config = TARGETED_SELF_EFFECT_ALLOWLIST[item?.slug];
-    if (!config) continue;
     try {
-      const uuid = item.system?.selfEffect?.uuid;
+      const uuid = item?.system?.selfEffect?.uuid;
       if (!uuid) continue;
       const traits = item.system?.traits?.value ?? [];
       if (traits.some((t) => FEAT_EXCLUDED_TRAITS.has(t))) continue;
@@ -3799,13 +3828,21 @@ export async function computeTargetedSelfEffectVocabularyEntries(actor, opponent
       if (hasUnresolvedChoiceSet(item)) continue;
       const effect = await fromUuid(uuid);
       if (typeof effect?.toObject !== "function") continue;
-      if (!bindTokenMarkEffect(effect.toObject(), config.markSlug, "probe")) continue;
+      const source = effect.toObject();
+      const config = resolveTargetedSelfEffectConfig(item, source);
+      if (!config) continue;
+      if (!bindTokenMarkEffect(source, config.markSlug, "probe")) continue;
+      if (!config.requirements.every((p) => npcSelfRequirementHolds(p, actor, opponents ?? []))) continue;
+      if (config.needsHearing && actorHasCondition(actor, "deafened")) continue;
       const marked = markedTokenUuids(effects, config.markSlug);
       if (!config.exclusiveMark && marked.length > 0) continue;
       if (item.slug === "devise-a-stratagem" && !hasStratagemStrike(actor)) continue;
+      const durationLabel = effectDurationLabel(source.system?.duration);
       for (const o of opponents ?? []) {
         if (!o.tokenUuid) continue;
         if (config.requiresSight && o.hasLineOfSight === false) continue;
+        if (config.rangeFeet != null && !(o.distanceFeet <= config.rangeFeet)) continue;
+        if (config.targetNotMindless && (o.actor?.system?.traits?.value ?? []).includes("mindless")) continue;
         if (config.exclusiveMark && marked.includes(o.tokenUuid)) continue;
         entries.push({
           itemId: item.id,
@@ -3817,7 +3854,9 @@ export async function computeTargetedSelfEffectVocabularyEntries(actor, opponent
           effectSummary:
             item.slug === "hunt-prey"
               ? `mark prey: +bonuses vs ${o.name}`
-              : `d20 replaces next Strike vs ${o.name}`,
+              : item.slug === "devise-a-stratagem"
+                ? `d20 replaces next Strike vs ${o.name}`
+                : summarizeMarkEffect(source.system?.rules, config.markSlug, o.name, durationLabel),
         });
       }
     } catch (err) {
@@ -5307,7 +5346,8 @@ export async function getPendingAgentTurn(combat) {
       turnState.actionsRemaining,
       gridDistanceFt,
     ),
-    // #922: Hunt Prey / Devise a Stratagem, one entry per legal target.
+    // #922/#946: marked-target self-effects (Hunt Prey, Devise a
+    // Stratagem, Smite, ...), one entry per legal target.
     targetedSelfEffectEntries: await computeTargetedSelfEffectVocabularyEntries(
       combatant.actor,
       rawOpponents.map((c, i) => ({
@@ -5315,6 +5355,9 @@ export async function getPendingAgentTurn(combat) {
         name: c.name,
         hasLineOfSight: opponents[i].hasLineOfSight,
         tokenUuid: c.token?.uuid ?? null,
+        // #946: "within N feet" constraints/requirements, "non-mindless".
+        distanceFeet: pf2eDistanceFeet(combatant.token, c.token, gridSize, gridDistanceFt),
+        actor: c.actor,
       })),
       turnState.actionsRemaining,
     ),
@@ -9401,34 +9444,48 @@ export async function executeNpcSelfCandidate(combat, combatant, candidate) {
   return { ...result, attacks: 0, ...(notes.length ? { gmNote: notes.join("\n") } : {}) };
 }
 
-/** #922: Hunt Prey / Devise a Stratagem. The linked effect is created the
+/** #922/#946: a marked-target self-effect (Hunt Prey, Devise a Stratagem,
+ * Smite, Duelist's Challenge, Size Up). The linked effect is created the
  * way executeSelfEffectFeat (and the system's own apply-effect button)
  * does, after binding its TokenMark rule to the chosen opponent's token
  * (so TokenMarkRuleElement#preCreate neither reads the user's targets nor
  * opens its interactive prompt) and, for Devise, selecting the `attack`
  * stratagem on its RollOption rule's `selection` (the field the system's
- * own toggle writes). Everything afterwards -- Hunt Prey's bonuses, the d20
- * replacing the next Strike against the marked creature -- is the system's
- * own rule elements. The new effect is created first; only then is a prior
- * Hunt Prey designation removed (RAW: one prey at a time), the usage card
- * posted and frequency spent, so a failed creation leaves no side effects
- * and spends no action. Returns `{ performed, attacks }`. */
+ * own toggle writes). Everything afterwards -- the bonuses/penalties, the
+ * d20 replacing the next Strike against the marked creature -- is the
+ * system's own rule elements. The vocabulary's target checks (sight,
+ * range, non-mindless, the item's Requirements) are re-checked against the
+ * live state. The new effect is created first; only then is a prior mark
+ * of a re-designating item removed (Hunt Prey/Smite/Size Up: one mark at a
+ * time), the usage card posted and frequency spent, so a failed creation
+ * leaves no side effects and spends no action. #946: the effect is tagged
+ * with the marked token (`markTargetTokenUuid`) so removeMarksTargeting can
+ * end it when that creature is defeated or leaves the combat. Returns
+ * `{ performed, attacks }`. */
 async function executeTargetedSelfEffectFeat(combat, combatant, candidate) {
   const actor = combatant.actor;
-  const config = TARGETED_SELF_EFFECT_ALLOWLIST[candidate.slug];
-  if (!config) return { performed: false };
-  const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
-  const targetTokenUuid = target?.token?.uuid;
-  if (!targetTokenUuid) return { performed: false };
-  if (config.requiresSight && !hasLineOfSight(combat, combatant.token, target.token)) return { performed: false };
-  // The system ignores a TokenMark on an actor with no token on the viewed
-  // canvas -- the effect would be created unbound.
-  if (typeof actor.getActiveTokens !== "function" || actor.getActiveTokens().length === 0) return { performed: false };
   const item = findFeatItem(actor, candidate.itemId);
   const uuid = item?.system?.selfEffect?.uuid;
   if (!uuid) return { performed: false };
   const effect = await fromUuid(uuid);
   if (typeof effect?.toObject !== "function") return { performed: false };
+  const config = resolveTargetedSelfEffectConfig(item, effect.toObject());
+  if (!config) return { performed: false };
+  const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
+  const targetTokenUuid = target?.token?.uuid;
+  if (!targetTokenUuid) return { performed: false };
+  if (config.requiresSight && !hasLineOfSight(combat, combatant.token, target.token)) return { performed: false };
+  if (config.rangeFeet != null) {
+    const gridSize = combat.scene?.grid?.size ?? 100;
+    const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+    if (!(pf2eDistanceFeet(combatant.token, target.token, gridSize, gridDistanceFt) <= config.rangeFeet)) return { performed: false };
+  }
+  if (config.targetNotMindless && (target.actor?.system?.traits?.value ?? []).includes("mindless")) return { performed: false };
+  if (config.needsHearing && actorHasCondition(actor, "deafened")) return { performed: false };
+  if (!config.requirements.every((p) => npcSelfRequirementHolds(p, actor, []))) return { performed: false };
+  // The system ignores a TokenMark on an actor with no token on the viewed
+  // canvas -- the effect would be created unbound.
+  if (typeof actor.getActiveTokens !== "function" || actor.getActiveTokens().length === 0) return { performed: false };
 
   let bound = bindTokenMarkEffect(effect.toObject(), config.markSlug, targetTokenUuid);
   if (bound && config.suboption) {
@@ -9452,8 +9509,9 @@ async function executeTargetedSelfEffectFeat(combat, combatant, candidate) {
     const source = foundry.utils.mergeObject(bound, {
       _id: null,
       // #914: agent-created -- an unlimited one (Hunt Prey) is removed at
-      // combat end by cleanupAgentSelfEffects.
-      flags: { [MODULE_ID]: { agentSelfEffect: true } },
+      // combat end by cleanupAgentSelfEffects. #946: the marked token, for
+      // removeMarksTargeting (defeat/removal) and combat-end cleanup.
+      flags: { [MODULE_ID]: { agentSelfEffect: true, markTargetTokenUuid: targetTokenUuid } },
       system: {
         context: {
           origin: {
@@ -9483,7 +9541,7 @@ async function executeTargetedSelfEffectFeat(combat, combatant, candidate) {
     try {
       await actor.deleteEmbeddedDocuments("Item", stale);
     } catch (err) {
-      console.error("#922: removing the previous prey designation failed:", err.message);
+      console.error(`#922: removing the previous ${item.name} designation failed:`, err.message);
     }
   }
   try {
@@ -9500,9 +9558,11 @@ async function executeTargetedSelfEffectFeat(combat, combatant, candidate) {
   const text =
     candidate.slug === "hunt-prey"
       ? "hunts its target as prey"
-      : "devises a stratagem against its target";
+      : candidate.slug === "devise-a-stratagem"
+        ? "devises a stratagem against its target"
+        : "marks its target";
   const gmNote =
-    candidate.slug !== "hunt-prey" && typeof d20 === "number" ? `Stratagem d20 = ${d20}` : null;
+    candidate.slug === "devise-a-stratagem" && typeof d20 === "number" ? `Stratagem d20 = ${d20}` : null;
   return { performed: true, attacks: 0, text, ...(gmNote ? { gmNote } : {}) };
 }
 
