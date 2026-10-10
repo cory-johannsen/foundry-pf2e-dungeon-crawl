@@ -66,6 +66,7 @@ import {
 import { getGenerator } from "../generator-registry.mjs";
 import { retreatStateFor, retreatUiFor, hasNoWayForward } from "../dungeon-retreat.mjs";
 import { NEW_RUN_LAYOUT_VERSION } from "../dungeon-layout.mjs";
+import { ENVIRONMENTS } from "../environments.mjs";
 import {
   chooseRunLayout, reseedStateFor, deadEdgeWallsStateFor, topologyRoutingStateFor, NEW_RUN_TOPOLOGY_ROUTING,
 } from "../dungeon-reseed.mjs";
@@ -467,6 +468,7 @@ export async function startDungeonRun({
   previousSceneId,
   hostUserId,
   difficulty,
+  environment,
 }) {
   const scene = await createDungeonScene();
   const setpieces = await loadDungeonSetpieces();
@@ -491,6 +493,7 @@ export async function startDungeonRun({
       previousSceneId,
       hostUserId,
       difficulty,
+      environment,
     },
     {
       puzzleSetpieceIds,
@@ -1058,6 +1061,14 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
         generating: this.generating ?? false,
         defaultRoomCount: 20,
         availableTraits,
+        environmentOptions: [
+          { value: "random", label: "PF2EDC.Environment.Random" },
+          { value: "none", label: "PF2EDC.Environment.None" },
+          ...ENVIRONMENTS.map((id) => ({
+            value: id,
+            label: `PF2EDC.Environment.${id}`,
+          })),
+        ],
         traitsFieldHtml: traitFieldHtml({
           name: "traits",
           label: game.i18n.localize("PF2EDC.Encounter.ThemeLabel"),
@@ -1459,6 +1470,8 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const excludeTraits = readTraitField(this.element, "excludeTraits");
     const difficulty =
       form?.querySelector('[name="difficulty"]')?.value ?? "moderate";
+    const environment =
+      form?.querySelector('[name="environment"]')?.value ?? "random";
     // Wherever the GM/party were right before starting — teardownDungeonRun
     // (ITEM-18) sends them back here if this run is later abandoned.
     const previousSceneId = canvas?.scene?.id ?? null;
@@ -1479,6 +1492,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
           previousSceneId,
           hostUserId: null,
           difficulty,
+          environment,
         });
       } else {
         await requestDungeonAction(
@@ -1489,6 +1503,7 @@ export class DungeonApp extends HandlebarsApplicationMixin(ApplicationV2) {
             excludeTraits,
             previousSceneId,
             difficulty,
+            environment,
           },
           { timeoutMs: 60_000 },
         );

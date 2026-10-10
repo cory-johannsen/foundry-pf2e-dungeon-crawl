@@ -11,6 +11,7 @@ import {
 } from "./trait-picker.mjs";
 import { splitBudget, validateShares } from "./force-budget.mjs";
 import { xpBudget } from "./encounter-roster.mjs";
+import { ENVIRONMENTS, normalizeEnvironment } from "./environments.mjs";
 
 const HOSTILITIES = ["players", "all"];
 const RARITIES = ["", "common", "uncommon", "rare", "unique"];
@@ -27,6 +28,7 @@ export function defaultForce(index, overrides = {}) {
       levelOffsetMin: null,
       levelOffsetMax: null,
       rarity: "",
+      environment: "",
     },
     placement: { mode: "nearParty" },
     ...overrides,
@@ -60,6 +62,7 @@ export function normalizeForce(raw = {}, index = 0) {
       levelOffsetMin: offset(f.levelOffsetMin),
       levelOffsetMax: offset(f.levelOffsetMax),
       rarity: RARITIES.includes(f.rarity) ? f.rarity : "",
+      environment: normalizeEnvironment(f.environment) ?? "",
     },
     placement: { mode: raw.placement?.mode || "nearParty" },
   };
@@ -86,6 +89,9 @@ export function forceSectionHtml(force, index, labels = {}) {
     levelMinLabel = "Min level offset",
     levelMaxLabel = "Max level offset",
     rarityLabel = "Rarity",
+    environmentLabel = "Environment",
+    sameAsEncounterLabel = "Same as encounter",
+    environmentOptions = {},
     placementLabel = "Placement",
     nearPartyLabel = "Near party",
     regions = [],
@@ -112,6 +118,7 @@ export function forceSectionHtml(force, index, labels = {}) {
       <div class="form-group"><label>${levelMinLabel}</label><input type="number" step="1" name="force-${id}-levelMin" value="${f.levelOffsetMin ?? ""}" /></div>
       <div class="form-group"><label>${levelMaxLabel}</label><input type="number" step="1" name="force-${id}-levelMax" value="${f.levelOffsetMax ?? ""}" /></div>
       <div class="form-group"><label>${rarityLabel}</label><select name="force-${id}-rarity">${options(RARITIES, f.rarity ?? "")}</select></div>
+      <div class="form-group"><label>${environmentLabel}</label><select name="force-${id}-environment">${options(["", ...ENVIRONMENTS], f.environment ?? "", { "": sameAsEncounterLabel, ...environmentOptions })}</select></div>
       <div class="form-group"><label>${placementLabel}</label><select name="force-${id}-placement">${placementOptions}</select></div>
     </fieldset>`;
 }
@@ -132,6 +139,7 @@ export function readForcesFromForm(root) {
           levelOffsetMin: val(`force-${id}-levelMin`),
           levelOffsetMax: val(`force-${id}-levelMax`),
           rarity: val(`force-${id}-rarity`),
+          environment: val(`force-${id}-environment`),
         },
         placement: { mode: val(`force-${id}-placement`) },
       },
@@ -141,6 +149,12 @@ export function readForcesFromForm(root) {
 }
 
 const L = (k) => game.i18n.localize(`PF2EDC.Encounter.${k}`);
+
+function environmentLabels() {
+  return Object.fromEntries(
+    ENVIRONMENTS.map((e) => [e, game.i18n.localize(`PF2EDC.Environment.${e}`)]),
+  );
+}
 
 function sectionLabels(regions) {
   return {
@@ -154,6 +168,9 @@ function sectionLabels(regions) {
     levelMinLabel: L("ForceLevelMinLabel"),
     levelMaxLabel: L("ForceLevelMaxLabel"),
     rarityLabel: L("ForceRarityLabel"),
+    environmentLabel: game.i18n.localize("PF2EDC.Environment.Label"),
+    sameAsEncounterLabel: L("ForceEnvironmentSameAsEncounter"),
+    environmentOptions: environmentLabels(),
     placementLabel: L("ForcePlacementLabel"),
     nearPartyLabel: L("ForceNearParty"),
     removeLabel: L("ForceRemoveButton"),
@@ -163,7 +180,7 @@ function sectionLabels(regions) {
 
 /**
  * The multi-force Generate Encounter dialog. Resolves to
- * { difficulty, forces } or null if cancelled.
+ * { difficulty, environment, forces } or null if cancelled.
  */
 export async function chooseEncounterForces({ api, scene, partySize = 4 } = {}) {
   const { DialogV2 } = foundry.applications.api;
@@ -184,10 +201,19 @@ export async function chooseEncounterForces({ api, scene, partySize = 4 } = {}) 
       </select>
     </label>`;
 
+  const environmentHtml = `
+    <label>
+      ${game.i18n.localize("PF2EDC.Environment.Label")}
+      <select name="environment">
+        <option value="" selected>${game.i18n.localize("PF2EDC.Environment.None")}</option>
+        ${ENVIRONMENTS.map((e) => `<option value="${e}">${game.i18n.localize(`PF2EDC.Environment.${e}`)}</option>`).join("")}
+      </select>
+    </label>`;
+
   return DialogV2.wait({
     window: { title: L("Title") },
     position: { width: 520 },
-    content: `<form>${difficultyHtml}
+    content: `<form>${difficultyHtml}${environmentHtml}
       <div class="pf2edc-forces"></div>
       <button type="button" class="pf2edc-force-add">${L("ForceAddButton")}</button>
       <p class="pf2edc-force-budget"></p></form>`,
@@ -239,6 +265,9 @@ export async function chooseEncounterForces({ api, scene, partySize = 4 } = {}) 
         default: true,
         callback: (_event, _button, dialog) => ({
           difficulty: dialog.element.querySelector('[name="difficulty"]')?.value ?? "moderate",
+          environment: normalizeEnvironment(
+            dialog.element.querySelector('[name="environment"]')?.value,
+          ),
           forces: readForcesFromForm(dialog.element),
         }),
       },

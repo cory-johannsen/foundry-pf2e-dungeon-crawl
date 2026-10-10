@@ -64,7 +64,7 @@
   - `widenEnvironments(environment) → string[][]` = `[[environment], [environment, ...ADJACENCY[environment]]]` (deduped).
   - `pickRandomEnvironment(seed, lookup) → string|null`: weights each concrete environment by the number of lookup creatures listing it (creatures marked `any` don't add weight); environments with weight 0 are excluded; returns `null` if none; deterministic from `seed` via a small string-hash PRNG (no `Math.random`).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -135,9 +135,9 @@ describe("pickRandomEnvironment", () => {
 });
 ```
 
-- [ ] **Step 2: Run, FAIL** — `npx vitest run tests/environments.test.mjs`.
-- [ ] **Step 3: Implement** `scripts/environments.mjs` (no imports; for the PRNG hash the seed string with an FNV-1a loop using `>>> 0` and `Math.imul`, then mulberry32; cumulative-weight select).
-- [ ] **Step 4: Run, PASS. Step 5: Commit** — `git add scripts/environments.mjs tests/environments.test.mjs && git commit -m "#1272: environment vocabulary and pure helpers"`
+- [x] **Step 2: Run, FAIL** — `npx vitest run tests/environments.test.mjs`.
+- [x] **Step 3: Implement** `scripts/environments.mjs` (no imports; for the PRNG hash the seed string with an FNV-1a loop using `>>> 0` and `Math.imul`, then mulberry32; cumulative-weight select).
+- [x] **Step 4: Run, PASS. Step 5: Commit** — `git add scripts/environments.mjs tests/environments.test.mjs && git commit -m "#1272: environment vocabulary and pure helpers"`
 
 ### Task 2: Selection — environment dimension in `pickCreature`
 
@@ -154,7 +154,7 @@ describe("pickRandomEnvironment", () => {
   - `resolveEncounterRoster` tallies `environmentMatch` of every **accepted** foe/friend/lurker/twin (local `envTally = { strict, adjacent, dropped }`) and, when `adjacent + dropped > 0`, pushes a warning: `Environment: ${adjacent+dropped} of ${total} creatures from ${dropped ? "outside the chosen" : "adjacent"} environment${…}` — concretely: `adjacent` only → `Environment: N of T creatures from adjacent environments.`; any `dropped` → `Environment: N of T creatures outside the chosen environment (no fitting creatures at this level).` where N counts adjacent+dropped (use the second text if `dropped > 0`).
   - `appliedFilters` becomes `["levelRange","rarity","xpCapOverride","environment"]`.
 
-- [ ] **Step 1: Write failing tests** with a stub `api.findCreatures(q)` returning pools from a table keyed by `q.packs`/`q.traits.length` and a lookup built via `buildEnvironmentLookup`:
+- [x] **Step 1: Write failing tests** with a stub `api.findCreatures(q)` returning pools from a table keyed by `q.packs`/`q.traits.length` and a lookup built via `buildEnvironmentLookup`:
   - strict hit (creature mapped to the environment) → chosen, `environmentMatch: "strict"`, no note.
   - strict empty, adjacent hit → `"adjacent"` and the adjacent note with right counts.
   - both empty → pass 3 unfiltered → `"dropped"`; `dropped` note text.
@@ -164,8 +164,8 @@ describe("pickRandomEnvironment", () => {
   - `environment: null` and `environment: "bogus"` → the recorded `findCreatures` call list is **deep-equal** to the call list of a run without the new params (golden), and the chosen entry has no `environmentMatch` key; RNG called the same number of times (use a counting `rng`).
   - boss path: `isBoss` first slot uses the boss steps inside each pass.
   - roster-level: a 4-foe roster with 2 adjacent picks yields exactly one note `Environment: 2 of 4 creatures from adjacent environments.`; all-strict yields none; `appliedFilters` includes `"environment"`.
-- [ ] **Step 2: Run, FAIL. Step 3: Implement** (factor the step list into a local array of thunks so the chain isn't duplicated). **Step 4:** `npx vitest run tests/encounter-roster-environment.test.mjs tests/encounter-roster.test.mjs tests/encounter-roster-force-filters.test.mjs` then `npm test` → PASS.
-- [ ] **Step 5: Commit** — `git commit -am "#1272: environment-aware creature selection with strict/adjacent/dropped fallback"`
+- [x] **Step 2: Run, FAIL. Step 3: Implement** (factor the step list into a local array of thunks so the chain isn't duplicated). **Step 4:** `npx vitest run tests/encounter-roster-environment.test.mjs tests/encounter-roster.test.mjs tests/encounter-roster-force-filters.test.mjs` then `npm test` → PASS.
+- [x] **Step 5: Commit** — `git commit -am "#1272: environment-aware creature selection with strict/adjacent/dropped fallback"`
 
 ### Task 3: Map data file, loader, schema test
 
@@ -177,8 +177,8 @@ describe("pickRandomEnvironment", () => {
 **Interfaces:**
 - Produces: `loadCreatureEnvironments() → Promise<object>`: fetches `modules/${MODULE_ID}/data/creature-environments.json`; **never rejects** — any failure (404, bad JSON, non-object, no `creatures` object) resolves `{ version: 0, creatures: {} }` with one `console.warn`; successful results cached, failures not cached (mirror `loadRoomFeatureArt`).
 
-- [ ] **Step 1: Failing tests:** data-file schema test (reads the JSON from disk): top-level `{version:number, creatures:object}`; every key exists as an `id` in `data/creature-art.json`; every value a non-empty array of unique ids from `ENVIRONMENTS ∪ {"any"}`, with `any` never combined with others; `sources.json` keys ⊆ map keys, values ∈ `"audit"|"manual"`, and every mapped slug has a source. Loader tests (stub global `fetch`): ok, 404, throw, malformed → default object + warn; ok result cached (second call doesn't refetch).
-- [ ] **Step 2: Run, FAIL. Step 3: Implement. Step 4: Run, PASS. Step 5: Commit** — `git add data tests scripts/data-loader.mjs && git commit -m "#1272: creature-environments data file and loader"`
+- [x] **Step 1: Failing tests:** data-file schema test (reads the JSON from disk): top-level `{version:number, creatures:object}`; every key exists as an `id` in `data/creature-art.json`; every value a non-empty array of unique ids from `ENVIRONMENTS ∪ {"any"}`, with `any` never combined with others; `sources.json` keys ⊆ map keys, values ∈ `"audit"|"manual"`, and every mapped slug has a source. Loader tests (stub global `fetch`): ok, 404, throw, malformed → default object + warn; ok result cached (second call doesn't refetch).
+- [x] **Step 2: Run, FAIL. Step 3: Implement. Step 4: Run, PASS. Step 5: Commit** — `git add data tests scripts/data-loader.mjs && git commit -m "#1272: creature-environments data file and loader"`
 
 ### Task 4: Audit tool and seeding the map
 
@@ -198,12 +198,12 @@ describe("pickRandomEnvironment", () => {
   - Report (`out/creature-environments-report.md`): counts mapped/prose/traits-only/unmapped overall and per source pack; 25 random unmapped prose samples; 25 ambiguous (≥3 environments) samples.
   - `--merge`: adds candidates only for art ids not already in `data/creature-environments.json` and skips `environments: []`; records `"audit"` in `.sources.json`; preserves existing entries/sources byte-for-byte (sorted key order on write).
 
-- [ ] **Step 1: Probe (decision input).** Run `PF2E_SYSTEM_PACKS_DIR=… node tools/audit-creature-environments.mjs --probe` after writing the tool skeleton (Step 3 below is done first for the probe path only), pick the prose fields from the output, fix `extractHabitatText`'s field list and note them in the file header. **If no field carries habitat prose for most Monster Core creatures, record that on the issue and rely on `traitHints` + manual curation** — the spec's decision stands (hand-curated map), only the seeding quality changes.
-- [ ] **Step 2: Write failing pattern tests** using fixture strings: `"Habitat: swamps and marshes"` → `[swamp]`; `"Goblins live in caves and ruined temples"` → `[cave, underground-ruin]`; `"found in forests near towns"` → `[forest, urban]` (vocabulary order); no habitat sentence → `[]`; HTML-wrapped text; `traitHints(["aquatic"])` → `[underwater]`; `candidateFor` precedence (prose over traits; undead with prose → prose; undead without → `any`); `--merge` logic as a pure function `mergeCandidates(existing, sources, candidates)` never overwrites an existing id and skips empty candidates; assert idempotent (second merge changes nothing).
-- [ ] **Step 3: Implement** pure modules, then the CLI. **Step 4:** `npx vitest run tests/creature-environment-patterns.test.mjs` → PASS.
-- [ ] **Step 5: Run the audit** (`npm run audit:environments`), read `out/creature-environments-report.md`; iterate `KEYWORDS`/patterns on the unmapped/ambiguous samples until the sample reads sensibly; **post the measured coverage numbers (per source book) as a comment on #1272** (spec requires this).
-- [ ] **Step 6:** Run with `--merge`; hand-review at least the Monster Core creatures at levels −1…8 (the likely play range): fix wrong entries directly in `data/creature-environments.json` and change those ids to `"manual"` in `.sources.json`; run `npx vitest run tests/creature-environments-data.test.mjs`.
-- [ ] **Step 7: Commit** — `git add tools package.json data tests && git commit -m "#1272: creature environment audit tool and seeded map"` (no `out/` files).
+- [x] **Step 1: Probe (decision input).** Run `PF2E_SYSTEM_PACKS_DIR=… node tools/audit-creature-environments.mjs --probe` after writing the tool skeleton (Step 3 below is done first for the probe path only), pick the prose fields from the output, fix `extractHabitatText`'s field list and note them in the file header. **If no field carries habitat prose for most Monster Core creatures, record that on the issue and rely on `traitHints` + manual curation** — the spec's decision stands (hand-curated map), only the seeding quality changes.
+- [x] **Step 2: Write failing pattern tests** using fixture strings: `"Habitat: swamps and marshes"` → `[swamp]`; `"Goblins live in caves and ruined temples"` → `[cave, underground-ruin]`; `"found in forests near towns"` → `[forest, urban]` (vocabulary order); no habitat sentence → `[]`; HTML-wrapped text; `traitHints(["aquatic"])` → `[underwater]`; `candidateFor` precedence (prose over traits; undead with prose → prose; undead without → `any`); `--merge` logic as a pure function `mergeCandidates(existing, sources, candidates)` never overwrites an existing id and skips empty candidates; assert idempotent (second merge changes nothing).
+- [x] **Step 3: Implement** pure modules, then the CLI. **Step 4:** `npx vitest run tests/creature-environment-patterns.test.mjs` → PASS.
+- [x] **Step 5: Run the audit** (`npm run audit:environments`), read `out/creature-environments-report.md`; iterate `KEYWORDS`/patterns on the unmapped/ambiguous samples until the sample reads sensibly; **post the measured coverage numbers (per source book) as a comment on #1272** (spec requires this).
+- [x] **Step 6:** Run with `--merge`; hand-review at least the Monster Core creatures at levels −1…8 (the likely play range): fix wrong entries directly in `data/creature-environments.json` and change those ids to `"manual"` in `.sources.json`; run `npx vitest run tests/creature-environments-data.test.mjs`.
+- [x] **Step 7: Commit** — `git add tools package.json data tests && git commit -m "#1272: creature environment audit tool and seeded map"` (no `out/` files).
 
 ### Task 5: Dungeon run wiring (Start form → run state → rooms)
 
@@ -220,8 +220,8 @@ describe("pickRandomEnvironment", () => {
   - `populateSlotEncounter(scene, roomId, { ..., environment = null })` → `generateEncounter({ ..., environment })`; `generateEncounter` loads the lookup once per call (`buildEnvironmentLookup(creatureArt, await loadCreatureEnvironments())`) only when `environment` is non-null.
   - Relay: `dungeon-remote.mjs`'s `startRun` already spreads `args`, so `environment` flows without change — add a test asserting it.
 
-- [ ] **Step 1: Failing tests:** `createRun` stores the normalized choice (`"swamp"`→`swamp`, `"none"`→`null`, `"bogus"`→`null`); `"random"` is deterministic for a given seed and equals `pickRandomEnvironment(seed, lookup)`; `random` with an empty lookup → `null`; `populateSlotEncounter` passes `environment` through (mock `generateEncounter`); `generateEncounter` with `environment: null` calls the generator **without** `environmentLookup` (golden parity) and with `"swamp"` passes both; `dungeon-scene` call site passes `state.environment`; old run state without the field → `undefined` treated as `null`; `startRun` relay forwards `environment`.
-- [ ] **Step 2: Run, FAIL. Step 3: Implement** (add lang keys: `Label`, `Hint`, `Random`, `None`, and one label per environment id). **Step 4:** the new test + `npm test` → PASS. **Step 5: Commit** — `git commit -am "#1272: run-wide environment from the Start Dungeon form"`
+- [x] **Step 1: Failing tests:** `createRun` stores the normalized choice (`"swamp"`→`swamp`, `"none"`→`null`, `"bogus"`→`null`); `"random"` is deterministic for a given seed and equals `pickRandomEnvironment(seed, lookup)`; `random` with an empty lookup → `null`; `populateSlotEncounter` passes `environment` through (mock `generateEncounter`); `generateEncounter` with `environment: null` calls the generator **without** `environmentLookup` (golden parity) and with `"swamp"` passes both; `dungeon-scene` call site passes `state.environment`; old run state without the field → `undefined` treated as `null`; `startRun` relay forwards `environment`.
+- [x] **Step 2: Run, FAIL. Step 3: Implement** (add lang keys: `Label`, `Hint`, `Random`, `None`, and one label per environment id). **Step 4:** the new test + `npm test` → PASS. **Step 5: Commit** — `git commit -am "#1272: run-wide environment from the Start Dungeon form"`
 
 ### Task 6: Stand-alone dialog and multi-force (#1083)
 
@@ -232,12 +232,12 @@ describe("pickRandomEnvironment", () => {
 **Interfaces:**
 - Produces: `chooseEncounterForces` result gains `environment: string|null` (default `None`; normalized); each `force.filters.environment: string` where `""` means "same as encounter" (normalized to `""` or a vocabulary id).
 
-- [ ] **Step 1: Failing tests:** `defaultForce(...).filters.environment === ""`; `normalizeForce` coerces unknown to `""`; `forceSectionHtml` includes `name="force-<id>-environment"` with the selected option and a "same as encounter" first option; `readForcesFromForm` reads it; generation: force with `""` inherits `chosen.environment`, force with `"cave"` overrides, both reach the generator call as `environment`; encounter `None` + force `""` → `null` (no lookup passed); a generator stub whose roster lacks `"environment"` in `appliedFilters` while a force requested one → warning `ForceFilterUnsupported` with `name: "environment"`.
-- [ ] **Step 2: Run, FAIL. Step 3: Implement. Step 4:** both test files + `npm test` → PASS. **Step 5: Commit** — `git commit -am "#1272: environment in the stand-alone and multi-force dialogs"`
+- [x] **Step 1: Failing tests:** `defaultForce(...).filters.environment === ""`; `normalizeForce` coerces unknown to `""`; `forceSectionHtml` includes `name="force-<id>-environment"` with the selected option and a "same as encounter" first option; `readForcesFromForm` reads it; generation: force with `""` inherits `chosen.environment`, force with `"cave"` overrides, both reach the generator call as `environment`; encounter `None` + force `""` → `null` (no lookup passed); a generator stub whose roster lacks `"environment"` in `appliedFilters` while a force requested one → warning `ForceFilterUnsupported` with `name: "environment"`.
+- [x] **Step 2: Run, FAIL. Step 3: Implement. Step 4:** both test files + `npm test` → PASS. **Step 5: Commit** — `git commit -am "#1272: environment in the stand-alone and multi-force dialogs"`
 
 ### Task 7: Docs, version, live verification
 
-- [ ] **Step 1:** README: Environment section (what it does, the map file, `npm run audit:environments`, `PF2E_SYSTEM_PACKS_DIR`, "hand edits are never overwritten"). Run the `update-architecture-docs` skill and commit its output. Bump `module.json`; `npm test` + `npm run validate:dungeon` → PASS; commit.
+- [x] **Step 1:** README: Environment section (what it does, the map file, `npm run audit:environments`, `PF2E_SYSTEM_PACKS_DIR`, "hand edits are never overwritten"). Run the `update-architecture-docs` skill and commit its output. Bump `module.json`; `npm test` + `npm run validate:dungeon` → PASS; commit.
 - [ ] **Step 2: Live verification** (copy `.env`; compare the live world's module version with the branch): (a) Start Dungeon with Swamp → combat rooms' creatures are swamp-appropriate (check against the map) or the chat card notes adjacent/outside fallbacks; (b) Start with Random twice on the same seed value → same environment (read `getRunState(sceneId).environment`); (c) stand-alone Generate Encounter with Underwater; (d) a two-force encounter with different environments and one "same as encounter"; (e) `None` is unchanged (compare roster shape/behavior with a pre-change run); (f) rename the data file temporarily → warning in console, encounters still generate.
 - [ ] **Step 3:** Open the PR; after merge label `verification` (live playtest pending), remove `claimed`/`in progress`, merge with explicit `--subject/--body`.
 

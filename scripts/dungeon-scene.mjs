@@ -1248,9 +1248,11 @@ export async function populateSlotEncounter(
     locationTag = null,
     seed = "",
     isBoss = false,
+    environment = null,
   } = {},
 ) {
   await generateEncounter({
+    environment,
     prefillTraits,
     prefillExcludeTraits,
     levelOffsetBias,
@@ -2101,6 +2103,7 @@ export async function buildPopulateAndUnlockGraphNode(
         locationTag: room.locationTag,
         seed: state.seed,
         isBoss: room.isGoal,
+        environment: state.environment ?? null,
       });
     }
     // Only unlock once monsters are actually in place — a failed population

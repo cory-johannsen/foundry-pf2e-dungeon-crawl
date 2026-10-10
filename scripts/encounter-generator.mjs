@@ -10,7 +10,11 @@
 import { makeFoundryApi } from "./foundry-api.mjs";
 import { buildEncounterDeck, dealEncounter } from "./encounter-deck.mjs";
 import { getGenerator } from "./generator-registry.mjs";
-import { loadCreatureArt } from "./data-loader.mjs";
+import { loadCreatureArt, loadCreatureEnvironments } from "./data-loader.mjs";
+import {
+  buildEnvironmentLookup,
+  normalizeEnvironment,
+} from "./environments.mjs";
 import { findCreatureArt, creatureArtPath } from "./creature-art.mjs";
 import { startCombatForEncounterId } from "./dungeon-combat.mjs";
 import { chooseCoverItemTypes } from "./cover-items.mjs";
@@ -213,6 +217,7 @@ function regionArea(scene, regionId) {
 const FILTER_NAMES = [
   ["levelRange", (f) => f.levelOffsetMin != null || f.levelOffsetMax != null],
   ["rarity", (f) => !!f.rarity],
+  ["environment", (f) => !!f.environment],
 ];
 
 /** #1083: the multi-force generate/spawn path (stand-alone macro only). */
@@ -249,6 +254,8 @@ async function generateForces({
     const seedI = `${seed}-${force.id}`;
     const dealt = dealEncounter(deckSlots, { seed: seedI, partySize });
     const fl = force.filters ?? {};
+    // #1272: a force's own environment overrides; "" inherits the encounter's.
+    const forceEnv = normalizeEnvironment(fl.environment || chosen.environment);
     const roster = { ...(await getGenerator().generateEncounterRoster({
       resolved: dealt.resolved,
       api,
@@ -264,10 +271,11 @@ async function generateForces({
       partySize,
       isBoss,
       depthBias: null,
+      ...(await environmentArgs(forceEnv, creatureArt)),
     })) };
     const applied = roster.appliedFilters ?? [];
     for (const [name, requested] of FILTER_NAMES) {
-      if (requested(fl) && !applied.includes(name)) {
+      if (requested({ ...fl, environment: forceEnv }) && !applied.includes(name)) {
         roster.warnings = [
           ...(roster.warnings ?? []),
           game.i18n.format("PF2EDC.Encounter.ForceFilterUnsupported", { name }),
@@ -333,6 +341,18 @@ async function generateForces({
   }
 }
 
+async function environmentArgs(environment, creatureArt) {
+  const env = normalizeEnvironment(environment);
+  if (env == null) return {};
+  return {
+    environment: env,
+    environmentLookup: buildEnvironmentLookup(
+      creatureArt,
+      await loadCreatureEnvironments(),
+    ),
+  };
+}
+
 export async function generateEncounter({
   prefillTraits = [],
   prefillExcludeTraits = [],
@@ -345,6 +365,7 @@ export async function generateEncounter({
   skipThemeDialog = false,
   scene: sceneOverride = null,
   isBoss = false,
+  environment = null,
 } = {}) {
   const scene = sceneOverride ?? canvas?.scene;
   if (!scene) {
@@ -397,6 +418,7 @@ export async function generateEncounter({
     }
     // A bare { traits, excludeTraits, difficulty } result: single implicit force.
     theme = chosen;
+    environment = chosen.environment ?? environment;
   }
   // #831: a dungeon room (skipThemeDialog) already supplies its own real
   // depth-based bias; the standalone macro has none, so its own dialog's
@@ -422,6 +444,9 @@ export async function generateEncounter({
     partySize,
     isBoss,
     depthBias: effectiveDepthBias,
+    // #1272: only a run with an environment loads the lookup and passes it,
+    // so the no-environment call is identical to before.
+    ...(await environmentArgs(environment, creatureArt)),
   });
 
   await postEncounterChatCard(api, roster);

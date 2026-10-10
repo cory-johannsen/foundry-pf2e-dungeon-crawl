@@ -378,6 +378,15 @@
           <option value="extreme">{{localize "PF2EDC.Dungeon.Difficulty.Extreme"}}</option>
         </select>
       </label>
+      <label>
+        {{localize "PF2EDC.Environment.Label"}}
+        <select name="environment">
+          {{#each environmentOptions}}
+          <option value="{{this.value}}"{{#if @first}} selected{{/if}}>{{localize this.label}}</option>
+          {{/each}}
+        </select>
+        <span class="hint">{{localize "PF2EDC.Environment.Hint"}}</span>
+      </label>
       {{{traitsFieldHtml}}}
       {{{excludeTraitsFieldHtml}}}
       <footer>

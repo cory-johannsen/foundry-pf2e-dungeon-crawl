@@ -17,7 +17,7 @@ const generateEncounterRoster = vi.fn();
 vi.mock("../scripts/generator-registry.mjs", () => ({
   getGenerator: vi.fn(() => ({ generateEncounterRoster })),
 }));
-vi.mock("../scripts/data-loader.mjs", () => ({ loadCreatureArt: vi.fn(async () => []) }));
+vi.mock("../scripts/data-loader.mjs", () => ({ loadCreatureArt: vi.fn(async () => []), loadCreatureEnvironments: vi.fn(async () => ({ creatures: {} })) }));
 vi.mock("../scripts/creature-art.mjs", () => ({
   findCreatureArt: vi.fn(() => null),
   creatureArtPath: vi.fn((f) => f),
@@ -60,6 +60,7 @@ const force = (id, over = {}) => ({
     levelOffsetMin: null,
     levelOffsetMax: null,
     rarity: "",
+    environment: "",
     ...(over.filters ?? {}),
   },
   placement: over.placement ?? { mode: "nearParty" },
@@ -302,5 +303,39 @@ describe("generateEncounter multi-force (#1083)", () => {
     expect(o.extraFlags[MODULE_ID]).not.toHaveProperty("forceId");
     expect(o).not.toHaveProperty("tint");
     expect(startCombatForEncounterId.mock.calls[0]).toHaveLength(2);
+  });
+});
+
+describe("environment in multi-force (#1272)", () => {
+  const run = async (encEnv, envs, appliedFilters) => {
+    install();
+    chooseEncounterForces.mockResolvedValue({
+      difficulty: "moderate",
+      environment: encEnv,
+      forces: envs.map((e, i) => force(`f${i + 1}`, { filters: { environment: e } })),
+    });
+    generateEncounterRoster.mockResolvedValue(roster(appliedFilters ? { appliedFilters } : {}));
+    await generateEncounter();
+  };
+  const call = (i) => generateEncounterRoster.mock.calls[i][0];
+
+  it("inherits the encounter environment and lets a force override it", async () => {
+    await run("forest", ["", "cave"], ["levelRange", "rarity", "environment"]);
+    expect(call(0).environment).toBe("forest");
+    expect(call(0).environmentLookup).toBeInstanceOf(Map);
+    expect(call(1).environment).toBe("cave");
+    expect(call(1).environmentLookup).toBeInstanceOf(Map);
+    expect(ui.notifications.warn).not.toHaveBeenCalled();
+  });
+  it("passes no environment and no lookup when none is set", async () => {
+    await run(null, ["", ""]);
+    expect(call(0)).not.toHaveProperty("environment");
+    expect(call(0)).not.toHaveProperty("environmentLookup");
+  });
+  it("warns when the generator does not apply a requested environment", async () => {
+    await run("forest", ["", ""], ["levelRange", "rarity"]);
+    expect(globalThis.renderTemplate.mock.calls.some(([, d]) =>
+      d.roster.warnings?.some((w) => w === "PF2EDC.Encounter.ForceFilterUnsupported:environment"),
+    )).toBe(true);
   });
 });

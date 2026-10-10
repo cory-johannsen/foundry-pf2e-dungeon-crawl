@@ -1,3 +1,9 @@
+import {
+  normalizeEnvironment,
+  creatureFitsEnvironment,
+  widenEnvironments,
+} from "./environments.mjs";
+
 /**
  * Turns a resolved abstract encounter (from encounter-deck.mjs) into actual
  * PF2e creatures, via the live bestiary. Kept separate from encounter-deck.mjs
@@ -165,6 +171,8 @@ async function pickCreature({
   levelOffsetMin = null,
   levelOffsetMax = null,
   rarity = null,
+  environment = null,
+  environmentLookup = null,
 }) {
   let minLevel = partyLevel + levelOffset + levelOffsetBias - LEVEL_TOLERANCE;
   let maxLevel = partyLevel + levelOffset + levelOffsetBias + upwardTolerance;
@@ -187,17 +195,83 @@ async function pickCreature({
       rarity,
     });
 
-  let pool = [];
-  if (boss) {
-    pool = await look(null, true, GENERAL_PACKS);
-    if (!pool.length) pool = await look(null, false, GENERAL_PACKS);
+  // The fallback chain, run with an optional per-step pool filter. The
+  // identity filter is exactly the pre-#1272 chain.
+  const runChain = async (keep) => {
+    const get = async (packs, useTraits, excludePacks) =>
+      (await look(packs, useTraits, excludePacks)).filter(keep);
+    let pool = [];
+    if (boss) {
+      pool = await get(null, true, GENERAL_PACKS);
+      if (!pool.length) pool = await get(null, false, GENERAL_PACKS);
+    }
+    if (!pool.length) pool = await get(MONSTER_CORE_PACKS, true);
+    if (!pool.length) pool = await get(GENERAL_PACKS, true);
+    if (!pool.length) pool = await get(null, true);
+    if (!pool.length) pool = await get(null, false);
+    return pool;
+  };
+
+  const envActive =
+    normalizeEnvironment(environment) != null &&
+    environmentLookup instanceof Map;
+  if (!envActive) {
+    const pool = await runChain(() => true);
+    if (!pool.length) return null;
+    return pool[Math.floor(rng() * pool.length)];
   }
-  if (!pool.length) pool = await look(MONSTER_CORE_PACKS, true);
-  if (!pool.length) pool = await look(GENERAL_PACKS, true);
-  if (!pool.length) pool = await look(null, true);
-  if (!pool.length) pool = await look(null, false);
-  if (!pool.length) return null;
-  return pool[Math.floor(rng() * pool.length)];
+
+  // #1272: the chain is split into traited steps (the trait theme kept) and
+  // trait-less steps, in the same relative order as the None chain above.
+  // The environment is relaxed BEFORE the trait theme (plan Review Focus,
+  // spec §Selection item 3):
+  //   1. traited steps -- for each pack step, strict then adjacent (spec
+  //      item 1), so an adjacent Monster Core creature beats a strict one
+  //      from a later pack;
+  //   2. traited steps again with the environment dropped (spec item 2,
+  //      applied within the traited tier);
+  //   3. only then the trait-less steps, the same way (strict/adjacent per
+  //      step, then dropped).
+  // `requireTrait` is on every look. Each step's findCreatures result is
+  // fetched once per pick and re-filtered per width.
+  const traitedSteps = [
+    ...(boss ? [[null, true, GENERAL_PACKS]] : []),
+    [MONSTER_CORE_PACKS, true],
+    [GENERAL_PACKS, true],
+    [null, true],
+  ];
+  const traitlessSteps = [
+    ...(boss ? [[null, false, GENERAL_PACKS]] : []),
+    [null, false],
+  ];
+  const env = normalizeEnvironment(environment);
+  const widths = widenEnvironments(env);
+  const fetched = new Map();
+  const fetchStep = async (step) => {
+    if (!fetched.has(step)) fetched.set(step, await look(...step));
+    return fetched.get(step);
+  };
+  const choose = (pool, environmentMatch) => ({
+    ...pool[Math.floor(rng() * pool.length)],
+    environmentMatch,
+  });
+  for (const steps of [traitedSteps, traitlessSteps]) {
+    for (const step of steps) {
+      const all = await fetchStep(step);
+      for (let i = 0; i < widths.length; i++) {
+        const w = widths[i];
+        const pool = all.filter((e) =>
+          w.some((x) => creatureFitsEnvironment(e, x, environmentLookup)),
+        );
+        if (pool.length) return choose(pool, i === 0 ? "strict" : "adjacent");
+      }
+    }
+    for (const step of steps) {
+      const all = await fetchStep(step);
+      if (all.length) return choose(all, "dropped");
+    }
+  }
+  return null;
 }
 
 /**
@@ -261,8 +335,14 @@ export async function resolveEncounterRoster({
   levelOffsetMax = null,
   rarity = null,
   xpCapOverride = null,
+  environment = null,
+  environmentLookup = null,
 }) {
   const warnings = [];
+  const envTally = { strict: 0, adjacent: 0, dropped: 0 };
+  const tally = (chosen, n = 1) => {
+    if (chosen?.environmentMatch) envTally[chosen.environmentMatch] += n;
+  };
   const groupChoice = new Map();
   let approxXp = 0;
   let cappedCount = 0;
@@ -277,7 +357,13 @@ export async function resolveEncounterRoster({
       : partySize != null
         ? xpBudget(capTier, partySize)
         : null;
-  const filters = { levelOffsetMin, levelOffsetMax, rarity };
+  const filters = {
+    levelOffsetMin,
+    levelOffsetMax,
+    rarity,
+    environment,
+    environmentLookup,
+  };
 
   const pick = (levelOffset, boss = false) =>
     pickCreature({
@@ -389,12 +475,14 @@ export async function resolveEncounterRoster({
       count,
       group: slot.group ?? null,
     });
+    tally(chosen);
     approxXp += contribution;
   }
 
   let friend = null;
   if (resolved.friend) {
     const chosen = await pick(resolved.friend.levelOffset);
+    if (chosen) tally(chosen);
     if (chosen)
       friend = {
         pack: chosen.pack,
@@ -416,6 +504,7 @@ export async function resolveEncounterRoster({
     } else {
       const { chosen, contribution } = result;
       if (chosen) {
+        tally(chosen);
         lurker = {
           pack: chosen.pack,
           id: chosen.id,
@@ -442,6 +531,7 @@ export async function resolveEncounterRoster({
     } else {
       const { chosen, contribution } = result;
       if (chosen) {
+        tally(chosen, resolved.twins.length);
         twins = resolved.twins.map(() => ({
           pack: chosen.pack,
           id: chosen.id,
@@ -462,6 +552,27 @@ export async function resolveEncounterRoster({
     );
   }
 
+  // Counts are creature picks as tallied above: one per foe slot, one per
+  // friend/lurker, one per twin. A foe's `countsAs` (an XP weight, not a
+  // number of creatures) is intentionally ignored.
+  const envOff = envTally.adjacent + envTally.dropped;
+  if (envOff > 0) {
+    const total = envOff + envTally.strict;
+    const dropped = envTally.dropped > 0;
+    const key = dropped
+      ? "PF2EDC.Environment.NoteOutside"
+      : "PF2EDC.Environment.NoteAdjacent";
+    const fallback = dropped
+      ? `Environment: ${envOff} of ${total} creatures outside the chosen environment (no fitting creatures at this level).`
+      : `Environment: ${envOff} of ${total} creatures from adjacent environments.`;
+    const i18n = globalThis.game?.i18n;
+    warnings.push(
+      typeof i18n?.format === "function"
+        ? i18n.format(key, { n: envOff, total })
+        : fallback,
+    );
+  }
+
   return {
     foes,
     friend,
@@ -471,6 +582,11 @@ export async function resolveEncounterRoster({
     goal: resolved.goal ?? null,
     warnings,
     approxXp,
-    appliedFilters: ["levelRange", "rarity", "xpCapOverride"],
+    // "environment" is listed only when an environment actually applied, so a
+    // run without one is byte-identical to the pre-#1272 result.
+    appliedFilters:
+      normalizeEnvironment(environment) != null && environmentLookup instanceof Map
+        ? ["levelRange", "rarity", "xpCapOverride", "environment"]
+        : ["levelRange", "rarity", "xpCapOverride"],
   };
 }

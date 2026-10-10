@@ -20,6 +20,14 @@
 import { getGenerator } from "./generator-registry.mjs";
 import { normalizeDifficulty } from "./dungeon-deck.mjs";
 import {
+  resolveRunEnvironment,
+  buildEnvironmentLookup,
+} from "./environments.mjs";
+import {
+  loadCreatureArt,
+  loadCreatureEnvironments,
+} from "./data-loader.mjs";
+import {
   withEntry,
   withUndoneEntry,
   withRetreat,
@@ -154,8 +162,10 @@ export async function createRun(
     previousSceneId = null,
     hostUserId = null,
     difficulty = null,
+    environment = null,
   },
   {
+    environmentLookup = null,
     settingsRef = defaultSettingsRef(),
     partyOwnershipRef = defaultPartyOwnershipRef(),
     puzzleSetpieceIds = [],
@@ -165,6 +175,20 @@ export async function createRun(
 ) {
   const runSeed =
     seed ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  // #1272: the stored value is always final -- "random" is resolved here,
+  // against the run seed, so the same seed always yields the same environment.
+  // Note: this is the INPUT seed (runSeed), not the post-reseed `chosen.seed`
+  // that dungeon-app.mjs's chooseRunLayout later stores in state.seed, so
+  // Random is deterministic per input seed; the environment is fixed here
+  // and not re-resolved after a reseed.
+  let lookup = environmentLookup;
+  if (environment === "random" && !(lookup instanceof Map)) {
+    lookup = buildEnvironmentLookup(
+      await loadCreatureArt(),
+      await loadCreatureEnvironments(),
+    );
+  }
+  const runEnvironment = resolveRunEnvironment(environment, runSeed, lookup);
   const rooms = getGenerator().buildRoomSequence({
     seed: runSeed,
     roomCount,
@@ -195,6 +219,7 @@ export async function createRun(
     createdAt: Date.now(),
     traits,
     excludeTraits,
+    environment: runEnvironment,
     // #412: the player's max-difficulty tier, fixed for the whole run.
     // Normalized so a bad relayed value (or an old caller) reads as Severe.
     difficulty: normalizeDifficulty(difficulty),
