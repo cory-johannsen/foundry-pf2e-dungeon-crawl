@@ -97,6 +97,7 @@ const GROUPS = [
         "scripts/self-effect-summary.mjs",
         "scripts/targeted-feat-actions.mjs",
         "scripts/antagonize.mjs",
+        "scripts/npc-reactions.mjs",
         "scripts/dungeon-strike-riders.mjs",
         "scripts/dungeon-critical-deck.mjs",
         "scripts/flanking-indicator.mjs",

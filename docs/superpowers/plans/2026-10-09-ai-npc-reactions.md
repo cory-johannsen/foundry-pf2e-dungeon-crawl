@@ -182,11 +182,11 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `getReactionUsed`, `markReactionUsed`, `combatantOpponents`, `isDownedCharacter`, `canTargetState`, `stateFor`, `hasLineOfSight`, `actionReachSquares`, `chebyshevSquares`, `parseReactiveStrikeWeaponRestriction`, `matchMultiStrikeActionSlug` — all existing, imported from `scripts/dungeon-combat.mjs` (exported where not already, see Step 3).
 - Produces (consumed by Task 3): `REACTION_DEFS` (array), `sharedReactionGates(reactor, triggerKind, ctx)` → boolean, `eligibleReactionDefs(combat, triggerEvent)` → the subset of `REACTION_DEFS` whose `trigger` matches `triggerEvent.trigger` and whose `eligible(ctx)` (shared gates + the def's own) passes, ordered by `priority` descending.
 
-- [ ] **Step 1: Export the handful of #202 helpers this file needs**
+- [x] **Step 1: Export the handful of #202 helpers this file needs**
 
 In `scripts/dungeon-combat.mjs`, add `export` to `isReactiveStrikeInScope`, `getReactionUsed`, `markReactionUsed` (they are currently module-private). Leave every call site inside `dungeon-combat.mjs` unchanged — adding `export` doesn't change local calls.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 ```js
 // tests/npc-reactions.test.mjs
@@ -275,12 +275,12 @@ describe('eligibleReactionDefs', () => {
 
 (The fourth test is intentionally left for the implementer to fill in using the real `priority` values fixed in Step 3's table, once they exist — this mirrors the same deliberate "re-derive against real code" convention #925's own plan used for its own second render test.)
 
-- [ ] **Step 3: Run tests to verify they fail**
+- [x] **Step 3: Run tests to verify they fail**
 
 Run: `npm test -- tests/npc-reactions.test.mjs`
 Expected: FAIL — the module doesn't exist yet.
 
-- [ ] **Step 4: Write `scripts/npc-reactions.mjs`**
+- [x] **Step 4: Write `scripts/npc-reactions.mjs`**
 
 ```js
 /**
@@ -450,12 +450,12 @@ export const REACTION_DEFS = [
 
 (`REACTION_DEFS` is declared after `eligibleReactionDefs`/its helpers purely for readability — hoisting makes the ordering harmless. Each `execute: null` is filled in by the task named in its own comment; Task 2 itself never calls `execute`, so leaving it `null` here doesn't break anything this task's own tests check.)
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/npc-reactions.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/npc-reactions.mjs scripts/dungeon-combat.mjs tests/npc-reactions.test.mjs
@@ -476,7 +476,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `eligibleReactionDefs` (Task 2), `fetchCombatDecision` (Task 1, with `timeoutMs`).
 - Produces (consumed by Tasks 4/5/6): `async function resolveReactions(combat, triggerEvent, { fetchDecision = fetchCombatDecision } = {})` — for every reactor with at least one eligible definition, runs the hybrid decision and calls the winning definition's `execute(ctx)`; returns nothing (fire-and-forget from the trigger's point of view, matching #202's own `offerReactiveStrikesAgainst` shape).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 describe('resolveReactions', () => {
@@ -543,12 +543,12 @@ describe('resolveReactions', () => {
 
 (Several of the above are deliberately written as scenario descriptions with the concrete mock wiring left for the implementer, matching the same "re-derive against real code" convention used elsewhere — the fixed facts are the function names, the candidate-id format `reaction:<defId>:<reactorId>`, the `decline` sentinel, the 5000ms timeout, and the fallback-to-highest-priority-eligible rule, all of which come directly from the spec's own "Deciding: the hybrid" section.)
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/npc-reactions.test.mjs`
 Expected: FAIL — `resolveReactions` doesn't exist yet.
 
-- [ ] **Step 3: Implement `resolveReactions`**
+- [x] **Step 3: Implement `resolveReactions`**
 
 ```js
 import { fetchCombatDecision } from "./agent-service-client.mjs";
@@ -623,12 +623,12 @@ export async function resolveReactions(
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/npc-reactions.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/npc-reactions.mjs tests/npc-reactions.test.mjs
@@ -650,11 +650,11 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `resolveReactions` (Task 3), `markReactionUsed`, `rollAndApplyStrikeAtVariant`, `getAgentTurnState`, `setAgentTurnState` (all existing).
 - Produces (consumed by Task 7): a public chat line per executed strike reaction, matching #202's existing `postReactiveStrikeChat` shape generalized to any `strike`-kind def; `getAgentTurnState`'s returned shape grows a `movementDisrupted` boolean field, read by the stride-candidate builder (patched in Step 5 below) to stop offering further Stride candidates this turn.
 
-- [ ] **Step 1: Read the existing regression test in full**
+- [x] **Step 1: Read the existing regression test in full**
 
 Read `tests/dungeon-combat-reactive-strike.test.mjs` completely before changing anything — it is the regression suite this task must keep green. Note its exact fixture shapes for `combat`/`reactor`/`mover` so the registry-backed path matches them.
 
-- [ ] **Step 2: Write the new failing tests**
+- [x] **Step 2: Write the new failing tests**
 
 ```js
 // Added to tests/npc-reactions.test.mjs
@@ -697,13 +697,13 @@ describe('strike-kind executors', () => {
 });
 ```
 
-- [ ] **Step 3: Confirm `rollAndApplyStrikeAtVariant`'s real return shape before finalizing Wing Rebuff's test**
+- [x] **Step 3: Confirm `rollAndApplyStrikeAtVariant`'s real return shape before finalizing Wing Rebuff's test**
 
 Run: `grep -n "async function rollAndApplyStrikeAtVariant" -A 40 scripts/dungeon-combat.mjs`
 
 Read the full function. If it returns a plain outcome string (as #925's own investigation already confirmed for the sibling `rollAndApplyStrikeAtVariant` calls used by Strike candidates), Wing Rebuff's "Pushes the creature" check cannot be derived from that string alone — a Push is a weapon trait effect, not a degree of success. If the real function has no seam that reports whether a Push rider actually fired, treat this as a genuine open implementation question and resolve it the same way `applyManeuverOutcome` resolves an unclear modifier shape elsewhere in this codebase: check whether the roc's Wing Rebuff item or its Strike action has a `Push` rule element/trait the module can read directly off the item rather than off the roll's outcome, and condition the disruption on "the Strike hit AND the action has a Push trait" instead of trying to detect the push's own resolution. Document whichever real mechanism is found in the code's own comment, not in this plan — this plan's own obligation is to flag the question, not guess at an unverified mechanism.
 
-- [ ] **Step 4: Implement the three strike executors in `scripts/npc-reactions.mjs`**
+- [x] **Step 4: Implement the three strike executors in `scripts/npc-reactions.mjs`**
 
 ```js
 import { rollAndApplyStrikeAtVariant, getAgentTurnState, setAgentTurnState } from "./dungeon-combat.mjs";
@@ -766,7 +766,7 @@ Wire these into `REACTION_DEFS`' three `strike`-kind rows (`execute: executeReac
 
 Add `rollAndApplyStrikeAtVariant`'s optional fourth-argument `modifiers` parameter if it doesn't already accept one — check its real signature first (`grep -n "async function rollAndApplyStrikeAtVariant" -A 5 scripts/dungeon-combat.mjs`); if it doesn't, add `modifiers = []` as an additional parameter threaded into whatever modifier array the function already builds for the roll, defaulting to `[]` so every existing call site is unaffected.
 
-- [ ] **Step 5: Replace `offerReactiveStrikesAgainst`'s body and wire `moveInReach` detection**
+- [x] **Step 5: Replace `offerReactiveStrikesAgainst`'s body and wire `moveInReach` detection**
 
 In `scripts/dungeon-combat.mjs`:
 
@@ -784,23 +784,23 @@ export async function offerReactiveStrikesAgainst(combat, mover) {
 
 Add the `import { resolveReactions } from "./npc-reactions.mjs";` line near the top of `dungeon-combat.mjs`, alongside the existing imports. This is a one-directional dependency (`npc-reactions.mjs` imports helpers from `dungeon-combat.mjs`, and `dungeon-combat.mjs` imports `resolveReactions` back) — confirm this doesn't create a circular-import failure under the project's real ES-module resolution before committing; if it does, move the shared helpers `isReactiveStrikeInScope`/`getReactionUsed`/`markReactionUsed`/etc. out of `dungeon-combat.mjs` into a small shared `scripts/reaction-shared.mjs` instead, imported by both files, and update Task 2's own import list accordingly. Run `npm test` after this step specifically to catch any circular-import error early, before writing further code on top of it.
 
-- [ ] **Step 6: Add `movementDisrupted` to the turn-state shape and gate Stride candidates on it**
+- [x] **Step 6: Add `movementDisrupted` to the turn-state shape and gate Stride candidates on it**
 
 In `getAgentTurnState`/`setAgentTurnState` (`scripts/dungeon-combat.mjs`), add `movementDisrupted: stored.movementDisrupted ?? false` / `turnState.movementDisrupted ?? false` alongside the existing `flourishUsed`/`stanceUsed` fields, and to `initAgentTurnState()`'s own default object.
 
 Find the Stride candidate builder (`grep -n "type: \"stride\"" scripts/dungeon-combat.mjs` — read the surrounding function) and add an early return/filter so no `stride`-type candidate is produced when `getAgentTurnState(combat, combatant.id).movementDisrupted` is true.
 
-- [ ] **Step 7: Run both test files to verify everything passes**
+- [x] **Step 7: Run both test files to verify everything passes**
 
 Run: `npm test -- tests/dungeon-combat-reactive-strike.test.mjs tests/npc-reactions.test.mjs`
 Expected: PASS — the existing regression suite unchanged in behavior, the new executor tests green.
 
-- [ ] **Step 8: Run the full suite**
+- [x] **Step 8: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — confirm nothing else referencing `offerReactiveStrikesAgainst`'s old internals broke.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add scripts/npc-reactions.mjs scripts/dungeon-combat.mjs tests/npc-reactions.test.mjs
@@ -822,13 +822,13 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `resolveReactions` (Task 3), `markReactionUsed`, the real `Actor#applyDamage({ shieldBlockRequest })` call shape (confirmed live in the installed PF2e system).
 - Produces: nothing further downstream — terminal for this trigger kind.
 
-- [ ] **Step 1: Confirm where damage is actually applied for an agent-controlled reactor**
+- [x] **Step 1: Confirm where damage is actually applied for an agent-controlled reactor**
 
 Run: `grep -n "applyDamage(" scripts/dungeon-combat.mjs`
 
 Read each call site. One is `handleManualStrikeDamage` (#47, for human-controlled attackers' targets); confirm the other(s) are inside `rollAndApplyStrike`/`rollAndApplyStrikeAtVariant` or wherever an AI Strike applies damage to its target. Shield Block only matters when the **reactor being hit** is agent-controlled (an NPC with a shield reacting to an incoming hit, whether the attacker is a player or another AI actor) — both call sites can be the trigger source, since both can name an agent-controlled target.
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 ```js
 describe('shield-block executor', () => {
@@ -845,12 +845,12 @@ describe('shield-block executor', () => {
 
 (Deliberately left for the implementer to finalize the exact mechanism once Step 1's investigation into the real call sites' control flow is done — the one hard constraint, stated here explicitly, is **never call `applyDamage` twice for the same hit**: the reaction must modify the single pending `applyDamage` call's own `shieldBlockRequest` argument, not add a second, separate damage-application call.)
 
-- [ ] **Step 3: Run the test to verify it fails**
+- [x] **Step 3: Run the test to verify it fails**
 
 Run: `npm test -- tests/npc-reactions.test.mjs`
 Expected: FAIL.
 
-- [ ] **Step 4: Implement the damage-incoming trigger and Shield Block's executor**
+- [x] **Step 4: Implement the damage-incoming trigger and Shield Block's executor**
 
 At each of the call site(s) found in Step 1, immediately before the existing `await target.actor.applyDamage({ ... })` call, insert:
 
@@ -880,17 +880,17 @@ async function executeShieldBlock(ctx) {
 
 Confirm `target.actor.heldShield` is the real accessor for the actor's currently-raised/equipped shield in the installed PF2e system (`grep -n "get heldShield" /srv/foundry/data/Data/systems/pf2e/pf2e.mjs`) before finalizing this read — if the real accessor differs, use the real one and note the correction in the commit message, the same way every other premise correction this session has been handled.
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/npc-reactions.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npm test`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/npc-reactions.mjs scripts/dungeon-combat.mjs tests/npc-reactions.test.mjs
@@ -913,7 +913,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `resolveReactions` (Task 3).
 - Produces: nothing further downstream — terminal for this trigger kind. The paired `damage-roll` message for a hit this reaction flips to a miss must be recognized and skipped by `handleManualStrikeDamage`/the AI damage path — see Step 4.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-npc-reactions-acbonus.test.mjs
@@ -952,12 +952,12 @@ describe('acBonus executor (wouldFlipOutcome gate + fallback reporting)', () => 
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-npc-reactions-acbonus.test.mjs tests/npc-reactions.test.mjs`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement the trigger handler in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement the trigger handler in `scripts/dungeon-combat.mjs`**
 
 ```js
 /**
@@ -1006,7 +1006,7 @@ export async function handleAttackRollForAcBonusReactions(message) {
 
 Confirm `context.options` really does carry a `"ranged"` tag for a physical ranged Strike the same way `handleRangedAttackForReactiveStrike` already reads it (it does, per that function's own existing code) — Swat Projectile's own `isPhysicalRanged` gate reuses exactly that convention rather than inventing a new one, and explicitly excludes a ranged spell attack (which is not "physical").
 
-- [ ] **Step 4: Implement `wouldFlipOutcome` and the shared `acBonus` executor in `scripts/npc-reactions.mjs`**
+- [x] **Step 4: Implement `wouldFlipOutcome` and the shared `acBonus` executor in `scripts/npc-reactions.mjs`**
 
 Add `eligible`/`policy` bodies to the `wing-deflection-ghost-dodge` and `swat-projectile` rows that compute `wouldFlipOutcome` once, from `ctx.rollTotal`/`ctx.dcValue` and the definition's own bonus (+2 for Wing Deflection/Ghost Dodge, +4 for Swat Projectile):
 
@@ -1056,7 +1056,7 @@ async function executeAcBonusReaction(ctx) {
 
 Wire both `wing-deflection-ghost-dodge` and `swat-projectile` rows' `execute` to `executeAcBonusReaction`.
 
-- [ ] **Step 5: Make the paired damage-roll skip the flagged attack**
+- [x] **Step 5: Make the paired damage-roll skip the flagged attack**
 
 In `handleManualStrikeDamage` and the AI damage-application path (the same call sites touched in Task 5), after resolving `context.target`/before calling `applyDamage`, check:
 
@@ -1067,7 +1067,7 @@ if (message.flags?.pf2e?.context?.sourceId && skipped[message.flags.pf2e.context
 
 Confirm the real field name linking a `damage-roll` message back to its originating `attack-roll` message (`grep -n "sourceId\|associatedAttackRoll\|flags.pf2e.context" /srv/foundry/data/Data/systems/pf2e/pf2e.mjs | grep -i "damage"` or inspect a real paired attack-roll/damage-roll message pair live) before finalizing this lookup key — PF2e's own linkage field name is confirmed during implementation, not assumed here; if no such field exists on the message, use the attacker+target+round combination already available (`message.speaker.token`, `context.target.token`, `combat.round`) as the matching key instead, storing `acBonusSkipDamage` keyed by that tuple rather than by message id.
 
-- [ ] **Step 6: Register the new hook in `scripts/module.mjs`**
+- [x] **Step 6: Register the new hook in `scripts/module.mjs`**
 
 ```js
 import { handleAttackRollForAcBonusReactions } from "./dungeon-combat.mjs";
@@ -1080,17 +1080,17 @@ import { handleAttackRollForAcBonusReactions } from "./dungeon-combat.mjs";
 Hooks.on("createChatMessage", handleAttackRollForAcBonusReactions);
 ```
 
-- [ ] **Step 7: Run tests to verify they pass**
+- [x] **Step 7: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-npc-reactions-acbonus.test.mjs tests/npc-reactions.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 8: Run the full suite**
+- [x] **Step 8: Run the full suite**
 
 Run: `npm test`
 Expected: PASS.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add scripts/npc-reactions.mjs scripts/dungeon-combat.mjs scripts/module.mjs tests/npc-reactions.test.mjs tests/dungeon-combat-npc-reactions-acbonus.test.mjs
@@ -1112,7 +1112,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `findActiveHostedRun` (`scripts/dungeon-runner.mjs`, existing).
 - Produces: nothing further — terminal task.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 import { findActiveHostedRun } from '../scripts/dungeon-runner.mjs';
@@ -1147,12 +1147,12 @@ describe('mode switching for acBonus/damageReduction against a player-driven att
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/npc-reactions.test.mjs`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement mode switching**
+- [x] **Step 3: Implement mode switching**
 
 ```js
 import { findActiveHostedRun } from "./dungeon-runner.mjs";
@@ -1189,23 +1189,23 @@ Apply `withModeGate` when wiring the `wing-deflection-ghost-dodge`, `swat-projec
 
 For the confirm card's own click handler, follow this repo's existing convention for a chat-card button (find one via `grep -rn "data-action=" scripts/*.mjs module.mjs 2>/dev/null` or `grep -rn "renderChatMessage\|getChatLogEntryContext\|chat-card" scripts/module.mjs` to locate the real existing click-wiring pattern this codebase already uses elsewhere, and match it exactly — do not invent a new click-binding convention when one already exists in this codebase). The handler must re-run the exact same `rawExecute(ctx)` the automatic path would have run, keyed by whatever identifier (`ctx.confirmId`) the card's own flag stores; the `ctx` object itself (being non-serializable — it carries live Foundry documents) cannot be stored in the message flag directly, so store enough primitive identifiers (combat id, reactor id, mover id, trigger kind, def id, and the specific scalar fields each policy/executor reads: `rollTotal`, `dcValue`, `incomingDamageTotal`, `shieldHardness`, `messageId`) to reconstruct an equivalent `ctx` when the button is clicked, resolving the live documents fresh from `game.combats`/`combat.combatants` at click time rather than trusting anything cached from creation time (a combatant could have been removed in between).
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/npc-reactions.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS.
 
-- [ ] **Step 6: Version bump**
+- [x] **Step 6: Version bump** (deferred: the merging owner bumps `module.json`, per the implementing session's instructions)
 
 Run: `grep '"version"' module.json`
 
 Minor bump per `CLAUDE.md`'s versioning rule (a new cross-cutting subsystem spanning registry, three trigger paths, and mode switching — not a routine fix).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/npc-reactions.mjs module.json
@@ -1233,3 +1233,16 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 **3. Type consistency:** `REACTION_DEFS` row shape (`id, match, trigger, kind, priority, eligible, policy, execute`) is defined once in Task 2 and every later task fills in existing rows' `execute` fields without changing the shape. `ctx`'s growing field set (`reactor, mover, combat, actionSlug, incomingDamageTotal, shieldHardness, rollTotal, dcValue, isPhysicalRanged, wouldFlipOutcome, messageId, confirmId, onShieldBlock`) is introduced incrementally by the task that first needs each field, and every later task's executor reads exactly the field name the earlier task wrote (e.g. `wouldFlipOutcome` set by `policy` in Task 6, read by nothing outside that same task's own executor — confirmed no naming drift against `wouldFlipToMiss`'s own return).
 
 **4. Review Focus:** all five items have a direct test — the one-reaction-per-round economy checked ahead of registry priority (Task 2's "excludes a reactor who already used their reaction this round" test, which runs before any priority-ordering logic even applies); a mid-resolution deleted/missing token or actor skipped without throwing (Task 3's `resolveReactions` try/catch per reactor, Task 6's attack-roll handler's own `if (!reactor...) return`/`if (!attacker) return` guards); the 5-second timeout actually differing from the client's 35-second default (Task 1's dedicated `AbortSignal.timeout` spy tests, Task 3's fake-timer fallback test); GM-less mode never posting the confirm card (Task 7's first and third tests, phrased to catch the exact backwards-logic risk named in this section); the migrated Reactive Strike/AoO path matching #202's own existing test suite unchanged (Task 4 Step 1's explicit "read the existing regression test first" step and Step 7's explicit re-run of that same file).
+
+## Implementation deviations (recorded by the implementing session, 2026-10-09)
+
+- **Split by purity, no import cycle.** `scripts/npc-reactions.mjs` is pure (registry, move-trigger index, degree of success, hybrid `decideReaction`, mode helper); the gates, triggers and executors live in `dungeon-combat.mjs`, which imports it one way. `resolveReactions(combat, event, execute)` takes the executor per trigger path.
+- **Registry shape.** `triggers` (array) instead of one `trigger`; Wing Deflection and Ghost Dodge are separate rows; `swat-projectile` keeps `requiresPhysicalRanged`. Reactive Strike answers `move`/`strideEnd`/`rangedAttack`/`manual`; Twisting Tail `move`/`manual`; Wing Rebuff `move` only.
+- **No `movementDisrupted` turn flag.** RAW, a disrupted move action is lost but further Strides are allowed. Since the module owns AI movement, Twisting Tail / Wing Rebuff resolve mid-walk at the exact square they trigger (`walkWithMoveReactions`); a disrupting result stops the Stride there (`"disrupted"`, shown on the #925 card). Reactive Strike keeps #202's end-of-Stride check (`strideEnd`) unchanged.
+- **Twisting Tail -2** uses the item's own `twisting-tail` roll option (system FlatModifier, verified live on pf2e 8.5.0), falling back to an explicit `game.pf2e.Modifier` for an item without the rule element.
+- **Wing Rebuff disruption** = the wing's `improved-push` rider actually succeeded (reported out of `rollAndApplyStrikeAtVariant`).
+- **AI attackers' Strikes** resolve AC-bonus reactions inline right after the attack roll (the effective outcome becomes a miss: no riders, card or damage) and Shield Block inline before the single `applyDamage`. The attack-roll chat hook handles player-driven attackers only.
+- **Shield Block** requires a raised, unbroken, undestroyed shield (PF2e RAW and `applyDamage`'s own check).
+- **Player movement** (`moveToken` hook): a human's dragging/keyboard move on its own turn fires move-triggered reactions with RAW path semantics; a single-square move counts as a Step. A disrupting hit moves the token back in GM-less runs, or whispers the GM otherwise.
+- **GM-confirm card** holds the Strike's damage until answered (accept/decline buttons, `pendingReactions` combat flag); a stale card (round over, reaction spent, reactor gone) answers as declined.
+- **No agent-service change**: the reaction decision reuses `/v1/combat-decision` with `decisionKind: "reaction"` context.

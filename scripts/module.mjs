@@ -12,6 +12,7 @@ import { doorSoundForWallTransition, playDoorSound } from "./dungeon-sound.mjs";
 import { SoundPreviewApp } from "./ui/sound-preview-app.mjs";
 import { findTokenControl, marchingOrderSceneTool, refreshMarchingOrderWindow } from "./ui/marching-order-app.mjs";
 import { retreatCardActionFor } from "./dungeon-retreat.mjs";
+import { reactionConfirmActionFor } from "./npc-reactions.mjs";
 import {
   abandonRun,
   getRunState,
@@ -62,6 +63,9 @@ import {
   toggleAgentControlled,
   handleRangedAttackForReactiveStrike,
   handleManualStrikeDamage,
+  handleAttackRollForReactions,
+  handleTokenMoveForReactions,
+  answerReactionConfirm,
   offerReactiveStrikesAgainst,
   clearDetection,
   handleStealthBreakMessage,
@@ -592,6 +596,34 @@ Hooks.on("renderChatMessageHTML", (message, html) => {
   });
 });
 
+/** #931: binds the "Use <reaction>" / "No reaction" buttons on a
+ * defensive-reaction GM-confirm card (dungeon-combat.mjs's
+ * postReactionConfirmCard). GM only; disabled once answered. */
+Hooks.on("renderChatMessageHTML", (message, html) => {
+  const action = reactionConfirmActionFor(message, { isGM: game.user.isGM });
+  if (!action) return;
+  const buttons = Array.from(html.querySelectorAll?.("button[data-pf2edc-reaction]") ?? []);
+  for (const button of buttons) {
+    button.disabled = !action.enabled;
+    button.addEventListener("click", async (event) => {
+      event.preventDefault();
+      if (button.disabled) return;
+      for (const b of buttons) b.disabled = true;
+      try {
+        await answerReactionConfirm(
+          action.combatId,
+          action.confirmId,
+          button.dataset.pf2edcReaction === "accept",
+          { cardMessage: message },
+        );
+      } catch (err) {
+        console.error(`${MODULE_ID} | #931: answering the reaction card failed`, err);
+        for (const b of buttons) b.disabled = false;
+      }
+    });
+  }
+});
+
 /** #109: keeps every non-host, non-GM client's DungeonApp in sync with a
  * GM-less run. */
 let lastBroadcastSceneId = null;
@@ -712,6 +744,14 @@ registerFlankedIndicator();
 /** #202: reactive/triggered NPC abilities (ranged-Strike-triggered Reactive
  * Strike/Attack of Opportunity). */
 Hooks.on("createChatMessage", handleRangedAttackForReactiveStrike);
+
+/** #931: AC-bonus NPC reactions (Wing Deflection, Ghost Dodge, Swat
+ * Projectile) against a human player's Strike -- after the roll resolves. */
+Hooks.on("createChatMessage", handleAttackRollForReactions);
+
+/** #931: a human player's own token move provokes move-triggered NPC
+ * reactions (Reactive Strike/AoO, Twisting Tail, Wing Rebuff). */
+Hooks.on("moveToken", (tokenDoc, movement) => handleTokenMoveForReactions(tokenDoc, movement));
 
 /** #47: auto-applies a human party member's manual Strike damage to its
  * roll's own already-correct target, instead of relying on PF2e's own
