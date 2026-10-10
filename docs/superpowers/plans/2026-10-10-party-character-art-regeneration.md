@@ -100,7 +100,7 @@ describe("generate-token-art exports (#1260)", () => {
   - `buildApplyPlan({ picks: {id: n}, manifest, actors: {id: {actorId, tokens:[{sceneId?, tokenId}]}}, existingFiles, dataDir }) → { copies:[{from,to}], documentUpdates:[{actorId, img, tokens}], errors }` — refuses (errors) a pick whose candidate is not in the manifest or a subject without an actor mapping; `to` is `<dataDir>/party-portraits/<name>` and doc paths are `party-portraits/<name>`.
   - `buildRevertPlan(applied) → { documentUpdates }` from an `applied.json` (`{ entries:[{id, actorId, oldImg, newImg, tokens:[{tokenId, sceneId, oldSrc, ok}]}] }`), restoring only tokens with `ok: true`.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -167,9 +167,9 @@ describe("buildApplyPlan / buildRevertPlan", () => {
 });
 ```
 
-- [ ] **Step 2: Run, FAIL** — `npx vitest run tests/party-art-lib.test.mjs`.
-- [ ] **Step 3: Implement** `tools/party-art-lib.mjs` to satisfy the interfaces above (plain functions, no I/O, no imports).
-- [ ] **Step 4: Run, PASS.**
+- [x] **Step 2: Run, FAIL** — `npx vitest run tests/party-art-lib.test.mjs`.
+- [x] **Step 3: Implement** `tools/party-art-lib.mjs` to satisfy the interfaces above (plain functions, no I/O, no imports).
+- [x] **Step 4: Run, PASS.**
 - [ ] **Step 5: Commit** — `git add tools/party-art-lib.mjs tests/party-art-lib.test.mjs && git commit -m "#1260: pure party-art helpers"`
 
 ### Task 3: Generation CLI
