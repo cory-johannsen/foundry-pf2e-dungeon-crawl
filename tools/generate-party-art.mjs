@@ -18,6 +18,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync, unlinkSync, openSync, readSync, closeSync, readdirSync, copyFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, dirname, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import {
   STYLE, NEGATIVE, CHECKPOINT, STEPS, CFG, CLEAN_THRESHOLD, MAX_ATTEMPTS,
@@ -185,13 +186,20 @@ const DEFAULT_DATA_DIR = '/srv/foundry/data/Data';
 /** Run a script in the live world via the foundry-rest relay; retry when the socket drops (exit 3). */
 function foundryExec(script) {
   const exec = join(root, '.claude/skills/foundry-rest/foundry-exec.sh');
-  for (let attempt = 1; ; attempt++) {
-    try {
-      return JSON.parse(execFileSync(exec, [], { input: script, cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }));
-    } catch (e) {
-      if (e.status === 3 && attempt < 3) { console.error(`relay dropped, retry ${attempt}/3`); continue; }
-      throw new Error(`foundry-exec failed (exit ${e.status}): ${e.stderr || e.message}`);
+  // foundry-exec.sh does `cat /dev/stdin`, which fails on the socket pair node uses for `input`, so pass a file.
+  const file = join(tmpdir(), `party-art-${process.pid}-${Date.now()}.js`);
+  writeFileSync(file, script);
+  try {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return JSON.parse(execFileSync(exec, [file], { cwd: root, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }));
+      } catch (e) {
+        if (e.status === 3 && attempt < 3) { console.error(`relay dropped, retry ${attempt}/3`); continue; }
+        throw new Error(`foundry-exec failed (exit ${e.status}): ${e.stderr || e.message}`);
+      }
     }
+  } finally {
+    rmSync(file, { force: true });
   }
 }
 
