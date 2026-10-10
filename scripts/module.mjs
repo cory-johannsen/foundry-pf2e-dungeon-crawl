@@ -99,6 +99,7 @@ import {
   attemptTrapDisableForScene,
 } from "./trap-combat.mjs";
 import { registerFlankedIndicator } from "./flanking-indicator.mjs";
+import { registerAiActionDetail } from "./ui/ai-action-detail.mjs";
 import { promptTrapDisable } from "./ui/trap-disable-dialog.mjs";
 import { promptPuzzleStage } from "./ui/puzzle-stage-dialog.mjs";
 import { promptSkillChallenge } from "./ui/skill-challenge-dialog.mjs";
@@ -779,6 +780,11 @@ Hooks.on("updateToken", (tokenDoc, changes) => handleTrapTokenMove(tokenDoc, cha
 
 /** #769: client-side, write-nothing "Flanked" badge on flanked tokens in combat. */
 registerFlankedIndicator();
+
+/** #951: an AI combatant's latest action under its Combat Tracker row
+ * (click to expand) and in a tooltip over its hovered token -- every
+ * client, read-only; the GM alone sees rationale and hidden actors. */
+registerAiActionDetail();
 
 /** #202: reactive/triggered NPC abilities (ranged-Strike-triggered Reactive
  * Strike/Attack of Opportunity). */

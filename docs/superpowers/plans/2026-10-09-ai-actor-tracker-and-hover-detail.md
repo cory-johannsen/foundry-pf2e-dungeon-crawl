@@ -229,7 +229,7 @@ git commit -m "feat(#951): buildCombatantDigest, sharing #950's visibleRecords h
 - Consumes: `buildCombatantDigest` (Task 2).
 - Produces: a `renderCombatTracker` hook handler; `renderTrackerDigestInto(rootElement, combat, isGM, expandedIds)` (exported for direct testing without a real Foundry render cycle).
 
-- [ ] **Step 1: Add the `jsdom` devDependency**
+- [x] **Step 1: Add the `jsdom` devDependency**
 
 **Amended by #1006:** confirmed live that this repo's `vitest.config.mjs` sets `environment: 'node'` (not `'jsdom'`) and no existing test file uses the real `document`/`window` globals — the earlier draft's claim that "existing DOM-touching tests... use real jsdom via vitest's own config" does not hold. This task's own tests, Task 4's tests, and #1006's Token HUD panel tests all need a real DOM, so add it once here:
 
@@ -239,7 +239,7 @@ npm install --save-dev jsdom
 
 Each DOM-touching test file then opts in per-file with a leading pragma comment (already present in this task's and Task 4's test blocks below: `// @vitest-environment jsdom`), rather than switching the whole suite's default environment and risking unrelated non-DOM tests behaving differently under jsdom.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 ```js
 // @vitest-environment jsdom
@@ -291,12 +291,12 @@ describe('renderTrackerDigestInto (#951)', () => {
 });
 ```
 
-- [ ] **Step 3: Run the tests to verify they fail**
+- [x] **Step 3: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/ai-action-tracker-detail.test.mjs`
 Expected: FAIL with "renderTrackerDigestInto is not exported"
 
-- [ ] **Step 4: Implement**
+- [x] **Step 4: Implement**
 
 ```js
 // scripts/module.mjs -- new, near the existing getCombatTrackerEntryContext hook
@@ -344,7 +344,7 @@ export function renderTrackerDigestInto(rootElement, combat, isGM, expandedIds) 
 }
 ```
 
-- [ ] **Step 5: Register the `renderCombatTracker` hook and clear expanded state on combat change**
+- [x] **Step 5: Register the `renderCombatTracker` hook and clear expanded state on combat change**
 
 ```js
 // scripts/module.mjs -- new Hooks.on registrations:
@@ -356,7 +356,7 @@ Hooks.on("renderCombatTracker", (app, html) => {
 Hooks.on("deleteCombat", () => expandedTrackerRows.clear());
 ```
 
-- [ ] **Step 6: Add the stylesheet**
+- [x] **Step 6: Add the stylesheet**
 
 ```css
 /* styles/ai-action-detail.css */
@@ -373,17 +373,17 @@ Hooks.on("deleteCombat", () => expandedTrackerRows.clear());
 
 Load it through this module's existing style-registration mechanism (confirm the exact entry point — `module.json`'s own `"styles"` array, or a dynamically injected `<link>`, whichever this repo's other stylesheets already use — before treating this step as done).
 
-- [ ] **Step 7: Run the tests to verify they pass**
+- [x] **Step 7: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/ai-action-tracker-detail.test.mjs`
 Expected: PASS (4 tests)
 
-- [ ] **Step 8: Run the full suite**
+- [x] **Step 8: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add package.json package-lock.json scripts/module.mjs styles/ai-action-detail.css tests/ai-action-tracker-detail.test.mjs
@@ -402,7 +402,7 @@ git commit -m "feat(#951): Combat Tracker row summary with click-to-expand detai
 - Consumes: `buildCombatantDigest` (Task 2).
 - Produces: a `hoverToken` hook handler; `renderHoverOverlay(token, combat, isGM)` / `hideHoverOverlay()` (exported).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // @vitest-environment jsdom
@@ -463,12 +463,12 @@ describe('renderHoverOverlay / hideHoverOverlay (#951)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/ai-action-hover-tooltip.test.mjs`
 Expected: FAIL with "renderHoverOverlay is not exported"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/module.mjs -- new, near the tracker-detail code
@@ -532,7 +532,7 @@ export function renderHoverOverlay(token, combat, isGM) {
 }
 ```
 
-- [ ] **Step 4: Register `hoverToken` and the hide-on-pan/delete/combat-end hooks**
+- [x] **Step 4: Register `hoverToken` and the hide-on-pan/delete/combat-end hooks**
 
 ```js
 // scripts/module.mjs -- new Hooks.on registrations:
@@ -547,17 +547,17 @@ Hooks.on("deleteToken", () => hideHoverOverlay());
 Hooks.on("deleteCombat", () => hideHoverOverlay());
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/ai-action-hover-tooltip.test.mjs`
 Expected: PASS (5 tests)
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/module.mjs tests/ai-action-hover-tooltip.test.mjs

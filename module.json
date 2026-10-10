@@ -10,7 +10,7 @@
   "authors": [{ "name": "Cory Johannsen" }],
   "socket": true,
   "esmodules": ["scripts/module.mjs"],
-  "styles": ["styles/dungeon.css"],
+  "styles": ["styles/dungeon.css", "styles/ai-action-detail.css"],
   "languages": [{ "lang": "en", "name": "English", "path": "lang/en.json" }],
   "packs": [
     {
