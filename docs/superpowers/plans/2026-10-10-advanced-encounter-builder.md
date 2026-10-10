@@ -56,7 +56,7 @@
 **Interfaces:**
 - Produces: `splitBudget(totalXp: number, shares: number[]) → number[]` (per-force XP caps, `floor(total*share/100)`, each ≥ 0 and finite); `validateShares(shares: number[]) → { ok: boolean, total: number }` (ok iff every share is a finite number > 0 and the sum is exactly 100).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -92,9 +92,9 @@ describe("validateShares", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `npx vitest run tests/force-budget.test.mjs` → FAIL (module not found).
+- [x] **Step 2: Run to verify it fails** — `npx vitest run tests/force-budget.test.mjs` → FAIL (module not found).
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 /**
@@ -118,8 +118,8 @@ export function validateShares(shares) {
 }
 ```
 
-- [ ] **Step 4: Run to verify it passes** — same command → PASS.
-- [ ] **Step 5: Commit** — `git add scripts/force-budget.mjs tests/force-budget.test.mjs && git commit -m "#1083: force budget split helpers"`
+- [x] **Step 4: Run to verify it passes** — same command → PASS.
+- [x] **Step 5: Commit** — `git add scripts/force-budget.mjs tests/force-budget.test.mjs && git commit -m "#1083: force budget split helpers"`
 
 ---
 
