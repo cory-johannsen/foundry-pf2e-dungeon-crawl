@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { validateSubjects, seedFor, partyPromptFor, partyNegativeFor, nextVersionedName,
-         contactSheetLayout, buildApplyPlan, buildRevertPlan } from "../tools/party-art-lib.mjs";
+         contactSheetLayout, buildApplyPlan, buildRevertPlan,
+         actorReadScript, applyScript, revertScript, BANNED_SCRIPT_WORDS } from "../tools/party-art-lib.mjs";
 
 describe("validateSubjects", () => {
   it("accepts good, rejects bad", () => {
@@ -58,5 +59,29 @@ describe("buildApplyPlan / buildRevertPlan", () => {
     const r = buildRevertPlan({ entries: [{ id: "cleric", actorId: "A", oldImg: "party-portraits/cleric.webp", newImg: "x", tokens: [{ tokenId: "T1", sceneId: "S", oldSrc: "party-portraits/cleric.webp", ok: true }, { tokenId: "T2", sceneId: "S", oldSrc: "o", ok: false }] }] });
     expect(r.documentUpdates[0].tokens).toEqual([{ tokenId: "T1", sceneId: "S", oldSrc: "party-portraits/cleric.webp" }]);
     expect(r.documentUpdates[0].img).toBe("party-portraits/cleric.webp");
+  });
+});
+
+describe("foundry-rest script builders", () => {
+  const update = { actorId: "A", img: 'party-portraits/we"ird-v2.webp', proto: "party-portraits/old.webp", tokens: [{ sceneId: "S", tokenId: "T1", oldSrc: "party-portraits/old.webp" }] };
+  const scripts = {
+    read: actorReadScript(["A", "B"]),
+    apply: applyScript(update),
+    revert: revertScript(update),
+  };
+  for (const [name, text] of Object.entries(scripts)) {
+    it(`${name} script contains no relay-banned word`, () => {
+      for (const w of BANNED_SCRIPT_WORDS) expect(text.includes(w), w).toBe(false);
+    });
+  }
+  it("embeds ids and paths via JSON.stringify so quoting cannot break", () => {
+    expect(scripts.read).toContain(JSON.stringify(["A", "B"]));
+    expect(scripts.apply).toContain(JSON.stringify(update.img));
+    expect(scripts.apply).toContain(JSON.stringify("T1"));
+    expect(scripts.revert).toContain(JSON.stringify("party-portraits/old.webp"));
+  });
+  it("apply updates actor img and prototype token, and each token", () => {
+    expect(scripts.apply).toContain("prototypeToken.texture.src");
+    expect(scripts.apply).toContain('"texture.src"');
   });
 });

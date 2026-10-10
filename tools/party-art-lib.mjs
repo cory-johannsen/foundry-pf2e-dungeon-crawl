@@ -83,3 +83,67 @@ export function buildRevertPlan(applied) {
     })),
   };
 }
+
+// Text the foundry-rest relay refuses anywhere in a script, comments included.
+export const BANNED_SCRIPT_WORDS = [
+  'apiKey', 'globalThis', 'eval(', 'import(', 'new Function',
+  'localStorage', 'sessionStorage', 'password', 'game.settings.set', 'XMLHttpRequest'
+];
+
+/** Read-only: actor img/prototype src and every placed token on any scene. */
+export const actorReadScript = (actorIds) => `
+const ids = ${JSON.stringify(actorIds)};
+const out = {};
+for (const id of ids) {
+  const actor = game.actors.get(id);
+  if (!actor) { out[id] = { exists: false, tokens: [] }; continue; }
+  const tokens = [];
+  for (const scene of game.scenes) {
+    for (const t of scene.tokens) {
+      if (t.actorId === id) tokens.push({ sceneId: scene.id, tokenId: t.id, src: t.texture.src });
+    }
+  }
+  out[id] = { exists: true, img: actor.img, proto: actor.prototypeToken.texture.src, tokens };
+}
+return out;
+`;
+
+/** Point actor, prototype token and placed tokens at update.img; reports old values. */
+export const applyScript = (update) => `
+const update = ${JSON.stringify(update)};
+const actor = game.actors.get(update.actorId);
+if (!actor) return { ok: false, error: "actor not found" };
+const oldImg = actor.img;
+const oldProto = actor.prototypeToken.texture.src;
+await actor.update({ img: update.img, "prototypeToken.texture.src": update.img });
+const tokens = [];
+for (const t of update.tokens) {
+  try {
+    const doc = game.scenes.get(t.sceneId).tokens.get(t.tokenId);
+    const oldSrc = doc.texture.src;
+    await doc.update({ "texture.src": update.img });
+    tokens.push({ tokenId: t.tokenId, sceneId: t.sceneId, oldSrc, ok: true });
+  } catch (e) {
+    tokens.push({ tokenId: t.tokenId, sceneId: t.sceneId, oldSrc: t.src ?? null, ok: false, error: String(e.message ?? e) });
+  }
+}
+return { ok: true, oldImg, oldProto, tokens };
+`;
+
+/** Inverse of applyScript: restore update.img / update.proto and each token's oldSrc. */
+export const revertScript = (update) => `
+const update = ${JSON.stringify(update)};
+const actor = game.actors.get(update.actorId);
+if (!actor) return { ok: false, error: "actor not found" };
+await actor.update({ img: update.img, "prototypeToken.texture.src": update.proto ?? update.img });
+const tokens = [];
+for (const t of update.tokens) {
+  try {
+    await game.scenes.get(t.sceneId).tokens.get(t.tokenId).update({ "texture.src": t.oldSrc });
+    tokens.push({ tokenId: t.tokenId, ok: true });
+  } catch (e) {
+    tokens.push({ tokenId: t.tokenId, ok: false, error: String(e.message ?? e) });
+  }
+}
+return { ok: true, tokens };
+`;

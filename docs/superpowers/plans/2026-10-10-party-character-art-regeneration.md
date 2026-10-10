@@ -187,9 +187,9 @@ Behavior:
 3. Subjects where **every** candidate has `ok:false` → print `FAILED <id>: no clean candidate (reroll, change the prompt, or hand-make)` and exit code 3 at the end; no paid-backend fallback.
 4. Write `manifest.json` and the contact sheet (PIL script via `execFileSync(python, ['-c', script, layoutJson, ...])` pasting `cand-N.webp` tiles at `contactSheetLayout` positions, labeled `id #N` and `FAIL` for `ok:false`).
 
-- [ ] **Step 1:** Implement as specified; keep `main()` behind `if (import.meta.url === \`file://${process.argv[1]}\`)`.
-- [ ] **Step 2: Smoke test without ComfyUI** — `node tools/generate-party-art.mjs --subjects /nonexistent.json --out $TMPDIR/x` exits non-zero with a clear message; with a one-subject file and `COMFYUI_BASE_URL=http://127.0.0.1:1` it records `ok:false` candidates, writes no `cand-*.webp`, exits 3.
-- [ ] **Step 3:** `npm test` → PASS. **Step 4: Commit** — `git commit -am "#1260: party art generation CLI"`.
+- [x] **Step 1:** Implement as specified; keep `main()` behind `if (import.meta.url === \`file://${process.argv[1]}\`)`.
+- [x] **Step 2: Smoke test without ComfyUI** — `node tools/generate-party-art.mjs --subjects /nonexistent.json --out $TMPDIR/x` exits non-zero with a clear message; with a one-subject file and `COMFYUI_BASE_URL=http://127.0.0.1:1` it records `ok:false` candidates, writes no `cand-*.webp`, exits 3.
+- [x] **Step 3:** `npm test` → PASS. **Step 4: Commit** — `git commit -am "#1260: party art generation CLI"`.
 
 ### Task 4: Apply / revert modes
 
@@ -205,16 +205,16 @@ Behavior:
 - **Revert:** `buildRevertPlan(applied)`; run the inverse updates (actor `img` + proto restored, tokens with `ok:true` restored); never delete the new files unless `--delete-new`.
 - foundry-rest scripts must avoid the banned words (`apiKey`, `globalThis`, `eval(`, `import(`, `new Function`, `localStorage`, `sessionStorage`, `password`, `game.settings.set`) — including in comments.
 
-- [ ] **Step 1:** Add a unit test for the script-text builders (extract `actorReadScript(actorIds)`, `applyScript(update)`, `revertScript(update)` as pure functions into `party-art-lib.mjs` and assert in `tests/party-art-lib.test.mjs` that none contains a banned word and each embeds the ids/paths via `JSON.stringify`, so quoting cannot break).
-- [ ] **Step 2:** Implement apply/revert with `execFileSync` of `foundry-exec.sh` (feeding the script on stdin).
-- [ ] **Step 3: Dry-run test:** with a hand-written manifest and a fake data dir (`--data-dir` override for tests), `--apply --dry-run` prints the plan and writes nothing; missing `--pick` exits 2.
-- [ ] **Step 4:** `npm test` → PASS. **Step 5: Commit** — `git commit -am "#1260: party art apply and revert"`.
+- [x] **Step 1:** Add a unit test for the script-text builders (extract `actorReadScript(actorIds)`, `applyScript(update)`, `revertScript(update)` as pure functions into `party-art-lib.mjs` and assert in `tests/party-art-lib.test.mjs` that none contains a banned word and each embeds the ids/paths via `JSON.stringify`, so quoting cannot break).
+- [x] **Step 2:** Implement apply/revert with `execFileSync` of `foundry-exec.sh` (feeding the script on stdin).
+- [x] **Step 3: Dry-run test:** with a hand-written manifest and a fake data dir (`--data-dir` override for tests), `--apply --dry-run` prints the plan and writes nothing; missing `--pick` exits 2.
+- [x] **Step 4:** `npm test` → PASS. **Step 5: Commit** — `git commit -am "#1260: party art apply and revert"`.
 
 ### Task 5: Docs, version, and the reviewed run
 
 **Files:** `README.md` (art-tools section: usage, outside-repo staging, apply/revert, "never committed"), `module.json` (patch bump).
 
-- [ ] **Step 1:** README entry + script header usage note; bump `module.json`; `npm test` → PASS; commit `#1260: document party art tool, bump version`; open the PR (merge it before the live run so the tool is on `main`).
+- [x] **Step 1:** README entry + script header usage note; bump `module.json`; `npm test` → PASS; commit `#1260: document party art tool, bump version`; open the PR (merge it before the live run so the tool is on `main`).
 - [ ] **Step 2: Subject approval gate (owner).** Read both live actors via foundry-rest (ancestry, heritage, class, deity, equipped weapons/armor, identifying gear — Cleric `JXoEHUzeuuvD5m75`, Thief `Wd5KR4tYminiWPEh`). Draft `subjects.json` in the staging dir (`id`, `actorId`, `who`, `avoid`), seeded from the spec: Cleric = Chrysanthemum leshy cleric (carved wooden gourd head with cut-out eyes/mouth, chrysanthemum petal ring, vine-and-leaf body, vestments, visible holy symbol of the deity) with the `leshy` subject's `avoid` list; Thief = Hillock halfling rogue (small, round-cheeked, curly hair, clever cheerful face under a dark hood, leather armor, dagger at the belt, full saturated colour). **Show both to the owner and wait for approval or edits before generating.**
 - [ ] **Step 3: Generate** `node tools/generate-party-art.mjs --subjects <dir>/subjects.json --out <dir>`; inspect every candidate for defining features (gourd head + holy symbol; halfling proportions, colour, rogue gear; plain dark background; one subject), mark failures, show the contact sheet to the owner; reroll with `--reroll` or a prompt change on request. Nothing touches the world before the owner's pick.
 - [ ] **Step 4: Apply** with the owner's `--pick` (first `--dry-run`, show it). Verify in the world: both sheets, both prototype tokens and both placed tokens show the new art; an open second client refreshes without a hard reload; old files still present.

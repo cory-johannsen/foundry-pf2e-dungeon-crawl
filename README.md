@@ -112,6 +112,25 @@ layout with `npm run art:normalize` (idempotent; safe to re-run), and
 until it has been run. Note: tokens already placed in an existing world keep the
 old flat path and show broken images until recreated; new spawns use the new path.
 
+### Regenerating party character art
+
+`tools/generate-party-art.mjs` regenerates the Cleric/Thief portrait+token art
+with the same ComfyUI pipeline (ComfyUI only, no paid fallback; needs
+`.venv` with Pillow and numpy). Candidates, the manifest, the contact sheet and
+the files copied into the Foundry data dir live outside the repo (suggested
+staging dir `~/src/art-tools/out/party-art/<date>/`) and are **never
+committed**.
+
+```bash
+node tools/generate-party-art.mjs --subjects subjects.json --out <dir> [--count 4] [--reroll N] [--only id] [--force]
+node tools/generate-party-art.mjs --apply --manifest <dir>/manifest.json --pick cleric=2,thief=3 [--dry-run]
+node tools/generate-party-art.mjs --revert <dir>/applied.json [--delete-new]
+```
+
+Apply copies the pick to a new versioned file (`party-portraits/<id>-vN.webp`),
+updates the Actor, prototype token and placed tokens through the `foundry-rest`
+skill, and writes `applied.json` for `--revert`. Old files are never deleted.
+
 ### Compendium pack
 
 `packs/generated-creature-art/` is a shipped Actor compendium ("Generated
