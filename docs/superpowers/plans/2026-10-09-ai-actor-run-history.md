@@ -185,7 +185,7 @@ git commit -m "feat(#953): pure public/GM journal-page HTML builders"
 - Consumes: nothing.
 - Produces: `findOrCreateRunJournals(historyId, dungeonName)` → `{publicJournal, gmJournal}` (async); `deleteRunJournals(historyId)` (async).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/ai-history-journals.test.mjs
@@ -251,12 +251,12 @@ describe('deleteRunJournals (#953)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/ai-history-journals.test.mjs`
 Expected: FAIL with "Cannot find module"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/ai-history-journals.mjs
@@ -327,12 +327,12 @@ export async function deleteRunJournals(historyId) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/ai-history-journals.test.mjs`
 Expected: PASS (4 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/ai-history-journals.mjs tests/ai-history-journals.test.mjs
