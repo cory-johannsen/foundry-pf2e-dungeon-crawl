@@ -43,7 +43,7 @@
 - Consumes: nothing (pure; takes a plain `{ name, system: { description: { value }, actions: { value }, frequency } }`-shaped object, matching a real Foundry `Item`'s own readable fields).
 - Produces (consumed by Task 3): `parseMovementAbility(item)` → the movement-plan descriptor or `null`, per the spec's own descriptor shape below.
 
-- [ ] **Step 1: Write the real-data fixture file**
+- [x] **Step 1: Write the real-data fixture file**
 
 Gathered directly from `~/pf2e-data/packs/pf2e/*.json` (every string below is the item's real, unedited `system.description.value`):
 
@@ -118,7 +118,7 @@ Gathered directly from `~/pf2e-data/packs/pf2e/*.json` (every string below is th
 }
 ```
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 ```js
 // tests/npc-move-parse.test.mjs
@@ -217,12 +217,12 @@ describe('parseMovementAbility', () => {
 });
 ```
 
-- [ ] **Step 3: Run tests to verify they fail**
+- [x] **Step 3: Run tests to verify they fail**
 
 Run: `npm test -- tests/npc-move-parse.test.mjs`
 Expected: FAIL — the module doesn't exist yet.
 
-- [ ] **Step 4: Implement `scripts/npc-move-parse.mjs`**
+- [x] **Step 4: Implement `scripts/npc-move-parse.mjs`**
 
 ```js
 /**
@@ -412,12 +412,12 @@ export function parseMovementAbility(item) {
 }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/npc-move-parse.test.mjs`
 Expected: PASS. If a specific fixture's exact capture groups don't line up with `MOVE_SENTENCE_RE`'s own group ordering (regex group numbering is easy to get subtly wrong on a first pass — e.g. Swoop's inline Strike clause vs. Eagle Dive's "then Strikes with their horn" clause use two different capture groups, `limbInline` vs `limbThen`), adjust the regex and the destructuring together rather than only one side; re-run after every adjustment instead of guessing twice.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/npc-move-parse.mjs tests/npc-move-parse.test.mjs tests/fixtures/npc-move-ability-fixtures.json
@@ -437,7 +437,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `parseMovementAbility` (Task 1).
 - Produces: nothing further — a standing regression guard, per the spec's own Testing section ("a snapshot test ... so grammar or compendium changes are visible").
 
-- [ ] **Step 1: Write the snapshot test**
+- [x] **Step 1: Write the snapshot test**
 
 ```js
 // tests/npc-move-parse-coverage.test.mjs
@@ -460,12 +460,12 @@ describe('npc-move-parse coverage audit', () => {
 
 (This is intentionally a small, fixture-scale snapshot, not a live scan of the full ~320-instance bestiary population the spec's own investigation sized — that full-population scan is #972's own progress-measurement concern per the spec's "Explicitly out of scope" section; this task's job is only to pin today's grammar's own recognized/unrecognized split for the fixture set this plan ships with, so a later grammar change shows up as an intentional, reviewed diff rather than a silent behavior change.)
 
-- [ ] **Step 2: Run the test to verify it passes**
+- [x] **Step 2: Run the test to verify it passes**
 
 Run: `npm test -- tests/npc-move-parse-coverage.test.mjs`
 Expected: PASS (given Task 1's implementation already recognizes exactly this set).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/npc-move-parse-coverage.test.mjs
