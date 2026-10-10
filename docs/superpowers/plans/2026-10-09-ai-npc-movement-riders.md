@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- **#932 is still plan-only.** Every task here patches that plan document directly rather than assuming its final shape; an implementer must land the amended #932 plan (or confirm its real implementation already matches) before any task here has real code to extend.
+- **Amended by #1037: #932 is real, merged code, not plan-only** (`scripts/npc-move-parse.mjs`, confirmed live) — Tasks 1 and 2 now edit that real file directly rather than a stale plan document; the rider shapes themselves were already correct as drafted, only the target file was wrong.
 - All-or-nothing, unchanged: a trailing sentence matching none of the (now ten) rider entries makes the whole ability `null`.
 - Every merge bumps `module.json`'s version (CLAUDE.md).
 
@@ -32,14 +32,16 @@
 
 ---
 
-### Task 1: Patch #932's plan — four single-sentence riders
+### Task 1: Four single-sentence riders — on the REAL `npc-move-parse.mjs`
+
+**Amended by #1037.** **#932 is real, merged code, not plan-only** (`scripts/npc-move-parse.mjs`, confirmed live: `export function parseMovementAbility(item)` at line 233, a private `RIDER_TABLE` at line 102 with exactly the `{re, apply}` shape this task already assumes). The original draft patched a stale plan document (`docs/superpowers/plans/2026-10-09-ai-npc-movement-abilities.md`) instead — the SHAPE below is correct as originally written, only the target file was wrong. Fixed by editing the real file directly; the real `RIDER_TABLE.find((r) => r.re.test(sentence))` call site itself also needs the `.exec`-with-match-argument change Step 2's own note already describes, now applied to the real loop.
 
 **Files:**
-- Modify: `docs/superpowers/plans/2026-10-09-ai-npc-movement-abilities.md`
+- Modify: `scripts/npc-move-parse.mjs`
 
 - [ ] **Step 1: Extend the `plan` descriptor shape**
 
-In that plan's Task 1 (`parseMovementAbility`'s own `plan` object literal), add four new fields alongside the existing `chargeNote`:
+In `parseMovementAbility`'s own `plan` object literal, add four new fields alongside the existing `chargeNote`:
 
 ```js
     charge: null,       // { minFeet, measure: "pathLength"|"straightLine", attackBonus?, damageOverride?: {formula, type} }
@@ -51,7 +53,7 @@ In that plan's Task 1 (`parseMovementAbility`'s own `plan` object literal), add 
 - [ ] **Step 2: Add the four rider-table entries**
 
 ```js
-// docs/superpowers/plans/2026-10-09-ai-npc-movement-abilities.md's own RIDER_TABLE -- append:
+// scripts/npc-move-parse.mjs -- append to the real RIDER_TABLE:
 {
   re: /\bas long as (?:it|the [a-z' -]+) moved at least (\d+) feet(?:,| away from its starting position,)\s*(?:it gains a \+(\d+) circumstance bonus to its attack roll|the strike'?s damage increases to ([\w+d\s]+?)(?:\s+(\w+))? damage|the strike'?s damage is increased to ([\w+d\s]+?)(?:\s+(\w+))? damage)\.?/i,
   apply(plan, match) {
@@ -86,27 +88,27 @@ In that plan's Task 1 (`parseMovementAbility`'s own `plan` object literal), add 
 
 Each entry's own `apply(plan, match)` signature gains the `match` array (the existing `RIDER_TABLE.find((r) => r.re.test(sentence))` call site in that plan's `parseMovementAbility` loop must switch to `r.re.exec(sentence)` and pass the result to `apply`, since the existing `noReactions` rider's own `apply(plan)` ignores it and keeps working unchanged with an extra unused argument).
 
-- [ ] **Step 3: Commit the amendment**
+- [ ] **Step 3: Commit**
 
 ```bash
-git add docs/superpowers/plans/2026-10-09-ai-npc-movement-abilities.md
-git commit -m "docs(#972): amend #932's plan -- charge, MAP, push and Pounce riders"
+git add scripts/npc-move-parse.mjs
+git commit -m "feat(#972): charge, MAP, push and Pounce riders on the real npc-move-parse.mjs"
 ```
 
 ---
 
-### Task 2: Patch #932's plan — multi-sentence `postMoveSave` consumption
+### Task 2: Multi-sentence `postMoveSave` consumption — on the REAL file
 
 **Files:**
-- Modify: `docs/superpowers/plans/2026-10-09-ai-npc-movement-abilities.md`
+- Modify: `scripts/npc-move-parse.mjs`
 
 - [ ] **Step 1: Change the parsing loop to try a multi-sentence rider first**
 
 ```js
-// docs/superpowers/plans/2026-10-09-ai-npc-movement-abilities.md's own
-// parseMovementAbility, replace the per-sentence loop's body with a loop
-// that tries the multi-sentence postMoveSave matcher against the REST of
-// the sentence list before falling back to one-sentence riders:
+// scripts/npc-move-parse.mjs -- parseMovementAbility, replace the
+// per-sentence loop's body with a loop that tries the multi-sentence
+// postMoveSave matcher against the REST of the sentence list before
+// falling back to one-sentence riders:
 
   const remaining = sentences.slice(1).filter((s) => !(STRIKE_CLAUSE_RE.test(s) && plan.strike));
   let i = 0;
@@ -131,8 +133,7 @@ git commit -m "docs(#972): amend #932's plan -- charge, MAP, push and Pounce rid
 - [ ] **Step 2: Implement `parsePostMoveSaveGroup`**, reusing the inline-outcome shape (Investigation finding 2) rather than #915's block grammar:
 
 ```js
-// docs/superpowers/plans/2026-10-09-ai-npc-movement-abilities.md's own
-// npc-move-parse.mjs -- new function
+// scripts/npc-move-parse.mjs -- new function
 
 const ADJACENCY_RE = /\bif it ends (?:that stride|that move|its movement) adjacent to at least one other creature\b/i;
 const SAVE_OUTCOME_RE = /\bmust succeed at an? @Check\[(\w+)\|dc:(\d+)\][^.]*? or (?:become|be)\b([^.(]+)(?:\(([^)]+) on a critical failure\))?\.?/i;
@@ -178,11 +179,11 @@ function parsePostMoveSaveGroup(sentences) {
 }
 ```
 
-- [ ] **Step 3: Commit the amendment**
+- [ ] **Step 3: Commit**
 
 ```bash
-git add docs/superpowers/plans/2026-10-09-ai-npc-movement-abilities.md
-git commit -m "docs(#972): amend #932's plan -- multi-sentence postMoveSave parsing"
+git add scripts/npc-move-parse.mjs
+git commit -m "feat(#972): multi-sentence postMoveSave parsing on the real npc-move-parse.mjs"
 ```
 
 ---
