@@ -1,0 +1,1616 @@
+{
+ "source": "pf2e system 8.5.0 compendia (feats, actions, class-features + feat-effects): every one-action/free item with a selfEffect whose linked effect carries a TokenMark rule or a target:/@target reference (#914's old 'target-dependent' exclusion)",
+ "entries": [
+  {
+   "name": "Harsh Judgement",
+   "slug": "harsh-judgement",
+   "pack": "pf2e.feats",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "archetype",
+    "vigilante"
+   ],
+   "frequency": null,
+   "description": "<p>Choose one creature you can see, and loudly declare the creature's life forfeit by your judgment. That creature becomes your condemned foe until they are defeated, you use Harsh Judgment on a different creature, or the encounter ends. You gain a +2 circumstance bonus to Perception checks to @UUID[Compendium.pf2e.actionspf2e.Item.BlAOM2X92SI6HMtJ]{Seek} your condemned foe and on Intimidation checks to @UUID[Compendium.pf2e.actionspf2e.Item.2u915NdUyQan6uKF]{Demoralize} them. You have a -1 circumstance penalty to Perception checks to Seek creatures other than your condemned foe and on Intimidation checks to Demoralize anyone other than your condemned foe.</p>\n<p>You typically can use Harsh Judgment only during an encounter, and if you try to use it to declare someone's life forfeit during exploration or downtime, you are likely to start an encounter.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.raoz523QRsj5WjcF",
+   "effect": {
+    "name": "Effect: Harsh Judgement",
+    "slug": "effect-harsh-judgement",
+    "duration": {
+     "expiry": null,
+     "sustained": false,
+     "unit": "unlimited",
+     "value": -1
+    },
+    "rules": [
+     {
+      "domain": "perception",
+      "key": "RollOption",
+      "label": "PF2E.SpecificRule.GreyGardener.HarshJudgement.SeekCondemnedFoeLabel",
+      "option": "harsh-judgement:seek-condemned-foe",
+      "toggleable": true
+     },
+     {
+      "key": "FlatModifier",
+      "predicate": [
+       "action:seek"
+      ],
+      "selector": "perception",
+      "slug": "harsh-judgement-seek",
+      "type": "circumstance",
+      "value": -1
+     },
+     {
+      "key": "AdjustModifier",
+      "mode": "override",
+      "predicate": [
+       "harsh-judgement:seek-condemned-foe"
+      ],
+      "selector": "perception",
+      "slug": "harsh-judgement-seek",
+      "value": 2
+     },
+     {
+      "key": "TokenMark",
+      "slug": "harsh-judgement"
+     },
+     {
+      "key": "FlatModifier",
+      "predicate": [
+       "action:demoralize"
+      ],
+      "selector": "intimidation",
+      "slug": "harsh-judgement-demoralize",
+      "type": "circumstance",
+      "value": -1
+     },
+     {
+      "key": "AdjustModifier",
+      "mode": "override",
+      "predicate": [
+       "target:mark:harsh-judgement"
+      ],
+      "selector": "intimidation",
+      "slug": "harsh-judgement-demoralize",
+      "value": 2
+     }
+    ]
+   }
+  },
+  {
+   "name": "Whispers of Weakness",
+   "slug": "whispers-of-weakness",
+   "pack": "pf2e.feats",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "cursebound",
+    "divine",
+    "oracle"
+   ],
+   "frequency": null,
+   "description": "<p>Voices whisper to you how to best lay a creature low. You target one creature within 60 feet; if it has any weaknesses, you learn them, as well as which of its saving throw modifiers is lowest. You also come to understand its movements, gaining a +2 status bonus to your next attack roll (or skill check made as part of an attack action) against that foe before the end of your turn. The target is then temporarily immune for 1 day.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.xr4bNJvtrHSqWkrF",
+   "effect": {
+    "name": "Effect: Whispers of Weakness",
+    "slug": "effect-whispers-of-weakness",
+    "duration": {
+     "expiry": "turn-end",
+     "sustained": false,
+     "unit": "rounds",
+     "value": 0
+    },
+    "rules": [
+     {
+      "key": "TokenMark",
+      "slug": "whispers-of-weakness"
+     },
+     {
+      "key": "FlatModifier",
+      "predicate": [
+       "attack",
+       "target:mark:whispers-of-weakness"
+      ],
+      "removeAfterRoll": "if-enabled",
+      "selector": [
+       "attack-roll",
+       "skill-check"
+      ],
+      "type": "status",
+      "value": 2
+     }
+    ]
+   }
+  },
+  {
+   "name": "Duelist's Challenge",
+   "slug": "duelists-challenge",
+   "pack": "pf2e.feats",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "archetype"
+   ],
+   "frequency": null,
+   "description": "<p>Select one enemy you can see and proclaim a challenge against it. That enemy is your dueling opponent until it's defeated, it flees from the encounter, or the encounter ends. Any time you hit that enemy using a single one-handed melee weapon while your other hand or hands are free, you gain a circumstance bonus to the Strike's damage equal to the number of damage dice your weapon deals.</p>\n<p>If you attack a creature other than your dueling opponent, you take a circumstance penalty to damage equal to the number of damage dice your weapon deals.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.maBSHuVHyGwga9uC",
+   "effect": {
+    "name": "Effect: Duelist's Challenge",
+    "slug": "effect-duelists-challenge",
+    "duration": {
+     "expiry": "turn-start",
+     "sustained": false,
+     "unit": "encounter",
+     "value": -1
+    },
+    "rules": [
+     {
+      "key": "TokenMark",
+      "slug": "duelists-challenge"
+     },
+     {
+      "key": "FlatModifier",
+      "predicate": [
+       "item:hands-held:1",
+       "target:mark:duelists-challenge",
+       {
+        "nor": [
+         "hands-free:0",
+         "item:category:unarmed",
+         "target:condition:fleeing"
+        ]
+       }
+      ],
+      "selector": "melee-strike-damage",
+      "type": "circumstance",
+      "value": "@weapon.system.damage.dice"
+     },
+     {
+      "key": "FlatModifier",
+      "predicate": [
+       {
+        "not": "target:mark:duelists-challenge"
+       }
+      ],
+      "selector": "strike-damage",
+      "slug": "duelists-challenge-wrong-target",
+      "type": "circumstance",
+      "value": "@weapon.system.damage.dice * -1"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Hungry Blade",
+   "slug": "hungry-blade",
+   "pack": "pf2e.feats",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "archetype",
+    "concentrate"
+   ],
+   "frequency": {
+    "max": 1,
+    "per": "day"
+   },
+   "description": "<p><strong>Frequency</strong> once per day</p>\n<p><strong>Requirements</strong> Your previous action was a Strike with your spectral dagger that dealt spirit damage.</p><hr /><p>Once your spectral dagger has tasted an enemy's soul, your splinter of finality becomes increasingly relentless in its attempts to claim the soul. Your <em>spectral dagger</em> gains the effects of a @UUID[Compendium.pf2e.equipment-srd.Item.hg3IogR8ue2IWwgS]{Keen} property rune that applies only to Strikes against the target of the required Strike. This effect lasts for 10 minutes or until that target dies, whichever comes first.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.blwrnLLvtR6PVJlp",
+   "effect": {
+    "name": "Effect: Hungry Blade",
+    "slug": "effect-hungry-blade",
+    "duration": {
+     "expiry": "turn-start",
+     "sustained": false,
+     "unit": "minutes",
+     "value": 10
+    },
+    "rules": [
+     {
+      "key": "TokenMark",
+      "slug": "hungry-blade"
+     },
+     {
+      "definition": [
+       "item:slug:spectral-dagger"
+      ],
+      "key": "AdjustStrike",
+      "mode": "add",
+      "predicate": [
+       "target:mark:hungry-blade"
+      ],
+      "property": "property-runes",
+      "value": "keen"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Eye of the Arclords",
+   "slug": "eye-of-the-arclords",
+   "pack": "pf2e.feats",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "general",
+    "skill"
+   ],
+   "frequency": {
+    "max": 1,
+    "per": "day"
+   },
+   "description": "<p><strong>Frequency</strong> once per day</p>\n<p><strong>Access</strong> You are a member of the Arclords of Nex.</p>\n<hr />\n<p>You open an incandescent third eye upon your forehead.</p>\n<p>The eye can remain open for 1 minute, and you can close it before then with a single action with the concentrate trait. It can remain open for 2 minutes if you're a master in Arcana, or 5 minutes if you're legendary.</p>\n<p>While the eye is open, you gain the following benefits:</p>\n<ul>\n<li>you gain the effects of the detect magic arcane innate spell from your Arcane Sense at the start of each of your turns without needing to cast the spell;</li>\n<li>you gain darkvision;</li>\n<li>you gain a +2 status bonus to Perception checks to Seek undetected and hidden creatures and to your Perception DC against Hide and Sneak.</li>\n</ul>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.5IGz4iheaiUWm5KR]{Effect: Eye of the Arclords}</p>\n<p>After your third eye closes, you are dazzled for an amount of time equal to how long you had it open.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.5IGz4iheaiUWm5KR",
+   "effect": {
+    "name": "Effect: Eye of the Arclords",
+    "slug": "effect-eye-of-the-arclords",
+    "duration": {
+     "expiry": "turn-start",
+     "sustained": false,
+     "unit": "minutes",
+     "value": 1
+    },
+    "rules": [
+     {
+      "key": "Sense",
+      "selector": "darkvision"
+     },
+     {
+      "key": "FlatModifier",
+      "predicate": [
+       {
+        "or": [
+         {
+          "and": [
+           "action:seek",
+           {
+            "or": [
+             "target:condition:hidden",
+             "target:condition:undetected"
+            ]
+           }
+          ]
+         },
+         "action:hide",
+         "action:sneak"
+        ]
+       }
+      ],
+      "selector": "perception",
+      "type": "status",
+      "value": 2
+     }
+    ]
+   }
+  },
+  {
+   "name": "Divine Weapon",
+   "slug": "divine-weapon",
+   "pack": "pf2e.feats",
+   "actionType": "free",
+   "actions": null,
+   "traits": [
+    "cleric"
+   ],
+   "frequency": {
+    "max": 1,
+    "per": "turn",
+    "value": 1
+   },
+   "description": "<p><strong>Frequency</strong> once per turn</p>\n<p><strong>Trigger</strong> You finish Casting a Spell using one of your divine spell slots on your turn.</p>\n<hr />\n<p>You siphon residual spell energy into a weapon you're wielding. Until the end of your turn, the weapon deals an additional 1d4 spirit damage. If you are holy or unholy, Strikes with the weapon also gain that trait, and the additional damage increases to 2d4 against creatures of the opposing trait.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.zZ25N1zpXA8GNhFL",
+   "effect": {
+    "name": "Effect: Divine Weapon",
+    "slug": "effect-divine-weapon",
+    "duration": {
+     "expiry": "turn-end",
+     "sustained": false,
+     "unit": "rounds",
+     "value": 0
+    },
+    "rules": [
+     {
+      "choices": {
+       "ownedItems": true,
+       "predicate": [
+        "item:equipped"
+       ],
+       "types": [
+        "weapon"
+       ]
+      },
+      "flag": "weapon",
+      "key": "ChoiceSet",
+      "prompt": "PF2E.SpecificRule.Prompt.Weapon"
+     },
+     {
+      "damageType": "spirit",
+      "diceNumber": 1,
+      "dieSize": "d4",
+      "key": "DamageDice",
+      "predicate": [
+       {
+        "nor": [
+         {
+          "and": [
+           "self:trait:holy",
+           "target:trait:unholy"
+          ]
+         },
+         {
+          "and": [
+           "self:trait:unholy",
+           "target:trait:holy"
+          ]
+         }
+        ]
+       }
+      ],
+      "selector": "{item|flags.system.rulesSelections.weapon}-damage"
+     },
+     {
+      "damageType": "spirit",
+      "diceNumber": 2,
+      "dieSize": "d4",
+      "key": "DamageDice",
+      "predicate": [
+       {
+        "or": [
+         {
+          "and": [
+           "self:trait:holy",
+           "target:trait:unholy"
+          ]
+         },
+         {
+          "and": [
+           "self:trait:unholy",
+           "target:trait:holy"
+          ]
+         }
+        ]
+       }
+      ],
+      "selector": "{item|flags.system.rulesSelections.weapon}-damage"
+     },
+     {
+      "definition": [
+       "item:id:{item|flags.system.rulesSelections.weapon}"
+      ],
+      "key": "AdjustStrike",
+      "mode": "add",
+      "predicate": [
+       "self:trait:holy"
+      ],
+      "property": "traits",
+      "value": "holy"
+     },
+     {
+      "definition": [
+       "item:id:{item|flags.system.rulesSelections.weapon}"
+      ],
+      "key": "AdjustStrike",
+      "mode": "add",
+      "predicate": [
+       "self:trait:unholy"
+      ],
+      "property": "traits",
+      "value": "unholy"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Spell Parry",
+   "slug": "spell-parry",
+   "pack": "pf2e.feats",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "magus"
+   ],
+   "frequency": null,
+   "description": "<p><strong>Requirements</strong> You have one or more hands free.</p><hr /><p>You infuse magical power into your body or armaments to parry both physical and magical assaults.</p>\n<p>You raise your guard, gaining a +1 circumstance bonus to AC and to saving throws against spells that target you until the start of your next turn, as long as you continue to meet the requirements.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.su2HbEdb4IYB7r5l",
+   "effect": {
+    "name": "Effect: Spell Parry",
+    "slug": "effect-spell-parry",
+    "duration": {
+     "expiry": "turn-start",
+     "sustained": false,
+     "unit": "rounds",
+     "value": 1
+    },
+    "rules": [
+     {
+      "key": "FlatModifier",
+      "predicate": [
+       {
+        "gte": [
+         "hands-free",
+         1
+        ]
+       }
+      ],
+      "selector": "ac",
+      "type": "status",
+      "value": 1
+     },
+     {
+      "key": "FlatModifier",
+      "predicate": [
+       {
+        "gte": [
+         "hands-free",
+         1
+        ]
+       },
+       "item:type:spell",
+       "target:self"
+      ],
+      "selector": "saving-throw",
+      "type": "status",
+      "value": 1
+     }
+    ]
+   }
+  },
+  {
+   "name": "Monastic Archer Stance",
+   "slug": "monastic-archer-stance",
+   "pack": "pf2e.feats",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "monk",
+    "stance"
+   ],
+   "frequency": null,
+   "description": "<p><strong>Requirements</strong> You are unarmored and wielding a longbow, shortbow, or a bow with the monk trait.</p>\n<hr />\n<p>You enter a specialized stance for a unique martial art centered around the use of a bow. While in this stance, the only Strikes you can make are those using longbows, shortbows, or bows with the monk trait.</p>\n<p>You can use @UUID[Compendium.pf2e.actionspf2e.Item.nbfNETdpee8CVM17]{Flurry of Blows} with these bows. You can use your other monk feats or monk abilities that normally require unarmed attacks with these bows when attacking within half the first range increment (normally 50 feet for a longbow and 30 feet for a shortbow), so long as the feat or ability doesn't require a single, specific Strike.</p>\n<p>@UUID[Compendium.pf2e.feat-effects.Item.1dxD3xsTzak6GNj5]{Stance: Monastic Archer Stance}</p>\n<hr />\n<p><strong>Special</strong> When you select this feat, you become trained in the longbow, shortbow, and any simple and martial bows with the monk trait. If you gain the expert strikes class feature, your proficiency rank for these weapons increases to expert, and if you gain the master strikes class feature, your proficiency rank for these weapons increases to master.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.1dxD3xsTzak6GNj5",
+   "effect": {
+    "name": "Stance: Monastic Archer Stance",
+    "slug": "stance-monastic-archer-stance",
+    "duration": {
+     "expiry": "turn-start",
+     "sustained": false,
+     "unit": "encounter",
+     "value": -1
+    },
+    "rules": [
+     {
+      "domain": "attack-roll",
+      "key": "RollOption",
+      "option": "monastic-archer:half-increment",
+      "predicate": [
+       "item:group:bow",
+       "target:range-increment:1",
+       {
+        "or": [
+         {
+          "and": [
+           "item:base:longbow",
+           {
+            "lte": [
+             "target:distance",
+             50
+            ]
+           }
+          ]
+         },
+         {
+          "and": [
+           "item:base:shortbow",
+           {
+            "lte": [
+             "target:distance",
+             30
+            ]
+           }
+          ]
+         },
+         {
+          "and": [
+           "item:trait:monk",
+           {
+            "or": [
+             "item:category:simple",
+             "item:category:martial"
+            ]
+           },
+           {
+            "or": [
+             {
+              "and": [
+               "item:range-increment:100",
+               {
+                "lte": [
+                 "target:distance",
+                 50
+                ]
+               }
+              ]
+             },
+             {
+              "and": [
+               "item:range-increment:60",
+               {
+                "lte": [
+                 "target:distance",
+                 30
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "domain": "damage",
+      "key": "RollOption",
+      "option": "monastic-archer:half-increment",
+      "predicate": [
+       "item:group:bow",
+       "target:range-increment:1",
+       {
+        "or": [
+         {
+          "and": [
+           "item:base:longbow",
+           {
+            "lte": [
+             "target:distance",
+             50
+            ]
+           }
+          ]
+         },
+         {
+          "and": [
+           "item:base:shortbow",
+           {
+            "lte": [
+             "target:distance",
+             30
+            ]
+           }
+          ]
+         },
+         {
+          "and": [
+           "item:trait:monk",
+           {
+            "or": [
+             "item:category:simple",
+             "item:category:martial"
+            ]
+           },
+           {
+            "or": [
+             {
+              "and": [
+               "item:range-increment:100",
+               {
+                "lte": [
+                 "target:distance",
+                 50
+                ]
+               }
+              ]
+             },
+             {
+              "and": [
+               "item:range-increment:60",
+               {
+                "lte": [
+                 "target:distance",
+                 30
+                ]
+               }
+              ]
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "Point Blank Stance",
+   "slug": "point-blank-stance",
+   "pack": "pf2e.feats",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "fighter",
+    "stance"
+   ],
+   "frequency": null,
+   "description": "<p><strong>Requirements</strong> You are wielding a ranged weapon.</p>\n<hr />\n<p>You take aim to pick off nearby enemies quickly. When using a ranged volley weapon while you are in this stance, you don't take the penalty to your attack rolls from the volley trait. When using a ranged weapon that doesn't have the volley trait, you gain a +2 circumstance bonus to damage rolls on attacks against targets within the weapon's first range increment.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.9HPxAKpP3WJmICBx",
+   "effect": {
+    "name": "Stance: Point Blank Stance",
+    "slug": "stance-point-blank-stance",
+    "duration": {
+     "expiry": "turn-start",
+     "sustained": false,
+     "unit": "encounter",
+     "value": -1
+    },
+    "rules": [
+     {
+      "domain": "attack-roll",
+      "key": "RollOption",
+      "option": "self:ignore-volley-penalty"
+     },
+     {
+      "key": "FlatModifier",
+      "predicate": [
+       "target:range-increment:1",
+       {
+        "nor": [
+         "item:trait:volley-20",
+         "item:trait:volley-30",
+         "item:trait:volley-50"
+        ]
+       }
+      ],
+      "selector": "ranged-strike-damage",
+      "type": "circumstance",
+      "value": 2
+     }
+    ]
+   }
+  },
+  {
+   "name": "Come and Get Me",
+   "slug": "come-and-get-me",
+   "pack": "pf2e.feats",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "barbarian",
+    "concentrate",
+    "rage"
+   ],
+   "frequency": null,
+   "description": "<p>You open yourself to attacks so you can respond in turn. Until your rage ends, you are @UUID[Compendium.pf2e.conditionitems.Item.AJh5ex99aV6VTggg]{Off-Guard}, and damage rolls against you gain a +2 circumstance bonus. If a creature hits you, that creature is off-guard to you until the end of your next turn. If you hit it before the end of your next turn, you gain temporary Hit Points equal to your Constitution modifier, or double that on a critical hit. These temporary Hit Points last until the end of your rage.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.k29Ao7wxjPVqxuez",
+   "effect": {
+    "name": "Effect: Come and Get Me",
+    "slug": "effect-come-and-get-me",
+    "duration": {
+     "expiry": "turn-start",
+     "sustained": false,
+     "unit": "minutes",
+     "value": 1
+    },
+    "rules": [
+     {
+      "allowDuplicate": false,
+      "key": "GrantItem",
+      "uuid": "Compendium.pf2e.conditionitems.Item.AJh5ex99aV6VTggg"
+     },
+     {
+      "affects": "origin",
+      "key": "EphemeralEffect",
+      "selectors": [
+       "strike-damage-roll"
+      ],
+      "uuid": "Compendium.pf2e.feat-effects.Item.9O4q3bYlWkuC24vh"
+     },
+     {
+      "key": "Note",
+      "outcome": [
+       "success",
+       "criticalSuccess"
+      ],
+      "selector": "damage-received",
+      "text": "PF2E.SpecificRule.Barbarian.ComeAndGetMe.IncomingDamage",
+      "title": "PF2E.SpecificRule.Barbarian.ComeAndGetMe.Name"
+     },
+     {
+      "key": "Note",
+      "outcome": [
+       "success",
+       "criticalSuccess"
+      ],
+      "predicate": [
+       "target:condition:off-guard"
+      ],
+      "selector": "strike-attack-roll",
+      "text": "PF2E.SpecificRule.Barbarian.ComeAndGetMe.TemporaryHitPoints",
+      "title": "PF2E.SpecificRule.Barbarian.ComeAndGetMe.Name"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Unfazed Assessment",
+   "slug": "unfazed-assessment",
+   "pack": "pf2e.feats",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "archetype"
+   ],
+   "frequency": null,
+   "description": "<p>You have witnessed hundreds of fighting styles and quickly adapt to defend against complicated maneuvers. Choose a creature within 30 feet who you're aware of, and attempt a @Check[perception|against:will] check against that target's Will DC. If you succeed, you size up their fighting style, gaining a +1 circumstance bonus to AC and saving throws against that creature's attacks (or a +2 circumstance bonus for a critical success). These benefits last until the end of your next turn.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.OWCoFC1Q8AflBGAY",
+   "effect": {
+    "name": "Effect: Unfazed Assessment",
+    "slug": "effect-unfazed-assessment",
+    "duration": {
+     "expiry": "turn-end",
+     "sustained": false,
+     "unit": "rounds",
+     "value": 1
+    },
+    "rules": [
+     {
+      "key": "TokenMark",
+      "slug": "unfazed-assessment"
+     },
+     {
+      "choices": [
+       {
+        "label": "PF2E.Check.Result.Degree.Check.criticalSuccess",
+        "value": 2
+       },
+       {
+        "label": "PF2E.Check.Result.Degree.Check.success",
+        "value": 1
+       }
+      ],
+      "flag": "bonus",
+      "key": "ChoiceSet",
+      "prompt": "PF2E.SpecificRule.Prompt.DegreeOfSuccess"
+     },
+     {
+      "key": "FlatModifier",
+      "predicate": [
+       "origin:mark:unfazed-assessment"
+      ],
+      "selector": [
+       "ac",
+       "saving-throw"
+      ],
+      "type": "circumstance",
+      "value": "@item.flags.system.rulesSelections.bonus"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Enforce Oath",
+   "slug": "enforce-oath",
+   "pack": "pf2e.feats",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "champion"
+   ],
+   "frequency": {
+    "max": 1,
+    "per": "PT1H"
+   },
+   "description": "<p><strong>Frequency</strong> once per hour</p>\n<p><strong>Requirements</strong> You can see a creature you've sworn an oath against.</p><hr /><p>You call on your oath to embolden you in combat. Select one creature you can see that you've sworn an oath against (per the terms of your oath feat). You gain a +1 status bonus to AC and saves against attacks and effects by the chosen creature. You also gain a +1 status bonus to attack rolls against the chosen creature. However, your dedication draws your focus away from all other enemies. You take a \u20131 status penalty to AC, attack rolls, and saves against all other creatures until you stop Enforcing your Oath.</p>\n<p>Enforce Oath lasts indefinitely, but it ends if the enemy is reduced to 0 Hit Points, the enemy offers a legitimate surrender to you or your allies, you fall @UUID[Compendium.pf2e.conditionitems.Item.fBnFDH2MTzgFijKf]{Unconscious}, or the enemy goes unnoticed by you for more than 1 minute. You can also Dismiss the effect as a free action.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.LF8xzzFsFJKxejqv",
+   "effect": {
+    "name": "Effect: Enforce Oath",
+    "slug": "effect-enforce-oath",
+    "duration": {
+     "expiry": null,
+     "sustained": false,
+     "unit": "unlimited",
+     "value": -1
+    },
+    "rules": [
+     {
+      "key": "TokenMark",
+      "slug": "enforce-oath"
+     },
+     {
+      "key": "FlatModifier",
+      "selector": [
+       "ac",
+       "saving-throw"
+      ],
+      "slug": "enforce-oath-defense",
+      "type": "status",
+      "value": -1
+     },
+     {
+      "key": "FlatModifier",
+      "selector": "attack-roll",
+      "slug": "enforce-oath-attack",
+      "type": "status",
+      "value": -1
+     },
+     {
+      "key": "AdjustModifier",
+      "mode": "upgrade",
+      "predicate": [
+       "origin:mark:enforce-oath"
+      ],
+      "selectors": [
+       "ac",
+       "saving-throw"
+      ],
+      "slug": "enforce-oath-defense",
+      "value": 1
+     },
+     {
+      "key": "AdjustModifier",
+      "mode": "upgrade",
+      "predicate": [
+       "target:mark:enforce-oath"
+      ],
+      "selector": "attack-roll",
+      "slug": "enforce-oath-attack",
+      "value": 1
+     }
+    ]
+   }
+  },
+  {
+   "name": "Nothing Personal",
+   "slug": "nothing-personal",
+   "pack": "pf2e.feats",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "archetype",
+    "concentrate"
+   ],
+   "frequency": null,
+   "description": "<p><strong>Requirements</strong> You have an active course of action planned.</p><hr /><p>When you're on a job, you can't allow anyone to stop you. Designate a single creature you can see as being an impediment to your active course of action. The first time you Strike your impediment in a round, you deal an extra die of weapon damage. At 14th level, this increases to two extra dice, and at 20th level, this increases to three extra dice.</p>\n<p>You can have only one creature designated as an impediment at a time. If you use Nothing Personal against a creature when you already have a creature designated, the prior creature loses the designation, and the new impediment gains the designation. Otherwise, your designation lasts for 1 hour.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.YJPiAE71tq3bp74B",
+   "effect": {
+    "name": "Effect: Nothing Personal",
+    "slug": "effect-nothing-personal",
+    "duration": {
+     "expiry": "turn-start",
+     "sustained": false,
+     "unit": "hours",
+     "value": 1
+    },
+    "rules": [
+     {
+      "key": "TokenMark",
+      "slug": "nothing-personal"
+     },
+     {
+      "domain": "strike-damage",
+      "key": "RollOption",
+      "label": "PF2E.SpecificRule.Blackjacket.NothingPersonal.ToggleLabel",
+      "option": "nothing-personal-first-strike",
+      "toggleable": true
+     },
+     {
+      "diceNumber": "ternary(gte(@actor.level,20),3,ternary(gte(@actor.level,14),2,1))",
+      "key": "DamageDice",
+      "predicate": [
+       "target:mark:nothing-personal",
+       "nothing-personal-first-strike"
+      ],
+      "selector": "weapon-damage"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Intensified Element Stance",
+   "slug": "intensified-element-stance",
+   "pack": "pf2e.feats",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "druid",
+    "ranger",
+    "stance"
+   ],
+   "frequency": null,
+   "description": "<p><strong>Access</strong> Tian Xia origin</p>\n<p><strong>Requirements</strong> You were the recipient of elemental medicine (see @UUID[Compendium.pf2e.feats-srd.Item.NMbOfl885pn0Yzu9]{Prepare Elemental Medicine}) during your last daily preparations.</p><hr /><p>You expend the elemental medicine in your body to empower your attacks, though you can't consume any more elemental medicine until the next day. While in Intensified Element Stance, your strikes and damaging spells deal an additional 1d6 damage against certain creatures, depending on the type of elemental medicine you expended. If the person who crafted the elemental medicine expended was legendary in the skill they used, increase this damage to 2d6.</p><ul><li><strong>Earth</strong> acid damage against water creatures</li><li><strong>Fire</strong> fire damage against metal creatures and constructs that are primarily metallic</li><li><strong>Metal</strong> electricity damage against wood or plant creatures and constructs primarily made of wood or plant matter</li><li><strong>Water</strong> sonic damage against fire creatures</li><li><strong>Wood</strong> cold damage against earth creatures and constructs that are primarily made of rock or earth</li></ul>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.EWiuxy4H1mCVcmud",
+   "effect": {
+    "name": "Stance: Intensified Element Stance",
+    "slug": "stance-intensified-element-stance",
+    "duration": {
+     "expiry": null,
+     "sustained": false,
+     "unit": "encounter",
+     "value": -1
+    },
+    "rules": [
+     {
+      "choices": [
+       {
+        "label": "PF2E.TraitEarth",
+        "predicate": [
+         "prepare-elemental-medicine:earth"
+        ],
+        "value": "acid"
+       },
+       {
+        "label": "PF2E.TraitFire",
+        "predicate": [
+         "prepare-elemental-medicine:fire"
+        ],
+        "value": "fire"
+       },
+       {
+        "label": "PF2E.TraitMetal",
+        "predicate": [
+         "prepare-elemental-medicine:metal"
+        ],
+        "value": "electricity"
+       },
+       {
+        "label": "PF2E.TraitWater",
+        "predicate": [
+         "prepare-elemental-medicine:water"
+        ],
+        "value": "sonic"
+       },
+       {
+        "label": "PF2E.TraitWood",
+        "predicate": [
+         "prepare-elemental-medicine:wood"
+        ],
+        "value": "cold"
+       }
+      ],
+      "flag": "damageType",
+      "key": "ChoiceSet"
+     },
+     {
+      "key": "RollOption",
+      "label": "PF2E.SpecificRule.Feat.IntensifiedElementStance.RollOptionLabel",
+      "option": "intensified-element-stance-construct-damage",
+      "predicate": [
+       {
+        "or": [
+         "prepare-elemental-medicine:fire",
+         "prepare-elemental-medicine:metal",
+         "prepare-elemental-medicine:wood"
+        ]
+       }
+      ],
+      "priority": 51,
+      "toggleable": true
+     },
+     {
+      "damageType": "{item|flags.system.rulesSelections.damageType}",
+      "diceNumber": "ternary(gte(@actor.flags.system.prepareElementalMedicine.skillRank,4),2,1)",
+      "dieSize": "d6",
+      "key": "DamageDice",
+      "predicate": [
+       {
+        "or": [
+         {
+          "and": [
+           "prepare-elemental-medicine:earth",
+           "target:trait:water"
+          ]
+         },
+         {
+          "and": [
+           "prepare-elemental-medicine:fire",
+           {
+            "or": [
+             "target:trait:metal",
+             "intensified-element-stance-construct-damage"
+            ]
+           }
+          ]
+         },
+         {
+          "and": [
+           "prepare-elemental-medicine:metal",
+           {
+            "or": [
+             "target:trait:plant",
+             "target:trait:wood",
+             "intensified-element-stance-construct-damage"
+            ]
+           }
+          ]
+         },
+         {
+          "and": [
+           "prepare-elemental-medicine:water",
+           "target:trait:fire"
+          ]
+         },
+         {
+          "and": [
+           "prepare-elemental-medicine:water",
+           {
+            "or": [
+             "target:trait:earth",
+             "intensified-element-stance-construct-damage"
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ],
+      "selector": [
+       "spell-damage",
+       "strike-damage"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "Smite",
+   "slug": "smite",
+   "pack": "pf2e.feats",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "champion",
+    "concentrate"
+   ],
+   "frequency": null,
+   "description": "<p>You single out one enemy to destroy in your deity's name. Designate one enemy you can see. Until the start of your next turn, your Strikes against that enemy gain a +3 status bonus to damage, increasing to +4 if you have master proficiency with the weapon or unarmed attack you're using for the Strike. If you're holy or unholy and the target has the opposite trait, the bonus is +4 (or +6 if you're a master).</p>\n<p>If the target takes a hostile action against you or one of your allies before the start of your next turn, the duration extends to the end of that enemy's next turn. If the enemy continues to take these hostile actions each turn, the duration continues to extend.</p>\n<p>Your current Smite ends if you use the Smite action again.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.AlnxieIRjqNqsdVu",
+   "effect": {
+    "name": "Effect: Smite",
+    "slug": "effect-smite",
+    "duration": {
+     "expiry": "turn-start",
+     "sustained": false,
+     "unit": "rounds",
+     "value": 1
+    },
+    "rules": [
+     {
+      "key": "TokenMark",
+      "slug": "smite"
+     },
+     {
+      "key": "FlatModifier",
+      "predicate": [
+       "target:mark:smite"
+      ],
+      "selector": "strike-damage",
+      "slug": "smite",
+      "type": "status",
+      "value": 3
+     },
+     {
+      "key": "AdjustModifier",
+      "mode": "upgrade",
+      "predicate": [
+       {
+        "or": [
+         {
+          "and": [
+           "self:trait:holy",
+           "target:trait:unholy"
+          ]
+         },
+         {
+          "and": [
+           "self:trait:unholy",
+           "target:trait:holy"
+          ]
+         },
+         {
+          "gte": [
+           "item:proficiency:rank",
+           3
+          ]
+         }
+        ]
+       }
+      ],
+      "selector": "strike-damage",
+      "slug": "smite",
+      "value": 4
+     },
+     {
+      "key": "AdjustModifier",
+      "mode": "upgrade",
+      "predicate": [
+       {
+        "gte": [
+         "item:proficiency:rank",
+         3
+        ]
+       },
+       {
+        "or": [
+         {
+          "and": [
+           "self:trait:holy",
+           "target:trait:unholy"
+          ]
+         },
+         {
+          "and": [
+           "self:trait:unholy",
+           "target:trait:holy"
+          ]
+         }
+        ]
+       }
+      ],
+      "selector": "strike-damage",
+      "slug": "smite",
+      "value": 6
+     }
+    ]
+   }
+  },
+  {
+   "name": "Harvest Blood",
+   "slug": "harvest-blood",
+   "pack": "pf2e.actions",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [],
+   "frequency": null,
+   "description": "<p><strong>Requirements</strong> Your last action was a successful piercing or slashing melee Strike against a creature that is not immune to bleed</p><hr /><p><strong>Effect</strong> You consume the blood lingering upon your weapon. You reduce the value of your drained condition by 1, gain temporary Hit Points equal to your Constitution modifier, and gain a +1 circumstance bonus to saving throws against that creature's spells for 1 minute, or until you Harvest Blood from another creature.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.jp1oRa3wEHT7hKBX",
+   "effect": {
+    "name": "Effect: Harvest Blood",
+    "slug": "effect-harvest-blood",
+    "duration": {
+     "expiry": "turn-start",
+     "sustained": false,
+     "unit": "minutes",
+     "value": 1
+    },
+    "rules": [
+     {
+      "key": "TempHP",
+      "value": "@actor.abilities.con.mod"
+     },
+     {
+      "key": "TokenMark",
+      "slug": "harvest-blood"
+     },
+     {
+      "key": "FlatModifier",
+      "predicate": [
+       "item:type:spell",
+       "origin:mark:harvest-blood"
+      ],
+      "selector": "saving-throw",
+      "type": "circumstance",
+      "value": 1
+     }
+    ]
+   }
+  },
+  {
+   "name": "Hunt Runelord",
+   "slug": "hunt-runelord",
+   "pack": "pf2e.actions",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "concentrate"
+   ],
+   "frequency": {
+    "max": 1,
+    "per": "day"
+   },
+   "description": "<p><strong>Frequency</strong> once per day</p><hr /><p><strong>Effect</strong> You designate one of the seven schools of Thassilonian magic\u2014envy, gluttony, greed, lust, pride, sloth, or wrath\u2014and focus your need for revenge against those who serve these ideals. You do not need to be able to see a creature that serves these ideals to make this designation. The designation lasts until your next daily preparations.</p>\n<p>You gain a +2 circumstance bonus to Perception checks when you [[/act seek]] a creature that serves these ideals (including an actual runelord, a wizard who follows that school of Thassilonian magic, or any creature you know or suspect serves the interests of that school's particular sin\u2014subject to GM's approval), and a +2 circumstance bonus to Intimidation checks made to [[/act demoralize]] such creatures. Your Strikes also deal 1d4 extra precision to these creatures when they're @UUID[Compendium.pf2e.conditionitems.Item.TBSHQspnbcqxsmjL]{Frightened}.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.s7qDwnyVqMqDaFal",
+   "effect": {
+    "name": "Effect: Hunt Runelord",
+    "slug": "effect-hunt-runelord",
+    "duration": {
+     "expiry": "turn-start",
+     "sustained": false,
+     "unit": "days",
+     "value": 1
+    },
+    "rules": [
+     {
+      "choices": [
+       {
+        "label": "PF2E.SpecificRule.Runelord.School.Envy",
+        "value": "envy"
+       },
+       {
+        "label": "PF2E.SpecificRule.Runelord.School.Gluttony",
+        "value": "gluttony"
+       },
+       {
+        "label": "PF2E.SpecificRule.Runelord.School.Greed",
+        "value": "greed"
+       },
+       {
+        "label": "PF2E.SpecificRule.Runelord.School.Lust",
+        "value": "lust"
+       },
+       {
+        "label": "PF2E.SpecificRule.Runelord.School.Pride",
+        "value": "pride"
+       },
+       {
+        "label": "PF2E.SpecificRule.Runelord.School.Sloth",
+        "value": "sloth"
+       },
+       {
+        "label": "PF2E.SpecificRule.Runelord.School.Wrath",
+        "value": "wrath"
+       }
+      ],
+      "key": "ChoiceSet",
+      "prompt": "PF2E.SpecificRule.Runelord.School.Prompt",
+      "rollOption": "thassilonian-school"
+     },
+     {
+      "key": "RollOption",
+      "option": "hunt-runelord",
+      "toggleable": true
+     },
+     {
+      "key": "FlatModifier",
+      "predicate": [
+       "hunt-runelord",
+       {
+        "or": [
+         "action:seek",
+         "action:demoralize"
+        ]
+       }
+      ],
+      "selector": [
+       "perception",
+       "intimidation"
+      ],
+      "type": "circumstance",
+      "value": 2
+     },
+     {
+      "category": "precision",
+      "diceNumber": 1,
+      "dieSize": "d4",
+      "key": "DamageDice",
+      "predicate": [
+       "hunt-runelord",
+       "target:condition:frightened"
+      ],
+      "selector": "strike-damage"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Hunt Prey",
+   "slug": "hunt-prey",
+   "pack": "pf2e.actions",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "concentrate",
+    "ranger"
+   ],
+   "frequency": null,
+   "description": "<p>You designate a single creature as your prey and focus your attacks against that creature. You must be able to see or hear the prey, or you must be tracking the prey during exploration.</p>\n<p>You gain a +2 circumstance bonus to Perception checks when you @UUID[Compendium.pf2e.actionspf2e.Item.BlAOM2X92SI6HMtJ]{Seek} your prey and a +2 circumstance bonus to Survival checks when you @UUID[Compendium.pf2e.actionspf2e.Item.EA5vuSgJfiHH7plD]{Track} your prey. You also ignore the penalty for making ranged attacks within your second range increment against the prey you're hunting.</p>\n<p>You can have only one creature designated as your prey at a time. If you use Hunt Prey against a creature when you already have a creature designated, the prior creature loses the designation and the new prey gains the designation. Your designation lasts until your next daily preparations.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.MeXyXqWY9qN42bSQ",
+   "effect": {
+    "name": "Effect: Hunt Prey",
+    "slug": "effect-hunt-prey",
+    "duration": {
+     "expiry": null,
+     "sustained": false,
+     "unit": "unlimited",
+     "value": -1
+    },
+    "rules": [
+     {
+      "key": "TokenMark",
+      "slug": "hunted-prey"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Hunt the Razer's Pawn",
+   "slug": "hunt-the-razers-pawn",
+   "pack": "pf2e.actions",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [],
+   "frequency": null,
+   "description": "<p>Designate a single creature that you can see or hear, or whom you've spent a significant amount of time studying and reading about from afar (subject to the GM's approval), and who you know to be an agent of Treerazer. You gain a +2 circumstance bonus to Perception checks to @UUID[Compendium.pf2e.actionspf2e.Item.BlAOM2X92SI6HMtJ]{Seek} or @UUID[Compendium.pf2e.actionspf2e.Item.1xRFPTFtWtGJ9ELw]{Sense the Motive} of this creature. This creature takes a \u20131 circumstance penalty to saving throws against spells or effects you create; this penalty increases to \u20132 against effects that have the holy trait.</p>\n<p>You can have only one creature designated by Hunt the Razer's Pawn at a time. If you use this ability against a creature when you already have one designated, the prior creature loses the designation and the new creature gains the designation. This lasts until your next daily preparations.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.PYyJjl5EEXs0IswY",
+   "effect": {
+    "name": "Effect: Hunt the Razer's Pawn",
+    "slug": "effect-hunt-the-razers-pawn",
+    "duration": {
+     "expiry": "turn-start",
+     "sustained": false,
+     "unit": "days",
+     "value": 1
+    },
+    "rules": [
+     {
+      "key": "TokenMark",
+      "slug": "hunt-the-razers-pawn"
+     },
+     {
+      "key": "FlatModifier",
+      "predicate": [
+       "target:mark:hunt-the-razers-pawn",
+       {
+        "or": [
+         "action:seek",
+         "action:sense-motive"
+        ]
+       }
+      ],
+      "selector": "perception",
+      "type": "circumstance",
+      "value": 2
+     },
+     {
+      "key": "EphemeralEffect",
+      "predicate": [
+       "target:mark:hunt-the-razers-pawn"
+      ],
+      "selectors": [
+       "saving-throw"
+      ],
+      "uuid": "Compendium.pf2e.feat-effects.Item.uGNTOgns4lZ0HW08"
+     }
+    ]
+   }
+  },
+  {
+   "name": "Size Up",
+   "slug": "size-up",
+   "pack": "pf2e.actions",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "concentrate"
+   ],
+   "frequency": null,
+   "description": "<p>You designate a single, non-mindless creature as your focus and assess its motivations. You must be able to see and hear the creature. You gain a +2 circumstance bonus to Perception checks when you @UUID[Compendium.pf2e.actionspf2e.Item.1xRFPTFtWtGJ9ELw]{Sense the Motive} of your focus and a +2 circumstance bonus to your Perception DC should your focus attempt to @UUID[Compendium.pf2e.actionspf2e.Item.ewwCglB7XOPLUz72]{Lie} or @UUID[Compendium.pf2e.actionspf2e.Item.QNAVeNKtHA0EUw4X]{Feint} against you. You gain a +2 circumstance bonus to Deception, Diplomacy, and Intimidation checks against your focus. You can only have one creature designated as your focus at a time. If you use Size Up against a creature when you already have a creature designated, the prior creature loses the designation and the new focus gains the designation. Your designation otherwise lasts until your next daily preparations.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.XRjekIgkv8qsAxJv",
+   "effect": {
+    "name": "Effect: Size Up",
+    "slug": "effect-size-up",
+    "duration": {
+     "expiry": "turn-start",
+     "sustained": false,
+     "unit": "days",
+     "value": 1
+    },
+    "rules": [
+     {
+      "key": "TokenMark",
+      "slug": "size-up"
+     },
+     {
+      "key": "FlatModifier",
+      "predicate": [
+       "origin:mark:size-up",
+       {
+        "or": [
+         "action:feint",
+         "action:lie"
+        ]
+       }
+      ],
+      "selector": [
+       "perception-dc"
+      ],
+      "type": "circumstance",
+      "value": 2
+     },
+     {
+      "key": "FlatModifier",
+      "predicate": [
+       "target:mark:size-up"
+      ],
+      "selector": [
+       "deception",
+       "diplomacy",
+       "intimidation"
+      ],
+      "type": "circumstance",
+      "value": 2
+     }
+    ]
+   }
+  },
+  {
+   "name": "Devise a Stratagem",
+   "slug": "devise-a-stratagem",
+   "pack": "pf2e.actions",
+   "actionType": "action",
+   "actions": 1,
+   "traits": [
+    "concentrate",
+    "investigator"
+   ],
+   "frequency": {
+    "max": 1,
+    "per": "round"
+   },
+   "description": "<p><strong>Frequency</strong> once per round</p><hr /><p>You assess a foe's weaknesses in combat and use them to formulate a plan of attack. Choose a creature you can see. You can Devise a Stratagem as a free action if you're aware that creature could help answer the question at the heart of one of your active investigations. Roll a d20, then decide on an attack stratagem or skill stratagem.</p>\n<p><strong>Attack Stratagem</strong> If you Strike the chosen creature before the start of your next turn, your Strike gains the fortune trait and you must use the result of the d20 roll for your Strike's attack roll instead of rolling. You make this substitution only for the first Strike you make against the creature this round, not any subsequent ones. When you make this substitution, you can add your Intelligence modifier to your attack roll instead of your Strength or Dexterity modifier. If you Strike with a melee weapon, melee unarmed attack, or thrown weapon, it must have the agile or finesse trait to benefit from the substitution.</p>\n<p><strong>Skill Stratagem</strong> You can't attempt to Strike the target until the start of your next turn. You gain a +1 circumstance bonus to your next Intelligence-, Wisdom-, or Charisma-based skill check or Perception check involving the target before the start of your next turn. If you would gain your Pursue a Lead investigation bonus to such a check, that bonus increases by 1 instead of you gaining the +1 bonus listed.</p>",
+   "selfEffectUuid": "Compendium.pf2e.feat-effects.Item.XQpTyjXFYYNexyOk",
+   "effect": {
+    "name": "Effect: Devise a Stratagem",
+    "slug": "effect-devise-a-stratagem",
+    "duration": {
+     "expiry": "turn-start",
+     "sustained": false,
+     "unit": "rounds",
+     "value": 1
+    },
+    "rules": [
+     {
+      "key": "TokenMark",
+      "slug": "devise-a-stratagem"
+     },
+     {
+      "alwaysActive": true,
+      "key": "RollOption",
+      "option": "devise-a-stratagem",
+      "suboptions": [
+       {
+        "label": "PF2E.SpecificRule.Investigator.DeviseAStratagem.Attack",
+        "value": "attack"
+       },
+       {
+        "label": "PF2E.SpecificRule.Investigator.DeviseAStratagem.Skill",
+        "value": "skill"
+       },
+       {
+        "label": "PF2E.SpecificRule.Investigator.DeviseAStratagem.Defensive",
+        "predicate": [
+         "feat:defensive-stratagem"
+        ],
+        "value": "defensive"
+       }
+      ],
+      "toggleable": true
+     },
+     {
+      "key": "AdjustStrike",
+      "mode": "add",
+      "predicate": [
+       "target:mark:devise-a-stratagem",
+       "devise-a-stratagem:attack",
+       {
+        "or": [
+         "item:trait:agile",
+         "item:trait:finesse",
+         {
+          "nor": [
+           "item:melee",
+           "item:thrown"
+          ]
+         }
+        ]
+       }
+      ],
+      "property": "traits",
+      "value": "fortune"
+     },
+     {
+      "key": "SubstituteRoll",
+      "predicate": [
+       "devise-a-stratagem:attack",
+       "target:mark:devise-a-stratagem",
+       {
+        "or": [
+         "item:trait:agile",
+         "item:trait:finesse",
+         {
+          "nor": [
+           "item:melee",
+           "item:thrown"
+          ]
+         }
+        ]
+       }
+      ],
+      "removeAfterRoll": "if-enabled",
+      "required": true,
+      "selector": "strike-attack-roll",
+      "slug": "devise-a-stratagem",
+      "value": "@item.badge.value"
+     },
+     {
+      "key": "SubstituteRoll",
+      "predicate": [
+       "devise-a-stratagem:attack",
+       "feat:athletic-strategist",
+       {
+        "or": [
+         "devise-a-stratagem",
+         "target:mark:devise-a-stratagem"
+        ]
+       },
+       {
+        "or": [
+         "action:disarm",
+         "action:grapple",
+         "action:shove",
+         "action:trip"
+        ]
+       }
+      ],
+      "removeAfterRoll": "if-enabled",
+      "required": true,
+      "selector": "athletics",
+      "slug": "devise-a-strategem",
+      "value": "@item.badge.value"
+     },
+     {
+      "key": "FlatModifier",
+      "label": "PF2E.SpecificRule.Investigator.DeviseAStratagem.Skill",
+      "predicate": [
+       "devise-a-stratagem:skill"
+      ],
+      "removeAfterRoll": "if-enabled",
+      "selector": [
+       "perception",
+       "cha-skill-check",
+       "int-skill-check",
+       "wis-skill-check"
+      ],
+      "type": "circumstance",
+      "value": 1
+     },
+     {
+      "key": "AdjustModifier",
+      "mode": "add",
+      "predicate": [
+       "devise-a-stratagem:skill"
+      ],
+      "selectors": [
+       "perception",
+       "cha-skill-check",
+       "int-skill-check",
+       "wis-skill-check"
+      ],
+      "slug": "pursue-a-lead",
+      "value": 1
+     },
+     {
+      "key": "FlatModifier",
+      "label": "PF2E.SpecificRule.Investigator.DeviseAStratagem.Defensive",
+      "predicate": [
+       "devise-a-stratagem:defensive",
+       "origin:mark:devise-a-stratagem"
+      ],
+      "selector": [
+       "ac",
+       "fortitude",
+       "reflex",
+       "will"
+      ],
+      "type": "circumstance",
+      "value": 1
+     }
+    ]
+   }
+  }
+ ]
+}

@@ -45,7 +45,7 @@
 - Consumes: nothing new.
 - Produces: `classifyTargetEffect(rules)` → `'none' | 'targetConditional' | 'marked' | 'unsupported'`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/agent-candidates.test.mjs (append)
@@ -97,12 +97,12 @@ describe('classifyTargetEffect (#946)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/agent-candidates.test.mjs -t "classifyTargetEffect"`
 Expected: FAIL with "classifyTargetEffect is not exported"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/agent-candidates.mjs (new, near the top with the other pure helpers)
@@ -133,12 +133,12 @@ export function classifyTargetEffect(rules = []) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/agent-candidates.test.mjs -t "classifyTargetEffect"`
 Expected: PASS (7 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs tests/agent-candidates.test.mjs
