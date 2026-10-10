@@ -43,10 +43,12 @@ import {
   buildNpcAbilityVocabulary,
   buildNpcMoveVocabulary,
   buildNpcStrikeVocabulary,
+  buildNpcSelfVocabulary,
 } from "./agent-candidates.mjs";
 import { parseSaveAbility, describeNpcAbility } from "./npc-ability-parse.mjs";
 import { parseMovementAbility, npcMoveBudget, describeNpcMove } from "./npc-move-parse.mjs";
 import { parseStrikePlusAbility, describeStrikePlus } from "./npc-strike-shapes.mjs";
+import { parseSelfAbility, describeNpcSelfAbility } from "./npc-self-parse.mjs";
 import {
   findPath,
   blockedEdgesFromWalls,
@@ -1076,13 +1078,15 @@ export async function runAgentDecisionLoop(
     // #910: the feat vocabulary rides along in the same single call.
     // #915: so do the NPC save abilities -- still one call, and none at all
     // when every vocabulary is empty. #932: and the NPC movement abilities.
-    // #933: and the NPC Strike-plus abilities.
+    // #933: and the NPC Strike-plus abilities. #934: and the NPC
+    // self-buff/self-heal abilities.
     if (
       pending.maneuverVocabulary?.length ||
       pending.featVocabulary?.length ||
       pending.npcAbilityVocabulary?.length ||
       pending.npcMoveVocabulary?.length ||
-      pending.npcStrikeVocabulary?.length
+      pending.npcStrikeVocabulary?.length ||
+      pending.npcSelfVocabulary?.length
     ) {
       const turnState = getAgentTurnState(combat, pending.combatantId);
       if (turnState.maneuverPicks === null) {
@@ -1098,6 +1102,7 @@ export async function runAgentDecisionLoop(
               ...(pending.npcAbilityVocabulary ?? []),
               ...(pending.npcMoveVocabulary ?? []),
               ...(pending.npcStrikeVocabulary ?? []),
+              ...(pending.npcSelfVocabulary ?? []),
             ],
           });
           picks = Array.isArray(response?.picks) ? response.picks : [];
@@ -1222,19 +1227,32 @@ function combatantAllies(combat, combatant) {
  * (dungeon-layout.mjs's grid-unit geometry), not true PF2e diagonal-cost
  * movement rules. */
 export function chebyshevSquares(a, b, gridSize) {
-  // #551: footprint-aware -- nearest-cell distance between the two tokens'
-  // rectangles (width/height in cells, default 1). For two 1x1 tokens this
-  // equals the old |top-left delta| / gridSize exactly.
+  const { dx, dy } = footprintGapSquares(a, b, gridSize);
+  return Math.max(dx, dy, 0);
+}
+
+/** #551: footprint-aware -- the nearest-cell gap, per axis, between the two
+ * tokens' rectangles (width/height in cells, default 1), in squares. For two
+ * 1x1 tokens this is the |top-left delta| / gridSize exactly. */
+function footprintGapSquares(a, b, gridSize) {
   const axis = (aPos, aSize, bPos, bSize) => {
     const aMin = aPos / gridSize;
     const bMin = bPos / gridSize;
     const aMax = aMin + ((aSize ?? 1) - 1);
     const bMax = bMin + ((bSize ?? 1) - 1);
-    return Math.max(aMin - bMax, bMin - aMax);
+    return Math.max(aMin - bMax, bMin - aMax, 0);
   };
-  const dx = axis(a.x, a.width, b.x, b.width);
-  const dy = axis(a.y, a.height, b.y, b.height);
-  return Math.max(dx, dy, 0);
+  return { dx: axis(a.x, a.width, b.x, b.width), dy: axis(a.y, a.height, b.y, b.height) };
+}
+
+/** #934: PF2e RAW distance in feet between two tokens -- every second
+ * diagonal square counts double (Player Core, "Measuring Distance") -- for
+ * requirement checks that name a distance ("an enemy within 15 feet"). */
+export function pf2eDistanceFeet(a, b, gridSize, gridDistanceFt = 5) {
+  const { dx, dy } = footprintGapSquares(a, b, gridSize);
+  const diagonal = Math.min(dx, dy);
+  const straight = Math.max(dx, dy) - diagonal;
+  return (straight + diagonal + Math.floor(diagonal / 2)) * gridDistanceFt;
 }
 
 const REACH_EPSILON = 1e-6;
@@ -3394,6 +3412,35 @@ function isUnsafeSelfEffect(rules, duration) {
   });
 }
 
+/** #934: the NPC counterpart of isUnsafeSelfEffect, for monster abilities
+ * (npc-self-parse.mjs). Same exclusions, refined both ways:
+ *  - a `GrantItem` is allowed in exactly one shape: `inMemoryOnly` and
+ *    pointing at a `conditionitems` entry (Thesis Shield's Concealed) -- a
+ *    condition that exists only while the effect does, nothing to track.
+ *    Every other GrantItem stays excluded for #914's reason.
+ *  - a sustained effect (needs a Sustain action every turn) is excluded.
+ *  - an `unlimited` duration is excluded unless the ability is a stance: a
+ *    monster's unlimited effect ends on a prose condition the effect doesn't
+ *    model (Harden Chitin "until they next take a move action", Death Gasp),
+ *    whereas a stance lasts until the encounter ends -- which
+ *    cleanupAgentSelfEffects enforces. */
+function isUnsafeSelfEffectForNpc(rules, duration, { stance = false } = {}) {
+  if (rules.length === 0) return true;
+  if (duration?.unit === "hours" || duration?.unit === "days") return true;
+  if (duration?.sustained) return true;
+  if (duration?.unit === "unlimited" && !stance) return true;
+  return rules.some((r) => {
+    if (r?.key === "GrantItem") {
+      return !(r.inMemoryOnly === true && /^Compendium\.pf2e\.conditionitems\./.test(r.uuid ?? ""));
+    }
+    if (r?.key === "ChoiceSet" || r?.key === "TokenMark") return true;
+    const text = JSON.stringify(r);
+    return text.includes("target:") || /@target\b/.test(text);
+  });
+}
+
+export const __test__isUnsafeSelfEffectForNpc = isUnsafeSelfEffectForNpc;
+
 /** #914: PF2e `frequency.per` values (ISO-8601 durations or plain units)
  * as words the reasoning model can read. Unknown values pass through. */
 const FREQUENCY_PER_LABELS = {
@@ -3539,6 +3586,159 @@ export async function computeSelfEffectVocabularyEntries(actor, actionsRemaining
   }
   scored.sort((a, b) => a.tier - b.tier);
   return scored.slice(0, SELF_EFFECT_VOCABULARY_CAP).map((s) => s.entry);
+}
+
+/** #934: an actor's held items (weapons, shields) -- PF2e's own
+ * `system.equipped.carryType`. */
+function heldItemsOf(actor) {
+  return Array.from(actor?.items ?? []).filter((i) => i?.system?.equipped?.carryType === "held");
+}
+
+function itemNameIncludes(item, name) {
+  return String(item?.name ?? "").toLowerCase().includes(name);
+}
+
+/** #934: "under a fear effect" -- a condition/effect carrying the PF2e
+ * `fear` trait, or the Frightened condition itself (the fear condition: a
+ * creature that is frightened is gripped by fear). */
+function underFearEffect(actor) {
+  if (actorHasCondition(actor, "frightened")) return true;
+  const items = [...Array.from(actor?.conditions ?? []), ...(actor?.itemTypes?.effect ?? [])];
+  return items.some((i) => (i?.system?.traits?.value ?? []).includes("fear"));
+}
+
+/** #934: one npc-self-parse.mjs requirement predicate against the actor and
+ * its detectable opponents (`{actor, distanceFeet}`). Unknown predicate ->
+ * false.
+ *  - handFree: the hands its held items occupy (`equipped.handsHeld`) leave
+ *    one free. Bestiary weapons are carried `worn` with no hands held, so
+ *    the system's own state is what's read -- nothing is inferred.
+ *  - wielding: a held item of that name, or a Strike (NPC `melee` item) of
+ *    that name -- an NPC's Strikes are the weapons its stat block wields.
+ *  - wearing: a worn item of that name. */
+function npcSelfRequirementHolds(predicate, actor, opponents) {
+  switch (predicate?.type) {
+    case "handFree": {
+      const hands = heldItemsOf(actor).reduce((n, i) => n + (Number(i.system.equipped.handsHeld) || 0), 0);
+      return hands < 2;
+    }
+    case "wielding":
+      return (
+        heldItemsOf(actor).some((i) => itemNameIncludes(i, predicate.name)) ||
+        (actor?.itemTypes?.melee ?? []).some((i) => itemNameIncludes(i, predicate.name))
+      );
+    case "wearing":
+      return Array.from(actor?.items ?? []).some(
+        (i) => i?.system?.equipped?.carryType === "worn" && itemNameIncludes(i, predicate.name),
+      );
+    case "hasCondition":
+      return actorHasCondition(actor, predicate.slug);
+    case "notHasCondition":
+      return !actorHasCondition(actor, predicate.slug);
+    case "enemyWithin":
+      return opponents.some(
+        (o) =>
+          o.distanceFeet <= predicate.feet &&
+          predicate.conditions.some((c) => (c === "fear-effect" ? underFearEffect(o.actor) : actorHasCondition(o.actor, c))),
+      );
+    default:
+      return false;
+  }
+}
+
+/** #934: the condition slugs an effect's own `GrantItem` rules grant. */
+async function grantedConditionSlugs(rules) {
+  const slugs = new Set();
+  for (const rule of rules) {
+    if (rule?.key !== "GrantItem" || !/^Compendium\.pf2e\.conditionitems\./.test(rule.uuid ?? "")) continue;
+    const condition = await fromUuid(rule.uuid);
+    if (condition?.slug) slugs.add(condition.slug);
+  }
+  return slugs;
+}
+
+/**
+ * #934: the NPC self-buff/self-heal entries (npc-self-parse.mjs) `combatant`
+ * can use right now -- the Foundry-touching half of the npcSelf vocabulary.
+ * NPC actors only (a character's selfEffect actions are #910/#914's feat
+ * vocabulary). Each parsed ability is kept only when: its cost fits,
+ * frequency uses remain, it isn't recharging (the shared `abilityRecharge`
+ * store); for an effect family, the linked effect resolves, passes
+ * isUnsafeSelfEffectForNpc, isn't already active, and grants every
+ * condition its prose names; for a heal, the creature is hurt; and every
+ * requirement predicate holds against its detectable opponents (PF2e
+ * distance). Anything unreadable is excluded, never defaulted to
+ * available. Returns plain entries for agent-candidates.mjs's
+ * buildNpcSelfVocabulary.
+ */
+export async function computeNpcSelfEntries(combat, combatant, actionsRemaining) {
+  const actor = combatant?.actor;
+  if (actor?.type !== "npc") return [];
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  let opponents = null;
+  const opponentsInFeet = () =>
+    (opponents ??= detectableOpponents(combat, combatant).map((c) => ({
+      actor: c.actor,
+      distanceFeet: pf2eDistanceFeet(combatant.token, c.token, gridSize, gridDistanceFt),
+    })));
+  const entries = [];
+  for (const item of actorActionItems(actor)) {
+    try {
+      const descriptor = parseSelfAbility(item);
+      if (!descriptor) continue;
+      if (descriptor.cost > actionsRemaining) continue;
+      const uses = descriptor.frequency?.value;
+      if (descriptor.frequency && !(typeof uses === "number" && uses > 0)) continue;
+      const slug = actionItemSlug(item);
+      if (!isAbilityRecharged(combat, combatant.id, slug)) continue;
+      const traits = item.system?.traits?.value ?? [];
+      let effectInfo = { effectSummary: null, durationLabel: null, tier: 2 };
+      if (descriptor.params.effectUuid) {
+        const effect = await fromUuid(descriptor.params.effectUuid);
+        if (!effect) continue;
+        const rules = effect.system?.rules ?? [];
+        const duration = effect.system?.duration;
+        if (isUnsafeSelfEffectForNpc(rules, duration, { stance: traits.includes("stance") })) continue;
+        if (actorAlreadyHasEffectFrom(actor, item, effect.slug)) continue;
+        if (descriptor.conditions.length) {
+          const granted = await grantedConditionSlugs(rules);
+          if (descriptor.conditions.some((c) => !granted.has(c))) continue;
+        }
+        effectInfo = {
+          effectSummary: summarizeEffect(rules),
+          durationLabel: effectDurationLabel(duration),
+          tier: effectRelevanceTier(rules),
+        };
+      }
+      let hpFraction = null;
+      if (descriptor.family === "selfHeal") {
+        const hp = actor.system?.attributes?.hp;
+        if (typeof hp?.value !== "number" || !(hp.max > 0) || hp.value >= hp.max) continue;
+        hpFraction = hp.value / hp.max;
+      }
+      const needsOpponents = descriptor.requirements.some((r) => r.type === "enemyWithin");
+      const opponentsForCheck = needsOpponents ? opponentsInFeet() : [];
+      if (!descriptor.requirements.every((p) => npcSelfRequirementHolds(p, actor, opponentsForCheck))) continue;
+      entries.push({
+        itemId: item.id,
+        slug,
+        name: item.name,
+        family: descriptor.family,
+        cost: descriptor.cost,
+        traits: featGatingTraits(item),
+        hpFraction,
+        tier: effectInfo.tier,
+        effectSummary: effectInfo.effectSummary,
+        durationLabel: effectInfo.durationLabel,
+        frequencyLabel: selfEffectFrequencyLabel(descriptor.frequency),
+        summary: describeNpcSelfAbility(descriptor, { hpFraction, ...effectInfo }),
+      });
+    } catch (err) {
+      console.warn(`#934: skipping unreadable NPC action item ${item?.name ?? item?.id}:`, err.message);
+    }
+  }
+  return entries;
 }
 
 /** #922: at most this many targeted self-effect entries (one per legal
@@ -5152,6 +5352,14 @@ export async function getPendingAgentTurn(combat) {
     describe: (entry, targetNames) => describeStrikePlus(entry.descriptor, targetNames),
   });
 
+  // #934: NPC self-buff and self-heal abilities (Form a Phalanx, Reef Armor,
+  // Feed on Fear, Self-Repair, ...), the sixth category in the same
+  // once-per-turn call.
+  const npcSelfVocabulary = buildNpcSelfVocabulary({
+    npcSelfEntries: await computeNpcSelfEntries(combat, combatant, turnState.actionsRemaining),
+    turnState,
+  });
+
   const readySpells = (combatant.actor?.spellcasting?.contents ?? [])
     .flatMap((entry) =>
       (entry.spells?.contents ?? [])
@@ -5791,6 +5999,7 @@ export async function getPendingAgentTurn(combat) {
     npcAbilityVocabulary,
     npcMoveVocabulary,
     npcStrikeVocabulary,
+    npcSelfVocabulary,
     hazard: nearestHazardousRegionPoint(
       combat.scene,
       combatant.token,
@@ -5814,6 +6023,7 @@ export async function getPendingAgentTurn(combat) {
     npcAbilityVocabulary,
     npcMoveVocabulary,
     npcStrikeVocabulary,
+    npcSelfVocabulary,
   };
 }
 
@@ -9012,6 +9222,37 @@ function findFeatItem(actor, itemId) {
   );
 }
 
+/** #910: the source for `effect` applied by `combatant`'s own `item` to
+ * itself, the way the system's apply-effect chat button builds it: the
+ * effect's source merged with an origin context (actor/token/item uuids, the
+ * item's origin roll options), the actor itself as target, and only the
+ * action traits that are valid effect traits. #914: tagged agent-created
+ * for cleanupAgentSelfEffects. Shared by #934's NPC self-effects. */
+function agentSelfEffectSource(combatant, item, effect) {
+  const actor = combatant.actor;
+  const tokenUuid = combatant.token?.uuid ?? null;
+  const effectTraits = CONFIG.PF2E?.effectTraits ?? {};
+  const traits = (item.system.traits?.value ?? []).filter((t) => t in effectTraits);
+  return foundry.utils.mergeObject(effect.toObject(), {
+    _id: null,
+    flags: { [MODULE_ID]: { agentSelfEffect: true } },
+    system: {
+      context: {
+        origin: {
+          actor: actor.uuid,
+          token: tokenUuid,
+          item: item.uuid,
+          spellcasting: null,
+          rollOptions: item.getOriginData?.().rollOptions ?? [],
+        },
+        target: { actor: actor.uuid, token: tokenUuid },
+        roll: null,
+      },
+      traits: { value: traits },
+    },
+  });
+}
+
 /** #910: applies a self-effect action (stance/Rage) the way the installed
  * PF2e system's own chat-card button does (ChatLogPF2e#onClickApplyEffect,
  * a UI handler with no public API): the linked effect's source merged
@@ -9029,30 +9270,8 @@ async function executeSelfEffectFeat(combatant, candidate) {
   const effect = await fromUuid(uuid);
   if (typeof effect?.toObject !== "function") return { performed: false };
 
-  const tokenUuid = combatant.token?.uuid ?? null;
-  const effectTraits = CONFIG.PF2E?.effectTraits ?? {};
-  const traits = (item.system.traits?.value ?? []).filter((t) => t in effectTraits);
   try {
-    const source = foundry.utils.mergeObject(effect.toObject(), {
-      _id: null,
-      // #914: marks the effect as agent-created for cleanupAgentSelfEffects.
-      flags: { [MODULE_ID]: { agentSelfEffect: true } },
-      system: {
-        context: {
-          origin: {
-            actor: actor.uuid,
-            token: tokenUuid,
-            item: item.uuid,
-            spellcasting: null,
-            rollOptions: item.getOriginData?.().rollOptions ?? [],
-          },
-          target: { actor: actor.uuid, token: tokenUuid },
-          roll: null,
-        },
-        traits: { value: traits },
-      },
-    });
-    await actor.createEmbeddedDocuments("Item", [source]);
+    await actor.createEmbeddedDocuments("Item", [agentSelfEffectSource(combatant, item, effect)]);
   } catch (err) {
     console.error(`#910: applying ${item.name}'s effect failed:`, err.message);
     return { performed: false };
@@ -9078,6 +9297,106 @@ async function executeSelfEffectFeat(combatant, candidate) {
     await item.update({ "system.frequency.value": item.system.frequency.value - 1 });
   }
   return { performed: true, attacks: 0, effectName: effect.name ?? item.name };
+}
+
+/** #934: an npcSelf effect ability (selfEffectAction / linkedEffectSelf):
+ * the linked effect applied to the monster exactly as executeSelfEffectFeat
+ * applies a character's (agentSelfEffectSource), created first so a failed
+ * creation spends nothing. RAW: entering a stance ends the one you were in. */
+async function applyNpcSelfEffect(combatant, item, descriptor) {
+  const actor = combatant.actor;
+  const effect = await fromUuid(descriptor.params.effectUuid);
+  if (typeof effect?.toObject !== "function") return { performed: false };
+  const isStance = (item.system?.traits?.value ?? []).includes("stance");
+  const previousStance = isStance ? await findActiveStanceEffectId(actor) : null;
+  try {
+    await actor.createEmbeddedDocuments("Item", [agentSelfEffectSource(combatant, item, effect)]);
+  } catch (err) {
+    console.error(`#934: applying ${item.name}'s effect failed:`, err.message);
+    return { performed: false };
+  }
+  if (previousStance) {
+    try {
+      await actor.deleteEmbeddedDocuments("Item", [previousStance]);
+    } catch (err) {
+      console.error("#934: removing the previous stance effect failed:", err.message);
+    }
+  }
+  return { performed: true, text: `gains ${effect.name ?? item.name}`, tone: "success" };
+}
+
+/** #934: an npcSelf heal: rolls the ability's own formula (posted to chat)
+ * and applies it as healing through the system's own `applyDamage` with a
+ * negative amount -- the confirmed-live shape #132's castHealSpellAndApply
+ * uses; the system clamps at maximum HP and applies healing-received
+ * modifiers. Reports what was actually regained. */
+async function applyNpcSelfHeal(combatant, item, descriptor) {
+  const actor = combatant.actor;
+  const before = actor.system?.attributes?.hp?.value;
+  const max = actor.system?.attributes?.hp?.max;
+  let total;
+  try {
+    const roll = await new Roll(descriptor.params.formula).evaluate();
+    total = roll.total;
+    try {
+      await roll.toMessage?.({
+        speaker: typeof ChatMessage?.getSpeaker === "function" ? ChatMessage.getSpeaker({ actor, token: combatant.token }) : undefined,
+        flavor: `${item.name}: healing`,
+      });
+    } catch (err) {
+      console.warn(`#934: posting ${item.name}'s healing roll failed:`, err.message);
+    }
+    await actor.applyDamage({ damage: -total, token: combatant.token });
+  } catch (err) {
+    console.error(`#934: applying ${item.name}'s healing failed:`, err.message);
+    return { performed: false };
+  }
+  const after = actor.system?.attributes?.hp?.value;
+  const healed =
+    typeof before === "number" && typeof after === "number" && after !== before
+      ? Math.max(0, after - before)
+      : Math.max(0, Math.min(total, (typeof max === "number" ? max : Infinity) - (before ?? 0)));
+  return { performed: true, healed, text: `heals ${healed} HP`, tone: healed > 0 ? "success" : "neutral" };
+}
+
+/** #934: executes an npcSelf candidate. The item is re-read and re-parsed
+ * (it may have changed since the vocabulary was built); a stale or spent
+ * one returns `{performed: false}` (nothing spent). After the effect/heal
+ * succeeds: the usage card is posted, a frequency use spent, the ability's
+ * own recharge recorded, and a recharge its text puts on ANOTHER of the
+ * creature's abilities (the voidglutton's Feed on Fear -> Consume Light)
+ * recorded in the same shared store every NPC category checks. */
+export async function executeNpcSelfCandidate(combat, combatant, candidate) {
+  const actor = combatant?.actor;
+  const item = actorActionItems(actor).find((i) => i.id === candidate.itemId);
+  if (!item) return { performed: false };
+  const descriptor = parseSelfAbility(item);
+  if (!descriptor || descriptor.family !== candidate.family) return { performed: false };
+  if (descriptor.frequency && !(descriptor.frequency.value > 0)) return { performed: false };
+
+  const result =
+    descriptor.family === "selfHeal"
+      ? await applyNpcSelfHeal(combatant, item, descriptor)
+      : await applyNpcSelfEffect(combatant, item, descriptor);
+  if (!result.performed) return result;
+
+  try {
+    await item.toMessage?.();
+  } catch (err) {
+    console.warn(`#934: posting ${item.name}'s usage card failed:`, err.message);
+  }
+  if (item.system.frequency && item.system.frequency.value > 0) {
+    await item.update({ "system.frequency.value": item.system.frequency.value - 1 });
+  }
+  await setAbilityRecharge(combat, combatant.id, actionItemSlug(item), descriptor.rechargeFormula);
+  const notes = [];
+  if (descriptor.crossRecharge) {
+    const { name, formula } = descriptor.crossRecharge;
+    await setAbilityRecharge(combat, combatant.id, actionItemSlug({ name }), formula);
+    notes.push(`${name} recharging (${formula} rounds), per ${item.name}.`);
+  }
+  if (descriptor.glowRider) notes.push(`If it had Gone Dark, its glow reignites (not automated).`);
+  return { ...result, attacks: 0, ...(notes.length ? { gmNote: notes.join("\n") } : {}) };
 }
 
 /** #922: Hunt Prey / Devise a Stratagem. The linked effect is created the
@@ -9991,6 +10310,11 @@ export async function applyAgentDecision(
     // Strike makes the ability hostile (#920).
     applied = { ...candidate, attacks: result.attacks ?? 0 };
     if (!result.attacks) hostileIds = [];
+    executionResult = result;
+  } else if (candidate.type === "npcSelf") {
+    // #934: a self-buff or self-heal -- not hostile, no attack.
+    const result = await executeNpcSelfCandidate(combat, combatant, candidate);
+    if (!result.performed) return skipUnperformedFeat(combat, combatant, candidate, rationale);
     executionResult = result;
   } else if (candidate.type === "npcStrike") {
     const result = await executeNpcStrikeCandidate(combat, combatant, candidate);

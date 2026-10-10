@@ -118,7 +118,7 @@ export function publicActionLabel(candidate) {
     return "Move";
   }
   if (type === "maneuver") return MANEUVER_DEFS[candidate.slug]?.label ?? candidate.slug ?? "Maneuver";
-  if (type === "feat" || type === "npcAbility" || type === "npcMove" || type === "npcStrike") return candidate.name ?? candidate.slug ?? type;
+  if (type === "feat" || type === "npcAbility" || type === "npcMove" || type === "npcStrike" || type === "npcSelf") return candidate.name ?? candidate.slug ?? type;
   // Every other builder in agent-candidates.mjs leads its summary with the
   // action/spell label, followed by one of these separators.
   const cut = summary.search(/ vs | \(hits | on | heals | \(variant | \(\d+ actions?\)| — | \[/);
@@ -230,6 +230,11 @@ function resultFor(candidate, executionResult, nameOf) {
       return { text: String(only?.text || "done"), tone: only?.tone ?? "neutral" };
     }
     return describePerTarget(r.results, nameOf);
+  }
+  if (type === "npcSelf") {
+    // #934: executeNpcSelfCandidate's {performed, text, tone[, healed]}.
+    if (!r || typeof r !== "object" || typeof r.text !== "string" || !r.text) return null;
+    return { text: r.text, tone: r.tone ?? "success" };
   }
   if (type === "feat") {
     if (!r || typeof r !== "object") return null;
