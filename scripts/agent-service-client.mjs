@@ -11,7 +11,7 @@
 // service itself is unresponsive.
 const CLIENT_TIMEOUT_MS = 35000;
 
-async function postJson(baseUrl, path, body, { apiKey, fetchImpl = fetch }) {
+async function postJson(baseUrl, path, body, { apiKey, fetchImpl = fetch, timeoutMs = CLIENT_TIMEOUT_MS }) {
   // Strip one trailing slash so a configured "https://host/" doesn't yield
   // "https://host//v1/..." (which the service 404s).
   const url = `${baseUrl.replace(/\/$/, "")}${path}`;
@@ -22,7 +22,7 @@ async function postJson(baseUrl, path, body, { apiKey, fetchImpl = fetch }) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(CLIENT_TIMEOUT_MS),
+    signal: AbortSignal.timeout(timeoutMs ?? CLIENT_TIMEOUT_MS),
   });
   const payload = await res.json();
   if (!res.ok) {
@@ -31,8 +31,10 @@ async function postJson(baseUrl, path, body, { apiKey, fetchImpl = fetch }) {
   return payload;
 }
 
-export async function fetchCombatDecision({ baseUrl, apiKey, context, fetchImpl }) {
-  return postJson(baseUrl, "/v1/combat-decision", context, { apiKey, fetchImpl });
+/** `timeoutMs` (#931) overrides the default client timeout for one call --
+ * the NPC reaction decision waits at most 5 s, not the turn decision's 35 s. */
+export async function fetchCombatDecision({ baseUrl, apiKey, context, fetchImpl, timeoutMs }) {
+  return postJson(baseUrl, "/v1/combat-decision", context, { apiKey, fetchImpl, timeoutMs });
 }
 
 export async function fetchFlavorCustomization({ baseUrl, apiKey, kind, context, fetchImpl }) {

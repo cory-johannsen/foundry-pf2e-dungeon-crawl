@@ -40,13 +40,13 @@
 - Consumes: nothing.
 - Produces (consumed by Task 3): `fetchCombatDecision({ baseUrl, apiKey, context, fetchImpl, timeoutMs })` — `timeoutMs` optional, defaults to the existing `CLIENT_TIMEOUT_MS`.
 
-- [ ] **Step 1: Check for an existing test file**
+- [x] **Step 1: Check for an existing test file**
 
 Run: `ls tests/agent-service-client.test.mjs 2>/dev/null && cat tests/agent-service-client.test.mjs || echo "none"`
 
 If a file exists, read it in full and add the new tests below to it rather than overwriting; keep its existing test names and fixtures as-is.
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 ```js
 // tests/agent-service-client.test.mjs
@@ -93,7 +93,7 @@ describe('fetchCombatDecision timeout override', () => {
 });
 ```
 
-- [ ] **Step 3: Run the test to verify it fails**
+- [x] **Step 3: Run the test to verify it fails**
 
 Run: `npm test -- tests/agent-service-client.test.mjs`
 Expected: the first test's call still succeeds (since `timeoutMs` is silently ignored today), but add a direct assertion that would fail without the plumbing — see Step 4's note.
@@ -127,7 +127,7 @@ Since `fetchImpl`'s mock always resolves instantly, the first test as written do
 Run: `npm test -- tests/agent-service-client.test.mjs`
 Expected: FAIL — `postJson`/`fetchCombatDecision` don't accept or forward `timeoutMs` yet.
 
-- [ ] **Step 4: Implement the override**
+- [x] **Step 4: Implement the override**
 
 ```js
 async function postJson(baseUrl, path, body, { apiKey, fetchImpl = fetch, timeoutMs = CLIENT_TIMEOUT_MS }) {
@@ -155,12 +155,12 @@ export async function fetchCombatDecision({ baseUrl, apiKey, context, fetchImpl,
 
 (`fetchFlavorCustomization`/`fetchCombatCandidates` keep calling `postJson` without `timeoutMs`, which now resolves to the same `CLIENT_TIMEOUT_MS` default they already got — no behavior change for either.)
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `npm test -- tests/agent-service-client.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/agent-service-client.mjs tests/agent-service-client.test.mjs

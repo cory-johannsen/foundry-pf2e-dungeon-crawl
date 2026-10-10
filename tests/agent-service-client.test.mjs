@@ -82,3 +82,34 @@ describe('fetchCombatCandidates', () => {
     ).rejects.toThrow(/\/v1\/combat-candidates failed \(502\): boom/);
   });
 });
+
+describe('fetchCombatDecision timeout override (#931)', () => {
+  it('calls AbortSignal.timeout with the given timeoutMs, not the 35s default', async () => {
+    const spy = vi.spyOn(AbortSignal, 'timeout');
+    try {
+      const fetchImpl = fakeFetch(200, { candidateId: 'x', rationale: null });
+      await fetchCombatDecision({
+        baseUrl: 'https://agent.example', apiKey: 'k',
+        context: { candidates: [{ id: 'x', summary: 'x' }] }, fetchImpl, timeoutMs: 5000,
+      });
+      expect(spy).toHaveBeenCalledWith(5000);
+      expect(spy).not.toHaveBeenCalledWith(35000);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('keeps the existing 35s default when timeoutMs is omitted', async () => {
+    const spy = vi.spyOn(AbortSignal, 'timeout');
+    try {
+      const fetchImpl = fakeFetch(200, { candidateId: 'x', rationale: null });
+      await fetchCombatDecision({
+        baseUrl: 'https://agent.example', apiKey: 'k',
+        context: { candidates: [{ id: 'x', summary: 'x' }] }, fetchImpl,
+      });
+      expect(spy).toHaveBeenCalledWith(35000);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+});
