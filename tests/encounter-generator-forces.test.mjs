@@ -46,7 +46,7 @@ const roster = (extra = {}) => ({
   friend: null,
   twins: null,
   lurker: null,
-  appliedFilters: ["levelRange", "family", "rarity", "xpCapOverride"],
+  appliedFilters: ["levelRange", "rarity", "xpCapOverride"],
   ...extra,
 });
 const force = (id, over = {}) => ({
@@ -59,7 +59,6 @@ const force = (id, over = {}) => ({
     excludeTraits: [],
     levelOffsetMin: null,
     levelOffsetMax: null,
-    family: "",
     rarity: "",
     ...(over.filters ?? {}),
   },
@@ -94,7 +93,7 @@ afterEach(() => {
 const twoForces = () => ({
   difficulty: "moderate",
   forces: [
-    force("f1", { filters: { traits: ["undead"], family: "goblin" } }),
+    force("f1", { filters: { traits: ["undead"], rarity: "rare" } }),
     force("f2", { hostility: "all" }),
   ],
 });
@@ -201,7 +200,7 @@ describe("generateEncounter multi-force (#1083)", () => {
     expect(b.xpCapOverride).toBe(40);
     expect(a.resolved).not.toEqual(b.resolved);
     expect(a.traits).toEqual(["undead"]);
-    expect(a.family).toBe("goblin");
+    expect(a).not.toHaveProperty("family");
     expect(a.depthBias).toBeNull();
   });
 

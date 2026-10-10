@@ -39,7 +39,7 @@ const gob = {
 };
 
 describe("resolveEncounterRoster force filters", () => {
-  it("passes family/rarity through every fallback look", async () => {
+  it("passes rarity through every fallback look", async () => {
     const calls = [];
     const api = {
       findCreatures: async (q) => {
@@ -52,13 +52,11 @@ describe("resolveEncounterRoster force filters", () => {
       api,
       partyLevel: 3,
       partySize: 4,
-      family: "Goblin",
       rarity: "common",
       xpCapOverride: 40,
     });
     expect(calls.length).toBeGreaterThan(1);
     for (const q of calls) {
-      expect(q.family).toBe("Goblin");
       expect(q.rarity).toBe("common");
     }
   });
@@ -133,7 +131,7 @@ describe("resolveEncounterRoster force filters", () => {
     expect(roster.foes).toHaveLength(1);
   });
 
-  it("appliedFilters lists all four supported filters", async () => {
+  it("appliedFilters lists the supported filters", async () => {
     const roster = await resolveEncounterRoster({
       resolved: oneFoeSlot,
       api: poolApi([gob]),
@@ -141,7 +139,6 @@ describe("resolveEncounterRoster force filters", () => {
     });
     expect(roster.appliedFilters).toEqual([
       "levelRange",
-      "family",
       "rarity",
       "xpCapOverride",
     ]);
@@ -159,46 +156,20 @@ describe("resolveEncounterRoster force filters", () => {
     expect(roster.foes[0].name).toBe("Goblin Warrior");
     expect(api.calls[0].minLevel).toBe(2);
     expect(api.calls[0].maxLevel).toBe(4);
-    expect(api.calls[0].family).toBeNull();
+    expect(api.calls[0]).not.toHaveProperty("family");
     expect(api.calls[0].rarity).toBeNull();
-  });
-
-  it("filters the pool by family (ancestry trait) end to end", async () => {
-    const orc = {
-      pack: "p",
-      id: "o",
-      name: "Orc",
-      level: 3,
-      traits: ["orc"],
-      rarity: "common",
-    };
-    const roster = await resolveEncounterRoster({
-      resolved: oneFoeSlot,
-      api: poolApi([orc, gob]),
-      partyLevel: 3,
-      family: "ORC",
-      rng: () => 0.99,
-    });
-    expect(roster.foes.map((f) => f.name)).toEqual(["Orc"]);
   });
 });
 
 describe("creatureMatchesFilters", () => {
-  it("matches family case-insensitively against traits", () => {
-    expect(creatureMatchesFilters(gob, { family: "GOBLIN" })).toBe(true);
-    expect(creatureMatchesFilters(gob, { family: "orc" })).toBe(false);
-  });
   it("matches rarity exactly", () => {
     expect(creatureMatchesFilters(gob, { rarity: "common" })).toBe(true);
     expect(creatureMatchesFilters(gob, { rarity: "rare" })).toBe(false);
   });
   it("null/undefined means no constraint", () => {
     expect(creatureMatchesFilters(gob, {})).toBe(true);
-    expect(creatureMatchesFilters(gob, { family: null, rarity: null })).toBe(
+    expect(creatureMatchesFilters(gob, { rarity: null })).toBe(
       true,
-    );
-    expect(creatureMatchesFilters({ traits: undefined }, { family: "x" })).toBe(
-      false,
     );
   });
 });

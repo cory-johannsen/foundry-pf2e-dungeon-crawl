@@ -39,7 +39,7 @@ and party size). The first force behaves exactly like the classic
 single-force encounter; use **Add force** for more. Each force has:
 
 - **Filters** — include traits, exclude traits, level range (offsets
-  relative to the party level), an ancestry/family trait, and a rarity.
+  relative to the party level), and a rarity.
 - **Budget share** — a percentage of the encounter's XP budget (shares
   should total 100; the dialog shows each force's XP allotment and warns
   otherwise). Each force is generated and posted as its own chat card.

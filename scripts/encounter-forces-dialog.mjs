@@ -26,7 +26,6 @@ export function defaultForce(index, overrides = {}) {
       excludeTraits: [],
       levelOffsetMin: null,
       levelOffsetMax: null,
-      family: "",
       rarity: "",
     },
     placement: { mode: "nearParty" },
@@ -60,7 +59,6 @@ export function normalizeForce(raw = {}, index = 0) {
       excludeTraits: f.excludeTraits ?? [],
       levelOffsetMin: offset(f.levelOffsetMin),
       levelOffsetMax: offset(f.levelOffsetMax),
-      family: String(f.family ?? "").trim(),
       rarity: RARITIES.includes(f.rarity) ? f.rarity : "",
     },
     placement: { mode: raw.placement?.mode || "nearParty" },
@@ -87,7 +85,6 @@ export function forceSectionHtml(force, index, labels = {}) {
     shareLabel = "Budget share (%)",
     levelMinLabel = "Min level offset",
     levelMaxLabel = "Max level offset",
-    familyLabel = "Ancestry / family trait",
     rarityLabel = "Rarity",
     placementLabel = "Placement",
     nearPartyLabel = "Near party",
@@ -114,7 +111,6 @@ export function forceSectionHtml(force, index, labels = {}) {
       ${traitFieldHtml({ name: `excludeTraits-${id}`, label: excludeTraitsLabel, buttonLabel: chooseLabel, selected: f.excludeTraits ?? [] })}
       <div class="form-group"><label>${levelMinLabel}</label><input type="number" step="1" name="force-${id}-levelMin" value="${f.levelOffsetMin ?? ""}" /></div>
       <div class="form-group"><label>${levelMaxLabel}</label><input type="number" step="1" name="force-${id}-levelMax" value="${f.levelOffsetMax ?? ""}" /></div>
-      <div class="form-group"><label>${familyLabel}</label><input type="text" name="force-${id}-family" value="${esc(f.family)}" /></div>
       <div class="form-group"><label>${rarityLabel}</label><select name="force-${id}-rarity">${options(RARITIES, f.rarity ?? "")}</select></div>
       <div class="form-group"><label>${placementLabel}</label><select name="force-${id}-placement">${placementOptions}</select></div>
     </fieldset>`;
@@ -135,7 +131,6 @@ export function readForcesFromForm(root) {
           excludeTraits: readTraitField(root, `excludeTraits-${id}`),
           levelOffsetMin: val(`force-${id}-levelMin`),
           levelOffsetMax: val(`force-${id}-levelMax`),
-          family: val(`force-${id}-family`),
           rarity: val(`force-${id}-rarity`),
         },
         placement: { mode: val(`force-${id}-placement`) },
@@ -158,7 +153,6 @@ function sectionLabels(regions) {
     shareLabel: L("ForceShareLabel"),
     levelMinLabel: L("ForceLevelMinLabel"),
     levelMaxLabel: L("ForceLevelMaxLabel"),
-    familyLabel: L("ForceFamilyLabel"),
     rarityLabel: L("ForceRarityLabel"),
     placementLabel: L("ForcePlacementLabel"),
     nearPartyLabel: L("ForceNearParty"),
