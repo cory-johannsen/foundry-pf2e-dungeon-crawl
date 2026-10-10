@@ -10,7 +10,11 @@
 import { makeFoundryApi } from "./foundry-api.mjs";
 import { buildEncounterDeck, dealEncounter } from "./encounter-deck.mjs";
 import { getGenerator } from "./generator-registry.mjs";
-import { loadCreatureArt } from "./data-loader.mjs";
+import { loadCreatureArt, loadCreatureEnvironments } from "./data-loader.mjs";
+import {
+  buildEnvironmentLookup,
+  normalizeEnvironment,
+} from "./environments.mjs";
 import { findCreatureArt, creatureArtPath } from "./creature-art.mjs";
 import { startCombatForEncounterId } from "./dungeon-combat.mjs";
 import { chooseCoverItemTypes } from "./cover-items.mjs";
@@ -333,6 +337,18 @@ async function generateForces({
   }
 }
 
+async function environmentArgs(environment, creatureArt) {
+  const env = normalizeEnvironment(environment);
+  if (env == null) return {};
+  return {
+    environment: env,
+    environmentLookup: buildEnvironmentLookup(
+      creatureArt,
+      await loadCreatureEnvironments(),
+    ),
+  };
+}
+
 export async function generateEncounter({
   prefillTraits = [],
   prefillExcludeTraits = [],
@@ -345,6 +361,7 @@ export async function generateEncounter({
   skipThemeDialog = false,
   scene: sceneOverride = null,
   isBoss = false,
+  environment = null,
 } = {}) {
   const scene = sceneOverride ?? canvas?.scene;
   if (!scene) {
@@ -422,6 +439,9 @@ export async function generateEncounter({
     partySize,
     isBoss,
     depthBias: effectiveDepthBias,
+    // #1272: only a run with an environment loads the lookup and passes it,
+    // so the no-environment call is identical to before.
+    ...(await environmentArgs(environment, creatureArt)),
   });
 
   await postEncounterChatCard(api, roster);

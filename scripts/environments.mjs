@@ -90,3 +90,10 @@ export function pickRandomEnvironment(seed, lookup) {
   }
   return live[live.length - 1][0];
 }
+
+/** Resolve the Start-form choice to a final run environment (#1272).
+ * "none"/empty/unknown -> null; "random" -> seeded weighted pick; an id -> itself. */
+export function resolveRunEnvironment(choice, seed, lookup) {
+  if (choice === "random") return pickRandomEnvironment(seed, lookup);
+  return normalizeEnvironment(choice);
+}
