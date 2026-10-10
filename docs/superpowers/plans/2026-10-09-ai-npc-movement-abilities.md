@@ -691,7 +691,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `parseMovementAbility` (Task 1), `buildNpcMoveVocabulary`/`buildNpcMoveCandidates` (Task 3).
 - Produces (consumed by Task 8): `computeNpcMoveVocabularyEntries(actor, actionsRemaining, combat, combatantId)` → pre-filtered `movementEntries` (each carrying `moverSpeeds`); `getPendingAgentTurn`'s returned object gains `npcMoveVocabulary`; `buildCandidateList`'s call site passes it through; `runAgentDecisionLoop`'s combined-vocabulary gate (the real, current code at line ~1027-1039) includes it alongside `maneuverVocabulary`/`featVocabulary`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-npc-move-vocabulary.test.mjs
@@ -749,18 +749,18 @@ describe('computeNpcMoveVocabularyEntries', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-npc-move-vocabulary.test.mjs`
 Expected: FAIL.
 
-- [ ] **Step 3: Confirm `isAbilityRecharged`'s exact real signature before reusing it**
+- [x] **Step 3: Confirm `isAbilityRecharged`'s exact real signature before reusing it**
 
 Run: `grep -n "function isAbilityRecharged" -A 5 scripts/dungeon-combat.mjs`
 
 (Already read during this plan's own investigation: `isAbilityRecharged(combat, combatantId, itemSlug)`, generic and reusable as-is — confirm nothing has shifted since, then use it directly rather than writing a parallel recharge check.)
 
-- [ ] **Step 4: Implement `computeNpcMoveVocabularyEntries`**
+- [x] **Step 4: Implement `computeNpcMoveVocabularyEntries`**
 
 ```js
 import { parseMovementAbility } from "./npc-move-parse.mjs";
@@ -801,12 +801,12 @@ export async function computeNpcMoveVocabularyEntries(actor, actionsRemaining, c
 
 Add `export` to `isAbilityRecharged` if it is not already exported (it is module-private today per Task 4 Step 3's own read; add `export` the same way Task 2 of #931's own plan exported `isReactiveStrikeInScope`/`getReactionUsed`/`markReactionUsed` — leave every internal call site unchanged).
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-npc-move-vocabulary.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Wire `npcMoveVocabulary` into `getPendingAgentTurn`, `buildCandidateList`, and `runAgentDecisionLoop`**
+- [x] **Step 6: Wire `npcMoveVocabulary` into `getPendingAgentTurn`, `buildCandidateList`, and `runAgentDecisionLoop`**
 
 In `getPendingAgentTurn` (the real function containing lines 3895-3915 and 4531-4573, read in full during this plan's own investigation), add, alongside the existing `maneuverVocabulary`/`featVocabulary` construction:
 
@@ -845,12 +845,12 @@ vocabulary: [
 ],
 ```
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — confirm #910's own feat-vocabulary tests still pass unchanged, since this step touches the same shared gate/array they depend on.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs scripts/agent-candidates.mjs tests/dungeon-combat-npc-move-vocabulary.test.mjs
@@ -871,13 +871,13 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing new.
 - Produces (consumed by Tasks 6/8): `strideByPosture(combat, combatant, posture, target, { speedSquaresOverride = null, suppressReactions = false } = {})`.
 
-- [ ] **Step 1: Locate and read the existing regression test in full**
+- [x] **Step 1: Locate and read the existing regression test in full**
 
 Run: `grep -rln "strideByPosture" tests/*.mjs`
 
 Read whichever file(s) match completely before changing the function — this is the regression suite Review Factor's own last item names explicitly.
 
-- [ ] **Step 2: Write the new failing tests**
+- [x] **Step 2: Write the new failing tests**
 
 ```js
 describe('strideByPosture with options', () => {
@@ -902,12 +902,12 @@ describe('strideByPosture with options', () => {
 });
 ```
 
-- [ ] **Step 3: Run tests to verify they fail**
+- [x] **Step 3: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-stride.test.mjs`
 Expected: FAIL for the two new option-specific tests; the "falls back" test should already pass unchanged (confirming the baseline before the edit).
 
-- [ ] **Step 4: Generalize the function**
+- [x] **Step 4: Generalize the function**
 
 ```js
 export async function strideByPosture(
@@ -1002,17 +1002,17 @@ export async function strideByPosture(
 
 (The only changes from the real, current function: the new fifth parameter with its two named, defaulted options; `speedSquares` reads `speedSquaresOverride ?? ...` instead of always computing from land Speed; the final reaction call is conditional. Every other line is unchanged — this is the generalization, not a rewrite.)
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-stride.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — confirm every other `strideByPosture` call site (the plain `stride` branch in `applyAgentDecision`, any other caller) still compiles and passes with no fifth argument.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-stride.test.mjs
@@ -1033,7 +1033,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `strideByPosture` (Task 5), `rollAndApplyStrikeAtVariant`, `matchMultiStrikeActionSlug`, `walkTokenThroughSteps`, `posturePath`, `walkPath` (all existing).
 - Produces (consumed by Task 8): `async function executeNpcMoveWithStrike(combat, combatant, candidate, target)` → one of `"moved-and-struck" | "blocked" | "no-route" | "no-speed" | "no-ready-strike"`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 describe('executeNpcMoveWithStrike', () => {
@@ -1069,12 +1069,12 @@ describe('executeNpcMoveWithStrike', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-npc-move-execute.test.mjs`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement the split-path helper and the executor**
+- [x] **Step 3: Implement the split-path helper and the executor**
 
 ```js
 /** The index into `steps` of the earliest step whose cell is within
@@ -1150,12 +1150,12 @@ async function executeNpcMoveWithStrike(combat, combatant, candidate, target) {
 
 Confirm `posturePath`'s own exact parameter order and `walkPath`'s own exact return shape (`{ steps }`) against the real functions (`grep -n "function posturePath" -A 15 scripts/dungeon-combat.mjs` and `grep -n "function walkPath" -A 15 scripts/dungeon-combat.mjs`) before finalizing this implementation — this draft mirrors `strideByPosture`'s own real call shape exactly as read earlier in this plan's investigation, but re-verify parameter order matches precisely, since a swapped `(start, targetCell)` vs `(targetCell, start)` would silently compute a path toward the wrong point rather than throwing.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-npc-move-execute.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-npc-move-execute.test.mjs
@@ -1176,7 +1176,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `freeSpot` (`scripts/placement.mjs`), `hasLineOfSight` (existing).
 - Produces (consumed by Task 8): `async function executeNpcTeleport(combat, combatant, candidate, target)` → `"teleported" | "no-destination"`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 describe('executeNpcTeleport', () => {
@@ -1191,12 +1191,12 @@ describe('executeNpcTeleport', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-npc-move-execute.test.mjs`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement the teleport executor**
+- [x] **Step 3: Implement the teleport executor**
 
 ```js
 /**
@@ -1233,12 +1233,12 @@ async function executeNpcTeleport(combat, combatant, candidate, target) {
 
 Confirm `freeSpot`'s exact real parameter names and return shape (`grep -n "function freeSpot" -A 25 scripts/placement.mjs`) before finalizing — this draft's `gx`/`gy`/`maxRing`/`accept` names come from this plan's own earlier investigation of `scripts/placement.mjs`'s signature line, but the `accept` callback's own parameter shape (a `{gx, gy}` pair vs. a `{x, y}` pair) must be confirmed against the real function body, not assumed from the signature line alone. Confirm `hasLineOfSight`'s real parameter shape too (`combat, attackerToken, targetToken` per this plan's own earlier read) — passing a plain `{x, y}` literal in place of a real token document (as sketched above for the not-yet-moved candidate cell) may not satisfy whatever shape `hasLineOfSight` actually destructures; if it needs real token-document fields beyond x/y (e.g. `document.elevation`, a getter, or hit-tests against the token's own `center`), build a minimal stand-in object carrying every field `hasLineOfSight` actually reads, found by reading its real body, not guessed.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-npc-move-execute.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-npc-move-execute.test.mjs
@@ -1259,7 +1259,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `strideByPosture` (Task 5), `executeNpcMoveWithStrike` (Task 6), `executeNpcTeleport` (Task 7), `getAbilityRecharge`/`setAbilityRecharge`/`isAbilityRecharged` (existing), `postAgentDecisionChat`/`postMoveStalledChat` (existing, unmodified).
 - Produces: nothing further downstream — terminal task for the feature.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 describe('applyAgentDecision: npcMove', () => {
@@ -1290,12 +1290,12 @@ describe('applyAgentDecision: npcMove', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-npc-move-decision.test.mjs`
 Expected: FAIL.
 
-- [ ] **Step 3: Add the branch**
+- [x] **Step 3: Add the branch**
 
 Insert a new `else if (candidate.type === "npcMove")` branch into the real, current `applyAgentDecision` (the function read in full during this plan's own investigation, lines ~6297 onward), placed alongside the existing `"maneuver"` branch (following the exact same structural pattern: resolve the target fresh, spend/record bookkeeping, dispatch, report):
 
@@ -1390,23 +1390,23 @@ async function skipUnperformedNpcMove(combat, combatant, candidate) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-npc-move-decision.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 6: Version bump**
+- [x] **Step 6: Version bump** *(#932 implementation note: deferred to whoever merges -- the implementing agent was told not to bump `module.json`.)*
 
 Run: `grep '"version"' module.json`
 
 Minor bump per `CLAUDE.md`'s versioning rule.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs module.json
