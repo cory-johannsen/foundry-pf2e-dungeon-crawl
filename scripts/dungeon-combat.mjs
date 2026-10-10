@@ -45,7 +45,7 @@ import {
   buildNpcStrikeVocabulary,
   buildNpcSelfVocabulary,
 } from "./agent-candidates.mjs";
-import { parseSaveAbility, describeNpcAbility } from "./npc-ability-parse.mjs";
+import { parseSaveAbility, describeNpcAbility, describeNpcPenalty, npcAbilityExcludesTarget } from "./npc-ability-parse.mjs";
 import { parseMovementAbility, npcMoveBudget, describeNpcMove } from "./npc-move-parse.mjs";
 import { parseStrikePlusAbility, describeStrikePlus } from "./npc-strike-shapes.mjs";
 import { parseSelfAbility, describeNpcSelfAbility } from "./npc-self-parse.mjs";
@@ -1936,6 +1936,8 @@ export function computeReadyNpcAbilities(combat, combatant, targets = []) {
     const immuneIds = targets
       .filter((t) => {
         if (worldTime < getNpcAbilityImmunityUntil(combat, item.id, t.id)) return true;
+        // #935: outside the ability's stated targets ("Any non-boggard").
+        if (npcAbilityExcludesTarget(descriptor, t.actor)) return true;
         try {
           return t.actor?.isImmuneTo?.(item) === true;
         } catch {
@@ -9738,6 +9740,59 @@ function endOfTargetsNextTurn(combat, targetId) {
     : { round: nextRound, turn: index + 1 };
 }
 
+/** #935: a numeric duration as the system's effect duration. A duration
+ * counts from the NPC's own turn and ends at the start of its turn
+ * ("turn-start" expiry with the NPC as the effect's origin), like the
+ * system's own bestiary effects. */
+function npcPenaltyEffectDuration(durationSeconds) {
+  for (const [unit, seconds] of [["days", 86400], ["hours", 3600], ["minutes", 60]]) {
+    if (durationSeconds % seconds === 0) return { value: durationSeconds / seconds, unit, expiry: "turn-start", sustained: false };
+  }
+  return { value: Math.max(1, Math.ceil(durationSeconds / 6)), unit: "rounds", expiry: "turn-start", sustained: false };
+}
+
+/** #935: a penalty outcome ("a -1 status penalty to attack rolls for 1
+ * minute") as a small effect item on the target, the shape of the system's
+ * own bestiary effects (Effect: Hamstring: `type: "effect"`, a
+ * `system.duration`, one FlatModifier rule per selector). The item's own
+ * duration expires it -- the system's effect handling, not a module sweep
+ * (unlike conditions, which carry no duration). The NPC is the effect's
+ * origin, so the system counts its duration from the NPC's turn. Throws on
+ * a failed creation (the caller reports it). */
+async function applyTimedPenalty(combatant, item, target, penalty) {
+  const source = {
+    name: `${item?.name ?? "NPC ability"} (penalty)`,
+    type: "effect",
+    img: item?.img ?? "icons/svg/downgrade.svg",
+    system: {
+      description: { value: `<p>${describeNpcPenalty(penalty)}, from ${item?.name ?? "an NPC ability"}.</p>` },
+      duration: npcPenaltyEffectDuration(penalty.durationSeconds),
+      level: { value: combatant.actor?.level ?? 0 },
+      rules: penalty.selectors.map((selector) => ({
+        key: "FlatModifier",
+        selector,
+        type: penalty.type,
+        value: penalty.value,
+      })),
+      tokenIcon: { show: true },
+      traits: { value: [] },
+      context: {
+        origin: {
+          actor: combatant.actor?.uuid ?? null,
+          token: combatant.token?.uuid ?? null,
+          item: item?.uuid ?? null,
+          spellcasting: null,
+          rollOptions: [],
+        },
+        target: { actor: target.actor?.uuid ?? null, token: target.token?.uuid ?? null },
+        roll: null,
+      },
+    },
+    flags: { [MODULE_ID]: { npcAbilityPenalty: true } },
+  };
+  await target.actor.createEmbeddedDocuments("Item", [source]);
+}
+
 /** #915: applies one parsed degree to one target and returns a short GM
  * description. A condition with no duration of its own (Frightened) is left
  * to its own decay (Frightened: #943's end-of-turn hook); one with a
@@ -9792,6 +9847,16 @@ async function applyNpcAbilityDegree(combat, combatant, item, target, degree) {
       applied.push(`${name} FAILED -- apply by hand`);
     }
   }
+  for (const penalty of degree.none ? [] : (degree.penalties ?? [])) {
+    const label = describeNpcPenalty(penalty);
+    try {
+      await applyTimedPenalty(combatant, item, target, penalty);
+      applied.push(label);
+    } catch (err) {
+      console.error(`${MODULE_ID} | #935: applying ${label} failed:`, err?.message);
+      applied.push(`${label} FAILED -- apply by hand`);
+    }
+  }
   if (degree.immuneSeconds) {
     await setNpcAbilityImmunityUntil(
       combat,
@@ -9807,9 +9872,10 @@ async function applyNpcAbilityDegree(combat, combatant, item, target, degree) {
 /** #915: executes a chosen NPC save ability: re-resolves its targets,
  * spends frequency/recharge (as the system's own use-action card and the
  * breath weapons do), posts the ability card, then rolls each target's save
- * and -- in `auto` mode -- applies that degree (`asFailure` reads the
- * failure block). `reportOnly` applies nothing; the GM gets each degree's
- * own text instead. One target's failure never stops the others. Returns
+ * and -- in `auto` mode -- applies that degree ("As <degree>" blocks are
+ * already resolved by the parser). `reportOnly` applies nothing; the GM
+ * gets each degree's own text instead. A target outside the ability's
+ * stated targets ("Any non-boggard") is unaffected (#935). One target's failure never stops the others. Returns
  * `{ performed }`: false (no action spent) only when the item or every
  * target is gone. */
 async function executeNpcAbilityCandidate(combat, combatant, candidate) {
@@ -9847,6 +9913,10 @@ async function executeNpcAbilityCandidate(combat, combatant, candidate) {
         results.push({ targetId: target.id, text: "immune" });
         continue;
       }
+      if (npcAbilityExcludesTarget(descriptor, target.actor)) {
+        results.push({ targetId: target.id, text: "unaffected" });
+        continue;
+      }
       const outcome = await rollNpcAbilitySave(combatant, target, item, descriptor);
       if (!outcome) {
         results.push({ targetId: target.id, text: "no save result" });
@@ -9857,8 +9927,7 @@ async function executeNpcAbilityCandidate(combat, combatant, candidate) {
         await setNpcAbilityImmunityUntil(combat, item.id, target.id, worldTime + descriptor.immuneSeconds);
       }
       if (descriptor.mode === "auto") {
-        let degree = descriptor.degrees[outcome];
-        if (degree?.asFailure) degree = descriptor.degrees.failure;
+        const degree = descriptor.degrees[outcome];
         const applied = await applyNpcAbilityDegree(combat, combatant, item, target, degree);
         results.push({ targetId: target.id, outcome, applied });
       } else {
@@ -9873,6 +9942,9 @@ async function executeNpcAbilityCandidate(combat, combatant, candidate) {
     }
   }
   if (descriptor.riderText) gmLines.push(`Also applies (by hand): ${descriptor.riderText}`);
+  // #935: where an automatic outcome came from, for the GM's review.
+  if (descriptor.mode === "auto" && descriptor.family === "inline") gmLines.push("Outcome parsed from the ability's inline text");
+  if (descriptor.mode === "auto" && descriptor.family === "override") gmLines.push("Outcome from the reviewed override table");
   return { performed: true, results, gmNote: gmLines.join("\n") };
 }
 
