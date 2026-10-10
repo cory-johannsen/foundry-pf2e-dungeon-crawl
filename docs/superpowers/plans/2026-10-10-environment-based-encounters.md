@@ -154,7 +154,7 @@ describe("pickRandomEnvironment", () => {
   - `resolveEncounterRoster` tallies `environmentMatch` of every **accepted** foe/friend/lurker/twin (local `envTally = { strict, adjacent, dropped }`) and, when `adjacent + dropped > 0`, pushes a warning: `Environment: ${adjacent+dropped} of ${total} creatures from ${dropped ? "outside the chosen" : "adjacent"} environment${…}` — concretely: `adjacent` only → `Environment: N of T creatures from adjacent environments.`; any `dropped` → `Environment: N of T creatures outside the chosen environment (no fitting creatures at this level).` where N counts adjacent+dropped (use the second text if `dropped > 0`).
   - `appliedFilters` becomes `["levelRange","rarity","xpCapOverride","environment"]`.
 
-- [ ] **Step 1: Write failing tests** with a stub `api.findCreatures(q)` returning pools from a table keyed by `q.packs`/`q.traits.length` and a lookup built via `buildEnvironmentLookup`:
+- [x] **Step 1: Write failing tests** with a stub `api.findCreatures(q)` returning pools from a table keyed by `q.packs`/`q.traits.length` and a lookup built via `buildEnvironmentLookup`:
   - strict hit (creature mapped to the environment) → chosen, `environmentMatch: "strict"`, no note.
   - strict empty, adjacent hit → `"adjacent"` and the adjacent note with right counts.
   - both empty → pass 3 unfiltered → `"dropped"`; `dropped` note text.
@@ -164,8 +164,8 @@ describe("pickRandomEnvironment", () => {
   - `environment: null` and `environment: "bogus"` → the recorded `findCreatures` call list is **deep-equal** to the call list of a run without the new params (golden), and the chosen entry has no `environmentMatch` key; RNG called the same number of times (use a counting `rng`).
   - boss path: `isBoss` first slot uses the boss steps inside each pass.
   - roster-level: a 4-foe roster with 2 adjacent picks yields exactly one note `Environment: 2 of 4 creatures from adjacent environments.`; all-strict yields none; `appliedFilters` includes `"environment"`.
-- [ ] **Step 2: Run, FAIL. Step 3: Implement** (factor the step list into a local array of thunks so the chain isn't duplicated). **Step 4:** `npx vitest run tests/encounter-roster-environment.test.mjs tests/encounter-roster.test.mjs tests/encounter-roster-force-filters.test.mjs` then `npm test` → PASS.
-- [ ] **Step 5: Commit** — `git commit -am "#1272: environment-aware creature selection with strict/adjacent/dropped fallback"`
+- [x] **Step 2: Run, FAIL. Step 3: Implement** (factor the step list into a local array of thunks so the chain isn't duplicated). **Step 4:** `npx vitest run tests/encounter-roster-environment.test.mjs tests/encounter-roster.test.mjs tests/encounter-roster-force-filters.test.mjs` then `npm test` → PASS.
+- [x] **Step 5: Commit** — `git commit -am "#1272: environment-aware creature selection with strict/adjacent/dropped fallback"`
 
 ### Task 3: Map data file, loader, schema test
 

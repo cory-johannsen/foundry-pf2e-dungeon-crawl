@@ -64,3 +64,10 @@ describe("pickRandomEnvironment", () => {
   });
   it("null when nothing is mapped", () => { expect(pickRandomEnvironment("s", new Map())).toBeNull(); });
 });
+
+describe("widenEnvironments inherited keys", () => {
+  it("does not throw or use prototype members", () => {
+    expect(widenEnvironments("constructor")).toEqual([["constructor"], ["constructor"]]);
+    expect(widenEnvironments("toString")).toEqual([["toString"], ["toString"]]);
+  });
+});

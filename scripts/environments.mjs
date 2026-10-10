@@ -52,7 +52,7 @@ export function creatureFitsEnvironment(entry, environment, lookup) {
 }
 
 export function widenEnvironments(environment) {
-  const adj = ADJACENCY[environment] ?? [];
+  const adj = Object.hasOwn(ADJACENCY, environment) ? ADJACENCY[environment] : [];
   return [[environment], [...new Set([environment, ...adj])]];
 }
 
