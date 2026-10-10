@@ -116,6 +116,22 @@ describe("generateCombatCandidates", () => {
     expect(content).toMatch(/summary/);
   });
 
+  it("puts npcMove in the type enum and tells the model how to read a movement-ability entry (#932)", async () => {
+    const vocab = [
+      { type: "npcMove", kind: "move", itemId: "i1", slug: "gallop", name: "Gallop", cost: 2, posture: "approach", targetId: "opp1", summary: "Stride twice, 100 ft in all toward Goblin; can trigger reactions" },
+    ];
+    const fetchImpl = fakeFetch({ picks: [] });
+    await generateCombatCandidates(context, vocab, { ...OPTS, fetchImpl });
+    const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    const itemProps = body.tools[0].function.parameters.properties.picks.items.properties;
+    expect(itemProps.type.enum).toEqual(["npcMove"]);
+    expect(itemProps.slug.enum).toEqual(["gallop"]);
+    const content = body.messages[0].content;
+    expect(content).toContain('type "npcMove"');
+    expect(content).toMatch(/teleport/);
+    expect(content).toMatch(/reactions/);
+  });
+
   it("throws when the upstream request fails", async () => {
     const fetchImpl = fakeFetch({}, { ok: false, status: 500 });
     await expect(generateCombatCandidates(context, vocabulary, { ...OPTS, fetchImpl })).rejects.toThrow(
