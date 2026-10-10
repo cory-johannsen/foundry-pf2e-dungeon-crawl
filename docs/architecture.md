@@ -20,7 +20,7 @@ across the module rather than being a one-off pattern:
   functions over plain data, fully unit-testable without a live world.
   `dungeon-deck.mjs`, `trap-mechanics.mjs`, `puzzle-mechanics.mjs`,
   `skill-challenge-mechanics.mjs`, `treasure.mjs`, `room-feature-tokens.mjs`, `agent-candidates.mjs`,
-  `maneuver-feat-modifiers.mjs`, `npc-ability-parse.mjs`, `npc-move-parse.mjs`, `self-effect-denylist.mjs`, `self-effect-summary.mjs`,
+  `maneuver-feat-modifiers.mjs`, `npc-ability-parse.mjs`, `npc-move-parse.mjs`, `npc-strike-shapes.mjs`, `self-effect-denylist.mjs`, `self-effect-summary.mjs`,
   `targeted-feat-actions.mjs`, `antagonize.mjs`, `npc-reactions.mjs`, `combat-rewards.mjs`, `dungeon-follow-mechanics.mjs`, `cover-items.mjs`,
   `encounter-deck.mjs`, `dungeon-layout.mjs`, and `dungeon-retreat.mjs` are all this shape.
 - A **Foundry-glue** file that touches `game`/`Actor`/`ChatMessage`/`Scene`
@@ -69,7 +69,7 @@ sequencing/roster logic without this one caring.
 
 **Combat automation** (`dungeon-combat.mjs`, `stealth-detection.mjs`,
 `combat-rewards.mjs`, `agent-candidates.mjs`, `agent-action-display.mjs`, `maneuver-feat-modifiers.mjs`,
-`npc-ability-parse.mjs`, `npc-move-parse.mjs`, `self-effect-denylist.mjs`, `self-effect-summary.mjs`,
+`npc-ability-parse.mjs`, `npc-move-parse.mjs`, `npc-strike-shapes.mjs`, `self-effect-denylist.mjs`, `self-effect-summary.mjs`,
 `targeted-feat-actions.mjs`, `antagonize.mjs`, `npc-reactions.mjs`, `dungeon-strike-riders.mjs`, `dungeon-critical-deck.mjs`,
 `flanking-indicator.mjs`, `dungeon-leveling.mjs`) — wires a spawned encounter into a real PF2e
 `Combat`, and auto-applies whatever Critical Hit/Fumble Deck directives
@@ -141,7 +141,12 @@ rolled and reported to the GM otherwise) and NPC movement-ability (#932:
 Gallop, Swift Leap, Swoop, Eagle Dive, Phase Jump and the like, recognized
 by the pure `npc-move-parse.mjs` closed grammar; `dungeon-combat.mjs` plans
 the route, Strike point or teleport square and resolves move-triggered
-reactions at the square they fire on) vocabulary, with a
+reactions at the square they fire on) and NPC Strike-plus (#933: Death
+Roll, Constrict, Gnaw, Wide Swing, Broad Swipe, Mangling Rend, Hurl Net,
+Rend and the like, recognized by the pure `npc-strike-shapes.mjs` named
+shapes, which reuse `npc-ability-parse.mjs`'s degree grammar; the grab
+follow-ups read the who-grabbed-whom record `dungeon-strike-riders.mjs`
+keeps on the Combat) vocabulary, with a
 response schema built per request from that vocabulary; Foundry
 re-validates every pick against it before it becomes a candidate. Exposes
 `GET /v1/health`, `POST /v1/combat-decision`, `POST /v1/flavor-customization`,
@@ -293,6 +298,7 @@ graph LR
     scripts_npc_ability_parse_mjs["npc-ability-parse.mjs"]
     scripts_npc_move_parse_mjs["npc-move-parse.mjs"]
     scripts_npc_reactions_mjs["npc-reactions.mjs"]
+    scripts_npc_strike_shapes_mjs["npc-strike-shapes.mjs"]
     scripts_self_effect_denylist_mjs["self-effect-denylist.mjs"]
     scripts_self_effect_summary_mjs["self-effect-summary.mjs"]
     scripts_stealth_detection_mjs["stealth-detection.mjs"]
@@ -366,6 +372,7 @@ graph LR
   scripts_dungeon_combat_mjs --> scripts_agent_candidates_mjs
   scripts_dungeon_combat_mjs --> scripts_npc_ability_parse_mjs
   scripts_dungeon_combat_mjs --> scripts_npc_move_parse_mjs
+  scripts_dungeon_combat_mjs --> scripts_npc_strike_shapes_mjs
   scripts_dungeon_combat_mjs --> scripts_pathfinding_mjs
   scripts_dungeon_combat_mjs --> scripts_placement_mjs
   scripts_dungeon_combat_mjs --> scripts_token_walk_mjs
@@ -478,6 +485,7 @@ graph LR
   scripts_module_mjs --> scripts_default_generator_mjs
   scripts_module_mjs --> scripts_world_macros_mjs
   scripts_npc_ability_parse_mjs --> scripts_agent_candidates_mjs
+  scripts_npc_strike_shapes_mjs --> scripts_npc_ability_parse_mjs
   scripts_player_choice_mjs --> scripts_choice_prompts_mjs
   scripts_puzzle_mechanics_mjs --> scripts_skill_challenge_mechanics_mjs
   scripts_skill_challenge_mechanics_mjs --> scripts_prng_mjs

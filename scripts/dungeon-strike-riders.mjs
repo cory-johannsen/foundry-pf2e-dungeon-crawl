@@ -275,13 +275,159 @@ function applyConditionOnSuccess(target, conditionSlug, conditionLabel) {
  * `drain-life` and the rest of #51's slug list are handled elsewhere (or
  * not yet); each is its own follow-up mechanic per that issue's own scope.
  */
-export async function resolveGrabRider(combatant, target, strike, outcome) {
+export async function resolveGrabRider(combatant, target, strike, outcome, combat = null) {
+  const applyGrabbed = applyConditionOnSuccess(target, "grabbed", "Grabbed");
   return resolveAthleticsRider(combatant, target, strike, outcome, {
     slugs: GRAB_RIDER_SLUGS,
     saveKey: "fortitude",
-    onSuccess: applyConditionOnSuccess(target, "grabbed", "Grabbed"),
+    onSuccess: async (rollOutcome) => {
+      const text = await applyGrabbed(rollOutcome);
+      // #933: who grabbed whom, and with which body part (the Strike the
+      // Grab rides on -- "has a creature Grabbed with its talons").
+      if (combat) {
+        await recordGrab(combat, combatant, target, {
+          limb: strike?.item?.slug ?? strike?.slug ?? strike?.label ?? null,
+        });
+      }
+      return text;
+    },
     label: "Grapple",
   });
+}
+
+// --- #933: grab-state tracking ------------------------------------------
+
+const GRABS_FLAG = "grabs";
+const MODULE_ID = "pf2e-dungeon-crawl";
+
+/** The `grabbed`/`restrained` conditions a grab can leave on its target --
+ * the abilities that need "a creature it has Grabbed" accept either
+ * (Restrained overrides Grabbed; Constrict's glossary names both). */
+export const GRAB_CONDITION_SLUGS = Object.freeze(["grabbed", "restrained"]);
+
+function actorHasAnyCondition(actor, slugs) {
+  const conditions = Array.from(actor?.conditions ?? []);
+  return conditions.some((c) => slugs.includes(c?.slug));
+}
+
+function readGrabs(combat) {
+  const stored = combat?.getFlag?.(MODULE_ID, GRABS_FLAG);
+  return stored && typeof stored === "object" && !Array.isArray(stored) ? stored : {};
+}
+
+/**
+ * #933: records that `grabber` (a combatant) has `target` (a combatant)
+ * Grabbed/Restrained -- PF2e's own `increaseCondition("grabbed")` carries
+ * no origin, and the grab follow-up abilities (Wrestle, Death Roll, Gnaw,
+ * Constrict) all need to know who holds whom. One entry per grabber (one
+ * grabbed creature at a time is the supported case), on the Combat document
+ * so it ends with the fight. `limb` is the body part the grab was made
+ * with (the Grab rider's Strike), or null (the Grapple action).
+ */
+export async function recordGrab(combat, grabber, target, { limb = null } = {}) {
+  if (!combat || !grabber?.id || !target?.id) return;
+  const grabs = readGrabs(combat);
+  await combat.setFlag(MODULE_ID, GRABS_FLAG, {
+    ...grabs,
+    [grabber.id]: {
+      targetId: target.id,
+      targetActorUuid: target.actor?.uuid ?? null,
+      limb: limb ? String(limb).toLowerCase() : null,
+      round: combat.round ?? 0,
+    },
+  });
+}
+
+/** #933: forgets `grabberId`'s grab record (no condition change). */
+export async function clearGrab(combat, grabberId) {
+  const grabs = readGrabs(combat);
+  if (!(grabberId in grabs)) return;
+  const { [grabberId]: _removed, ...rest } = grabs;
+  await combat.setFlag(MODULE_ID, GRABS_FLAG, rest);
+}
+
+/** #933: forgets every grab record that involves `combatantId` as grabber
+ * or target -- that creature was defeated or left the fight. */
+export async function clearGrabsInvolving(combat, combatantId) {
+  const grabs = readGrabs(combat);
+  const rest = Object.fromEntries(
+    Object.entries(grabs).filter(([grabberId, g]) => grabberId !== combatantId && g?.targetId !== combatantId),
+  );
+  if (Object.keys(rest).length !== Object.keys(grabs).length) {
+    await combat.setFlag(MODULE_ID, GRABS_FLAG, rest);
+  }
+}
+
+/** #933: the raw grab record for `grabberId`, or null. */
+export function grabRecordOf(combat, grabberId) {
+  return readGrabs(combat)[grabberId] ?? null;
+}
+
+/**
+ * #933: the creature `grabber` really has Grabbed/Restrained right now --
+ * `{ record, target }` -- or null when the record is missing or stale: the
+ * target left the combat or was defeated, the grabber was defeated, or the
+ * target no longer carries Grabbed/Restrained. Every grab follow-up reads
+ * through this, so a record a cleanup path missed can never unlock one.
+ */
+export function currentGrabTarget(combat, grabber) {
+  if (!combat || !grabber || grabber.isDefeated) return null;
+  const record = grabRecordOf(combat, grabber.id);
+  if (!record) return null;
+  const target = Array.from(combat.combatants ?? []).find((c) => c.id === record.targetId);
+  if (!target || target.isDefeated || !target.actor) return null;
+  if (!actorHasAnyCondition(target.actor, GRAB_CONDITION_SLUGS)) return null;
+  return { record, target };
+}
+
+/**
+ * #933: RAW (Player Core, Grapple; the Grab glossary): the creature stays
+ * grabbed "unless you move" -- when the grabber moves, the grab ends. Removes
+ * the Grabbed/Restrained the module applied and forgets the record. Also the
+ * "it releases the creature" of Death Roll's failure. Never throws.
+ */
+export async function releaseGrab(combat, grabber) {
+  try {
+    const record = grabRecordOf(combat, grabber?.id);
+    if (!record) return false;
+    const target = Array.from(combat.combatants ?? []).find((c) => c.id === record.targetId);
+    await clearGrab(combat, grabber.id);
+    for (const slug of GRAB_CONDITION_SLUGS) {
+      if (actorHasAnyCondition(target?.actor, [slug])) {
+        await target.actor.decreaseCondition?.(slug, { forceRemove: true });
+      }
+    }
+    return true;
+  } catch (err) {
+    console.error(`${MODULE_ID} | #933: releasing a grab failed:`, err?.message);
+    return false;
+  }
+}
+
+/**
+ * #933: `deleteItem` hook body -- when a Grabbed/Restrained condition leaves
+ * an actor (it Escaped, the GM removed it, a release), every grab record
+ * that targets that actor in any combat is forgotten, unless the actor still
+ * carries the other grab condition. Active GM only (`isGm`). Never throws.
+ */
+export async function handleGrabConditionRemoved(item, { combats = [], isGm = true } = {}) {
+  try {
+    if (!isGm) return;
+    if (item?.type !== "condition" || !GRAB_CONDITION_SLUGS.includes(item.slug)) return;
+    const actor = item.actor ?? item.parent;
+    if (!actor || actorHasAnyCondition(actor, GRAB_CONDITION_SLUGS)) return;
+    for (const combat of combats) {
+      const grabs = readGrabs(combat);
+      for (const [grabberId, record] of Object.entries(grabs)) {
+        const target = Array.from(combat.combatants ?? []).find((c) => c.id === record?.targetId);
+        const sameActor =
+          (record?.targetActorUuid && record.targetActorUuid === actor.uuid) || target?.actor === actor;
+        if (sameActor) await clearGrab(combat, grabberId);
+      }
+    }
+  } catch (err) {
+    console.error(`${MODULE_ID} | #933: grab-condition cleanup failed:`, err?.message);
+  }
 }
 
 /**

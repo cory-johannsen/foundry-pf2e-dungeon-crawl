@@ -94,6 +94,7 @@ const GROUPS = [
         "scripts/maneuver-feat-modifiers.mjs",
         "scripts/npc-ability-parse.mjs",
         "scripts/npc-move-parse.mjs",
+        "scripts/npc-strike-shapes.mjs",
         "scripts/self-effect-denylist.mjs",
         "scripts/self-effect-summary.mjs",
         "scripts/targeted-feat-actions.mjs",

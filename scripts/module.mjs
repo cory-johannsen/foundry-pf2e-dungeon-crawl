@@ -76,6 +76,7 @@ import {
   sweepAntagonizeFloors,
   handleFrightenedRemovedForAntagonize,
   clearAntagonizeForCombat,
+  handleGrabConditionRemovedForGrabState,
 } from "./dungeon-combat.mjs";
 import { subtractXpOnLevelUp } from "./dungeon-leveling.mjs";
 import {
@@ -794,6 +795,11 @@ Hooks.on("createChatMessage", handleStealthBreakMessage);
 Hooks.on("createChatMessage", handleDemoralizeForAntagonize);
 Hooks.on("createChatMessage", handleAntagonizeHostileMessage);
 Hooks.on("deleteItem", handleFrightenedRemovedForAntagonize);
+
+/** #933: a Grabbed/Restrained condition removed from an actor (Escape, the
+ * GM, a release) ends the module's record of who grabbed it. Active GM
+ * only, handled inside. */
+Hooks.on("deleteItem", handleGrabConditionRemovedForGrabState);
 
 Hooks.on("getSceneControlButtons", (controls) => {
   const tokenControl = findTokenControl(controls);

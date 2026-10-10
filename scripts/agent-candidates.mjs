@@ -1362,8 +1362,86 @@ export function buildNpcMoveCandidates({ npcMoveVocabulary = [], picks = null, o
   return candidates;
 }
 
+/** #933: at most this many NPC Strike-plus entries go to the reasoning model
+ * per turn. */
+export const NPC_STRIKE_VOCABULARY_CAP = 8;
+
+/**
+ * #933: the NPC Strike-plus vocabulary (Death Roll, Constrict, Wide Swing,
+ * Mangling Rend, Hurl Net, Rend, ...), built from dungeon-combat.mjs's ready
+ * entries (this file has no Foundry API surface). Each entry is one parsed
+ * ability (npc-strike-shapes.mjs) the creature can use now, with the target
+ * groups dungeon-combat.mjs found legal on the board (`options`, each
+ * `{ targetIds }`: reach, line of sight, size, adjacency, the live grab
+ * record, the turn's Strike log for Rend). A vocabulary entry's `targetId`
+ * is the group's first (primary) target -- the response schema carries one
+ * targetId per pick -- and `targetIds` the whole group. An entry whose
+ * flourish trait is spent this turn is dropped. Capped at
+ * NPC_STRIKE_VOCABULARY_CAP, interleaved across abilities.
+ */
+export function buildNpcStrikeVocabulary({ npcStrikeEntries = [], opponents = [], turnState = null, describe = null }) {
+  const blocked = (traits = []) =>
+    (turnState?.flourishUsed && traits.includes('flourish')) ||
+    (turnState?.stanceUsed && traits.includes('stance'));
+  const nameOf = (id) => opponents.find((o) => o.id === id)?.name ?? null;
+  const ranked = [];
+  for (const entry of npcStrikeEntries) {
+    if (blocked(entry.traits)) continue;
+    (entry.options ?? []).forEach(({ targetIds }, rank) => {
+      if (!Array.isArray(targetIds) || !targetIds.length) return;
+      const names = targetIds.map(nameOf);
+      if (names.some((n) => !n)) return;
+      const summary = describe ? describe(entry, names) : `${entry.name} vs ${names.join(', ')}`;
+      ranked.push({
+        rank,
+        entry: {
+          type: 'npcStrike', shape: entry.shape, itemId: entry.itemId, slug: entry.slug, name: entry.name,
+          cost: entry.cost, targetId: targetIds[0], targetIds: [...targetIds], traits: entry.traits ?? [], summary,
+        },
+      });
+    });
+  }
+  return ranked
+    .map((r, index) => ({ ...r, index }))
+    .sort((a, b) => a.rank - b.rank || a.index - b.index)
+    .slice(0, NPC_STRIKE_VOCABULARY_CAP)
+    .sort((a, b) => a.index - b.index)
+    .map((r) => r.entry);
+}
+
+/**
+ * #933: validates the combined once-per-turn picks against
+ * `npcStrikeVocabulary`, ignoring any pick whose `type` isn't 'npcStrike'.
+ * A pick names (slug, targetId) -- the group's primary target; an `itemId`
+ * the model volunteers must agree; a pick any of whose targets is gone is
+ * dropped. The candidate id carries the whole target group.
+ */
+export function buildNpcStrikeCandidates({ npcStrikeVocabulary = [], picks = null, opponents = null }) {
+  if (!picks) return [];
+  const candidates = [];
+  const seen = new Set();
+  for (const pick of picks) {
+    if (!pick || typeof pick !== 'object' || pick.type !== 'npcStrike') continue;
+    const targetId = pick.targetId || null;
+    for (const match of npcStrikeVocabulary.filter((v) => v.slug === pick.slug && v.targetId === targetId)) {
+      if (pick.itemId !== undefined && pick.itemId !== match.itemId) continue;
+      if (opponents && match.targetIds.some((id) => !opponents.some((o) => o.id === id))) continue;
+      const id = `npcStrike:${match.itemId}:${match.targetIds.join(',')}`;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      const label = `${match.name}: ${match.summary}`;
+      candidates.push({
+        id, type: 'npcStrike', shape: match.shape, itemId: match.itemId, slug: match.slug, name: match.name,
+        targetId: match.targetId, targetIds: [...match.targetIds], cost: match.cost, traits: match.traits ?? [],
+        summary: pick.rationale ? `${label} — ${pick.rationale}` : label,
+      });
+    }
+  }
+  return candidates;
+}
+
 /** Full candidate list for one decision iteration. */
-export function buildCandidateList({ opponents, readyActions, readySpells = [], readyAreaSpells = [], readyAttackSpells = [], readyDebuffSpells = [], readyBreathWeapons = [], readyMultiStrikeBundles = [], readyChainSpells = [], readyHealSpells = [], readyBuffSpells = [], readyTierScalingAreaSpells = [], readyDualNatureSpells = [], readyTargetCountSpells = [], readyAutoHitAreaSpells = [], allies = [], seekTargets = [], turnState, hazard = null, hasRangedOrReach = false, maneuverVocabulary = [], maneuverPicks = null, featVocabulary = [], npcAbilityVocabulary = [], npcMoveVocabulary = [] }) {
+export function buildCandidateList({ opponents, readyActions, readySpells = [], readyAreaSpells = [], readyAttackSpells = [], readyDebuffSpells = [], readyBreathWeapons = [], readyMultiStrikeBundles = [], readyChainSpells = [], readyHealSpells = [], readyBuffSpells = [], readyTierScalingAreaSpells = [], readyDualNatureSpells = [], readyTargetCountSpells = [], readyAutoHitAreaSpells = [], allies = [], seekTargets = [], turnState, hazard = null, hasRangedOrReach = false, maneuverVocabulary = [], maneuverPicks = null, featVocabulary = [], npcAbilityVocabulary = [], npcMoveVocabulary = [], npcStrikeVocabulary = [] }) {
   if (turnState.actionsRemaining <= 0) return [endTurnCandidate()];
   return [
     ...buildMovementCandidates({ opponents, hazard, hasRangedOrReach }),
@@ -1372,6 +1450,7 @@ export function buildCandidateList({ opponents, readyActions, readySpells = [], 
     ...buildFeatCandidates({ featVocabulary, picks: maneuverPicks, opponents }),
     ...buildNpcAbilityCandidates({ npcAbilityVocabulary, picks: maneuverPicks, opponents }),
     ...buildNpcMoveCandidates({ npcMoveVocabulary, picks: maneuverPicks, opponents }),
+    ...buildNpcStrikeCandidates({ npcStrikeVocabulary, picks: maneuverPicks, opponents }),
     ...buildSpellCandidates({ readySpells, opponents, actionsRemaining: turnState.actionsRemaining }),
     ...buildAreaSpellCandidates({ readyAreaSpells, actionsRemaining: turnState.actionsRemaining }),
     ...buildAttackSpellCandidates({ readyAttackSpells, opponents, actionsRemaining: turnState.actionsRemaining }),
@@ -1405,9 +1484,11 @@ export function applyCandidateToTurnState(turnState, candidate) {
     mapIncrement += 1;
   }
   const next = { ...turnState, actionsRemaining: turnState.actionsRemaining - candidate.cost, mapIncrement };
-  if (candidate.type === 'feat' || candidate.type === 'npcMove') {
+  if (candidate.type === 'feat' || candidate.type === 'npcMove' || candidate.type === 'npcStrike') {
     // #932: a movement ability's Strike (Swoop, Rush, Eagle Dive) counts
     // toward MAP the same way.
+    // #933: so do a Strike-plus ability's attacks, by its own MAP rule (Wide
+    // Swing "counts as two attacks"; Constrict and Rend are no attacks).
     // #910: a composite feat's executor reports how many Strikes it really
     // made (Sudden Charge may end out of reach and make none) -- each one
     // counts toward MAP like any other attack this turn.

@@ -183,6 +183,23 @@ describe("describeAgentAction", () => {
       .toEqual({ text: "teleported", tone: "neutral" });
   });
 
+  it("describes a Strike-plus ability, per target when it has several (#933)", () => {
+    const single = { type: "npcStrike", shape: "strikeAgainstGrabbed", name: "Death Roll", targetId: "t1", targetIds: ["t1"], summary: "Death Roll: jaws Strike on grabbed Goblin — r" };
+    expect(publicActionLabel(single)).toBe("Death Roll");
+    const one = describe2(single, { performed: true, attacks: 1, results: [{ targetId: "t1", text: "hit; prone", tone: "success" }], gmNote: null });
+    expect(one).toMatchObject({ summary: "Death Roll", targetName: "Goblin", result: { text: "hit; prone", tone: "success" } });
+    const multi = { type: "npcStrike", shape: "singleRollMultiAC", name: "Wide Swing", targetId: "t1", targetIds: ["t1", "t2"] };
+    const two = describe2(multi, {
+      performed: true,
+      results: [
+        { targetId: "t1", text: "hit", tone: "success" },
+        { targetId: "t2", text: "miss", tone: "failure" },
+      ],
+      gmNote: "One attack roll (25) compared to each target's AC.",
+    });
+    expect(two).toMatchObject({ targetName: null, result: { text: "Goblin: hit; Orc: miss", tone: "neutral" }, gmNote: "One attack roll (25) compared to each target's AC." });
+  });
+
   it("describes endTurn", () => {
     expect(describe2({ type: "endTurn", summary: "End turn" }, undefined).result).toEqual({ text: "ends turn", tone: "neutral" });
   });
