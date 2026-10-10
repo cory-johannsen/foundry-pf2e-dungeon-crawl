@@ -61,11 +61,16 @@ door) each room's actual spawned content.
 
 **Encounter generation** (`encounter-generator.mjs`, `encounter-deck.mjs`,
 `encounter-roster.mjs`, `generator-registry.mjs`, `default-generator.mjs`,
-`creature-art.mjs`, `trait-picker.mjs`, `cover-items.mjs`) — the abstract
+`creature-art.mjs`, `trait-picker.mjs`, `cover-items.mjs`, `force-budget.mjs`,
+`force-hostility.mjs`, `encounter-forces-dialog.mjs`) — the abstract
 Encounter Deck (level-relative math, no bestiary knowledge) resolved
 against the live PF2e bestiary into real creatures, behind a swappable
 `generator-registry.mjs` contract so another module could supply its own
-sequencing/roster logic without this one caring.
+sequencing/roster logic without this one caring. Multi-force stand-alone
+encounters (#1083) add three files: `force-budget.mjs` (pure share/budget
+splitting), `force-hostility.mjs` (pure force-vs-force hostility relation and
+retaliation, consumed by `dungeon-combat.mjs`), and `encounter-forces-dialog.mjs`
+(the force-editing dialog, used by `encounter-generator.mjs`).
 
 **Combat automation** (`dungeon-combat.mjs`, `stealth-detection.mjs`,
 `combat-rewards.mjs`, `agent-candidates.mjs`, `agent-action-display.mjs`, `maneuver-feat-modifiers.mjs`,
@@ -405,8 +410,11 @@ graph LR
     scripts_creature_art_mjs["creature-art.mjs"]
     scripts_default_generator_mjs["default-generator.mjs"]
     scripts_encounter_deck_mjs["encounter-deck.mjs"]
+    scripts_encounter_forces_dialog_mjs["encounter-forces-dialog.mjs"]
     scripts_encounter_generator_mjs["encounter-generator.mjs"]
     scripts_encounter_roster_mjs["encounter-roster.mjs"]
+    scripts_force_budget_mjs["force-budget.mjs"]
+    scripts_force_hostility_mjs["force-hostility.mjs"]
     scripts_generator_registry_mjs["generator-registry.mjs"]
     scripts_trait_picker_mjs["trait-picker.mjs"]
   end
@@ -462,6 +470,7 @@ graph LR
   scripts_default_generator_mjs --> scripts_dungeon_deck_mjs
   scripts_default_generator_mjs --> scripts_encounter_roster_mjs
   scripts_dungeon_combat_mjs --> scripts_foundry_api_mjs
+  scripts_dungeon_combat_mjs --> scripts_force_hostility_mjs
   scripts_dungeon_combat_mjs --> scripts_dungeon_runner_mjs
   scripts_dungeon_combat_mjs --> scripts_ai_history_journals_mjs
   scripts_dungeon_combat_mjs --> scripts_ai_history_pages_mjs
@@ -547,20 +556,25 @@ graph LR
   scripts_dungeon_sound_mjs --> scripts_audio_mjs
   scripts_dungeon_stub_oracle_mjs --> scripts_dungeon_layout_mjs
   scripts_encounter_deck_mjs --> scripts_prng_mjs
+  scripts_encounter_forces_dialog_mjs --> scripts_trait_picker_mjs
+  scripts_encounter_forces_dialog_mjs --> scripts_force_budget_mjs
+  scripts_encounter_forces_dialog_mjs --> scripts_encounter_roster_mjs
   scripts_encounter_generator_mjs --> scripts_foundry_api_mjs
   scripts_encounter_generator_mjs --> scripts_encounter_deck_mjs
   scripts_encounter_generator_mjs --> scripts_generator_registry_mjs
   scripts_encounter_generator_mjs --> scripts_data_loader_mjs
   scripts_encounter_generator_mjs --> scripts_creature_art_mjs
-  scripts_encounter_generator_mjs --> scripts_trait_picker_mjs
   scripts_encounter_generator_mjs --> scripts_dungeon_combat_mjs
   scripts_encounter_generator_mjs --> scripts_cover_items_mjs
   scripts_encounter_generator_mjs --> scripts_encounter_roster_mjs
+  scripts_encounter_generator_mjs --> scripts_encounter_forces_dialog_mjs
+  scripts_encounter_generator_mjs --> scripts_force_budget_mjs
   scripts_feat_action_shapes_mjs --> scripts_npc_self_parse_mjs
   scripts_feat_action_shapes_mjs --> scripts_npc_ability_parse_mjs
   scripts_feat_action_shapes_mjs --> scripts_feat_action_overrides_mjs
   scripts_flanking_indicator_mjs --> scripts_placement_mjs
   scripts_foundry_api_mjs --> scripts_placement_mjs
+  scripts_foundry_api_mjs --> scripts_encounter_roster_mjs
   scripts_foundry_api_mjs --> scripts_prng_mjs
   scripts_foundry_api_mjs --> scripts_cover_items_mjs
   scripts_foundry_api_mjs --> scripts_trap_combat_mjs
