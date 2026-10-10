@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- **#931 is still plan-only.** Task 1 patches its own plan to add the `saveRolled`/`conditionIncoming` registry entries.
+- **Amended by #1021: #931 is real, merged code, not plan-only** (`scripts/npc-reactions.mjs`, confirmed live) — its real schema diverged from its own plan document during implementation (real rows: `{id, label, match: RegExp, triggers: string[], kind, priority, policy}`, no `eligible`/`execute` fields; the real dispatcher is `resolveReactions(combat, event, execute, opts)` in `dungeon-combat.mjs`, driven by a per-trigger collector that pre-builds `event.options`). Task 1 now edits the real registry file directly, and Task 3/Task 4's `resolveReactions` calls — originally written against a 2-argument shape the real function doesn't have — are fixed to use the real collect-then-resolve idiom (see those tasks).
 - `castSpellAndApplySave`/`castAreaSpellAndApplySaves` are real, merged code (confirmed live, `scripts/dungeon-combat.mjs:5130`/`5194`) — Task 3 edits them directly.
 - All entries are all-or-nothing: any reaction item whose text carries more than the modeled clause is not offered (spec's own stated rule).
 - Every merge bumps `module.json`'s version (CLAUDE.md).
@@ -32,30 +32,42 @@
 
 ---
 
-### Task 1: Patch #931's plan — `saveRolled`/`conditionIncoming` registry entries
+### Task 1: `saveRolled`/`conditionIncoming` registry entries — on the REAL registry
 
 **Files:**
-- Modify: `docs/superpowers/plans/2026-10-09-ai-npc-reactions.md`
+- Modify: `scripts/npc-reactions.mjs`
 
-- [ ] **Step 1: Add the eight new `REACTION_DEFS` entries**
+- [ ] **Step 1: Add the two new triggers**
 
 ```js
-// docs/superpowers/plans/2026-10-09-ai-npc-reactions.md's own REACTION_DEFS array -- append:
-{ id: "golden-luck", match: (item) => item.name === "Golden Luck", trigger: "saveRolled", kind: "ownSaveAdjust", priority: 10, eligible: null, policy: "always", execute: null },
-{ id: "reality-twist", match: (item) => item.name === "Reality Twist", trigger: "saveRolled", kind: "ownSaveAdjust", priority: 9, eligible: null, policy: "always", execute: null },
-{ id: "abrogation-of-consequences", match: (item) => item.name === "Abrogation of Consequences", trigger: "saveRolled", kind: "ownSaveAdjust", priority: 8, eligible: null, policy: "always", execute: null },
-{ id: "cats-luck", match: (item) => item.name === "Cat's Luck", trigger: "saveRolled", kind: "ownSaveAdjust", priority: 7, eligible: null, policy: "always", execute: null },
-{ id: "shift-fate", match: (item) => item.name === "Shift Fate", trigger: "saveRolled", kind: "otherSaveAdjust", priority: 5, eligible: null, policy: "always", execute: null },
-{ id: "distracting-frolic", match: (item) => item.name === "Distracting Frolic", trigger: "saveRolled", kind: "otherSaveAdjust", priority: 4, eligible: null, policy: "always", execute: null },
-{ id: "free-mind", match: (item) => item.name === "Free Mind", trigger: "saveRolled", kind: "otherSaveAdjust", priority: 3, eligible: null, policy: "always", execute: null },
-{ id: "slough-skin", match: (item) => item.name === "Slough Skin", trigger: "conditionIncoming", kind: "conditionNegate", priority: 1, eligible: null, policy: "always", execute: null },
+// scripts/npc-reactions.mjs -- extend REACTION_TRIGGERS (append after
+// whichever of "reducedToZero"/"died" #959/#1019 have already added)
+export const REACTION_TRIGGERS = Object.freeze([
+  "move", "strideEnd", "rangedAttack", "manual", "targetedByAttack", "damageIncoming",
+  "reducedToZero", "died", // #959/#1019
+  "saveRolled", "conditionIncoming", // #960
+]);
 ```
 
-- [ ] **Step 2: Commit the amendment**
+- [ ] **Step 2: Add the eight new `REACTION_DEFS` entries, in the real shape**
+
+```js
+// scripts/npc-reactions.mjs -- append to REACTION_DEFS
+Object.freeze({ id: "golden-luck", label: "Golden Luck", match: /^Golden Luck\b/i, triggers: ["saveRolled"], kind: "ownSaveAdjust", priority: 10, policy: always }),
+Object.freeze({ id: "reality-twist", label: "Reality Twist", match: /^Reality Twist\b/i, triggers: ["saveRolled"], kind: "ownSaveAdjust", priority: 9, policy: always }),
+Object.freeze({ id: "abrogation-of-consequences", label: "Abrogation of Consequences", match: /^Abrogation of Consequences\b/i, triggers: ["saveRolled"], kind: "ownSaveAdjust", priority: 8, policy: always }),
+Object.freeze({ id: "cats-luck", label: "Cat's Luck", match: /^Cat'?s Luck\b/i, triggers: ["saveRolled"], kind: "ownSaveAdjust", priority: 7, policy: always }),
+Object.freeze({ id: "shift-fate", label: "Shift Fate", match: /^Shift Fate\b/i, triggers: ["saveRolled"], kind: "otherSaveAdjust", priority: 5, policy: always }),
+Object.freeze({ id: "distracting-frolic", label: "Distracting Frolic", match: /^Distracting Frolic\b/i, triggers: ["saveRolled"], kind: "otherSaveAdjust", priority: 4, policy: always }),
+Object.freeze({ id: "free-mind", label: "Free Mind", match: /^Free Mind\b/i, triggers: ["saveRolled"], kind: "otherSaveAdjust", priority: 3, policy: always }),
+Object.freeze({ id: "slough-skin", label: "Slough Skin", match: /^Slough Skin\b/i, triggers: ["conditionIncoming"], kind: "conditionNegate", priority: 1, policy: always }),
+```
+
+- [ ] **Step 3: Commit**
 
 ```bash
-git add docs/superpowers/plans/2026-10-09-ai-npc-reactions.md
-git commit -m "docs(#960): amend #931's plan -- saveRolled/conditionIncoming registry entries"
+git add scripts/npc-reactions.mjs
+git commit -m "feat(#960): saveRolled/conditionIncoming triggers and registry entries on the real registry"
 ```
 
 ---
@@ -300,17 +312,71 @@ Expected: FAIL with "rollSaveWithReactions is not exported"
 
 - [ ] **Step 3: Implement**
 
+**Amended (same correction as Task 1): the original draft's `resolveReactions(combat, { trigger: "saveRolled", reactor, event })` does not match the real `resolveReactions(combat, event, execute, opts)` — no `execute` callback, no `event.options`. Fixed below with a `collectSaveReactionOptions` collector (candidates are every agent-controlled combatant: the saver itself for `ownSaveAdjust` rows, every other one for `otherSaveAdjust` rows) and an `executeSaveReaction` dispatcher, following the same real idiom #959/#1019 use.**
+
+**Flagged, not fully resolved here:** `adjustCatsLuck`/`adjustShiftFate`/`adjustDistractingFrolic` (Task 2) each expect a second roll (`rolls.reroll`/`rolls.first`+`rolls.second`) already in hand. Task 2's own pure functions don't produce that roll — something must call `saveStat.roll()` a second time before these are invoked. The dispatcher below rolls it inline for each of those three kinds; confirm this against Task 2's exact expectations (`rolls.reroll` for Cat's Luck vs `rolls.first`/`rolls.second` for Shift Fate/Distracting Frolic — the latter two read oddly given only ONE save is actually being rolled for one saver, not two independent rolls) before treating this task as done. This ambiguity in Task 2's own test fixtures predates this amendment and is not a #1021-introduced problem; flagged here because fixing the `resolveReactions` call surfaced it.
+
 ```js
-// scripts/dungeon-combat.mjs -- new, near castSpellAndApplySave
-import { resolveReactions } from "./npc-reactions.mjs"; // extend existing import
+// scripts/dungeon-combat.mjs -- new, near collectDeathReactionOptions (#959)
+/** #960: options for the saveRolled trigger -- ownSaveAdjust rows only
+ * match the saver itself; otherSaveAdjust rows only match a DIFFERENT
+ * agent-controlled combatant (mirrors the self-vs-other split #1019 uses
+ * for death reactions, applied here to save-outcome reactions). */
+function collectSaveReactionOptions(combat, saver, event) {
+  const options = [];
+  for (const reactor of combat.combatants) {
+    if (reactor.isDefeated || !reactor.actor || !reactor.token) continue;
+    if (!reactor.getFlag?.(MODULE_ID, "agentControlled")) continue;
+    if (getReactionUsed(combat, reactor.id, combat.round)) continue;
+    const isSelf = reactor.id === saver.id;
+    for (const { def, item } of reactionItemsFor(reactor.actor)) {
+      if (!def.triggers.includes("saveRolled")) continue;
+      if (def.kind === "ownSaveAdjust" && !isSelf) continue;
+      if (def.kind === "otherSaveAdjust" && isSelf) continue;
+      options.push({
+        reactor,
+        def,
+        ctx: { item, event, saverIsAllyOfReactor: reactor.token.disposition === saver.token?.disposition },
+      });
+    }
+  }
+  return options;
+}
+
+/** #960: dispatches a chosen saveRolled reaction by `def.id` to its own
+ * adjust function (Task 2) -- not by `def.kind`, since each `kind` covers
+ * several bespoke reactions with different mechanics. Returns
+ * `{adjustedOutcome, note}`; `rollSaveWithReactions` reads `adjustedOutcome`. */
+async function executeSaveReaction(combat, chosen, decision) {
+  const { reactor, def, ctx } = chosen;
+  await markReactionUsed(combat, reactor.id, combat.round);
+  const event = { ...ctx.event, saverIsAllyOfReactor: ctx.saverIsAllyOfReactor };
+  let outcome = { outcome: event.outcome, note: null };
+  if (def.id === "golden-luck") outcome = adjustGoldenLuck(event);
+  else if (def.id === "reality-twist") outcome = adjustRealityTwist(event);
+  else if (def.id === "abrogation-of-consequences") outcome = adjustAbrogation(event) ?? outcome;
+  else if (def.id === "cats-luck") {
+    const reroll = await event.saver.actor.saves[event.saveSlug].roll({ dc: { value: event.dc }, createMessage: true });
+    outcome = adjustCatsLuck(event, { reroll }) ?? outcome;
+  } else if (def.id === "shift-fate" || def.id === "distracting-frolic") {
+    const second = await event.saver.actor.saves[event.saveSlug].roll({ dc: { value: event.dc }, createMessage: true });
+    const picked =
+      def.id === "shift-fate"
+        ? adjustShiftFate(event, { first: { total: event.total }, second })
+        : adjustDistractingFrolic(event, { first: { total: event.total }, second });
+    if (picked) outcome = { outcome: degreeFor(picked.chosen.total, event.dc), note: picked.note };
+  } else if (def.id === "free-mind") outcome = adjustFreeMind(event) ?? outcome;
+  await postReactionChat(reactor, event.saver, def, reactionDecisionNote(decision, outcome?.note));
+  return { adjustedOutcome: outcome?.outcome ?? event.outcome };
+}
 
 /** #960: wraps a module-rolled save with the saveRolled reaction trigger.
  * Rolls exactly as every existing call site already does (createMessage:
  * true, same dc shape), reads the outcome from the just-created message
  * (the same real pattern castSpellAndApplySave/#915's rollNpcAbilitySave
- * already use), then lets resolveReactions adjust it. Returns the
- * (possibly adjusted) outcome as a plain string -- the caller assigns it
- * over its own local `outcome` and continues exactly as before; no
+ * already use), then lets the real resolveReactions adjust it. Returns
+ * the (possibly adjusted) outcome as a plain string -- the caller assigns
+ * it over its own local `outcome` and continues exactly as before; no
  * message flag is written or re-read (Investigation finding 1). */
 export async function rollSaveWithReactions(combat, reactor, target, saveSlug, dc, options = {}) {
   const saveStat = target.actor?.saves?.[saveSlug];
@@ -318,10 +384,26 @@ export async function rollSaveWithReactions(combat, reactor, target, saveSlug, d
   await saveStat.roll({ dc: { value: dc }, createMessage: true, ...options });
   const rawOutcome = game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
   if (!rawOutcome) return rawOutcome;
+  const roll = game.messages.contents.at(-1)?.rolls?.[0];
 
-  const event = { saver: target, outcome: rawOutcome, dc, saveSlug, traits: options.extraRollOptions ?? [], owned: true };
-  const result = await resolveReactions(combat, { trigger: "saveRolled", reactor, event });
-  return result?.adjustedOutcome ?? rawOutcome;
+  const event = {
+    saver: target,
+    outcome: rawOutcome,
+    dc,
+    saveSlug,
+    total: roll?.total ?? null,
+    traits: options.extraRollOptions ?? [],
+    owned: true,
+  };
+  const saverCombatant = combat.combatants.find((c) => c.tokenId === target.id) ?? target;
+  const saveOptions = collectSaveReactionOptions(combat, saverCombatant, event);
+  if (!saveOptions.length) return rawOutcome;
+  const ran = await resolveReactions(
+    combat,
+    { trigger: "saveRolled", mover: saverCombatant, options: saveOptions },
+    (chosen, decision) => executeSaveReaction(combat, chosen, decision),
+  );
+  return ran.at(-1)?.result?.adjustedOutcome ?? rawOutcome;
 }
 ```
 
@@ -401,12 +483,37 @@ Expected: FAIL with "applyConditionWithReactions is not exported"
 
 - [ ] **Step 3: Implement**
 
+**Amended (same correction as Task 1/3): fixed to the real collect-then-resolve idiom.** Slough Skin is self-only (the reactor negates a condition about to apply to itself), so the collector is a single-reactor check, mirroring #959's `collectDeathReactionOptions` exactly.
+
 ```js
-// scripts/dungeon-combat.mjs -- new, near applyNpcAbilityCondition
+// scripts/dungeon-combat.mjs -- new, near collectDeathReactionOptions (#959)
+function collectConditionReactionOptions(combat, reactor) {
+  if (!reactor?.getFlag?.(MODULE_ID, "agentControlled")) return [];
+  if (reactor.isDefeated || !reactor.actor) return [];
+  if (getReactionUsed(combat, reactor.id, combat.round)) return [];
+  const options = [];
+  for (const { def, item } of reactionItemsFor(reactor.actor)) {
+    if (!def.triggers.includes("conditionIncoming")) continue;
+    options.push({ reactor, def, ctx: { item } });
+  }
+  return options;
+}
+
+async function executeConditionReaction(combat, chosen, decision) {
+  const { reactor, def } = chosen;
+  await markReactionUsed(combat, reactor.id, combat.round);
+  await postReactionChat(reactor, reactor, def, reactionDecisionNote(decision));
+  return { negated: true };
+}
+
 export async function applyConditionWithReactions(combat, reactor, conditionSlug, value, durationSeconds) {
-  const event = { target: reactor, conditionSlug, value, durationSeconds, owned: true };
-  const result = await resolveReactions(combat, { trigger: "conditionIncoming", reactor, event });
-  if (result?.negated) return { negated: true };
+  const options = collectConditionReactionOptions(combat, reactor);
+  if (options.length) {
+    const ran = await resolveReactions(combat, { trigger: "conditionIncoming", mover: reactor, options }, (chosen, decision) =>
+      executeConditionReaction(combat, chosen, decision),
+    );
+    if (ran.find((r) => r.result?.negated)) return { negated: true };
+  }
   await applyNpcAbilityCondition(reactor.actor, { slug: conditionSlug, value });
   return { negated: false };
 }
@@ -527,3 +634,5 @@ git commit -m "chore(#960): bump version for save-triggered NPC reactions"
 **4. Review Focus:** All five bullets (variable-threading correctness, boundary safety on improveOneDegree, Shift Fate's allegiance direction, Slough Skin's own-action exclusion, visible reroll messages) are each pinned to a named test in Tasks 2, 3, and 4.
 
 **Corrections found while writing this plan:** the first draft of Task 3's `rollSaveWithReactions` returned the raw roll's own outcome directly without checking for a `null`/missing `rawOutcome` first, which would have passed `null` straight into `resolveReactions`'s own event object as `event.outcome` and let a definition's `eligible` check silently mismatch on a type it never expected — added the early `if (!rawOutcome) return rawOutcome;` guard before building the event at all, consistent with every other "a value fundamental to this trigger firing at all is missing -> skip cleanly" guard elsewhere in this sequence's own plans.
+
+**Correction found by #1021:** #931 is real, merged code, not plan-only — Task 1 was patching a now-stale plan document, and Tasks 3/4's `resolveReactions` calls used a shape that doesn't match the real, exported 4-argument function. All three fixed in place with the real collect-then-resolve idiom #959/#1019 already establish. While fixing Task 3, also surfaced (but did not fully resolve, since it predates this amendment and isn't a #1021 dependency) an unreconciled ambiguity in Task 2's own test fixtures: `adjustShiftFate`/`adjustDistracting Frolic` expect two independent rolls (`rolls.first`/`rolls.second`) for what is mechanically a single saver's single save — flagged explicitly in Task 3 for the next implementer to confirm against the real PF2e mechanic before treating that task as done.
