@@ -15,6 +15,7 @@
  * these files — is what stitches "combat resolved" to "advance the room."
  */
 import { makeFoundryApi, SIZE_ORDER } from "./foundry-api.mjs";
+import { areHostile, forceIdOf, readForces } from "./force-hostility.mjs";
 import { getRunState, ensureAiHistoryId } from "./dungeon-runner.mjs";
 import { archiveAiLogToJournals } from "./ai-history-journals.mjs";
 import { encounterLabel, runDisplayName } from "./ai-history-pages.mjs";
@@ -218,11 +219,13 @@ function combatantTokens(scene, flagKey, flagValue) {
  * getCombatTrackerEntryContext hook). Party combatants never get the flag,
  * matching the partyActorIds() split ITEM-8's own reopening already uses.
  */
-async function startCombat(scene, flagKey, flagValue) {
+async function startCombat(scene, flagKey, flagValue, { forces = null } = {}) {
   const tokens = combatantTokens(scene, flagKey, flagValue);
   if (!tokens.length) return null;
   const combat = await Combat.create({ scene: scene.id });
   await combat.setFlag(MODULE_ID, flagKey, flagValue);
+  // #1083: multi-force encounters carry their forces table from the start.
+  if (forces) await combat.setFlag(MODULE_ID, "forces", forces);
   const partyIds = partyActorIds();
   const aiControlledIds = new Set(
     getRunState(scene.id)?.aiControlledActorIds ?? [],
@@ -331,11 +334,14 @@ export async function rollStealthInitiativeAndDetect(combat, combatants, deps = 
   // `combatantOpponents` uses), not "everyone outside the party": a friendly
   // encounter Friend or neutral NPC never notices/alarms.
   const sneakerSides = new Set(sneakers.map((c) => c.token?.disposition));
+  const hasForces = !!readForces(combat);
   const hostiles = combatants.filter(
     (c) =>
       !sneakerIds.has(c.id) &&
       !partyIds.has(c.actor?.id) &&
-      [...sneakerSides].some((side) => c.token?.disposition !== side),
+      (hasForces
+        ? sneakers.some((sn) => areHostile(combat, sn, c))
+        : [...sneakerSides].some((side) => c.token?.disposition !== side)),
   );
   const hasObservedNonSneaker = partyCombatants.some(
     (c) => !sneakerIds.has(c.id) && !c.isDefeated,
@@ -585,8 +591,8 @@ export async function toggleAgentControlled(combatant) {
 // dungeon-scene.mjs's buildPopulateAndUnlockGraphNode).
 export const startCombatForRoom = (scene, slot) =>
   startCombat(scene, "dungeonSlot", slot);
-export const startCombatForEncounterId = (scene, encounterId) =>
-  startCombat(scene, "encounterId", encounterId);
+export const startCombatForEncounterId = (scene, encounterId, { forces = null } = {}) =>
+  startCombat(scene, "encounterId", encounterId, { forces });
 
 export function getCombatForRoom(scene, slot) {
   return (
@@ -1300,7 +1306,15 @@ export async function runAgentDecisionLoop(
 /** Every other still-alive combatant on the opposing side (token disposition
  * differs from `combatant`'s own) — "opposing side" here is just disposition,
  * the same two-bucket split combatSideStatus already uses. */
-function combatantOpponents(combat, combatant) {
+export function combatantOpponents(combat, combatant) {
+  if (readForces(combat))
+    return combat.combatants.filter(
+      (c) =>
+        c.id !== combatant.id &&
+        !c.isDefeated &&
+        c.token &&
+        areHostile(combat, combatant, c),
+    );
   const mySide = combatant.token?.disposition;
   return combat.combatants.filter(
     (c) =>
@@ -1356,7 +1370,15 @@ function resolveOpponentForTurn(combat, combatant, id) {
  * spell placement scoring (which opponents an area candidate catches is
  * only half the picture; which allies it would also catch is the other
  * half). */
-function combatantAllies(combat, combatant) {
+export function combatantAllies(combat, combatant) {
+  if (readForces(combat))
+    return combat.combatants.filter(
+      (c) =>
+        c.id !== combatant.id &&
+        !c.isDefeated &&
+        c.token &&
+        forceIdOf(c) === forceIdOf(combatant),
+    );
   const mySide = combatant.token?.disposition;
   return combat.combatants.filter(
     (c) =>

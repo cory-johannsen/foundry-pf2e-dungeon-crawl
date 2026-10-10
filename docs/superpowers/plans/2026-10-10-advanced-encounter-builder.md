@@ -406,16 +406,16 @@ Behavior to implement:
 - Observer set in `rollStealthInitiativeAndDetect`: when a table exists, `hostiles = combatants.filter(c => !sneakerIds.has(c.id) && !partyIds.has(c.actor?.id) && sneakers.some(s => areHostile(combat, s, c)))`; otherwise keep the existing disposition expression.
 - Do **not** change the `disposition:` copies in the move-payload builders (~4585/4613); they are debug data.
 
-- [ ] **Step 1: Write failing tests** (`tests/dungeon-combat-forces.test.mjs`). `combatantOpponents`/`combatantAllies` are not exported; export them (`export function`) as part of this task, as other helpers in the file are. Cases, with a fake combat `{ combatants, getFlag }`:
+- [x] **Step 1: Write failing tests** (`tests/dungeon-combat-forces.test.mjs`). `combatantOpponents`/`combatantAllies` are not exported; export them (`export function`) as part of this task, as other helpers in the file are. Cases, with a fake combat `{ combatants, getFlag }`:
   - Multi-force: party P, undead U (`all`), goblin G (`players`): `combatantOpponents(P)` = [U,G]; `(U)` = [P,G]; `(G)` = [P,U]. Add a second goblin G2: `combatantAllies(G)` = [G2], `combatantOpponents(G)` excludes G2.
   - After setting `forces.f2.hostileTo=["f3"]` for two `players` forces, they become opponents.
   - Legacy (no table): output identical to the old disposition rule for dispositions -1/0/+1 (copy the old expressions into the test as the oracle).
   - `combatSideStatus` with a table: goblins+undead all defeated, party up → `hostilesDefeated: true`; undead alive → false; all party down → `partyDefeated: true`.
   - `startCombatForEncounterId` passes `forces` through: stub `Combat.create` / `setFlag` as other `startCombat` tests do (grep `tests/` for `Combat.create` to reuse the harness) and assert `setFlag(MODULE_ID,"forces", table)` is called before `rollInitiative`.
-- [ ] **Step 2: Run, verify FAIL.**
-- [ ] **Step 3: Implement** as specified above; import from `./force-hostility.mjs`.
-- [ ] **Step 4: Run** `npx vitest run tests/dungeon-combat-forces.test.mjs tests/dungeon-combat-side-status.test.mjs tests/dungeon-combat-downed-targets.test.mjs` then the whole suite `npm test` → PASS (this file is 11k lines and widely tested; any failure here is a regression to fix, not to skip).
-- [ ] **Step 5: Commit** — `git commit -am "#1083: route combat opponents/allies/observers through force hostility"`.
+- [x] **Step 2: Run, verify FAIL.**
+- [x] **Step 3: Implement** as specified above; import from `./force-hostility.mjs`.
+- [x] **Step 4: Run** `npx vitest run tests/dungeon-combat-forces.test.mjs tests/dungeon-combat-side-status.test.mjs tests/dungeon-combat-downed-targets.test.mjs` then the whole suite `npm test` → PASS (this file is 11k lines and widely tested; any failure here is a regression to fix, not to skip).
+- [x] **Step 5: Commit** — `git commit -am "#1083: route combat opponents/allies/observers through force hostility"`.
 
 ---
 
