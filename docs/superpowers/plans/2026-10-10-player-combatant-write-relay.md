@@ -223,8 +223,8 @@ export function validateRelayMessage(msg, { combat, senderUser }) {
 
 **Files:** `module.json`, `docs/architecture.md` (via skill)
 
-- [ ] **Step 1:** Run the `update-architecture-docs` skill (new file + `module.mjs` import); commit its output.
-- [ ] **Step 2:** Bump `module.json` patch version from the current `origin/main` value; `npm test` → PASS; commit `#1254: bump version`.
+- [x] **Step 1:** Run the `update-architecture-docs` skill (new file + `module.mjs` import); commit its output.
+- [x] **Step 2:** Bump `module.json` patch version from the current `origin/main` value; `npm test` → PASS; commit `#1254: bump version`.
 - [ ] **Step 3: Live verification** (as in Task 1 setup). As the Fighter player: click Strike, then Damage, then a spell-attack: no error toast, the damage dialog and roll complete, then read as GM `combatant.getFlag("pf2e-auto-action-tracker","pendingDamageQueue")` / `pendingAttackQueue` — values persisted during the sequence and cleared after use. Close the GM client and repeat: no toast, no console error. GM-run Strike/Damage unchanged; #1212 behavior unchanged (AI `agentControlled` flag survives tracker writes).
 - [ ] **Step 4:** Open the PR; after merge label `verification`, remove `claimed`/`in progress`, merge with explicit `--subject/--body`.
 
