@@ -15,7 +15,10 @@
  * these files — is what stitches "combat resolved" to "advance the room."
  */
 import { makeFoundryApi, SIZE_ORDER } from "./foundry-api.mjs";
-import { getRunState } from "./dungeon-runner.mjs";
+import { getRunState, ensureAiHistoryId } from "./dungeon-runner.mjs";
+import { archiveAiLogToJournals } from "./ai-history-journals.mjs";
+import { encounterLabel, runDisplayName } from "./ai-history-pages.mjs";
+import { logCombatantLabel } from "./ui/ai-action-log-view.mjs";
 import { totalCombatXp } from "./combat-rewards.mjs";
 import {
   initAgentTurnState,
@@ -672,6 +675,72 @@ function coverItemTokensForCombat(combat) {
 }
 
 /**
+ * #953: archives `combat`'s AI action log (#925's agentLog flag, which dies
+ * with the Combat) into the run's two AI action history journals -- a public
+ * page (what + result) and a GM-only page (rationale, alternatives, decision
+ * metadata) -- before resolveCombat deletes the Combat. A dungeon combat
+ * goes to its run's journals (keyed by the run's persisted aiHistoryId,
+ * created on first use); a standalone (encounterId-only) combat, or one
+ * whose run state is gone, goes to a per-scene "standalone-<sceneId>" pair
+ * so its history is not silently dropped. A combat with no AI actions
+ * touches nothing (not even the settings).
+ *
+ * Names are snapshotted here, while the combatants still exist: the public
+ * page uses the names players may see (PF2e token-name visibility, the
+ * #925/#950 rule), the GM page the real ones.
+ *
+ * Never throws: any failure (including failing to persist the history id)
+ * is logged and skipped, so combat resolution and rewards always proceed.
+ * GM-client only, like resolveCombat itself. Returns the archive result or
+ * null.
+ */
+export async function archiveCombatAiLog(combat, { settingsRef, journalDeps } = {}) {
+  try {
+    const records = combat?.getFlag?.(MODULE_ID, "agentLog");
+    if (!Array.isArray(records) || !records.some((r) => r && typeof r === "object")) return null;
+    const scene = combat.scene ?? null;
+    const sceneId = scene?.id ?? null;
+    const runOpts = settingsRef ? { settingsRef } : {};
+    const runState = sceneId ? getRunState(sceneId, runOpts) : null;
+    const historyId = runState
+      ? await ensureAiHistoryId(sceneId, runOpts)
+      : sceneId
+        ? `standalone-${sceneId}`
+        : null;
+    if (!historyId) return null;
+
+    const hideNames = game.pf2e?.settings?.tokens?.nameVisibility === true;
+    const publicNames = {};
+    const gmNames = {};
+    for (const c of combat.combatants ?? []) {
+      publicNames[c.id] = logCombatantLabel(c, { isGM: false, hideNames }) ?? "Unknown";
+      gmNames[c.id] = logCombatantLabel(c, { isGM: true, hideNames }) ?? "Unknown";
+    }
+    const kindLabel = (kind) => {
+      const key = `PF2EDC.Dungeon.Kind.${kind}`;
+      const text = game.i18n?.localize?.(key);
+      return text && text !== key ? text : kind;
+    };
+    const label = encounterLabel({
+      roomId: combat.getFlag(MODULE_ID, "dungeonSlot") ?? null,
+      runState,
+      sceneName: scene?.name ?? null,
+      kindLabel,
+    });
+    const displayName = runState
+      ? runDisplayName(scene?.name, runState.createdAt)
+      : (scene?.name ?? "Encounters");
+    return await archiveAiLogToJournals(
+      { records, combatId: combat.id, historyId, sceneId, displayName, label, publicNames, gmNames },
+      journalDeps,
+    );
+  } catch (err) {
+    console.error(`${MODULE_ID} | #953: archiving the AI action history failed:`, err?.message);
+    return null;
+  }
+}
+
+/**
  * Grants XP on victory, then deletes the Combat either way — and, since this
  * fight is now genuinely over regardless of outcome, cleans up every
  * non-party combatant. What "cleans up" means now depends on what the
@@ -715,6 +784,9 @@ function coverItemTokensForCombat(combat) {
  * https://github.com/cory-johannsen/foundry-deck-of-many-things/issues/204
  */
 async function resolveCombat(combat, outcome, api) {
+  // #953: first, while every combatant (and its name) still exists and long
+  // before the Combat -- and its agentLog -- is deleted below. Never throws.
+  await archiveCombatAiLog(combat);
   const scene = combat.scene;
   const partyIds = partyActorIds();
   // #15: only a real dungeon run has a reachable cleanup trigger for a

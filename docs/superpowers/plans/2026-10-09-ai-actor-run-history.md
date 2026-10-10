@@ -351,7 +351,7 @@ git commit -m "feat(#953): find-or-create and delete the per-run AI history jour
 - Consumes: `buildPublicPageHtml`/`buildGmPageHtml` (Task 1), `findOrCreateRunJournals` (Task 2).
 - Produces: `archiveCombatAiLog(combat)` (exported from `dungeon-combat.mjs`), called from the real `resolveCombat` immediately before its own `await combat.delete();`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/ai-history-archive.test.mjs
@@ -398,12 +398,12 @@ describe('archiveCombatAiLog (#953)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/ai-history-archive.test.mjs`
 Expected: FAIL with "archiveCombatAiLog is not exported"
 
-- [ ] **Step 3: Implement `archiveCombatAiLog`**
+- [x] **Step 3: Implement `archiveCombatAiLog`**
 
 ```js
 // scripts/dungeon-combat.mjs -- new, near resolveCombat; import the two
@@ -457,7 +457,7 @@ export async function archiveCombatAiLog(combat, { runState = null, dungeonName 
 }
 ```
 
-- [ ] **Step 4: Call it from `resolveCombat`, immediately before `await combat.delete();`**
+- [x] **Step 4: Call it from `resolveCombat`, immediately before `await combat.delete();`**
 
 ```js
 // scripts/dungeon-combat.mjs -- resolveCombat's real body, line 785: insert
@@ -470,17 +470,17 @@ export async function archiveCombatAiLog(combat, { runState = null, dungeonName 
 
 (`archiveCombatAiLogForCombat` is Task 4's own thin wrapper that resolves `runState`/`dungeonName`/`historyId` from the real run-state setting and calls `archiveCombatAiLog` with them — kept as a separate function so this task's own `archiveCombatAiLog` stays testable with plain, hand-built arguments, matching this task's own tests above.)
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/ai-history-archive.test.mjs`
 Expected: PASS
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions in `resolveCombat`'s own existing tests — the new call is additive and never throws into the function)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/ai-history-archive.test.mjs
@@ -500,7 +500,7 @@ git commit -m "feat(#953): archiveCombatAiLog, wired into resolveCombat before c
 - Consumes: nothing new.
 - Produces: `ensureAiHistoryId(sceneId)` (exported from `dungeon-runner.mjs`) → generates and persists `state.aiHistoryId` on first use, returns the existing one otherwise; `archiveCombatAiLogForCombat(combat)` (Task 3's forward reference, implemented here).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-runner-ai-history-id.test.mjs
@@ -534,12 +534,12 @@ describe('ensureAiHistoryId (#953)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-runner-ai-history-id.test.mjs`
 Expected: FAIL with "ensureAiHistoryId is not exported"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/dungeon-runner.mjs -- new, near abandonRun; reuses whatever
@@ -557,7 +557,7 @@ export async function ensureAiHistoryId(sceneId, { settingsRef = defaultSettings
 }
 ```
 
-- [ ] **Step 4: Implement `archiveCombatAiLogForCombat` in `dungeon-combat.mjs`, resolving the run state for a dungeon combat and falling back for a standalone one**
+- [x] **Step 4: Implement `archiveCombatAiLogForCombat` in `dungeon-combat.mjs`, resolving the run state for a dungeon combat and falling back for a standalone one**
 
 ```js
 // scripts/dungeon-combat.mjs -- new, calls Task 3's archiveCombatAiLog
@@ -578,17 +578,17 @@ async function archiveCombatAiLogForCombat(combat) {
 }
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-runner-ai-history-id.test.mjs`
 Expected: PASS (3 tests)
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-runner.mjs scripts/dungeon-combat.mjs tests/dungeon-runner-ai-history-id.test.mjs
@@ -607,7 +607,7 @@ git commit -m "feat(#953): persist aiHistoryId on first archive; resolve it for 
 - Consumes: `deleteRunJournals` (Task 2).
 - Produces: `abandonRun`'s real body now deletes the run's journals before/alongside clearing its setting entry.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // append to abandonRun's existing test file
@@ -623,12 +623,12 @@ it('does nothing extra when the run has no aiHistoryId yet (never archived)', as
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/dungeon-runner-abandon.test.mjs -t "#953"`
 Expected: FAIL (no journal deletion wired in yet)
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/dungeon-runner.mjs -- abandonRun's real body (lines 498-506),
@@ -658,21 +658,21 @@ export async function abandonRun(
 import { deleteRunJournals } from "./ai-history-journals.mjs";
 ```
 
-- [ ] **Step 4: Confirm the "reset" path's own real call site**
+- [x] **Step 4: Confirm the "reset" path's own real call site**
 
 Per this plan's own Investigation finding 2: find wherever the UI's reset action actually calls into run-state teardown (search `module.mjs`/`scripts/ui/` for the reset button's own handler) and confirm it calls `abandonRun` (or an equivalent that now also benefits from Step 3's change) — if it instead deletes the `dungeonRuns` entry some OTHER way, add the identical `deleteRunJournals` call there too rather than assuming Step 3 alone covers both paths.
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-runner-abandon.test.mjs`
 Expected: PASS
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions in `abandonRun`'s own existing tests)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-runner.mjs tests/dungeon-runner-abandon.test.mjs
