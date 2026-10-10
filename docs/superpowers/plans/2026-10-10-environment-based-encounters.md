@@ -232,8 +232,8 @@ describe("pickRandomEnvironment", () => {
 **Interfaces:**
 - Produces: `chooseEncounterForces` result gains `environment: string|null` (default `None`; normalized); each `force.filters.environment: string` where `""` means "same as encounter" (normalized to `""` or a vocabulary id).
 
-- [ ] **Step 1: Failing tests:** `defaultForce(...).filters.environment === ""`; `normalizeForce` coerces unknown to `""`; `forceSectionHtml` includes `name="force-<id>-environment"` with the selected option and a "same as encounter" first option; `readForcesFromForm` reads it; generation: force with `""` inherits `chosen.environment`, force with `"cave"` overrides, both reach the generator call as `environment`; encounter `None` + force `""` → `null` (no lookup passed); a generator stub whose roster lacks `"environment"` in `appliedFilters` while a force requested one → warning `ForceFilterUnsupported` with `name: "environment"`.
-- [ ] **Step 2: Run, FAIL. Step 3: Implement. Step 4:** both test files + `npm test` → PASS. **Step 5: Commit** — `git commit -am "#1272: environment in the stand-alone and multi-force dialogs"`
+- [x] **Step 1: Failing tests:** `defaultForce(...).filters.environment === ""`; `normalizeForce` coerces unknown to `""`; `forceSectionHtml` includes `name="force-<id>-environment"` with the selected option and a "same as encounter" first option; `readForcesFromForm` reads it; generation: force with `""` inherits `chosen.environment`, force with `"cave"` overrides, both reach the generator call as `environment`; encounter `None` + force `""` → `null` (no lookup passed); a generator stub whose roster lacks `"environment"` in `appliedFilters` while a force requested one → warning `ForceFilterUnsupported` with `name: "environment"`.
+- [x] **Step 2: Run, FAIL. Step 3: Implement. Step 4:** both test files + `npm test` → PASS. **Step 5: Commit** — `git commit -am "#1272: environment in the stand-alone and multi-force dialogs"`
 
 ### Task 7: Docs, version, live verification
 

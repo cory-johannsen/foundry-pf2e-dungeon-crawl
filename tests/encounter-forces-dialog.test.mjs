@@ -11,7 +11,7 @@ describe('defaultForce', () => {
   it('builds force 1 with the documented defaults', () => {
     expect(defaultForce(0)).toEqual({
       id: 'f1', name: '', hostility: 'players', share: 100,
-      filters: { traits: [], excludeTraits: [], levelOffsetMin: null, levelOffsetMax: null, rarity: '' },
+      filters: { traits: [], excludeTraits: [], levelOffsetMin: null, levelOffsetMax: null, rarity: '', environment: '' },
       placement: { mode: 'nearParty' },
     });
   });
@@ -52,6 +52,37 @@ describe('normalizeForce', () => {
     const f = normalizeForce({ hostility: 'bogus', filters: { rarity: 'mythic' } }, 0);
     expect(f.hostility).toBe('players');
     expect(f.filters.rarity).toBe('');
+  });
+});
+
+describe('force environment (#1272)', () => {
+  it('defaults to same-as-encounter and normalizes unknown values', () => {
+    expect(defaultForce(0).filters.environment).toBe('');
+    expect(normalizeForce({ filters: { environment: 'cave' } }).filters.environment).toBe('cave');
+    expect(normalizeForce({ filters: { environment: 'moonbase' } }).filters.environment).toBe('');
+    expect(normalizeForce({}).filters.environment).toBe('');
+  });
+  it('renders the select with a same-as-encounter first option', () => {
+    const html = forceSectionHtml(
+      defaultForce(0, { filters: { ...defaultForce(0).filters, environment: 'swamp' } }),
+      0,
+      { environmentLabel: 'Env', sameAsEncounterLabel: 'Same as encounter', environmentOptions: { swamp: 'Swamp' } },
+    );
+    expect(html).toContain('name="force-f1-environment"');
+    expect(html).toMatch(/<select name="force-f1-environment"><option value="">Same as encounter<\/option>/);
+    expect(html).toMatch(/<option value="swamp" selected>Swamp/);
+  });
+  it('reads it from the form', () => {
+    const vals = { 'force-f1-share': '100', 'force-f1-environment': 'cave' };
+    const root = {
+      querySelectorAll: () => [{ dataset: { force: 'f1' } }],
+      querySelector: (sel) => {
+        const n = sel.match(/name="([^"]+)"/)?.[1];
+        if (sel.startsWith('input[type="hidden"]')) return { value: '' };
+        return n in vals ? { value: vals[n] } : null;
+      },
+    };
+    expect(readForcesFromForm(root)[0].filters.environment).toBe('cave');
   });
 });
 
