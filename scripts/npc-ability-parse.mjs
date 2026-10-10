@@ -127,6 +127,12 @@ function extractDuration(text) {
   if (untilNextTurn) {
     return { durationSeconds: "untilNextTurn", remaining: text.replace(untilNextTurn[0], " ") };
   }
+  // #933: Gnaw's "Slowed 1 as long as it remains sickened" -- the condition
+  // lasts exactly as long as another one does.
+  const whileCondition = new RegExp(`\\bas long as (?:it|they|the target|the creature) remains? (${KNOWN_CONDITION_SLUGS.join("|")})\\b`, "i").exec(text);
+  if (whileCondition) {
+    return { durationSeconds: `while:${whileCondition[1].toLowerCase()}`, remaining: text.replace(whileCondition[0], " ") };
+  }
   return { durationSeconds: null, remaining: text };
 }
 
@@ -153,7 +159,7 @@ const BOILERPLATE = /\b(the creature is|the target is|the creature|the target|it
  * clause -- the ability's own `mode` becomes "reportOnly" when ANY degree
  * returns null here (all-or-nothing).
  */
-function parseDegreeBlock(blockHtml) {
+export function parseDegreeBlock(blockHtml) {
   if (/^\s*as failure\s*\.?\s*$/i.test(renderPlain(blockHtml))) {
     return { none: false, asFailure: true, conditions: [], immuneSeconds: null };
   }
@@ -174,12 +180,14 @@ function parseDegreeBlock(blockHtml) {
   let leftover = "";
   for (const clause of text.split(/,|\band\b/i)) {
     let rest = clause;
+    // The duration first: #933's "as long as it remains sickened" names a
+    // condition that is not itself applied.
+    const duration = extractDuration(rest);
+    rest = duration.remaining;
     const linked = extractLinkedConditions(rest);
     rest = linked.remaining;
     const bare = extractBareConditions(rest);
     rest = bare.remaining;
-    const duration = extractDuration(rest);
-    rest = duration.remaining;
     const found = [...linked.conditions, ...bare.conditions];
     if (duration.durationSeconds !== null && !found.length) {
       if (floatingDuration !== null) return null;
@@ -360,10 +368,15 @@ export function parseSaveAbility(item) {
   };
 }
 
+export { durationLabel as npcAbilityDurationLabel };
+
 const DEGREE_SUMMARY_LABELS = { success: "success", failure: "failure", criticalFailure: "critical failure" };
 
 function durationLabel(durationSeconds) {
   if (durationSeconds === "untilNextTurn") return "until end of its next turn";
+  if (typeof durationSeconds === "string" && durationSeconds.startsWith("while:")) {
+    return `while ${durationSeconds.slice("while:".length)}`;
+  }
   if (durationSeconds % 86400 === 0) return `${durationSeconds / 86400} day`;
   if (durationSeconds % 3600 === 0) return `${durationSeconds / 3600} hour`;
   if (durationSeconds % 60 === 0) return `${durationSeconds / 60} minute`;

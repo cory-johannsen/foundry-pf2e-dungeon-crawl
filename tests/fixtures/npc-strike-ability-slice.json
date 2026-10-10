@@ -1,0 +1,5265 @@
+{
+ "source": "pf2e system source data (packs: pathfinder-monster-core, pathfinder-monster-core-2, pathfinder-bestiary, pathfinder-bestiary-2, pathfinder-bestiary-3), active (1-3 action) NPC actions naming a Strike together with a grab, reach, multi-target, same-target or ranged-net cue, plus every Constrict / Greater Constrict / Rend glossary action",
+ "entries": [
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Akhana",
+   "name": "Flying Fists",
+   "item": {
+    "type": "action",
+    "name": "Flying Fists",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The akhana Flies and makes up to four fist Strikes against different targets at any points during this movement. The attacks count toward its multiple attack penalty normally, but the penalty does not increase until after Flying Fists is complete.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Azuretzi",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d12+5)[bludgeoning]], @Check[fortitude|dc:21|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Brontosaurus",
+   "name": "Tail Sweep",
+   "item": {
+    "type": "action",
+    "name": "Tail Sweep",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The brontosaurus makes a tail Strike and compares the attack roll to the AC of up to three foes, each of whom must be within its tail's melee reach and adjacent to at least one other target. It rolls damage only once and applies it to each creature hit.</p>\n<p>A Tail Sweep counts as two attacks for its multiple attack penalty.</p>"
+     }
+    }
+   },
+   "expected": "singleRollMultiAC"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Bugbear Tormentor",
+   "name": "Twin Feint",
+   "item": {
+    "type": "action",
+    "name": "Twin Feint",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The bugbear tormentor makes a dazzling series of attacks with two weapons, using the first attack to throw their foe off-guard against a second attack at a different angle. They make one Strike with each of their two melee weapons, both against the same target. The target is automatically @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] against the second attack. The bugbear tormentor applies their multiple attack penalty to these Strikes normally.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Caligni Hunter",
+   "name": "Double Slice",
+   "item": {
+    "type": "action",
+    "name": "Double Slice",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The caligni hunter makes two Strikes against the same target, one with each of their shortswords. The hunter combines the damage of any attacks that hit and applies precision damage, resistances, and weaknesses only once. Both attacks count toward the hunter's multiple attack penalty, but the penalty increases only after both attacks.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Chupacabra",
+   "name": "Suck Blood",
+   "item": {
+    "type": "action",
+    "name": "Suck Blood",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The chupacabra has a creature @UUID[Compendium.pf2e.conditionitems.Item.Grabbed]</p>\n<hr />\n<p><strong>Effect</strong> The chupacabra sucks blood from the grabbed creature. The chupacabra gains the @UUID[Compendium.pf2e.conditionitems.Item.Quickened] condition for 1 minute and can use the extra action only for Strike and Stride actions.</p>\n<p>A chupacabra can't Suck Blood again while it is quickened in this way.</p>\n<p>A creature that has its blood drained by a chupacabra is @UUID[Compendium.pf2e.conditionitems.Item.Drained]{Drained 1} until it receives healing (of any kind or amount).</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Crag Linnorm",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d6+14)[bludgeoning]], @Check[fortitude|dc:34|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Crocodile",
+   "name": "Death Roll",
+   "item": {
+    "type": "action",
+    "name": "Death Roll",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": [
+       "attack"
+      ]
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The crocodile must have a creature @UUID[Compendium.pf2e.conditionitems.Item.Grabbed]</p>\n<hr />\n<p><strong>Effect</strong> The crocodile tucks its legs and rolls rapidly, twisting its victim. It makes a jaws Strike with a +2 circumstance bonus to the attack roll against the grabbed creature. If it hits, it also knocks the creature @UUID[Compendium.pf2e.conditionitems.Item.Prone]. If it fails, it releases the creature.</p>"
+     }
+    }
+   },
+   "expected": "strikeAgainstGrabbed"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Cyclops",
+   "name": "Swipe",
+   "item": {
+    "type": "action",
+    "name": "Swipe",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": {
+      "max": 1,
+      "per": "round"
+     },
+     "description": {
+      "value": "<p><strong>Frequency</strong> once per round</p>\n<hr />\n<p><strong>Effect</strong> The cyclops makes a melee Strike and compares the attack roll result to the AC of up to two foes, each of whom must be within their melee reach and adjacent to each other. Roll damage only once and apply it to each creature hit. A Swipe counts as two attacks for the cyclops's multiple attack penalty.</p>"
+     }
+    }
+   },
+   "expected": "singleRollMultiAC"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Deadly Mantis",
+   "name": "Rending Mandibles",
+   "item": {
+    "type": "action",
+    "name": "Rending Mandibles",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The mantis makes a mandibles Strike against a creature it has @UUID[Compendium.pf2e.conditionitems.Item.Grabbed]. If that Strike hits and the creature is wearing armor with Hardness 12 or lower, the armor is broken. This Strike doesn't further damage armor that's already broken.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Dezullon",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d6+2)[bludgeoning]], @Check[fortitude|dc:29|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Doldrums Heap",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d12+10)[bludgeoning]], @Check[fortitude|dc:28|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Duskwalker Ghost Hunter",
+   "name": "Spirit Shot",
+   "item": {
+    "type": "action",
+    "name": "Spirit Shot",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": {
+      "max": 1,
+      "per": "round",
+      "value": 1
+     },
+     "description": {
+      "value": "<p><strong>Frequency</strong> once per round</p>\n<p><strong>Requirements</strong> The duskwalker has designated a creature as their prey using Spirit Hunter</p>\n<hr />\n<p><strong>Effect</strong> The duskwalker makes two ranged Strikes against their prey. If both Strikes hit, combine their damage for the purpose of resistances and weaknesses.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Forest Troll",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Frost Giant",
+   "name": "Wide Swing",
+   "item": {
+    "type": "action",
+    "name": "Wide Swing",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The frost giant makes a single greataxe Strike and compares the attack roll result to the ACs of up to two foes within their reach. This counts as two attacks for the frost giant's multiple attack penalty.</p>"
+     }
+    }
+   },
+   "expected": "singleRollMultiAC"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Giant Anaconda",
+   "name": "Greater Constrict",
+   "item": {
+    "type": "action",
+    "name": "Greater Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d10+7)[bludgeoning]], @Check[fortitude|dc:26|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.GreaterConstrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Giant Flytrap",
+   "name": "Focused Assault",
+   "item": {
+    "type": "action",
+    "name": "Focused Assault",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The flytrap attacks a single target with all four of its leaves. The flytrap makes one leaf Strike. On a success, the flytrap deals the damage from one leaf Strike plus an additional 1d8 damage for every leaf beyond the first. On a failure, the flytrap deals the damage from one leaf Strike, but it can't use Improved Grab. It deals no damage on a critical failure. This counts toward the flytrap's multiple attack penalty as a number of attacks equal to the number of leaves the flytrap has.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Giant Mantis",
+   "name": "Lunging Strike",
+   "item": {
+    "type": "action",
+    "name": "Lunging Strike",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The giant mantis lunges forward, making a leg Strike with an extended reach of 20 feet. If it hits, the mantis can use Capturing Grab after the Strike even if the creature is out of reach.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Giant Octopus",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d8+9)[bludgeoning]], @Check[fortitude|dc:26|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Giant Scorpion",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d6+4)[bludgeoning]], @Check[fortitude|dc:20|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Globster",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d8+6)[bludgeoning]], @Check[fortitude|dc:22|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Gogiteth",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(3d6+12)[bludgeoning]], @Check[fortitude|dc:32|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Gongorinan",
+   "name": "Painful Limbs",
+   "item": {
+    "type": "action",
+    "name": "Painful Limbs",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The gongorinan makes up to four Strikes against different targets, each using a different limb. All four Strikes count toward its multiple attack penalty, but the penalty doesn't increase until after the gongorinan has made all the attacks.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Gylou",
+   "name": "Encage in Tentacles",
+   "item": {
+    "type": "action",
+    "name": "Encage in Tentacles",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": [
+       "attack"
+      ]
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The gylou has a Medium or smaller creature @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] or @UUID[Compendium.pf2e.conditionitems.Item.Restrained]</p>\n<hr />\n<p><strong>Effect</strong> The gylou transfers the grabbed creature into their lower body's net of encaging tentacles, freeing their limbs and tentacles to make Strikes. This has the same effects as @UUID[Compendium.pf2e.bestiary-ability-glossary-srd.Item.Swallow Whole] (Medium, @Damage[(2d12+12)[bludgeoning]], Rupture 30), except the encaged creature is not at risk of suffocation, and the gylou can bring the encaged creature with them when they cast @UUID[Compendium.pf2e.spells-srd.Item.Translocate]. A gylou can have only one creature encaged at a time.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Horned Dragon (Adult, Spellcaster)",
+   "name": "Impaling Charge",
+   "item": {
+    "type": "action",
+    "name": "Impaling Charge",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The dragon doesn't have a creature impaled on their horn</p>\n<hr />\n<p><strong>Effect</strong> The dragon attempts to gore a foe. They Stride, then attempt a horn Strike. On a hit, the target becomes impaled on the dragon's horn. The creature is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] while on the horn (and can attempt to @UUID[Compendium.pf2e.actionspf2e.Item.Escape] as normal). The dragon doesn't need to use additional actions to keep the impaled creature grabbed. If the dragon moves, they bring the grabbed creature along with them.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Horned Dragon (Adult)",
+   "name": "Impaling Charge",
+   "item": {
+    "type": "action",
+    "name": "Impaling Charge",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The dragon doesn't have a creature impaled on their horn</p>\n<hr />\n<p><strong>Effect</strong> The dragon attempts to gore a foe. They Stride, then attempt a horn Strike. On a hit, the target becomes impaled on the dragon's horn. The creature is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] while on the horn (and can attempt to @UUID[Compendium.pf2e.actionspf2e.Item.Escape] as normal). The dragon doesn't need to use additional actions to keep the impaled creature grabbed. If the dragon moves, they bring the grabbed creature along with them.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Horned Dragon (Ancient, Spellcaster)",
+   "name": "Impaling Charge",
+   "item": {
+    "type": "action",
+    "name": "Impaling Charge",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The dragon doesn't have a creature impaled on their horn</p>\n<hr />\n<p><strong>Effect</strong> The dragon attempts to gore a foe. They Stride, then attempt a horn Strike. On a hit, the target becomes impaled on the dragon's horn. The creature is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] while on the horn (and can attempt to @UUID[Compendium.pf2e.actionspf2e.Item.Escape] as normal). The dragon doesn't need to use additional actions to keep the impaled creature grabbed. If the dragon moves, they bring the grabbed creature along with them.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Horned Dragon (Ancient)",
+   "name": "Impaling Charge",
+   "item": {
+    "type": "action",
+    "name": "Impaling Charge",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The dragon doesn't have a creature impaled on their horn</p>\n<hr />\n<p><strong>Effect</strong> The dragon attempts to gore a foe. They Stride, then attempt a horn Strike. On a hit, the target becomes impaled on the dragon's horn. The creature is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] while on the horn (and can attempt to @UUID[Compendium.pf2e.actionspf2e.Item.Escape] as normal). The dragon doesn't need to use additional actions to keep the impaled creature grabbed. If the dragon moves, they bring the grabbed creature along with them.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Horned Dragon (Young, Spellcaster)",
+   "name": "Impaling Charge",
+   "item": {
+    "type": "action",
+    "name": "Impaling Charge",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The dragon doesn't have a creature impaled on their horn</p>\n<hr />\n<p><strong>Effect</strong> The dragon attempts to gore a foe. They Stride, then attempt a horn Strike. On a hit, the target becomes impaled on the dragon's horn. The creature is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] while on the horn (and can attempt to @UUID[Compendium.pf2e.actionspf2e.Item.Escape] as normal). The dragon doesn't need to use additional actions to keep the impaled creature grabbed. If the dragon moves, they bring the grabbed creature along with them.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Horned Dragon (Young)",
+   "name": "Impaling Charge",
+   "item": {
+    "type": "action",
+    "name": "Impaling Charge",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The dragon doesn't have a creature impaled on their horn</p>\n<hr />\n<p><strong>Effect</strong> The dragon attempts to gore a foe. They Stride, then attempt a horn Strike. On a hit, the target becomes impaled on the dragon's horn. The creature is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] while on the horn (and can attempt to @UUID[Compendium.pf2e.actionspf2e.Item.Escape] as normal). The dragon doesn't need to use additional actions to keep the impaled creature grabbed. If the dragon moves, they bring the grabbed creature along with them.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Hydra",
+   "name": "Focused Assault",
+   "item": {
+    "type": "action",
+    "name": "Focused Assault",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The hydra attacks a single target with its heads, overwhelming its foe with multiple attacks and leaving almost nowhere to dodge. The hydra Strikes with its fangs. On a successful attack, the hydra deals damage from its fangs Strike to the target, plus an additional 1d6 damage for every head it has beyond the first. On a failure (but not a critical failure), the hydra deals the damage from one fangs Strike to the target creature. This Strike counts as a number of attacks equal to the number of heads the hydra has toward the hydra's multiple attack penalty.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Ice Linnorm",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d6+18)[bludgeoning]], @Check[fortitude|dc:38|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Ifrit",
+   "name": "Combat Grab",
+   "item": {
+    "type": "action",
+    "name": "Combat Grab",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The ifrit has a hand free</p>\n<hr />\n<p><strong>Effect</strong> The ifrit makes a melee Strike. If the Strike hits, the target is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] in the ifrit's free hand.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Iron Hag",
+   "name": "Embrace of Iron",
+   "item": {
+    "type": "action",
+    "name": "Embrace of Iron",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> A creature is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] or @UUID[Compendium.pf2e.conditionitems.Item.Restrained] by the iron hag's claw</p>\n<hr />\n<p><strong>Effect</strong> The hag's nails tear into their captured victim, dealing @Damage[2d8[piercing]|traits:cold-iron] damage (the nails are cold iron). Then the hag can attempt to @UUID[Compendium.pf2e.actionspf2e.Item.Reposition] the creature. If the creature is adjacent to the hag, they can then attempt a jaws Strike against it.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Island Oni",
+   "name": "Electrifying Pierce",
+   "item": {
+    "type": "action",
+    "name": "Electrifying Pierce",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": [
+       "electricity",
+       "primal"
+      ]
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The island oni's last action was a successful longspear Strike against a Medium or smaller target</p>\n<hr />\n<p><strong>Effect</strong> The island oni drives the spear through the target and calls lightning to strike the spear. The target takes @Damage[6d6[electricity]] damage with a @Check[fortitude|dc:37|basic] save. On a failure, the creature is also impaled on the spear. It's @UUID[Compendium.pf2e.conditionitems.Item.Grabbed], and if the oni moves, they bring the grabbed creature along with them.</p>\n<p>The island oni doesn't need to use additional actions to keep the creature grabbed; the creature remains grabbed as long as it's impaled. The grabbed creature can attempt to @UUID[Compendium.pf2e.actionspf2e.Item.Escape] as normal. The island oni can only have one creature impaled this way at a time.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Keketar",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d10+15)[bludgeoning]], @Check[fortitude|dc:42|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Kraken",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d10+17)[bludgeoning]], @Check[fortitude|dc:40|basic]. On a failed save, a creature that is holding its breath loses [[/gmr 1d4 #Lost rounds of air from Constrict]]{1d4 rounds} worth of air.</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Leopard",
+   "name": "Maul",
+   "item": {
+    "type": "action",
+    "name": "Maul",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The leopard makes two claw Strikes against a creature it has @UUID[Compendium.pf2e.conditionitems.Item.Grabbed]. Both count toward its multiple attack penalty, but the penalty increases only after both attacks are made.</p>"
+     }
+    }
+   },
+   "expected": "strikeAgainstGrabbed"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Living Tar",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d8+7)[bludgeoning],1d6[acid]], @Check[fortitude|dc:26|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Megaprimatus",
+   "name": "Mangling Rend",
+   "item": {
+    "type": "action",
+    "name": "Mangling Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>A megaprimatus makes two fist Strikes against the same target. If both hit, the attack deals an additional @Damage[2d6[bludgeoning]] damage, the target is @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard], and the target takes a –20-foot status penalty to all Speeds until the end of its next turn.</p>\n<p>@UUID[Compendium.pf2e.bestiary-effects.Item.Effect: Mangling Rend]</p>"
+     }
+    }
+   },
+   "expected": "bundleWithBothHitRider"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Mirage Dragon (Adult, Spellcaster)",
+   "name": "Lunging Bite",
+   "item": {
+    "type": "action",
+    "name": "Lunging Bite",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The dragon lunges their head forward, making a jaws Strike with an extended reach of 25 feet.</p>"
+     }
+    }
+   },
+   "expected": "extendedReachStrike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Mirage Dragon (Adult)",
+   "name": "Lunging Bite",
+   "item": {
+    "type": "action",
+    "name": "Lunging Bite",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The dragon lunges their head forward, making a jaws Strike with an extended reach of 25 feet.</p>"
+     }
+    }
+   },
+   "expected": "extendedReachStrike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Mirage Dragon (Ancient, Spellcaster)",
+   "name": "Lunging Bite",
+   "item": {
+    "type": "action",
+    "name": "Lunging Bite",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The dragon lunges their head forward, making a jaws Strike with an extended reach of 25 feet.</p>"
+     }
+    }
+   },
+   "expected": "extendedReachStrike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Mirage Dragon (Ancient)",
+   "name": "Lunging Bite",
+   "item": {
+    "type": "action",
+    "name": "Lunging Bite",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The dragon lunges their head forward, making a jaws Strike with an extended reach of 25 feet.</p>"
+     }
+    }
+   },
+   "expected": "extendedReachStrike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Mirage Dragon (Young, Spellcaster)",
+   "name": "Lunging Bite",
+   "item": {
+    "type": "action",
+    "name": "Lunging Bite",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The dragon lunges their head forward, making a jaws Strike with an extended reach of 20 feet.</p>"
+     }
+    }
+   },
+   "expected": "extendedReachStrike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Mirage Dragon (Young)",
+   "name": "Lunging Bite",
+   "item": {
+    "type": "action",
+    "name": "Lunging Bite",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The dragon lunges their head forward, making a jaws Strike with an extended reach of 20 feet.</p>"
+     }
+    }
+   },
+   "expected": "extendedReachStrike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Mukradi",
+   "name": "Pull Apart",
+   "item": {
+    "type": "action",
+    "name": "Pull Apart",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The mukradi makes two Strikes with different maws against the same target. If both hit, the target takes an extra @Damage[(2d12+13)[slashing]] damage, with a @Check[fortitude|dc:36|basic] save. On a critical failure, the creature is torn to pieces and dies.</p>\n<p>The mukradi's multiple attack penalty increases only after all the attacks are made.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Nessari",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": [
+       "unholy"
+      ]
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d10+17)[bludgeoning]], @Check[fortitude|dc:43|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Python",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d8)[bludgeoning]], @Check[fortitude|dc:17|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Quatoid",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d12+6)[bludgeoning]], @Check[fortitude|dc:25|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Quetz Coatl",
+   "name": "Greater Constrict",
+   "item": {
+    "type": "action",
+    "name": "Greater Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d10+7)[bludgeoning]], @Check[fortitude|dc:29|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.GreaterConstrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Reefclaw",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d6)[bludgeoning]], @Check[fortitude|dc:17|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Revenant",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d6+5)[bludgeoning]], @Check[fortitude|dc:24|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Rune Giant",
+   "name": "Wide Swing",
+   "item": {
+    "type": "action",
+    "name": "Wide Swing",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The rune giant makes a single greatsword Strike and compares the attack roll result to the ACs of up to two foes within their reach. This counts as two attacks for the giant's multiple attack penalty.</p>"
+     }
+    }
+   },
+   "expected": "singleRollMultiAC"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Sargassum Heap",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d8+3)[bludgeoning]], @Check[fortitude|dc:23|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Sea Serpent",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d10+14)[bludgeoning]], @Check[fortitude|dc:32|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Sedacthy Marauder",
+   "name": "Shared Feast",
+   "item": {
+    "type": "action",
+    "name": "Shared Feast",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The sedacthy makes a jaws Strike. If it hits, an ally of their choice can spend a reaction to make a jaws Strike against the same target. Allies with beaks or similar attacks can use those instead of jaws.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Sedacthy Scout",
+   "name": "Shared Feast",
+   "item": {
+    "type": "action",
+    "name": "Shared Feast",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The sedacthy makes a jaws Strike. If it hits, an ally of their choice can spend a reaction to make a jaws Strike against the same target. Allies with beaks or similar attacks can use those instead of jaws.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Sedacthy Speaker",
+   "name": "Shared Feast",
+   "item": {
+    "type": "action",
+    "name": "Shared Feast",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The sedacthy makes a jaws Strike. If it hits, an ally of their choice can spend a reaction to make a jaws Strike against the same target. Allies with beaks or similar attacks can use those instead of jaws.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Shemhazian",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Skeletal Giant",
+   "name": "Broad Swipe",
+   "item": {
+    "type": "action",
+    "name": "Broad Swipe",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The giant makes two Strikes with its glaive against two adjacent foes, both of whom are within its reach. Both attacks count toward the giant's multiple attack penalty, but the penalty doesn't increase until after both attacks.</p>"
+     }
+    }
+   },
+   "expected": "twoTargetStrikes"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Skeletal Hulk",
+   "name": "Broad Swipe",
+   "item": {
+    "type": "action",
+    "name": "Broad Swipe",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The giant makes two Strikes with its claw against two adjacent foes, both of whom are within its reach. Both attacks count toward the giant's multiple attack penalty, but the penalty doesn't increase until after both attacks..</p>"
+     }
+    }
+   },
+   "expected": "twoTargetStrikes"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Smaranava",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d8+5)[bludgeoning]], @Check[fortitude|dc:25|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Smilodon",
+   "name": "Pierce Armor",
+   "item": {
+    "type": "action",
+    "name": "Pierce Armor",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The smilodon makes a fangs Strike against a creature that's @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] or @UUID[Compendium.pf2e.conditionitems.Item.Restrained].</p>\n<p>If the attack hits, the creature is knocked @UUID[Compendium.pf2e.conditionitems.Item.Prone]; if the creature is wearing armor with hardness 10 or lower, the armor is @UUID[Compendium.pf2e.conditionitems.Item.Broken].</p>\n<p>If this Strike breaks a creature's armor or damages a creature who is unarmored or wearing broken armor, the creature also takes @Damage[2d6[bleed]]. This Strike doesn't further damage armor that's already broken.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Snapping Flytrap",
+   "name": "Focused Assault",
+   "item": {
+    "type": "action",
+    "name": "Focused Assault",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The flytrap attacks a single target with both its two leaves. The flytrap makes one leaf Strike. On a success, the flytrap deals the damage from one leaf Strike plus an additional 1d8 piercing damage for every leaf beyond the first. On a failure, the flytrap deals the damage from one leaf Strike, but it can't use Improved Grab. It deals no damage on a critical failure. This counts toward the flytrap's multiple attack penalty as a number of attacks equal to the number of leaves the flytrap has.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Snow Oni",
+   "name": "Chilling Combo",
+   "item": {
+    "type": "action",
+    "name": "Chilling Combo",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": [
+       "cold"
+      ]
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The snow oni makes two fist Strikes targeting the same creature. If they both hit, the target becomes @UUID[Compendium.pf2e.conditionitems.Item.Slowed]{Slowed 1} for 1 round.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Sphinx",
+   "name": "Claw Rake",
+   "item": {
+    "type": "action",
+    "name": "Claw Rake",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 3
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The sphinx rears back on their hind legs and makes two claw Strikes at the same target, using the same attack bonus as their highest melee attack. If both attacks deal damage, the target takes extra damage equal to one claw Strike.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Tarn Linnorm",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(3d6+18)[bludgeoning]], @Check[fortitude|dc:44|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Thulgant",
+   "name": "Greater Constrict",
+   "item": {
+    "type": "action",
+    "name": "Greater Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d6+17)[bludgeoning],1d6[acid]], @Check[fortitude|dc:40|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.GreaterConstrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Tiger",
+   "name": "Wrestle",
+   "item": {
+    "type": "action",
+    "name": "Wrestle",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The tiger makes a claw Strike against a creature it is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed]{Grabbing}. If the attack hits, that creature is knocked @UUID[Compendium.pf2e.conditionitems.Item.Prone].</p>"
+     }
+    }
+   },
+   "expected": "strikeAgainstGrabbed"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Tor Linnorm",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(3d6+21)[bludgeoning]], @Check[fortitude|dc:46|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Vescavor Queen",
+   "name": "Opportune Snack",
+   "item": {
+    "type": "action",
+    "name": "Opportune Snack",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The vescavor queen pulls a creature it has @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] or @UUID[Compendium.pf2e.conditionitems.Item.Restrained] into a space adjacent to it and makes a jaws Strike with a +2 circumstance bonus.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Vicharamuni",
+   "name": "Greater Constrict",
+   "item": {
+    "type": "action",
+    "name": "Greater Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(3d8+5)[bludgeoning]], @Check[fortitude|dc:29|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.GreaterConstrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Vrolikai",
+   "name": "Focused Flames",
+   "item": {
+    "type": "action",
+    "name": "Focused Flames",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The vrolikai attacks a single target with all of their black flame knives. The demon makes a black flame knife Strike with the following additional effects. This counts toward the vrolikai's multiple attack penalty as a number of attacks equal to the number of back flame knives the vrolikai used.</p>\n<hr />\n<p><strong>Critical Success</strong> The target takes an additional 2d6 void damage for each knife beyond the first (typically @Damage[6d6[void]]{6d6 extra damage}) and takes @Damage[4d6[persistent,void]] damage.</p>\n<p><strong>Success</strong> The target takes an additional 2d6 void damage for each knife beyond the first.</p>\n<p><strong>Failure</strong> The vrolikai deals the damage their black flame knife Strike normally deals on a hit.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Weretiger",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Weretiger",
+   "name": "Wrestle",
+   "item": {
+    "type": "action",
+    "name": "Wrestle",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The weretiger makes a claw Strike against a creature it is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed]{Grabbing}. If the attack hits, that creature is knocked @UUID[Compendium.pf2e.conditionitems.Item.Prone].</p>"
+     }
+    }
+   },
+   "expected": "strikeAgainstGrabbed"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Winged Chupacabra",
+   "name": "Suck Blood",
+   "item": {
+    "type": "action",
+    "name": "Suck Blood",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The chupacabra has a creature @UUID[Compendium.pf2e.conditionitems.Item.Grabbed]</p>\n<hr />\n<p><strong>Effect</strong> The chupacabra sucks blood from the grabbed creature. The chupacabra gains the @UUID[Compendium.pf2e.conditionitems.Item.Quickened] condition for 1 minute and can use the extra action only for Strike and Stride actions.</p>\n<p>A chupacabra can't Suck Blood again while it is quickened in this way.</p>\n<p>A creature that has its blood drained by a chupacabra is @UUID[Compendium.pf2e.conditionitems.Item.Drained]{Drained 1} until it receives healing (of any kind or amount).</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Wyvern",
+   "name": "Punishing Momentum",
+   "item": {
+    "type": "action",
+    "name": "Punishing Momentum",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The wyvern @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] a creature this turn using Powerful Dive</p>\n<hr />\n<p><strong>Effect</strong> The wyvern can Fly at half Speed while holding the creature in their claws, carrying that creature along with them and dropping it at the end of their movement. Alternatively, the wyvern can Strike the creature with their stinger with a +2 circumstance bonus.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Yeti",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-monster-core",
+   "actor": "Zombie Hulk",
+   "name": "Wide Swing",
+   "item": {
+    "type": "action",
+    "name": "Wide Swing",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The zombie hulk makes two hunk of meat Strikes against different targets within its reach.</p>"
+     }
+    }
+   },
+   "expected": "twoTargetStrikes"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Abrikandilu",
+   "name": "Wreck",
+   "item": {
+    "type": "action",
+    "name": "Wreck",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The abrikandilu makes two claw Strikes against an unattended object or held mirror. Held mirrors use the holding character's AC.</p>\n<p>If both Strikes hit, combine their damage for the purpose of overcoming any Hardness or resistance.</p>\n<p>These Strikes don't count toward the abrikandilu's multiple attack penalty, nor does that penalty apply to these Strikes.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Ahuizotl",
+   "name": "Tail Drag",
+   "item": {
+    "type": "action",
+    "name": "Tail Drag",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The ahuizotl has a Medium or smaller creature grabbed with its tail claw</p><hr /><p><strong>Effect</strong> The ahuizotl attempts an @Check[athletics|against:fortitude] check against the creature's Fortitude DC.</p><hr /><p><strong>Critical Success</strong> If the creature is 10 feet away from the ahuizotl, it is dragged into a square adjacent to the ahuizotl. The ahuizotl can make a jaws Strike against the creature.</p>\n<p><strong>Success</strong> If the creature is 10 feet away from the ahuizotl, it is dragged into a square adjacent to the ahuizotl.</p>\n<p><strong>Failure</strong> The creature is not dragged.</p>\n<p><strong>Critical Failure</strong> The creature is not dragged and the ahuizotl no longer has the creature grabbed.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Aigamuxa",
+   "name": "Burrowed Ambush",
+   "item": {
+    "type": "action",
+    "name": "Burrowed Ambush",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The aigamuxa is @UUID[Compendium.pf2e.actionspf2e.Item.Hide]{Hiding} in dirt, sand, or another soft surface</p>\n<hr />\n<p><strong>Effect</strong> The aigamuxa makes a claw Strike against a creature within reach. On a hit, the aigamuxa automatically Grabs the creature. Whether or not they hit, the aigamuxa then Strides. If they have a creature grabbed, the creature moves with the aigamuxa.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Akizendri",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d8+3)[bludgeoning]] damage, @Check[fortitude|dc:20|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Animated Colossus",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(3d12+11)[bludgeoning]], @Check[fortitude|dc:36|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Argorth",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The argorth can only Constrict creatures @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] by its tail.</p>\n<p>@Damage[(2d8+7)[bludgeoning]], @Check[fortitude|dc:27|basic]</p><hr /><p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Atrixyl",
+   "name": "Roundhouse Smash",
+   "item": {
+    "type": "action",
+    "name": "Roundhouse Smash",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The atrixyl makes a fist Strike and compares the attack roll result to the AC of up to two foes, each of whom must be within the atrixyl's melee reach and adjacent to each other. Roll damage only once and apply it to each creature hit. This counts as two attacks for the atrixyl's multiple attack penalty.</p>"
+     }
+    }
+   },
+   "expected": "singleRollMultiAC"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Beetle Carapace",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d8+2)[piercing]], @Check[fortitude|dc:24|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Berberoka",
+   "name": "Greater Constrict",
+   "item": {
+    "type": "action",
+    "name": "Greater Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d12+12)[bludgeoning]] damage, @Check[fortitude|dc:33|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.GreaterConstrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Bythos",
+   "name": "Aging Strikes",
+   "item": {
+    "type": "action",
+    "name": "Aging Strikes",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": [
+       "divine"
+      ]
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The bythos make two fist Strikes against a single target. If both Strikes hit, the target attempts a @Check[fortitude|dc:37] save. Creatures that don't get weaker with age or don't age are immune (GM's discretion).</p>\n<p>If a creature becomes clumsy 4, drained 4, and enfeebled 4 due to Aging Strikes, it dies of old age.</p>\n<hr />\n<p><strong>Success</strong> The creature is unaffected.</p>\n<p><strong>Failure</strong> The creature becomes @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Clumsy 1}, @UUID[Compendium.pf2e.conditionitems.Item.Drained]{Drained 1}, and @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled]{Enfeebled 1}, or increases each of these conditions by 1. This effect is cumulative with other aging strikes from bythoses, to a maximum of clumsy 4, drained 4, and enfeebled 4.</p>\n<p><strong>Critical Failure</strong> As failure, but the creature becomes @UUID[Compendium.pf2e.conditionitems.Item.Clumsy]{Clumsy 2}, @UUID[Compendium.pf2e.conditionitems.Item.Drained]{Drained 2}, and @UUID[Compendium.pf2e.conditionitems.Item.Enfeebled]{Enfeebled 2}, or increases these conditions by 2.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Carnivorous Blob",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[2d12[bludgeoning],2d6[acid]]{2d12 bludgeoning plus 2d6 acid}, @Check[fortitude|dc:33|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Cavern Troll",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p><hr /><p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Cunning Fox",
+   "name": "Bonded Strike",
+   "item": {
+    "type": "action",
+    "name": "Bonded Strike",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The spirit guide is currently Bonded with a Mortal</p><hr /><p><strong>Effect</strong> The spirit guide makes a jaws Strike. If this attack hits, the bonded mortal can spend their reaction to Strike the same target.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Dig-Widget",
+   "name": "Fastening Leap",
+   "item": {
+    "type": "action",
+    "name": "Fastening Leap",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The dig-widget Leaps up 20 feet onto a creature or object and attempts a corkscrew Strike against it. If the Strike damages the target, the dig-widget attaches to the target (typically to the back of a creature). This is similar to @UUID[Compendium.pf2e.bestiary-ability-glossary-srd.Item.Grab]{Grabbing} the creature, but the dig-widget moves with that creature rather than holding it in place. While attached, the dig-widget can't use its corkscrew. The dig-widget can be @UUID[Compendium.pf2e.actionspf2e.Item.Shove]{Shoved} off, or it can detach itself with an Interact action.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Doprillu",
+   "name": "Whirlwind Throw",
+   "item": {
+    "type": "action",
+    "name": "Whirlwind Throw",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The doprillu has a creature @UUID[Compendium.pf2e.conditionitems.Item.Grabbed]</p>\n<hr />\n<p><strong>Effect</strong> The doprillu whirls the grabbed creature about, making a Body Strike against each creature in reach. After that Strike, the doprillu can hurl the grabbed creature up to 50 feet as a ranged Strike. This Strike has the same attack modifier and damage as Body Strike, but has the thrown 20 feet weapon trait.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Draugr",
+   "name": "Swipe",
+   "item": {
+    "type": "action",
+    "name": "Swipe",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The draugr powers their hate into attacking as many foes as possible. The draugr makes a melee Strike and compares the attack roll result to the AC of up to two foes, each of whom must be within its melee reach and adjacent to each other. Roll damage only once and apply it to each creature hit. A Swipe counts as two attacks for the draugr's multiple attack penalty.</p>"
+     }
+    }
+   },
+   "expected": "singleRollMultiAC"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "D'ziriak",
+   "name": "Double Claw",
+   "item": {
+    "type": "action",
+    "name": "Double Claw",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": {
+      "max": 1,
+      "per": "round",
+      "value": 1
+     },
+     "description": {
+      "value": "<p><strong>Frequency</strong> once per round</p><hr /><p><strong>Effect</strong> The d'ziriak makes two claw Strikes. If both hit the same creature, combine their damage for the purpose of resistances and weaknesses. This counts as two attacks for the d'ziriak's multiple attack penalty, and the penalty doesn't increase until after both attacks.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Elysian Titan",
+   "name": "Titanic Grasp",
+   "item": {
+    "type": "action",
+    "name": "Titanic Grasp",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The titan makes a fist Strike against a creature affected by their impossible stature, even if it's outside of the titan's normal reach. On a hit, the titan automatically @UUID[Compendium.pf2e.conditionitems.Item.Grabbed]{Grabs} the creature and, if out of their reach, pulls it within reach.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Esobok",
+   "name": "Wrench Spirit",
+   "item": {
+    "type": "action",
+    "name": "Wrench Spirit",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": [
+       "attack",
+       "divine",
+       "incapacitation"
+      ]
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> A creature is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] or @UUID[Compendium.pf2e.conditionitems.Item.Restrained] by the esobok's jaws</p><hr /><p><strong>Effect</strong> The esobok releases the target from the Grab but wrenches its spirit free as it does so. The creature must attempt a @Check[will|dc:20] save. Creatures without souls (such as most constructs) and creatures whose bodies and souls are one (such as most celestials, fiends, and monitors) who roll a failure or critical failure on the save get a success instead.</p><hr /><p><strong>Critical Success</strong> The creature is unaffected.</p>\n<p><strong>Success</strong> The target is @UUID[Compendium.pf2e.conditionitems.Item.Stunned]{Stunned 1}.</p>\n<p><strong>Failure</strong> The esobok wrenches the target's soul from its body into its jaws. Mindless undead creatures of level 2 or lower are destroyed, other undead creatures are stunned for 1 round, and all other creatures are @UUID[Compendium.pf2e.conditionitems.Item.Paralyzed]. At the end of each of its turns, a creature paralyzed by this effect can attempt a new save to end the effect. The paralysis ends automatically if the esobok attempts a jaws Strike or speaks.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Feathered Bear",
+   "name": "Bonded Strike",
+   "item": {
+    "type": "action",
+    "name": "Bonded Strike",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The spirit guide is currently Bonded with a Mortal</p>\n<hr />\n<p><strong>Effect</strong> The spirit guide makes a jaws Strike. If this attack hits, the bonded mortal can spend their reaction to Strike the same target.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Garadasura",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d6+7)[bludgeoning]], @Check[fortitude|dc:30|basic]</p><hr /><p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Giant Amoeba",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[1d4[bludgeoning],1d4[acid]]{1d4 bludgeoning plus 1d4 acid}, @Check[fortitude|dc:17|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Giant Crab",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d6+3)[bludgeoning]] damage, @Check[fortitude|dc:18|basic]</p><hr /><p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Girtablilu Seer",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(3d8+6)[bludgeoning]], @Check[fortitude|dc:30|basic]</p><hr /><p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Girtablilu Sentry",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d8+6)[bludgeoning]], @Check[fortitude|dc:24|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Grisantian Lion",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>claw.</p>\n<p>If the grisantian lion Rends after a successful Dual Pounce, combine the Rend's damage with that from the Dual Pounce for the purpose of resistances and weaknesses.</p>\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Gug",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Ice Troll",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p><hr /><p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Imentesh",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d10+11)[bludgeoning]] damage, @Check[fortitude|dc:29|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Izfiitar",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d8+17)[bludgeoning]] damage, @Check[fortitude|dc:44|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Jotund Troll",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p><hr /><p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Kimenhul",
+   "name": "Frightening Flurry",
+   "item": {
+    "type": "action",
+    "name": "Frightening Flurry",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The kimenhul makes one jaws Strike and two claw Strikes against a single target, in any order. The target becomes @UUID[Compendium.pf2e.conditionitems.Item.Frightened] with a condition value equal to the number of Strikes that hit it, to a maximum of frightened 3 if all three Strikes hit.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Kimenhul",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Maftet Guardian",
+   "name": "Paired Strike",
+   "item": {
+    "type": "action",
+    "name": "Paired Strike",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The maftet is wielding two scimitars</p>\n<hr />\n<p><strong>Effect</strong> The maftet makes two Strikes against the same target, one with each of their scimitars. The maftet combines the damage of any attacks that hit and applies resistances and weaknesses only once. This counts as one attack when calculating the maftet's multiple attack penalty.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Maftet Guardian",
+   "name": "Raptor Dive",
+   "item": {
+    "type": "action",
+    "name": "Raptor Dive",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 3
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The maftet is flying at least 10 feet above the target</p>\n<hr />\n<p><strong>Effect</strong> The maftet Flies up to twice their fly Speed and makes a Paired Strike at the end of the movement. If both Strikes hit, the target is also knocked @UUID[Compendium.pf2e.conditionitems.Item.Prone].</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Mist Stalker",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d8+4)[bludgeoning]] damage, @Check[fortitude|dc:21|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Mix Coatl",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d10+4)[bludgeoning]], @Check[fortitude|dc:26|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Moon Hag",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p><hr /><p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Naunet",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d8+8)[bludgeoning]] damage, @Check[fortitude|dc:22|basic] save</p><hr /><p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Nosferatu Thrall",
+   "name": "Swing Back",
+   "item": {
+    "type": "action",
+    "name": "Swing Back",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": {
+      "max": 1,
+      "per": "round"
+     },
+     "description": {
+      "value": "<p><strong>Frequency</strong> once per round</p>\n<p><strong>Requirements</strong> The nosferatu thrall's last action was a greatclub Strike that missed</p><hr /><p><strong>Effect</strong> The nosferatu thrall makes another greatclub Strike against the same target, using the previous Strike's multiple attack penalty.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Penanggalan",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d4+3)[bludgeoning]], @Check[fortitude|dc:21|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Phasmadaemon",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(3d10+9)[bludgeoning]], @Check[fortitude|dc:35|basic]</p><hr /><p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Phasmadaemon",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Rusalka",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d8+10)[bludgeoning]], @Check[fortitude|dc:32|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Shade (Dead Vault)",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Bite</p><hr /><p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Shoggoth",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d10+15)[bludgeoning]], @Check[fortitude|dc:40|basic]</p>\n<hr />\n<p><em>Note: A DC was not provided for this ability by Paizo. The DC present here is a moderate DC for the creature level according to the Gamemastery Guide creature building Tables.</em></p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Slithering Pit",
+   "name": "Dimensional Pit",
+   "item": {
+    "type": "action",
+    "name": "Dimensional Pit",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": [
+       "extradimensional",
+       "occult"
+      ]
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The slithering pit opens an extradimensional, 20-foot-deep pit that covers its own space and all adjacent squares unless they're walls or similar blocking terrain.</p>\n<p>Any other creature occupying or entering pit spaces must succeed at a @Check[reflex|dc:22] save or fall into the pit, taking damage from the fall (typically @Damage[10[bludgeoning]] damage). Any creature @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] by the slithering pit falls in and is no longer grabbed, even if it was outside the pit squares.</p>\n<p>While a Dimensional Pit is open, the slithering pit is @UUID[Compendium.pf2e.conditionitems.Item.Immobilized], can't be forced to move, and can make pseudopod Strikes originating from the walls of the pit. A creature that starts its turn at the bottom of the pit takes @Damage[2d6[acid]] damage. Climbing the walls of the pit requires a @Check[athletics|dc:22] check.</p>\n<p>When the slithering pit dies, the Dimensional Pit closes and creatures inside are ejected, with the effects of Out You Go.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Slithering Pit",
+   "name": "Flurry of Pods",
+   "item": {
+    "type": "action",
+    "name": "Flurry of Pods",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The slithering pit makes a single pseudopod Strike against each target within range it doesn't already have @UUID[Compendium.pf2e.conditionitems.Item.Grabbed]. These attacks count toward the slithering pit's multiple attack penalty, but the penalty doesn't increase until after all of these attacks.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Swordkeeper",
+   "name": "Echoblade Flurry",
+   "item": {
+    "type": "action",
+    "name": "Echoblade Flurry",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": {
+      "max": 1,
+      "per": "round",
+      "value": 1
+     },
+     "description": {
+      "value": "<p><strong>Frequency</strong> once per round</p><hr /><p><strong>Effect</strong> The swordkeeper makes two melee echoblade Strikes. If both Strikes hit the same creature, combine their damage for the purpose of resistances and weakness. Apply the swordkeeper's multiple attack penalty normally.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Tikbalang",
+   "name": "Flailing Thrash",
+   "item": {
+    "type": "action",
+    "name": "Flailing Thrash",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The tikbalang makes two fist Strikes, with each Strike dealing an extra @Damage[1d6[untyped]] damage against creatures grabbing or @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] or @UUID[Compendium.pf2e.conditionitems.Item.Restrained] by the tikbalang. The multiple attack penalty doesn't increase until after both attacks.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Tripkee Scout",
+   "name": "Hurl Net",
+   "item": {
+    "type": "action",
+    "name": "Hurl Net",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The tripkee is wielding a net in two hands</p><hr /><p><strong>Effect</strong> The tripkee makes a ranged Strike (with a [[/r 1d20+9]]{+9} attack modifier) against a Medium or smaller creature within 20 feet. On a hit, the target is @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] and takes a –10-foot circumstance penalty to its Speeds. On a critical hit, the creature is @UUID[Compendium.pf2e.conditionitems.Item.Restrained] instead. The DC to [[/act escape dc=16]] the net is 16. A creature adjacent to the target can Interact with the net to remove it.</p>\n<p>@UUID[Compendium.pf2e.bestiary-effects.Item.Effect: Hurl Net]</p>"
+     }
+    }
+   },
+   "expected": "strikeWithOnHit"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Two-Headed Troll",
+   "name": "Collaborative Chomp",
+   "item": {
+    "type": "action",
+    "name": "Collaborative Chomp",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The troll makes a claw Strike and Grabs a single target. If both are successful, the other head can use their reaction to make a jaws Strike against that creature.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Vanara Disciple",
+   "name": "Flurry of Blows",
+   "item": {
+    "type": "action",
+    "name": "Flurry of Blows",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": {
+      "max": 1,
+      "per": "round",
+      "value": 1
+     },
+     "description": {
+      "value": "<p><strong>Frequency</strong> once per round</p><hr /><p><strong>Effect</strong> The vanara disciple makes two fist Strikes. If both hit the same creature, combine their damage for the purpose of resistances and weaknesses.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Vanyver",
+   "name": "Drain Magic",
+   "item": {
+    "type": "action",
+    "name": "Drain Magic",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The vanyver's last action was a successful jaws Strike against a creature, object, or spell effect</p>\n<hr />\n<p><strong>Effect</strong> The vanyver casts an innate @UUID[Compendium.pf2e.spells-srd.Item.Dispel Magic] on the same target; if the target was a creature, the vanyver can target a spell affecting the creature instead. If a spell effect or item is successfully counteracted, the vanyver gains temporary Hit Points equal to double the counteract rank of the effect that was counteracted.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Vanyver",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(3d10+5)[piercing]] @Check[fortitude|dc:33|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Verdurous Ooze",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[2d6[bludgeoning],1d6[acid]]{2d6 bludgeoning plus 1d6 acid}, @Check[fortitude|dc:24|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Viper Vine",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(3d8+8)[bludgeoning]] damage, @Check[fortitude|dc:33|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Vloriak",
+   "name": "Lick Rust",
+   "item": {
+    "type": "action",
+    "name": "Lick Rust",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": [
+       "attack"
+      ]
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The vloriak rusted a metal item with its tongue this turn</p><hr /><p><strong>Effect</strong> The vloriak attempts a tongue Strike on the same target it just attacked. If it hits, it deals no damage as it licks away the rust and heals @Damage[2d6[healing]] Hit Points (or @Damage[4d6[healing]] Hit Points if the Strike was a critical hit). It can't Lick Rust on its next turn.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Wemmuth",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d12+10)[bludgeoning]] damage, @Check[fortitude|dc:36|basic] save</p><hr /><p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-monster-core-2",
+   "actor": "Xiuh Coatl",
+   "name": "Greater Constrict",
+   "item": {
+    "type": "action",
+    "name": "Greater Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d10+10)[bludgeoning],1d8[electricity]]{1d10+10 bludgeoning plus 1d8 electricity}, @Check[fortitude|dc:32|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.GreaterConstrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Annis Hag",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Black Pudding",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d8+7)[bludgeoning],1d6[acid]]{1d8+7 bludgeoning damage plus 1d6 acid damage}, @Check[fortitude|dc:26|basic] save</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Chuul",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d8+9)[bludgeoning]] damage, @Check[fortitude|dc:25|basic] save (@UUID[Compendium.pf2e.conditionitems.Item.Grabbed] by claws only)</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Efreeti",
+   "name": "Combat Grab",
+   "item": {
+    "type": "action",
+    "name": "Combat Grab",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The efreeti has one hand free.</p>\n<hr />\n<p><strong>Effect</strong> The efreeti makes a melee Strike while keeping one hand free. If the Strike hits, the target is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] in the efreeti's free hand.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Giant Mantis",
+   "name": "Lunging Strike",
+   "item": {
+    "type": "action",
+    "name": "Lunging Strike",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The giant mantis lunges forward, making a leg Strike with an extended reach of 20 feet.</p>"
+     }
+    }
+   },
+   "expected": "extendedReachStrike"
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Glabrezu",
+   "name": "Captive Rake",
+   "item": {
+    "type": "action",
+    "name": "Captive Rake",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> A creature is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] in the glabrezu's pincer.</p>\n<hr />\n<p><strong>Effect</strong> The glabrezu pulls the grabbed creature up to 5 feet closer, then makes two claw Strikes against it. Those Strikes count as one attack when determining a treachery demon's multiple attack penalty, and the penalty doesn't increase until after both Strikes.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Hill Giant",
+   "name": "Wide Swing",
+   "item": {
+    "type": "action",
+    "name": "Wide Swing",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The hill giant makes a single greatclub Strike and compares the attack roll result to the ACs of up to two foes within its reach.</p>\n<p>This counts as two attacks for the hill giant's multiple attack penalty.</p>"
+     }
+    }
+   },
+   "expected": "singleRollMultiAC"
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Marilith",
+   "name": "Focused Assault",
+   "item": {
+    "type": "action",
+    "name": "Focused Assault",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The marilith attacks a single target with all the weapons they wield in their arms, overwhelming the target with multiple attacks and leaving almost nowhere to dodge. The demon makes a longsword Strike. On a successful attack, the marilith deals longsword damage to the target, plus an additional 1d8 slashing damage for every longsword they wield beyond the first (typically 5d8 slashing damage). Even on a failed attack, the marilith deals the damage from one longsword to the target, though they still miss completely on a critical failure. This counts toward the marilith's multiple attack penalty as a number of attacks equal to the number of longswords the pride demon wields.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Marilith",
+   "name": "Greater Constrict",
+   "item": {
+    "type": "action",
+    "name": "Greater Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d12+13)[bludgeoning]] damage, @Check[fortitude|dc:39|basic] save</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.GreaterConstrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Mu Spore",
+   "name": "Greater Constrict",
+   "item": {
+    "type": "action",
+    "name": "Greater Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[15[bludgeoning]] damage, @Check[fortitude|dc:45|basic] save</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.GreaterConstrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Ochre Jelly",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d8+3)[bludgeoning],2d4[acid]]{1d8+3 bludgeoning damage plus 2d4 acid damage}, @Check[fortitude|dc:23|basic] save</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Otyugh",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d6+6)[bludgeoning]], @Check[fortitude|dc:22|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Owlbear",
+   "name": "Gnaw",
+   "item": {
+    "type": "action",
+    "name": "Gnaw",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The owlbear has a creature @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] with its talons.</p>\n<hr />\n<p><strong>Effect</strong> The owlbear attempts to disembowel the creature with a beak Strike. If the Strike hits, the target must attempt a @Check[will|dc:22] save.</p>\n<hr />\n<p><strong>Critical Success</strong> The target is unaffected.</p>\n<p><strong>Success</strong> The target is @UUID[Compendium.pf2e.conditionitems.Item.Sickened]{Sickened 1}.</p>\n<p><strong>Failure</strong> The target is sickened 1 and @UUID[Compendium.pf2e.conditionitems.Item.Slowed]{Slowed 1} as long as it remains sickened.</p>"
+     }
+    }
+   },
+   "expected": "strikeAgainstGrabbed"
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Quatoid",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d12+6)[bludgeoning]], @Check[fortitude|dc:25|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Salamander",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d8+4)[bludgeoning],1d6[fire]]{1d8+4 bludgeoning plus 1d6 fire}, @Check[fortitude|dc:25|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Storm Giant",
+   "name": "Wide Swing",
+   "item": {
+    "type": "action",
+    "name": "Wide Swing",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The storm giant makes a single greatsword Strike and compares the attack roll result to the ACs of up to two foes within its reach. This counts as two attacks for the giant's multiple attack penalty.</p>"
+     }
+    }
+   },
+   "expected": "singleRollMultiAC"
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Troll King",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Troll",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-bestiary",
+   "actor": "Xorn",
+   "name": "Claw Frenzy",
+   "item": {
+    "type": "action",
+    "name": "Claw Frenzy",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The xorn makes three claw Strikes; no more than two can be against the same target. These attacks count toward the xorn's multiple attack penalty, but the penalty doesn't increase until after all the attacks have been made.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Assassin Vine",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d8+4)[bludgeoning]], @Check[fortitude|dc:20|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Aurumvorax",
+   "name": "Gnaw Metal",
+   "item": {
+    "type": "action",
+    "name": "Gnaw Metal",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The aurumvorax makes a jaws Strike against a creature it has grabbed. If the attack hits, the target is knocked @UUID[Compendium.pf2e.conditionitems.Item.Prone] if it is Medium or smaller. In addition, if the target is wearing armor with Hardness 10 or lower, the armor becomes @UUID[Compendium.pf2e.conditionitems.Item.Broken]. If this Strike breaks a creature's armor or damages a creature that is unarmored or wearing broken armor, the target also takes @Damage[1d6[bleed]]. This Strike doesn't further damage armor that's already broken.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Aurumvorax",
+   "name": "Rapid Rake",
+   "item": {
+    "type": "action",
+    "name": "Rapid Rake",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The aurumvorax makes four claw Strikes against a creature it has grabbed. Each attack counts toward the aurumvorax's multiple attack penalty, and the multiple attack penalty increases with each attack.</p>"
+     }
+    }
+   },
+   "expected": "strikeAgainstGrabbed"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Behir",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d6+7)[bludgeoning]] damage, @Check[fortitude|dc:27|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Black Scorpion",
+   "name": "Greater Constrict",
+   "item": {
+    "type": "action",
+    "name": "Greater Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d12+12)[bludgeoning]] damage, @Check[fortitude|dc:36|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.GreaterConstrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Blue-Ringed Octopus",
+   "name": "Toxic Bite",
+   "item": {
+    "type": "action",
+    "name": "Toxic Bite",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": [
+       "virulent"
+      ]
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The blue-ringed octopus has a creature @UUID[Compendium.pf2e.conditionitems.Item.Grabbed]</p>\n<hr />\n<p><strong>Effect</strong> The blue-ringed octopus makes a beak Strike against the grabbed creature. If it hits, it injects additional poison, causing its venom to gain the virulent trait.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Bog Strider",
+   "name": "Hurl Net",
+   "item": {
+    "type": "action",
+    "name": "Hurl Net",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The bog strider is holding a net in two hands</p><hr /><p><strong>Effect</strong> The bog strider hurls their net to hamper a foe. They make a ranged Strike (with a [[/r 1d20+10 #Hurl Net]]{+10} modifier) against a Medium or smaller creature within 20 feet. On a hit, the target is @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] and takes a –10-foot circumstance penalty to its Speeds. On a critical hit, the creature is instead @UUID[Compendium.pf2e.conditionitems.Item.Restrained]. The DC to [[/act escape dc=16]]{Escape} the net is 16. A creature adjacent to the target can Interact with the net to remove it from the target.</p>\n<p>@UUID[Compendium.pf2e.bestiary-effects.Item.Effect: Hurl Net]</p>"
+     }
+    }
+   },
+   "expected": "strikeWithOnHit"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Choker",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d6+3)[bludgeoning]], @Check[fortitude|dc:19|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Cornugon",
+   "name": "Chain of Malebolge",
+   "item": {
+    "type": "action",
+    "name": "Chain of Malebolge",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The cornugon's last action was a success with a spiked chain Strike.</p>\n<hr />\n<p><strong>Effect</strong> The devil pulls the creature 5 feet closer and @UUID[Compendium.pf2e.conditionitems.Item.Grabbed]{Grabs} it with the spiked chain ([[/act escape dc=42]]). The creature is automatically freed if the devil makes another spiked chain attack or moves away.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Derghodaemon",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Duneshaker Solifugid",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Froghemoth",
+   "name": "Greater Constrict",
+   "item": {
+    "type": "action",
+    "name": "Greater Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(3d6+12)[bludgeoning]] damage, @Check[fortitude|dc:33|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.GreaterConstrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Froghemoth",
+   "name": "Retract Tongue",
+   "item": {
+    "type": "action",
+    "name": "Retract Tongue",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The froghemoth pulls a creature grabbed by its tongue toward itself. The froghemoth rolls an @Check[athletics|defense:fortitude] check against the creature's Fortitude DC. On a success, the froghemoth pulls the creature into an adjacent space, and if it critically succeeds it can also make a bite Strike against the creature after the pull.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Giant Solifugid",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Giant Squid",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d10+10)[bludgeoning]] damage, @Check[fortitude|dc:25|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Giant Squid",
+   "name": "Ravenous Embrace",
+   "item": {
+    "type": "action",
+    "name": "Ravenous Embrace",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The giant squid makes up to four arm Strikes, each with a different arm and against a different target. The giant squid then makes a beak Strike against one creature that it @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] during Ravenous Embrace. Each arm Strike counts separately for the squid's multiple attack penalty, but the penalty doesn't increase until the squid has made all of its arm Strikes; the beak Strike uses the multiple attack penalty as normal.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Giant Wolverine",
+   "name": "Gnaw",
+   "item": {
+    "type": "action",
+    "name": "Gnaw",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The wolverine has a creature grabbed from its jaws Strike</p>\n<hr />\n<p><strong>Effect</strong> The wolverine chews violently on the creature, dealing @Damage[2d6[piercing]] damage (@Check[fortitude|dc:21|basic] save). A creature that fails its save also takes @Damage[2d6[bleed]].</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Giant Wolverine",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Gray Ooze",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[1d6[bludgeoning],1d6[acid]]{1d6 bludgeoning plus 1d6 acid}, @Check[fortitude|dc:21|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Grendel",
+   "name": "Tooth Grind",
+   "item": {
+    "type": "action",
+    "name": "Tooth Grind",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": [
+       "healing"
+      ]
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> Grendel is grabbing a creature</p>\n<hr />\n<p><strong>Effect</strong> Grendel makes a bludgeoning jaws Strike against the creature he's grabbing. On a hit, the creature also takes @Damage[2d6[bleed]] damage and becomes @UUID[Compendium.pf2e.conditionitems.Item.Wounded]{Wounded 1}, or increases its wounded value by 1 if already wounded. On a critical hit, the creature instead becomes wounded 2, or increases its wounded value by 2 if already wounded. If a creature dies from Tooth Grind, Grendel regains @Damage[40[healing]] HP; this is a healing effect.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Grippli Scout",
+   "name": "Hurl Net",
+   "item": {
+    "type": "action",
+    "name": "Hurl Net",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The grippli is wielding a net in two hands</p><hr /><p><strong>Effect</strong> The grippli makes a ranged Strike (with a [[/r 1d20+9 #Hurl Net]]{+9} modifier) against a Medium or smaller creature within 20 feet. On a hit, the target is @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] and takes a –10-foot circumstance penalty to its Speeds. On a critical hit, the creature is @UUID[Compendium.pf2e.conditionitems.Item.Restrained] instead. The DC to [[/act escape dc=16]]{Escape} the net is 16. A creature adjacent to the target can Interact with the net to remove it.</p>\n<p>@UUID[Compendium.pf2e.bestiary-effects.Item.Effect: Hurl Net]</p>"
+     }
+    }
+   },
+   "expected": "strikeWithOnHit"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Mudwretch",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d8+2)[bludgeoning]] damage, @Check[fortitude|dc:18|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Piscodaemon",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d10+6)[bludgeoning]] damage, @Check[fortitude|dc:30|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Piscodaemon",
+   "name": "Gory Rend",
+   "item": {
+    "type": "action",
+    "name": "Gory Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The piscodaemon makes two claw Strikes against the same creature. If both hit, the creature takes @Damage[2d10[bleed]] and is exposed to piscovenom.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Polar Bear",
+   "name": "Grab",
+   "item": {
+    "type": "action",
+    "name": "Grab",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The bear's last action was a success with a Strike that lists Grab in its damage entry, or it has a creature grabbed using this action.</p>\n<hr />\n<p><strong>Effect</strong> The bear automatically Grabs the target until the end of the bear's next turn. The creature is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] by whichever body part the bear attacked with, and that body part can't be used to Strike creatures until the grab is ended. Using Grab extends the duration of the monster's Grab until the end of its next turn for all creatures grabbed by it. A grabbed creature can use the @UUID[Compendium.pf2e.actionspf2e.Item.Escape] action to get out of the grab, and the Grab ends for a grabbed creatures if the bear moves away from it.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Shoggti",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d10+8)[bludgeoning]] damage, @Check[fortitude|dc:25|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Umonlee",
+   "name": "Greater Constrict",
+   "item": {
+    "type": "action",
+    "name": "Greater Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(2d10+8)[bludgeoning]] damage, @Check[fortitude|dc:36|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.GreaterConstrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Vrykolakas Ancient",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Vrykolakas Master",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Vrykolakas Spawn",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Wolverine",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-bestiary-2",
+   "actor": "Xill",
+   "name": "Double Slash",
+   "item": {
+    "type": "action",
+    "name": "Double Slash",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": [
+       "flourish"
+      ]
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The xill makes two scimitar Strikes against a single target. If both hit, combine their damage for the purpose of the target's resistances and weaknesses. The xill applies its multiple attack penalty to each strike normally.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Angazhani",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Fist</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Bone Ship",
+   "name": "Chain Shot",
+   "item": {
+    "type": "action",
+    "name": "Chain Shot",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The bone ship makes a special bone cannon Strike, firing a chain made of bones. A creature hit by this Strike is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] by the chain ([[/act escape dc=41]]).</p>\n<p>The bone ship can use Interact actions to reel in a grabbed creature 50 feet per action spent, and when the ship moves, it pulls the grabbed creature along with it.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Cecaelia Trapper",
+   "name": "Hurl Net",
+   "item": {
+    "type": "action",
+    "name": "Hurl Net",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The cecaelia is holding a net in two appendages.</p><hr /><p><strong>Effect</strong> The cecaelia hurls their net, attempting to hamper a foe. The cecaelia makes a ranged Strike (with a [[/r 1d20+15 #Hurl Net]]{+15} modifier) against a Medium or smaller creature within 20 feet.</p>\n<p>On a hit, the target is @UUID[Compendium.pf2e.conditionitems.Item.Off-Guard] and takes a –10-foot circumstance penalty to its Speeds. On a critical hit, the creature is @UUID[Compendium.pf2e.conditionitems.Item.Restrained]. The DC to [[/act escape dc=16]]{Escape} the net is 16. A creature adjacent to the target can Interact with the net to remove it from the target.</p>\n<p>@UUID[Compendium.pf2e.bestiary-effects.Item.Effect: Hurl Net]</p>"
+     }
+    }
+   },
+   "expected": "strikeWithOnHit"
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Chouchin-Obake",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[2d8[void],1d6[fire]]{2d8 void plus 1d6 fire}, @Check[fortitude|dc:26|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Giant Hermit Crab",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d8+6)[bludgeoning]], @Check[fortitude|dc:22|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Ittan-Momen",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[1d8[bludgeoning]], @Check[fortitude|dc:18|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Kishi",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d10+9)[piercing]], @Check[fortitude|dc:26|basic] (@UUID[Compendium.pf2e.conditionitems.Item.Grabbed] by jaws only)</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Krampus",
+   "name": "Capture",
+   "item": {
+    "type": "action",
+    "name": "Capture",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": [
+       "attack"
+      ]
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> Krampus has a Medium or smaller creature @UUID[Compendium.pf2e.conditionitems.Item.Grabbed]</p>\n<hr />\n<p><strong>Effect</strong> Krampus attempts to stuff the grabbed creature into his basket, attempting an @Check[athletics|against:reflex] check against the target's Reflex DC. If he succeeds, the creature is shoved into Krampus's basket and Krampus's spiked chain or claw is freed for future Strikes.</p>\n<p>The captured creature is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed], @UUID[Compendium.pf2e.conditionitems.Item.Slowed]{Slowed 1}, and subjected to Krampus's regression ability at the start of each round it is captured.</p>\n<p>If the victim [[/act escape dc=48]]{Escapes}, it climbs out of the basket. A captured creature can attack the interior of the basket, but only with unarmed attacks or weapons of light Bulk or less, against an AC of 40. If the captured creature deals 40 slashing or piercing damage, the basket is broken and all the creatures inside spill out. A creature that gets free by either Escaping or by someone breaking the basket is deposited in a square of their choosing adjacent to Krampus.</p>\n<p>The basket is an extradimensional space, so the weight of the creatures within doesn't count against Krampus's Bulk limit. Up to four Small creatures or two Medium creatures can fit in the basket at one time.</p>\n<p>Krampus can @UUID[Compendium.pf2e.actionspf2e.Item.Repair] the basket as a 2-action activity that doesn't require tools. If the basket is lost or destroyed, Krampus can create a new one with 1 hour of work. The basket functions as a normal sack if used by anyone other than Krampus.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Kuchisake-Onna",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Silver Scissors</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Kurobozu",
+   "name": "Stunning Flurry",
+   "item": {
+    "type": "action",
+    "name": "Stunning Flurry",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": {
+      "max": 1,
+      "per": "round",
+      "value": 1
+     },
+     "description": {
+      "value": "<p><strong>Frequency</strong> once per round</p>\n<hr />\n<p><strong>Effect</strong> The kurobozu makes two unarmed Strikes. If both hit the same creature, combine their damage for the purpose of resistances and weaknesses, and the target must succeed at a @Check[fortitude|dc:22|traits:incapacitation] save or be @UUID[Compendium.pf2e.conditionitems.Item.Stunned]{Stunned 1} (or @UUID[Compendium.pf2e.conditionitems.Item.Stunned]{Stunned 3} on a critical failure); this save has the incapacitation trait.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Manticore Paaridar",
+   "name": "Flurry of Blows",
+   "item": {
+    "type": "action",
+    "name": "Flurry of Blows",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": {
+      "max": 1,
+      "per": "round",
+      "value": 1
+     },
+     "description": {
+      "value": "<p><strong>Frequency</strong> once per round</p>\n<hr />\n<p><strong>Effect</strong> The paaridar makes two unarmed Strikes or two spike Strikes. If both hit the same creature, combine their damage for the purpose of resistances and weaknesses.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Megalictis",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[(1d12+2)[piercing]], @Check[fortitude|dc:20|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Megatherium",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Narwhal",
+   "name": "Impaling Charge",
+   "item": {
+    "type": "action",
+    "name": "Impaling Charge",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 2
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>The narwhal Swims twice and makes a tusk Strike. If it moved at least 20 feet from its starting position, the narwhal deals an extra 1d10 damage on this Strike.</p>\n<p>A target damaged by Impaling Charge is @UUID[Compendium.pf2e.conditionitems.Item.Grabbed] until the start of the narwhal's next turn unless it @UUID[Compendium.pf2e.actionspf2e.Item.Escape]{Escapes} before then (DC 20).</p>\n<p>The narwhal can't Grapple to extend the duration of this grab.</p>"
+     }
+    }
+   },
+   "expected": null
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Three-Toed Sloth",
+   "name": "Rend",
+   "item": {
+    "type": "action",
+    "name": "Rend",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>Claw</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Rend]</p>"
+     }
+    }
+   },
+   "expected": "rend"
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Weasel",
+   "name": "Constrict",
+   "item": {
+    "type": "action",
+    "name": "Constrict",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p>@Damage[1d4[piercing]], @Check[fortitude|dc:15|basic]</p>\n<hr />\n<p>@Localize[PF2E.NPC.Abilities.Glossary.Constrict]</p>"
+     }
+    }
+   },
+   "expected": "constrictLike"
+  },
+  {
+   "pack": "pathfinder-bestiary-3",
+   "actor": "Werecrocodile",
+   "name": "Twisting Thrash",
+   "item": {
+    "type": "action",
+    "name": "Twisting Thrash",
+    "system": {
+     "actionType": {
+      "value": "action"
+     },
+     "actions": {
+      "value": 1
+     },
+     "traits": {
+      "value": []
+     },
+     "frequency": null,
+     "description": {
+      "value": "<p><strong>Requirements</strong> The werecrocodile has a creature @UUID[Compendium.pf2e.conditionitems.Item.Grabbed]</p>\n<hr />\n<p><strong>Effect</strong> The werecrocodile makes a Jaws Strike with a +2 circumstance bonus to the attack roll against the grabbed creature. If this Strike hits, it also knocks the target @UUID[Compendium.pf2e.conditionitems.Item.Prone]. If it fails, the werecrocodile releases the target.</p>"
+     }
+    }
+   },
+   "expected": "strikeAgainstGrabbed"
+  }
+ ]
+}

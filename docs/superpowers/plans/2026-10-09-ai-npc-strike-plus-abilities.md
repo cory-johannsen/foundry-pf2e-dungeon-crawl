@@ -268,7 +268,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing (pure).
 - Produces (consumed by Task 4): `parseStrikePlusAbility(item)` → `{ shape, cost, frequency, params } | null`.
 
-- [ ] **Step 1: Write the real-data fixture file**
+- [x] **Step 1: Write the real-data fixture file**
 
 Every description string below is the item's real, unedited `system.description.value`, gathered from `~/pf2e-data/packs/pf2e/*.json` before writing any grammar:
 
@@ -292,7 +292,7 @@ Every description string below is the item's real, unedited `system.description.
 
 (The real `–` en-dash characters are preserved as Unicode escapes in this JSON exactly as the source data stores them — the parser's own regex must match `–` or `-` interchangeably, since real bestiary text is inconsistent about which dash character it uses; confirm this against both forms when writing `MANGLING_REND_RE`/`HURL_NET_RE` below, not just the plain hyphen.)
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 ```js
 // tests/npc-strike-shapes.test.mjs
@@ -404,12 +404,12 @@ describe('parseStrikePlusAbility', () => {
 });
 ```
 
-- [ ] **Step 3: Run tests to verify they fail**
+- [x] **Step 3: Run tests to verify they fail**
 
 Run: `npm test -- tests/npc-strike-shapes.test.mjs`
 Expected: FAIL — the module doesn't exist yet.
 
-- [ ] **Step 4: Implement `scripts/npc-strike-shapes.mjs`**
+- [x] **Step 4: Implement `scripts/npc-strike-shapes.mjs`**
 
 ```js
 /**
@@ -624,12 +624,12 @@ export function parseStrikePlusAbility(item) {
 }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/npc-strike-shapes.test.mjs`
 Expected: PASS. Given the regex density here, expect at least one grammar/capture-group mismatch on the first pass (the Review Focus section of #932's own plan hit exactly this for its own grammar) — adjust the specific failing regex and its destructuring together, re-running after each fix rather than guessing twice. Pay particular attention to: `parseStrikeAgainstGrabbed`'s `requirements` block lookup (Wrestle has NO separate Requirements block at all — its grab requirement is phrased inline inside the single effect sentence — confirm the `bodyText` concatenation still matches `grabRequirementRe` for Wrestle specifically, since this is a real, deliberate asymmetry between Wrestle's and Death Roll's own real text, not a bug to paper over); the en-dash (`–`) vs. plain-hyphen handling in `parseTwoTargetStrikes`/`parseBundleWithBothHitRider`/`parseStrikeWithOnHit`'s own number-with-sign patterns.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/npc-strike-shapes.mjs tests/npc-strike-shapes.test.mjs tests/fixtures/npc-strike-shape-fixtures.json
@@ -649,7 +649,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `parseStrikePlusAbility` (Task 2).
 - Produces: nothing further — a standing regression guard, matching #932's own Task 2 precedent.
 
-- [ ] **Step 1: Write the snapshot test**
+- [x] **Step 1: Write the snapshot test**
 
 ```js
 import { describe, it, expect } from 'vitest';
@@ -681,12 +681,12 @@ describe('npc-strike-shapes coverage audit', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it passes**
+- [x] **Step 2: Run the test to verify it passes**
 
 Run: `npm test -- tests/npc-strike-shapes-coverage.test.mjs`
 Expected: PASS (given Task 2's implementation already produces exactly this mapping).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/npc-strike-shapes-coverage.test.mjs
