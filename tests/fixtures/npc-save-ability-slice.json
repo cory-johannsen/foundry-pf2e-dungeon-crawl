@@ -251,7 +251,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core",
@@ -280,7 +280,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core",
@@ -309,7 +309,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core",
@@ -966,7 +966,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core",
@@ -996,7 +996,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core",
@@ -1166,7 +1166,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core",
@@ -1344,7 +1344,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core",
@@ -1456,7 +1456,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core",
@@ -1761,7 +1761,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core",
@@ -1791,7 +1791,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core",
@@ -1821,7 +1821,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core",
@@ -1851,7 +1851,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core",
@@ -2755,7 +2755,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core",
@@ -3154,7 +3154,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core-2",
@@ -3258,7 +3258,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core-2",
@@ -3286,7 +3286,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core-2",
@@ -3610,7 +3610,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core-2",
@@ -3971,7 +3971,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core-2",
@@ -3998,7 +3998,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core-2",
@@ -4025,7 +4025,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core-2",
@@ -4049,7 +4049,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core-2",
@@ -4191,7 +4191,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core-2",
@@ -4548,7 +4548,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core-2",
@@ -5289,7 +5289,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core-2",
@@ -5370,7 +5370,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core-2",
@@ -5546,7 +5546,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core-2",
@@ -5948,7 +5948,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core-2",
@@ -6601,7 +6601,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-monster-core-2",
@@ -6942,7 +6942,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-bestiary",
@@ -7417,7 +7417,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-bestiary",
@@ -8555,7 +8555,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-bestiary-2",
@@ -8643,7 +8643,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-bestiary-2",
@@ -9334,7 +9334,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-bestiary-3",
@@ -9363,7 +9363,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-bestiary-3",
@@ -9439,7 +9439,7 @@
      }
     }
    },
-   "expected": "reportOnly"
+   "expected": "auto"
   },
   {
    "pack": "pathfinder-bestiary-3",
