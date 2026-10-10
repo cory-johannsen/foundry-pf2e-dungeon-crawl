@@ -105,6 +105,7 @@ const GROUPS = [
         "scripts/feat-action-overrides.mjs",
         "scripts/antagonize.mjs",
         "scripts/combatant-flag-guard.mjs",
+        "scripts/combatant-write-relay.mjs",
         "scripts/npc-reactions.mjs",
         "scripts/dungeon-strike-riders.mjs",
         "scripts/dungeon-critical-deck.mjs",
