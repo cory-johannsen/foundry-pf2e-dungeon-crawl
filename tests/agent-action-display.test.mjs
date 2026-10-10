@@ -170,6 +170,19 @@ describe("describeAgentAction", () => {
     expect(single.targetName).toBe("Goblin");
   });
 
+  it("describes a movement ability's move and Strike (#932)", () => {
+    const cand = { type: "npcMove", kind: "strike", name: "Swoop", targetId: "t1", summary: "Swoop: Fly ... — plan" };
+    expect(publicActionLabel(cand)).toBe("Swoop");
+    const hit = describe2(cand, { performed: true, moveStatus: "moved", attacks: 1, strikeOutcomes: ["success"], gmNote: "Used its fly Speed" });
+    expect(hit).toMatchObject({ summary: "Swoop", targetName: "Goblin", result: { text: "moved; hit", tone: "success" }, gmNote: "Used its fly Speed" });
+    expect(describe2(cand, { performed: true, moveStatus: "moved", strikeOutcomes: [], strikeSkipped: "target out of reach" }).result)
+      .toEqual({ text: "moved; no Strike (target out of reach)", tone: "neutral" });
+    expect(describe2(cand, { performed: true, moveStatus: "disrupted", strikeOutcomes: [], strikeSkipped: "move disrupted" }).result)
+      .toEqual({ text: "move disrupted; no Strike (move disrupted)", tone: "failure" });
+    expect(describe2({ type: "npcMove", kind: "teleport", name: "Jaunt", targetId: "t1" }, { performed: true, moveStatus: "teleported", strikeOutcomes: [] }).result)
+      .toEqual({ text: "teleported", tone: "neutral" });
+  });
+
   it("describes endTurn", () => {
     expect(describe2({ type: "endTurn", summary: "End turn" }, undefined).result).toEqual({ text: "ends turn", tone: "neutral" });
   });

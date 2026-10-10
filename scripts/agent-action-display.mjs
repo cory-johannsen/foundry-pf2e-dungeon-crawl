@@ -64,6 +64,15 @@ const STRIDE_RESULT = Object.freeze({
   },
 });
 
+/** #932: a movement ability's movement part (executeNpcMoveCandidate's
+ * `moveStatus`). */
+const NPC_MOVE_STATUS = Object.freeze({
+  moved: { text: "moved", tone: "neutral" },
+  stayed: { text: "stayed", tone: "neutral" },
+  teleported: { text: "teleported", tone: "neutral" },
+  disrupted: { text: "move disrupted", tone: "failure" },
+});
+
 /** Every candidate type whose executor returns the target's save outcomes
  * as `[{targetId, outcome}]` (castAutoHitAreaTier's no-save tier returns
  * `{targetId, total}` instead; castDualArea/castTargetCount mix in
@@ -109,7 +118,7 @@ export function publicActionLabel(candidate) {
     return "Move";
   }
   if (type === "maneuver") return MANEUVER_DEFS[candidate.slug]?.label ?? candidate.slug ?? "Maneuver";
-  if (type === "feat" || type === "npcAbility") return candidate.name ?? candidate.slug ?? type;
+  if (type === "feat" || type === "npcAbility" || type === "npcMove") return candidate.name ?? candidate.slug ?? type;
   // Every other builder in agent-candidates.mjs leads its summary with the
   // action/spell label, followed by one of these separators.
   const cut = summary.search(/ vs | \(hits | on | heals | \(variant | \(\d+ actions?\)| — | \[/);
@@ -202,6 +211,16 @@ function resultFor(candidate, executionResult, nameOf) {
     const check = CHECK_RESULT[r.outcome];
     if (!check) return { text: r.text || "no check result", tone: "neutral" };
     return { text: r.text ? `${check.text}: ${r.text}` : check.text, tone: check.tone };
+  }
+  if (type === "npcMove") {
+    if (!r || typeof r !== "object") return null;
+    const move = NPC_MOVE_STATUS[r.moveStatus] ?? { text: "moved", tone: "neutral" };
+    const strikes = Array.isArray(r.strikeOutcomes) && r.strikeOutcomes.length ? describeAttackList(r.strikeOutcomes) : null;
+    if (strikes) return { text: `${move.text}; ${strikes.text}`, tone: strikes.tone };
+    if (typeof r.strikeSkipped === "string" && r.strikeSkipped) {
+      return { text: `${move.text}; no Strike (${r.strikeSkipped})`, tone: move.tone === "failure" ? "failure" : "neutral" };
+    }
+    return { text: move.text, tone: move.tone };
   }
   if (type === "feat") {
     if (!r || typeof r !== "object") return null;

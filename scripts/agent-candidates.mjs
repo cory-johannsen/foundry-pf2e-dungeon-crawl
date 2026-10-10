@@ -1263,8 +1263,107 @@ export function buildNpcAbilityCandidates({ npcAbilityVocabulary = [], picks = n
   return candidates;
 }
 
+/** #932: at most this many NPC movement-ability entries go to the reasoning
+ * model per turn. */
+export const NPC_MOVE_VOCABULARY_CAP = 8;
+
+/**
+ * #932: the NPC movement-ability vocabulary (Gallop, Swift Leap, Swoop,
+ * Phase Jump, ...), built from dungeon-combat.mjs's ready entries (this file
+ * has no Foundry API surface). Each entry is one parsed ability
+ * (npc-move-parse.mjs) the creature can use now: `{ itemId, slug, name,
+ * cost, traits, kind: "move"|"strike"|"teleport", plan, mode, feet,
+ * speedSquares, strikeOptions, teleportOptions }`.
+ *  - `move` (no Strike): `approach` / `retreat` per opponent with the same
+ *    eligibility as the generic Stride postures (buildMovementCandidates).
+ *  - `strike`: the `(posture, targetId)` pairs dungeon-combat.mjs found a
+ *    real path for (`strikeOptions`) -- the move ends, or passes, within
+ *    reach of the target with a matching ready Strike.
+ *  - `teleport`: the `(posture, targetId)` pairs with a real free
+ *    destination (`teleportOptions`).
+ * An entry whose flourish/stance trait is spent this turn is dropped.
+ * Capped at NPC_MOVE_VOCABULARY_CAP, interleaved across abilities so one
+ * ability with many targets can't crowd the others out.
+ */
+export function buildNpcMoveVocabulary({ npcMoveEntries = [], opponents = [], hasRangedOrReach = false, turnState = null, describe = null }) {
+  const blocked = (traits = []) =>
+    (turnState?.flourishUsed && traits.includes('flourish')) ||
+    (turnState?.stanceUsed && traits.includes('stance'));
+  const nameOf = (id) => opponents.find((o) => o.id === id)?.name ?? null;
+  const ranked = [];
+  for (const entry of npcMoveEntries) {
+    if (blocked(entry.traits)) continue;
+    let options;
+    if (entry.kind === 'move') {
+      options = [];
+      for (const opponent of opponents) {
+        if (opponent.distanceSquares > AGENT_MELEE_REACH_SQUARES) options.push({ posture: 'approach', targetId: opponent.id });
+        else if (hasRangedOrReach) options.push({ posture: 'retreat', targetId: opponent.id });
+      }
+    } else if (entry.kind === 'strike') {
+      options = entry.strikeOptions ?? [];
+    } else if (entry.kind === 'teleport') {
+      options = entry.teleportOptions ?? [];
+    } else {
+      continue;
+    }
+    options.forEach(({ posture, targetId }, rank) => {
+      const targetName = nameOf(targetId);
+      if (!targetName) return;
+      const summary = describe ? describe(entry, { posture, targetName }) : `${entry.name} (${posture}) ${targetName}`;
+      ranked.push({
+        rank,
+        entry: {
+          type: 'npcMove', kind: entry.kind, itemId: entry.itemId, slug: entry.slug, name: entry.name,
+          cost: entry.cost, posture, targetId, traits: entry.traits ?? [], summary,
+        },
+      });
+    });
+  }
+  return ranked
+    .map((r, index) => ({ ...r, index }))
+    .sort((a, b) => a.rank - b.rank || a.index - b.index)
+    .slice(0, NPC_MOVE_VOCABULARY_CAP)
+    .sort((a, b) => a.index - b.index)
+    .map((r) => r.entry);
+}
+
+/**
+ * #932: validates the combined once-per-turn picks against
+ * `npcMoveVocabulary`, ignoring any pick whose `type` isn't 'npcMove'. The
+ * response schema only carries (type, slug, targetId, rationale), so a pick
+ * names an ability and a target; every posture the vocabulary offers for
+ * that pair becomes a candidate (the per-action /v1/combat-decision call
+ * then picks approach vs retreat, or next to vs away from). An `itemId` the
+ * model volunteers must agree; a pick whose opponent is gone is dropped.
+ */
+export function buildNpcMoveCandidates({ npcMoveVocabulary = [], picks = null, opponents = null }) {
+  if (!picks) return [];
+  const candidates = [];
+  const seen = new Set();
+  for (const pick of picks) {
+    if (!pick || typeof pick !== 'object' || pick.type !== 'npcMove') continue;
+    const targetId = pick.targetId || null;
+    const matches = npcMoveVocabulary.filter((v) => v.slug === pick.slug && v.targetId === targetId);
+    for (const match of matches) {
+      if (pick.itemId !== undefined && pick.itemId !== match.itemId) continue;
+      if (opponents && !opponents.some((o) => o.id === match.targetId)) continue;
+      const id = `npcMove:${match.itemId}:${match.posture}:${match.targetId}`;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      const label = `${match.name}: ${match.summary}`;
+      candidates.push({
+        id, type: 'npcMove', kind: match.kind, itemId: match.itemId, slug: match.slug, name: match.name,
+        posture: match.posture, targetId: match.targetId, cost: match.cost, traits: match.traits ?? [],
+        summary: pick.rationale ? `${label} — ${pick.rationale}` : label,
+      });
+    }
+  }
+  return candidates;
+}
+
 /** Full candidate list for one decision iteration. */
-export function buildCandidateList({ opponents, readyActions, readySpells = [], readyAreaSpells = [], readyAttackSpells = [], readyDebuffSpells = [], readyBreathWeapons = [], readyMultiStrikeBundles = [], readyChainSpells = [], readyHealSpells = [], readyBuffSpells = [], readyTierScalingAreaSpells = [], readyDualNatureSpells = [], readyTargetCountSpells = [], readyAutoHitAreaSpells = [], allies = [], seekTargets = [], turnState, hazard = null, hasRangedOrReach = false, maneuverVocabulary = [], maneuverPicks = null, featVocabulary = [], npcAbilityVocabulary = [] }) {
+export function buildCandidateList({ opponents, readyActions, readySpells = [], readyAreaSpells = [], readyAttackSpells = [], readyDebuffSpells = [], readyBreathWeapons = [], readyMultiStrikeBundles = [], readyChainSpells = [], readyHealSpells = [], readyBuffSpells = [], readyTierScalingAreaSpells = [], readyDualNatureSpells = [], readyTargetCountSpells = [], readyAutoHitAreaSpells = [], allies = [], seekTargets = [], turnState, hazard = null, hasRangedOrReach = false, maneuverVocabulary = [], maneuverPicks = null, featVocabulary = [], npcAbilityVocabulary = [], npcMoveVocabulary = [] }) {
   if (turnState.actionsRemaining <= 0) return [endTurnCandidate()];
   return [
     ...buildMovementCandidates({ opponents, hazard, hasRangedOrReach }),
@@ -1272,6 +1371,7 @@ export function buildCandidateList({ opponents, readyActions, readySpells = [], 
     ...buildManeuverCandidates({ maneuverVocabulary, maneuverPicks, opponents }),
     ...buildFeatCandidates({ featVocabulary, picks: maneuverPicks, opponents }),
     ...buildNpcAbilityCandidates({ npcAbilityVocabulary, picks: maneuverPicks, opponents }),
+    ...buildNpcMoveCandidates({ npcMoveVocabulary, picks: maneuverPicks, opponents }),
     ...buildSpellCandidates({ readySpells, opponents, actionsRemaining: turnState.actionsRemaining }),
     ...buildAreaSpellCandidates({ readyAreaSpells, actionsRemaining: turnState.actionsRemaining }),
     ...buildAttackSpellCandidates({ readyAttackSpells, opponents, actionsRemaining: turnState.actionsRemaining }),
@@ -1305,7 +1405,9 @@ export function applyCandidateToTurnState(turnState, candidate) {
     mapIncrement += 1;
   }
   const next = { ...turnState, actionsRemaining: turnState.actionsRemaining - candidate.cost, mapIncrement };
-  if (candidate.type === 'feat') {
+  if (candidate.type === 'feat' || candidate.type === 'npcMove') {
+    // #932: a movement ability's Strike (Swoop, Rush, Eagle Dive) counts
+    // toward MAP the same way.
     // #910: a composite feat's executor reports how many Strikes it really
     // made (Sudden Charge may end out of reach and make none) -- each one
     // counts toward MAP like any other attack this turn.

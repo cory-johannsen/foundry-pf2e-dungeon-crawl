@@ -171,6 +171,12 @@ describe("hostileTargetIdsOf", () => {
     expect(hostileTargetIdsOf({ type: "npcAbility", targetId: null, affectedIds: ["a"] })).toEqual(["a"]);
   });
 
+  it("treats a movement ability as hostile only through its Strike (#932)", () => {
+    expect(hostileTargetIdsOf({ type: "npcMove", kind: "strike", targetId: "t1" })).toEqual(["t1"]);
+    expect(hostileTargetIdsOf({ type: "npcMove", kind: "move", targetId: "t1" })).toEqual([]);
+    expect(hostileTargetIdsOf({ type: "npcMove", kind: "teleport", targetId: "t1" })).toEqual([]);
+  });
+
   it("returns nothing for movement, Seek, healing, buffing and self-effect feats", () => {
     for (const type of ["stride", "seek", "castHeal", "castBuff", "castDualHeal", "endTurn"]) {
       expect(hostileTargetIdsOf({ type, targetId: "t1" })).toEqual([]);
