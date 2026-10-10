@@ -114,6 +114,13 @@ describe("resolveEncounterRoster force filters", () => {
     expect(api.calls).toHaveLength(0);
   });
 
+  it.each([-5, NaN, -Infinity])("xpCapOverride %s yields an empty roster", async (bad) => {
+    const api = poolApi([gob]);
+    const roster = await resolveEncounterRoster({ resolved: twoFoeSlots, api, partyLevel: 3,
+      partySize: 4, xpCapOverride: bad, rng: () => 0 });
+    expect(roster.foes).toHaveLength(0);
+  });
+
   it("xpCapOverride works without a partySize", async () => {
     const api = poolApi([gob]);
     const roster = await resolveEncounterRoster({

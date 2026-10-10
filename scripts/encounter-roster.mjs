@@ -123,23 +123,6 @@ export function depthBiasForDifficultyTier(tier) {
 }
 
 /**
- * `levelOffsetBias` shifts the target level band — a dungeon room's
- * depth-based difficulty ramp (see dungeon-deck.mjs's depthBiasFor).
- * `requireTrait` is a single ANDed restriction — a dungeon room's own
- * location flavor (dungeon-deck.mjs's locationTagAt) — layered on top of the
- * broader any-of `traits` list. When both a theme and a location restriction
- * are set and neither loosened attempt finds anything, the location tag is
- * the one kept: it's the room's own specific identity, so the broader
- * dungeon-wide theme yields first rather than starving the room to empty.
- *
- * The final fallback drops `traits` entirely and always runs, even with no
- * `requireTrait` to fall back on — the free-text theme field on the
- * standalone macro takes any word a GM types, not just real trait tags, and
- * a word that matches nothing (e.g. "castle", a setting rather than a
- * creature trait) used to leave every single slot empty rather than falling
- * back to an untraited pick.
- */
-/**
  * Per-force creature filter predicate (#1083). `family` is the ancestry-style
  * trait (goblin, orc, dragon...): PF2e NPCs carry no dedicated family field,
  * so it is a case-insensitive equality against any entry of the creature's
@@ -159,6 +142,23 @@ export function creatureMatchesFilters(
   return true;
 }
 
+/**
+ * `levelOffsetBias` shifts the target level band — a dungeon room's
+ * depth-based difficulty ramp (see dungeon-deck.mjs's depthBiasFor).
+ * `requireTrait` is a single ANDed restriction — a dungeon room's own
+ * location flavor (dungeon-deck.mjs's locationTagAt) — layered on top of the
+ * broader any-of `traits` list. When both a theme and a location restriction
+ * are set and neither loosened attempt finds anything, the location tag is
+ * the one kept: it's the room's own specific identity, so the broader
+ * dungeon-wide theme yields first rather than starving the room to empty.
+ *
+ * The final fallback drops `traits` entirely and always runs, even with no
+ * `requireTrait` to fall back on — the free-text theme field on the
+ * standalone macro takes any word a GM types, not just real trait tags, and
+ * a word that matches nothing (e.g. "castle", a setting rather than a
+ * creature trait) used to leave every single slot empty rather than falling
+ * back to an untraited pick.
+ */
 async function pickCreature({
   api,
   partyLevel,
@@ -278,8 +278,16 @@ export async function resolveEncounterRoster({
   let approxXp = 0;
   let cappedCount = 0;
   const capTier = xpCeilingTierForDepth(depthBias);
+  // A non-null override is clamped to a finite, non-negative budget: a
+  // negative or NaN value means "no budget" (0), never "no cap".
   const xpCap =
-    xpCapOverride ?? (partySize != null ? xpBudget(capTier, partySize) : null);
+    xpCapOverride != null
+      ? Number.isFinite(xpCapOverride)
+        ? Math.max(0, xpCapOverride)
+        : 0
+      : partySize != null
+        ? xpBudget(capTier, partySize)
+        : null;
   const filters = { levelOffsetMin, levelOffsetMax, family, rarity };
 
   const pick = (levelOffset, boss = false) =>
