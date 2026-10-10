@@ -32,6 +32,7 @@ import {
   applySkillChallengeAttempt,
 } from "./skill-challenge-mechanics.mjs";
 import { initPuzzleState, applyPuzzleStageAttempt } from "./puzzle-mechanics.mjs";
+import { deleteRunJournals } from "./ai-history-journals.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 
@@ -495,12 +496,57 @@ export async function resetRetreatPath(
   return { ok: true, state: newState };
 }
 
+/**
+ * #953: the run's AI-history id -- the key its two AI action history
+ * journals (ai-history-journals.mjs) are found by. Generated and persisted
+ * (`state.aiHistoryId`, a short string) the first time the run archives a
+ * combat; returned as-is afterwards. Null for a scene with no run. A failing
+ * write throws, so the caller skips archiving rather than orphaning pages
+ * under an id the run never kept.
+ */
+export async function ensureAiHistoryId(
+  sceneId,
+  {
+    settingsRef = defaultSettingsRef(),
+    makeId = () => foundry.utils.randomID(),
+  } = {},
+) {
+  const state = getRunState(sceneId, { settingsRef });
+  if (!state) return null;
+  if (typeof state.aiHistoryId === "string" && state.aiHistoryId) return state.aiHistoryId;
+  const aiHistoryId = makeId();
+  await persist(sceneId, { ...state, aiHistoryId }, settingsRef);
+  return aiHistoryId;
+}
+
+/**
+ * Deletes the run's entry (Abandon, reset, the stale-run clear, and a
+ * dungeon scene deleted outside the tracker all come through here). #953:
+ * an abandoned/reset run's AI action history journals go with it --
+ * best-effort, a failure is logged and never blocks the abandon. A
+ * COMPLETED run keeps its journals: the tracker's Abandon button is also
+ * how a party leaves a finished dungeon, and the spec keeps a completed
+ * run's history. `deleteHistoryJournals` is injectable for tests.
+ */
 export async function abandonRun(
   { sceneId },
-  { settingsRef = defaultSettingsRef() } = {},
+  {
+    settingsRef = defaultSettingsRef(),
+    deleteHistoryJournals = deleteRunJournals,
+  } = {},
 ) {
   const all = settingsRef.get(MODULE_ID, "dungeonRuns") ?? {};
   if (!(sceneId in all)) return;
+  const state = all[sceneId];
+  // Matched by the run's aiHistoryId and, as a backstop for a pair whose id
+  // was lost, by the run's scene id (each journal carries both flags).
+  if (state && !state.completed) {
+    try {
+      await deleteHistoryJournals({ historyId: state.aiHistoryId ?? null, sceneId });
+    } catch (err) {
+      console.error(`${MODULE_ID} | #953: deleting the run's AI history journals failed:`, err?.message);
+    }
+  }
   const rest = { ...all };
   delete rest[sceneId];
   await settingsRef.set(MODULE_ID, "dungeonRuns", rest);
