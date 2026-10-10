@@ -91,7 +91,7 @@ function costGlyph(cost) {
 **Interfaces:**
 - Consumes: `renderAgentTurnCardHtml({ round, records, combatantId })` from `scripts/agent-action-display.mjs`. Record shape: copy the `record(...)` helper at the top of `tests/agent-action-display.test.mjs` (read it first; reuse the same fields: `index, summary, cost, result:{text,tone}, visibility, rationale, gmNote, targetName, fallback`).
 
-- [ ] **Step 1: Write the tests**
+- [x] **Step 1: Write the tests**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -163,9 +163,9 @@ describe("#1252 no system glyph class in module scripts that can reach chat", ()
 ```
 (If the `record` helper in `agent-action-display.test.mjs` shows `cost`/`result` live under different keys, adapt the three field names in `base`/`records` to match; the assertions stay the same.)
 
-- [ ] **Step 2: Run** — `npx vitest run tests/chat-action-glyph.test.mjs` → PASS (Task 1 already done). Then temporarily revert Task 1's one-line class change (`git stash` is forbidden here — use `git diff` + manual edit, or `sed` on a scratch copy) to see the builder test FAIL, then restore. Skip if tedious; the third test in the first describe already proves the predicate is live.
-- [ ] **Step 3: Full suite** — `npm test` → PASS.
-- [ ] **Step 4: Commit** — `git add tests/chat-action-glyph.test.mjs && git commit -m "#1252: guard tests keep action-glyph out of chat HTML"`
+- [x] **Step 2: Run** — `npx vitest run tests/chat-action-glyph.test.mjs` → PASS (Task 1 already done). Then temporarily revert Task 1's one-line class change (`git stash` is forbidden here — use `git diff` + manual edit, or `sed` on a scratch copy) to see the builder test FAIL, then restore. Skip if tedious; the third test in the first describe already proves the predicate is live.
+- [x] **Step 3: Full suite** — `npm test` → PASS.
+- [x] **Step 4: Commit** — `git add tests/chat-action-glyph.test.mjs && git commit -m "#1252: guard tests keep action-glyph out of chat HTML"`
 
 ---
 
