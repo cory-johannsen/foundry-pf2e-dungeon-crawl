@@ -56,6 +56,12 @@ const STRIDE_RESULT = Object.freeze({
   },
   "no-route": { text: "no route", tone: "neutral" },
   "no-speed": { text: "could not move", tone: "neutral" },
+  // #931: a Twisting Tail hit / Wing Rebuff push stopped the move part-way.
+  disrupted: {
+    text: "move disrupted",
+    tone: "failure",
+    gmNote: "A reaction disrupted the move action; the creature stopped where the reaction hit it.",
+  },
 });
 
 /** Every candidate type whose executor returns the target's save outcomes

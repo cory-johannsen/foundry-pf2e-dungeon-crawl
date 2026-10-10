@@ -118,6 +118,12 @@ describe("describeAgentAction", () => {
     expect(describe2(c, "no-route").gmNote).toBeNull();
   });
 
+  it("#931: a stride a reaction disrupted reads as 'move disrupted' with a GM-only note", () => {
+    const disrupted = describe2({ type: "stride", posture: "approach", targetId: "t1" }, "disrupted");
+    expect(disrupted.result).toEqual({ text: "move disrupted", tone: "failure" });
+    expect(disrupted.gmNote).toMatch(/reaction disrupted the move/);
+  });
+
   it("describes Seek by how many detection states changed", () => {
     expect(describe2({ type: "seek" }, [{ from: "hidden", to: "observed" }, { from: "hidden", to: "hidden" }]).result)
       .toEqual({ text: "1 detection change", tone: "success" });

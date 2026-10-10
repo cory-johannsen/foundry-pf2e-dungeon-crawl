@@ -98,6 +98,19 @@ import {
   hostileTargetIdsOf,
 } from "./antagonize.mjs";
 import {
+  REACTION_DECISION_TIMEOUT_MS,
+  reactionItemsFor,
+  moveTriggerIndex,
+  decideReaction,
+  isHitOutcome,
+  defensiveReactionMode,
+  isGmLessRunState,
+  reactionGmNoteHtml,
+  escapeReactionHtml,
+  reactionDefById,
+  degreeOfSuccess,
+} from "./npc-reactions.mjs";
+import {
   DETECTION,
   applySeekOutcome,
   avoidingNoticeActorIds,
@@ -1946,30 +1959,18 @@ function isReactiveStrikeInScope(item) {
  * item slug (a reaction is per-*creature*, not per-ability, unlike a
  * breath weapon's own independent recharge).
  */
-function getReactionUsed(combat, combatantId, round) {
+export function getReactionUsed(combat, combatantId, round) {
   const stored = combat.getFlag(MODULE_ID, "reactionUsed") ?? {};
   return stored[combatantId] === round;
 }
 
 /** Records that `combatantId` has spent their reaction for `round`. */
-async function markReactionUsed(combat, combatantId, round) {
+export async function markReactionUsed(combat, combatantId, round) {
   const stored = combat.getFlag(MODULE_ID, "reactionUsed") ?? {};
   await combat.setFlag(MODULE_ID, "reactionUsed", {
     ...stored,
     [combatantId]: round,
   });
-}
-
-/** Announces a #202 Reactive Strike publicly (a visible battlefield event
- * every player at the table would want to see, unlike the AI turn card's
- * GM-only decision rationale, #925). */
-async function postReactiveStrikeChat(reactor, attacker) {
-  const esc = (s) => foundry.utils.escapeHTML?.(String(s)) ?? String(s);
-  const content = game.i18n.format("PF2EDC.Dungeon.Combat.ReactiveStrikeChat", {
-    name: esc(reactor.name),
-    target: esc(attacker.name),
-  });
-  await ChatMessage.create({ content });
 }
 
 /**
@@ -2006,33 +2007,445 @@ export function findReactiveStrikeOpportunities(
     // a reach weapon can measure "in range" straight through a solid wall.
     if (!hasLineOfSight(combat, reactor.token, mover.token)) continue;
 
-    const readyActions = (reactor.actor?.system?.actions ?? [])
-      .filter(
-        (a) => a.type === "strike" && a.ready !== false && !a.item?.isRanged,
-      )
-      .map((a) => ({
-        slug: a.item?.slug ?? a.slug ?? a.label,
-        label: a.label,
-        reachSquares: actionReachSquares(a, gridDistanceFt),
-      }));
-    const distanceSquares = chebyshevSquares(
-      reactor.token,
+    const matched = strikeReactionAt(
+      reactor,
+      parseReactiveStrikeWeaponRestriction(item.name),
       mover.token,
       gridSize,
+      gridDistanceFt,
     );
-    const inReachActions = readyActions.filter(
-      (a) => distanceSquares <= a.reachSquares,
-    );
-    if (!inReachActions.length) continue;
-    const restriction = parseReactiveStrikeWeaponRestriction(item.name);
-    const matched = restriction
-      ? matchMultiStrikeActionSlug(restriction, inReachActions)
-      : inReachActions[0];
     if (!matched) continue;
 
     opportunities.push({ reactor, actionSlug: matched.slug });
   }
   return opportunities;
+}
+
+/**
+ * #202/#931: the ready melee Strike `reactor` would make against a creature
+ * standing at `position` (a token or a token-shaped `{x, y, width,
+ * height}`), or null -- the first ready melee Strike whose reach covers that
+ * position, restricted to the named attack when `restriction` is given
+ * (an "(Jaws Only)" item suffix, or a registry reaction's own limb such as
+ * Twisting Tail's tail). A ranged action's range increment never counts
+ * (#21: these are melee Strikes).
+ */
+function strikeReactionAt(reactor, restriction, position, gridSize, gridDistanceFt) {
+  const readyActions = (reactor.actor?.system?.actions ?? [])
+    .filter((a) => a.type === "strike" && a.ready !== false && !a.item?.isRanged)
+    .map((a) => ({
+      slug: a.item?.slug ?? a.slug ?? a.label,
+      label: a.label,
+      reachSquares: actionReachSquares(a, gridDistanceFt),
+    }));
+  const distanceSquares = chebyshevSquares(reactor.token, position, gridSize);
+  const inReachActions = readyActions.filter((a) => distanceSquares <= a.reachSquares);
+  if (!inReachActions.length) return null;
+  return restriction
+    ? matchMultiStrikeActionSlug(restriction, inReachActions)
+    : inReachActions[0];
+}
+
+/**
+ * #931: every (reactor, registry reaction) pair a Strike-kind reaction
+ * trigger fires for against `mover` -- #202's shared gates (an
+ * agent-controlled, not-downed opponent that OBSERVED the mover, with its
+ * reaction unused this round, line of sight, a ready melee Strike in reach,
+ * the item's limb restriction) generalized to every Strike reaction in the
+ * registry (npc-reactions.mjs).
+ *
+ * `event.trigger` picks the registry rows (`def.triggers`). For a `move`
+ * event, `event.path` is the mover's positions (origin first, destination
+ * last) and each reaction fires at `moveTriggerIndex` of its own
+ * `moveTrigger` -- reach and line of sight are measured to each position.
+ * Every other trigger measures to the mover's current position. `ctx`
+ * carries `{ item, actionSlug, triggerIndex, point }`. `event.onlyDisrupting`
+ * keeps only reactions that can disrupt the move (Twisting Tail, Wing
+ * Rebuff); `event.skipReactorIds` drops reactors already resolved.
+ */
+function collectStrikeReactionOptions(combat, mover, event, gridSize, gridDistanceFt) {
+  const matrix = combat.getFlag?.(MODULE_ID, "detection");
+  const skip = event.skipReactorIds ?? null;
+  const reactors = combatantOpponents(combat, mover)
+    .filter((c) => !isDownedCharacter(c))
+    .filter((c) => canTargetState(stateFor(matrix, mover.id, c.id)));
+  const options = [];
+  for (const reactor of reactors) {
+    if (skip?.has(reactor.id)) continue;
+    if (!reactor.getFlag?.(MODULE_ID, "agentControlled")) continue;
+    if (getReactionUsed(combat, reactor.id, combat.round)) continue;
+    for (const { def, item } of reactionItemsFor(reactor.actor)) {
+      if (def.kind !== "strike" || !def.triggers.includes(event.trigger)) continue;
+      if (event.onlyDisrupting && !def.disrupts) continue;
+      const restriction = def.limb ?? parseReactiveStrikeWeaponRestriction(item.name);
+      let point = mover.token;
+      let triggerIndex = null;
+      if (event.trigger === "move") {
+        const path = event.path ?? [];
+        const inReach = path.map(
+          (pos) =>
+            !!strikeReactionAt(reactor, restriction, pos, gridSize, gridDistanceFt) &&
+            hasLineOfSight(combat, reactor.token, pos),
+        );
+        triggerIndex = moveTriggerIndex(def.moveTrigger, inReach);
+        if (triggerIndex < 0) continue;
+        point = path[triggerIndex];
+      } else if (!hasLineOfSight(combat, reactor.token, mover.token)) {
+        continue;
+      }
+      const matched = strikeReactionAt(reactor, restriction, point, gridSize, gridDistanceFt);
+      if (!matched) continue;
+      options.push({ reactor, def, ctx: { item, actionSlug: matched.slug, triggerIndex, point } });
+    }
+  }
+  return options;
+}
+
+/** #931: the combatants' initiative order (`combat.turns`), falling back to
+ * the combatant collection's own order. */
+function initiativeIndexOf(combat) {
+  const order = Array.isArray(combat.turns) && combat.turns.length
+    ? combat.turns
+    : Array.from(combat.combatants ?? []);
+  const index = new Map(order.map((c, i) => [c?.id, i]));
+  return (id) => index.get(id) ?? Number.MAX_SAFE_INTEGER;
+}
+
+/**
+ * #931: the agent-service requester the hybrid decision uses when one
+ * creature has several eligible reactions for the same trigger -- null (the
+ * deterministic fallback) when no agent service is configured. The request
+ * reuses /v1/combat-decision's own `{candidates}` contract (no service
+ * change), with the reaction's situation in `self`/`reaction` so every
+ * provider sees it, and a 5 s timeout instead of the turn decision's 35 s.
+ */
+function reactionDecisionRequester(combat, reactor, mover, trigger) {
+  let baseUrl;
+  let serviceKey;
+  try {
+    baseUrl = game.settings.get(MODULE_ID, "agentServiceUrl");
+    serviceKey = game.settings.get(MODULE_ID, "agentServiceApiKey");
+  } catch {
+    return null;
+  }
+  if (!baseUrl) return null;
+  return async ({ candidates }) =>
+    fetchCombatDecision({
+      baseUrl,
+      apiKey: serviceKey,
+      timeoutMs: REACTION_DECISION_TIMEOUT_MS,
+      context: {
+        decisionKind: "reaction",
+        self: {
+          id: reactor.id,
+          name: reactor.name,
+          hp: reactor.actor?.system?.attributes?.hp?.value ?? null,
+          reactionTrigger: trigger,
+        },
+        opponents: mover ? [{ id: mover.id, name: mover.name }] : [],
+        reaction: {
+          trigger,
+          triggeringCreature: mover?.name ?? null,
+          note: "Choose at most one reaction; a creature has one reaction per round. 'decline' keeps it for later this round.",
+        },
+        roundNumber: combat.round,
+        candidates,
+        actorProfile: { tier: "standard" },
+      },
+    });
+}
+
+/**
+ * #931: the one dispatcher every reaction trigger path calls. `options` are
+ * the eligible `[{ reactor, def, ctx }]` for this trigger; they are grouped
+ * per reactor (a creature has one reaction per round, so two creatures never
+ * compete for one slot), resolved in initiative order, each by the hybrid
+ * decision (`decideReaction`), and the winner is handed to `execute(chosen,
+ * decision)`. Before each reactor, the economy (`getReactionUsed`) and the
+ * mover/reactor being still in the fight are re-checked -- an earlier
+ * reactor's Strike may have dropped the mover. Never throws: a failing
+ * decision or executor is logged and the remaining reactors still resolve.
+ * Returns `[{ reactor, def, ctx, decision, result }]` for what ran.
+ */
+export async function resolveReactions(combat, event, execute, { requestDecisionFor = null } = {}) {
+  const groups = new Map();
+  for (const option of event.options ?? []) {
+    const list = groups.get(option.reactor.id) ?? [];
+    list.push(option);
+    groups.set(option.reactor.id, list);
+  }
+  const initiative = initiativeIndexOf(combat);
+  // A move's reactions resolve in path order (the square each fires on),
+  // then initiative order -- and none past the square a disrupting reaction
+  // stopped the move on.
+  const firstIndex = (group) => Math.min(...group.map((o) => o.ctx?.triggerIndex ?? 0));
+  const ordered = [...groups.values()].sort(
+    (a, b) => firstIndex(a) - firstIndex(b) || initiative(a[0].reactor.id) - initiative(b[0].reactor.id),
+  );
+  const ran = [];
+  let disruptedAt = Infinity;
+  for (const group of ordered) {
+    const reactor = group[0].reactor;
+    try {
+      if (firstIndex(group) > disruptedAt) break;
+      if (getReactionUsed(combat, reactor.id, combat.round)) continue;
+      if (reactor.isDefeated || !reactor.token) continue;
+      if (event.mover && (event.mover.isDefeated || !event.mover.token)) break;
+      const requestDecision =
+        group.length > 1
+          ? (requestDecisionFor ?? reactionDecisionRequester)(combat, reactor, event.mover, event.trigger)
+          : null;
+      const decision = await decideReaction(
+        group.map((o) => ({ def: o.def, ctx: o.ctx, option: o })),
+        {
+          reactorId: reactor.id,
+          requestDecision,
+          describe: (o) => `${reactor.name}: ${o.def.label} against ${event.mover?.name ?? "the attacker"}`,
+        },
+      );
+      if (!decision.choice) continue;
+      const chosen = decision.choice.option;
+      const result = await execute(chosen, decision);
+      ran.push({ ...chosen, decision, result });
+      if (result?.disrupted) disruptedAt = Math.min(disruptedAt, chosen.ctx?.triggerIndex ?? 0);
+    } catch (err) {
+      console.error(`${MODULE_ID} | #931: resolving ${reactor.name}'s reaction failed:`, err?.message ?? err);
+    }
+  }
+  return ran;
+}
+
+/** #931: the GM-only "why" of a reaction -- the model's rationale or the
+ * fallback's reason; deterministic single-option reactions carry none. */
+function reactionDecisionNote(decision, extra = null) {
+  const parts = [];
+  if (decision?.source === "model" && decision.rationale) parts.push(decision.rationale);
+  else if (decision?.source === "fallback") {
+    parts.push(decision.rationale ?? "Several reactions were possible; used the default priority.");
+  }
+  if (extra) parts.push(extra);
+  return parts.join(" ");
+}
+
+/** #931: the public announcement for a registry reaction (#202's own line
+ * for Reactive Strike, unchanged), plus a GM-only note of why. */
+async function postReactionChat(reactor, target, def, note = "") {
+  const esc = (s) => foundry.utils.escapeHTML?.(String(s)) ?? String(s);
+  const content =
+    def.id === "reactive-strike"
+      ? game.i18n.format("PF2EDC.Dungeon.Combat.ReactiveStrikeChat", {
+          name: esc(reactor.name),
+          target: esc(target.name),
+        })
+      : game.i18n.format("PF2EDC.Dungeon.Combat.ReactionChat", {
+          name: esc(reactor.name),
+          reaction: esc(def.label),
+          target: esc(target.name),
+        });
+  await ChatMessage.create({ content: content + reactionGmNoteHtml(note) });
+}
+
+/** #931: whether `item` carries its own roll-option + FlatModifier rule
+ * elements for `option` (Monster Core's Twisting Tail does: toggling the
+ * `twisting-tail` roll option applies the -2 via the system, confirmed live
+ * on pf2e 8.5.0). */
+function itemHasRollOptionModifier(item, option) {
+  const rules = item?.system?.rules ?? [];
+  return (
+    rules.some((r) => r?.key === "RollOption" && r.option === option) &&
+    rules.some((r) => r?.key === "FlatModifier" && (r.predicate ?? []).includes(option))
+  );
+}
+
+/**
+ * #931: executes a Strike-kind reaction -- marks the reaction used first
+ * (never a Strike without the economy recorded), rolls the Strike through
+ * `rollAndApplyStrikeAtVariant` (Twisting Tail's -2 through the item's own
+ * roll option, or an explicit untyped modifier for an older item without
+ * the rule element), announces it, and reports whether it disrupted the
+ * triggering move: Twisting Tail on a hit, Wing Rebuff when its push
+ * succeeded. Returns `{ outcome, disrupted }`.
+ */
+async function executeStrikeReaction(combat, chosen, mover, decision) {
+  const { reactor, def, ctx } = chosen;
+  await markReactionUsed(combat, reactor.id, combat.round);
+  const extras = { report: {} };
+  if (def.rollOption && itemHasRollOptionModifier(ctx.item, def.rollOption)) {
+    extras.rollOptions = [def.rollOption];
+  } else if (def.penalty) {
+    const Modifier = game.pf2e?.Modifier;
+    if (typeof Modifier === "function") {
+      extras.modifiers = [
+        new Modifier({ slug: def.id, label: def.label, modifier: def.penalty, type: "untyped" }),
+      ];
+    }
+  }
+  const outcome = await rollAndApplyStrikeAtVariant(combat, reactor, mover, ctx.actionSlug, 0, extras);
+  const disrupted =
+    def.disrupts === "hit"
+      ? isHitOutcome(outcome)
+      : def.disrupts === "push"
+        ? extras.report.pushed === true
+        : false;
+  await postReactionChat(reactor, mover, def, reactionDecisionNote(decision));
+  return { outcome, disrupted };
+}
+
+/** #931: the Strike-reaction pass for one trigger; returns what ran. */
+async function resolveStrikeReactions(combat, mover, event) {
+  if (!isModuleCombat(combat)) return [];
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  const options = collectStrikeReactionOptions(combat, mover, event, gridSize, gridDistanceFt);
+  if (!options.length) return [];
+  return resolveReactions(combat, { trigger: event.trigger, mover, options }, (chosen, decision) =>
+    executeStrikeReaction(combat, chosen, mover, decision),
+  );
+}
+
+/**
+ * #931: the defensive reactions (`acBonus` / `damageReduction`) `reactor`
+ * could use against `attacker` for `trigger` -- the shared gates
+ * (agent-controlled, not defeated, reaction unused this round, observed
+ * the attacker) plus each row's own: Swat Projectile only against a
+ * physical ranged attack; Shield Block only with a raised, unbroken,
+ * undestroyed shield (PF2e's own requirement -- `applyDamage` refuses a
+ * shield block otherwise). `ctxBase` carries the trigger's numbers.
+ */
+function collectDefensiveReactionOptions(combat, reactor, attacker, trigger, ctxBase) {
+  if (!reactor?.getFlag?.(MODULE_ID, "agentControlled")) return [];
+  if (reactor.isDefeated || !reactor.actor) return [];
+  if (getReactionUsed(combat, reactor.id, combat.round)) return [];
+  const matrix = combat.getFlag?.(MODULE_ID, "detection");
+  if (attacker && !canTargetState(stateFor(matrix, attacker.id, reactor.id))) return [];
+  const options = [];
+  for (const { def, item } of reactionItemsFor(reactor.actor)) {
+    if (!def.triggers.includes(trigger)) continue;
+    if (def.requiresPhysicalRanged && !ctxBase.isPhysicalRanged) continue;
+    const ctx = { ...ctxBase, item };
+    if (def.kind === "damageReduction") {
+      const shield = reactor.actor.attributes?.shield;
+      if (!shield?.raised || shield.broken || shield.destroyed) continue;
+      ctx.shieldHardness = shield.hardness ?? 0;
+      ctx.shieldName = shield.name ?? "shield";
+    }
+    options.push({ reactor, def, ctx });
+  }
+  return options;
+}
+
+/** #931: the trigger numbers an attack-roll chat message carries. */
+function attackReactionContext(attackMessage, outcome) {
+  const context = attackMessage?.flags?.pf2e?.context ?? {};
+  const roll = attackMessage?.rolls?.[0];
+  return {
+    rollTotal: roll?.total ?? null,
+    dcValue: context.dc?.value ?? null,
+    natural: naturalD20(roll),
+    outcome,
+    isPhysicalRanged: (context.options ?? []).includes("ranged"),
+  };
+}
+
+/**
+ * #931: executes an AC-bonus reaction (Wing Deflection, Ghost Dodge, Swat
+ * Projectile) against a resolved attack -- the policy already confirmed the
+ * bonus turns the hit into a miss. PF2e bakes an attack's degree of success
+ * into its chat card at roll time (CheckRoll), so the card is not rewritten:
+ * the reaction is recorded (economy, plus `reactionAttackMisses` keyed by
+ * the attack message so the paired damage roll is skipped) and announced.
+ * Returns `{ turnedToMiss, newOutcome }`.
+ */
+async function executeAcBonusReaction(combat, chosen, attacker, decision, { attackMessageId = null } = {}) {
+  const { reactor, def, ctx } = chosen;
+  await markReactionUsed(combat, reactor.id, combat.round);
+  const newOutcome = degreeOfSuccess(Number(ctx.rollTotal), Number(ctx.dcValue) + def.acBonus, ctx.natural);
+  if (attackMessageId) {
+    const misses = combat.getFlag(MODULE_ID, "reactionAttackMisses") ?? {};
+    await combat.setFlag(MODULE_ID, "reactionAttackMisses", {
+      ...misses,
+      [attackMessageId]: { reactorId: reactor.id, defId: def.id, round: combat.round },
+    });
+  }
+  const esc = (s) => foundry.utils.escapeHTML?.(String(s)) ?? String(s);
+  const content = game.i18n.format("PF2EDC.Dungeon.Combat.ReactionAcBonusChat", {
+    name: esc(reactor.name),
+    reaction: esc(def.label),
+    bonus: def.acBonus,
+    attacker: esc(attacker?.name ?? "the attacker"),
+  });
+  const numbers = `Attack ${ctx.rollTotal} vs AC ${ctx.dcValue} -> ${ctx.dcValue + def.acBonus} (+${def.acBonus} circumstance).`;
+  await ChatMessage.create({ content: content + reactionGmNoteHtml(reactionDecisionNote(decision, numbers)) });
+  return { turnedToMiss: true, newOutcome };
+}
+
+/**
+ * #931: AC-bonus reactions against an attack this module rolled itself (an
+ * AI attacker's Strike) -- automatic in every mode (spec: the module owns
+ * this attack). Returns the outcome the rest of the Strike resolves with:
+ * the reaction's adjusted degree when one turned the hit into a miss, else
+ * `outcome` unchanged. Never throws.
+ */
+async function applyTargetedByAttackReactions(combat, attacker, target, attackMessage, outcome) {
+  if (!isHitOutcome(outcome) || !target?.getFlag?.(MODULE_ID, "agentControlled")) return outcome;
+  try {
+    const options = collectDefensiveReactionOptions(
+      combat,
+      target,
+      attacker,
+      "targetedByAttack",
+      attackReactionContext(attackMessage, outcome),
+    );
+    if (!options.length) return outcome;
+    const ran = await resolveReactions(
+      combat,
+      { trigger: "targetedByAttack", mover: attacker, options },
+      (chosen, decision) => executeAcBonusReaction(combat, chosen, attacker, decision),
+    );
+    return ran.find((r) => r.result?.turnedToMiss)?.result.newOutcome ?? outcome;
+  } catch (err) {
+    console.error(`${MODULE_ID} | #931: AC-bonus reaction check failed:`, err?.message ?? err);
+    return outcome;
+  }
+}
+
+/** #931: executes Shield Block -- records the reaction and announces it;
+ * the caller passes `shieldBlockRequest: true` to its single `applyDamage`
+ * (never a second damage application), and the system applies Hardness and
+ * the shield's own damage. */
+async function executeShieldBlock(combat, chosen, attacker, decision) {
+  const { reactor, def, ctx } = chosen;
+  await markReactionUsed(combat, reactor.id, combat.round);
+  const esc = (s) => foundry.utils.escapeHTML?.(String(s)) ?? String(s);
+  const content = game.i18n.format("PF2EDC.Dungeon.Combat.ReactionChat", {
+    name: esc(reactor.name),
+    reaction: esc(def.label),
+    target: esc(attacker?.name ?? "the attacker"),
+  });
+  const numbers = `${ctx.incomingDamage} damage vs ${ctx.shieldName} Hardness ${ctx.shieldHardness}.`;
+  await ChatMessage.create({ content: content + reactionGmNoteHtml(reactionDecisionNote(decision, numbers)) });
+  return { shieldBlock: true };
+}
+
+/** #931: whether `target` Shield Blocks this hit from an AI attacker
+ * (automatic in every mode). Never throws. */
+async function resolveShieldBlockForHit(combat, attacker, target, damageRoll) {
+  if (!target?.getFlag?.(MODULE_ID, "agentControlled")) return false;
+  try {
+    const options = collectDefensiveReactionOptions(combat, target, attacker, "damageIncoming", {
+      incomingDamage: Number(damageRoll?.total ?? 0),
+    });
+    if (!options.length) return false;
+    const ran = await resolveReactions(
+      combat,
+      { trigger: "damageIncoming", mover: attacker, options },
+      (chosen, decision) => executeShieldBlock(combat, chosen, attacker, decision),
+    );
+    return ran.some((r) => r.result?.shieldBlock);
+  } catch (err) {
+    console.error(`${MODULE_ID} | #931: Shield Block check failed:`, err?.message ?? err);
+    return false;
+  }
 }
 
 /**
@@ -2042,21 +2455,13 @@ export function findReactiveStrikeOpportunities(
  * economy, weapon restrictions, and the chat announcement stay identical
  * regardless of what provoked the reaction.
  */
-export async function offerReactiveStrikesAgainst(combat, mover) {
-  if (!isModuleCombat(combat)) return;
-  const gridSize = combat.scene?.grid?.size ?? 100;
-  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
-  const opportunities = findReactiveStrikeOpportunities(
-    combat,
-    mover,
-    gridSize,
-    gridDistanceFt,
-  );
-  for (const { reactor, actionSlug } of opportunities) {
-    await markReactionUsed(combat, reactor.id, combat.round);
-    await rollAndApplyStrikeAtVariant(combat, reactor, mover, actionSlug, 0);
-    await postReactiveStrikeChat(reactor, mover);
-  }
+export async function offerReactiveStrikesAgainst(combat, mover, { trigger = "manual", path = null } = {}) {
+  // #931: now a pass over the reaction registry for `trigger` -- the
+  // GM's manual check (default: Reactive Strike/AoO and Twisting Tail), a
+  // ranged Strike (`rangedAttack`: Reactive Strike only), an AI Stride's end
+  // (`strideEnd`: Reactive Strike only, #202's own end-of-move check), or a
+  // player's move (`move`, with its path).
+  await resolveStrikeReactions(combat, mover, { trigger, path });
 }
 
 /**
@@ -2088,7 +2493,7 @@ export async function handleRangedAttackForReactiveStrike(message) {
   const attacker = combat.combatants.find((c) => c.tokenId === attackerTokenId);
   if (!attacker || attacker.isDefeated) return;
 
-  await offerReactiveStrikesAgainst(combat, attacker);
+  await offerReactiveStrikesAgainst(combat, attacker, { trigger: "rangedAttack" });
 }
 
 /**
@@ -2197,10 +2602,57 @@ export async function handleManualStrikeDamage(message) {
   const damageRoll = message.rolls?.[0];
   if (!damageRoll) return;
 
+  // #931: an AC-bonus reaction already turned this Strike's hit into a miss,
+  // or its GM-confirm card is still open -- skip, or hold the damage until
+  // the GM answers it.
+  const attackMessage = safeFindAttackMessage(message);
+  if (attackMessage?.id) {
+    const inFlight = attackReactionsInFlight.get(attackMessage.id);
+    if (inFlight) await inFlight;
+    const misses = combat.getFlag(MODULE_ID, "reactionAttackMisses") ?? {};
+    if (misses[attackMessage.id]) return;
+    const pendingId = findPendingReactionId(
+      combat,
+      (p) => p.attackMessageId === attackMessage.id && p.status === "pending",
+    );
+    if (pendingId) {
+      await updatePendingReaction(combat, pendingId, { damageMessageId: message.id });
+      return;
+    }
+  }
+  await continueManualStrikeDamage(combat, message, attacker, target);
+}
+
+/** #931: `findAttackMessageForDamage`, never throwing. */
+function safeFindAttackMessage(message) {
+  try {
+    return findAttackMessageForDamage(message);
+  } catch {
+    return null;
+  }
+}
+
+/** #931: the rest of a player Strike's damage step -- Shield Block (which
+ * may itself wait for a GM-confirm card), then the damage application. */
+async function continueManualStrikeDamage(combat, message, attacker, target) {
+  const shieldBlock = await resolvePlayerShieldBlock(combat, message, attacker, target);
+  if (shieldBlock === "deferred") return;
+  await applyManualStrikeDamage(combat, message, attacker, target, {
+    shieldBlock: shieldBlock === "block",
+  });
+}
+
+/** #47 (split out by #931): applies a human's manual Strike damage roll to
+ * its stored target, then the critical-deck card and the applied marker. */
+async function applyManualStrikeDamage(combat, message, attacker, target, { shieldBlock = false } = {}) {
+  const context = message.flags?.pf2e?.context ?? {};
+  const damageRoll = message.rolls?.[0];
+  if (!damageRoll || !target?.actor) return;
   await target.actor.applyDamage({
     damage: damageRoll,
     token: target.token,
     outcome: context.outcome,
+    ...(shieldBlock ? { shieldBlockRequest: true } : {}),
   });
   await applyDefeatIfReducedToZero(target);
 
@@ -2257,6 +2709,331 @@ export async function handleManualStrikeDamage(message) {
   await message.update({
     "flags.pf2e.appliedDamage": { uuid: target.actor.uuid },
   });
+}
+
+/** #931: attack-roll message ids whose reaction check is still running, so
+ * the paired damage roll waits for it instead of racing it. */
+const attackReactionsInFlight = new Map();
+
+/** #931: whether `combat` belongs to a hosted GM-less run (no human GM --
+ * the relay's always-connected Agent account is a GM user, so the user list
+ * cannot tell). Unreadable run state reads as "a GM is present". */
+function isGmLessCombat(combat) {
+  try {
+    return isGmLessRunState(getRunState(combat.scene?.id));
+  } catch {
+    return false;
+  }
+}
+
+function findPendingReactionId(combat, predicate) {
+  const pending = combat.getFlag(MODULE_ID, "pendingReactions") ?? {};
+  return Object.keys(pending).find((id) => predicate(pending[id])) ?? null;
+}
+
+async function updatePendingReaction(combat, confirmId, changes) {
+  const pending = combat.getFlag(MODULE_ID, "pendingReactions") ?? {};
+  if (!pending[confirmId]) return;
+  await combat.setFlag(MODULE_ID, "pendingReactions", {
+    ...pending,
+    [confirmId]: { ...pending[confirmId], ...changes },
+  });
+}
+
+/**
+ * #931: the one-click GM-confirm card for a defensive reaction against a
+ * player's Strike at a table with a human GM (never in GM-less mode, see
+ * `defensiveReactionMode`). Records what the click needs (ids and the
+ * trigger's numbers -- never live documents) under
+ * `flags.pf2e-dungeon-crawl.pendingReactions` on the combat; the damage of
+ * that Strike waits for the answer. Returns `{ confirmPending: true }`.
+ */
+async function postReactionConfirmCard(combat, chosen, attacker, decision, { attackMessageId = null, damageMessageId = null } = {}) {
+  const { reactor, def, ctx } = chosen;
+  const confirmId = foundry.utils.randomID();
+  await updatePendingReactionMap(combat, confirmId, {
+    kind: def.kind,
+    defId: def.id,
+    reactorId: reactor.id,
+    attackerId: attacker?.id ?? null,
+    attackMessageId,
+    damageMessageId,
+    round: combat.round,
+    status: "pending",
+    ctx: {
+      rollTotal: ctx.rollTotal ?? null,
+      dcValue: ctx.dcValue ?? null,
+      natural: ctx.natural ?? null,
+      outcome: ctx.outcome ?? null,
+      incomingDamage: ctx.incomingDamage ?? null,
+      shieldHardness: ctx.shieldHardness ?? null,
+      shieldName: ctx.shieldName ?? null,
+    },
+  });
+  const esc = (s) => foundry.utils.escapeHTML?.(String(s)) ?? String(s);
+  const effect =
+    def.kind === "acBonus"
+      ? `+${def.acBonus} circumstance bonus to AC turns the hit (${ctx.rollTotal} vs AC ${ctx.dcValue}) into a miss. Its damage waits for your answer.`
+      : `block ${ctx.incomingDamage} damage with ${ctx.shieldName} (Hardness ${ctx.shieldHardness}). The damage waits for your answer.`;
+  const content =
+    game.i18n.format("PF2EDC.Dungeon.Combat.ReactionConfirmCard", {
+      name: esc(reactor.name),
+      reaction: esc(def.label),
+      attacker: esc(attacker?.name ?? "the attacker"),
+      effect: esc(effect),
+    }) +
+    `<div class="pf2edc-reaction-confirm">` +
+    `<button type="button" data-pf2edc-reaction="accept">${esc(game.i18n.format("PF2EDC.Dungeon.Combat.ReactionConfirmUse", { reaction: def.label }))}</button>` +
+    `<button type="button" data-pf2edc-reaction="decline">${esc(game.i18n.localize("PF2EDC.Dungeon.Combat.ReactionConfirmDecline"))}</button>` +
+    `</div>` +
+    reactionGmNoteHtml(reactionDecisionNote(decision));
+  await ChatMessage.create({
+    content,
+    whisper: ChatMessage.getWhisperRecipients("GM").map((u) => u.id),
+    flags: { [MODULE_ID]: { reactionConfirm: { combatId: combat.id, confirmId } } },
+  });
+  return { confirmPending: true, confirmId };
+}
+
+async function updatePendingReactionMap(combat, confirmId, record) {
+  const pending = combat.getFlag(MODULE_ID, "pendingReactions") ?? {};
+  await combat.setFlag(MODULE_ID, "pendingReactions", { ...pending, [confirmId]: record });
+}
+
+/**
+ * #931: Shield Block against a player's Strike damage -- `"block"` (used
+ * automatically: GM-less run), `"deferred"` (a GM-confirm card holds the
+ * damage) or `"none"`. Never throws.
+ */
+async function resolvePlayerShieldBlock(combat, message, attacker, target) {
+  try {
+    const options = collectDefensiveReactionOptions(combat, target, attacker, "damageIncoming", {
+      incomingDamage: Number(message.rolls?.[0]?.total ?? 0),
+    });
+    if (!options.length) return "none";
+    const mode = defensiveReactionMode({ attackerIsPlayerDriven: true, gmLess: isGmLessCombat(combat) });
+    const ran = await resolveReactions(
+      combat,
+      { trigger: "damageIncoming", mover: attacker, options },
+      (chosen, decision) =>
+        mode === "automatic"
+          ? executeShieldBlock(combat, chosen, attacker, decision)
+          : postReactionConfirmCard(combat, chosen, attacker, decision, { damageMessageId: message.id }),
+    );
+    if (ran.some((r) => r.result?.confirmPending)) return "deferred";
+    return ran.some((r) => r.result?.shieldBlock) ? "block" : "none";
+  } catch (err) {
+    console.error(`${MODULE_ID} | #931: Shield Block check failed:`, err?.message ?? err);
+    return "none";
+  }
+}
+
+/**
+ * #931: an AC-bonus reaction (Wing Deflection, Ghost Dodge, Swat
+ * Projectile) against a human player's Strike on an agent-controlled
+ * creature. The system rolled and posted the attack, so this runs after it
+ * resolved (spec): when the reaction's bonus would turn the hit into a miss
+ * the reaction is used -- automatically with no human GM (a hosted GM-less
+ * run), through a one-click GM-confirm card when a human GM runs the table
+ * -- and the paired damage roll is skipped (`handleManualStrikeDamage`).
+ * AI attackers' own Strikes resolve this inline in `rollAndApplyStrike*`.
+ * Active GM only; registered against `createChatMessage` in module.mjs.
+ */
+export async function handleAttackRollForReactions(message) {
+  if (!(game.users?.activeGM?.isSelf ?? game.user?.isGM)) return;
+  const context = message.flags?.pf2e?.context;
+  if (context?.type !== "attack-roll" || context.action !== "strike") return;
+  if (!isHitOutcome(context.outcome)) return;
+  const sceneId = message.speaker?.scene;
+  const attackerTokenId = message.speaker?.token;
+  const targetTokenId = context.target?.token?.split(".").pop();
+  if (!sceneId || !attackerTokenId || !targetTokenId) return;
+  const combat = game.combats.contents.find((c) => c.scene?.id === sceneId && isModuleCombat(c));
+  if (!combat) return;
+  const attacker = combat.combatants.find((c) => c.tokenId === attackerTokenId);
+  const target = combat.combatants.find((c) => c.tokenId === targetTokenId);
+  if (!attacker || attacker.isDefeated || !target) return;
+  if (!isExcludedFromAutoPlay(attacker, partyActorIds())) return;
+
+  const work = (async () => {
+    const options = collectDefensiveReactionOptions(
+      combat,
+      target,
+      attacker,
+      "targetedByAttack",
+      attackReactionContext(message, context.outcome),
+    );
+    if (!options.length) return;
+    const mode = defensiveReactionMode({ attackerIsPlayerDriven: true, gmLess: isGmLessCombat(combat) });
+    await resolveReactions(combat, { trigger: "targetedByAttack", mover: attacker, options }, (chosen, decision) =>
+      mode === "automatic"
+        ? executeAcBonusReaction(combat, chosen, attacker, decision, { attackMessageId: message.id })
+        : postReactionConfirmCard(combat, chosen, attacker, decision, { attackMessageId: message.id }),
+    );
+  })().catch((err) =>
+    console.error(`${MODULE_ID} | #931: attack-roll reaction check failed:`, err?.message ?? err),
+  );
+  if (message.id) attackReactionsInFlight.set(message.id, work);
+  try {
+    await work;
+  } finally {
+    if (message.id) attackReactionsInFlight.delete(message.id);
+  }
+}
+
+/**
+ * #931: the GM's answer to a reaction confirm card (`accept` true = use the
+ * reaction). Re-resolves every document fresh by id; a card answered after
+ * its round ended, or after the reactor already spent its reaction or left
+ * the fight, is treated as declined. Using an AC-bonus reaction records the
+ * miss (the held damage is dropped); Shield Block applies the held damage
+ * with `shieldBlockRequest`; declining applies the held damage normally
+ * (after an AC-bonus decline, Shield Block is still checked). Marks the card
+ * resolved. Returns `"used"`, `"declined"`, or null when there was nothing
+ * to answer.
+ */
+export async function answerReactionConfirm(combatId, confirmId, accept, { cardMessage = null } = {}) {
+  if (!game.user.isGM) return null;
+  const combat = game.combats?.get?.(combatId) ?? game.combats?.contents?.find((c) => c.id === combatId);
+  if (!combat) return null;
+  const pending = (combat.getFlag(MODULE_ID, "pendingReactions") ?? {})[confirmId];
+  if (!pending || pending.status !== "pending") return null;
+  const def = reactionDefById(pending.defId);
+  const reactor = combatantById(combat, pending.reactorId);
+  const attacker = pending.attackerId ? combatantById(combat, pending.attackerId) : null;
+  let use = !!accept && !!def;
+  let reason = use ? null : "declined by the GM";
+  if (use && combat.round !== pending.round) {
+    use = false;
+    reason = "the round it was triggered in has ended";
+  } else if (use && (!reactor || reactor.isDefeated)) {
+    use = false;
+    reason = "the reacting creature is no longer in the fight";
+  } else if (use && getReactionUsed(combat, reactor.id, combat.round)) {
+    use = false;
+    reason = "it already used its reaction this round";
+  }
+  await updatePendingReaction(combat, confirmId, { status: use ? "used" : "declined" });
+
+  const damageMessage = pending.damageMessageId ? game.messages?.get?.(pending.damageMessageId) : null;
+  const chosen = { reactor, def, ctx: { ...pending.ctx } };
+  const gmDecision = { source: "gm", rationale: null };
+  try {
+    if (def?.kind === "acBonus") {
+      if (use) {
+        await executeAcBonusReaction(combat, chosen, attacker, gmDecision, { attackMessageId: pending.attackMessageId });
+      } else if (damageMessage && attacker && reactor) {
+        await continueManualStrikeDamage(combat, damageMessage, attacker, reactor);
+      }
+    } else if (def?.kind === "damageReduction") {
+      if (use) await executeShieldBlock(combat, chosen, attacker, gmDecision);
+      if (damageMessage && attacker && reactor) {
+        await applyManualStrikeDamage(combat, damageMessage, attacker, reactor, { shieldBlock: use });
+      }
+    }
+  } finally {
+    if (cardMessage) {
+      const resolvedText = use ? `${def?.label ?? "Reaction"} used.` : `No reaction (${reason}).`;
+      const content =
+        String(cardMessage.content ?? "").replace(/<div class="pf2edc-reaction-confirm">[\s\S]*?<\/div>/, "") +
+        game.i18n.format("PF2EDC.Dungeon.Combat.ReactionConfirmResolved", { result: resolvedText });
+      await cardMessage.update({ content, [`flags.${MODULE_ID}.reactionConfirm.resolved`]: true });
+    }
+  }
+  return use ? "used" : "declined";
+}
+
+/** #931: a dragged/keyboard move's path as one position per square --
+ * origin first, then every square entered along each waypoint segment. */
+function expandMovementPath(points, gridSize) {
+  const cells = [];
+  const push = (gx, gy, w, h) => {
+    const last = cells.at(-1);
+    if (last && last.gx === gx && last.gy === gy) return;
+    cells.push({ gx, gy, w, h });
+  };
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i];
+    const gx = Math.round(p.x / gridSize);
+    const gy = Math.round(p.y / gridSize);
+    if (i === 0) {
+      push(gx, gy, p.width, p.height);
+      continue;
+    }
+    const from = cells.at(-1);
+    const n = Math.max(Math.abs(gx - from.gx), Math.abs(gy - from.gy));
+    for (let k = 1; k <= n; k++) {
+      push(
+        from.gx + Math.round(((gx - from.gx) * k) / n),
+        from.gy + Math.round(((gy - from.gy) * k) / n),
+        p.width,
+        p.height,
+      );
+    }
+  }
+  return cells.map((c) => ({ x: c.gx * gridSize, y: c.gy * gridSize, width: c.w ?? 1, height: c.h ?? 1 }));
+}
+
+/**
+ * #931: a human player's own token move during its turn in a module combat
+ * fires the move-triggered NPC reactions (Reactive Strike / Attack of
+ * Opportunity, Twisting Tail, Wing Rebuff) automatically, in both modes
+ * (spec: movement reactions stay automatic with a GM present, as #202's
+ * were). Reads Foundry v14's `moveToken` hook movement (origin + the
+ * waypoints passed), only for a player's own dragging/keyboard move -- the
+ * module's own displace moves (AI walks, pushes, resnaps) and pastes/undos
+ * never count. The reactions resolve after the fact (the token already
+ * moved), each at the square it fired on. A move of a single square is
+ * treated as a Step, which triggers none of these (Player Core: Step
+ * doesn't trigger reactions that move actions or leaving a square would).
+ * A disrupted move (Twisting Tail hit) ends where the reaction fired: in a
+ * GM-less run the token is moved back there; with a GM present the GM gets
+ * a note to adjudicate. Active GM only; registered in module.mjs.
+ */
+export async function handleTokenMoveForReactions(tokenDoc, movement) {
+  if (!(game.users?.activeGM?.isSelf ?? game.user?.isGM)) return;
+  try {
+    if (!["dragging", "keyboard"].includes(movement?.method)) return;
+    const waypoints = movement.passed?.waypoints ?? [];
+    if (!waypoints.length || !movement.origin) return;
+    if (waypoints.some((w) => w?.action === "displace" || w?.action === "blink")) return;
+    const scene = tokenDoc?.parent;
+    const combat = game.combats?.contents?.find(
+      (c) => c.scene?.id === scene?.id && isModuleCombat(c) && (c.started ?? c.round > 0),
+    );
+    if (!combat) return;
+    const mover = combat.combatants.find((c) => c.tokenId === tokenDoc.id);
+    if (!mover || mover.isDefeated) return;
+    if (mover.getFlag(MODULE_ID, "agentControlled")) return;
+    if (combat.combatant?.id !== mover.id) return;
+    const gridSize = scene.grid?.size ?? 100;
+    const path = expandMovementPath([movement.origin, ...waypoints], gridSize);
+    if (path.length <= 2) return;
+    const ran = await resolveStrikeReactions(combat, mover, { trigger: "move", path });
+    const disrupting = ran.find((r) => r.result?.disrupted);
+    if (!disrupting || mover.isDefeated) return;
+    await postMoveDisruptedNote(mover, disrupting);
+    const point = disrupting.ctx.point;
+    // Wing Rebuff's push already moved the token; only a Twisting Tail-style
+    // disruption leaves it standing past the square the reaction hit it on.
+    if (disrupting.def.disrupts !== "hit" || !point) return;
+    if (isGmLessCombat(combat)) {
+      await tokenDoc.move({ x: point.x, y: point.y, action: "displace" });
+    } else {
+      const esc = (s) => foundry.utils.escapeHTML?.(String(s)) ?? String(s);
+      await whisperGmContent(
+        game.i18n.format("PF2EDC.Dungeon.Combat.ReactionDisruptedMoveGm", {
+          name: esc(disrupting.reactor.name),
+          reaction: esc(disrupting.def.label),
+          target: esc(mover.name),
+          x: Math.round(point.x / gridSize),
+          y: Math.round(point.y / gridSize),
+        }),
+      );
+    }
+  } catch (err) {
+    console.error(`${MODULE_ID} | #931: move reaction check failed:`, err?.message ?? err);
+  }
 }
 
 /**
@@ -3527,6 +4304,79 @@ function fallbackLanding(
 }
 
 /**
+ * #931: walks an AI Stride's `steps` (from `startCell`), resolving the
+ * move-triggered reactions that can DISRUPT the move (Twisting Tail, Wing
+ * Rebuff) at the exact square they fire -- the module owns AI movement, so
+ * RAW timing is possible: the token walks up to the trigger square, the
+ * reaction resolves there, and a disrupting result (Twisting Tail hit, Wing
+ * Rebuff push) ends the move action where it stands (the action is still
+ * spent). Without such a reaction the walk is one unchanged
+ * `walkTokenThroughSteps` call. Reactive Strike keeps #202's own
+ * end-of-Stride check (`strideEnd`). Returns `{ disrupted }`.
+ */
+async function walkWithMoveReactions(combat, mover, startCell, steps, gridSize, skipReactorIds = new Set()) {
+  const token = mover.token;
+  const toPosition = (cell) => ({
+    x: cell.gx * gridSize,
+    y: cell.gy * gridSize,
+    width: token?.width ?? 1,
+    height: token?.height ?? 1,
+  });
+  let options = [];
+  try {
+    if (isModuleCombat(combat)) {
+      options = collectStrikeReactionOptions(
+        combat,
+        mover,
+        {
+          trigger: "move",
+          path: [startCell, ...steps].map(toPosition),
+          onlyDisrupting: true,
+          skipReactorIds,
+        },
+        gridSize,
+        combat.scene?.grid?.distance ?? 5,
+      );
+    }
+  } catch (err) {
+    console.error(`${MODULE_ID} | #931: move-reaction check failed:`, err?.message ?? err);
+  }
+  if (!options.length) {
+    await walkTokenThroughSteps(token, steps, gridSize);
+    return { disrupted: false };
+  }
+  const firstIndex = Math.min(...options.map((o) => o.ctx.triggerIndex));
+  const atTrigger = options.filter((o) => o.ctx.triggerIndex === firstIndex);
+  const before = steps.slice(0, firstIndex);
+  if (before.length) await walkTokenThroughSteps(token, before, gridSize);
+  const ran = await resolveReactions(combat, { trigger: "move", mover, options: atTrigger }, (chosen, decision) =>
+    executeStrikeReaction(combat, chosen, mover, decision),
+  );
+  if (ran.some((r) => r.result?.disrupted) || mover.isDefeated) {
+    await postMoveDisruptedNote(mover, ran.find((r) => r.result?.disrupted) ?? null);
+    return { disrupted: true };
+  }
+  const rest = steps.slice(firstIndex);
+  if (!rest.length) return { disrupted: false };
+  for (const o of atTrigger) skipReactorIds.add(o.reactor.id);
+  const restStart = firstIndex === 0 ? startCell : steps[firstIndex - 1];
+  return walkWithMoveReactions(combat, mover, restStart, rest, gridSize, skipReactorIds);
+}
+
+/** #931: tells the table a reaction disrupted `mover`'s move action. */
+async function postMoveDisruptedNote(mover, disruptor) {
+  if (!disruptor) return;
+  const esc = (s) => foundry.utils.escapeHTML?.(String(s)) ?? String(s);
+  await ChatMessage.create({
+    content: game.i18n.format("PF2EDC.Dungeon.Combat.ReactionDisruptedMove", {
+      name: esc(disruptor.reactor.name),
+      reaction: esc(disruptor.def.label),
+      target: esc(mover.name),
+    }),
+  });
+}
+
+/**
  * Moves `combatant`'s token toward `target`'s token along a real,
  * wall-aware path (#100), up to its own speed, stopping once adjacent
  * (MELEE_REACH_SQUARES). A no-op (beyond `snapTokenToGrid`'s own possible
@@ -3585,8 +4435,9 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
       moverFootprint,
     );
   if (!waypoint) return "blocked";
-  await walkTokenThroughSteps(me, waypoint.steps, gridSize);
-  if (!preReported)
+  // #931: Twisting Tail / Wing Rebuff fire mid-move and can stop it.
+  const walk = await walkWithMoveReactions(combat, combatant, start, waypoint.steps, gridSize);
+  if (!preReported && !walk.disrupted)
   await reportMoveOverlap({
     combat,
     combatant,
@@ -3601,8 +4452,8 @@ export async function stepToward(combat, combatant, target, distanceSquares) {
     stopWithin: MELEE_REACH_SQUARES,
     gridSize,
   });
-  await offerReactiveStrikesAgainst(combat, combatant);
-  return "moved";
+  await offerReactiveStrikesAgainst(combat, combatant, { trigger: "strideEnd" });
+  return walk.disrupted ? "disrupted" : "moved";
 }
 
 /**
@@ -3940,7 +4791,15 @@ export async function rollAndApplyStrike(combat, combatant, target) {
       // resolution below can post further chat messages before the card
       // draw, so a later `.at(-1)` would no longer be the attack roll.
       const attackMessage = game.messages.contents.at(-1);
-      const outcome = attackMessage?.flags?.pf2e?.context?.outcome ?? null;
+      // #931: an AC-bonus reaction (Wing Deflection, ...) may turn this hit
+      // into a miss before any rider, card or damage resolves.
+      const outcome = await applyTargetedByAttackReactions(
+        combat,
+        combatant,
+        target,
+        attackMessage,
+        attackMessage?.flags?.pf2e?.context?.outcome ?? null,
+      );
       const natural = naturalD20(attackMessage?.rolls?.[0]);
       const soundContext = strikeSoundContext(strike, target);
       playStrikeSound(outcome, soundContext);
@@ -3986,10 +4845,13 @@ export async function rollAndApplyStrike(combat, combatant, target) {
           if (damageMultiplier === 3) {
             await damageRoll.alter(1.5, 0);
           }
+          // #931: Shield Block -- the system applies Hardness itself.
+          const shieldBlock = await resolveShieldBlockForHit(combat, combatant, target, damageRoll);
           await target.actor.applyDamage({
             damage: damageRoll,
             token: target.token,
             outcome,
+            ...(shieldBlock ? { shieldBlockRequest: true } : {}),
           });
           await applyDefeatIfReducedToZero(target);
           // Critical specialization's own Note (#36) only ever lands on the
@@ -5046,8 +5908,9 @@ export async function strideByPosture(combat, combatant, posture, target) {
         )
       : null);
   if (!waypoint) return "blocked";
-  await walkTokenThroughSteps(me, waypoint.steps, gridSize);
-  if (!preReported)
+  // #931: Twisting Tail / Wing Rebuff fire mid-move and can stop it.
+  const walk = await walkWithMoveReactions(combat, combatant, start, waypoint.steps, gridSize);
+  if (!preReported && !walk.disrupted)
   await reportMoveOverlap({
     combat,
     combatant,
@@ -5063,20 +5926,24 @@ export async function strideByPosture(combat, combatant, posture, target) {
     stopWithin,
     gridSize,
   });
-  await offerReactiveStrikesAgainst(combat, combatant);
-  return "moved";
+  await offerReactiveStrikesAgainst(combat, combatant, { trigger: "strideEnd" });
+  return walk.disrupted ? "disrupted" : "moved";
 }
 
 /** Rolls one strike at a specific MAP `variantIndex` against `target` and
  * applies damage on a hit — the same dialog-suppression/roll/damage/
  * applyDamage sequence rollAndApplyStrike already uses, generalized to a
- * caller-chosen variant instead of always variants[0]. */
+ * caller-chosen variant instead of always variants[0].
+ * #931: `extras` (reaction Strikes only) adds roll options / modifiers to
+ * the attack roll (Twisting Tail's -2) and `extras.report.pushed` reports a
+ * successful push rider (Wing Rebuff's disruption). */
 async function rollAndApplyStrikeAtVariant(
   combat,
   combatant,
   target,
   actionSlug,
   variantIndex,
+  extras = null,
 ) {
   const strike = (combatant.actor?.system?.actions ?? []).find(
     (a) =>
@@ -5097,11 +5964,24 @@ async function rollAndApplyStrikeAtVariant(
       const targetRef = { document: target.token };
       const variant =
         strike.variants[Math.min(variantIndex, strike.variants.length - 1)];
-      await variant.roll({ target: targetRef, createMessage: true });
+      await variant.roll({
+        target: targetRef,
+        createMessage: true,
+        ...(extras?.rollOptions?.length ? { options: [...extras.rollOptions] } : {}),
+        ...(extras?.modifiers?.length ? { modifiers: [...extras.modifiers] } : {}),
+      });
       // #976: see rollAndApplyStrike -- capture the attack message before
       // any rider can post a newer one.
       const attackMessage = game.messages.contents.at(-1);
-      const outcome = attackMessage?.flags?.pf2e?.context?.outcome ?? null;
+      // #931: see rollAndApplyStrike -- an AC-bonus reaction may turn the hit
+      // into a miss first.
+      const outcome = await applyTargetedByAttackReactions(
+        combat,
+        combatant,
+        target,
+        attackMessage,
+        attackMessage?.flags?.pf2e?.context?.outcome ?? null,
+      );
       const natural = naturalD20(attackMessage?.rolls?.[0]);
       const soundContext = strikeSoundContext(strike, target);
       playStrikeSound(outcome, soundContext);
@@ -5115,6 +5995,7 @@ async function rollAndApplyStrikeAtVariant(
         onSuccess: async (rollOutcome) => {
           const distanceSquares = rollOutcome === "criticalSuccess" ? 2 : 1;
           await pushTokenAway(combat, combatant, target, distanceSquares);
+          if (extras?.report) extras.report.pushed = true;
           return `target is pushed ${distanceSquares * 5} feet away`;
         },
       });
@@ -5140,10 +6021,13 @@ async function rollAndApplyStrikeAtVariant(
           if (damageMultiplier === 3) {
             await damageRoll.alter(1.5, 0);
           }
+          // #931: Shield Block -- the system applies Hardness itself.
+          const shieldBlock = await resolveShieldBlockForHit(combat, combatant, target, damageRoll);
           await target.actor.applyDamage({
             damage: damageRoll,
             token: target.token,
             outcome,
+            ...(shieldBlock ? { shieldBlockRequest: true } : {}),
           });
           await applyDefeatIfReducedToZero(target);
           // See rollAndApplyStrike's identical comment -- the crit-spec

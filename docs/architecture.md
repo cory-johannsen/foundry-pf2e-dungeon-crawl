@@ -21,7 +21,7 @@ across the module rather than being a one-off pattern:
   `dungeon-deck.mjs`, `trap-mechanics.mjs`, `puzzle-mechanics.mjs`,
   `skill-challenge-mechanics.mjs`, `treasure.mjs`, `room-feature-tokens.mjs`, `agent-candidates.mjs`,
   `maneuver-feat-modifiers.mjs`, `npc-ability-parse.mjs`, `self-effect-denylist.mjs`, `self-effect-summary.mjs`,
-  `targeted-feat-actions.mjs`, `antagonize.mjs`, `combat-rewards.mjs`, `dungeon-follow-mechanics.mjs`, `cover-items.mjs`,
+  `targeted-feat-actions.mjs`, `antagonize.mjs`, `npc-reactions.mjs`, `combat-rewards.mjs`, `dungeon-follow-mechanics.mjs`, `cover-items.mjs`,
   `encounter-deck.mjs`, `dungeon-layout.mjs`, and `dungeon-retreat.mjs` are all this shape.
 - A **Foundry-glue** file that touches `game`/`Actor`/`ChatMessage`/`Scene`
   and calls into its pure sibling for the actual decision logic.
@@ -70,7 +70,7 @@ sequencing/roster logic without this one caring.
 **Combat automation** (`dungeon-combat.mjs`, `stealth-detection.mjs`,
 `combat-rewards.mjs`, `agent-candidates.mjs`, `agent-action-display.mjs`, `maneuver-feat-modifiers.mjs`,
 `npc-ability-parse.mjs`, `self-effect-denylist.mjs`, `self-effect-summary.mjs`,
-`targeted-feat-actions.mjs`, `antagonize.mjs`, `dungeon-strike-riders.mjs`, `dungeon-critical-deck.mjs`,
+`targeted-feat-actions.mjs`, `antagonize.mjs`, `npc-reactions.mjs`, `dungeon-strike-riders.mjs`, `dungeon-critical-deck.mjs`,
 `flanking-indicator.mjs`, `dungeon-leveling.mjs`) — wires a spawned encounter into a real PF2e
 `Combat`, and auto-applies whatever Critical Hit/Fumble Deck directives
 parse cleanly. For an `agentControlled` combatant's turn,
@@ -98,6 +98,18 @@ per round (#925): `agent-action-display.mjs` (pure) turns each executor's
 own return value into the public row text and renders the card HTML, with
 the model's rationale and other GM-only details in `data-visibility="gm"`
 elements that PF2e strips for non-GM clients.
+NPC reactions (#931, generalizing #202's Reactive Strike) are a registry:
+`npc-reactions.mjs` (pure) holds `REACTION_DEFS` (Reactive Strike/Attack of
+Opportunity, Twisting Tail, Wing Rebuff, Shield Block, Wing Deflection,
+Ghost Dodge, Swat Projectile), the move-trigger and degree-of-success
+arithmetic, and the hybrid decision (a creature's single eligible reaction
+is decided by its policy; several go to the agent service's
+`/v1/combat-decision` with a 5 s timeout, falling back to priority order).
+`dungeon-combat.mjs` owns the gates (reach, line of sight, detection, one
+reaction per round), the trigger paths (AI Strides mid-walk, a player's
+`moveToken` move, ranged Strikes, attack-roll and damage-roll chat
+messages, the module's own Strike executors) and the executors, including
+the GM-confirm card used for player attacks when a human GM is present.
 
 **Hosted agent service** (`scripts/agent-service-client.mjs`,
 `scripts/dungeon-customization-fulfillment.mjs`,
@@ -275,6 +287,7 @@ graph LR
     scripts_flanking_indicator_mjs["flanking-indicator.mjs"]
     scripts_maneuver_feat_modifiers_mjs["maneuver-feat-modifiers.mjs"]
     scripts_npc_ability_parse_mjs["npc-ability-parse.mjs"]
+    scripts_npc_reactions_mjs["npc-reactions.mjs"]
     scripts_self_effect_denylist_mjs["self-effect-denylist.mjs"]
     scripts_self_effect_summary_mjs["self-effect-summary.mjs"]
     scripts_stealth_detection_mjs["stealth-detection.mjs"]
@@ -363,6 +376,7 @@ graph LR
   scripts_dungeon_combat_mjs --> scripts_self_effect_summary_mjs
   scripts_dungeon_combat_mjs --> scripts_targeted_feat_actions_mjs
   scripts_dungeon_combat_mjs --> scripts_antagonize_mjs
+  scripts_dungeon_combat_mjs --> scripts_npc_reactions_mjs
   scripts_dungeon_combat_mjs --> scripts_stealth_detection_mjs
   scripts_dungeon_customization_fulfillment_mjs --> scripts_agent_service_client_mjs
   scripts_dungeon_customization_fulfillment_mjs --> scripts_trap_combat_mjs
@@ -439,6 +453,7 @@ graph LR
   scripts_module_mjs --> scripts_ui_sound_preview_app_mjs
   scripts_module_mjs --> scripts_ui_marching_order_app_mjs
   scripts_module_mjs --> scripts_dungeon_retreat_mjs
+  scripts_module_mjs --> scripts_npc_reactions_mjs
   scripts_module_mjs --> scripts_dungeon_runner_mjs
   scripts_module_mjs --> scripts_dungeon_permissions_mjs
   scripts_module_mjs --> scripts_dungeon_remote_mjs
