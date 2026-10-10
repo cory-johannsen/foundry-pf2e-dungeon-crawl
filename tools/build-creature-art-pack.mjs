@@ -32,7 +32,7 @@ export function deriveActorId(pack, docId) {
     .slice(0, 16);
 }
 
-function readPackDirectories(systemPacksDir) {
+export function readPackDirectories(systemPacksDir) {
   const systemJsonPath = join(systemPacksDir, "..", "system.json");
   if (!existsSync(systemJsonPath)) {
     throw new Error(`system.json not found at ${systemJsonPath}; cannot resolve pack directories`);
