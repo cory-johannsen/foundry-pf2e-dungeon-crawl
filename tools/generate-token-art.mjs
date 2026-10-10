@@ -80,9 +80,9 @@ const BASE = (process.env.COMFYUI_BASE_URL || 'https://comfyui.johannsen.cloud')
 // steps/CFG 7 (about 5x), with a modest style shift the owner accepted. The old
 // setup is still available via COMFYUI_CHECKPOINT=sd_xl_base_1.0.safetensors
 // COMFYUI_STEPS=28 COMFYUI_CFG=7.0.
-const CHECKPOINT = process.env.COMFYUI_CHECKPOINT || 'dreamshaperXL_lightningDPMSDE.safetensors';
-const STEPS = parseInt(process.env.COMFYUI_STEPS || '6', 10);
-const CFG = parseFloat(process.env.COMFYUI_CFG || '2.0');
+export const CHECKPOINT = process.env.COMFYUI_CHECKPOINT || 'dreamshaperXL_lightningDPMSDE.safetensors';
+export const STEPS = parseInt(process.env.COMFYUI_STEPS || '6', 10);
+export const CFG = parseFloat(process.env.COMFYUI_CFG || '2.0');
 const SAMPLER = process.env.COMFYUI_SAMPLER || 'dpmpp_sde';
 const SCHEDULER = process.env.COMFYUI_SCHEDULER || 'karras';
 export const SIZE = 1024;
@@ -11118,12 +11118,12 @@ export const ICONS = [
       + 'a small squat stack of cards resting in the middle' }
 ];
 
-const promptFor = (s) => s.prompt
+export const promptFor = (s) => s.prompt
   ? `${s.prompt}, ${s.icon ? ICON_STYLE : s.shapeless ? SHAPELESS_STYLE : STYLE}`
   : `Portrait bust of ${s.who}, wearing full plate armour, `
     + `a longsword held upright at the shoulder, stern and watchful, sworn to service, ${STYLE}`;
 
-const negativeFor = (s) => {
+export const negativeFor = (s) => {
   const base = s.icon ? ICON_NEGATIVE : s.shapeless ? SHAPELESS_NEGATIVE : NEGATIVE;
   return s.avoid ? `${base}, ${s.avoid}` : base;
 };
@@ -11141,7 +11141,7 @@ const ALL = [
 /** Tokens go to assets/tokens; a subject may name somewhere else. */
 const dirFor = (s) => (s.dir ? join(root, s.dir) : OUT_DIR);
 
-const build = (prompt, seed, prefix, negative = NEGATIVE) => ({
+export const build = (prompt, seed, prefix, negative = NEGATIVE) => ({
   '1': { class_type: 'CheckpointLoaderSimple', inputs: { ckpt_name: CHECKPOINT } },
   '2': { class_type: 'CLIPTextEncode', inputs: { text: prompt, clip: ['1', 1] } },
   '3': { class_type: 'CLIPTextEncode', inputs: { text: negative, clip: ['1', 1] } },
@@ -11154,7 +11154,7 @@ const build = (prompt, seed, prefix, negative = NEGATIVE) => ({
   '7': { class_type: 'SaveImage', inputs: { filename_prefix: prefix, images: ['6', 0] } }
 });
 
-async function enqueue(workflow) {
+export async function enqueue(workflow) {
   const res = await fetch(`${BASE}/prompt`, {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ prompt: workflow, client_id: 'pf2edc-token-' + Math.random().toString(36).slice(2, 8) })
@@ -11163,7 +11163,7 @@ async function enqueue(workflow) {
   return (await res.json()).prompt_id;
 }
 
-async function waitFor(promptId, { timeoutMs = 420_000 } = {}) {
+export async function waitFor(promptId, { timeoutMs = 420_000 } = {}) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     const res = await fetch(`${BASE}/history/${promptId}`);
@@ -11178,7 +11178,7 @@ async function waitFor(promptId, { timeoutMs = 420_000 } = {}) {
   throw new Error(`timed out after ${timeoutMs}ms`);
 }
 
-async function fetchImage({ filename, subfolder = '', type = 'output' }) {
+export async function fetchImage({ filename, subfolder = '', type = 'output' }) {
   const url = `${BASE}/view?filename=${encodeURIComponent(filename)}`
     + `&subfolder=${encodeURIComponent(subfolder)}&type=${type}`;
   const res = await fetch(url);
@@ -11195,7 +11195,7 @@ async function fetchImage({ filename, subfolder = '', type = 'output' }) {
  * the outside, and a penalty for pale pixels anywhere — so the generator stops
  * keeping images the checker will reject afterwards.
  */
-function backgroundScore(path) {
+export function backgroundScore(path) {
   const py = join(root, '.venv/bin/python3');
   const script = `
 from PIL import Image
@@ -11217,7 +11217,7 @@ print(max(ring.mean(), bright * 2.5))
 }
 
 /** Store at token size, not generation size. */
-function shrink(src, dest) {
+export function shrink(src, dest) {
   const py = join(root, '.venv/bin/python3');
   // A clean raw attempt is fully opaque, so the lossy RGB path (small files —
   // the whole reason this exists, see the size comment above) is a no-op
@@ -11243,8 +11243,8 @@ else:
   catch { writeFileSync(dest, readFileSync(src)); }   // no Pillow: keep the png bytes
 }
 
-const CLEAN_THRESHOLD = 45;      // stay under the checker's 50
-const MAX_ATTEMPTS = 4;   // 1 try + 3 retries via ComfyUI; if none comes back clean, fall back to the OpenRouter model hierarchy (tools/image-fallback.mjs), or pass --no-fallback. Never use --backend=gemini (API credits exhausted 2026-10-01).
+export const CLEAN_THRESHOLD = 45;      // stay under the checker's 50
+export const MAX_ATTEMPTS = 4;   // 1 try + 3 retries via ComfyUI; if none comes back clean, fall back to the OpenRouter model hierarchy (tools/image-fallback.mjs), or pass --no-fallback. Never use --backend=gemini (API credits exhausted 2026-10-01).
 
 /**
  * Try to key out a failed attempt's background instead of throwing the
@@ -11265,7 +11265,7 @@ const MAX_ATTEMPTS = 4;   // 1 try + 3 retries via ComfyUI; if none comes back c
  * flood-fill either found no real background or ate into the subject) never
  * makes the kept image worse than the raw generation.
  */
-function trySalvage(path, currentScore) {
+export function trySalvage(path, currentScore) {
   const backup = readFileSync(path);
   let parsed;
   try {

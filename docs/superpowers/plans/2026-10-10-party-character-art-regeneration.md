@@ -54,7 +54,7 @@
 **Interfaces:**
 - Produces: the named exports listed above, signatures unchanged (`promptFor(s)`, `negativeFor(s)`, `build(prompt, seed, prefix, negative?)`, `enqueue(workflow) → promptId`, `waitFor(promptId, {timeoutMs}?) → imageRef`, `fetchImage(imageRef) → Buffer`, `backgroundScore(path) → number|null`, `shrink(src, dest)`, `trySalvage(path, score) → number|null`).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -78,10 +78,10 @@ describe("generate-token-art exports (#1260)", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `npx vitest run tests/generate-token-art-exports.test.mjs` → FAIL (`promptFor` etc. undefined).
-- [ ] **Step 3: Implement** — prefix each listed declaration with `export` (`export const promptFor`, `export async function enqueue`, …). No other edits.
-- [ ] **Step 4: Run** the new test plus `npx vitest run tests/art-failure-lib.test.mjs tests/creature-art.test.mjs` → PASS. Also `node tools/generate-token-art.mjs nonexistent-id` must print nothing and exit 0 (CLI unchanged).
-- [ ] **Step 5: Commit** — `git add -A tools tests && git commit -m "#1260: export token-art pipeline helpers"`
+- [x] **Step 2: Run to verify it fails** — `npx vitest run tests/generate-token-art-exports.test.mjs` → FAIL (`promptFor` etc. undefined).
+- [x] **Step 3: Implement** — prefix each listed declaration with `export` (`export const promptFor`, `export async function enqueue`, …). No other edits.
+- [x] **Step 4: Run** the new test plus `npx vitest run tests/art-failure-lib.test.mjs tests/creature-art.test.mjs` → PASS. Also `node tools/generate-token-art.mjs nonexistent-id` must print nothing and exit 0 (CLI unchanged).
+- [x] **Step 5: Commit** — `git add -A tools tests && git commit -m "#1260: export token-art pipeline helpers"`
 
 ### Task 2: Pure party-art helpers (`party-art-lib.mjs`)
 
