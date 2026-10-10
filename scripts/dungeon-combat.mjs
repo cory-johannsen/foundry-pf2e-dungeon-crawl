@@ -41,8 +41,10 @@ import {
   maneuverHasAttackTrait,
   buildFeatVocabulary,
   buildNpcAbilityVocabulary,
+  buildNpcMoveVocabulary,
 } from "./agent-candidates.mjs";
 import { parseSaveAbility, describeNpcAbility } from "./npc-ability-parse.mjs";
+import { parseMovementAbility, npcMoveBudget, describeNpcMove } from "./npc-move-parse.mjs";
 import {
   findPath,
   blockedEdgesFromWalls,
@@ -1064,11 +1066,12 @@ export async function runAgentDecisionLoop(
     // maneuverVocabulary never touches the turn state at all.
     // #910: the feat vocabulary rides along in the same single call.
     // #915: so do the NPC save abilities -- still one call, and none at all
-    // when all three vocabularies are empty.
+    // when every vocabulary is empty. #932: and the NPC movement abilities.
     if (
       pending.maneuverVocabulary?.length ||
       pending.featVocabulary?.length ||
-      pending.npcAbilityVocabulary?.length
+      pending.npcAbilityVocabulary?.length ||
+      pending.npcMoveVocabulary?.length
     ) {
       const turnState = getAgentTurnState(combat, pending.combatantId);
       if (turnState.maneuverPicks === null) {
@@ -1082,6 +1085,7 @@ export async function runAgentDecisionLoop(
               ...(pending.maneuverVocabulary ?? []),
               ...(pending.featVocabulary ?? []),
               ...(pending.npcAbilityVocabulary ?? []),
+              ...(pending.npcMoveVocabulary ?? []),
             ],
           });
           picks = Array.isArray(response?.picks) ? response.picks : [];
@@ -4312,9 +4316,11 @@ function fallbackLanding(
  * Rebuff push) ends the move action where it stands (the action is still
  * spent). Without such a reaction the walk is one unchanged
  * `walkTokenThroughSteps` call. Reactive Strike keeps #202's own
- * end-of-Stride check (`strideEnd`). Returns `{ disrupted }`.
+ * end-of-Stride check (`strideEnd`). #932: `onlyDisrupting: false` (NPC
+ * movement abilities) resolves every move-triggered reaction, Reactive
+ * Strike included, at the square it fires on. Returns `{ disrupted }`.
  */
-async function walkWithMoveReactions(combat, mover, startCell, steps, gridSize, skipReactorIds = new Set()) {
+async function walkWithMoveReactions(combat, mover, startCell, steps, gridSize, skipReactorIds = new Set(), { onlyDisrupting = true } = {}) {
   const token = mover.token;
   const toPosition = (cell) => ({
     x: cell.gx * gridSize,
@@ -4331,7 +4337,7 @@ async function walkWithMoveReactions(combat, mover, startCell, steps, gridSize, 
         {
           trigger: "move",
           path: [startCell, ...steps].map(toPosition),
-          onlyDisrupting: true,
+          onlyDisrupting,
           skipReactorIds,
         },
         gridSize,
@@ -4360,7 +4366,7 @@ async function walkWithMoveReactions(combat, mover, startCell, steps, gridSize, 
   if (!rest.length) return { disrupted: false };
   for (const o of atTrigger) skipReactorIds.add(o.reactor.id);
   const restStart = firstIndex === 0 ? startCell : steps[firstIndex - 1];
-  return walkWithMoveReactions(combat, mover, restStart, rest, gridSize, skipReactorIds);
+  return walkWithMoveReactions(combat, mover, restStart, rest, gridSize, skipReactorIds, { onlyDisrupting });
 }
 
 /** #931: tells the table a reaction disrupted `mover`'s move action. */
@@ -5110,6 +5116,17 @@ export async function getPendingAgentTurn(combat) {
     gridSize,
   );
 
+  // #932: NPC movement abilities (Gallop, Swift Leap, Swoop, Phase Jump,
+  // ...), the fourth category in the same once-per-turn call.
+  const npcMoveVocabulary = buildNpcMoveVocabulary({
+    npcMoveEntries: computeNpcMoveEntries(combat, combatant, rawOpponents, turnState.actionsRemaining),
+    opponents,
+    hasRangedOrReach,
+    turnState,
+    describe: (entry, { posture, targetName }) =>
+      describeNpcMove(entry.plan, { mode: entry.mode, feet: entry.feet, posture, targetName }),
+  });
+
   const readySpells = (combatant.actor?.spellcasting?.contents ?? [])
     .flatMap((entry) =>
       (entry.spells?.contents ?? [])
@@ -5747,6 +5764,7 @@ export async function getPendingAgentTurn(combat) {
     maneuverPicks: turnState.maneuverPicks,
     featVocabulary,
     npcAbilityVocabulary,
+    npcMoveVocabulary,
     hazard: nearestHazardousRegionPoint(
       combat.scene,
       combatant.token,
@@ -5768,6 +5786,7 @@ export async function getPendingAgentTurn(combat) {
     maneuverVocabulary,
     featVocabulary,
     npcAbilityVocabulary,
+    npcMoveVocabulary,
   };
 }
 
@@ -5863,17 +5882,61 @@ export async function strideByPosture(combat, combatant, posture, target) {
   const speedSquares = Math.floor(speedFt / gridDistanceFt);
   if (speedSquares <= 0 || !target) return "no-speed";
 
+  const plan = planPostureWalk(combat, combatant, posture, target, speedSquares);
+  if (plan.status !== "ok") return plan.status;
+  // #931: Twisting Tail / Wing Rebuff fire mid-move and can stop it.
+  const walk = await walkWithMoveReactions(combat, combatant, plan.start, plan.waypoint.steps, gridSize);
+  if (!preReported && !walk.disrupted)
+  await reportMoveOverlap({
+    combat,
+    combatant,
+    kind: "strideByPosture",
+    posture,
+    targetCombatant: target,
+    startCell: plan.start,
+    goalCell: plan.targetCell,
+    path: plan.path,
+    steps: plan.waypoint.steps,
+    occupantsSnapshot: plan.occupants,
+    speedSquares,
+    stopWithin: plan.stopWithin,
+    gridSize,
+  });
+  await offerReactiveStrikesAgainst(combat, combatant, { trigger: "strideEnd" });
+  return walk.disrupted ? "disrupted" : "moved";
+}
+
+/**
+ * The route half of a posture move (strideByPosture, #932's movement
+ * abilities): a real, wall-aware path from `combatant`'s cell toward
+ * (`approach`) or away from (`retreat`/`reposition`) `target`, walked up to
+ * `speedSquares` -- an approach stops at melee reach, and falls back to
+ * `fallbackLanding` when every cell on the shortest path is taken (#606).
+ * `straightLine` (Eagle Dive, Sprint: "in a straight line") walks one
+ * straight grid line instead of a pathfound route. Moves nothing. Returns
+ * `{ status: "ok"|"no-route"|"blocked", start, targetCell, path, waypoint,
+ * occupants, stopWithin }`.
+ */
+function planPostureWalk(combat, combatant, posture, target, speedSquares, { straightLine = false } = {}) {
+  const gridSize = combat.scene?.grid?.size ?? 100;
   const me = combatant.token;
-  const dest = target.token;
   const moverFootprint = footprint(me, gridSize);
   const start = tokenCell(me, gridSize);
-  const targetCell = tokenCell(dest, gridSize);
+  const targetCell = tokenCell(target.token, gridSize);
   const bounds = sceneBounds(combat, gridSize);
   const isBlocked = movementBlockedEdges(
     combat,
     combatant,
     posture === "approach" ? targetCell : null,
   );
+  const stopWithin = posture === "approach" ? MELEE_REACH_SQUARES : 0;
+  const base = { start, targetCell, stopWithin };
+  if (straightLine) {
+    const occupants = otherCombatantFootprints(combat, combatant, gridSize);
+    const waypoint = straightLineWalk(start, targetCell, posture, speedSquares, stopWithin, isBlocked, bounds, occupants, moverFootprint);
+    if (!waypoint) return { ...base, status: "blocked", path: null, waypoint: null, occupants };
+    return { ...base, status: "ok", path: [start, ...waypoint.steps], waypoint, occupants };
+  }
   const path = posturePath(
     start,
     targetCell,
@@ -5883,10 +5946,9 @@ export async function strideByPosture(combat, combatant, posture, target) {
     bounds,
     moverFootprint,
   );
-  if (!path) return "no-route";
+  if (!path) return { ...base, status: "no-route", path: null, waypoint: null, occupants: [] };
 
   const occupants = otherCombatantFootprints(combat, combatant, gridSize);
-  const stopWithin = posture === "approach" ? MELEE_REACH_SQUARES : 0;
   const waypoint = walkPath(
     path,
     targetCell,
@@ -5907,27 +5969,398 @@ export async function strideByPosture(combat, combatant, posture, target) {
           moverFootprint,
         )
       : null);
-  if (!waypoint) return "blocked";
-  // #931: Twisting Tail / Wing Rebuff fire mid-move and can stop it.
-  const walk = await walkWithMoveReactions(combat, combatant, start, waypoint.steps, gridSize);
-  if (!preReported && !walk.disrupted)
-  await reportMoveOverlap({
-    combat,
-    combatant,
-    kind: "strideByPosture",
-    posture,
-    targetCombatant: target,
-    startCell: start,
-    goalCell: targetCell,
-    path,
-    steps: waypoint.steps,
-    occupantsSnapshot: occupants,
-    speedSquares,
-    stopWithin,
-    gridSize,
+  if (!waypoint) return { ...base, status: "blocked", path, waypoint: null, occupants };
+  return { ...base, status: "ok", path, waypoint, occupants };
+}
+
+/**
+ * #932: "in a straight line" (Eagle Dive, Sprint) -- the grid line from
+ * `start` toward `targetCell` (approach) or directly away from it
+ * (retreat), walked square by square until the budget runs out, a wall or
+ * hostile blocks the next step, the scene ends, or (approach) the next
+ * square would go inside `stopWithin` of the target. Lands on the last
+ * unoccupied square reached. Returns `{cell, steps}` like walkPath, or null.
+ */
+function straightLineWalk(start, targetCell, posture, speedSquares, stopWithin, isBlocked, bounds, occupants, moverFootprint) {
+  const cheb = (a, b) => Math.max(Math.abs(a.gx - b.gx), Math.abs(a.gy - b.gy));
+  const sign = posture === "approach" ? 1 : -1;
+  const dx = sign * (targetCell.gx - start.gx);
+  const dy = sign * (targetCell.gy - start.gy);
+  const n = Math.max(Math.abs(dx), Math.abs(dy));
+  if (n === 0) return null;
+  const line = [];
+  let prev = start;
+  for (let k = 1; k <= speedSquares; k += 1) {
+    const cell = { gx: start.gx + Math.round((dx * k) / n), gy: start.gy + Math.round((dy * k) / n) };
+    if (bounds && (cell.gx < bounds.gx0 || cell.gy < bounds.gy0 ||
+      cell.gx + moverFootprint.gw - 1 > bounds.gx1 || cell.gy + moverFootprint.gh - 1 > bounds.gy1)) break;
+    if (stopWithin > 0 && cheb(cell, targetCell) < stopWithin) break;
+    if (isBlocked(prev, cell)) break;
+    line.push(cell);
+    prev = cell;
+  }
+  let landing = -1;
+  line.forEach((cell, i) => {
+    if (!cellOccupied(cell, occupants, moverFootprint)) landing = i;
   });
-  await offerReactiveStrikesAgainst(combat, combatant, { trigger: "strideEnd" });
-  return walk.disrupted ? "disrupted" : "moved";
+  return landing >= 0 ? { cell: line[landing], steps: line.slice(0, landing + 1) } : null;
+}
+
+// ---------------------------------------------------------------------------
+// #932: NPC movement abilities (Gallop, Swift Leap, Swoop, Eagle Dive, Rush,
+// Phase Jump, ...). npc-move-parse.mjs recognizes the ability; this section
+// owns the geometry: which (posture, target) pairs are really possible right
+// now, and executing one. Movement reuses the posture planner above (the
+// same wall/occupancy-aware route a Stride takes); alternate movement types
+// (Fly, Swim, Burrow, Climb) use the same 2-D pathing with that type's Speed
+// -- elevation and mode-specific terrain are not modeled (#973).
+
+const NPC_MOVE_MODES = ["land", "fly", "swim", "burrow", "climb"];
+const NPC_MOVE_MODE_LABEL = { land: "land", fly: "fly", swim: "swim", burrow: "burrow", climb: "climb" };
+
+/** The mover's Speeds in feet by movement type -- the system's own
+ * `system.movement.speeds[type].value` (pf2e 8.5.0 leaves a type the
+ * creature lacks `null`). Types without a positive Speed are omitted. */
+function moverSpeedsOf(actor) {
+  const speeds = actor?.system?.movement?.speeds ?? {};
+  const out = {};
+  for (const mode of NPC_MOVE_MODES) {
+    const value = Number(speeds[mode]?.value ?? 0);
+    if (value > 0) out[mode] = value;
+  }
+  return out;
+}
+
+/** `cell` as a token-shaped position for `token` (footprint-aware). */
+function positionAt(cell, token, gridSize) {
+  return {
+    x: cell.gx * gridSize,
+    y: cell.gy * gridSize,
+    width: token?.width ?? 1,
+    height: token?.height ?? 1,
+  };
+}
+
+/** The ready melee Strikes a movement ability's Strike may use: the named
+ * limb(s) ("talon", "beak or talon"), or every ready melee Strike when the
+ * text names none ("makes a Strike", "makes a melee Strike"). */
+function npcMoveStrikeActions(actor, limbs, gridDistanceFt) {
+  const melee = readyMeleeStrikeActions(actor).map((a) => ({
+    slug: a.item?.slug ?? a.slug ?? a.label,
+    label: a.label,
+    reachSquares: actionReachSquares(a, gridDistanceFt),
+  }));
+  if (!limbs?.length) return melee;
+  const out = [];
+  for (const limb of limbs) {
+    const matched = matchMultiStrikeActionSlug(limb, melee);
+    if (matched && !out.includes(matched)) out.push(matched);
+  }
+  return out;
+}
+
+/** The first of `actions` that can hit `target` with `mover` standing on
+ * `cell`: in reach (footprint-aware) and a clear line (#91), or null. */
+function npcMoveStrikeFrom(combat, mover, target, cell, actions, gridSize) {
+  if (!target?.token) return null;
+  const position = positionAt(cell, mover.token, gridSize);
+  const distance = chebyshevSquares(position, target.token, gridSize);
+  const action = actions.find((a) => distance <= a.reachSquares + REACH_EPSILON);
+  if (!action) return null;
+  return hasLineOfSight(combat, position, target.token) ? action : null;
+}
+
+/**
+ * #932: a teleport destination for `combatant` within `rangeSquares` of its
+ * own square, or null. PF2e's teleportation needs no path, so walls between
+ * don't matter for the move itself, but the destination must be a free
+ * square (no creature or living cover) the creature can see from where it
+ * stands -- this module's conservative reading, which also keeps it inside
+ * the explored map. `next-to`: a square adjacent to `target` (with a clear
+ * line to it), the shortest jump first; not offered when already adjacent.
+ * `away-from`: the square farthest from `target` (strictly farther than now),
+ * then the shortest jump. Ties break on the straightest jump, then grid
+ * position, so the choice is deterministic.
+ */
+function planNpcTeleport(combat, combatant, posture, target, rangeSquares) {
+  if (!target?.token || !(rangeSquares > 0)) return null;
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const me = combatant.token;
+  const moverFootprint = footprint(me, gridSize);
+  const start = tokenCell(me, gridSize);
+  const targetCell = tokenCell(target.token, gridSize);
+  const bounds = sceneBounds(combat, gridSize);
+  const occupants = otherCombatantFootprints(combat, combatant, gridSize);
+  const current = chebyshevSquares(me, target.token, gridSize);
+  if (posture === "next-to" && current <= MELEE_REACH_SQUARES) return null;
+  if (posture !== "next-to" && posture !== "away-from") return null;
+  const candidates = [];
+  for (let dx = -rangeSquares; dx <= rangeSquares; dx += 1) {
+    for (let dy = -rangeSquares; dy <= rangeSquares; dy += 1) {
+      if (dx === 0 && dy === 0) continue;
+      const cell = { gx: start.gx + dx, gy: start.gy + dy };
+      if (
+        bounds &&
+        (cell.gx < bounds.gx0 || cell.gy < bounds.gy0 ||
+          cell.gx + moverFootprint.gw - 1 > bounds.gx1 ||
+          cell.gy + moverFootprint.gh - 1 > bounds.gy1)
+      )
+        continue;
+      const distance = chebyshevSquares(positionAt(cell, me, gridSize), target.token, gridSize);
+      if (posture === "next-to" ? distance > MELEE_REACH_SQUARES : distance <= current) continue;
+      if (cellOccupied(cell, occupants, moverFootprint)) continue;
+      const jump = Math.max(Math.abs(dx), Math.abs(dy));
+      const straightness = dx * dx + dy * dy;
+      const key = posture === "next-to"
+        ? [jump, straightness, cell.gy, cell.gx]
+        : [-distance, jump, straightness, cell.gy, cell.gx];
+      candidates.push({ cell, key });
+    }
+  }
+  candidates.sort((a, b) => {
+    for (let i = 0; i < a.key.length; i += 1) if (a.key[i] !== b.key[i]) return a.key[i] - b.key[i];
+    return 0;
+  });
+  const walls = sceneWallBlockedEdges(combat);
+  for (const { cell } of candidates) {
+    if (!sightLineClear(start, cell, walls)) continue;
+    if (posture === "next-to" && !sightLineClear(cell, targetCell, walls)) continue;
+    return cell;
+  }
+  return null;
+}
+
+/**
+ * #932: plans one use of a parsed movement ability (`descriptor`, from
+ * parseMovementAbility) against `target` in `posture`, moving nothing.
+ * Returns `{ ok: false, reason }` or `{ ok: true, kind, ... }`:
+ *  - `teleport`: `{ cell }` (planNpcTeleport).
+ *  - `move` (`approach`/`retreat`): `{ budget, walk }` -- planPostureWalk
+ *    with the ability's own budget (npcMoveBudget: the best usable Speed
+ *    among its movement types, factor, per-move bonus, repeats).
+ *  - `strike` (`approach`, or `hitAndRun` for a Strike "at any point during
+ *    that movement"): `{ budget, start, steps, action, retreatSquares }` --
+ *    walk `steps`, Strike with `action`, then (hitAndRun) move away with the
+ *    `retreatSquares` left. A Strike "at the end of that movement" needs the
+ *    whole move to end in reach; "at any point" Strikes from the first free
+ *    square in reach. An approach that already starts in reach is not
+ *    offered (that is a plain Strike).
+ */
+function planNpcMove(combat, combatant, descriptor, posture, target) {
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  const plan = descriptor?.plan;
+  if (!plan || !target?.token) return { ok: false, reason: "no-target" };
+  if (plan.kind === "teleport") {
+    const cell = planNpcTeleport(combat, combatant, posture, target, Math.floor(plan.teleportFeet / gridDistanceFt));
+    return cell ? { ok: true, kind: "teleport", cell } : { ok: false, reason: "no-destination" };
+  }
+  const budget = npcMoveBudget(plan, moverSpeedsOf(combatant.actor), gridDistanceFt);
+  if (!budget) return { ok: false, reason: "no-speed" };
+  if (!plan.strike) {
+    if (posture !== "approach" && posture !== "retreat") return { ok: false, reason: "posture" };
+    const walk = planPostureWalk(combat, combatant, posture, target, budget.squares, { straightLine: plan.straightLine });
+    return walk.status === "ok" ? { ok: true, kind: "move", budget, walk } : { ok: false, reason: walk.status };
+  }
+
+  if (posture !== "approach" && !(posture === "hitAndRun" && plan.strike.timing === "any")) {
+    return { ok: false, reason: "posture" };
+  }
+  const actions = npcMoveStrikeActions(combatant.actor, plan.strike.limbs, gridDistanceFt);
+  if (!actions.length) return { ok: false, reason: "no-ready-strike" };
+  const start = tokenCell(combatant.token, gridSize);
+  const atStart = npcMoveStrikeFrom(combat, combatant, target, start, actions, gridSize);
+  if (posture === "approach" && atStart) return { ok: false, reason: "already-in-reach" };
+  if (atStart) {
+    return { ok: true, kind: "strike", budget, start, steps: [], action: atStart, retreatSquares: budget.squares };
+  }
+  const walk = planPostureWalk(combat, combatant, "approach", target, budget.squares, { straightLine: plan.straightLine });
+  if (walk.status !== "ok") return { ok: false, reason: walk.status };
+  const steps = walk.waypoint.steps;
+  if (plan.strike.timing === "end") {
+    const action = npcMoveStrikeFrom(combat, combatant, target, steps.at(-1) ?? start, actions, gridSize);
+    if (!action) return { ok: false, reason: "out-of-reach" };
+    return { ok: true, kind: "strike", budget, start, steps, action, retreatSquares: 0 };
+  }
+  const moverFootprint = footprint(combatant.token, gridSize);
+  for (let i = 0; i < steps.length; i += 1) {
+    if (cellOccupied(steps[i], walk.occupants, moverFootprint)) continue;
+    const action = npcMoveStrikeFrom(combat, combatant, target, steps[i], actions, gridSize);
+    if (!action) continue;
+    const retreatSquares = posture === "hitAndRun" ? budget.squares - (i + 1) : 0;
+    if (posture === "hitAndRun" && retreatSquares <= 0) return { ok: false, reason: "no-budget" };
+    return { ok: true, kind: "strike", budget, start, steps: steps.slice(0, i + 1), action, retreatSquares };
+  }
+  return { ok: false, reason: "out-of-reach" };
+}
+
+/**
+ * #932: the movement abilities `combatant` (an NPC) can use right now, as
+ * buildNpcMoveVocabulary's entries: parsed (npc-move-parse.mjs), affordable
+ * this turn, with frequency uses left and off recharge (the same
+ * name-derived slug and `abilityRecharge` store breath weapons and #915's
+ * abilities use), and with a Speed for one of its movement types. A
+ * move-plus-Strike or teleport entry carries the (posture, target) pairs
+ * planNpcMove found really possible against `targets`; a plain move's
+ * postures are chosen by the builder.
+ */
+export function computeNpcMoveEntries(combat, combatant, targets, actionsRemaining) {
+  const actor = combatant?.actor;
+  if (actor?.type !== "npc") return [];
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  const speeds = moverSpeedsOf(actor);
+  const entries = [];
+  for (const item of actorActionItems(actor)) {
+    const descriptor = parseMovementAbility(item);
+    if (!descriptor) continue;
+    if (descriptor.cost > actionsRemaining) continue;
+    const uses = descriptor.frequency?.value;
+    if (descriptor.frequency && !(typeof uses === "number" && uses > 0)) continue;
+    const slug = actionItemSlug(item);
+    if (!isAbilityRecharged(combat, combatant.id, slug)) continue;
+    const { plan } = descriptor;
+    const base = { itemId: item.id, slug, name: item.name, cost: descriptor.cost, traits: featGatingTraits(item), plan };
+    if (plan.kind === "teleport") {
+      const teleportOptions = [];
+      for (const target of targets) {
+        for (const posture of ["next-to", "away-from"]) {
+          if (planNpcMove(combat, combatant, descriptor, posture, target).ok) {
+            teleportOptions.push({ posture, targetId: target.id });
+          }
+        }
+      }
+      if (teleportOptions.length) entries.push({ ...base, kind: "teleport", teleportOptions });
+      continue;
+    }
+    const budget = npcMoveBudget(plan, speeds, gridDistanceFt);
+    if (!budget) continue;
+    const movement = { mode: budget.mode, feet: budget.feet, speedSquares: budget.squares };
+    if (!plan.strike) {
+      entries.push({ ...base, kind: "move", ...movement });
+      continue;
+    }
+    const postures = plan.strike.timing === "any" ? ["approach", "hitAndRun"] : ["approach"];
+    const strikeOptions = [];
+    for (const target of targets) {
+      for (const posture of postures) {
+        if (planNpcMove(combat, combatant, descriptor, posture, target).ok) {
+          strikeOptions.push({ posture, targetId: target.id });
+        }
+      }
+    }
+    if (strikeOptions.length) entries.push({ ...base, kind: "strike", ...movement, strikeOptions });
+  }
+  return entries;
+}
+
+/**
+ * #932: walks a movement ability's `steps`. Movement-triggered reactions
+ * follow the rules as written (the module owns AI movement, so it can):
+ * every reaction a move can trigger -- Reactive Strike when the creature
+ * leaves a square within reach (or starts a move action in reach), Twisting
+ * Tail, Wing Rebuff -- resolves at the square it fires on, and a disrupting
+ * one ends the move there. This is the `move` trigger a player's own drag
+ * uses (#931), not the generic Stride's end-of-move check. A "doesn't
+ * trigger reactions" ability (Swift Leap) walks with no reaction check at
+ * all. Returns `{ disrupted }`.
+ */
+async function walkNpcMoveSteps(combat, mover, startCell, steps, gridSize, { suppressReactions = false } = {}) {
+  if (!steps?.length) return { disrupted: false };
+  if (suppressReactions) {
+    await walkTokenThroughSteps(mover.token, steps, gridSize);
+    return { disrupted: false };
+  }
+  return walkWithMoveReactions(combat, mover, startCell, steps, gridSize, new Set(), { onlyDisrupting: false });
+}
+
+/** #932: the GM-only notes for a movement ability's use -- what this module
+ * did not model (elevation, a non-land movement type's terrain rules). */
+function npcMoveGmNote(plan, budget) {
+  const lines = [];
+  if (budget?.mode && budget.mode !== "land") {
+    lines.push(`Used its ${NPC_MOVE_MODE_LABEL[budget.mode]} Speed on 2-D pathing; elevation and ${NPC_MOVE_MODE_LABEL[budget.mode]} terrain rules are not modeled.`);
+  }
+  if (plan?.elevationNote) lines.push(`The ability requires ${plan.elevationNote}; elevation is not modeled.`);
+  if (plan?.suppressReactions) lines.push("This movement triggers no reactions.");
+  if (plan?.kind === "teleport") lines.push("Teleportation: no movement reactions.");
+  return lines.length ? lines.join("\n") : null;
+}
+
+/**
+ * #932: executes a chosen movement ability. Re-resolves the item, its
+ * parse, the target and the whole plan from the current board (the
+ * "re-resolve at execution time" rule every executor follows); when nothing
+ * is possible any more it returns `{ performed: false }` before spending
+ * anything. Otherwise it spends a frequency use and the recharge (as the
+ * system's own use-action card does), posts the ability card, then:
+ *  - teleport: moves the token straight to the planned square
+ *    (`displace`, no path -- teleportation triggers no movement reactions);
+ *  - move: walks the planned route (walkNpcMoveSteps);
+ *  - strike: walks to the Strike point, Strikes at the turn's current MAP
+ *    if the target is still in reach (a reaction may have moved either
+ *    creature), then -- hitAndRun -- moves away with the budget left. A
+ *    disrupted move ends the activity: no Strike.
+ * Returns `{ performed, moveStatus, attacks, strikeOutcomes, strikeSkipped,
+ * gmNote }` for the AI turn card.
+ */
+async function executeNpcMoveCandidate(combat, combatant, candidate) {
+  const item = actorActionItems(combatant.actor).find((i) => i.id === candidate.itemId);
+  const descriptor = item ? parseMovementAbility(item) : null;
+  if (!descriptor) return { performed: false };
+  const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
+  if (!target) return { performed: false };
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  await snapTokenToGrid(combatant.token, gridSize);
+  const planned = planNpcMove(combat, combatant, descriptor, candidate.posture, target);
+  if (!planned.ok) return { performed: false, reason: planned.reason };
+
+  const uses = item.system?.frequency?.value;
+  if (typeof uses === "number") {
+    await item.update({ "system.frequency.value": Math.max(0, uses - 1) });
+  }
+  await setAbilityRecharge(combat, combatant.id, actionItemSlug(item), descriptor.rechargeFormula);
+  try {
+    await item.toMessage?.();
+  } catch (err) {
+    console.error(`${MODULE_ID} | #932: posting ${item.name} failed:`, err.message);
+  }
+  const { plan } = descriptor;
+  const result = { performed: true, moveStatus: "moved", attacks: 0, strikeOutcomes: [], strikeSkipped: null, gmNote: npcMoveGmNote(plan, planned.budget) };
+  const suppressReactions = plan.suppressReactions === true;
+
+  if (planned.kind === "teleport") {
+    await combatant.token.move({ x: planned.cell.gx * gridSize, y: planned.cell.gy * gridSize, action: "displace" });
+    return { ...result, moveStatus: "teleported" };
+  }
+  if (planned.kind === "move") {
+    const walk = await walkNpcMoveSteps(combat, combatant, planned.walk.start, planned.walk.waypoint.steps, gridSize, { suppressReactions });
+    return { ...result, moveStatus: walk.disrupted ? "disrupted" : "moved" };
+  }
+
+  const first = await walkNpcMoveSteps(combat, combatant, planned.start, planned.steps, gridSize, { suppressReactions });
+  if (first.disrupted || combatant.isDefeated) {
+    return { ...result, moveStatus: "disrupted", strikeSkipped: "move disrupted" };
+  }
+  result.moveStatus = planned.steps.length ? "moved" : "stayed";
+  const here = tokenCell(combatant.token, gridSize);
+  const actions = npcMoveStrikeActions(combatant.actor, plan.strike.limbs, gridDistanceFt);
+  const action = target.isDefeated ? null : npcMoveStrikeFrom(combat, combatant, target, here, actions, gridSize);
+  if (!action) return { ...result, strikeSkipped: "target out of reach" };
+  const { mapIncrement } = getAgentTurnState(combat, combatant.id);
+  const outcome = await rollAndApplyStrikeAtVariant(combat, combatant, target, action.slug, mapIncrement);
+  result.attacks = 1;
+  result.strikeOutcomes = [outcome ?? null];
+  if (candidate.posture === "hitAndRun" && planned.retreatSquares > 0 && !combatant.isDefeated && target.token) {
+    const away = planPostureWalk(combat, combatant, "retreat", target, planned.retreatSquares, { straightLine: plan.straightLine });
+    if (away.status === "ok") {
+      const walk = await walkNpcMoveSteps(combat, combatant, away.start, away.waypoint.steps, gridSize, { suppressReactions });
+      result.moveStatus = walk.disrupted ? "disrupted" : "moved";
+    } else {
+      result.retreat = away.status;
+    }
+  }
+  return result;
 }
 
 /** Rolls one strike at a specific MAP `variantIndex` against `target` and
@@ -8765,6 +9198,14 @@ export async function applyAgentDecision(
   } else if (candidate.type === "npcAbility") {
     const result = await executeNpcAbilityCandidate(combat, combatant, candidate);
     if (!result.performed) return skipUnperformedFeat(combat, combatant, candidate, rationale);
+    executionResult = result;
+  } else if (candidate.type === "npcMove") {
+    const result = await executeNpcMoveCandidate(combat, combatant, candidate);
+    if (!result.performed) return skipUnperformedFeat(combat, combatant, candidate, rationale);
+    // #932: its Strike (if one was made) counts toward MAP, and only a
+    // Strike makes the ability hostile (#920).
+    applied = { ...candidate, attacks: result.attacks ?? 0 };
+    if (!result.attacks) hostileIds = [];
     executionResult = result;
   }
 

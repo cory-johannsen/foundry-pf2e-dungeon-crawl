@@ -117,5 +117,8 @@ export function hostileTargetIdsOf(candidate) {
   }
   if (candidate.type === "castTargetCount") ids.push(...(candidate.targetIds ?? []));
   if (candidate.type === "castDualArea") ids.push(...(candidate.harmIds ?? []));
+  // #932: a movement ability is hostile only through its Strike (Swoop,
+  // Rush, Eagle Dive); a plain move or a teleport is not.
+  if (candidate.type === "npcMove" && candidate.kind === "strike" && candidate.targetId) ids.push(candidate.targetId);
   return [...new Set(ids)];
 }
