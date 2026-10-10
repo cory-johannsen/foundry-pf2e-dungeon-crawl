@@ -177,8 +177,8 @@ describe("pickRandomEnvironment", () => {
 **Interfaces:**
 - Produces: `loadCreatureEnvironments() → Promise<object>`: fetches `modules/${MODULE_ID}/data/creature-environments.json`; **never rejects** — any failure (404, bad JSON, non-object, no `creatures` object) resolves `{ version: 0, creatures: {} }` with one `console.warn`; successful results cached, failures not cached (mirror `loadRoomFeatureArt`).
 
-- [ ] **Step 1: Failing tests:** data-file schema test (reads the JSON from disk): top-level `{version:number, creatures:object}`; every key exists as an `id` in `data/creature-art.json`; every value a non-empty array of unique ids from `ENVIRONMENTS ∪ {"any"}`, with `any` never combined with others; `sources.json` keys ⊆ map keys, values ∈ `"audit"|"manual"`, and every mapped slug has a source. Loader tests (stub global `fetch`): ok, 404, throw, malformed → default object + warn; ok result cached (second call doesn't refetch).
-- [ ] **Step 2: Run, FAIL. Step 3: Implement. Step 4: Run, PASS. Step 5: Commit** — `git add data tests scripts/data-loader.mjs && git commit -m "#1272: creature-environments data file and loader"`
+- [x] **Step 1: Failing tests:** data-file schema test (reads the JSON from disk): top-level `{version:number, creatures:object}`; every key exists as an `id` in `data/creature-art.json`; every value a non-empty array of unique ids from `ENVIRONMENTS ∪ {"any"}`, with `any` never combined with others; `sources.json` keys ⊆ map keys, values ∈ `"audit"|"manual"`, and every mapped slug has a source. Loader tests (stub global `fetch`): ok, 404, throw, malformed → default object + warn; ok result cached (second call doesn't refetch).
+- [x] **Step 2: Run, FAIL. Step 3: Implement. Step 4: Run, PASS. Step 5: Commit** — `git add data tests scripts/data-loader.mjs && git commit -m "#1272: creature-environments data file and loader"`
 
 ### Task 4: Audit tool and seeding the map
 

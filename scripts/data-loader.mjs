@@ -3,6 +3,7 @@ const MODULE_ID = 'pf2e-dungeon-crawl';
 let SETPIECES_CACHE = null;
 let CREATURE_ART_CACHE = null;
 let ROOM_FEATURE_ART_CACHE = null;
+let CREATURE_ENVIRONMENTS_CACHE = null;
 
 export async function loadDungeonSetpieces() {
   if (SETPIECES_CACHE) return SETPIECES_CACHE;
@@ -33,8 +34,30 @@ export async function loadRoomFeatureArt() {
   }
 }
 
+/** Creature -> environments map (#1272). Never rejects: any failure (404,
+ * bad JSON, wrong shape, no fetch) warns once and yields an empty map so
+ * encounters still generate; failures are not cached. */
+export async function loadCreatureEnvironments() {
+  if (CREATURE_ENVIRONMENTS_CACHE) return CREATURE_ENVIRONMENTS_CACHE;
+  try {
+    const res = await fetch(`modules/${MODULE_ID}/data/creature-environments.json`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const c = data?.creatures;
+    if (!data || typeof data !== 'object' || !c || typeof c !== 'object' || Array.isArray(c)) {
+      throw new Error('unexpected shape');
+    }
+    CREATURE_ENVIRONMENTS_CACHE = data;
+    return data;
+  } catch (e) {
+    console.warn(`${MODULE_ID} | creature-environments.json unavailable (${e?.message ?? e}); environment filtering disabled`);
+    return { version: 0, creatures: {} };
+  }
+}
+
 export function invalidateCaches() {
   SETPIECES_CACHE = null;
   CREATURE_ART_CACHE = null;
   ROOM_FEATURE_ART_CACHE = null;
+  CREATURE_ENVIRONMENTS_CACHE = null;
 }
