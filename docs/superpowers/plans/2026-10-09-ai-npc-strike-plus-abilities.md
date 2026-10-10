@@ -43,11 +43,11 @@
 - Consumes: nothing new.
 - Produces (consumed by Tasks 4/6): `async function recordGrab(grabber, target)`; `async function clearGrab(grabber)`; `function currentGrabTarget(grabber)` → `{ targetActorUuid, targetTokenId, sinceWorldTime } | null`.
 
-- [ ] **Step 1: Read the real Grab rider and Grapple branch in full**
+- [x] **Step 1: Read the real Grab rider and Grapple branch in full**
 
 Already read during this plan's own investigation: `resolveGrabRider`/`applyConditionOnSuccess` (`scripts/dungeon-strike-riders.mjs`, lines ~258-285) and the real `grapple` branch inside `applyBaseManeuverOutcome` (`scripts/dungeon-combat.mjs`, lines ~6015-6023). Confirm both are unchanged with a fresh `grep -n "function resolveGrabRider\|function applyConditionOnSuccess" scripts/dungeon-strike-riders.mjs` and `grep -n "applyBaseManeuverOutcome" scripts/dungeon-combat.mjs` before editing.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-grab-state.test.mjs
@@ -109,12 +109,12 @@ describe('resolveGrabRider records grab state', () => {
 });
 ```
 
-- [ ] **Step 3: Run tests to verify they fail**
+- [x] **Step 3: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-grab-state.test.mjs tests/dungeon-strike-riders.test.mjs`
 Expected: FAIL — none of the three functions exist yet.
 
-- [ ] **Step 4: Implement the grab-state helpers in `scripts/dungeon-combat.mjs`**
+- [x] **Step 4: Implement the grab-state helpers in `scripts/dungeon-combat.mjs`**
 
 ```js
 /**
@@ -152,7 +152,7 @@ export function currentGrabTarget(grabber) {
 }
 ```
 
-- [ ] **Step 5: Wire `recordGrab`/`clearGrab` into the real call sites**
+- [x] **Step 5: Wire `recordGrab`/`clearGrab` into the real call sites**
 
 In `scripts/dungeon-strike-riders.mjs`'s `resolveGrabRider`, replace the shared `applyConditionOnSuccess` call with a grab-specific `onSuccess` that also records the grab (import `recordGrab` from `./dungeon-combat.mjs`):
 
@@ -217,7 +217,7 @@ Confirm the real, exact event name/payload shape for "a condition item was delet
 
 Reuse this module's own existing combatant-defeat and combat-end hooks (search for `Hooks.on("deleteCombat"` and wherever a combatant's defeat is already handled, e.g. `applyDefeatIfReducedToZero`'s own call sites) to also call `clearGrab` for both the grabber and, when the grabber itself is removed/defeated, to avoid leaving any grabber's own stale record — add a line to each of these existing paths rather than a new standalone hook, matching this codebase's own "extend an existing, narrowly-scoped hook" convention over "add a fifth place that reacts to the same kind of event."
 
-- [ ] **Step 6: Grabber-movement cleanup**
+- [x] **Step 6: Grabber-movement cleanup**
 
 In `strideByPosture` (Task 5 of #932's own plan already generalizes this function with new options — confirm whether #932's own plan has been implemented yet; if not, this task adds directly to the real, current function instead, following the same "add a line, don't restructure" discipline): immediately after a successful move (`return "moved"`), check whether the mover has an active grab record and clear it if the move actually increased the distance to the grabbed target beyond melee reach (RAW: moving away from a grabbed creature releases the grab; moving to remain adjacent does not).
 
@@ -236,17 +236,17 @@ if (grab) {
 
 placed right before `strideByPosture`'s own `return "moved";`.
 
-- [ ] **Step 7: Run tests to verify they pass**
+- [x] **Step 7: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-grab-state.test.mjs tests/dungeon-strike-riders.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 8: Run the full suite**
+- [x] **Step 8: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs scripts/dungeon-strike-riders.mjs scripts/module.mjs tests/dungeon-combat-grab-state.test.mjs tests/dungeon-strike-riders.test.mjs

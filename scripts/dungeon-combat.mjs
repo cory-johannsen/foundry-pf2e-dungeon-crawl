@@ -68,6 +68,13 @@ import {
   resolveKnockdownRider,
   resolveAthleticsRider,
   PUSH_RIDER_SLUGS,
+  recordGrab,
+  clearGrabsInvolving,
+  currentGrabTarget,
+  releaseGrab,
+  grabRecordOf,
+  GRAB_CONDITION_SLUGS,
+  handleGrabConditionRemoved,
 } from "./dungeon-strike-riders.mjs";
 import {
   drawAndApplyCriticalCard,
@@ -4576,6 +4583,9 @@ async function applyDefeatIfReducedToZero(target) {
     // rules (they can still be stabilized) — only an NPC actually defeated
     // here gets the death sound.
     playCreatureDeathSound();
+    // #933: a defeated creature neither holds nor stays held in a grab.
+    const combat = target.parent ?? target.combat ?? null;
+    if (typeof combat?.setFlag === "function") await clearGrabsInvolving(combat, target.id);
   }
 }
 
@@ -4810,7 +4820,7 @@ export async function rollAndApplyStrike(combat, combatant, target) {
       const soundContext = strikeSoundContext(strike, target);
       playStrikeSound(outcome, soundContext);
       await postStrikeRiderReminder(combatant, strike, outcome);
-      await resolveGrabRider(combatant, target, strike, outcome);
+      await resolveGrabRider(combatant, target, strike, outcome, combat);
       await resolveKnockdownRider(combatant, target, strike, outcome);
       await resolveAthleticsRider(combatant, target, strike, outcome, {
         slugs: PUSH_RIDER_SLUGS,
@@ -5884,6 +5894,8 @@ export async function strideByPosture(combat, combatant, posture, target) {
 
   const plan = planPostureWalk(combat, combatant, posture, target, speedSquares);
   if (plan.status !== "ok") return plan.status;
+  // #933: RAW, moving ends a grab the mover holds.
+  if (plan.waypoint.steps?.length) await releaseGrab(combat, combatant);
   // #931: Twisting Tail / Wing Rebuff fire mid-move and can stop it.
   const walk = await walkWithMoveReactions(combat, combatant, plan.start, plan.waypoint.steps, gridSize);
   if (!preReported && !walk.disrupted)
@@ -6327,6 +6339,9 @@ async function executeNpcMoveCandidate(combat, combatant, candidate) {
   }
   const { plan } = descriptor;
   const result = { performed: true, moveStatus: "moved", attacks: 0, strikeOutcomes: [], strikeSkipped: null, gmNote: npcMoveGmNote(plan, planned.budget) };
+  // #933: RAW, moving (or teleporting) ends a grab the mover holds.
+  const moves = planned.kind === "teleport" || planned.kind === "move" || planned.steps?.length > 0 || planned.retreatSquares > 0;
+  if (moves) await releaseGrab(combat, combatant);
   const suppressReactions = plan.suppressReactions === true;
 
   if (planned.kind === "teleport") {
@@ -6351,6 +6366,8 @@ async function executeNpcMoveCandidate(combat, combatant, candidate) {
   const outcome = await rollAndApplyStrikeAtVariant(combat, combatant, target, action.slug, mapIncrement);
   result.attacks = 1;
   result.strikeOutcomes = [outcome ?? null];
+  // #933: which Strike hit whom, for Rend's "two consecutive Strikes".
+  result.strikeRecords = [{ slug: action.slug, targetId: target.id, outcome: outcome ?? null }];
   if (candidate.posture === "hitAndRun" && planned.retreatSquares > 0 && !combatant.isDefeated && target.token) {
     const away = planPostureWalk(combat, combatant, "retreat", target, planned.retreatSquares, { straightLine: plan.straightLine });
     if (away.status === "ok") {
@@ -6419,7 +6436,7 @@ async function rollAndApplyStrikeAtVariant(
       const soundContext = strikeSoundContext(strike, target);
       playStrikeSound(outcome, soundContext);
       await postStrikeRiderReminder(combatant, strike, outcome);
-      await resolveGrabRider(combatant, target, strike, outcome);
+      await resolveGrabRider(combatant, target, strike, outcome, combat);
       await resolveKnockdownRider(combatant, target, strike, outcome);
       await resolveAthleticsRider(combatant, target, strike, outcome, {
         slugs: PUSH_RIDER_SLUGS,
@@ -7851,6 +7868,17 @@ export async function handleFrightenedRemovedForAntagonize(item) {
   }
 }
 
+/** #933: module.mjs's `deleteItem` hook -- a Grabbed/Restrained condition
+ * leaving an actor (Escape, the GM, a release) ends the grab records that
+ * target it in every combat (dungeon-strike-riders.mjs). The records live
+ * on the Combat document, so a combat's end needs no cleanup of its own. */
+export async function handleGrabConditionRemovedForGrabState(item) {
+  await handleGrabConditionRemoved(item, {
+    combats: Array.from(game.combats?.contents ?? []),
+    isGm: isActiveGmClient(),
+  });
+}
+
 /** #920: a deleted combat ends every Antagonize floor its combatants hold --
  * entries are keyed by this combat's combatant ids and sensing is only
  * tracked during combat. Called from module.mjs's deleteCombat hook. */
@@ -8012,10 +8040,12 @@ async function applyBaseManeuverOutcome(slug, combat, combatant, target, outcome
   } else if (slug === "grapple") {
     if (outcome === "criticalSuccess") {
       await target.actor.increaseCondition("restrained");
+      await recordGrab(combat, combatant, target);
       return "target is Restrained";
     }
     if (outcome === "success") {
       await target.actor.increaseCondition("grabbed");
+      await recordGrab(combat, combatant, target);
       return "target is Grabbed";
     }
   } else if (slug === "disarm") {
