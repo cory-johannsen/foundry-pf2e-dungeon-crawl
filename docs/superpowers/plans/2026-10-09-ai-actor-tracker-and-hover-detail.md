@@ -85,7 +85,7 @@ git commit -m "docs(#951): amend #950's plan -- extract the shared visibleRecord
 - Consumes: `visibleRecords` (Task 1, from `scripts/ui/ai-action-log-view.mjs`).
 - Produces: `buildCombatantDigest(records, {combatantId, round, isGM})` → `{last, currentRound, previousRound, stale}`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/ai-action-digest.test.mjs
@@ -139,12 +139,12 @@ describe('buildCombatantDigest (#951)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/ai-action-digest.test.mjs`
 Expected: FAIL with "Cannot find module"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/ai-action-digest.mjs
@@ -204,12 +204,12 @@ describe('renderDigestRowHtml (#951, amended for #1006)', () => {
 });
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/ai-action-digest.test.mjs`
 Expected: PASS (7 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/ai-action-digest.mjs tests/ai-action-digest.test.mjs
