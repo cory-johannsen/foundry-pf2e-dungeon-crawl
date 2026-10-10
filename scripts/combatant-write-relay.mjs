@@ -12,7 +12,10 @@ export const MAX_QUEUE = 50;
 const isObj = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
 
 export function isValidQueueValue(v) {
-  return Array.isArray(v) && v.length <= MAX_QUEUE && v.every((s) => typeof s === "string");
+  if (!Array.isArray(v) || v.length > MAX_QUEUE) return false;
+  // Index loop, not every(): every() skips sparse-array holes.
+  for (let i = 0; i < v.length; i++) if (typeof v[i] !== "string") return false;
+  return true;
 }
 
 export function classifyCombatantUpdate(changes, userIsGM) {
@@ -139,7 +142,14 @@ export async function handleCombatantFlagRelay(msg, deps = {}) {
 }
 
 export function registerCombatantWriteRelay() {
-  globalThis.game.socket.on(SOCKET, (msg) => {
-    if (msg?.type === "combatantFlagRelay") handleCombatantFlagRelay(msg);
+  // Foundry passes the authenticated sender id as the 2nd listener argument;
+  // msg.userId is attacker-controlled and must never be trusted on its own.
+  globalThis.game.socket.on(SOCKET, (msg, senderId) => {
+    if (msg?.type !== "combatantFlagRelay") return;
+    if (!senderId || (msg.userId !== undefined && msg.userId !== senderId)) {
+      console.debug("pf2e-dungeon-crawl | #1254: relay dropped: unauthenticated or spoofed sender");
+      return;
+    }
+    handleCombatantFlagRelay({ ...msg, userId: senderId });
   });
 }

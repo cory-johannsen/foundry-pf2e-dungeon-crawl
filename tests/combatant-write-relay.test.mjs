@@ -40,6 +40,9 @@ describe("classifyCombatantUpdate", () => {
 describe("isValidQueueValue", () => {
   it("accepts ≤50 strings only", () => {
     expect(isValidQueueValue([])).toBe(true);
+    // eslint-disable-next-line no-sparse-arrays
+    expect(isValidQueueValue(["a", , "b"])).toBe(false);
+    expect(isValidQueueValue(new Array(3))).toBe(false);
     expect(isValidQueueValue(Array(50).fill("x"))).toBe(true);
     expect(isValidQueueValue(Array(51).fill("x"))).toBe(false);
     expect(isValidQueueValue(null)).toBe(false);

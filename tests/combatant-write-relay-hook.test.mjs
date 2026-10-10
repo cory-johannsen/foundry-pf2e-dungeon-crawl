@@ -132,6 +132,45 @@ describe("registerCombatantWriteRelay", () => {
   });
 });
 
+describe("registerCombatantWriteRelay sender authentication", () => {
+  const msg = { type: "combatantFlagRelay", combatId: "k", combatantId: "cb", flagKey: "pendingDamageQueue", value: ["m1"] };
+  function setup() {
+    const c = mkCombatant();
+    // only u1 owns the actor
+    c.actor = { testUserPermission: (u, lvl) => u.id === "u1" && lvl === "OWNER" };
+    const game = mkGame({ activeGM: { isSelf: true }, users: { u1: { id: "u1" }, u2: { id: "u2" } } });
+    game.combats.get = (id) => (id === "k" ? { combatants: { get: (i) => (i === "cb" ? c : undefined) } } : undefined);
+    globalThis.game = game;
+    registerCombatantWriteRelay();
+    return { c, cb: game.socket.on.mock.calls[0][1] };
+  }
+  const flush = () => new Promise((r) => setTimeout(r, 0));
+  it("uses the real sender id for ownership (no msg.userId)", async () => {
+    const { c, cb } = setup();
+    cb({ ...msg }, "u1"); await flush();
+    expect(c.setFlag).toHaveBeenCalledWith(NS, "pendingDamageQueue", ["m1"]);
+    delete globalThis.game;
+  });
+  it("drops a spoofed msg.userId that differs from the sender", async () => {
+    const { c, cb } = setup();
+    cb({ ...msg, userId: "u1" }, "u2"); await flush();
+    expect(c.setFlag).not.toHaveBeenCalled();
+    delete globalThis.game;
+  });
+  it("drops a message with no sender id", async () => {
+    const { c, cb } = setup();
+    cb({ ...msg, userId: "u1" }); await flush();
+    expect(c.setFlag).not.toHaveBeenCalled();
+    delete globalThis.game;
+  });
+  it("accepts a matching msg.userId", async () => {
+    const { c, cb } = setup();
+    cb({ ...msg, userId: "u1" }, "u1"); await flush();
+    expect(c.setFlag).toHaveBeenCalledTimes(1);
+    delete globalThis.game;
+  });
+});
+
 describe("ordering vs the #1212 guard", () => {
   const existing = () => ({ "pf2e-dungeon-crawl": { agentControlled: true }, [NS]: { log: [] } });
   it("still restores namespaces for a non-relayed non-recursive update", () => {
