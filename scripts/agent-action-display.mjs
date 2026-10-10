@@ -87,8 +87,7 @@ export function escapeHtml(value) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+    .replace(/"/g, "&quot;");
 }
 
 /** The action's own name for the public card -- see the file comment. */
@@ -122,6 +121,12 @@ function aggregateTone(results) {
 /** One per-target entry from a multi-target executor -> `{text, tone}`. */
 function describeTargetEntry(entry, nameOf) {
   const name = nameOf(entry?.targetId) ?? "a creature";
+  const save = SAVE_RESULT[entry?.outcome];
+  if (save) {
+    // npcAbility entries also say what the degree applied.
+    const applied = typeof entry.applied === "string" && entry.applied ? ` -- ${entry.applied}` : "";
+    return { text: `${name}: ${save.text}${applied}`, tone: save.tone };
+  }
   if (typeof entry?.text === "string" && entry.text) {
     return { text: `${name}: ${entry.text}`, tone: entry.tone ?? "neutral" };
   }
@@ -133,8 +138,6 @@ function describeTargetEntry(entry, nameOf) {
   if (typeof entry?.total === "number") {
     return { text: `${name}: ${entry.total} damage`, tone: "success" };
   }
-  const save = SAVE_RESULT[entry?.outcome];
-  if (save) return { text: `${name}: ${save.text}`, tone: save.tone };
   return { text: `${name}: no result`, tone: "neutral" };
 }
 
@@ -280,7 +283,9 @@ export function renderAgentTurnCardHtml({ round, records }) {
       const fallback = r?.source === "fallback"
         ? ` <span data-visibility="gm" class="pf2edc-agent-fallback">(fallback heuristic)</span>`
         : "";
-      const note = r?.gmNote ? `<div data-visibility="gm" class="pf2edc-agent-note">${escapeHtml(r.gmNote)}</div>` : "";
+      const note = r?.gmNote
+        ? `<div data-visibility="gm" class="pf2edc-agent-note">${escapeHtml(r.gmNote).replace(/\n/g, "<br>")}</div>`
+        : "";
       const rationale = r?.rationale
         ? `<div data-visibility="gm" class="pf2edc-agent-rationale"><em>${escapeHtml(r.rationale)}</em></div>`
         : "";

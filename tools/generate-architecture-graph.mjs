@@ -90,6 +90,7 @@ const GROUPS = [
         "scripts/stealth-detection.mjs",
         "scripts/combat-rewards.mjs",
         "scripts/agent-candidates.mjs",
+        "scripts/agent-action-display.mjs",
         "scripts/maneuver-feat-modifiers.mjs",
         "scripts/npc-ability-parse.mjs",
         "scripts/self-effect-denylist.mjs",

@@ -1961,8 +1961,8 @@ async function markReactionUsed(combat, combatantId, round) {
 }
 
 /** Announces a #202 Reactive Strike publicly (a visible battlefield event
- * every player at the table would want to see, unlike
- * `postAgentDecisionChat`'s GM-only decision rationale). */
+ * every player at the table would want to see, unlike the AI turn card's
+ * GM-only decision rationale, #925). */
 async function postReactiveStrikeChat(reactor, attacker) {
   const esc = (s) => foundry.utils.escapeHTML?.(String(s)) ?? String(s);
   const content = game.i18n.format("PF2EDC.Dungeon.Combat.ReactiveStrikeChat", {
@@ -6159,49 +6159,6 @@ async function castBreathWeaponAndApplyDamage(
   }
 }
 
-/**
- * Whispers the GM a chat card naming which combatant the external agent
- * loop just chose an action for, and what it chose — the only place a GM
- * watching the table sees an agent's decision at all otherwise (#147:
- * before this, it only ever reached `tools/agent-loop/poll.mjs`'s own
- * terminal, which most tables don't have visible during play). `rationale`
- * is optional and provider-dependent (Claude supplies one, Laya never does
- * — see `tools/agent-loop/README.md`), so it's an extra line only when
- * present rather than a placeholder implying every provider explains itself.
- * Escaped the same way every other LLM/user-supplied string reaching a chat
- * card in this module is (`choice-prompts.mjs`, `gm-resolution.mjs`), since
- * `rationale` is free text from an external model response, not authored
- * content this module controls.
- */
-async function postAgentDecisionChat(combatant, candidate, rationale) {
-  const esc = (s) => foundry.utils.escapeHTML?.(String(s)) ?? String(s);
-  let content = game.i18n.format("PF2EDC.Dungeon.Combat.AgentDecisionChat", {
-    name: esc(combatant.name),
-    summary: esc(candidate.summary ?? candidate.type),
-  });
-  if (rationale) content += `<p><em>${esc(rationale)}</em></p>`;
-  const gmIds = ChatMessage.getWhisperRecipients("GM").map((u) => u.id);
-  await ChatMessage.create({ content, whisper: gmIds });
-}
-
-/** Whispers the GM a follow-up chat card when an agent-controlled
- * combatant's chosen stride resolved to "blocked" (#140) -- a route
- * exists but every landing cell within reach was occupied, distinct from
- * a normal silent move or a genuinely unreachable target ("no-route",
- * not flagged here since that's the ordinary "nothing to do" case the
- * pre-move announcement's own summary already covers). Purely a
- * visibility improvement; no retry or behavior change. */
-async function postMoveStalledChat(combatant, status) {
-  if (status !== "blocked") return;
-  const esc = (s) => foundry.utils.escapeHTML?.(String(s)) ?? String(s);
-  const content = game.i18n.format(
-    "PF2EDC.Dungeon.Combat.AgentMoveStalled",
-    { name: esc(combatant.name) },
-  );
-  const gmIds = ChatMessage.getWhisperRecipients("GM").map((u) => u.id);
-  await ChatMessage.create({ content, whisper: gmIds });
-}
-
 /** #909: upper bound on waiting for a maneuver macro's callback. The
  * macro never returns its own promise and never calls `callback` when its
  * check can't be rolled at all (e.g. a CheckContextError for a missing
@@ -6923,9 +6880,12 @@ function actorHasPanache(actor) {
   }
 }
 
+/** #909: rolls and applies a chosen maneuver. #925: returns
+ * `{ outcome, text, gmNote? }` for the AI turn card (which replaced this
+ * function's own GM whisper), or null when the target is gone. */
 async function executeManeuverCandidate(combat, combatant, candidate) {
   const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
-  if (!target) return;
+  if (!target) return null;
   // #940: the turn's attacks so far (Strikes, composite-feat Strikes and
   // attack-trait maneuvers, all counted by applyCandidateToTurnState).
   const { mapIncrement } = getAgentTurnState(combat, combatant.id);
@@ -6936,13 +6896,8 @@ async function executeManeuverCandidate(combat, combatant, candidate) {
       ...(mapModifier ? { modifiers: [mapModifier] } : {}),
     }),
   );
-  const label = MANEUVER_DEFS[candidate.slug]?.label ?? candidate.slug;
-  const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
   if (!outcome) {
-    await whisperGmContent(
-      `<p><strong>${esc(label)} (${esc(combatant.name)} vs ${esc(target.name)}):</strong> no check result -- resolve manually.</p>`,
-    );
-    return;
+    return { outcome: null, text: "no check result", gmNote: "No check result arrived -- resolve manually." };
   }
   const result = await applyManeuverOutcome(
     candidate.slug,
@@ -6952,9 +6907,7 @@ async function executeManeuverCandidate(combat, combatant, candidate) {
     outcome,
     candidate.skill ?? MANEUVER_DEFS[candidate.slug]?.skill,
   );
-  await whisperGmContent(
-    `<p><strong>${esc(label)} (${esc(combatant.name)} vs ${esc(target.name)}):</strong> ${esc(outcome)} -- ${esc(result)}.</p>`,
-  );
+  return { outcome, text: result };
 }
 
 /** #910: the action/feat item a feat candidate names, or null. */
@@ -7031,7 +6984,7 @@ async function executeSelfEffectFeat(combatant, candidate) {
   if (item.system.frequency && item.system.frequency.value > 0) {
     await item.update({ "system.frequency.value": item.system.frequency.value - 1 });
   }
-  return { performed: true, attacks: 0 };
+  return { performed: true, attacks: 0, effectName: effect.name ?? item.name };
 }
 
 /** #922: Hunt Prey / Devise a Stratagem. The linked effect is created the
@@ -7127,18 +7080,16 @@ async function executeTargetedSelfEffectFeat(combat, combatant, candidate) {
   if (item.system.frequency && item.system.frequency.value > 0) {
     await item.update({ "system.frequency.value": item.system.frequency.value - 1 });
   }
-  const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
+  // #925: reported on the AI turn card (which replaced this executor's own
+  // GM whisper). The Devise a Stratagem d20 is the GM's to know -- GM-only.
   const d20 = created.system?.badge?.value;
-  const what =
+  const text =
     candidate.slug === "hunt-prey"
-      ? `hunts ${esc(target.name)} as prey`
-      : `devises a stratagem against ${esc(target.name)}${typeof d20 === "number" ? ` (d20 = ${d20})` : ""}`;
-  try {
-    await whisperGmContent(`<p><strong>${esc(combatant.name)}</strong> ${what}.</p>`);
-  } catch {
-    // Reporting is best-effort.
-  }
-  return { performed: true, attacks: 0 };
+      ? "hunts its target as prey"
+      : "devises a stratagem against its target";
+  const gmNote =
+    candidate.slug !== "hunt-prey" && typeof d20 === "number" ? `Stratagem d20 = ${d20}` : null;
+  return { performed: true, attacks: 0, text, ...(gmNote ? { gmNote } : {}) };
 }
 
 /** #914: effects the AI-actor pipeline created (executeSelfEffectFeat's
@@ -7175,7 +7126,7 @@ export async function cleanupAgentSelfEffects(combat) {
  * (item/effect/target/weapon gone, or effect creation failed) spends no
  * actions; its pick is dropped from this turn's persisted picks so the
  * model can't re-choose it in a loop. */
-async function skipUnperformedFeat(combat, combatant, candidate) {
+async function skipUnperformedFeat(combat, combatant, candidate, rationale = null) {
   const turnState = getAgentTurnState(combat, combatant.id);
   const picks = (turnState.maneuverPicks ?? []).filter(
     (p) =>
@@ -7187,8 +7138,11 @@ async function skipUnperformedFeat(combat, combatant, candidate) {
   );
   await setAgentTurnState(combat, combatant.id, { ...turnState, maneuverPicks: picks });
   const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
+  // #925: not an action taken, so not on the public turn card -- the GM
+  // alone hears about it, with the model's rationale for the attempt.
   await whisperGmContent(
-    `<p><strong>${esc(candidate.name ?? candidate.slug)} (${esc(combatant.name)}):</strong> could not be used -- no action spent.</p>`,
+    `<p><strong>${esc(candidate.name ?? candidate.slug)} (${esc(combatant.name)}):</strong> could not be used -- no action spent.</p>` +
+      (rationale ? `<p><em>${esc(rationale)}</em></p>` : ""),
   );
   armAgentTimeout(combat, combatant);
   return getPendingAgentTurn(combat);
@@ -7209,12 +7163,13 @@ async function executeLunge(combat, combatant, candidate, target) {
   const actionSlug = action.item?.slug ?? action.slug ?? action.label;
   const { mapIncrement } = getAgentTurnState(combat, combatant.id);
   await combatant.actor.toggleRollOption("all", "lunge", candidate.itemId, true);
+  let outcome;
   try {
-    await rollAndApplyStrikeAtVariant(combat, combatant, target, actionSlug, mapIncrement);
+    outcome = await rollAndApplyStrikeAtVariant(combat, combatant, target, actionSlug, mapIncrement);
   } finally {
     await combatant.actor.toggleRollOption("all", "lunge", candidate.itemId, false);
   }
-  return { performed: true, attacks: 1 };
+  return { performed: true, attacks: 1, strikeOutcomes: [outcome ?? null] };
 }
 
 /** #910: Sudden Charge -- "Stride twice. If you end your movement within
@@ -7225,20 +7180,20 @@ async function executeLunge(combat, combatant, candidate, target) {
  * reach of a ready melee strike. Reports the attacks actually made. */
 async function executeSuddenCharge(combat, combatant, target) {
   await strideByPosture(combat, combatant, "approach", target);
-  if (combatant.isDefeated) return { performed: true, attacks: 0 };
+  if (combatant.isDefeated) return { performed: true, attacks: 0, strikeOutcomes: [] };
   await strideByPosture(combat, combatant, "approach", target);
-  if (combatant.isDefeated || target.isDefeated) return { performed: true, attacks: 0 };
+  if (combatant.isDefeated || target.isDefeated) return { performed: true, attacks: 0, strikeOutcomes: [] };
 
   const gridSize = combat.scene?.grid?.size ?? 100;
   const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
   const action = readyMeleeStrikeActions(combatant.actor).find(
     (a) => strikeInReach(combatant, target, a, gridSize, gridDistanceFt).inReach,
   );
-  if (!action) return { performed: true, attacks: 0 };
+  if (!action) return { performed: true, attacks: 0, strikeOutcomes: [] };
   const actionSlug = action.item?.slug ?? action.slug ?? action.label;
   const { mapIncrement } = getAgentTurnState(combat, combatant.id);
-  await rollAndApplyStrikeAtVariant(combat, combatant, target, actionSlug, mapIncrement);
-  return { performed: true, attacks: 1 };
+  const outcome = await rollAndApplyStrikeAtVariant(combat, combatant, target, actionSlug, mapIncrement);
+  return { performed: true, attacks: 1, strikeOutcomes: [outcome ?? null] };
 }
 
 /** #910: Twin Feint -- "Make one Strike with each of your two melee
@@ -7260,17 +7215,18 @@ async function executeTwinFeint(combat, combatant, target) {
   const [first, second] = pair.map((a) => a.item?.slug ?? a.slug ?? a.label);
   const { mapIncrement } = getAgentTurnState(combat, combatant.id);
 
-  await rollAndApplyStrikeAtVariant(combat, combatant, target, first, mapIncrement);
-  if (target.isDefeated) return { performed: true, attacks: 1 };
+  const firstOutcome = await rollAndApplyStrikeAtVariant(combat, combatant, target, first, mapIncrement);
+  if (target.isDefeated) return { performed: true, attacks: 1, strikeOutcomes: [firstOutcome ?? null] };
 
   const addOffGuard = !actorHasCondition(target.actor, "off-guard");
   if (addOffGuard) await target.actor.increaseCondition("off-guard");
+  let secondOutcome;
   try {
-    await rollAndApplyStrikeAtVariant(combat, combatant, target, second, mapIncrement + 1);
+    secondOutcome = await rollAndApplyStrikeAtVariant(combat, combatant, target, second, mapIncrement + 1);
   } finally {
     if (addOffGuard) await target.actor.decreaseCondition("off-guard", { forceRemove: true });
   }
-  return { performed: true, attacks: 2 };
+  return { performed: true, attacks: 2, strikeOutcomes: [firstOutcome ?? null, secondOutcome ?? null] };
 }
 
 /** #910: dispatches a feat candidate to its executor. Every executor
@@ -7455,21 +7411,25 @@ async function executeNpcAbilityCandidate(combat, combatant, candidate) {
     console.error(`${MODULE_ID} | #915: posting ${item.name} failed:`, err.message);
   }
 
-  const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
+  // #925: reported on the AI turn card (which replaced this executor's own
+  // GM whisper): each target's save and what landed is public; the DC, the
+  // "apply by hand" instructions and the rider text are GM-only (gmNote).
   const worldTime = globalThis.game?.time?.worldTime ?? 0;
-  const lines = [];
+  const results = [];
+  const gmLines = [`${descriptor.save} DC ${descriptor.dc}`];
   for (const target of targets) {
     try {
       if (
         target.actor?.isImmuneTo?.(item) === true ||
         worldTime < getNpcAbilityImmunityUntil(combat, item.id, target.id)
       ) {
-        lines.push(`${esc(target.name)}: immune`);
+        results.push({ targetId: target.id, text: "immune" });
         continue;
       }
       const outcome = await rollNpcAbilitySave(combatant, target, item, descriptor);
       if (!outcome) {
-        lines.push(`${esc(target.name)}: no save result -- resolve by hand`);
+        results.push({ targetId: target.id, text: "no save result" });
+        gmLines.push(`${target.name}: no save result -- resolve by hand`);
         continue;
       }
       if (descriptor.immuneSeconds) {
@@ -7478,25 +7438,21 @@ async function executeNpcAbilityCandidate(combat, combatant, candidate) {
       if (descriptor.mode === "auto") {
         let degree = descriptor.degrees[outcome];
         if (degree?.asFailure) degree = descriptor.degrees.failure;
-        const result = await applyNpcAbilityDegree(combat, combatant, item, target, degree);
-        lines.push(`${esc(target.name)}: ${esc(outcome)} -- ${esc(result)}`);
+        const applied = await applyNpcAbilityDegree(combat, combatant, item, target, degree);
+        results.push({ targetId: target.id, outcome, applied });
       } else {
         const text = descriptor.degreeText?.[outcome];
-        lines.push(
-          `${esc(target.name)}: ${esc(outcome)} -- apply by hand: ${esc(text ?? "see the ability card")}`,
-        );
+        results.push({ targetId: target.id, outcome });
+        gmLines.push(`${target.name}: apply by hand: ${text ?? "see the ability card"}`);
       }
     } catch (err) {
       console.error(`${MODULE_ID} | #915: ${item.name} against ${target.name} failed:`, err.message);
-      lines.push(`${esc(target.name)}: failed (${esc(err.message)}) -- resolve by hand`);
+      results.push({ targetId: target.id, text: "not resolved" });
+      gmLines.push(`${target.name}: failed (${err.message}) -- resolve by hand`);
     }
   }
-  let content = `<p><strong>${esc(item.name)} (${esc(combatant.name)}, ${esc(descriptor.save)} DC ${esc(descriptor.dc)}):</strong></p><ul>${lines.map((l) => `<li>${l}</li>`).join("")}</ul>`;
-  if (descriptor.riderText) {
-    content += `<p><em>Also applies (by hand):</em> ${esc(descriptor.riderText)}</p>`;
-  }
-  await whisperGmContent(content);
-  return { performed: true };
+  if (descriptor.riderText) gmLines.push(`Also applies (by hand): ${descriptor.riderText}`);
+  return { performed: true, results, gmNote: gmLines.join("\n") };
 }
 
 async function whisperGmContent(content) {
@@ -7634,7 +7590,10 @@ export async function applyAgentDecision(
   if (!candidate) return null;
 
   const combatant = combat.combatant;
-  await postAgentDecisionChat(combatant, candidate, rationale);
+  // #925: whatever this candidate's executor returned, for the AI turn card
+  // and agentLog (recordAgentAction below). Stays undefined when the
+  // branch found nothing to act on (target gone).
+  let executionResult;
   // #920: who this action is hostile against, resolved under the same
   // detection filter every executor below uses -- ends any Antagonize floor
   // those combatants hold on this one once the action is really taken.
@@ -7666,12 +7625,11 @@ export async function applyAgentDecision(
       );
       target = hazard ? { token: { x: hazard.x, y: hazard.y } } : null;
     }
-    const status = await strideByPosture(combat, combatant, candidate.posture, target);
-    await postMoveStalledChat(combatant, status);
+    executionResult = await strideByPosture(combat, combatant, candidate.posture, target);
   } else if (candidate.type === "seek") {
     // #616: matrix/conditions refresh inside performSeek, so the next
     // getPendingAgentTurn (below) rebuilds candidates from the new matrix.
-    await performSeek(combat, combatant);
+    executionResult = await performSeek(combat, combatant);
   } else if (candidate.type === "strike") {
     const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target) {
@@ -7695,8 +7653,9 @@ export async function applyAgentDecision(
           distance: check.distance,
           reach: check.reach,
         });
+        executionResult = { skipped: "target out of reach" };
       } else {
-        await rollAndApplyStrikeAtVariant(
+        executionResult = await rollAndApplyStrikeAtVariant(
           combat,
           combatant,
           target,
@@ -7708,7 +7667,7 @@ export async function applyAgentDecision(
   } else if (candidate.type === "cast") {
     const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target)
-      await castSpellAndApplySave(
+      executionResult = await castSpellAndApplySave(
         combatant,
         target,
         candidate.spellId,
@@ -7720,7 +7679,7 @@ export async function applyAgentDecision(
       candidate.affectedIds.includes(c.id),
     );
     if (targets.length)
-      await castAreaSpellAndApplySaves(
+      executionResult = await castAreaSpellAndApplySaves(
         combatant,
         targets,
         candidate.spellId,
@@ -7730,7 +7689,7 @@ export async function applyAgentDecision(
   } else if (candidate.type === "castAttack") {
     const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target)
-      await castAttackSpellAndApplyRoll(
+      executionResult = await castAttackSpellAndApplyRoll(
         combatant,
         target,
         candidate.spellId,
@@ -7739,7 +7698,7 @@ export async function applyAgentDecision(
   } else if (candidate.type === "castDebuff") {
     const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target)
-      await castDebuffSpellAndApplyCondition(
+      executionResult = await castDebuffSpellAndApplyCondition(
         combatant,
         target,
         candidate.spellId,
@@ -7752,7 +7711,7 @@ export async function applyAgentDecision(
       candidate.affectedIds.includes(c.id),
     );
     if (targets.length)
-      await castBreathWeaponAndApplyDamage(
+      executionResult = await castBreathWeaponAndApplyDamage(
         combat,
         combatant,
         targets,
@@ -7771,7 +7730,7 @@ export async function applyAgentDecision(
       // variant for the whole bundle — same "re-resolve at execution time"
       // convention every other tier-resolving branch in this function uses.
       const turnState = getAgentTurnState(combat, combatant.id);
-      await castMultiStrikeBundleAndApply(
+      executionResult = await castMultiStrikeBundleAndApply(
         combat,
         combatant,
         target,
@@ -7787,7 +7746,7 @@ export async function applyAgentDecision(
       .map((id) => opponentsById.get(id))
       .filter(Boolean);
     if (orderedTargets.length)
-      await castChainSpellAndApplySaves(
+      executionResult = await castChainSpellAndApplySaves(
         combatant,
         orderedTargets,
         candidate.spellId,
@@ -7799,7 +7758,7 @@ export async function applyAgentDecision(
       (c) => c.id === candidate.targetId,
     );
     if (target)
-      await castHealSpellAndApply(
+      executionResult = await castHealSpellAndApply(
         combatant,
         target,
         candidate.spellId,
@@ -7810,7 +7769,7 @@ export async function applyAgentDecision(
       (c) => c.id === candidate.targetId,
     );
     if (target)
-      await castBuffSpellAndApply(
+      executionResult = await castBuffSpellAndApply(
         combatant,
         target,
         candidate.spellId,
@@ -7821,7 +7780,7 @@ export async function applyAgentDecision(
       candidate.affectedIds.includes(c.id),
     );
     if (targets.length)
-      await castTierScalingAreaSpellAndApplySaves(
+      executionResult = await castTierScalingAreaSpellAndApplySaves(
         combatant,
         targets,
         candidate.spellId,
@@ -7838,7 +7797,7 @@ export async function applyAgentDecision(
     // produced it.
     const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
     if (target)
-      await castSpellAndApplySave(
+      executionResult = await castSpellAndApplySave(
         combatant,
         target,
         candidate.spellId,
@@ -7850,7 +7809,7 @@ export async function applyAgentDecision(
       (c) => c.id === candidate.targetId,
     );
     if (target)
-      await castDualHealAndApply(
+      executionResult = await castDualHealAndApply(
         combatant,
         target,
         candidate.spellId,
@@ -7873,7 +7832,7 @@ export async function applyAgentDecision(
       candidate.healIds.includes(c.id),
     );
     if (harmTargets.length || healTargets.length)
-      await castDualAreaAndApply(
+      executionResult = await castDualAreaAndApply(
         combatant,
         harmTargets,
         healTargets,
@@ -7892,7 +7851,7 @@ export async function applyAgentDecision(
     ];
     const targets = allNearby.filter((c) => candidate.targetIds.includes(c.id));
     if (targets.length)
-      await castTargetCountSpellAndApply(
+      executionResult = await castTargetCountSpellAndApply(
         combatant,
         targets,
         candidate.spellId,
@@ -7904,7 +7863,7 @@ export async function applyAgentDecision(
       candidate.affectedIds.includes(c.id),
     );
     if (targets.length)
-      await castAutoHitAreaSpellAndApplyDamage(
+      executionResult = await castAutoHitAreaSpellAndApplyDamage(
         combatant,
         targets,
         candidate.spellId,
@@ -7913,15 +7872,21 @@ export async function applyAgentDecision(
         candidate.cost,
       );
   } else if (candidate.type === "maneuver") {
-    await executeManeuverCandidate(combat, combatant, candidate);
+    executionResult = await executeManeuverCandidate(combat, combatant, candidate);
   } else if (candidate.type === "feat") {
     const result = await executeFeatCandidate(combat, combatant, candidate);
-    if (!result.performed) return skipUnperformedFeat(combat, combatant, candidate);
+    if (!result.performed) return skipUnperformedFeat(combat, combatant, candidate, rationale);
     applied = { ...candidate, attacks: result.attacks ?? 0 };
+    executionResult = result;
   } else if (candidate.type === "npcAbility") {
     const result = await executeNpcAbilityCandidate(combat, combatant, candidate);
-    if (!result.performed) return skipUnperformedFeat(combat, combatant, candidate);
+    if (!result.performed) return skipUnperformedFeat(combat, combatant, candidate, rationale);
+    executionResult = result;
   }
+
+  // #925: one row on this combatant's consolidated turn card (replacing the
+  // old per-decision GM whisper and stalled-move whisper). Never throws.
+  await recordAgentAction(combat, combatant, candidate, executionResult, rationale);
 
   if (hostileIds.length) await clearAntagonizeOnHostileAction(combat, combatant, hostileIds);
 

@@ -1,3 +1,4 @@
+import { afterCandidateRebuild } from "./helpers/after-candidate-rebuild.mjs";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { applyAgentDecision } from "../scripts/dungeon-combat.mjs";
 import { installGlobals, makeCombatant, makeCombat, turnState } from "./helpers/feat-execution-fixture.mjs";
@@ -100,14 +101,14 @@ describe("applyAgentDecision targetedSelfEffect execution: Hunt Prey (#922)", ()
     expect(effectSources[0].system.rules).toEqual([{ key: "TokenMark", slug: "hunted-prey" }]);
   });
 
-  it("spends one action, posts the usage card and whispers the GM, without counting as an attack", async () => {
+  it("spends one action, posts the usage card and reports it on the AI turn card, without counting as an attack", async () => {
     const { combat, item } = setup();
     await applyAgentDecision(combat, "atk", "feat:hp1:opp", "r");
     expect(item.toMessage).toHaveBeenCalledTimes(1);
     expect(turnState(combat).actionsRemaining).toBe(2);
     expect(turnState(combat).mapIncrement).toBe(0);
     const contents = globalThis.ChatMessage.create.mock.calls.map(([m]) => m.content);
-    expect(contents.some((c) => c.includes("hunts opp as prey"))).toBe(true);
+    expect(contents.some((c) => c.includes("Hunt Prey") && c.includes("hunts its target as prey") && c.includes("→ opp"))).toBe(true);
   });
 
   it("re-designation: creates the new mark, then removes the prior Hunt Prey effect", async () => {
@@ -174,20 +175,20 @@ describe("applyAgentDecision targetedSelfEffect execution: Devise a Stratagem (#
     expect(attacker.actor.deleteEmbeddedDocuments).not.toHaveBeenCalled();
   });
 
-  it("spends its 1/round frequency and reports the rolled d20 to the GM", async () => {
+  it("spends its 1/round frequency and reports the rolled d20 to the GM only", async () => {
     const { combat, item } = setup({ item: devise() });
     await applyAgentDecision(combat, "atk", "feat:ds1:opp", "r");
     expect(item.update).toHaveBeenCalledWith({ "system.frequency.value": 0 });
     expect(turnState(combat).actionsRemaining).toBe(2);
     const contents = globalThis.ChatMessage.create.mock.calls.map(([m]) => m.content);
-    expect(contents.some((c) => c.includes("devises a stratagem against opp (d20 = 14)"))).toBe(true);
+    expect(contents.some((c) => c.includes("devises a stratagem against its target"))).toBe(true);
+    expect(contents.some((c) => c.includes('<div data-visibility="gm" class="pf2edc-agent-note">Stratagem d20 = 14</div>'))).toBe(true);
   });
 
   it("spends nothing when the target is no longer in line of sight", async () => {
     const { attacker, combat } = setup({ item: devise() });
-    // A wall appears between the vocabulary build and execution (the
-    // decision chat card is posted in between).
-    globalThis.ChatMessage.create = vi.fn(async () => {
+    // A wall appears between the candidate rebuild and execution.
+    afterCandidateRebuild(combat, () => {
       combat.scene.walls.contents = [{ move: 20, door: 0, ds: 0, c: [200, 0, 200, 300] }];
     });
     await applyAgentDecision(combat, "atk", "feat:ds1:opp", "r");

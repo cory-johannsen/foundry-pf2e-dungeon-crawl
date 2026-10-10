@@ -151,8 +151,8 @@ describe("describeAgentAction", () => {
       {
         performed: true,
         results: [
-          { targetId: "t1", text: "failed save -- frightened 1", tone: "success" },
-          { targetId: "t2", text: "immune", tone: "neutral" },
+          { targetId: "t1", outcome: "failure", applied: "frightened 1" },
+          { targetId: "t2", text: "immune" },
         ],
         gmNote: "Will DC 20",
       },
@@ -196,9 +196,9 @@ describe("renderAgentTurnCardHtml", () => {
   });
 
   it("puts rationale and the GM note only inside data-visibility=\"gm\" elements", () => {
-    const html = renderAgentTurnCardHtml({ round: 1, records: [record({ rationale: "Closest target.", gmNote: "DC 20" })] });
+    const html = renderAgentTurnCardHtml({ round: 1, records: [record({ rationale: "Closest target.", gmNote: "DC 20\nApply by hand" })] });
     expect(html).toContain('<div data-visibility="gm" class="pf2edc-agent-rationale"><em>Closest target.</em></div>');
-    expect(html).toContain('<div data-visibility="gm" class="pf2edc-agent-note">DC 20</div>');
+    expect(html).toContain('<div data-visibility="gm" class="pf2edc-agent-note">DC 20<br>Apply by hand</div>');
   });
 
   it("omits rationale/note entirely (no empty element) when absent", () => {
@@ -219,6 +219,6 @@ describe("renderAgentTurnCardHtml", () => {
     });
     expect(html).not.toMatch(/<script|<b>|<i>|<img/);
     expect(html).toContain("pf2edc-agent-result-neutral");
-    expect(escapeHtml(`<"'&>`)).toBe("&lt;&quot;&#39;&amp;&gt;");
+    expect(escapeHtml(`<"'&>`)).toBe("&lt;&quot;'&amp;&gt;");
   });
 });
