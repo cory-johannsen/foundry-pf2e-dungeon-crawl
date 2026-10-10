@@ -714,7 +714,7 @@ Expected: PASS
 
 - [x] **Step 4: Run the `update-architecture-docs` skill** (new file `scripts/marked-target-requirements.mjs` imported by `scripts/dungeon-combat.mjs`)
 - [ ] **Step 5: Bump `module.json`'s version** (minor — check `main`'s current version first)
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tests/fixtures/marked-target-audit.json tests/marked-target-audit.test.mjs module.json docs/architecture.md
