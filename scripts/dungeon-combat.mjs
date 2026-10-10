@@ -417,6 +417,28 @@ export async function clearDetection(combat, deps = {}) {
 }
 
 /**
+ * #1083: `deleteCombat` cleanup. Restores the original name and clears the
+ * tint on tokens spawned for an encounter force (flag `forceId`). Legacy
+ * tokens are untouched; deleted tokens are skipped; errors are logged only.
+ */
+export async function clearForceDecorations(combat) {
+  if (!(game.users?.activeGM?.isSelf ?? game.user?.isGM)) return;
+  for (const combatant of combat?.combatants ?? []) {
+    try {
+      const token = combatant?.token;
+      if (!token) continue;
+      const flags = token.flags?.[MODULE_ID];
+      if (!flags?.forceId) continue;
+      const scene = combat.scene;
+      if (scene?.tokens?.get && !scene.tokens.get(token.id)) continue;
+      await token.update({ name: flags.originalName ?? token.name, "texture.tint": null });
+    } catch (err) {
+      console.error("pf2e-dungeon-crawl | #1083: force decoration cleanup failed:", err?.message ?? err);
+    }
+  }
+}
+
+/**
  * #616: what a hostile knows about the party under the stealth matrix, or
  * `null` when there is no matrix (nothing to do: today's behavior). Downed
  * and defeated opponents are ignored (they are not valid targets anyway).

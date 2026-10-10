@@ -76,6 +76,7 @@ import {
   answerReactionConfirm,
   offerReactiveStrikesAgainst,
   clearDetection,
+  clearForceDecorations,
   handleStealthBreakMessage,
   cleanupAgentSelfEffects,
   endMarksOnCombatantGone,
@@ -831,6 +832,8 @@ Hooks.on("createChatMessage", handleManualStrikeDamage);
 Hooks.on("deleteCombat", async (combat) => {
   if (!(game.users?.activeGM?.isSelf ?? game.user?.isGM)) return;
   await clearDetection(combat);
+  // #1083: restore names/tints of force-spawned tokens.
+  await clearForceDecorations(combat);
   // #914: agent-created self-effects with an unlimited duration.
   await cleanupAgentSelfEffects(combat);
   // #915: timed NPC-ability conditions that outlive the fight.

@@ -511,10 +511,10 @@ Behavior in `generateEncounter`:
 - Consumes: token flags `originalName`, `forceId` (T7).
 - Produces: exported `clearForceDecorations(combat)`: for each combatant token with a `forceId` flag, `token.update({ name: originalName ?? name, "texture.tint": null })` (skip tokens already deleted); active-GM only; errors logged, never thrown. Called from the existing `deleteCombat` hook (module.mjs) beside `clearDetection`.
 
-- [ ] **Step 1: Failing tests**: cleanup restores name and clears tint only on forceId-flagged tokens; no-op for legacy tokens; swallowed update error.
-- [ ] **Step 2: XP regression** (in `tests/dungeon-combat-auto-defeat.test.mjs` harness): a victory where the party is up and both an `all` force creature and a `players` force creature are defeated (the undead's `isDefeated` set by "someone else") awards `totalCombatXp` over **both** levels. Expect this test to PASS without a code change — `defeatedHostileCombatants` already counts every `disposition === -1` defeated creature regardless of killer. If it fails, fix `resolveCombat` (~810) instead of weakening the test.
-- [ ] **Step 3: Run, implement cleanup, verify PASS**, `npm test`.
-- [ ] **Step 4: Commit** — `git commit -am "#1083: clear force labels/tints at combat end; pin XP behavior"`.
+- [x] **Step 1: Failing tests**: cleanup restores name and clears tint only on forceId-flagged tokens; no-op for legacy tokens; swallowed update error.
+- [x] **Step 2: XP regression** (in `tests/dungeon-combat-auto-defeat.test.mjs` harness): a victory where the party is up and both an `all` force creature and a `players` force creature are defeated (the undead's `isDefeated` set by "someone else") awards `totalCombatXp` over **both** levels. Expect this test to PASS without a code change — `defeatedHostileCombatants` already counts every `disposition === -1` defeated creature regardless of killer. If it fails, fix `resolveCombat` (~810) instead of weakening the test.
+- [x] **Step 3: Run, implement cleanup, verify PASS**, `npm test`.
+- [x] **Step 4: Commit** — `git commit -am "#1083: clear force labels/tints at combat end; pin XP behavior"`.
 
 ---
 

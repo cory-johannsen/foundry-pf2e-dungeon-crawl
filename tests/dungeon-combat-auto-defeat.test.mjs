@@ -163,4 +163,18 @@ describe("resolveCombat XP safety net (#476)", () => {
     });
     expect(grants).toEqual([0]);
   });
+
+  it("awards XP over both an all-force and a players-force defeated creature (#1083)", async () => {
+    const a = makeCombatant({ id: "n1", actorId: "a1", hp: 0, level: 3 });
+    const b = makeCombatant({ id: "n2", actorId: "a2", hp: 0, level: 5, isDefeated: true });
+    a.token.flags = { "pf2e-dungeon-crawl": { forceId: "u" } };
+    b.token.flags = { "pf2e-dungeon-crawl": { forceId: "g" } };
+    install(makeCombat([a, b]));
+    const grants = [];
+    await resolveSlotCombat({ id: "scene1" }, 1, "victory", {
+      partyLevel: async () => 3,
+      grantPartyXp: async (xp) => grants.push(xp),
+    });
+    expect(grants).toEqual([totalCombatXp([3, 5], 3)]);
+  });
 });
