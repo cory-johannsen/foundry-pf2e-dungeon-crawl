@@ -686,7 +686,7 @@ git commit -m "feat(#953): delete the run's AI history journals on abandon/reset
 **Files:**
 - Modify: `module.json`
 
-- [ ] **Step 1: Run the `update-architecture-docs` skill** (two new files: `ai-history-pages.mjs`, `ai-history-journals.mjs`, both imported by `dungeon-combat.mjs`; `dungeon-runner.mjs` gains a new import too)
+- [x] **Step 1: Run the `update-architecture-docs` skill** (two new files: `ai-history-pages.mjs`, `ai-history-journals.mjs`, both imported by `dungeon-combat.mjs`; `dungeon-runner.mjs` gains a new import too)
 - [ ] **Step 2: Bump `module.json`'s version** (minor — check `main`'s current version first)
 - [ ] **Step 3: Commit**
 

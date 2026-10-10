@@ -249,7 +249,7 @@ falling back to that chain-following whenever the trail can't place it.
 `scripts/ui/marching-order-app.mjs`, `scripts/ui/ai-action-log-app.mjs`,
 `scripts/ui/ai-action-log-view.mjs`, `scripts/ui/ai-action-detail.mjs`,
 `ai-action-digest.mjs`, `scripts/ui/ai-decision-details.mjs`,
-`world-macros.mjs`) — `dungeon-runner.mjs`
+`ai-history-pages.mjs`, `ai-history-journals.mjs`, `world-macros.mjs`) — `dungeon-runner.mjs`
 reads/writes the `dungeonRuns` world setting (the durable record of an
 in-progress run); `module.mjs` is the Foundry module's own entry point
 (hook registration, `game.modules.get(...).api` surface); `dungeon-app.mjs`
@@ -307,6 +307,20 @@ model/tier, latency, usage/cost) and the heuristic `fallbackReason` on each
 `ai-action-digest.mjs` (tracker rows) render it through `buildDecisionDetails`
 + `renderDecisionDetailsHtml`. `visibleRecords` never copies those fields
 for a non-GM.
+
+`ai-history-journals.mjs` and `ai-history-pages.mjs` (#953) keep the AI action
+log past the end of its combat. `dungeon-combat.mjs`'s `resolveCombat` calls
+`archiveCombatAiLog` before deleting the Combat; it gets the run's
+`aiHistoryId` from `dungeon-runner.mjs`'s `ensureAiHistoryId` (persisted in the
+run state on first use) and hands the records to
+`ai-history-journals.mjs`'s `archiveAiLogToJournals`. That adds one page per
+combat to two per-run Journal Entries, which are found by flag rather than by
+name: a public journal (default ownership OBSERVER) and a GM journal (default
+ownership NONE). The pure `ai-history-pages.mjs` builds the page HTML. The
+public page goes through `visibleRecords(records, false)`; the GM page adds
+`buildDecisionDetails`/`renderDecisionDetailsHtml`. `dungeon-runner.mjs`'s
+`abandonRun` calls `deleteRunJournals`, so an abandoned or reset run's journals
+are deleted with it. A completed run keeps its journals.
 
 ## Dependency graph
 
@@ -414,6 +428,8 @@ graph LR
   end
   subgraph "Run state & UI"
     scripts_ai_action_digest_mjs["ai-action-digest.mjs"]
+    scripts_ai_history_journals_mjs["ai-history-journals.mjs"]
+    scripts_ai_history_pages_mjs["ai-history-pages.mjs"]
     scripts_dungeon_runner_mjs["dungeon-runner.mjs"]
     scripts_module_mjs["module.mjs"]
     scripts_ui_ai_action_detail_mjs["ui/ai-action-detail.mjs"]
@@ -436,6 +452,9 @@ graph LR
   scripts_ai_action_digest_mjs --> scripts_ui_ai_action_log_view_mjs
   scripts_ai_action_digest_mjs --> scripts_agent_action_display_mjs
   scripts_ai_action_digest_mjs --> scripts_ui_ai_decision_details_mjs
+  scripts_ai_history_journals_mjs --> scripts_ai_history_pages_mjs
+  scripts_ai_history_pages_mjs --> scripts_ui_ai_action_log_view_mjs
+  scripts_ai_history_pages_mjs --> scripts_ui_ai_decision_details_mjs
   scripts_antagonize_mjs --> scripts_stealth_detection_mjs
   scripts_combat_rewards_mjs --> scripts_encounter_roster_mjs
   scripts_cover_items_mjs --> scripts_prng_mjs
@@ -443,6 +462,9 @@ graph LR
   scripts_default_generator_mjs --> scripts_encounter_roster_mjs
   scripts_dungeon_combat_mjs --> scripts_foundry_api_mjs
   scripts_dungeon_combat_mjs --> scripts_dungeon_runner_mjs
+  scripts_dungeon_combat_mjs --> scripts_ai_history_journals_mjs
+  scripts_dungeon_combat_mjs --> scripts_ai_history_pages_mjs
+  scripts_dungeon_combat_mjs --> scripts_ui_ai_action_log_view_mjs
   scripts_dungeon_combat_mjs --> scripts_combat_rewards_mjs
   scripts_dungeon_combat_mjs --> scripts_agent_candidates_mjs
   scripts_dungeon_combat_mjs --> scripts_npc_ability_parse_mjs
@@ -501,6 +523,7 @@ graph LR
   scripts_dungeon_runner_mjs --> scripts_dungeon_retreat_mjs
   scripts_dungeon_runner_mjs --> scripts_skill_challenge_mechanics_mjs
   scripts_dungeon_runner_mjs --> scripts_puzzle_mechanics_mjs
+  scripts_dungeon_runner_mjs --> scripts_ai_history_journals_mjs
   scripts_dungeon_scene_mjs --> scripts_dungeon_layout_mjs
   scripts_dungeon_scene_mjs --> scripts_placement_mjs
   scripts_dungeon_scene_mjs --> scripts_room_feature_tokens_mjs
