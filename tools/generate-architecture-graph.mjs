@@ -101,6 +101,8 @@ const GROUPS = [
         "scripts/self-effect-summary.mjs",
         "scripts/targeted-feat-actions.mjs",
         "scripts/marked-target-requirements.mjs",
+        "scripts/feat-action-shapes.mjs",
+        "scripts/feat-action-overrides.mjs",
         "scripts/antagonize.mjs",
         "scripts/npc-reactions.mjs",
         "scripts/dungeon-strike-riders.mjs",

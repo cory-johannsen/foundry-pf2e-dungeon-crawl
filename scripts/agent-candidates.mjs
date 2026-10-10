@@ -31,7 +31,9 @@ export function initAgentTurnState() {
   // #910: flourishUsed/stanceUsed enforce PF2e's "one flourish action per
   // turn" and "no second stance action for 1 round" (an agent's next turn
   // starts exactly one round later, so per-turn tracking is exact).
-  return { actionsRemaining: MAX_ACTIONS_PER_TURN, mapIncrement: 0, maneuverPicks: null, flourishUsed: false, stanceUsed: false };
+  // #947: finisherUsed -- "Once you use a finisher, you can't use actions
+  // that have the attack trait for the rest of your turn."
+  return { actionsRemaining: MAX_ACTIONS_PER_TURN, mapIncrement: 0, maneuverPicks: null, flourishUsed: false, stanceUsed: false, finisherUsed: false };
 }
 
 /**
@@ -1078,15 +1080,20 @@ export function buildManeuverCandidates({ maneuverVocabulary = [], maneuverPicks
  * durationLabel/frequencyLabel) and `compositeEntries` (the curated Sudden Charge/Lunge/Twin
  * Feint allowlist, each already matched to a real opponent) and #922's
  * `targetedSelfEffectEntries` (Hunt Prey/Devise a Stratagem/#946 marks, one per legal
- * opponent). Self-effect entries are self-targeted (targetId: null);
+ * opponent) and #947's `targetedActionEntries` (targeted feats with no
+ * selfEffect -- Intimidating Strike, Unbalancing Finisher, Instant Opening
+ * -- one per legal opponent, `attack` when the feat makes a Strike).
+ * Self-effect entries are self-targeted (targetId: null);
  * composite and targeted self-effect entries always carry a real opponent id. `traits` carries only the action traits that
- * gate per-turn reuse (`flourish`, `stance`): an entry is dropped once this
- * turn already spent a flourish/stance action.
+ * gate per-turn reuse (`flourish`, `stance`, `finisher`): an entry is dropped
+ * once this turn already spent a flourish/stance/finisher action, and after
+ * a finisher no entry that makes a Strike is offered (#947).
  */
-export function buildFeatVocabulary({ selfEffectEntries = [], compositeEntries = [], targetedSelfEffectEntries = [], turnState = null }) {
+export function buildFeatVocabulary({ selfEffectEntries = [], compositeEntries = [], targetedSelfEffectEntries = [], targetedActionEntries = [], turnState = null }) {
   const blocked = (traits = []) =>
     (turnState?.flourishUsed && traits.includes('flourish')) ||
-    (turnState?.stanceUsed && traits.includes('stance'));
+    (turnState?.stanceUsed && traits.includes('stance')) ||
+    (turnState?.finisherUsed && traits.includes('finisher'));
   const vocabulary = [];
   for (const entry of selfEffectEntries) {
     if (blocked(entry.traits)) continue;
@@ -1102,7 +1109,8 @@ export function buildFeatVocabulary({ selfEffectEntries = [], compositeEntries =
     });
   }
   for (const entry of compositeEntries) {
-    if (blocked(entry.traits)) continue;
+    // #947: every composite feat makes a Strike -- none after a finisher.
+    if (blocked(entry.traits) || turnState?.finisherUsed) continue;
     vocabulary.push({
       type: 'feat', kind: 'composite',
       itemId: entry.itemId, slug: entry.slug, name: entry.name, cost: entry.cost,
@@ -1119,6 +1127,19 @@ export function buildFeatVocabulary({ selfEffectEntries = [], compositeEntries =
       type: 'feat', kind: 'targetedSelfEffect',
       itemId: entry.itemId, slug: entry.slug, name: entry.name, cost: entry.cost,
       targetId: entry.targetId, traits: entry.traits ?? [],
+      effectSummary: entry.effectSummary ?? null,
+    });
+  }
+  // #947: targeted feats with no selfEffect (Intimidating Strike,
+  // Unbalancing Finisher, Instant Opening, ...) -- one entry per legal
+  // target; one that makes a Strike (`attack`) is never offered after a
+  // finisher this turn.
+  for (const entry of targetedActionEntries) {
+    if (blocked(entry.traits) || (entry.attack && turnState?.finisherUsed)) continue;
+    vocabulary.push({
+      type: 'feat', kind: 'targetedAction',
+      itemId: entry.itemId, slug: entry.slug, name: entry.name, cost: entry.cost,
+      targetId: entry.targetId, traits: entry.traits ?? [], attack: entry.attack === true,
       effectSummary: entry.effectSummary ?? null,
     });
   }
@@ -1165,6 +1186,7 @@ export function buildFeatCandidates({ featVocabulary = [], picks = null, opponen
       targetId: match.targetId, cost: match.cost,
     };
     if (match.kind === 'selfEffect') candidate.replacesStance = match.replacesStance ?? null;
+    if (match.kind === 'targetedAction') candidate.attack = match.attack === true;
     candidate.traits = match.traits ?? [];
     candidate.summary = pick.rationale ? `${label} — ${pick.rationale}` : label;
     candidates.push(candidate);
@@ -1503,10 +1525,32 @@ export function buildNpcSelfCandidates({ npcSelfVocabulary = [], picks = null })
   return candidates;
 }
 
+/** #947: whether `candidate` is (or makes) an action with the attack
+ * trait -- a Strike, a spell attack, an attack-trait maneuver, a feat or
+ * monster ability built on a Strike. PF2e's finisher rule: none of these
+ * after a finisher this turn. */
+export function isAttackCandidate(candidate) {
+  switch (candidate?.type) {
+    case 'strike':
+    case 'multiStrike':
+    case 'castAttack':
+    case 'npcStrike':
+      return true;
+    case 'maneuver':
+      return maneuverHasAttackTrait(candidate.slug);
+    case 'feat':
+      return candidate.kind === 'composite' || candidate.attack === true;
+    case 'npcMove':
+      return candidate.kind === 'strike';
+    default:
+      return false;
+  }
+}
+
 /** Full candidate list for one decision iteration. */
 export function buildCandidateList({ opponents, readyActions, readySpells = [], readyAreaSpells = [], readyAttackSpells = [], readyDebuffSpells = [], readyBreathWeapons = [], readyMultiStrikeBundles = [], readyChainSpells = [], readyHealSpells = [], readyBuffSpells = [], readyTierScalingAreaSpells = [], readyDualNatureSpells = [], readyTargetCountSpells = [], readyAutoHitAreaSpells = [], allies = [], seekTargets = [], turnState, hazard = null, hasRangedOrReach = false, maneuverVocabulary = [], maneuverPicks = null, featVocabulary = [], npcAbilityVocabulary = [], npcMoveVocabulary = [], npcStrikeVocabulary = [], npcSelfVocabulary = [] }) {
   if (turnState.actionsRemaining <= 0) return [endTurnCandidate()];
-  return [
+  const candidates = [
     ...buildMovementCandidates({ opponents, hazard, hasRangedOrReach }),
     ...buildStrikeCandidates({ readyActions, opponents, mapIncrement: turnState.mapIncrement }),
     ...buildManeuverCandidates({ maneuverVocabulary, maneuverPicks, opponents }),
@@ -1531,6 +1575,9 @@ export function buildCandidateList({ opponents, readyActions, readySpells = [], 
     ...buildSeekCandidates({ seekTargets, opponents, actionsRemaining: turnState.actionsRemaining }),
     endTurnCandidate()
   ];
+  // #947: "Once you use a finisher, you can't use actions that have the
+  // attack trait for the rest of your turn."
+  return turnState.finisherUsed ? candidates.filter((c) => !isAttackCandidate(c)) : candidates;
 }
 
 /** New turn state after applying `candidate` — a pure transition, no side effects. */
@@ -1561,6 +1608,7 @@ export function applyCandidateToTurnState(turnState, candidate) {
     next.mapIncrement += candidate.attacks ?? 0;
     if (candidate.traits?.includes('flourish')) next.flourishUsed = true;
     if (candidate.traits?.includes('stance')) next.stanceUsed = true;
+    if (candidate.traits?.includes('finisher')) next.finisherUsed = true;
   }
   return next;
 }

@@ -71,6 +71,16 @@ describe("generateCombatCandidates", () => {
     expect(content).toContain(`"vs <name>'s actions"`);
   });
 
+  it("tells the model what a targetedAction entry (Strike-plus feats, finishers, Instant Opening) does (#947)", async () => {
+    const fetchImpl = fakeFetch({ picks: [] });
+    await generateCombatCandidates(context, vocabulary, { ...OPTS, fetchImpl });
+    const content = JSON.parse(fetchImpl.mock.calls[0][1].body).messages[0].content;
+    expect(content).toContain('kind "targetedAction"');
+    expect(content).toContain("hit+damage");
+    expect(content).toContain("finisher");
+    expect(content).toContain("off-guard to your attacks");
+  });
+
   it("returns an empty picks array when the model proposes none", async () => {
     const fetchImpl = fakeFetch({ picks: [] });
     const result = await generateCombatCandidates(context, vocabulary, { ...OPTS, fetchImpl });
