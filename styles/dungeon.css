@@ -88,3 +88,4 @@
 .pf2edc-ai-action-log .pf2edc-agent-result-failure { background: rgba(170, 40, 40, 0.18); }
 .pf2edc-ai-action-log .pf2edc-agent-result-neutral { background: rgba(120, 120, 120, 0.15); }
 .pf2edc-ai-action-log-gm { font-size: 0.9em; opacity: 0.85; margin-left: 2em; white-space: pre-line; }
+.pf2edc-agent-turn .pf2edc-agent-log-link { float: right; font-size: 0.85em; cursor: pointer; }

@@ -433,7 +433,7 @@ git commit -m "feat(#950): AiActionLogApp window, auto-scroll helper, click-to-p
 - Consumes: `refreshAiActionLogWindow` (Task 3).
 - Produces: `updateCombat`/`deleteCombat`/`combatStart`/`combatRound` hooks calling it.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // tests/ai-action-log-refresh.test.mjs
@@ -450,12 +450,12 @@ describe('AI action log live-update wiring (#950)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/ai-action-log-refresh.test.mjs`
 Expected: FAIL (no such hook registered yet)
 
-- [ ] **Step 3: Register the hooks**
+- [x] **Step 3: Register the hooks**
 
 ```js
 // scripts/module.mjs -- add near the existing combat-related Hooks.on
@@ -473,17 +473,17 @@ Hooks.on("combatStart", () => refreshAiActionLogWindow(foundry.applications.inst
 Hooks.on("combatRound", () => refreshAiActionLogWindow(foundry.applications.instances));
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run tests/ai-action-log-refresh.test.mjs`
 Expected: PASS
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/module.mjs tests/ai-action-log-refresh.test.mjs
@@ -505,7 +505,7 @@ git commit -m "feat(#950): live-refresh the action-log window on combat update/d
 - Consumes: `AiActionLogApp`, `refreshAiActionLogWindow`.
 - Produces: `aiActionLogSceneTool(localize, open)` (mirrors `marchingOrderSceneTool`'s exact shape); `api.openAiActionLog({combatantId?, round?})`; a `MACRO_DEFS` entry.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/ai-action-log-entry-points.test.mjs
@@ -535,12 +535,12 @@ describe('MACRO_DEFS (#950)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/ai-action-log-entry-points.test.mjs`
 Expected: FAIL (`aiActionLogSceneTool` not exported; no matching `MACRO_DEFS` entry)
 
-- [ ] **Step 3: Implement the scene-tool factory**
+- [x] **Step 3: Implement the scene-tool factory**
 
 ```js
 // scripts/ui/ai-action-log-app.mjs -- add, mirroring marchingOrderSceneTool exactly
@@ -568,7 +568,7 @@ export function openAiActionLog({ combatantId, round } = {}) {
 }
 ```
 
-- [ ] **Step 4: Wire the scene tool and API in `module.mjs`**
+- [x] **Step 4: Wire the scene tool and API in `module.mjs`**
 
 ```js
 // scripts/module.mjs -- extend the existing getSceneControlButtons hook
@@ -587,7 +587,7 @@ export function openAiActionLog({ combatantId, round } = {}) {
   });
 ```
 
-- [ ] **Step 5: Add the macro definition**
+- [x] **Step 5: Add the macro definition**
 
 ```js
 // scripts/world-macros.mjs -- append to MACRO_DEFS:
@@ -598,7 +598,7 @@ export function openAiActionLog({ combatantId, round } = {}) {
   },
 ```
 
-- [ ] **Step 6: Amend #925's chat-card template**
+- [x] **Step 6: Amend #925's chat-card template**
 
 In `docs/superpowers/plans/2026-10-09-ai-actor-action-display.md`'s own chat-card Handlebars template block, add a header link:
 
@@ -606,17 +606,17 @@ In `docs/superpowers/plans/2026-10-09-ai-actor-action-display.md`'s own chat-car
 <a data-action="openAiActionLog" data-combatant-id="{{combatantId}}">{{localize "PF2EDC.AiActionLog.OpenLink"}}</a>
 ```
 
-- [ ] **Step 7: Run the tests to verify they pass**
+- [x] **Step 7: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/ai-action-log-entry-points.test.mjs`
 Expected: PASS (3 tests)
 
-- [ ] **Step 8: Run the full suite**
+- [x] **Step 8: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add scripts/ui/ai-action-log-app.mjs scripts/module.mjs scripts/world-macros.mjs docs/superpowers/plans/2026-10-09-ai-actor-action-display.md tests/ai-action-log-entry-points.test.mjs
@@ -630,9 +630,9 @@ git commit -m "feat(#950): scene tool, module API, chat-card link, and macro ent
 **Files:**
 - Modify: `module.json`
 
-- [ ] **Step 1: Run the `update-architecture-docs` skill** (two new files: `ai-action-log-view.mjs`, `ai-action-log-app.mjs`)
+- [x] **Step 1: Run the `update-architecture-docs` skill** (two new files: `ai-action-log-view.mjs`, `ai-action-log-app.mjs`)
 - [ ] **Step 2: Bump `module.json`'s version** (minor — check `main`'s current version first)
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit** (architecture docs only; the version bump is left to the merger)
 
 ```bash
 git add module.json docs/architecture.md

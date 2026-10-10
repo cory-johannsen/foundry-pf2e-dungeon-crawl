@@ -243,7 +243,8 @@ falling back to that chain-following whenever the trail can't place it.
 
 **Run state & UI** (`dungeon-runner.mjs`, `module.mjs`,
 `scripts/ui/dungeon-app.mjs`, `scripts/ui/sound-preview-app.mjs`,
-`scripts/ui/marching-order-app.mjs`, `world-macros.mjs`) — `dungeon-runner.mjs`
+`scripts/ui/marching-order-app.mjs`, `scripts/ui/ai-action-log-app.mjs`,
+`scripts/ui/ai-action-log-view.mjs`, `world-macros.mjs`) — `dungeon-runner.mjs`
 reads/writes the `dungeonRuns` world setting (the durable record of an
 in-progress run); `module.mjs` is the Foundry module's own entry point
 (hook registration, `game.modules.get(...).api` surface); `dungeon-app.mjs`
@@ -268,6 +269,17 @@ by `module.mjs`'s `dungeonRuns` setting hook; it reads order via
 run host and party-character owners get controls (everyone else sees a read-only
 list); `setMarchingOrder` is a widened relay action whose payload is re-validated
 as a pure permutation in `dungeon-runner.mjs`.
+
+`ui/ai-action-log-app.mjs` (#950) is the AI Action Log window: every AI action
+recorded in the viewed combat's `agentLog` flag (written by `dungeon-combat.mjs`'s
+`recordAgentAction`, #925), with combatant/round filters, auto-scroll and
+click-to-pan. It imports nothing but its pure sibling `ui/ai-action-log-view.mjs`
+(`buildAiLogView`), which alone decides what a viewer sees -- GM-only rows
+(`visibility: "gm"`) and the rationale/GM note/fallback tag are dropped for
+non-GMs. `module.mjs` registers its scene-control tool (every user), the
+`api.openAiActionLog` entry point, the chat-card link binding and the
+`updateCombat`/`createCombat`/`deleteCombat`/`canvasReady` refresh hooks;
+`world-macros.mjs` carries its "AI Action Log" macro.
 
 ## Dependency graph
 
@@ -375,6 +387,8 @@ graph LR
   subgraph "Run state & UI"
     scripts_dungeon_runner_mjs["dungeon-runner.mjs"]
     scripts_module_mjs["module.mjs"]
+    scripts_ui_ai_action_log_app_mjs["ui/ai-action-log-app.mjs"]
+    scripts_ui_ai_action_log_view_mjs["ui/ai-action-log-view.mjs"]
     scripts_ui_dungeon_app_mjs["ui/dungeon-app.mjs"]
     scripts_ui_marching_order_app_mjs["ui/marching-order-app.mjs"]
     scripts_ui_puzzle_stage_dialog_mjs["ui/puzzle-stage-dialog.mjs"]
@@ -498,6 +512,7 @@ graph LR
   scripts_module_mjs --> scripts_dungeon_sound_mjs
   scripts_module_mjs --> scripts_ui_sound_preview_app_mjs
   scripts_module_mjs --> scripts_ui_marching_order_app_mjs
+  scripts_module_mjs --> scripts_ui_ai_action_log_app_mjs
   scripts_module_mjs --> scripts_dungeon_retreat_mjs
   scripts_module_mjs --> scripts_npc_reactions_mjs
   scripts_module_mjs --> scripts_dungeon_runner_mjs
@@ -533,6 +548,7 @@ graph LR
   scripts_trap_combat_mjs --> scripts_placement_mjs
   scripts_trap_combat_mjs --> scripts_pathfinding_mjs
   scripts_trap_mechanics_mjs --> scripts_prng_mjs
+  scripts_ui_ai_action_log_app_mjs --> scripts_ui_ai_action_log_view_mjs
   scripts_ui_dungeon_app_mjs --> scripts_data_loader_mjs
   scripts_ui_dungeon_app_mjs --> scripts_dungeon_runner_mjs
   scripts_ui_dungeon_app_mjs --> scripts_room_feature_tokens_mjs

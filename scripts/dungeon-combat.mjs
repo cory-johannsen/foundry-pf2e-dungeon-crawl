@@ -10483,7 +10483,7 @@ export async function renderAgentTurnCard(combat, combatantId, round) {
       (r) => r?.combatantId === combatantId && r?.round === round,
     );
     if (!records.length) return;
-    const content = renderAgentTurnCardHtml({ round, records });
+    const content = renderAgentTurnCardHtml({ round, records, combatantId });
     const cards = combat.getFlag(MODULE_ID, "agentTurnCards") ?? {};
     const key = `${combatantId}:${round}`;
     const existing = cards[key] ? game.messages?.get?.(cards[key]) : null;

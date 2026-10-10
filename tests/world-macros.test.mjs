@@ -44,6 +44,22 @@ function installFoundryStubs({ macros = [] } = {}) {
   globalThis.ui = { notifications: { info: vi.fn() } };
 }
 
+/** #950: up-to-date, correctly-owned generated macros for every MACRO_DEFS
+ * entry other than the ones a test sets up itself, so a test about two
+ * specific macros isn't disturbed by later-added definitions. */
+function inSyncMacrosExcept(...commandFragments) {
+  return MACRO_DEFS.filter((d) => !commandFragments.some((f) => d.command.includes(f))).map((def, i) =>
+    makeMacro({
+      id: `in-sync-${i}`,
+      name: def.name,
+      command: def.command,
+      img: def.img,
+      generated: true,
+      ownership: { default: 3 },
+    }),
+  );
+}
+
 beforeEach(() => {
   vi.restoreAllMocks();
 });
@@ -122,7 +138,7 @@ describe("ensureWorldMacros", () => {
       generated: true,
       ownership: { default: 3 }, // #773: already correctly owned
     });
-    installFoundryStubs({ macros: [stale, encounterMacro] });
+    installFoundryStubs({ macros: [stale, encounterMacro, ...inSyncMacrosExcept(".openDungeon()", ".generateEncounter()")] });
 
     const result = await ensureWorldMacros();
 
@@ -146,7 +162,7 @@ describe("ensureWorldMacros", () => {
       img: dungeonDef.img,
       generated: true,
     });
-    installFoundryStubs({ macros: [stale] });
+    installFoundryStubs({ macros: [stale, ...inSyncMacrosExcept(".openDungeon()", ".generateEncounter()")] });
 
     const result = await ensureWorldMacros();
 
@@ -188,7 +204,7 @@ describe("ensureWorldMacros", () => {
       generated: true,
       ownership: { default: 3 }, // #773: already correctly owned
     });
-    installFoundryStubs({ macros: [stale, dungeonMacro] });
+    installFoundryStubs({ macros: [stale, dungeonMacro, ...inSyncMacrosExcept(".openDungeon()", ".generateEncounter()")] });
 
     const result = await ensureWorldMacros();
 
@@ -267,7 +283,7 @@ describe("ensureWorldMacros", () => {
       img: encounterDef.img,
       generated: true,
     });
-    installFoundryStubs({ macros: [dungeonMacro, encounterMacro] });
+    installFoundryStubs({ macros: [dungeonMacro, encounterMacro, ...inSyncMacrosExcept(".openDungeon()", ".generateEncounter()")] });
 
     const result = await ensureWorldMacros();
 

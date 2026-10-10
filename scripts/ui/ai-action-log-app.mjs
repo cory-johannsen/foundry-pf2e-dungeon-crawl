@@ -71,7 +71,7 @@ function combatantInfo(combat, isGM) {
   for (const c of combat?.combatants ?? []) {
     out[c.id] = {
       name: logCombatantLabel(c, { isGM, hideNames }) ?? "Unknown",
-      img: c.img ?? c.token?.texture?.src ?? null,
+      img: c.img ?? c.token?.texture?.src ?? c.actor?.img ?? null,
     };
   }
   return out;
