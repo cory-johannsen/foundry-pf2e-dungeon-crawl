@@ -1,3 +1,4 @@
+import { afterCandidateRebuild } from "./helpers/after-candidate-rebuild.mjs";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   applyAgentDecision,
@@ -129,27 +130,26 @@ function mkCombat(combatants, current) {
   };
 }
 
+const diagnosticCalls = () =>
+  ChatMessage.create.mock.calls.map(([m]) => m).filter((m) => m?.content?.includes("Diagnostic #551"));
+
 describe("applyAgentDecision re-checks reach before a Strike (#551)", () => {
   it("skips the roll and whispers a diagnostic when the target moved out of reach", async () => {
     const claw = strikeAction();
     const me = mk("atk", 0, 0, -1, [claw]);
     const foe = mk("foe", 1, 0, 1);
     const combat = mkCombat([me, foe], me);
-    // The first chat card is the decision announcement; the target "moves"
-    // away right after the candidate was built.
-    let first = true;
-    ChatMessage.create.mockImplementation(async () => {
-      if (first) {
-        first = false;
-        foe.token.x = 4 * G;
-      }
+    // The target "moves" away right after the candidate list was rebuilt.
+    afterCandidateRebuild(combat, () => {
+      foe.token.x = 4 * G;
     });
 
     await applyAgentDecision(combat, "atk", "strike:claw:foe");
 
     expect(claw.variants[0].roll).not.toHaveBeenCalled();
-    expect(ChatMessage.create).toHaveBeenCalledTimes(2);
-    const msg = ChatMessage.create.mock.calls[1][0];
+    const diagnostics = diagnosticCalls();
+    expect(diagnostics).toHaveLength(1);
+    const msg = diagnostics[0];
     expect(msg.whisper).toEqual(["gm1"]);
     expect(msg.content).toContain("Diagnostic #551");
     expect(msg.content).toContain("4 squares away (reach 1)");
@@ -182,7 +182,7 @@ describe("applyAgentDecision re-checks reach before a Strike (#551)", () => {
     await applyAgentDecision(combat, "atk", "strike:claw:foe");
 
     expect(claw.variants[0].roll).toHaveBeenCalledTimes(1);
-    expect(ChatMessage.create).toHaveBeenCalledTimes(1);
+    expect(diagnosticCalls()).toHaveLength(0);
   });
 
   it("a ranged action (range 120 ft) at 6 squares is in reach", async () => {
@@ -194,7 +194,7 @@ describe("applyAgentDecision re-checks reach before a Strike (#551)", () => {
     await applyAgentDecision(combat, "atk", "strike:bow:foe");
 
     expect(bow.variants[0].roll).toHaveBeenCalledTimes(1);
-    expect(ChatMessage.create).toHaveBeenCalledTimes(1);
+    expect(diagnosticCalls()).toHaveLength(0);
   });
 });
 

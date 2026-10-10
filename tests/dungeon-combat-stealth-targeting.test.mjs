@@ -1,3 +1,4 @@
+import { afterCandidateRebuild } from "./helpers/after-candidate-rebuild.mjs";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   getPendingAgentTurn,
@@ -175,8 +176,8 @@ describe("hostile targeting honors the detection matrix (#616)", () => {
     const sneak = mk("sneak", 1, 0, 1);
     const combat = mkCombat([me, sneak], me, undefined);
     // Candidate is built while observed; the PC slips out of notice right
-    // after the decision announcement, before the target is re-resolved.
-    ChatMessage.create.mockImplementation(async () => {
+    // after the candidate list is rebuilt, before the target is re-resolved.
+    afterCandidateRebuild(combat, () => {
       combat.flags.detection = { sneak: { atk: "undetected" } };
     });
     await applyAgentDecision(combat, "atk", "strike:claw:sneak");

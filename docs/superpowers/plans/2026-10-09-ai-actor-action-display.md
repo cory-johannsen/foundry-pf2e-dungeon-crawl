@@ -1,6 +1,6 @@
 # AI Actor Action Display Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Replace the per-decision GM-only whispers (`postAgentDecisionChat`, `postMoveStalledChat`, and the maneuver executor's own ad hoc whisper) with one consolidated, public chat card per AI turn — action, target and result visible to everyone; the model's rationale GM-only in the same message.
 
@@ -39,7 +39,7 @@
 - Consumes: nothing.
 - Produces (consumed by Tasks 2/3): `describeAgentAction(candidate, executionResult)` → `{ summary: string, targetName: string | null, result: { text: string, tone: "success" | "failure" | "neutral" } }`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/agent-action-display.test.mjs
@@ -122,12 +122,12 @@ describe('describeAgentAction', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/agent-action-display.test.mjs`
 Expected: FAIL — `scripts/agent-action-display.mjs` doesn't exist yet.
 
-- [ ] **Step 3: Write `scripts/agent-action-display.mjs`**
+- [x] **Step 3: Write `scripts/agent-action-display.mjs`**
 
 ```js
 /**
@@ -211,12 +211,12 @@ export function describeAgentAction(candidate, executionResult) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-action-display.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/agent-action-display.mjs tests/agent-action-display.test.mjs
@@ -238,7 +238,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `describeAgentAction` (Task 1).
 - Produces (consumed by Task 3): `async function appendAgentActionRecord(combat, record)`; `async function renderAgentTurnCard(combat, combatantId, round)`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-agent-action-log.test.mjs
@@ -390,12 +390,12 @@ describe('renderAgentTurnCard', () => {
 
 (The second test's own `getFlag` override is deliberately left as a sketch — re-derive it against the real `agentTurnCards` storage shape once Step 3 below is written, rather than treating this as literal final test code.)
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-agent-action-log.test.mjs`
 Expected: FAIL — neither function exists yet.
 
-- [ ] **Step 3: Write `templates/chat/agent-turn.hbs`**
+- [x] **Step 3: Write `templates/chat/agent-turn.hbs`**
 
 ```handlebars
 <div class="agent-turn-card">
@@ -414,7 +414,7 @@ Expected: FAIL — neither function exists yet.
 </div>
 ```
 
-- [ ] **Step 4: Implement `appendAgentActionRecord` and `renderAgentTurnCard` in `scripts/dungeon-combat.mjs`**
+- [x] **Step 4: Implement `appendAgentActionRecord` and `renderAgentTurnCard` in `scripts/dungeon-combat.mjs`**
 
 ```js
 import { describeAgentAction } from "./agent-action-display.mjs";
@@ -494,12 +494,12 @@ export async function renderAgentTurnCard(combat, combatantId, round) {
 
 (`renderAgentTurnCardContent` calls `describeAgentAction(r, r.executionResult)` — each log record carries its own raw `executionResult`, re-describing it at render time rather than storing the already-formatted `{text, tone}` redundantly; this means `appendAgentActionRecord`'s own record shape must include `executionResult`, not a pre-computed `result` — confirm this matches Task 3's own record-building call before treating this as final, since the Design section's own JSON example in the spec shows a pre-computed `"result"` field directly on the record instead. Pick one convention and use it consistently in both this function and Task 3's call site; re-describing from the raw `executionResult` at render time, as written above, is preferred since it keeps `describeAgentAction` the single source of truth rather than duplicating its output into stored data.)
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-agent-action-log.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add templates/chat/agent-turn.hbs scripts/dungeon-combat.mjs tests/dungeon-combat-agent-action-log.test.mjs
@@ -520,7 +520,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `appendAgentActionRecord`/`renderAgentTurnCard` (Task 2).
 - Produces: `applyAgentDecision`'s real dispatch chain now captures and surfaces every branch's result; `executeManeuverCandidate` returns its own outcome instead of whispering it directly. Terminal consumer in this plan.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Find and read an existing `applyAgentDecision` test (e.g. `tests/dungeon-combat-maneuver-execution.test.mjs` once #909's own real tests, or any current test exercising `applyAgentDecision` with a `strike`/`stride` candidate) to copy its exact combat/combatant/target stub shape, then:
 
@@ -566,12 +566,12 @@ describe('applyAgentDecision records and displays every captured result', () => 
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail (once filled in)**
+- [x] **Step 2: Run tests to verify they fail (once filled in)**
 
 Run: `npm test -- tests/dungeon-combat-agent-decision-display.test.mjs`
 Expected: FAIL — the dispatch chain doesn't capture or record anything yet.
 
-- [ ] **Step 3: Patch `executeManeuverCandidate` to return instead of whisper**
+- [x] **Step 3: Patch `executeManeuverCandidate` to return instead of whisper**
 
 Replace its current body (the real, merged #909 code) with:
 
@@ -589,7 +589,7 @@ async function executeManeuverCandidate(combat, combatant, candidate) {
 
 (This removes the function's own `label`/`esc`/`whisperGmContent` call entirely — that reporting responsibility moves to Task 2's `renderAgentTurnCard`. `applyManeuverOutcome` itself is unchanged; its own returned sentence is now the function's direct return value instead of being embedded in a standalone whisper.)
 
-- [ ] **Step 4: Rewrite `applyAgentDecision`'s dispatch chain to capture every branch's result**
+- [x] **Step 4: Rewrite `applyAgentDecision`'s dispatch chain to capture every branch's result**
 
 Replace the full function body (the real, merged #909 code) with the following — every `await existingHelper(...)` call gains a `const executionResult = ` (or is folded into the existing `if (target) {...}` guard so `executionResult` stays `null` when no target/action was found), the top-level `postAgentDecisionChat` call and the `stride` branch's `postMoveStalledChat` call are both removed, and a new record-append-and-render step runs once, after the whole dispatch chain, using whatever `executionResult` each branch produced:
 
@@ -879,16 +879,16 @@ export async function applyAgentDecision(
 }
 ```
 
-- [ ] **Step 5: Delete the now-dead `postAgentDecisionChat`/`postMoveStalledChat` functions and their i18n keys**
+- [x] **Step 5: Delete the now-dead `postAgentDecisionChat`/`postMoveStalledChat` functions and their i18n keys**
 
 Delete both functions entirely from `scripts/dungeon-combat.mjs` (nothing calls either anymore after Step 4). Remove `"PF2EDC.Dungeon.Combat.AgentDecisionChat"` and `"PF2EDC.Dungeon.Combat.AgentMoveStalled"` from `lang/en.json`.
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-agent-decision-display.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — in particular, search for and update every existing test that currently asserts on `postAgentDecisionChat`/`postMoveStalledChat` directly or that expects exactly one `ChatMessage.create` call per `applyAgentDecision` invocation representing the old whisper shape:
@@ -897,7 +897,7 @@ Run: `grep -rln "postAgentDecisionChat\|postMoveStalledChat\|AgentDecisionChat\|
 
 Update each match to reflect the new consolidated-card flow instead (its own `ChatMessage.create`/`update` expectations), rather than leaving a stale assertion in place.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs lang/en.json tests/dungeon-combat-agent-decision-display.test.mjs
@@ -910,6 +910,8 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 
 ### Task 4: Version bump
 
+> Implementation note (#925 worker): per the dispatching session, the version bump is done by the merging session, not in this branch; steps ticked as handed off.
+
 **Files:**
 - Modify: `module.json`
 
@@ -917,17 +919,17 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing.
 - Produces: nothing — final housekeeping step before merge.
 
-- [ ] **Step 1: Check the current version and bump it**
+- [x] **Step 1: Check the current version and bump it**
 
 Run: `grep '"version"' module.json`
 
 A **minor** bump per `CLAUDE.md`'s versioning rule.
 
-- [ ] **Step 2: Verify no other file hardcodes the old version**
+- [x] **Step 2: Verify no other file hardcodes the old version**
 
 Run: `grep -rn "<old version string>" . --include="*.json" --include="*.mjs" --include="*.md" | grep -v node_modules | grep -v docs/superpowers`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json

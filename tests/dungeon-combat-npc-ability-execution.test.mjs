@@ -210,26 +210,25 @@ describe("applyAgentDecision npcAbility execution, mode auto (#915)", () => {
     expect(getNpcAbilityImmunityUntil(combat, "ab1", "pc2")).toBe(1060);
   });
 
-  it("whispers the GM each target's result and what was applied, plus the ability's off-degree rider text", async () => {
+  it("reports each target's result and what was applied on the AI turn card, with the rider text GM-only (#925)", async () => {
     const item = abilityItem({ description: TOUCH_AUTO.replace("<hr />", "<p>While a creature is frightened by this ability, it is off-guard to the hag.</p><hr />") });
     const { combat } = setup({ item });
     await applyAgentDecision(combat, "hag", "npcAbility:ab1:pc1", "r");
     const text = whispers();
     expect(text).toMatch(/pc1/);
-    expect(text).toMatch(/failure/);
-    expect(text).toMatch(/frightened 2/);
-    expect(text).toMatch(/off-guard to the hag/);
+    expect(text).toMatch(/failed save -- frightened 2/);
+    expect(text).toMatch(/data-visibility="gm" class="pf2edc-agent-note">[^<]*DC[\s\S]*off-guard to the hag/);
   });
 });
 
 describe("applyAgentDecision npcAbility execution, mode reportOnly (#915)", () => {
-  it("rolls the save but applies nothing, whispering the degree's own outcome text for the GM to apply", async () => {
+  it("rolls the save but applies nothing, giving the GM (only) the degree's own outcome text to apply", async () => {
     const item = abilityItem({ name: "Vanth's Curse", description: TOUCH_REPORT });
     const { pcs, combat, flags } = setup({ item, pick: { type: "npcAbility", slug: "vanth-s-curse", targetId: "pc1", rationale: "r" } });
     await applyAgentDecision(combat, "hag", "npcAbility:ab1:pc1", "r");
     expect(pcs[0].actor.saves.will.roll).toHaveBeenCalled();
     expect(pcs[0].actor.increaseCondition).not.toHaveBeenCalled();
     expect(flags.npcAbilityExpiry).toBeUndefined();
-    expect(whispers()).toMatch(/Each time the target gains the dying condition/);
+    expect(whispers()).toMatch(/data-visibility="gm" class="pf2edc-agent-note">[\s\S]*apply by hand: [^<]*Each time the target gains the dying condition/);
   });
 });

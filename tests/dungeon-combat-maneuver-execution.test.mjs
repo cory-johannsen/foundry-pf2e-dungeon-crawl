@@ -238,7 +238,7 @@ describe("applyAgentDecision maneuver execution (#909)", () => {
     expect(getDemoralizeImmunityUntil(combat, "atk", "opp")).toBe(1600);
   });
 
-  it("whispers the GM the maneuver's outcome", async () => {
+  it("reports the maneuver's outcome on the AI turn card (#925)", async () => {
     const { combat } = setup({ slug: "trip", outcome: "failure" });
     await applyAgentDecision(combat, "atk", "maneuver:trip:opp");
     const contents = ChatMessage.create.mock.calls.map((c) => c[0].content);

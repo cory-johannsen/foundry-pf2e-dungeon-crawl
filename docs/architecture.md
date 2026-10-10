@@ -68,7 +68,7 @@ against the live PF2e bestiary into real creatures, behind a swappable
 sequencing/roster logic without this one caring.
 
 **Combat automation** (`dungeon-combat.mjs`, `stealth-detection.mjs`,
-`combat-rewards.mjs`, `agent-candidates.mjs`, `maneuver-feat-modifiers.mjs`,
+`combat-rewards.mjs`, `agent-candidates.mjs`, `agent-action-display.mjs`, `maneuver-feat-modifiers.mjs`,
 `npc-ability-parse.mjs`, `self-effect-denylist.mjs`, `self-effect-summary.mjs`,
 `targeted-feat-actions.mjs`, `antagonize.mjs`, `dungeon-strike-riders.mjs`, `dungeon-critical-deck.mjs`,
 `flanking-indicator.mjs`, `dungeon-leveling.mjs`) — wires a spawned encounter into a real PF2e
@@ -92,6 +92,12 @@ floors themselves live in an actor flag that chat-message, turn-change,
 `deleteItem` and `deleteCombat` hooks create and clear. `flanking-indicator.mjs` (#769) is separate from
 that turn-taking path: a client-side, write-nothing "Flanked" badge drawn
 on flanked tokens in a started combat, using PF2e's own `Token#isFlanking`.
+Every action `applyAgentDecision` executes is appended to the Combat's
+`agentLog` flag and shown on one consolidated chat card per AI combatant
+per round (#925): `agent-action-display.mjs` (pure) turns each executor's
+own return value into the public row text and renders the card HTML, with
+the model's rationale and other GM-only details in `data-visibility="gm"`
+elements that PF2e strips for non-GM clients.
 
 **Hosted agent service** (`scripts/agent-service-client.mjs`,
 `scripts/dungeon-customization-fulfillment.mjs`,
@@ -258,6 +264,7 @@ graph LR
     scripts_token_walk_mjs["token-walk.mjs"]
   end
   subgraph "Combat automation (in-module heuristic)"
+    scripts_agent_action_display_mjs["agent-action-display.mjs"]
     scripts_agent_candidates_mjs["agent-candidates.mjs"]
     scripts_antagonize_mjs["antagonize.mjs"]
     scripts_combat_rewards_mjs["combat-rewards.mjs"]
@@ -329,6 +336,7 @@ graph LR
   subgraph "Other"
     scripts_pathfinding_mjs["pathfinding.mjs"]
   end
+  scripts_agent_action_display_mjs --> scripts_agent_candidates_mjs
   scripts_antagonize_mjs --> scripts_stealth_detection_mjs
   scripts_combat_rewards_mjs --> scripts_encounter_roster_mjs
   scripts_cover_items_mjs --> scripts_prng_mjs
@@ -351,6 +359,7 @@ graph LR
   scripts_dungeon_combat_mjs --> scripts_trap_combat_mjs
   scripts_dungeon_combat_mjs --> scripts_maneuver_feat_modifiers_mjs
   scripts_dungeon_combat_mjs --> scripts_self_effect_denylist_mjs
+  scripts_dungeon_combat_mjs --> scripts_agent_action_display_mjs
   scripts_dungeon_combat_mjs --> scripts_self_effect_summary_mjs
   scripts_dungeon_combat_mjs --> scripts_targeted_feat_actions_mjs
   scripts_dungeon_combat_mjs --> scripts_antagonize_mjs

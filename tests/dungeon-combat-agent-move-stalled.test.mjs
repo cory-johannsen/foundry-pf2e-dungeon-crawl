@@ -117,11 +117,11 @@ describe("applyAgentDecision move-stalled chat card (#140)", () => {
 
     await applyAgentDecision(combat, "atk", candidate.id);
 
-    // Two chat cards: postAgentDecisionChat's pre-move announcement, then
-    // the stall follow-up.
-    expect(ChatMessage.create).toHaveBeenCalledTimes(2);
-    expect(ChatMessage.create.mock.calls[1][0].content).toContain(
-      "PF2EDC.Dungeon.Combat.AgentMoveStalled",
+    // #925: one AI turn card, whose row carries the GM-only stall note
+    // (replacing the separate stall whisper).
+    expect(ChatMessage.create).toHaveBeenCalledTimes(1);
+    expect(ChatMessage.create.mock.calls[0][0].content).toMatch(
+      /blocked[\s\S]*data-visibility="gm" class="pf2edc-agent-note">A route exists, but every reachable square is occupied/,
     );
     expect(attacker.token.move).not.toHaveBeenCalled();
   });
@@ -151,7 +151,9 @@ describe("applyAgentDecision move-stalled chat card (#140)", () => {
 
     await applyAgentDecision(combat, "atk", candidate.id);
 
+    // Just the AI turn card, with no stall note.
     expect(ChatMessage.create).toHaveBeenCalledTimes(1);
+    expect(ChatMessage.create.mock.calls[0][0].content).not.toContain("every reachable square is occupied");
     expect(attacker.token.move).toHaveBeenCalled();
   });
 });
