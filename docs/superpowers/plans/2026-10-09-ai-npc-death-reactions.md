@@ -4,7 +4,7 @@
 
 **Goal:** Add the `reducedToZero` trigger to #931's reaction registry and model Ferocity (`cancelDefeat`), Strike-before-dying (`dyingStrike`: Final Spite, Death Frenzy, Death Slam) and Self-Destruct (`delayedBlast`), caught at the module's own damage seam with an `updateActor` fallback for system-applied damage.
 
-**Architecture:** This plan patches #931's own plan-only `REACTION_DEFS`/`resolveReactions` (`scripts/npc-reactions.mjs`) with three new definition kinds and their executors, built fresh in `scripts/npc-reactions-death.mjs` for the pure parsing. The seam change is real, grounded code: `applyDefeatIfReducedToZero`'s real signature takes only a token, with **13 real call sites**, not the 5 the spec's own Investigation findings claim — this plan's own Task 2 adds the `combat` parameter every one of them needs.
+**Architecture:** This plan extends #931's real, merged `REACTION_DEFS`/`resolveReactions` (`scripts/npc-reactions.mjs`/`scripts/dungeon-combat.mjs` — amended by #1019: confirmed live that #931 is not plan-only, and its real schema diverged from its own plan document) with three new definition kinds and their executors, built fresh in `scripts/npc-reactions-death.mjs` for the pure parsing. The seam change is real, grounded code: `applyDefeatIfReducedToZero`'s real signature takes only a token, with **13 real call sites**, not the 5 the spec's own Investigation findings claim — this plan's own Task 2 adds the `combat` parameter every one of them needs, plus the real collector/dispatcher the real `resolveReactions` requires.
 
 **Tech Stack:** Vanilla JS (ESM), Foundry VTT API, PF2e system API, Vitest.
 
@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- **#931 is still plan-only.** This plan patches its own plan document (`docs/superpowers/plans/2026-10-09-ai-npc-reactions.md`) to add the `reducedToZero` entries to `REACTION_DEFS`, reusing that plan's own confirmed shape (`{id, match, trigger, kind, priority, eligible, policy, execute}`) and dispatcher signature (`resolveReactions(combat, triggerEvent, {fetchDecision})`) exactly as it defines them.
+- **Amended by #1019: #931 is real, merged code, not plan-only** (`scripts/npc-reactions.mjs`, confirmed live) — and its real schema diverged from its own plan document during implementation (real rows: `{id, label, match: RegExp, triggers: string[], kind, priority, policy}`, no `eligible`/`execute` fields; the real dispatcher is `resolveReactions(combat, event, execute, opts)` in `dungeon-combat.mjs`, driven by a per-trigger collector that pre-builds `event.options`). Task 1 and Task 2 below edit the real files directly, in the real shapes, rather than patching the now-stale plan document.
 - **`applyDefeatIfReducedToZero`'s real signature is `(target)`** — a token, no `combat` parameter — confirmed live at `scripts/dungeon-combat.mjs:3610`. Every death-reaction check this plan adds needs the `combat` object, so Task 2 changes this function's signature to `(combat, target)` and updates **all 13 real call sites** (confirmed live by grep, not the 5 the spec's own Investigation findings claim).
 - All-or-nothing for the parsed families: Mortic Ferocity's rider and Self-Destruct's parameters are only offered when every sentence is consumed; Ferocity's own base behavior is matched by name/glossary-key, never parsed as prose (see Investigation finding 1).
 - Every merge bumps `module.json`'s version (CLAUDE.md).
@@ -34,68 +34,147 @@
 
 ---
 
-### Task 1: Patch #931's plan — the `reducedToZero` registry entries
+### Task 1: `reducedToZero` registry entries — on the REAL registry
+
+**Amended by #1019.** **#931 is not plan-only — `scripts/npc-reactions.mjs` is real, merged code (355 lines) whose schema diverged from its own plan document** (`docs/superpowers/plans/2026-10-09-ai-npc-reactions.md`) during implementation: real `REACTION_DEFS` rows are `{id, label, match: RegExp, triggers: string[], kind, priority, policy(ctx)}` with **no `eligible`/`execute` fields**, `match` is a `RegExp` tested via `def.match.test(item.name ?? "")` (`reactionItemsFor`, `npc-reactions.mjs`), and `triggers` is a plural array, not a singular `trigger` string. Patching the plan document as originally written would add objects in a shape the real registry doesn't read. This task now edits the real file directly.
 
 **Files:**
-- Modify: `docs/superpowers/plans/2026-10-09-ai-npc-reactions.md`
+- Modify: `scripts/npc-reactions.mjs`
 
-- [ ] **Step 1: Add the three new `REACTION_DEFS` entries**
-
-In that plan's Task 2 (the `REACTION_DEFS` array), append:
+- [ ] **Step 1: Add the `reducedToZero` trigger**
 
 ```js
-{
-  id: "ferocity", match: (item) => /\bferocity\b/i.test(item.name), trigger: "reducedToZero",
-  kind: "cancelDefeat", priority: 10, eligible: null, policy: "always", execute: null,
-},
-{
-  id: "dying-strike",
-  match: (item) => ["Final Spite", "Death Frenzy", "Death Slam"].includes(item.name),
-  trigger: "reducedToZero", kind: "dyingStrike", priority: 5, eligible: null, policy: "always", execute: null,
-},
-{
-  id: "self-destruct", match: (item) => item.name === "Self-Destruct", trigger: "reducedToZero",
-  kind: "delayedBlast", priority: 1, eligible: null, policy: "always", execute: null,
-},
+// scripts/npc-reactions.mjs -- extend the frozen REACTION_TRIGGERS array
+export const REACTION_TRIGGERS = Object.freeze([
+  "move",
+  "strideEnd",
+  "rangedAttack",
+  "manual",
+  "targetedByAttack",
+  "damageIncoming",
+  "reducedToZero",
+]);
 ```
 
-- [ ] **Step 2: Commit the amendment**
+- [ ] **Step 2: Add the three new `REACTION_DEFS` entries, in the real shape**
+
+```js
+// scripts/npc-reactions.mjs -- append to the frozen REACTION_DEFS array
+Object.freeze({
+  id: "ferocity",
+  label: "Ferocity",
+  match: /\bFerocity\b/i,
+  triggers: ["reducedToZero"],
+  kind: "cancelDefeat",
+  priority: 10,
+  policy: always,
+}),
+Object.freeze({
+  id: "dying-strike",
+  label: "Dying Strike",
+  match: /^(Final Spite|Death Frenzy|Death Slam)\b/i,
+  triggers: ["reducedToZero"],
+  kind: "dyingStrike",
+  priority: 5,
+  policy: always,
+}),
+Object.freeze({
+  id: "self-destruct",
+  label: "Self-Destruct",
+  match: /^Self-Destruct\b/i,
+  triggers: ["reducedToZero"],
+  kind: "delayedBlast",
+  priority: 1,
+  policy: always,
+}),
+```
+
+- [ ] **Step 3: Commit**
 
 ```bash
-git add docs/superpowers/plans/2026-10-09-ai-npc-reactions.md
-git commit -m "docs(#959): amend #931's plan -- reducedToZero registry entries"
+git add scripts/npc-reactions.mjs
+git commit -m "feat(#959): reducedToZero trigger and registry entries on the real registry"
 ```
 
 ---
 
-### Task 2: `applyDefeatIfReducedToZero` gains `combat` — all 13 real call sites
+### Task 2: `applyDefeatIfReducedToZero` gains `combat` and the real reaction call — all 13 real call sites
+
+**Amended by #1019.** The original draft's `resolveReactions(combat, { trigger: "reducedToZero", reactor: combatant })` does not match the real, exported `resolveReactions(combat, event, execute, {requestDecisionFor} = {})` (`dungeon-combat.mjs:2210`, confirmed live): it takes no `execute` callback, and `event.options` — a pre-built `[{reactor, def, ctx}]` list from a trigger-specific collector — is required and was never supplied; `event.reactor` is not a field the real function reads at all (it reads `event.options[].reactor`). This would have failed immediately on first call. Fixed below by following the real, established "collect → `resolveReactions` → read `ran[].result`" idiom `applyTargetedByAttackReactions` already uses for the `targetedByAttack` trigger — the closest real precedent for "this trigger may cancel/modify what happens next."
 
 **Files:**
 - Modify: `scripts/dungeon-combat.mjs`
 - Test: existing defeat-related test files (find and extend, do not create new ones for this mechanical change)
 
 **Interfaces:**
-- Consumes: nothing new.
-- Produces: `applyDefeatIfReducedToZero(combat, target)` (signature change).
+- Consumes: `executeFerocity` (Task 3), `executeDyingStrike` (Task 5), and Task 6's Self-Destruct setup function — each called from this task's own `executeDeathReaction` dispatcher, keyed by `def.kind`.
+- Produces: `applyDefeatIfReducedToZero(combat, target)` (signature change); `collectDeathReactionOptions(combat, reactor)`; `executeDeathReaction(combat, chosen, decision)`.
 
 - [ ] **Step 1: Run the existing test suite to establish the pre-change baseline**
 
 Run: `npx vitest run`
 Expected: PASS (record the full pass count before touching anything)
 
-- [ ] **Step 2: Change the signature and add the `resolveReactions` call**
+- [ ] **Step 2: Add the collector and dispatcher, change the signature**
 
 ```js
-// scripts/dungeon-combat.mjs -- applyDefeatIfReducedToZero (line 3610):
-import { resolveReactions } from "./npc-reactions.mjs"; // extend existing import
+// scripts/dungeon-combat.mjs -- new, near collectDefensiveReactionOptions;
+// applyDefeatIfReducedToZero itself is at line 4970. resolveReactions,
+// markReactionUsed, getReactionUsed, reactionItemsFor, postReactionChat,
+// reactionDecisionNote are all already in scope in this file (no new
+// imports needed -- confirmed live: resolveReactions/markReactionUsed/
+// getReactionUsed are defined in this same file, reactionItemsFor is
+// already imported from npc-reactions.mjs at this file's top).
+
+/** #959: options for the `reducedToZero` trigger -- mirrors
+ * collectDefensiveReactionOptions's shape exactly, but the reactor IS the
+ * creature dropping (no separate attacker/subject for this self-only
+ * group; #1019 adds a second, subject-aware collector for other-creature
+ * triggers alongside this one, in its own plan). */
+function collectDeathReactionOptions(combat, reactor) {
+  if (!reactor?.getFlag?.(MODULE_ID, "agentControlled")) return [];
+  if (reactor.isDefeated || !reactor.actor) return [];
+  if (getReactionUsed(combat, reactor.id, combat.round)) return [];
+  const options = [];
+  for (const { def, item } of reactionItemsFor(reactor.actor)) {
+    if (!def.triggers.includes("reducedToZero")) continue;
+    options.push({ reactor, def, ctx: { item } });
+  }
+  return options;
+}
+
+/** #959: dispatches a chosen `reducedToZero` reaction to its executor by
+ * `def.kind`, marks the reaction used first (never an effect without the
+ * economy recorded, matching every other executor in this file), and
+ * announces it. Returns the executor's own result object unchanged --
+ * only Ferocity's `{cancelled}` is read by the call site below; dying
+ * Strike and Self-Destruct's own result fields are for their own tests. */
+async function executeDeathReaction(combat, chosen, decision) {
+  const { reactor, def, ctx } = chosen;
+  await markReactionUsed(combat, reactor.id, combat.round);
+  let result = {};
+  if (def.kind === "cancelDefeat") result = await executeFerocity(combat, reactor, ctx.item);
+  else if (def.kind === "dyingStrike") {
+    result = await executeDyingStrike(combat, reactor, ctx.item, combatantOpponents(combat, reactor));
+  } else if (def.kind === "delayedBlast") result = await executeSelfDestructSetup(combat, reactor, ctx.item);
+  await postReactionChat(reactor, reactor, def, reactionDecisionNote(decision));
+  return result;
+}
 
 async function applyDefeatIfReducedToZero(combat, target) {
   if ((target.actor?.system?.attributes?.hp?.value ?? 1) > 0) return;
   if (target.actor?.type !== "character" && !target.isDefeated) {
     const combatant = combat.combatants.find((c) => c.tokenId === target.id);
     if (combatant?.getFlag?.(MODULE_ID, "agentControlled")) {
-      const result = await resolveReactions(combat, { trigger: "reducedToZero", reactor: combatant });
-      if (result?.cancelled) return;
+      const options = collectDeathReactionOptions(combat, combatant);
+      if (options.length) {
+        const ran = await resolveReactions(
+          combat,
+          { trigger: "reducedToZero", mover: combatant, options },
+          (chosen, decision) => executeDeathReaction(combat, chosen, decision),
+        );
+        if (ran.find((r) => r.result?.cancelled)) return;
+      }
     }
   }
   if (target.actor?.type === "character") {
@@ -106,6 +185,8 @@ async function applyDefeatIfReducedToZero(combat, target) {
   }
 }
 ```
+
+Note for Task 6: `executeSelfDestructSetup` is this task's assumed name for whatever function Task 6 defines to register the pending blast (Task 6's own "Produces" line should confirm or rename it to match — the dispatcher above calls it by name, so the two tasks' naming must agree). Self-Destruct's own `result` is not read by this call site (it never cancels the reactor's own defeat), only recorded for Task 6's own tests.
 
 - [ ] **Step 3: Update every one of the 13 real call sites to pass `combat`**
 
@@ -120,7 +201,7 @@ Expected: PASS at the same count as Step 1 (every existing defeat/loot/combat-re
 
 ```bash
 git add scripts/dungeon-combat.mjs
-git commit -m "refactor(#959): thread combat through applyDefeatIfReducedToZero's 13 real call sites"
+git commit -m "refactor(#959): thread combat through applyDefeatIfReducedToZero, wire the real resolveReactions call"
 ```
 
 ---
@@ -600,3 +681,5 @@ git commit -m "chore(#959): bump version for death-triggered NPC reactions"
 **4. Review Focus:** All five bullets (the 13-call-site regression risk, name-only Ferocity matching, fallback idempotence, the resolution hold, adjacency-gated cancellation) are each pinned to a named test in Tasks 2, 3, 4, and 6.
 
 **Corrections found while writing this plan:** the Investigation findings' own call-site count (13, not the spec's claimed 5) was caught by grepping the real file directly rather than trusting the spec's own number — the same kind of baseline-verification error #935 already caught for its own parser's auto-count, now recurring in a different plan. Re-confirmed by reading the file, not re-estimated.
+
+**Correction found by #1019:** this plan's own Task 1 and Task 2, as originally drafted, were broken against the real codebase in two ways, confirmed live while planning #1019 (which depends on this plan's seam): (1) #931 is real, merged code whose schema diverged from its own plan document — Task 1 was patching a now-stale document in a shape (`{eligible, execute}` fields, singular `trigger`) the real registry doesn't read; (2) Task 2's `resolveReactions` call used a 2-argument shape that doesn't match the real, exported 4-argument `resolveReactions(combat, event, execute, opts)`, which requires a pre-built `event.options` array and an `execute` callback — this would have failed on first call. Both tasks are rewritten above to edit the real files in the real shapes, following the established real "collect → resolveReactions → read result" idiom.
