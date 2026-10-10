@@ -174,7 +174,7 @@ describe("#1252 no system glyph class in module scripts that can reach chat", ()
 **Files:**
 - Modify: `module.json` (patch bump from the current `origin/main` value)
 
-- [ ] **Step 1:** Bump `module.json` `version`; `npm test` → PASS; commit `#1252: bump version`.
+- [x] **Step 1:** Bump `module.json` `version`; `npm test` → PASS; commit `#1252: bump version`.
 - [ ] **Step 2: Live verification** (copy `.env` into the worktree; check the live world's module version against the branch first). Start a combat with AI-controlled combatants and Auto Action Tracker active; after an AI turn read `combatant.flags["pf2e-auto-action-tracker"].log`:
   - no `unknown-action` entry; `actionsSpent` equals the real actions taken (a 3-action turn shows 3);
   - the turn card's cost glyphs still render as action icons (font loaded);
