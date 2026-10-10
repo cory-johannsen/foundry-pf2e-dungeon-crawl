@@ -486,13 +486,13 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: nothing beyond plain data (pure, no Foundry API surface, matching every other builder in this file).
 - Produces (consumed by Task 4): `buildNpcMoveVocabulary({ movementEntries, opponents, gridDistanceFt })` → vocabulary entries `{ type: "npcMove", itemId, slug, name, kind, posture, targetId, cost, speedSquares, mode, strike, suppressReactions, teleportFeet, elevationNote }`; `buildNpcMoveCandidates({ npcMoveVocabulary, picks, opponents })` → candidate entries `{ id, type: "npcMove", ...same fields as the vocabulary entry, cost, summary }`.
 
-- [ ] **Step 1: Read the existing test file's structure**
+- [x] **Step 1: Read the existing test file's structure**
 
 Run: `grep -n "^describe\|^import" tests/agent-candidates.test.mjs | head -30`
 
 Match its existing fixture/mock conventions (`opponentStub`, etc.) rather than inventing new ones.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 ```js
 // Added to tests/agent-candidates.test.mjs
@@ -569,12 +569,12 @@ describe('buildNpcMoveCandidates', () => {
 });
 ```
 
-- [ ] **Step 3: Run tests to verify they fail**
+- [x] **Step 3: Run tests to verify they fail**
 
 Run: `npm test -- tests/agent-candidates.test.mjs`
 Expected: FAIL — neither function exists yet.
 
-- [ ] **Step 4: Implement both builders**
+- [x] **Step 4: Implement both builders**
 
 ```js
 /**
@@ -665,12 +665,12 @@ Confirm the real shape of `opponents[].speeds`/however this codebase already sur
 
 Fix: `buildNpcMoveVocabulary` must take the ability's own actor's resolved Speeds as part of each `movementEntries` entry (computed once by `computeNpcMoveVocabularyEntries` in Task 4, not re-read per-opponent), since every opponent, teleport destination, and posture shares the same single mover and the same single Speed. Revise the signature to `buildNpcMoveVocabulary({ movementEntries, opponents, gridDistanceFt })` where each `movementEntries` item already carries `moverSpeeds: { land, fly, swim, burrow, climb }` (read once from the combatant's own actor in Task 4), and remove the incorrect `opponent.speeds` reads above, replacing `availableSpeeds` with `entry.moverSpeeds`.
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/agent-candidates.test.mjs`
 Expected: PASS, once Step 4's self-caught `moverSpeeds` correction is applied — re-run the tests after that fix, not before.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs tests/agent-candidates.test.mjs
