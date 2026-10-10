@@ -70,6 +70,7 @@ import {
   clearDetection,
   handleStealthBreakMessage,
   cleanupAgentSelfEffects,
+  endMarksOnCombatantGone,
   decayFrightenedAtEndOfTurn,
   handleDemoralizeForAntagonize,
   handleAntagonizeHostileMessage,
@@ -703,6 +704,19 @@ Hooks.on("createItem", async (item) => {
 Hooks.on("updateCombatant", async (combatant, changes) =>
   onCombatAutoResolved(
     await maybeResolveCombatForCombatant(combatant, changes),
+  ),
+);
+
+/** #946: an agent-created mark ends when its creature is defeated or
+ * leaves the combat (fled, removed). */
+Hooks.on("updateCombatant", (combatant, changes) =>
+  endMarksOnCombatantGone(combatant, changes ?? {}).catch((err) =>
+    console.error("pf2e-dungeon-crawl | #946: mark cleanup failed:", err.message),
+  ),
+);
+Hooks.on("deleteCombatant", (combatant) =>
+  endMarksOnCombatantGone(combatant).catch((err) =>
+    console.error("pf2e-dungeon-crawl | #946: mark cleanup failed:", err.message),
   ),
 );
 

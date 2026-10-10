@@ -1077,7 +1077,7 @@ export function buildManeuverCandidates({ maneuverVocabulary = [], maneuverPicks
  * #914's derived eligibility filter, each with an effectSummary/
  * durationLabel/frequencyLabel) and `compositeEntries` (the curated Sudden Charge/Lunge/Twin
  * Feint allowlist, each already matched to a real opponent) and #922's
- * `targetedSelfEffectEntries` (Hunt Prey/Devise a Stratagem, one per legal
+ * `targetedSelfEffectEntries` (Hunt Prey/Devise a Stratagem/#946 marks, one per legal
  * opponent). Self-effect entries are self-targeted (targetId: null);
  * composite and targeted self-effect entries always carry a real opponent id. `traits` carries only the action traits that
  * gate per-turn reuse (`flourish`, `stance`): an entry is dropped once this
@@ -1110,7 +1110,8 @@ export function buildFeatVocabulary({ selfEffectEntries = [], compositeEntries =
     });
   }
   // #922: self-effect actions whose effect is bound to a chosen opponent by
-  // the system's own TokenMark rule (Hunt Prey, Devise a Stratagem) -- one
+  // the system's own TokenMark rule (Hunt Prey, Devise a Stratagem, #946's
+  // derived marks: Smite, Duelist's Challenge, Size Up) -- one
   // entry per legal target.
   for (const entry of targetedSelfEffectEntries) {
     if (blocked(entry.traits)) continue;

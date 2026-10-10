@@ -13,8 +13,10 @@ function isUnsafeByReasons(reasons) {
 describe('self-effect compendium population snapshot', () => {
   it('matches the expected total/survivor/excluded counts from this plan\'s own live investigation', () => {
     expect(snapshot.totalCandidates).toBe(156);
-    expect(snapshot.survivorCount).toBe(87);
-    expect(snapshot.excludedCount).toBe(69);
+    // #946: Eye of the Arclords and Spell Parry are target-conditional
+    // (target: roll-option predicates only), no longer target-dependent.
+    expect(snapshot.survivorCount).toBe(89);
+    expect(snapshot.excludedCount).toBe(67);
   });
 
   it('every entry marked excluded has at least one real exclusion reason, and every non-excluded entry has none', () => {

@@ -45,7 +45,7 @@
 - Consumes: nothing new.
 - Produces: `classifyTargetEffect(rules)` → `'none' | 'targetConditional' | 'marked' | 'unsupported'`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/agent-candidates.test.mjs (append)
@@ -97,12 +97,12 @@ describe('classifyTargetEffect (#946)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/agent-candidates.test.mjs -t "classifyTargetEffect"`
 Expected: FAIL with "classifyTargetEffect is not exported"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/agent-candidates.mjs (new, near the top with the other pure helpers)
@@ -133,12 +133,12 @@ export function classifyTargetEffect(rules = []) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/agent-candidates.test.mjs -t "classifyTargetEffect"`
 Expected: PASS (7 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs tests/agent-candidates.test.mjs
@@ -157,7 +157,7 @@ git commit -m "feat(#946): classifyTargetEffect, replacing the blanket TokenMark
 - Consumes: `classifyTargetEffect` (Task 1).
 - Produces: `isUnsafeSelfEffect`'s own target-related check now defers to `classifyTargetEffect`; `computeSelfEffectVocabularyEntries` (real, merged, #914) now offers a `targetConditional` effect as an ordinary self-effect entry.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs (append to the
@@ -205,12 +205,12 @@ it('still excludes an effect classifyTargetEffect calls unsupported (a ChoiceSet
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs -t "target-conditional"`
 Expected: FAIL — Point Blank Stance is excluded today (the real, unmodified `isUnsafeSelfEffect` treats its `target:` predicate as unsafe)
 
-- [ ] **Step 3: Replace the real `isUnsafeSelfEffect` target check**
+- [x] **Step 3: Replace the real `isUnsafeSelfEffect` target check**
 
 ```js
 // scripts/dungeon-combat.mjs -- isUnsafeSelfEffect's real body (confirmed live,
@@ -241,24 +241,24 @@ function isUnsafeSelfEffect(rules, duration) {
 }
 ```
 
-- [ ] **Step 4: Add the import**
+- [x] **Step 4: Add the import**
 
 ```js
 // scripts/dungeon-combat.mjs -- extend the existing agent-candidates.mjs
 // import list with classifyTargetEffect.
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs`
 Expected: PASS (all tests, including every pre-#946 test in the file — a plain self-effect with no target dependence, or an already-excluded ChoiceSet/GrantItem case, must still behave identically)
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions in `dungeon-combat-feat-self-effect-*`/`self-effect-*` suites)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs
@@ -277,7 +277,7 @@ git commit -m "fix(#946): stop excluding target-conditional self-effects from th
 - Consumes: nothing.
 - Produces: `parseMarkedTargetRequirement(featDescriptionHtml)` → `null | { rangeFeet: number|null, needsSight: boolean, predicates: Array<Predicate> }`, where `Predicate` is `{type:'handFree'}`, `{type:'wielding'|'wearing', name}`, or `{type:'previousActionWasStrike'}`. Returns `null` only when the text contains a requirement clause outside this closed set (never defaults to "no requirement").
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/marked-target-requirements.test.mjs
@@ -314,12 +314,12 @@ describe('parseMarkedTargetRequirement (#946)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/marked-target-requirements.test.mjs`
 Expected: FAIL with "Cannot find module"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/marked-target-requirements.mjs
@@ -366,12 +366,12 @@ export function parseMarkedTargetRequirement(featDescriptionHtml) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/marked-target-requirements.test.mjs`
 Expected: PASS (5 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/marked-target-requirements.mjs tests/marked-target-requirements.test.mjs
@@ -390,7 +390,7 @@ git commit -m "feat(#946): requirement and range-constraint parser for marked-ta
 - Consumes: `classifyTargetEffect` (Task 1), `parseMarkedTargetRequirement` (Task 3). **Depends on #922's own plan having landed first** (this task's own starting point is #922's `computeTargetedSelfEffectVocabularyEntries`/`bindTokenMarkEffect`/`TARGETED_SELF_EFFECT_ALLOWLIST`, none of which exist in real code yet — if #922 has not merged by the time this task is executed, implement #922's Task 1–3 first, then apply this task's changes on top, rather than re-deriving a third variant).
 - Produces: `computeTargetedSelfEffectVocabularyEntries` now scans **every** `actor.itemTypes.feat` item with a `selfEffect`, classifying each via `classifyTargetEffect` instead of checking a static allowlist, gated by `parseMarkedTargetRequirement`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-targeted-feat-vocabulary.test.mjs (append)
@@ -466,12 +466,12 @@ it('excludes an unsupported-classified marked feat (Harsh Judgement, toggleable 
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-combat-targeted-feat-vocabulary.test.mjs -t "Smite-shaped|Nothing Personal|60 ft|Harsh Judgement"`
 Expected: FAIL — `computeTargetedSelfEffectVocabularyEntries` (once #922 lands) only recognizes the static two-item allowlist, not a derived classification
 
-- [ ] **Step 3: Generalize `computeTargetedSelfEffectVocabularyEntries`**
+- [x] **Step 3: Generalize `computeTargetedSelfEffectVocabularyEntries`**
 
 ```js
 // scripts/dungeon-combat.mjs -- replace #922's own `TARGETED_SELF_EFFECT_ALLOWLIST`
@@ -532,12 +532,12 @@ export async function computeTargetedSelfEffectVocabularyEntries(actor, opponent
 
 Note: `summarizeEffect` is #914's existing export (`scripts/self-effect-summary.mjs`), already imported into `dungeon-combat.mjs` for the plain self-effect vocabulary — reused here rather than re-deriving a second summary format. Add `classifyTargetEffect`/`parseMarkedTargetRequirement` to this file's own import lists (from `agent-candidates.mjs` and the new `marked-target-requirements.mjs` respectively).
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-combat-targeted-feat-vocabulary.test.mjs`
 Expected: PASS (all tests, including #922's own original Hunt Prey/Devise tests — re-read them once #922 lands and confirm this generalized version still satisfies every one of them, since the static-allowlist branch they were written against no longer exists)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-targeted-feat-vocabulary.test.mjs
@@ -557,7 +557,7 @@ git commit -m "feat(#946): widen the marked-target vocabulary beyond Hunt Prey/D
 - Consumes: nothing new.
 - Produces: every mark effect created by Task 4's flow is tagged `flags.pf2e-dungeon-crawl.markTargetTokenUuid` (alongside the existing `agentSelfEffect` tag #922's own executor already sets); `removeMarksTargeting(combat, defeatedTokenUuid)` (exported) → removes every tagged mark across every combatant pointing at that token.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // tests/dungeon-combat-marked-target-lifecycle.test.mjs
@@ -607,12 +607,12 @@ describe('removeMarksTargeting (#946)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/dungeon-combat-marked-target-lifecycle.test.mjs`
 Expected: FAIL with "removeMarksTargeting is not exported"
 
-- [ ] **Step 3: Tag the mark effect at creation time (Task 4's executor, once #922's own plan-only executor is implemented)**
+- [x] **Step 3: Tag the mark effect at creation time (Task 4's executor, once #922's own plan-only executor is implemented)**
 
 ```js
 // scripts/dungeon-combat.mjs -- the targetedSelfEffect executor's own
@@ -621,7 +621,7 @@ Expected: FAIL with "removeMarksTargeting is not exported"
       flags: { [MODULE_ID]: { agentSelfEffect: true, markTargetTokenUuid: targetTokenUuid } },
 ```
 
-- [ ] **Step 4: Implement `removeMarksTargeting`**
+- [x] **Step 4: Implement `removeMarksTargeting`**
 
 ```js
 // scripts/dungeon-combat.mjs -- new, near cleanupAgentSelfEffects
@@ -656,7 +656,7 @@ export async function removeMarksTargeting(combat, tokenUuid) {
 }
 ```
 
-- [ ] **Step 5: Wire the hook in `module.mjs`**
+- [x] **Step 5: Wire the hook in `module.mjs`**
 
 ```js
 // scripts/module.mjs -- register alongside this module's other Hooks.on("updateCombatant", ...)
@@ -679,17 +679,17 @@ Hooks.on("deleteCombatant", async (combatant) => {
 
 (Combat-end cleanup needs no new code at all: #914's existing `cleanupAgentSelfEffects` already removes every `agentSelfEffect`-tagged, unlimited-duration effect at combat end regardless of actor type — confirmed live — and every mark this plan creates carries that same tag.)
 
-- [ ] **Step 6: Run the test to verify it passes**
+- [x] **Step 6: Run the test to verify it passes**
 
 Run: `npx vitest run tests/dungeon-combat-marked-target-lifecycle.test.mjs`
 Expected: PASS (3 tests)
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs scripts/module.mjs tests/dungeon-combat-marked-target-lifecycle.test.mjs
@@ -705,16 +705,16 @@ git commit -m "feat(#946): remove a mark when its target is defeated or leaves c
 - Create: `tests/marked-target-audit.test.mjs`
 - Modify: `module.json`
 
-- [ ] **Step 1: Build the real-population fixture**, scanning the full compendium feat tree (`feats-srd`, `actionspf2e`, and every `feats/class/*/level-*`/`feats/archetype/*` directory — Investigation finding 3) for one-action/free items with a `selfEffect` whose linked effect's rules were excluded by the OLD #914 rule (`target:`/`@target`/`TokenMark` present). Record each one's name, its `classifyTargetEffect` result, and (for `marked`) whether `parseMarkedTargetRequirement` accepts its text. Commit the result as `tests/fixtures/marked-target-audit.json`: `{ entries: [{ name, classification, offered: boolean, reason? }], counts: { marked, targetConditional, unsupported, none } }`.
-- [ ] **Step 2: Write `tests/marked-target-audit.test.mjs`** asserting the committed counts match a live re-classification of every fixture entry (the same "golden snapshot, fails on drift" shape #915/#935 already use), and that Harsh Judgement/Nothing Personal/Unfazed Assessment/Come and Get Me/Divine Weapon/Intensified Element Stance/Hunt Runelord are each present with `classification: 'unsupported'` and a named reason.
-- [ ] **Step 3: Run the test suite**
+- [x] **Step 1: Build the real-population fixture**, scanning the full compendium feat tree (`feats-srd`, `actionspf2e`, and every `feats/class/*/level-*`/`feats/archetype/*` directory — Investigation finding 3) for one-action/free items with a `selfEffect` whose linked effect's rules were excluded by the OLD #914 rule (`target:`/`@target`/`TokenMark` present). Record each one's name, its `classifyTargetEffect` result, and (for `marked`) whether `parseMarkedTargetRequirement` accepts its text. Commit the result as `tests/fixtures/marked-target-audit.json`: `{ entries: [{ name, classification, offered: boolean, reason? }], counts: { marked, targetConditional, unsupported, none } }`.
+- [x] **Step 2: Write `tests/marked-target-audit.test.mjs`** asserting the committed counts match a live re-classification of every fixture entry (the same "golden snapshot, fails on drift" shape #915/#935 already use), and that Harsh Judgement/Nothing Personal/Unfazed Assessment/Come and Get Me/Divine Weapon/Intensified Element Stance/Hunt Runelord are each present with `classification: 'unsupported'` and a named reason.
+- [x] **Step 3: Run the test suite**
 
 Run: `npx vitest run tests/marked-target-audit.test.mjs`
 Expected: PASS
 
-- [ ] **Step 4: Run the `update-architecture-docs` skill** (new file `scripts/marked-target-requirements.mjs` imported by `scripts/dungeon-combat.mjs`)
+- [x] **Step 4: Run the `update-architecture-docs` skill** (new file `scripts/marked-target-requirements.mjs` imported by `scripts/dungeon-combat.mjs`)
 - [ ] **Step 5: Bump `module.json`'s version** (minor — check `main`'s current version first)
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tests/fixtures/marked-target-audit.json tests/marked-target-audit.test.mjs module.json docs/architecture.md

@@ -197,3 +197,76 @@ describe("applyAgentDecision targetedSelfEffect execution: Devise a Stratagem (#
     expect(turnState(combat).actionsRemaining).toBe(3);
   });
 });
+
+describe("applyAgentDecision targetedSelfEffect execution: derived marks (#946)", () => {
+  // Effect: Smite / Effect: Duelist's Challenge, pf2e 8.5.0 (rules trimmed to
+  // the TokenMark + one bonus; descriptions are the real target sentences).
+  const SMITE_EFFECT = "Compendium.pf2e.feat-effects.Item.smite";
+  const DUEL_EFFECT = "Compendium.pf2e.feat-effects.Item.duel";
+  const SMITE_RULES = [
+    { key: "TokenMark", slug: "smite" },
+    { key: "FlatModifier", predicate: ["target:mark:smite"], selector: "strike-damage", slug: "smite", type: "status", value: 3 },
+  ];
+  const DUEL_RULES = [
+    { key: "TokenMark", slug: "duelists-challenge" },
+    { key: "FlatModifier", predicate: [{ not: "target:mark:duelists-challenge" }], selector: "strike-damage", type: "circumstance", value: "@weapon.system.damage.dice * -1" },
+  ];
+  const withDescription = (item, html) => ({ ...item, system: { ...item.system, description: { value: html } } });
+  const smite = () =>
+    withDescription(
+      action({ id: "sm1", slug: "smite", name: "Smite", uuid: SMITE_EFFECT, traits: ["champion", "concentrate"] }),
+      "<p>You single out one enemy to destroy in your deity's name. Designate one enemy you can see.</p><p>Your current Smite ends if you use the Smite action again.</p>",
+    );
+  const duel = () =>
+    withDescription(
+      action({ id: "dc1", slug: "duelists-challenge", name: "Duelist's Challenge", uuid: DUEL_EFFECT, traits: ["archetype"] }),
+      "<p>Select one enemy you can see and proclaim a challenge against it. That enemy is your dueling opponent until it's defeated, it flees from the encounter, or the encounter ends.</p>",
+    );
+
+  beforeEach(() => {
+    const base = globalThis.fromUuid;
+    globalThis.fromUuid = vi.fn(async (uuid) => {
+      if (uuid === SMITE_EFFECT) return effectDoc("effect-smite", structuredClone(SMITE_RULES));
+      if (uuid === DUEL_EFFECT) return effectDoc("effect-duelists-challenge", structuredClone(DUEL_RULES));
+      return base(uuid);
+    });
+  });
+
+  it("binds Smite's mark to the target and tags the effect with the marked token", async () => {
+    const { attacker, combat } = setup({ item: smite() });
+    await applyAgentDecision(combat, "atk", "feat:sm1:opp", "r");
+    const [, [source]] = attacker.actor.createEmbeddedDocuments.mock.calls[0];
+    expect(source.system.rules[0]).toEqual({ key: "TokenMark", slug: "smite", uuid: "Scene.s.Token.opp" });
+    expect(source.flags["pf2e-dungeon-crawl"]).toEqual({ agentSelfEffect: true, markTargetTokenUuid: "Scene.s.Token.opp" });
+    expect(turnState(combat).actionsRemaining).toBe(2);
+    const contents = globalThis.ChatMessage.create.mock.calls.map(([m]) => m.content);
+    expect(contents.some((c) => c.includes("Smite") && c.includes("marks its target"))).toBe(true);
+  });
+
+  it("Smite re-designation: the new mark is created, then the prior Smite removed", async () => {
+    const prior = { id: "old-smite", slug: "effect-smite", system: { rules: [{ key: "TokenMark", slug: "smite", uuid: "Scene.s.Token.opp2" }] } };
+    const { attacker, combat } = setup({ item: smite(), effect: [prior] });
+    await applyAgentDecision(combat, "atk", "feat:sm1:opp", "r");
+    expect(attacker.actor.deleteEmbeddedDocuments).toHaveBeenCalledWith("Item", ["old-smite"]);
+    expect(attacker.actor.createEmbeddedDocuments.mock.invocationCallOrder[0]).toBeLessThan(
+      attacker.actor.deleteEmbeddedDocuments.mock.invocationCallOrder[0],
+    );
+  });
+
+  it("Duelist's Challenge (no re-designation clause) deletes nothing", async () => {
+    const { attacker, combat } = setup({ item: duel() });
+    await applyAgentDecision(combat, "atk", "feat:dc1:opp", "r");
+    expect(attacker.actor.createEmbeddedDocuments).toHaveBeenCalledTimes(1);
+    expect(attacker.actor.deleteEmbeddedDocuments).not.toHaveBeenCalled();
+  });
+
+  it("spends nothing when Smite's target is out of sight at execution", async () => {
+    const { attacker, combat } = setup({ item: smite() });
+    afterCandidateRebuild(combat, () => {
+      combat.scene.walls.contents = [{ move: 20, door: 0, ds: 0, c: [200, 0, 200, 300] }];
+    });
+    await applyAgentDecision(combat, "atk", "feat:sm1:opp", "r");
+    expect(attacker.actor.createEmbeddedDocuments).not.toHaveBeenCalled();
+    expect(turnState(combat).actionsRemaining).toBe(3);
+  });
+});

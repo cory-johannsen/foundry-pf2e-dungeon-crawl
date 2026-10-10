@@ -1,4 +1,5 @@
 // tests/dungeon-combat-feat-self-effect-vocabulary.test.mjs
+import { readFileSync } from 'node:fs';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { computeSelfEffectVocabularyEntries } from '../scripts/dungeon-combat.mjs';
 
@@ -233,12 +234,22 @@ describe('computeSelfEffectVocabularyEntries (#914 derived filter)', () => {
     expect(await entriesFor('grant-feat', [{ key: 'GrantItem', uuid: 'Compendium.x' }])).toEqual([]);
   });
 
-  it('excludes an item whose effect has a TokenMark rule', async () => {
+  it('excludes an item whose effect has a TokenMark rule (a marked effect belongs to the targetedSelfEffect kind, #922/#946)', async () => {
     expect(await entriesFor('mark-feat', [{ key: 'TokenMark' }])).toEqual([]);
+    expect(await entriesFor('mark-feat', [{ key: 'TokenMark', slug: 'smite' }, { key: 'FlatModifier', selector: 'strike-damage', predicate: ['target:mark:smite'] }])).toEqual([]);
   });
 
-  it('excludes an item whose effect rule predicate references a target: roll option', async () => {
-    expect(await entriesFor('target-feat', [{ key: 'FlatModifier', selector: 'attack', predicate: ['target:undead'] }])).toEqual([]);
+  it('#946: no longer excludes an effect whose only target dependence is a target: roll-option predicate (evaluated per roll)', async () => {
+    expect(await entriesFor('target-feat', [{ key: 'FlatModifier', selector: 'attack', predicate: ['target:undead'] }])).toEqual([
+      expect.objectContaining({ slug: 'target-feat', effectSummary: "+attack (conditional on the roll's target)" }),
+    ]);
+  });
+
+  it('#946: still excludes a target: effect classifyTargetEffect calls unsupported (a toggleable RollOption needing a per-roll decision)', async () => {
+    expect(await entriesFor('toggle-feat', [
+      { key: 'RollOption', option: 'x', toggleable: true },
+      { key: 'FlatModifier', selector: 'attack', predicate: ['x', 'target:undead'] },
+    ])).toEqual([]);
   });
 
   it('excludes an item whose effect rule references @target', async () => {
@@ -286,5 +297,73 @@ describe('computeSelfEffectVocabularyEntries (#914 derived filter)', () => {
       'tier2-0',
     ]);
     expect((await computeSelfEffectVocabularyEntries(actor, 3)).map((e) => e.slug)).toEqual(entries.map((e) => e.slug));
+  });
+});
+
+// #946: the four target-conditional effects #914's blanket target: rule
+// wrongly excluded -- real item descriptions and linked-effect rules from
+// the pf2e 8.5.0 compendium (tests/fixtures/marked-target-population.json).
+describe('computeSelfEffectVocabularyEntries: target-conditional effects (#946)', () => {
+  const POPULATION = JSON.parse(
+    readFileSync(new URL('./fixtures/marked-target-population.json', import.meta.url), 'utf8'),
+  ).entries;
+
+  function realItem(slug) {
+    const e = POPULATION.find((p) => p.slug === slug);
+    return {
+      id: `${slug}-id`, slug, name: e.name, uuid: `Actor.a1.Item.${slug}-id`,
+      system: {
+        actionType: { value: e.actionType }, actions: { value: e.actions },
+        selfEffect: { uuid: e.selfEffectUuid }, frequency: e.frequency ? { ...e.frequency, value: 1 } : null,
+        traits: { value: e.traits }, rules: [], description: { value: e.description },
+      },
+      flags: { pf2e: { rulesSelections: {} } },
+    };
+  }
+
+  beforeEach(() => {
+    globalThis.fromUuid = vi.fn(async (uuid) => {
+      const e = POPULATION.find((p) => p.selfEffectUuid === uuid);
+      return e ? { slug: e.effect.slug, system: { rules: e.effect.rules, duration: e.effect.duration } } : null;
+    });
+  });
+
+  const held = (props) => ({ type: 'weapon', system: { equipped: { carryType: 'held', handsHeld: 1 }, range: null }, ...props });
+  const longbow = held({ name: 'Longbow', system: { equipped: { carryType: 'held', handsHeld: 2 }, range: 100 } });
+  const longsword = held({ name: 'Longsword', system: { equipped: { carryType: 'held', handsHeld: 1 }, range: null } });
+  const greatsword = held({ name: 'Greatsword', system: { equipped: { carryType: 'held', handsHeld: 2 }, range: null } });
+  const actorWith = (items, feat) => ({ type: 'character', conditions: [], items, itemTypes: { action: [], feat, effect: [] } });
+
+  it('offers Point Blank Stance while wielding a ranged weapon (its Requirement), as a plain stance entry with no target', async () => {
+    const entries = await computeSelfEffectVocabularyEntries(actorWith([longbow], [realItem('point-blank-stance')]), 3);
+    expect(entries).toEqual([
+      expect.objectContaining({ slug: 'point-blank-stance', traits: ['stance'], effectSummary: "option, +ranged-strike-damage (conditional on the roll's target)" }),
+    ]);
+    expect(entries[0]).not.toHaveProperty('targetId');
+  });
+
+  it('does not offer Point Blank Stance without a ranged weapon in hand', async () => {
+    expect(await computeSelfEffectVocabularyEntries(actorWith([longsword], [realItem('point-blank-stance')]), 3)).toEqual([]);
+  });
+
+  it('offers Spell Parry only with a hand free (its Requirement)', async () => {
+    expect(await computeSelfEffectVocabularyEntries(actorWith([longsword], [realItem('spell-parry')]), 3)).toEqual([
+      expect.objectContaining({ slug: 'spell-parry' }),
+    ]);
+    expect(await computeSelfEffectVocabularyEntries(actorWith([greatsword], [realItem('spell-parry')]), 3)).toEqual([]);
+  });
+
+  it("does not offer Monastic Archer Stance: 'unarmored' is outside the closed requirement set", async () => {
+    expect(await computeSelfEffectVocabularyEntries(actorWith([longbow], [realItem('monastic-archer-stance')]), 3)).toEqual([]);
+  });
+
+  it('does not offer Eye of the Arclords: denylisted (its afterwards-dazzled drawback is not part of its effect)', async () => {
+    expect(await computeSelfEffectVocabularyEntries(actorWith([], [realItem('eye-of-the-arclords')]), 3)).toEqual([]);
+  });
+
+  it('still excludes every marked/unsupported member of the population (none reach the plain self-effect kind)', async () => {
+    const marked = POPULATION.filter((p) => !['point-blank-stance', 'spell-parry', 'monastic-archer-stance', 'eye-of-the-arclords'].includes(p.slug));
+    const entries = await computeSelfEffectVocabularyEntries(actorWith([longbow], marked.map((p) => realItem(p.slug))), 3);
+    expect(entries).toEqual([]);
   });
 });

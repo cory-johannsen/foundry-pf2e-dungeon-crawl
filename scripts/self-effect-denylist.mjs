@@ -17,6 +17,12 @@
  *   models (the vocabulary has no "next roll" concept).
  * - Repel Ambient Magic: a counter-magic utility bonus, situational
  *   outside a magic-heavy encounter this module has no way to detect.
+ * - #946, a drawback the effect doesn't carry: Eye of the Arclords leaves
+ *   you dazzled afterwards "for an amount of time equal to how long you
+ *   had it open" -- its linked effect has no such rule, so an AI actor
+ *   would get the darkvision/Seek bonus without the RAW cost. (It reached
+ *   the survivor set when #946 stopped excluding target-conditional
+ *   effects.)
  */
 export const SELF_EFFECT_DENYLIST = new Set([
   // Senses only
@@ -33,4 +39,6 @@ export const SELF_EFFECT_DENYLIST = new Set([
   "reckless-abandon",
   // Situational utility outside this module's own context
   "repel-ambient-magic",
+  // A drawback the linked effect doesn't model (#946)
+  "eye-of-the-arclords",
 ]);

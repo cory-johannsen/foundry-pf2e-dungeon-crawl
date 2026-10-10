@@ -1,5 +1,9 @@
+import { readFileSync } from "node:fs";
 import { describe, it, expect } from "vitest";
 import {
+  classifyTargetEffect,
+  resolveTargetedSelfEffectConfig,
+  summarizeMarkEffect,
   TARGETED_SELF_EFFECT_ALLOWLIST,
   bindTokenMarkEffect,
   selectRollOptionSuboption,
@@ -159,5 +163,99 @@ describe("findActiveMarkEffects / markAnnotation", () => {
     ]);
     expect(markAnnotation(marks)).toBe("marked: hunted-prey; marked: devise-a-stratagem, d20 = 4");
     expect(markAnnotation([])).toBeNull();
+  });
+});
+
+// #946: real linked-effect rules from the pf2e 8.5.0 compendium population
+// (tests/fixtures/marked-target-population.json).
+const POPULATION = JSON.parse(
+  readFileSync(new URL("./fixtures/marked-target-population.json", import.meta.url), "utf8"),
+).entries;
+const rulesOf = (slug) => {
+  const entry = POPULATION.find((e) => e.slug === slug);
+  if (!entry) throw new Error(`fixture has no ${slug}`);
+  return entry.effect.rules;
+};
+
+describe("classifyTargetEffect (#946)", () => {
+  it("'none' for a plain effect with no target dependence, even with a toggleable RollOption or ChoiceSet (#914's own gates handle those)", () => {
+    expect(classifyTargetEffect([{ key: "FlatModifier", selector: "ac", value: 2 }])).toBe("none");
+    expect(classifyTargetEffect([{ key: "RollOption", option: "x", toggleable: true }])).toBe("none");
+    expect(classifyTargetEffect([])).toBe("none");
+  });
+
+  it("'targetConditional' for target: predicates with no TokenMark (Point Blank Stance, Spell Parry, Monastic Archer Stance, Eye of the Arclords)", () => {
+    for (const slug of ["point-blank-stance", "spell-parry", "monastic-archer-stance", "eye-of-the-arclords"]) {
+      expect(classifyTargetEffect(rulesOf(slug)), slug).toBe("targetConditional");
+    }
+  });
+
+  it("'marked' for a clean single-TokenMark effect (Smite, Duelist's Challenge, Size Up, Hunt Prey)", () => {
+    for (const slug of ["smite", "duelists-challenge", "size-up", "hunt-prey", "whispers-of-weakness"]) {
+      expect(classifyTargetEffect(rulesOf(slug)), slug).toBe("marked");
+    }
+  });
+
+  it("'unsupported' for a TokenMark effect with a toggleable RollOption (Harsh Judgement, Nothing Personal, Devise a Stratagem without its #922 config)", () => {
+    for (const slug of ["harsh-judgement", "nothing-personal", "devise-a-stratagem"]) {
+      expect(classifyTargetEffect(rulesOf(slug)), slug).toBe("unsupported");
+    }
+  });
+
+  it("'unsupported' for a target-dependent effect with a ChoiceSet or GrantItem (Unfazed Assessment, Come and Get Me, Divine Weapon, Hunt Runelord, Intensified Element Stance)", () => {
+    for (const slug of ["unfazed-assessment", "come-and-get-me", "divine-weapon", "hunt-runelord", "intensified-element-stance"]) {
+      expect(classifyTargetEffect(rulesOf(slug)), slug).toBe("unsupported");
+    }
+  });
+
+  it("'unsupported' for an @target reference, a slugless TokenMark, or two TokenMarks", () => {
+    expect(classifyTargetEffect([{ key: "Note", text: "does something to @target" }])).toBe("unsupported");
+    expect(classifyTargetEffect([{ key: "TokenMark" }])).toBe("unsupported");
+    expect(classifyTargetEffect([{ key: "TokenMark", slug: "a" }, { key: "TokenMark", slug: "b" }])).toBe("unsupported");
+  });
+});
+
+describe("resolveTargetedSelfEffectConfig (#946)", () => {
+  const itemFor = (slug, overrides = {}) => {
+    const e = POPULATION.find((p) => p.slug === slug);
+    return { slug, system: { traits: { value: e.traits }, description: { value: e.description } }, ...overrides };
+  };
+  const effectFor = (slug) => ({ system: { rules: rulesOf(slug) } });
+
+  it("keeps #922's explicit configs for Hunt Prey and Devise a Stratagem", () => {
+    expect(resolveTargetedSelfEffectConfig(itemFor("hunt-prey"), effectFor("hunt-prey"))).toMatchObject({ markSlug: "hunted-prey", requiresSight: false, exclusiveMark: true });
+    expect(resolveTargetedSelfEffectConfig(itemFor("devise-a-stratagem"), effectFor("devise-a-stratagem"))).toMatchObject({
+      markSlug: "devise-a-stratagem", suboption: { option: "devise-a-stratagem", value: "attack" },
+    });
+  });
+
+  it("derives Smite / Duelist's Challenge / Size Up from their own data", () => {
+    expect(resolveTargetedSelfEffectConfig(itemFor("smite"), effectFor("smite"))).toEqual({
+      markSlug: "smite", requiresSight: true, needsHearing: false, rangeFeet: null, targetNotMindless: false, requirements: [], exclusiveMark: true, suboption: null,
+    });
+    expect(resolveTargetedSelfEffectConfig(itemFor("duelists-challenge"), effectFor("duelists-challenge"))).toMatchObject({ markSlug: "duelists-challenge", exclusiveMark: false });
+    expect(resolveTargetedSelfEffectConfig(itemFor("size-up"), effectFor("size-up"))).toMatchObject({ markSlug: "size-up", needsHearing: true, targetNotMindless: true });
+  });
+
+  it("null for a cursebound item even when its text is otherwise usable", () => {
+    const item = itemFor("smite", { system: { traits: { value: ["cursebound", "oracle"] }, description: { value: "<p>Designate one enemy you can see.</p>" } } });
+    expect(resolveTargetedSelfEffectConfig(item, effectFor("smite"))).toBeNull();
+  });
+
+  it("null for a non-marked effect, or no description", () => {
+    expect(resolveTargetedSelfEffectConfig(itemFor("harsh-judgement"), effectFor("harsh-judgement"))).toBeNull();
+    expect(resolveTargetedSelfEffectConfig(itemFor("point-blank-stance"), effectFor("point-blank-stance"))).toBeNull();
+    expect(resolveTargetedSelfEffectConfig({ slug: "smite", system: {} }, effectFor("smite"))).toBeNull();
+  });
+});
+
+describe("summarizeMarkEffect (#946)", () => {
+  it("scopes each bonus/penalty to the mark, the marked creature's own actions, or everyone else", () => {
+    expect(summarizeMarkEffect(rulesOf("size-up"), "size-up", "Orc", "1 days")).toBe(
+      "mark Orc: +perception-dc vs Orc's actions, +deception/diplomacy/intimidation vs Orc (1 days)",
+    );
+    expect(summarizeMarkEffect(rulesOf("duelists-challenge"), "duelists-challenge", "Orc")).toBe(
+      "mark Orc: +melee-strike-damage vs Orc, -strike-damage vs others",
+    );
   });
 });
