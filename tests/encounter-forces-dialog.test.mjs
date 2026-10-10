@@ -11,7 +11,7 @@ describe('defaultForce', () => {
   it('builds force 1 with the documented defaults', () => {
     expect(defaultForce(0)).toEqual({
       id: 'f1', name: '', hostility: 'players', share: 100,
-      filters: { traits: [], excludeTraits: [], levelOffsetMin: null, levelOffsetMax: null, family: '', rarity: '' },
+      filters: { traits: [], excludeTraits: [], levelOffsetMin: null, levelOffsetMax: null, rarity: '' },
       placement: { mode: 'nearParty' },
     });
   });
@@ -36,14 +36,14 @@ describe('normalizeForce', () => {
   it('coerces form strings', () => {
     const f = normalizeForce({
       name: ' Orcs ', hostility: 'all', share: '40',
-      filters: { traits: ['orc'], levelOffsetMin: '-1', levelOffsetMax: '', family: '  orc ', rarity: 'rare' },
+      filters: { traits: ['orc'], levelOffsetMin: '-1', levelOffsetMax: '', rarity: 'rare' },
       placement: { mode: 'region:abc' },
     }, 1);
     expect(f.id).toBe('f2');
     expect(f.share).toBe(40);
     expect(f.filters.levelOffsetMin).toBe(-1);
     expect(f.filters.levelOffsetMax).toBeNull();
-    expect(f.filters.family).toBe('orc');
+    expect(f.filters).not.toHaveProperty('family');
     expect(f.filters.rarity).toBe('rare');
     expect(f.filters.excludeTraits).toEqual([]);
     expect(f.placement.mode).toBe('region:abc');
@@ -63,10 +63,11 @@ describe('forceSectionHtml', () => {
   );
   it('has the fieldset and named inputs', () => {
     expect(html).toContain('<fieldset data-force="f1"');
-    for (const n of ['name', 'hostility', 'share', 'levelMin', 'levelMax', 'family', 'rarity', 'placement'])
+    for (const n of ['name', 'hostility', 'share', 'levelMin', 'levelMax', 'rarity', 'placement'])
       expect(html).toContain(`name="force-f1-${n}"`);
     expect(html).toContain('name="traits-f1"');
     expect(html).toContain('name="excludeTraits-f1"');
+    expect(html).not.toContain('family');
   });
   it('marks selected hostility and rarity', () => {
     expect(html).toMatch(/<option value="all" selected>/);
@@ -78,10 +79,10 @@ describe('readForcesFromForm', () => {
   it('reads every fieldset', () => {
     const vals = {
       'force-f1-name': 'A', 'force-f1-hostility': 'players', 'force-f1-share': '60',
-      'force-f1-levelMin': '', 'force-f1-levelMax': '1', 'force-f1-family': 'goblin',
+      'force-f1-levelMin': '', 'force-f1-levelMax': '1',
       'force-f1-rarity': '', 'force-f1-placement': 'nearParty',
       'force-f2-name': 'B', 'force-f2-hostility': 'all', 'force-f2-share': '40',
-      'force-f2-levelMin': '-2', 'force-f2-levelMax': '', 'force-f2-family': '',
+      'force-f2-levelMin': '-2', 'force-f2-levelMax': '',
       'force-f2-rarity': 'rare', 'force-f2-placement': 'region:r1',
       'traits-f1': 'undead,fiend',
     };
@@ -97,7 +98,7 @@ describe('readForcesFromForm', () => {
     const forces = readForcesFromForm(root);
     expect(forces).toHaveLength(2);
     expect(forces[0]).toMatchObject({ id: 'f1', name: 'A', share: 60 });
-    expect(forces[0].filters).toMatchObject({ traits: ['undead', 'fiend'], levelOffsetMin: null, levelOffsetMax: 1, family: 'goblin' });
+    expect(forces[0].filters).toMatchObject({ traits: ['undead', 'fiend'], levelOffsetMin: null, levelOffsetMax: 1 });
     expect(forces[1]).toMatchObject({ id: 'f2', hostility: 'all', share: 40, placement: { mode: 'region:r1' } });
     expect(forces[1].filters).toMatchObject({ levelOffsetMin: -2, rarity: 'rare' });
   });

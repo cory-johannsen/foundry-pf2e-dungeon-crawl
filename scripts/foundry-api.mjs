@@ -255,7 +255,6 @@ export function makeFoundryApi(sceneRef = null) {
       packs = null,
       requireTrait = null,
       excludePacks = [],
-      family = null,
       rarity = null,
     } = {}) {
       packs ??= game.packs
@@ -300,11 +299,11 @@ export function makeFoundryApi(sceneRef = null) {
           const languages = e.system?.details?.languages?.value ?? [];
           if (speaksLanguage && !languages.length) continue;
           const entryRarity = e.system?.traits?.rarity ?? "common";
-          // Family = ancestry-style trait (creatureMatchesFilters, #1083).
+          // Rarity filter (creatureMatchesFilters, #1083).
           if (
             !creatureMatchesFilters(
               { traits: has, rarity: entryRarity },
-              { family, rarity },
+              { rarity },
             )
           )
             continue;

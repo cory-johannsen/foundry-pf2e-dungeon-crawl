@@ -212,7 +212,6 @@ function regionArea(scene, regionId) {
 
 const FILTER_NAMES = [
   ["levelRange", (f) => f.levelOffsetMin != null || f.levelOffsetMax != null],
-  ["family", (f) => !!f.family],
   ["rarity", (f) => !!f.rarity],
 ];
 
@@ -258,7 +257,6 @@ async function generateForces({
       excludeTraits: fl.excludeTraits ?? [],
       levelOffsetMin: fl.levelOffsetMin ?? null,
       levelOffsetMax: fl.levelOffsetMax ?? null,
-      family: fl.family ?? "",
       rarity: fl.rarity ?? "",
       xpCapOverride: caps[i],
       levelOffsetBias,

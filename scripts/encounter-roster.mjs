@@ -123,22 +123,14 @@ export function depthBiasForDifficultyTier(tier) {
 }
 
 /**
- * Per-force creature filter predicate (#1083). `family` is the ancestry-style
- * trait (goblin, orc, dragon...): PF2e NPCs carry no dedicated family field,
- * so it is a case-insensitive equality against any entry of the creature's
- * `traits` (system.traits.value). `rarity` is an exact match. null = no
- * constraint.
+ * Per-force creature filter predicate (#1083). `rarity` is an exact match;
+ * null = no constraint.
  */
 export function creatureMatchesFilters(
   entry,
-  { family = null, rarity = null } = {},
+  { rarity = null } = {},
 ) {
   if (rarity != null && entry.rarity !== rarity) return false;
-  if (family != null) {
-    const want = String(family).toLowerCase();
-    if (!(entry.traits ?? []).some((t) => String(t).toLowerCase() === want))
-      return false;
-  }
   return true;
 }
 
@@ -172,7 +164,6 @@ async function pickCreature({
   upwardTolerance = LEVEL_TOLERANCE,
   levelOffsetMin = null,
   levelOffsetMax = null,
-  family = null,
   rarity = null,
 }) {
   let minLevel = partyLevel + levelOffset + levelOffsetBias - LEVEL_TOLERANCE;
@@ -193,7 +184,6 @@ async function pickCreature({
       packs,
       excludePacks,
       requireTrait,
-      family,
       rarity,
     });
 
@@ -269,7 +259,6 @@ export async function resolveEncounterRoster({
   depthBias = null,
   levelOffsetMin = null,
   levelOffsetMax = null,
-  family = null,
   rarity = null,
   xpCapOverride = null,
 }) {
@@ -288,7 +277,7 @@ export async function resolveEncounterRoster({
       : partySize != null
         ? xpBudget(capTier, partySize)
         : null;
-  const filters = { levelOffsetMin, levelOffsetMax, family, rarity };
+  const filters = { levelOffsetMin, levelOffsetMax, rarity };
 
   const pick = (levelOffset, boss = false) =>
     pickCreature({
@@ -482,6 +471,6 @@ export async function resolveEncounterRoster({
     goal: resolved.goal ?? null,
     warnings,
     approxXp,
-    appliedFilters: ["levelRange", "family", "rarity", "xpCapOverride"],
+    appliedFilters: ["levelRange", "rarity", "xpCapOverride"],
   };
 }
