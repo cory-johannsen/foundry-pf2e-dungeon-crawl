@@ -486,7 +486,7 @@ Behavior in `generateEncounter`:
 5. Spawn: for each surviving force `spawnEncounterTokens(api, roster, partyMembers, { ..., extraFlags: merge(flags, { [MODULE_ID]: { forceId, forceName } }), tint, nameSuffix: force.name || null, originOffsetCells, originArea })`, where nearParty forces get offsets `[{0,0},{4,0},{-4,0},{0,4},{0,-4},{4,4}][i % 6]` and a `region:<id>` placement resolves `scene.regions.get(id)` bounds to `originArea {x,y,width,height}` (unlike dungeon rooms this does **not** trigger the cover-items/`!originArea` combat-start branches — use a separate local `placementArea` variable, keep the function's `originArea` parameter semantics untouched).
 6. Start combat once: `startCombatForEncounterId(scene, encounterId, { forces: buildForceTable(survivingForces) })`.
 
-- [ ] **Step 1: Write failing tests** (mocked generator, `api.spawnCreatures` spy, `startCombatForEncounterId` mocked via `vi.mock("../scripts/dungeon-combat.mjs")`):
+- [x] **Step 1: Write failing tests** (mocked generator, `api.spawnCreatures` spy, `startCombatForEncounterId` mocked via `vi.mock("../scripts/dungeon-combat.mjs")`):
   - Two forces 50/50 on Moderate/4 PCs ⇒ generator called twice with `xpCapOverride` 40 and 40 and different `resolved` seeds; force filters passed through (`traits:["undead"]`, `family:"goblin"`…).
   - `spawnCreatures` is called with `extraFlags[MODULE_ID].forceId === "f1"/"f2"`, `disposition:-1` for both, distinct `originOffsetCells`, distinct `tint`.
   - Empty force ⇒ warning naming it, other force still spawns, table contains only survivors; all empty ⇒ no spawn, `startCombatForEncounterId` not called.
@@ -494,10 +494,10 @@ Behavior in `generateEncounter`:
   - `skipThemeDialog: true` ⇒ generator called once **without** `xpCapOverride`/`forceId` flag and `startCombatForEncounterId` not given `forces` (parity with the existing tests, which must still pass unmodified).
   - `buildForceTable`: `{ f1:{hostility:"all",hostileTo:[]}, f2:{hostility:"players",hostileTo:[]} }`.
   - friend/twin/lurker kept on force 1 only.
-- [ ] **Step 2: Run, FAIL.**
-- [ ] **Step 3: Implement** per the behavior list; add lang keys `ForceEmpty`, `ForceFilterUnsupported`, `ForceCardHeader`.
-- [ ] **Step 4: Run** `npx vitest run tests/encounter-generator-forces.test.mjs tests/encounter-generator.test.mjs tests/foundry-api-spawn-choice-set.test.mjs` then `npm test`.
-- [ ] **Step 5: Commit** — `git commit -am "#1083: multi-force encounter generation and spawning"`.
+- [x] **Step 2: Run, FAIL.**
+- [x] **Step 3: Implement** per the behavior list; add lang keys `ForceEmpty`, `ForceFilterUnsupported`, `ForceCardHeader`.
+- [x] **Step 4: Run** `npx vitest run tests/encounter-generator-forces.test.mjs tests/encounter-generator.test.mjs tests/foundry-api-spawn-choice-set.test.mjs` then `npm test`.
+- [x] **Step 5: Commit** — `git commit -am "#1083: multi-force encounter generation and spawning"`.
 
 ---
 
