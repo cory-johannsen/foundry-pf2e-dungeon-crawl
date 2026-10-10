@@ -1,6 +1,7 @@
 // tests/npc-ability-parse.test.mjs
+import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
-import { parseSaveAbility, describeNpcAbility, AGENT_MELEE_REACH_FEET } from '../scripts/npc-ability-parse.mjs';
+import { parseSaveAbility, describeNpcAbility, npcAbilityExcludesTarget, AGENT_MELEE_REACH_FEET } from '../scripts/npc-ability-parse.mjs';
 
 function item({ type = 'action', actionType = 'action', cost = 2, description, traits = [], frequency = null } = {}) {
   return {
@@ -28,15 +29,18 @@ describe('parseSaveAbility', () => {
     expect(descriptor.affectsAllies).toBe(true);
     expect(descriptor.riderText).toMatch(/Off-Guard to the megaprimatus and to gorillas/);
     expect(descriptor.immuneSeconds).toBeNull();
-    expect(descriptor.degrees.criticalSuccess).toEqual({ none: true, asFailure: false, conditions: [], immuneSeconds: 60 });
-    expect(descriptor.degrees.success).toEqual({ none: true, asFailure: false, conditions: [], immuneSeconds: null });
-    expect(descriptor.degrees.failure).toEqual({ none: false, asFailure: false, conditions: [{ slug: 'frightened', value: 1, durationSeconds: null }], immuneSeconds: null });
+    expect(descriptor.degrees.criticalSuccess).toEqual({ none: true, conditions: [], penalties: [], immuneSeconds: 60 });
+    expect(descriptor.degrees.success).toEqual({ none: true, conditions: [], penalties: [], immuneSeconds: null });
+    expect(descriptor.degrees.failure).toEqual({ none: false, conditions: [{ slug: 'frightened', value: 1, durationSeconds: null }], penalties: [], immuneSeconds: null });
     // The duration belongs to Fleeing's own clause; Frightened decays on its own.
     expect(descriptor.degrees.criticalFailure).toEqual({
-      none: false, asFailure: false,
+      none: false,
       conditions: [{ slug: 'frightened', value: 2, durationSeconds: null }, { slug: 'fleeing', value: null, durationSeconds: 'untilNextTurn' }],
+      penalties: [],
       immuneSeconds: null,
     });
+    expect(descriptor.family).toBe('blocks');
+    expect(descriptor.targetFilter).toBeNull();
     expect(descriptor.degreeText.failure).toBe('The creature is Frightened 1.');
   });
 
@@ -46,7 +50,8 @@ describe('parseSaveAbility', () => {
     }));
     expect(descriptor.mode).toBe('auto');
     expect(descriptor.degrees.failure.conditions).toEqual([{ slug: 'off-guard', value: null, durationSeconds: 6 }]);
-    expect(descriptor.degrees.criticalFailure.asFailure).toBe(true);
+    // #935: "As failure." is resolved to the failure outcome itself.
+    expect(descriptor.degrees.criticalFailure).toEqual(descriptor.degrees.failure);
   });
 
   it('falls back to reportOnly for Radiant Wings -- its critical-failure block has a leftover conditional rider beyond "As failure"', () => {
@@ -138,18 +143,28 @@ describe('parseSaveAbility', () => {
     expect(descriptor.shape).toEqual({ rangeFeet: 30 });
   });
 
-  it('is reportOnly when the outcome blocks are missing entirely (a recognizable save, unparseable outcome)', () => {
+  it('is reportOnly when there are no outcome blocks and the inline outcome is outside the grammar (#935)', () => {
     const descriptor = parseSaveAbility(item({
-      description: '<p>A creature within 30 feet must succeed at a @Check[will|dc:20] save or become frightened 1.</p>',
+      description: '<p>A creature within 30 feet must succeed at a @Check[will|dc:20] save or forget its own name.</p>',
+    }));
+    expect(descriptor.mode).toBe('reportOnly');
+    expect(descriptor.family).toBe('inline');
+  });
+
+  it('is reportOnly when the success or failure block is missing', () => {
+    const descriptor = parseSaveAbility(item({
+      description: '<p>@Template[emanation|distance:10] @Check[will|dc:20] save.</p><hr /><p><strong>Critical Success</strong> The creature is unaffected.</p><p><strong>Failure</strong> The creature is frightened 1.</p>',
     }));
     expect(descriptor.mode).toBe('reportOnly');
   });
 
-  it('is reportOnly when a degree block is missing (all four are needed to auto-apply)', () => {
+  it('gives an unlisted critical success the success effect and an unlisted critical failure the failure effect (#935, PF2e convention)', () => {
     const descriptor = parseSaveAbility(item({
       description: '<p>@Template[emanation|distance:10] @Check[will|dc:20] save.</p><hr /><p><strong>Success</strong> The creature is unaffected.</p><p><strong>Failure</strong> The creature is frightened 1.</p>',
     }));
-    expect(descriptor.mode).toBe('reportOnly');
+    expect(descriptor.mode).toBe('auto');
+    expect(descriptor.degrees.criticalSuccess).toEqual(descriptor.degrees.success);
+    expect(descriptor.degrees.criticalFailure).toEqual(descriptor.degrees.failure);
   });
 
   it('forwards the @Check\'s own options (inflicts:<slug>, area-effect) as roll options, never as an inflicted condition', () => {
@@ -244,5 +259,329 @@ describe('describeNpcAbility (#915)', () => {
     expect(describeNpcAbility({ save: 'will', dc: 25, shape: { rangeFeet: 5 }, mode: 'reportOnly', degrees: {} })).toBe(
       'will DC 25, single target within 5 ft; outcome resolved by the GM',
     );
+  });
+});
+
+// #935: real compendium texts come from the committed 369-ability slice
+// (pf2e source data); `fixtureItem` adds the item's name, as a live item has.
+const SLICE = JSON.parse(
+  readFileSync(new URL('./fixtures/npc-save-ability-slice.json', import.meta.url), 'utf8'),
+).entries;
+function fixtureItem(actor, name) {
+  const entry = SLICE.find((e) => e.actor === actor && e.name === name);
+  if (!entry) throw new Error(`no fixture entry ${actor} :: ${name}`);
+  return { ...entry.item, name: entry.name };
+}
+const blockItem = (blocks, preamble = '<p>Each creature in a @Template[emanation|distance:30] must attempt a @Check[will|dc:20] save.</p><hr />') =>
+  item({
+    description: preamble + Object.entries(blocks).map(([label, body]) => `<p><strong>${label}</strong> ${body}</p>`).join(''),
+  });
+const cond = (slug, value = null, durationSeconds = null) => ({ slug, value, durationSeconds });
+
+describe('degree-block grammar widening (#935)', () => {
+  it('still reads a bare (unlinked) condition word -- regression guard for #915\'s extractBareConditions', () => {
+    const d = parseSaveAbility(blockItem({
+      'Critical Success': 'The creature is unaffected.',
+      Success: 'The creature is unaffected.',
+      Failure: 'The creature is Frightened 1.',
+      'Critical Failure': 'The creature is Frightened 2.',
+    }));
+    expect(d.mode).toBe('auto');
+    expect(d.degrees.criticalFailure.conditions).toEqual([cond('frightened', 2)]);
+  });
+
+  it('resolves "As success" and "As critical failure" references, not just "As failure"', () => {
+    const d = parseSaveAbility(blockItem({
+      'Critical Success': 'The creature is unaffected.',
+      Success: 'As critical success.',
+      Failure: 'The creature is Frightened 1.',
+      'Critical Failure': 'As failure.',
+    }));
+    expect(d.mode).toBe('auto');
+    expect(d.degrees.success).toEqual(d.degrees.criticalSuccess);
+    expect(d.degrees.criticalFailure).toEqual(d.degrees.failure);
+  });
+
+  it('"As failure, but for 1 minute" changes the duration (Gongorinan\'s Disquieting Display, real text)', () => {
+    const d = parseSaveAbility(fixtureItem('Gongorinan', 'Disquieting Display'));
+    expect(d.mode).toBe('auto');
+    // "Clumsy 2 and Slowed 1 for 1 round": the trailing duration covers both.
+    expect(d.degrees.failure.conditions).toEqual([cond('clumsy', 2, 6), cond('slowed', 1, 6)]);
+    expect(d.degrees.criticalFailure.conditions).toEqual([cond('clumsy', 2, 60), cond('slowed', 1, 60)]);
+    // "... after which they are temporarily immune ... for 1 minute": everyone.
+    expect(d.immuneSeconds).toBe(60);
+  });
+
+  it('"As failure, plus <condition> for as long as it\'s frightened" adds a condition (Deep One\'s Share Devotion, real text)', () => {
+    const d = parseSaveAbility(fixtureItem('Deep One', 'Share Devotion'));
+    expect(d.mode).toBe('auto');
+    expect(d.degrees.criticalFailure.conditions).toEqual([cond('frightened', 2), cond('dazzled', null, 'while:frightened')]);
+  });
+
+  it('"As failure, but <condition>" replaces the same condition, keeping its duration', () => {
+    const d = parseSaveAbility(blockItem({
+      Success: 'The creature is unaffected.',
+      Failure: 'The creature is Stupefied 2 for 1 minute.',
+      'Critical Failure': 'As failure, but the creature is Stupefied 3.',
+    }));
+    expect(d.mode).toBe('auto');
+    expect(d.degrees.criticalFailure.conditions).toEqual([cond('stupefied', 3, 60)]);
+  });
+
+  it('an "As X" suffix outside the grammar keeps the ability reportOnly (Radiant Wings, Vanth\'s Curse, Augnagar, real texts)', () => {
+    expect(parseSaveAbility(fixtureItem('Quetz Coatl', 'Radiant Wings')).mode).toBe('reportOnly');
+    expect(parseSaveAbility(fixtureItem('Vanth', "Vanth's Curse")).mode).toBe('reportOnly');
+    expect(parseSaveAbility(fixtureItem('Augnagar', 'Confusing Display')).mode).toBe('reportOnly');
+  });
+
+  it('strips a fascination\'s subject ("fascinated by the melody on the wind") and scopes success-only preamble immunity (Mesmerizing Melody, real text)', () => {
+    const d = parseSaveAbility(fixtureItem('Melody on the Wind', 'Mesmerizing Melody'));
+    expect(d.mode).toBe('auto');
+    expect(d.degrees.success.conditions).toEqual([cond('fascinated', null, 6)]);
+    expect(d.degrees.failure.conditions).toEqual([cond('fascinated', null, 24)]);
+    // No critical failure block: the failure effect.
+    expect(d.degrees.criticalFailure).toEqual(d.degrees.failure);
+    // "A creature that succeeds at its save is temporarily immune for 24 hours".
+    expect(d.immuneSeconds).toBeNull();
+    expect(d.degrees.criticalSuccess.immuneSeconds).toBe(86400);
+    expect(d.degrees.success.immuneSeconds).toBe(86400);
+    expect(d.degrees.failure.immuneSeconds).toBeNull();
+  });
+
+  it('reads an immunity-only block and an "until no longer sickened" duration (Giant Pangolin\'s Emit Musk, real text)', () => {
+    const d = parseSaveAbility(fixtureItem('Giant Pangolin', 'Emit Musk'));
+    expect(d.mode).toBe('auto');
+    expect(d.degrees.criticalSuccess).toEqual({ none: true, conditions: [], penalties: [], immuneSeconds: 60 });
+    expect(d.degrees.criticalFailure.conditions).toEqual([cond('sickened', 1), cond('off-guard', null, 'while:sickened')]);
+  });
+
+  it('shares a trailing duration with the earlier conditions of its sentence, but not with a self-ending one (Wihsaak, real text)', () => {
+    const d = parseSaveAbility(fixtureItem('Wihsaak', 'Droning Distraction'));
+    expect(d.mode).toBe('auto');
+    expect(d.degrees.failure.conditions).toEqual([cond('confused', null, 6), cond('stupefied', 1, 6)]);
+    expect(d.degrees.criticalFailure.conditions).toEqual([cond('confused', null, 6), cond('stupefied', 2, 60)]);
+    const terrifying = parseSaveAbility(item({ description: TERRIFYING_DISPLAY }));
+    expect(terrifying.degrees.criticalFailure.conditions[0]).toEqual(cond('frightened', 2));
+  });
+
+  it('never applies a timed-style condition open-ended: Trumpet Blast\'s bare "Off-Guard" success is reportOnly (real text)', () => {
+    expect(parseSaveAbility(fixtureItem('Trumpet Archon', 'Trumpet Blast')).mode).toBe('reportOnly');
+  });
+
+  it('does not model a duration-based Stunned ("stunned for 1 round", Zoaem\'s Behold!, real text)', () => {
+    expect(parseSaveAbility(fixtureItem('Zoaem', 'Behold!')).mode).toBe('reportOnly');
+  });
+
+  it('a bespoke trailing clause still disqualifies the block (Skaveling\'s "Stunned 1 by fear" is left to the override table)', () => {
+    const d = parseSaveAbility(blockItem({
+      Success: 'The creature is unaffected.',
+      Failure: 'The creature is Frightened 1.',
+      'Critical Failure': 'As failure, and the creature also forgets the last minute.',
+    }));
+    expect(d.mode).toBe('reportOnly');
+  });
+});
+
+describe('penalty outcomes (#935)', () => {
+  it('reads a status penalty to Speeds with a duration', () => {
+    const d = parseSaveAbility(blockItem({
+      Success: 'The creature is unaffected.',
+      Failure: 'The creature takes a –10-foot status penalty to its Speeds for 1 round.',
+    }));
+    expect(d.mode).toBe('auto');
+    expect(d.degrees.failure.penalties).toEqual([{ type: 'status', value: -10, selectors: ['all-speeds'], durationSeconds: 6 }]);
+  });
+
+  it('reads one penalty to several statistics, with a leading floating duration', () => {
+    const d = parseSaveAbility(blockItem({
+      Success: 'The creature is unaffected.',
+      Failure: 'For 1 minute, the creature takes a -1 status penalty to attack rolls, saving throws, and skill checks.',
+    }));
+    expect(d.mode).toBe('auto');
+    expect(d.degrees.failure.penalties).toEqual([
+      { type: 'status', value: -1, selectors: ['attack-roll', 'saving-throw', 'skill-check'], durationSeconds: 60 },
+    ]);
+    expect(describeNpcAbility(d)).toContain('failure: -1 status penalty to attack-roll/saving-throw/skill-check (1 minute)');
+  });
+
+  it('reads a named-save penalty alongside a condition', () => {
+    const d = parseSaveAbility(blockItem({
+      Success: 'The creature is unaffected.',
+      Failure: 'The creature is Dazzled for 1 round and takes a -1 circumstance penalty to Will saves for 1 round.',
+    }));
+    expect(d.mode).toBe('auto');
+    expect(d.degrees.failure.conditions).toEqual([cond('dazzled', null, 6)]);
+    expect(d.degrees.failure.penalties).toEqual([{ type: 'circumstance', value: -1, selectors: ['will'], durationSeconds: 6 }]);
+  });
+
+  it('does not let a clean penalty clause rescue a trailing rider (Bittersweet Dreams, real text)', () => {
+    expect(parseSaveAbility(fixtureItem('Dramofir', 'Bittersweet Dreams')).mode).toBe('reportOnly');
+    const d = parseSaveAbility(blockItem({
+      Success: 'For 1 round, the creature takes a -1 status penalty to attack rolls, saving throws, and skill checks, and all other emotion effects on it are suppressed.',
+      Failure: 'The creature is Frightened 1.',
+    }));
+    expect(d.mode).toBe('reportOnly');
+  });
+
+  it('never guesses a backward-reference selector ("checks using that skill" -- Steal Knowledge, real text)', () => {
+    expect(parseSaveAbility(fixtureItem('Whisper Dragon (Adult)', 'Steal Knowledge')).mode).toBe('reportOnly');
+  });
+
+  it('rejects a single-use "next saving throw" penalty (Mask of Fate, real text)', () => {
+    expect(parseSaveAbility(fixtureItem('Divine Warden of Pharasma', 'Mask of Fate')).mode).toBe('reportOnly');
+  });
+
+  it('rejects a penalty with no stated end (Fiddle\'s Speed penalty lasts while the grig fiddles, real text)', () => {
+    expect(parseSaveAbility(fixtureItem('Grig', 'Fiddle')).mode).toBe('reportOnly');
+  });
+
+  it('rejects a penalty "against" something narrower than a statistic (Funereal Dirge, real text)', () => {
+    expect(parseSaveAbility(fixtureItem('Cairn Wight', 'Funereal Dirge')).mode).toBe('reportOnly');
+  });
+});
+
+describe('inline-outcome grammar (#935)', () => {
+  it('reads "becomes <condition> unless they succeed" with the crit-success immunity and the non-boggard filter (Terrifying Croak, real text)', () => {
+    const d = parseSaveAbility(fixtureItem('Boggard Warrior', 'Terrifying Croak'));
+    expect(d.mode).toBe('auto');
+    expect(d.family).toBe('inline');
+    expect(d.shape).toEqual({ areaType: 'emanation', distanceFeet: 30 });
+    expect(d.targetFilter).toEqual({ excludeTraits: ['boggard'], excludeNames: [], livingOnly: false });
+    expect(d.degrees.criticalSuccess).toEqual({ none: true, conditions: [], penalties: [], immuneSeconds: 60 });
+    expect(d.degrees.success).toEqual({ none: true, conditions: [], penalties: [], immuneSeconds: null });
+    expect(d.degrees.failure.conditions).toEqual([cond('frightened', 1)]);
+    expect(d.degrees.criticalFailure.conditions).toEqual([cond('frightened', 1)]);
+    expect(d.immuneSeconds).toBeNull();
+    expect(describeNpcAbility(d)).toBe(
+      'will DC 18, 30-ft emanation (non-boggard only); success: no effect; failure: frightened 1; critical failure: frightened 1',
+    );
+  });
+
+  it('reads compiled runtime links (id plus label) the same as source names', () => {
+    const source = fixtureItem('Boggard Warrior', 'Terrifying Croak');
+    const compiled = {
+      ...source,
+      system: {
+        ...source.system,
+        description: { value: source.system.description.value.replace('Item.Frightened]', 'Item.TBSHQspnbcqxsmjL]') },
+      },
+    };
+    expect(parseSaveAbility(compiled)).toEqual(parseSaveAbility(source));
+  });
+
+  it('reads "attempt a save. On a failure, ... (or ... on a critical failure). On a success, ... immune" for living creatures (Frightful Moan, real text)', () => {
+    const d = parseSaveAbility(fixtureItem('Ghost Commoner', 'Frightful Moan'));
+    expect(d.mode).toBe('auto');
+    expect(d.targetFilter).toEqual({ excludeTraits: [], excludeNames: [], livingOnly: true });
+    expect(d.degrees.failure.conditions).toEqual([cond('frightened', 2)]);
+    expect(d.degrees.criticalFailure.conditions).toEqual([cond('frightened', 3)]);
+    expect(d.degrees.success.immuneSeconds).toBe(60);
+    expect(d.degrees.criticalSuccess.immuneSeconds).toBe(60);
+    expect(d.immuneSeconds).toBeNull();
+  });
+
+  it('reads "must succeed ... or be X and Y (or Z on a critical failure) for 1 round" with a regardless-of-result immunity (Captivating Display, real text)', () => {
+    const d = parseSaveAbility(fixtureItem('Mirage Dragon (Adult)', 'Captivating Display'));
+    expect(d.mode).toBe('auto');
+    expect(d.degrees.failure.conditions).toEqual([cond('dazzled', null, 6), cond('slowed', 1, 6)]);
+    expect(d.degrees.criticalFailure.conditions).toEqual([cond('dazzled', null, 6), cond('slowed', 2, 6)]);
+    expect(d.degrees.success.none).toBe(true);
+    expect(d.immuneSeconds).toBe(60);
+  });
+
+  it('reads a parenthetical with success and critical-success outcomes (Bunyip\'s Roar, real text)', () => {
+    const d = parseSaveAbility(fixtureItem('Bunyip', 'Roar'));
+    expect(d.mode).toBe('auto');
+    expect(d.degrees.criticalSuccess.none).toBe(true);
+    expect(d.degrees.success.conditions).toEqual([cond('frightened', 1)]);
+    expect(d.degrees.failure.conditions).toEqual([cond('frightened', 2)]);
+    expect(d.degrees.criticalFailure.conditions).toEqual([cond('frightened', 3)]);
+    expect(d.immuneSeconds).toBe(60);
+  });
+
+  it('reads a critical-failure duration change "(or 1 minute on a critical failure)" (Graffiti Egg, real text)', () => {
+    const d = parseSaveAbility(fixtureItem('Halfling Troublemaker', 'Graffiti Egg'));
+    expect(d.mode).toBe('auto');
+    expect(d.shape).toEqual({ rangeFeet: 30 });
+    expect(d.degrees.failure.conditions).toEqual([cond('dazzled', null, 6)]);
+    expect(d.degrees.criticalFailure.conditions).toEqual([cond('dazzled', null, 60)]);
+  });
+
+  it('reads "On a critical failure, a creature is also ...", success-scoped immunity and the recharge sentence (Goblin Breath, real text)', () => {
+    const d = parseSaveAbility(fixtureItem('Goblin Snake', 'Goblin Breath'));
+    expect(d.mode).toBe('auto');
+    expect(d.rechargeFormula).toBe('1d4');
+    expect(d.targetFilter.excludeTraits).toEqual(['goblin']);
+    expect(d.degrees.criticalFailure.conditions).toEqual([cond('sickened', 1), cond('slowed', 1, 'while:sickened')]);
+    expect(d.degrees.success.immuneSeconds).toBe(86400);
+    expect(d.degrees.failure.immuneSeconds).toBeNull();
+  });
+
+  it('reads "... that fail a save become X (Y on a critical failure)" (Urglid\'s Gravechoke, real text)', () => {
+    const d = parseSaveAbility(fixtureItem('Urglid', 'Gravechoke'));
+    expect(d.mode).toBe('auto');
+    expect(d.degrees.failure.conditions).toEqual([cond('sickened', 1)]);
+    expect(d.degrees.criticalFailure.conditions).toEqual([cond('sickened', 2)]);
+  });
+
+  it('reads "or fall Prone" / "or be knocked Prone" (Tripping Tide, Tail Sweep, real texts)', () => {
+    expect(parseSaveAbility(fixtureItem('Island Oni', 'Tripping Tide')).degrees.failure.conditions).toEqual([cond('prone')]);
+    expect(parseSaveAbility(fixtureItem('Osyluth', 'Tail Sweep')).degrees.failure.conditions).toEqual([cond('prone')]);
+  });
+
+  it('a bundled effect (forced movement alongside the condition) stays reportOnly (Forceful Winds, real text)', () => {
+    expect(parseSaveAbility(fixtureItem('Living Whirlwind', 'Forceful Winds')).mode).toBe('reportOnly');
+  });
+
+  it('an effect on every target before the save sentence stays reportOnly, never dropped (Cytillesh Stare, real text)', () => {
+    expect(parseSaveAbility(fixtureItem('Dero Magister', 'Cytillesh Stare')).mode).toBe('reportOnly');
+  });
+
+  it('a stacking/escalation rider after the outcome stays reportOnly (Lamia\'s Caress, real text)', () => {
+    expect(parseSaveAbility(fixtureItem('Lamia', "Lamia's Caress")).mode).toBe('reportOnly');
+  });
+
+  it('a spell-effect outcome stays reportOnly (Desert Wind, real text)', () => {
+    expect(parseSaveAbility(fixtureItem('Brass Dragon (Adult)', 'Desert Wind')).mode).toBe('reportOnly');
+  });
+
+  it('a success-only wording with no stated failure outcome never defaults to no effect', () => {
+    const d = parseSaveAbility(item({
+      description: '<p>Each creature within @Template[emanation|distance:20] must attempt a @Check[will|dc:20] save; a creature is unaffected on a success.</p>',
+    }));
+    expect(d.mode).toBe('reportOnly');
+  });
+});
+
+describe('target filters (#935)', () => {
+  it('a "non-" word that is neither a creature trait nor the creature\'s own kind is reportOnly (Terror Shrike\'s "non-terror bird", real text)', () => {
+    const d = parseSaveAbility(fixtureItem('Terror Shrike', 'Stunning Screech'));
+    expect(d.mode).toBe('reportOnly');
+  });
+
+  it('"Non-d\'ziriaks" names the acting creature\'s own kind (Dazzling Burst, real text)', () => {
+    const d = parseSaveAbility(fixtureItem("D'ziriak", 'Dazzling Burst'));
+    expect(d.mode).toBe('auto');
+    expect(d.targetFilter).toEqual({ excludeTraits: [], excludeNames: ["d'ziriak"], livingOnly: false });
+    // "A creature that attempts this save is immune to all Dazzling Bursts for 1 minute."
+    expect(d.immuneSeconds).toBe(60);
+  });
+
+  it('"living or undead" is not a filter the module can test', () => {
+    expect(parseSaveAbility(fixtureItem('Nosoi', 'Haunting Melody')).mode).toBe('reportOnly');
+  });
+
+  it('npcAbilityExcludesTarget tests the target\'s traits, name and mode of being', () => {
+    const boggard = { targetFilter: { excludeTraits: ['boggard'], excludeNames: [], livingOnly: false } };
+    expect(npcAbilityExcludesTarget(boggard, { traits: new Set(['boggard', 'humanoid']), name: 'Boggard Scout' })).toBe(true);
+    expect(npcAbilityExcludesTarget(boggard, { traits: new Set(['human', 'humanoid']), name: 'Valeros' })).toBe(false);
+    expect(npcAbilityExcludesTarget(boggard, { system: { traits: { value: ['boggard'] } }, name: 'x' })).toBe(true);
+    const named = { targetFilter: { excludeTraits: [], excludeNames: ['emperor cobra'], livingOnly: false } };
+    expect(npcAbilityExcludesTarget(named, { traits: new Set(), name: 'Emperor Cobra' })).toBe(true);
+    const living = { targetFilter: { excludeTraits: [], excludeNames: [], livingOnly: true } };
+    expect(npcAbilityExcludesTarget(living, { traits: new Set(['undead']), modeOfBeing: 'undead', name: 'Zombie' })).toBe(true);
+    expect(npcAbilityExcludesTarget(living, { traits: new Set(['construct']), name: 'Golem' })).toBe(true);
+    expect(npcAbilityExcludesTarget(living, { traits: new Set(['human']), modeOfBeing: 'living', name: 'Kyra' })).toBe(false);
+    expect(npcAbilityExcludesTarget({ targetFilter: null }, { traits: new Set(['boggard']) })).toBe(false);
   });
 });

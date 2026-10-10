@@ -1,0 +1,3293 @@
+{
+  "autoCount": 51,
+  "reportOnlyCount": 139,
+  "notOfferedCount": 179,
+  "familyCounts": {
+    "blocks": 21,
+    "inline": 28,
+    "override": 2
+  },
+  "reasonCounts": {
+    "inlineRoll": 27,
+    "multipleChecks": 13,
+    "openEndedEffect": 4,
+    "targetFilter": 4,
+    "unparsedBlock": 57,
+    "unparsedInline": 77
+  },
+  "rows": [
+    {
+      "creature": "Akhana",
+      "ability": "Reclaim Life",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Alce",
+      "ability": "Regal Shriek",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 20, 60-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Ankylosaurus",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Aolaz",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Astradaemon",
+      "ability": "Devour Soul",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Augnagar",
+      "ability": "Confusing Display",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 34, 30-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Balisse",
+      "ability": "Brand of the Impenitent",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Basilisk",
+      "ability": "Petrifying Gaze",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 22, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Boggard Scout",
+      "ability": "Terrifying Croak",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 17, 30-ft emanation (non-boggard only); success: no effect; failure: frightened 1; critical failure: frightened 1",
+      "reasons": []
+    },
+    {
+      "creature": "Boggard Swampseer",
+      "ability": "Terrifying Croak",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 19, 30-ft emanation (non-boggard only); success: no effect; failure: frightened 1; critical failure: frightened 1",
+      "reasons": []
+    },
+    {
+      "creature": "Boggard Warrior",
+      "ability": "Terrifying Croak",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 18, 30-ft emanation (non-boggard only); success: no effect; failure: frightened 1; critical failure: frightened 1",
+      "reasons": []
+    },
+    {
+      "creature": "Bottlenose Dolphin",
+      "ability": "Ramming Speed",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Brimorak",
+      "ability": "Fume",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Brontosaurus",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Caligni Dancer",
+      "ability": "Dancer's Curse",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 18, single target within 5 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "multipleChecks"
+      ]
+    },
+    {
+      "creature": "Cauthooj",
+      "ability": "Warbling Song",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 32, 120-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Centaur Herbalist",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Clay Effigy",
+      "ability": "Heavy Stride",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Cythnigot",
+      "ability": "Sickening Display",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 17, 10-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Daeodon",
+      "ability": "Daeodon Charge",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Deadly Mantis",
+      "ability": "Fling",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Dero Magister",
+      "ability": "Cytillesh Stare",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 24, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Draxie",
+      "ability": "Draxie Dust",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 17, 15-ft cone; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Dryad Queen",
+      "ability": "Focus Beauty",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Elemental Avalanche",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Elephant",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Fey Dragonet",
+      "ability": "Euphoric Breath",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 18, 15-ft cone; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Flash Beetle",
+      "ability": "Light Flash",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Fortune Dragon (Adult, Spellcaster)",
+      "ability": "Treasure Dive",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Fortune Dragon (Adult)",
+      "ability": "Treasure Dive",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Fortune Dragon (Ancient, Spellcaster)",
+      "ability": "Treasure Dive",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Fortune Dragon (Ancient)",
+      "ability": "Treasure Dive",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Fortune Dragon (Young, Spellcaster)",
+      "ability": "Treasure Dive",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Fortune Dragon (Young)",
+      "ability": "Treasure Dive",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Gancanagh",
+      "ability": "Invigorating Passion",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Ghost Commoner",
+      "ability": "Frightful Moan",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 21, 30-ft emanation (living only); success: no effect; failure: frightened 2; critical failure: frightened 3",
+      "reasons": []
+    },
+    {
+      "creature": "Ghost Mage",
+      "ability": "Frightful Moan",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 29, 30-ft emanation (living only); success: no effect; failure: frightened 2; critical failure: frightened 3",
+      "reasons": []
+    },
+    {
+      "creature": "Giant Frilled Lizard",
+      "ability": "Intimidating Display",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Giant Stag Beetle",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Gigantopithecus",
+      "ability": "Frightening Display",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "will DC 22, 30-ft emanation; success: no effect; failure: frightened 1; critical failure: frightened 2",
+      "reasons": []
+    },
+    {
+      "creature": "Giylea",
+      "ability": "Focus Gaze",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 37, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Gnome Bard",
+      "ability": "Do a Jig!",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 19, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Gongorinan",
+      "ability": "Disquieting Display",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "will DC 30, 30-ft emanation; success: clumsy 1 (1 round); failure: clumsy 2 (1 round), slowed 1 (1 round); critical failure: clumsy 2 (1 minute), slowed 1 (1 minute)",
+      "reasons": []
+    },
+    {
+      "creature": "Gorilla",
+      "ability": "Frightening Display",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "will DC 20, 30-ft emanation; success: no effect; failure: frightened 1; critical failure: frightened 2",
+      "reasons": []
+    },
+    {
+      "creature": "Greater Nightmare",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Griffon",
+      "ability": "Regal Shriek",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 20, 60-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Guthallath",
+      "ability": "Deadly Throw",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Guthallath",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Hadrosaurid",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Halfling Troublemaker",
+      "ability": "Graffiti Egg",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "reflex DC 17, single target within 30 ft; success: no effect; failure: dazzled (1 round); critical failure: dazzled (1 minute)",
+      "reasons": []
+    },
+    {
+      "creature": "Harpy",
+      "ability": "Hungry Winds",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 21, single target within 20 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Irnakurse",
+      "ability": "Soul Scream",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 28, 10-ft emanation (non-aberration only); outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Iron Warden",
+      "ability": "Inexorable March",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Island Oni",
+      "ability": "Tripping Tide",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "reflex DC 37, 20-ft emanation; success: no effect; failure: prone; critical failure: prone",
+      "reasons": []
+    },
+    {
+      "creature": "Jaathoom",
+      "ability": "Hurricane Blast",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Jaathoom",
+      "ability": "Ominous Dreams",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 23, single target within 10 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Jungle Drake",
+      "ability": "Spit Venom",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Lamia Matriarch",
+      "ability": "Matriarch's Caress",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 28, single target within 5 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Lamia",
+      "ability": "Lamia's Caress",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 23, single target within 5 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Living Whirlwind",
+      "ability": "Forceful Winds",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 25, 60-ft line; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Mammoth",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Medusa",
+      "ability": "Focus Gaze",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 25, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Megaprimatus",
+      "ability": "Terrifying Display",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "will DC 27, 50-ft emanation; success: no effect; failure: frightened 1; critical failure: frightened 2, fleeing (until end of its next turn)",
+      "reasons": []
+    },
+    {
+      "creature": "Merfolk Wavecaller",
+      "ability": "Hydraulic Asphyxiation",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Mirage Dragon (Adult, Spellcaster)",
+      "ability": "Captivating Display",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 33, 30-ft emanation; success: no effect; failure: dazzled (1 round), slowed 1 (1 round); critical failure: dazzled (1 round), slowed 2 (1 round)",
+      "reasons": []
+    },
+    {
+      "creature": "Mirage Dragon (Adult)",
+      "ability": "Captivating Display",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 33, 30-ft emanation; success: no effect; failure: dazzled (1 round), slowed 1 (1 round); critical failure: dazzled (1 round), slowed 2 (1 round)",
+      "reasons": []
+    },
+    {
+      "creature": "Mirage Dragon (Ancient, Spellcaster)",
+      "ability": "Captivating Display",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 41, 30-ft emanation; success: no effect; failure: dazzled (1 round), slowed 1 (1 round); critical failure: dazzled (1 round), slowed 2 (1 round)",
+      "reasons": []
+    },
+    {
+      "creature": "Mirage Dragon (Ancient)",
+      "ability": "Captivating Display",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 41, 30-ft emanation; success: no effect; failure: dazzled (1 round), slowed 1 (1 round); critical failure: dazzled (1 round), slowed 2 (1 round)",
+      "reasons": []
+    },
+    {
+      "creature": "Mukradi",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Naiad Queen",
+      "ability": "Focus Beauty",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Nosoi",
+      "ability": "Haunting Melody",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 18, 60-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock",
+        "openEndedEffect",
+        "targetFilter"
+      ]
+    },
+    {
+      "creature": "Nuckelavee",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Omox",
+      "ability": "Smother",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Pleroma",
+      "ability": "Generate Sphere",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 43, 30-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Poltergeist",
+      "ability": "Frighten",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Quetz Coatl",
+      "ability": "Radiant Wings",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 29, 30-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Raja-Krodha",
+      "ability": "Cruel Majesty",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Revenant",
+      "ability": "Baleful Shriek",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Rhinoceros",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Rhu-Chalik",
+      "ability": "Label Memories",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 24, single target within 100 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Rune Giant",
+      "ability": "Flashing Runes",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Sarglagon",
+      "ability": "Drown",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 26, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Sea Hag",
+      "ability": "Dread Gaze",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Sedacthy Marauder",
+      "ability": "Challenging Shriek",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "will DC 21, 30-ft emanation; success: frightened 1; failure: frightened 2; critical failure: immobilized (1 round), frightened 3",
+      "reasons": []
+    },
+    {
+      "creature": "Seraptis",
+      "ability": "Isolating Words",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 37, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Shadow Giant",
+      "ability": "Shadow Chain",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Shemhazian",
+      "ability": "Focused Gaze",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 35, single target within 30 ft (non-demon only); outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Stegosaurus",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Stone Bulwark",
+      "ability": "Inexorable March",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Stone Giant",
+      "ability": "Create Boulder",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Tabellia",
+      "ability": "Stunning Strike",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Thulgant",
+      "ability": "Stunning Display",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "will DC 40, 30-ft emanation; success: stunned 1; failure: stunned 4; critical failure: stunned 8",
+      "reasons": []
+    },
+    {
+      "creature": "Treerazer",
+      "ability": "Blackaxe - Owner's Authority",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Triceratops",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Troll Warleader",
+      "ability": "Primordial Roar",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "will DC 29, 100-ft emanation (non-troll only); success: frightened 1; failure: frightened 2; critical failure: frightened 3",
+      "reasons": []
+    },
+    {
+      "creature": "Tyrannosaurus",
+      "ability": "Fling",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Tyrannosaurus",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Vampire Count",
+      "ability": "Dominate",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Vampire Mastermind",
+      "ability": "Dominate",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Vanth",
+      "ability": "Vanth's Curse",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 25, single target within 5 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Venedaemon",
+      "ability": "Twisted Whispers",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 22, single target within 15 ft; success: no effect; failure: stupefied 2 (1 minute); critical failure: stupefied 3 (1 minute)",
+      "reasons": []
+    },
+    {
+      "creature": "Vescavor Swarm",
+      "ability": "Devour All",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Vescavor Swarm",
+      "ability": "Maddening Gibbers",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Vidileth",
+      "ability": "Shape Flesh",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Warsworn",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Woolly Rhinoceros",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Yeti",
+      "ability": "Grizzly Arrival",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Zoaem",
+      "ability": "Behold!",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 17, 10-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "openEndedEffect"
+      ]
+    },
+    {
+      "creature": "Zoaem",
+      "ability": "Light of Truth",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 17, 60-ft line; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Anguished Flame",
+      "ability": "Collect Prayer",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 30, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Animated Colossus",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Animated Silverware Swarm",
+      "ability": "Stick a Fork in It",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Animated Trebuchet",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Aphorite Sharpshooter",
+      "ability": "Hurtful Critique",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 18, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Aqudel",
+      "ability": "Strobe",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "will DC 25, 30-ft emanation; success: dazzled (1 round); failure: dazzled (1 minute), stunned 1; critical failure: dazzled (1 minute), stunned 2",
+      "reasons": []
+    },
+    {
+      "creature": "Argorth",
+      "ability": "Unnatural Shriek",
+      "mode": "auto",
+      "family": "override",
+      "summary": "will DC 30, 120-ft emanation (non-aberration only); success: frightened 1; failure: stupefied 1 (1 minute), frightened 2; critical failure: stupefied 2 (1 minute), frightened 3",
+      "reasons": []
+    },
+    {
+      "creature": "Augur",
+      "ability": "Whilring Slice",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Behemoth Hippopotamus",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Blood Painter",
+      "ability": "Dab",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Bodach",
+      "ability": "Mumbletongue",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 24, 10-ft emanation; success: no effect; failure: stupefied 1 (1 minute); critical failure: stupefied 2 (1 minute)",
+      "reasons": []
+    },
+    {
+      "creature": "Bodach",
+      "ability": "Stumblefoot",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "fortitude DC 24, 15-ft cone; success: no effect; failure: clumsy 1 (1 minute), enfeebled 1 (1 minute); critical failure: clumsy 2 (1 minute), enfeebled 2 (1 minute)",
+      "reasons": []
+    },
+    {
+      "creature": "Brownie",
+      "ability": "Baffling Bluff",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 17, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Bythos",
+      "ability": "Aging Strikes",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Bythos",
+      "ability": "Temporal Strike",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 37, single target within 5 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Caligni Vanguard",
+      "ability": "Shadowed Blade",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Carbuncle",
+      "ability": "Specious Suggestion",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Catoblepas",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Catrina",
+      "ability": "Compel Condemned",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 22, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Cinder Dragon (Ancient, Spellcaster)",
+      "ability": "All Becomes Flame",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 39, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Cinder Dragon (Ancient)",
+      "ability": "All Becomes Flame",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 39, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Danava Titan",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Deep One Elder",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Deep One",
+      "ability": "Share Devotion",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "will DC 17, 30-ft emanation; success: frightened 1; failure: frightened 2; critical failure: frightened 2, dazzled (while frightened)",
+      "reasons": []
+    },
+    {
+      "creature": "Deimavigga",
+      "ability": "Whisper Earworm",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Divine Warden of Pharasma",
+      "ability": "Mask of Fate",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 21, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Divoynik",
+      "ability": "Window to the Soul",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 20, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock",
+        "multipleChecks"
+      ]
+    },
+    {
+      "creature": "D'ziriak",
+      "ability": "Dazzling Burst",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "fortitude DC 20, 20-ft emanation (non-d'ziriak only); success: dazzled (1 round); failure: dazzled (1 minute); critical failure: blinded (1 round), dazzled (1 minute)",
+      "reasons": []
+    },
+    {
+      "creature": "Earthen Destrier",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Emperor Cobra",
+      "ability": "Flare Hood",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "will DC 22, 20-ft emanation (non-emperor cobra only); success: frightened 1; failure: frightened 2; critical failure: frightened 3",
+      "reasons": []
+    },
+    {
+      "creature": "Eremite",
+      "ability": "Exquisite Pain",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Esobok",
+      "ability": "Wrench Spirit",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Ether Spider",
+      "ability": "Web Burst",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 22, 30-ft cone; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Evangelist",
+      "ability": "Focus Gaze",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 21, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Exscinder",
+      "ability": "Temper thy Words",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 33, single target within 120 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Fuath",
+      "ability": "Viscous Choke",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 17, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Ghostly Mob",
+      "ability": "Frightful Chorus",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 26, 30-ft emanation (living only); success: no effect; failure: frightened 2; critical failure: frightened 3",
+      "reasons": []
+    },
+    {
+      "creature": "Goblin Snake",
+      "ability": "Goblin Breath",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "fortitude DC 16, 15-ft cone (non-goblin only); success: no effect; failure: sickened 1; critical failure: sickened 1, slowed 1 (while sickened)",
+      "reasons": []
+    },
+    {
+      "creature": "Gobmob Snake",
+      "ability": "Goblin Breath",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "fortitude DC 20, 15-ft cone (non-goblin only); success: no effect; failure: sickened 1; critical failure: sickened 1, slowed 1 (while sickened)",
+      "reasons": []
+    },
+    {
+      "creature": "Grimple",
+      "ability": "Putrid Vomit",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "fortitude DC 16, 30-ft line; success: no effect; failure: sickened 1; critical failure: sickened 2",
+      "reasons": []
+    },
+    {
+      "creature": "Grisantian Lion",
+      "ability": "Blinding Mane",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 29, 20-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Hellcat",
+      "ability": "Menacing Growl",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 25, 15-ft burst (non-fiend only); outcome resolved by the GM",
+      "reasons": [
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Hesperid Queen",
+      "ability": "Focus Beauty",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Hippopotamus",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "House Drake",
+      "ability": "Silver Breath",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 16, 10-ft cone; success: no effect; failure: stupefied 2 (1 round); critical failure: stupefied 2 (1 round)",
+      "reasons": []
+    },
+    {
+      "creature": "Hyakume",
+      "ability": "Steal Memories",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 40, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Imentesh",
+      "ability": "Inflict Warpwave",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 29, single target within 100 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Jotund Troll",
+      "ability": "Cacophonous Roar",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "will DC 34, 100-ft emanation (non-troll only); success: stupefied 1 (1 round); failure: stupefied 2 (1 round); critical failure: confused (1 round)",
+      "reasons": []
+    },
+    {
+      "creature": "Kadamel",
+      "ability": "Calcifying Cloud",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Kelpie",
+      "ability": "Captivating Lure",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 23, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Kimenhul",
+      "ability": "Eternal Fear",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 42, 100-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock",
+        "multipleChecks"
+      ]
+    },
+    {
+      "creature": "Lampad Queen",
+      "ability": "Despairing Weep",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 36, 120-ft emanation (non-lampad only); outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Lampad Queen",
+      "ability": "Focus Beauty",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Lampad",
+      "ability": "Weep",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 20, 30-ft emanation (non-lampad only); outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Larabay",
+      "ability": "Rainbow Flight",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Mandragora",
+      "ability": "Piercing Shriek",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 23, 30-ft emanation (non-mandragora only); outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Melody on the Wind",
+      "ability": "Mesmerizing Melody",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "will DC 29, 30-ft emanation; success: fascinated (1 round); failure: fascinated (4 round); critical failure: fascinated (4 round)",
+      "reasons": []
+    },
+    {
+      "creature": "Millindemalion",
+      "ability": "Hat Toss",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Mist Stalker",
+      "ability": "Solidify Mist",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Mobogo",
+      "ability": "Song of the Swamp",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 27, 50-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Moon Hag",
+      "ability": "Dreadful Prediction",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 29, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Moose",
+      "ability": "Thundering Charge",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Moose",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Myceloid",
+      "ability": "Spore Domination",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 22, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Nasurgeth",
+      "ability": "Ravenous Void",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Ninkonda",
+      "ability": "Soul Reflection",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Nosferatu Overlord",
+      "ability": "Paralytic Fear",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Nymolus",
+      "ability": "Extract Memory",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Nymolus",
+      "ability": "Stunning Pulse",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "fortitude DC 27, 10-ft emanation; success: stunned 1; failure: stunned 2; critical failure: stunned 3",
+      "reasons": []
+    },
+    {
+      "creature": "Owb Prophet",
+      "ability": "Curse of Darkness",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Owb",
+      "ability": "Curse of Darkness",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Pairaka",
+      "ability": "Tormenting Dreams",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 25, single target within 100 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Ravener",
+      "ability": "All Becomes Flame",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 42, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock",
+        "multipleChecks"
+      ]
+    },
+    {
+      "creature": "Ravener",
+      "ability": "Consume Soul",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Requiem Dragon (Ancient, Spellcaster)",
+      "ability": "Redirect River",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Requiem Dragon (Ancient)",
+      "ability": "Redirect River",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Rune Dragon (Adult, Spellcaster)",
+      "ability": "Entangling Rune",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 34, 10-ft burst; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Rune Dragon (Adult)",
+      "ability": "Entangling Rune",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 34, 10-ft burst; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Rune Dragon (Ancient, Spellcaster)",
+      "ability": "Entangling Rune",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 41, 10-ft burst; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Rune Dragon (Ancient)",
+      "ability": "Entangling Rune",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 41, 10-ft burst; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Rusalka",
+      "ability": "Beckoning Call",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 29, 300-ft emanation (non-fey only); outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Rusalka",
+      "ability": "Shameful Touch",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 35, single target within 5 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Sabosan",
+      "ability": "Drain Blood",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Sabosan",
+      "ability": "Fell Shriek",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "fortitude DC 22, 30-ft cone (non-sabosan only); success: no effect; failure: deafened (1 minute); critical failure: deafened (1 minute)",
+      "reasons": []
+    },
+    {
+      "creature": "Shoki",
+      "ability": "Soul Lock",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Shriezyx",
+      "ability": "Flash Web",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 20, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Skaveling",
+      "ability": "Bone-Chilling Screech",
+      "mode": "auto",
+      "family": "override",
+      "summary": "will DC 22, 20-ft emanation; success: frightened 1; failure: frightened 2; critical failure: frightened 2, stunned 1",
+      "reasons": []
+    },
+    {
+      "creature": "Skeletal Titan",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Smoke Creeper",
+      "ability": "Choking Swoop",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Smoke Creeper",
+      "ability": "Painful Exhalations",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Sorvuth-Ka",
+      "ability": "Amber Strikes",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Spiral Centurion",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Striding Fire",
+      "ability": "Burning Rush",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Stygira",
+      "ability": "Gem Gaze",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 25, single target within 30 ft; success: no effect; failure: frightened 1; critical failure: frightened 2",
+      "reasons": []
+    },
+    {
+      "creature": "Sumbreiva",
+      "ability": "Whip Drain",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Sykever",
+      "ability": "Draining Gaze",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Terror Shrike",
+      "ability": "Stunning Screech",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 19, 30-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "targetFilter"
+      ]
+    },
+    {
+      "creature": "Thanadaemon",
+      "ability": "Focus Gaze",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 33, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "multipleChecks",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Thanatotic Titan",
+      "ability": "Godslayer",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Thanatotic Titan",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Theletos",
+      "ability": "Wrath of Fate",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 26, 60-ft cone; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Totenmaske",
+      "ability": "Drink Flesh",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Totum Font",
+      "ability": "Briar's Hold",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Tyrannosaurus Skeleton",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Unrisen",
+      "ability": "Awful Approach",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Unrisen",
+      "ability": "Death Grip",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Urdefhan Tormentor",
+      "ability": "Wicked Bite",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Urdefhan Warrior",
+      "ability": "Wicked Bite",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Urglid",
+      "ability": "Gravechoke",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "fortitude DC 30, 30-ft emanation (living only); success: no effect; failure: sickened 1; critical failure: sickened 2",
+      "reasons": []
+    },
+    {
+      "creature": "Urglid",
+      "ability": "Ravenous Earthunholy",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Venator",
+      "ability": "Mark Target",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 30, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Verdurous Ooze",
+      "ability": "Sleep Gas",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 24, 20-ft emanation (living only); outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Viper Vine",
+      "ability": "Captivating Pollen",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 33, 60-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Whisper Dragon (Adult, Spellcaster)",
+      "ability": "Diplomatic Solution",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Whisper Dragon (Adult, Spellcaster)",
+      "ability": "Steal Knowledge",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 28, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Whisper Dragon (Adult, Spellcaster)",
+      "ability": "Unveil Secret",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 30, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Whisper Dragon (Adult)",
+      "ability": "Diplomatic Solution",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Whisper Dragon (Adult)",
+      "ability": "Steal Knowledge",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 28, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Whisper Dragon (Adult)",
+      "ability": "Unveil Secret",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 30, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Whisper Dragon (Ancient, Spellcaster)",
+      "ability": "Diplomatic Solution",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Whisper Dragon (Ancient, Spellcaster)",
+      "ability": "Steal Knowledge",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 35, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Whisper Dragon (Ancient, Spellcaster)",
+      "ability": "Thought Whispers",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 37, 60-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Whisper Dragon (Ancient, Spellcaster)",
+      "ability": "Unveil Secret",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 37, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Whisper Dragon (Ancient)",
+      "ability": "Diplomatic Solution",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Whisper Dragon (Ancient)",
+      "ability": "Steal Knowledge",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 35, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Whisper Dragon (Ancient)",
+      "ability": "Thought Whispers",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 37, 60-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Whisper Dragon (Ancient)",
+      "ability": "Unveil Secret",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 37, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Whisper Dragon (Young, Spellcaster)",
+      "ability": "Diplomatic Solution",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Whisper Dragon (Young, Spellcaster)",
+      "ability": "Steal Knowledge",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 23, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Whisper Dragon (Young)",
+      "ability": "Diplomatic Solution",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Whisper Dragon (Young)",
+      "ability": "Steal Knowledge",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 23, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Wihsaak",
+      "ability": "Droning Distraction",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "will DC 23, 100-ft emanation; success: no effect; failure: confused (1 round), stupefied 1 (1 round); critical failure: confused (1 round), stupefied 2 (1 minute)",
+      "reasons": []
+    },
+    {
+      "creature": "Ximtal",
+      "ability": "Isolate Foes",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Adamantine Golem",
+      "ability": "Inexorable March",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Black Dragon (Adult, Spellcaster)",
+      "ability": "Corrupt Water",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 28, single target within 90 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Black Dragon (Adult)",
+      "ability": "Corrupt Water",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 28, single target within 90 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Black Dragon (Ancient, Spellcaster)",
+      "ability": "Corrupt Water",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 35, single target within 90 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Black Dragon (Ancient)",
+      "ability": "Corrupt Water",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 35, single target within 90 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Brass Dragon (Adult, Spellcaster)",
+      "ability": "Desert Wind",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 30, 60-ft cone; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Brass Dragon (Adult)",
+      "ability": "Desert Wind",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 30, 60-ft cone; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Brass Dragon (Ancient, Spellcaster)",
+      "ability": "Desert Wind",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 37, 60-ft cone; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Brass Dragon (Ancient)",
+      "ability": "Desert Wind",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 37, 60-ft cone; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Bunyip",
+      "ability": "Roar",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 21, 100-ft emanation; success: frightened 1; failure: frightened 2; critical failure: frightened 3",
+      "reasons": []
+    },
+    {
+      "creature": "Centaur",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Cloaker",
+      "ability": "Infrasonic Moan",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 22, 30-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "multipleChecks"
+      ]
+    },
+    {
+      "creature": "Copper Dragon (Ancient, Spellcaster)",
+      "ability": "Mass Laughter",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 39, 100-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Copper Dragon (Ancient)",
+      "ability": "Mass Laughter",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 39, 100-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Demilich",
+      "ability": "Trap Soul",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Djinni",
+      "ability": "Hurricane Blast",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Efreeti",
+      "ability": "Change Size",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Ghaele",
+      "ability": "Ghaele's Gaze",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Grig",
+      "ability": "Fiddle",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 18, 30-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Iron Golem",
+      "ability": "Inexorable March",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Janni",
+      "ability": "Change Size",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Mu Spore",
+      "ability": "Enormous Inhalation",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 43, 400-ft cone; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Owlbear",
+      "ability": "Bloodcurdling Screech",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "will DC 20, 80-ft emanation; success: frightened 1; failure: frightened 2; critical failure: fleeing (1 round), frightened 3",
+      "reasons": []
+    },
+    {
+      "creature": "Owlbear",
+      "ability": "Gnaw",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Raja Rakshasa",
+      "ability": "Disturbing Vision",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 29, 30-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "targetFilter",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Stone Golem",
+      "ability": "Inexorable March",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Stone Golem",
+      "ability": "Slowing Pulse",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "fortitude DC 30, 10-ft emanation; success: no effect; failure: slowed 1 (1 minute); critical failure: slowed 1 (1 minute)",
+      "reasons": []
+    },
+    {
+      "creature": "Troll King",
+      "ability": "Primordial Roar",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "will DC 29, 100-ft emanation (non-troll only); success: frightened 1; failure: frightened 2; critical failure: frightened 3",
+      "reasons": []
+    },
+    {
+      "creature": "Vrock",
+      "ability": "Stunning Screech",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Wendigo",
+      "ability": "Howl",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 38, single target within 120 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "White Dragon (Adult, Spellcaster)",
+      "ability": "Shape Ice",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 15, single target within 10 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "multipleChecks"
+      ]
+    },
+    {
+      "creature": "White Dragon (Adult)",
+      "ability": "Shape Ice",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 15, single target within 10 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "multipleChecks"
+      ]
+    },
+    {
+      "creature": "White Dragon (Ancient, Spellcaster)",
+      "ability": "Shape Ice",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 15, single target within 10 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "multipleChecks"
+      ]
+    },
+    {
+      "creature": "White Dragon (Ancient)",
+      "ability": "Shape Ice",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 15, single target within 10 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "multipleChecks"
+      ]
+    },
+    {
+      "creature": "White Dragon (Young, Spellcaster)",
+      "ability": "Shape Ice",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 15, single target within 10 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "multipleChecks"
+      ]
+    },
+    {
+      "creature": "White Dragon (Young)",
+      "ability": "Shape Ice",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 15, single target within 10 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "multipleChecks"
+      ]
+    },
+    {
+      "creature": "Anancus",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Baobhan Sith",
+      "ability": "Captivating Dance",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 25, 30-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Basidirond",
+      "ability": "Hallucinogenic Cloud",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 22, 20-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Black Dracolisk",
+      "ability": "Petrifying Gaze",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 28, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Blindheim",
+      "ability": "Spotlight",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 18, 30-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Blue Dracolisk",
+      "ability": "Petrifying Gaze",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 28, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Bodak",
+      "ability": "Death Gaze",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "fortitude DC 26, single target within 30 ft (living only); success: drained 1; failure: doomed 1, drained 2; critical failure: doomed 1, drained 4",
+      "reasons": []
+    },
+    {
+      "creature": "Cairn Wight",
+      "ability": "Funereal Dirge",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 21, 50-ft emanation (living only); outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Chernobue",
+      "ability": "Paralyzing Display",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 32, 30-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Culdewen",
+      "ability": "Swear",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Derghodaemon",
+      "ability": "Derghodaemon's Stare",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Destrachan",
+      "ability": "Painful Harmonics",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "fortitude DC 26, 60-ft cone (living only); success: sickened 1 (1 round); failure: deafened (3 round), stunned 2; critical failure: deafened (1 minute), stunned 3",
+      "reasons": []
+    },
+    {
+      "creature": "Frost Worm",
+      "ability": "Worm Trill",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 32, 100-ft emanation (non-frost worm only); outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock",
+        "openEndedEffect"
+      ]
+    },
+    {
+      "creature": "Giant Slug",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Glass Golem",
+      "ability": "Dazzling Brilliance",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 23, 60-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Gorgon",
+      "ability": "Breath Weapon",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 25, 60-ft cone; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Gorgon",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Green Dracolisk",
+      "ability": "Petrifying Gaze",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 28, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Hamatula",
+      "ability": "Frightful Strike",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Korred",
+      "ability": "Hair Snare",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Korred",
+      "ability": "Otherworldly Laugh",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Leucrotta",
+      "ability": "Luring Cry",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Lunar Naga",
+      "ability": "Hypnosis",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 21, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Mastodon",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Melody On The Wind",
+      "ability": "Mesmerizing Melody",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 30, 30-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Moonflower",
+      "ability": "Light Pulse",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 23, 50-ft emanation (non-moonflower only); outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Nalfeshnee",
+      "ability": "Light of Avarice",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 34, single target within 60 ft (non-demon only); outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "multipleChecks"
+      ]
+    },
+    {
+      "creature": "Necrophidius",
+      "ability": "Dance of Death",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Nereid",
+      "ability": "Drowning Touch",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 29, single target within 5 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Nyogoth",
+      "ability": "Nauseating Display",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "will DC 29, 30-ft emanation; success: sickened 1; failure: stunned 3, sickened 1; critical failure: stunned 5, sickened 2",
+      "reasons": []
+    },
+    {
+      "creature": "Osyluth",
+      "ability": "Tail Sweep",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "reflex DC 26, 15-ft cone; success: no effect; failure: prone; critical failure: prone",
+      "reasons": []
+    },
+    {
+      "creature": "Peryton",
+      "ability": "Mimic Shadow",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Red Dracolisk",
+      "ability": "Petrifying Gaze",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 28, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Sandpoint Devil",
+      "ability": "Devil's Howl",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 26, 100-ft emanation; success: no effect; failure: frightened 2; critical failure: frightened 3, fleeing (while frightened)",
+      "reasons": []
+    },
+    {
+      "creature": "Sandpoint Devil",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Sard",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Shoggti",
+      "ability": "Braincloud",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Shoggti",
+      "ability": "Fascinating Display",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 25, 30-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Soul Eater",
+      "ability": "Drain Soul",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Specter",
+      "ability": "Spectral Corruption",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 24, single target within 5 ft (living only); outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Sunflower Leshy",
+      "ability": "Heliotrope",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Titan Centipede",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Trumpet Archon",
+      "ability": "Trumpet Blast",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 34, 100-ft emanation (non-archon only); outcome resolved by the GM",
+      "reasons": [
+        "openEndedEffect"
+      ]
+    },
+    {
+      "creature": "Vampire Squid",
+      "ability": "Glowing Mucus",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "White Dracolisk",
+      "ability": "Petrifying Gaze",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 28, single target within 30 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Yellow Musk Creeper",
+      "ability": "Bore into Brain",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Yellow Musk Creeper",
+      "ability": "Spray Pollen",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 20, 30-ft line; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Yeth Hound",
+      "ability": "Bay",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 20, single target within 300 ft (non-fiend only); outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Zomok",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Amalgamite",
+      "ability": "Transpose",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 33, single target within 50 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Angheuvore Flesh-Gnawer",
+      "ability": "Invigorating Feast",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Baykok",
+      "ability": "Devour Life",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Bone Ship",
+      "ability": "Crew's Call",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 39, 100-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Bone Ship",
+      "ability": "Keelhaul",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Buso Farmer",
+      "ability": "Resize Plant",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Dramofir",
+      "ability": "Bittersweet Dreams",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 34, 30-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Dramofir",
+      "ability": "Pluck Dream",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Elder Sphinx",
+      "ability": "Pose a Riddle",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Feral Sea Skull Swarm",
+      "ability": "Frightening Howl",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 32, 60-ft emanation; success: no effect; failure: frightened 2; critical failure: frightened 3, fleeing (1 round)",
+      "reasons": []
+    },
+    {
+      "creature": "Feral Skull Swarm",
+      "ability": "Frightening Howl",
+      "mode": "auto",
+      "family": "inline",
+      "summary": "will DC 32, 60-ft emanation; success: no effect; failure: frightened 2; critical failure: frightened 3, fleeing (1 round)",
+      "reasons": []
+    },
+    {
+      "creature": "Flumph",
+      "ability": "Spray Perfume",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 16, 20-ft line; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Gathlain Wanderer",
+      "ability": "Rootbound",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Giant Pangolin",
+      "ability": "Emit Musk",
+      "mode": "auto",
+      "family": "blocks",
+      "summary": "fortitude DC 20, 5-ft emanation; success: no effect; failure: sickened 1; critical failure: sickened 1, off-guard (while sickened)",
+      "reasons": []
+    },
+    {
+      "creature": "Giant Skunk",
+      "ability": "Spray Blinding Musk",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 17, 15-ft cone; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Gurgist Mauler",
+      "ability": "Calculated Blow",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Harmona",
+      "ability": "Concussive Blow",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Hellwasp Swarm",
+      "ability": "Torturous Buzz",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 26, 20-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock",
+        "inlineRoll"
+      ]
+    },
+    {
+      "creature": "Hieracosphinx",
+      "ability": "Shriek",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 22, 60-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "targetFilter"
+      ]
+    },
+    {
+      "creature": "Huldra",
+      "ability": "Manipulate Luck",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 21, single target within 5 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Japalisura",
+      "ability": "False Foe",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Kongamato",
+      "ability": "Wailing Dive",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Kuchisake-Onna",
+      "ability": "Am I Pretty?",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Kuchisake-Onna",
+      "ability": "Even Now?",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Kurobozu",
+      "ability": "Steal Breath",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Kurobozu",
+      "ability": "Stunning Flurry",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Living Graffiti (Chalk)",
+      "ability": "Cone of Chalk",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "reflex DC 20, 15-ft cone; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Misery Siktempora",
+      "ability": "Inflict Misery",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Mokele-Mbembe",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Mokele-Mbembe",
+      "ability": "Whip Tail",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Nikaramsa",
+      "ability": "Sap Mind",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 34, single target within 60 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Ouroboros",
+      "ability": "Flying Wheel",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Palace Skelm",
+      "ability": "Incite Violence",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 24, 30-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Quintessivore",
+      "ability": "Suspend Soul",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 29, single target within 15 ft; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Rhu-Chalik",
+      "ability": "Project Terror",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Seething Spirit",
+      "ability": "Furious Possession",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Skunk",
+      "ability": "Spray Musk",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "fortitude DC 16, 10-ft line; outcome resolved by the GM",
+      "reasons": [
+        "unparsedBlock"
+      ]
+    },
+    {
+      "creature": "Soul Skelm",
+      "ability": "Isolating Lash",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Squirrel Swarm",
+      "ability": "Scrabbling Swarm",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Street Skelm",
+      "ability": "Frightening Rant",
+      "mode": "reportOnly",
+      "family": "reportOnly",
+      "summary": "will DC 20, 30-ft emanation; outcome resolved by the GM",
+      "reasons": [
+        "unparsedInline"
+      ]
+    },
+    {
+      "creature": "Sturzstromer",
+      "ability": "Landslide",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    },
+    {
+      "creature": "Wolliped",
+      "ability": "Trample",
+      "mode": null,
+      "family": null,
+      "summary": null,
+      "reasons": []
+    }
+  ]
+}

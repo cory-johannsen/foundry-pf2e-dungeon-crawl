@@ -93,6 +93,7 @@ const GROUPS = [
         "scripts/agent-action-display.mjs",
         "scripts/maneuver-feat-modifiers.mjs",
         "scripts/npc-ability-parse.mjs",
+        "scripts/npc-ability-overrides.mjs",
         "scripts/npc-move-parse.mjs",
         "scripts/npc-strike-shapes.mjs",
         "scripts/npc-self-parse.mjs",

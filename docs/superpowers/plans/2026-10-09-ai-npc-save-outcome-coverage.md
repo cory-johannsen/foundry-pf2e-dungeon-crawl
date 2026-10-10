@@ -1,6 +1,6 @@
 # Widening NPC Save-Ability Outcome Parsing Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Raise the share of #915's NPC save-ability population that runs fully automatically (`mode: "auto"`) by widening `scripts/npc-ability-parse.mjs`'s degree-block grammar, adding an inline-outcome grammar for abilities with no degree blocks at all, adding a synthesized-effect "penalty" outcome kind, and a reviewed per-ability override table — protected by a golden-file ratchet so coverage never silently regresses.
 
@@ -52,7 +52,7 @@
 - Consumes: nothing new.
 - Produces: `parseDegreeBlock` now also recognizes `as <Critical Success|Success|Failure|Critical Failure>` (any of the four, not just "failure") with an optional single suffix of exactly one of: a changed duration, a numeric value override (feeding Task 2's `penalties`), or an added condition; a trailing `with (?:the |its )?<subject>` qualifier after a condition is stripped as boilerplate rather than counted as leftover. The returned degree shape gains an `asDegree: 'criticalSuccess'|'success'|'failure'|'criticalFailure'|null` field (replacing the old boolean `asFailure`, resolved to the referenced degree's own parsed result by the caller — Task 1 Step 5 updates `parseSaveAbility`'s own resolution logic alongside it) and a `penalties: []` field (empty until Task 2 fills it).
 
-- [ ] **Step 1: Write the failing tests for the already-working bare-condition path (regression guard) and the new suffix shapes**
+- [x] **Step 1: Write the failing tests for the already-working bare-condition path (regression guard) and the new suffix shapes**
 
 ```js
 // tests/npc-ability-parse.test.mjs (append)
@@ -184,12 +184,12 @@ function makeSaveItem({ checkParams, blocks, actionType = 'action', actions = 1 
 }
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/npc-ability-parse.test.mjs -t "degree-block grammar widening"`
 Expected: FAIL — the regression-guard test for bare conditions should already PASS (it exercises existing code); every new-shape test FAILs (`asDegree`/`asDurationOverrideSeconds` undefined, suffix/qualifier variants rejected as unparseable).
 
-- [ ] **Step 3: Widen `parseDegreeBlock`'s "as X" handling**
+- [x] **Step 3: Widen `parseDegreeBlock`'s "as X" handling**
 
 ```js
 // scripts/npc-ability-parse.mjs -- replace the existing
@@ -247,7 +247,7 @@ function toTitleCase(text) {
 }
 ```
 
-- [ ] **Step 4: Call `parseAsDegreeBlock` from `parseDegreeBlock`, and strip the "with `<subject>`" qualifier before the leftover-text check**
+- [x] **Step 4: Call `parseAsDegreeBlock` from `parseDegreeBlock`, and strip the "with `<subject>`" qualifier before the leftover-text check**
 
 ```js
 // scripts/npc-ability-parse.mjs -- parseDegreeBlock's body: replace the old
@@ -307,7 +307,7 @@ function parseDegreeBlock(blockHtml) {
 }
 ```
 
-- [ ] **Step 5: Resolve `asDegree` in `parseSaveAbility`'s degree loop (replaces the old `degree?.asFailure` handling in `applyNpcAbilityDegree`'s caller too -- Task 6 updates that side)**
+- [x] **Step 5: Resolve `asDegree` in `parseSaveAbility`'s degree loop (replaces the old `degree?.asFailure` handling in `applyNpcAbilityDegree`'s caller too -- Task 6 updates that side)**
 
 ```js
 // scripts/npc-ability-parse.mjs -- parseSaveAbility's existing per-key loop
@@ -352,17 +352,17 @@ function parseDegreeBlock(blockHtml) {
   }
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/npc-ability-parse.test.mjs`
 Expected: PASS (all tests, including every pre-existing test in the file — no regressions)
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (`npc-ability-parse-coverage.test.mjs`'s own "16/174/179" assertion still passes since no real-fixture ability's classification changed yet — Task 1 only adds grammar reach that Task 2/3/4 exercise against the real population)
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/npc-ability-parse.mjs tests/npc-ability-parse.test.mjs
@@ -381,7 +381,7 @@ git commit -m "feat(#935): widen the degree-block as-X grammar and strip a redun
 - Consumes: nothing new.
 - Produces: a degree's `penalties` field, now populated: `Array<{ type: 'status'|'circumstance', value: number, selectors: string[], durationSeconds: number|'untilNextTurn'|null }>`. `PENALTY_SELECTOR_TABLE` (exported, a `Map<string, string>` from a closed English phrase to a real PF2e selector string, consumed by Task 6's executor for GM-report labelling only — the parser itself only needs the selector strings, not the labels).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/npc-ability-parse.test.mjs (append)
@@ -451,12 +451,12 @@ describe('penalty outcomes (#935)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/npc-ability-parse.test.mjs -t "penalty outcomes"`
 Expected: FAIL (`penalties` stays `[]`, every block falls through to the leftover-text check and nulls)
 
-- [ ] **Step 3: Implement the penalty clause recognizer**
+- [x] **Step 3: Implement the penalty clause recognizer**
 
 ```js
 // scripts/npc-ability-parse.mjs -- new, near extractImmunity
@@ -506,7 +506,7 @@ function extractPenalty(text) {
 }
 ```
 
-- [ ] **Step 4: Wire `extractPenalty` into `parseDegreeBlock`'s clause loop, and reject any "next `<X>`" wording up front**
+- [x] **Step 4: Wire `extractPenalty` into `parseDegreeBlock`'s clause loop, and reject any "next `<X>`" wording up front**
 
 ```js
 // scripts/npc-ability-parse.mjs -- parseDegreeBlock: a block containing "the
@@ -570,7 +570,7 @@ function parseDegreeBlock(blockHtml) {
 
 Note this Step's `parseDegreeBlock` body is the complete, final version (it supersedes Task 1 Step 4's own version — the splitting across two tasks is for test-cycle granularity, not because two different functions exist; an implementer running both tasks in order ends up with exactly this body).
 
-- [ ] **Step 5: Resolve `asValueOverride` against the referenced degree's own `penalties` (completing Task 1 Step 5's placeholder)**
+- [x] **Step 5: Resolve `asValueOverride` against the referenced degree's own `penalties` (completing Task 1 Step 5's placeholder)**
 
 ```js
 // scripts/npc-ability-parse.mjs -- parseSaveAbility's asDegree-resolution
@@ -584,17 +584,17 @@ Note this Step's `parseDegreeBlock` body is the complete, final version (it supe
     degrees[key] = { ...target, conditions, penalties, immuneSeconds: target.immuneSeconds };
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/npc-ability-parse.test.mjs`
 Expected: PASS (all tests)
 
-- [ ] **Step 7: Run the full suite and confirm the real coverage count actually rose**
+- [x] **Step 7: Run the full suite and confirm the real coverage count actually rose**
 
 Run: `npx vitest run tests/npc-ability-parse-coverage.test.mjs`
 Expected: FAIL at this point — the golden counts (16/174/179) are now stale since real abilities like Fiddle/Bittersweet-Dreams-penalty-only-shaped/Hamstring-shaped items now classify differently. **Do not edit the golden counts here** — Task 6 is where the ratchet is deliberately raised, with the new count computed and justified in one place rather than guessed task-by-task. Leave this failure for Task 6 to resolve; note it in the Task 6 commit message.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/npc-ability-parse.mjs tests/npc-ability-parse.test.mjs
@@ -613,7 +613,7 @@ git commit -m "feat(#935): recognize simple penalty outcomes in the degree-block
 - Consumes: `extractLinkedConditions`, `extractBareConditions`, `extractDuration`, `extractPenalty`, `KNOWN_CONDITION_SLUGS` (all already in this file).
 - Produces: `parseInlineOutcome(plainText)` → `null | { failure: DegreeResult, criticalFailure: DegreeResult|null, subjectFilter: {ancestry: string}|null }` (module-private; called from `parseSaveAbility` when `splitDegreeBlocks` finds no blocks at all).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/npc-ability-parse.test.mjs (append)
@@ -692,12 +692,12 @@ describe('inline-outcome grammar (#935)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/npc-ability-parse.test.mjs -t "inline-outcome grammar"`
 Expected: FAIL — every non-block ability is `null` today (no degree blocks at all means `splitDegreeBlocks` finds nothing and `parseSaveAbility` currently has no path for that shape)
 
-- [ ] **Step 3: Implement `parseInlineOutcome` and wire it into `parseSaveAbility`**
+- [x] **Step 3: Implement `parseInlineOutcome` and wire it into `parseSaveAbility`**
 
 ```js
 // scripts/npc-ability-parse.mjs -- new function, near splitDegreeBlocks
@@ -803,17 +803,17 @@ function parseInlineOutcome(plainText) {
 
 Note: `shape`/`check`/`rangeMatch`/`templateMatch` etc. are computed earlier in `parseSaveAbility`'s existing body (unchanged) — this block is inserted at the point those locals are already in scope, immediately before the existing `const rechargeMatch = ...` line, reusing them rather than recomputing.
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/npc-ability-parse.test.mjs`
 Expected: PASS (all tests)
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npx vitest run`
 Expected: `npc-ability-parse-coverage.test.mjs`'s golden-count assertion still fails (expected, same as Task 2 Step 7 — left for Task 6)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/npc-ability-parse.mjs tests/npc-ability-parse.test.mjs
@@ -833,7 +833,7 @@ git commit -m "feat(#935): inline-outcome grammar for non-block save abilities"
 - Consumes: `KNOWN_CONDITION_SLUGS` (already exported from `npc-ability-parse.mjs`).
 - Produces: `NPC_ABILITY_OVERRIDES` (exported `Map`, keyed by `` `${itemName}::${itemSlug}` ``) → a complete hand-written descriptor in the same shape `parseSaveAbility` returns. `findOverride(item)` (exported) → `null | descriptor`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/npc-ability-overrides.test.mjs
@@ -898,12 +898,12 @@ describe('NPC_ABILITY_OVERRIDES (#935)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/npc-ability-overrides.test.mjs`
 Expected: FAIL with "Cannot find module '../scripts/npc-ability-overrides.mjs'"
 
-- [ ] **Step 3: Implement the override table**
+- [x] **Step 3: Implement the override table**
 
 ```js
 // scripts/npc-ability-overrides.mjs
@@ -972,7 +972,7 @@ export function findOverride(item) {
 }
 ```
 
-- [ ] **Step 4: Wire `findOverride` into `parseSaveAbility`, as the very first check**
+- [x] **Step 4: Wire `findOverride` into `parseSaveAbility`, as the very first check**
 
 ```js
 // scripts/npc-ability-parse.mjs -- add the import near the top:
@@ -986,17 +986,17 @@ export function parseSaveAbility(item) {
   // ...unchanged from here...
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/npc-ability-overrides.test.mjs`
 Expected: PASS (5 tests)
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS except `npc-ability-parse-coverage.test.mjs`'s golden-count assertion (still deliberately deferred to Task 6)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/npc-ability-overrides.mjs scripts/npc-ability-parse.mjs tests/npc-ability-overrides.test.mjs
@@ -1015,7 +1015,7 @@ git commit -m "feat(#935): reviewed per-ability override table, starting with Un
 - Consumes: `degree.penalties` (Task 2's shape).
 - Produces: `applyTimedPenalty(actor, token, penalty, originItem)` (module-private) → `{applied: boolean}`, called from `applyNpcAbilityDegree`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-npc-ability-penalty-execution.test.mjs
@@ -1087,12 +1087,12 @@ describe('applyTimedPenalty via applyNpcAbilityDegree (#935)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-combat-npc-ability-penalty-execution.test.mjs`
 Expected: FAIL (`applyNpcAbilityDegree` doesn't read `degree.penalties` at all yet; `created` is never called)
 
-- [ ] **Step 3: Implement `applyTimedPenalty` and wire it into `applyNpcAbilityDegree`**
+- [x] **Step 3: Implement `applyTimedPenalty` and wire it into `applyNpcAbilityDegree`**
 
 ```js
 // scripts/dungeon-combat.mjs -- new function, immediately before applyNpcAbilityDegree
@@ -1161,17 +1161,17 @@ async function applyTimedPenalty(target, penalty, originItem) {
   }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-combat-npc-ability-penalty-execution.test.mjs`
 Expected: PASS (3 tests)
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions in `dungeon-combat-npc-ability-*` or `npc-ability-parse*` suites)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-npc-ability-penalty-execution.test.mjs
@@ -1190,7 +1190,7 @@ git commit -m "feat(#935): execute penalty outcomes by synthesizing a self-expir
 - Consumes: `parseSaveAbility`, `describeNpcAbility` (both already exported).
 - Produces: a committed golden file; `GOLDEN_AUTO_COUNT` (a constant in the test file).
 
-- [ ] **Step 1: Generate the golden file's real content by running the now-widened parser against the real slice**
+- [x] **Step 1: Generate the golden file's real content by running the now-widened parser against the real slice**
 
 ```bash
 node -e "
@@ -1226,7 +1226,7 @@ console.log('autoCount:', autoCount);
 
 Run the second (ESM) form — this repo's `scripts/` are ESM-only (confirmed by every existing test file's own `import` syntax). Record the printed `autoCount`; it is the plan's own real, final number (expected to be the real **16** baseline plus whatever Tasks 1–4 actually widened — not pre-computed here, since guessing it would violate this plan's own "no placeholders" rule when the real figure is one command away).
 
-- [ ] **Step 2: Write the ratchet tests**
+- [x] **Step 2: Write the ratchet tests**
 
 ```js
 // tests/npc-ability-parse-coverage.test.mjs -- append (the existing "16/174/179"
@@ -1293,17 +1293,17 @@ describe('npc save-ability outcome coverage ratchet (#935)', () => {
 });
 ```
 
-- [ ] **Step 3: Run the tests to verify they pass**
+- [x] **Step 3: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/npc-ability-parse-coverage.test.mjs`
 Expected: PASS (all tests, including the two pre-existing ones from #915 — update their own hard-coded "16/174/179" expectation in this same commit to read from the real post-widening counts the way `GOLDEN_AUTO_COUNT` does, rather than leaving a stale hard-coded assertion sitting next to a ratchet that supersedes it)
 
-- [ ] **Step 4: Run the full suite**
+- [x] **Step 4: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions anywhere)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tests/fixtures/npc-save-ability-audit.json tests/npc-ability-parse-coverage.test.mjs
@@ -1318,9 +1318,9 @@ git commit -m "feat(#935): golden-file coverage ratchet for the widened save-abi
 - Modify: `module.json`
 - Modify: `docs/architecture.md` (if `update-architecture-docs` reports a change)
 
-- [ ] **Step 1: Run the `update-architecture-docs` skill** (new file `scripts/npc-ability-overrides.mjs` imported by `scripts/npc-ability-parse.mjs` — a new import edge, per CLAUDE.md)
+- [x] **Step 1: Run the `update-architecture-docs` skill** (new file `scripts/npc-ability-overrides.mjs` imported by `scripts/npc-ability-parse.mjs` — a new import edge, per CLAUDE.md)
 - [ ] **Step 2: Bump `module.json`'s version** (minor bump — check `main`'s current version first; bump from whatever is actually current)
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add module.json docs/architecture.md
