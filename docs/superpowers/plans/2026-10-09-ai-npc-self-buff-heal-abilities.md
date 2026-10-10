@@ -55,7 +55,7 @@ The full real-population yield of each family (how many of the ~850-item slice t
 - Consumes: `KNOWN_CONDITION_SLUGS` (named export, `scripts/npc-ability-parse.mjs`).
 - Produces: `parseSelfAbility(item)` → `null | { family: 'selfEffectAction'|'linkedEffectSelf'|'selfHeal', cost: number, frequency: object|null, requirements: Array<Predicate>, crossRecharge: {name: string, formula: string}|null, params: {effectUuid?: string, formula?: string} }`. `describeNpcSelfAbility(descriptor)` → `string` (deterministic one-line summary for the reasoning model, same convention as `describeNpcAbility`). `parseRequirementClause(clause)` → `null | Predicate` (exported separately so Task 3's evaluator and this task's own tests can exercise clause recognition in isolation). `Predicate` is one of `{type:'handFree'}`, `{type:'wielding'|'wearing', name: string}`, `{type:'enemyWithin', feet: number, conditions: string[]}` (where a condition is a real slug or the reserved value `'fear-effect'`), `{type:'hasCondition'|'notHasCondition', slug: string}`.
 
-- [ ] **Step 1: Write the failing tests for block-splitting and the disqualifying scans**
+- [x] **Step 1: Write the failing tests for block-splitting and the disqualifying scans**
 
 ```js
 // tests/npc-self-parse.test.mjs
@@ -357,12 +357,12 @@ describe('describeNpcSelfAbility (#934)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/npc-self-parse.test.mjs`
 Expected: FAIL with "Cannot find module '../scripts/npc-self-parse.mjs'"
 
-- [ ] **Step 3: Implement the normalizer, the disqualifying scans, and `parseRequirementClause`**
+- [x] **Step 3: Implement the normalizer, the disqualifying scans, and `parseRequirementClause`**
 
 ```js
 // scripts/npc-self-parse.mjs
@@ -556,12 +556,12 @@ function actionCost(item) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify `parseRequirementClause` passes and the rest still fails**
+- [x] **Step 4: Run the tests to verify `parseRequirementClause` passes and the rest still fails**
 
 Run: `npx vitest run tests/npc-self-parse.test.mjs -t "parseRequirementClause"`
 Expected: PASS (6 tests). The `parseSelfAbility`/`describeNpcSelfAbility` suites still fail with "parseSelfAbility is not a function".
 
-- [ ] **Step 5: Implement `parseSelfAbility` and `describeNpcSelfAbility`**
+- [x] **Step 5: Implement `parseSelfAbility` and `describeNpcSelfAbility`**
 
 ```js
 // scripts/npc-self-parse.mjs (continued)
@@ -676,12 +676,12 @@ export function describeNpcSelfAbility(descriptor, hpFraction = null) {
 }
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/npc-self-parse.test.mjs`
 Expected: PASS (all tests)
 
-- [ ] **Step 7: Save the fixture file used above as a standalone JSON regression artifact**
+- [x] **Step 7: Save the fixture file used above as a standalone JSON regression artifact**
 
 ```json
 {
@@ -707,7 +707,7 @@ Expected: PASS (all tests)
 }
 ```
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/npc-self-parse.mjs tests/npc-self-parse.test.mjs tests/fixtures/npc-self-ability-fixtures.json
@@ -726,7 +726,7 @@ git commit -m "feat(#934): pure parser for NPC self-buff/heal abilities"
 - Consumes: nothing new — operates on the same plain `rules`/`duration` shapes `isUnsafeSelfEffect` already takes.
 - Produces: `isUnsafeSelfEffectForNpc(rules, duration)` (not exported — module-private, called only from Task 3's aggregator in the same file, same visibility as `isUnsafeSelfEffect` itself).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // tests/dungeon-combat-npc-self-safety.test.mjs
@@ -767,12 +767,12 @@ describe('isUnsafeSelfEffectForNpc (#934)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/dungeon-combat-npc-self-safety.test.mjs`
 Expected: FAIL with "__test__isUnsafeSelfEffectForNpc is not exported"
 
-- [ ] **Step 3: Implement the refinement next to `isUnsafeSelfEffect`**
+- [x] **Step 3: Implement the refinement next to `isUnsafeSelfEffect`**
 
 ```js
 // scripts/dungeon-combat.mjs (insert immediately after isUnsafeSelfEffect, ~line 2535)
@@ -804,12 +804,12 @@ function isUnsafeSelfEffectForNpc(rules, duration) {
 export const __test__isUnsafeSelfEffectForNpc = isUnsafeSelfEffectForNpc;
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run tests/dungeon-combat-npc-self-safety.test.mjs`
 Expected: PASS (6 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-npc-self-safety.test.mjs
@@ -828,7 +828,7 @@ git commit -m "feat(#934): NPC-scoped self-effect safety refinement for conditio
 - Consumes: `parseSelfAbility`, `describeNpcSelfAbility` (`scripts/npc-self-parse.mjs`); `isUnsafeSelfEffectForNpc` (Task 2, same file); `buildNpcSelfVocabulary` (Task 4, `scripts/agent-candidates.mjs`); `actorActionItems`, `actionItemSlug`, `isAbilityRecharged`, `setAbilityRecharge` (all already defined in this file).
 - Produces: `computeReadyNpcSelfAbilities(combat, combatant, opponents)` → `Array<{itemId, slug, name, descriptor, requirementsOk: boolean}>` (module-private). `computeNpcSelfVocabulary(combat, combatant, opponents, actionsRemaining)` (exported, async) → the plain vocabulary-entry array Task 4's `buildNpcSelfVocabulary` consumes.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-npc-self-vocabulary.test.mjs
@@ -971,12 +971,12 @@ describe('computeNpcSelfVocabulary (#934)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-combat-npc-self-vocabulary.test.mjs`
 Expected: FAIL with "computeNpcSelfVocabulary is not exported"
 
-- [ ] **Step 3: Implement the requirement evaluator and the aggregator**
+- [x] **Step 3: Implement the requirement evaluator and the aggregator**
 
 ```js
 // scripts/dungeon-combat.mjs (insert near computeReadyNpcAbilities, ~line 1900)
@@ -1120,24 +1120,24 @@ export async function computeNpcSelfVocabulary(combat, combatant, opponents, act
 }
 ```
 
-- [ ] **Step 4: Add the new imports at the top of `scripts/dungeon-combat.mjs`**
+- [x] **Step 4: Add the new imports at the top of `scripts/dungeon-combat.mjs`**
 
 ```js
 // Add alongside the existing `import { parseSaveAbility, describeNpcAbility } from "./npc-ability-parse.mjs";` (line 44)
 import { parseSelfAbility, describeNpcSelfAbility } from "./npc-self-parse.mjs";
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-combat-npc-self-vocabulary.test.mjs`
 Expected: PASS (8 tests)
 
-- [ ] **Step 6: Run the full suite to check for regressions**
+- [x] **Step 6: Run the full suite to check for regressions**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions in `npc-ability-parse*`, `agent-candidates*`, `dungeon-combat-*` suites)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-npc-self-vocabulary.test.mjs
@@ -1156,7 +1156,7 @@ git commit -m "feat(#934): requirement-predicate evaluation and the npcSelf read
 - Consumes: the plain entry shape Task 3's `computeNpcSelfVocabulary` produces: `{type: 'npcSelf', itemId, slug, name, family, cost, summary, hpFraction}`.
 - Produces: `buildNpcSelfVocabulary({ npcSelfEntries })` → `Array<{type:'npcSelf', itemId, slug, name, family, cost, summary}>`. `buildNpcSelfCandidates({ npcSelfVocabulary, picks })` → `Array<candidate>`. Both wired into `buildCandidateList`'s existing parameter list and body (new `npcSelfVocabulary = []` parameter, spread the same way `npcAbilityVocabulary` already is).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/agent-candidates.test.mjs (append)
@@ -1222,12 +1222,12 @@ describe('buildCandidateList wires in npcSelfVocabulary (#934)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/agent-candidates.test.mjs -t "npcSelf"`
 Expected: FAIL with "buildNpcSelfVocabulary is not exported"
 
-- [ ] **Step 3: Implement the builders, mirroring `buildNpcAbilityVocabulary`/`buildNpcAbilityCandidates`**
+- [x] **Step 3: Implement the builders, mirroring `buildNpcAbilityVocabulary`/`buildNpcAbilityCandidates`**
 
 ```js
 // scripts/agent-candidates.mjs (insert immediately after buildNpcAbilityCandidates, ~line 1238)
@@ -1272,7 +1272,7 @@ export function buildNpcSelfCandidates({ npcSelfVocabulary = [], picks = null })
 }
 ```
 
-- [ ] **Step 4: Wire `npcSelfVocabulary` into `buildCandidateList`**
+- [x] **Step 4: Wire `npcSelfVocabulary` into `buildCandidateList`**
 
 ```js
 // scripts/agent-candidates.mjs -- buildCandidateList's signature (~line 1241): add the
@@ -1305,12 +1305,12 @@ export function buildCandidateList({ opponents, readyActions, readySpells = [], 
 }
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/agent-candidates.test.mjs`
 Expected: PASS (all tests, no regressions in the existing suite)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs tests/agent-candidates.test.mjs
@@ -1329,7 +1329,7 @@ git commit -m "feat(#934): npcSelf vocabulary/candidate builders, wired into bui
 - Consumes: `computeNpcSelfVocabulary` (Task 3); `buildNpcSelfVocabulary` (Task 4, already imported into this file via the existing `import { ... } from "./agent-candidates.mjs"` line — add `buildNpcSelfVocabulary` to that import list).
 - Produces: `pending.npcSelfVocabulary` on the object `getPendingAgentTurn` returns, read by `runAgentDecisionLoop` and by `buildCandidateList`'s call site inside `getPendingAgentTurn` itself.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // tests/dungeon-combat-npc-self-wiring.test.mjs
@@ -1363,12 +1363,12 @@ describe('getPendingAgentTurn npcSelf wiring (#934)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails or errors**
+- [x] **Step 2: Run the test to verify it fails or errors**
 
 Run: `npx vitest run tests/dungeon-combat-npc-self-wiring.test.mjs`
 Expected: FAIL (either `pending.npcSelfVocabulary` is `undefined`, or the test doubles above are missing a field `getPendingAgentTurn` needs — adjust the doubles to match whatever the real function reads, following the exact same combatant/combat/actor shape the file's own existing `dungeon-combat-npc-ability-vocabulary.test.mjs` doubles use, without changing the assertion)
 
-- [ ] **Step 3: Add `npcSelfVocabulary` to `getPendingAgentTurn`**
+- [x] **Step 3: Add `npcSelfVocabulary` to `getPendingAgentTurn`**
 
 ```js
 // scripts/dungeon-combat.mjs -- immediately after the existing npcAbilityVocabulary
@@ -1384,11 +1384,11 @@ Expected: FAIL (either `pending.npcSelfVocabulary` is `undefined`, or the test d
   );
 ```
 
-- [ ] **Step 4: Pass `npcSelfVocabulary` through the same function's own `buildCandidateList` call and its returned object**
+- [x] **Step 4: Pass `npcSelfVocabulary` through the same function's own `buildCandidateList` call and its returned object**
 
 Find this function's existing `return { ... }` statement (the one already including `npcAbilityVocabulary,` per the grep at line ~4722) and its `buildCandidateList({...})` call (line ~4701) — add `npcSelfVocabulary,` to both, in the same position `npcAbilityVocabulary` already occupies.
 
-- [ ] **Step 5: Add `npcSelfVocabulary` to the once-per-turn reasoning-call trigger and the combined vocabulary payload in `runAgentDecisionLoop`**
+- [x] **Step 5: Add `npcSelfVocabulary` to the once-per-turn reasoning-call trigger and the combined vocabulary payload in `runAgentDecisionLoop`**
 
 ```js
 // scripts/dungeon-combat.mjs, runAgentDecisionLoop (~lines 1034-1051) -- extend the
@@ -1417,24 +1417,24 @@ Find this function's existing `return { ... }` statement (the one already includ
           });
 ```
 
-- [ ] **Step 6: Add the new import**
+- [x] **Step 6: Add the new import**
 
 ```js
 // scripts/dungeon-combat.mjs -- extend the existing agent-candidates.mjs import
 // list to also pull in buildNpcSelfVocabulary (used by Step 3/4 above).
 ```
 
-- [ ] **Step 7: Run the test to verify it passes**
+- [x] **Step 7: Run the test to verify it passes**
 
 Run: `npx vitest run tests/dungeon-combat-npc-self-wiring.test.mjs`
 Expected: PASS
 
-- [ ] **Step 8: Run the full suite**
+- [x] **Step 8: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions in `runAgentDecisionLoop`/`getPendingAgentTurn`'s existing tests)
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-npc-self-wiring.test.mjs
@@ -1453,7 +1453,7 @@ git commit -m "feat(#934): wire npcSelf into the once-per-turn reasoning call"
 - Consumes: `findActiveStanceEffectId`, `actorAlreadyHasEffectFrom`, `whisperGmContent`, `setAbilityRecharge`, `skipUnperformedFeat` (all already defined in this file); `MODULE_ID` (already imported/defined at file top).
 - Produces: `executeNpcSelfCandidate(combat, combatant, candidate)` → `{performed: boolean}`, dispatched from `applyAgentDecision`'s `case "npcSelf"`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-npc-self-execution.test.mjs
@@ -1533,12 +1533,12 @@ describe('executeNpcSelfCandidate (#934)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-combat-npc-self-execution.test.mjs`
 Expected: FAIL with "executeNpcSelfCandidate is not exported"
 
-- [ ] **Step 3: Implement the executors, mirroring `executeSelfEffectFeat` (#910) and the confirmed-live healing call shape from `castHealSpellAndApply` (#132)**
+- [x] **Step 3: Implement the executors, mirroring `executeSelfEffectFeat` (#910) and the confirmed-live healing call shape from `castHealSpellAndApply` (#132)**
 
 ```js
 // scripts/dungeon-combat.mjs (insert immediately after executeSelfEffectFeat, ~line 6473)
@@ -1662,7 +1662,7 @@ export async function executeNpcSelfCandidate(combat, combatant, candidate) {
 }
 ```
 
-- [ ] **Step 4: Wire the dispatch into `applyAgentDecision`**
+- [x] **Step 4: Wire the dispatch into `applyAgentDecision`**
 
 ```js
 // scripts/dungeon-combat.mjs, applyAgentDecision's dispatch chain -- add
@@ -1674,12 +1674,12 @@ export async function executeNpcSelfCandidate(combat, combatant, candidate) {
   }
 ```
 
-- [ ] **Step 5: Run the execution tests to verify they pass**
+- [x] **Step 5: Run the execution tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-combat-npc-self-execution.test.mjs`
 Expected: PASS (3 tests)
 
-- [ ] **Step 6: Add the combat-end cleanup regression test (no new production code — confirms the existing #914 cleanup already covers this)**
+- [x] **Step 6: Add the combat-end cleanup regression test (no new production code — confirms the existing #914 cleanup already covers this)**
 
 ```js
 // tests/dungeon-combat-npc-self-execution.test.mjs (append)
@@ -1703,17 +1703,17 @@ describe('cleanupAgentSelfEffects already covers npcSelf-created effects (#914, 
 });
 ```
 
-- [ ] **Step 7: Run the whole test file**
+- [x] **Step 7: Run the whole test file**
 
 Run: `npx vitest run tests/dungeon-combat-npc-self-execution.test.mjs`
 Expected: PASS (4 tests)
 
-- [ ] **Step 8: Run the full suite**
+- [x] **Step 8: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-npc-self-execution.test.mjs
@@ -1740,7 +1740,7 @@ git commit -m "feat(#934): execute npcSelf candidates (self-effect creation and 
 - Modify: `module.json`
 - Modify: `docs/architecture.md` (if the `update-architecture-docs` skill reports any change — the new `scripts/npc-self-parse.mjs` import edge from `dungeon-combat.mjs` is exactly the kind of rewiring CLAUDE.md requires this for)
 
-- [ ] **Step 1: Run the `update-architecture-docs` skill**
+- [x] **Step 1: Run the `update-architecture-docs` skill**
 
 Run the skill per CLAUDE.md's own requirement (any merge adding/removing/rewiring a `scripts/` file's imports) before bumping the version. Commit any resulting `docs/architecture.md` changes together with the version bump below, not separately.
 
@@ -1760,7 +1760,7 @@ git add module.json docs/architecture.md
 git commit -m "chore(#934): bump version for npcSelf (NPC self-buff/heal) vocabulary"
 ```
 
-- [ ] **Step 4: Confirm the follow-up coverage-audit issue is filed and linked**
+- [x] **Step 4: Confirm the follow-up coverage-audit issue is filed and linked**
 
 Issue **#1024** ("AI NPCs: widen NPC self-buff/heal parsing coverage") was filed during this plan's own writing (mirroring #935's role for #915) and already references this plan's Investigation findings. No further action needed here beyond linking it in the PR description and the issue comment this plan's workflow posts on #934 at merge time.
 

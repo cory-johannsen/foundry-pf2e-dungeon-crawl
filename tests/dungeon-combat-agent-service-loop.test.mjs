@@ -341,6 +341,30 @@ describe('runAgentDecisionLoop npcMove vocabulary (#932)', () => {
   });
 });
 
+describe('runAgentDecisionLoop npcSelf vocabulary (#934)', () => {
+  it('fetches when only the self-buff/heal vocabulary is non-empty, appended last', async () => {
+    installGameStub();
+    const store = {};
+    const combat = { id: 'combat-1', round: 1, turn: 0, getFlag: (_m, k) => store[k], setFlag: async (_m, k, v) => { store[k] = v; } };
+    const npcStrikeVocabulary = [{ type: 'npcStrike', itemId: 'i1', slug: 'wide-swing', targetId: 'opp1', targetIds: ['opp1'] }];
+    const npcSelfVocabulary = [{ type: 'npcSelf', family: 'selfHeal', itemId: 'i2', slug: 'self-repair', targetId: null }];
+    for (const [vocab, expected] of [
+      [{ maneuverVocabulary: [], featVocabulary: [], npcAbilityVocabulary: [], npcMoveVocabulary: [], npcStrikeVocabulary: [], npcSelfVocabulary }, npcSelfVocabulary],
+      [{ npcStrikeVocabulary, npcSelfVocabulary }, [...npcStrikeVocabulary, ...npcSelfVocabulary]],
+    ]) {
+      for (const k of Object.keys(store)) delete store[k];
+      const pendingTurn = { combatId: 'combat-1', combatantId: 'atk', context: { candidates: [] }, candidates: [], ...vocab };
+      const fetchCandidates = vi.fn().mockResolvedValue({ picks: [] });
+      await runAgentDecisionLoop(combat, { id: 'atk' }, {
+        fetchDecision: vi.fn().mockResolvedValue({ candidateId: 'endTurn' }),
+        fetchCandidates, getPending: vi.fn().mockResolvedValue(pendingTurn), applyDecision: vi.fn().mockResolvedValue(null), armTimeout: vi.fn(),
+      });
+      expect(fetchCandidates).toHaveBeenCalledTimes(1);
+      expect(fetchCandidates.mock.calls[0][0].vocabulary).toEqual(expected);
+    }
+  });
+});
+
 describe('runAgentDecisionLoop maneuver picks already fetched this turn', () => {
   it('does not re-ask the reasoning model once picks are persisted for this turn', async () => {
     installGameStub();

@@ -200,6 +200,17 @@ describe("describeAgentAction", () => {
     expect(two).toMatchObject({ targetName: null, result: { text: "Goblin: hit; Orc: miss", tone: "neutral" }, gmNote: "One attack roll (25) compared to each target's AC." });
   });
 
+  it("describes a monster self-buff or self-heal by its name, with no target (#934)", () => {
+    const buff = { type: "npcSelf", family: "selfEffectAction", name: "Form a Phalanx", targetId: null, summary: "Form a Phalanx: self-buff: +ac; lasts 1 rounds — brace" };
+    expect(publicActionLabel(buff)).toBe("Form a Phalanx");
+    expect(describe2(buff, { performed: true, attacks: 0, text: "gains Effect: Form a Phalanx", tone: "success" }))
+      .toMatchObject({ summary: "Form a Phalanx", targetName: null, result: { text: "gains Effect: Form a Phalanx", tone: "success" }, gmNote: null });
+    const heal = { type: "npcSelf", family: "selfHeal", name: "Feed on Fear", targetId: null };
+    expect(describe2(heal, { performed: true, healed: 5, text: "heals 5 HP", tone: "success", gmNote: "Consume Light recharging (1d4 rounds), per Feed on Fear." }))
+      .toMatchObject({ result: { text: "heals 5 HP", tone: "success" }, gmNote: "Consume Light recharging (1d4 rounds), per Feed on Fear." });
+    expect(describe2(heal, undefined).result).toEqual({ text: "done", tone: "neutral" });
+  });
+
   it("describes endTurn", () => {
     expect(describe2({ type: "endTurn", summary: "End turn" }, undefined).result).toEqual({ text: "ends turn", tone: "neutral" });
   });

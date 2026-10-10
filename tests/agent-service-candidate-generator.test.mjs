@@ -132,6 +132,22 @@ describe("generateCombatCandidates", () => {
     expect(content).toMatch(/reactions/);
   });
 
+  it("puts npcSelf in the type enum and tells the model a self-buff/heal targets nothing (#934)", async () => {
+    const vocab = [
+      { type: "npcSelf", family: "selfHeal", itemId: "i1", slug: "feed-on-fear", name: "Feed on Fear", cost: 1, targetId: null, traits: [], summary: "heals itself 2d4 HP (now at 30% HP)" },
+    ];
+    const fetchImpl = fakeFetch({ picks: [] });
+    await generateCombatCandidates(context, vocab, { ...OPTS, fetchImpl });
+    const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    const itemProps = body.tools[0].function.parameters.properties.picks.items.properties;
+    expect(itemProps.type.enum).toEqual(["npcSelf"]);
+    expect(itemProps.slug.enum).toEqual(["feed-on-fear"]);
+    const content = body.messages[0].content;
+    expect(content).toContain('type "npcSelf"');
+    expect(content).toMatch(/targetId null/);
+    expect(content).toMatch(/HP percentage/);
+  });
+
   it("puts npcStrike in the type enum and tells the model how to read a Strike-ability entry (#933)", async () => {
     const vocab = [
       { type: "npcStrike", shape: "singleRollMultiAC", itemId: "i1", slug: "wide-swing", name: "Wide Swing", cost: 1, targetId: "opp1", targetIds: ["opp1", "opp2"], summary: "one greataxe Strike roll against the AC of each of Goblin and Orc; counts as 2 attacks for MAP" },

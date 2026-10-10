@@ -1440,8 +1440,70 @@ export function buildNpcStrikeCandidates({ npcStrikeVocabulary = [], picks = nul
   return candidates;
 }
 
+/** #934: at most this many NPC self-buff/self-heal entries go to the
+ * reasoning model per turn. */
+export const NPC_SELF_VOCABULARY_CAP = 8;
+
+/**
+ * #934: the NPC self-buff/self-heal vocabulary (Form a Phalanx, Reef Armor,
+ * Thesis Shield, Feed on Fear, Self-Repair, ...), built from
+ * dungeon-combat.mjs's ready entries (computeNpcSelfEntries -- every
+ * eligibility gate is applied there; this file has no Foundry API surface).
+ * Self-only: every entry has `targetId: null`. An entry whose flourish/
+ * stance trait is spent this turn is dropped. Ranked heals-when-hurt first
+ * (lowest HP fraction first), then effects by #914's relevance tier, ties in
+ * item order; capped at NPC_SELF_VOCABULARY_CAP.
+ */
+export function buildNpcSelfVocabulary({ npcSelfEntries = [], turnState = null }) {
+  const blocked = (traits = []) =>
+    (turnState?.flourishUsed && traits.includes('flourish')) ||
+    (turnState?.stanceUsed && traits.includes('stance'));
+  return npcSelfEntries
+    .filter((entry) => !blocked(entry.traits))
+    .map((entry, index) => ({
+      index,
+      rank: entry.family === 'selfHeal' ? (entry.hpFraction ?? 1) : 1 + (entry.tier ?? 2),
+      entry: {
+        type: 'npcSelf', family: entry.family, itemId: entry.itemId, slug: entry.slug, name: entry.name,
+        cost: entry.cost, targetId: null, traits: entry.traits ?? [], summary: entry.summary,
+        ...(entry.frequencyLabel ? { frequencyLabel: entry.frequencyLabel } : {}),
+      },
+    }))
+    .sort((a, b) => a.rank - b.rank || a.index - b.index)
+    .slice(0, NPC_SELF_VOCABULARY_CAP)
+    .map((r) => r.entry);
+}
+
+/**
+ * #934: validates the combined once-per-turn picks against
+ * `npcSelfVocabulary`, ignoring any pick whose `type` isn't 'npcSelf'. A
+ * pick names a slug (targetId null -- a self-only ability); an `itemId` the
+ * model volunteers must agree. One candidate per matching item.
+ */
+export function buildNpcSelfCandidates({ npcSelfVocabulary = [], picks = null }) {
+  if (!picks) return [];
+  const candidates = [];
+  const seen = new Set();
+  for (const pick of picks) {
+    if (!pick || typeof pick !== 'object' || pick.type !== 'npcSelf') continue;
+    for (const match of npcSelfVocabulary.filter((v) => v.slug === pick.slug)) {
+      if (pick.itemId !== undefined && pick.itemId !== match.itemId) continue;
+      const id = `npcSelf:${match.itemId}`;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      const label = `${match.name}: ${match.summary}`;
+      candidates.push({
+        id, type: 'npcSelf', family: match.family, itemId: match.itemId, slug: match.slug, name: match.name,
+        targetId: null, cost: match.cost, traits: match.traits ?? [],
+        summary: pick.rationale ? `${label} — ${pick.rationale}` : label,
+      });
+    }
+  }
+  return candidates;
+}
+
 /** Full candidate list for one decision iteration. */
-export function buildCandidateList({ opponents, readyActions, readySpells = [], readyAreaSpells = [], readyAttackSpells = [], readyDebuffSpells = [], readyBreathWeapons = [], readyMultiStrikeBundles = [], readyChainSpells = [], readyHealSpells = [], readyBuffSpells = [], readyTierScalingAreaSpells = [], readyDualNatureSpells = [], readyTargetCountSpells = [], readyAutoHitAreaSpells = [], allies = [], seekTargets = [], turnState, hazard = null, hasRangedOrReach = false, maneuverVocabulary = [], maneuverPicks = null, featVocabulary = [], npcAbilityVocabulary = [], npcMoveVocabulary = [], npcStrikeVocabulary = [] }) {
+export function buildCandidateList({ opponents, readyActions, readySpells = [], readyAreaSpells = [], readyAttackSpells = [], readyDebuffSpells = [], readyBreathWeapons = [], readyMultiStrikeBundles = [], readyChainSpells = [], readyHealSpells = [], readyBuffSpells = [], readyTierScalingAreaSpells = [], readyDualNatureSpells = [], readyTargetCountSpells = [], readyAutoHitAreaSpells = [], allies = [], seekTargets = [], turnState, hazard = null, hasRangedOrReach = false, maneuverVocabulary = [], maneuverPicks = null, featVocabulary = [], npcAbilityVocabulary = [], npcMoveVocabulary = [], npcStrikeVocabulary = [], npcSelfVocabulary = [] }) {
   if (turnState.actionsRemaining <= 0) return [endTurnCandidate()];
   return [
     ...buildMovementCandidates({ opponents, hazard, hasRangedOrReach }),
@@ -1451,6 +1513,7 @@ export function buildCandidateList({ opponents, readyActions, readySpells = [], 
     ...buildNpcAbilityCandidates({ npcAbilityVocabulary, picks: maneuverPicks, opponents }),
     ...buildNpcMoveCandidates({ npcMoveVocabulary, picks: maneuverPicks, opponents }),
     ...buildNpcStrikeCandidates({ npcStrikeVocabulary, picks: maneuverPicks, opponents }),
+    ...buildNpcSelfCandidates({ npcSelfVocabulary, picks: maneuverPicks }),
     ...buildSpellCandidates({ readySpells, opponents, actionsRemaining: turnState.actionsRemaining }),
     ...buildAreaSpellCandidates({ readyAreaSpells, actionsRemaining: turnState.actionsRemaining }),
     ...buildAttackSpellCandidates({ readyAttackSpells, opponents, actionsRemaining: turnState.actionsRemaining }),
@@ -1484,11 +1547,13 @@ export function applyCandidateToTurnState(turnState, candidate) {
     mapIncrement += 1;
   }
   const next = { ...turnState, actionsRemaining: turnState.actionsRemaining - candidate.cost, mapIncrement };
-  if (candidate.type === 'feat' || candidate.type === 'npcMove' || candidate.type === 'npcStrike') {
+  if (candidate.type === 'feat' || candidate.type === 'npcMove' || candidate.type === 'npcStrike' || candidate.type === 'npcSelf') {
     // #932: a movement ability's Strike (Swoop, Rush, Eagle Dive) counts
     // toward MAP the same way.
     // #933: so do a Strike-plus ability's attacks, by its own MAP rule (Wide
     // Swing "counts as two attacks"; Constrict and Rend are no attacks).
+    // #934: a monster's self-buff makes no attack but spends its stance/
+    // flourish trait like any other action.
     // #910: a composite feat's executor reports how many Strikes it really
     // made (Sudden Charge may end out of reach and make none) -- each one
     // counts toward MAP like any other attack this turn.
