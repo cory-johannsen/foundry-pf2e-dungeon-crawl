@@ -13,7 +13,7 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { extractPack } from "@foundryvtt/foundryvtt-cli";
 import { readPackDirectories } from "./build-creature-art-pack.mjs";
-import { candidateFor, mergeCandidates } from "./creature-environment-patterns.mjs";
+import { candidateFor, mergeCandidates, matchArtToDocs, extractHabitatText } from "./creature-environment-patterns.mjs";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
@@ -37,6 +37,9 @@ export async function* readSourcePacks(systemPacksDir, packNames, scratchDir) {
       if (!file.endsWith(".json")) continue;
       docs.push(JSON.parse(readFileSync(join(extractDir, file), "utf8")));
     }
+    // Free this pack's scratch right away so disk use stays at one pack.
+    rmSync(copyDir, { recursive: true, force: true });
+    rmSync(extractDir, { recursive: true, force: true });
     yield { pack, docs };
   }
 }
@@ -96,17 +99,27 @@ async function audit(args, art, packNames, systemPacksDir, scratch) {
   const byPack = new Map();
   for (const e of art) byPack.set(e.pack, [...(byPack.get(e.pack) ?? []), e]);
   const candidates = {};
-  const rows = []; // { id, name, pack, basis, environments, text }
+  const rows = []; // { id, name, pack, basis, environments }
+  const review = []; // rows plus level/traits/notes, for hand review (out/ only)
+  let missingTotal = 0;
   for await (const { pack, docs } of readSourcePacks(systemPacksDir, packNames, scratch)) {
     const docsById = new Map(docs.map((d) => [d._id, d]));
-    for (const e of byPack.get(pack) ?? []) {
-      const doc = docsById.get(e.docId);
-      if (!doc) continue;
+    const { matched, missing } = matchArtToDocs(byPack.get(pack) ?? [], docsById);
+    if (missing.length) {
+      missingTotal += missing.length;
+      console.warn(`${pack}: ${missing.length} art entr${missing.length === 1 ? "y has" : "ies have"} no extracted doc (e.g. ${missing.slice(0, 3).map((e) => e.id).join(", ")})`);
+    }
+    for (const { entry: e, doc } of matched) {
       const c = candidateFor(doc);
       candidates[e.id] = c.environments;
       rows.push({ id: e.id, name: e.name, pack, ...c });
+      review.push({
+        id: e.id, name: e.name, pack, level: e.level, traits: doc.system?.traits?.value ?? [],
+        basis: c.basis, environments: c.environments, notes: extractHabitatText(doc),
+      });
     }
   }
+  if (missingTotal) console.warn(`WARNING: ${missingTotal} art entr${missingTotal === 1 ? "y" : "ies"} skipped (no extracted doc).`);
   const tally = (list) => {
     const t = { total: list.length, prose: 0, traits: 0, unmapped: 0 };
     for (const r of list) t[r.basis === "prose" ? "prose" : r.basis === "traits" ? "traits" : "unmapped"]++;
@@ -123,6 +136,7 @@ async function audit(args, art, packNames, systemPacksDir, scratch) {
   mkdirSync(args.out, { recursive: true });
   writeFileSync(join(args.out, "creature-environments-report.md"), lines.join("\n") + "\n");
   writeFileSync(join(args.out, "creature-environments-candidates.json"), JSON.stringify(sortKeys(candidates), null, 2) + "\n");
+  writeFileSync(join(args.out, "creature-environments-review.json"), JSON.stringify(review, null, 1) + "\n");
   console.log(lines.slice(2, 3).join(""));
   console.log(`Wrote report and candidates to ${args.out}`);
   if (args.merge) {

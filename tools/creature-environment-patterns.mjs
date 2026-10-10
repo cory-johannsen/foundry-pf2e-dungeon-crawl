@@ -13,24 +13,30 @@ import { ENVIRONMENTS } from "../scripts/environments.mjs";
 
 const HABITAT_FIELDS = ["publicNotes"];
 
-/** Words (prefix, with simple suffixes) -> environment. */
+/** Word stems (regex fragments) -> environment. Each stem may take an
+ * optional s/es/ed suffix and must match whole words. Tuned against the
+ * audit samples (Step 5): "plain" (plain sight), "sand" (sandy) and "temple"
+ * (webs as big as temples) were too loose and are gone or narrowed. */
 export const KEYWORDS = {
-  forest: ["forest", "woods?", "woodland", "jungle"],
-  swamp: ["swamp", "marsh", "bog", "fen"],
-  cave: ["cave", "cavern", "underdark"],
-  desert: ["desert", "dune", "sand"],
-  urban: ["city", "cities", "town", "village", "urban", "street"],
+  forest: ["forest", "rainforest", "woods?", "woodland", "jungle", "grove"],
+  swamp: ["swamp", "marsh", "bog", "fen", "wetland", "mire"],
+  cave: ["cave", "cavern", "underdark", "darklands", "underground", "subterranean", "mine"],
+  desert: ["desert", "dune", "sands"],
+  urban: ["city", "cities", "town", "village", "urban", "street", "sewer"],
   underwater: ["ocean", "sea", "lake", "river", "underwater", "reef"],
-  mountain: ["mountain", "peak", "crag"],
-  arctic: ["arctic", "tundra", "glacier", "ice", "snow"],
-  plains: ["plain", "grassland", "farm", "prairie"],
-  "underground-ruin": ["ruin", "dungeon", "crypt", "tomb", "temple", "catacomb"],
-  planar: ["plane", "planar", "abyss", "hell", "heaven", "shadow plane"],
+  mountain: ["mountain", "mountainous", "peak", "crag"],
+  arctic: ["arctic", "tundra", "glacier", "ice", "icy", "snow"],
+  plains: ["plains", "grassland", "savanna", "prairie", "steppe", "farm", "farmland"],
+  "underground-ruin": ["ruin", "dungeon", "crypt", "tomb", "catacomb", "graveyard", "cemetery", "cemeteries", "mausoleum"],
+  planar: [
+    "(?<!material )plane", "planar", "abyss", "abyssal", "hell", "heaven", "nirvana", "elysium",
+    "axis", "maelstrom", "first world", "astral", "ethereal",
+  ],
 };
 
 const KEYWORD_RES = ENVIRONMENTS.map((env) => [
   env,
-  new RegExp(`\\b(?:${(KEYWORDS[env] ?? []).join("|")})(?:s|es|ed|y|ous|ing)?\\b`, "i"),
+  new RegExp(`\\b(?:${(KEYWORDS[env] ?? []).join("|")})(?:s|es|ed)?\\b`, "i"),
 ]);
 
 const PATTERNS = [
@@ -57,7 +63,10 @@ export function habitatEnvironments(text) {
     for (const m of text.matchAll(new RegExp(re.source, re.flags))) clauses.push(m[1] ?? "");
   }
   const joined = clauses.join(" ; ");
-  return KEYWORD_RES.filter(([, re]) => re.test(joined)).map(([env]) => env);
+  const found = KEYWORD_RES.filter(([, re]) => re.test(joined)).map(([env]) => env);
+  // A habitat on another plane is planar only: "the mountain of Heaven" or
+  // "Hell's waterways" are not Material Plane mountains or oceans.
+  return found.includes("planar") ? ["planar"] : found;
 }
 
 const TRAIT_MAP = {
@@ -67,13 +76,24 @@ const TRAIT_MAP = {
   monitor: "planar", aeon: "planar", archon: "planar", undead: "any", construct: "any",
 };
 
+const ELEMENT_TRAITS = ["air", "earth", "fire", "water", "wood", "metal"];
+const OUTSIDER_TRAITS = ["fiend", "celestial", "monitor", "aeon", "archon"];
+
+/** Trait -> environment hints. Multi-element creatures (genies, chaos
+ * falcons, elementalist casters) get no element hints: several elements are
+ * a damage/magic signal, not a habitat. Outsiders are planar only. */
 export function traitHints(traits) {
   const list = Array.isArray(traits) ? traits : [];
+  const multiElement = list.filter((t) => ELEMENT_TRAITS.includes(t)).length >= 2;
+  const outsider = list.some((t) => OUTSIDER_TRAITS.includes(t));
   const out = new Set();
   for (const t of list) {
-    if (Object.hasOwn(TRAIT_MAP, t)) out.add(TRAIT_MAP[t]);
+    if (!Object.hasOwn(TRAIT_MAP, t)) continue;
+    if (multiElement && ELEMENT_TRAITS.includes(t)) continue;
+    out.add(TRAIT_MAP[t]);
   }
   if (list.includes("elemental") && list.includes("extraplanar")) out.add("planar");
+  if (outsider && !out.has("any")) return ["planar"];
   return [...out];
 }
 
@@ -111,4 +131,18 @@ export function mergeCandidates(existing, sources, candidates) {
     sources: { ...sources, version: sources?.version ?? 1, sources: sortKeys(srcs) },
     added,
   };
+}
+
+/** Pairs art entries with their extracted docs; entries whose docId has no
+ * extracted doc go to `missing` so the caller can warn instead of dropping
+ * them silently. */
+export function matchArtToDocs(entries, docsById) {
+  const matched = [];
+  const missing = [];
+  for (const entry of Array.isArray(entries) ? entries : []) {
+    const doc = docsById instanceof Map ? docsById.get(entry?.docId) : undefined;
+    if (doc) matched.push({ entry, doc });
+    else missing.push(entry);
+  }
+  return { matched, missing };
 }
