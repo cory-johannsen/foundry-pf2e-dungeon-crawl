@@ -708,7 +708,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `parseStrikePlusAbility` (Task 2), `currentGrabTarget` (Task 1), `matchMultiStrikeActionSlug`, `isAbilityRecharged` (existing, exported per #932's own precedent).
 - Produces (consumed by Task 9): `computeNpcStrikeVocabularyEntries(actor, actionsRemaining, combat, combatantId)` → pre-filtered entries; `buildNpcStrikeVocabulary({ strikeEntries, opponents, combat, combatant, gridDistanceFt })` → vocabulary entries `{ type: "npcStrike", itemId, slug, name, shape, cost, targetIds, params }`; `buildNpcStrikeCandidates({ npcStrikeVocabulary, picks, opponents })` → candidates `{ id, type: "npcStrike", ...same fields, summary }`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-npc-strike-vocabulary.test.mjs
@@ -788,12 +788,12 @@ describe('buildNpcStrikeCandidates', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-npc-strike-vocabulary.test.mjs tests/agent-candidates.test.mjs`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement `computeNpcStrikeVocabularyEntries` in `scripts/dungeon-combat.mjs`**
+- [x] **Step 3: Implement `computeNpcStrikeVocabularyEntries` in `scripts/dungeon-combat.mjs`**
 
 ```js
 import { parseStrikePlusAbility } from "./npc-strike-shapes.mjs";
@@ -815,7 +815,7 @@ export async function computeNpcStrikeVocabularyEntries(actor, actionsRemaining,
 }
 ```
 
-- [ ] **Step 4: Implement `buildNpcStrikeVocabulary`/`buildNpcStrikeCandidates` in `scripts/agent-candidates.mjs`**
+- [x] **Step 4: Implement `buildNpcStrikeVocabulary`/`buildNpcStrikeCandidates` in `scripts/agent-candidates.mjs`**
 
 ```js
 /**
@@ -901,12 +901,12 @@ export function buildNpcStrikeCandidates({ npcStrikeVocabulary = [], picks = nul
 
 Confirm the real shape of this codebase's own `opponents` array as surfaced to `agent-candidates.mjs` (`grep -n "distanceSquares\|hasLineOfSight\|inMeleeReach" scripts/dungeon-combat.mjs` — some of these exact field names, e.g. `inMeleeReach`, may not already exist on the real `opponents` objects this codebase builds for other vocabulary builders; `buildManeuverVocabulary`'s own `opponents` shape, read earlier in this session, carries `distanceSquares`/`hasLineOfSight`/`sizeOk` but not `inMeleeReach` or `size` as plain strings) — add whatever fields are missing to the real `opponents`-building code in `getPendingAgentTurn` (the same object `buildManeuverVocabulary`/`buildFeatVocabulary` already consume) rather than inventing a second, parallel opponents array for this vocabulary alone.
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-npc-strike-vocabulary.test.mjs tests/agent-candidates.test.mjs`
 Expected: PASS, once Step 4's own flagged `opponents` field-shape correction is applied.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs scripts/dungeon-combat.mjs tests/agent-candidates.test.mjs tests/dungeon-combat-npc-strike-vocabulary.test.mjs
@@ -928,7 +928,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `computeNpcStrikeVocabularyEntries`/`buildNpcStrikeVocabulary`/`buildNpcStrikeCandidates` (Task 4).
 - Produces: `getPendingAgentTurn`'s returned object gains `npcStrikeVocabulary`; `buildCandidateList` and `runAgentDecisionLoop`'s combined-vocabulary gate include it.
 
-- [ ] **Step 1: Wire the vocabulary into `getPendingAgentTurn`**
+- [x] **Step 1: Wire the vocabulary into `getPendingAgentTurn`**
 
 Mirroring #932's own Task 4 Step 6 exactly (confirm whether that plan's own PR has been implemented yet; if not, this task edits the real, current function directly, following the same pattern it already established for `npcMoveVocabulary` alongside `maneuverVocabulary`/`featVocabulary`):
 
@@ -978,12 +978,12 @@ vocabulary: [
 ],
 ```
 
-- [ ] **Step 2: Run the full suite**
+- [x] **Step 2: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures) — confirm every existing vocabulary category's own tests still pass unchanged, since this step touches the same shared gate/array they all depend on.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs scripts/agent-candidates.mjs
@@ -1004,7 +1004,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `rollAndApplyStrikeAtVariant`, `matchMultiStrikeActionSlug`, `clearGrab`/`currentGrabTarget` (Task 1), the real `castBreathWeaponAndApplyDamage`'s own basic-save damage-scaling convention (reused, not called directly — it is itself multi-target and breath-weapon-specific).
 - Produces (consumed by Task 9): `async function executeStrikeAgainstGrabbed(combat, combatant, candidate, target)`; `async function executeConstrictLike(combat, combatant, candidate, target)`; `async function executeExtendedReachStrike(combat, combatant, candidate, target)` → each returns a short result string.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 describe('executeStrikeAgainstGrabbed', () => {
@@ -1042,12 +1042,12 @@ describe('executeExtendedReachStrike', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-npc-strike-execute.test.mjs`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement the three executors**
+- [x] **Step 3: Implement the three executors**
 
 ```js
 /**
@@ -1123,12 +1123,12 @@ async function executeExtendedReachStrike(combat, combatant, candidate, target) 
 
 Confirm `rollAndApplyStrikeAtVariant`'s real fifth-argument `modifiers` option exists per #925's own plan's Task 3 note (it added this if missing); if it hasn't been implemented yet, add it here the same minimal way: an optional `modifiers = []` parameter threaded into the roll, defaulting to `[]` so every existing call site is unaffected.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-npc-strike-execute.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-npc-strike-execute.test.mjs
@@ -1149,7 +1149,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `rollAndApplyStrikeAtVariant`, `matchMultiStrikeActionSlug`, `applyDefeatIfReducedToZero`.
 - Produces (consumed by Task 9): `async function executeTwoTargetStrikes(combat, combatant, candidate, targets)` → `{ result, mapAdvance: 1 }`; `async function executeSingleRollMultiAC(combat, combatant, candidate, targets)` → `{ result, mapAdvance: candidate.params.targets }`. Both return a `mapAdvance` the dispatch branch (Task 9) uses instead of the generic one-Strike-equals-one-MAP-step rule `applyCandidateToTurnState` already applies for a plain `strike` candidate.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 describe('executeTwoTargetStrikes', () => {
@@ -1176,12 +1176,12 @@ describe('executeSingleRollMultiAC', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-npc-strike-execute.test.mjs`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement both executors**
+- [x] **Step 3: Implement both executors**
 
 ```js
 /** #933: Broad Swipe's own MAP rule -- both Strikes roll at the current
@@ -1254,12 +1254,12 @@ async function executeSingleRollMultiAC(combat, combatant, candidate, targets) {
 
 Confirm the real, live shape of a PF2e Strike action's own `variant.roll(...)`/`action.damage(...)` API (`grep -n "\.variants\[" scripts/dungeon-combat.mjs` for this codebase's own existing convention, since `rollAndApplyStrikeAtVariant` already does exactly this somewhere inside its own body — read that function's real implementation in full and reuse its exact same roll/damage-application calls here rather than guessing at a parallel API surface, since `singleRollMultiAC`'s whole job is "the same primitive, applied against several ACs," not a new way of rolling a Strike).
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-npc-strike-execute.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-npc-strike-execute.test.mjs
@@ -1280,7 +1280,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: `castMultiStrikeBundleAndApply` (existing), `fromUuid` (Foundry global, already used for linked-effect application in this file's own disarm/feat branches).
 - Produces (consumed by Task 9): `async function executeBundleWithBothHitRider(combat, combatant, candidate, target)`; `async function executeStrikeWithOnHit(combat, combatant, candidate, target)`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 describe('executeBundleWithBothHitRider', () => {
@@ -1306,12 +1306,12 @@ describe('executeStrikeWithOnHit', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-npc-strike-execute.test.mjs`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement both executors**
+- [x] **Step 3: Implement both executors**
 
 ```js
 /** #933: Mangling Rend's own shape -- reuses castMultiStrikeBundleAndApply
@@ -1374,12 +1374,12 @@ async function executeStrikeWithOnHit(combat, combatant, candidate, target) {
 
 Confirm the real compendium pack id for the bestiary effects referenced by `@UUID[Compendium.pf2e.bestiary-effects.Item....]` in this plan's own real fixture text (`grep -n "bestiary-effects" tests/fixtures/*.json scripts/*.mjs` or a live `game.packs.get("pf2e.bestiary-effects")` check) — this draft assumes the pack id `pf2e.bestiary-effects` matches the real UUID prefix seen in Mangling Rend's/Hurl Net's own fixture text exactly, which it does by direct inspection of the fixture strings in Task 2, but confirm the pack is actually loaded/indexed by the time this code runs in a live world, not just that the id string matches.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-npc-strike-execute.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-npc-strike-execute.test.mjs
@@ -1401,7 +1401,7 @@ Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>"
 - Consumes: every executor from Tasks 6/7/8; `getAbilityRecharge`/`setAbilityRecharge`/`currentGrabTarget` (existing/Task 1).
 - Produces: nothing further downstream — terminal task for the feature.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 describe('applyAgentDecision: npcStrike', () => {
@@ -1424,12 +1424,12 @@ describe('applyAgentDecision: npcStrike', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `npm test -- tests/dungeon-combat-npc-strike-decision.test.mjs`
 Expected: FAIL.
 
-- [ ] **Step 3: Add the branch**
+- [x] **Step 3: Add the branch**
 
 Insert a new `else if (candidate.type === "npcStrike")` branch into the real, current `applyAgentDecision`, alongside the existing `"maneuver"`/`"npcMove"` branches:
 
@@ -1499,23 +1499,23 @@ async function skipUnperformedNpcStrike(combat, combatant, candidate) {
 
 Note: this branch deliberately does NOT call `applyCandidateToTurnState`'s own generic `mapIncrement += 1` rule for a plain `strike` — `npcStrike` candidates advance `mapIncrement` by their own shape-specific `mapAdvance` instead, written directly here rather than through that shared helper. Confirm `applyCandidateToTurnState` (in `agent-candidates.mjs`, called from `applyAgentDecision`'s own tail, after this branch) does NOT also independently bump `mapIncrement` for `candidate.type === "npcStrike"` — it currently only special-cases `"strike"`/`"multiStrike"`, so an `npcStrike` candidate falls through to its own unconditional `turnState.actionsRemaining - candidate.cost` line without touching `mapIncrement` a second time; confirm this by reading the real, current function before relying on it, since a double-bump here would silently overcharge the multiple attack penalty.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `npm test -- tests/dungeon-combat-npc-strike-decision.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npm test`
 Expected: PASS (0 new failures).
 
-- [ ] **Step 6: Version bump**
+- [ ] **Step 6: Version bump** (left to the merger, who bumps `module.json` when merging)
 
 Run: `grep '"version"' module.json`
 
 Minor bump per `CLAUDE.md`'s versioning rule.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs module.json

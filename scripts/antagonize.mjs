@@ -120,5 +120,8 @@ export function hostileTargetIdsOf(candidate) {
   // #932: a movement ability is hostile only through its Strike (Swoop,
   // Rush, Eagle Dive); a plain move or a teleport is not.
   if (candidate.type === "npcMove" && candidate.kind === "strike" && candidate.targetId) ids.push(candidate.targetId);
+  // #933: every Strike-plus ability harms its targets (Strikes, Constrict's
+  // and Rend's damage).
+  if (candidate.type === "npcStrike") ids.push(...(candidate.targetIds ?? []));
   return [...new Set(ids)];
 }

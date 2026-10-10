@@ -118,7 +118,7 @@ export function publicActionLabel(candidate) {
     return "Move";
   }
   if (type === "maneuver") return MANEUVER_DEFS[candidate.slug]?.label ?? candidate.slug ?? "Maneuver";
-  if (type === "feat" || type === "npcAbility" || type === "npcMove") return candidate.name ?? candidate.slug ?? type;
+  if (type === "feat" || type === "npcAbility" || type === "npcMove" || type === "npcStrike") return candidate.name ?? candidate.slug ?? type;
   // Every other builder in agent-candidates.mjs leads its summary with the
   // action/spell label, followed by one of these separators.
   const cut = summary.search(/ vs | \(hits | on | heals | \(variant | \(\d+ actions?\)| — | \[/);
@@ -222,6 +222,15 @@ function resultFor(candidate, executionResult, nameOf) {
     }
     return { text: move.text, tone: move.tone };
   }
+  if (type === "npcStrike") {
+    // #933: executeNpcStrikeCandidate's per-target {targetId, text, tone}.
+    if (!r || typeof r !== "object" || !Array.isArray(r.results) || !r.results.length) return null;
+    if (r.results.length === 1) {
+      const only = r.results[0];
+      return { text: String(only?.text || "done"), tone: only?.tone ?? "neutral" };
+    }
+    return describePerTarget(r.results, nameOf);
+  }
   if (type === "feat") {
     if (!r || typeof r !== "object") return null;
     if (typeof r.text === "string" && r.text) return { text: r.text, tone: r.tone ?? "success" };
@@ -244,6 +253,8 @@ function gmNoteFor(candidate, executionResult) {
  * multi-target ones name each target inside the result instead. */
 function targetIdFor(candidate) {
   if (!candidate?.targetId) return null;
+  // #933: a Strike-plus ability against several targets names each in its result.
+  if (candidate.type === "npcStrike" && (candidate.targetIds?.length ?? 0) > 1) return null;
   if (PER_TARGET_TYPES.has(candidate.type) && candidate.type !== "npcAbility") return null;
   if (candidate.type === "npcAbility" && (candidate.affectedIds?.length ?? 0) > 1) return null;
   return candidate.targetId;

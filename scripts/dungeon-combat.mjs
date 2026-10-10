@@ -42,9 +42,11 @@ import {
   buildFeatVocabulary,
   buildNpcAbilityVocabulary,
   buildNpcMoveVocabulary,
+  buildNpcStrikeVocabulary,
 } from "./agent-candidates.mjs";
 import { parseSaveAbility, describeNpcAbility } from "./npc-ability-parse.mjs";
 import { parseMovementAbility, npcMoveBudget, describeNpcMove } from "./npc-move-parse.mjs";
+import { parseStrikePlusAbility, describeStrikePlus } from "./npc-strike-shapes.mjs";
 import {
   findPath,
   blockedEdgesFromWalls,
@@ -1074,11 +1076,13 @@ export async function runAgentDecisionLoop(
     // #910: the feat vocabulary rides along in the same single call.
     // #915: so do the NPC save abilities -- still one call, and none at all
     // when every vocabulary is empty. #932: and the NPC movement abilities.
+    // #933: and the NPC Strike-plus abilities.
     if (
       pending.maneuverVocabulary?.length ||
       pending.featVocabulary?.length ||
       pending.npcAbilityVocabulary?.length ||
-      pending.npcMoveVocabulary?.length
+      pending.npcMoveVocabulary?.length ||
+      pending.npcStrikeVocabulary?.length
     ) {
       const turnState = getAgentTurnState(combat, pending.combatantId);
       if (turnState.maneuverPicks === null) {
@@ -1093,6 +1097,7 @@ export async function runAgentDecisionLoop(
               ...(pending.featVocabulary ?? []),
               ...(pending.npcAbilityVocabulary ?? []),
               ...(pending.npcMoveVocabulary ?? []),
+              ...(pending.npcStrikeVocabulary ?? []),
             ],
           });
           picks = Array.isArray(response?.picks) ? response.picks : [];
@@ -5137,6 +5142,16 @@ export async function getPendingAgentTurn(combat) {
       describeNpcMove(entry.plan, { mode: entry.mode, feet: entry.feet, posture, targetName }),
   });
 
+  // #933: NPC Strike-plus abilities (Death Roll, Constrict, Wide Swing,
+  // Mangling Rend, Hurl Net, Rend, ...), the fifth category in the same
+  // once-per-turn call.
+  const npcStrikeVocabulary = buildNpcStrikeVocabulary({
+    npcStrikeEntries: computeNpcStrikeEntries(combat, combatant, rawOpponents, turnState.actionsRemaining),
+    opponents,
+    turnState,
+    describe: (entry, targetNames) => describeStrikePlus(entry.descriptor, targetNames),
+  });
+
   const readySpells = (combatant.actor?.spellcasting?.contents ?? [])
     .flatMap((entry) =>
       (entry.spells?.contents ?? [])
@@ -5775,6 +5790,7 @@ export async function getPendingAgentTurn(combat) {
     featVocabulary,
     npcAbilityVocabulary,
     npcMoveVocabulary,
+    npcStrikeVocabulary,
     hazard: nearestHazardousRegionPoint(
       combat.scene,
       combatant.token,
@@ -5797,6 +5813,7 @@ export async function getPendingAgentTurn(combat) {
     featVocabulary,
     npcAbilityVocabulary,
     npcMoveVocabulary,
+    npcStrikeVocabulary,
   };
 }
 
@@ -6380,6 +6397,703 @@ async function executeNpcMoveCandidate(combat, combatant, candidate) {
   return result;
 }
 
+// --- #933: NPC Strike-plus abilities ------------------------------------
+
+const NPC_STRIKE_HIT_TEXT = Object.freeze({
+  criticalSuccess: "critical hit",
+  success: "hit",
+  failure: "miss",
+  criticalFailure: "critical miss",
+});
+
+/** #933: the Strikes of the current turn and round, in order, as
+ * `{ slug, targetId, outcome }` -- Rend's "hit the same enemy with two
+ * consecutive Strikes of the listed type in the same round". Kept on its own
+ * combat flag (not the per-turn decision state), keyed by combatant and
+ * round so a new round or another combatant's turn starts empty. */
+function getTurnStrikeLog(combat, combatantId) {
+  const stored = combat.getFlag?.(MODULE_ID, "agentStrikeLog");
+  if (!stored || stored.combatantId !== combatantId || stored.round !== combat.round) return [];
+  return Array.isArray(stored.records) ? stored.records : [];
+}
+
+async function appendTurnStrikeLog(combat, combatantId, records) {
+  if (!records?.length) return;
+  const current = getTurnStrikeLog(combat, combatantId);
+  await combat.setFlag(MODULE_ID, "agentStrikeLog", {
+    combatantId,
+    round: combat.round,
+    records: [...current, ...records].slice(-8),
+  });
+}
+
+/** #933: the Strikes an executed candidate made, for the turn's Strike log.
+ * A Strike whose weapon this can't name (a composite feat's) is logged with
+ * `slug: null`, which breaks a Rend chain rather than faking one. */
+export function strikeRecordsOf(candidate, executionResult) {
+  const r = executionResult;
+  if (!candidate) return [];
+  if (candidate.type === "strike" && typeof r === "string") {
+    return [{ slug: candidate.actionSlug, targetId: candidate.targetId, outcome: r }];
+  }
+  if (candidate.type === "multiStrike" && Array.isArray(r)) {
+    return r.map((s) => ({ slug: s?.actionSlug ?? null, targetId: candidate.targetId, outcome: s?.outcome ?? null }));
+  }
+  if ((candidate.type === "npcMove" || candidate.type === "npcStrike") && Array.isArray(r?.strikeRecords)) {
+    return r.strikeRecords;
+  }
+  if (candidate.type === "feat" && (r?.attacks ?? 0) > 0) {
+    return Array.from({ length: r.attacks }, (_v, i) => ({
+      slug: null,
+      targetId: candidate.targetId ?? null,
+      outcome: r.strikeOutcomes?.[i] ?? null,
+    }));
+  }
+  return [];
+}
+
+/** #933: the ready Strike actions a shape may use: the named limb (a
+ * melee or ranged Strike), or -- `limb` null, "makes a melee Strike" --
+ * every ready melee Strike. `{ slug, label, reachSquares, action }`. */
+function npcStrikeActions(actor, limb, gridDistanceFt) {
+  const ready = (actor?.system?.actions ?? [])
+    .filter((a) => a.type === "strike" && a.ready !== false)
+    .map((a) => ({
+      slug: a.item?.slug ?? a.slug ?? a.label,
+      label: a.label,
+      reachSquares: actionReachSquares(a, gridDistanceFt),
+      action: a,
+      melee: isMeleeStrikeAction(a),
+    }));
+  if (!limb) return ready.filter((a) => a.melee);
+  const matched = matchMultiStrikeActionSlug(limb, ready);
+  return matched ? [matched] : [];
+}
+
+/** Grab requirements may name the body part ("Grabbed with its talons",
+ * "Grabbed by claws only"); the record keeps the Strike the grab rode on. */
+function grabLimbMatches(required, recorded) {
+  if (!required) return true;
+  if (!recorded) return false;
+  const norm = (s) => String(s).toLowerCase().replace(/s$/, "");
+  return norm(recorded) === norm(required) || norm(recorded).includes(norm(required));
+}
+
+function inStrikeReach(combat, combatant, target, squares, gridSize) {
+  if (!target?.token) return false;
+  return (
+    chebyshevSquares(combatant.token, target.token, gridSize) <= squares + REACH_EPSILON &&
+    hasLineOfSight(combat, combatant.token, target.token)
+  );
+}
+
+function tokensAdjacent(a, b, gridSize) {
+  return chebyshevSquares(a.token, b.token, gridSize) <= MELEE_REACH_SQUARES;
+}
+
+/** Lowest current HP first, then id -- the order secondary targets of a
+ * multi-target ability are chosen in (focus the most hurt). */
+function byHpThenId(a, b) {
+  const hp = (c) => c.actor?.system?.attributes?.hp?.value ?? Infinity;
+  return hp(a) - hp(b) || String(a.id).localeCompare(String(b.id));
+}
+
+/** Hurl Net's "wielding a net": a physical Net item; each one can be hurled
+ * once (it leaves the creature's hands with the throw). */
+function npcNetItem(actor) {
+  return (
+    Array.from(actor?.items ?? []).find(
+      (i) => ["equipment", "weapon"].includes(i?.type) && /^net$/i.test(String(i?.name ?? "").trim()),
+    ) ?? null
+  );
+}
+
+function netsHurled(combat, combatantId) {
+  return combat.getFlag?.(MODULE_ID, "npcNetsHurled")?.[combatantId] ?? 0;
+}
+
+async function recordNetHurled(combat, combatantId) {
+  const current = combat.getFlag?.(MODULE_ID, "npcNetsHurled") ?? {};
+  await combat.setFlag(MODULE_ID, "npcNetsHurled", { ...current, [combatantId]: (current[combatantId] ?? 0) + 1 });
+}
+
+function actorSizeOf(actor) {
+  return actor?.size ?? actor?.system?.traits?.size?.value ?? "med";
+}
+
+/**
+ * #933: the target groups a parsed Strike-plus ability (`descriptor`) can be
+ * used against right now, as `[{ targetIds }]` (first id = primary target),
+ * checked against the live board: the named Strike is ready, targets are in
+ * its reach (or the ability's stated reach/range) with a clear line, the
+ * grab record is live (and made with the required body part), Hurl Net's
+ * size cap and net, Rend's two consecutive hits. `targets` are the
+ * combatants the creature may target (detection-filtered).
+ */
+function npcStrikeOptions(combat, combatant, item, descriptor, targets) {
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  const actor = combatant.actor;
+  const { shape, params, requirement } = descriptor;
+  const live = targets.filter((t) => t?.token && !t.isDefeated);
+
+  if (requirement?.grabbed) {
+    const grab = currentGrabTarget(combat, combatant);
+    if (!grab || !grabLimbMatches(requirement.grabLimb, grab.record.limb)) return [];
+    const target = live.find((t) => t.id === grab.target.id);
+    if (!target) return [];
+    if (shape === "constrictLike") return [{ targetIds: [target.id] }];
+    if (shape !== "strikeAgainstGrabbed") return [];
+    const [action] = npcStrikeActions(actor, params.limb, gridDistanceFt);
+    if (!action || !inStrikeReach(combat, combatant, target, action.reachSquares, gridSize)) return [];
+    return [{ targetIds: [target.id] }];
+  }
+
+  if (shape === "extendedReachStrike") {
+    const [action] = npcStrikeActions(actor, params.limb, gridDistanceFt);
+    if (!action) return [];
+    const reach = Math.floor(params.reachFeet / gridDistanceFt);
+    // Only worth its extra action beyond the Strike's normal reach.
+    return live
+      .filter((t) => inStrikeReach(combat, combatant, t, reach, gridSize))
+      .filter((t) => !inStrikeReach(combat, combatant, t, action.reachSquares, gridSize))
+      .map((t) => ({ targetIds: [t.id] }));
+  }
+
+  if (shape === "twoTargetStrikes" || shape === "singleRollMultiAC" || shape === "bundleWithBothHitRider") {
+    const actions = npcStrikeActions(actor, params.limb, gridDistanceFt);
+    const action = actions[0];
+    if (!action) return [];
+    const inReach = live.filter((t) => inStrikeReach(combat, combatant, t, action.reachSquares, gridSize));
+    if (shape === "bundleWithBothHitRider") return inReach.map((t) => ({ targetIds: [t.id] }));
+    const options = [];
+    for (const primary of inReach) {
+      const others = inReach.filter((t) => t.id !== primary.id).sort(byHpThenId);
+      if (shape === "twoTargetStrikes") {
+        const partner = others.find((t) => !params.adjacentTargets || tokensAdjacent(primary, t, gridSize));
+        if (partner) options.push({ targetIds: [primary.id, partner.id] });
+        continue;
+      }
+      const group = [primary];
+      for (const t of others) {
+        if (group.length >= params.maxTargets) break;
+        const fits =
+          params.adjacency === "eachOther"
+            ? group.every((g) => tokensAdjacent(g, t, gridSize))
+            : params.adjacency === "atLeastOne"
+              ? group.some((g) => tokensAdjacent(g, t, gridSize))
+              : true;
+        if (fits) group.push(t);
+      }
+      // One foe only would just be a Strike that costs two attacks of MAP.
+      if (group.length >= 2) options.push({ targetIds: group.map((g) => g.id) });
+    }
+    return options;
+  }
+
+  if (shape === "strikeWithOnHit") {
+    if (requirement?.item !== "net") return [];
+    const net = npcNetItem(actor);
+    const quantity = Number(net?.system?.quantity ?? 1) || 1;
+    if (!net || netsHurled(combat, combatant.id) >= quantity) return [];
+    const range = Math.floor(params.rangeFeet / gridDistanceFt);
+    const cap = SIZE_ORDER.indexOf(params.sizeCap);
+    return live
+      .filter((t) => inStrikeReach(combat, combatant, t, range, gridSize))
+      .filter((t) => {
+        const size = SIZE_ORDER.indexOf(actorSizeOf(t.actor));
+        return cap >= 0 && size >= 0 && size <= cap;
+      })
+      .map((t) => ({ targetIds: [t.id] }));
+  }
+
+  if (shape === "rend") {
+    const [action] = npcStrikeActions(actor, params.limb, gridDistanceFt);
+    if (!action) return [];
+    const log = getTurnStrikeLog(combat, combatant.id);
+    const [a, b] = log.slice(-2);
+    if (!a || !b) return [];
+    if (a.slug !== action.slug || b.slug !== action.slug || a.targetId !== b.targetId) return [];
+    if (!isHitOutcome(a.outcome) || !isHitOutcome(b.outcome)) return [];
+    const target = live.find((t) => t.id === a.targetId);
+    return target ? [{ targetIds: [target.id] }] : [];
+  }
+  return [];
+}
+
+/**
+ * #933: the Strike-plus abilities `combatant` (an NPC) can use right now, as
+ * buildNpcStrikeVocabulary's entries: parsed (npc-strike-shapes.mjs),
+ * affordable this turn, with frequency uses left and off recharge, and with
+ * at least one legal target group (npcStrikeOptions).
+ */
+export function computeNpcStrikeEntries(combat, combatant, targets, actionsRemaining) {
+  const actor = combatant?.actor;
+  if (actor?.type !== "npc") return [];
+  const entries = [];
+  for (const item of actorActionItems(actor)) {
+    const descriptor = parseStrikePlusAbility(item);
+    if (!descriptor) continue;
+    if (descriptor.cost > actionsRemaining) continue;
+    const uses = descriptor.frequency?.value;
+    if (descriptor.frequency && !(typeof uses === "number" && uses > 0)) continue;
+    const slug = actionItemSlug(item);
+    if (!isAbilityRecharged(combat, combatant.id, slug)) continue;
+    const options = npcStrikeOptions(combat, combatant, item, descriptor, targets);
+    if (!options.length) continue;
+    entries.push({
+      itemId: item.id,
+      slug,
+      name: item.name,
+      cost: descriptor.cost,
+      shape: descriptor.shape,
+      traits: featGatingTraits(item),
+      descriptor,
+      options,
+    });
+  }
+  return entries;
+}
+
+/** #933: a pf2e circumstance Modifier for an ability's attack bonus (Death
+ * Roll's +2), or null when the system class is unavailable. */
+function circumstanceModifier(slug, label, value) {
+  const Modifier = game.pf2e?.Modifier;
+  if (typeof Modifier !== "function" || !value) return null;
+  return new Modifier({ slug, label, modifier: value, type: "circumstance" });
+}
+
+/** #933: creates a linked bestiary effect ("Effect: Mangling Rend", "Effect:
+ * Hurl Net") on `target`, the way the system's own chat-card button does:
+ * the compendium source, an origin context (the NPC, its token and the
+ * ability), the target, and -- for an effect with a degree-of-success
+ * ChoiceSet (Hurl Net) -- that choice pre-selected so no prompt opens. The
+ * link is name-based, which `fromUuid` doesn't resolve, so the pack index
+ * is searched by name. Returns true when the effect was created. */
+async function applyBestiaryEffect(combatant, item, target, effectName, { selection = null } = {}) {
+  try {
+    const pack = game.packs?.get?.("pf2e.bestiary-effects");
+    const index = await pack?.getIndex?.();
+    const entry = Array.from(index ?? []).find((e) => e.name === effectName);
+    const doc = entry ? await pack.getDocument(entry._id) : null;
+    if (typeof doc?.toObject !== "function") return false;
+    const source = doc.toObject();
+    delete source._id;
+    if (selection) {
+      for (const rule of source.system?.rules ?? []) {
+        if (rule?.key === "ChoiceSet") rule.selection = selection;
+      }
+    }
+    source.system = {
+      ...source.system,
+      context: {
+        origin: {
+          actor: combatant.actor?.uuid ?? null,
+          token: combatant.token?.uuid ?? null,
+          item: item?.uuid ?? null,
+          spellcasting: null,
+          rollOptions: [],
+        },
+        target: { actor: target.actor?.uuid ?? null, token: target.token?.uuid ?? null },
+        roll: null,
+      },
+    };
+    await target.actor.createEmbeddedDocuments("Item", [source]);
+    return true;
+  } catch (err) {
+    console.error(`${MODULE_ID} | #933: applying ${effectName} failed:`, err?.message);
+    return false;
+  }
+}
+
+/** Rolls the given Strikes against `target` one after another (each at its
+ * own MAP variant), stopping once the target is defeated. Returns the
+ * outcomes of the Strikes really made. */
+async function npcStrikeSeries(combat, combatant, target, actionSlug, variants, extras = null) {
+  const outcomes = [];
+  for (const variant of variants) {
+    if (target.isDefeated || combatant.isDefeated) break;
+    outcomes.push((await rollAndApplyStrikeAtVariant(combat, combatant, target, actionSlug, variant, extras)) ?? null);
+  }
+  return outcomes;
+}
+
+function strikeResultText(outcomes) {
+  return outcomes.map((o) => NPC_STRIKE_HIT_TEXT[o] ?? "no result").join(", ") || "no Strike made";
+}
+
+function strikeTone(outcomes) {
+  if (!outcomes.length) return "neutral";
+  if (outcomes.every(isHitOutcome)) return "success";
+  if (!outcomes.some(isHitOutcome)) return "failure";
+  return "neutral";
+}
+
+/** #933: Wrestle, Death Roll, Twisting Thrash, Gnaw, Maul, Rapid Rake. */
+async function executeStrikeAgainstGrabbed(combat, combatant, item, descriptor, target) {
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  const { params } = descriptor;
+  const [action] = npcStrikeActions(combatant.actor, params.limb, gridDistanceFt);
+  const { mapIncrement } = getAgentTurnState(combat, combatant.id);
+  const variants = Array.from({ length: params.count }, (_v, i) => (params.mapRule === "same" ? mapIncrement : mapIncrement + i));
+  const bonus = circumstanceModifier(actionItemSlug(item), item.name, params.attackBonus);
+  const outcomes = await npcStrikeSeries(combat, combatant, target, action.slug, variants, bonus ? { modifiers: [bonus] } : null);
+  const applied = [];
+  const gmLines = [];
+  const hit = outcomes.length === 1 && isHitOutcome(outcomes[0]);
+  if (hit && !target.isDefeated) {
+    for (const effect of params.onHit) {
+      try {
+        if (effect.kind === "condition") {
+          if (await applyNpcAbilityCondition(target.actor, { slug: effect.slug, value: null })) applied.push(effect.slug);
+        } else if (effect.kind === "save") {
+          const outcome = await rollNpcAbilitySave(combatant, target, item, {
+            save: effect.save,
+            dc: effect.dc,
+            traits: [...(effect.traits ?? []), ...(item.system?.traits?.value ?? [])],
+            rollOptions: effect.rollOptions ?? [],
+          });
+          if (!outcome) {
+            gmLines.push(`${effect.save} DC ${effect.dc}: no save result -- resolve by hand`);
+            continue;
+          }
+          applied.push(`${SAVE_OUTCOME_TEXT[outcome] ?? outcome}: ${await applyNpcAbilityDegree(combat, combatant, item, target, effect.degrees[outcome])}`);
+        }
+      } catch (err) {
+        console.error(`${MODULE_ID} | #933: ${item.name}'s rider failed:`, err?.message);
+        gmLines.push(`${item.name}: rider failed (${err?.message}) -- apply by hand`);
+      }
+    }
+  }
+  if (params.onMissRelease && outcomes.length === 1 && !isHitOutcome(outcomes[0])) {
+    if (await releaseGrab(combat, combatant)) applied.push("grab released");
+  }
+  const text = [strikeResultText(outcomes), ...applied].join("; ");
+  return {
+    attacks: outcomes.length,
+    strikeRecords: outcomes.map((outcome) => ({ slug: action.slug, targetId: target.id, outcome })),
+    results: [{ targetId: target.id, text, tone: strikeTone(outcomes) }],
+    gmLines,
+  };
+}
+
+const SAVE_OUTCOME_TEXT = Object.freeze({
+  criticalSuccess: "critical success",
+  success: "success",
+  failure: "failure",
+  criticalFailure: "critical failure",
+});
+
+/** #933: Constrict / Greater Constrict -- the listed damage to the grabbed
+ * creature, which attempts a basic Fortitude save (rolled the way the
+ * system's inline @Check does); Greater Constrict's Unconscious on a failed
+ * save unless the creature is temporarily immune from an earlier success. */
+async function executeConstrictLike(combat, combatant, item, descriptor, target) {
+  const { params } = descriptor;
+  const outcome = await rollNpcAbilitySave(combatant, target, item, {
+    save: params.save,
+    dc: params.dc,
+    traits: [...(params.traits ?? []), ...(item.system?.traits?.value ?? [])],
+    rollOptions: params.rollOptions ?? [],
+  });
+  if (!outcome) {
+    return { attacks: 0, strikeRecords: [], results: [{ targetId: target.id, text: "no save result", tone: "neutral" }], gmLines: [`Fortitude DC ${params.dc}: no save result -- resolve ${params.damage} by hand`] };
+  }
+  const DamageRollClass = CONFIG.Dice.rolls.find((c) => c.name === "DamageRoll");
+  if (outcome !== "criticalSuccess" && DamageRollClass) {
+    const roll = new DamageRollClass(params.damage);
+    await roll.evaluate();
+    await applyBasicSaveDamage(roll, outcome, target);
+  }
+  const parts = [SAVE_OUTCOME_TEXT[outcome]];
+  if (params.degrees && !target.isDefeated) {
+    const worldTime = globalThis.game?.time?.worldTime ?? 0;
+    if (worldTime < getNpcAbilityImmunityUntil(combat, item.id, target.id)) {
+      parts.push("immune to falling unconscious");
+    } else {
+      const applied = await applyNpcAbilityDegree(combat, combatant, item, target, params.degrees[outcome]);
+      if (applied && applied !== "no effect") parts.push(applied);
+    }
+  }
+  const tone = outcome === "failure" || outcome === "criticalFailure" ? "success" : "failure";
+  return { attacks: 0, strikeRecords: [], results: [{ targetId: target.id, text: parts.join(": "), tone }], gmLines: [] };
+}
+
+/** #933: Lunging Bite -- a plain Strike; the extended reach was checked
+ * when the options were built (and again just before this runs). */
+async function executeExtendedReachStrike(combat, combatant, item, descriptor, target) {
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  const [action] = npcStrikeActions(combatant.actor, descriptor.params.limb, gridDistanceFt);
+  const { mapIncrement } = getAgentTurnState(combat, combatant.id);
+  const outcomes = await npcStrikeSeries(combat, combatant, target, action.slug, [mapIncrement]);
+  return {
+    attacks: outcomes.length,
+    strikeRecords: outcomes.map((outcome) => ({ slug: action.slug, targetId: target.id, outcome })),
+    results: [{ targetId: target.id, text: strikeResultText(outcomes), tone: strikeTone(outcomes) }],
+    gmLines: [],
+  };
+}
+
+/** #933: Broad Swipe (both Strikes at the current MAP, which then rises by
+ * both: "Both attacks count toward the multiple attack penalty, but the
+ * penalty doesn't increase until after both attacks") and the zombie
+ * hulk's Wide Swing (two Strikes, normal MAP). */
+async function executeTwoTargetStrikes(combat, combatant, item, descriptor, targets) {
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  const { params } = descriptor;
+  const [action] = npcStrikeActions(combatant.actor, params.limb, gridDistanceFt);
+  const { mapIncrement } = getAgentTurnState(combat, combatant.id);
+  const results = [];
+  const strikeRecords = [];
+  let made = 0;
+  for (const target of targets) {
+    const variant = params.mapRule === "same" ? mapIncrement : mapIncrement + made;
+    const outcomes = await npcStrikeSeries(combat, combatant, target, action.slug, [variant]);
+    made += outcomes.length;
+    for (const outcome of outcomes) strikeRecords.push({ slug: action.slug, targetId: target.id, outcome });
+    results.push({ targetId: target.id, text: strikeResultText(outcomes), tone: strikeTone(outcomes) });
+  }
+  return { attacks: made, strikeRecords, results, gmLines: [] };
+}
+
+/** #933: Wide Swing / Swipe / Tail Sweep -- ONE attack roll (made against
+ * the primary target through the ordinary Strike path, riders and critical
+ * deck included), compared independently against each other target's AC
+ * with PF2e's degree-of-success rules (natural 20/1 included); each target
+ * hit takes the Strike's damage at its own degree. Counts as `mapCount`
+ * attacks. */
+async function executeSingleRollMultiAC(combat, combatant, item, descriptor, targets) {
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  const { params } = descriptor;
+  const actions = npcStrikeActions(combatant.actor, params.limb, gridDistanceFt);
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const [primary, ...others] = targets;
+  const action = actions.find((a) => targets.every((t) => inStrikeReach(combat, combatant, t, a.reachSquares, gridSize))) ?? actions[0];
+  const { mapIncrement } = getAgentTurnState(combat, combatant.id);
+  const report = {};
+  const outcome = await rollAndApplyStrikeAtVariant(combat, combatant, primary, action.slug, mapIncrement, { report });
+  const results = [{ targetId: primary.id, text: NPC_STRIKE_HIT_TEXT[outcome] ?? "no result", tone: strikeTone(outcome ? [outcome] : []) }];
+  const strikeRecords = [{ slug: action.slug, targetId: primary.id, outcome: outcome ?? null }];
+  const total = Number(report.attackRoll?.total);
+  const natural = naturalD20(report.attackRoll);
+  for (const target of others) {
+    if (!Number.isFinite(total) || target.isDefeated) {
+      results.push({ targetId: target.id, text: "no result", tone: "neutral" });
+      continue;
+    }
+    const ac = target.actor?.armorClass?.value ?? target.actor?.system?.attributes?.ac?.value;
+    if (typeof ac !== "number") {
+      results.push({ targetId: target.id, text: "no AC -- resolve by hand", tone: "neutral" });
+      continue;
+    }
+    const degree = degreeOfSuccess(total, ac, natural);
+    if (isHitOutcome(degree)) {
+      try {
+        const damageRoll = await withDialogsSuppressed(() =>
+          action.action.damage({ target: { document: target.token }, outcome: degree, createMessage: true }),
+        );
+        if (damageRoll) {
+          await target.actor.applyDamage({ damage: damageRoll, token: target.token, outcome: degree });
+          await applyDefeatIfReducedToZero(target);
+        }
+      } catch (err) {
+        console.error(`${MODULE_ID} | #933: ${item.name} damage against ${target.name} failed:`, err?.message);
+      }
+    }
+    results.push({ targetId: target.id, text: NPC_STRIKE_HIT_TEXT[degree], tone: strikeTone([degree]) });
+  }
+  const gmLines = [`One attack roll (${Number.isFinite(total) ? total : "?"}) compared to each target's AC.`];
+  if (params.damageOnce) gmLines.push("Damage is rolled per target hit (RAW: once for all).");
+  return { attacks: params.mapCount, strikeRecords, results, gmLines };
+}
+
+/** #933: Mangling Rend -- the bundle's Strikes with the normal MAP
+ * escalation; only when EVERY one of them hit does the rider land: the
+ * extra damage, the conditions (Off-Guard until the end of the target's
+ * next turn) and the linked effect (the Speed penalty). */
+async function executeBundleWithBothHitRider(combat, combatant, item, descriptor, target) {
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  const { params } = descriptor;
+  const [action] = npcStrikeActions(combatant.actor, params.limb, gridDistanceFt);
+  const { mapIncrement } = getAgentTurnState(combat, combatant.id);
+  const variants = Array.from({ length: params.count }, (_v, i) => mapIncrement + i);
+  const outcomes = await npcStrikeSeries(combat, combatant, target, action.slug, variants);
+  const allHit = outcomes.length === params.count && outcomes.every(isHitOutcome);
+  const applied = [];
+  const gmLines = [];
+  if (allHit && !target.isDefeated) {
+    if (params.extraDamage) {
+      try {
+        const DamageRollClass = CONFIG.Dice.rolls.find((c) => c.name === "DamageRoll");
+        const roll = new DamageRollClass(params.extraDamage);
+        await roll.evaluate();
+        await target.actor.applyDamage({ damage: roll, token: target.token, outcome: "success" });
+        await applyDefeatIfReducedToZero(target);
+        applied.push(`+${roll.total ?? params.extraDamage} damage`);
+      } catch (err) {
+        console.error(`${MODULE_ID} | #933: ${item.name}'s extra damage failed:`, err?.message);
+        gmLines.push(`Extra ${params.extraDamage} damage failed -- apply by hand`);
+      }
+    }
+    if (!target.isDefeated) {
+      const conditionText = await applyNpcAbilityDegree(combat, combatant, item, target, {
+        none: false,
+        conditions: params.conditions,
+        immuneSeconds: null,
+      });
+      if (conditionText && conditionText !== "no effect") applied.push(conditionText);
+      if (params.effectName) {
+        if (await applyBestiaryEffect(combatant, item, target, params.effectName)) applied.push(params.effectName.replace(/^Effect:\s*/, ""));
+        else gmLines.push(`${params.effectName} could not be applied -- apply by hand`);
+      }
+    }
+  }
+  const text = [strikeResultText(outcomes), ...applied].join("; ");
+  return {
+    attacks: outcomes.length,
+    strikeRecords: outcomes.map((outcome) => ({ slug: action.slug, targetId: target.id, outcome })),
+    results: [{ targetId: target.id, text, tone: strikeTone(outcomes) }],
+    gmLines,
+  };
+}
+
+/** #933: Hurl Net -- a ranged Strike with the ability's own fixed attack
+ * modifier (plus this turn's multiple attack penalty, a net not being
+ * agile) against the target's AC, cover included. A hit or critical hit
+ * creates the Hurl Net effect with its degree pre-chosen (the effect itself
+ * grants Off-Guard and the -10-foot Speed penalty, or Restrained); the net
+ * is spent either way. */
+async function executeStrikeWithOnHit(combat, combatant, item, descriptor, target) {
+  const { params } = descriptor;
+  const { mapIncrement } = getAgentTurnState(combat, combatant.id);
+  const penalty = maneuverMapPenalty({ attackNumber: mapIncrement + 1, weaponIsAgile: false });
+  await recordNetHurled(combat, combatant.id);
+  const outcome = await withCoverBonus(combat, combatant, target, async () => {
+    const ac = target.actor?.armorClass?.value ?? target.actor?.system?.attributes?.ac?.value;
+    const formula = `1d20 + ${params.fixedModifier}${penalty ? ` - ${Math.abs(penalty)}` : ""}`;
+    const roll = new Roll(formula);
+    await roll.evaluate();
+    try {
+      await roll.toMessage?.({
+        speaker: typeof ChatMessage.getSpeaker === "function" ? ChatMessage.getSpeaker({ actor: combatant.actor, token: combatant.token }) : undefined,
+        flavor: `${item.name}: ranged Strike vs ${target.name}`,
+      });
+    } catch (err) {
+      console.warn(`${MODULE_ID} | #933: posting ${item.name}'s roll failed:`, err?.message);
+    }
+    if (typeof ac !== "number") return null;
+    return degreeOfSuccess(roll.total, ac, naturalD20(roll));
+  });
+  const gmLines = [];
+  const applied = [];
+  if (isHitOutcome(outcome)) {
+    const selection = outcome === "criticalSuccess" ? "critical-success" : "success";
+    if (await applyBestiaryEffect(combatant, item, target, params.effectName, { selection })) {
+      applied.push(outcome === "criticalSuccess" ? "restrained" : "off-guard, -10 ft Speeds");
+    } else {
+      gmLines.push(`${params.effectName} could not be applied -- apply by hand`);
+    }
+    if (params.escapeDc) gmLines.push(`The net's Escape DC is ${params.escapeDc}; remove the effect when it is escaped or cut away.`);
+  }
+  if (outcome == null) gmLines.push("No AC to compare -- resolve by hand");
+  const outcomes = outcome ? [outcome] : [];
+  return {
+    attacks: 1,
+    strikeRecords: [{ slug: null, targetId: target.id, outcome: outcome ?? null }],
+    results: [{ targetId: target.id, text: [strikeResultText(outcomes), ...applied].join("; "), tone: strikeTone(outcomes) }],
+    gmLines,
+  };
+}
+
+/** #933: Rend -- "the monster automatically deals that Strike's damage
+ * again" (normal damage, no attack roll, not an attack). */
+async function executeRend(combat, combatant, item, descriptor, target) {
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  const [action] = npcStrikeActions(combatant.actor, descriptor.params.limb, gridDistanceFt);
+  let text = "no damage";
+  try {
+    const damageRoll = await withDialogsSuppressed(() =>
+      action.action.damage({ target: { document: target.token }, outcome: "success", createMessage: true }),
+    );
+    if (damageRoll) {
+      await target.actor.applyDamage({ damage: damageRoll, token: target.token, outcome: "success" });
+      await applyDefeatIfReducedToZero(target);
+      text = `${damageRoll.total ?? "?"} damage`;
+    }
+  } catch (err) {
+    console.error(`${MODULE_ID} | #933: Rend damage failed:`, err?.message);
+    return { attacks: 0, strikeRecords: [], results: [{ targetId: target.id, text: "not resolved", tone: "neutral" }], gmLines: [`Rend failed (${err?.message}) -- apply ${action.label} damage by hand`] };
+  }
+  return { attacks: 0, strikeRecords: [], results: [{ targetId: target.id, text, tone: "success" }], gmLines: [] };
+}
+
+const NPC_STRIKE_EXECUTORS = Object.freeze({
+  strikeAgainstGrabbed: executeStrikeAgainstGrabbed,
+  constrictLike: executeConstrictLike,
+  extendedReachStrike: executeExtendedReachStrike,
+  twoTargetStrikes: executeTwoTargetStrikes,
+  singleRollMultiAC: executeSingleRollMultiAC,
+  bundleWithBothHitRider: executeBundleWithBothHitRider,
+  strikeWithOnHit: executeStrikeWithOnHit,
+  rend: executeRend,
+});
+const NPC_STRIKE_MULTI_TARGET = new Set(["twoTargetStrikes", "singleRollMultiAC"]);
+
+/**
+ * #933: executes a chosen Strike-plus ability. Re-resolves the item, its
+ * parse and the exact target group against the current board
+ * (npcStrikeOptions) -- a stale grab (Escaped, released, the target
+ * defeated), a target out of reach, a spent net or a broken Rend chain
+ * returns `{ performed: false }` BEFORE anything is spent. Otherwise it
+ * spends a frequency use, posts the ability card and runs the shape's
+ * executor, which reuses the ordinary Strike/damage/condition primitives.
+ * Returns `{ performed, attacks, results, strikeRecords, gmNote }`.
+ */
+async function executeNpcStrikeCandidate(combat, combatant, candidate) {
+  const item = actorActionItems(combatant.actor).find((i) => i.id === candidate.itemId);
+  const descriptor = item ? parseStrikePlusAbility(item) : null;
+  if (!descriptor || descriptor.shape !== candidate.shape) return { performed: false };
+  const targets = (candidate.targetIds ?? []).map((id) => resolveOpponentForTurn(combat, combatant, id));
+  if (!targets.length || targets.some((t) => !t)) return { performed: false };
+  await snapTokenToGrid(combatant.token, combat.scene?.grid?.size ?? 100);
+  const key = candidate.targetIds.join(",");
+  const options = npcStrikeOptions(combat, combatant, item, descriptor, combatantTargets(combat, combatant));
+  if (!options.some((o) => o.targetIds.join(",") === key)) return { performed: false, reason: "not legal now" };
+
+  const uses = item.system?.frequency?.value;
+  if (typeof uses === "number") {
+    await item.update({ "system.frequency.value": Math.max(0, uses - 1) });
+  }
+  try {
+    await item.toMessage?.();
+  } catch (err) {
+    console.error(`${MODULE_ID} | #933: posting ${item.name} failed:`, err?.message);
+  }
+  const execute = NPC_STRIKE_EXECUTORS[descriptor.shape];
+  const run = NPC_STRIKE_MULTI_TARGET.has(descriptor.shape)
+    ? () => execute(combat, combatant, item, descriptor, targets)
+    : () => execute(combat, combatant, item, descriptor, targets[0]);
+  let outcome;
+  try {
+    outcome = await run();
+  } catch (err) {
+    console.error(`${MODULE_ID} | #933: ${item.name} failed:`, err?.message);
+    outcome = {
+      attacks: 0,
+      strikeRecords: [],
+      results: targets.map((t) => ({ targetId: t.id, text: "not resolved", tone: "neutral" })),
+      gmLines: [`${item.name} failed (${err?.message}) -- resolve by hand`],
+    };
+  }
+  return {
+    performed: true,
+    attacks: outcome.attacks ?? 0,
+    results: outcome.results ?? [],
+    strikeRecords: outcome.strikeRecords ?? [],
+    gmNote: outcome.gmLines?.length ? outcome.gmLines.join("\n") : null,
+  };
+}
+
 /** Rolls one strike at a specific MAP `variantIndex` against `target` and
  * applies damage on a hit — the same dialog-suppression/roll/damage/
  * applyDamage sequence rollAndApplyStrike already uses, generalized to a
@@ -6423,6 +7137,8 @@ async function rollAndApplyStrikeAtVariant(
       // #976: see rollAndApplyStrike -- capture the attack message before
       // any rider can post a newer one.
       const attackMessage = game.messages.contents.at(-1);
+      // #933: Wide Swing compares this one roll to other targets' ACs.
+      if (extras?.report) extras.report.attackRoll = attackMessage?.rolls?.[0] ?? null;
       // #931: see rollAndApplyStrike -- an AC-bonus reaction may turn the hit
       // into a miss first.
       const outcome = await applyTargetedByAttackReactions(
@@ -7940,7 +8656,7 @@ export async function sweepExpiredNpcAbilityConditions(combat) {
   if (!Array.isArray(entries) || !entries.length) return;
   const remaining = [];
   for (const entry of entries) {
-    if (!maneuverRiderExpired(combat, entry?.expiry)) {
+    if (!npcAbilityConditionExpired(combat, entry)) {
       remaining.push(entry);
       continue;
     }
@@ -7949,6 +8665,20 @@ export async function sweepExpiredNpcAbilityConditions(combat) {
   if (remaining.length !== entries.length) {
     await combat.setFlag(MODULE_ID, "npcAbilityExpiry", remaining);
   }
+}
+
+/** #933: whether the target of a tracked `whileCondition` entry no longer
+ * carries that condition (Gnaw's Slowed ends once Sickened is gone). A
+ * target that left the combat counts as expired. */
+function whileConditionEnded(combat, entry) {
+  const target = Array.from(combat.combatants ?? []).find((c) => c.id === entry?.targetId);
+  if (!target?.actor) return true;
+  return !Array.from(target.actor.conditions ?? []).some((c) => c?.slug === entry.expiry.whileCondition);
+}
+
+function npcAbilityConditionExpired(combat, entry) {
+  if (entry?.expiry?.whileCondition) return whileConditionEnded(combat, entry);
+  return maneuverRiderExpired(combat, entry?.expiry);
 }
 
 function remainingTimeLabel(seconds) {
@@ -7966,10 +8696,26 @@ export async function settleNpcAbilityConditionsAtCombatEnd(combat) {
   if (!Array.isArray(entries) || !entries.length) return;
   const now = globalThis.game?.time?.worldTime ?? 0;
   const lingering = [];
+  const linked = [];
   for (const entry of entries) {
     const end = entry?.expiresAtWorldTime;
-    if (typeof end === "number" && end > now) lingering.push(entry);
+    if (entry?.expiry?.whileCondition) {
+      // #933: lasts as long as another condition -- still running if that
+      // one is.
+      if (whileConditionEnded(combat, entry)) await removeTrackedCondition(combat, entry);
+      else linked.push(entry);
+    } else if (typeof end === "number" && end > now) lingering.push(entry);
     else await removeTrackedCondition(combat, entry);
+  }
+  if (linked.length) {
+    const escLinked = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
+    const items = linked.map((entry) => {
+      const name = Array.from(combat.combatants ?? []).find((c) => c.id === entry.targetId)?.name ?? entry.targetId;
+      return `<li>${escLinked(name)}: ${escLinked(entry.conditionSlug)} (while ${escLinked(entry.expiry.whileCondition)}${entry.source ? `, ${escLinked(entry.source)}` : ""})</li>`;
+    });
+    await whisperGmContent(
+      `<p><strong>Monster ability conditions tied to another condition:</strong> remove each when that condition ends.</p><ul>${items.join("")}</ul>`,
+    );
   }
   if (!lingering.length) return;
   const esc = (v) => foundry.utils.escapeHTML?.(String(v)) ?? String(v);
@@ -8699,6 +9445,15 @@ async function applyNpcAbilityDegree(combat, combatant, item, target, degree) {
           expiresAtWorldTime: null,
           source: item.name,
         });
+      } else if (typeof duration === "string" && duration.startsWith("while:")) {
+        // #933: Gnaw's "Slowed 1 as long as it remains sickened".
+        await recordNpcAbilityExpiry(combat, {
+          targetId: target.id,
+          conditionSlug: condition.slug,
+          expiry: { whileCondition: duration.slice("while:".length) },
+          expiresAtWorldTime: null,
+          source: item.name,
+        });
       } else if (typeof duration === "number") {
         await recordNpcAbilityExpiry(combat, {
           targetId: target.id,
@@ -9237,7 +9992,19 @@ export async function applyAgentDecision(
     applied = { ...candidate, attacks: result.attacks ?? 0 };
     if (!result.attacks) hostileIds = [];
     executionResult = result;
+  } else if (candidate.type === "npcStrike") {
+    const result = await executeNpcStrikeCandidate(combat, combatant, candidate);
+    // Not legal any more (a stale grab, a target out of reach, a spent net):
+    // nothing spent, the pick dropped.
+    if (!result.performed) return skipUnperformedFeat(combat, combatant, candidate, rationale);
+    // #933: each shape's own MAP rule ("counts as two attacks"; Constrict
+    // and Rend are no attacks).
+    applied = { ...candidate, attacks: result.attacks ?? 0 };
+    executionResult = result;
   }
+
+  // #933: the turn's Strikes, for Rend's "two consecutive Strikes".
+  await appendTurnStrikeLog(combat, combatant.id, strikeRecordsOf(candidate, executionResult));
 
   // #925: one row on this combatant's consolidated turn card (replacing the
   // old per-decision GM whisper and stalled-move whisper). Never throws.
