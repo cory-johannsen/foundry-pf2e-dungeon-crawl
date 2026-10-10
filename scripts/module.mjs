@@ -71,10 +71,12 @@ import {
   handleRangedAttackForReactiveStrike,
   handleManualStrikeDamage,
   handleAttackRollForReactions,
+  handleAttackForRetaliation,
   handleTokenMoveForReactions,
   answerReactionConfirm,
   offerReactiveStrikesAgainst,
   clearDetection,
+  clearForceDecorations,
   handleStealthBreakMessage,
   cleanupAgentSelfEffects,
   endMarksOnCombatantGone,
@@ -813,6 +815,9 @@ Hooks.on("createChatMessage", handleRangedAttackForReactiveStrike);
  * Projectile) against a human player's Strike -- after the roll resolves. */
 Hooks.on("createChatMessage", handleAttackRollForReactions);
 
+/** #1083: an attack on another force makes that force hostile to the attacker. */
+Hooks.on("createChatMessage", handleAttackForRetaliation);
+
 /** #931: a human player's own token move provokes move-triggered NPC
  * reactions (Reactive Strike/AoO, Twisting Tail, Wing Rebuff). */
 Hooks.on("moveToken", (tokenDoc, movement) => handleTokenMoveForReactions(tokenDoc, movement));
@@ -827,6 +832,8 @@ Hooks.on("createChatMessage", handleManualStrikeDamage);
 Hooks.on("deleteCombat", async (combat) => {
   if (!(game.users?.activeGM?.isSelf ?? game.user?.isGM)) return;
   await clearDetection(combat);
+  // #1083: restore names/tints of force-spawned tokens.
+  await clearForceDecorations(combat);
   // #914: agent-created self-effects with an unlimited duration.
   await cleanupAgentSelfEffects(combat);
   // #915: timed NPC-ability conditions that outlive the fight.

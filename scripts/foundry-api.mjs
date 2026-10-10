@@ -42,6 +42,7 @@ import {
   overlaps,
   partyLevelFrom,
 } from "./placement.mjs";
+import { creatureMatchesFilters } from "./encounter-roster.mjs";
 import { splitmix32, seedFromString } from "./prng.mjs";
 import { buildCoverItemActorData, MODULE_ID } from "./cover-items.mjs";
 import { classifyTrap } from "./trap-combat.mjs";
@@ -254,6 +255,8 @@ export function makeFoundryApi(sceneRef = null) {
       packs = null,
       requireTrait = null,
       excludePacks = [],
+      family = null,
+      rarity = null,
     } = {}) {
       packs ??= game.packs
         .filter(
@@ -274,6 +277,7 @@ export function makeFoundryApi(sceneRef = null) {
             "type",
             "system.details.level.value",
             "system.traits.value",
+            "system.traits.rarity",
             "system.traits.size.value",
             "system.details.languages.value",
           ],
@@ -295,11 +299,21 @@ export function makeFoundryApi(sceneRef = null) {
           if (!sizeAtLeast(size, minSize)) continue;
           const languages = e.system?.details?.languages?.value ?? [];
           if (speaksLanguage && !languages.length) continue;
+          const entryRarity = e.system?.traits?.rarity ?? "common";
+          // Family = ancestry-style trait (creatureMatchesFilters, #1083).
+          if (
+            !creatureMatchesFilters(
+              { traits: has, rarity: entryRarity },
+              { family, rarity },
+            )
+          )
+            continue;
           found.push({
             pack: id,
             id: e._id,
             name: e.name,
             level,
+            rarity: entryRarity,
             traits: has,
             size,
             languages,
@@ -824,6 +838,11 @@ export function makeFoundryApi(sceneRef = null) {
         hidden = false,
         originArea = null,
         extraFlags = null,
+        // #1083: multi-force encounters shift each force's non-area origin,
+        // tint its tokens and suffix their names.
+        originOffsetCells = null,
+        tint = null,
+        nameSuffix = null,
       } = {},
     ) {
       const scene = sceneRef ?? canvas?.scene;
@@ -843,10 +862,12 @@ export function makeFoundryApi(sceneRef = null) {
         : null;
       const originX = originArea
         ? originArea.x + originArea.width / 2
-        : (focus?.x ?? (scene.width ?? grid * 10) / 2);
+        : (focus?.x ?? (scene.width ?? grid * 10) / 2) +
+          (originOffsetCells?.dx ?? 0) * grid;
       const originY = originArea
         ? originArea.y + originArea.height / 2
-        : (focus?.y ?? (scene.height ?? grid * 10) / 2);
+        : (focus?.y ?? (scene.height ?? grid * 10) / 2) +
+          (originOffsetCells?.dy ?? 0) * grid;
 
       // Everything already on the scene, in squares. Creatures placed by this
       // call are added as they go, so a card summoning several does not stack
@@ -963,6 +984,13 @@ export function makeFoundryApi(sceneRef = null) {
         obj.hidden = hidden;
         if (extraFlags)
           obj.flags = foundry.utils.mergeObject(obj.flags ?? {}, extraFlags);
+        if (tint) obj.texture = { ...(obj.texture ?? {}), tint };
+        if (nameSuffix) {
+          obj.flags = foundry.utils.mergeObject(obj.flags ?? {}, {
+            [MODULE_ID]: { originalName: obj.name },
+          });
+          obj.name = `${obj.name} (${nameSuffix})`;
+        }
         const [createdToken] = await scene.createEmbeddedDocuments("Token", [
           obj,
         ]);

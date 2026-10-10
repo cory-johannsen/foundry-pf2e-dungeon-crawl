@@ -15,6 +15,7 @@
  * these files — is what stitches "combat resolved" to "advance the room."
  */
 import { makeFoundryApi, SIZE_ORDER } from "./foundry-api.mjs";
+import { areHostile, forceIdOf, readForces, recordAttack } from "./force-hostility.mjs";
 import { getRunState, ensureAiHistoryId } from "./dungeon-runner.mjs";
 import { archiveAiLogToJournals } from "./ai-history-journals.mjs";
 import { encounterLabel, runDisplayName } from "./ai-history-pages.mjs";
@@ -218,11 +219,13 @@ function combatantTokens(scene, flagKey, flagValue) {
  * getCombatTrackerEntryContext hook). Party combatants never get the flag,
  * matching the partyActorIds() split ITEM-8's own reopening already uses.
  */
-async function startCombat(scene, flagKey, flagValue) {
+async function startCombat(scene, flagKey, flagValue, { forces = null } = {}) {
   const tokens = combatantTokens(scene, flagKey, flagValue);
   if (!tokens.length) return null;
   const combat = await Combat.create({ scene: scene.id });
   await combat.setFlag(MODULE_ID, flagKey, flagValue);
+  // #1083: multi-force encounters carry their forces table from the start.
+  if (forces) await combat.setFlag(MODULE_ID, "forces", forces);
   const partyIds = partyActorIds();
   const aiControlledIds = new Set(
     getRunState(scene.id)?.aiControlledActorIds ?? [],
@@ -327,15 +330,19 @@ export async function rollStealthInitiativeAndDetect(combat, combatants, deps = 
     rolled.map((r) => ({ id: r.combatant.id, value: r.result, statistic: "stealth" })),
   );
 
-  // Observers are the sneakers' opponents by token disposition (the same rule
-  // `combatantOpponents` uses), not "everyone outside the party": a friendly
-  // encounter Friend or neutral NPC never notices/alarms.
+  // Observers are the sneakers' opponents (the same rule `combatantOpponents`
+  // uses: token disposition, or force hostility when the combat has a #1083
+  // forces table), not "everyone outside the party": a friendly encounter
+  // Friend or neutral NPC never notices/alarms.
   const sneakerSides = new Set(sneakers.map((c) => c.token?.disposition));
+  const hasForces = !!readForces(combat);
   const hostiles = combatants.filter(
     (c) =>
       !sneakerIds.has(c.id) &&
       !partyIds.has(c.actor?.id) &&
-      [...sneakerSides].some((side) => c.token?.disposition !== side),
+      (hasForces
+        ? sneakers.some((sn) => areHostile(combat, sn, c))
+        : [...sneakerSides].some((side) => c.token?.disposition !== side)),
   );
   const hasObservedNonSneaker = partyCombatants.some(
     (c) => !sneakerIds.has(c.id) && !c.isDefeated,
@@ -408,6 +415,28 @@ export async function clearDetection(combat, deps = {}) {
   }
   // No unsetFlag: this runs from `deleteCombat`, when the document is already
   // gone (the update would be rejected) and its flags go with it.
+}
+
+/**
+ * #1083: `deleteCombat` cleanup. Restores the original name and clears the
+ * tint on tokens spawned for an encounter force (flag `forceId`). Legacy
+ * tokens are untouched; deleted tokens are skipped; errors are logged only.
+ */
+export async function clearForceDecorations(combat) {
+  if (!(game.users?.activeGM?.isSelf ?? game.user?.isGM)) return;
+  for (const combatant of combat?.combatants ?? []) {
+    try {
+      const token = combatant?.token;
+      if (!token) continue;
+      const flags = token.flags?.[MODULE_ID];
+      if (!flags?.forceId) continue;
+      const scene = combat.scene;
+      if (scene?.tokens?.get && !scene.tokens.get(token.id)) continue;
+      await token.update({ name: flags.originalName ?? token.name, "texture.tint": null });
+    } catch (err) {
+      console.error("pf2e-dungeon-crawl | #1083: force decoration cleanup failed:", err?.message ?? err);
+    }
+  }
 }
 
 /**
@@ -585,8 +614,8 @@ export async function toggleAgentControlled(combatant) {
 // dungeon-scene.mjs's buildPopulateAndUnlockGraphNode).
 export const startCombatForRoom = (scene, slot) =>
   startCombat(scene, "dungeonSlot", slot);
-export const startCombatForEncounterId = (scene, encounterId) =>
-  startCombat(scene, "encounterId", encounterId);
+export const startCombatForEncounterId = (scene, encounterId, { forces = null } = {}) =>
+  startCombat(scene, "encounterId", encounterId, { forces });
 
 export function getCombatForRoom(scene, slot) {
   return (
@@ -1299,8 +1328,17 @@ export async function runAgentDecisionLoop(
 
 /** Every other still-alive combatant on the opposing side (token disposition
  * differs from `combatant`'s own) — "opposing side" here is just disposition,
- * the same two-bucket split combatSideStatus already uses. */
-function combatantOpponents(combat, combatant) {
+ * the same two-bucket split combatSideStatus already uses. #1083: a combat
+ * with a `forces` table instead uses force hostility (areHostile). */
+export function combatantOpponents(combat, combatant) {
+  if (readForces(combat))
+    return combat.combatants.filter(
+      (c) =>
+        c.id !== combatant.id &&
+        !c.isDefeated &&
+        c.token &&
+        areHostile(combat, combatant, c),
+    );
   const mySide = combatant.token?.disposition;
   return combat.combatants.filter(
     (c) =>
@@ -1356,7 +1394,15 @@ function resolveOpponentForTurn(combat, combatant, id) {
  * spell placement scoring (which opponents an area candidate catches is
  * only half the picture; which allies it would also catch is the other
  * half). */
-function combatantAllies(combat, combatant) {
+export function combatantAllies(combat, combatant) {
+  if (readForces(combat))
+    return combat.combatants.filter(
+      (c) =>
+        c.id !== combatant.id &&
+        !c.isDefeated &&
+        c.token &&
+        forceIdOf(c) === forceIdOf(combatant),
+    );
   const mySide = combatant.token?.disposition;
   return combat.combatants.filter(
     (c) =>
@@ -3060,6 +3106,35 @@ export async function handleAttackRollForReactions(message) {
   } finally {
     if (message.id) attackReactionsInFlight.delete(message.id);
   }
+}
+
+/**
+ * #1083: any attack or damage roll (hit or miss) between combatants of a
+ * combat with a forces table records retaliation, so a force that was
+ * attacked becomes hostile to its attacker's force. Active GM only.
+ */
+export async function handleAttackForRetaliation(message) {
+  try {
+    await handleAttackForRetaliationInner(message);
+  } catch (err) {
+    console.error(`${MODULE_ID} | #1083: retaliation hook failed:`, err?.message ?? err);
+  }
+}
+
+async function handleAttackForRetaliationInner(message) {
+  if (!(game.users?.activeGM?.isSelf ?? game.user?.isGM)) return;
+  const context = message.flags?.pf2e?.context;
+  if (context?.type !== "attack-roll" && context?.type !== "damage-roll") return;
+  const sceneId = message.speaker?.scene;
+  const attackerTokenId = message.speaker?.token;
+  const targetTokenId = context.target?.token?.split(".").pop();
+  if (!sceneId || !attackerTokenId || !targetTokenId) return;
+  const combat = game.combats.contents.find((c) => c.scene?.id === sceneId && isModuleCombat(c));
+  if (!combat || !readForces(combat)) return;
+  const attacker = combat.combatants.find((c) => c.tokenId === attackerTokenId);
+  const victim = combat.combatants.find((c) => c.tokenId === targetTokenId);
+  if (!attacker || !victim) return;
+  await recordAttack(combat, attacker, victim);
 }
 
 /**
@@ -5326,6 +5401,8 @@ export async function rollAndApplyStrike(combat, combatant, target) {
       strikeInReach(combatant, target, a, gridSize, gridDistanceFt).inReach,
   );
   if (!strike) return null;
+  // #1083: retaliation is recorded only for an attack that actually proceeds.
+  if (readForces(combat)) await recordAttack(combat, combatant, target);
 
   const prevShowCheck = game.user.flags?.pf2e?.settings?.showCheckDialogs;
   const prevShowDamage = game.user.flags?.pf2e?.settings?.showDamageDialogs;
@@ -7700,6 +7777,8 @@ async function rollAndApplyStrikeAtVariant(
       (a.item?.slug ?? a.slug ?? a.label) === actionSlug,
   );
   if (!strike) return null;
+  // #1083: see rollAndApplyStrike -- record only an attack that proceeds.
+  if (readForces(combat)) await recordAttack(combat, combatant, target);
 
   const prevShowCheck = game.user.flags?.pf2e?.settings?.showCheckDialogs;
   const prevShowDamage = game.user.flags?.pf2e?.settings?.showDamageDialogs;

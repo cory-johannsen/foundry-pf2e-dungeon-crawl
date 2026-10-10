@@ -12,14 +12,11 @@ import { buildEncounterDeck, dealEncounter } from "./encounter-deck.mjs";
 import { getGenerator } from "./generator-registry.mjs";
 import { loadCreatureArt } from "./data-loader.mjs";
 import { findCreatureArt, creatureArtPath } from "./creature-art.mjs";
-import {
-  traitFieldHtml,
-  wireTraitPickerButtons,
-  readTraitField,
-} from "./trait-picker.mjs";
 import { startCombatForEncounterId } from "./dungeon-combat.mjs";
 import { chooseCoverItemTypes } from "./cover-items.mjs";
-import { depthBiasForDifficultyTier } from "./encounter-roster.mjs";
+import { depthBiasForDifficultyTier, xpBudget } from "./encounter-roster.mjs";
+import { chooseEncounterForces } from "./encounter-forces-dialog.mjs";
+import { splitBudget, validateShares } from "./force-budget.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 
@@ -27,64 +24,37 @@ function freshSeed() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-async function chooseThemeAndSize({
-  api,
-  prefillTraits = [],
-  prefillExcludeTraits = [],
-} = {}) {
-  const { DialogV2 } = foundry.applications.api;
-  const traits = await api.listCreatureTraits();
-  return DialogV2.wait({
-    window: { title: game.i18n.localize("PF2EDC.Encounter.Title") },
-    content: `
-      <form>
-        <label>
-          ${game.i18n.localize("PF2EDC.Encounter.DifficultyLabel")}
-          <select name="difficulty">
-            <option value="trivial">${game.i18n.localize("PF2EDC.Encounter.Difficulty.Trivial")}</option>
-            <option value="low">${game.i18n.localize("PF2EDC.Encounter.Difficulty.Low")}</option>
-            <option value="moderate" selected>${game.i18n.localize("PF2EDC.Encounter.Difficulty.Moderate")}</option>
-            <option value="severe">${game.i18n.localize("PF2EDC.Encounter.Difficulty.Severe")}</option>
-            <option value="extreme">${game.i18n.localize("PF2EDC.Encounter.Difficulty.Extreme")}</option>
-          </select>
-        </label>
-        ${traitFieldHtml({
-          name: "traits",
-          label: game.i18n.localize("PF2EDC.Encounter.ThemeLabel"),
-          buttonLabel: game.i18n.localize("PF2EDC.Encounter.ChooseTraitsButton"),
-          selected: prefillTraits,
-        })}
-        ${traitFieldHtml({
-          name: "excludeTraits",
-          label: game.i18n.localize("PF2EDC.Encounter.ExcludeTraitsLabel"),
-          buttonLabel: game.i18n.localize("PF2EDC.Encounter.ChooseTraitsButton"),
-          selected: prefillExcludeTraits,
-        })}
-      </form>`,
-    render: (_event, dialog) => wireTraitPickerButtons(dialog.element, traits),
-    buttons: [
-      {
-        action: "generate",
-        label: game.i18n.localize("PF2EDC.Encounter.GenerateButton"),
-        default: true,
-        callback: (_event, _button, dialog) => ({
-          traits: readTraitField(dialog.element, "traits"),
-          excludeTraits: readTraitField(dialog.element, "excludeTraits"),
-          // A <select> with a `selected` default option always has a value,
-          // so this only ever matters if the element is somehow missing.
-          difficulty: dialog.element.querySelector('[name="difficulty"]')?.value ?? "moderate",
-        }),
-      },
-      { action: "cancel", label: "Cancel" },
-    ],
-    rejectClose: false,
-  });
+/** #1083: distinct token tints, one per force (wraps). */
+export const FORCE_TINTS = [
+  "#ff6b6b",
+  "#4dabf7",
+  "#69db7c",
+  "#ffd43b",
+  "#da77f2",
+  "#ffa94d",
+];
+export const forceTint = (index) => FORCE_TINTS[index % FORCE_TINTS.length];
+
+/** #1083: the combat forces table for the surviving forces. */
+export function buildForceTable(forces) {
+  return Object.fromEntries(
+    forces.map((f) => [f.id, { hostility: f.hostility, hostileTo: [] }]),
+  );
 }
 
-async function postEncounterChatCard(api, roster) {
+const NEAR_PARTY_OFFSETS = [
+  { dx: 0, dy: 0 },
+  { dx: 4, dy: 0 },
+  { dx: -4, dy: 0 },
+  { dx: 0, dy: 4 },
+  { dx: 0, dy: -4 },
+  { dx: 4, dy: 4 },
+];
+
+async function postEncounterChatCard(api, roster, force = null) {
   const content = await renderTemplate(
     `modules/${MODULE_ID}/templates/encounter-chat.hbs`,
-    { roster },
+    force ? { roster, force } : { roster },
   );
   await api.postChatCard({ content, whisperGM: true });
 }
@@ -109,6 +79,14 @@ function resolveArt(creatureArt, ref) {
     : null;
 }
 
+/** extraFlags minus the per-force identity keys (non-force flags are kept). */
+function friendFlags(extraFlags) {
+  const mod = extraFlags?.[MODULE_ID];
+  if (!mod) return extraFlags;
+  const { forceId, forceName, originalName, ...rest } = mod;
+  return { ...extraFlags, [MODULE_ID]: rest };
+}
+
 async function spawnEncounterTokens(
   api,
   roster,
@@ -118,14 +96,23 @@ async function spawnEncounterTokens(
     forceHidden = false,
     extraFlags = null,
     creatureArt = [],
+    // #1083: per-force spawn options. placementArea (a region) is separate
+    // from originArea so it never triggers the dungeon-room branches.
+    placementArea = null,
+    originOffsetCells = null,
+    tint = null,
+    nameSuffix = null,
   } = {},
 ) {
   const nearActorId = findFocusActorId(partyMembers);
   const place = (hidden) => ({
     nearActorId,
-    originArea,
+    originArea: placementArea ?? originArea,
     extraFlags,
     hidden: hidden || forceHidden,
+    ...(originOffsetCells ? { originOffsetCells } : {}),
+    ...(tint ? { tint } : {}),
+    ...(nameSuffix ? { nameSuffix } : {}),
   });
   const withArt = (e) => ({ ...e, imgFallback: resolveArt(creatureArt, e) });
 
@@ -139,7 +126,11 @@ async function spawnEncounterTokens(
     const entries = [
       withArt({ pack: roster.friend.pack, id: roster.friend.id }),
     ];
-    const placement = place(false);
+    // #1083: the Friend is the party's ally, never a member of the force --
+    // no forceId/forceName flags, tint or name suffix.
+    const placement = { ...place(false), extraFlags: friendFlags(extraFlags) };
+    delete placement.tint;
+    delete placement.nameSuffix;
     const [spawned] =
       (await api.spawnCreatures(entries, {
         ...placement,
@@ -171,6 +162,176 @@ async function spawnEncounterTokens(
       withArt({ pack: roster.lurker.pack, id: roster.lurker.id }),
     ];
     await api.spawnCreatures(entries, { ...place(true), disposition: -1 });
+  }
+}
+
+/**
+ * #1083: bounding rectangle of a Foundry region's shapes (rectangle x/y/
+ * width/height, ellipse/circle centre + radii, polygon flat points), or null.
+ */
+export function regionBoundsFromShapes(shapes) {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  const add = (x1, y1, x2, y2) => {
+    if (![x1, y1, x2, y2].every(Number.isFinite)) return;
+    minX = Math.min(minX, x1);
+    minY = Math.min(minY, y1);
+    maxX = Math.max(maxX, x2);
+    maxY = Math.max(maxY, y2);
+  };
+  for (const sh of Array.isArray(shapes) ? shapes : []) {
+    if (!sh) continue;
+    if (sh.type === "rectangle") {
+      add(sh.x, sh.y, sh.x + sh.width, sh.y + sh.height);
+    } else if (sh.type === "ellipse") {
+      add(sh.x - sh.radiusX, sh.y - sh.radiusY, sh.x + sh.radiusX, sh.y + sh.radiusY);
+    } else if (sh.type === "circle") {
+      add(sh.x - sh.radius, sh.y - sh.radius, sh.x + sh.radius, sh.y + sh.radius);
+    } else if (sh.type === "polygon" && Array.isArray(sh.points)) {
+      for (let i = 0; i + 1 < sh.points.length; i += 2) {
+        add(sh.points[i], sh.points[i + 1], sh.points[i], sh.points[i + 1]);
+      }
+    }
+  }
+  return Number.isFinite(minX)
+    ? { x: minX, y: minY, width: maxX - minX, height: maxY - minY }
+    : null;
+}
+
+function regionArea(scene, regionId) {
+  const region = scene.regions?.get?.(regionId);
+  const b = region?.bounds;
+  if (b && [b.x, b.y, b.width, b.height].every(Number.isFinite)) {
+    return { x: b.x, y: b.y, width: b.width, height: b.height };
+  }
+  const shapes = region?.shapes;
+  return regionBoundsFromShapes(shapes ? Array.from(shapes) : null);
+}
+
+const FILTER_NAMES = [
+  ["levelRange", (f) => f.levelOffsetMin != null || f.levelOffsetMax != null],
+  ["family", (f) => !!f.family],
+  ["rarity", (f) => !!f.rarity],
+];
+
+/** #1083: the multi-force generate/spawn path (stand-alone macro only). */
+async function generateForces({
+  chosen,
+  scene,
+  api,
+  creatureArt,
+  partyLevel,
+  partyMembers,
+  partySize,
+  originArea,
+  forceHidden,
+  extraFlags,
+  levelOffsetBias,
+  locationTag,
+  isBoss,
+}) {
+  const { difficulty, forces } = chosen;
+  const shares = forces.map((f) => f.share);
+  const check = validateShares(shares);
+  if (!check.ok) {
+    ui.notifications.warn(
+      game.i18n.format("PF2EDC.Encounter.ForceSharesInvalid", { total: check.total }),
+    );
+    return;
+  }
+  const caps = splitBudget(xpBudget(difficulty, partySize), shares);
+  const seed = freshSeed();
+  const deckSlots = buildEncounterDeck({ seed });
+
+  const survivors = [];
+  for (const [i, force] of forces.entries()) {
+    const seedI = `${seed}-${force.id}`;
+    const dealt = dealEncounter(deckSlots, { seed: seedI, partySize });
+    const fl = force.filters ?? {};
+    const roster = { ...(await getGenerator().generateEncounterRoster({
+      resolved: dealt.resolved,
+      api,
+      partyLevel,
+      traits: fl.traits ?? [],
+      excludeTraits: fl.excludeTraits ?? [],
+      levelOffsetMin: fl.levelOffsetMin ?? null,
+      levelOffsetMax: fl.levelOffsetMax ?? null,
+      family: fl.family ?? "",
+      rarity: fl.rarity ?? "",
+      xpCapOverride: caps[i],
+      levelOffsetBias,
+      requireTrait: locationTag,
+      partySize,
+      isBoss,
+      depthBias: null,
+    })) };
+    const applied = roster.appliedFilters ?? [];
+    for (const [name, requested] of FILTER_NAMES) {
+      if (requested(fl) && !applied.includes(name)) {
+        roster.warnings = [
+          ...(roster.warnings ?? []),
+          game.i18n.format("PF2EDC.Encounter.ForceFilterUnsupported", { name }),
+        ];
+      }
+    }
+    // Only force 1 keeps the Friend/Twins/Lurker extras.
+    if (i > 0) {
+      roster.friend = null;
+      roster.twins = null;
+      roster.lurker = null;
+    }
+    const empty =
+      !roster.foes?.length && !roster.friend && !roster.twins && !roster.lurker;
+    if (empty) {
+      ui.notifications.warn(
+        game.i18n.format("PF2EDC.Encounter.ForceEmpty", {
+          name: force.name || force.id,
+        }),
+      );
+      continue;
+    }
+    survivors.push({ force, roster, index: i });
+  }
+  if (!survivors.length) return;
+
+  const encounterId = freshSeed();
+  for (const { force, roster, index } of survivors) {
+    const mode = force.placement?.mode ?? "nearParty";
+    const placementArea = mode.startsWith("region:")
+      ? regionArea(scene, mode.slice("region:".length))
+      : null;
+    if (mode.startsWith("region:") && !placementArea) {
+      roster.warnings = [
+        ...(roster.warnings ?? []),
+        game.i18n.format("PF2EDC.Encounter.ForceRegionUnresolved", {
+          name: force.name || force.id,
+        }),
+      ];
+    }
+    await postEncounterChatCard(api, roster, force);
+    const flags = foundry.utils.mergeObject(
+      { [MODULE_ID]: { encounterId, forceId: force.id, forceName: force.name } },
+      extraFlags ?? {},
+      { inplace: false },
+    );
+    await spawnEncounterTokens(api, roster, partyMembers, {
+      originArea,
+      forceHidden,
+      extraFlags: flags,
+      creatureArt,
+      placementArea,
+      originOffsetCells:
+        placementArea ? null : NEAR_PARTY_OFFSETS[index % NEAR_PARTY_OFFSETS.length],
+      tint: forceTint(index),
+      nameSuffix: force.name || null,
+    });
+  }
+  if (!originArea) {
+    await startCombatForEncounterId(scene, encounterId, {
+      forces: buildForceTable(survivors.map((s) => s.force)),
+    });
   }
 }
 
@@ -213,10 +374,32 @@ export async function generateEncounter({
   // dealing the encounter instead of asking for the same traits again (ITEM-21).
   // The standalone "Generate Encounter" macro has no such prior
   // context, so it always shows the dialog (skipThemeDialog defaults false).
-  const theme = skipThemeDialog
-    ? { traits: prefillTraits, excludeTraits: prefillExcludeTraits }
-    : await chooseThemeAndSize({ api, prefillTraits, prefillExcludeTraits });
-  if (!theme || theme === "cancel") return;
+  let theme;
+  if (skipThemeDialog) {
+    theme = { traits: prefillTraits, excludeTraits: prefillExcludeTraits };
+  } else {
+    const chosen = await chooseEncounterForces({ api, scene, partySize });
+    if (!chosen || chosen === "cancel") return;
+    if (Array.isArray(chosen.forces)) {
+      return generateForces({
+        chosen,
+        scene,
+        api,
+        creatureArt,
+        partyLevel,
+        partyMembers,
+        partySize,
+        originArea,
+        forceHidden,
+        extraFlags,
+        levelOffsetBias,
+        locationTag,
+        isBoss,
+      });
+    }
+    // A bare { traits, excludeTraits, difficulty } result: single implicit force.
+    theme = chosen;
+  }
   // #831: a dungeon room (skipThemeDialog) already supplies its own real
   // depth-based bias; the standalone macro has none, so its own dialog's
   // difficulty choice drives the identical cap mechanism instead.

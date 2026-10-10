@@ -6,6 +6,7 @@
 <div class="pf2edc-chat pf2edc-encounter">
   <header class="pf2edc-chat__header">
     <h3>{{localize "PF2EDC.Encounter.Title"}}</h3>
+    {{#if force.name}}<h4>{{localize "PF2EDC.Encounter.ForceCardHeader"}} {{force.name}}</h4>{{/if}}
   </header>
 
   {{#if roster.foes.length}}

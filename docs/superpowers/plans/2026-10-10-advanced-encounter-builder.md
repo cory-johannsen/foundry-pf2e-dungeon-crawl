@@ -56,7 +56,7 @@
 **Interfaces:**
 - Produces: `splitBudget(totalXp: number, shares: number[]) → number[]` (per-force XP caps, `floor(total*share/100)`, each ≥ 0 and finite); `validateShares(shares: number[]) → { ok: boolean, total: number }` (ok iff every share is a finite number > 0 and the sum is exactly 100).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 import { describe, it, expect } from "vitest";
@@ -92,9 +92,9 @@ describe("validateShares", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `npx vitest run tests/force-budget.test.mjs` → FAIL (module not found).
+- [x] **Step 2: Run to verify it fails** — `npx vitest run tests/force-budget.test.mjs` → FAIL (module not found).
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 /**
@@ -118,8 +118,8 @@ export function validateShares(shares) {
 }
 ```
 
-- [ ] **Step 4: Run to verify it passes** — same command → PASS.
-- [ ] **Step 5: Commit** — `git add scripts/force-budget.mjs tests/force-budget.test.mjs && git commit -m "#1083: force budget split helpers"`
+- [x] **Step 4: Run to verify it passes** — same command → PASS.
+- [x] **Step 5: Commit** — `git add scripts/force-budget.mjs tests/force-budget.test.mjs && git commit -m "#1083: force budget split helpers"`
 
 ---
 
@@ -139,7 +139,7 @@ export function validateShares(shares) {
   - `withRetaliation(forces, attackerForce, victimForce) → forces` (pure, returns new table): no-op if table null, same force, victim is `party`, or victim force unknown; else adds `attackerForce` to victim's `hostileTo`, and (symmetric) adds `victimForce` to attacker force's `hostileTo` when the attacker force exists and has `hostility:"players"` (attacker `party` has no entry — skipped).
   - `async recordAttack(combat, attacker, victim)`: computes `withRetaliation`, and `combat.setFlag(MODULE_ID,"forces",next)` only if it changed; swallows+`console.error`s failures (never blocks).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 import { describe, it, expect, vi } from "vitest";
@@ -248,9 +248,9 @@ describe("withRetaliation / recordAttack", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `npx vitest run tests/force-hostility.test.mjs` → FAIL.
+- [x] **Step 2: Run to verify it fails** — `npx vitest run tests/force-hostility.test.mjs` → FAIL.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 /**
@@ -323,12 +323,14 @@ export async function recordAttack(combat, attacker, victim) {
 
 Note: `withRetaliation` returns the *same object* when it no-ops, so `next === forces` short-circuits before the JSON compare; the `toEqual` assertions in the test hold either way.
 
-- [ ] **Step 4: Run to verify it passes** — PASS.
-- [ ] **Step 5: Commit** — `git add scripts/force-hostility.mjs tests/force-hostility.test.mjs && git commit -m "#1083: central force hostility relation"`
+- [x] **Step 4: Run to verify it passes** — PASS.
+- [x] **Step 5: Commit** — `git add scripts/force-hostility.mjs tests/force-hostility.test.mjs && git commit -m "#1083: central force hostility relation"`
 
 ---
 
 ### Task 3: Per-force creature filters in the roster + creature listing
+
+**FAMILY_FIELD (owner decision):** PF2e NPCs have no family field (probed Monster Core, 492 actors). "family" = ancestry-style trait: case-insensitive equality against any entry of `system.traits.value` (entry `traits`); no separate `family` property on entries.
 
 **Files:**
 - Modify: `scripts/encounter-roster.mjs` (`pickCreature` ~142-181, `resolveEncounterRoster` ~228-, return value)
@@ -344,12 +346,12 @@ Note: `withRetaliation` returns the *same object* when it no-ops, so `next === f
   - The returned roster gains `appliedFilters: string[]` — the subset of `["levelRange","family","rarity","xpCapOverride"]` this resolver honored (always all four). A custom generator that omits `appliedFilters` is treated as supporting none (Task 7 warns).
 - `api.findCreatures` gains `family` and `rarity` options; the index `fields` list gains `"system.traits.rarity"` and the family field (see Step 1 probe), and returned entries gain `rarity` and `family`.
 
-- [ ] **Step 1: Probe where PF2e stores creature family** (planning left this open)
+- [x] **Step 1: Probe where PF2e stores creature family** (planning left this open)
 
 Run (needs `PF2E_SYSTEM_PACKS_DIR` from `.env`/README):
 `ls "$PF2E_SYSTEM_PACKS_DIR"/pathfinder-monster-core/_source 2>/dev/null | head -3`, then `grep -o '"family"[^,]*' -r "$PF2E_SYSTEM_PACKS_DIR"/pathfinder-monster-core/_source | head -5` and `grep -rl 'details.family\|"family"' ... | head`. Record the exact JSON path in this plan's `FAMILY_FIELD` constant below. **If no NPC carries a family field in the data**, STOP and ask the owner: the spec's family filter then needs a different source (e.g. name-prefix match), which is a scope decision, not a coding detail. If found (expected: `system.details.family`... verify, do not assume), proceed using the verified path in place of `system.details.family` everywhere below.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 Using a fake `api.findCreatures` that records its args and returns a pool filtered by the args (copy the helper pattern from `tests/encounter-roster.test.mjs`), assert:
 
@@ -377,13 +379,13 @@ it("no new params = identical result to today (regression)", async () => { /* sa
 
 Write each body fully, reusing the file's existing `oneFoeSlot`-style fixtures (create them from the shape `dealEncounter` produces: `{ foes: [{ levelOffset: 0, countsAs: 1 }] }`). Add a `foundry-api` test only if a `findCreatures` test file already exists; otherwise cover `findCreatures` filtering through a pure extracted predicate `creatureMatchesFilters(entry, { family, rarity })` exported from `foundry-api.mjs`'s neighbor — **put it in `scripts/encounter-roster.mjs`** and unit-test it there (case-insensitive family equality, exact rarity, `null` = no constraint).
 
-- [ ] **Step 3: Run to verify they fail** — `npx vitest run tests/encounter-roster-force-filters.test.mjs`.
+- [x] **Step 3: Run to verify they fail** — `npx vitest run tests/encounter-roster-force-filters.test.mjs`.
 
-- [ ] **Step 4: Implement**
+- [x] **Step 4: Implement**
   1. `encounter-roster.mjs`: add and export `creatureMatchesFilters`; add the new params to `pickCreature` (compute `minLevel = Math.max(minLevel, partyLevel+levelOffsetMin)`, `maxLevel = Math.min(maxLevel, partyLevel+levelOffsetMax)` when non-null) and pass `family`/`rarity` in `look`; thread the params through `resolveEncounterRoster`'s two `pickCreature` call sites (`pick` and `pickWithinCap`). Set `const xpCap = xpCapOverride ?? (partySize != null ? xpBudget(capTier, partySize) : null)`; in `fitOffset` return `null` immediately when `xpCap === 0`; in `pickWithinCap` the "empty roster takes -4 / nominal pick" fallbacks must not run when `xpCap === 0`. Add `appliedFilters` to the returned object.
   2. `foundry-api.mjs findCreatures`: add `family = null, rarity = null` options, request `system.traits.rarity` and the verified family field in `fields`, filter with `creatureMatchesFilters`, include `rarity`/`family` in `found.push`.
-- [ ] **Step 5: Run the new file + `npx vitest run tests/encounter-roster.test.mjs tests/encounter-generator.test.mjs`** → all PASS.
-- [ ] **Step 6: Commit** — `git commit -am "#1083: per-force level range, family, rarity and budget override in roster resolution"` (add new test file).
+- [x] **Step 5: Run the new file + `npx vitest run tests/encounter-roster.test.mjs tests/encounter-generator.test.mjs`** → all PASS.
+- [x] **Step 6: Commit** — `git commit -am "#1083: per-force level range, family, rarity and budget override in roster resolution"` (add new test file).
 
 ---
 
@@ -404,16 +406,16 @@ Behavior to implement:
 - Observer set in `rollStealthInitiativeAndDetect`: when a table exists, `hostiles = combatants.filter(c => !sneakerIds.has(c.id) && !partyIds.has(c.actor?.id) && sneakers.some(s => areHostile(combat, s, c)))`; otherwise keep the existing disposition expression.
 - Do **not** change the `disposition:` copies in the move-payload builders (~4585/4613); they are debug data.
 
-- [ ] **Step 1: Write failing tests** (`tests/dungeon-combat-forces.test.mjs`). `combatantOpponents`/`combatantAllies` are not exported; export them (`export function`) as part of this task, as other helpers in the file are. Cases, with a fake combat `{ combatants, getFlag }`:
+- [x] **Step 1: Write failing tests** (`tests/dungeon-combat-forces.test.mjs`). `combatantOpponents`/`combatantAllies` are not exported; export them (`export function`) as part of this task, as other helpers in the file are. Cases, with a fake combat `{ combatants, getFlag }`:
   - Multi-force: party P, undead U (`all`), goblin G (`players`): `combatantOpponents(P)` = [U,G]; `(U)` = [P,G]; `(G)` = [P,U]. Add a second goblin G2: `combatantAllies(G)` = [G2], `combatantOpponents(G)` excludes G2.
   - After setting `forces.f2.hostileTo=["f3"]` for two `players` forces, they become opponents.
   - Legacy (no table): output identical to the old disposition rule for dispositions -1/0/+1 (copy the old expressions into the test as the oracle).
   - `combatSideStatus` with a table: goblins+undead all defeated, party up → `hostilesDefeated: true`; undead alive → false; all party down → `partyDefeated: true`.
   - `startCombatForEncounterId` passes `forces` through: stub `Combat.create` / `setFlag` as other `startCombat` tests do (grep `tests/` for `Combat.create` to reuse the harness) and assert `setFlag(MODULE_ID,"forces", table)` is called before `rollInitiative`.
-- [ ] **Step 2: Run, verify FAIL.**
-- [ ] **Step 3: Implement** as specified above; import from `./force-hostility.mjs`.
-- [ ] **Step 4: Run** `npx vitest run tests/dungeon-combat-forces.test.mjs tests/dungeon-combat-side-status.test.mjs tests/dungeon-combat-downed-targets.test.mjs` then the whole suite `npm test` → PASS (this file is 11k lines and widely tested; any failure here is a regression to fix, not to skip).
-- [ ] **Step 5: Commit** — `git commit -am "#1083: route combat opponents/allies/observers through force hostility"`.
+- [x] **Step 2: Run, verify FAIL.**
+- [x] **Step 3: Implement** as specified above; import from `./force-hostility.mjs`.
+- [x] **Step 4: Run** `npx vitest run tests/dungeon-combat-forces.test.mjs tests/dungeon-combat-side-status.test.mjs tests/dungeon-combat-downed-targets.test.mjs` then the whole suite `npm test` → PASS (this file is 11k lines and widely tested; any failure here is a regression to fix, not to skip).
+- [x] **Step 5: Commit** — `git commit -am "#1083: route combat opponents/allies/observers through force hostility"`.
 
 ---
 
@@ -428,10 +430,10 @@ Behavior to implement:
 - Consumes: `recordAttack`, `readForces` (Task 2).
 - Produces: `handleAttackForRetaliation(message)`: active-GM-only; ignores messages whose `flags.pf2e.context.type` is not `"attack-roll"` or `"damage-roll"`; resolves attacker combatant from `message.speaker.token` and victim from `context.target.token` (`.split(".").pop()`, same as `handleAttackRollForReactions` ~3023-3040) in the module combat on that scene (`isModuleCombat`); returns early when the combat has no `forces` table; otherwise `await recordAttack(combat, attacker, victim)`.
 
-- [ ] **Step 1: Write failing tests**: message fixtures shaped like the pf2e ones used in `tests/dungeon-combat-*reaction*.test.mjs` (grep for `attack-roll` fixtures and copy the harness). Cases: undead hits goblin ⇒ goblin force `hostileTo` gains `f1`; party hits goblin ⇒ no `setFlag`; message with no target ⇒ no-op; no forces table ⇒ no-op; non-GM client ⇒ no-op; a miss still counts (attack-roll with outcome `failure`).
-- [ ] **Step 2: Run, FAIL.**
-- [ ] **Step 3: Implement.** In the two AI strike functions add `await recordAttack(combat, combatant, target)` right after the target is resolved (before rolling) — idempotent and cheap; guard so it only runs when `readForces(combat)` is non-null.
-- [ ] **Step 4: Run** `npx vitest run tests/dungeon-combat-retaliation.test.mjs` then `npm test`.
+- [x] **Step 1: Write failing tests**: message fixtures shaped like the pf2e ones used in `tests/dungeon-combat-*reaction*.test.mjs` (grep for `attack-roll` fixtures and copy the harness). Cases: undead hits goblin ⇒ goblin force `hostileTo` gains `f1`; party hits goblin ⇒ no `setFlag`; message with no target ⇒ no-op; no forces table ⇒ no-op; non-GM client ⇒ no-op; a miss still counts (attack-roll with outcome `failure`).
+- [x] **Step 2: Run, FAIL.**
+- [x] **Step 3: Implement.** In the two AI strike functions add `await recordAttack(combat, combatant, target)` right after the target is resolved (before rolling) — idempotent and cheap; guard so it only runs when `readForces(combat)` is non-null.
+- [x] **Step 4: Run** `npx vitest run tests/dungeon-combat-retaliation.test.mjs` then `npm test`.
 - [ ] **Step 5: Commit** — `git commit -am "#1083: force-level retaliation on attack"`.
 
 ---
@@ -453,11 +455,11 @@ Behavior to implement:
   - `readForcesFromForm(root) → Force[]` (reads every `fieldset[data-force]`; uses `readTraitField(root, "traits-<id>")`).
   - `async chooseEncounterForces({ api, scene }) → { difficulty, forces } | null` — the DialogV2 wrapper: difficulty select (existing keys), force 1 prefilled, **Add force** / **Remove** buttons that re-render the force list, a read-only budget line (`xpBudget(tier, partySize)` and each force's `splitBudget` allotment; recomputed on input), Generate disabled-with-message when `validateShares` fails. Placement select offers "Near party" plus one option per `scene.regions` entry (value `region:<id>`; resolved to a rect in Task 7).
 
-- [ ] **Step 1: Write failing tests** for the pure parts: `defaultForce`/`equalShares([1,2,3])`, `normalizeForce` coercions, `forceSectionHtml` contains the expected `name=` attributes and the selected hostility/rarity (parse with `new DOMParser()` only if vitest env is jsdom — check `vitest.config.*`; otherwise assert on substrings), `readForcesFromForm` against a minimal fake root (`querySelectorAll`, `querySelector(name)` returning `{ value }`) — mirror how `tests/trait-picker*.test.mjs` fakes the DOM if it exists.
-- [ ] **Step 2: Run, FAIL.**
-- [ ] **Step 3: Implement** the pure helpers + the `chooseEncounterForces` wrapper (not unit-tested; covered by live verification, Task 9). Reuse the existing dialog's markup, `PF2EDC.Encounter.*` keys and trait pickers; keep force 1's layout identical to today's dialog so a one-force encounter looks unchanged.
-- [ ] **Step 4: Run** `npx vitest run tests/encounter-forces-dialog.test.mjs` → PASS.
-- [ ] **Step 5: Commit** — `git commit -am "#1083: encounter force dialog helpers and UI"`.
+- [x] **Step 1: Write failing tests** for the pure parts: `defaultForce`/`equalShares([1,2,3])`, `normalizeForce` coercions, `forceSectionHtml` contains the expected `name=` attributes and the selected hostility/rarity (parse with `new DOMParser()` only if vitest env is jsdom — check `vitest.config.*`; otherwise assert on substrings), `readForcesFromForm` against a minimal fake root (`querySelectorAll`, `querySelector(name)` returning `{ value }`) — mirror how `tests/trait-picker*.test.mjs` fakes the DOM if it exists.
+- [x] **Step 2: Run, FAIL.**
+- [x] **Step 3: Implement** the pure helpers + the `chooseEncounterForces` wrapper (not unit-tested; covered by live verification, Task 9). Reuse the existing dialog's markup, `PF2EDC.Encounter.*` keys and trait pickers; keep force 1's layout identical to today's dialog so a one-force encounter looks unchanged.
+- [x] **Step 4: Run** `npx vitest run tests/encounter-forces-dialog.test.mjs` → PASS.
+- [x] **Step 5: Commit** — `git commit -am "#1083: encounter force dialog helpers and UI"`.
 
 ---
 
@@ -484,7 +486,7 @@ Behavior in `generateEncounter`:
 5. Spawn: for each surviving force `spawnEncounterTokens(api, roster, partyMembers, { ..., extraFlags: merge(flags, { [MODULE_ID]: { forceId, forceName } }), tint, nameSuffix: force.name || null, originOffsetCells, originArea })`, where nearParty forces get offsets `[{0,0},{4,0},{-4,0},{0,4},{0,-4},{4,4}][i % 6]` and a `region:<id>` placement resolves `scene.regions.get(id)` bounds to `originArea {x,y,width,height}` (unlike dungeon rooms this does **not** trigger the cover-items/`!originArea` combat-start branches — use a separate local `placementArea` variable, keep the function's `originArea` parameter semantics untouched).
 6. Start combat once: `startCombatForEncounterId(scene, encounterId, { forces: buildForceTable(survivingForces) })`.
 
-- [ ] **Step 1: Write failing tests** (mocked generator, `api.spawnCreatures` spy, `startCombatForEncounterId` mocked via `vi.mock("../scripts/dungeon-combat.mjs")`):
+- [x] **Step 1: Write failing tests** (mocked generator, `api.spawnCreatures` spy, `startCombatForEncounterId` mocked via `vi.mock("../scripts/dungeon-combat.mjs")`):
   - Two forces 50/50 on Moderate/4 PCs ⇒ generator called twice with `xpCapOverride` 40 and 40 and different `resolved` seeds; force filters passed through (`traits:["undead"]`, `family:"goblin"`…).
   - `spawnCreatures` is called with `extraFlags[MODULE_ID].forceId === "f1"/"f2"`, `disposition:-1` for both, distinct `originOffsetCells`, distinct `tint`.
   - Empty force ⇒ warning naming it, other force still spawns, table contains only survivors; all empty ⇒ no spawn, `startCombatForEncounterId` not called.
@@ -492,10 +494,10 @@ Behavior in `generateEncounter`:
   - `skipThemeDialog: true` ⇒ generator called once **without** `xpCapOverride`/`forceId` flag and `startCombatForEncounterId` not given `forces` (parity with the existing tests, which must still pass unmodified).
   - `buildForceTable`: `{ f1:{hostility:"all",hostileTo:[]}, f2:{hostility:"players",hostileTo:[]} }`.
   - friend/twin/lurker kept on force 1 only.
-- [ ] **Step 2: Run, FAIL.**
-- [ ] **Step 3: Implement** per the behavior list; add lang keys `ForceEmpty`, `ForceFilterUnsupported`, `ForceCardHeader`.
-- [ ] **Step 4: Run** `npx vitest run tests/encounter-generator-forces.test.mjs tests/encounter-generator.test.mjs tests/foundry-api-spawn-choice-set.test.mjs` then `npm test`.
-- [ ] **Step 5: Commit** — `git commit -am "#1083: multi-force encounter generation and spawning"`.
+- [x] **Step 2: Run, FAIL.**
+- [x] **Step 3: Implement** per the behavior list; add lang keys `ForceEmpty`, `ForceFilterUnsupported`, `ForceCardHeader`.
+- [x] **Step 4: Run** `npx vitest run tests/encounter-generator-forces.test.mjs tests/encounter-generator.test.mjs tests/foundry-api-spawn-choice-set.test.mjs` then `npm test`.
+- [x] **Step 5: Commit** — `git commit -am "#1083: multi-force encounter generation and spawning"`.
 
 ---
 
@@ -509,10 +511,10 @@ Behavior in `generateEncounter`:
 - Consumes: token flags `originalName`, `forceId` (T7).
 - Produces: exported `clearForceDecorations(combat)`: for each combatant token with a `forceId` flag, `token.update({ name: originalName ?? name, "texture.tint": null })` (skip tokens already deleted); active-GM only; errors logged, never thrown. Called from the existing `deleteCombat` hook (module.mjs) beside `clearDetection`.
 
-- [ ] **Step 1: Failing tests**: cleanup restores name and clears tint only on forceId-flagged tokens; no-op for legacy tokens; swallowed update error.
-- [ ] **Step 2: XP regression** (in `tests/dungeon-combat-auto-defeat.test.mjs` harness): a victory where the party is up and both an `all` force creature and a `players` force creature are defeated (the undead's `isDefeated` set by "someone else") awards `totalCombatXp` over **both** levels. Expect this test to PASS without a code change — `defeatedHostileCombatants` already counts every `disposition === -1` defeated creature regardless of killer. If it fails, fix `resolveCombat` (~810) instead of weakening the test.
-- [ ] **Step 3: Run, implement cleanup, verify PASS**, `npm test`.
-- [ ] **Step 4: Commit** — `git commit -am "#1083: clear force labels/tints at combat end; pin XP behavior"`.
+- [x] **Step 1: Failing tests**: cleanup restores name and clears tint only on forceId-flagged tokens; no-op for legacy tokens; swallowed update error.
+- [x] **Step 2: XP regression** (in `tests/dungeon-combat-auto-defeat.test.mjs` harness): a victory where the party is up and both an `all` force creature and a `players` force creature are defeated (the undead's `isDefeated` set by "someone else") awards `totalCombatXp` over **both** levels. Expect this test to PASS without a code change — `defeatedHostileCombatants` already counts every `disposition === -1` defeated creature regardless of killer. If it fails, fix `resolveCombat` (~810) instead of weakening the test.
+- [x] **Step 3: Run, implement cleanup, verify PASS**, `npm test`.
+- [x] **Step 4: Commit** — `git commit -am "#1083: clear force labels/tints at combat end; pin XP behavior"`.
 
 ---
 
