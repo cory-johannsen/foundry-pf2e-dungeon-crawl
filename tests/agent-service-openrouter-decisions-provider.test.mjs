@@ -18,14 +18,14 @@ const CONTEXT = {
   roundNumber: 1
 };
 
-function fakeFetch(choice, { ok = true, status = 200, text } = {}) {
+function fakeFetch(choice, { ok = true, status = 200, text, usage = {}, model = 'inception/mercury-decide:free' } = {}) {
   return vi.fn().mockResolvedValue({
     ok,
     status,
     json: async () => ({
-      model: 'inception/mercury-decide:free',
+      ...(model ? { model } : {}),
       answers: { candidate: { type: 'choice', choice, probabilities: {}, confidence: 0.56 } },
-      usage: {}
+      usage
     }),
     text: async () => text ?? ''
   });
@@ -76,7 +76,7 @@ describe('openrouter-decisions provider decide()', () => {
 
   it('returns the chosen candidate with no rationale', async () => {
     const result = await decide(CONTEXT, { apiKey: 'k', fetchImpl: fakeFetch('strike:claw:opp1') });
-    expect(result).toEqual({ candidateId: 'strike:claw:opp1', rationale: undefined });
+    expect(result).toMatchObject({ candidateId: 'strike:claw:opp1', rationale: undefined });
   });
 
   it('throws with status and body text on a non-200 response', async () => {
@@ -105,5 +105,28 @@ describe('openrouter-decisions provider decide()', () => {
     const fetchImpl = fakeFetch('endTurn');
     await decide(CONTEXT, { fetchImpl });
     expect(fetchImpl.mock.calls[0][1].headers.Authorization).toBe('Bearer fallback-key');
+  });
+
+  describe('decision meta (#952)', () => {
+    it('reports the model and normalized usage/cost from the real decisions payload shape', async () => {
+      // Shape confirmed live 2026-10-09: {model: "inception/mercury-decide-20260930",
+      // usage: {input_tokens: 112, output_tokens: 1, cost: 0}, ...}.
+      const fetchImpl = fakeFetch('endTurn', {
+        model: 'inception/mercury-decide-20260930',
+        usage: { input_tokens: 112, output_tokens: 1, cost: 0 }
+      });
+      const result = await decide(CONTEXT, { apiKey: 'k', fetchImpl });
+      expect(result.meta).toEqual({
+        model: 'inception/mercury-decide-20260930',
+        usage: { promptTokens: 112, completionTokens: 1, totalTokens: 113 },
+        costUsd: 0
+      });
+    });
+
+    it('falls back to the requested model and omits usage/cost the payload lacks', async () => {
+      const fetchImpl = fakeFetch('endTurn', { model: null, usage: undefined });
+      const result = await decide(CONTEXT, { apiKey: 'k', fetchImpl, model: 'some/model' });
+      expect(result.meta).toEqual({ model: 'some/model' });
+    });
   });
 });

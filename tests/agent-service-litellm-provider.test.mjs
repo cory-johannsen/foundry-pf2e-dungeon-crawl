@@ -11,12 +11,14 @@ const CONTEXT = {
   roundNumber: 1,
 };
 
-function fakeFetch(toolArgs, { ok = true, status = 200 } = {}) {
+function fakeFetch(toolArgs, { ok = true, status = 200, usage, headers } = {}) {
   return vi.fn().mockResolvedValue({
     ok,
     status,
+    ...(headers ? { headers: new Headers(headers) } : {}),
     text: async () => JSON.stringify({ error: "boom" }),
     json: async () => ({
+      ...(usage ? { usage } : {}),
       choices: [
         {
           message: {
@@ -86,7 +88,7 @@ describe("litellm provider decide()", () => {
   it("returns the chosen candidateId and rationale", async () => {
     const fetchImpl = fakeFetch({ candidateId: "endTurn", rationale: "no good options" });
     const result = await decide(CONTEXT, { baseUrl: "http://litellm:4000/v1", fetchImpl });
-    expect(result).toEqual({ candidateId: "endTurn", rationale: "no good options" });
+    expect(result).toMatchObject({ candidateId: "endTurn", rationale: "no good options" });
   });
 
   it("throws if litellm picks a candidateId that was never offered", async () => {
@@ -141,5 +143,57 @@ describe("litellm provider decide()", () => {
 
     const body = JSON.parse(fetchImpl.mock.calls[0][1].body);
     expect(body.model).toBe("fast");
+  });
+
+  describe("decision meta (#952)", () => {
+    const manyCandidates = {
+      ...CONTEXT,
+      candidates: Array.from({ length: 9 }, (_, i) => ({ id: `c${i}`, summary: `Option ${i}` })),
+    };
+
+    it("reports the tier it asked for, and the proxy's real upstream model from its header", async () => {
+      const fetchImpl = fakeFetch(
+        { candidateId: "c3", rationale: "r" },
+        { headers: { "x-litellm-model-name": "openrouter/nvidia/nemotron-3.5-lightning:free" } },
+      );
+      const result = await decide(manyCandidates, { baseUrl: "http://litellm:4000/v1", fetchImpl });
+      expect(result.meta).toEqual({ tier: "reasoning", model: "openrouter/nvidia/nemotron-3.5-lightning:free" });
+    });
+
+    it("falls back to the tier alias as the model when the proxy sends no model header", async () => {
+      const fetchImpl = fakeFetch({ candidateId: "endTurn", rationale: "r" });
+      const result = await decide(CONTEXT, { baseUrl: "http://litellm:4000/v1", fetchImpl });
+      expect(result.meta).toEqual({ tier: "fast", model: "fast" });
+      expect(result.meta.usage).toBeUndefined();
+      expect(result.meta.costUsd).toBeUndefined();
+    });
+
+    it("normalizes the payload's usage (the live proxy's real shape, cost included)", async () => {
+      const fetchImpl = fakeFetch(
+        { candidateId: "endTurn", rationale: "r" },
+        { usage: { completion_tokens: 64, prompt_tokens: 1830, total_tokens: 1894, completion_tokens_details: {}, cost: 0.0112 } },
+      );
+      const result = await decide(CONTEXT, { baseUrl: "http://litellm:4000/v1", fetchImpl });
+      expect(result.meta.usage).toEqual({ promptTokens: 1830, completionTokens: 64, totalTokens: 1894 });
+      expect(result.meta.costUsd).toBe(0.0112);
+    });
+
+    it("uses the response-cost header when the payload reports no cost", async () => {
+      const fetchImpl = fakeFetch(
+        { candidateId: "endTurn", rationale: "r" },
+        { usage: { prompt_tokens: 10, completion_tokens: 2, total_tokens: 12 }, headers: { "x-litellm-response-cost": "0.0004" } },
+      );
+      const result = await decide(CONTEXT, { baseUrl: "http://litellm:4000/v1", fetchImpl });
+      expect(result.meta.costUsd).toBe(0.0004);
+    });
+
+    it("ignores a non-numeric cost header rather than reporting NaN", async () => {
+      const fetchImpl = fakeFetch(
+        { candidateId: "endTurn", rationale: "r" },
+        { headers: { "x-litellm-response-cost": "n/a" } },
+      );
+      const result = await decide(CONTEXT, { baseUrl: "http://litellm:4000/v1", fetchImpl });
+      expect(result.meta).not.toHaveProperty("costUsd");
+    });
   });
 });

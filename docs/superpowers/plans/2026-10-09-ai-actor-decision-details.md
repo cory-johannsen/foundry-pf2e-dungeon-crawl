@@ -171,7 +171,7 @@ git commit -m "feat(#952): resolveProviderName and handleCombatDecision's provid
 - Consumes: nothing new.
 - Produces: litellm's `decide()` return gains `meta: {model, tier, usage?, costUsd?}`; OpenRouter's gains `meta: {usage?, costUsd?}` (model/tier are #952's own follow-up #1009 for that provider per the spec's own scope, since OpenRouter's own tier concept isn't confirmed the same way litellm's is — this task only adds what the spec's own Investigation findings confirmed live: usage/cost from the OpenRouter payload).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/agent-service-litellm-provider.test.mjs (append to whichever file
@@ -209,12 +209,12 @@ it('returns meta.usage/costUsd from the OpenRouter payload when present (#952)',
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/agent-service-litellm-provider.test.mjs -t "#952"`
 Expected: FAIL (no `meta` on the return value yet)
 
-- [ ] **Step 3: Implement in `litellm.mjs`**
+- [x] **Step 3: Implement in `litellm.mjs`**
 
 ```js
 // tools/agent-service/providers/litellm.mjs -- decide()'s own final return,
@@ -230,21 +230,21 @@ Expected: FAIL (no `meta` on the return value yet)
   return { candidateId, rationale, meta: { model, tier: model, ...(usage ? { usage } : {}) } };
 ```
 
-- [ ] **Step 4: Implement in `openrouter-decisions.mjs`**
+- [x] **Step 4: Implement in `openrouter-decisions.mjs`**
 
 Read that file's own current `decide()` return and response-payload handling first (its exact field names for usage/cost, which the spec's Investigation findings confirm exist in the payload but this plan doesn't re-derive blind). Add a `meta: { ...(usage ? {usage} : {}), ...(costUsd != null ? {costUsd} : {}) }` field to its return, following the same "omit when absent" rule as Step 3.
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/agent-service-litellm-provider.test.mjs tests/agent-service-openrouter-decisions.test.mjs`
 Expected: PASS
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add tools/agent-service/providers/litellm.mjs tools/agent-service/providers/openrouter-decisions.mjs tests/agent-service-litellm-provider.test.mjs tests/agent-service-openrouter-decisions.test.mjs
