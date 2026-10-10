@@ -44,7 +44,7 @@
 - Consumes: `visibleRecords` (`scripts/ui/ai-action-log-view.mjs`, #950's plan), `buildDecisionDetails` (`scripts/ui/ai-decision-details.mjs`, #952's plan).
 - Produces: `buildPublicPageHtml(records)`, `buildGmPageHtml(records)` → HTML strings.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/ai-history-pages.test.mjs
@@ -94,12 +94,12 @@ describe('buildGmPageHtml (#953)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/ai-history-pages.test.mjs`
 Expected: FAIL with "Cannot find module"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/ai-history-pages.mjs
@@ -161,12 +161,12 @@ export function buildGmPageHtml(records) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/ai-history-pages.test.mjs`
 Expected: PASS (6 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/ai-history-pages.mjs tests/ai-history-pages.test.mjs
