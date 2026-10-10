@@ -38,13 +38,15 @@
 **Files:**
 - Modify: `docs/superpowers/plans/2026-10-09-ai-actor-action-display.md`
 
-- [ ] **Step 1: Resolve the result-field convention**
+> **Implementation note (2026-10-09):** superseded -- #925 merged before this plan ran, and its real `recordAgentAction` (dungeon-combat.mjs) already stores the pre-computed `result: {text, tone}`, `visibility: "all"|"gm"` and `tokenId` on every record (plus `gmNote`, `kind`, `candidateId`, `target: {id,name}|null`). No amendment of #925's plan document was needed; Steps 1-3 are satisfied by the merged code.
+
+- [x] **Step 1: Resolve the result-field convention**
 
 In that plan's Task 2 (`appendAgentActionRecord`/`renderAgentTurnCard`), replace the parenthetical note that currently reads (approximately) *"`renderAgentTurnCardContent` calls `describeAgentAction(r, r.executionResult)`... confirm this matches Task 3's own record-building call before treating this as final... Pick one convention and use it consistently"* with:
 
 > **Resolved by #950:** the record stores the pre-computed `result: {text, tone}` field directly (the Design section's own convention), not the raw `executionResult`. `describeAgentAction` is called once, at the point `applyAgentDecision` already has the executor's raw result in hand (Task 3), and its `{summary, targetName, result}` output is spread directly into the record `appendAgentActionRecord` writes. `renderAgentTurnCardContent` reads `r.result.text`/`r.result.tone` directly, the same way #950's `buildAiLogView` will. This keeps a record self-contained for any later consumer (the action-log panel, #951's tracker row, #952's alternatives display) without re-importing `describeAgentAction` at every read site.
 
-- [ ] **Step 2: Add the two new record fields**
+- [x] **Step 2: Add the two new record fields**
 
 In the same plan's Design section and its Task 3 (`applyAgentDecision`'s capture point — wherever it currently builds the record object passed to `appendAgentActionRecord`), add, right next to the existing `isHidden` check that already decides `created.whisper`:
 
@@ -57,7 +59,7 @@ In the same plan's Design section and its Task 3 (`applyAgentDecision`'s capture
 
 Update that plan's own Task 2/3 test fixtures (the inline record literals like `{ combatantId: 'c1', round: 2, turn: 0, ... }` throughout its test blocks) to include both fields, so its own tests stay internally consistent with the shape Task 2 below depends on.
 
-- [ ] **Step 3: Commit the amendment**
+- [x] **Step 3: Commit the amendment**
 
 ```bash
 git add docs/superpowers/plans/2026-10-09-ai-actor-action-display.md
@@ -76,7 +78,7 @@ git commit -m "docs(#950): amend #925's plan -- settle the record shape, add vis
 - Consumes: the amended #925 record shape: `{combatantId, round, turn, index, type, cost, summary, target:{id,name}, result:{text,tone}, rationale, source, visibility, tokenId}`.
 - Produces: `buildAiLogView(records, combatantNames, {combatantId, round, isGM})` → `{rows, combatants, rounds}`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/ai-action-log-view.test.mjs
@@ -147,12 +149,12 @@ describe('buildAiLogView (#950)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/ai-action-log-view.test.mjs`
 Expected: FAIL with "Cannot find module"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/ui/ai-action-log-view.mjs
@@ -186,12 +188,12 @@ export function buildAiLogView(records, combatantNames, { combatantId, round, is
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/ai-action-log-view.test.mjs`
 Expected: PASS (10 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/ui/ai-action-log-view.mjs tests/ai-action-log-view.test.mjs
@@ -211,7 +213,7 @@ git commit -m "feat(#950): buildAiLogView, pure filtering/redaction for the acti
 - Consumes: `buildAiLogView` (Task 2).
 - Produces: `AiActionLogApp` (class), `isScrolledToBottom(el, tolerance)` (pure, exported for its own unit test), `refreshAiActionLogWindow(instances)`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/ai-action-log-app.test.mjs -- mirrors tests/marching-order-app.test.mjs's
@@ -276,12 +278,12 @@ describe('refreshAiActionLogWindow (#950)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/ai-action-log-app.test.mjs`
 Expected: FAIL with "Cannot find module"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/ui/ai-action-log-app.mjs
@@ -372,7 +374,7 @@ export class AiActionLogApp extends HandlebarsApplicationMixin(ApplicationV2) {
 }
 ```
 
-- [ ] **Step 4: Write the template**
+- [x] **Step 4: Write the template**
 
 ```handlebars
 {{! templates/ai-action-log.hbs }}
@@ -407,12 +409,12 @@ export class AiActionLogApp extends HandlebarsApplicationMixin(ApplicationV2) {
 </section>
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/ai-action-log-app.test.mjs`
 Expected: PASS (6 tests)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/ui/ai-action-log-app.mjs templates/ai-action-log.hbs tests/ai-action-log-app.test.mjs
@@ -431,7 +433,7 @@ git commit -m "feat(#950): AiActionLogApp window, auto-scroll helper, click-to-p
 - Consumes: `refreshAiActionLogWindow` (Task 3).
 - Produces: `updateCombat`/`deleteCombat`/`combatStart`/`combatRound` hooks calling it.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // tests/ai-action-log-refresh.test.mjs
@@ -448,12 +450,12 @@ describe('AI action log live-update wiring (#950)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/ai-action-log-refresh.test.mjs`
 Expected: FAIL (no such hook registered yet)
 
-- [ ] **Step 3: Register the hooks**
+- [x] **Step 3: Register the hooks**
 
 ```js
 // scripts/module.mjs -- add near the existing combat-related Hooks.on
@@ -471,17 +473,17 @@ Hooks.on("combatStart", () => refreshAiActionLogWindow(foundry.applications.inst
 Hooks.on("combatRound", () => refreshAiActionLogWindow(foundry.applications.instances));
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run tests/ai-action-log-refresh.test.mjs`
 Expected: PASS
 
-- [ ] **Step 5: Run the full suite**
+- [x] **Step 5: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/module.mjs tests/ai-action-log-refresh.test.mjs
@@ -503,7 +505,7 @@ git commit -m "feat(#950): live-refresh the action-log window on combat update/d
 - Consumes: `AiActionLogApp`, `refreshAiActionLogWindow`.
 - Produces: `aiActionLogSceneTool(localize, open)` (mirrors `marchingOrderSceneTool`'s exact shape); `api.openAiActionLog({combatantId?, round?})`; a `MACRO_DEFS` entry.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/ai-action-log-entry-points.test.mjs
@@ -533,12 +535,12 @@ describe('MACRO_DEFS (#950)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/ai-action-log-entry-points.test.mjs`
 Expected: FAIL (`aiActionLogSceneTool` not exported; no matching `MACRO_DEFS` entry)
 
-- [ ] **Step 3: Implement the scene-tool factory**
+- [x] **Step 3: Implement the scene-tool factory**
 
 ```js
 // scripts/ui/ai-action-log-app.mjs -- add, mirroring marchingOrderSceneTool exactly
@@ -566,7 +568,7 @@ export function openAiActionLog({ combatantId, round } = {}) {
 }
 ```
 
-- [ ] **Step 4: Wire the scene tool and API in `module.mjs`**
+- [x] **Step 4: Wire the scene tool and API in `module.mjs`**
 
 ```js
 // scripts/module.mjs -- extend the existing getSceneControlButtons hook
@@ -585,7 +587,7 @@ export function openAiActionLog({ combatantId, round } = {}) {
   });
 ```
 
-- [ ] **Step 5: Add the macro definition**
+- [x] **Step 5: Add the macro definition**
 
 ```js
 // scripts/world-macros.mjs -- append to MACRO_DEFS:
@@ -596,7 +598,7 @@ export function openAiActionLog({ combatantId, round } = {}) {
   },
 ```
 
-- [ ] **Step 6: Amend #925's chat-card template**
+- [x] **Step 6: Amend #925's chat-card template**
 
 In `docs/superpowers/plans/2026-10-09-ai-actor-action-display.md`'s own chat-card Handlebars template block, add a header link:
 
@@ -604,17 +606,17 @@ In `docs/superpowers/plans/2026-10-09-ai-actor-action-display.md`'s own chat-car
 <a data-action="openAiActionLog" data-combatant-id="{{combatantId}}">{{localize "PF2EDC.AiActionLog.OpenLink"}}</a>
 ```
 
-- [ ] **Step 7: Run the tests to verify they pass**
+- [x] **Step 7: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/ai-action-log-entry-points.test.mjs`
 Expected: PASS (3 tests)
 
-- [ ] **Step 8: Run the full suite**
+- [x] **Step 8: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add scripts/ui/ai-action-log-app.mjs scripts/module.mjs scripts/world-macros.mjs docs/superpowers/plans/2026-10-09-ai-actor-action-display.md tests/ai-action-log-entry-points.test.mjs
@@ -628,9 +630,9 @@ git commit -m "feat(#950): scene tool, module API, chat-card link, and macro ent
 **Files:**
 - Modify: `module.json`
 
-- [ ] **Step 1: Run the `update-architecture-docs` skill** (two new files: `ai-action-log-view.mjs`, `ai-action-log-app.mjs`)
+- [x] **Step 1: Run the `update-architecture-docs` skill** (two new files: `ai-action-log-view.mjs`, `ai-action-log-app.mjs`)
 - [ ] **Step 2: Bump `module.json`'s version** (minor — check `main`'s current version first)
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit** (architecture docs only; the version bump is left to the merger)
 
 ```bash
 git add module.json docs/architecture.md

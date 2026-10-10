@@ -26,6 +26,13 @@ export const MACRO_DEFS = [
     img: `modules/${MODULE_ID}/assets/icons/macro-dungeon.webp`,
     command: `game.modules.get('${MODULE_ID}').api.openDungeon();`,
   },
+  {
+    // #950: the AI Action Log window.
+    name: "AI Action Log",
+    // A core Foundry icon (confirmed served by Foundry v14).
+    img: "icons/sundries/scrolls/scroll-bound-black-tan.webp",
+    command: `game.modules.get('${MODULE_ID}').api.openAiActionLog();`,
+  },
 ];
 
 /** #96: a world macro created by this module always carries

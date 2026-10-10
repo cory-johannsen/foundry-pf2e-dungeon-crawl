@@ -213,7 +213,7 @@ describe("scene control wiring", () => {
 
   it("module.mjs registers the tool for both tools shapes and refreshes on dungeonRuns changes", () => {
     const src = readFileSync(new URL("../scripts/module.mjs", import.meta.url), "utf8");
-    expect(src).toContain("tokenControl.tools.push(agentLoopButton, marchingOrderButton)");
+    expect(src).toContain("tokenControl.tools.push(agentLoopButton, marchingOrderButton");
     expect(src).toContain("tokenControl.tools[marchingOrderButton.name] = marchingOrderButton");
     const fn = src.slice(src.indexOf("function onDungeonRunsSettingChanged"));
     const body = fn.slice(0, fn.indexOf("\n}\n"));

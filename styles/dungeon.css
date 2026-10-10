@@ -69,3 +69,23 @@
   font-size: 0.9em;
   opacity: 0.85;
 }
+
+/* #950: AI Action Log window. */
+#pf2edc-ai-action-log-app .window-content { display: flex; flex-direction: column; overflow: hidden; }
+.pf2edc-ai-action-log { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; gap: 0.4rem; }
+.pf2edc-ai-action-log-filters { display: flex; gap: 0.4rem; flex: 0 0 auto; }
+.pf2edc-ai-action-log-filters select { flex: 1; min-width: 0; }
+.pf2edc-ai-action-log-rows { list-style: none; margin: 0; padding: 0; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.pf2edc-ai-action-log-row { padding: 0.25em 0.3em; border-bottom: 1px solid rgba(120, 120, 120, 0.25); cursor: pointer; }
+.pf2edc-ai-action-log-row:hover { background: rgba(120, 120, 120, 0.12); }
+.pf2edc-ai-action-log-gm-only { border-left: 3px solid rgba(120, 60, 160, 0.6); }
+.pf2edc-ai-action-log-line { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; }
+.pf2edc-ai-action-log-round { font-size: 0.85em; opacity: 0.7; min-width: 2em; }
+.pf2edc-ai-action-log-portrait { width: 22px; height: 22px; border: none; object-fit: contain; }
+.pf2edc-ai-action-log-name { font-weight: 600; }
+.pf2edc-ai-action-log .pf2edc-agent-result { border-radius: 3px; padding: 0 0.3em; }
+.pf2edc-ai-action-log .pf2edc-agent-result-success { background: rgba(40, 140, 60, 0.18); }
+.pf2edc-ai-action-log .pf2edc-agent-result-failure { background: rgba(170, 40, 40, 0.18); }
+.pf2edc-ai-action-log .pf2edc-agent-result-neutral { background: rgba(120, 120, 120, 0.15); }
+.pf2edc-ai-action-log-gm { font-size: 0.9em; opacity: 0.85; margin-left: 2em; white-space: pre-line; }
+.pf2edc-agent-turn .pf2edc-agent-log-link { float: right; font-size: 0.85em; cursor: pointer; }

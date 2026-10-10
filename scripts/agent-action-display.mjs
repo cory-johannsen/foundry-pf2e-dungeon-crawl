@@ -315,7 +315,7 @@ function costGlyph(cost) {
  * GM note and the fallback tag are GM-only parts of a row, and absent
  * entirely (no empty element) when there's nothing to show.
  */
-export function renderAgentTurnCardHtml({ round, records }) {
+export function renderAgentTurnCardHtml({ round, records, combatantId = null }) {
   const rows = [...(records ?? [])]
     .sort((a, b) => (a.index ?? 0) - (b.index ?? 0))
     .map((r) => {
@@ -340,5 +340,10 @@ export function renderAgentTurnCardHtml({ round, records }) {
     })
     .join("");
   const roundLabel = Number.isFinite(round) ? ` — Round ${round}` : "";
-  return `<div class="pf2edc-agent-turn"><header class="pf2edc-agent-turn-header"><strong>AI turn</strong>${roundLabel}</header><ol class="pf2edc-agent-actions">${rows}</ol></div>`;
+  // #950: opens the AI Action Log pre-filtered to this combatant (bound in
+  // module.mjs's renderChatMessageHTML hook).
+  const logLink = combatantId
+    ? ` <a class="pf2edc-agent-log-link" data-pf2edc-open-ai-log data-combatant-id="${escapeHtml(combatantId)}" title="AI Action Log"><i class="fa-solid fa-scroll"></i> log</a>`
+    : "";
+  return `<div class="pf2edc-agent-turn"><header class="pf2edc-agent-turn-header"><strong>AI turn</strong>${roundLabel}${logLink}</header><ol class="pf2edc-agent-actions">${rows}</ol></div>`;
 }

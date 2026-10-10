@@ -11,6 +11,13 @@ import {
 import { doorSoundForWallTransition, playDoorSound } from "./dungeon-sound.mjs";
 import { SoundPreviewApp } from "./ui/sound-preview-app.mjs";
 import { findTokenControl, marchingOrderSceneTool, refreshMarchingOrderWindow } from "./ui/marching-order-app.mjs";
+import {
+  aiActionLogSceneTool,
+  bindAiActionLogCardLink,
+  openAiActionLog,
+  refreshAiActionLogWindow,
+  shouldRefreshAiActionLog,
+} from "./ui/ai-action-log-app.mjs";
 import { retreatCardActionFor } from "./dungeon-retreat.mjs";
 import { reactionConfirmActionFor } from "./npc-reactions.mjs";
 import {
@@ -184,6 +191,9 @@ Hooks.once("ready", async () => {
   const module = game.modules.get(MODULE_ID);
   module.api = {
     generateEncounter: (options) => generateEncounter(options),
+    // #950: the AI Action Log window, optionally pre-filtered
+    // ({combatantId?, round?}); open to every user.
+    openAiActionLog: (filters) => openAiActionLog(filters),
     openDungeon: () => {
       const decision = decideOpenDungeon(findActiveHostedRun());
       if (decision.action === "warnAlreadyHosted") {
@@ -626,6 +636,10 @@ Hooks.on("renderChatMessageHTML", (message, html) => {
   }
 });
 
+/** #950: the "action log" link on #925's per-turn AI card opens the AI
+ * Action Log pre-filtered to that card's combatant. */
+Hooks.on("renderChatMessageHTML", (message, html) => bindAiActionLogCardLink(message, html));
+
 /** #109: keeps every non-host, non-GM client's DungeonApp in sync with a
  * GM-less run. */
 let lastBroadcastSceneId = null;
@@ -740,6 +754,16 @@ Hooks.on("updateCombat", async (combat, changes) => {
   autoPlayCombatantTurnIfDue(combat);
 });
 
+/** #950: an open AI Action Log window follows the viewed combat's agentLog
+ * (every client -- the flag replicates), a combat starting/ending, and a
+ * scene change (the viewed combat is per scene). */
+Hooks.on("updateCombat", (combat, changes) => {
+  if (shouldRefreshAiActionLog(changes)) refreshAiActionLogWindow(foundry.applications.instances);
+});
+for (const hook of ["createCombat", "deleteCombat", "canvasReady"]) {
+  Hooks.on(hook, () => refreshAiActionLogWindow(foundry.applications.instances));
+}
+
 /** #20: moves AI-controlled party actors' tokens toward the run's leader
  * as the party explores between fights. */
 Hooks.on("updateToken", followLeaderIfDue);
@@ -830,11 +854,14 @@ Hooks.on("getSceneControlButtons", (controls) => {
   // #852: visible to every connected user, not just the GM -- reachable
   // without the tracker (which no longer auto-opens, #771/#845).
   const marchingOrderButton = marchingOrderSceneTool((k) => game.i18n.localize(k));
+  // #950: likewise for every user; what each one sees is decided in the window.
+  const aiActionLogButton = aiActionLogSceneTool((k) => game.i18n.localize(k));
   if (Array.isArray(tokenControl.tools)) {
-    tokenControl.tools.push(agentLoopButton, marchingOrderButton);
+    tokenControl.tools.push(agentLoopButton, marchingOrderButton, aiActionLogButton);
   } else if (tokenControl.tools && typeof tokenControl.tools === "object") {
     tokenControl.tools["pf2edc-agent-loop-status"] = agentLoopButton;
     tokenControl.tools[marchingOrderButton.name] = marchingOrderButton;
+    tokenControl.tools[aiActionLogButton.name] = aiActionLogButton;
   }
 });
 

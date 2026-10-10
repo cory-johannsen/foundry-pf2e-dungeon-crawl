@@ -1,0 +1,38 @@
+<section class="pf2edc-ai-action-log">
+  {{#if hasCombat}}
+    <header class="pf2edc-ai-action-log-filters">
+      <select data-pf2edc-filter="combatant" aria-label="{{localize "PF2EDC.AiActionLog.CombatantFilter"}}">
+        <option value="">{{localize "PF2EDC.AiActionLog.AllCombatants"}}</option>
+        {{#each combatants}}<option value="{{this.id}}" {{#if this.selected}}selected{{/if}}>{{this.name}}</option>{{/each}}
+      </select>
+      <select data-pf2edc-filter="round" aria-label="{{localize "PF2EDC.AiActionLog.RoundFilter"}}">
+        <option value="">{{localize "PF2EDC.AiActionLog.AllRounds"}}</option>
+        {{#each roundOptions}}<option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{localize "PF2EDC.AiActionLog.Round"}} {{this.value}}</option>{{/each}}
+      </select>
+    </header>
+    {{#if rows.length}}
+      <ol class="pf2edc-ai-action-log-rows">
+        {{#each rows}}
+          <li class="pf2edc-ai-action-log-row{{#if this.gmOnly}} pf2edc-ai-action-log-gm-only{{/if}}" data-action="selectRow" data-token-id="{{this.tokenId}}">
+            <div class="pf2edc-ai-action-log-line">
+              <span class="pf2edc-ai-action-log-round">R{{this.round}}</span>
+              {{#if this.img}}<img class="pf2edc-ai-action-log-portrait" src="{{this.img}}" alt="">{{/if}}
+              <span class="pf2edc-ai-action-log-name">{{this.combatantName}}</span>
+              {{#if this.cost}}<span class="action-glyph">{{this.cost}}</span>{{/if}}
+              <strong class="pf2edc-ai-action-log-summary">{{this.summary}}</strong>
+              {{#if this.targetName}}<span class="pf2edc-ai-action-log-target">&rarr; {{this.targetName}}</span>{{/if}}
+              <span class="pf2edc-agent-result pf2edc-agent-result-{{this.tone}}">{{this.resultText}}</span>
+            </div>
+            {{#if this.fallback}}<div class="pf2edc-ai-action-log-gm pf2edc-ai-action-log-fallback">{{localize "PF2EDC.AiActionLog.Fallback"}}</div>{{/if}}
+            {{#if this.gmNote}}<div class="pf2edc-ai-action-log-gm pf2edc-ai-action-log-note">{{this.gmNote}}</div>{{/if}}
+            {{#if this.rationale}}<div class="pf2edc-ai-action-log-gm pf2edc-ai-action-log-rationale"><em>{{this.rationale}}</em></div>{{/if}}
+          </li>
+        {{/each}}
+      </ol>
+    {{else}}
+      <p class="pf2edc-ai-action-log-empty">{{localize "PF2EDC.AiActionLog.Empty"}}</p>
+    {{/if}}
+  {{else}}
+    <p class="pf2edc-ai-action-log-empty">{{localize "PF2EDC.AiActionLog.Empty"}}</p>
+  {{/if}}
+</section>
