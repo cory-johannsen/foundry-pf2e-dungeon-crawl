@@ -87,6 +87,7 @@ import {
   handleGrabConditionRemovedForGrabState,
 } from "./dungeon-combat.mjs";
 import { subtractXpOnLevelUp } from "./dungeon-leveling.mjs";
+import { preserveCombatantFlagNamespaces } from "./combatant-flag-guard.mjs";
 import {
   followLeaderIfDue,
   followLeaderOnDoorOpened,
@@ -721,6 +722,24 @@ Hooks.on("updateCombatant", async (combatant, changes) =>
     await maybeResolveCombatForCombatant(combatant, changes),
   ),
 );
+
+/** #1212: pf2e-auto-action-tracker writes combatants with
+ * `{ diff: false, recursive: false }`, which replaces the whole `flags`
+ * object and wiped `agentControlled` (stalling AI turns). Keep the other
+ * flag namespaces on such updates. Runs on the client that makes the update. */
+Hooks.on("preUpdateCombatant", (combatant, changes, options) => {
+  try {
+    const restored = preserveCombatantFlagNamespaces(
+      combatant?._source?.flags ?? combatant?.flags,
+      changes,
+      options,
+    );
+    if (restored.length)
+      console.debug(`pf2e-dungeon-crawl | #1212: kept combatant flag namespaces across a non-recursive update: ${restored.join(", ")}`);
+  } catch (err) {
+    console.error("pf2e-dungeon-crawl | #1212: flag guard failed:", err.message);
+  }
+});
 
 /** #946: an agent-created mark ends when its creature is defeated or
  * leaves the combat (fled, removed). */
