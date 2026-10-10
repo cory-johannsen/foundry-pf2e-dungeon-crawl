@@ -11,7 +11,7 @@
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
-        "kind": { "type": "string", "enum": ["puzzle", "trap", "skill_challenge", "narrative"] },
+        "kind": { "type": "string", "enum": ["puzzle", "trap", "skill_challenge", "narrative", "treasure"] },
         "archetype": { "type": "string", "minLength": 1 },
         "name": { "type": "string", "minLength": 1 },
         "difficulty": { "type": "string", "enum": ["easy", "medium", "hard"] },
