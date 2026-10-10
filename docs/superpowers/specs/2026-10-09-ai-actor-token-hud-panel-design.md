@@ -47,7 +47,7 @@ Inspected on the live world (Foundry **14.368**):
 ```
 
 - The section sits under the HUD's columns; the HUD already repositions on render so no extra positioning is needed. When `stale`, the first row is prefixed "(last round)", as in #951.
-- Collapsed state is kept in a module-level `Set` of combatant ids (shared with #951's tracker expand set conceptually but separate storage), default collapsed when the combatant has acted this round and expanded otherwise is **not** done: default is collapsed, to keep the HUD compact.
+- Collapsed state is kept in a module-level `Set` of combatant ids, separate from #951's tracker expand set. The default is collapsed, to keep the HUD compact.
 - `openLog` calls `game.modules.get("pf2e-dungeon-crawl").api.openAiActionLog({ combatantId })`.
 
 ### Live update

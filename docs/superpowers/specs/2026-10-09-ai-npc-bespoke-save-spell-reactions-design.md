@@ -49,7 +49,7 @@ From the Monster Core / Bestiary data.
 
 ### Drowning Drone (`saveSubstitution`)
 
-- **Trigger:** a save card for the reactor or a creature within 60 ft **of its disposition** against an effect with the `auditory` or `sonic` trait.
+- **Trigger:** a save card for the reactor or an ally of the reactor within 60 ft (or the reactor itself) against an effect with the `auditory` or `sonic` trait.
 - **Effect:** roll Performance for the reactor (`actor.skills.performance.roll` quietly via the module's skill-roll helper, #909) once per triggering effect; for each qualifying save card (the reactor and its allies in the area) replace the saver's total with `max(save total, performance total)` and recompute the degree against the DC, with the usual nat 20/1 adjustments. Per-effect cache keyed by the triggering effect's origin id so one Performance roll serves all qualifying saves of that effect. The reaction applies at `preSaveCard` (#963); in the fallback path, outcomes are adjusted retroactively like #960.
 - Once the reaction is spent, the cache covers the rest of the saves for that effect; no second reaction is consumed.
 
