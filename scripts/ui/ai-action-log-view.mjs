@@ -30,6 +30,45 @@ function toRound(value) {
   return Number.isFinite(n) ? n : null;
 }
 
+/** Fields of a record every viewer may see. */
+const PUBLIC_FIELDS = [
+  "combatantId",
+  "tokenId",
+  "round",
+  "turn",
+  "index",
+  "type",
+  "kind",
+  "cost",
+  "summary",
+  "target",
+  "result",
+  "visibility",
+];
+
+/**
+ * #951: the one shared definition of "what this viewer may see" of an
+ * agentLog -- used by buildAiLogView (the #950 window) and by #951's
+ * buildCombatantDigest (Combat Tracker row, token hover), so those surfaces
+ * can never disagree about it. Anything that isn't an array reads as empty
+ * and non-object entries are dropped. A GM gets the records unchanged; a
+ * non-GM loses every `visibility: "gm"` record (a hidden token's actions)
+ * and gets copies of the rest carrying the public fields only -- never the
+ * rationale, the GM note, the fallback/model source or the candidate id.
+ * Array order (append order, i.e. chronological) is kept.
+ */
+export function visibleRecords(records, isGM) {
+  const list = Array.isArray(records) ? records.filter((r) => r && typeof r === "object") : [];
+  if (isGM === true) return list;
+  return list
+    .filter((r) => r.visibility !== "gm")
+    .map((r) => {
+      const out = {};
+      for (const key of PUBLIC_FIELDS) if (Object.hasOwn(r, key)) out[key] = r[key];
+      return out;
+    });
+}
+
 /**
  * `records` the combat's agentLog (anything that isn't an array reads as
  * empty); `combatantInfo` `{[combatantId]: {name, img}}`; the filters
@@ -40,8 +79,7 @@ function toRound(value) {
  * see, so a player's filters never name a hidden actor.
  */
 export function buildAiLogView(records, combatantInfo, { combatantId = null, round = null, isGM = false } = {}) {
-  const list = Array.isArray(records) ? records.filter((r) => r && typeof r === "object") : [];
-  const visible = list.filter((r) => isGM || r.visibility !== "gm");
+  const visible = visibleRecords(records, isGM);
   const info = (id) => combatantInfo?.[id] ?? null;
 
   const combatantIds = [...new Set(visible.map((r) => r.combatantId))];
