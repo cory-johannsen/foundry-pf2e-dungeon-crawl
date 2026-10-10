@@ -104,6 +104,7 @@ import {
   markAnnotation,
 } from "./targeted-feat-actions.mjs";
 import { parseFeatRequirements } from "./marked-target-requirements.mjs";
+import { parseTargetedFeat, summarizeTargetedFeat } from "./feat-action-shapes.mjs";
 import {
   ANTAGONIZE_FEAT_SLUG,
   readAntagonizeMap,
@@ -3472,7 +3473,7 @@ const FEAT_EXCLUDED_TRAITS = new Set(["exploration", "downtime"]);
 /** #910: the action traits that gate per-turn reuse, carried on vocabulary
  * entries so agent-candidates.mjs can enforce PF2e's one-flourish-per-turn
  * and one-stance-action-per-round rules. */
-const FEAT_TURN_GATING_TRAITS = ["flourish", "stance"];
+const FEAT_TURN_GATING_TRAITS = ["flourish", "stance", "finisher"];
 
 function featGatingTraits(item) {
   const traits = item.system?.traits?.value ?? [];
@@ -3866,6 +3867,151 @@ export async function computeTargetedSelfEffectVocabularyEntries(actor, opponent
   return entries.slice(0, TARGETED_SELF_EFFECT_VOCABULARY_CAP);
 }
 
+/** #947: at most this many targeted-action entries per turn. */
+const TARGETED_ACTION_VOCABULARY_CAP = 12;
+
+/** #947: the system's own finisher toggle on a finisher feat -- a
+ * toggleable `RollOption` for `finisher` with the feat's suboption
+ * (Unbalancing Finisher: `finisher:unbalancing`), which switches Precise
+ * Strike's finisher dice and the feat's own Note on for the Strike. Null
+ * when the item has none (its finisher damage couldn't be rolled). */
+function finisherRollOption(item) {
+  const rule = (item?.system?.rules ?? []).find(
+    (r) => r?.key === "RollOption" && r.option === "finisher" && r.toggleable && Array.isArray(r.suboptions),
+  );
+  const suboption = rule?.suboptions?.[0]?.value;
+  return typeof suboption === "string" && suboption ? { suboption } : null;
+}
+
+/** #947: whether ready strike `action` may make a `strikePlus` feat's
+ * Strike: a melee Strike when the feat says "melee Strike"; Resounding
+ * Blow's "wielding a melee weapon that deals bludgeoning damage" -- a held
+ * melee weapon (not an unarmed attack) whose damage type is that one; and a
+ * finisher's "weapons that deal additional damage with precise strike" --
+ * an agile or finesse melee attack (Precise Strike's own predicate). */
+function targetedStrikeActionAllowed(action, descriptor) {
+  if (action?.type !== "strike" || action.ready === false) return false;
+  if (descriptor.params.melee && !isMeleeStrikeAction(action)) return false;
+  const weapon = descriptor.requirements?.weapon;
+  if (weapon) {
+    if (!isMeleeStrikeAction(action) || !isMeleeWeaponStrike(action)) return false;
+    if (action.item?.system?.equipped?.carryType !== "held") return false;
+    if (action.item?.system?.damage?.damageType !== weapon.damageType) return false;
+  }
+  if ((descriptor.traits ?? []).includes("finisher")) {
+    if (!isMeleeStrikeAction(action)) return false;
+    const traits = action.item?.system?.traits?.value ?? [];
+    if (!traits.includes("agile") && !traits.includes("finesse")) return false;
+  }
+  return true;
+}
+
+/** #947: the best ready strike (highest attack modifier) `descriptor` may
+ * use against a target `distanceSquares` away, or null. */
+function targetedStrikeActionFor(actor, descriptor, distanceSquares, gridDistanceFt) {
+  const usable = (actor?.system?.actions ?? []).filter(
+    (a) =>
+      targetedStrikeActionAllowed(a, descriptor) &&
+      distanceSquares <= actionReachSquares(a, gridDistanceFt) + REACH_EPSILON,
+  );
+  usable.sort((a, b) => (b.totalModifier ?? 0) - (a.totalModifier ?? 0));
+  return usable[0] ?? null;
+}
+
+/** #947: the turn-level gates a parsed targeted feat must pass before any
+ * target is considered: cost, frequency, the action traits' own rules
+ * (rage: only while raging, and a raging actor can't use a concentrate
+ * action without the rage trait; finisher: only with panache, never after a
+ * finisher this turn, and only with the system's finisher toggle to roll it;
+ * press: only while a multiple attack penalty applies), and a `targetEffect`
+ * needs an active token for its TokenMark. Flourish/stance are
+ * buildFeatVocabulary's own gates. */
+function targetedActionUsable(actor, item, descriptor, turnState) {
+  if (descriptor.cost > (turnState?.actionsRemaining ?? 0)) return false;
+  if (item.system?.frequency && !(item.system.frequency.value > 0)) return false;
+  if (hasUnresolvedChoiceSet(item)) return false;
+  const traits = descriptor.traits ?? [];
+  const raging = (actor.itemTypes?.effect ?? []).some((e) => e?.slug === "effect-rage");
+  if (traits.includes("rage") && !raging) return false;
+  if (raging && traits.includes("concentrate") && !traits.includes("rage")) return false;
+  if (traits.includes("finisher")) {
+    if (turnState?.finisherUsed || !actorHasPanache(actor) || !finisherRollOption(item)) return false;
+  }
+  if (traits.includes("press") && !((turnState?.mapIncrement ?? 0) > 0)) return false;
+  if (descriptor.shape === "targetEffect") {
+    if (typeof actor.getActiveTokens !== "function" || actor.getActiveTokens().length === 0) return false;
+  }
+  return true;
+}
+
+/** #947: the sense a `targetEffect` with a visual-or-auditory trait choice
+ * uses against `targetActor` -- visual unless it's blinded, else auditory
+ * unless it's deafened; null when it can perceive neither. */
+function senseTraitAgainst(targetActor) {
+  if (!actorHasCondition(targetActor, "blinded")) return "visual";
+  if (!actorHasCondition(targetActor, "deafened")) return "auditory";
+  return null;
+}
+
+/** #947: this actor's active agent-created targetEffect marks from `item`,
+ * by marked token uuid. */
+function targetEffectMarkedTokens(actor, item) {
+  return (actor.itemTypes?.effect ?? [])
+    .filter((e) => e?.flags?.[MODULE_ID]?.targetedActionItemId === item.id)
+    .map((e) => e.flags[MODULE_ID].markTargetTokenUuid)
+    .filter(Boolean);
+}
+
+/** #947: the targeted-action vocabulary (character actors only): every
+ * action/feat item feat-action-shapes.mjs recognizes (Intimidating Strike,
+ * Vicious Evisceration, Resounding Blow, Unbalancing Finisher, Instant
+ * Opening in pf2e 8.5.0), kept by targetedActionUsable's turn gates, one
+ * entry per legal target:
+ *  - strikePlus: an opponent in line of sight within reach of a ready
+ *    strike the feat allows (targetedStrikeActionAllowed);
+ *  - targetEffect: an opponent within the feat's range that can perceive
+ *    the distraction (senseTraitAgainst) and isn't already marked by it.
+ * `opponents` are `{id, name, hasLineOfSight, distanceSquares,
+ * distanceFeet, tokenUuid, actor}` (stealth matrix already applied).
+ * Returns plain `{itemId, slug, name, cost, targetId, traits, attack,
+ * effectSummary}` entries for buildFeatVocabulary. */
+export function computeTargetedActionVocabularyEntries(actor, opponents, turnState, gridDistanceFt = 5) {
+  if (actor?.type !== "character") return [];
+  const entries = [];
+  const items = [...(actor.itemTypes?.action ?? []), ...(actor.itemTypes?.feat ?? [])];
+  for (const item of items) {
+    try {
+      const descriptor = parseTargetedFeat(item);
+      if (!descriptor) continue;
+      if (!targetedActionUsable(actor, item, descriptor, turnState)) continue;
+      const marked = descriptor.shape === "targetEffect" ? targetEffectMarkedTokens(actor, item) : [];
+      for (const o of opponents ?? []) {
+        if (descriptor.shape === "strikePlus") {
+          if (o.hasLineOfSight === false) continue;
+          if (!targetedStrikeActionFor(actor, descriptor, o.distanceSquares, gridDistanceFt)) continue;
+        } else {
+          if (!o.tokenUuid || marked.includes(o.tokenUuid)) continue;
+          if (!(o.distanceFeet <= descriptor.params.rangeFeet)) continue;
+          if (descriptor.params.senseChoice && !senseTraitAgainst(o.actor)) continue;
+        }
+        entries.push({
+          itemId: item.id,
+          slug: item.slug,
+          name: item.name,
+          cost: descriptor.cost,
+          targetId: o.id,
+          traits: featGatingTraits(item),
+          attack: descriptor.shape === "strikePlus",
+          effectSummary: summarizeTargetedFeat(descriptor, o.name),
+        });
+      }
+    } catch (err) {
+      console.warn(`#947: skipping unreadable targeted action ${item?.name ?? item?.id}:`, err.message);
+    }
+  }
+  return entries.slice(0, TARGETED_ACTION_VOCABULARY_CAP);
+}
+
 /** #910: whether a strike action is a melee one -- the same "finite
  * positive range increment means ranged" rule actionReachSquares uses
  * (number on PC weapons, `{increment}` on NPC items). */
@@ -3980,6 +4126,7 @@ function getAgentTurnState(combat, combatantId) {
         maneuverPicks: stored.maneuverPicks ?? null,
         flourishUsed: stored.flourishUsed ?? false,
         stanceUsed: stored.stanceUsed ?? false,
+        finisherUsed: stored.finisherUsed ?? false,
       }
     : initAgentTurnState();
 }
@@ -4003,6 +4150,7 @@ async function setAgentTurnState(combat, combatantId, turnState) {
     maneuverPicks: turnState.maneuverPicks ?? null,
     flourishUsed: turnState.flourishUsed ?? false,
     stanceUsed: turnState.stanceUsed ?? false,
+    finisherUsed: turnState.finisherUsed ?? false,
     counter,
   });
 }
@@ -5335,6 +5483,18 @@ export async function getPendingAgentTurn(combat) {
   // Charge/Lunge/Twin Feint allowlist and #922's targeted self-effects)
   // that are legal this turn --
   // sent to the same once-per-turn reasoning call as the maneuvers.
+  // #922/#946/#947: the opponents a targeted feat can choose, with their
+  // token (TokenMark), PF2e distance ("within N feet") and actor.
+  const featTargetOpponents = rawOpponents.map((c, i) => ({
+    id: c.id,
+    name: c.name,
+    hasLineOfSight: opponents[i].hasLineOfSight,
+    distanceSquares: opponents[i].distanceSquares,
+    tokenUuid: c.token?.uuid ?? null,
+    // #946: "within N feet" constraints/requirements, "non-mindless".
+    distanceFeet: pf2eDistanceFeet(combatant.token, c.token, gridSize, gridDistanceFt),
+    actor: c.actor,
+  }));
   const featVocabulary = buildFeatVocabulary({
     selfEffectEntries: await computeSelfEffectVocabularyEntries(
       combatant.actor,
@@ -5350,16 +5510,16 @@ export async function getPendingAgentTurn(combat) {
     // Stratagem, Smite, ...), one entry per legal target.
     targetedSelfEffectEntries: await computeTargetedSelfEffectVocabularyEntries(
       combatant.actor,
-      rawOpponents.map((c, i) => ({
-        id: c.id,
-        name: c.name,
-        hasLineOfSight: opponents[i].hasLineOfSight,
-        tokenUuid: c.token?.uuid ?? null,
-        // #946: "within N feet" constraints/requirements, "non-mindless".
-        distanceFeet: pf2eDistanceFeet(combatant.token, c.token, gridSize, gridDistanceFt),
-        actor: c.actor,
-      })),
+      featTargetOpponents,
       turnState.actionsRemaining,
+    ),
+    // #947: targeted feats with no selfEffect (Intimidating Strike,
+    // Unbalancing Finisher, Instant Opening, ...), one entry per legal target.
+    targetedActionEntries: computeTargetedActionVocabularyEntries(
+      combatant.actor,
+      featTargetOpponents,
+      turnState,
+      gridDistanceFt,
     ),
     turnState,
   });
@@ -9751,12 +9911,223 @@ async function executeTwinFeint(combat, combatant, target) {
   return { performed: true, attacks: 2, strikeOutcomes: [firstOutcome ?? null, secondOutcome ?? null] };
 }
 
+const TARGETED_ATTACK_TEXT = Object.freeze({
+  criticalSuccess: "critical hit",
+  success: "hit",
+  failure: "miss",
+  criticalFailure: "critical miss",
+});
+
+function hitPointsOf(actor) {
+  const hp = actor?.system?.attributes?.hp;
+  return (Number(hp?.value) || 0) + (Number(hp?.temp) || 0);
+}
+
+/** #947: spends a used targeted feat's frequency and posts its card (the
+ * system's own usage message). */
+async function spendTargetedFeatUse(item) {
+  try {
+    await item.toMessage?.();
+  } catch (err) {
+    console.warn(`#947: posting ${item.name}'s usage card failed:`, err.message);
+  }
+  if (item.system?.frequency && item.system.frequency.value > 0) {
+    await item.update({ "system.frequency.value": item.system.frequency.value - 1 });
+  }
+}
+
+/** #947: a `strikePlus` feat -- "Make a [melee] Strike. If you hit and
+ * deal damage, the target is <condition> ...". Uses the best ready strike
+ * the feat allows (targetedStrikeActionFor), rolled at the turn's current
+ * MAP through the ordinary Strike pipeline; counts as one attack. A
+ * finisher rolls with the system's own `finisher:<suboption>` toggle on
+ * (Precise Strike's finisher dice, the feat's Note), then loses panache --
+ * the system doesn't remove it itself. The rider lands only on a hit that
+ * really dealt damage (the target's HP + temp HP went down), with the
+ * degree's own condition/duration through #915's condition helper, and
+ * never on a target immune to the feat (its fear/mental/emotion traits) or
+ * to the condition. No usable strike at execution time: nothing spent. */
+async function executeTargetedStrikeFeat(combat, combatant, item, descriptor, target) {
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  if (!hasLineOfSight(combat, combatant.token, target.token)) return { performed: false };
+  const distance = chebyshevSquares(combatant.token, target.token, gridSize);
+  const action = targetedStrikeActionFor(combatant.actor, descriptor, distance, gridDistanceFt);
+  if (!action) return { performed: false };
+  const finisher = (descriptor.traits ?? []).includes("finisher") ? finisherRollOption(item) : null;
+  if ((descriptor.traits ?? []).includes("finisher") && !finisher) return { performed: false };
+
+  await spendTargetedFeatUse(item);
+  const actor = combatant.actor;
+  const actionSlug = action.item?.slug ?? action.slug ?? action.label;
+  const { mapIncrement } = getAgentTurnState(combat, combatant.id);
+  const hpBefore = hitPointsOf(target.actor);
+  let outcome = null;
+  if (finisher) await actor.toggleRollOption("all", "finisher", item.id, true, finisher.suboption);
+  try {
+    outcome = await rollAndApplyStrikeAtVariant(combat, combatant, target, actionSlug, mapIncrement);
+  } finally {
+    if (finisher) await actor.toggleRollOption("all", "finisher", item.id, false);
+  }
+  const gmLines = [];
+  if (finisher) {
+    // "you lose your panache immediately after performing a finisher"
+    const panache = (actor.itemTypes?.effect ?? []).filter((e) => e?.slug === "effect-panache").map((e) => e.id);
+    if (panache.length) {
+      try {
+        await actor.deleteEmbeddedDocuments("Item", panache);
+      } catch (err) {
+        console.error(`#947: removing panache after ${item.name} failed:`, err.message);
+        gmLines.push("Panache could not be removed -- remove it by hand");
+      }
+    }
+  }
+
+  let rider = null;
+  if (outcome === "success" || outcome === "criticalSuccess") {
+    const degree = descriptor.params.degrees[outcome];
+    const dealtDamage = hitPointsOf(target.actor) < hpBefore;
+    if (!dealtDamage) {
+      rider = "no damage, no effect";
+    } else if (target.isDefeated) {
+      rider = null;
+    } else if (
+      target.actor?.isImmuneTo?.(item) === true ||
+      degree.conditions.some((c) => target.actor?.isImmuneTo?.(c.slug) === true)
+    ) {
+      rider = "immune";
+    } else {
+      try {
+        rider = await applyNpcAbilityDegree(combat, combatant, item, target, degree);
+      } catch (err) {
+        console.error(`#947: ${item.name}'s rider failed:`, err.message);
+        rider = "effect FAILED";
+        gmLines.push(`${item.name}'s effect could not be applied -- apply by hand`);
+      }
+    }
+  }
+  const attackText = TARGETED_ATTACK_TEXT[outcome] ?? "no result";
+  return {
+    performed: true,
+    attacks: 1,
+    strikeOutcomes: [outcome ?? null],
+    text: rider ? `${attackText}; ${rider}` : attackText,
+    tone: outcome === "success" || outcome === "criticalSuccess" ? "success" : outcome ? "failure" : "neutral",
+    ...(gmLines.length ? { gmNote: gmLines.join("\n") } : {}),
+  };
+}
+
+/** #947: the system effect duration for a targetEffect's own duration on
+ * the ACTOR (the effect is the actor's): "until the end/start of your next
+ * turn" is one round expiring at the actor's turn end/start. */
+function targetEffectDuration(durationSeconds) {
+  if (durationSeconds === "actorNextTurnEnd") return { value: 1, unit: "rounds", expiry: "turn-end", sustained: false };
+  if (durationSeconds === "actorNextTurnStart") return { value: 1, unit: "rounds", expiry: "turn-start", sustained: false };
+  return npcPenaltyEffectDuration(durationSeconds);
+}
+
+/** #947: a `targetEffect` feat -- Instant Opening: "Choose a target within
+ * 30 feet. It's Off-Guard against your attacks until the end of your next
+ * turn." Off-Guard against ONE creature's attacks is not the Off-Guard
+ * condition (that would expose the target to everyone), so the module
+ * builds the system's own per-attacker form, the shape of the system's
+ * Effect: Pointed Question: an effect on the ACTOR with a TokenMark bound
+ * to the target's token (pre-bound, so TokenMarkRuleElement#preCreate
+ * opens no prompt) and an EphemeralEffect of the Off-Guard condition on the
+ * actor's attack rolls predicated on the mark; the effect's own
+ * duration (on the actor) ends it. It is tagged like #946's marks so
+ * removeMarksTargeting/cleanupAgentSelfEffects end it with the target or
+ * the combat. The sense trait (visual/auditory) is whichever the target can
+ * perceive. Nothing is spent when the target is out of range, can't
+ * perceive the distraction, or the effect isn't created. */
+async function executeTargetEffectFeat(combat, combatant, item, descriptor, target) {
+  const actor = combatant.actor;
+  const { params } = descriptor;
+  const targetTokenUuid = target.token?.uuid;
+  if (!targetTokenUuid) return { performed: false };
+  if (typeof actor.getActiveTokens !== "function" || actor.getActiveTokens().length === 0) return { performed: false };
+  const gridSize = combat.scene?.grid?.size ?? 100;
+  const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+  if (!(pf2eDistanceFeet(combatant.token, target.token, gridSize, gridDistanceFt) <= params.rangeFeet)) return { performed: false };
+  const sense = params.senseChoice ? senseTraitAgainst(target.actor) : null;
+  if (params.senseChoice && !sense) return { performed: false };
+
+  const markSlug = item.slug;
+  const effectTraits = CONFIG.PF2E?.effectTraits ?? {};
+  const traits = [...(item.system.traits?.value ?? []), ...(sense ? [sense] : [])].filter((t) => t in effectTraits);
+  const tokenUuid = combatant.token?.uuid ?? null;
+  const source = {
+    name: `Effect: ${item.name}`,
+    type: "effect",
+    img: item.img ?? "icons/svg/downgrade.svg",
+    system: {
+      slug: `effect-${item.slug}`,
+      description: { value: `<p>${target.name} is off-guard against ${actor.name}'s attacks (${item.name}).</p>` },
+      duration: targetEffectDuration(params.durationSeconds),
+      level: { value: actor.level ?? 0 },
+      rules: [
+        { key: "TokenMark", slug: markSlug, uuid: targetTokenUuid },
+        {
+          key: "EphemeralEffect",
+          affects: "target",
+          selectors: ["attack-roll"],
+          uuid: params.condition.uuid,
+          // The system tests an `affects: "target"` EphemeralEffect against
+          // the TARGET's contextual clone, where the origin's mark on it reads
+          // `self:mark:<slug>` (CheckContext#cloneActor, pf2e 8.5.0) --
+          // `target:mark:` never matches there (confirmed live: a marked
+          // creature's AC 16 stayed 16 with it and dropped to 14 with this;
+          // an unmarked creature's AC is untouched).
+          predicate: [`self:mark:${markSlug}`],
+        },
+      ],
+      tokenIcon: { show: true },
+      traits: { value: traits },
+      context: {
+        origin: { actor: actor.uuid, token: tokenUuid, item: item.uuid, spellcasting: null, rollOptions: [] },
+        target: { actor: actor.uuid, token: tokenUuid },
+        roll: null,
+      },
+    },
+    flags: {
+      [MODULE_ID]: { agentSelfEffect: true, markTargetTokenUuid: targetTokenUuid, targetedActionItemId: item.id },
+    },
+  };
+  let created;
+  try {
+    [created] = (await actor.createEmbeddedDocuments("Item", [source])) ?? [];
+  } catch (err) {
+    console.error(`#947: applying ${item.name}'s effect failed:`, err.message);
+    return { performed: false };
+  }
+  if (!created) return { performed: false };
+  await spendTargetedFeatUse(item);
+  return { performed: true, attacks: 0, text: "off-guard against its attacks", tone: "success" };
+}
+
+/** #947: a targeted feat with no selfEffect (feat-action-shapes.mjs).
+ * Re-parses the item and re-resolves the target under the detection filter
+ * every executor uses; the turn gates were re-checked when
+ * applyAgentDecision rebuilt the vocabulary. Returns `{ performed, attacks,
+ * ... }` like every feat executor. */
+async function executeTargetedActionFeat(combat, combatant, candidate) {
+  const item = findFeatItem(combatant.actor, candidate.itemId);
+  const descriptor = item ? parseTargetedFeat(item) : null;
+  if (!descriptor) return { performed: false };
+  const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
+  if (!target) return { performed: false };
+  if (descriptor.shape === "strikePlus") return executeTargetedStrikeFeat(combat, combatant, item, descriptor, target);
+  if (descriptor.shape === "targetEffect") return executeTargetEffectFeat(combat, combatant, item, descriptor, target);
+  return { performed: false };
+}
+
 /** #910: dispatches a feat candidate to its executor. Every executor
  * returns `{ performed, attacks }` -- `performed: false` means nothing
  * happened and no action is spent. */
 async function executeFeatCandidate(combat, combatant, candidate) {
   if (candidate.kind === "selfEffect") return executeSelfEffectFeat(combatant, candidate);
   if (candidate.kind === "targetedSelfEffect") return executeTargetedSelfEffectFeat(combat, combatant, candidate);
+  if (candidate.kind === "targetedAction") return executeTargetedActionFeat(combat, combatant, candidate);
   if (candidate.kind !== "composite") return { performed: false };
   const target = resolveOpponentForTurn(combat, combatant, candidate.targetId);
   if (!target) return { performed: false };
@@ -9919,7 +10290,22 @@ async function applyNpcAbilityDegree(combat, combatant, item, target, degree) {
       }
       applied.push(name);
       const duration = condition.durationSeconds;
-      if (duration === "untilNextTurn") {
+      if (duration === "actorNextTurnStart" || duration === "actorNextTurnEnd") {
+        // #947: a character feat's "until the start/end of YOUR next turn"
+        // counts from the acting combatant's own turn.
+        await recordNpcAbilityExpiry(combat, {
+          targetId: target.id,
+          conditionSlug: condition.slug,
+          expiry: {
+            untilRoundTurn:
+              duration === "actorNextTurnStart"
+                ? { round: (combat.round ?? 0) + 1, turn: combat.turn ?? 0 }
+                : endOfTargetsNextTurn(combat, combatant.id),
+          },
+          expiresAtWorldTime: null,
+          source: item.name,
+        });
+      } else if (duration === "untilNextTurn") {
         await recordNpcAbilityExpiry(combat, {
           targetId: target.id,
           conditionSlug: condition.slug,

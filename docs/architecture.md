@@ -21,7 +21,7 @@ across the module rather than being a one-off pattern:
   `dungeon-deck.mjs`, `trap-mechanics.mjs`, `puzzle-mechanics.mjs`,
   `skill-challenge-mechanics.mjs`, `treasure.mjs`, `room-feature-tokens.mjs`, `agent-candidates.mjs`,
   `maneuver-feat-modifiers.mjs`, `npc-ability-parse.mjs`, `npc-ability-overrides.mjs`, `npc-move-parse.mjs`, `npc-strike-shapes.mjs`, `npc-self-parse.mjs`, `self-effect-denylist.mjs`, `self-effect-summary.mjs`,
-  `targeted-feat-actions.mjs`, `marked-target-requirements.mjs`, `antagonize.mjs`, `npc-reactions.mjs`, `combat-rewards.mjs`, `dungeon-follow-mechanics.mjs`, `cover-items.mjs`,
+  `targeted-feat-actions.mjs`, `marked-target-requirements.mjs`, `feat-action-shapes.mjs`, `feat-action-overrides.mjs`, `antagonize.mjs`, `npc-reactions.mjs`, `combat-rewards.mjs`, `dungeon-follow-mechanics.mjs`, `cover-items.mjs`,
   `encounter-deck.mjs`, `dungeon-layout.mjs`, and `dungeon-retreat.mjs` are all this shape.
 - A **Foundry-glue** file that touches `game`/`Actor`/`ChatMessage`/`Scene`
   and calls into its pure sibling for the actual decision logic.
@@ -70,7 +70,7 @@ sequencing/roster logic without this one caring.
 **Combat automation** (`dungeon-combat.mjs`, `stealth-detection.mjs`,
 `combat-rewards.mjs`, `agent-candidates.mjs`, `agent-action-display.mjs`, `maneuver-feat-modifiers.mjs`,
 `npc-ability-parse.mjs`, `npc-ability-overrides.mjs`, `npc-move-parse.mjs`, `npc-strike-shapes.mjs`, `npc-self-parse.mjs`, `self-effect-denylist.mjs`, `self-effect-summary.mjs`,
-`targeted-feat-actions.mjs`, `marked-target-requirements.mjs`, `antagonize.mjs`, `npc-reactions.mjs`, `dungeon-strike-riders.mjs`, `dungeon-critical-deck.mjs`,
+`targeted-feat-actions.mjs`, `marked-target-requirements.mjs`, `feat-action-shapes.mjs`, `feat-action-overrides.mjs`, `antagonize.mjs`, `npc-reactions.mjs`, `dungeon-strike-riders.mjs`, `dungeon-critical-deck.mjs`,
 `flanking-indicator.mjs`, `dungeon-leveling.mjs`) — wires a spawned encounter into a real PF2e
 `Combat`, and auto-applies whatever Critical Hit/Fumble Deck directives
 parse cleanly. For an `agentControlled` combatant's turn,
@@ -139,7 +139,14 @@ prose gives a checkable target constraint -- Smite, Duelist's Challenge,
 Size Up -- read by the pure `marked-target-requirements.mjs`, which folds
 onto `npc-self-parse.mjs`'s closed requirement grammar; it also admits
 target-conditional self-effects like Point Blank Stance, gated by their own
-Requirements, and ends a mark when its creature is defeated or leaves)
+Requirements, and ends a mark when its creature is defeated or leaves;
+#947: targeted feats with no selfEffect -- Intimidating Strike, Vicious
+Evisceration, Resounding Blow, Unbalancing Finisher, Instant Opening --
+recognized by shape from their own prose by the pure
+`feat-action-shapes.mjs` (with the reviewed, currently empty
+`feat-action-overrides.mjs` table), executed as a Strike with a
+condition rider or a TokenMark-bound Off-Guard effect, with PF2e's
+finisher rule tracked in the turn state)
 and NPC save-ability (#915: save-based, no-damage monster abilities
 recognized from their @Check/@Template/condition-link text by the pure
 `npc-ability-parse.mjs`; applied automatically when every outcome parses,
@@ -307,6 +314,8 @@ graph LR
     scripts_dungeon_critical_deck_mjs["dungeon-critical-deck.mjs"]
     scripts_dungeon_leveling_mjs["dungeon-leveling.mjs"]
     scripts_dungeon_strike_riders_mjs["dungeon-strike-riders.mjs"]
+    scripts_feat_action_overrides_mjs["feat-action-overrides.mjs"]
+    scripts_feat_action_shapes_mjs["feat-action-shapes.mjs"]
     scripts_flanking_indicator_mjs["flanking-indicator.mjs"]
     scripts_maneuver_feat_modifiers_mjs["maneuver-feat-modifiers.mjs"]
     scripts_marked_target_requirements_mjs["marked-target-requirements.mjs"]
@@ -407,6 +416,7 @@ graph LR
   scripts_dungeon_combat_mjs --> scripts_self_effect_summary_mjs
   scripts_dungeon_combat_mjs --> scripts_targeted_feat_actions_mjs
   scripts_dungeon_combat_mjs --> scripts_marked_target_requirements_mjs
+  scripts_dungeon_combat_mjs --> scripts_feat_action_shapes_mjs
   scripts_dungeon_combat_mjs --> scripts_antagonize_mjs
   scripts_dungeon_combat_mjs --> scripts_npc_reactions_mjs
   scripts_dungeon_combat_mjs --> scripts_stealth_detection_mjs
@@ -472,6 +482,9 @@ graph LR
   scripts_encounter_generator_mjs --> scripts_dungeon_combat_mjs
   scripts_encounter_generator_mjs --> scripts_cover_items_mjs
   scripts_encounter_generator_mjs --> scripts_encounter_roster_mjs
+  scripts_feat_action_shapes_mjs --> scripts_npc_self_parse_mjs
+  scripts_feat_action_shapes_mjs --> scripts_npc_ability_parse_mjs
+  scripts_feat_action_shapes_mjs --> scripts_feat_action_overrides_mjs
   scripts_flanking_indicator_mjs --> scripts_placement_mjs
   scripts_foundry_api_mjs --> scripts_placement_mjs
   scripts_foundry_api_mjs --> scripts_prng_mjs

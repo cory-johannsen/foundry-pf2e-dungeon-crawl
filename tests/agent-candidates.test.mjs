@@ -22,9 +22,9 @@ import {
 } from '../scripts/agent-candidates.mjs';
 
 describe('initAgentTurnState', () => {
-  it('starts with a full action budget, no MAP penalty, no maneuver picks yet, and no flourish/stance used', () => {
+  it('starts with a full action budget, no MAP penalty, no maneuver picks yet, and no flourish/stance/finisher used', () => {
     expect(initAgentTurnState()).toEqual({
-      actionsRemaining: MAX_ACTIONS_PER_TURN, mapIncrement: 0, maneuverPicks: null, flourishUsed: false, stanceUsed: false,
+      actionsRemaining: MAX_ACTIONS_PER_TURN, mapIncrement: 0, maneuverPicks: null, flourishUsed: false, stanceUsed: false, finisherUsed: false,
     });
   });
 });

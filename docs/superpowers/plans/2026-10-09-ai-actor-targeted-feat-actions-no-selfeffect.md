@@ -10,6 +10,17 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-09-ai-actor-targeted-feat-actions-no-selfeffect-design.md`
 
+## Implementation notes (2026-10-09, implementation pass)
+
+The plan predates the merges of #922/#933/#934/#935/#946; it was implemented against current `main`, with these deviations:
+
+- **Two shapes, not three.** `rollVsTargetDefense` (Task 3) was dropped: in the real pf2e 8.5.0 first-slice population no feat of that shape has outcomes this module can apply (Predictable!'s effect is a ChoiceSet/GrantItem pair with a one-use save bonus; Sabotage = item damage; Leading Dance/Whirling Throw = forced movement; Connect the Dots needs an ally; Pointed Question hangs on Devise a Stratagem). The audit fixture records each one's reason.
+- **Grammar.** Shapes are matched sentence-by-sentence on the rendered text with leading flavor prose allowed (the plan's leftover-word check would have rejected every real feat, which all open with flavor). `strikePlus` riders are "if you hit and deal damage, the target is <condition>[, or <condition> on a critical hit][ duration][ (or <duration> on a critical hit)]"; Felling Strike stays out (no flying state is tracked). `targetEffect` is "Off-Guard against your attacks", applied as a TokenMark + EphemeralEffect effect on the actor (predicate `self:mark:<slug>`, confirmed live), not the plain condition.
+- **Vocabulary.** Folded into #910's `buildFeatVocabulary` as `targetedActionEntries` (kind `targetedAction`), not a separate `buildTargetedActionVocabulary`; the gates are cost, frequency, rage, concentrate-while-raging, finisher (panache + agile/finesse melee + the system's finisher toggle), press, reach/line of sight, Resounding Blow's held bludgeoning melee weapon, range and perceivability.
+- **Finisher rule** tracked as `finisherUsed` in the turn state: no attack-trait candidate after a finisher; panache removed after it.
+- **Override table** keyed by slug, empty (no audited feat is modeled-but-misread).
+- **Version bump** left to the merger (caller's instruction).
+
 ## Global Constraints
 
 - **Dependency reality check, confirmed live at the time this plan is written:** #915 is real, merged code. #909/#940 are real, merged code (confirmed via `git log --grep`). #910/#914 are real, merged code. **#922, #933, #934, #935, #946 are all still plan-only** — no corresponding `.mjs` file exists in the repo. This plan does not import from any of those five; it builds self-contained equivalents where it needs their mechanisms, flagged explicitly at each point, and notes where a future implementer landing both plans should fold duplicated logic together rather than keep two copies.
@@ -54,7 +65,7 @@ Confirmed live against the real compendium (`pf2e.feats-srd`, `pf2e.feats`, `pf2
 - Consumes: nothing.
 - Produces: `parseTargetedFeat(item)` → `null | { shape: 'strikePlus'|'rollVsTargetDefense'|'targetEffect', cost, requirements: [], params }`. For `strikePlus`: `params = { weaponRequirement: {trait?, damageType?}|null, onHit: Rider|null, onCriticalHit: Rider|null }` where `Rider` is `{type:'groundedFall', fallFeet}|{type:'flightDenial', durationSeconds}|{type:'condition', slug, value, durationSeconds}`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/feat-action-shapes.test.mjs
@@ -110,12 +121,12 @@ describe('parseTargetedFeat -- strikePlus (#947)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/feat-action-shapes.test.mjs`
 Expected: FAIL with "Cannot find module '../scripts/feat-action-shapes.mjs'"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/feat-action-shapes.mjs
@@ -216,12 +227,12 @@ export function parseTargetedFeat(item) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/feat-action-shapes.test.mjs`
 Expected: PASS (4 tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/feat-action-shapes.mjs tests/feat-action-shapes.test.mjs
@@ -240,7 +251,7 @@ git commit -m "feat(#947): strikePlus shape recognition for targeted feats"
 - Consumes: nothing new.
 - Produces: `parseTargetedFeat` also recognizes `targetEffect`. `params = { rangeFeet: number|null, conditions: [{slug, value, durationSeconds}] }`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/feat-action-shapes.test.mjs (append)
@@ -268,12 +279,12 @@ describe('parseTargetedFeat -- targetEffect (#947)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/feat-action-shapes.test.mjs -t "targetEffect"`
 Expected: FAIL (no `targetEffect` recognizer exists yet)
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/feat-action-shapes.mjs -- add alongside the KNOWN_CONDITION_SLUGS
@@ -331,12 +342,12 @@ function recognizeTargetEffect(plainText, cost) {
   return recognizeStrikePlus(plainText, cost) ?? recognizeTargetEffect(plainText, cost);
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/feat-action-shapes.test.mjs`
 Expected: PASS (all tests)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/feat-action-shapes.mjs tests/feat-action-shapes.test.mjs
@@ -355,7 +366,7 @@ git commit -m "feat(#947): targetEffect shape recognition"
 - Consumes: nothing new.
 - Produces: `parseTargetedFeat` also recognizes `rollVsTargetDefense`. `params = { statistic: string, defenseSave: 'fortitude'|'reflex'|'will', degrees: {criticalSuccess, success, failure, criticalFailure} }` where each degree is `null | {landing:'target', conditions:[], penalties:[]} | {landing:'actorVsTarget', penalties:[{type,value,selectors}]}` (penalties here are always bonuses in practice — a positive `value` — reusing #935's own `{type,value,selectors}` shape for both signs rather than inventing a second one).
 
-- [ ] **Step 1: Write the failing tests**
+- (dropped, see Implementation notes) **Step 1: Write the failing tests**
 
 ```js
 // tests/feat-action-shapes.test.mjs (append)
@@ -393,12 +404,12 @@ describe('parseTargetedFeat -- rollVsTargetDefense (#947)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- (dropped, see Implementation notes) **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/feat-action-shapes.test.mjs -t "rollVsTargetDefense"`
 Expected: FAIL (no recognizer exists yet)
 
-- [ ] **Step 3: Implement**
+- (dropped, see Implementation notes) **Step 3: Implement**
 
 ```js
 // scripts/feat-action-shapes.mjs -- the degree-block splitter, reused
@@ -515,12 +526,12 @@ function recognizeRollVsTargetDefense(html, plainText, cost) {
   return recognizeStrikePlus(plainText, cost) ?? recognizeTargetEffect(plainText, cost) ?? recognizeRollVsTargetDefense(html, plainText, cost);
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- (dropped, see Implementation notes) **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/feat-action-shapes.test.mjs`
 Expected: PASS (all tests, including the two `null` cases for Sabotage/Leading Dance — their outcome text matches neither `no benefit`/`unaffected` nor the bonus-sentence pattern, so `parseActorVsTargetDegree` returns `null` and the whole feat is excluded)
 
-- [ ] **Step 5: Commit**
+- (dropped, see Implementation notes) **Step 5: Commit**
 
 ```bash
 git add scripts/feat-action-shapes.mjs tests/feat-action-shapes.test.mjs
@@ -539,7 +550,7 @@ git commit -m "feat(#947): rollVsTargetDefense shape, merging the spec's skillCh
 - Consumes: nothing.
 - Produces: `FEAT_ACTION_OVERRIDES` (`Map`, keyed by `` `${name}::${slug}` ``), `findFeatActionOverride(item)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // tests/feat-action-overrides.test.mjs
@@ -557,12 +568,12 @@ describe('FEAT_ACTION_OVERRIDES (#947)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run tests/feat-action-overrides.test.mjs`
 Expected: FAIL with "Cannot find module"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```js
 // scripts/feat-action-overrides.mjs
@@ -587,12 +598,12 @@ export function findFeatActionOverride(item) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run tests/feat-action-overrides.test.mjs`
 Expected: PASS (2 tests)
 
-- [ ] **Step 5: Wire it into `parseTargetedFeat` (first check, same precedence rule as #935)**
+- [x] **Step 5: Wire it into `parseTargetedFeat` (first check, same precedence rule as #935)**
 
 ```js
 // scripts/feat-action-shapes.mjs -- add the import and make it the first
@@ -605,7 +616,7 @@ export function parseTargetedFeat(item) {
   // ...unchanged from here...
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/feat-action-shapes.mjs scripts/feat-action-overrides.mjs tests/feat-action-overrides.test.mjs
@@ -626,7 +637,7 @@ git commit -m "feat(#947): the (currently empty) feat-action override table, rev
 - Consumes: `parseTargetedFeat`.
 - Produces: `buildTargetedActionVocabulary({entries})` (`agent-candidates.mjs`) → `Array<{type:'feat', kind:'targetedAction', shape, itemId, slug, name, cost, targetId, summary}>`; `computeTargetedActionVocabularyEntries(actor, opponents, actionsRemaining)` (`dungeon-combat.mjs`, async).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/agent-candidates.test.mjs (append)
@@ -676,12 +687,12 @@ describe('computeTargetedActionVocabularyEntries (#947)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/agent-candidates.test.mjs tests/dungeon-combat-targeted-action-vocabulary.test.mjs -t "targetedAction|#947"`
 Expected: FAIL (neither function exists yet)
 
-- [ ] **Step 3: Implement `buildTargetedActionVocabulary`**
+- [x] **Step 3: Implement `buildTargetedActionVocabulary`**
 
 ```js
 // scripts/agent-candidates.mjs -- new, near buildNpcSelfVocabulary
@@ -694,7 +705,7 @@ export function buildTargetedActionVocabulary({ entries = [] }) {
 }
 ```
 
-- [ ] **Step 4: Implement `computeTargetedActionVocabularyEntries`**
+- [x] **Step 4: Implement `computeTargetedActionVocabularyEntries`**
 
 ```js
 // scripts/dungeon-combat.mjs -- new, near computeReadyNpcSelfAbilities
@@ -741,19 +752,19 @@ export async function computeTargetedActionVocabularyEntries(actor, opponents, a
 }
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/agent-candidates.test.mjs tests/dungeon-combat-targeted-action-vocabulary.test.mjs`
 Expected: PASS
 
-- [ ] **Step 6: Wire into `getPendingAgentTurn`, alongside the existing feat vocabulary block, and into `buildCandidateList`/`runAgentDecisionLoop`'s combined vocabulary array (the same pattern #915/#934 each already extended that same list with — `pending.npcSelfVocabulary?.length` etc. — add `pending.targetedActionVocabulary?.length` to the OR-chain and the array spread)**
+- [x] **Step 6: Wire into `getPendingAgentTurn`, alongside the existing feat vocabulary block, and into `buildCandidateList`/`runAgentDecisionLoop`'s combined vocabulary array (the same pattern #915/#934 each already extended that same list with — `pending.npcSelfVocabulary?.length` etc. — add `pending.targetedActionVocabulary?.length` to the OR-chain and the array spread)**
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add scripts/agent-candidates.mjs scripts/dungeon-combat.mjs tests/agent-candidates.test.mjs tests/dungeon-combat-targeted-action-vocabulary.test.mjs
@@ -772,7 +783,7 @@ git commit -m "feat(#947): targetedAction vocabulary, wired into the once-per-tu
 - Consumes: `applyNpcAbilityCondition` (real, #915), `rollAndApplyStrikeAtVariant` (real), `applyTimedPenalty` (real once #935 lands — **not real yet**; this task builds its own equivalent for the `rollVsTargetDefense` self-bonus landing, since #935's own version is plan-only, flagged the same way as every other cross-plan dependency in this plan).
 - Produces: `executeTargetedActionCandidate(combat, combatant, candidate)`, dispatched from `applyAgentDecision`'s `case "feat"` / `kind === "targetedAction"`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```js
 // tests/dungeon-combat-targeted-action-execution.test.mjs
@@ -810,12 +821,12 @@ describe('executeTargetedActionCandidate -- strikePlus (#947)', () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/dungeon-combat-targeted-action-execution.test.mjs`
 Expected: FAIL with "executeTargetedActionCandidate is not exported"
 
-- [ ] **Step 3: Implement the `targetEffect` and `rollVsTargetDefense` executors (strikePlus's own fly-check needs a planning-time-unconfirmed system read, flagged explicitly rather than guessed — implement it once that's confirmed, following the same shape as the two below)**
+- [x] **Step 3: Implement the `targetEffect` and `rollVsTargetDefense` executors (strikePlus's own fly-check needs a planning-time-unconfirmed system read, flagged explicitly rather than guessed — implement it once that's confirmed, following the same shape as the two below)**
 
 ```js
 // scripts/dungeon-combat.mjs -- new, near executeNpcSelfCandidate
@@ -919,7 +930,7 @@ export async function executeTargetedActionCandidate(combat, combatant, candidat
 }
 ```
 
-- [ ] **Step 4: Wire the dispatch into `applyAgentDecision`**
+- [x] **Step 4: Wire the dispatch into `applyAgentDecision`**
 
 ```js
 // scripts/dungeon-combat.mjs -- applyAgentDecision's dispatch chain:
@@ -930,17 +941,17 @@ export async function executeTargetedActionCandidate(combat, combatant, candidat
   }
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/dungeon-combat-targeted-action-execution.test.mjs -t "targetEffect"`
 Expected: PASS (1 test; the `strikePlus` test stays pending per Step 3's own flagged exception — fill it in once the fly-check is confirmed live, before considering this task done)
 
-- [ ] **Step 6: Run the full suite**
+- [x] **Step 6: Run the full suite**
 
 Run: `npx vitest run`
 Expected: PASS (no regressions)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/dungeon-combat.mjs tests/dungeon-combat-targeted-action-execution.test.mjs
@@ -956,16 +967,16 @@ git commit -m "feat(#947): execute targetEffect and rollVsTargetDefense candidat
 - Create: `tests/feat-action-coverage.test.mjs`
 - Modify: `module.json`
 
-- [ ] **Step 1: Generate the real-population fixture**, scanning `pf2e.feats-srd`, `pf2e.class-features`, every `feats/class/<class>/level-*/` and `actions/class/<class>/` directory for the nine first-slice classes (Investigation findings: the real population lives across all of these, not just the two packs the spec names). For each one-action/free/two/three-action feat with no `selfEffect` that designates a target, record `{name, class, shape: parseTargetedFeat(item)?.shape ?? (findFeatActionOverride(item) ? 'override' : null)}`. Commit as `tests/fixtures/targeted-feat-action-audit.json` with a `counts` summary.
-- [ ] **Step 2: Write `tests/feat-action-coverage.test.mjs`** — the same golden-snapshot-plus-ratchet shape #935 established (`autoCount` read from the committed file, never pre-guessed in this plan given the real figure is not known until the scan runs — same deliberate, flagged exception #935's own Task 6 used). Do **not** assert the spec's own stated 68/69/57/4 split (Review Focus: that number is unverified against this plan's corrected three-shape model and finding 1–4's exclusions).
-- [ ] **Step 3: Run the test suite**
+- [x] **Step 1: Generate the real-population fixture**, scanning `pf2e.feats-srd`, `pf2e.class-features`, every `feats/class/<class>/level-*/` and `actions/class/<class>/` directory for the nine first-slice classes (Investigation findings: the real population lives across all of these, not just the two packs the spec names). For each one-action/free/two/three-action feat with no `selfEffect` that designates a target, record `{name, class, shape: parseTargetedFeat(item)?.shape ?? (findFeatActionOverride(item) ? 'override' : null)}`. Commit as `tests/fixtures/targeted-feat-action-audit.json` with a `counts` summary.
+- [x] **Step 2: Write `tests/feat-action-coverage.test.mjs`** — the same golden-snapshot-plus-ratchet shape #935 established (`autoCount` read from the committed file, never pre-guessed in this plan given the real figure is not known until the scan runs — same deliberate, flagged exception #935's own Task 6 used). Do **not** assert the spec's own stated 68/69/57/4 split (Review Focus: that number is unverified against this plan's corrected three-shape model and finding 1–4's exclusions).
+- [x] **Step 3: Run the test suite**
 
 Run: `npx vitest run tests/feat-action-coverage.test.mjs`
 Expected: PASS
 
-- [ ] **Step 4: Run the `update-architecture-docs` skill** (three new files: `feat-action-shapes.mjs`, `feat-action-overrides.mjs`, imported by `dungeon-combat.mjs`/`agent-candidates.mjs`)
-- [ ] **Step 5: Bump `module.json`'s version** (minor — check `main`'s current version first)
-- [ ] **Step 6: Commit**
+- [x] **Step 4: Run the `update-architecture-docs` skill** (three new files: `feat-action-shapes.mjs`, `feat-action-overrides.mjs`, imported by `dungeon-combat.mjs`/`agent-candidates.mjs`)
+- (left to the merger, see Implementation notes) **Step 5: Bump `module.json`'s version** (minor — check `main`'s current version first)
+- [x] **Step 6: Commit**
 
 ```bash
 git add tests/fixtures/targeted-feat-action-audit.json tests/feat-action-coverage.test.mjs module.json docs/architecture.md
