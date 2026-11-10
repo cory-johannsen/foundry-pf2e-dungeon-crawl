@@ -398,14 +398,14 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
   - `onDefensiveAdviceCard(message, deps = {}) → Promise<void>` (deps keys: `game`, `log`, `notify(key)`, `raiseAShield`, `sleepFn`, `isModuleCombat`)
   - `defaultDeps()` (internal but exported for tests; see code)
 
-- [ ] **Step 1: Export the two existing helpers**
+- [x] **Step 1: Export the two existing helpers**
 
 In `scripts/dungeon-combat.mjs` change `function isModuleCombat(c) {` to `export function isModuleCombat(c) {`, and `function isMeleeStrikeAction(action) {` to `export function isMeleeStrikeAction(action) {`. No other change.
 
 Run: `npx vitest run tests/dungeon-combat*.test.mjs`
 Expected: PASS (exports are additive).
 
-- [ ] **Step 2: Add the lang strings**
+- [x] **Step 2: Add the lang strings**
 
 In `lang/en.json`, after the `"PF2EDC.Dungeon.Combat.ReactionDisruptedMoveGm"` line, add:
 
@@ -420,7 +420,7 @@ In `lang/en.json`, after the `"PF2EDC.Dungeon.Combat.ReactionDisruptedMoveGm"` l
 Run: `node -e "JSON.parse(require('fs').readFileSync('lang/en.json','utf8')); console.log('ok')"`
 Expected: `ok`
 
-- [ ] **Step 3: Write the failing tests**
+- [x] **Step 3: Write the failing tests**
 
 Create `tests/defensive-advance.test.mjs`:
 
@@ -547,12 +547,12 @@ describe("waitForTrackerLog", () => {
 });
 ```
 
-- [ ] **Step 4: Run the tests to verify they fail**
+- [x] **Step 4: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/defensive-advance.test.mjs`
 Expected: FAIL — cannot resolve `../scripts/defensive-advance.mjs`.
 
-- [ ] **Step 5: Write the implementation**
+- [x] **Step 5: Write the implementation**
 
 Create `scripts/defensive-advance.mjs`:
 
@@ -660,12 +660,12 @@ export async function onDefensiveAdviceCard(message, deps = {}) {
 }
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/defensive-advance.test.mjs tests/defensive-advance-logic.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/defensive-advance.mjs scripts/dungeon-combat.mjs lang/en.json tests/defensive-advance.test.mjs
