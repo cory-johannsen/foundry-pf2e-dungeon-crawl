@@ -686,7 +686,7 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 - Consumes (Task 1): `peekPending`, `consumePending`, `resolveTargetToken`, `validateTarget`, `pickMeleeStrike`, `mapVariantIndex`, `activityHasMoveChild`, `degreeToOutcome`. (Task 2): `pendingDefensiveAdvance`, `waitForTrackerLog`, `defaultDeps`, `trackerLogOf`.
 - Produces: `onDefensiveAdviceMove(tokenDoc, movement, deps = {}, hookArgs = []) → Promise<void>`; `withDialogsSuppressed(game, fn) → Promise<*>` (exported for tests).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/defensive-advance.test.mjs` (the two `import` lines below are additional imports; ESM allows importing from the same module twice):
 
@@ -878,12 +878,12 @@ describe("withDialogsSuppressed", () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/defensive-advance.test.mjs`
 Expected: FAIL — `onDefensiveAdviceMove` / `withDialogsSuppressed` are not exported.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 In `scripts/defensive-advance.mjs`, extend the logic import to:
 
@@ -989,12 +989,12 @@ export async function onDefensiveAdviceMove(tokenDoc, movement, deps = {}, hookA
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/defensive-advance.test.mjs tests/defensive-advance-logic.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/defensive-advance.mjs tests/defensive-advance.test.mjs

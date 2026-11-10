@@ -20,7 +20,8 @@ import {
 import { areHostile } from "./force-hostility.mjs";
 import {
   TRACKER_NAMESPACE, isDefensiveAdvanceMessage, createPendingStore, armPending,
-  logHasMessage,
+  peekPending, consumePending, resolveTargetToken, validateTarget, pickMeleeStrike,
+  mapVariantIndex, logHasMessage, activityHasMoveChild, degreeToOutcome,
 } from "./defensive-advance-logic.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -44,6 +45,7 @@ export function defaultDeps() {
     chebyshevSquares,
     actionReachSquares,
     areHostile,
+    withDialogsSuppressed: (g, fn) => withDialogsSuppressed(g, fn),
   };
 }
 
@@ -97,5 +99,95 @@ export async function onDefensiveAdviceCard(message, deps = {}) {
     await d.raiseAShield({ actors: [mover.actor] });
   } catch (err) {
     d.log.error?.(`${TAG} Defensive Advance feat handler failed:`, err?.message ?? err);
+  }
+}
+
+/**
+ * Runs `fn` with this user's PF2e check/damage roll dialogs off, restoring
+ * the previous values afterwards (the same per-user flag toggle
+ * rollAndApplyStrike uses; a player may update their own user flags).
+ */
+export async function withDialogsSuppressed(game, fn) {
+  const settings = game.user.flags?.pf2e?.settings ?? {};
+  const prevCheck = settings.showCheckDialogs;
+  const prevDamage = settings.showDamageDialogs;
+  await game.user.update({
+    "flags.pf2e.settings.showCheckDialogs": false,
+    "flags.pf2e.settings.showDamageDialogs": false,
+  });
+  try {
+    return await fn();
+  } finally {
+    await game.user.update({
+      "flags.pf2e.settings.showCheckDialogs": prevCheck,
+      "flags.pf2e.settings.showDamageDialogs": prevDamage,
+    });
+  }
+}
+
+/**
+ * moveToken: the first completed movement of a token with a pending
+ * Defensive Advance ends the Stride. If the one targeted enemy is then in
+ * melee reach, roll a melee Strike at it exactly as the player would
+ * (attack, then damage on a hit); handleManualStrikeDamage applies the
+ * damage. `hookArgs` are the moveToken arguments after (tokenDoc, movement);
+ * if one is a User other than the local user, the move is not ours and the
+ * pending state is left alone. Never throws.
+ */
+export async function onDefensiveAdviceMove(tokenDoc, movement, deps = {}, hookArgs = []) {
+  const d = { ...defaultDeps(), ...deps };
+  try {
+    if (!peekPending(pendingDefensiveAdvance, tokenDoc?.id)) return;
+    const actingUser = hookArgs.find((a) => a && typeof a === "object" && "isGM" in a);
+    if (actingUser && actingUser.id !== d.game.user?.id) return;
+    if (!["dragging", "keyboard"].includes(movement?.method)) return;
+    const waypoints = movement.passed?.waypoints ?? [];
+    if (!waypoints.length) return;
+    if (waypoints.some((w) => w?.action === "displace" || w?.action === "blink")) return;
+
+    const pending = consumePending(pendingDefensiveAdvance, tokenDoc.id);
+    const combat = d.game.combats?.get(pending.combatId);
+    if (!combat || combat.round !== pending.round || combat.combatant?.id !== pending.combatantId) return;
+    const mover = combat.combatants.get(pending.combatantId);
+    if (!mover || mover.isDefeated) return;
+
+    const targeted = resolveTargetToken(d.game.user?.targets);
+    if (!targeted.ok) return d.notify(`${LANG}.TargetOne`);
+    const targetDoc = targeted.token.document ?? targeted.token;
+    const target = combat.combatants.find((c) => c.tokenId === targetDoc.id);
+    const verdict = validateTarget({
+      targetCombatant: target,
+      moverCombatant: mover,
+      hostile: !!target && d.areHostile(combat, mover, target),
+    });
+    if (!verdict.ok) return d.notify(`${LANG}.TargetInvalid`);
+
+    const gridSize = combat.scene?.grid?.size ?? 100;
+    const gridDistanceFt = combat.scene?.grid?.distance ?? 5;
+    const distance = d.chebyshevSquares(tokenDoc, target.token, gridSize);
+    const strike = pickMeleeStrike(mover.actor?.system?.actions, distance, {
+      reachOf: (a) => d.actionReachSquares(a, gridDistanceFt),
+      isMelee: d.isMeleeStrikeAction,
+    });
+    if (!strike) return; // out of reach is normal after a short Stride; the Strike is optional
+
+    // The tracker logs the Stride through an async GM socket call; let it land
+    // first so the Strike is absorbed as the activity's third child.
+    await waitForTrackerLog(mover, (log) => activityHasMoveChild(log, pending.featMessageId), { sleepFn: d.sleepFn });
+
+    const log = trackerLogOf(mover);
+    let variantIndex = 0;
+    if (Array.isArray(log)) variantIndex = mapVariantIndex(log);
+    else d.notify(`${LANG}.MapUnknown`);
+    const variant = strike.variants[Math.min(variantIndex, strike.variants.length - 1)];
+
+    const targetRef = { document: target.token };
+    await d.withDialogsSuppressed(d.game, async () => {
+      const roll = await variant.roll({ target: targetRef, createMessage: true, skipDialog: true });
+      const outcome = degreeToOutcome(roll?.degreeOfSuccess ?? roll?.options?.degreeOfSuccess);
+      if (outcome) await strike.damage({ target: targetRef, outcome, createMessage: true });
+    });
+  } catch (err) {
+    d.log.error?.(`${TAG} Defensive Advance Strike failed:`, err?.message ?? err);
   }
 }
