@@ -50,7 +50,7 @@ On the **author's own client** only (`message.author?.isSelf`; a player's client
 
 ### 2. Raise the shield
 
-Always invoke `game.pf2e.actions.raiseAShield({ actors: [actor] })`, even if the shield is already raised, because the tracker is waiting on a `raise-a-shield` child (a no-op in effect, still one chat message for the tracker). If the actor has no shield (`actor.heldShield` is null), skip it and whisper the player a note; the Strike automation still arms.
+Call `game.pf2e.actions.raiseAShield({ actors: [actor] })` only when the actor holds a shield that is not already raised. **The system action is a toggle**: if the Raise a Shield effect already exists it deletes the effect (lowers the shield) and posts nothing, so it must never be called on a raised shield. If the shield is already raised, or the actor has no shield (`actor.heldShield` is null), skip the raise and show the player a local notice; the Strike automation still arms. (If the shield was raised earlier this turn the tracker will not see a fresh `raise-a-shield` child, and the player pays for that action as they already did; this module does not paper over it.)
 
 **Ordering race.** The tracker records the feat card through an async socket call to the GM, so a shield message posted immediately may be evaluated before the activity exists. Before raising, wait (poll, short interval, ~2 s cap) until the combatant's tracker log (`flags["pf2e-auto-action-tracker"].log`) contains an entry whose `msgId` is the feat card; on timeout, raise anyway and log a console warning.
 
@@ -83,11 +83,13 @@ No step may throw into the hook. Each failure posts one console error with the `
 
 ## Verified at the start of the plan
 
-These were not provable from source alone and are the plan's first task, each with a stated fallback:
+These were not all provable from source alone; the first is confirmed in the final live check, with a stated fallback:
 
-1. `moveToken` fires on the mover's own client and exposes the acting user. Fallback: `updateToken` plus a position comparison.
-2. `raiseAShield` on an already-raised shield posts a message the tracker logs as `raise-a-shield` without erroring or duplicating the effect. Fallback: remove the effect first, then re-raise.
-3. A Strike rolled from the player's client with `skipDialog`-equivalent options does not open the PF2e roll dialog.
+1. `moveToken` fires on the mover's own client. The handler is written not to depend on the answer: pending state is client-local, so only the arming client ever acts, and an acting user that is present in the hook arguments and is not the local user is ignored. If the hook does not fire on the player's client, the fallback is `updateToken` plus a position comparison.
+2. ~~`raiseAShield` on an already-raised shield~~ — resolved from the system source: it is a toggle (see "Raise the shield"), so the module never calls it on a raised shield.
+3. ~~Roll dialogs~~ — resolved from the system source: check rolls accept `skipDialog`; damage dialogs are suppressed with the same per-user `showDamageDialogs` flag toggle `rollAndApplyStrike` already uses.
+
+**Stride ordering race (added with the plan).** The tracker records a Stride through the same async GM socket path as the feat card, so a Strike posted the instant the movement ends could be evaluated before the Stride is logged. Before rolling, wait (same bounded poll as the shield wait) until the Defensive Advance activity in the tracker log shows a claimed move child; on timeout, roll anyway.
 
 ## Out of scope
 
