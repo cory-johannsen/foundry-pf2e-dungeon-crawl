@@ -627,7 +627,7 @@ export function getCombatForRoom(scene, slot) {
   );
 }
 
-function isModuleCombat(c) {
+export function isModuleCombat(c) {
   return (
     c.getFlag(MODULE_ID, "dungeonSlot") != null ||
     c.getFlag(MODULE_ID, "encounterId") != null
@@ -4231,7 +4231,7 @@ export function computeTargetedActionVocabularyEntries(actor, opponents, turnSta
 /** #910: whether a strike action is a melee one -- the same "finite
  * positive range increment means ranged" rule actionReachSquares uses
  * (number on PC weapons, `{increment}` on NPC items). */
-function isMeleeStrikeAction(action) {
+export function isMeleeStrikeAction(action) {
   const range = action?.item?.system?.range;
   const increment = typeof range === "number" ? range : range?.increment;
   if (Number.isFinite(increment) && increment > 0) return false;

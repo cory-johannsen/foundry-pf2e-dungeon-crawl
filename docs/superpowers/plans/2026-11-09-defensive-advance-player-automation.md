@@ -64,7 +64,7 @@
   - `logHasMessage(log, msgId) → boolean`, `activityHasMoveChild(log, featMsgId) → boolean`
   - `degreeToOutcome(degree) → "criticalSuccess" | "success" | null`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/defensive-advance-logic.test.mjs`:
 
@@ -227,12 +227,12 @@ describe("degreeToOutcome", () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/defensive-advance-logic.test.mjs`
 Expected: FAIL — cannot resolve `../scripts/defensive-advance-logic.mjs`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `scripts/defensive-advance-logic.mjs`:
 
@@ -365,12 +365,12 @@ export function degreeToOutcome(degree) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/defensive-advance-logic.test.mjs`
 Expected: PASS (all describe blocks green).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/defensive-advance-logic.mjs tests/defensive-advance-logic.test.mjs
@@ -398,14 +398,14 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
   - `onDefensiveAdviceCard(message, deps = {}) → Promise<void>` (deps keys: `game`, `log`, `notify(key)`, `raiseAShield`, `sleepFn`, `isModuleCombat`)
   - `defaultDeps()` (internal but exported for tests; see code)
 
-- [ ] **Step 1: Export the two existing helpers**
+- [x] **Step 1: Export the two existing helpers**
 
 In `scripts/dungeon-combat.mjs` change `function isModuleCombat(c) {` to `export function isModuleCombat(c) {`, and `function isMeleeStrikeAction(action) {` to `export function isMeleeStrikeAction(action) {`. No other change.
 
 Run: `npx vitest run tests/dungeon-combat*.test.mjs`
 Expected: PASS (exports are additive).
 
-- [ ] **Step 2: Add the lang strings**
+- [x] **Step 2: Add the lang strings**
 
 In `lang/en.json`, after the `"PF2EDC.Dungeon.Combat.ReactionDisruptedMoveGm"` line, add:
 
@@ -420,7 +420,7 @@ In `lang/en.json`, after the `"PF2EDC.Dungeon.Combat.ReactionDisruptedMoveGm"` l
 Run: `node -e "JSON.parse(require('fs').readFileSync('lang/en.json','utf8')); console.log('ok')"`
 Expected: `ok`
 
-- [ ] **Step 3: Write the failing tests**
+- [x] **Step 3: Write the failing tests**
 
 Create `tests/defensive-advance.test.mjs`:
 
@@ -547,12 +547,12 @@ describe("waitForTrackerLog", () => {
 });
 ```
 
-- [ ] **Step 4: Run the tests to verify they fail**
+- [x] **Step 4: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/defensive-advance.test.mjs`
 Expected: FAIL — cannot resolve `../scripts/defensive-advance.mjs`.
 
-- [ ] **Step 5: Write the implementation**
+- [x] **Step 5: Write the implementation**
 
 Create `scripts/defensive-advance.mjs`:
 
@@ -660,12 +660,12 @@ export async function onDefensiveAdviceCard(message, deps = {}) {
 }
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/defensive-advance.test.mjs tests/defensive-advance-logic.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/defensive-advance.mjs scripts/dungeon-combat.mjs lang/en.json tests/defensive-advance.test.mjs
@@ -686,7 +686,7 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 - Consumes (Task 1): `peekPending`, `consumePending`, `resolveTargetToken`, `validateTarget`, `pickMeleeStrike`, `mapVariantIndex`, `activityHasMoveChild`, `degreeToOutcome`. (Task 2): `pendingDefensiveAdvance`, `waitForTrackerLog`, `defaultDeps`, `trackerLogOf`.
 - Produces: `onDefensiveAdviceMove(tokenDoc, movement, deps = {}, hookArgs = []) → Promise<void>`; `withDialogsSuppressed(game, fn) → Promise<*>` (exported for tests).
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/defensive-advance.test.mjs` (the two `import` lines below are additional imports; ESM allows importing from the same module twice):
 
@@ -878,12 +878,12 @@ describe("withDialogsSuppressed", () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/defensive-advance.test.mjs`
 Expected: FAIL — `onDefensiveAdviceMove` / `withDialogsSuppressed` are not exported.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 In `scripts/defensive-advance.mjs`, extend the logic import to:
 
@@ -989,12 +989,12 @@ export async function onDefensiveAdviceMove(tokenDoc, movement, deps = {}, hookA
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/defensive-advance.test.mjs tests/defensive-advance-logic.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/defensive-advance.mjs tests/defensive-advance.test.mjs
@@ -1017,7 +1017,7 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 - Consumes (Tasks 1-3): `clearPendingWhere`, `pendingDefensiveAdvance`, `onDefensiveAdviceCard`, `onDefensiveAdviceMove`.
 - Produces: `clearDefensiveAdvanceForCombat(combat) → number`; `onDefensiveAdviceCombatUpdate(combat, changes) → number`; `registerDefensiveAdvanceHooks(hooks = globalThis.Hooks) → void`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/defensive-advance.test.mjs` (add one more `import { clearDefensiveAdvanceForCombat, onDefensiveAdviceCombatUpdate, registerDefensiveAdvanceHooks } from "../scripts/defensive-advance.mjs";` line):
 
@@ -1051,12 +1051,12 @@ describe("registerDefensiveAdvanceHooks", () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/defensive-advance.test.mjs`
 Expected: FAIL — the three functions are not exported.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Add `clearPendingWhere` to the logic import in `scripts/defensive-advance.mjs`, then append:
 
@@ -1095,23 +1095,23 @@ and after the `Hooks.on("createChatMessage", handleManualStrikeDamage);` line:
 registerDefensiveAdvanceHooks();
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/defensive-advance.test.mjs tests/defensive-advance-logic.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Full suite**
+- [x] **Step 5: Full suite**
 
 Run: `npm test`
 Expected: PASS with no new failures. Any pre-existing failure must be reported, not hidden.
 
-- [ ] **Step 6: Architecture docs and version**
+- [x] **Step 6: Architecture docs and version**
 
 Run the `update-architecture-docs` skill (new files `defensive-advance-logic.mjs`, `defensive-advance.mjs`; `module.mjs` and `defensive-advance.mjs` gained imports). Add a short paragraph beside the `combatant-write-relay.mjs` one describing the Defensive Advance automation (#1278).
 
 Then `git fetch origin main`, read `origin/main:module.json`'s `version`, and set `module.json` to the **next unused patch** version (never reuse one).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/defensive-advance.mjs scripts/module.mjs docs/architecture.md module.json tests/defensive-advance.test.mjs

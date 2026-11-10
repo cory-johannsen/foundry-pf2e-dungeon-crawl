@@ -1,0 +1,12 @@
+{
+  "trackerVersion": "0.19.1",
+  "name": "Defensive Advance",
+  "slug": "defensive-advance",
+  "childActions": [
+    { "type": "ACTION", "properties": { "type": "action", "subtype": "raise-a-shield" } },
+    { "type": "OPERATOR", "value": "THEN" },
+    { "type": "ACTION", "properties": { "type": "move", "subtype": "stride" } },
+    { "type": "OPERATOR", "value": "THEN" },
+    { "type": "ACTION", "properties": { "type": "attack", "subtype": "strike", "minOccurrences": 0, "maxOccurrences": 1 } }
+  ]
+}

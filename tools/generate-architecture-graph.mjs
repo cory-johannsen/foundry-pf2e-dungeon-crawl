@@ -106,6 +106,8 @@ const GROUPS = [
         "scripts/antagonize.mjs",
         "scripts/combatant-flag-guard.mjs",
         "scripts/combatant-write-relay.mjs",
+        "scripts/defensive-advance-logic.mjs",
+        "scripts/defensive-advance.mjs",
         "scripts/npc-reactions.mjs",
         "scripts/dungeon-strike-riders.mjs",
         "scripts/dungeon-critical-deck.mjs",
