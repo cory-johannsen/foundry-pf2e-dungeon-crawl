@@ -85,12 +85,13 @@ export async function onDefensiveAdviceCard(message, deps = {}) {
     if (mover.getFlag(MODULE_ID, "agentControlled")) return;
     if (combat.combatant?.id !== mover.id) return;
 
-    await waitForTrackerLog(mover, (log) => logHasMessage(log, message.id), { sleepFn: d.sleepFn });
-
+    // Arm first so a fast drag during the tracker wait still finds it armed.
     armPending(pendingDefensiveAdvance, {
       tokenId: mover.tokenId, combatId: combat.id, combatantId: mover.id,
       round: combat.round, featMessageId: message.id,
     });
+
+    await waitForTrackerLog(mover, (log) => logHasMessage(log, message.id), { sleepFn: d.sleepFn });
 
     const shield = mover.actor?.heldShield;
     if (!shield) return d.notify(`${LANG}.NoShield`);
@@ -185,7 +186,10 @@ export async function onDefensiveAdviceMove(tokenDoc, movement, deps = {}, hookA
     await d.withDialogsSuppressed(d.game, async () => {
       const roll = await variant.roll({ target: targetRef, createMessage: true, skipDialog: true });
       const outcome = degreeToOutcome(roll?.degreeOfSuccess ?? roll?.options?.degreeOfSuccess);
-      if (outcome) await strike.damage({ target: targetRef, outcome, createMessage: true });
+      // PF2e's strike.damage() ignores `outcome` and always rolls as a success;
+      // strike.critical() is the critical-success roll.
+      if (outcome === "criticalSuccess") await strike.critical({ target: targetRef, createMessage: true });
+      else if (outcome === "success") await strike.damage({ target: targetRef, createMessage: true });
     });
   } catch (err) {
     d.log.error?.(`${TAG} Defensive Advance Strike failed:`, err?.message ?? err);

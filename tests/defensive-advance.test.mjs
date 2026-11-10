@@ -45,6 +45,15 @@ describe("onDefensiveAdviceCard", () => {
     });
   });
 
+  it("arms the pending Strike before waiting on the tracker log", async () => {
+    const w = world({ trackerLog: [] });
+    let armedDuringWait;
+    const deps = mkDeps(w, { sleepFn: vi.fn(async () => { armedDuringWait ??= pendingDefensiveAdvance.has("t1"); }) });
+    await onDefensiveAdviceCard(card(), deps);
+    expect(deps.sleepFn).toHaveBeenCalled();
+    expect(armedDuringWait).toBe(true);
+  });
+
   it("never lowers an already-raised shield (raiseAShield is a toggle) but still arms", async () => {
     const w = world({ shield: { isRaised: true } }); const deps = mkDeps(w);
     await onDefensiveAdviceCard(card(), deps);
@@ -127,7 +136,7 @@ function moveWorld({ targets = "one", targetOver = {}, strikeOver = {}, trackerL
   const strike = {
     type: "strike", ready: true, totalModifier: 9, name: "Morningstar",
     variants: [{ roll: vi.fn(async () => ({ degreeOfSuccess: 2 })) }, { roll: vi.fn(async () => ({ degreeOfSuccess: 2 })) }, { roll: vi.fn(async () => ({ degreeOfSuccess: 2 })) }],
-    damage: vi.fn(async () => ({})), ...strikeOver,
+    damage: vi.fn(async () => ({})), critical: vi.fn(async () => ({})), ...strikeOver,
   };
   const featLog = [{
     msgId: "m1", ComplexActionState: { leaves: { s: { type: "move", childActions: [{ msgId: "x" }] } }, orderedActivityChildActions: [] },
@@ -168,21 +177,24 @@ describe("onDefensiveAdviceMove", () => {
     expect(rollArgs.target).toEqual({ document: w.targetCombatant.token });
     expect(rollArgs.createMessage).toBe(true);
     expect(rollArgs.skipDialog).toBe(true);
-    expect(w.strike.damage).toHaveBeenCalledWith({ target: { document: w.targetCombatant.token }, outcome: "success", createMessage: true });
+    expect(w.strike.damage).toHaveBeenCalledWith({ target: { document: w.targetCombatant.token }, createMessage: true });
+    expect(w.strike.critical).not.toHaveBeenCalled();
     expect(pendingDefensiveAdvance.size).toBe(0);
   });
 
-  it("rolls damage as a critical on a critical hit and none on a miss", async () => {
+  it("rolls critical damage (not damage) on a critical hit and neither on a miss", async () => {
     const crit = moveWorld(); arm();
     crit.strike.variants[0].roll = vi.fn(async () => ({ degreeOfSuccess: 3 }));
     await onDefensiveAdviceMove(crit.tokenDoc, move(), crit.deps);
-    expect(crit.strike.damage.mock.calls[0][0].outcome).toBe("criticalSuccess");
+    expect(crit.strike.critical).toHaveBeenCalledWith({ target: { document: crit.targetCombatant.token }, createMessage: true });
+    expect(crit.strike.damage).not.toHaveBeenCalled();
 
     pendingDefensiveAdvance.clear();
     const miss = moveWorld(); arm();
     miss.strike.variants[0].roll = vi.fn(async () => ({ degreeOfSuccess: 1 }));
     await onDefensiveAdviceMove(miss.tokenDoc, move(), miss.deps);
     expect(miss.strike.damage).not.toHaveBeenCalled();
+    expect(miss.strike.critical).not.toHaveBeenCalled();
   });
 
   it("uses the MAP variant from the tracker log", async () => {
