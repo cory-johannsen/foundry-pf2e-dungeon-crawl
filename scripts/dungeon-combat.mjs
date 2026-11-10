@@ -109,6 +109,7 @@ import {
   markAnnotation,
 } from "./targeted-feat-actions.mjs";
 import { parseFeatRequirements } from "./marked-target-requirements.mjs";
+import { rollStrikeDamage } from "./strike-damage.mjs";
 import { parseTargetedFeat, summarizeTargetedFeat } from "./feat-action-shapes.mjs";
 import {
   ANTAGONIZE_FEAT_SLUG,
@@ -5303,7 +5304,7 @@ function strikeSoundContext(strike, target) {
  * 1/2/3, default 1) -- the one "draw + extract damageMultiplier" step
  * shared by both #61 (Strikes, via `drawCriticalCardForStrike` below) and
  * #75 (spell-attack crits, `castAttackSpellAndApplyRoll`). Deliberately
- * does NOT decide how a caller applies the multiplier: `strike.damage()`
+ * does NOT decide how a caller applies the multiplier: `strike.critical()`
  * already pre-doubles on a critical hit, so a Strike only needs an
  * ADDITIONAL scaling on top of that (`.alter(1.5, 0)` for a card's
  * "Triple damage."); `spell.rollDamage()` never pre-doubles, so a spell
@@ -5337,7 +5338,7 @@ async function drawHitCardMultiplier(
  * system).
  *
  * Returns the drawn card's damage multiplier (#61 -- 1/2/3, default 1) so
- * the caller can `.alter()` its own already-in-flight `strike.damage()`
+ * the caller can `.alter()` its own already-in-flight `strike.critical()`
  * roll once it resolves; only ever non-1 on the criticalSuccess/hit-deck
  * branch (a fumble has no damage roll to scale).
  *
@@ -5346,7 +5347,7 @@ async function drawHitCardMultiplier(
  * card only draws on a natural 20 crit / natural 1 fumble
  * (`criticalCardKindFor`); a 10+-margin crit/fumble on any other face, or
  * an unknown face, returns 1 and draws nothing. The caller's own crit
- * damage (strike.damage()'s pre-doubling) is unaffected either way.
+ * damage (strike.critical()'s pre-doubling) is unaffected either way.
  */
 async function drawCriticalCardForStrike(
   outcome,
@@ -5453,7 +5454,7 @@ export async function rollAndApplyStrike(combat, combatant, target) {
         natural,
       );
       if (outcome === "success" || outcome === "criticalSuccess") {
-        const damageRoll = await strike.damage({
+        const damageRoll = await rollStrikeDamage(strike, {
           target: targetRef,
           outcome,
           createMessage: true,
@@ -5462,11 +5463,10 @@ export async function rollAndApplyStrike(combat, combatant, target) {
           // #61: a critical-deck card's own Triple/Double-damage text
           // (e.g. "Disembowel", "Corrosive") is a card-drawn Hit-deck
           // effect, only ever drawn here on outcome === "criticalSuccess"
-          // -- strike.damage() above already applied PF2e's own crit
-          // doubling for that outcome (confirmed live strike.damage(), unlike
-          // spell.rollDamage() -- see #81 -- DOES pre-double on a crit), so a
-          // card's "double damage" (damageMultiplier 2) is already
-          // exactly what that doubling gives -- no extra scaling needed.
+          // -- #1284: on a crit the roll above came from strike.critical() (via
+          // rollStrikeDamage), so PF2e's own doubling is already in it; a
+          // card's "double damage" (damageMultiplier 2) is therefore exactly
+          // that doubling, no extra scaling needed.
           // Only "triple damage" (damageMultiplier 3) needs an
           // ADDITIONAL 1.5x on top of the existing 2x, to reach 3x total
           // rather than stacking to 6x.
@@ -7551,7 +7551,7 @@ async function executeSingleRollMultiAC(combat, combatant, item, descriptor, tar
     if (isHitOutcome(degree)) {
       try {
         const damageRoll = await withDialogsSuppressed(() =>
-          action.action.damage({ target: { document: target.token }, outcome: degree, createMessage: true }),
+          rollStrikeDamage(action.action, { target: { document: target.token }, outcome: degree, createMessage: true }),
         );
         if (damageRoll) {
           await target.actor.applyDamage({ damage: damageRoll, token: target.token, outcome: degree });
@@ -7674,7 +7674,7 @@ async function executeRend(combat, combatant, item, descriptor, target) {
   let text = "no damage";
   try {
     const damageRoll = await withDialogsSuppressed(() =>
-      action.action.damage({ target: { document: target.token }, outcome: "success", createMessage: true }),
+      rollStrikeDamage(action.action, { target: { document: target.token }, outcome: "success", createMessage: true }),
     );
     if (damageRoll) {
       await target.actor.applyDamage({ damage: damageRoll, token: target.token, outcome: "success" });
@@ -7837,7 +7837,7 @@ async function rollAndApplyStrikeAtVariant(
         natural,
       );
       if (outcome === "success" || outcome === "criticalSuccess") {
-        const damageRoll = await strike.damage({
+        const damageRoll = await rollStrikeDamage(strike, {
           target: targetRef,
           outcome,
           createMessage: true,
@@ -7845,7 +7845,7 @@ async function rollAndApplyStrikeAtVariant(
         if (damageRoll) {
           // #61: see rollAndApplyStrike's identical comment -- only
           // "triple damage" needs an extra 1.5x on top of the crit
-          // doubling strike.damage() already applied; "double damage"
+          // doubling strike.critical() already applied (#1284); "double damage"
           // already matches that doubling exactly.
           if (damageMultiplier === 3) {
             await damageRoll.alter(1.5, 0);

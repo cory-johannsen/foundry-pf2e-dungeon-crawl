@@ -422,6 +422,7 @@ describe("#839 triggerTrap strike path is unchanged", () => {
       ready: true,
       variants: [{ roll: vi.fn(async () => {}) }],
       damage: vi.fn(async () => damageRoll),
+      critical: vi.fn(async () => ({ total: 14 })),
     };
     globalThis.game.messages.contents = [{ flags: { pf2e: { context: { outcome: "success" } } } }];
     const h = hazardActor({ actions: [strike], items: [actionItem("Zap", ELECTRIC_LATCH_DESC)] });
@@ -429,10 +430,31 @@ describe("#839 triggerTrap strike path is unchanged", () => {
     const result = await triggerTrap(h, { actor: alice, token });
     expect(result).toBe("success");
     expect(strike.variants[0].roll).toHaveBeenCalledWith({ target: { document: token }, createMessage: true });
-    expect(strike.damage).toHaveBeenCalled();
+    expect(strike.damage).toHaveBeenCalledWith({ target: { document: token }, createMessage: true });
+    expect(strike.critical).not.toHaveBeenCalled();
     expect(alice.applyDamage).toHaveBeenCalledWith({ damage: damageRoll, token, outcome: "success" });
     expect(alice.saves.reflex.roll).not.toHaveBeenCalled();
     expect(created).toHaveLength(0);
+  });
+
+  it("a critical hit rolls strike.critical and applies that roll as a crit", async () => {
+    const alice = actor("p1", "Alice");
+    const critRoll = { total: 14 };
+    const strike = {
+      type: "strike",
+      ready: true,
+      variants: [{ roll: vi.fn(async () => {}) }],
+      damage: vi.fn(async () => ({ total: 7 })),
+      critical: vi.fn(async () => critRoll),
+    };
+    globalThis.game.messages.contents = [{ flags: { pf2e: { context: { outcome: "criticalSuccess" } } }, }];
+    const h = hazardActor({ actions: [strike], items: [actionItem("Zap", ELECTRIC_LATCH_DESC)] });
+    const token = { id: "t" };
+    const result = await triggerTrap(h, { actor: alice, token });
+    expect(result).toBe("criticalSuccess");
+    expect(strike.critical).toHaveBeenCalledWith({ target: { document: token }, createMessage: true });
+    expect(strike.damage).not.toHaveBeenCalled();
+    expect(alice.applyDamage).toHaveBeenCalledWith({ damage: critRoll, token, outcome: "criticalSuccess" });
   });
 });
 

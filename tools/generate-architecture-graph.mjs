@@ -107,6 +107,7 @@ const GROUPS = [
         "scripts/combatant-flag-guard.mjs",
         "scripts/combatant-write-relay.mjs",
         "scripts/defensive-advance-logic.mjs",
+        "scripts/strike-damage.mjs",
         "scripts/defensive-advance.mjs",
         "scripts/vicious-swing-logic.mjs",
         "scripts/vicious-swing.mjs",

@@ -23,6 +23,7 @@ import {
   peekPending, consumePending, resolveTargetToken, validateTarget, pickMeleeStrike,
   mapVariantIndex, clearPendingWhere, logHasMessage, activityHasMoveChild, degreeToOutcome,
 } from "./defensive-advance-logic.mjs";
+import { rollStrikeDamage } from "./strike-damage.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
 const LANG = "PF2EDC.Dungeon.Combat.DefensiveAdvance";
@@ -186,10 +187,7 @@ export async function onDefensiveAdviceMove(tokenDoc, movement, deps = {}, hookA
     await d.withDialogsSuppressed(d.game, async () => {
       const roll = await variant.roll({ target: targetRef, createMessage: true, skipDialog: true });
       const outcome = degreeToOutcome(roll?.degreeOfSuccess ?? roll?.options?.degreeOfSuccess);
-      // PF2e's strike.damage() ignores `outcome` and always rolls as a success;
-      // strike.critical() is the critical-success roll.
-      if (outcome === "criticalSuccess") await strike.critical({ target: targetRef, createMessage: true });
-      else if (outcome === "success") await strike.damage({ target: targetRef, createMessage: true });
+      if (outcome) await rollStrikeDamage(strike, { target: targetRef, outcome, createMessage: true });
     });
   } catch (err) {
     d.log.error?.(`${TAG} Defensive Advance Strike failed:`, err?.message ?? err);
