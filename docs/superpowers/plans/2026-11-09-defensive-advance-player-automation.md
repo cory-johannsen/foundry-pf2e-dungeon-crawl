@@ -64,7 +64,7 @@
   - `logHasMessage(log, msgId) → boolean`, `activityHasMoveChild(log, featMsgId) → boolean`
   - `degreeToOutcome(degree) → "criticalSuccess" | "success" | null`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/defensive-advance-logic.test.mjs`:
 
@@ -227,12 +227,12 @@ describe("degreeToOutcome", () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/defensive-advance-logic.test.mjs`
 Expected: FAIL — cannot resolve `../scripts/defensive-advance-logic.mjs`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Create `scripts/defensive-advance-logic.mjs`:
 
@@ -365,12 +365,12 @@ export function degreeToOutcome(degree) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/defensive-advance-logic.test.mjs`
 Expected: PASS (all describe blocks green).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/defensive-advance-logic.mjs tests/defensive-advance-logic.test.mjs
