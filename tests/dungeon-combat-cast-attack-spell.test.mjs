@@ -102,12 +102,12 @@ function makeTarget() {
 }
 
 function makeDamageRoll(alterCalls) {
-  return {
-    total: 4,
-    alter: async (multiplier, addend) => {
-      alterCalls.push({ multiplier, addend });
-    },
+  const original = { total: 4 };
+  original.alter = async (multiplier, addend) => {
+    alterCalls.push({ multiplier, addend });
+    return { total: 4 * multiplier, altered: true };
   };
+  return original;
 }
 
 describe("castAttackSpellAndApplyRoll critical-deck damage multiplier (#75)", () => {
@@ -122,6 +122,7 @@ describe("castAttackSpellAndApplyRoll critical-deck damage multiplier (#75)", ()
     await castAttackSpellAndApplyRoll(combatant, target, "spell1", "entry1");
 
     expect(alterCalls).toEqual([{ multiplier: 3, addend: 0 }]);
+    expect(target.applyDamageCalls[0].damage).toMatchObject({ altered: true, total: 4 * 3 });
     expect(target.applyDamageCalls).toHaveLength(1);
   });
 
@@ -136,6 +137,7 @@ describe("castAttackSpellAndApplyRoll critical-deck damage multiplier (#75)", ()
     await castAttackSpellAndApplyRoll(combatant, target, "spell1", "entry1");
 
     expect(alterCalls).toEqual([{ multiplier: 3, addend: 0 }]);
+    expect(target.applyDamageCalls[0].damage).toMatchObject({ altered: true, total: 4 * 3 });
   });
 
   it("only doubles for a conditional card when the spell's damage type doesn't match (Corrosive, fire)", async () => {
@@ -149,6 +151,7 @@ describe("castAttackSpellAndApplyRoll critical-deck damage multiplier (#75)", ()
     await castAttackSpellAndApplyRoll(combatant, target, "spell1", "entry1");
 
     expect(alterCalls).toEqual([{ multiplier: 2, addend: 0 }]);
+    expect(target.applyDamageCalls[0].damage).toMatchObject({ altered: true, total: 4 * 2 });
   });
 
   it("applies PF2e's own baseline crit-doubling (#79) when the drawn card carries no multiplier text", async () => {
@@ -162,6 +165,7 @@ describe("castAttackSpellAndApplyRoll critical-deck damage multiplier (#75)", ()
     await castAttackSpellAndApplyRoll(combatant, target, "spell1", "entry1");
 
     expect(alterCalls).toEqual([{ multiplier: 2, addend: 0 }]);
+    expect(target.applyDamageCalls[0].damage).toMatchObject({ altered: true, total: 4 * 2 });
     expect(target.applyDamageCalls).toHaveLength(1);
   });
 
@@ -175,6 +179,7 @@ describe("castAttackSpellAndApplyRoll critical-deck damage multiplier (#75)", ()
     await castAttackSpellAndApplyRoll(combatant, target, "spell1", "entry1");
 
     expect(alterCalls).toEqual([{ multiplier: 2, addend: 0 }]);
+    expect(target.applyDamageCalls[0].damage).toMatchObject({ altered: true, total: 4 * 2 });
     expect(target.applyDamageCalls).toHaveLength(1);
   });
 
@@ -193,6 +198,8 @@ describe("castAttackSpellAndApplyRoll critical-deck damage multiplier (#75)", ()
     await castAttackSpellAndApplyRoll(combatant, target, "spell1", "entry1");
 
     expect(alterCalls).toEqual([]);
+    expect(target.applyDamageCalls[0].damage).toEqual(expect.objectContaining({ total: 4 }));
+    expect(target.applyDamageCalls[0].damage.altered).toBeUndefined();
     expect(ChatMessage.calls).toEqual([]);
     expect(target.applyDamageCalls).toHaveLength(1);
   });
@@ -214,6 +221,7 @@ describe("castAttackSpellAndApplyRoll critical-deck damage multiplier (#75)", ()
 
     expect(ChatMessage.calls).toEqual([]);
     expect(alterCalls).toEqual([{ multiplier: 2, addend: 0 }]);
+    expect(target.applyDamageCalls[0].damage).toMatchObject({ altered: true, total: 4 * 2 });
     expect(target.applyDamageCalls).toHaveLength(1);
   });
 
@@ -234,6 +242,7 @@ describe("castAttackSpellAndApplyRoll critical-deck damage multiplier (#75)", ()
 
     expect(ChatMessage.calls).toEqual([]);
     expect(alterCalls).toEqual([{ multiplier: 2, addend: 0 }]);
+    expect(target.applyDamageCalls[0].damage).toMatchObject({ altered: true, total: 4 * 2 });
   });
 
   it("draws a Fumble card only on a natural-1 critical failure, not a 10+-margin one", async () => {

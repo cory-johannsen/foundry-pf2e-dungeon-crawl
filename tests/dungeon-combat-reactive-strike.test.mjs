@@ -421,12 +421,14 @@ describe("offerReactiveStrikesAgainst", () => {
           : undefined,
     };
     const alterCalls = [];
+    const altered = { total: 6, altered: true };
     const strike = makeStrikeAction({ outcome: "criticalSuccess" });
     strike.item.system.damage = { damageType: "slashing" };
     strike.damage = async () => ({
       total: 4,
       alter: async (multiplier, addend) => {
         alterCalls.push({ multiplier, addend });
+        return altered;
       },
     });
     const mover = makeMoverTarget();
@@ -444,6 +446,7 @@ describe("offerReactiveStrikesAgainst", () => {
     // would stack to 6x.
     expect(alterCalls).toEqual([{ multiplier: 1.5, addend: 0 }]);
     expect(mover.applyDamageCalls).toHaveLength(1);
+    expect(mover.applyDamageCalls[0].damage).toBe(altered);
   });
 
   it("draws no card on a 10+-margin crit (natural 19), leaving PF2e's own crit damage untouched (#976)", async () => {
@@ -462,6 +465,7 @@ describe("offerReactiveStrikesAgainst", () => {
       total: 4,
       alter: async (multiplier, addend) => {
         alterCalls.push({ multiplier, addend });
+        return { total: 99, altered: true };
       },
     });
     const mover = makeMoverTarget();
@@ -473,6 +477,8 @@ describe("offerReactiveStrikesAgainst", () => {
     expect(packReads).toBe(0);
     expect(alterCalls).toEqual([]);
     expect(mover.applyDamageCalls).toHaveLength(1);
+    expect(mover.applyDamageCalls[0].damage.total).toBe(4);
+    expect(mover.applyDamageCalls[0].damage.altered).toBeUndefined();
     expect(mover.applyDamageCalls[0]).toMatchObject({ outcome: "criticalSuccess" });
   });
 
