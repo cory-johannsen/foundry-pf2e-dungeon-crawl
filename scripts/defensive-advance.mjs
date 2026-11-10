@@ -21,7 +21,7 @@ import { areHostile } from "./force-hostility.mjs";
 import {
   TRACKER_NAMESPACE, isDefensiveAdvanceMessage, createPendingStore, armPending,
   peekPending, consumePending, resolveTargetToken, validateTarget, pickMeleeStrike,
-  mapVariantIndex, logHasMessage, activityHasMoveChild, degreeToOutcome,
+  mapVariantIndex, clearPendingWhere, logHasMessage, activityHasMoveChild, degreeToOutcome,
 } from "./defensive-advance-logic.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -190,4 +190,23 @@ export async function onDefensiveAdviceMove(tokenDoc, movement, deps = {}, hookA
   } catch (err) {
     d.log.error?.(`${TAG} Defensive Advance Strike failed:`, err?.message ?? err);
   }
+}
+
+/** Drop every pending Strike belonging to `combat` (turn over / combat gone). */
+export function clearDefensiveAdvanceForCombat(combat) {
+  return clearPendingWhere(pendingDefensiveAdvance, (e) => e.combatId === combat?.id);
+}
+
+/** updateCombat: any turn or round change ends an unspent Defensive Advance. */
+export function onDefensiveAdviceCombatUpdate(combat, changes) {
+  if (!changes || !("turn" in changes || "round" in changes)) return 0;
+  return clearDefensiveAdvanceForCombat(combat);
+}
+
+/** Registers the four hooks. Wrapped so Foundry's extra hook arguments never become `deps`. */
+export function registerDefensiveAdvanceHooks(hooks = globalThis.Hooks) {
+  hooks.on("createChatMessage", (message) => onDefensiveAdviceCard(message));
+  hooks.on("moveToken", (tokenDoc, movement, ...rest) => onDefensiveAdviceMove(tokenDoc, movement, {}, rest));
+  hooks.on("updateCombat", (combat, changes) => onDefensiveAdviceCombatUpdate(combat, changes));
+  hooks.on("deleteCombat", (combat) => clearDefensiveAdvanceForCombat(combat));
 }

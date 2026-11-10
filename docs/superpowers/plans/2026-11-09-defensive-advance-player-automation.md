@@ -1017,7 +1017,7 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 - Consumes (Tasks 1-3): `clearPendingWhere`, `pendingDefensiveAdvance`, `onDefensiveAdviceCard`, `onDefensiveAdviceMove`.
 - Produces: `clearDefensiveAdvanceForCombat(combat) → number`; `onDefensiveAdviceCombatUpdate(combat, changes) → number`; `registerDefensiveAdvanceHooks(hooks = globalThis.Hooks) → void`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/defensive-advance.test.mjs` (add one more `import { clearDefensiveAdvanceForCombat, onDefensiveAdviceCombatUpdate, registerDefensiveAdvanceHooks } from "../scripts/defensive-advance.mjs";` line):
 
@@ -1051,12 +1051,12 @@ describe("registerDefensiveAdvanceHooks", () => {
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/defensive-advance.test.mjs`
 Expected: FAIL — the three functions are not exported.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 Add `clearPendingWhere` to the logic import in `scripts/defensive-advance.mjs`, then append:
 
@@ -1095,23 +1095,23 @@ and after the `Hooks.on("createChatMessage", handleManualStrikeDamage);` line:
 registerDefensiveAdvanceHooks();
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `npx vitest run tests/defensive-advance.test.mjs tests/defensive-advance-logic.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Full suite**
+- [x] **Step 5: Full suite**
 
 Run: `npm test`
 Expected: PASS with no new failures. Any pre-existing failure must be reported, not hidden.
 
-- [ ] **Step 6: Architecture docs and version**
+- [x] **Step 6: Architecture docs and version**
 
 Run the `update-architecture-docs` skill (new files `defensive-advance-logic.mjs`, `defensive-advance.mjs`; `module.mjs` and `defensive-advance.mjs` gained imports). Add a short paragraph beside the `combatant-write-relay.mjs` one describing the Defensive Advance automation (#1278).
 
 Then `git fetch origin main`, read `origin/main:module.json`'s `version`, and set `module.json` to the **next unused patch** version (never reuse one).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/defensive-advance.mjs scripts/module.mjs docs/architecture.md module.json tests/defensive-advance.test.mjs

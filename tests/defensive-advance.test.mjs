@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   onDefensiveAdviceCard, pendingDefensiveAdvance, waitForTrackerLog,
+  clearDefensiveAdvanceForCombat, onDefensiveAdviceCombatUpdate, registerDefensiveAdvanceHooks,
 } from "../scripts/defensive-advance.mjs";
 import { TRACKER_NAMESPACE } from "../scripts/defensive-advance-logic.mjs";
 
@@ -302,5 +303,33 @@ describe("withDialogsSuppressed", () => {
     const game = { user: { flags: { pf2e: { settings: { showCheckDialogs: true, showDamageDialogs: false } } }, update } };
     await expect(withDialogsSuppressed(game, async () => { throw new Error("x"); })).rejects.toThrow("x");
     expect(update).toHaveBeenLastCalledWith({ "flags.pf2e.settings.showCheckDialogs": true, "flags.pf2e.settings.showDamageDialogs": false });
+  });
+});
+
+describe("lifecycle clearing", () => {
+  it("a turn or round change clears that combat's pending state only", () => {
+    arm({ tokenId: "a", combatId: "k1" }); arm({ tokenId: "b", combatId: "k2" });
+    expect(onDefensiveAdviceCombatUpdate({ id: "k1" }, { turn: 3 })).toBe(1);
+    expect([...pendingDefensiveAdvance.keys()]).toEqual(["b"]);
+  });
+  it("a round change clears too; an unrelated update does not", () => {
+    arm({ tokenId: "a", combatId: "k1" });
+    expect(onDefensiveAdviceCombatUpdate({ id: "k1" }, { scene: "x" })).toBe(0);
+    expect(onDefensiveAdviceCombatUpdate({ id: "k1" }, { round: 4 })).toBe(1);
+  });
+  it("deleting a combat clears its pending state", () => {
+    arm({ tokenId: "a", combatId: "k1" });
+    expect(clearDefensiveAdvanceForCombat({ id: "k1" })).toBe(1);
+    expect(pendingDefensiveAdvance.size).toBe(0);
+  });
+});
+
+describe("registerDefensiveAdvanceHooks", () => {
+  it("registers the four hooks; the card hook does not pass hook options in as deps", async () => {
+    const handlers = {};
+    registerDefensiveAdvanceHooks({ on: (name, fn) => { handlers[name] = fn; } });
+    expect(Object.keys(handlers).sort()).toEqual(["createChatMessage", "deleteCombat", "moveToken", "updateCombat"]);
+    // createChatMessage passes (message, options, userId): options must not be read as deps.
+    await expect(handlers.createChatMessage({ flags: {} }, { game: "NOT-A-GAME" }, "u1")).resolves.toBeUndefined();
   });
 });

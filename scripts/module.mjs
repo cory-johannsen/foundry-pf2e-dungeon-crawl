@@ -91,6 +91,7 @@ import {
 import { subtractXpOnLevelUp } from "./dungeon-leveling.mjs";
 import { preserveCombatantFlagNamespaces } from "./combatant-flag-guard.mjs";
 import { onPreUpdateCombatantRelay, registerCombatantWriteRelay } from "./combatant-write-relay.mjs";
+import { registerDefensiveAdvanceHooks } from "./defensive-advance.mjs";
 import {
   followLeaderIfDue,
   followLeaderOnDoorOpened,
@@ -833,6 +834,10 @@ Hooks.on("moveToken", (tokenDoc, movement) => handleTokenMoveForReactions(tokenD
  * roll's own already-correct target, instead of relying on PF2e's own
  * manual "Apply Damage" button (which resolves from live selection state). */
 Hooks.on("createChatMessage", handleManualStrikeDamage);
+
+/** #1278: a player's Defensive Advance raises their shield and auto-Strikes
+ * the targeted enemy when the first movement ends in melee reach. */
+registerDefensiveAdvanceHooks();
 
 /** #616: remove the Stealth display conditions this module applied and the
  * detection flags when a combat ends (active GM only, so it runs once). */
