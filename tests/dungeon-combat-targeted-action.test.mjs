@@ -110,6 +110,7 @@ function strike(slug, { outcome = "success", traits = [], damageType = "slashing
     });
   }
   s.damage = vi.fn(async () => ({ total: 7, alter: async () => ({ total: 14 }) }));
+  s.critical = vi.fn(async (...a) => s.damage(...a));
   return s;
 }
 

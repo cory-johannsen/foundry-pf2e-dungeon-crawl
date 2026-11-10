@@ -175,7 +175,7 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 - Consumes (Task 1): `rollStrikeDamage(strike, { target, outcome, createMessage })`.
 - Produces: no new exports.
 
-- [ ] **Step 1: Write the failing guard test**
+- [x] **Step 1: Write the failing guard test**
 
 Create `tests/strike-damage-guard.test.mjs`:
 
@@ -211,7 +211,7 @@ describe("no strike.damage({ outcome }) calls (#1284)", () => {
 });
 ```
 
-- [ ] **Step 2: Write the failing crit assertions**
+- [x] **Step 2: Write the failing crit assertions**
 
 (a) In `tests/helpers/feat-execution-fixture.mjs` `makeStrike`, add a `critical` next to `damage`:
 
@@ -309,12 +309,12 @@ and add a second `it` in that describe:
   });
 ```
 
-- [ ] **Step 3: Run the tests to verify they fail**
+- [x] **Step 3: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/strike-damage-guard.test.mjs tests/dungeon-combat-npc-strike-execution.test.mjs tests/trap-combat-basic-save-trigger.test.mjs tests/dungeon-combat-strike-reach.test.mjs`
 Expected: FAIL — the guard lists `dungeon-combat.mjs` (4 sites incl. Rend) and `trap-combat.mjs`; the Wide Swing, trap crit and `rollAndApplyStrike` crit tests fail because `critical` is never called.
 
-- [ ] **Step 4: Route the call sites through the helper**
+- [x] **Step 4: Route the call sites through the helper**
 
 Add `import { rollStrikeDamage } from "./strike-damage.mjs";` beside the other relative imports in each of `scripts/dungeon-combat.mjs`, `scripts/trap-combat.mjs`, `scripts/defensive-advance.mjs`.
 
@@ -381,7 +381,7 @@ with
       if (outcome) await rollStrikeDamage(strike, { target: targetRef, outcome, createMessage: true });
 ```
 
-- [ ] **Step 5: Correct the misleading #61 comments in `dungeon-combat.mjs`**
+- [x] **Step 5: Correct the misleading #61 comments in `dungeon-combat.mjs`**
 
 Near 5465-5470 (inside `rollAndApplyStrike`) replace the sentence claiming `strike.damage()` "already applied PF2e's own crit doubling ... (confirmed live strike.damage(), unlike spell.rollDamage() -- see #81 -- DOES pre-double on a crit)" with:
 
@@ -394,21 +394,21 @@ Near 5465-5470 (inside `rollAndApplyStrike`) replace the sentence claiming `stri
 
 Near 7848 (`rollAndApplyStrikeAtVariant`) replace "the crit doubling strike.damage() already applied" with "the crit doubling strike.critical() already applied (#1284)". Near 5340-5349 (the doc block that says `strike.damage()`'s pre-doubling) replace each `strike.damage()` with `strike.critical()` where it describes the doubled crit roll, keeping the rest of the text.
 
-- [ ] **Step 6: Run the focused tests**
+- [x] **Step 6: Run the focused tests**
 
 Run: `npx vitest run tests/strike-damage.test.mjs tests/strike-damage-guard.test.mjs tests/dungeon-combat-npc-strike-execution.test.mjs tests/trap-combat-basic-save-trigger.test.mjs tests/dungeon-combat-strike-reach.test.mjs tests/defensive-advance.test.mjs`
 Expected: PASS. If the Rend test (`"Rend: ... deals the claw's damage again"`) or any test asserting `damage` was called with an `outcome` key fails, change that assertion to the new argument shape `{ target, createMessage: true }`; it must not assert `outcome`.
 
-- [ ] **Step 7: Full suite, fix fakes**
+- [x] **Step 7: Full suite, fix fakes**
 
 Run: `npm test`
 Expected: PASS. For any failure of the form "strike.critical is not a function" in a test whose strike fake defines `damage`, add `critical` to that fake mirroring its `damage` (known: `tests/dungeon-combat-targeted-action.test.mjs` ~112, `tests/dungeon-combat-reactive-strike.test.mjs` ~307, `tests/dungeon-combat-npc-reactions.test.mjs` ~93, `tests/dungeon-combat-stealth-targeting.test.mjs` ~46, `tests/dungeon-combat-stealth-seek.test.mjs` ~54). Change fakes only, never production code or assertions, to get green. Report every fake you touched.
 
-- [ ] **Step 8: Architecture docs and version**
+- [x] **Step 8: Architecture docs and version**
 
 Run the `update-architecture-docs` skill (new import-free file `strike-damage.mjs`; imported by `dungeon-combat.mjs`, `trap-combat.mjs`, `defensive-advance.mjs`). Add `strike-damage.mjs` to the GROUPS table in `tools/generate-architecture-graph.mjs` beside `defensive-advance-logic.mjs` so it does not land in "Other", and add a one-line description in `docs/architecture.md`. Then `git fetch origin main`, read `origin/main:module.json`'s version and set `module.json` to the next unused patch version.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add scripts/ tests/ docs/architecture.md tools/generate-architecture-graph.mjs module.json

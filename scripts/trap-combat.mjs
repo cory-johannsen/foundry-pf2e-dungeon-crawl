@@ -24,6 +24,7 @@ import { actorIdsWithExplorationActivity } from "./stealth-detection.mjs";
 import { applyTrapRoomState, getRunState } from "./dungeon-runner.mjs";
 import { userMayAttemptTrapDisable } from "./dungeon-permissions.mjs";
 import { footprint, isPositionChange } from "./placement.mjs";
+import { rollStrikeDamage } from "./strike-damage.mjs";
 import { blockedEdgesFromWalls, hasLineOfSight, wallBlocksMovement } from "./pathfinding.mjs";
 
 const MODULE_ID = "pf2e-dungeon-crawl";
@@ -189,7 +190,7 @@ export async function triggerTrap(hazardActor, target, deps = {}) {
       const outcome =
         game.messages.contents.at(-1)?.flags?.pf2e?.context?.outcome ?? null;
       if (outcome === "success" || outcome === "criticalSuccess") {
-        const damageRoll = await strike.damage({
+        const damageRoll = await rollStrikeDamage(strike, {
           target: targetRef,
           outcome,
           createMessage: true,

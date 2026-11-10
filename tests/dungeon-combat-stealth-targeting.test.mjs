@@ -44,6 +44,7 @@ function claw() {
     traits: [],
     variants: [{ roll: vi.fn(async () => {}) }],
     damage: vi.fn(async () => null),
+    critical: vi.fn(async () => null),
     item: { slug: "claw", isRanged: false, system: {} },
   };
 }

@@ -220,6 +220,30 @@ describe("rollAndApplyStrike (heuristic) respects reach (#551)", () => {
     expect(claw.variants[0].roll).toHaveBeenCalledTimes(1);
   });
 
+  it("a critical hit rolls strike.critical (doubled), not strike.damage, and applies that roll (#1284)", async () => {
+    const critRoll = { total: 28 };
+    const claw = strikeAction();
+    claw.variants[0].roll = vi.fn(async () => {
+      game.messages.contents.push({
+        flags: { pf2e: { context: { outcome: "criticalSuccess" } } },
+        rolls: [{ total: 30, dice: [{ faces: 20, results: [{ result: 15, active: true }] }] }],
+      });
+    });
+    claw.damage = vi.fn(async () => ({ total: 14 }));
+    claw.critical = vi.fn(async () => critRoll);
+    const me = mk("atk", 0, 0, -1, [claw]);
+    const foe = mk("foe", 1, 0, 1);
+    foe.actor.applyDamage = vi.fn(async () => {});
+    const combat = mkCombat([me, foe], me);
+
+    await rollAndApplyStrike(combat, me, foe);
+
+    expect(claw.critical).toHaveBeenCalledTimes(1);
+    expect(claw.critical.mock.calls[0][0]).toEqual({ target: { document: foe.token }, createMessage: true });
+    expect(claw.damage).not.toHaveBeenCalled();
+    expect(foe.actor.applyDamage).toHaveBeenCalledWith(expect.objectContaining({ damage: critRoll, outcome: "criticalSuccess" }));
+  });
+
   it("picks the ranged strike over melee when the target is 4 squares away", async () => {
     const claw = strikeAction();
     const bow = strikeAction({ slug: "bow", rangeFt: 60 });

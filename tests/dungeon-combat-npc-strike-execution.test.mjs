@@ -58,6 +58,7 @@ function strike(slug, { outcomes = ["success"], total = 25, natural = 12, reach 
     });
   }
   s.damage = vi.fn(async () => ({ total: 7, alter: async () => ({ total: 14 }) }));
+  s.critical = vi.fn(async () => ({ total: 14, alter: async () => ({ total: 28 }) }));
   return s;
 }
 
@@ -302,7 +303,12 @@ describe("npcStrike: reach and multi-target", () => {
     const { combat } = setup({ item, strikes: [greataxe], opponents: [pc, tank], picks: [{ type: "npcStrike", slug: "wide-swing", targetId: "pc" }] });
     await applyAgentDecision(combat, "npc", "npcStrike:ab1:pc,tank", "r");
     // 22 vs AC 30 is a failure; the natural 20 raises it to a hit.
-    expect(greataxe.damage).toHaveBeenCalledWith(expect.objectContaining({ outcome: "success", target: { document: tank.token } }));
+    // pc (AC 18, the primary target) is a critical hit: strike.critical, not strike.damage.
+    expect(greataxe.critical).toHaveBeenCalledTimes(1);
+    expect(greataxe.critical).toHaveBeenCalledWith({ target: { document: pc.token }, createMessage: true });
+    // tank (AC 30) is only a hit: strike.damage, and no outcome argument.
+    expect(greataxe.damage).toHaveBeenCalledTimes(1);
+    expect(greataxe.damage).toHaveBeenCalledWith({ target: { document: tank.token }, createMessage: true });
     expect(tank.actor.applyDamage).toHaveBeenCalledWith(expect.objectContaining({ outcome: "success" }));
     expect(combat.getFlag("pf2e-dungeon-crawl", "agentLog").at(-1).result.text).toBe("pc: critical hit; tank: hit");
   });
@@ -383,7 +389,7 @@ describe("npcStrike: both-hit bundle, Hurl Net, Rend", () => {
     expect(pending.npcStrikeVocabulary).toEqual([expect.objectContaining({ shape: "rend", targetIds: ["pc"] })]);
     claw.damage.mockClear();
     await applyAgentDecision(combat, "npc", "npcStrike:ab1:pc", "r");
-    expect(claw.damage).toHaveBeenCalledWith(expect.objectContaining({ outcome: "success" }));
+    expect(claw.damage).toHaveBeenCalledWith({ target: { document: pc.token }, createMessage: true });
     expect(pc.actor.applyDamage).toHaveBeenLastCalledWith(expect.objectContaining({ outcome: "success" }));
     // Rend is not an attack: the MAP stays where the two claws left it.
     expect(turnState(combat)).toMatchObject({ actionsRemaining: 0, mapIncrement: 2 });

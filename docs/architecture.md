@@ -95,7 +95,7 @@ hostile targeting through it. `antagonize.mjs` (#920, pure, reads the
 same detection states) holds the Antagonize Frightened-floor rules that
 `dungeon-combat.mjs`'s #943 end-of-turn Frightened decay consults; the
 floors themselves live in an actor flag that chat-message, turn-change,
-`deleteItem` and `deleteCombat` hooks create and clear. `combatant-flag-guard.mjs` (#1212, pure, imported by `module.mjs`'s `preUpdateCombatant` hook) keeps this module's combatant flags (`agentControlled`) when a third-party module's non-recursive update would replace the whole `flags` object. `combatant-write-relay.mjs` (#1254, imported by `module.mjs`) lets a player client's PF2E Automated Action Tracker queue-flag writes (`pendingDamageQueue`, `pendingAttackQueue`) reach the Combatant: a `preUpdateCombatant` hook, registered ahead of the #1212 guard, cancels the server-rejected update and relays it over the module socket to the active GM, who validates the authenticated sender id and actor ownership before `setFlag`. `defensive-advance-logic.mjs` (#1278, pure) and `defensive-advance.mjs` (Foundry glue, imported by `module.mjs`, which calls `registerDefensiveAdvanceHooks()`) automate the Defensive Advance feat for players: the feat chat card raises the shield and arms a per-token pending Strike, and the first qualifying `moveToken` of the armed token spends the pending Strike, and the Strike rolls (through the normal PF2e pipeline) only if the targeted enemy is then in melee reach; turn/round changes and `deleteCombat` clear unspent state. `vicious-swing-logic.mjs` (#1281, pure) and `vicious-swing.mjs` (Foundry glue, imported by `module.mjs`, which calls `registerViciousSwingHooks()`; reuses `defensive-advance-logic.mjs`'s helpers and `defensive-advance.mjs`'s tracker-wait and dialog-suppression helpers) automate the Vicious Swing feat for players: the feat chat card triggers a melee Strike whose damage roll carries the extra weapon dice (a short-lived Effect with a roll-option-gated `DamageDice` rule), and the tracker log is corrected through its GM-side `editAction` socket call so the swing costs 2 actions and counts as 2 attacks. `flanking-indicator.mjs` (#769) is separate from
+`deleteItem` and `deleteCombat` hooks create and clear. `combatant-flag-guard.mjs` (#1212, pure, imported by `module.mjs`'s `preUpdateCombatant` hook) keeps this module's combatant flags (`agentControlled`) when a third-party module's non-recursive update would replace the whole `flags` object. `combatant-write-relay.mjs` (#1254, imported by `module.mjs`) lets a player client's PF2E Automated Action Tracker queue-flag writes (`pendingDamageQueue`, `pendingAttackQueue`) reach the Combatant: a `preUpdateCombatant` hook, registered ahead of the #1212 guard, cancels the server-rejected update and relays it over the module socket to the active GM, who validates the authenticated sender id and actor ownership before `setFlag`. `defensive-advance-logic.mjs` (#1278, pure) and `defensive-advance.mjs` (Foundry glue, imported by `module.mjs`, which calls `registerDefensiveAdvanceHooks()`) automate the Defensive Advance feat for players: the feat chat card raises the shield and arms a per-token pending Strike, and the first qualifying `moveToken` of the armed token spends the pending Strike, and the Strike rolls (through the normal PF2e pipeline) only if the targeted enemy is then in melee reach; turn/round changes and `deleteCombat` clear unspent state. `vicious-swing-logic.mjs` (#1281, pure) and `vicious-swing.mjs` (Foundry glue, imported by `module.mjs`, which calls `registerViciousSwingHooks()`; reuses `defensive-advance-logic.mjs`'s helpers and `defensive-advance.mjs`'s tracker-wait and dialog-suppression helpers) automate the Vicious Swing feat for players: the feat chat card triggers a melee Strike whose damage roll carries the extra weapon dice (a short-lived Effect with a roll-option-gated `DamageDice` rule), and the tracker log is corrected through its GM-side `editAction` socket call so the swing costs 2 actions and counts as 2 attacks. `strike-damage.mjs` (#1284, pure, zero imports; imported by `dungeon-combat.mjs`, `trap-combat.mjs`, `defensive-advance.mjs`) is the one place that rolls a Strike's damage: `rollStrikeDamage` calls `strike.critical()` on a critical hit and `strike.damage()` otherwise, never forwarding `outcome`, which PF2e ignores. `flanking-indicator.mjs` (#769) is separate from
 that turn-taking path: a client-side, write-nothing "Flanked" badge drawn
 on flanked tokens in a started combat, using PF2e's own `Token#isFlanking`.
 Every action `applyAgentDecision` executes is appended to the Combat's
@@ -392,6 +392,7 @@ graph LR
     scripts_self_effect_denylist_mjs["self-effect-denylist.mjs"]
     scripts_self_effect_summary_mjs["self-effect-summary.mjs"]
     scripts_stealth_detection_mjs["stealth-detection.mjs"]
+    scripts_strike_damage_mjs["strike-damage.mjs"]
     scripts_targeted_feat_actions_mjs["targeted-feat-actions.mjs"]
     scripts_vicious_swing_logic_mjs["vicious-swing-logic.mjs"]
     scripts_vicious_swing_mjs["vicious-swing.mjs"]
@@ -479,6 +480,7 @@ graph LR
   scripts_defensive_advance_mjs --> scripts_dungeon_combat_mjs
   scripts_defensive_advance_mjs --> scripts_force_hostility_mjs
   scripts_defensive_advance_mjs --> scripts_defensive_advance_logic_mjs
+  scripts_defensive_advance_mjs --> scripts_strike_damage_mjs
   scripts_dungeon_combat_mjs --> scripts_foundry_api_mjs
   scripts_dungeon_combat_mjs --> scripts_force_hostility_mjs
   scripts_dungeon_combat_mjs --> scripts_dungeon_runner_mjs
@@ -508,6 +510,7 @@ graph LR
   scripts_dungeon_combat_mjs --> scripts_self_effect_summary_mjs
   scripts_dungeon_combat_mjs --> scripts_targeted_feat_actions_mjs
   scripts_dungeon_combat_mjs --> scripts_marked_target_requirements_mjs
+  scripts_dungeon_combat_mjs --> scripts_strike_damage_mjs
   scripts_dungeon_combat_mjs --> scripts_feat_action_shapes_mjs
   scripts_dungeon_combat_mjs --> scripts_antagonize_mjs
   scripts_dungeon_combat_mjs --> scripts_npc_reactions_mjs
@@ -640,6 +643,7 @@ graph LR
   scripts_trap_combat_mjs --> scripts_dungeon_runner_mjs
   scripts_trap_combat_mjs --> scripts_dungeon_permissions_mjs
   scripts_trap_combat_mjs --> scripts_placement_mjs
+  scripts_trap_combat_mjs --> scripts_strike_damage_mjs
   scripts_trap_combat_mjs --> scripts_pathfinding_mjs
   scripts_trap_mechanics_mjs --> scripts_prng_mjs
   scripts_ui_ai_action_detail_mjs --> scripts_ai_action_digest_mjs

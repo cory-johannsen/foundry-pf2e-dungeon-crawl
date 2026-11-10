@@ -68,6 +68,7 @@ export function makeStrike(item, { reach = null } = {}) {
     traits: reach ? [{ name: `reach-${reach}` }] : [],
     variants: [0, 1, 2].map(() => ({ roll: vi.fn(async () => {}) })),
     damage: vi.fn(async () => null),
+    critical: vi.fn(async () => null),
   };
 }
 

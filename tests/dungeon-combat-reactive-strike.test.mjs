@@ -305,6 +305,8 @@ function makeStrikeAction({
       },
     ],
     damage: async () => ({ total: 4 }),
+    // #1284: a crit is rolled via strike.critical(); mirror whatever damage() is stubbed to.
+    critical(...args) { return this.damage(...args); },
   };
 }
 
