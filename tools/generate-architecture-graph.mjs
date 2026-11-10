@@ -108,6 +108,8 @@ const GROUPS = [
         "scripts/combatant-write-relay.mjs",
         "scripts/defensive-advance-logic.mjs",
         "scripts/defensive-advance.mjs",
+        "scripts/vicious-swing-logic.mjs",
+        "scripts/vicious-swing.mjs",
         "scripts/npc-reactions.mjs",
         "scripts/dungeon-strike-riders.mjs",
         "scripts/dungeon-critical-deck.mjs",

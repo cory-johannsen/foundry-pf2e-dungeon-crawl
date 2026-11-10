@@ -92,6 +92,7 @@ import { subtractXpOnLevelUp } from "./dungeon-leveling.mjs";
 import { preserveCombatantFlagNamespaces } from "./combatant-flag-guard.mjs";
 import { onPreUpdateCombatantRelay, registerCombatantWriteRelay } from "./combatant-write-relay.mjs";
 import { registerDefensiveAdvanceHooks } from "./defensive-advance.mjs";
+import { registerViciousSwingHooks } from "./vicious-swing.mjs";
 import {
   followLeaderIfDue,
   followLeaderOnDoorOpened,
@@ -838,6 +839,7 @@ Hooks.on("createChatMessage", handleManualStrikeDamage);
 /** #1278: a player's Defensive Advance raises their shield and auto-Strikes
  * the targeted enemy when the first movement ends in melee reach. */
 registerDefensiveAdvanceHooks();
+registerViciousSwingHooks();
 
 /** #616: remove the Stealth display conditions this module applied and the
  * detection flags when a combat ends (active GM only, so it runs once). */
