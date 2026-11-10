@@ -75,7 +75,7 @@ If `scripts/defensive-advance-logic.mjs` is missing or either function is not ex
   - `findStrikeMessageId(messages, { userId, actorId, sinceMs }) → string | null` (newest message authored by `userId`, speaker actor `actorId`, `flags.pf2e.context.type === "attack-roll"`, `timestamp >= sinceMs`)
   - `sweepableEffectIds(items) → string[]` (ids of items whose `slug === EXTRA_DICE_EFFECT_SLUG`)
 
-- [ ] **Step 1: Write the failing tests** in `tests/vicious-swing-logic.test.mjs`
+- [x] **Step 1: Write the failing tests** in `tests/vicious-swing-logic.test.mjs`
 
 ```js
 // isViciousSwingMessage: accepts the card; rejects another feat, a roll with a context,
@@ -97,19 +97,19 @@ it.each([[1,1],[9,1],[10,2],[17,2],[18,3],[20,3]])("level %i -> %i dice", (l, n)
 
 Write each of the above as real `it(...)` blocks with concrete fixture objects (follow the shape used in `tests/defensive-advance-logic.test.mjs`).
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run tests/vicious-swing-logic.test.mjs`
 Expected: FAIL — cannot resolve `../scripts/vicious-swing-logic.mjs`.
 
-- [ ] **Step 3: Implement the functions above** in `scripts/vicious-swing-logic.mjs`. Zero Foundry globals. `extraDiceCount`: `level >= 18 ? 3 : level >= 10 ? 2 : 1`. The effect's rule must be exactly the one in the test; the rest of the effect source is `{ name: "Vicious Swing (extra dice)", type: "effect", img: "icons/svg/sword.svg", system: { slug, rules: [rule], duration: { value: -1, unit: "unlimited", expiry: null, sustained: false }, tokenIcon: { show: false } } }`.
+- [x] **Step 3: Implement the functions above** in `scripts/vicious-swing-logic.mjs`. Zero Foundry globals. `extraDiceCount`: `level >= 18 ? 3 : level >= 10 ? 2 : 1`. The effect's rule must be exactly the one in the test; the rest of the effect source is `{ name: "Vicious Swing (extra dice)", type: "effect", img: "icons/svg/sword.svg", system: { slug, rules: [rule], duration: { value: -1, unit: "unlimited", expiry: null, sustained: false }, tokenIcon: { show: false } } }`.
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `npx vitest run tests/vicious-swing-logic.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/vicious-swing-logic.mjs tests/vicious-swing-logic.test.mjs
@@ -146,7 +146,7 @@ Handler flow for `onViciousSwingCard` (the order is part of the contract):
 7. `fixTrackerCost({ combatant, cardMsgId: message.id, strikeMsgId }, deps)` — runs for hits **and** misses; skipped only when step 2 or 3 returned early.
 8. Whole handler wrapped in `try/catch` → `console.error("pf2e-dungeon-crawl | #1281:", err)`; the `finally` of step 6 still runs.
 
-- [ ] **Step 1: Write the failing tests** in `tests/vicious-swing.test.mjs` (fake `deps`, fake `game`; same style as `tests/defensive-advance.test.mjs`)
+- [x] **Step 1: Write the failing tests** in `tests/vicious-swing.test.mjs` (fake `deps`, fake `game`; same style as `tests/defensive-advance.test.mjs`)
 
 ```js
 // early exits (no roll, no tracker call, one notify with the given key each):
@@ -172,19 +172,19 @@ Handler flow for `onViciousSwingCard` (the order is part of the contract):
 // sweepExtraDiceEffects: deletes only slug "vicious-swing-extra-dice" items; swallows a delete error
 ```
 
-- [ ] **Step 2: Run to verify it fails**
+- [x] **Step 2: Run to verify it fails**
 
 Run: `npx vitest run tests/vicious-swing.test.mjs`
 Expected: FAIL — cannot resolve `../scripts/vicious-swing.mjs`.
 
-- [ ] **Step 3: Implement** `scripts/vicious-swing.mjs` per the interfaces and flow above. Add the notice keys to `lang/en.json` under a `PF2E_DUNGEON_CRAWL.ViciousSwing` namespace: `target-none`, `target-many`, `target-not-hostile`, `target-defeated`, `target-not-in-combat`, `target-self`, `no-strike-in-reach`, `map-unknown`, `no-weapon-die`, `fix-failed` (the last one whispers the GM: "Vicious Swing: refund 1 action for <actor> by hand"). `deps.socketlib.modules.get(TRACKER_NAMESPACE)` is the tracker's socket; if it is missing, treat as `fix-failed`.
+- [x] **Step 3: Implement** `scripts/vicious-swing.mjs` per the interfaces and flow above. Add the notice keys to `lang/en.json` under a `PF2E_DUNGEON_CRAWL.ViciousSwing` namespace: `target-none`, `target-many`, `target-not-hostile`, `target-defeated`, `target-not-in-combat`, `target-self`, `no-strike-in-reach`, `map-unknown`, `no-weapon-die`, `fix-failed` (the last one whispers the GM: "Vicious Swing: refund 1 action for <actor> by hand"). `deps.socketlib.modules.get(TRACKER_NAMESPACE)` is the tracker's socket; if it is missing, treat as `fix-failed`.
 
-- [ ] **Step 4: Run to verify it passes**
+- [x] **Step 4: Run to verify it passes**
 
 Run: `npx vitest run tests/vicious-swing.test.mjs tests/vicious-swing-logic.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/vicious-swing.mjs lang/en.json tests/vicious-swing.test.mjs
@@ -205,18 +205,18 @@ Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>"
 - Consumes (Task 2): `onViciousSwingCard`, `sweepExtraDiceEffects`.
 - Produces: `registerViciousSwingHooks() → void` — registers `Hooks.on("createChatMessage", m => onViciousSwingCard(m))`, and `Hooks.on("updateCombat", …)` which, when the turn or round changed, calls `sweepExtraDiceEffects` for the previous combatant's actor (owner's client only, i.e. `actor.isOwner`), and `Hooks.once("ready", …)` sweeping the user's owned character actors. Also exports `trackerHasViciousSwingEntry(moduleData) → boolean` used by the guard: when the installed tracker (`game.modules.get(TRACKER_NAMESPACE)`) version's library contains a `vicious-swing` slug, `onViciousSwingCard` returns immediately (the tracker then handles the feat itself) and logs one console warning.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
   - `tests/vicious-swing-tracker-contract.test.mjs`: loads the pinned fixture (a JSON list of the tracker v0.19.1 library slugs copied from `main.js`, verified to contain `defensive-advance` and `penetrating-shot` and NOT `vicious-swing`) and asserts `trackerHasViciousSwingEntry` is `false` for it and `true` for the same list plus `"vicious-swing"`. Also assert the fixture still has `penetrating-shot` (the `mapIncrease2` precedent the spec leans on).
   - In `tests/vicious-swing.test.mjs`: `registerViciousSwingHooks` registers exactly one `createChatMessage` and one `updateCombat` handler; the `updateCombat` handler sweeps only when `turn` or `round` is in the changes and only for an owned actor.
 
-- [ ] **Step 2: Run to verify they fail** — `npx vitest run tests/vicious-swing-tracker-contract.test.mjs tests/vicious-swing.test.mjs` → FAIL (missing exports).
+- [x] **Step 2: Run to verify they fail** — `npx vitest run tests/vicious-swing-tracker-contract.test.mjs tests/vicious-swing.test.mjs` → FAIL (missing exports).
 
-- [ ] **Step 3: Implement** the exports and registration; in `scripts/module.mjs` add `import { registerViciousSwingHooks } from "./vicious-swing.mjs";` and call it next to `registerDefensiveAdvanceHooks()`. Bump `module.json` to the next unused patch version (read `origin/main:module.json` first). Run the `update-architecture-docs` skill and commit its `docs/architecture.md` result.
+- [x] **Step 3: Implement** the exports and registration; in `scripts/module.mjs` add `import { registerViciousSwingHooks } from "./vicious-swing.mjs";` and call it next to `registerDefensiveAdvanceHooks()`. Bump `module.json` to the next unused patch version (read `origin/main:module.json` first). Run the `update-architecture-docs` skill and commit its `docs/architecture.md` result.
 
-- [ ] **Step 4: Run the full suite** — `npm test` → all green (no regressions in `tests/feat-action-coverage.test.mjs`: the AI audit fixture keeps Vicious Swing `notOffered`).
+- [x] **Step 4: Run the full suite** — `npm test` → all green (no regressions in `tests/feat-action-coverage.test.mjs`: the AI audit fixture keeps Vicious Swing `notOffered`).
 
-- [ ] **Step 5: Commit, PR, automerge**
+- [x] **Step 5: Commit, PR, automerge**
 
 ```bash
 git add -A scripts tests docs module.json lang
