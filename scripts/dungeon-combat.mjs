@@ -5307,7 +5307,8 @@ function strikeSoundContext(strike, target) {
  * does NOT decide how a caller applies the multiplier: `strike.critical()`
  * already pre-doubles on a critical hit, so a Strike only needs an
  * ADDITIONAL scaling on top of that (`.alter(1.5, 0)` for a card's
- * "Triple damage."); `spell.rollDamage()` never pre-doubles, so a spell
+ * "Triple damage."). The scaled roll is the value alter() RETURNS (#1289).
+ * `spell.rollDamage()` never pre-doubles, so a spell
  * needs the FULL multiplier applied instead (`.alter(3, 0)`). That math
  * genuinely differs per caller and stays at each call site -- unifying it
  * here would be the wrong kind of "sharing" (deduping code that isn't
@@ -5470,13 +5471,14 @@ export async function rollAndApplyStrike(combat, combatant, target) {
           // Only "triple damage" (damageMultiplier 3) needs an
           // ADDITIONAL 1.5x on top of the existing 2x, to reach 3x total
           // rather than stacking to 6x.
-          if (damageMultiplier === 3) {
-            await damageRoll.alter(1.5, 0);
-          }
+          // #1289: the 1.5x is applied via the roll alter() returns (finalRoll below).
+          // #1289: alter() returns a NEW roll (the original is untouched), so
+          // the scaled roll is what Shield Block and applyDamage must see.
+          const finalRoll = damageMultiplier === 3 ? await damageRoll.alter(1.5, 0) : damageRoll;
           // #931: Shield Block -- the system applies Hardness itself.
-          const shieldBlock = await resolveShieldBlockForHit(combat, combatant, target, damageRoll);
+          const shieldBlock = await resolveShieldBlockForHit(combat, combatant, target, finalRoll);
           await target.actor.applyDamage({
-            damage: damageRoll,
+            damage: finalRoll,
             token: target.token,
             outcome,
             ...(shieldBlock ? { shieldBlockRequest: true } : {}),
@@ -7847,13 +7849,14 @@ async function rollAndApplyStrikeAtVariant(
           // "triple damage" needs an extra 1.5x on top of the crit
           // doubling strike.critical() already applied (#1284); "double damage"
           // already matches that doubling exactly.
-          if (damageMultiplier === 3) {
-            await damageRoll.alter(1.5, 0);
-          }
+          // #1289: the 1.5x is applied via the roll alter() returns (finalRoll below).
+          // #1289: alter() returns a NEW roll (the original is untouched), so
+          // the scaled roll is what Shield Block and applyDamage must see.
+          const finalRoll = damageMultiplier === 3 ? await damageRoll.alter(1.5, 0) : damageRoll;
           // #931: Shield Block -- the system applies Hardness itself.
-          const shieldBlock = await resolveShieldBlockForHit(combat, combatant, target, damageRoll);
+          const shieldBlock = await resolveShieldBlockForHit(combat, combatant, target, finalRoll);
           await target.actor.applyDamage({
-            damage: damageRoll,
+            damage: finalRoll,
             token: target.token,
             outcome,
             ...(shieldBlock ? { shieldBlockRequest: true } : {}),
@@ -8249,11 +8252,10 @@ export async function castAttackSpellAndApplyRoll(
         // applies PF2e's own baseline automatic crit-doubling (2x) as a
         // floor for a crit with no card, or a card with no multiplier text
         // -- this floor is the #79 fix.
-        if (damageMultiplier != null) {
-          await damageRoll.alter(Math.max(damageMultiplier, 2), 0);
-        }
+        // #1289: alter() returns a NEW roll; apply that one.
+        const finalRoll = damageMultiplier != null ? await damageRoll.alter(Math.max(damageMultiplier, 2), 0) : damageRoll;
         await target.actor.applyDamage({
-          damage: damageRoll,
+          damage: finalRoll,
           token: target.token,
           outcome,
         });

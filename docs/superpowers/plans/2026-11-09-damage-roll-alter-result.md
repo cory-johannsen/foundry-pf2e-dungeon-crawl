@@ -49,7 +49,7 @@
 - Consumes: nothing new.
 - Produces: no new exports.
 
-- [ ] **Step 1: Write the failing guard test**
+- [x] **Step 1: Write the failing guard test**
 
 Create `tests/damage-roll-alter-guard.test.mjs`:
 
@@ -95,7 +95,7 @@ describe("DamageRoll.alter() result is never discarded (#1289)", () => {
 });
 ```
 
-- [ ] **Step 2: Update the tests so they fail on the old behaviour**
+- [x] **Step 2: Update the tests so they fail on the old behaviour**
 
 (a) `tests/dungeon-combat-cast-attack-spell.test.mjs` — replace `makeDamageRoll` with a roll whose `alter` returns a distinct altered roll:
 
@@ -148,12 +148,12 @@ and after `expect(alterCalls).toEqual([{ multiplier: 1.5, addend: 0 }]);` add `e
 
 If a test's fakes use different local names than the above, keep the same assertions against that test's own applied-damage list; do not weaken them.
 
-- [ ] **Step 3: Run the tests to verify they fail**
+- [x] **Step 3: Run the tests to verify they fail**
 
 Run: `npx vitest run tests/damage-roll-alter-guard.test.mjs tests/dungeon-combat-cast-attack-spell.test.mjs tests/dungeon-combat-reactive-strike.test.mjs`
 Expected: FAIL. The guard lists `dungeon-combat.mjs` at the three sites; the Triple, spell-crit assertions fail because `applyDamage` got the original roll (no `altered`).
 
-- [ ] **Step 4: Apply the returned roll at the three sites**
+- [x] **Step 4: Apply the returned roll at the three sites**
 
 `scripts/dungeon-combat.mjs`, `rollAndApplyStrike` (~5474). Replace
 
@@ -202,17 +202,17 @@ with
 
 Comments: in the two Strike sites, append to the existing #61 comment a sentence `// #1289: the 1.5x is applied via the roll alter() returns (finalRoll below).`; at the top of the doc block near line 5309 (the `drawHitCardMultiplier` comment), after the sentence ending `... "Triple damage."` add `The scaled roll is the value alter() RETURNS (#1289).`. Do not otherwise reword.
 
-- [ ] **Step 5: Run the focused tests**
+- [x] **Step 5: Run the focused tests**
 
 Run: `npx vitest run tests/damage-roll-alter-guard.test.mjs tests/dungeon-combat-cast-attack-spell.test.mjs tests/dungeon-combat-reactive-strike.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 6: Full suite, fix other fakes**
+- [x] **Step 6: Full suite, fix other fakes**
 
 Run: `npm test`
 Expected: PASS. A test whose fake `alter` returns `undefined` (mutating-style) will now apply `undefined`; for any such failure change the fake to `return { total: <scaled>, altered: true }` and assert the applied roll, never weaken an assertion. Report every test you touched.
 
-- [ ] **Step 7: Version and commit**
+- [x] **Step 7: Version and commit**
 
 `git fetch origin main`, read `origin/main:module.json`'s version and set `module.json` to the next unused patch version. No imports changed, so no architecture-docs update.
 
